@@ -4626,12 +4626,14 @@ places; each is a written file and none was regenerated.
 
 ## Parked by item 2165, 2026-10-14 — chapter sixty-four, the Bark's bit and a player's stance button
 
-(2166) **Chapter sixty-four's word 637, open (ours 6 draws, theirs 10)** (item 2165, `docs/GOLDEN.md` §79,
+(2166) ~~**Chapter sixty-four's word 637, open (ours 6 draws, theirs 10)** (item 2165, `docs/GOLDEN.md` §79,
 run835). The first value parting is block 634, `0/7`'s first target: here the Trireme `1/6`, the nearest; there
 the Bark `1/8`, which has shot `0/7` since 622 from 2,570 units off. Both sides spend `Unit::fight+0x9b0` for
 `0/7` on 634. 2165's hypothesis, not read: the original's idle Bark is handed its attacker (a `target_opportunity`
 or `took_hit` arm) where this crate takes the nearest; which caller hands it `1/8` is the next item's first read.
-Block 635's `0/6` is the same choice (Trireme here, fishing boat there).
+Block 635's `0/6` is the same choice (Trireme here, fishing boat there).~~ **Closed by item 2205**
+(`docs/GOLDEN.md` §80): the hypothesis died on the dump (no hit before 669); `compare_target`'s sea arm and the
+chase's retarget predicate, word 637 → 820.
 
 ## Parked by item 2170, 2026-10-13 — the sweep's fifty-fourth batch
 
@@ -4695,13 +4697,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BE — reserved
+## Parked by item 2205, 2026-10-14 — chapter sixty-four closed: a Bark's round leaves the hull here
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2206) **A Bark's round leaves the hull's own square here and a point 52 up and off it there** (item 2205,
+`docs/GOLDEN.md` §80, run835; names no score — chapter sixty-four is closed at 820 and the draw stream does not see
+it). From block 638 every human Bark round parts on its launch point: `0/6`'s `ammo[3]` `sx` 11640 / 11707, `sy`
+34680 / 34671, `sz` 0 / 52, `total_time` 11 / 10; the landings and wounds follow (647's `1/7` `hits:damage` 4 / 5).
+The 141 rows of `chapter_sixty_four_s_word_frame_is_widened_whole` from 634 on are this family and block 634's
+`1/6` `ammo[2]` (`sx` 12348 / 12349), which stood before. Grep `docs/COMBAT.md` §55 (a pivot piece releases
+through its turret) first: the Bark may carry a release node this crate does not read.
 
 ## Parked by the next landing, slot BF — reserved
 

@@ -1607,7 +1607,13 @@ spellcasters casting at me `+10,000,000`, spies `+6,000,000`; a detected
 hidden unit `/4`; raid weights (citizens and caravans `+9,000,000`, else
 `/10`; the stealth-ship weights); not raiding: combat-role `+1,000,000`, a
 supply wagon `+4,000,000` for a building attacker, else `+100,000`; land siege
-vs a non-sea, non-siege unit `/10,000`; `v /= (T.full + 1)`. A city at zero
+vs a non-sea, non-siege unit `/10,000`; **a sea attacker of the Bark line
+(`is(BARK)`, 0x143) against a sea target: a Trireme-line one (`is(TRIREME)`,
+0x154) `/400`, else a transport (`unit_flags & 0x10`) `×40`** (item 2205,
+`0064f04f`–`0064f0fe`, `imul 0x51eb851f; sar 7` and `lea; shl 3`; run839's
+packet returns 168 for the Trireme `1/6` where the arm-less value is 66,888,
+`docs/GOLDEN.md` §80); `v /= (T.full + 1)` (not carried: `full` is 0 on every
+unit this crate widens). A city at zero
 hits `99,999`; negative `9,999,999`; **out of range and not raiding `/5`, on
 this function's own range test** (below); `v = ceil(v / 100)`, above 100,000 compressed to `100,000 + (v − 100,000) /
 5`, floor 15; a detected hidden unit 1; an air target for a non-ANTI_AIR
@@ -5772,7 +5778,12 @@ if (cand->is_unit()) {
 bit this crate already carries as `Profile::combat_role`. So for an
 attacker without `unit_masks2 & 4` the retarget wants a military
 candidate, and for one with it the sense inverts. run112's slingers
-print `unit_masks2 0`, so the first arm is the one measured.
+print `unit_masks2 0`, so the first arm is the one measured. **The
+second is built and measured since item 2205** (`Sim::retarget_admits`,
+`docs/GOLDEN.md` §80): run839's packet has the Bark `0/7`, chasing the
+Bark `1/8` on tick 634, take `change_target(1/8 → 1/7)` from
+`do_move+0x6e6` — the fishing boat in range, a non-military candidate.
+This crate had read the military sense for every attacker.
 
 **Why 644 and not 638.** `near_o` has been `1/6` the whole time and the
 arm runs every frame; what changes is the plain-reach test as `0/9`

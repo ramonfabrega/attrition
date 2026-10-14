@@ -16620,3 +16620,19 @@ exit. `issuesmatch.py --none-refused … 2`: both `@stance` lines issued, none r
 **What it holds**: `golden::chapter_sixty_four_holds_to_the_golden_word` (**637**, open; ours 6 draws, theirs 10)
 and `chapter_sixty_four_s_word_frame_is_widened_whole` (605..821, 401 rows: the eleven standing `form` rows and the
 wake of block 634's first target, parked 2166). run836 unused.
+
+## run839 — chapter sixty-four's packet at logger frame 634 (2026-10-14, item 2205, `att-2205`)
+
+`docs/GOLDEN.md` §80. **What the disk could not answer**: run835's dump prints `near` and the order a search adds,
+never `compare_target`'s value for a candidate, and the original's `0/7` on block 634 holds `near 1/6` beside an
+attack on `1/8`. run835's recipe less its two `@stance` lines (both past the end frame; the runner refuses a staged
+line beyond it), with `--end-frame 640 --log-window 630 638 --tracer-def RON_STATE_FRAME=634 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`, no `misc` detail.
+Pool lane 1, `success`, `settings_restored`, 53 s launch to exit, 641 frames, seed 12345. Kept in
+`~/ron-golden/run839/map-14/frame-snapshot.bin`, 815,750,012 bytes,
+SHA-256 `da978dbcc04dba035081700dcf047239443a95bbd2143681996704e4ac31e264`. Waited on another lane's capture: none.
+
+**What it holds**: `step4.py --entry 610bc0 --this 0b9a0cd4 --poke e37a8c=77845647` (`Unit::process` on `0/7`, the
+seed one roll past the frame's opening `c312e778`): `compare_target` returns 1023, 168, 9543 for `1/7`, `1/6`,
+`1/8`; `find_nearby_target(0x900, …)` adds the attack on `1/8`; `Unit::do_move+0x6e6` calls `change_target(8, 1, 7,
+1)`. No test reads it. run840 unused.
