@@ -674,6 +674,29 @@ class Shapes(unittest.TestCase):
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_a_generated_sweep_is_redrawn_in_place(self):
+        # Item 2298 (Loop 2003, 2222): a starved draw was redrawn by deleting
+        # both files, regenerating, and deduping `mod.rs` by hand, because
+        # `--write-mod` appended its line again. `--regen` rewrites both files
+        # and leaves `mod.rs` alone; it refuses a sweep that was never written.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            mod = Path(tmp) / 'mod.rs'
+            mod.write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
+                self.assertEqual(sweep_gen.main(line + ['--regen']), 2)
+                self.assertEqual(sweep_gen.main(line + ['--write-mod']), 0)
+                self.assertEqual(mod.read_text().count('mod x_y;'), 1)
+                self.assertNotIn('ARGRANGE', (Path(tmp) / 'sweep_x_y.py').read_text())
+                self.assertEqual(sweep_gen.main(line + ['--argrange', '0:0:2', '--regen']), 0)
+                self.assertIn('ARGRANGE = [(0, 0, 2)]', (Path(tmp) / 'sweep_x_y.py').read_text())
+                self.assertEqual(sweep_gen.main(line + ['--regen', '--write-mod']), 2)
+                self.assertEqual(mod.read_text().count('mod x_y;'), 1)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
     def test_an_obj_from_the_command_line_holds_its_answer(self):
         # Item 2090: `--ret` defaulted to fwd's `none` for every shape, so an
