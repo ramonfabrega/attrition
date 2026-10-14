@@ -11551,7 +11551,7 @@ chapter tests fail. `army_pool_record` answering nothing: held, both fail.
 - `Army::add_unit@006f9f40`'s `Group::add` into that record.
 
 Five functions enter the census for the first time here: `think_attack`, `add_to_army`, `get_unit`, `go_to_unit`
-and `go_to`. The census is 556 → 561 of 3611 (`census.py --layers`, on the tree merged with 2112).
+and `go_to`. The census is 566 → 571 of 3611 (`census.py --layers`, on the tree merged with 2122).
 
 ## 78. Reserved for the next item on the rules track
 

@@ -91,6 +91,20 @@ const REGION_COUNTERS: u16 = 64;
 /// the colonise rule.
 const REAL_SEA_CELLS: i32 = 24;
 
+/// `BuildTypeData::tile_corner@00636440` over a footprint's `x_size` and
+/// `y_size` (`+0x234`, `+0x238`): the tile `pos` falls in, snapped as
+/// [`Sim::snap_center`] snaps (a tile centre for an odd size, its corner for
+/// an even one) and read back as a tile — `div_3_table[v >> 6]` twice in the
+/// original — less half of each size, `sar`. Item 2122's sweep holds it
+/// against the original on the real `div_3_table` for coordinates in
+/// `0..=16000`.
+pub(crate) fn tile_corner_of(x_size: i32, y_size: i32, pos: Pos) -> Pos {
+    let t = pos.tile();
+    let snap = |v: i32, size: i32| v * UNITS_PER_TILE + if size & 1 == 1 { 96 } else { 0 };
+    let c = Pos::new(snap(t.x, x_size), snap(t.y, y_size)).tile();
+    Pos::new(c.x - (x_size >> 1), c.y - (y_size >> 1))
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // Geometry
@@ -152,11 +166,10 @@ impl Sim {
     }
 
     /// `BuildTypeData::tile_corner`: the top-left tile of the footprint of a
-    /// building centred at `pos`.
+    /// building centred at `pos` ([`tile_corner_of`] over its sizes).
     pub fn tile_corner(&self, ty: usize, pos: Pos) -> Pos {
         let b = &self.build_types[ty];
-        let p = self.snap_center(ty, pos).tile();
-        Pos::new(p.x - (b.x_size >> 1), p.y - (b.y_size >> 1))
+        tile_corner_of(b.x_size, b.y_size, pos)
     }
 
     /// Every tile of a footprint with its corner at `corner`.

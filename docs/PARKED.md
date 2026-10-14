@@ -3840,7 +3840,9 @@ landed sweeps for the inflation (beside 1725, the same score's other leak).
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
-(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062). **2072** (sixth reach): built `vcall --base` (2021); the per-player table and the `buildtypes` forest by hand, five on two shapes (parked 2073). **2083** (seventh reach): a stub answered per argument on the object at `this+VIA`, three by hand (parked 2084). **2090** (eighth and ninth reaches): a slot against its base whose base arm is inline, four by hand (parked 2095); the order-list iterator, three by hand (parked 2096); and `obj` compared no `eax` by default — fixed, eight earlier sweeps now assert it. **2112** (tenth reach): built `vcall --base ADDR --base-call OFF` — the base inlined as a call of the same object's slot, constants or forwarded arguments, `--base-not` — four (`makes_roads`, both `can_capture`s, `ObjectData::isnt`); a table cell placed so the reads land in a buffer, three by hand (parked 2113).
+(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062). **2072** (sixth reach): built `vcall --base` (2021); the per-player table and the `buildtypes` forest by hand, five on two shapes (parked 2073). **2083** (seventh reach): a stub answered per argument on the object at `this+VIA`, three by hand (parked 2084). **2090** (eighth and ninth reaches): a slot against its base whose base arm is inline, four by hand (parked 2095); the order-list iterator, three by hand (parked 2096); and `obj` compared no `eax` by default — fixed, eight earlier sweeps now assert it. **2112** (tenth reach): built `vcall --base ADDR --base-call OFF` — the base inlined as a call of the same object's slot, constants or forwarded arguments, `--base-not` — four (`makes_roads`, both `can_capture`s, `ObjectData::isnt`); a table cell placed so the reads land in a buffer, three by hand (parked 2113). **2122** (eleventh reach): built
+`obj --place` (2113, 2046), `--wbias`, `--fill`, `--argrange` and `--name` (2045), `--slotbase` (2095's range-test
+arm), all ten of the batch generated (parked 2123).
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
@@ -4343,7 +4345,7 @@ line of the generated script keeps a negative argument only as a multiple of 16.
 then renamed by hand (`_coord`, `_wcoord`). Candidate: `--argrange IDX:LO:HI` beside `--argset`, and `--name
 SNAKE`; each with a test made to fail first.
 
-(2046) **The global-cell world shape is `obj` with windows, but for the cell array behind the record** (Loop,
+~~(2046) **The global-cell world shape is `obj` with windows, but for the cell array behind the record** (Loop,
 parked 1994's next reach; names no score). `WorldData::restrict@006b50a0` — the world record through the cell
 `0xc06188` and two WCoord pointer arguments, 1994's `cell --ptrargs` — landed in 2044 by `obj --cell-win
 0xc06188:8 --ptrarg 0:4 --ptrarg 1:4`: that option already exists. What the generator cannot lay is the cell
@@ -4351,7 +4353,8 @@ array the record's `+0x134` names (`0x1c`-byte cells, `width` at `+0`): `WorldDa
 `Region::release` (0x680560) were by hand for it, and `Armies::find_aggressive_army` (0x6f2e10, with 2039's
 per-player table besides) waits on it. It is 2003's second-window token (1972) for a cell's record rather than
 `this`: `--cell-win VA:SIZE --via OFF:SIZE`, the pointer at the record's `OFF` naming SIZE random bytes, with the
-coordinates drawn inside a pinned width.
+coordinates drawn inside a pinned width.~~ **Closed by item 2122** (parked 2123): `obj --place c0+0x134:EXPR:SIZE`
+lays the cell array's pointer as `buffer − EXPR`, so no width is pinned.
 
 ## Parked by item 2049, 2026-10-13 — an idle captain takes its cached nearest off the search's phase
 
@@ -4521,14 +4524,15 @@ any capture.
 
 ## Parked by item 2112, 2026-10-13 — the sweep's forty-ninth batch
 
-(2113) **A leader or cell table placed so the reads land in the script's buffer, by hand three times** (Loop
+~~(2113) **A leader or cell table placed so the reads land in the script's buffer, by hand three times** (Loop
 2003's tenth reach; names no score). `BuildTypeData::get_kill_value` (0x639790) reads two words of
 `leaders[who]` indexed by the type, `WorldData::is_enemy_territory` (0x6b2490) a cell record through the world's
 width and two `diplos` words of two leaders, and `UnitData::can_ever_transport` (0x46f290) `units[p][i]`: item
 2112's scripts point the global cell at `buffer − (the offset the function will add)` a row, so `who`, the type,
 `x`, `y` and the width are drawn over all 32 bits instead of laid out in a table the size of the game's. Candidate:
 `obj --land CELL:EXPR:SIZE`, the cell written as `buffer − EXPR` over the row's arguments and fields, with a test
-made to fail first. The WCoord world shape (parked 1994) was reached once, not built.
+made to fail first. The WCoord world shape (parked 1994) was reached once, not built.~~ **Closed by item 2122**
+(parked 2123): `obj --place LOC:EXPR:SIZE`, seven of its ten.
 
 ## Parked by item 2117, 2026-10-13 — chapter sixty-two closes
 
@@ -4539,13 +4543,22 @@ made to fail first. The WCoord world shape (parked 1994) was reached once, not b
 228917248 against 177405952 part, through 903. `1/12` and `1/13`, walked by the same group move, agree. The draws
 agree through 1000. Names no frame: chapter sixty-two is closed.
 
-## Parked by the next landing, slot AP — reserved
+## Parked by item 2122, 2026-10-13 — the sweep's fiftieth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2123) **`obj --place`, `--wbias`, `--fill`, `--argrange`, `--slotbase` and `--name` built** (Loop 2003's
+eleventh reach; names no score). Seven of item 2122's ten read a table through a pointer — the world's cell and
+tile arrays (`+0x134`, `+0x138`) through the cell `0xc061d0` or `0xc06188`, the regions list, `this`'s own
+`tdata`/`wdata`, and a three-link chain from `units[who]` to a type record's `+0x248`: `--place LOC:EXPR:SIZE`
+writes the word at LOC (`m+OFF`, `cN+OFF`, `pN+OFF`, or an address expression) as `buffer − EXPR` over the row's
+arguments and windows, a new `p` window (closes 2113 and 2046). `--wbias WIN+OFF:V,..|LO..HI` holds a window's
+word every row (`*` every word), `--fill WIN:EXPR` lays a table (`i//3`, the real `div_3_table`), `--argrange
+IDX:LO:HI` and `--name SNAKE` are 2045's candidates (a second `WorldData::get_land`, 0x6b4730, beside 1993's
+0x46f9d0), and `--slotbase OFF:ADDR` lays a stubbed slot as its base address half the rows with a flag column —
+2095's inline-arm shape where the base is a range test of `this` (`TypeData::is_object_type`,
+`is_plain_tech_type`). Its test in `tools/explore/test_sweep_gen.py` failed on the tree before. Still owed:
+`--answer-by-arg` (2084; `GoodTypeData::is_herd_type`, seven `+0x60(k, 0)` calls, read and not taken), the
+order-list iterator (2096), `--who-table` (2039; `GroupData::get_num_const`/`get_num_cap_const`, read and not
+taken: `this->list` is a second pointer field and `--place` lays it, a lane may try), `vcall --jmp` (2013).
 
 ## Parked by the next landing, slot AQ — reserved
 
