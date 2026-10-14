@@ -1062,11 +1062,13 @@ impl Sim {
     /// turn.
     fn use_generals(&mut self, who: Player, slot: usize) {
         let members = self.armies[who as usize].list[slot].units.clone();
-        for u in members {
-            if self.units[u].alive() && self.is_hero_unit(u) && self.think_spellcaster(u) {
-                return;
-            }
-        }
+        generals_walk(
+            self,
+            members,
+            |s, u| s.units[u].alive(),
+            |s, u| s.is_hero_unit(u),
+            |s, u| s.think_spellcaster(u),
+        );
     }
 
     // ---- the tick (§6) ----
@@ -2778,46 +2780,21 @@ impl Sim {
     /// out of land on 11549, sailed for the wrong one (§9.4, item 642).
     pub fn go_here(&self, r: u16, who: Player) -> i32 {
         let w = who as usize;
-        let mine = self.ai[w]
-            .census
-            .reg_cities
-            .get(r as usize)
-            .copied()
-            .unwrap_or(0);
-        let weak = self.strategy_of(who, Some(r)) & 4 != 0;
-        let mut g = 0;
-        // Bit 1: a resource region nobody of mine is in, that no *other*
-        // active leader holds densely — `size < cities × 200`.
-        if self.world.region_flags(r) & 8 != 0
-            && mine == 0
-            && self.ai[w]
-                .census
-                .reg_peasants
-                .get(r as usize)
-                .copied()
-                .unwrap_or(0)
-                == 0
-        {
-            let size = self.world.region_size(r);
-            let dense = (0..self.players.len()).any(|i| {
-                i != w && !self.defeated[i] && {
-                    let theirs = self.leader_reg_cities(i as Player, r);
-                    theirs != 0 && size < theirs * 200
-                }
-            });
-            if !dense {
-                g |= 1;
-            }
-        }
-        for i in 0..self.players.len() {
-            if i == w || self.defeated[i] || !self.is_enemy(who, i as Player) {
-                continue;
-            }
-            if self.leader_reg_cities(i as Player, r) != 0 {
-                g |= if mine == 0 || weak { 2 } else { 4 };
-            }
-        }
-        g
+        let census = &self.ai[w].census;
+        let mine = census.reg_cities.get(r as usize).copied().unwrap_or(0);
+        let peasants = census.reg_peasants.get(r as usize).copied().unwrap_or(0);
+        go_here_bits(
+            self.world.region_flags(r) & 8 != 0,
+            self.world.region_size(r),
+            w,
+            mine,
+            peasants,
+            self.strategy_of(who, Some(r)) & 4 != 0,
+            self.players.len(),
+            |i| !self.defeated[i],
+            |i| self.leader_reg_cities(i as Player, r),
+            |i| self.is_enemy(who, i as Player),
+        )
     }
 
     /// `Army::do_transporting`: a one-shot retarget to the best land region
@@ -3204,6 +3181,66 @@ impl Sim {
             if let Some((_, k)) = best {
                 self.init_army(who, Some(k));
             }
+        }
+    }
+}
+
+/// **`Region::go_here@006810f0`'s arithmetic** (item 2287; `docs/TRANSPORT.md`
+/// §9.4). Bit 1: a region whose `flags & 8` is set, where `who` has neither
+/// a city (`LeaderData +0x125e`) nor a peasant (`+0xfde`), and no **other**
+/// active leader (`byte 0 & 2`) holds densely — `size < cities × 200`, the
+/// first such leader ends the walk. Then, for every active leader that is
+/// neither `who` nor its team and is an enemy, with a city there: bit 2
+/// when `who` has none there or its strategy cell (`+0xa68`) carries `4`,
+/// else bit 4.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn go_here_bits(
+    settle: bool,
+    size: i32,
+    who: usize,
+    mine: i32,
+    mine_peasants: i32,
+    weak: bool,
+    leaders: usize,
+    active: impl Fn(usize) -> bool,
+    cities: impl Fn(usize) -> i32,
+    enemy: impl Fn(usize) -> bool,
+) -> i32 {
+    let mut g = 0;
+    if settle && mine == 0 && mine_peasants == 0 {
+        let dense = (0..leaders).any(|i| {
+            i != who && active(i) && {
+                let theirs = cities(i);
+                theirs != 0 && size < theirs * 200
+            }
+        });
+        if !dense {
+            g |= 1;
+        }
+    }
+    for i in 0..leaders {
+        if active(i) && i != who && enemy(i) && cities(i) != 0 {
+            g |= if mine == 0 || weak { 2 } else { 4 };
+        }
+    }
+    g
+}
+
+/// **`Army::use_generals@006f4c30`'s walk** (item 2287): the members of the
+/// army's groups in order (`+0x54`, `+0x96` of them; each group's shorts
+/// at `+0x8cc`, a negative id or member skipped), each in use (vslot
+/// `+8`) and, asked only then, a hero (`is_hero`, `type +0x2b8 & 0x20`)
+/// offered `think_spellcaster`; the first that casts ends the walk.
+pub(crate) fn generals_walk<C>(
+    cx: &mut C,
+    members: impl IntoIterator<Item = usize>,
+    mut in_use: impl FnMut(&mut C, usize) -> bool,
+    mut hero: impl FnMut(&mut C, usize) -> bool,
+    mut cast: impl FnMut(&mut C, usize) -> bool,
+) {
+    for u in members {
+        if in_use(cx, u) && hero(cx, u) && cast(cx, u) {
+            return;
         }
     }
 }

@@ -4308,13 +4308,15 @@ impl Sim {
     /// `Unit::do_think_order`: consume the THINK; if nothing follows, a
     /// worker runs the forced search.
     fn do_think_order(&mut self, u: usize, _frame: i64) {
-        self.kill_current_order(u);
-        if self.order_type(u) != index::NONE {
-            return;
-        }
-        if self.worker_of(u) != Worker::None {
-            self.think_peasant(u, true);
-        }
+        think_order_steps(
+            self,
+            |s| s.kill_current_order(u),
+            |s| (!s.units[u].orders.is_empty()).then(|| i32::from(s.order_type(u))),
+            |s| s.worker_of(u) != Worker::None,
+            |s| {
+                s.think_peasant(u, true);
+            },
+        );
     }
 
     // ------------------------------------------------------------------
@@ -5635,29 +5637,37 @@ impl Sim {
         // where the group's speed goes back to its leader's
         // (`docs/GROUPS.md` §18) after a march's own reports have walked
         // it up to the leader's uncapped speed.
-        self.group_set_speed(g);
-        for i in 0..g.list.len() {
-            let u = g.list[i];
-            if !(self.units[u].alive() && self.units[u].on_map) {
+        group_member_walk(
+            self,
+            g.list.len(),
+            |s| s.group_set_speed(g),
+            |_, k| g.list[k],
+            |s, u| s.units[u].alive(),
+            |s, u| s.units[u].on_map,
+            |s, u| s.unit_kill_group_move(u, id),
+        );
+    }
+
+    /// `Unit::kill_group_move@005e3400` for one member: its orders lose
+    /// the group plan, and one carrying `id` that is **not** an
+    /// attack-move is killed. A `GROUP_ATTACK_TO` survives both arms.
+    fn unit_kill_group_move(&mut self, u: usize, id: i64) {
+        let mut kill = false;
+        for j in 0..self.units[u].orders.len() {
+            let Body::Move(m) = self.units[u].orders[j].body else {
+                continue;
+            };
+            if m.kind == MoveKind::AttackTo {
                 continue;
             }
-            let mut kill = false;
-            for j in 0..self.units[u].orders.len() {
-                let Body::Move(m) = self.units[u].orders[j].body else {
-                    continue;
-                };
-                if m.kind == MoveKind::AttackTo {
-                    continue;
-                }
-                self.units[u].orders[j].flags &= !flag::PATHED;
-                self.kill_current_path(u);
-                if m.group.is_some_and(|x| x.id == id) {
-                    kill = true;
-                }
+            self.units[u].orders[j].flags &= !flag::PATHED;
+            self.kill_current_path(u);
+            if m.group.is_some_and(|x| x.id == id) {
+                kill = true;
             }
-            if kill {
-                self.kill_current_order(u);
-            }
+        }
+        if kill {
+            self.kill_current_order(u);
         }
     }
 
@@ -7852,14 +7862,28 @@ impl Sim {
 
     /// `Build::check_gatherers`: prune the dead, the re-tasked, the off-map.
     pub fn check_gatherers(&mut self, b: usize) {
-        let keep: Vec<usize> = self.buildings[b]
-            .gatherers
-            .iter()
-            .copied()
-            .filter(|&u| {
-                self.units[u].alive() && self.units[u].on_map && self.is_gathering_at(u, b, false)
-            })
+        // The list is the chain, its order the links (`+0x70`, then each
+        // member's `+0x92`).
+        let list = self.buildings[b].gatherers.clone();
+        let mut next: Vec<i32> = (1..=list.len())
+            .map(|k| if k < list.len() { k as i32 } else { -1 })
             .collect();
+        let mut head = if list.is_empty() { -1 } else { 0 };
+        prune_chain(
+            &mut next,
+            &mut head,
+            |n, k| n[k as usize],
+            |n, k, v| n[k as usize] = v,
+            |_, k| {
+                let u = list[k as usize];
+                self.units[u].alive() && self.is_gathering_at(u, b, false) && self.units[u].on_map
+            },
+        );
+        let mut keep = Vec::new();
+        while head >= 0 {
+            keep.push(list[head as usize]);
+            head = next[head as usize];
+        }
         self.buildings[b].gatherers = keep;
     }
 
@@ -7887,20 +7911,22 @@ impl Sim {
     /// `num_gatherers` through `count_inside` instead.
     pub fn is_gathering_at(&self, u: usize, b: usize, strict: bool) -> bool {
         let unit = &self.units[u];
-        if !unit.on_map {
-            return self.worker_of(u) == Worker::Scholar && unit.inside == Some(b);
-        }
-        if self.worker_of(u) == Worker::None {
-            return false;
-        }
-        match self
-            .action_of(u)
-            .and_then(|i| unit.orders.get(i))
-            .map(|o| o.body)
-        {
-            Some(Body::Gather(g)) if g.building == b => !strict || g.been_there,
-            _ => false,
-        }
+        let worker = self.worker_of(u);
+        gathering_at_steps(
+            worker == Worker::Scholar,
+            || unit.on_map,
+            || unit.inside == Some(b),
+            strict,
+            worker != Worker::None,
+            || match self
+                .action_of(u)
+                .and_then(|i| unit.orders.get(i))
+                .map(|o| o.body)
+            {
+                Some(Body::Gather(g)) => Some((g.building == b, i32::from(g.been_there))),
+                _ => None,
+            },
+        ) != 0
     }
 
     /// `BuildData::num_gatherers(arrived, skip_decoys)`: the garrisoned
@@ -10207,5 +10233,129 @@ mod unreachable_goal_tests {
             "the guard stands under the dead move: {:?}",
             s.units[u].orders
         );
+    }
+}
+
+/// **`Group::kill_group_move@007123f0`'s walk** (item 2287): `normalize`
+/// first, then each of the group's `+0xc` members (the shorts at
+/// `+0x8cc`) that is in use (vslot `+8`) and, asked only then, on the map
+/// (vslot `+0xbc`) is handed to `each` — the unit's own
+/// `kill_group_move(id)`.
+pub(crate) fn group_member_walk<C>(
+    cx: &mut C,
+    n: usize,
+    normalize: impl FnOnce(&mut C),
+    member: impl Fn(&mut C, usize) -> usize,
+    mut in_use: impl FnMut(&mut C, usize) -> bool,
+    mut on_map: impl FnMut(&mut C, usize) -> bool,
+    mut each: impl FnMut(&mut C, usize),
+) {
+    normalize(cx);
+    for k in 0..n {
+        let u = member(cx, k);
+        if in_use(cx, u) && on_map(cx, u) {
+            each(cx, u);
+        }
+    }
+}
+
+/// **`Unit::do_think_order@005e5bf0`'s steps** (item 2287):
+/// `kill_current_order(0)`; then, when an order is left (the list's head,
+/// `+0xdc`), its type (vslot `+0x10`) ends the call unless it is `NONE`;
+/// a worker type (`0x32`..`0x35`) runs `think_peasant(1)`.
+pub(crate) fn think_order_steps<C>(
+    cx: &mut C,
+    kill: impl FnOnce(&mut C),
+    head_type: impl FnOnce(&mut C) -> Option<i32>,
+    worker: impl FnOnce(&mut C) -> bool,
+    think: impl FnOnce(&mut C),
+) {
+    kill(cx);
+    if head_type(cx).is_some_and(|t| t != i32::from(index::NONE)) {
+        return;
+    }
+    if worker(cx) {
+        think(cx);
+    }
+}
+
+/// **`UnitData::is_gathering_at@00608880`'s steps** (item 2287): a scholar
+/// (`0x34`/`0x35`) off the map is gathering where it is inside
+/// (`get_inside`), and, when `strict`, nowhere else. Then a worker type
+/// on the map (`is_on_map`, `inside_up`'s sign bit, asked again) whose
+/// action is a `GATHER` (`get_type() == 7`) naming this building answers
+/// 1, or, `strict`, the order's arrived byte (`+0x27`).
+pub(crate) fn gathering_at_steps(
+    scholar: bool,
+    mut on_map: impl FnMut() -> bool,
+    inside_here: impl FnOnce() -> bool,
+    strict: bool,
+    worker: bool,
+    gather: impl FnOnce() -> Option<(bool, i32)>,
+) -> i32 {
+    if scholar && !on_map() {
+        if inside_here() {
+            return 1;
+        }
+        if strict {
+            return 0;
+        }
+    }
+    if !on_map() || !worker {
+        return 0;
+    }
+    match gather() {
+        Some((true, arrived)) => {
+            if strict {
+                arrived
+            } else {
+                1
+            }
+        }
+        _ => 0,
+    }
+}
+
+/// **`Build::check_gatherers@0062f710`'s prune** (item 2287): an empty
+/// chain (`head < 0`) answers `-1` untouched. From the head, a member that
+/// is not kept (in use, vslot `+8`; `is_gathering_at(this, 0)`; in use and
+/// on the map, `+8` and `+0xbc`, of its unit record) is unlinked — the
+/// head takes its link and its own link (`+0x92`) goes to `-1` — until a
+/// keeper; past it, a dropped member is stepped over, the keeper before it
+/// taking its link and **its own link left as it was**. The answer is the
+/// head as it stands.
+pub(crate) fn prune_chain<C>(
+    cx: &mut C,
+    head: &mut i32,
+    next: impl Fn(&mut C, i32) -> i32,
+    mut set_next: impl FnMut(&mut C, i32, i32),
+    mut keep: impl FnMut(&mut C, i32) -> bool,
+) -> i32 {
+    if *head < 0 {
+        return -1;
+    }
+    while *head >= 0 {
+        if keep(cx, *head) {
+            break;
+        }
+        let n = next(cx, *head);
+        set_next(cx, *head, -1);
+        *head = n;
+    }
+    if *head < 0 {
+        return *head;
+    }
+    let mut prev = *head;
+    loop {
+        let n = next(cx, prev);
+        if n < 0 {
+            return *head;
+        }
+        if keep(cx, n) {
+            prev = n;
+        } else {
+            let after = next(cx, n);
+            set_next(cx, prev, after);
+        }
     }
 }
