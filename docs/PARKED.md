@@ -1727,8 +1727,9 @@ another player's bit.
 (780) **A round in flight forgets a dead target here and keeps it there**
 (chapter three's family, now on a building).
 
-(781) **`whole_degrees`' half-way bytes**: a top byte ≡ 16 mod 32 rounds
-by a rule no capture has pinned.
+~~(781) **`whole_degrees`' half-way bytes**: a top byte ≡ 16 mod 32 rounds
+by a rule no capture has pinned.~~ **Closed by item 2304** (`docs/GOLDEN.md`
+§83): it rounds up, as `angle_to_degrees` does — run835's Bark `0/7` at byte 80.
 
 (782) **Other nations' and ages' bomber pieces**: 770 built the Bomber's
 two bays from run235; the rest of the family is unread.
@@ -4703,13 +4704,14 @@ and failed on the saturating version (`[255, 0, 0, 0]` against `[0, 0, 0, 0]`).
 
 ## Parked by item 2205, 2026-10-14 — chapter sixty-four closed: a Bark's round leaves the hull here
 
-(2206) **A Bark's round leaves the hull's own square here and a point 52 up and off it there** (item 2205,
+~~(2206) **A Bark's round leaves the hull's own square here and a point 52 up and off it there** (item 2205,
 `docs/GOLDEN.md` §80, run835; names no score — chapter sixty-four is closed at 820 and the draw stream does not see
 it). From block 638 every human Bark round parts on its launch point: `0/6`'s `ammo[3]` `sx` 11640 / 11707, `sy`
 34680 / 34671, `sz` 0 / 52, `total_time` 11 / 10; the landings and wounds follow (647's `1/7` `hits:damage` 4 / 5).
 The 141 rows of `chapter_sixty_four_s_word_frame_is_widened_whole` from 634 on are this family and block 634's
 `1/6` `ammo[2]` (`sx` 12348 / 12349), which stood before. Grep `docs/COMBAT.md` §55 (a pivot piece releases
-through its turret) first: the Bark may carry a release node this crate does not read.
+through its turret) first: the Bark may carry a release node this crate does not read.~~ **Closed by item 2304** (`docs/GOLDEN.md` §83): no pivot — the non-pivot
+arm's release node, piece 273's three rows read off run839's packet.
 
 ## Parked by item 2276, 2026-10-14 — the second sweep lane's ten, the squad and city chains
 
@@ -4810,12 +4812,13 @@ widening (605..1101, 357 rows) is the eleven standing `form` rows and this wake.
 
 ## Parked by item 2265, 2026-10-14 — chapter sixty-five closed: a packer's combat stance is STAND_GROUND
 
-(2266) **A Catapult's round leaves the unit's square here and a release point there** (item 2265,
+~~(2266) **A Catapult's round leaves the unit's square here and a release point there** (item 2265,
 `docs/GOLDEN.md` §82, run843; names no score — chapter sixty-five is closed at 1100 and the draw stream does not
 see it). Block 818, `0/9`'s `ammo[0]`: `sx` 34680 / 34655, `sy` 24696 / 24716, `sz` 50 / 295, `v1z` 179377090 /
 171952850 — the four rows `chapter_sixty_five_s_word_frame_is_widened_whole` keeps past the standing `form` rows.
 The siege engine's twin of the Bark's 2206: read the two together, and `docs/COMBAT.md` §55 (a pivot piece releases
-through its turret) first.
+through its turret) first.~~ **Closed by item 2304** (`docs/GOLDEN.md` §83): piece 567's one release row,
+read off run842's packet.
 
 ## Parked by item 2247, 2026-10-14 — the second sweep lane's next ten, the territory family
 
@@ -4911,13 +4914,14 @@ type index at `+0x3c` the `objecttypes` table is indexed by; and it prints the `
 graft compare as `this->graft`, which the listing reads at `+0x25c`. The sweep follows the listing (`661ae0`–
 `661b7b`); a reader of the decompile alone would port the wrong field.
 
-## Parked by the next landing, slot BQ — reserved
+## Parked by item 2304, 2026-10-14 — chapter sixty-six: a round leaves its release node
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2305) **Chapter sixty-six's two other arms stay unwalked: 2111 and 2196** (item 2304, `docs/GOLDEN.md` §83; names
+no score). 2304 took the release point, the arm the disk already parted on. `ai_sites`' wrapping decrement (2111)
+needs a computer's census adjustment to meet a city at zero gatherers, and no capture under `!ai off` runs the AI
+that adjusts; `land_tail`'s `buildings` toggle (2196) needs a building group whose `list[0]` turns, which no
+staging builds. Run 845 was reserved for the chapter and not taken: two packets on disk (run839, run842) answered
+the release rows. A chapter that books either names its staging first.
 
 ## Parked by item 2309, 2026-10-14 — a recorded stub split by the table row
 
