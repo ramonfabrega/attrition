@@ -261,6 +261,75 @@ impl Site {
     }
 }
 
+/// `City::calc_gather@00737c60`: the four enhancer bytes `CityData` carries at
+/// `+0x56..=+0x59` — granary, lumber mill, smelter, oil — in the order the
+/// original fills them, then `LeaderData::calc_city_resources`.
+///
+/// - the granary byte is `GRANARY_BONUS` at `granary_level` when the city's
+///   flags carry `0x200` (737c66), else 0;
+/// - the lumber mill byte is `LUMBERMILL_BONUS` at `lumber_level` under
+///   `0x400` (737c8a), else 0;
+/// - the smelter byte asks `GoodTypeData::get_enhancer` of the metal good
+///   (`goodtypes + 0x10`, 737cb0); a negative answer is 0 (`jns`, 737cc0),
+///   else `count_buildings(t, 0, 1)` — zero is 0, any other answer
+///   `SMELTER_BONUS` at `smelter_level` (737cc6–737ce3);
+/// - the oil enhancer is asked (`goodtypes + 0x14`, 737ced) and, when not
+///   negative, counted (737d06), and the answer dropped: the byte is an
+///   unconditional zero (737d1a).
+///
+/// Each byte is the table's word truncated to its low byte (`movb %al`,
+/// 737c87, 737cad, 737cea). `bonus` answers a table at a level; the
+/// original indexes `level + 4` off the table before it, so a level outside
+/// `1..=5` reads a neighbour, and the sim's [`enhancer_bonus`] — which no
+/// level outside that range reaches — clamps instead.
+#[allow(clippy::too_many_arguments)]
+pub fn calc_gather_steps<C>(
+    cx: &mut C,
+    city_flags: i32,
+    granary_level: impl FnOnce(&mut C) -> i32,
+    lumber_level: impl FnOnce(&mut C) -> i32,
+    mut get_enhancer: impl FnMut(&mut C, Resource) -> i32,
+    mut count_buildings: impl FnMut(&mut C, i32) -> i32,
+    smelter_level: impl FnOnce(&mut C) -> i32,
+    bonus: impl Fn(&mut C, Resource, i32) -> i32,
+    calc_city_resources: impl FnOnce(&mut C, [u8; 4]),
+) -> [u8; 4] {
+    let mut out = [0u8; 4];
+    if city_flags & 0x200 != 0 {
+        let lvl = granary_level(cx);
+        out[0] = bonus(cx, Resource::Food, lvl) as u8;
+    }
+    if city_flags & 0x400 != 0 {
+        let lvl = lumber_level(cx);
+        out[1] = bonus(cx, Resource::Timber, lvl) as u8;
+    }
+    let t = get_enhancer(cx, Resource::Metal);
+    if t >= 0 && count_buildings(cx, t) != 0 {
+        let lvl = smelter_level(cx);
+        out[2] = bonus(cx, Resource::Metal, lvl) as u8;
+    }
+    let t = get_enhancer(cx, Resource::Oil);
+    if t >= 0 {
+        count_buildings(cx, t);
+    }
+    out[3] = 0;
+    calc_city_resources(cx, out);
+    out
+}
+
+/// The enhancer table for `r` at the one-based `level`, clamped to the
+/// table — `GRANARY_BONUS`, `LUMBERMILL_BONUS`, `SMELTER_BONUS`; 0 for a
+/// resource with no city enhancer.
+pub fn enhancer_bonus(t: &Tuning, r: Resource, level: i32) -> i32 {
+    let pick = |a: &[i32; 5]| a[(level.max(1) as usize - 1).min(a.len() - 1)];
+    match r {
+        Resource::Food => pick(&t.granary_bonus),
+        Resource::Timber => pick(&t.lumbermill_bonus),
+        Resource::Metal => pick(&t.smelter_bonus),
+        Resource::Wealth | Resource::Knowledge | Resource::Oil => 0,
+    }
+}
+
 /// A city, as income sees one.
 ///
 /// The enhancer percentages are stored rather than derived because that is how
@@ -310,11 +379,11 @@ impl City {
     /// flags, smelter on the metal enhancer actually standing in the city —
     /// and this call is the caller saying the gate passed.
     pub fn set_enhancer(&mut self, t: &Tuning, r: Resource, level: usize) {
-        let pick = |a: &[i32; 5]| a[(level.max(1) - 1).min(a.len() - 1)];
+        let v = enhancer_bonus(t, r, i32::try_from(level).unwrap_or(i32::MAX));
         match r {
-            Resource::Food => self.granary = pick(&t.granary_bonus),
-            Resource::Timber => self.lumber_mill = pick(&t.lumbermill_bonus),
-            Resource::Metal => self.smelter = pick(&t.smelter_bonus),
+            Resource::Food => self.granary = v,
+            Resource::Timber => self.lumber_mill = v,
+            Resource::Metal => self.smelter = v,
             Resource::Wealth | Resource::Knowledge | Resource::Oil => {}
         }
     }

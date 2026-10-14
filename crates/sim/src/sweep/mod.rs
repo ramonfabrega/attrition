@@ -346,6 +346,7 @@ mod caravan_link_walk_data;
 mod caravan_trade_value;
 mod caster_walk_data;
 mod circle_render_on_field_change;
+mod city_calc_gather;
 mod city_compute_trade;
 mod city_data_can_upgrade;
 mod city_data_count_buildings;
