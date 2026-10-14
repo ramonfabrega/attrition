@@ -2375,13 +2375,38 @@ impl Sim {
         whole: i32,
         frame: i64,
     ) -> bool {
-        let Obj::Building(b) = target else {
-            return false;
-        };
         let (att, vic) = (self.owner_of(attacker), self.owner_of(target));
-        if att == vic || !self.buildings[b].active {
+        if att == vic {
             return false;
         }
+        let b = match target {
+            Obj::Building(b) if self.buildings[b].active => b,
+            // **The worker arm** (`0064a9xx`, the decompile's lines 400–
+            // 424): a struck worker (`ObjectData::is_worker`) whose action
+            // (`UnitData::get_action@00608450`) answers `get_gather_order`
+            // (order vslot `+0xe4`, by the PDB's method record) with an
+            // active building of the victim's in a city raids that city —
+            // always the light arm, `local_34` still 0. run437's citizens
+            // gathering at the Farm `1/2001`, struck on 671, 672 and 690.
+            Obj::Unit(t) if self.is_worker(t) => {
+                let gather = self
+                    .action_of(t)
+                    .and_then(|i| match self.units[t].orders[i].body {
+                        crate::orders::Body::Gather(g) => Some(g.building),
+                        _ => None,
+                    });
+                if let Some(g) = gather
+                    && let Some(bd) = self.buildings.get(g)
+                    && bd.active
+                    && bd.owner == vic
+                    && let Some(c) = bd.city
+                {
+                    self.cities[c].raid_stamp = frame;
+                }
+                return false;
+            }
+            _ => return false,
+        };
         let Some(c) = self.buildings[b].city else {
             return false;
         };
