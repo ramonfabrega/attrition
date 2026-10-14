@@ -1932,12 +1932,7 @@ impl Sim {
     /// §219). The Americans' Barracks arm's flag is not modelled.
     ///
     /// SEAM: the gate's `unit_masks & 1` is not read.
-    #[track_caller]
     pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
-        if std::env::var("RON_PROBE_DIRTY").is_ok() && (1440..1470).contains(&self.frame) {
-            let x = &self.units[u];
-            eprintln!("GARR f{} u{} {}/{} ty{:?} ti{} d{} in{:?} cap{} {}", self.frame, u, x.owner, x.index, x.ty, x.type_index, delta, x.inside.map(|b| self.buildings[b].index), x.captain, std::panic::Location::caller());
-        }
         let unit = &self.units[u];
         let who = unit.owner;
         let Some(t) = unit.ty else { return };
