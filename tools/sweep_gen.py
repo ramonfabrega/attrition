@@ -1062,7 +1062,7 @@ fn the_emulated_original_agrees_on_every_row() {{
         assert_eq!(m, unhex(after.trim()), "{short} — bytes, row `{{line}}`");
         n += 1;
     }}
-    assert!(n >= 200, "only {{n}} rows");
+    assert!(n >= {floor}, "only {{n}} rows");
     eprintln!("{name}@{va:08x}: {{n}} rows agree");
 }}
 '''
@@ -1472,7 +1472,7 @@ fn the_emulated_original_agrees_on_every_row() {{
         }}
         n += 1;
     }}
-    assert!(n >= 200, "only {{n}} rows");
+    assert!(n >= {floor}, "only {{n}} rows");
     eprintln!("{name}@{va:08x}: {{n}} rows agree");
 }}
 '''
@@ -1572,8 +1572,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), rows=220):
     name, va = parse(spec)
-    if rows < 100:
-        raise ValueError('--rows N is at least the 100 rows the test asks for')
+    if rows < 200:
+        raise ValueError('--rows N is at least the 200 rows the test asks for')
+    floor = 200 if rows == 220 else rows
     rowdoc = '' if rows == 220 else f' {rows} rows (an arm few rows reach).'
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1683,7 +1684,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, argset=pset, argfrom=pfrom, rows=rows)
         doc = (doc or f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.') + rowdoc
-        test = OBJ_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port, ret=retcode)
+        test = OBJ_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port, ret=retcode,
+                               floor=floor)
         return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
     windoc = '; '.join(
         [f'the global cell 0x{va:08x} points at {size} random bytes' for va, size in pcells]
@@ -1738,7 +1740,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         logsplit = logdecl = logcheck = ''
     test = OBJ_WIN_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
                                ret=retcode, nc=len(pcells) + len(pat), pbase=1 + len(pcells) + len(pat),
-                               logsplit=logsplit, logdecl=logdecl, logcheck=logcheck)
+                               logsplit=logsplit, logdecl=logdecl, logcheck=logcheck, floor=floor)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 

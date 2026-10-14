@@ -568,10 +568,13 @@ class Shapes(unittest.TestCase):
             self.assertIn('for i in range(600):', script)
             self.assertNotIn('range(220)', script)
             self.assertIn('600 rows', test)
+            # The test asks for every row drawn, not the default's 200 (2314's num_inside).
+            self.assertIn('assert!(n >= 600,', test)
             _, script2, _, test2, _ = sweep_gen.generate_obj(
                 'Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, port='0', **kw)
             self.assertIn('for i in range(220):', script2)
             self.assertNotIn('600 rows', test2)
+            self.assertIn('assert!(n >= 200,', test2)
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, rows=50)
 
