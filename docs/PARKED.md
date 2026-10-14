@@ -5041,17 +5041,19 @@ Chapter sixty-seven took Monarchy, the one candidate the console stages. `ai_sit
 computer's census adjustment, which `!ai off` never runs; `land_tail`'s `buildings` toggle (2196) needs a building
 group whose `list[0]` turns. A chapter that books either names its staging first.
 
-(2333) **`get_cost`'s Socialism arm is not built** (item 2331; names no score). `TypeData::get_cost@00664090:666`–
+~~(2333) **`get_cost`'s Socialism arm is not built** (item 2331; names no score). `TypeData::get_cost@00664090:666`–
 `672`, the line after Monarchy's: `has_preq(SOCIALISM_1)` and a trainer of `0x1ae`, `0x1bf` or `0x1b0` (the Siege
 Factory, the Airbase, the Dock, by equality) take `(100 − SOCIALISM_UNIT_BONUS) × cost / 100`, a truncation after
 Monarchy's. Item 2293 built the train-time half. The successor pair's who=1 holds Socialism from 4782, and no landing
 has read the price of an Airbase unit queued there. Then comes Salmon's naval arm (`salmon_naval_cost`, `+0x218 ==
-1`), also unbuilt. `cost::Modifiers::monarchy` is where both would sit.
+1`), also unbuilt. `cost::Modifiers::monarchy` is where both would sit.~~ **Built and walked by item 2357** (`docs/GOLDEN.md` §85): run852's Catapult B at 60/60 under Socialism,
+where the discounted price is 81; dropped, the widening parts on 804. Salmon and Maize carry on as 2358.
 
-(2334) **Monarchy's cost arm against a live military discount** (item 2331; names no score). run845's Light Horse is
+~~(2334) **Monarchy's cost arm against a live military discount** (item 2331; names no score). run845's Light Horse is
 at its own age's level, so `MILITARY_UNIT_DISCOUNT` is 0 and the order of the two truncations rests on the listing and
 `monarchy_takes_its_quarter_after_the_military_discount`. A Stable unit queued two Military levels past its own
-under Monarchy parts the two orders by a unit.
+under Monarchy parts the two orders by a unit.~~ **Walked by item 2357** (`docs/GOLDEN.md` §85): run852's Light Horse A at 47 food (70 ramped, 10% then
+25%), where Monarchy first gives 46; the swapped order parts the widening on 616.
 
 ## Parked by item 2336, 2026-10-14 — a bool's low byte, a stub in an import cell, and a local by its depth
 
@@ -5144,21 +5146,24 @@ the function (the decompile's `local_5`); the listing decides whether it is a ga
 compiler folded in. The `vtordisp` thunks in the 370-430 byte range (`MoveOrder::is_pathed`, the `walk_data`
 and `get_type` families) are the `fwd` shape (1895) and no sweep holds one yet.
 
-## Parked by the next landing, slot BZ — reserved
+## Parked by item 2351, 2026-10-14 — the Lakota's food
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2352) **The garrison counts are not compared** (item 2351, `docs/AI.md` §219). `Census::{peasants_garr,
+    stable_garr, scout_garr}` (`LeaderData +0xa28, +0xa2c, +0xa30`) are live counters this crate now keeps
+    (`Sim::track_garrison`), and every `LEADERS` dump prints them (`LeaderData::log_data@006e5110:2162–2174`). But
+    `rondata::diff::leader`'s census list does not carry them, so they are checked only through the Lakota food rate.
+    Adding them to the list moves every lobby's coverage pin and widenings, which is why it was left out of a word's
+    landing. It names no score until a non-Lakota lobby's garrison parts.
 
-## Parked by the next landing, slot CA — reserved
+## Parked by item 2357, 2026-10-14 — Socialism's price, and a military discount that is live
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2358) **`get_cost`'s two rare arms on a unit are not built** (item 2357, `docs/GOLDEN.md` §85; names no score; 2333's
+sequel). `SALMON_NAVAL_COST` (20%, `TypeData::get_cost@00664090:673`–`677`): a player holding Salmon (`+0x6da9 & 1`,
+else `+0x6dd1 & 1`: rare 46) takes it off a sea unit's price (`+0x218 == 1`). It is a truncation of its own, after
+Socialism's, and has no tuning slot here. `MAIZE_RAMPING_BONUS` (50%, `:622`–`625`, `+0x6da9 & 4`: rare 48) takes half
+of each ramp term. `cost::Modifiers::maize` carries it, and `Sim::price_of` never sets it. Grep the disk for a ship or
+any unit queued by a Salmon or Maize holder before staging: the console gains no rare, so a chapter needs a Merchant
+on the deposit first.
 
 ## Parked by item 2362, 2026-10-14 — the `vtordisp` thunks through `fwd`
 

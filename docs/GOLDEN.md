@@ -12087,12 +12087,94 @@ one fold of 35% gives 39).
 on a build in progress and on a fresh one, and its trainer by equality; `TypeData::get_cost@00664090`'s Monarchy arm
 on the train arm. Each fails its walk when taken out.
 
-## 85. Reserved for the next item on the rules track
+## 85. Chapter sixty-eight — Socialism's price, and a military discount that is live: `get_cost`'s three truncations in order (item 2357)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** DECISIONS 56 §3, two candidates: Monarchy's cost arm against a live `MILITARY_UNIT_DISCOUNT`, whose
+order rested on the listing (parked 2334); and `get_cost`'s Socialism arm, unbuilt beside 2293's train-time half
+(parked 2333). **The chapter takes both, in one staging, and adds `train_time`'s Socialism arm on a Siege Factory.**
+No frame and no draw delta: nothing on disk prices a unit queued under Socialism, so nothing could part. Run 852 was
+booked for that reason.
+
+**What the disk could not answer.** The successor pair's who=1 holds Socialism from 4782 (`docs/AI.md` §217), and
+run838's `1/2014` reads four Strategic Bombers at 126 on block 4783, the frame its MiG is born. That looks like a
+Bomber queued under Socialism at the whole price. It is not one. The dump prints the queue's twenty slots, and the
+ones past `queued` are stale. This crate's live queue there (`RON_DEBUG_BUILDS=4780-4784`) is one Bomber, priced at
+126 long before 4782. run838, run844 and run775's closing block hold no queue entry written after 4782 at a Siege
+Factory, an Airbase or a Dock (`gov 627` is in no other dump on disk). Built, the arm moved no test of the pair.
+
+**Every reader of the constants, read before staging** (Loop 2356). `SOCIALISM_UNIT_BONUS` is read in two places:
+`train_time` (2293) and `get_cost:666`–`672`. `MILITARY_UNIT_DISCOUNT` is read once, in `get_cost:632`–`656`, built
+as `Sim::military_unit_discount`. `SALMON_NAVAL_COST` (`get_cost:673`–`677`) and `MAIZE_RAMPING_BONUS` (`:622`–`625`)
+are unbuilt in `price_of`. Salmon has no tuning slot, and `Modifiers::maize` is never set. Neither can be staged from
+the console, which gains no rare (parked 2358).
+
+**Built**: `cost::Modifiers::socialism`, a truncation of its own after `monarchy`, and `Sim::socialism_cost_discount`.
+It is `train_tail`'s predicate: the trainer by equality (`0x1ae`, `0x1bf`, `0x1b0`) and `has_preq(SOCIALISM_1)`
+through `bonus_tier_held`.
+
+**Census rows the chapter reaches**: `UnitTypeData::get_military_level_slow@0061d4d0`, never backed
+(`census.py --unbacked`). The discount is live only when the player stands past the unit's level, and run845's was
+0. Also `get_cost`'s Socialism and military-discount arms, and `train_time`'s Socialism arm on a trainer other than
+the Airbase.
+
+**The staging** (`tools/gamelog/golden/chapter68.cmd`, walked on run492's start; fourteen lines):
+
+- `library who=0 1`, then a Stable `0/2007` and a Siege Factory `0/2008`.
+- `tech who=0 the_art_of_war on` (the Catapult's `PREQ1`).
+- `military who=0 3`: two levels past the Light Horse's and the Catapult's level 1, so a 10% discount.
+- Monarchy on 610, and four Light Horse added on 612, so A's ramp lands on a price the two orders part.
+- Light Horse A queued on 614, Catapult A on 616.
+- Socialism on 800, then Catapult B on 802 and Light Horse B on 804.
+
+**run852** (one take, pool lane 1, 1,361 frames, 961 s) held every falsifier, read off the dump:
+
+| | block | the original | the other readings |
+|---|---|---|---|
+| Light Horse A's entry | 616 | **47 food 33 timber** (70/50: 63, then 47) | 46 (Monarchy first), 45 (one fold of 35%), 52 (no discount) |
+| Catapult A's entry | 618 | 63 timber 63 metal (70, 10% off) | 70 (no discount) |
+| Catapult B's entry | 804 | **60/60** (90: 81, then Socialism 60) | 81 (no arm), 58 (one fold) |
+| Light Horse B's entry | 806 | 50/36 (75/55; Monarchy, no Socialism) | 37/27 (Socialism on a Stable) |
+| A out (`0/10`) | 808 | 808 | — |
+| Catapult A out (`0/11`) | 858 | 858 (Socialism on a build in progress) | — |
+| B out, Catapult B out | 1007, 1105 | 1007, 1105 | — |
+
+**The word: 1360, the trace's end, closed on its first take** (`GOLDEN_WORD_CHAPTER_SIXTY_EIGHT`).
+`chapter_sixty_eight_s_word_frame_is_widened_whole` holds run852 whole, 600..1361, in eleven rows: the standing `form`
+rows on 600, and nothing else.
+
+**The value diff, block 804**: `0/2008`'s `queue[1].cost[0]` and `cost[1]` are 81 here without the arm against 60
+there, with who=0's timber and metal buckets. Now equal.
+
+**Mutations** (`tools/mutate.py`, each `held`, cargo 101):
+
+- The Socialism cost arm zeroed: the widening parts on 804, at `queue[1].cost` 81/60 and the two buckets, 17 rows.
+  The word holds, because a price moves no draw.
+- Monarchy's truncation moved before the military discount's: the widening parts on 616 (A's `queue[0].cost[0]` 46
+  against 47), 13 rows. **The order is diff-backed.**
+- `train_time`'s Socialism arm dropped: the word falls to **857**, Catapult A's birth.
+
+`cost::tests::socialism_takes_its_quarter_after_the_military_discount` holds the order off run852's two prices.
+`a_government_speeds_its_trainer_lines_by_equality` holds the cost arm's five trainers.
+
+**Not established.**
+
+- **The Dock and the Airbase on the cost arm.** The equality is read and unit-tested, and walked on the Siege Factory
+  alone. The higher docks (`0x1b1`, `0x1b2`) are off the list by the listing, and no capture holds a ship queued under
+  Socialism.
+- **The scaled discount** (`ending − starting + 1 < 8`): this lobby spans the eight ages.
+- **Salmon and Maize** (parked 2358).
+
+### 85.1 Coverage
+
+**Diff-backed** by run852's widening and word:
+
+- `TypeData::get_cost@00664090`'s Socialism arm on the train arm (Siege Factory).
+- Its `MILITARY_UNIT_DISCOUNT` arm with the player two levels past the unit, and that arm's truncation before
+  Monarchy's.
+- `UnitTypeData::get_military_level_slow@0061d4d0`'s level 1 for the Light Horse and the Catapult.
+- `ObjectData::train_time@006508c0`'s Socialism arm on a Siege Factory unit, on a build in progress.
+
+Each fails its walk when taken out.
 
 ## 86. Reserved for the next item on the rules track
 

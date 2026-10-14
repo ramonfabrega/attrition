@@ -6415,6 +6415,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_SEVEN: i64 = 1330;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SIXTY_SEVEN: (i64, i64) = (600, 1331);
 
+/// **Chapter sixty-eight** (item 2357, `docs/GOLDEN.md` §85, run852): a
+/// Stable and a Siege Factory for who=0 standing two Military levels past
+/// their units, a Light Horse under Monarchy and a Catapult each side of
+/// Socialism — `get_cost`'s military discount, Monarchy and Socialism arms
+/// in the listing's order, and `train_time`'s Socialism arm on a Siege
+/// Factory.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_EIGHT: i64 = 1360;
+
+/// `chapter_sixty_eight_s_word_frame_is_widened_whole`'s window: run852
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SIXTY_EIGHT: (i64, i64) = (600, 1361);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8766,6 +8778,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         2331,
         Some(WIDENING_CHAPTER_SIXTY_SEVEN),
     ),
+    // Item 2357: run852, chapter sixty-eight, Socialism's price and a live
+    // military discount. The widening is run852 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_SIXTY_EIGHT",
+        GOLDEN_WORD_CHAPTER_SIXTY_EIGHT,
+        Some("chapter_sixty_eight_s_word_frame_is_widened_whole"),
+        2357,
+        Some(WIDENING_CHAPTER_SIXTY_EIGHT),
+    ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
     // The widening is run576 whole.
@@ -9106,13 +9127,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::mongol_pair::WIDENING_MONGOL_CLOSING),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
-    // run848 over 1378..1634 (block 1385).
+    // run848 over 1378..1634 (block 1385); **1984** after item 2351's
+    // Lakota food term, widened on run849 over 1978..2235 (block 1985).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        Some("run848_s_word_frame_is_widened_whole"),
-        2320,
-        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_1384),
+        Some("run849_s_word_frame_is_widened_whole"),
+        2351,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_1984),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -9435,7 +9457,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         length: 6_822,
         endpoint: None,
-        window: Some("lakota_frame_1384_window"),
+        window: Some("lakota_frame_1984_window"),
     },
     // **The successor pair** (DECISIONS 53 §2, 61 §6; item 1728): East
     // Indies, the Mongols at Difficulty 3 and All Technologies.

@@ -52,9 +52,10 @@
 /// `vtordisp` token, `set_shooter_vis` and `issue_unqueue`;
 /// item 2374: 845 -> 873, the sweep's sixty-ninth batch, the twenty-eight `vtordisp` thunks left, one `fwd`
 /// line each, the band empty on `census.py --unbacked`;
-/// item 2379: 873 -> 883, the sweep's seventieth batch, ten `CommandManager::issue_*` whose command
+/// item 2357: 873 -> 874, chapter sixty-eight's coverage, `get_military_level_slow` diff-backed by run852;
+/// item 2379: 874 -> 884, the sweep's seventieth batch, ten `CommandManager::issue_*` whose command
 /// bytes `obj --deref` reads at the call).
-pub const SIMULATION_BACKED: usize = 883;
+pub const SIMULATION_BACKED: usize = 884;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
