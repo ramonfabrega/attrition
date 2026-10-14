@@ -669,7 +669,7 @@ impl Sim {
             }
         };
         // **The army's group is a pool index, and the record on it may be
-        // another group's** (§24): an army whose own seat lists no live
+        // another group's** (`docs/GOLDEN.md` §77): an army whose own seat lists no live
         // member, and whose index a later push took, reads that pushed
         // group as its own — the count, `get_unit(0)` and the join.
         if let Some(p) = self.army_pool_record(who, slot) {
@@ -702,7 +702,7 @@ impl Sim {
     }
 
     /// **The pool record an army's index holds when it is not the army's
-    /// own** (§24). `Army` keeps its groups as pool **indices**
+    /// own** (`docs/GOLDEN.md` §77). `Army` keeps its groups as pool **indices**
     /// (`list[16]`, §3.1), and nothing tells it when `push_group` kills its
     /// members out of the group (§3.4), when the pool frees the emptied
     /// record, or when a later push takes the index: `remove_group` refuses

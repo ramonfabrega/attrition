@@ -3549,6 +3549,12 @@ impl Sim {
                 && unit.combat.target.is_none()
                 && let Some(t) = self.find_melee_target(u, -1)
             {
+                // `find_melee_target(−1, &whom, 0, 1, 0)` adds its own
+                // order (`find_nearby_target`'s add, [`Self::nearby_add`]):
+                // `QUEUE_FIRST` under an attack-move, so the walk
+                // `add_to_army` just issued stays beneath the attack. A
+                // `QUEUE_NEW` here dropped run818's `1/9` walk on 701
+                // (item 2117, `docs/GOLDEN.md` §77).
                 self.nearby_add(u, t);
                 // `think_attack`'s tail (`005f5da6`..): a **unit** find by
                 // a unit its group lists is handed to
