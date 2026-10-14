@@ -94,5 +94,15 @@ fn run848_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "initial run848 baseline");
+    pin_eq!(w.firsts.len(), 870, "initial run848 baseline");
+    // Item 2320: 870 keys part on blocks 1378..1634, the word's own block
+    // being 1385 (frame 1384: ours 596 draws, theirs 564, index 28; ours
+    // `Leader::create_buildings+0xffb`, theirs `Animal::think_bird+0x82`).
+    // 74 stand on 1378, among them who=1's food economy — `income[food]`
+    // ours 320 theirs 1728, `rate` 20/108, `econ` 3/8 — which parts on the
+    // start's block 1 already (run846: 160 against 864). On the word's
+    // frame, `leader:MAKE[5].val` 28124/29387 and the unit `1/13`'s `pos`
+    // (38963,38203)/(39009,38201); on 1383 the building `1/2026`
+    // stands at (35904,39744) with `constr_time` 70000 in ours and at
+    // (40800,41568) with 560000 in theirs (`docs/AI.md` §218).
 }
