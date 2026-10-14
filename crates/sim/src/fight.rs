@@ -225,6 +225,33 @@ pub(crate) enum Aim {
     Ground(crate::orders::AttackGroundOrder),
 }
 
+/// The figures **`Unit::set_in_danger@005fcfb0`** marks, in its order:
+/// the climb up `up` (the original's `o_up`, `None` at the captain — its
+/// `is_captain`, the link's sign bit) from `start`, then the captain and
+/// each `down` link (the original's `o_down` whose slot is active,
+/// `flags & 1`; `None` past the last). Both walks stop after `limit`
+/// links, a guard the original does not have: a cycle would hang it.
+/// Item 2276's sweep holds it.
+pub(crate) fn danger_squad(
+    start: usize,
+    limit: usize,
+    up: impl Fn(usize) -> Option<usize>,
+    down: impl Fn(usize) -> Option<usize>,
+) -> Vec<usize> {
+    let mut at = start;
+    for _ in 0..limit {
+        let Some(u) = up(at) else { break };
+        at = u;
+    }
+    let mut out = vec![at];
+    for _ in 0..limit {
+        let Some(d) = down(at) else { break };
+        out.push(d);
+        at = d;
+    }
+    out
+}
+
 fn no_profile() -> Profile {
     Profile::default()
 }
@@ -2851,22 +2878,16 @@ impl Sim {
     /// The walk stops at the first figure whose slot is not active
     /// (`flags & 1`). The captain it starts from is marked unasked.
     pub(crate) fn set_in_danger(&mut self, u: usize) {
-        let mut at = u;
-        // Bounded by the list, as `relink_squad`'s walks are: a cycle
-        // would hang the original, and here it stops.
-        for _ in 0..self.units.len() {
-            let Some(up) = self.units[at].o_up else { break };
-            at = up;
-        }
-        let mut cur = Some(at);
-        for step in 0..self.units.len() {
-            let Some(n) = cur else { break };
-            if step > 0 && !self.units[n].alive() {
-                break;
-            }
+        let units = &self.units;
+        let marked = danger_squad(
+            u,
+            units.len(),
+            |i| units[i].o_up,
+            |i| units[i].o_down.filter(|&d| units[d].alive()),
+        );
+        for n in marked {
             self.units[n].in_danger = true;
             self.units[n].guy_flag_0x20 = true;
-            cur = self.units[n].o_down;
         }
     }
 
