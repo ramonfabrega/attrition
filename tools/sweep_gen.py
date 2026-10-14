@@ -111,7 +111,8 @@ function N stack arguments of its own, which the port reads as `p[..]`
 
 Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
 the `mod <snake>;` line for `sweep/mod.rs` is printed, or appended with
-`--write-mod`. Without `--port` the test's port is `todo!()`, so the row
+`--write-mod`; `--regen` redraws a generated sweep in place (both files
+rewritten, `mod.rs` left alone), so a starved draw is one line. Without `--port` the test's port is `todo!()`, so the row
 fails until the lane writes it — a sweep lands when the two sides agree,
 never when a file exists. `--dry-run` prints both files instead.
 """
@@ -1935,8 +1936,13 @@ def main(argv=None):
                          'above (`>`) its own index or a terminator (-1), so a walk through them ends '
                          '(`o_up`, an upgrade chain; item 2276)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
+    ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
+                    '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
+    if args.regen and args.write_mod:
+        print('sweep_gen.py: --regen leaves mod.rs alone; drop --write-mod', file=sys.stderr)
+        return 2
     try:
         if args.shape == 'walk':
             sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1)
@@ -1987,8 +1993,10 @@ def main(argv=None):
         print(f'# {sp}\n{script}\n# {tp}\n{test}\n# sweep/mod.rs\n{mod}')
         return 0
     for p in (sp, tp):
-        if p.exists():
-            print(f'sweep_gen.py: {p} exists; a sweep is generated once', file=sys.stderr)
+        if p.exists() != args.regen:
+            print(f'sweep_gen.py: {p} ' + ('is missing; --regen redraws a generated sweep' if args.regen
+                                           else 'exists; a sweep is generated once (--regen redraws it)'),
+                  file=sys.stderr)
             return 2
     sp.write_text(script)
     sp.chmod(0o755)
@@ -1997,7 +2005,7 @@ def main(argv=None):
         with open(SWEEP / 'mod.rs', 'a') as f:
             f.write(mod + '\n')
     print(f'{shown(sp)}\n{shown(tp)}\n{mod}'
-          + ('' if args.write_mod else '  (add to crates/sim/src/sweep/mod.rs)'))
+          + ('' if args.write_mod or args.regen else '  (add to crates/sim/src/sweep/mod.rs)'))
     return 0
 
 
