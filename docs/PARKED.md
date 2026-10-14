@@ -3788,6 +3788,12 @@ first. One reach.
 Candidate: a `sweep_gen.py` note or `--fill` preset naming the cells the image fills at start-up, or a refusal when
 a draw's every row answers one value, with a test made to fail first. One reach.
 
+(2222) **A break that passes is a draw that never reached the arm** (2200's "for the Loop" line). Two of
+2200's ten breaks passed at first: `tile_corner_of`'s parity (inert on a non-negative coordinate) and `is`'s `x < 0`
+guard, whose empty-list arm a `--wbias` set drew on ~1% of rows. Redrawn, the break failed. Candidate: a
+brief-checklist row — "a break that passes is read against the draw before the code" — or `sweep_gen.py` printing
+each `--wbias` value's row share so a starved arm shows before the run. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
