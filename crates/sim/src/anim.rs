@@ -38,6 +38,25 @@ use crate::{Sim, Unit};
 /// which is `Unit::init`'s copy of it.
 pub const SQUAD_SIZE: usize = 1;
 
+/// The figures `Unit::update_gpiece@005e2920` re-pieces, in its order:
+/// the squad `0 .. guy_mark` (`UnitData +0xb5`, a signed byte), then the
+/// crew from `squad_size` (`UnitType +0x304`) up to the lesser of
+/// `squad_size + crew_size` (`+0x30c`) and the guy count (`UnitData
+/// +0xe8`). Each visited figure gets `Guy::update_gpiece` and its
+/// renderer word `+0xd0` cleared. The port's [`Sim::update_gpiece`] hands
+/// it `guy_mark = squad_size =` [`SQUAD_SIZE`]; the sweep
+/// (`sweep::unit_update_gpiece`) holds it to the original on raw bytes.
+pub fn gpiece_walk(guy_mark: i8, squad: i32, crew: i32, guys: i32) -> Vec<i32> {
+    let mut out: Vec<i32> = (0..i32::from(guy_mark.max(0))).collect();
+    let end = squad.wrapping_add(crew).min(guys);
+    let mut k = squad;
+    while k < end {
+        out.push(k);
+        k += 1;
+    }
+    out
+}
+
 // The `UnitAnim` enum (`rise.pdb`, type 0x46B1).
 pub const DEFAULT: i8 = 0;
 pub const IDLE1: i8 = 1;
@@ -281,6 +300,28 @@ pub const CAT: [i8; NUM_ANIMS] = [
     0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 10, 12, 12, 12, 12, 15, 15, 15, 15, 15, 15, 21, 22, 23, 24, 25,
     8, 27, 8, 29, 8, 31, 8, 33, 34, 35, 36, 37,
 ];
+
+/// The figures `Unit::set_anim@00616f40` hands to `Guy::set_anim`, in
+/// order: `0 .. guy_mark` (`+0xb5`, a signed byte), then `squad_size ..
+/// num_guys` (`UnitTypeData +0x304`, `Unit +0xe8`). Two loops, so a crew
+/// that starts below `guy_mark` is walked twice and one that starts above
+/// it leaves a gap. Swept in `sweep::unit_set_anim`.
+pub(crate) fn set_anim_walk(
+    guy_mark: i32,
+    squad_size: i32,
+    num_guys: i32,
+) -> impl Iterator<Item = usize> {
+    let squad = 0..guy_mark.max(0);
+    let crew = squad_size..num_guys.max(squad_size);
+    squad.chain(crew).map(|g| g as usize)
+}
+
+/// Whether `Unit::set_anim@00616f40` drops a figure's pending attack
+/// (`GuyData +0x9e`) on this pass: unless **guy 0's** current slot
+/// (`+0x9c`) is an attack (`UnitAnimCat[..] == CHAR_ATTACK2`).
+pub(crate) fn set_anim_clears(lead: i8) -> bool {
+    category(lead) != ATTACK2
+}
 
 /// The category of an animation index.
 pub fn category(anim: i8) -> i8 {
@@ -819,7 +860,17 @@ impl Sim {
             self.units[u].movement.body.pos,
             self.units[u].movement.facing,
         );
-        for n in 0..self.units[u].guys.len() {
+        let len = self.units[u].guys.len();
+        let walk = gpiece_walk(
+            SQUAD_SIZE as i8,
+            SQUAD_SIZE as i32,
+            self.unit_types[ty].combat.crew_size,
+            i32::try_from(len).unwrap_or(i32::MAX),
+        );
+        for n in walk {
+            let Some(n) = usize::try_from(n).ok().filter(|&n| n < len) else {
+                continue;
+            };
             let piece = self.piece_of(who, ty, o, n as u8, packed).unwrap_or(-1);
             self.units[u].guys[n].gpiece = piece;
             if n == 0 {
@@ -1179,12 +1230,16 @@ impl Sim {
         // CHAR_ATTACK2` drops every guy's `+0x9e`. So any unit-level
         // request made while the unit is not already swinging cancels an
         // attack it owed, whatever the request is for (§6.2).
-        for g in 0..self.units[u].guys.len() {
+        // The port's figures are the squad (`guy_mark`, which is
+        // `SQUAD_SIZE`) and then the crew from `squad_size` up, so the
+        // original's two loops are `0 .. len` here.
+        let len = self.units[u].guys.len();
+        for g in set_anim_walk(SQUAD_SIZE.min(len) as i32, SQUAD_SIZE as i32, len as i32) {
             // **Guy 0's slot is re-read on every pass**, not once before
             // the loop: the original's test is inside the body, so a call
             // that puts guy 0 on an attack spares the guys after it.
             let lead = self.units[u].guys.first().map_or(DEFAULT, |g| g.anim);
-            if category(lead) != 12 {
+            if set_anim_clears(lead) {
                 self.units[u].guys[g].pending_attack = 0;
             }
             // The roll this pass may take is named by the loop it is in:
@@ -2527,6 +2582,8 @@ mod tests {
             ..UnitType::default()
         });
         s.unit_types[ty].combat.packs = true;
+        // Two figures: `CREW_SIZE 1`, which `gpiece_walk` bounds the crew by.
+        s.unit_types[ty].combat.crew_size = 1;
         s.unit_types[ty].type_index = 0x7f;
         let piece = |guy: i32, gender: bool| {
             0x7f - 0x32
@@ -2588,6 +2645,8 @@ mod tests {
             ..UnitType::default()
         });
         s.unit_types[ty].combat.packs = true;
+        // Two figures: `CREW_SIZE 1`, which `gpiece_walk` bounds the crew by.
+        s.unit_types[ty].combat.crew_size = 1;
         s.unit_types[ty].type_index = 0x7f;
         let piece = |guy: i32, gender: bool| {
             0x7f - 0x32

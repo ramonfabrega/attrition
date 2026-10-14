@@ -4946,13 +4946,38 @@ window it lays, but not as flags, so the next lane to redraw a sweep re-derives 
 constants by hand. A `# sweep_gen: obj …` comment written into the script (and read back by `--regen` when no line
 is given) would make every generated sweep redrawable by anyone.
 
-## Parked by the next landing, slot BS — reserved
+## Parked by item 2314, 2026-10-14 — the second sweep lane's ten, with a port consumer
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2315) **`Sim::adjacent_to` has no boat-garrison arm and skips both in-use guards** (2314; names no score). The
+original `Object::adjacent_to@00651f40` answers 0 unless `this +0x8 & 1` and the target's `+0x8 & 1` are set. When
+`[this+0x18]+0x218 == 1` and vslot `+0x18` answers nonzero, and the unit record's type has `+0x2b4 & 0x10` clear, it
+compares the three-argument `attack_dist@0064c880` against `constants(0xc061f0)->boat_garrison_max_distance`
+(`+0x94`), plus `0x180` when type `+0x248 <= 3`, instead of `0x60`. `transport.rs`'s test hands it a barge. Not swept
+in 2314 for that reason. Once the arm is ported, it is a stub sweep of both `attack_dist` overloads and the vslot.
+
+(2316) **`Sim::num_inside` charges a decoy captain its pop; the original counts it 0** (2314; names no score).
+`ObjectData::num_inside@00646d50` gives a captain with `unit_masks & 1` no slots. The sweep's helper
+`garrison::inside_count` carries that arm, but the port passes a decoy closure that is always false. It is a one-word
+change, `|&u| self.units[u].decoy`, if a decoy can garrison in the port.
+
+(2317) **`Sim::push_group`'s equal-arm shortcut kills nothing** (2314; names no score). `Groups::push_group@0070f9e0`
+still kills any in-use member whose `+0x80` names another group `>= 0`, even when the stack group equals the slot's.
+The port assumes every member already points at the slot. The sweep holds the helper's kill predicate
+(`group::push_group_steps`), and the port's kill closure is empty because its kills run earlier, in `unseat_group`.
+
+(2318) **Six `sweep_gen` gaps this batch met** (2314, for the Loop):
+- `--record` cannot order two argument-less callees on one `ecx`. `add_think_order`'s `update_action` moved ahead of
+  `clear_partial_path` and passed. A record that names the callee would catch it.
+- `--record` names a pointer by the window it lies in, so a `--place` laid at `buf-EXPR` records as a neighbour's
+  name or a raw integer (`set_anim`).
+- `--record` cannot show a register argument (`copy_group`'s `edx`), and it prints a stack local as a raw address
+  (`get_goody_box`'s `Group` at `ebp-0x9d8`, restated as a test constant).
+- A run of figures takes one `--place`, `--wbias` or `--vtat-also` per figure (`num_inside`, 24 flags; `is_in_range`,
+  14 `--place` hops). A range form is owed.
+- `--write-mod` appends at `mod.rs`'s tail, out of sorted order.
+- `--answers` draws a random word on 10% of rows, so a list of edges is never drawn every row (`is_in_range` had to
+  wrap its sums).
+
 
 ## Parked by the next landing, slot BT — reserved
 
