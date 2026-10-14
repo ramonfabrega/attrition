@@ -71,8 +71,13 @@ pub(crate) const MONGOL: Pair = Pair {
     // the frame its Supercollider `1/2034` completes, and the Despot
     // `1/191` becomes The Monarch there as the original's does (`docs/AI.md`
     // section 216).
-    count: 4946,
-    sequence: 4946,
+    // Item 2293: 4946 -> 5056, the game's last frame (count and sequence
+    // both): `train_time`'s Socialism arm takes SOCIALISM_UNIT_BONUS off an
+    // Airbase's unit, so the Airbase `1/2010`'s MiG target falls 27900 ->
+    // 22320 on 4782, the frame who=1 researches Socialism, and its MiG is
+    // born on 4946 as the original's is (`docs/AI.md` section 217).
+    count: 5056,
+    sequence: 5056,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -151,8 +156,13 @@ fn run775_mongol_pair_closing_state() {
         harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 5057, "the closing block");
-    pin_eq!(e.compared, 0, "units compared");
-    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 2293, first try: 237 units compared, two apart — `1/93` by
+    // (-96, -720) and `1/176` by (20, 17), each a standing row run838
+    // already holds (`1/93`'s `g.x[0]` from 4597, `1/176`'s `mirror` from
+    // 4702) — and no building or city field-row. A residue of the
+    // closing, not a parity claim.
+    pin_eq!(e.compared, 237, "units compared");
+    pin_eq!(e.counts(), [2, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// run776: the lobby's blocks 1..34 at the long's detail, the word 11's
@@ -536,8 +546,9 @@ pub(crate) const RUN838: &str = "gamelog-run838-eastindies-mongol-alltech-window
 /// The window: block 4597 through 4852; the word 4603's own block is 4604.
 pub(crate) const WIDENING_MONGOL_FRAME_4603: (i64, i64) = (4597, 4854);
 
-/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
-pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+/// run838's window, the word 4603's (item 2193); it was the `AI_WORDS`
+/// window until item 2293 closed the pair at the game's end.
+pub(crate) fn mongol_frame_4603_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[MONGOL.start],
         true,
@@ -556,7 +567,7 @@ pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run838_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = mongol_word_window() else {
+    let Some(w) = mongol_frame_4603_window() else {
         return;
     };
     pin_eq!(w.blocks, 256, "every captured block");
@@ -589,5 +600,9 @@ fn run838_s_word_frame_is_widened_whole() {
     // `1/191`'s figures and `mylos` 14 agree; the first row past the
     // standing ones is now `1/176`'s `mirror` on 4702 (`docs/AI.md`
     // section 216).
-    pin_eq!(w.firsts.len(), 189, "run838 baseline");
+    // Item 2293: 189 -> 188 — the Airbase `1/2010`'s
+    // `queue:queue[0].job_counter` on 4784 (ours 27250, theirs 22320)
+    // leaves: the Socialism arm drops its MiG's target to 22320 on 4782 and
+    // the counter clamps there on both sides (`docs/AI.md` section 217).
+    pin_eq!(w.firsts.len(), 188, "run838 baseline");
 }

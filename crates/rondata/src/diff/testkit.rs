@@ -6961,6 +6961,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2229: 873 -> 877, the walk past 4637 to the word 4671.
     // Item 2259: 877 -> 923, the walk past 4671 to the word 4946.
     ("mongol_pair_first_parting", 923),
+    // And its closing state (item 2293): the same walk to the closing block.
+    ("run775_mongol_pair_closing_state", 923),
     // Great Sahara in the successor pair's lobby (item 2107): its walk.
     // Item 2107: 193 -> 204, the walk past 2995 to the game's end.
     ("sahara_mongol_first_parting", 204),
@@ -9394,8 +9396,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (Mongols)",
         word: crate::diff::mongol_pair::MONGOL_PAIR_WORD,
         length: 5_056,
-        endpoint: None,
-        window: Some("mongol_word_window"),
+        // Item 2293: closed at the game's last frame.
+        endpoint: Some("run775_mongol_pair_closing_state"),
+        window: None,
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

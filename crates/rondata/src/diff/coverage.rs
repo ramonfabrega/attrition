@@ -2988,7 +2988,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 2088: and run820's blocks around the word 4238.
     let mongol_4238 = super::mongol_pair::mongol_frame_4238_window();
     // Item 2193: and run838's blocks around the word 4603.
-    let mongol_4603 = super::mongol_pair::mongol_word_window();
+    let mongol_4603 = super::mongol_pair::mongol_frame_4603_window();
     // Item 2107: Great Sahara in the successor pair's lobby, run834's
     // blocks around the word 2995 to the game's closing block 3269.
     let sahara_mongol_2995 = super::sahara_mongol::sahara_mongol_frame_2995_window();
