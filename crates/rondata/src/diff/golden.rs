@@ -13819,8 +13819,8 @@ fn chapter_sixty_one_holds_to_the_golden_word() {
     );
 }
 
-/// **run814 from 605 through the word 780, both directions** (item 2032,
-/// `docs/GOLDEN.md` §74).
+/// **run814 whole, both directions** (item 2032, `docs/GOLDEN.md` §74;
+/// through its end since item 2099, §76).
 #[test]
 fn chapter_sixty_one_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
@@ -13862,11 +13862,10 @@ fn chapter_sixty_one_s_word_frame_is_widened_whole() {
 }
 
 // **What parts through the word** on run814 (item 2032, `docs/GOLDEN.md`
-// §74): the standing `form` rows (605); `0/7`'s `death:extra` (the
-// instrument, parked 1830's family); and scene two's captain `0/10` from
-// 779, the word's own rows — its attack on who=1's Citizen `1/6` kept here
-// and dropped there. Arm one's rows (690 `0/8 near`, 770 the Citizen
-// attacked, and their tails) left with the squad head in `find_new_target`.
+// §74; item 2099, §76): the standing `form` rows (605) and the
+// `death:extra` instrument on `0/7` (774) and `0/6` (931), parked 1830's
+// family. Scene two's captain `0/10` on 779–780 left with `fight`'s
+// `poor_target` arm (item 2099): the chapter is closed at 1000.
 const WANT_CH61: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -13880,28 +13879,114 @@ const WANT_CH61: &[&str] = &[
     "605 1/4 form",
     "605 1/5 form",
     "774 0/7 death:extra",
-    "779 0/10 dest_angle",
-    "779 0/10 near",
-    "779 0/10 order:kind",
-    "779 0/10 order:length",
-    "779 0/10 orders.len",
-    "779 0/10 orders_x",
-    "779 0/10 orders_y",
-    "780 0/10 g.angle[0]",
-    "780 0/10 g.des_angle[0]",
-    "780 0/10 g.des_x[0]",
-    "780 0/10 g.des_y[0]",
-    "780 0/10 g.last_speed[0]",
-    "780 0/10 g.x[0]",
-    "780 0/10 g.y[0]",
-    "780 0/10 heading",
-    "780 0/10 mirror",
-    "780 0/10 path[0].to",
-    "780 0/10 pos",
+    "931 0/6 death:extra",
 ];
 
-// The pool's one row is the word's: scene two's slot 0 `facing` on 780.
-const WANT_CH61_POOL: &[&str] = &["780 slot 0 facing"];
+// Empty since item 2099: the word's slot 0 `facing` on 780 left with
+// `0/10`'s attack.
+const WANT_CH61_POOL: &[&str] = &[];
+
+/// **Chapter sixty-two** (item 2066, `docs/GOLDEN.md` §75, run818): two
+/// guarding Hoplite squads, who=1's squads walked past them and a third added
+/// inside the leash; a follower's guard refusal under its squad head
+/// (parked 2033).
+#[test]
+fn chapter_sixty_two_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch62", "chapter62", 62, 13, 1000) else {
+        return;
+    };
+    eprintln!(
+        "chapter sixty-two: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SIXTY_TWO,
+        "chapter sixty-two's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SIXTY_TWO}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SIXTY_TWO,
+        "chapter sixty-two's golden word moved; re-pin it here and say so in docs/GOLDEN.md §75"
+    );
+}
+
+/// **run818 from 605 through the word, both directions** (item 2066,
+/// `docs/GOLDEN.md` §75).
+#[test]
+fn chapter_sixty_two_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let (_, hi) = WIDENING_CHAPTER_SIXTY_TWO;
+    let Some((firsts, pool)) = widen_civilians_and_pool(
+        "ch62",
+        "chapter62",
+        WIDENING_CHAPTER_SIXTY_TWO,
+        1000,
+        0,
+        (hi - 3, hi - 1),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch62 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch62: {} rows", got.len());
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch62 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH62.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch62: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH62_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch62: the pool's parting moved");
+}
+
+// **What parts through the word** on run818 (item 2066, `docs/GOLDEN.md`
+// §75): the standing `form` rows (605); who=1's `1/9`, born on 701, carries
+// the original's trailing `ATTACK_TO` behind its first attack on 702 (the
+// word's family: a computer's newborn joins its group's order, its path on
+// 703); both leaders' `treaties[·]` on 757, the first blow, 2 here and 3
+// there (chapter eight's standing family, `docs/GOLDEN.md` §12); and `1/8`'s
+// first wound on 841, 13 here and 9 there (`hits_left` 107 against 111;
+// parked 2068). The word frame itself carries none: its rows are block 901's.
+const WANT_CH62: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "702 1/9 order:length",
+    "702 1/9 orders.len",
+    "702 1/9 path:length",
+    "703 1/9 path[0].to",
+    "757 0/-1 leader:treaties[1]",
+    "757 1/-1 leader:treaties[0]",
+    "841 1/8 damage_frac",
+    "841 1/8 hits_left",
+    "841 1/8 hits:damage",
+    "841 1/8 hits:damage_frac",
+];
+
+// Empty: no slot of the pool parts through the word.
+const WANT_CH62_POOL: &[&str] = &[];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the

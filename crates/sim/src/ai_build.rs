@@ -236,8 +236,6 @@ impl Sim {
         build::is_training_building(&self.build_types, rec)
     }
 
-    /// `BuildTypeData::is_defensive` — a tower, a fort, an Airbase, or
-    /// anything that shoots.
     /// `BuildTypeData::is_military_trainer@0063bcf0`, the derived flag on the
     /// root of the `FROM` chain (`build::init_derived_flags`): every building
     /// that trains a military unit — the Barracks, Stable and Siege Factory
@@ -248,11 +246,10 @@ impl Sim {
         build::is_military_trainer(&self.build_types, rec)
     }
 
+    /// `BuildTypeData::is_defensive` — a tower, a fort, an Airbase, or
+    /// anything that shoots ([`build::is_defensive`]).
     fn is_defensive_type(&self, rec: usize) -> bool {
-        build::is_tower(&self.build_types, rec)
-            || build::is_fort(&self.build_types, rec)
-            || build::is(&self.build_types, rec, Ident::Airbase)
-            || self.build_types[rec].attack != 0
+        build::is_defensive(&self.build_types, rec)
     }
 
     /// The tree id of the `g`th good, in `goodrules.xml` order.

@@ -15,8 +15,9 @@
 //! (`diff::floors`). The export, the PDB and `llvm-pdbutil` live outside
 //! the repo; a machine without them skips and says so.
 
-/// Simulation-layer functions a coverage section's diff or a sweep backs.
-pub const SIMULATION_BACKED: usize = 522;
+/// Simulation-layer functions a coverage section's diff or a sweep backs (item 2112: 546 -> 556, the
+/// sweep's forty-ninth batch).
+pub const SIMULATION_BACKED: usize = 556;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

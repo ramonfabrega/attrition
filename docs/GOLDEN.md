@@ -11300,6 +11300,7 @@ and `chase_refused` killed it; its tails on 771, 778 (`order:guard.idle` 103 aga
 whole capture). **No draw moves**: the word stays 780.
 
 **Pins.** `GOLDEN_WORD_CHAPTER_SIXTY_ONE` 780; the widening's window is 605..781, the word's frame its last.
+**Superseded by item 2099 (§76):** the word is 1000 and the chapter is closed; the window is run814 whole.
 `WANT_CH61` is the eleven `form` rows, `0/7`'s `death:extra` on 774 (the instrument, parked 1830's family) and
 `0/10`'s eighteen word rows on 779–780; `WANT_CH61_POOL` the word's slot 0 `facing` on 780.
 
@@ -11325,19 +11326,146 @@ and legs agree on every follower and captain to 779; and arm one — `Unit::figh
 **Not backed** by it: `Object::check_target@00649e00`'s leash refusal and `Object::find_nearby_target@00648da0` on
 arm two (past the word), `Unit::update_guard_order@005e3220`, and the defensive post's `UnitData::find_def_pos@00608560`.
 
-## 75. Reserved for the next item on the rules track
+## 75. Chapter sixty-two — a follower's guard refusal under its squad head (item 2066)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 2033 and 2034: the two follower arms item 2032 built through
+`Unit::find_melee_target@005ff9c0`'s squad head that no walk holds — `Unit::fight@005fd4d0`'s guard refusal, and
+the enemy ladder's `find_new_target(this, NULL, 1)`. **What the disk could not answer**: run814 reaches a
+follower's guard refusal only past its word (872, 906), on a state already parted, and there the head and the
+headless search both answer nothing, so a mutation of the call fails no test.
 
-## 76. Reserved for the next item on the rules track
+**The census rows the lobby reaches**, named before the capture (`tools/census.py --unbacked`, the simulation
+layer's never-backed rows; each a staged line below enters): `Object::check_target@00649e00` (the guard's leash,
+captains and followers), `Object::find_nearby_target@00648da0` (the captain's search after its refusal, which finds
+the other squad's men or nothing), `Object::valid_target@00648ba0` (every guard's `fight`),
+`Unit::find_attack_pos@00602e60` (the chase's seven-argument entry) and `Unit::update_guard_order@005e3220` (the
+guard issued again on 640: each member's `GUARD` on the Citizen is found and re-offset, where 620 adds it).
+**Not reached**: the head's captain arm under a refusal (below: why a staging cannot aim at it) and the enemy
+ladder's call for a follower (below: the original makes it for a captain only).
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Two premises the decompile kills, read before the staging.**
+
+- *A follower refused while its captain attacks another target* is not a staging's to choose. `Unit::fight@005fd4d0`
+  opens (lines 128–195 of the export) with a second captain mirror: a follower whose `collide_frame` (`+0x48`) is
+  below `frame − 1`, whose captain's action is an `ATTACK` on a target it may take, has that target **written into its
+  own order** before the guard's `check_target` runs. So the leash then asks of the captain's target, and
+  `Object::check_target@00649e00`'s guarding arm answers 1 for a follower on its captain's target. The head's captain
+  arm under a refusal is reached only on a frame after the follower collided, or with the captain's target one the
+  follower may not take — and there the head answers a search, not the target. A probe (`RON_PROBE_2066`, committed and
+  reverted whole) over the whole release suite found no follower refused with its captain on another target, and no
+  frame where the mirror stood aside for a collision.
+- *The enemy ladder's `find_new_target(this, NULL, 1)` for a follower* does not exist:
+  `Unit::resolve_unit_collision@005f9d30` makes that call under `is_captain` (the export's line 233); a follower takes
+  its captain's target when in range, which is this crate's `enemy_ladder_arm_c`. The follower's reach of
+  `find_new_target(this, NULL, 1)` is `Unit::do_move@005f7b30`'s `ATTACK` retarget (line 105: a suspended search,
+  `(frame − collide_frame) % 4 == 0`, `repaths[who] != 0`, not mandatory) — the `SEAM` in `crate::orders`' `do_move`.
+  The same probe found it reached by no walk in the suite: 19 suspended searches under an `ATTACK`, none firing.
+
+So the chapter aims at what a staging can: the follower's refusal with the head answering **nothing** where the
+headless search takes a target — `fight`'s call, which parked 2033 said no mutation could fail.
+
+**The staging** (`tools/gamelog/golden/chapter62.cmd`), walked by this crate on run814's start with the probe printing
+the head beside a cloned sim's headless search at every guard refusal. Two Hoplite squads, `0/6` (captain), `0/7`,
+`0/8` and `0/10`, `0/11`, `0/12`, guard the Citizen `0/9`, issued on 620 and again on 640. who=1's Hoplite squads
+`1/6` (born 700) and `1/9` (701) are walked past from 702 (`be 1`). The captains' leashes refuse on 778, 800, 804, 851
+and 884; the search takes the other squad's man on 778, 804 and 851 and nothing on 800 and 884. A third who=1 squad
+`1/12` is added inside the leash on 900, and on **905** `0/7`'s target `1/6` is refused with its captain on its
+`GUARD`: the head answers nothing, the headless search `1/12`. The search's find held from 896 to 904 alike.
+
+**run818** (605..1000, lane 1, 776 s, first take; `issuesmatch.py --none-refused`: four issue records, none
+refused): the word is **900**, 13 draws against 11 — ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` for each of
+the third squad's three men `1/12`, `1/13`, `1/14`, theirs for `1/12` alone. **Both sides on 901**: the original's three
+join who=1's group **64** — `group` 64 against this crate's new 65, `form_mod` 50 against −1 — and carry its
+`ATTACK_TO` toward (46056, 10056) with a 43-node path; `1/12` has an `ATTACK` on `0/12` in front of it. This crate's
+stand on an `ATTACK` (`1/12`) or idle. The family is older than the word: `1/9`, born on 701, carries the same trailing
+`ATTACK_TO` behind its first attack on 702 there (`orders.len` 2 against 1, its path on 703), and the two rows are the
+word's. The chapter ends there; the follower's refusal on 905 is five frames past it, and the next item on this word
+reaches it on run818 itself.
+
+**What agrees through the word**: both guards issued twice; every captain's leash refusal and the search after it —
+the original's `0/6` drops `1/11` on 779 and takes `1/10` (`near`), drops `1/10` on 801 and stands on its `GUARD`
+(`near` −1), `0/10` takes `1/8` on 805, `0/6` `1/7` on 851, and drops it on 884; this crate's walk the same frames, no
+row. **The rows before the word** (`WANT_CH62`): the `form` family (605); `1/9`'s on 702–703 (above); both leaders'
+`treaties[·]` on 757, the first blow, 2 here and 3 there (§12's family); and `1/8`'s first wound on 841, 13 here
+against 9 (`hits_left` 107 against 111; parked 2068). No pool row.
+
+**Mutations** (`tools/mutate.py`, each scored by cargo's exit): `guard_leash` answering `In` where it answers `Out` —
+held, both chapter tests fail; `update_guard_order` answering `None` always (the re-issue stacks a second `GUARD`) —
+held, both fail.
+
+**Not established.** The head's two follower arms stand unheld (above, and parked 2033, 2034 amended); the refusal on
+905 waits on the word. Why a computer's newborn joins its group 64 and takes the group's `ATTACK_TO` is the word's
+question, not read here. Chapter sixty-one's 780 is untouched (parked 2067 has what this item measured of it).
+
+### 75.1 Coverage
+
+**Diff-backed** by run818's widening through the word, with both mutations failing it:
+`Object::check_target@00649e00`'s guarding arm (the captains' leash refusals on 778, 800, 804, 851 and 884),
+`Object::find_nearby_target@00648da0` after them (a find on 778, 804 and 851, none on 800 and 884),
+`Unit::update_guard_order@005e3220` (the re-issue on 640: each member's `GUARD` found and re-offset), and the chases
+between them through `Unit::find_attack_pos@00602e60`.
+
+**Not backed** by it: `Unit::fight@005fd4d0`'s guard refusal for a follower under the head (905, past the word), the
+head's captain arm under a refusal, `Unit::do_move@005f7b30`'s `ATTACK` retarget, and `Object::valid_target@00648ba0`,
+which every `fight` calls and no arm here isolates.
+
+## 76. Chapter sixty-one closes: a futile chase is searched past its latch (item 2099)
+
+**The booking.** Parked 2105 and 2067. Chapters sixty-one and sixty-two read closed and were open: the `Golden:`
+floor (`crate::diff::floors`' `golden_line_verdict`) calls a chapter closed when its word is its window's last
+block, and both widenings ended at their words — (605, 781) and (605, 901) — where run814 and run818 run to 1000.
+Then chapter sixty-one's word, 780.
+
+**The re-pin.** A guard first, made to fail on exactly `ch61` and `ch62`:
+`a_golden_widening_s_window_reaches_its_trace_s_end` holds every `GOLDEN_WORDS` row's window to the `length` its
+chapter's `walk_script` call gives (`hi − 1 >= length`). Widening both windows to their traces was tried and
+withdrawn: past its word chapter sixty-two parts on 532 keys (sixty-one on some 300), a tail every later move
+would re-pin. So `GOLDEN_WORDS` names chapter sixty-two's trace beside its widening (`TRACE_CHAPTER_SIXTY_TWO`,
+605..1001), and its widening stays at the word. Chapter sixty-one closed in this same item, so its widening is
+run814 whole.
+
+**The frame, before any reading.** Block 780: ours 6 draws, theirs 5. Ours spends `Guy::set_anim+0x97a <
+Unit::move_step+0x823` for scene two's captain `0/10` (`TypeIndex` 132, `HOPLITES`, land), then the five
+`Farms::inc_time+0x1ae`; theirs spends only the five Farms draws. The seeds agree through 779. On 778 both sides spend
+`Unit::fight+0x9b0` for `0/10` (seed `a19cd1cc`, 58042: `58042 % 5 = 2`). **Both sides' unit state**
+(`unitat.py`): on block 778 the original's `0/10` holds `[ATTACK 1/6, GUARD]` at (40296, 30960); on block 779 it
+holds the `GUARD` alone, with `near` −1/−1. This crate's `0/10` kept the attack (`near` (6, 1), three orders). who=1's
+Citizen `1/6` (`TypeIndex` 50, `PEASANTS`) is walking east at (40268, 30546), 415 units off.
+
+**Neither fog nor the search** (parked 2067's two readings): the arm before the search. `Unit::fight@005fd4d0`,
+`LAB_005fddf7` (the export's lines 389–469): on a unit target `local_14` is "not combat role", and the roll
+(`% 5 == 0`) or the chase latch (`update_order()->flags & 0x10`) clears it. With `local_14` clear, the arm does not
+fall through to the chase. It asks **`Object::poor_target@0064a270(this, target)`**, and a yes jumps to the same
+`find_new_target` (`005fded5` → `LAB_005fdee2`). This crate carried that arm as a `SEAM`. A probe (committed and
+reverted whole) printed this crate's state on 778: `latch=true` and `poor_target=true`. So the original searches
+there. Its search's `check_target(…, param_6 1, param_7 0)` asks `poor_target` of every candidate, and `1/6` is
+refused before `near` is written. Nothing is found: `local_4c` stays above `0xf00`, `near` goes to −1/−1, and the
+attack is gone with the `GUARD` in front. That is the original's block 779.
+
+**Built** (`crates/sim/src/orders.rs`, `fight`'s captain arm): `research` is the old predicate **or**
+`poor_target(me, target)` on a unit target. **The value diff on block 779**: `0/10`'s `near` was (6, 1) here
+against (−1, −1) there, and is (−1, −1) both sides; `orders.len` was 3 against 1, and is 1 both sides (the `GUARD`).
+All eighteen of the word's rows on 779–780 leave, and the pool's 780 `facing` with them.
+
+**The word moves 780 → 1000, the trace's end: chapter sixty-one is closed.** The widening over run814 whole
+(605..1001) leaves 13 rows: the eleven standing `form` rows on 605, and the `death:extra` instrument on `0/7` (774) and
+on `0/6` (931), parked 1830's family. The pool parts nothing.
+
+**Mutation** (`tools/mutate.py`, the `|| poor_target` term removed): held. Both chapter-sixty-one tests fail and
+cargo exits 101. The whole release suite is green apart from the commander's `Golden:` line. The battery stays at
+576 / 6566 / 2974.
+
+**Not established.** The other predicate for `local_14`, for a unit whose `unit_masks2 & 4` is set (target role
+`0x10000` and not type `+0x2b4 & 0x2000`), is not carried (parked 2100). The cavalry archer's
+`find_melee_target` in place of `find_new_target` is still a `SEAM`. Chapter sixty-two's 900 is untouched by this
+item, and is the rules track's next word.
+
+### 76.1 Coverage
+
+**Diff-backed** by run814's widening whole, with the mutation failing it: `Unit::fight@005fd4d0`'s `poor_target`
+arm (`005fded5`) and, through it, `Unit::find_new_target@005ff6a0` → `Object::find_nearby_target@00648da0` with
+`Object::check_target@00649e00`'s `poor_target` refusal (its tail), on `0/10` at 778. No function enters
+the census for the first time here: census 536 of 3611 (`census.py --layers`), unchanged.
 
 ## 77. Reserved for the next item on the rules track
 

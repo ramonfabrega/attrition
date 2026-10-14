@@ -140,6 +140,32 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_vbase('Foo::bar@00401000', item=1, slot=0x10, base=0x401000, via=0x18)
 
+    def test_a_slot_compared_with_the_base_whose_body_is_a_call_of_another_slot(self):
+        # Item 2112 (parked 2095's sibling): `BuildTypeData::makes_roads`
+        # compares slot +0x64 with `is_city` and, equal, calls its own slot
+        # +0x60 handed (0x19e, 0); `ObjectData::isnt` compares the record's
+        # +0xf8 with `ObjectTypeData::isnt` and answers `!+0x60(p0, p1)`.
+        sp, script, tp, test, mod = sweep_gen.generate_vcallbase(
+            'BuildTypeData::makes_roads@00639910', item=2112, slot=0x64, base=0x472bc0, base_slot=0x60,
+            handed=['0x19e', '0'], port='i64::from(v)')
+        compile(script, str(sp), 'exec')
+        self.assertIn('BSLOT = 0x60', script)
+        self.assertIn("HANDED = ['414', '0']", script)
+        self.assertIn('VIA = None', script)
+        self.assertIn('["414", "0"]', test)
+        self.assertIn('format!("slot,this{own_s}")', test)
+        _, script, _, test, _ = sweep_gen.generate_vcallbase(
+            'ObjectData::isnt@00653480', item=2112, slot=0xf8, base=0x661b80, base_slot=0x60,
+            handed=['p0', 'p1'], own=2, via=0x18, negate=True)
+        self.assertIn('VIA = 24', script)
+        self.assertIn('OWN = 2', script)
+        self.assertIn('format!("slot,rec{own_s}")', test)
+        self.assertIn('todo!(', test)
+        # A forwarded argument the function does not take is refused.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_vcallbase('Foo::bar@00401000', item=1, slot=0x10, base=0x401000, base_slot=0x14,
+                                         handed=['p1'], own=1)
+
     def test_an_answer_may_set_ecx_on_return(self):
         # Parked 1922 (Loop 1890's sixth reach): `Tribes`, `Lands` and
         # `Herds` read a hooked callee's `ecx` on return (the decompiler's
@@ -195,6 +221,25 @@ class Shapes(unittest.TestCase):
                 self.assertEqual(sweep_gen.main(['const', 'X::y@00401000', '--item', '1']), 2)
                 self.assertTrue((Path(tmp) / 'sweep_x_y.py').exists())
                 self.assertTrue((Path(tmp) / 'x_y.rs').exists())
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+
+    def test_an_obj_from_the_command_line_holds_its_answer(self):
+        # Item 2090: `--ret` defaulted to fwd's `none` for every shape, so an
+        # `obj` written without it compared no `eax`; eight value-returning
+        # sweeps stood on their bytes alone, one of them reading the wrong field.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            try:
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']), 0)
+                self.assertIn('assert_eq!(got, want_eax', (Path(tmp) / 'x_y.rs').read_text())
+                self.assertEqual(sweep_gen.main(['obj', 'X::z@00401010', '--item', '1', '--ret', 'none']), 0)
+                self.assertNotIn('assert_eq!(got, want_eax', (Path(tmp) / 'x_z.rs').read_text())
+                self.assertEqual(sweep_gen.main(['fwd', 'X::w@00401020', '--item', '1',
+                                                 '--call', '0x401000:0:this:']), 0)
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'

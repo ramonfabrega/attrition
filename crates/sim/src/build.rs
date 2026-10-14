@@ -397,6 +397,23 @@ pub fn is_training_building(types: &[BuildType], t: usize) -> bool {
     types[fundamental(types, t)].has(flags::TRAINS)
 }
 
+/// `BuildTypeData::is_spellcaster@00639840` — [`flags::CRAFT_HERE`] on **any**
+/// record of the `FROM` chain, the type's own first (unlike the two above,
+/// which read the root alone; item 2083's sweep).
+pub fn is_spellcaster(types: &[BuildType], t: usize) -> bool {
+    let mut cur = t;
+    for _ in 0..=types.len() {
+        if types[cur].has(flags::CRAFT_HERE) {
+            return true;
+        }
+        match types[cur].from {
+            Some(f) => cur = f,
+            None => return false,
+        }
+    }
+    false
+}
+
 /// `Build::init@00629740`: the build queue's capacity. A trainer of any kind
 /// holds twenty, a research building ten, and everything else **two** — the
 /// last of which the first reading had as twenty.
@@ -418,6 +435,26 @@ pub fn is_city(types: &[BuildType], t: usize) -> bool {
 /// `BuildTypeData::is_fort` = `is(FORTX, 0)`.
 pub fn is_fort(types: &[BuildType], t: usize) -> bool {
     is(types, t, Ident::Fort)
+}
+
+/// `BuildTypeData::is_defensive@00473600`, and `WallData::is_defensive@00473650`, its body inlined on the
+/// wall's record (`+0x18`): `is(TOWER, 0)`, `is(FORTX, 0)` and `is(AIRBASE, 0)` asked through the record's slot
+/// `+0x60` **in that order**, the first true answering, and with none of them `attack` (`+0x1e8`) non-zero
+/// (item 2083's sweep holds the order and the short circuit). `is` answers a lineage test.
+pub fn is_defensive_by(mut is: impl FnMut(Ident) -> bool, attack: i32) -> bool {
+    is(Ident::Tower) || is(Ident::Fort) || is(Ident::Airbase) || attack != 0
+}
+
+/// `BuildTypeData::is_gather_enhancer@00472b50`: `is(GRANARY, 0)`, `is(LUMBERMILL, 0)`, `is(SMELTER, 0)` and
+/// `is(REFINERY, 0)` (`0x1a7..=0x1aa`) asked through the record's slot `+0x60` **in that order**, the first true
+/// answering (item 2090's sweep holds the order and the short circuit). `is` answers a lineage test.
+pub fn is_gather_enhancer_by(mut is: impl FnMut(Ident) -> bool) -> bool {
+    is(Ident::Granary) || is(Ident::Lumbermill) || is(Ident::Smelter) || is(Ident::Refinery)
+}
+
+/// [`is_defensive_by`] on the port's records.
+pub fn is_defensive(types: &[BuildType], t: usize) -> bool {
+    is_defensive_by(|i| is(types, t, i), types[t].attack)
 }
 
 /// `BuildTypeData::is_tower` = `is(TOWER, 0)`.

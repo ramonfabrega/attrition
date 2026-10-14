@@ -803,6 +803,12 @@ pub struct Order {
     pub body: Body,
 }
 
+/// `UnitData::is_fleeing@0046efa0` on the current order's `get_type()` (vslot `+0x10`): `FLEE_TO`; no order
+/// is not fleeing (item 2090's sweep holds the ask and the answer).
+pub fn is_fleeing_type(front: Option<i32>) -> bool {
+    front == Some(i32::from(index::FLEE_TO))
+}
+
 impl Order {
     /// `get_type()` — the `OrderIndex` value.
     pub const fn index(&self) -> u8 {
@@ -1122,6 +1128,17 @@ impl Sim {
     /// The current order — `Unit::update_order`, `head->prev`.
     pub fn current_order(&self, u: usize) -> Option<&Order> {
         self.units[u].orders.front()
+    }
+
+    /// `UnitData::is_idle@0046fa40`: no current order — the original's head null or its first node's data
+    /// null (item 2090's sweep holds both, and the iterator reset it writes on the way).
+    pub fn is_idle(&self, u: usize) -> bool {
+        self.current_order(u).is_none()
+    }
+
+    /// `UnitData::is_fleeing@0046efa0`: [`is_fleeing_type`] of the current order's `get_type()`.
+    pub fn is_fleeing(&self, u: usize) -> bool {
+        is_fleeing_type(self.current_order(u).map(|o| i32::from(o.index())))
     }
 
     /// `get_speed(x, y, 0)` — the virtual at slot `+0x17c` that both the
@@ -8940,21 +8957,31 @@ impl Sim {
         // original's head attack reads `in_range 0, new_ord 1` for one
         // block after every retarget (parked 1073, §71.6).
         //
+        // **A suppressed re-search still runs when the chase is futile**
+        // (`005fded5`, `fight@005fd4d0:466`–`469`; item 2099, `docs/GOLDEN.md`
+        // §76): on a unit target whose search the role, the roll or the
+        // latch turned off, `Object::poor_target(this, target)` is asked,
+        // and a yes jumps to the same `find_new_target`. Its own
+        // `check_target` asks `poor_target` of every candidate, so the
+        // target that sent it there is never re-found: run814's captain
+        // `0/10`, latched on its chase of who=1's Citizen `1/6` on 778,
+        // drops the attack and stands on its `GUARD` (`near` −1).
+        //
         // SEAM: the retarget arm's early return when the search names
         // `fight`'s own entry arguments (`local_20`/`local_24`) after the
         // target was changed above; nothing here changes it in between.
-        // SEAM: the `poor_target` arm (`005fded5`), which runs the same
-        // search for a unit target the roll suppressed, and the cavalry
-        // archer's `find_melee_target` in place of `find_new_target`.
+        // SEAM: the cavalry archer's `find_melee_target` in place of
+        // `find_new_target`.
         if !state.mandatory && state.captain == i32::from(self.units[u].index) {
             let research = match target {
                 Obj::Building(_) => true,
                 Obj::Unit(t) => {
                     self.mark(crate::fight::SITE_FIGHT_RESEARCH);
                     let roll = self.rng.roll();
-                    !self.profile(Obj::Unit(t)).combat_role
+                    (!self.profile(Obj::Unit(t)).combat_role
                         && roll % 5 != 0
-                        && flags & flag::FIGHT_REENTRY == 0
+                        && flags & flag::FIGHT_REENTRY == 0)
+                        || self.poor_target(me, target)
                 }
             };
             if research {

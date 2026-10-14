@@ -327,8 +327,42 @@ pub fn base_time(t: &Tuning, times: &Times, researched: bool) -> i32 {
     if researched {
         return time;
     }
-    let tick = (time * t.research_tick_premium) >> 8;
+    let tick = research_tick(time, t.research_tick_premium);
     (tick * times.research_premium_time) >> 8
+}
+
+/// `TypeData::research_time@006639a0`'s arithmetic on what `time` answered: `(time · premium) >> 8`, the
+/// product wrapping (`imul`) and the shift **logical** (`shr`), so a negative product is a large positive
+/// (item 2090's sweep holds it).
+pub fn research_tick(time: i32, premium: i32) -> i32 {
+    (time.wrapping_mul(premium) as u32 >> 8) as i32
+}
+
+/// `TypeData::time@00663f20`: a spell (`spell`, `TypeData::is_spell_type`) the leader does not hold (`held`,
+/// `LeaderData::has_spell`, asked only of a spell) costs `res_time · 100`; anything else `job_time · 100`, the
+/// multiplies wrapping (`imul`). Item 2090's sweep holds the arms and the ask.
+pub fn time_by(spell: bool, held: impl FnOnce() -> bool, job_time: i32, res_time: i32) -> i32 {
+    if spell && !held() {
+        res_time.wrapping_mul(TIME_SCALE)
+    } else {
+        job_time.wrapping_mul(TIME_SCALE)
+    }
+}
+
+/// `TypeData::research_time@006639a0`: a spell costs `res_time · 100`; anything else asks `time` (the record's
+/// slot `+0x6c`, [`time_by`] for a type this crate prices) and takes [`research_tick`] of it with
+/// `RESEARCH_TICK_PREMIUM`. Item 2090's sweep holds the arms and the ask.
+pub fn research_time_by(
+    spell: bool,
+    time: impl FnOnce() -> i32,
+    premium: i32,
+    res_time: i32,
+) -> i32 {
+    if spell {
+        res_time.wrapping_mul(TIME_SCALE)
+    } else {
+        research_tick(time(), premium)
+    }
 }
 
 /// How much of the base a build time may reach. Three, for everything.
