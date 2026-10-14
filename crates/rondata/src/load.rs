@@ -124,6 +124,11 @@ pub struct Loaded {
     /// `GameInfo.popwin` indexes: the territory victory's share of the
     /// world's land, in percent (`GameDaemon::process_victory`).
     pub pop_wins: Vec<i32>,
+    /// rules.xml's `rushrules` category rows' `DATA` in file order, 0 for
+    /// a row with none: the minutes of peace a "Peace for first N
+    /// minutes" row holds, which `Game::war_allowed@00594670` reads as
+    /// `rush_rules.list[RUSH_RULES]` `+0x3c` (`Category.data[0]`) × 900.
+    pub rush_minutes: Vec<i32>,
     /// The opening scripts under `ai/scripts/`, `(file name, text)`:
     /// `economic.bhs`, `defensive.bhs` and the library they include
     /// (`docs/AI.md` §3). Empty when loaded from tables alone.
@@ -1930,6 +1935,17 @@ pub fn load_tables(
                     .collect()
             })
             .unwrap_or_default(),
+        rush_minutes: rules
+            .categories
+            .iter()
+            .find(|(id, _)| id == "rushrules")
+            .map(|(_, t)| {
+                t.records
+                    .iter()
+                    .map(|r| int(r, "DATA").unwrap_or(0))
+                    .collect()
+            })
+            .unwrap_or_default(),
         scripts: Vec::new(),
         gaia_lengths: Default::default(),
         piece_lengths: Default::default(),
@@ -2647,6 +2663,7 @@ mod tests {
             wonder_wins: vec![],
             starting_resources: vec![],
             pop_wins: vec![],
+            rush_minutes: vec![],
             scripts: vec![],
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),
