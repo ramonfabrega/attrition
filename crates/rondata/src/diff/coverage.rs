@@ -650,6 +650,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch48 = golden_dump("ch48");
     let ch49 = golden_dump("ch49");
     let ch50 = golden_dump("ch50");
+    let ch63 = golden_dump("ch63");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2326,6 +2327,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [912, 934] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-nine carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter sixty-three, on run827** (item 2131): 662 and 712, the two
+    // shift-moves' `GroupMoveOrder`s beneath a `FOLLOWORDER`, the first on
+    // disk.
+    if let Some(p) = &ch63 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTY_THREE;
+        for w in [662, 712] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter sixty-three carries the window's five blocks");
             frames += n;
         }
     }

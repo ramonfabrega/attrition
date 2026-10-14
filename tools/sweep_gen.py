@@ -1104,6 +1104,10 @@ WBIAS = {wbias!r}
 FILLS = {fills!r}
 ARGRANGE = {argrange!r}
 SLOTBASE = {slotbase!r}
+ECXINT = {ecxint!r}
+ANSWERS = {answers!r}
+VTAT = {vtat!r}
+ANSWERWIN = {answerwin!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1163,7 +1167,7 @@ def main(argv):
             v = rng.choice(vals) if rng.random() < 0.9 else rng.randint(-0x80000000, 0x7FFFFFFF)
             mem[off:off + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
         shape(rng, "m", mem)
-        if vt is not None:
+        if vt is not None and VTAT is None:
             mem[0:4] = vt.to_bytes(4, "little")
         args = [rand32(rng) for _ in range(OWN)]
         for idx, vals in ARGSET:
@@ -1197,10 +1201,17 @@ def main(argv):
             shape(rng, f"c{{k}}", b)
         for k, b in enumerate(p):
             shape(rng, f"p{{k}}", b)
+        # The stubs' answers are drawn before the windows are placed, so a
+        # placed table may be indexed by one (`s`, item 2160); `--answers`
+        # draws stub IDX's from a list (parked 2141).
+        answers = [rand32(rng) for _ in STUBS]
+        for idx, vals in ANSWERS:
+            answers[idx] = rng.choice(vals) if rng.random() < 0.9 else answers[idx]
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
-            env = {{"a": args, "m": mem, "c": c, "p": p, "i32": i32, "i16": i16, "i8": i8, "u16": u16, "u8": u8}}
+            env = {{"a": args, "s": answers, "m": mem, "c": c, "p": p,
+                   "i32": i32, "i16": i16, "i8": i8, "u16": u16, "u8": u8}}
             off = eval(expr, env)
             buf = h.alloc(size + 0x20)
             b = bytearray(rng.randrange(256) for _ in range(size))
@@ -1214,6 +1225,21 @@ def main(argv):
             else:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[at:at + 4] = ptr
+        for idx, size in ANSWERWIN:
+            # A stub that answers a record: the address of SIZE random bytes,
+            # a new `p` window after the places (parked 2151, item 2170).
+            buf = h.alloc(size + 0x20)
+            b = bytearray(rng.randrange(256) for _ in range(size))
+            p.append(b)
+            wins.append((buf, b))
+            shape(rng, f"p{{len(p) - 1}}", b)
+            answers[idx] = buf
+        if VTAT is not None:
+            # The stubbed vtable laid in a window: a slot of an object the
+            # function reaches through a table, not of `this` (item 2170).
+            win, off = VTAT
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = vt.to_bytes(4, "little")
         for a_, b in wins:
             uc.mem_write(a_, bytes(b))
         based = []
@@ -1221,20 +1247,30 @@ def main(argv):
             on = rng.random() < 0.5
             h.w32(vt + off, addr if on else stubbed[off])
             based.append(int(on))
-        answers = [rand32(rng) for _ in STUBS]
         for name, v in zip(names, answers):
             h.answers[name] = v & 0xFFFFFFFF
         uc.mem_write(this, bytes(mem))
         guard = bytes(uc.mem_read(this + WIN, 0x20))
+        # `ecx` an integer rather than the object (parked 2141), the row's last.
+        ecx = None
+        if ECXINT is not None:
+            kind, *vals = ECXINT
+            if rng.random() < 0.1:
+                ecx = rand32(rng)
+            elif kind == "set":
+                ecx = rng.choice(vals[0])
+            else:
+                ecx = rng.randint(vals[0], vals[1])
         h.calls.clear()
-        r = h.call(ENTRY, tuple(args), ecx=this)  # Harness.call signs eax; signed() again would double a negative
+        r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
         assert bytes(uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"
         before = ";".join([bytes(mem).hex()] + [bytes(b).hex() for _, b in wins])
         after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
-        shown = [str(a) for a in args] + [str(v) for v in answers] + [str(f) for f in based]
+        shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(f) for f in based]
+                 + ([] if ECXINT is None else [str(ecx)]))
         print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}")
     return 0
 
@@ -1346,7 +1382,7 @@ def _wbias(spec):
 
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
-                 argrange=(), slotbase=(), module=None):
+                 argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1375,9 +1411,32 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
     pslot = [tuple(int(x, 0) for x in s.split(':')) for s in slotbase]
+    pans = [(int(a.split(':', 1)[0]), [int(v, 0) for v in a.split(':', 1)[1].split(',')]) for a in answers]
+    if any(not 0 <= idx < len(pstubs) for idx, _ in pans):
+        raise ValueError('--answers IDX:V,.. names one of the --stub callees, by its order on the line')
     if any(('slot', off) not in {(k, a) for k, a, _ in pstubs} for off, _ in pslot):
         raise ValueError('--slotbase OFF:ADDR names a slot --stub slot:OFF:N stubs')
-    if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot):
+    pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
+    if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
+        raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
+    pvtat = None
+    if vtat is not None:
+        vwin, plus, voff = vtat.partition('+')
+        if not (plus and re.fullmatch(r'm|c\d+|p\d+', vwin)):
+            raise ValueError(f'--vtat is m+OFF, cN+OFF or pN+OFF, not {vtat!r}')
+        if not any(k == 'slot' for k, _, _ in pstubs):
+            raise ValueError('--vtat lays the stubbed vtable: it needs a --stub slot:OFF:N')
+        pvtat = (vwin, int(voff, 0))
+    pecx = None
+    if ecx_int is not None:
+        if '..' in ecx_int:
+            lo, hi = ecx_int.split('..')
+            pecx = ('range', int(lo, 0), int(hi, 0))
+        else:
+            pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
+    if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw):
+        if pecx is not None:
+            raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, argset=pset, argfrom=pfrom)
         doc = doc or f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.'
@@ -1390,11 +1449,19 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot' else f'callee 0x{a:08x} ({n} args) stubbed'
            for k, a, n in pstubs]
         + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed)' for w, o, e, n in pplaces]
-        + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a in pslot]) or 'no windows'
+        + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a in pslot]
+        + [f'stub {idx} answered from {vals} (90%)' for idx, vals in pans]
+        + [f'stub {idx} answers the address of {n} random bytes, a `p` window after the places'
+           for idx, n in pansw]
+        + ([f'the stubbed vtable laid at `{vtat}`'] if pvtat else [])
+        + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
+            if pecx[0] == 'range' else f'`ecx` an integer in {pecx[1]}, not the object, the row\'s last']
+           if pecx else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
                                    cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces,
-                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot)
+                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
+                                   answers=pans, vtat=pvtat, answerwin=pansw)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1552,6 +1619,15 @@ def main(argv=None):
                          'answers (parked 2095)')
     ap.add_argument('--name', dest='module', help='obj: the module\'s snake name, for an overload whose snake an '
                     'earlier sweep holds (parked 2045: two `WorldData::restrict`s, two `get_land`s)')
+    ap.add_argument('--ecx-int', metavar='LO..HI|V,V,..', help='obj: `ecx` an integer drawn from the range or '
+                    'the list (90%%), not the object; printed last on the row (parked 2141)')
+    ap.add_argument('--answers', action='append', default=[], metavar='IDX:V,V,..',
+                    help='obj: stub IDX\'s answer (by its order on the line) drawn from the list (90%%) (parked 2141)')
+    ap.add_argument('--vtat', metavar='WIN+OFF', help='obj: the stubbed vtable is laid at this word of window '
+                    'm, cN or pN rather than at `this` (a slot of an object reached through a table; item 2170)')
+    ap.add_argument('--answer-win', action='append', default=[], metavar='IDX:SIZE',
+                    help='obj: stub IDX answers the address of SIZE random bytes, a new `p` window after the '
+                         'places (a callee that answers a record; parked 2151)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1568,7 +1644,9 @@ def main(argv=None):
                                                     at=args.at, ptrargs=args.ptrarg, stubs=args.stub,
                                                     places=args.place, wbias=args.wbias, fills=args.fill,
                                                     argrange=args.argrange, slotbase=args.slotbase,
-                                                    module=args.module)
+                                                    module=args.module, ecx_int=args.ecx_int,
+                                                    answers=args.answers, vtat=args.vtat,
+                                                    answer_wins=args.answer_win)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:

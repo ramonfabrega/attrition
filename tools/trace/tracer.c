@@ -548,6 +548,8 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@amove <who> <x> <y> <o> [<o> ...]`  `@move`'s fields, ATTACK_TO
  *   `@explore <who> <x> <y> <o> [<o> ...]` `@move`'s fields, EXPLORE_TO
  *   `@flee <who> <x> <y> <o> [<o> ...]`   `@move`'s fields, FLEE_TO
+ *   `@moveadd <who> <x> <y> <o> [<o> ...]` `@move` with QUEUE_LAST, the
+ *                                         shift+right-click
  *   `@flight <who> <ox> <whom> <o> [<o> ...]` an aircraft's flight to one's
  *                                         own base or carrier, issue_flight
  *                                         with MOVE_TO
@@ -854,8 +856,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * attack's and a repair's the target's, a form's the formation and
      * the rotation; an eject has none. `@gatherpointadd` is verb 20 with
      * `add_to_end` 1 (item 955), the shift-click that appends a point. */
-    i32 gather_add = 0, launch_ctrl = 0, launch_alt = 0, launch_move = 0;
+    i32 gather_add = 0, launch_ctrl = 0, launch_alt = 0, launch_move = 0, move_add = 0;
     i32 verb = issue_verb(&t, "move ")       ? 0
+               : issue_verb(&t, "moveadd ")  ? (move_add = 1, 0)
                : issue_verb(&t, "patrol ")   ? 1
                : issue_verb(&t, "guard ")    ? 2
                : issue_verb(&t, "follow ")   ? 3
@@ -1068,9 +1071,11 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     } else {
         typedef void(__thiscall *issue_fn)(void *, void *, i32, i32, i32, i32, i32, i32, i32, i32, i32);
         /* `@move` passes MOVE_TO (1), `@amove` ATTACK_TO (2), `@explore`
-         * EXPLORE_TO (3), `@flee` FLEE_TO (4). */
-        ((issue_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2, 0, 0,
-                                   move_kind, -1, -1, 0);
+         * EXPLORE_TO (3), `@flee` FLEE_TO (4). `@moveadd` is `@move` at
+         * QUEUE_LAST (1), what `WorldMap::on_right_up@008c7050:88` takes
+         * with shift held (item 2131). */
+        ((issue_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, move_add ? 1 : 2,
+                                   0, 0, move_kind, -1, -1, 0);
     }
     u32 after = *pkg_size;
     emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(after > before ? 0 : 6) << 16), before, after, n);

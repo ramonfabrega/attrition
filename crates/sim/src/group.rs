@@ -1914,8 +1914,12 @@ impl Sim {
     /// at its head on block 4265, and the original's `get_loc_to` on run821's
     /// packet answers (14743, 25626), the MLRS's point. Walked past, the
     /// answer was the charge's (6216, 29784), and `compute_form`'s reverse
-    /// on the last re-issue never fired. SEAM: `Follow` is not read off the
-    /// listing as one and still walks past.
+    /// on the last re-issue never fired. **And so is a follow** (item 2131,
+    /// `docs/GOLDEN.md` §78): `FollowOrder`'s block carries `TargetOrder`'s
+    /// `is_targeted` and `get_target_order` thunks, and run827's two
+    /// shift-moves on following squads lay their formation out from the
+    /// leader's point — under a leg, too, since the walk starts at the
+    /// bottom.
     pub(crate) fn unit_final_loc(&self, u: usize) -> Pos {
         let here = self.units[u].pos;
         let found = self.units[u]
@@ -1933,6 +1937,7 @@ impl Sim {
                 }
                 Body::Gather(gt) => self.obj_alive_pos(crate::combat::Obj::Building(gt.building)),
                 Body::Guard(gd) => self.obj_alive_pos(crate::combat::Obj::Unit(gd.target)),
+                Body::Follow(f) => self.obj_alive_pos(crate::combat::Obj::Unit(f.target)),
                 _ => None,
             });
         let Some(p) = found else { return here };
@@ -2806,6 +2811,12 @@ impl Sim {
             ..GroupState::default()
         };
         let parent = self.gstate_mut(&sub).map(|st| std::mem::replace(st, stack));
+        // The parent is set aside where a member's own writes can find it:
+        // the clear inside the layout kills each member's head order, and a
+        // dying move's hand-back goes to the unit's real group (`docs/AI.md`
+        // §212) — run820's Supply Wagon `1/205`, the army's leader, wrote its
+        // 1 into the stack record on 4082 and the layout read it.
+        self.set_aside = parent.map(|p| (sub.who, sub.army, sub.pushed, p));
         self.group_action_move_to(
             &sub,
             to,
@@ -2815,6 +2826,7 @@ impl Sim {
             MoveKind::AttackTo,
             true,
         );
+        let parent = self.set_aside.take().map(|(.., p)| p);
         // The sub-group's own list as its layout walked it: `Group::sort`
         // runs on the stack record in place, and the record's tables are
         // indexed by the sorted list.
@@ -3857,7 +3869,7 @@ impl Sim {
         }
         let Some(g) = self.group_of(u) else { return };
         if self.is_group_leader(u, &g)
-            && let Some(st) = self.gstate_mut(&g)
+            && let Some(st) = self.facing_record_mut(&g)
         {
             st.facing = !st.facing;
         }
@@ -3888,10 +3900,28 @@ impl Sim {
         self.units[u].movement.mirror = f;
         let Some(g) = self.group_of(u) else { return };
         if self.is_group_leader(u, &g)
-            && let Some(st) = self.gstate_mut(&g)
+            && let Some(st) = self.facing_record_mut(&g)
         {
             st.facing = f;
         }
+    }
+
+    /// The record a member's own write of `GroupData::facing` lands on —
+    /// `kill_current_order`'s hand-back and `set_angle`'s toggle, both
+    /// through the unit's `+0x80`. That is the seat's record, except while
+    /// `action_siege_attack_to`'s stack sub-group holds the seat: then it
+    /// is the parent's, set aside in [`Sim::set_aside`] (`docs/AI.md` §212).
+    fn facing_record_mut(&mut self, g: &Group) -> Option<&mut GroupState> {
+        if self
+            .set_aside
+            .as_ref()
+            .is_some_and(|(who, army, pushed, _)| {
+                (*who, *army, *pushed) == (g.who, g.army, g.pushed)
+            })
+        {
+            return self.set_aside.as_mut().map(|(.., st)| st);
+        }
+        self.gstate_mut(g)
     }
 
     /// `GroupData::angles` — carried in because `Form::compute` does not
@@ -5884,6 +5914,20 @@ mod tests {
         assert_eq!(s.unit_final_loc(u), s.units[ward].pos);
     }
 
+    /// **A follow names its leader's position** (item 2131, `docs/GOLDEN.md`
+    /// §78): `FollowOrder` is a `TargetOrder` too. run827: `0/6`'s squad,
+    /// following the Chariot `0/9`, is shift-moved on 660, and the queued
+    /// `GroupMoveOrder`'s angle is the bearing from the Chariot's point.
+    #[test]
+    fn get_final_loc_reads_a_follow_s_leader() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let u = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4000));
+        let leader = spawn(&mut s, 1, t, Pos::new(0x1000, 0x6000));
+        s.add_follow_order(u, leader, QueuePos::New);
+        assert_eq!(s.unit_final_loc(u), s.units[leader].pos);
+    }
+
     /// **The follower tracks the leader's current position, not the
     /// destination** (§8.3) — and the leader tracks its own path. That
     /// difference is the whole mechanic: one `do_move` a frame, not N.
@@ -6712,6 +6756,56 @@ mod tests {
             (after.o, after.o_angle, after.order_num),
             (before.o, before.o_angle, before.order_num),
             "and the sub-group's layout is not written onto the army's record"
+        );
+    }
+
+    /// **A member's dying move hands its mirror to the army, not to the
+    /// stack** (`docs/AI.md` §212, item 2155). The sub-group's layout
+    /// clears each member's orders first, and `kill_current_order`'s
+    /// hand-back goes through the unit's `+0x80`, the real group. run820's
+    /// Supply Wagon `1/205`, its army's leader and its only sub-group
+    /// member, re-took its march on 4082 facing south of the march's
+    /// bearing: the dying move handed back 1, and the layout read it off
+    /// the stack record, so the new `ATTACK_TO` carried 0 where the
+    /// original's carries 1 — and on 4338 its hand-back cleared the
+    /// wagon's `unit_masks & 2` there and left it here, which turned the
+    /// guarding helicopters' posts. Made to fail on purpose by writing the
+    /// hand-back to the seat's record: `Some(Some(false))`.
+    #[test]
+    fn a_member_s_dying_move_hands_its_mirror_to_the_army_not_the_stack() {
+        let mut s = sim();
+        let wagon = wagon_type(&mut s);
+        let slot = s.init_army(1, None);
+        let w = spawn(&mut s, 1, wagon, Pos::new(0x1400, 0x1000));
+        s.army_add_unit(1, slot, w);
+        s.units[w].movement.set_facing(Angle::SOUTH);
+        let to = Pos::new(0x1400, 0x4000);
+        s.add_move_facing_order(
+            w,
+            to,
+            MoveKind::AttackTo,
+            QueuePos::New,
+            true,
+            Angle::NORTH,
+            Some(false),
+            false,
+        );
+        assert!(!s.armies[1].list[slot].group.facing);
+        let g = s.army_group(1, slot);
+        s.group_action_siege_attack_to(&g, to, Angle::NORTH);
+        let facing = s.units[w].orders.iter().find_map(|o| match o.body {
+            Body::Move(m) => Some(m.facing),
+            _ => None,
+        });
+        assert_eq!(
+            facing,
+            Some(Some(true)),
+            "the stack's 0 against a leader facing away: {:?}",
+            s.units[w].orders
+        );
+        assert!(
+            s.armies[1].list[slot].group.facing,
+            "the army's record keeps the dying move's hand-back"
         );
     }
 

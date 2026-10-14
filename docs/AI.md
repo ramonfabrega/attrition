@@ -19588,8 +19588,9 @@ the MLRS's point under the leader's bottom guard. Ours walked past a
 
 **Built.** `Sim::unit_final_loc` walks `orders.iter().rev()` (ours keeps the
 current order at the front), and its `Guard` arm answers the escorted
-unit's position. `Follow` is not read off the listing as one, and is left
-as a `SEAM`.
+unit's position. ~~`Follow` is not read off the listing as one, and is left
+as a `SEAM`.~~ Built by item 2131 (`docs/GOLDEN.md` §78): a follow answers
+its leader's point, run827.
 
 **Measured.** The word moves **4266 → 4340**, count and sequence: the
 game's last frame, so the draw stream agrees to the end. run817: **10740 →
@@ -19833,12 +19834,60 @@ arms and the Colosseum's and Eiffel Tower's border arms now read
 keep four other readers (parked 2109). Group 66's standing `sheltered` and
 `attrition` rows on run817 are left (parked 2108).
 
-## 210. Reserved for the next item on the AI track
+## 210. A tied builder is the lower object number, and the successor pair's word moves 4246 → 4338 (2026-10-13, item 2130)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed** (`mongol_pair_first_parting`, run820's widening). No capture: run820 (4232..4488) held the
+word, and our own walk dated the decision in the gap no dump covers.
+
+### 210.1 The frame, both sides
+
+Frame **4246, ours 156 draws, theirs 157, index 147** (`report.py rontrace-run820.log draws 4246`; `RON_DEBUG_SITES=4246-4246`
+on the walk). Both spend `1/139`'s two `do_guard+0x7f4` rolls at 145–146. Theirs then spends one `Guy::set_anim+0x97a <
+Unit::set_anim+0x56 < Unit::move_step+0x823` (seed `05d763f0`) before the two `do_move+0x11cf` rolls that ours gives to `1/205`.
+The extra draw is a stop. On block 4247 theirs' Citizen `1/186` (`TypeIndex` 50, `PEASANTS`, land) carries `collide_o 80`,
+`collide_who 1`, `order:coll` (30610, 37096) and a collision waypoint `path[41]` (30600, 37128) flags 2. `1/80` is a Caravan
+(`TypeIndex` 59, `CARA`). Ours' `1/208` takes the same collision with `1/80` on block 4249, two frames late.
+
+### 210.2 The swap is a job, not a birth
+
+run820's 295 first-block rows held 63 of `1/186` and 62 of `1/208`. Each of ours carried the other's orders: ours' `1/186` held
+`[Build 2072, ExploreTo (15960, 3144)]` and theirs' held `[Build 2071, ExploreTo (1608, 35016)]`. The positions differ as well
+as the orders (block 4232 `pos`: ours `1/186` (31739, 35419), theirs (30970, 36959)), so each citizen walks from the other's
+start. On run809's 3800 both agree: uids 346 and 334, both `GATHERORDER` at `2035`, the same points. So the two were not
+renumbered at birth. They were given each other's sites.
+
+Ours (`RON_DEBUG_UNIT`, 3880..4240): `1/208` takes `[Move, Build]` to (1608, 35016) on 4182/4183, and `1/186` takes
+(15960, 3144) on 4185/4186. A probe in `produce_building`'s builder loop (one commit, reverted whole) printed every candidate for
+4182's site (1152, 34944), corner tile (4, 180). **`1/208` (`units` #392, tile (166, 188)) and `1/186` (#404, tile (166, 189))
+both score `d` 171**, and the strict `<` keeps the first one walked. That was `1/208`, because ours walked `self.units` in birth
+order: uid 334 before 346, since `1/186` was born later into a freed number.
+
+### 210.3 The rule
+
+`Leader::produce_building@006e1400`'s builder loop (`006e2650`–`006e27b6`, the decompile's `do … while (param_2 <
+objects->field_0x15c[who])`) walks `objects->units[who][param_2]`, which is **object-number order**. It keeps a tie on `iVar12 <
+local_2c`, so a tie goes to the lower `o`. `Sim::upgrade_units_to` already sorts by `index` for the same reason.
+
+**Built**: `produce_building`'s builder walk (`ai_place.rs`) collects the player's units and sorts them by `index` before
+scoring. Test: `ai_make::tests::a_tied_builder_is_the_lower_object_number_not_the_elder` (two citizens on one tile, `o` 9 born
+first and `o` 3 second; the farm's builder is 3). Mutation through `tools/mutate.py`, the sort dropped: **held** by the test
+(exit 101) and by the walk (`mongol_pair_first_parting` back at 4246).
+
+### 210.4 What moved, and the next word
+
+**The value diff**: block 4232's `1/186` and `1/208` rows leave run820's window whole. `1/186` `pos` was ours (31739, 35419)
+against theirs (30970, 36959) and now agrees. On 4247 theirs' `collide_o 80` and `path[41]` (30600, 37128) agree too. run820's
+keys go from 2,079 to 1,123. Past the standing rows, the first row is `1/82`'s `orders.len` on 4257 (ours 1, theirs 2).
+`GROUND_INEXACT`'s `mongol_pair_first_parting` goes from 524 to 612.
+
+**The word 4246 → 4338.** Frame **4338: ours 159 draws, theirs 161, index 142**. Ours spends `Unit::do_guard+0x8fb` for the
+Transport Helicopter `1/215` (`TypeIndex` 311, uid 324, group 89). Theirs spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+Block 4339 opens on `1/215` (13 rows: `dest_angle` 0 against −478609408, `g.x` 30984 against 30911), the second helicopter
+`1/172` (15 rows: its guard post (29784, 34056) against (30984, 33048)), the General `1/175` (31) and `1/205`'s `mirror`.
+Inside run820. Parked 2133.
+
+Not established: any other loop of this crate that walks `self.units` where the original walks `objects->units[who]` and
+breaks a tie on order. This one was found by its tie; no audit of the rest was run.
 
 ## 211. Great Sahara in the successor pair's lobby: a caravan the limit holds, to the game's end (2026-10-13, item 2107)
 
@@ -19921,12 +19970,76 @@ Silk arms are reached by no walk: no lobby's AI holds one of them with a done
 Caravan at the limit. A Dutch caravan's own count, `get_units`' graft walk
 over `CARADUTCH`, is reached by no walk either.
 
-## 212. Reserved for the next item on the AI track
+## 212. A siege sub-group member's dying move hands its mirror to the army, and the successor pair's word moves 4338 → 4353 (2026-10-13, item 2155)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed** (`mongol_pair_first_parting`, run820's widening). No capture and no packet: run820 (4232..4488)
+held the word, run809 (3626..3884) and run824 (4196..4211) dated the parted value, and our own walk named the writer.
+
+### 212.1 The frame, both sides
+
+Frame **4338, ours 159 draws, theirs 161, index 142** (`report.py rontrace-run820.log draws 4338`; `RON_DEBUG_SITES=4338-4338`).
+Both spend `1/139`'s two `do_guard+0x7f4` rolls at 140–141. Ours then spends `Unit::do_guard+0x8fb` (seed `2ca64a70`), the
+`retry` roll of a reposition whose leg ended on the frame it was issued, for the Transport Helicopter `1/215` (`TypeIndex` 311,
+`TRANSPORTHELICOPTER`, air). Theirs spends that seed on a `Guy::inc_time+0x271` wrap: its `1/215` repositions and flies.
+
+### 212.2 Every record on block 4339, and the field that parted first
+
+run820's widening (`RON_FIRSTS=1`) holds 60 rows on block 4339 and none on 4313..4338. The units: `1/215` (13 rows: ours one
+`GUARDORDER` at (30984, 33000), theirs an `ATTACKTOORDER` to (29784, 34008) over it), its sister `1/172` (15 rows: guard post
+(29784, 34056) against (30984, 33048)), the General `1/175` (31 rows, its own guard post) and **the Supply Wagon `1/205`
+(`TypeIndex` 63, `SUPPLYWAGON`): `mirror` ours 1, theirs 0**. Both helicopters guard `1/205` (`targetorder.uid 311`), `dx`
+−780 and −1560, `dy` 0, and `do_guard` negates `dx` when its target carries `unit_masks & 2` (`docs/GROUPS.md` §25). So the
+posts swap sides with the wagon's bit, and the helicopters are the bit's consequence, not its cause.
+
+Theirs' `unit_masks` for `1/205` (`one.py`, run820): 8650762 on 4337 and 4338, 8650760 on 4339. The bit cleared while `angle`
+moved 655,360 (no reversal), so `set_angle`'s toggle did not clear it. The bit's two writers (`field_0x68`, every spelling) are
+`Unit::set_angle@00605400` (`^ 2`) and `Unit::kill_current_order@005e2cb0` (`5e3087`/`5e308d`), which writes the dying move's
+`facing` (`MoveOrder +0x28`) XOR `reversing(heading − order angle)`. On 4338 both sides re-issue the wagon's `ATTACK_TO` (`pause`
+3 → 0 on both). The dying order's `facing` is the parted field: block 4232 already carries a **standing** row, `1/205
+order:move.facing` ours 0, theirs 1, non-scoring (`OrderMismatch::scores` exempts `facing`). Turned is 1 on both, so the original writes
+1 XOR 1 = 0 and ours 0 XOR 1 = 1.
+
+### 212.3 Walked back to the frame it parted
+
+`unitat.py`: theirs' order was born on 3827 with `facing 0` (run809), and holds `facing 1` on 4196 (run824), the same
+`angle` 1476001792, `orig` (35872, 40427) and `pause` phase throughout. `MoveOrder +0x28` has one writer that is not a copy or a
+constructor, the order's birth (`add_move_facing_order@005e55c0`'s `piVar6[10] = param_8`), so the order was re-issued in the
+disk gap 3884..4196. Ours (`RON_DEBUG_UNIT=1/205@3820-4240`, and a probe in `add_move_facing_order_grouped`, one commit reverted
+whole): three issues, on 3826, 4082 and 4338, all `group_action_siege_attack_to` → `group_action_move_to` from `do_forming`, all
+`facing` 0. On 3826 the wagon held no order. On 4082 and 4338 it held its march, and the layout read the stack record's `facing`
+as **1** where `Group::clear` leaves it 0.
+
+### 212.4 The rule
+
+`Group::action_siege_attack_to@0070d830` lays its sub-group out on a record on the stack (§26.3 of `docs/GROUPS.md`).
+`action_move_near`'s `QUEUE_NEW` clear runs before `compute_form`, and it kills each member's head order. `kill_current_order`'s
+hand-back writes the group **its unit's `+0x80` names**, which is the army's group 89, never the stack. This crate keys a record
+by its seat, and the sub-group holds the army's seat while it lays out. So the wagon, the army's leader, wrote its dying move's 1
+onto the stack record, and `compute_form` read `facing 1` XOR `faces_away 1` = 0. The original reads 0 XOR 1 = 1.
+
+**Built** (`crates/sim/src/group.rs`, `crates/sim/src/lib.rs`): the parent's record is set aside in `Sim::set_aside` with its
+seat for the length of the sub-group's `action_move_to`, and the two member-side writers of `GroupData::facing` (the hand-back and
+`unit_set_angle`'s toggle) go through `Sim::facing_record_mut`, which answers the set-aside record for its seat. Test
+`group::tests::a_member_s_dying_move_hands_its_mirror_to_the_army_not_the_stack` (a lone wagon facing south of a north march: the
+new order's `facing` is `Some(true)` and the army keeps the hand-back). Mutation through `tools/mutate.py` (`facing_record_mut`
+answers the seat's record): **held** by the test (exit 101, `Some(Some(false))`) and by the walk (`mongol_pair_first_parting`
+back at 4338).
+
+### 212.5 What moved, and the next word
+
+**The value diff**: block 4232's standing `1/205 order:move.facing` (ours 0, theirs 1) leaves. On 4339 `1/205`'s `mirror` agrees
+(0), `1/215` holds the original's `ATTACKTOORDER` to (29784, 34008), and `1/172`'s post is (30984, 33048) on both sides. All 60
+rows of block 4339 and the 9 of 4340 leave. run820's keys go 1,123 → 1,128: the Freighter `1/101`'s 7 move from 4340 to 4356,
+and the run's tail past 4361 is rearranged. `GROUND_INEXACT`'s `mongol_pair_first_parting` goes 612 → 656.
+
+**The word 4338 → 4353.** Frame **4353: ours 36 draws, theirs 35, index 17**. Ours spends `Guy::set_anim+0x97a <
+Unit::do_guard+0x7f4` for the Transport Helicopter `1/227` (`TypeIndex` 311, group 83, guarding `1/171`). Theirs spends `Guy::set_anim+0x97a
+< Guy::inc_time+0x271`. Its block holds `1/227`'s `order:kind` ours 12 against theirs 2. Before it, The Despot `1/191`
+(`TypeIndex` 352) parts first on 4343 (`myhits` 599 against 659) and on 4344 (`group` 83 against 89, and a different march).
+Helicopters `1/153`, `1/184` and `1/227` part on `g.angle[0]` on 4350. Inside run820. Parked 2156.
+
+Not established: any other write a member's unit makes to its group's record while a stack group holds the seat. The two
+`facing` writers are routed, and nothing else was audited.
 
 ## 213. Reserved for the next item on the AI track
 

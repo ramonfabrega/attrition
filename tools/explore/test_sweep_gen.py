@@ -143,6 +143,88 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1, slotbase=['0xc:0x401000'])
 
+    def test_ecx_may_be_an_integer_rather_than_the_object(self):
+        # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
+        # and `Map::scale_by_area` take the axis length in `ecx`, an integer,
+        # and `obj` laid `ecx` as the object. The integer is the row's last.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2149, win=0x20, bias=[], own=0,
+            cells=['0xc06188:0x20'], ecx_int='-4..5000', port='i64::from(a[a.len() - 1])')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ECXINT = ('range', -4, 5000)", script)
+        self.assertIn('ecx=this if ECXINT is None else ecx', script)
+        self.assertIn('+ ([] if ECXINT is None else [str(ecx)])', script)
+        self.assertIn('`ecx` an integer', test)
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2149, win=0x20, bias=[], own=1, cells=['0xc06188:0x20'], ecx_int='0,1,7')
+        self.assertIn("ECXINT = ('set', [0, 1, 7])", script)
+        # Without it, `ecx` stays the object.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2149, win=0x20, bias=[], own=0, cells=['0xc06188:0x20'])
+        self.assertIn('ECXINT = None', script)
+        self.assertNotIn('`ecx` an integer', test)
+        # And the shape refuses it on the plain `obj`, which has no row for it.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, ecx_int='1..2')
+
+    def test_a_stub_s_answer_may_be_drawn_from_a_list(self):
+        # Parked 2141 (Loop 2003's twelfth reach), built by item 2160:
+        # `UnitData::is_cloaked` and `WorldData::is_pass_land` compare a
+        # callee's answer with 0, which the generic `I32` draws one row in
+        # thirty; `--answers IDX:V,..` draws stub IDX's answer from the list.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2160, win=0x20, bias=[], own=0,
+            stubs=['0x60b030:0'], answers=['0:0,1'], port='i64::from(a[0] == 0)')
+        compile(script, str(sp), 'exec')
+        self.assertIn('ANSWERS = [(0, [0, 1])]', script)
+        self.assertIn('for idx, vals in ANSWERS:', script)
+        self.assertIn('stub 0 answered from [0, 1]', test)
+        # It names a stub the line stubs.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0,
+                                   stubs=['0x60b030:0'], answers=['1:0,1'])
+
+    def test_a_placed_window_may_read_the_stubs_answers(self):
+        # Item 2160: `ObjectsData::find_town` indexes the cities' table with
+        # its callee's answer, so the answers are drawn before the windows
+        # are placed, and a `--place` expression reads them as `s`.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2160, win=0x20, bias=[], own=3,
+            cells=['0xc061d4:0x100'], stubs=['0x658190:3'], argrange=['2:0:7'],
+            places=['c0+0x10+a[2]*0x1c:s[0]*4:4'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertLess(script.index('answers = [rand32(rng) for _ in STUBS]'),
+                        script.index('for win, loc, expr, size in PLACES:'))
+        self.assertIn('"s": answers', script)
+
+    def test_a_slot_of_a_placed_object_may_answer_a_window(self):
+        # Parked 2151, built by item 2170: `UnbuiltCity::get_x` calls slot
+        # +0xac of `objects[who][o]`, an object reached through two placed
+        # windows, and reads `+0x10` of the record the slot answers; the
+        # coordinate goes out through the hidden return pointer `[esp+4]`.
+        # So the stubbed vtable is laid in a placed window (`--vtat`), and a
+        # stub answers the address of a window of its own (`--answer-win`).
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2170, win=8, bias=[], own=1,
+            cells=['0xc0618c:0xe0'], ptrargs=['0:4'], stubs=['slot:0xac:0'],
+            places=['c0+0x14+i8(m,2)*0x1c:i16(m,0)*4:4', 'p1+0:0:0x10'],
+            vtat='p2+0', answer_wins=['0:0x20'], port='a[0] as i64')
+        compile(script, str(sp), 'exec')
+        self.assertIn("VTAT = ('p2', 0)", script)
+        self.assertIn('WIN = 8\n', script)
+        self.assertIn('ANSWERWIN = [(0, 32)]', script)
+        self.assertLess(script.index('for win, loc, expr, size in PLACES:'),
+                        script.index('for idx, size in ANSWERWIN:'))
+        self.assertLess(script.index('for idx, size in ANSWERWIN:'),
+                        script.index('for a_, b in wins:'))
+        self.assertIn('vtable laid at `p2+0`', test)
+        self.assertIn('stub 0 answers the address of 32 random bytes', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2170, win=8, bias=[], answer_wins=['0:0x20'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2170, win=8, bias=[], stubs=['0x401000:0'],
+                                   vtat='p0+0')
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.

@@ -16572,3 +16572,27 @@ SHA-256 `9078d362aa5f83d87fae096be265afea4947907beaf6af5cd5036adfbda17b4d`.
 and 296 after. The word's value diff is on block 2996: the Market `1/2019`'s `queue:queued` 4 against 5, its head Caravan
 held at 17304 to the game's end, and `num_units[9]` 9 against 8 (`docs/AI.md` §211). The window runs to the closing block,
 so it is also the word's last-blocks capture.
+## run827 — chapter sixty-three: two squads follow a Chariot and are shift-moved (2026-10-13, item 2131, `att-2131`)
+
+`docs/GOLDEN.md` §78, `tools/gamelog/golden/chapter63.cmd` (9 staged lines, two `@moveadd`: the DLL's new
+`QUEUE_LAST` verb, built from this tree). **What the disk could not answer**: no dump holds a shift-command on a
+unit whose list holds a `FOLLOWORDER`. run204's follows (chapter twelve) carry no shift-move, and the DLL had no
+shift verb. So `get_final_loc`'s answer for a follow was never read through `get_loc_to`.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch63 \
+    --map 14 --end-frame 760 --log-window 605 760 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter63.cmd
+```
+
+**Two takes.** The first asked `end:UNITS=3,GUYS=2,LEADERS=2,GROUPS=1` and ran on lane 3. Its game ended, and
+`verify_game` refused it after the run: no `GROUPDATA` (parked 2146). It is kept as `~/ron-golden/ch63-take1-nogroups`,
+and its units' blocks agree with the second take's on 662 and 712. The second take, above, ran pool lane 2 and held:
+`success: true`, 761 frames, seed 12345, map 14, 293 s launch to exit, `GROUPDATA` on every block 605..759.
+`issuesmatch.py --none-refused … 5`: five issue records, none refused. The dump and trace are kept in
+`~/ron-golden/ch63/map-14`; `rontrace.dll` SHA-256 `0d136b60707d4dcf0f8078c747f5c7e55d2315879b7aa41a53a4062def2e698a`.
+Waited on another lane's capture: none. **What it holds**: `golden::chapter_sixty_three_holds_to_the_golden_word`
+(**760**, the trace's end, closed) and `chapter_sixty_three_s_word_frame_is_widened_whole` (605..761, the eleven
+standing `form` rows, no pool row). run828 unused.
