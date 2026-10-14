@@ -178,6 +178,19 @@ pub const EMBARK: i32 = 2;
 /// (`.rdata 0x00add250` / `0x00add210`).
 const ORTHOG: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
 
+/// `UnitData::can_ever_transport@0046f290` (§3.3) in the original's order: a land unit answers yes unasked;
+/// otherwise the vslot `+0x18` (`slot18`, the folded `return 1`), then the carry of the unit's type, then
+/// `is(AIRCRAFTCARRIER)` — each asked only when the one before has not decided, and the answer is no carrier.
+/// [`Sim::unit_can_ever_transport`] is this with the sim's reads; item 2112's sweep holds the order and the asks.
+pub fn can_ever_transport_by(
+    land: bool,
+    slot18: impl FnOnce() -> bool,
+    carry: impl FnOnce() -> bool,
+    is_carrier: impl FnOnce() -> bool,
+) -> bool {
+    land || (slot18() && carry() && !is_carrier())
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // §2–§3: the predicates
@@ -237,13 +250,16 @@ impl Sim {
     /// `UnitData::can_ever_transport@0046f290` (§3.3): a land unit, or a
     /// carrier (`carry != 0`) that is not an aircraft carrier.
     pub fn unit_can_ever_transport(&self, u: usize) -> bool {
-        if self.unit_domain_of(u) == Domain::Land {
-            return true;
-        }
-        let carry = self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.carry != 0);
-        carry && !self.unit_is(u, ty::AIRCRAFTCARRIER)
+        can_ever_transport_by(
+            self.unit_domain_of(u) == Domain::Land,
+            || true,
+            || {
+                self.units[u]
+                    .ty
+                    .is_some_and(|t| self.unit_types[t].cols.carry != 0)
+            },
+            || self.unit_is(u, ty::AIRCRAFTCARRIER),
+        )
     }
 
     /// `UnitData::needs_transport@00609920` (§6), on two **tile**
