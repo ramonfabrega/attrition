@@ -3732,6 +3732,20 @@ impl Sim {
             if self.unit_is_spy(u) {
                 self.units[u].mana_burn = i16::try_from(self.unit_mana(u) / 2).unwrap_or(0);
             }
+            // `Unit::init@00612100:598-611` (item 2165, `docs/GOLDEN.md`
+            // §79): a unit of the Bark line (`is(BARK)`, the lineage) takes
+            // `unit_masks2 |= 4`, and a computer's (`leader_flags & 4`
+            // clear, `is_human` inlined) `Unit::set_stance@00605310(3, 0)`,
+            // RAID, over the stance the switch above gave it. run835's
+            // `1/8` is born `stance 3`, the human `0/6` and `0/7` at 0;
+            // every AI Bark on disk carries both.
+            if self.unit_line_is(u, crate::army::BARK) {
+                self.units[u].unit_masks2 |= crate::combat::umask2::BARK;
+                if !self.nation.get(who as usize).is_some_and(|n| n.human) {
+                    self.units[u].stance = 3;
+                    self.units[u].combat.stance = crate::combat::Stance::Raid;
+                }
+            }
             // `Unit::init` → `Guy::init_real`: the figure's one draw.
             // (The unit's `ty` stays unset here, as it always has; the
             // piece lookup takes the type directly.)

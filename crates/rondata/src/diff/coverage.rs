@@ -651,6 +651,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch49 = golden_dump("ch49");
     let ch50 = golden_dump("ch50");
     let ch63 = golden_dump("ch63");
+    let ch64 = golden_dump("ch64");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2338,6 +2339,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [662, 712] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter sixty-three carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter sixty-four, on run835** (item 2165): 622, a computer's Bark
+    // born RAID; 636, the word's re-search; 682, the stance button's kill.
+    if let Some(p) = &ch64 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTY_FOUR;
+        for w in [622, 636, 682] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter sixty-four carries the window's five blocks");
             frames += n;
         }
     }

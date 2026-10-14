@@ -71,7 +71,7 @@ pub const SITE_COME_OUT_BARK: &str = "Unit::come_out+0x25b0";
 /// same three `Unit::think_attack` and the census exclude.
 const MERCHANTS: [crate::tech::TypeId; 3] = [0x3d, 0x3e, 0x190];
 /// `BARK` — the naval scout, and the lineage test `is(0x143, 0)`.
-const BARK: crate::tech::TypeId = 0x143;
+pub(crate) const BARK: crate::tech::TypeId = 0x143;
 /// `SPY` — the lineage test `is(0x3a, 0)`.
 const SPY: crate::tech::TypeId = 0x3a;
 

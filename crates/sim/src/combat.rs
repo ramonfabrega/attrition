@@ -69,6 +69,12 @@ impl Rng {
 /// The bits of `UnitData::unit_masks2` (`+0x6c`) this crate writes —
 /// [`crate::Unit::unit_masks2`].
 pub mod umask2 {
+    /// **`4` — a unit of the Bark line** (`Unit::init@00612100:604-611`,
+    /// `is(BARK)`, item 2165, `docs/GOLDEN.md` §79): set at birth on every
+    /// such unit, whoever owns it, and cleared on every other. `Unit::fight`
+    /// reads it for its captain's re-search predicate ([`crate::Sim`]'s
+    /// `fight`, parked 2100).
+    pub const BARK: u32 = 0x4;
     /// **`0x10` — "still ordered to attack, reload open, and not firing
     /// this frame"** (`docs/COMBAT.md` §43.2).
     ///

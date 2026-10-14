@@ -2314,8 +2314,26 @@ impl Sim {
             match s {
                 0 | 3 | 4 => self.units[u].combat.mandatory = false,
                 // 1, 2, 5 kill the current order — for a **human** leader
-                // only, and no army's leader is human (`docs/GROUPS.md`
-                // §8), so nothing else happens here.
+                // only (`leaders.list[who] & 4`, `docs/GROUPS.md` §8),
+                // when it lacks the action bit and the action order does
+                // too: `Unit::repath`, then `kill_current_order(0)`. No
+                // army's leader is human; a player's stance button is
+                // (item 2165, `docs/GOLDEN.md` §79): run835's `0/7` drops
+                // the attack it found on the fishing boat on 681.
+                1 | 2 | 5 => {
+                    let human = self.nation.get(g.who as usize).is_some_and(|n| n.human);
+                    if human
+                        && self
+                            .current_order(u)
+                            .is_some_and(|o| !o.has(crate::orders::flag::ACTION))
+                        && self.update_action(u).is_none_or(|a| {
+                            !self.units[u].orders[a].has(crate::orders::flag::ACTION)
+                        })
+                    {
+                        self.repath(u);
+                        self.kill_current_order(u);
+                    }
+                }
                 _ => {}
             }
         }

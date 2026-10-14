@@ -8983,9 +8983,23 @@ impl Sim {
                 Obj::Unit(t) => {
                     self.mark(crate::fight::SITE_FIGHT_RESEARCH);
                     let roll = self.rng.roll();
-                    (!self.profile(Obj::Unit(t)).combat_role
-                        && roll % 5 != 0
-                        && flags & flag::FIGHT_REENTRY == 0)
+                    // `fight@005fd4d0:394-400`: a unit with
+                    // `unit_masks2 & 4` (a Bark, item 2165, parked 2100)
+                    // re-finds a target whose role is combat and whose
+                    // type is not `n` ("destroyed when it attacks",
+                    // `unit_flags & 0x2000`); any other re-finds one whose
+                    // role is not combat. run835's `0/7` drops the Trireme
+                    // `1/6` for the Bark `1/8` on 634.
+                    let p = self.profile(Obj::Unit(t));
+                    let off = if self.units[u].unit_masks2 & combat::umask2::BARK != 0 {
+                        p.combat_role
+                            && self.units[t]
+                                .ty
+                                .is_none_or(|ty| self.unit_types[ty].cols.unit_flags & 0x2000 == 0)
+                    } else {
+                        !p.combat_role
+                    };
+                    (off && roll % 5 != 0 && flags & flag::FIGHT_REENTRY == 0)
                         || self.poor_target(me, target)
                 }
             };
