@@ -30,12 +30,15 @@
 #   (24, 74).
 # - 610: Light Horse A queued, 60 food 40 timber (611). 612: Hoplites queued
 #   at the Barracks, 50 food 30 timber.
-# - 800: A out, `0/6`. 800: Monarchy gained.
+# - 800: Monarchy gained, and A out the same frame, `0/6`: the target is
+#   recomputed every frame, A's 210 falls to 168 under the arm, and A has
+#   run 189 (without the arm, A is out on 821).
 # - 802: Light Horse B queued at **45 food 30 timber** (61/41 ramped, a
 #   quarter off, truncated). 804: Hoplites queued behind the first at 51/31,
 #   whole.
-# - 839: the first Hoplites out (`0/7`-`0/9`). **977: B out, `0/10`** (0.8x
-#   of the ramped time). 1074: the second Hoplites (`0/11`-`0/13`).
+# - 839: the first Hoplites out (`0/7`-`0/9`), mid-build at 800 and
+#   untouched by it. **977: B out, `0/10`** (1040 without the arm). 1074:
+#   the second Hoplites (`0/11`-`0/13`).
 #
 # CENSUS ROWS the staging reaches, never backed (`census.py --unbacked`):
 # `ObjectData::train_time@006508c0` and `TypeData::get_cost@00664090`.
@@ -44,8 +47,8 @@
 # block F+2.
 # 1. The price arm: B's queue entry at 61/41 (or who=0's food down 61) on
 #    block 804 — no cost arm; at 46/31 — the discount before the ramp.
-# 2. The train arm: B born on any frame but 977 while A's 800 and the
-#    Hoplites' 839 agree — the arm, or its place in the tail.
+# 2. The train arm: A born on 821 (no arm, or a time fixed at the queue),
+#    or B on any frame but 977 — the arm, or its place in the tail.
 # 3. Equality: the second Hoplites at anything but 51/31, or born off 1074.
 # 4. A patriot (`THEMONARCH`, TypeIndex 354) born to who=0: the King rides
 #    the government's gain without a Senate.
@@ -59,6 +62,10 @@
 #
 # The window: the last falsifier is the second Hoplites' birth, 1074;
 # 1330 leaves 256 past it.
+#
+# run845 took it (lane 2, 695 s): every falsifier held — A on block 801,
+# B queued at 45/30 on 804 and out on 978, the Hoplites at 51/31 and out on
+# 840 and 1075, no patriot — and the chapter closes at 1330.
 0 !ai off
 600 library who=0 1
 601 resource who=0 all +2000
