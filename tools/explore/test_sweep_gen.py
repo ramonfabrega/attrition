@@ -496,6 +496,28 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2253, win=0xe0, bias=[],
                                    places=['m+0xdc:0:8'], place_null=['1'])
 
+    def test_a_ptrarg_may_be_drawn_null(self):
+        # Item 2271 (Loop 2003, 2253's line): `UnitType::backup` and its
+        # kin guard a pointer argument against null, and a `--ptrarg` is
+        # never null, so the guard ran one arm. `--ptrarg-null IDX` lays
+        # argument IDX as 0 a third of the rows; its buffer is still drawn
+        # so every later window keeps its index, and a line without the
+        # flag draws no extra number.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2271, win=0x20, bias=[], own=2,
+            ptrargs=['0:0x40', '1:0x10'], ptrarg_null=['1'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('PNULLS = [1]', script)
+        self.assertIn('if idx in PNULLS and rng.random() < 1 / 3:', script)
+        self.assertIn('argument 1 names 16 random bytes (null a third of the rows)', test)
+        sp2, script2, *_ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2271, win=0x20, bias=[], own=2,
+            ptrargs=['0:0x40', '1:0x10'], port='0')
+        self.assertIn('PNULLS = []', script2)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2271, win=0x20, bias=[], own=2,
+                                   ptrargs=['0:0x40'], ptrarg_null=['1'])
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
