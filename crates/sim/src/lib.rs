@@ -1919,6 +1919,22 @@ impl Sim {
         self.ledgers[who as usize].dirty = true;
     }
 
+    /// `Object::insert_inside@00647e90` and `remove_from_inside@006480f0`:
+    /// a captain entering or leaving a building moves a Lakota garrison
+    /// count, and with `LAKOTA_FOOD` set raises the leader's `0x2000000`
+    /// (`docs/AI.md` §219).
+    pub(crate) fn lakota_garrison_changed(&mut self, u: usize) {
+        let unit = &self.units[u];
+        let who = unit.owner;
+        if unit.captain
+            && self.nation.get(who as usize).is_some_and(|n| n.lakota)
+            && self.tuning.lakota_food != 0
+            && unit.ty.is_some_and(|t| self.lakota_garrison_kind(t))
+        {
+            self.economy_changed(who);
+        }
+    }
+
     /// Adds a unit, registering it as a supply source if its type is one.
     ///
     /// This is `Unit::init`'s half of the supply bookkeeping and the reason to
@@ -3763,8 +3779,9 @@ impl Sim {
         // an exit from a University or an Oil Platform (`is(0x1a4)` or
         // `is(0x1a6)` on the container). Every other trained unit is born
         // clean; `Build::queue_up` raises nothing either.
-        // SEAM: `Unit::init`'s two tribe arms (Lakota food gatherers, the
-        // Americans' Barracks) and `insert_inside`'s are not modelled.
+        // SEAM: `Unit::init`'s Americans' Barracks arm and
+        // `insert_inside`'s are not modelled; the Lakota arm is
+        // [`Sim::init_unit`]'s (`docs/AI.md` §219).
         let container = matches!(
             self.building_ident(at),
             crate::build::Ident::University | crate::build::Ident::OilPlatform
@@ -3843,6 +3860,18 @@ impl Sim {
                     self.units[u].stance = 3;
                     self.units[u].combat.stance = crate::combat::Stance::Raid;
                 }
+            }
+            // `Unit::init@00612100:613-626` (item 2351, `docs/AI.md` §219):
+            // a Lakota unit the food term counts — a citizen (`TypeIndex`
+            // `0x32`, `0x33`), a scout (`is(SCOUT, 0)`) or a Stable type
+            // (`+0x40 == 0x1ac`) — raises the leader's `0x2000000`.
+            if self.nation.get(who as usize).is_some_and(|n| n.lakota)
+                && self.tuning.lakota_food != 0
+                && (matches!(self.unit_types[ty].type_index, 0x32 | 0x33)
+                    || self.unit_line_is(u, 0x45)
+                    || self.trainer_ident(ty) == Some(build::Ident::Stable))
+            {
+                self.economy_changed(who);
             }
             // `Unit::init` → `Guy::init_real`: the figure's one draw.
             // (The unit's `ty` stays unset here, as it always has; the

@@ -391,6 +391,12 @@ pub struct Holdings {
     /// food term's inputs ([`mongol_nomadic_food`]).
     pub mongols: bool,
     pub num_nations: i32,
+    /// `has_tribe_bonus(0x13)` and the count the Lakota food term
+    /// multiplies ([`lakota_food`]): `peasants + scouts + stable_units −
+    /// peasants_garr − scout_garr − stable_garr`, the `LeaderData` counts
+    /// at `+0x978`, `+0x988`, `+0x9fc`, `+0xa28`, `+0xa30`, `+0xa2c`.
+    pub lakota: bool,
+    pub lakota_units: i32,
     pub egyptians: bool,
     pub french: bool,
     pub inca: bool,
@@ -622,6 +628,7 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     for r in Resource::ALL {
         out[r.index()] = t.basic_gather[r.index()] * RATE_SCALE;
     }
+    out[Resource::Food.index()] += lakota_food(t, h);
 
     for city in &h.cities {
         let c = city_rates(t, city);
@@ -787,6 +794,19 @@ pub fn territory_tax(t: &Tuning, h: &Holdings) -> i32 {
         rate = (t.british_taxation + 100) * rate / 100;
     }
     h.territory * rate * RATE_SCALE / h.land_size
+}
+
+/// `Leader::calc_gather@006ceee0:116–122`, the Lakota's food: the leader's
+/// citizens, scouts and Stable units, less those garrisoned, times
+/// `LAKOTA_FOOD`, in sixteenths — added onto food right after the base
+/// trickle, before the cities (`docs/AI.md` §219). run846's who=1 on block
+/// 1: ten citizens and a scout, `11 × 4 × 16 = 704`, the whole of 864
+/// against the human's 160.
+pub fn lakota_food(t: &Tuning, h: &Holdings) -> i32 {
+    if !h.lakota {
+        return 0;
+    }
+    h.lakota_units * t.lakota_food * RATE_SCALE
 }
 
 /// **The Mongols' food from owned ground**

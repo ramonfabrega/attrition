@@ -476,6 +476,8 @@ impl Sim {
         let outside = self.gather_sites_outside_cities(who);
         // Step 6, and the `rare_owned` it rebuilds ([`crate::rares`]).
         let (rares, rare_owned) = self.gather_rares(who);
+        let lakota = self.nation[w].lakota && self.tuning.lakota_food != 0;
+        let lakota_units = if lakota { self.lakota_food_units(who) } else { 0 };
         let h = &mut self.holdings[w];
         h.cities = cities;
         h.outside = outside;
@@ -489,9 +491,66 @@ impl Sim {
         h.british = self.nation[w].british;
         h.mongols = self.nation[w].mongols;
         h.num_nations = self.players.len() as i32;
+        h.lakota = lakota;
+        h.lakota_units = lakota_units;
         h.egyptians = self.nation[w].egyptians;
         h.french = self.nation[w].french;
         h.inca = self.nation[w].inca;
+    }
+
+    /// The count `Leader::calc_gather@006ceee0:116`'s Lakota arm multiplies:
+    /// `stable_units − scout_garr − stable_garr − peasants_garr + scouts +
+    /// peasants` (`docs/AI.md` §219).
+    ///
+    /// The original keeps all six live: `Leader::track_unit_type@006e0dd0`
+    /// moves `peasants` (`is_peasant`), `scouts` (`role & 0x10`) and
+    /// `stable_units` (a type with `+0x1e8` set whose `+0x40` is the
+    /// Stable, `0x1ac`), and `Object::insert_inside@00647e90` and
+    /// `remove_from_inside@006480f0` move the three garrison counts for a
+    /// captain in a building — a peasant, else a Stable type (no `+0x1e8`
+    /// test there), else `UnitData::is_special` (`+0x2b8 & 0x10`, the
+    /// scout bit). `peasants` is the census's, which the sweep also
+    /// zeroes and recounts; the rest are read off the units here, which is
+    /// the same number at the moment the rate is assembled.
+    pub(crate) fn lakota_food_units(&self, who: Player) -> i32 {
+        let w = who as usize;
+        let mut n = self.ai[w].census.peasants;
+        for t in 0..self.unit_types.len() {
+            let c = self.muster[w].by_type[t];
+            if c == 0 {
+                continue;
+            }
+            if self.unit_types[t].cols.is(crate::ai_load::role::SCOUT) {
+                n += c;
+            }
+            if self.unit_types[t].combat.attack != 0
+                && self.trainer_ident(t) == Some(crate::build::Ident::Stable)
+            {
+                n += c;
+            }
+        }
+        for b in &self.buildings {
+            for &g in &b.garrison {
+                let u = &self.units[g];
+                if u.owner == who
+                    && u.captain
+                    && u.inside.is_some()
+                    && u.ty.is_some_and(|t| self.lakota_garrison_kind(t))
+                {
+                    n -= 1;
+                }
+            }
+        }
+        n
+    }
+
+    /// Whether a captain of type `t` in a building is one of the three
+    /// garrison counts the Lakota term subtracts — `insert_inside`'s chain:
+    /// a peasant, else a Stable type, else a scout.
+    pub(crate) fn lakota_garrison_kind(&self, t: usize) -> bool {
+        matches!(self.unit_types[t].worker, crate::orders::Worker::Citizen)
+            || self.trainer_ident(t) == Some(crate::build::Ident::Stable)
+            || self.unit_types[t].cols.is(crate::ai_load::role::SCOUT)
     }
 
     /// Whether this player's rate would be reassembled on this frame, so the
