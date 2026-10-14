@@ -5635,29 +5635,37 @@ impl Sim {
         // where the group's speed goes back to its leader's
         // (`docs/GROUPS.md` §18) after a march's own reports have walked
         // it up to the leader's uncapped speed.
-        self.group_set_speed(g);
-        for i in 0..g.list.len() {
-            let u = g.list[i];
-            if !(self.units[u].alive() && self.units[u].on_map) {
+        group_member_walk(
+            self,
+            g.list.len(),
+            |s| s.group_set_speed(g),
+            |_, k| g.list[k],
+            |s, u| s.units[u].alive(),
+            |s, u| s.units[u].on_map,
+            |s, u| s.unit_kill_group_move(u, id),
+        );
+    }
+
+    /// `Unit::kill_group_move@005e3400` for one member: its orders lose
+    /// the group plan, and one carrying `id` that is **not** an
+    /// attack-move is killed. A `GROUP_ATTACK_TO` survives both arms.
+    fn unit_kill_group_move(&mut self, u: usize, id: i64) {
+        let mut kill = false;
+        for j in 0..self.units[u].orders.len() {
+            let Body::Move(m) = self.units[u].orders[j].body else {
+                continue;
+            };
+            if m.kind == MoveKind::AttackTo {
                 continue;
             }
-            let mut kill = false;
-            for j in 0..self.units[u].orders.len() {
-                let Body::Move(m) = self.units[u].orders[j].body else {
-                    continue;
-                };
-                if m.kind == MoveKind::AttackTo {
-                    continue;
-                }
-                self.units[u].orders[j].flags &= !flag::PATHED;
-                self.kill_current_path(u);
-                if m.group.is_some_and(|x| x.id == id) {
-                    kill = true;
-                }
+            self.units[u].orders[j].flags &= !flag::PATHED;
+            self.kill_current_path(u);
+            if m.group.is_some_and(|x| x.id == id) {
+                kill = true;
             }
-            if kill {
-                self.kill_current_order(u);
-            }
+        }
+        if kill {
+            self.kill_current_order(u);
         }
     }
 
@@ -10201,5 +10209,28 @@ mod unreachable_goal_tests {
             "the guard stands under the dead move: {:?}",
             s.units[u].orders
         );
+    }
+}
+
+/// **`Group::kill_group_move@007123f0`'s walk** (item 2287): `normalize`
+/// first, then each of the group's `+0xc` members (the shorts at
+/// `+0x8cc`) that is in use (vslot `+8`) and, asked only then, on the map
+/// (vslot `+0xbc`) is handed to `each` — the unit's own
+/// `kill_group_move(id)`.
+pub(crate) fn group_member_walk<C>(
+    cx: &mut C,
+    n: usize,
+    normalize: impl FnOnce(&mut C),
+    member: impl Fn(&mut C, usize) -> usize,
+    mut in_use: impl FnMut(&mut C, usize) -> bool,
+    mut on_map: impl FnMut(&mut C, usize) -> bool,
+    mut each: impl FnMut(&mut C, usize),
+) {
+    normalize(cx);
+    for k in 0..n {
+        let u = member(cx, k);
+        if in_use(cx, u) && on_map(cx, u) {
+            each(cx, u);
+        }
     }
 }

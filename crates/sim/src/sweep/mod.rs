@@ -741,3 +741,4 @@ mod unit_set_attacking;
 mod region_go_here;
 mod object_valid_target;
 mod build_data_count_queue;
+mod group_kill_group_move;
