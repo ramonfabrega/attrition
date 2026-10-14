@@ -2394,15 +2394,22 @@ impl Sim {
 
     /// `Unit::add_think_order`: the argument is ignored — it is always
     /// rotated to the front, with the action bit.
+    /// The steps are [`add_think_steps`]'s (item 2314's sweep).
     pub fn add_think_order(&mut self, u: usize) {
-        let order = Order {
-            flags: flag::ACTION,
-            body: Body::Think,
-        };
-        self.units[u].orders.push_front(order);
-        self.new_head(u);
-        self.clear_partial_path(u);
-        self.update_action(u);
+        add_think_steps(
+            self,
+            |_| Order {
+                flags: 0,
+                body: Body::Think,
+            },
+            |o| &mut o.flags,
+            |sim, o| sim.units[u].orders.push_front(o),
+            |sim| sim.clear_partial_path(u),
+            |sim| sim.new_head(u),
+            |sim| {
+                sim.update_action(u);
+            },
+        );
     }
 
     // ------------------------------------------------------------------
@@ -10257,6 +10264,30 @@ pub(crate) fn group_member_walk<C>(
             each(cx, u);
         }
     }
+}
+
+/// **`Unit::add_think_order@005e3df0`'s steps** (item 2314): a `THINK`
+/// order made (`OrdersMemManager::get_obj(THINK)`, then its vslot `+0xb0`),
+/// its flags `| ACTION`; linked (`LinkListBase::add`, which makes the new
+/// node the list's `head_node`); `clear_partial_path`; then `head_node =
+/// head_node->next` (`+0xdc`), which leaves the new node at `head->prev`,
+/// the end the engine reads as the current order — so the order goes to
+/// the front whatever `QueuePos` says; and `update_action`.
+pub(crate) fn add_think_steps<C, O>(
+    cx: &mut C,
+    make: impl FnOnce(&mut C) -> O,
+    flags: impl FnOnce(&mut O) -> &mut u8,
+    link: impl FnOnce(&mut C, O),
+    clear_path: impl FnOnce(&mut C),
+    rotate: impl FnOnce(&mut C),
+    update: impl FnOnce(&mut C),
+) {
+    let mut o = make(cx);
+    *flags(&mut o) |= flag::ACTION;
+    link(cx, o);
+    clear_path(cx);
+    rotate(cx);
+    update(cx);
 }
 
 /// **`Unit::do_think_order@005e5bf0`'s steps** (item 2287):
