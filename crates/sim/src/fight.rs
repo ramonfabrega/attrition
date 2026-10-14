@@ -4081,6 +4081,33 @@ impl Sim {
             {
                 v /= 10_000;
             }
+            // **A Bark weighs ships by their line** (`0064f04f`–`0064f0fe`,
+            // item 2205, `docs/GOLDEN.md` §80): a sea attacker of the Bark
+            // line (`is(BARK)`, `0x143`) against a sea target takes a
+            // four-hundredth of a Trireme-line one (`is(TRIREME)`, `0x154`;
+            // `imul 0x51eb851f; sar 7`, a signed `/ 400`) and forty times a
+            // transport (`unit_flags & 0x10`, `lea; shl 3`). Every human or
+            // computer Bark, raiding or not: the arm sits past the raid
+            // weights' join. run835's `0/7` takes the Bark `1/8` at 2,082
+            // units over the Trireme `1/6` at 768 on 634.
+            //
+            // SEAM: the `idiv` by the target's `full + 1` (`UnitData +0xac`,
+            // `0064f110`) that follows is not carried: `full` is 0 on every
+            // unit of every dump this crate widens.
+            if matches!(ap.domain, Domain::Sea)
+                && matches!(tp.domain, Domain::Sea)
+                && ap.is(role::BARK)
+            {
+                if tp.is(role::TRIREME) {
+                    v /= 400;
+                } else if let Obj::Unit(u) = target
+                    && self.units[u].ty.is_some_and(|t| {
+                        self.unit_types[t].cols.unit_flags & uflags::TRANSPORT != 0
+                    })
+                {
+                    v *= 40;
+                }
+            }
         }
         if v < 0 {
             v = 9_999_999;
