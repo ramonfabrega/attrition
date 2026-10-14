@@ -4517,6 +4517,7 @@ never draws, so its script's `I32` was widened by hand (5, 6) and says so in a c
 `ecx` an integer rather than the object: `Map::scale_by_axis` (0x6a08d0) and its sibling at 0x6a0910 take the
 axis length in `ecx` (`(map_sizes.list[4]+0x144)/2 + world.xs·n) / that`, floored at 1), read and not taken for
 want of it. Build either when a second function of its shape is taken, with a test made to fail first.
+~~`--ecx-int`~~ built by item 2149 (parked 2150); `--answers` still owed.
 
 ## Parked by the next landing, slot AT — reserved
 
@@ -4526,13 +4527,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AU — reserved
+## Parked by item 2149, 2026-10-13 — the sweep's fifty-second batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2150) **`obj --ecx-int LO..HI|V,V,..` built** (Loop 2003's thirteenth reach; names no score): `ecx` an integer
+drawn from the range or the list (90%, else the generic `I32`), not the object, printed last on the row — the
+test reads it as `a[a.len() - 1]`; refused on the plain `obj`, which has no row for it. Two of its shape taken,
+`Map::scale_by_axis` (0x6a08d0) and `Map::scale_by_area` (0x6a0910), with
+`tools/explore/test_sweep_gen.py::test_ecx_may_be_an_integer_rather_than_the_object` made to fail first. 2141's
+`--answers` is still owed.
+
+(2151) **A fifth shape read and not taken: the hidden-return `Coord`** (Loop 2003; names no score).
+`UnbuiltCity::get_x`/`get_y` (0x73b740, 0x73b780) and `UnbuiltFort::get_x`/`get_y` (0x73bb80, 0x73bbc0) ask
+slot `+0xac` of `objects[who][o]` (the per-player table, `this->who`·0x1c + `+0x14`, `this->o`·4) and write the
+answer record's `+0x10` or `+0x14` `^ 0x63637` through `[esp+4]`, the hidden return pointer — four of one shape,
+`outptr` with a per-player-table object and a stubbed slot whose answer names a window. Build it as `obj` with
+`--stub slot` answering a pointer to a window when two are taken.
 
 ## Parked by the next landing, slot AV — reserved
 
