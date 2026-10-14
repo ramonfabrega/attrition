@@ -51,7 +51,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // its type `p[4]` (`+0x1e4`); the units' types `p[7]` (target)
             // and `p[10]` (attacker), the buildings' `p[13]` (target) and
             // `p[11]` (`this + 0x18`). `c[0]` is `div_3_table`, filled.
-            use crate::combat::{attack_dist, extent, Profile};
+            use crate::combat::{Profile, attack_dist, extent};
             use crate::world::Pos;
             let unit = |t: &[u8]| Profile {
                 block_radius: rd(t, 0x240),
