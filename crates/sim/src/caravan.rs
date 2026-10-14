@@ -568,42 +568,44 @@ impl Sim {
 
     /// `City::compute_trade@00739640`: `trade_val` is the sum, over every
     /// route this city is an end of that has **delivered at least once**
-    /// and whose other end is still alive, of `trade_value(other) · 16 / 2`.
+    /// and whose other end is still alive, of `trade_value(·) · 16 / 2`
+    /// ([`compute_trade_steps`], which the sweep backs).
     ///
     /// It is what a city contributes to its owner's wealth rate on top of
     /// its gatherers (`crate::economy::city_rates`), and a change marks the
     /// leader's economy dirty.
+    ///
+    /// The original walks the city's own route list (`+0x84`, `+0x78`
+    /// long); this crate keeps no such list and walks every leader's slots
+    /// below its mark for the routes with an end here. An end's leader is
+    /// the city's owner today.
     pub(crate) fn compute_trade(&mut self, city: usize) {
         let was = self.cities[city].trade_val;
-        let mut val = 0;
-        for w in 0..self.caravans.len() {
-            for s in 0..self.caravans[w].mark {
-                let van = &self.caravans[w].slots[s];
-                if !van.delivered {
-                    continue;
-                }
-                let (Some(a), Some(b)) = (van.city_a, van.city_b) else {
-                    continue;
-                };
-                if !self.cities[a].alive || !self.cities[b].alive {
-                    continue;
-                }
-                let other = if a == city {
-                    b
-                } else if b == city {
-                    a
-                } else {
-                    continue;
-                };
-                // `00739705`: the end whose owner is this city's goes in
-                // `ecx`/`edx`, and that is the leader the bonuses ask —
-                // always this city's own.
-                val += self.trade_value(city, other) * 16 / 2;
-            }
-        }
+        let owner = self.cities[city].owner;
+        let end = |c: Option<usize>| match c {
+            Some(c) => (c as i32, self.cities[c].owner as i32),
+            None => (-1, 0),
+        };
+        let routes: Vec<TradeRoute> = self
+            .caravans
+            .iter()
+            .flat_map(|w| w.slots[..w.mark].iter())
+            .filter(|van| van.city_a == Some(city) || van.city_b == Some(city))
+            .map(|van| TradeRoute {
+                delivered: van.delivered,
+                a: end(van.city_a),
+                b: end(van.city_b),
+            })
+            .collect();
+        let val = compute_trade_steps(
+            owner as i32,
+            routes,
+            |c, _| self.cities[c as usize].alive,
+            |e, o| self.trade_value(e.0 as usize, o.0 as usize),
+        );
+        let val = i32::from(val);
         self.cities[city].trade_val = val;
         if was != val {
-            let owner = self.cities[city].owner;
             self.economy_changed(owner);
         }
     }
@@ -1066,6 +1068,51 @@ pub(crate) fn distance_band(d: i32, w: i32) -> i32 {
         return 1;
     }
     2 + i32::from(w.wrapping_mul(4) / 5 <= d)
+}
+
+/// One route as `City::compute_trade@00739640` reads it: the delivered bit
+/// (`caravan_flags & 4`, `+0xc`) and each end as `(index, leader)` —
+/// `city2`/`whom` (`+0x0`, `+0x2`) and `city3`/`whose` (`+0x4`, `+0x6`), a
+/// negative index an empty end.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct TradeRoute {
+    pub delivered: bool,
+    pub a: (i32, i32),
+    pub b: (i32, i32),
+}
+
+/// `City::compute_trade@00739640`'s sum over `routes`, the city's own: a
+/// route counts when it has delivered (`00739690`), both ends are set
+/// (`0073969d`, `007396a6`) and both are alive (`+0x4 & 1`, `007396d5`,
+/// `007396ee`, the first end first). `value(e, o)` is
+/// `Caravan::trade_value` with `e` in `ecx`/`edx` and `o` pushed — `e` the
+/// first end when its leader is `owner`, the city's, and the second end
+/// otherwise (`007396f4`–`00739709`). Each value goes in `· 16 / 2`, a
+/// signed halving (`00739710`–`00739719`), and the sum is the original's
+/// **16-bit** `trade_val` (`addw` at `0073971b`), wrapping.
+pub(crate) fn compute_trade_steps(
+    owner: i32,
+    routes: impl IntoIterator<Item = TradeRoute>,
+    mut alive: impl FnMut(i32, i32) -> bool,
+    mut value: impl FnMut((i32, i32), (i32, i32)) -> i32,
+) -> i16 {
+    let mut sum: i16 = 0;
+    for r in routes {
+        if !r.delivered || r.a.0 < 0 || r.b.0 < 0 {
+            continue;
+        }
+        if !alive(r.a.0, r.a.1) || !alive(r.b.0, r.b.1) {
+            continue;
+        }
+        let (e, o) = if r.a.1 == owner {
+            (r.a, r.b)
+        } else {
+            (r.b, r.a)
+        };
+        let v = value(e, o).wrapping_shl(4) / 2;
+        sum = sum.wrapping_add(v as i16);
+    }
+    sum
 }
 
 #[cfg(test)]
