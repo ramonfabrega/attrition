@@ -694,30 +694,27 @@ impl Sim {
     /// the decompiler drops — and its **owner** is the leader both bonuses
     /// ask. Everything before them is symmetric in the two ends.
     pub(crate) fn trade_value(&self, a: usize, b: usize) -> i32 {
-        let d = self.trade_distance(a, b);
-        let mut v = self.city_trade_value(a) + self.city_trade_value(b);
-        if d != 0 {
-            v = (d + 3) * v / 3;
-        }
-        if self.cities[a].owner != self.cities[b].owner {
-            v = v * 3 / 2;
-        }
-        // The two bonuses, on `a`'s owner: the caravans' nation power
+        // The two bonuses ask `a`'s owner: the caravans' nation power
         // (`has_tribe_bonus(0x15)`), then the Spice rare (`rare` or
         // `rare_conquest`, bit 6) — Great Sahara's who=1 holds Spice, and
         // its two cities' routes went 22 → 26 on 14660 (`docs/CARAVAN.md`
         // §4).
         let lead = self.cities[a].owner;
-        if self
-            .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[lead as usize], 0x15)
-        {
-            v = (self.tuning.indians_caravan + 100) * v / 100;
-        }
-        if self.has_rare(lead, crate::economy::SPICE) {
-            v = (self.tuning.spice_caravan_income + 100) * v / 100;
-        }
-        v
+        trade_value_steps(
+            (self.cities[a].pos, self.cities[b].pos),
+            lead != self.cities[b].owner,
+            |pa, pb| self.trade_distance(pa, pb),
+            |end_a| self.city_trade_value(if end_a { a } else { b }),
+            |bonus| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, &self.tech[lead as usize], bonus)
+            },
+            self.has_rare(lead, crate::economy::SPICE),
+            (
+                self.tuning.indians_caravan,
+                self.tuning.spice_caravan_income,
+            ),
+        )
     }
 
     /// `Caravan::distance@0073d300`: a band, not a distance — 0 under a
@@ -733,8 +730,7 @@ impl Sim {
     /// distance takes (`docs/AI.md` §2.20). Measuring the world-unit
     /// distance instead put every pair in band 3 and doubled every trade
     /// route's value (`docs/CARAVAN.md` §3.1).
-    fn trade_distance(&self, a: usize, b: usize) -> i32 {
-        let (pa, pb) = (self.cities[a].pos.cell(), self.cities[b].pos.cell());
+    fn trade_distance(&self, pa: crate::world::Cell, pb: crate::world::Cell) -> i32 {
         let d = crate::world::vector_dist(pa.x - pb.x, pa.y - pb.y);
         distance_band(d, self.world.width())
     }
@@ -1060,6 +1056,44 @@ fn offset_road(path: &mut [PathData]) {
 /// map's width `w` (`WorldData::xs`): every quotient truncates toward zero
 /// and `w * 4` wraps, as the original's `cdq`/`sar` and `imul` do — swept
 /// against the emulated original on any `i32` pair (item 2181).
+/// `Caravan::trade_value@0073d9d0`'s arithmetic, its callees handed in: the
+/// distance band of the two ends' cells (`a`'s first, as the original pushes
+/// `distance`'s four `div_3_table[coord >> 8]` words), the two cities'
+/// trade values (`a`'s asked first, `true`), the leader's nation power
+/// (`has_tribe_bonus(0x15)`, asked every time) and its Spice; `foreign` is
+/// the two ends' leaders differing (`0073da78`), `pct` the constants'
+/// `indians_caravan` (`+0x890`) and `spice_caravan_income` (`+0x8f0`).
+///
+/// The products are the original's 32-bit `imul`s (`0073da69`, `0073dab4`,
+/// `0073daec`), so they wrap as its do; every division truncates toward
+/// zero, as its reciprocal multiplies and `cdq`/`sar` do.
+pub(crate) fn trade_value_steps(
+    (a, b): (Pos, Pos),
+    foreign: bool,
+    band: impl FnOnce(crate::world::Cell, crate::world::Cell) -> i32,
+    mut city: impl FnMut(bool) -> i32,
+    tribe: impl FnOnce(usize) -> bool,
+    spice: bool,
+    pct: (i32, i32),
+) -> i32 {
+    let d = band(a.cell(), b.cell());
+    let ta = city(true);
+    let mut v = ta.wrapping_add(city(false));
+    if d != 0 {
+        v = d.wrapping_add(3).wrapping_mul(v) / 3;
+    }
+    if foreign {
+        v = v.wrapping_mul(3) / 2;
+    }
+    if tribe(0x15) {
+        v = pct.0.wrapping_add(100).wrapping_mul(v) / 100;
+    }
+    if spice {
+        v = pct.1.wrapping_add(100).wrapping_mul(v) / 100;
+    }
+    v
+}
+
 pub(crate) fn distance_band(d: i32, w: i32) -> i32 {
     if d < w / 4 {
         return 0;

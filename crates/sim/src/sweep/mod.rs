@@ -343,6 +343,7 @@ mod caravan_data_has_city;
 mod caravan_distance;
 mod caravan_distance_wcoord;
 mod caravan_link_walk_data;
+mod caravan_trade_value;
 mod caster_walk_data;
 mod circle_render_on_field_change;
 mod city_compute_trade;
