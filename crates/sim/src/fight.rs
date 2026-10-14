@@ -821,26 +821,29 @@ impl Sim {
     /// so the call is the capture path's, not the attack's. The attempt may
     /// change the city's owner, so the call is a mutation (item 1535).
     pub fn valid_target(&mut self, attacker: Obj, target: Obj) -> bool {
-        if !self.valid_target_const(attacker, target) {
-            return false;
-        }
-        let Obj::Building(b) = target else {
-            return true;
-        };
-        if !self.capture_eligible(b) || self.profile(attacker).has(mask::MISSILE) {
-            return true;
-        }
-        let Obj::Unit(u) = attacker else {
-            return false;
-        };
-        self.check_capture(b, u);
-        let ap = self.profile(attacker);
-        self.units[u].on_map
-            && ap.has(mask::VEHICLE)
-            && ap.has(mask::WAR_MACHINE)
-            && self.order_type(u) == crate::orders::index::ATTACK
-            && self.units[u].combat.target == Some(target)
-            && self.units[u].combat.mandatory
+        valid_target_steps(
+            self,
+            None,
+            |s| s.valid_target_const(attacker, target),
+            |s| matches!(target, Obj::Building(b) if s.capture_eligible(b)),
+            |s| s.profile(attacker).has(mask::MISSILE),
+            |s| match (attacker, target) {
+                (Obj::Unit(u), Obj::Building(b)) => s.check_capture(b, u),
+                _ => false,
+            },
+            |s| {
+                let Obj::Unit(u) = attacker else {
+                    return false;
+                };
+                let ap = s.profile(attacker);
+                s.units[u].on_map
+                    && ap.has(mask::VEHICLE)
+                    && ap.has(mask::WAR_MACHINE)
+                    && s.order_type(u) == crate::orders::index::ATTACK
+                    && s.units[u].combat.target == Some(target)
+                    && s.units[u].combat.mandatory
+            },
+        )
     }
 
     /// `ObjectData::valid_target_const` + `Object::valid_target` (§12.1), as
@@ -8921,4 +8924,46 @@ pub(crate) fn attacking_bits(
     let reveal = !sees();
     *visible |= bit;
     reveal
+}
+
+/// **`Object::valid_target@00648ba0`'s steps** (item 2287): the out-word
+/// zeroed; `valid_target_const` (vslot `+0x138`), refused on a no; a
+/// target that is not a capture-eligible city building (`flags & 1`,
+/// vslots `+0x20` and `+0x4c`, `check_capture_eligible`) is valid. For
+/// one, the out-word is 1, a missile asker (`type +0x1e4 & 0x8000000`)
+/// is answered yes, and otherwise the capture is tried (`check_capture`,
+/// the asker as captor), the out-word going back to 0 when it takes; the
+/// answer is then the armed-attack test alone — on the map, `VEHICLE`
+/// and `WAR_MACHINE`, on an `ATTACK` order naming exactly this target,
+/// mandatory.
+pub(crate) fn valid_target_steps<C>(
+    cx: &mut C,
+    mut out: Option<&mut i32>,
+    is_const: impl FnOnce(&mut C) -> bool,
+    eligible: impl FnOnce(&mut C) -> bool,
+    missile: impl FnOnce(&mut C) -> bool,
+    capture: impl FnOnce(&mut C) -> bool,
+    armed_attack: impl FnOnce(&mut C) -> bool,
+) -> bool {
+    if let Some(o) = out.as_deref_mut() {
+        *o = 0;
+    }
+    if !is_const(cx) {
+        return false;
+    }
+    if !eligible(cx) {
+        return true;
+    }
+    if let Some(o) = out.as_deref_mut() {
+        *o = 1;
+    }
+    if missile(cx) {
+        return true;
+    }
+    if capture(cx)
+        && let Some(o) = out.as_deref_mut()
+    {
+        *o = 0;
+    }
+    armed_attack(cx)
 }

@@ -729,3 +729,4 @@ mod world_set_was_seen;
 mod world_set_waterhalf;
 mod unit_set_attacking;
 mod region_go_here;
+mod object_valid_target;
