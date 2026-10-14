@@ -45,8 +45,10 @@
 /// `timeGetTime` through `--stub iat`;
 /// item 2331: 813 -> 815, chapter sixty-seven's coverage, `train_time` and `get_cost` diff-backed by run845;
 /// item 2346: 815 -> 825, the sweep's sixty-seventh batch, `edx` beside `ecx` through `obj --edx`, a table
-/// index through `--tame`, a container emptied through `--stub-write`).
-pub const SIMULATION_BACKED: usize = 825;
+/// index through `--tame`, a container emptied through `--stub-write`;
+/// item 2341: 825 -> 835, the second sweep lane's next ten with a port consumer, the order adders and the
+/// gaia walks, five through `obj --record-order`).
+pub const SIMULATION_BACKED: usize = 835;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

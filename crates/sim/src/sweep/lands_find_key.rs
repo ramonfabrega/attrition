@@ -47,7 +47,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let _ = (&a, &m, &c, &p);
             {
                 // The key (argument 0, a `String`) against the nine lands' names (+0x11c of each 0x138-byte
-                // row of the table cell 0xe3a380 names) by `String::ignore(name, -1)`, the first match's
+                // row of the table cell 0xe3a380 names) by the string compare `ignore(name, -1)` (stub 0), the first match's
                 // index answered; none → the same against the int-string table's +0x167ec, and -1.
                 let mut calls = Vec::new();
                 let mut found = -1;

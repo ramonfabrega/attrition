@@ -5072,13 +5072,44 @@ filled. Spares read and reachable now: `GroupData::equals_group_const` (`--seq` 
 `Object::kill_contents`, `Unit::do_form_change`, `Lands::find_key`. The jump-table switches
 `Setup::get_starting_citizens`, `Search::valid_filter` and `GameInfo::default_setting` were again not read.
 
-## Parked by the next landing, slot BX — reserved
+## Parked by item 2341, 2026-10-14 — a record in call order, and what the order adders left out
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2342) **Six `sweep_gen` gaps this batch met** (2341, for the Loop; Loop 2003):
+- `--regen` rewrites the test's hand-written port block back to `todo!()`. `AnimalData::get_speed` and
+  `Herd::process` each restored the block from a copy. A regen that keeps the block between the generated
+  halves is owed.
+- `--seq` repeats its last answer forever. A function that loops while a stub answers inside a set never returns
+  once the stubbed kills change nothing (`Unit::repath`; its script is hand-edited, with the edit commented in place).
+  A terminating last value is owed.
+- No shape answers a stubbed slot from its own `ecx`, so a list walk cannot have each order answer differently in one
+  row (`Unit::update_action`; hand-edited script, which `--regen` would drop). No shape builds a pointer-linked list
+  either: the lane laid fixed `--at` windows in `.bss` and drew the link words with `--wbias`.
+- A `--place` cannot point into an `--answer-win` window, because those are laid after the places
+  (`add_strafe_order`: `--place sN`, then `--place pK+4`).
+- `--fill` cannot draw per-row values (`Herd::process` used `--wbias p0+*`), and a short field is biased only through
+  its whole word (`Army::set_stance`'s `+0x96`, through `+0x94`).
+- With `--seq`, the stub's own answer is still printed as an argument and never used. This is cosmetic.
+
+(2343) **Sweep subagents' scratch scripts collide in `/tmp`** (2341, for the Loop; names no score). One subagent's
+write to `/tmp/brk.py` was refused, and it ran another subagent's break script of that name, against that
+subagent's worktree. Every break failed and the restore ran, so nothing was lost. A brief row is owed: scratch
+goes under the job's tmp, named by function.
+
+(2344) **The `0x4000000` unit mask is carried by no port** (2341; names no score). It is the mask the defended
+return reads at `work@0060d180:124` and `think@005f6e40:233`.
+- `add_strafe_order` (`QUEUE_NEW`), `add_air_patrol_order` and `add_move_facing_order` (`QUEUE_NEW`) clear it.
+- `add_move_facing_order`'s scout rule sets it.
+- Each helper takes it as a closure, and the port's closure does nothing or answers no.
+- One more of `add_strafe_order`'s writes has no port field: the target's uid (order `+0x10`, from objects entry
+  `+0x30`, `0xffff` without a target), which `StrafeOrder` does not carry.
+
+(2345) **`repath`'s group arm and `do_attack_ground`'s walk-into-range** (2341; names no score).
+- When `Group::kill_group_move@007123f0` leaves the head standing, the original's `Unit::repath` loops forever.
+  The port falls back to `kill_current_order`.
+- `ObjectData::is_in_range@0064e4a0` is uncomputed, not a collision. `air.rs:1625` cites it by address as an
+  elided call, and `do_attack_ground` (`orders.rs`) omits both of the original's calls (parked 2288's wording).
+  When the walk-into-range is ported, it sweeps clean: `obj` with five vslot stubs, `get_inside` and
+  `vector_dist` run for real.
 
 ## Parked by item 2346, 2026-10-14 — `edx` beside `ecx`, a tame register, and a stub that writes a window
 

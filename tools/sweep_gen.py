@@ -1138,6 +1138,7 @@ CELLTHIS = {cellthis!r}
 VTALSO = {vtalso!r}
 SPARSE = {sparse!r}
 RECORD = {record!r}
+RECORDORDER = {recordorder!r}
 ROWSPLIT = {rowsplit!r}
 LINKS = {links!r}
 OUTARG = {outarg!r}
@@ -1200,6 +1201,16 @@ def by_row(calls, base, stride, n, spans):
             k, head = n, token(ecx_, spans)
         cols[k].append(",".join([head] + [token(v, spans) for v in args_]))
     return ["/".join(col) or "-" for col in cols]
+
+
+def in_order(calls, record, names, spans):
+    """`--record-order` (item 2341): the recorded stubs' calls as one token
+    a call, in the order they were made, each headed by the callee's stub
+    index (`s3:m+0x0`), so two argument-less callees on one `ecx` are
+    ordered (`add_think_order`, parked 2318); `-` when none was called."""
+    want = {{names[idx]: idx for idx in record}}
+    return [f"s{{want[n]}}:" + ",".join(token(v, spans) for v in [e] + list(a))
+            for n, e, a in calls if n in want] or ["-"]
 
 
 def out_answer(inner, k, v, write):
@@ -1489,7 +1500,9 @@ def main(argv):
             spans = [("m", this, WIN)] + [(f"c{{k}}" if k < nc else f"p{{k - nc}}", a_, len(b))
                                           for k, (a_, b) in enumerate(wins)]
             cols = []
-            for idx in RECORD:
+            if RECORDORDER:
+                cols = in_order([(n_, e_, a_) for n_, e_, a_, _ in h.calls], RECORD, names, spans)
+            for idx in ([] if RECORDORDER else RECORD):
                 calls = [(ecx_, list(args_)) for name_, ecx_, args_, _ in h.calls if name_ == names[idx]]
                 if idx in ROWSPLIT:
                     cols += by_row(calls, *tables[ROWSPLIT[idx]], spans)
@@ -1660,7 +1673,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, edx=None, tame=False, stub_write=()):
+                 rows=220, record_order=False, edx=None, tame=False, stub_write=()):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -1737,6 +1750,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--record IDX names one of the --stub callees, by its order on the line')
     if any(not 0 <= t < len(psparse) for t in prowsplit.values()):
         raise ValueError('--record IDX@S names a --sparse table S, by its order on the line (item 2309)')
+    if record_order and (not precord or prowsplit):
+        raise ValueError('--record-order orders the --record stubs\' calls; a row split keeps its own columns')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
         raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
     peq = []
@@ -1846,6 +1861,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            + (f', split by the rows of sparse table {prowsplit[idx]} (a token a row, `ecx` `r+OFF`, '
               f'then the calls outside it)' if idx in prowsplit else '')
            for idx in precord]
+        + (['the recorded calls one token a call, in call order, each headed `sIDX:` (the callee)']
+           if record_order else [])
         + [f'stub {idx} writes a value in '
            + (f'{v[1]}..{v[2]}' if v[0] == 'range' else str(v[1]))
            + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
@@ -1873,7 +1890,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
-                                   sparse=psparse, record=precord, rowsplit=prowsplit, links=plinks,
+                                   sparse=psparse, record=precord, recordorder=record_order, rowsplit=prowsplit, links=plinks,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, rows=rows)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
@@ -2116,6 +2133,9 @@ def main(argv=None):
                          'window by its name, and held to a `log` the port pushes (a tail target\'s hand-off; '
                          'item 2281); `@S` splits them by the row of --sparse table S their `ecx` lies in, a '
                          'token a row and one for the rest (a walk of the leaders table; item 2309)')
+    ap.add_argument('--record-order', action='store_true',
+                    help='obj: the --record stubs\' calls one token a call, in the order they were made, each '
+                         'headed `sIDX:` — two argument-less callees on one `ecx` ordered (item 2341, parked 2318)')
     ap.add_argument('--seq', action='append', default=[], metavar='IDX:N',
                     help='obj: stub IDX answers N values a row in call order, the last repeated past N, '
                          'printed after the stubs\' answers (a callee called more than once; item 2217)')
@@ -2174,7 +2194,7 @@ def main(argv=None):
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
-                                                    record=args.record, links=args.link,
+                                                    record=args.record, record_order=args.record_order, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
                                                     edx=args.edx, tame=args.tame, stub_write=args.stub_write)
         elif args.shape == 'void':
