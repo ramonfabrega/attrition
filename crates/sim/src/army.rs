@@ -3854,6 +3854,12 @@ mod tests {
         sim.buildings[b].combat = Some(crate::combat::Profile::default());
         sim.buildings[b].hits = 1000;
         sim.buildings[b].health = 1000;
+        // The alarm is the heavy arm's (item 2235, `docs/GOLDEN.md` §81):
+        // the building stands at `hits / 4`, the higher of the two
+        // ceilings, and the leader's `capital_stamp` is 0, so the
+        // hit comes past the 300-frame cooldown.
+        sim.buildings[b].active = true;
+        sim.buildings[b].damage = 250;
         sim.do_damage(
             Obj::Unit(foe),
             Obj::Building(b),
@@ -3862,7 +3868,7 @@ mod tests {
             0x100,
             false,
             false,
-            0,
+            301,
         );
         assert_eq!(
             ticked(&sim, slot),

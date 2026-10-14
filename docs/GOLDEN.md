@@ -11865,10 +11865,14 @@ and the Catapult's wake. Parked 2236.
 
 ### 81.1 Coverage
 
-**Diff-backed**: the light arm and the worker arm with `UnitData::get_action@00608450` (run437's widening, the
-raid row gone from every pin); the capital's heavy arm at its `/4` boundary (run437, 946). **Walked against a dump
-row, not yet held by a widening**: the siege term (run843, 849) and the `/10` ceiling (run843, 915). **Reading
-only**: the `Armies::emergency@006f3250` gate.
+**Diff-backed** by run437's widening, the raid row gone from every pin, with each mutation failing it: the light arm
+and the worker arm of `Object::do_damage@0064a480`'s city alarm, with `UnitData::get_action@00608450`; the capital's
+heavy arm at its `/4` boundary (946).
+
+**Unit-backed only**: the siege term and the `/10` ceiling. run843's dump shows both (849, 915), but the widening
+parts at 777 before either, so the fixture and its two mutations hold them until the word moves.
+
+**Reading-only**: the `Armies::emergency@006f3250` gate, since no capture under `!ai off` holds an army.
 
 ## 82. Reserved for the next item on the rules track
 
