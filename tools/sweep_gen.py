@@ -1100,6 +1100,7 @@ AT = {at!r}
 PTRARGS = {ptrargs!r}
 STUBS = {stubs!r}
 PLACES = {places!r}
+NULLS = {nulls!r}
 WBIAS = {wbias!r}
 FILLS = {fills!r}
 ARGRANGE = {argrange!r}
@@ -1230,9 +1231,11 @@ def main(argv):
         # to the range every row (item 2217).
         for idx, lo, hi in ANSRANGE:
             answers[idx] = rng.randint(lo, hi)
+        k = -1
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
+            k += 1
             env = {{"a": args, "s": answers, "m": mem, "c": c, "p": p,
                    "i32": i32, "i16": i16, "i8": i8, "u16": u16, "u8": u8}}
             off = eval(expr, env)
@@ -1242,13 +1245,18 @@ def main(argv):
             wins.append((buf, b))
             shape(rng, f"p{{len(p) - 1}}", b)
             ptr = ((buf - off) & 0xFFFFFFFF).to_bytes(4, "little")
+            # `--place-null K`: place K's pointer laid as 0 a third of the
+            # rows, the buffer still drawn so every later window keeps its
+            # index (item 2253; a guarded null ran one arm).
+            if k in NULLS and rng.random() < 1 / 3:
+                ptr = bytes(4)
             at = eval(loc, env)
             if win is None:
                 uc.mem_write(at & 0xFFFFFFFF, ptr)
             elif win[0] == "s":
                 # A stub answers the placed buffer, a record a later place
                 # may reach into (item 2241).
-                answers[int(win[1:])] = (buf - off) & 0xFFFFFFFF
+                answers[int(win[1:])] = (buf - off) & 0xFFFFFFFF if any(ptr) else 0
             else:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[at:at + 4] = ptr
@@ -1456,7 +1464,8 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=()):
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
+                 place_null=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1481,6 +1490,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--ptrarg IDX names one of the --own arguments')
     pstubs = [_stub(s) for s in stubs]
     pplaces = [_place(s) for s in places]
+    pnull = [int(k, 0) for k in place_null]
+    if any(not 0 <= k < len(pplaces) for k in pnull):
+        raise ValueError('--place-null K names one of the --place pointers, by its order on the line')
     pwbias = [_wbias(s) for s in wbias]
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
@@ -1563,7 +1575,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'argument {idx} names {size} random bytes' for idx, size in pptr]
         + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot' else f'callee 0x{a:08x} ({n} args) stubbed'
            for k, a, n in pstubs]
-        + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed)' for w, o, e, n in pplaces]
+        + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed'
+           + (', null a third of the rows)' if k in pnull else ')') for k, (w, o, e, n) in enumerate(pplaces)]
         + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a in pslot]
         + [f'stub {idx} answered from {vals} (90%)' for idx, vals in pans]
         + [f'stub {idx} answers the address of {n} random bytes, a `p` window after the places'
@@ -1582,7 +1595,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            if pecx else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
-                                   cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces,
+                                   cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces, nulls=pnull,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf)
@@ -1733,6 +1746,9 @@ def main(argv=None):
                     help='obj: the word at LOC (`m+OFF`, `cN+OFF`, `pN+OFF` or an address expression) points at '
                          'SIZE random bytes less EXPR, the offset the function adds — a new `p` window (parked 2113); '
                          'LOC `sN` lays stub N\'s answer as the pointer (a record a callee answers, item 2241)')
+    ap.add_argument('--place-null', action='append', default=[], metavar='K',
+                    help='obj: --place K (by its order on the line) laid as a null pointer a third of the rows, '
+                         'its buffer still drawn (a guard against null; item 2253)')
     ap.add_argument('--wbias', action='append', default=[], metavar='WIN+OFF:V,V|LO..HI',
                     help='obj: a 32-bit word of window m, cN or pN held to the list or range every row; OFF `*` every word')
     ap.add_argument('--fill', action='append', default=[], metavar='WIN:EXPR',
@@ -1795,7 +1811,7 @@ def main(argv=None):
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
-                                                    vtat_half=args.vtat_half)
+                                                    vtat_half=args.vtat_half, place_null=args.place_null)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
