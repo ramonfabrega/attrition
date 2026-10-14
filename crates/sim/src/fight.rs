@@ -5463,6 +5463,93 @@ mod tests {
     /// finished `0/2000`. A human's ship, a ship not raiding, a SIEGE
     /// ship and an unfinished building each weigh something; a SIEGE
     /// ship that fires on the move does not.
+    /// **A Bark weighs ships by their line** (item 2205, `compare_target`'s
+    /// `0064f04f`..`0064f0fe`, `docs/GOLDEN.md` §80): run839's packet has
+    /// the Bark `0/7` value the Trireme `1/6` at 168 where this crate had
+    /// 66,888 — a four-hundredth — and a transport takes forty times. A
+    /// ship not of the Bark line, and a Bark against a land unit, weigh
+    /// all three alike.
+    #[test]
+    fn a_bark_weighs_a_trireme_at_a_four_hundredth_and_a_transport_at_forty() {
+        let weigh = |bark: bool, line: u32, flags: u32, sea: bool| {
+            let (mut sim, ty) = at_war();
+            let mut at = sim.unit_types[ty].clone();
+            at.combat.domain = Domain::Sea;
+            at.kind.domain = Domain::Sea;
+            if bark {
+                at.combat.roles |= crate::combat::role::BARK;
+            }
+            let at = sim.add_unit_type(at);
+            let mut tt = sim.unit_types[ty].clone();
+            let d = if sea { Domain::Sea } else { Domain::Land };
+            tt.combat.domain = d;
+            tt.kind.domain = d;
+            tt.combat.roles |= line;
+            tt.cols.unit_flags |= flags;
+            let tt = sim.add_unit_type(tt);
+            let me = put(&mut sim, 0, at, Pos::new(3000, 3000));
+            let t = put(&mut sim, 1, tt, Pos::new(3300, 3000));
+            sim.compare_target(Obj::Unit(me), Obj::Unit(t), true, false)
+        };
+        let (trireme, transport) = (crate::combat::role::TRIREME, uflags::TRANSPORT);
+        let plain = weigh(true, 0, 0, true);
+        assert!(
+            weigh(true, trireme, 0, true) < plain / 50,
+            "a Trireme to a Bark"
+        );
+        assert!(
+            weigh(true, 0, transport, true) > plain * 10,
+            "a transport to a Bark"
+        );
+        assert_eq!(
+            weigh(false, trireme, 0, true),
+            weigh(false, 0, 0, true),
+            "not a Bark"
+        );
+        assert_eq!(
+            weigh(false, 0, transport, true),
+            weigh(false, 0, 0, true),
+            "not a Bark"
+        );
+        assert_eq!(
+            weigh(true, trireme, 0, false),
+            weigh(true, 0, 0, false),
+            "a land target"
+        );
+    }
+
+    /// **The chase's retarget takes `fight`'s Bark predicate** (item 2205,
+    /// `do_move@005f7b30:262`..`271`, `docs/GOLDEN.md` §80): a unit with
+    /// `unit_masks2 & 4` takes a non-combat candidate or an `n` one, and
+    /// refuses a combat role; any other unit takes a combat role alone.
+    /// run839's packet: `do_move+0x6e6` → `change_target(1/8 → 1/7)`.
+    #[test]
+    fn a_bark_s_chase_retargets_to_a_fishing_boat_and_not_to_a_warship() {
+        let admits = |bark: bool, combat: bool, n: bool| {
+            let (mut sim, ty) = at_war();
+            let mut tt = sim.unit_types[ty].clone();
+            tt.combat.combat_role = combat;
+            if n {
+                tt.cols.unit_flags |= 0x2000;
+            }
+            let tt = sim.add_unit_type(tt);
+            let me = put(&mut sim, 0, ty, Pos::new(3000, 3000));
+            if bark {
+                sim.units[me].unit_masks2 |= crate::combat::umask2::BARK;
+            }
+            let t = put(&mut sim, 1, tt, Pos::new(3300, 3000));
+            sim.retarget_admits(me, Obj::Unit(t))
+        };
+        assert!(admits(true, false, false), "a Bark takes the fishing boat");
+        assert!(!admits(true, true, false), "a Bark leaves a warship");
+        assert!(admits(true, true, true), "a Bark takes an `n` combat unit");
+        assert!(admits(false, true, false), "a warship takes a warship");
+        assert!(
+            !admits(false, false, false),
+            "a warship leaves the fishing boat"
+        );
+    }
+
     #[test]
     fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
         let weigh = |human: bool, raid: bool, siege: bool, on_move: bool, active: bool| {

@@ -6382,8 +6382,10 @@ pub(crate) const WIDENING_CHAPTER_SIXTY_THREE: (i64, i64) = (605, 761);
 
 /// **Chapter sixty-four** (item 2165, `docs/GOLDEN.md` §79, run835): two
 /// human Barks, a computer's, a Trireme and a fishing boat, and a player's
-/// stance button twice.
-pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_FOUR: i64 = 637;
+/// stance button twice. **Closed at 820, the trace's end** (item 2205,
+/// `docs/GOLDEN.md` §80): 637 → 820, 6 draws against 10 on 637 — the
+/// Barks' sea arm of `compare_target` and the chase's retarget predicate.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_FOUR: i64 = 820;
 
 /// `chapter_sixty_four_s_word_frame_is_widened_whole`'s window.
 pub(crate) const WIDENING_CHAPTER_SIXTY_FOUR: (i64, i64) = (605, 821);
@@ -8703,8 +8705,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_SIXTY_THREE),
     ),
     // Item 2165: run835, chapter sixty-four, the Bark's bit and a player's
-    // stance button; open at 637 (6 draws here, 10 there). The widening is
-    // run835 whole.
+    // stance button; open at 637 (6 draws here, 10 there), closed at 820
+    // by item 2205 (the trace's end). The widening is run835 whole.
     (
         "GOLDEN_WORD_CHAPTER_SIXTY_FOUR",
         GOLDEN_WORD_CHAPTER_SIXTY_FOUR,

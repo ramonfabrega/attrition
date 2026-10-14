@@ -8988,8 +8988,9 @@ impl Sim {
                     // re-finds a target whose role is combat and whose
                     // type is not `n` ("destroyed when it attacks",
                     // `unit_flags & 0x2000`); any other re-finds one whose
-                    // role is not combat. run835's `0/7` drops the Trireme
-                    // `1/6` for the Bark `1/8` on 634.
+                    // role is not combat. run835's `0/7` re-finds the Bark
+                    // `1/8` on 634 and keeps it here; the chase's retarget
+                    // ([`Sim::retarget_admits`]) hands it the fishing boat.
                     let p = self.profile(Obj::Unit(t));
                     let off = if self.units[u].unit_masks2 & combat::umask2::BARK != 0 {
                         p.combat_role
@@ -9467,7 +9468,7 @@ impl Sim {
     /// run839's packet (item 2205, `docs/GOLDEN.md` §80): on tick 634 the
     /// Bark `0/7` re-finds the Bark `1/8`, and `do_move+0x6e6` hands it
     /// `change_target(1/8 → 1/7)`, the fishing boat in range.
-    fn retarget_admits(&self, u: usize, c: Obj) -> bool {
+    pub(crate) fn retarget_admits(&self, u: usize, c: Obj) -> bool {
         let combat = self.profile(c).combat_role;
         if self.units[u].unit_masks2 & combat::umask2::BARK == 0 {
             return combat;
