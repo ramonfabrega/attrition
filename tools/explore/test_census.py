@@ -94,6 +94,25 @@ class PinnedTraces(unittest.TestCase):
                 '#[test]\nfn y() { let _ = 2; }\n')
             self.assertEqual(census.hooked_in_sweeps(str(src), str(emu)),
                              [('a.rs', 'sweep_a_b.py', 0x512340)])
+        # Item 2341: an `obj` sweep's script hands `Harness` a comprehension
+        # over `STUBS = [('call', ADDR, N), …]` (ADDR decimal), not a literal
+        # `{0x…: …}`, and a chunk cites a callee by name as often as by
+        # address — `AnimalData::get_speed`'s test named `UnitData::speed`,
+        # its stub 0, and the census read 814 for ten. Made to fail first.
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp, 'src'); emu = Path(tmp, 'emu')
+            src.mkdir(); emu.mkdir()
+            Path(emu, 'sweep_e_f.py').write_text(
+                "STUBS = [('call', 5317440, 1), ('slot', 20, 0)]\n"
+                'h = Harness(argv[1], {a: (f"{a:x}", n) for k, a, n in STUBS if k == "call"})\n')
+            Path(src, 'e.rs').write_text(
+                '/// `E::f@00401000`, run by `tools/emu/sweep_e_f.py` under unicorn.\n'
+                '#[test]\nfn z() { /* `a[1]` is `Objects::at`\'s answer */ }\n')
+            by_name = {'E::f': [0x401000], 'Objects::at': [0x512340]}
+            self.assertEqual(census.hooked_in_sweeps(str(src), str(emu), by_name),
+                             [('e.rs', 'sweep_e_f.py', 0x512340)])
+            # Without the names only the address citations are read.
+            self.assertEqual(census.hooked_in_sweeps(str(src), str(emu)), [])
         # The tree itself, measured at the thirty-second pass: none of the
         # 501 landed sweeps cites a callee its script hooks.
         self.assertEqual(census.hooked_in_sweeps(str(ROOT / 'crates/sim/src'), str(ROOT / 'tools/emu')), [])

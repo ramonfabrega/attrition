@@ -45,7 +45,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            // `a[3]` is `UnitData::speed`'s answer, `a[4]` `is_move`'s,
+            // `a[3]` is stub 0's answer (the base speed), `a[4]` `is_move`'s,
             // `a[5]` `get_move_order`'s (`p[6]`, the goal at `+4`/`+8`).
             // The type is `p[0]` (`+0x218`), the list head node `p[1]`
             // (`m+0xdc`, null a third of the rows), its data `p[2]`, the

@@ -46,7 +46,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-                // `Leader::init` (stub 0) on leaders row a0, handed a0, the row's +0xc word and a2;
+                // The leader's init (stub 0) on leaders row a0, handed a0, the row's +0xc word and a2;
                 // the call split by the table's row, and the answer 0.
                 let k = a[0] as usize;
                 for row in 0..8 {
