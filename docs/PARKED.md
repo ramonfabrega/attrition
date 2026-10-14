@@ -5191,13 +5191,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CD — reserved
+## Parked by item 2374, 2026-10-14 — the `vtordisp` band closed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2375) **The `vtordisp{4294967292,0}` band is empty on `tools/census.py --unbacked`** (parked 2364
+closed; names no score). All twenty-eight thunks were `sub ecx, [ecx-4]; jmp target` in the listing, none
+dropped; each is one `fwd` line, N off the target's first `ret` — `ret 4` for the eleven `walk_data`s and
+the four `vector_deleting_destructor`s (`--own 1`, the walker or the flag passed through), plain `ret` for
+the thirteen getters (`--ret last`). One target is not a body: `GroupAttackToOrder::walk_data` (0x482510) is
+`push ebp; mov ebp, esp; pop ebp; jmp GroupMoveOrder::walk_data` (0x4855c0, `ret 4`), so its N was read off
+the tail's target; the hook at 0x482510 sees the thunk's `ecx` either way. A destructor's backticked name
+is spelled `Class::vector_deleting_destructor_vtordisp@va`; the census backs it by the address. Forty-two
+`vtordisp` rows remain under `--unbacked --all`, the dead weight the default listing hides (1861). `--write-mod`
+appended twenty-eight `mod` lines unsorted, sorted by hand again (parked 2318's tail).
 
 ## Parked by the next landing, slot CE — reserved
 
