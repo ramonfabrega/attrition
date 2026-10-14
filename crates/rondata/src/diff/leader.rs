@@ -1671,10 +1671,10 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "scouts"),
+        // Item 2351: `scouts` agrees on both leaders, kept live by
+        // `track_unit_type` (`docs/AI.md` §219).
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
-        (1, "scouts"),
     ];
 
     #[test]
@@ -2339,10 +2339,10 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "scouts"),
+        // Item 2351: `scouts` agrees on both leaders, kept live by
+        // `track_unit_type` (`docs/AI.md` §219).
         (1, "SITE[0].reg"),
         (1, "SITE[2].reg"),
-        (1, "scouts"),
     ];
 
     /// The `(player, field)` pairs that part over run107's window — the
@@ -2383,8 +2383,8 @@ mod tests {
         (0, "SITE[9].reg"),
         // `(0, "gather_stamp")` closed by item 1106: the border pass's
         // economy flag (`docs/AI.md` §84).
-        (0, "scouts"),
-        (1, "scouts"),
+        // Item 2351: `scouts` agrees on both leaders, kept live by
+        // `track_unit_type` (`docs/AI.md` §219).
     ];
 
     /// The `(player, field)` pairs that part over run19's window. Filled
@@ -2457,10 +2457,10 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "scouts"),
+        // Item 2351: `scouts` agrees on both leaders, kept live by
+        // `track_unit_type` (`docs/AI.md` §219).
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
-        (1, "scouts"),
     ];
 
     /// The `(player, field)` pairs that part over run91's window — the
@@ -2512,9 +2512,9 @@ mod tests {
         (0, "SITE[9].reg"),
         // `(0, "gather_stamp")` closed by item 1106: the border pass's
         // economy flag (`docs/AI.md` §84).
-        (0, "scouts"),
+        // Item 2351: `scouts` agrees on both leaders, kept live by
+        // `track_unit_type` (`docs/AI.md` §219).
         (1, "SITE[0].reg"),
-        (1, "scouts"),
     ];
 
     /// The `(player, field)` pairs of the leader record that part over
@@ -2579,11 +2579,11 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "scouts"),
+        // Item 2351: `scouts` agrees on both leaders, kept live by
+        // `track_unit_type` (`docs/AI.md` §219).
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "SITE[3].reg"),
-        (1, "scouts"),
     ];
 
     /// Item 303's probe: this crate's `active` against this crate's own
@@ -2740,10 +2740,10 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "scouts"),
+        // Item 2351: `scouts` agrees on both leaders, kept live by
+        // `track_unit_type` (`docs/AI.md` §219).
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
-        (1, "scouts"),
     ];
 
     /// **run117's window — the leader record across two market

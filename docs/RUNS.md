@@ -16843,3 +16843,25 @@ All four falsifiers in the `.cmd` header held:
 
 **What it holds**: `golden::chapter_sixty_eight_holds_to_the_golden_word` (**1360**, the trace's end, closed) and
 `chapter_sixty_eight_s_word_frame_is_widened_whole` (600..1361, eleven standing `form` rows).
+## run849 — the peace pair: the word 1984's widening, blocks 1978..2235 (2026-10-14, item 2351, `att-2351`)
+
+**Disk gap**: run848 ends at 1634, and run847 has checksums and the closing block only. No dump of this lobby holds a
+record on 1984. The capture is run848's recipe with the window six blocks before the word's block 1985 and 250 after,
+through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run849`: `--map 18 --end-frame 2240 --timeout 3600
+--log-window 1978 2236 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 2 from the pool. Lane 1 was held by another lane's capture.
+- The first take died with exit 40 and the runner retook it once: `success`, 2241 frames, 1608.0 s launch to exit.
+- The dump has 258 `BEGIN FRAME`s 1978..2235 and a 2241 closing block. `seed_observed` is 12345, the players
+  Nubians (4) and Lakota (19).
+- `rngcmp.py rontrace-run847.log rontrace-run849.log`: **2241 in common, 0 differing**.
+- Minutes waited on another lane's capture: none (the pool gave lane 2).
+
+Archive `gamelog-run849-eastindies-lakota-peace-window-1978-2236.txt`, 506,573,329 bytes,
+SHA-256 `993dc397309e8a0c9851b0013cbe407e667cf312dbf274aa525374e4d5cdf99b`.
+
+Archive `rontrace-run849.log`, 33,866,848 bytes,
+SHA-256 `04d0cfb5193b30260c041572bb8d23fe284c65d079048548cb2f3d7eb20c2784`.
+
+**What it holds**: `diff::lakota_pair::run849_s_word_frame_is_widened_whole`, 1242 keys on blocks 1978..2235. On the
+word's block 1985: who=1's `leader:agendas[0]`, ours 0 / theirs 64 (`docs/AI.md` §219).
