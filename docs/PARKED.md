@@ -5019,13 +5019,30 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BW — reserved
+## Parked by item 2336, 2026-10-14 — a bool's low byte, a stub in an import cell, and a local by its depth
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2337) **`tools/sweep_gen.py obj --ret al`, `--stub iat:VA:NARGS` and the `sp-0xNN` token built** (parked 2327,
+Loop 2003's twenty-ninth reach; names no score). `--ret al` holds the port to `eax`'s low byte only: a `bool`
+set by `sete al` over an `eax` whose upper bytes are a pointer's (`Game::is_game_ready`), or a byte moved into
+`al` over a callee's answer (`MiscAccess::coord_vis@00583aa0`); `--ret` for `obj` is now `eax`, `al` or `none`
+and refuses anything else. `--stub iat:VA:NARGS` lays a stub's address in an import's IAT cell every row, so an
+indirect `call [VA]` the emulator cannot resolve lands on the stub and is answered and recorded like any other
+(`TurnControl::get_lag_time`'s `timeGetTime`, `[0xac5460]`); `--stub-cdecl` still names direct callees only. A
+recorded word inside the stack below the caller's `esp` prints as `sp-0xNN`, its depth under it, so a callee
+handed the address of a caller's local is held by name rather than by a harness address (2336 found no
+existing sweep whose record printed one). Each has a test in `tools/explore/test_sweep_gen.py` made to fail
+first; 46 of 46 pass.
+
+(2338) **Read and not taken by 2336, each for a shape the generator lacks** (names no score; the Loop's next
+reach). `add_type_bucket` takes its two indices in `ecx` and `edx`, and the obj shape sets no `edx`.
+`add_type_bucket2` indexes a byte table by `ecx`, and `--ecx-int` draws a random word one row in ten, which
+faults an index; it wants an `--ecx-int` with no wild rows. `GameAccessConst::find_data_z` passes `edx`
+through to its callee unset. `Game::get_game_fps_average`, `TurnControl::get_delta_percent` and
+`Unit::air_alt_speed` answer in x87 or `xmm1`. `SubObjectData::is_seen` reads `div_3_table`, which the image
+builds at boot (Loop 2216), and hands `was_seen` two locals, now nameable by `sp-0xNN`; it wants the table
+filled. Spares read and reachable now: `GroupData::equals_group_const` (`--seq` over `get_num_const`),
+`Object::kill_contents`, `Unit::do_form_change`, `Lands::find_key`. The jump-table switches
+`Setup::get_starting_citizens`, `Search::valid_filter` and `GameInfo::default_setting` were again not read.
 
 ## Parked by the next landing, slot BX — reserved
 
