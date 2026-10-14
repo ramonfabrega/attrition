@@ -377,6 +377,67 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, ecx_int='1..2')
 
+    def test_edx_may_carry_an_integer_beside_ecx(self):
+        # Item 2346 (parked 2338, Loop 2003): `add_type_bucket` indexes its
+        # byte table by `edx * 0x1ed + ecx`, and a sibling hands `edx` to its
+        # callee unset; `obj` set no `edx`. `--edx` draws an integer into
+        # `edx` every row, printed after `ecx` (or last when `ecx` is the
+        # object), and the harness enters with it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=0,
+            at=['0xed89ce:0xf68'], ecx_int='0..0x1ec', edx='0..7', port='i64::from(a[a.len() - 1])')
+        compile(script, str(sp), 'exec')
+        self.assertIn("EDX = ('range', 0, 7)", script)
+        self.assertIn('edx=0 if EDX is None else edx', script)
+        self.assertIn('+ ([] if EDX is None else [str(edx)])', script)
+        self.assertIn('`edx` an integer in 0..7', test)
+        # Beside the object in `ecx` as well, and from a list.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=2, stubs=['0x402000:4'], edx='0,1,-1')
+        self.assertIn("EDX = ('set', [0, 1, -1])", script)
+        self.assertIn('ECXINT = None', script)
+        # Without it, `edx` is entered as 0 and nothing is printed.
+        _, script, _, test, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=0, stubs=['0x402000:0'])
+        self.assertIn('EDX = None', script)
+        self.assertNotIn('`edx` an integer', test)
+        # The plain obj has no row for it, and the harness takes the register.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, edx='1..2')
+        hooks = (ROOT / 'tools/emu/hooks.py').read_text()
+        self.assertIn('def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0):', hooks)
+        self.assertIn('edx=edx', hooks)
+
+    def test_a_tame_register_draws_no_wild_rows(self):
+        # Item 2346 (parked 2338): `add_type_bucket2` increments a byte of a
+        # table at `ecx`, and `--ecx-int` drew a random word one row in ten,
+        # which faults the index. `--tame` holds `ecx` (and `edx`) to the
+        # range or the list every row.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=0,
+            at=['0xed9936:0x1ed'], ecx_int='0..0x1ec', tame=True, port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('WILD = 0.0', script)
+        self.assertIn('draw_reg(rng, ECXINT, WILD, rand32)', script)
+        self.assertIn('every row, no wild word', test)
+        _, script, _, test, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=0, at=['0xed9936:0x1ed'], ecx_int='0..0x1ec')
+        self.assertIn('WILD = 0.1', script)
+        self.assertNotIn('no wild word', test)
+        # Tame with no register drawn is refused: there is nothing to tame.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0,
+                                   at=['0xed9936:0x10'], tame=True)
+        # And the draw itself: a thousand tame rows stay inside the range,
+        # and an untamed thousand do not.
+        import random
+        import sweeplib
+        self.assertIn('from sweeplib import draw_reg', script)
+        rng = random.Random(1)
+        self.assertTrue(all(0 <= sweeplib.draw_reg(rng, ('range', 0, 0x1ec), 0.0) <= 0x1ec for _ in range(1000)))
+        self.assertTrue(all(sweeplib.draw_reg(rng, ('set', [3, 9]), 0.0) in (3, 9) for _ in range(1000)))
+        self.assertFalse(all(0 <= sweeplib.draw_reg(rng, ('range', 0, 0x1ec), 0.1) <= 0x1ec for _ in range(1000)))
+
     def test_a_stub_s_answer_may_be_drawn_from_a_list(self):
         # Parked 2141 (Loop 2003's twelfth reach), built by item 2160:
         # `UnitData::is_cloaked` and `WorldData::is_pass_land` compare a

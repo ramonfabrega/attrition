@@ -1102,6 +1102,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 from sweeplib import link_value  # noqa: E402
+from sweeplib import draw_reg  # noqa: E402
 
 ENTRY = 0x{va:08x}
 WIN = {win}
@@ -1121,6 +1122,9 @@ FILLS = {fills!r}
 ARGRANGE = {argrange!r}
 SLOTBASE = {slotbase!r}
 ECXINT = {ecxint!r}
+EDX = {edx!r}
+# `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
+WILD = {wild!r}
 ANSWERS = {answers!r}
 VTAT = {vtat!r}
 VTATHALF = {vtathalf!r}
@@ -1444,17 +1448,12 @@ def main(argv):
             uc.mem_write(va, this.to_bytes(4, "little"))
         guard = bytes(uc.mem_read(this + WIN, 0x20))
         # `ecx` an integer rather than the object (parked 2141), the row's last.
-        ecx = None
-        if ECXINT is not None:
-            kind, *vals = ECXINT
-            if rng.random() < 0.1:
-                ecx = rand32(rng)
-            elif kind == "set":
-                ecx = rng.choice(vals[0])
-            else:
-                ecx = rng.randint(vals[0], vals[1])
+        ecx = None if ECXINT is None else draw_reg(rng, ECXINT, WILD, rand32)
+        # `--edx` (item 2346): an integer in `edx` beside `ecx`, after it on the row.
+        edx = None if EDX is None else draw_reg(rng, EDX, WILD, rand32)
         h.calls.clear()
-        r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx)  # Harness.call signs eax; signed() again would double a negative
+        r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
+                   edx=0 if EDX is None else edx)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
         # A `__cdecl` function leaves its arguments for the caller (item 2181).
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
@@ -1465,7 +1464,7 @@ def main(argv):
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
         shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
-                 + ([] if ECXINT is None else [str(ecx)]))
+                 + ([] if ECXINT is None else [str(ecx)]) + ([] if EDX is None else [str(edx)]))
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
@@ -1645,7 +1644,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220):
+                 rows=220, edx=None, tame=False):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -1775,10 +1774,21 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
             pecx = ('range', int(lo, 0), int(hi, 0))
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
+    pedx = None
+    if edx is not None:
+        if '..' in edx:
+            lo, hi = edx.split('..')
+            pedx = ('range', int(lo, 0), int(hi, 0))
+        else:
+            pedx = ('set', [int(v, 0) for v in edx.split(',')])
+    if tame and pecx is None and pedx is None:
+        raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
             or pseq or pansr or pthis or palso or phalf or psparse or plinks or pout or pcdecl):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
+        if pedx is not None:
+            raise ValueError('--edx needs a window: the plain obj has no row for it')
         if cdecl:
             raise ValueError('--cdecl needs a window: the plain obj keeps the callee-pops check')
         script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
@@ -1826,11 +1836,15 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            for w, o in palso]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
             if pecx[0] == 'range' else f'`ecx` an integer in {pecx[1]}, not the object, the row\'s last']
-           if pecx else [])) or 'no windows'
+           if pecx else [])
+        + ([f'`edx` an integer in {pedx[1]}..{pedx[2]}, after `ecx` on the row'
+            if pedx[0] == 'range' else f'`edx` an integer in {pedx[1]}, after `ecx` on the row']
+           if pedx else [])
+        + (['`ecx` and `edx` held to their draw every row, no wild word'] if tame else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
                                    cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
-                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
+                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
                                    sparse=psparse, record=precord, rowsplit=prowsplit, links=plinks,
@@ -2049,6 +2063,10 @@ def main(argv=None):
                     'earlier sweep holds (parked 2045: two `WorldData::restrict`s, two `get_land`s)')
     ap.add_argument('--ecx-int', metavar='LO..HI|V,V,..', help='obj: `ecx` an integer drawn from the range or '
                     'the list (90%%), not the object; printed last on the row (parked 2141)')
+    ap.add_argument('--edx', metavar='LO..HI|V,V,..', help='obj: `edx` an integer drawn from the range or the '
+                    'list (90%%), beside `ecx`; printed after `ecx` on the row (item 2346, parked 2338)')
+    ap.add_argument('--tame', action='store_true', help='obj: --ecx-int and --edx held to their draw every row, '
+                    'no wild word (a register that indexes a table; item 2346, parked 2338)')
     ap.add_argument('--answers', action='append', default=[], metavar='IDX:V,V,..',
                     help='obj: stub IDX\'s answer (by its order on the line) drawn from the list (90%%) (parked 2141)')
     ap.add_argument('--vtat', metavar='WIN+OFF', help='obj: the stubbed vtable is laid at this word of window '
@@ -2128,7 +2146,8 @@ def main(argv=None):
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, links=args.link,
-                                                    outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows)
+                                                    outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
+                                                    edx=args.edx, tame=args.tame)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
