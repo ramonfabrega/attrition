@@ -3740,6 +3740,13 @@ verb shares its name, so a sweep lane told to take "only functions with a port c
 Candidate: the mark resolves the consumer to the function's own class and address (the port's `docs/` citation or
 `SEAM` that names it), with a test made to fail first on `BorderNodes::find`. Two reaches (2221, 2276).
 
+(2292) **A leader row on the word's block: diff the dump's whole `LEADERDATA` across the block** (2259's "for the
+Loop" line). 2229 booked `1/2019`'s `queue:queued` as 4671's lead; it was the effect. A one-line `diff` of the
+leader's whole record across 4671 → 4672 (theirs) named the cause, `wonder_mark` and `num_buildings` — both fields
+the coverage pin lists as unread, so no widening could show them. Candidate: a brief-checklist row — "a leader row
+on the word's block: diff the dump's whole `LEADERDATA` across the block, unread fields included" — beside Loop
+2180's standing-row walk. One reach.
+
 ## Loop, filed 2026-10-14 — the thirty-third tranche's
 
 (2146) **`GROUPS=1` without `BUILDS=7` prints no `GROUPDATA`** (Loop; names no score). run827's first take asked

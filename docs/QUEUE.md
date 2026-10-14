@@ -22,17 +22,17 @@ successor 4246 → 4671, Great Sahara (Mongols) closed on its first build, chapt
   (`--deep-state`, 2186); `unitat.py` prints a `GroupMoveOrder` (2145); the runner refuses a long with no
   `--detail` (2199); `census.py --pin --never` runs again — cited 1574, never **333**. Six Loop lines are brief
   rows; 1947, 1965, 2210 closed. Battery 576 / 6566 / 2974, a ninth tranche. Disk 182 GiB. `main` 476 behind.
-- **Lanes live** (tranche 34, 2026-10-14; two landed: 2271, 2276, census 721 → 741): 2259 (AI §216, park BH, run
-  844), 2265 (GOLDEN §82, park BK, run 842), 2281 (park BM), 2287 (park BN); each sweep's four parked numbers follow
-  its own. Next 2292, run 845, AI §217, GOLDEN §83, park BO (pools BO–BR, AI §217–§221, GOLDEN §83–§87).
-- **Fable backlog: 11 Loop items** (1570, 1725, 1900, 2003, 2031, 2060, 2089, 2104, 2146, 2240, 2286).
+- **Lanes live** (tranche 34; landed 2271, 2276 — census 721 → 741 — and 2259, successor 4671 → 4946): 2265 (GOLDEN
+  §82, BK, run 842), 2281 (BM), 2287 (BN), 2293 (AI §217, BO, run 844); four parked numbers follow each. Next 2298,
+  run 845, AI §218, GOLDEN §83, park BP (pools BP–BR, AI §218–§221, GOLDEN §83–§87).
+- **Fable backlog: 12 Loop items** (1570, 1725, 1900, 2003, 2031, 2060, 2089, 2104, 2146, 2240, 2286, 2292).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
-Successor pair: EastIndiesMongolAllTech w4671 of 5,056
+Successor pair: EastIndiesMongolAllTech w4946 of 5,056
 Census: simulation backed 741 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 w777
@@ -46,18 +46,18 @@ DECISIONS 70 names, their reservations in the queue's words; at twenty landings 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2259 the headline's word, 2265 the rules track's, 2281 and 2287 the
+2293 the headline's word, 2265 the rules track's, 2281 and 2287 the
 sweep lanes' — lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2259. **The successor pair's word: frame 4671, 161 versus 165 draws**,
-    index 145: ours `set_anim < Guy::inc_time+0x271`, theirs
-    `Guy::init_real+0x52` (a birth); 2229 moved 4637 → 4671 (a re-entry
-    re-issues a copied build on the site that took its number). Block
-    4672 opens on the leader's `num_units[302]`/`[304]` and `1/2019`'s
-    `queue:queued` 1 against 0 (parked 2230). Inside run838, widened
-    whole. East Indies, Mongols. AI §216.
+2293. **The successor pair's word: frame 4946, 161 versus 162 draws**,
+    index 150: theirs spends one `Guy::init_real+0x52` (a birth) ahead
+    of the `Guy::inc_time+0x271` run ours opens on; 2259 moved 4671 →
+    4946 (a held Supercollider zeroes a tech's research time). Past
+    run838 (4597..4852): its widening is a capture's, run 844, after
+    run838's standing rows on 4702..4784 are walked (parked 2260).
+    East Indies, Mongols. AI §217.
 
 2265. **Chapter sixty-five's word: frame 777, 8 versus 6 draws** (2235
     opened it on run843, GOLDEN §81: the city alarm's arms; the raid
