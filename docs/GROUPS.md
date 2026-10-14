@@ -439,12 +439,6 @@ named `uflags::TRANSPORT` since the AI mechanic
 `unit_masks & 0x100` is preserved across it. This is `docs/ORDERS.md`
 §1.5's rotation, done at the group level.
 
-A target copy is put back **by its slot**: cases 6 and `0xd` pass the
-order's `ox` and `whom` (`+8`, `+0xc`) to `action_swarm_around` and no
-uid, and the swarm asks only that `objects[whom].list[ox] + 8 & 1` be set.
-A copy of a build on a closed site whose number a later site took is
-re-issued on the later one (`docs/AI.md` §215, item 2229).
-
 ### 6.3 The formation, and the reverse flip
 
 A **plane leader** of domain 2 that is not `+0x2b4 & 0x20` returns here —
