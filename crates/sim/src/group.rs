@@ -3880,6 +3880,9 @@ impl Sim {
             && let Some(st) = self.facing_record_mut(&g)
         {
             st.facing = !st.facing;
+            if std::env::var_os("RON_PROBE_2193").is_some() {
+                eprintln!("PROBEF f{} set_angle {}/{} army {:?} pushed {:?} -> {}", self.frame, g.who, self.units[u].index, g.army, g.pushed, st.facing);
+            }
         }
     }
 
@@ -3911,6 +3914,9 @@ impl Sim {
             && let Some(st) = self.facing_record_mut(&g)
         {
             st.facing = f;
+            if std::env::var_os("RON_PROBE_2193").is_some() {
+                eprintln!("PROBEF f{} hand_back {}/{} army {:?} pushed {:?} -> {} (order {} turned {})", self.frame, g.who, self.units[u].index, g.army, g.pushed, f, order_facing, f != order_facing);
+            }
         }
     }
 
