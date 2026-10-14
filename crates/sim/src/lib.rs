@@ -3830,9 +3830,8 @@ impl Sim {
         // an exit from a University or an Oil Platform (`is(0x1a4)` or
         // `is(0x1a6)` on the container). Every other trained unit is born
         // clean; `Build::queue_up` raises nothing either.
-        // SEAM: `Unit::init`'s Americans' Barracks arm and
-        // `insert_inside`'s are not modelled; the Lakota arm is
-        // [`Sim::init_unit`]'s (`docs/AI.md` §219).
+        // SEAM: `Unit::init`'s Americans' Barracks arm is not modelled
+        // (its Lakota arm is built, `docs/AI.md` §219).
         let container = matches!(
             self.building_ident(at),
             crate::build::Ident::University | crate::build::Ident::OilPlatform
