@@ -742,3 +742,4 @@ mod region_go_here;
 mod object_valid_target;
 mod build_data_count_queue;
 mod group_kill_group_move;
+mod unit_do_think_order;

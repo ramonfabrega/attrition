@@ -4308,13 +4308,15 @@ impl Sim {
     /// `Unit::do_think_order`: consume the THINK; if nothing follows, a
     /// worker runs the forced search.
     fn do_think_order(&mut self, u: usize, _frame: i64) {
-        self.kill_current_order(u);
-        if self.order_type(u) != index::NONE {
-            return;
-        }
-        if self.worker_of(u) != Worker::None {
-            self.think_peasant(u, true);
-        }
+        think_order_steps(
+            self,
+            |s| s.kill_current_order(u),
+            |s| (!s.units[u].orders.is_empty()).then(|| i32::from(s.order_type(u))),
+            |s| s.worker_of(u) != Worker::None,
+            |s| {
+                s.think_peasant(u, true);
+            },
+        );
     }
 
     // ------------------------------------------------------------------
@@ -10232,5 +10234,25 @@ pub(crate) fn group_member_walk<C>(
         if in_use(cx, u) && on_map(cx, u) {
             each(cx, u);
         }
+    }
+}
+
+/// **`Unit::do_think_order@005e5bf0`'s steps** (item 2287):
+/// `kill_current_order(0)`; then, when an order is left (the list's head,
+/// `+0xdc`), its type (vslot `+0x10`) ends the call unless it is `NONE`;
+/// a worker type (`0x32`..`0x35`) runs `think_peasant(1)`.
+pub(crate) fn think_order_steps<C>(
+    cx: &mut C,
+    kill: impl FnOnce(&mut C),
+    head_type: impl FnOnce(&mut C) -> Option<i32>,
+    worker: impl FnOnce(&mut C) -> bool,
+    think: impl FnOnce(&mut C),
+) {
+    kill(cx);
+    if head_type(cx).is_some_and(|t| t != i32::from(index::NONE)) {
+        return;
+    }
+    if worker(cx) {
+        think(cx);
     }
 }
