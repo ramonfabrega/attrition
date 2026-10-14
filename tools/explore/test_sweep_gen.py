@@ -556,6 +556,25 @@ class Shapes(unittest.TestCase):
         self.assertEqual(ns['token'](0xFFFFFFFF, spans), '-1')
         self.assertEqual(ns['token'](0, spans), '0')
 
+    def test_an_obj_may_draw_more_rows(self):
+        # Item 2314 (Loop 2003, 2287's line): `Object::valid_target` and
+        # `UnitData::is_gathering_at` each had an arm few of 220 rows
+        # reached, and 2287 edited the generated `range(220)` by hand.
+        # `--rows N` draws N rows, on the plain obj and the windowed one;
+        # a line without it draws the 220 it always did.
+        for kw in ({}, {'stubs': ['0x402000:1']}):
+            _, script, _, test, _ = sweep_gen.generate_obj(
+                'Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, rows=600, port='0', **kw)
+            self.assertIn('for i in range(600):', script)
+            self.assertNotIn('range(220)', script)
+            self.assertIn('600 rows', test)
+            _, script2, _, test2, _ = sweep_gen.generate_obj(
+                'Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, port='0', **kw)
+            self.assertIn('for i in range(220):', script2)
+            self.assertNotIn('600 rows', test2)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, rows=50)
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.

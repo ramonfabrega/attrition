@@ -993,7 +993,7 @@ def main(argv):
     from hooks import Harness
     rng = random.Random({item})
     h = Harness(argv[1], {{}})
-    for i in range(220):
+    for i in range({rows}):
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -1195,8 +1195,8 @@ def main(argv):
     names = [f"slot{{a:x}}" if k == "slot" else f"{{a:x}}" for k, a, _ in STUBS]
     stubbed = {{off: h.r32(vt + off) & 0xFFFFFFFF for off, _ in SLOTBASE}}
     base = h.brk
-    for i in range(220):
-        h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
+    for i in range({rows}):
+        h.brk = base  # the bump heap is reused a row; {rows} rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -1570,8 +1570,11 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
-                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=()):
+                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), rows=220):
     name, va = parse(spec)
+    if rows < 100:
+        raise ValueError('--rows N is at least the 100 rows the test asks for')
+    rowdoc = '' if rows == 220 else f' {rows} rows (an arm few rows reach).'
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
     parsed = []
@@ -1678,8 +1681,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if cdecl:
             raise ValueError('--cdecl needs a window: the plain obj keeps the callee-pops check')
         script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
-                                   biasdoc=biasdoc, argset=pset, argfrom=pfrom)
-        doc = doc or f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.'
+                                   biasdoc=biasdoc, argset=pset, argfrom=pfrom, rows=rows)
+        doc = (doc or f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.') + rowdoc
         test = OBJ_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port, ret=retcode)
         return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
     windoc = '; '.join(
@@ -1721,10 +1724,11 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
-                                   sparse=psparse, record=precord, links=plinks)
+                                   sparse=psparse, record=precord, links=plinks, rows=rows)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
+    doc += rowdoc
     if precord:
         logsplit = ('        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");\n'
                     '        let want_log: Vec<&str> = calls.split_whitespace().collect();\n')
@@ -1935,6 +1939,8 @@ def main(argv=None):
                     help='obj: figure k (window p(A+k))\'s link at OFF drawn from the figures below (`<`) or '
                          'above (`>`) its own index or a terminator (-1), so a walk through them ends '
                          '(`o_up`, an upgrade chain; item 2276)')
+    ap.add_argument('--rows', type=int, default=220, help='obj: rows drawn, for an arm few of the 220 reach '
+                    '(Loop 2003, 2287\'s line; item 2314)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
                     '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
@@ -1964,7 +1970,7 @@ def main(argv=None):
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
-                                                    record=args.record, links=args.link)
+                                                    record=args.record, links=args.link, rows=args.rows)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
