@@ -60,6 +60,8 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     (7, 23, 5),
     // Great Sahara in the successor pair's lobby (item 2107).
     (7, 17, 3),
+    // The peace pair's (item 2320): the Lakota at Difficulty 3, East Indies.
+    (18, 19, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

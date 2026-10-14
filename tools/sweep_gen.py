@@ -1167,11 +1167,17 @@ def u8(w, off):
 
 def token(v, spans):
     """A recorded value: a pointer into a window by the window's name and
-    offset (`m+0x0`, `p0+0x10`), anything else as a signed word (item 2281)."""
+    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), anything
+    else as a signed word (item 2281)."""
     v &= 0xFFFFFFFF
     for name, at, size in spans:
         if at <= v <= at + size:
             return f"{{name}}+{{v - at:#x}}"
+    # A caller's local handed to a callee: its depth under the caller's
+    # `esp`, which the harness holds every row (item 2336).
+    top = STACK_BASE + STACK_SIZE - 0x100
+    if top - 0x1000 <= v < top:
+        return f"sp-{{top - v:#x}}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
@@ -1248,7 +1254,11 @@ def main(argv):
     uc = h.m.uc
     slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
     vt = h.vtable(slots) if slots else None
-    names = [f"slot{{a:x}}" if k == "slot" else f"{{a:x}}" for k, a, _ in STUBS]
+    names = [f"slot{{a:x}}" if k == "slot" else f"iat{{a:x}}" if k == "iat" else f"{{a:x}}" for k, a, _ in STUBS]
+    # `--stub iat:VA:N`: a stub whose address is laid in an import's IAT cell,
+    # which the emulator resolves to nothing, so `call [VA]` lands on it
+    # (item 2336: `timeGetTime`, parked 2327).
+    iats = [(a, h.stub(f"iat{{a:x}}", n, 0)) for k, a, n in STUBS if k == "iat"]
     stubbed = {{off: h.r32(vt + off) & 0xFFFFFFFF for off, _ in SLOTBASE}}
     base = h.brk
     for i in range({rows}):
@@ -1411,6 +1421,8 @@ def main(argv):
                 args[idx] = i32(w, off)
         for a_, b in wins:
             uc.mem_write(a_, bytes(b))
+        for cell, stub in iats:
+            uc.mem_write(cell, stub.to_bytes(4, "little"))
         based = []
         for off, addr in SLOTBASE:
             on = rng.random() < 0.5
@@ -1558,9 +1570,13 @@ def _stub(spec):
     parts = spec.split(':')
     if parts[0] == 'slot' and len(parts) == 3:
         return ('slot', int(parts[1], 0), int(parts[2]))
+    if parts[0] == 'iat' and len(parts) == 3:
+        # An import called through its IAT cell (`call [VA]`): a stub's
+        # address laid in the cell (item 2336, parked 2327).
+        return ('iat', int(parts[1], 0), int(parts[2]))
     if len(parts) == 2:
         return ('call', int(parts[0], 0), int(parts[1]))
-    raise ValueError(f'a stub is slot:OFF:NARGS or ADDR:NARGS, not {spec!r}')
+    raise ValueError(f'a stub is slot:OFF:NARGS, iat:VA:NARGS or ADDR:NARGS, not {spec!r}')
 
 
 def _place(spec):
@@ -1660,8 +1676,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     biasdoc = ', '.join(f'+{o:#x} in {v}' for o, v in parsed) or 'no bias'
     if ret == 'none':
         retcode = '        let _ = (got, want_eax);'
-    else:
+    elif ret == 'al':
+        # A `bool` in `al` over an `eax` whose upper bytes are a pointer's
+        # (`sete al`; item 2336, parked 2327): the low byte alone is held.
+        retcode = f'        assert_eq!(got & 0xff, want_eax & 0xff, "{short} — al, row `{{line}}`");'
+    elif ret == 'eax':
         retcode = f'        assert_eq!(got, want_eax, "{short} — eax, row `{{line}}`");'
+    else:
+        raise ValueError(f'obj --ret is eax, al or none, not {ret!r}')
     pcells = [_window(c, 0x400) for c in cells]
     pat = [_window(t, None) for t in at]
     if any(size is None for _, size in pat):
@@ -1785,8 +1807,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'{size} random bytes at 0x{va:08x}' for va, size in pat]
         + [f'argument {idx} names {size} random bytes' + (' (null a third of the rows)' if idx in ppnull else '')
            for idx, size in pptr]
-        + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot' else f'callee 0x{a:08x} ({n} args) stubbed'
-           for k, a, n in pstubs]
+        + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot'
+           else f'the import cell 0x{a:08x} holds a stub ({n} args)' if k == 'iat'
+           else f'callee 0x{a:08x} ({n} args) stubbed' for k, a, n in pstubs]
         + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed'
            + (', null a third of the rows)' if k in pnull else ')') for k, (w, o, e, n) in enumerate(pplaces)]
         + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a in pslot]
@@ -2003,7 +2026,7 @@ def main(argv=None):
     ap.add_argument('--win', type=lambda s: int(s, 0), default=0x400, help='obj: bytes of random object')
     ap.add_argument('--bias', action='append', default=[], help='obj: OFF:V,V,.. — a 32-bit word at OFF drawn from the list')
     ap.add_argument('--ret', default=None, help='fwd: none (the default), an integer, or last (the last callee\'s answer); '
-                    'obj: eax (the default) or none, said only for a void function (item 2090: the obj shape '
+                    'obj: eax (the default), al (a bool\'s low byte, item 2336) or none, said only for a void function (item 2090: the obj shape '
                     'took fwd\'s none and eight value-returning sweeps compared no eax)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
     ap.add_argument('--item', type=int, required=True)
@@ -2111,7 +2134,7 @@ def main(argv=None):
                                                     glob=args.glob, gate=args.gate)
         elif args.shape == 'obj':
             sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
-                                                    own=args.own, ret='none' if args.ret == 'none' else 'eax', port=args.port,
+                                                    own=args.own, ret=args.ret or 'eax', port=args.port,
                                                     argset=args.argset, argfrom=args.argfrom, cells=args.cells,
                                                     at=args.at, ptrargs=args.ptrarg, stubs=args.stub,
                                                     places=args.place, wbias=args.wbias, fills=args.fill,

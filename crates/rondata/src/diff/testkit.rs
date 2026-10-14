@@ -6404,6 +6404,17 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_FIVE: i64 = 1100;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SIXTY_FIVE: (i64, i64) = (605, 1101);
 
+/// **Chapter sixty-seven** (item 2331, `docs/GOLDEN.md` §84, run845): a
+/// Stable and a Barracks for who=0 at the Classical Age, a Light Horse
+/// each side of Monarchy and Hoplites behind them — `train_time`'s and
+/// `get_cost`'s Monarchy arms on a Stable unit, and the trainer by
+/// equality.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_SEVEN: i64 = 1330;
+
+/// `chapter_sixty_seven_s_word_frame_is_widened_whole`'s window: run845
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SIXTY_SEVEN: (i64, i64) = (600, 1331);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8746,6 +8757,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         2235,
         Some(WIDENING_CHAPTER_SIXTY_FIVE),
     ),
+    // Item 2331: run845, chapter sixty-seven, a Stable's unit under
+    // Monarchy. The widening is run845 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_SIXTY_SEVEN",
+        GOLDEN_WORD_CHAPTER_SIXTY_SEVEN,
+        Some("chapter_sixty_seven_s_word_frame_is_widened_whole"),
+        2331,
+        Some(WIDENING_CHAPTER_SIXTY_SEVEN),
+    ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
     // The widening is run576 whole.
@@ -9085,6 +9105,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         2293,
         Some(crate::diff::mongol_pair::WIDENING_MONGOL_CLOSING),
     ),
+    // **The peace pair's first word** (item 2320): frame 1384, widened on
+    // run848 over 1378..1634 (block 1385).
+    (
+        "LAKOTA_PAIR_WORD",
+        crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
+        Some("run848_s_word_frame_is_widened_whole"),
+        2320,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_1384),
+    ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
     // item 1538's build and **720** on the merged tree, widened on run680
@@ -9391,10 +9420,23 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 ///
 /// **The coverage pair since item 1511** (DECISIONS 62 §3): the French
 /// pair closed at its end on item 1519, and the coverage pair's row is
-/// the newest.
-pub(crate) const NEWEST_PAIR: &str = "Successor pair";
+/// the newest. **The peace pair since item 2320**: the successor pair
+/// closed at its game's end on item 2293 (DECISIONS 61 §6).
+pub(crate) const NEWEST_PAIR: &str = "Peace pair";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The peace pair** (DECISIONS 53 §2, 61 §6; item 2320): East Indies,
+    // the Lakota at Difficulty 3 and All Technologies, with five minutes'
+    // peace (`RUSH_RULES 10`); the idle human is defeated at 6822.
+    AiWord {
+        line: "Peace pair",
+        map: "EastIndiesLakotaPeace",
+        named: "East Indies (Lakota)",
+        word: crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
+        length: 6_822,
+        endpoint: None,
+        window: Some("lakota_frame_1384_window"),
+    },
     // **The successor pair** (DECISIONS 53 §2, 61 §6; item 1728): East
     // Indies, the Mongols at Difficulty 3 and All Technologies.
     AiWord {

@@ -289,10 +289,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `cover=1` take would move it to [`ENTERED_BY_THE_DLL_ONLY`].
 /// **333** with item 2287's cite of `Farms::add_animals@008d92d0`
 /// (`docs/PARKED.md` 2289): the no-argument overload has no port, and no
-/// trace enters it. **334** with item 2341's cite of
-/// `Group::kill_group_move@007123f0` (`docs/PARKED.md` 2345): `Unit::repath`'s
-/// grouped-`GROUP_MOVE` arm, swept under the emulator with it stubbed, and
-/// no trace enters it.
+/// trace enters it.
+/// **335** with item 2320's cites of `Game::say_no_war@00592b00` and
+/// `Game::current_age@005946d0` (`docs/AI.md` §218, `docs/PARKED.md` 2321):
+/// the rush rules' arms, which no pinned trace sets; the peace pair's
+/// lobby reaches them at `cover=0`, so a `cover=1` take would enter them.
+/// **336** with item 2341's cite of `Group::kill_group_move@007123f0`
+/// (`docs/PARKED.md` 2345): `Unit::repath`'s grouped-`GROUP_MOVE` arm,
+/// swept under the emulator with it stubbed, and no trace enters it.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -301,7 +305,7 @@ pub const NEVER: &[u32] = &[
     0x0047_0430, 0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_11e0, 0x0047_22f0, 0x0047_2370, 0x0047_2420, 0x0047_2a40, 0x0047_2a50, 0x0047_2cb0,
     0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_f2b0, 0x0047_fff0, 0x0048_43e0, 0x0048_45c0, 0x0048_49a0, 0x0048_5140, 0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0,
     0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0, 0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0, 0x0058_60c0, 0x0058_6440, 0x0058_7060,
-    0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660, 0x0059_46c0, 0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_1f20, 0x005e_2bb0, 0x005e_3310, 0x005e_3400,
+    0x0059_2b00, 0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660, 0x0059_46c0, 0x0059_46d0, 0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_1f20, 0x005e_2bb0, 0x005e_3310, 0x005e_3400,
     0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670,
     0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_2ee0, 0x005f_2f30, 0x005f_3260, 0x005f_4720, 0x005f_4730, 0x005f_79c0, 0x005f_d080,
     0x0060_3470, 0x0060_4550, 0x0060_8850,

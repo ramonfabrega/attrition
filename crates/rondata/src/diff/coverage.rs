@@ -656,6 +656,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch63 = golden_dump("ch63");
     let ch64 = golden_dump("ch64");
     let ch65 = golden_dump("ch65");
+    let ch67 = golden_dump("ch67");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2368,6 +2369,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // **Chapter sixty-seven, on run845** (item 2331): 804, the second Light
+    // Horse's queue entry under Monarchy (`get_cost`'s arm); 979, its birth
+    // (`train_time`'s).
+    if let Some(p) = &ch67 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTY_SEVEN;
+        for w in [804, 979] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter sixty-seven carries the window's five blocks");
+            frames += n;
+        }
+    }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
     // shot, the original's alone.
     if let Some(p) = &ch50 {
@@ -2994,6 +3006,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 2107: Great Sahara in the successor pair's lobby, run834's
     // blocks around the word 2995 to the game's closing block 3269.
     let sahara_mongol_2995 = super::sahara_mongol::sahara_mongol_frame_2995_window();
+    // Item 2320: the peace pair, the newest pair's open word, run848's
+    // blocks around the word 1384.
+    let lakota_1384 = super::lakota_pair::lakota_frame_1384_window();
     let seen = compared::stop();
     // **A window is one line** (parked 1959, the thirty-first pass): 1905
     // and 1868 each added a binding and a slot to a 49-tuple pattern, both
@@ -3057,6 +3072,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         mongol_4603,
         mongol_closing,
         sahara_mongol_2995,
+        lakota_1384,
     ];
     if windows.iter().any(Option::is_none) {
         eprintln!("skipping: the open words' captures are not all on disk");
