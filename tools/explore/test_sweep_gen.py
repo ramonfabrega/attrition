@@ -107,6 +107,42 @@ class Shapes(unittest.TestCase):
         self.assertNotIn('CELLS', script)
         self.assertNotIn('Vec<Vec<u8>>', test)
 
+    def test_a_table_placed_so_the_reads_land_in_a_buffer(self):
+        # Parked 2113 and 2046 (Loop 2003's tenth reach, item 2122): a world
+        # record's cell array, a leader table and a pointer field of `this`
+        # pointed at `buffer - (the offset the function adds)` a row, by hand
+        # three times; with a filled table, a window's bias held every row,
+        # an argument's range, and a slot laid as its base address or a stub.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2122, win=0x40, bias=[], own=2,
+            cells=['0xc061d0:0x200'], ptrargs=['1:4'], stubs=['slot:0xc:0'],
+            places=['c0+0x134:(i32(c[0],0)*i32(p[0],0)+a[0])*0x1c:0x1c', 'p1+0x4:0x248:4',
+                    '0xc0aec0+i8(m,0xa1)*0x1c:i16(m,0x8c)*4:4'],
+            wbias=['c0+0x18:0..16', 'p1+0x4:1,2,3', 'm+*:0..9'], fills=['c0:i//3'],
+            argrange=['0:0:255'], slotbase=['0xc:0x4707e0'],
+            port='rd(&p[1], 0) + i64::from(a[2]) + i64::from(a[3])')
+        compile(script, str(sp), 'exec')
+        self.assertIn("PLACES = [('c0', '0x134', '(i32(c[0],0)*i32(p[0],0)+a[0])*0x1c', 28), "
+                      "('p1', '0x4', '0x248', 4), (None, '0xc0aec0+i8(m,0xa1)*0x1c', 'i16(m,0x8c)*4', 4)]", script)
+        self.assertIn("WBIAS = [('c0', 24, ('range', 0, 16)), ('p1', 4, ('set', [1, 2, 3])), ('m', None, ('range', 0, 9))]",
+                      script)
+        self.assertIn("FILLS = [('c0', 'i//3')]", script)
+        self.assertIn('ARGRANGE = [(0, 0, 255)]', script)
+        self.assertIn('SLOTBASE = [(12, 4655072)]', script)
+        self.assertIn('buf - off', script)
+        self.assertIn('placed', test)
+        # A placed buffer is one more `p` window, after the pointer arguments.
+        self.assertIn('let mut p: Vec<Vec<u8>> = wins.split_off(1)', test)
+        # An overload names its own module (parked 2045): two `get_land`s.
+        sp, script, tp, test, mod = sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1,
+                                                           ptrargs=['0:4'], module='foo_bar_wcoord')
+        self.assertEqual((sp.name, tp.name, mod), ('sweep_foo_bar_wcoord.py', 'foo_bar_wcoord.rs', 'mod foo_bar_wcoord;'))
+        self.assertIn('emu_rows("sweep_foo_bar_wcoord.py")', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1, places=['q0+4:0:4'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1, slotbase=['0xc:0x401000'])
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
