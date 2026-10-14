@@ -1062,11 +1062,13 @@ impl Sim {
     /// turn.
     fn use_generals(&mut self, who: Player, slot: usize) {
         let members = self.armies[who as usize].list[slot].units.clone();
-        for u in members {
-            if self.units[u].alive() && self.is_hero_unit(u) && self.think_spellcaster(u) {
-                return;
-            }
-        }
+        generals_walk(
+            self,
+            members,
+            |s, u| s.units[u].alive(),
+            |s, u| s.is_hero_unit(u),
+            |s, u| s.think_spellcaster(u),
+        );
     }
 
     // ---- the tick (§6) ----
@@ -4879,4 +4881,23 @@ pub(crate) fn go_here_bits(
         }
     }
     g
+}
+
+/// **`Army::use_generals@006f4c30`'s walk** (item 2287): the members of the
+/// army's groups in order (`+0x54`, `+0x96` of them; each group's shorts
+/// at `+0x8cc`, a negative id or member skipped), each in use (vslot
+/// `+8`) and, asked only then, a hero (`is_hero`, `type +0x2b8 & 0x20`)
+/// offered `think_spellcaster`; the first that casts ends the walk.
+pub(crate) fn generals_walk<C>(
+    cx: &mut C,
+    members: impl IntoIterator<Item = usize>,
+    mut in_use: impl FnMut(&mut C, usize) -> bool,
+    mut hero: impl FnMut(&mut C, usize) -> bool,
+    mut cast: impl FnMut(&mut C, usize) -> bool,
+) {
+    for u in members {
+        if in_use(cx, u) && hero(cx, u) && cast(cx, u) {
+            return;
+        }
+    }
 }

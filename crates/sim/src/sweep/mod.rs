@@ -744,3 +744,4 @@ mod build_data_count_queue;
 mod group_kill_group_move;
 mod unit_do_think_order;
 mod unit_data_is_gathering_at;
+mod army_use_generals;
