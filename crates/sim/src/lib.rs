@@ -3365,21 +3365,29 @@ impl Sim {
                     // behind the head whose type `is(HELICOPTER)`
                     // (`0x136`), so a Transport Helicopter queued behind a
                     // Bomber the pad refuses still trains (run790's `1/2011`
-                    // on 3767). Another building's `get_next_non_caravan` is
-                    // not modelled: no caravan limit is.
+                    // on 3767). Every other building runs
+                    // `BuildQueueData::get_next_non_caravan@00630c20`'s
+                    // slot, the first behind the head whose type is not
+                    // `CARA` (`0x3b`) itself — run834's Market `1/2019`
+                    // trains the Merchant behind a Caravan the limit holds,
+                    // from 2996.
                     let researched = &self.muster[who as usize].researched;
                     let mut next = self.buildings[at].queue.next_research(|ty| !researched[ty]);
                     if next.is_none()
                         && matches!(blocked, Advanced::Limited)
                         && self.buildings[at].queue.items.len() >= 2
-                        && self.building_ident(at) == build::Ident::Airbase
                     {
+                        let airbase = self.building_ident(at) == build::Ident::Airbase;
                         next = (1..self.buildings[at].queue.items.len()).find(|&i| {
                             let it = &self.buildings[at].queue.items[i];
-                            it.tech.is_none()
-                                && self.unit_types[it.ty].cols.unit_flags
-                                    & ai_load::uflags::HELICOPTER
-                                    != 0
+                            if airbase {
+                                it.tech.is_none()
+                                    && self.unit_types[it.ty].cols.unit_flags
+                                        & ai_load::uflags::HELICOPTER
+                                        != 0
+                            } else {
+                                it.tech.is_some() || self.unit_types[it.ty].type_index != 0x3b
+                            }
                         });
                     }
                     if let Some(slot) = next
@@ -3433,7 +3441,17 @@ impl Sim {
             return Advanced::Pending;
         }
 
-        let pad_full = researched && self.airbase_pad_full(at, ty);
+        // `Build::finished@00628490`'s two negative answers, in its order
+        // and both after the population test: a caravan (`unit_flags2 & 8`, `+0x2b8`)
+        // at `get_units(type, 0) >= get_caravan_limit(0)`, then the
+        // Airbase's pad. Run834's Market `1/2019` holds a done Caravan at
+        // 17304 from 2995 to the game's end with `caras` 8 at the limit 8.
+        let caravan_full = researched
+            && self.unit_types[ty].cols.flag2(ai_load::uflags2::CARAVAN)
+            && self.unit_types[ty]
+                .tree
+                .is_some_and(|t| self.line_count(who, t, false) >= self.caravan_cap(who));
+        let pad_full = researched && (caravan_full || self.airbase_pad_full(at, ty));
         let muster = &self.muster[who as usize];
         let pop = self.unit_types[ty].price.pop;
         match production::finished(researched, muster.cap, muster.control, pop, pad_full) {

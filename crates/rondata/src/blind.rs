@@ -279,11 +279,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **148** with item 1625's cites of `Spline::set_min_seg_length@009125e0`
 /// and `Spline::calc_from_dir@00913960` (`docs/AI.md` §174): run717's
 /// `AMMO` prints the spline they build on every one of `1/49`'s rounds,
-/// but its `cover=0` trace enters no function. **331** with item 2165's
-/// cite of `CommandManager::issue_stance@00941530` (`docs/GOLDEN.md` §79):
-/// run835's `@stance` calls it and the dump logs `process_stance`, but its
-/// `cover=0` trace enters no function; a `cover=1` take would move it to
-/// [`ENTERED_BY_THE_DLL_ONLY`].
+/// but its `cover=0` trace enters no function.
+/// **331** with item 2107's cite of
+/// `BuildQueueData::get_next_non_caravan@00630c20` (`docs/AI.md` §211):
+/// run834's queue shows the Merchant it advances, and no trace enters it.
+/// **332** with item 2165's cite of `CommandManager::issue_stance@00941530`
+/// (`docs/GOLDEN.md` §79): run835's `@stance` calls it and the dump logs
+/// `process_stance`, but its `cover=0` trace enters no function; a
+/// `cover=1` take would move it to [`ENTERED_BY_THE_DLL_ONLY`].
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -297,7 +300,7 @@ pub const NEVER: &[u32] = &[
     0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_2ee0, 0x005f_2f30, 0x005f_3260, 0x005f_4720, 0x005f_4730, 0x005f_79c0, 0x005f_d080,
     0x0060_3470, 0x0060_4550, 0x0060_8850,
     0x0060_9a20, 0x0060_a600, 0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_a960, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50, 0x0061_dc60, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
-    0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_0ab0, 0x0063_0b10, 0x0063_0bb0, 0x0063_3390, 0x0063_89b0, 0x0063_9830, 0x0063_9880, 0x0063_9930, 0x0063_e390,
+    0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_0ab0, 0x0063_0b10, 0x0063_0bb0, 0x0063_0c20, 0x0063_3390, 0x0063_89b0, 0x0063_9830, 0x0063_9880, 0x0063_9930, 0x0063_e390,
     0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_40c0, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_55c0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_b850,
     0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70, 0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50, 0x0067_14c0, 0x0067_14f0, 0x0067_1500, 0x0067_1600, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730,

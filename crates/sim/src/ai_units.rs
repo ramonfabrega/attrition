@@ -352,7 +352,7 @@ impl Sim {
     /// `LeaderData::get_units(t, 0)` / `get_queued(t, …)`: the count of `t`
     /// plus every type whose grafted `from` chain reaches it — the line's
     /// count including the nation's variants and later upgrades.
-    fn line_count(&self, who: Player, t: TypeId, queued: bool) -> i32 {
+    pub(crate) fn line_count(&self, who: Player, t: TypeId, queued: bool) -> i32 {
         let w = who as usize;
         let mut n = 0;
         for (u, d) in self.tech_tree.types.iter().enumerate() {
@@ -1776,14 +1776,45 @@ impl Sim {
             .unwrap_or(0)
     }
 
-    /// `LeaderData::get_caravan_limit(1)`: the Commerce level plus one,
-    /// bounded by the cities' pairings. The wonder, rare-resource and Nubian
-    /// bonuses are inputs this does not carry.
+    /// `LeaderData::get_caravan_limit(1)`: [`Self::caravan_cap`], bounded
+    /// by the cities' pairings. The allies' cities `has_preq(BASE_BONUSTYPES)`
+    /// adds to the count are not carried.
     pub(crate) fn caravan_limit(&self, who: Player) -> i32 {
-        let w = who as usize;
-        let commerce = self.tech[w].epoch[tech::Line::Commerce.index()] + 1;
         let n = self.cities_of(who).len() as i32;
-        99.min(commerce).min(n * (n - 1) / 2)
+        self.caravan_cap(who).min(n * (n - 1) / 2)
+    }
+
+    /// **`LeaderData::get_caravan_limit(0)`** (`006dca50`), the bound
+    /// `Build::finished` holds a done caravan to: the Commerce level plus
+    /// one, the Colossus's `COLOSSUS_CARAVAN`, the Taj Mahal's
+    /// `taj_caravan`, Silk's `SILK_CARAVAN` and the Nubians'
+    /// `NUBIAN_CARAVAN_LIMIT`, at most 99, with no city bound.
+    ///
+    /// `taj_caravan` is **−1** as shipped: `Constants::init` reads the tag
+    /// `TAJ_CARAVAN`, `rules.xml` writes `TAJ_CARAVAN_LIMIT`, and
+    /// `get_item`'s answer for an absent key is −1 (`crates/rondata`'s
+    /// `dump.rs`, `ALIASES`) — so the Taj costs a caravan.
+    pub(crate) fn caravan_cap(&self, who: Player) -> i32 {
+        const TAJ_CARAVAN: i32 = -1;
+        let w = who as usize;
+        let mut n = self.tech[w].epoch[tech::Line::Commerce.index()] + 1;
+        let held = self.wonders_held(who);
+        if held & (1 << tech::wonder::COLOSSUS) != 0 {
+            n += self.tuning.colossus_caravan;
+        }
+        if held & (1 << tech::wonder::TAJ_MAHAL) != 0 {
+            n += TAJ_CARAVAN;
+        }
+        if self.has_rare(who, crate::economy::SILK) {
+            n += self.tuning.silk_caravan;
+        }
+        if self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[w], crate::ai::tribe::NUBIANS)
+        {
+            n += self.tuning.nubian_caravan_limit;
+        }
+        n.min(99)
     }
 
     /// `elimination == 1` → the capital's owner is me.
