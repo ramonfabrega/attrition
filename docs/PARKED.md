@@ -4704,7 +4704,7 @@ it. The `this == next` arm is unreachable on a terminating chain — only a `FRO
 and that hangs the original — so a break of it passes, read against the draw (Loop 2222).
 
 (2279) **The census's `port` mark can name a different function** (for the Loop; names no score).
-`CityData::num_city_buildings@00737ae0` is marked `port` because `ai_host.rs` has a `num_city_buildings` — the AI
+`CityData::num_city_buildings` is marked `port` because `ai_host.rs` has a `num_city_buildings` — the AI
 script verb, a different function — so it was skipped here; and `CityData::count_buildings`'s `exact` arm (the
 type record's `+4` equal to the argument) has no port caller, only the sweep's. `Caravan::trade_value@0073d9d0`
 takes its partner in `ecx` **and `edx`** beside its stack arguments; `--ecx-int` has no `edx` twin, so it waits on one.
