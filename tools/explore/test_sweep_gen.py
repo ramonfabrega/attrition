@@ -189,6 +189,31 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=1, cdecl=True)
 
+    def test_an_argument_may_copy_a_word_of_a_placed_window(self):
+        # Item 2200: `PathFinder::valid_wcoord@00687da0` answers 0 at once when
+        # its two coordinates equal the unit's `avoid_x`/`avoid_y`, which live
+        # in a record the function reaches through `this+0x54` — a placed
+        # window, laid after the arguments are drawn. `--argrange` keeps the
+        # coordinates inside the div_3_table, and two independent draws almost
+        # never meet: `--argeq IDX:WIN+OFF` copies the window's word into the
+        # argument (45%) once every window is laid.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2200, win=0x58, bias=[], own=2,
+            places=['m+0x54:0:0x128'], argrange=['0:0:2000'], argeq=['0:p0+0x120'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ARGEQ = [(0, 'p0', 288)]", script)
+        self.assertIn('for idx, win, off in ARGEQ:', script)
+        # It runs after the places, so the copied word is the one the call reads.
+        self.assertLess(script.index('for win, loc, expr, size in PLACES:'), script.index('for idx, win, off in ARGEQ:'))
+        self.assertLess(script.index('for idx, win, off in ARGEQ:'), script.index('for a_, b in wins:'))
+        self.assertIn('argument 0 copies `p0+0x120` (45%)', script)
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2200, win=8, bias=[], own=1, cells=['0xc06188:4'])
+        self.assertIn('ARGEQ = []', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=1,
+                                   cells=['0xc06188:4'], argeq=['1:m+0'])
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,

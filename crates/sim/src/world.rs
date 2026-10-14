@@ -653,6 +653,60 @@ pub fn largest_gather(g: usize) -> i32 {
     best.clamp(1, 2)
 }
 
+/// `Region::coast_here@00681020` past its `is_coast` gate: the region the
+/// cell `c` holds is `here` (-1 for none); the other of `r` and `s` is the
+/// one wanted, and the answer is `1 +` the first of the eight neighbours, in
+/// `move_x`/`move_y`'s order, on a `width × height` map whose centre tile's
+/// region `tregion` answers it — or 0. Item 2200's sweep holds it against
+/// the original with `tregion` answered per row.
+pub(crate) fn coast_scan(
+    c: Cell,
+    (width, height): (i32, i32),
+    (r, s): (i32, i32),
+    here: i32,
+    tregion: impl Fn(Pos) -> i32,
+) -> i32 {
+    let want = if here == r {
+        s
+    } else if here == s {
+        r
+    } else {
+        return 0;
+    };
+    for (i, (dx, dy)) in MOVE_8.iter().enumerate() {
+        let (nx, ny) = (c.x + dx, c.y + dy);
+        if nx < 0 || ny < 0 || nx >= width || ny >= height {
+            continue;
+        }
+        if tregion(Pos::new(nx * TILES_PER_CELL + 2, ny * TILES_PER_CELL + 2)) == want {
+            return i as i32 + 1;
+        }
+    }
+    0
+}
+
+/// `World::set_seen@006b3c60` on one fog cell's two planes, `seen`
+/// (`World +0x15c`) and `seen2` (`+0x160`): `mask` ored into both, and
+/// whether `seen2` changed — the original's answer. Item 2200's sweep holds
+/// it against the original.
+pub(crate) fn seen_step(seen: u8, seen2: u8, mask: u8) -> (u8, u8, bool) {
+    (seen | mask, seen2 | mask, seen2 | mask != seen2)
+}
+
+/// `World::set_bad_path@006b4610` on one tile's mask and its cell's
+/// `WData.bad` count: `(mask, bad)` after. The count moves only when the
+/// bit does, and wraps as the original's `inc`/`dec byte` does (item 2200:
+/// it saturated, which no real count reaches either way).
+pub(crate) fn bad_path_step(mask: u16, bad: u8, on: bool) -> (u16, u8) {
+    let had = mask & tile::BAD_PATH != 0;
+    match (on, had) {
+        (true, false) => (mask | tile::BAD_PATH, bad.wrapping_add(1)),
+        (false, true) => (mask & !tile::BAD_PATH, bad.wrapping_sub(1)),
+        (true, true) => (mask, bad),
+        (false, false) => (mask & !tile::BAD_PATH, bad),
+    }
+}
+
 /// The shipped `LANDS` block, in file order — the index
 /// [`World::land_class`] answers.
 ///
@@ -805,7 +859,9 @@ impl World {
     }
 
     /// `Region::num_coasts@00680760`: how many sea regions a land region
-    /// coasts. The original counts sea indices `0x41..=0x7d` — no region
+    /// coasts. The original counts sea indices `0x41..=0x7e` (item 2200's
+    /// sweep: the loop's last pass is `0x7e`, and `0x7d` was read one short
+    /// of it; no region is numbered that high either way) — no region
     /// is ever numbered `0x40` (`Regions::find_all` pre-increments the sea
     /// counter from it), so the count is exact — and **a sea region
     /// answers 1**, itself: the loop's `region == i` arm is the only one
@@ -871,10 +927,10 @@ impl World {
         let Some(i) = self.fog_index(fx, fy) else {
             return false;
         };
-        self.fog_now[i] |= mask;
-        let before = self.fog[i];
-        self.fog[i] = before | mask;
-        self.fog[i] != before
+        let (seen, seen2, changed) = seen_step(self.fog_now[i], self.fog[i], mask);
+        self.fog_now[i] = seen;
+        self.fog[i] = seen2;
+        changed
     }
 
     /// `World::set_seen2@006b4bb0` with its `param_4` **set** — the call
@@ -1491,25 +1547,14 @@ impl World {
         if !self.is_coast(r, s) {
             return 0;
         }
-        let here = self.region_of(c);
-        let want = if here == Some(r) {
-            s
-        } else if here == Some(s) {
-            r
-        } else {
-            return 0;
-        };
-        for (i, (dx, dy)) in MOVE_8.iter().enumerate() {
-            let (nx, ny) = (c.x + dx, c.y + dy);
-            if nx < 0 || ny < 0 || nx >= self.width || ny >= self.height {
-                continue;
-            }
-            let centre = Pos::new(nx * TILES_PER_CELL + 2, ny * TILES_PER_CELL + 2);
-            if self.tregion_alt(centre) == Some(want) {
-                return i as i32 + 1;
-            }
-        }
-        0
+        let region = |o: Option<u16>| o.map_or(-1, i32::from);
+        coast_scan(
+            c,
+            (self.width, self.height),
+            (i32::from(r), i32::from(s)),
+            region(self.region_of(c)),
+            |p| region(self.tregion_alt(p)),
+        )
     }
 
     /// Writes a danger figure at a cell, for a test that wants one without
@@ -1728,23 +1773,14 @@ impl World {
     /// cell's [`CellData::bad`] count.
     fn set_bad_path_bit(&mut self, t: Pos, on: bool) {
         let Some(i) = self.tile_index(t) else { return };
-        let had = self.tiles[i] & tile::BAD_PATH != 0;
-        if had == on {
-            return;
-        }
         let c = Self::cell_of_tile(t);
         let mut d = self.cell_data(c);
-        d.bad = if on {
-            d.bad.saturating_add(1)
-        } else {
-            d.bad.saturating_sub(1)
-        };
-        self.set_cell_data(c, d);
-        if on {
-            self.tiles[i] |= tile::BAD_PATH;
-        } else {
-            self.tiles[i] &= !tile::BAD_PATH;
+        let (mask, bad) = bad_path_step(self.tiles[i], d.bad, on);
+        if bad != d.bad {
+            d.bad = bad;
+            self.set_cell_data(c, d);
         }
+        self.tiles[i] = mask;
     }
 
     /// **`World::set_blocked_at@006b4900` — the writer of the pathfinder's
