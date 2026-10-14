@@ -46,8 +46,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // `a` is the four stubs' answers then `get_type`'s six (`--seq
-            // 0:6`, the last held off the family by the script's hand
-            // edit). The head is `m+0xdc` → `p0`, its node `p0+4` → `p1`,
+            // 0:6:0,7,26`, the last a terminator off the family, item 2368). The head is `m+0xdc` → `p0`, its node `p0+4` → `p1`,
             // whose `+8` is the order `p2` (the stubbed vtable at `+0`,
             // flags at `+4`); `get_group_move_order` answers `p3`, the id
             // its `+0xc`; `groups` is `c0`, stride `0x9d4`.
