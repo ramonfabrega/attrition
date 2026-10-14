@@ -2276,29 +2276,22 @@ impl Sim {
             if self.building_is_city(b)
                 && self.buildings[b].active
                 && self.buildings[b].hits_now() > self.buildings[b].damage);
+        // The city alarm, before the take (`0064a9f8`..`0064b2c4`).
+        let alarm = self.city_alarm(attacker, target, ap.siege, dealt.whole, frame);
         // Step 7: take.
         let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype);
         let killed = matches!(taken, Taken::Died { .. });
         // **`Armies::emergency` is the CITY alarm's, and a unit never
         // reaches it** (`docs/ARMY.md` §15.8, item 399). The call at
-        // `do_damage@0064a480:951` is
+        // `do_damage@0064a480:952` is
         // `if (local_30 != 0 && (leaders[param_2].leader_flags & 4) == 0)`,
-        // and `local_30` has exactly **two** writers between its `= 0` at
-        // `0064a8dc` and the test — both inside the city-alarm arms of the
-        // **building** branch, beside `S_CITY_BEING_ATTACKED` and
-        // `S_YOUR_CAPITAL_ATTACKED`. So the emergency is "a city of mine is
-        // under attack", not "something of mine was hit": the target must be
-        // a building that belongs to a city (`BuildData +0x72 >= 0`).
-        //
-        // What is *not* modelled here, and both only make it rarer: the
-        // alarm's own damage threshold (`local_34`) and its 300-frame
-        // cooldown on `CityData +0x14 attack_stamp`. §15.8 carries them.
-        if let Obj::Building(b) = target
-            && !quiet
-            && self.buildings[b].city.is_some()
-        {
+        // after `take_damage`'s non-zero return has left the function (a
+        // kill never reaches it), and `local_30` is [`Self::city_alarm`]'s
+        // answer: a heavy hit on a city building, once in 300 frames
+        // (item 2235, `docs/GOLDEN.md` §81).
+        if alarm && !killed {
             let tw = self.owner_of(target);
-            if self.owner_of(attacker) != tw && (tw as usize) < self.armies.len() {
+            if (tw as usize) < self.armies.len() {
                 self.armies_emergency(tw);
             }
         }
@@ -2348,6 +2341,80 @@ impl Sim {
             self.spill_onto_builders(attacker, b, angle, ammo, count, frame);
         }
         Some(taken)
+    }
+
+    /// **The city alarm** — `Object::do_damage@0064a480`'s building branch
+    /// (`0064a9f8`..`0064b2c4`, the decompile's lines 428–735), run before
+    /// the take, for a hit across owners on an active building that belongs
+    /// to a city (`BuildData +0x72 >= 0`). Item 2235, `docs/GOLDEN.md` §81.
+    ///
+    /// ```text
+    /// heavy = the attacker's type is_siege (UnitTypeData: unit_flags & 0x20000)
+    ///      or damage + dealt >= hits / 10   (a fort or tower — type vslot +0x104,
+    ///                                         ObjectTypeData::is_defense — or a city)
+    ///                         hits / 4     (anything else)
+    /// city c not the capital (city_flags & 0x10 clear):
+    ///   heavy: alarm when frame − c.attack_stamp > 300;
+    ///          c.attack_stamp = c.raid_stamp = frame
+    ///   light: c.raid_stamp = frame
+    /// the capital:
+    ///   heavy: alarm when frame − victim.capital_stamp[attacker] > 300, and the
+    ///          stamp takes the frame then; the city's own stamps are not written
+    ///   light: c.raid_stamp = frame
+    /// ```
+    ///
+    /// Answers the alarm, `local_30`, which gates `Armies::emergency`.
+    /// The victim leader's `attack_stamp`/`raid_stamp`/`ally_stamp` rows,
+    /// the notices and the sounds are not carried: the dump prints the
+    /// three arrays only at `LEADERS=9`, and nothing here reads them.
+    pub(crate) fn city_alarm(
+        &mut self,
+        attacker: Obj,
+        target: Obj,
+        siege: bool,
+        whole: i32,
+        frame: i64,
+    ) -> bool {
+        let Obj::Building(b) = target else {
+            return false;
+        };
+        let (att, vic) = (self.owner_of(attacker), self.owner_of(target));
+        if att == vic || !self.buildings[b].active {
+            return false;
+        }
+        let Some(c) = self.buildings[b].city else {
+            return false;
+        };
+        let heavy = (matches!(attacker, Obj::Unit(_)) && siege) || {
+            let bd = &self.buildings[b];
+            let defense = bd.ty.is_some_and(|t| {
+                crate::build::is_fort(&self.build_types, t)
+                    || crate::build::is_tower(&self.build_types, t)
+            });
+            let ceiling = if defense || self.building_is_city(b) {
+                bd.hits_now() / 10
+            } else {
+                bd.hits_now() / 4
+            };
+            bd.damage + whole >= ceiling
+        };
+        if !heavy {
+            self.cities[c].raid_stamp = frame;
+            return false;
+        }
+        if self.cities[c].capital {
+            let stamp = &mut self.ai[vic as usize].capital_stamp[att as usize];
+            if frame - *stamp > 300 {
+                *stamp = frame;
+                return true;
+            }
+            return false;
+        }
+        let city = &mut self.cities[c];
+        let alarm = frame - city.attack_stamp > 300;
+        city.attack_stamp = frame;
+        city.raid_stamp = frame;
+        alarm
     }
 
     /// **A hit on a building spills onto the hands at work on it**

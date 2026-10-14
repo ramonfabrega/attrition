@@ -1182,14 +1182,15 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             fields.push((format!("ter[{k}]"), i64::from(ai.ter[k]), theirs));
         }
         // **The two fields nothing here holds**, asserted against the
-        // zero this crate answers with rather than dropped: `raid_stamp`
-        // is `Leader::raid`'s clock, and `scouted` is the AI's "a scout has
-        // seen this city" mark. Neither has a writer in this crate, so each row is a claim
+        // zero this crate answered with rather than dropped: `raid_stamp`
+        // (a writer since item 2235) and `scouted`, the AI's "a scout has
+        // seen this city" mark. `scouted` has no writer in this crate, so its row is a claim
         // that the original never writes one either on the captures on
         // disk — a claim a capture can falsify, which is the point of
         // leaving it in.
         // Item 2106: `raid_stamp` is this crate's on a transfer
-        // (`City::init`, `City::capture`), and still zero for a raid.
+        // (`City::init`, `City::capture`); item 2235 added the raid's own
+        // (`Object::do_damage`'s city alarm, `Sim::city_alarm`).
         fields.push(("raid_stamp".into(), ours.raid_stamp, c.raid_stamp));
         fields.push(("scouted".into(), 0, c.scouted));
         // `reduce_stamp` is `Object::do_damage`'s tail since item 1528.
