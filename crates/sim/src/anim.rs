@@ -316,6 +316,38 @@ pub(crate) fn set_anim_walk(
     squad.chain(crew).map(|g| g as usize)
 }
 
+/// The figures `Animal::process@005d72c0` (and `Unit::process@00610bc0`,
+/// whose loops are the same two) run `Guy::process` on, in order: the
+/// squad `0 .. guy_mark` (`UnitData +0xb5`, a signed byte), then the crew
+/// `squad_size .. num_guys` (`UnitTypeData +0x304`, `UnitData +0xe8`). Two
+/// loops, so a crew that starts below `guy_mark` is processed twice and one
+/// that starts above it leaves a gap. The port's [`Sim::guys_follow_on`] walks
+/// it on [`Sim::guy_walk_counts`]. Swept in `sweep::animal_process` (item
+/// 2341).
+pub(crate) fn process_walk(
+    guy_mark: i8,
+    squad_size: i32,
+    num_guys: i32,
+) -> impl Iterator<Item = usize> {
+    set_anim_walk(i32::from(guy_mark), squad_size, num_guys)
+}
+
+/// **`Animal::process@005d72c0`'s steps** (item 2341): the think in vslot
+/// `+0x188` (`Animal::work`) first, then `Guy::process` on every figure of
+/// [`process_walk`], whose counts are read *after* the think. `figures`
+/// answers `(guy_mark, squad_size, num_guys)`; `guys` is handed the walk.
+pub(crate) fn animal_process_steps<C>(
+    cx: &mut C,
+    work: impl FnOnce(&mut C),
+    figures: impl FnOnce(&C) -> (i8, i32, i32),
+    guys: impl FnOnce(&mut C, &[usize]),
+) {
+    work(cx);
+    let (guy_mark, squad_size, num_guys) = figures(cx);
+    let walk: Vec<usize> = process_walk(guy_mark, squad_size, num_guys).collect();
+    guys(cx, &walk);
+}
+
 /// Whether `Unit::set_anim@00616f40` drops a figure's pending attack
 /// (`GuyData +0x9e`) on this pass: unless **guy 0's** current slot
 /// (`+0x9c`) is an attack (`UnitAnimCat[..] == CHAR_ATTACK2`).
@@ -1169,7 +1201,7 @@ impl Sim {
     ///
     /// The set is guy 0 and the trackless crew — `do_turn` recurses into
     /// exactly the guys that share guy 0's body, the same set
-    /// [`Sim::guys_follow`] walks.
+    /// [`Sim::guys_follow_on`] walks.
     ///
     /// Guy 0's draw carries its caller's site; each crew figure's is
     /// [`SITE_TURN_CREW`], the recursion's own chain, and the caller's
@@ -1305,7 +1337,7 @@ impl Sim {
     /// Guy 0's is the unit's heading against its facing. A guy past the
     /// squad's size that is **not** tracked is never owed a turn —
     /// `Guy::do_turn` recurses into it with guy 0's new angle as both
-    /// members of the pair ([`Sim::guys_follow`]) — and a tracked crew
+    /// members of the pair ([`Sim::guys_follow_on`]) — and a tracked crew
     /// figure keeps its own.
     fn guy_settled(&self, u: usize, g: usize) -> bool {
         match self.units[u].guys.get(g).and_then(|x| x.follow) {
@@ -2193,6 +2225,29 @@ impl Sim {
         category(anim)
     }
 
+    /// [`Sim::guys_follow_on`] on the unit's own [`process_walk`], for
+    /// the tests that drive a unit's figures directly.
+    #[cfg(test)]
+    pub(crate) fn guys_follow(
+        &mut self,
+        u: usize,
+        was_at_des: bool,
+        turn: &mut Option<(Angle, Angle, Angle)>,
+    ) {
+        let (guy_mark, squad, len) = self.guy_walk_counts(u);
+        let walk: Vec<usize> = process_walk(guy_mark, squad, len).collect();
+        self.guys_follow_on(u, &walk, was_at_des, turn);
+    }
+
+    /// `(guy_mark, squad_size, num_guys)` for [`process_walk`]: the port's
+    /// `guy_mark` and `squad_size` are both [`SQUAD_SIZE`] (clamped to the
+    /// figures there are, as [`Sim::set_anim`] does), so the walk is `0 ..
+    /// len` in slot order.
+    pub(crate) fn guy_walk_counts(&self, u: usize) -> (i8, i32, i32) {
+        let len = self.units[u].guys.len();
+        (SQUAD_SIZE.min(len) as i8, SQUAD_SIZE as i32, len as i32)
+    }
+
     /// The walk's start and the arrival, as the body follow sees them —
     /// `Guy::move@005d9240:52–90`, for every guy whose body **is** guy 0's.
     /// Called with the body as it stood before this frame's follow.
@@ -2209,9 +2264,13 @@ impl Sim {
     /// the walk and pays no arrival stand. The caller hands the turn's
     /// angles in; it is taken after guy 0's follow, and left in place when
     /// the unit has no figures to walk.
-    pub(crate) fn guys_follow(
+    ///
+    /// `walk` is the figures `Guy::process` runs on, in [`process_walk`]'s
+    /// order (item 2341).
+    pub(crate) fn guys_follow_on(
         &mut self,
         u: usize,
+        walk: &[usize],
         was_at_des: bool,
         turn: &mut Option<(Angle, Angle, Angle)>,
     ) {
@@ -2238,7 +2297,7 @@ impl Sim {
         // and no word on French East Indies (item 1453), and nothing dumps
         // owner 9's figures.
         if is_air_gaia(self.units[u].type_index) && self.units[u].type_index != BIRD_TYPE {
-            for g in 0..self.units[u].guys.len() {
+            for &g in walk {
                 if self.units[u].guys[g].follow.is_some() {
                     self.process_follower(u, g);
                 }
@@ -2247,7 +2306,7 @@ impl Sim {
         }
         let unit = &self.units[u];
         let settled = unit.movement.facing == unit.movement.heading;
-        for g in 0..self.units[u].guys.len() {
+        for &g in walk {
             // **A tracked crew figure runs in its own slot** (item 1510):
             // `Guy::process` runs `Guy::move` per figure in array order,
             // and a tracked figure is not always the last — the Bombard

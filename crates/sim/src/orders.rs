@@ -6449,7 +6449,7 @@ impl Sim {
             // snap at `:355` — call `Unit::set_anim(CHAR_WALK, 0, 1)` on
             // **every guy** immediately before `set_new_location`, so a
             // walking unit asks for its walk *twice* a frame: here, and
-            // again in `Guy::move`'s own half ([`Sim::guys_follow`]).
+            // again in `Guy::move`'s own half ([`Sim::guys_follow_on`]).
             //
             // For guy 0 the pair is idempotent — a walk still inside its
             // length keeps its clock — and for a **crew figure whose
