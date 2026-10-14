@@ -20546,8 +20546,12 @@ path to `1/2026`. What stands:
 **The word moves 1384 → 1984**, count and sequence both: 61 draws ours against 62, index 28. Ours is
 `Animal::think_bird+0x82`; theirs is `6bdab8`, inside `Leader::diplomacy@006bc950`. 1984 is inside the five
 minutes' peace (war from 4500). `Leader::diplomacy` is one of parked 2321's rush-rules readers, so a diplomacy draw
-the peace changes is the next item's hypothesis. The frame is outside run848 (1378..1634), so its value diff needs a
-window around 1984, overlapping six blocks before it.
+the peace changes is the next item's hypothesis. **Its widening is run849** (blocks 1978..2235, the word's block 1985): 1242 keys.
+- On the word's block, one row: who=1's `leader:agendas[0]`, **ours 0, theirs 64**. That is a `Leader::diplomacy` write
+  on the frame theirs draws there.
+- 74 stand on 1978: who=1's `bucket[1:timber]` 17466 / 17361 and `bucket[4:metal]` 15317 / 15212 (40 apart on 1378,
+  105 here), and the control's rows.
+- The next mass parting is 2041–2044 (420 keys), past the word.
 
 **Not established.**
 - `unit_masks & 1` in the garrison gate is not read (a `SEAM` in `track_garrison`). A unit that dies inside a

@@ -9086,13 +9086,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::mongol_pair::WIDENING_MONGOL_CLOSING),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
-    // run848 over 1378..1634 (block 1385).
+    // run848 over 1378..1634 (block 1385); **1984** after item 2351's
+    // Lakota food term, widened on run849 over 1978..2235 (block 1985).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        Some("run848_s_word_frame_is_widened_whole"),
-        2320,
-        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_1384),
+        Some("run849_s_word_frame_is_widened_whole"),
+        2351,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_1984),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -9415,7 +9416,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         length: 6_822,
         endpoint: None,
-        window: Some("lakota_frame_1384_window"),
+        window: Some("lakota_frame_1984_window"),
     },
     // **The successor pair** (DECISIONS 53 §2, 61 §6; item 1728): East
     // Indies, the Mongols at Difficulty 3 and All Technologies.

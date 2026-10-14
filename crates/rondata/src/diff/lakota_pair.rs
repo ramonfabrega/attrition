@@ -116,3 +116,48 @@ fn run848_s_word_frame_is_widened_whole() {
     // 18475/18435 and `bucket[4:metal]` 15805/15765, and the control's
     // `SITE[n].reg`, `form` and its groups' `held`.
 }
+
+/// run849: the word 1984's window, blocks 1978..2235 at the long's detail (item 2351).
+pub(crate) const RUN849: &str = "gamelog-run849-eastindies-lakota-peace-window-1978-2236.txt";
+
+/// The window: block 1978 through 2235; the word 1984's own block is 1985.
+pub(crate) const WIDENING_LAKOTA_FRAME_1984: (i64, i64) = (1978, 2235);
+
+pub(crate) fn lakota_frame_1984_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run849",
+        &[(RUN849, WIDENING_LAKOTA_FRAME_1984.0)],
+        WIDENING_LAKOTA_FRAME_1984,
+        1,
+        &[1985],
+        true,
+    )
+}
+
+#[test]
+fn run849_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_1984_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 258, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 1242, "initial run849 baseline");
+    // Item 2351: 1242 keys part on blocks 1978..2235, the word's own block
+    // being 1985 (frame 1984: ours 61 draws, theirs 62, index 28; ours
+    // `Animal::think_bird+0x82`, theirs `6bdab8` in `Leader::diplomacy`).
+    // On the word's block one row: who=1's `leader:agendas[0]` ours 0
+    // theirs 64. 74 stand on 1978: who=1's `bucket[1:timber]` 17466/17361
+    // and `bucket[4:metal]` 15317/15212 (40 apart on run848's 1378), and
+    // the control's `SITE[n].reg`, `form` and groups' `held`
+    // (`docs/AI.md` §219).
+}
