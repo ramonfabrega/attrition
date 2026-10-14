@@ -3745,6 +3745,24 @@ impl Sim {
                         )
                         .collect();
                     for o in here {
+                        let probe = std::env::var_os("RON_PROBE_2265").is_some()
+                            && matches!(attacker, Obj::Unit(i) if self.units[i].index == 9 && self.units[i].owner == 0)
+                            && matches!(o, Obj::Building(_));
+                        if probe {
+                            eprintln!(
+                                "  P2265 f{} r{r} cand {:?} idx {} cell {:?} valid {} admits {} reaches {} poor {} dist {} maxd {max_dist} must {must_reach} inr {}",
+                                self.frame,
+                                o,
+                                match o { Obj::Building(b) => self.buildings[b].index, Obj::Unit(u) => self.units[u].index },
+                                cell,
+                                self.valid_target(attacker, o),
+                                self.search_admits(o, flags),
+                                match attacker { Obj::Unit(i) => self.check_target_reaches(i, o, duty), _ => true },
+                                self.poor_target(attacker, o),
+                                self.attack_dist(attacker, o),
+                                self.is_in_range(attacker, o),
+                            );
+                        }
                         if !self.valid_target(attacker, o) {
                             continue;
                         }
