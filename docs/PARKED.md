@@ -3764,6 +3764,13 @@ lane to quiet one, so a second lane crossing 300k would have gone unflagged to 3
 <lane>:<k>` (or a state file under the job dir) so a re-arm skips a lane already answered below a new mark, with a
 test made to fail first. One reach.
 
+(2198) **A flag predicate standing in for a lineage is copied to readers that ask the flag alone** (2175's
+"for the Loop" line). `0x40 && !0x20` was written for `is(SUPPLYWAGON)`'s count and copied into `update_hits`' supply term
+and `find_army`'s cap arm, where the original asks `is_supply` (`& 0x40` alone); The Despot carries both bits, and the
+successor pair's word sat on it. Candidate: a brief-checklist row — "a flag predicate that stands in for a lineage is
+checked at each reader against the reader's own vslot" — or a grep guard over `crates/sim` for the copied predicate.
+One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
