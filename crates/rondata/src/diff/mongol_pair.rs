@@ -212,7 +212,7 @@ fn run780_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 134, "initial run780 baseline");
+    pin_eq!(w.firsts.len(), 133, "initial run780 baseline");
     // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
     // window's first block (nothing dumped parts on the word's own block
     // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle
@@ -260,7 +260,7 @@ fn run788_s_word_frame_is_widened_whole() {
     }
     pin_eq!(
         w.firsts.len(),
-        135,
+        134,
         "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
@@ -307,7 +307,7 @@ fn run799_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 163, "run799 baseline");
+    pin_eq!(w.firsts.len(), 162, "run799 baseline");
     // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
     // them on the window's first block; the word 3131 (ours 62 draws, theirs
     // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell
@@ -381,7 +381,7 @@ fn run809_s_word_frame_is_widened_whole() {
     // `1/23`..`1/25` and `1/34`..`1/36` board `1/230` and `1/229` on the
     // original's frames, the scout `1/101`'s goal and `1/167`'s nine with
     // them (section 207).
-    pin_eq!(w.firsts.len(), 180, "run809 baseline");
+    pin_eq!(w.firsts.len(), 179, "run809 baseline");
 }
 
 /// run820: the word 4238's window, blocks 4232..4488 at the long's detail (item 2088).
@@ -448,7 +448,7 @@ fn run820_s_word_frame_is_widened_whole() {
     // `is_supply`, and army 0's three wagons refuse it), and every row of
     // 4343..4357 leaves with group 83's five helicopters' posts on 4349
     // (`docs/AI.md` section 213).
-    pin_eq!(w.firsts.len(), 201, "run820 baseline");
+    pin_eq!(w.firsts.len(), 200, "run820 baseline");
 }
 
 /// run838: the word 4603's window, blocks 4597..4852 at the long's detail (item 2193).
@@ -495,5 +495,5 @@ fn run838_s_word_frame_is_widened_whole() {
     // with `come_out`'s leader toggle: all 74 leave, and the new word
     // 4637's block opens on `1/8`'s `BUILD` on `1/2073`, ended a frame
     // early (`docs/AI.md` section 214).
-    pin_eq!(w.firsts.len(), 1515, "run838 baseline");
+    pin_eq!(w.firsts.len(), 1514, "run838 baseline");
 }

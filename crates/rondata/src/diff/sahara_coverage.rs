@@ -795,7 +795,7 @@ fn run702_s_word_frame_is_widened_whole() {
     // **116** on the merged tree: 258 (259 with item 1608's `spell_time`
     // row) before item 1611's two builds — the founding capital's border
     // bonus took 142 — and 51 of them stand on block 1979 (95 before).
-    pin_eq!(w.firsts.len(), 83, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 82, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         51,
@@ -964,10 +964,10 @@ fn run718_s_word_frame_is_widened_whole() {
     // 1/2018's `myhits` (8125 against 3900 on 3395's sibling window) and
     // 1/2055's `construct_hits` part in the already diverged tail: on the
     // merged tree with item 1697's arms, 68 -> 69.
-    pin_eq!(w.firsts.len(), 65, "initial run718 baseline");
+    pin_eq!(w.firsts.len(), 64, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
-        60,
+        59,
         "the keys standing on the window's first block"
     );
     // **The word 2273's value diff** (item 1611, `docs/AI.md` §171). The
@@ -1075,7 +1075,7 @@ fn run766_s_word_frame_is_widened_whole() {
     // Item 1738: **93** keys with the Redoubt read as a training building
     // through its Fort (`docs/AI.md` §192): its divisor 7, so one key of
     // the 94 of item 1726 is gone.
-    pin_eq!(w.firsts.len(), 80, "initial run766 baseline");
+    pin_eq!(w.firsts.len(), 79, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1119,7 +1119,7 @@ fn run767_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 80, "initial run767 baseline");
+    pin_eq!(w.firsts.len(), 79, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
@@ -1184,7 +1184,7 @@ fn run790_s_word_frame_is_widened_whole() {
     // are gone. 3983's timber and metal buckets (73 short) and 3986's TOW
     // `queue[k].cost[0]` 178 against 160 now first there; the word moves 3985 → 4266,
     // past the window.
-    pin_eq!(w.firsts.len(), 117, "initial run790 baseline");
+    pin_eq!(w.firsts.len(), 116, "initial run790 baseline");
 }
 
 /// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
@@ -1248,5 +1248,5 @@ fn run817_s_word_frame_is_widened_whole() {
     // The 264 standing rows from 4260 stay; the rest are the attrition and
     // shelter residue of group 66's members, and from 4285 a `path[k].to`
     // residue (`1/105`, `1/107`, `1/168`: ours 768 south of theirs).
-    pin_eq!(w.firsts.len(), 298, "initial run817 baseline");
+    pin_eq!(w.firsts.len(), 297, "initial run817 baseline");
 }

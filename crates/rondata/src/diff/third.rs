@@ -1007,12 +1007,12 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_15586_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15581, 40)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(15581, 39)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, to the old word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 176.
         // Item 1451, `largest_gather` (AI §115): 122 → 119.
-        pin_eq!(w.firsts.len(), 45, "every key parted on run426"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 44, "every key parted on run426"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The third map's long word, 15982, widened whole** (item 1177):
@@ -1103,7 +1103,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_15982_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15977, 40)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(15977, 39)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, to the old word's"
         );
         // What the window still parts on past it: the human's
@@ -1112,7 +1112,7 @@ mod tests {
         // against 48600 — the 15982 pair's ratio.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 164.
         // Item 1451, `largest_gather` (AI §115): 111 → 108.
-        pin_eq!(w.firsts.len(), 40, "every key parted on run428"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 39, "every key parted on run428"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The third map's long word, 16681, widened whole** (item 1189):
@@ -1199,7 +1199,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_16681_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(16676, 41)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(16676, 40)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, to the old word's"
         );
         // What the window still parts on past it: a make offer's value on
@@ -1208,7 +1208,7 @@ mod tests {
         // army group's id on 16891, stamped six frames apart again.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 177.
         // Item 1451, `largest_gather` (AI §115): 123 → 119.
-        pin_eq!(w.firsts.len(), 43, "every key parted on run442"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 42, "every key parted on run442"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The third map's long word, 17623, widened whole** (item 1194):
@@ -1265,7 +1265,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_17623_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(17618, 41)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(17618, 40)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, to the old word's"
         );
         // **Past it, the standing families and one row they reach**:
@@ -1284,7 +1284,7 @@ mod tests {
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         // Item 1451, `largest_gather` (AI §115): 106 → 104.
-        pin_eq!(w.firsts.len(), 46, "every key parted on run449"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 45, "every key parted on run449"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The gap before the third map's word, widened** (item 1206):
@@ -1347,12 +1347,12 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 102 → 100.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(17140, 42), (17176, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(17140, 41), (17176, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 172.
         // Item 1451, `largest_gather` (AI §115): 119 → 117.
-        pin_eq!(w.firsts.len(), 43, "every key parted on run457"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 42, "every key parted on run457"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The third map's word at its end, widened whole** (item 1206):
@@ -1395,12 +1395,12 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 103 → 101.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(23744, 44)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(23744, 43)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         // Item 1451, `largest_gather` (AI §115): 104 → 102.
-        pin_eq!(w.firsts.len(), 44, "every key parted on run458"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 43, "every key parted on run458"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

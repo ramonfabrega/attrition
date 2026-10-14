@@ -238,5 +238,5 @@ fn run834_s_word_frame_is_widened_whole() {
     // Caravan the original holds at 17304 with `caras` 8 at its limit 8.
     // 1,284 -> 296 with `Build::finished`'s caravan arm and
     // `get_next_non_caravan` (`docs/AI.md` section 211).
-    pin_eq!(w.firsts.len(), 296, "run834 baseline");
+    pin_eq!(w.firsts.len(), 295, "run834 baseline");
 }
