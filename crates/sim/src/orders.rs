@@ -1506,6 +1506,7 @@ impl Sim {
 
     /// `Unit::close_orders`: kill everything, oldest first.
     pub fn close_orders(&mut self, u: usize) {
+        self.probe_2229(u, "close_orders");
         while !self.units[u].orders.is_empty() {
             self.kill_current_order(u);
         }
@@ -1522,6 +1523,17 @@ impl Sim {
     pub(crate) fn close_dead_orders(&mut self, u: usize) {
         while !self.units[u].orders.is_empty() {
             self.kill_order(u, true);
+        }
+    }
+
+    #[allow(clippy::print_stderr)]
+    pub(crate) fn probe_2229(&self, u: usize, what: &str) {
+        if std::env::var_os("RON_PROBE_2229").is_some()
+            && self.units[u].owner == 1
+            && self.units[u].index == 82
+            && (2965..=2975).contains(&self.frame)
+        {
+            eprintln!("PROBE2229 f{} {what}\n{}", self.frame, std::backtrace::Backtrace::force_capture());
         }
     }
 
@@ -1643,6 +1655,7 @@ impl Sim {
 
     /// `Unit::add_build_order`.
     pub fn add_build_order(&mut self, u: usize, b: usize, pos: QueuePos, action: bool) {
+        self.probe_2229(u, &format!("add_build_order {b} {pos:?} {action}"));
         self.units[u].was_builder = true;
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
