@@ -3734,13 +3734,23 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2127) **A cross-session clear reported fired on a lane that went on in
+one session** (found at 2088's second `DEEP`): `ccc clear 4aa11452
+--status` said "cleared … 9m ago" at 18:51, and the lane's transcript
+(`4aa11452-491c…`, the only file in its project dir) went on to 351 k at
+18:58 with no `/clear` and no new session file; the lane had been told
+to end its turn and had not yet. A re-arm at 19:00 and a second line
+took. Candidate: the waiter checks, on its next pass after a clear, that
+the lane's newest transcript is not the one it measured, and exits
+`UNCLEARED <lane>` if it is — a test fed two transcript listings.
+
 (2059) **`unitat.py`'s order labels are inverted** (Loop; names no score; filed here at 2055's merge). The dump prints an order list
 from the ring's anchor, the **bottom** (`OrderList::log_data`, `docs/AI.md` §206), and `unitat.py`
 reverses it into "first issued first". So its `[0]` is the current order and `<top>` marks the bottom.
 That cost item 2055's draft a misreading (a leader's bottom guard read as its top). The label could read
 `current first … <bottom>`.
 
-(2105) **The golden floor reads a widening's window as the trace's end**
+~~(2105) **The golden floor reads a widening's window as the trace's end**
 (found at 2066's booking): `golden_line_verdict` calls a chapter closed
 when its word is its window's `hi - 1`, and the window it is handed is
 the widening's, which 2032 (ch61, (605, 781)) and 2066 (ch62, (605, 901))
@@ -3748,7 +3758,9 @@ pinned to end at the word, while run814 and run818 run to 1000. So
 2032's "chapter sixty-one closed" was booked open, and the rules
 headline has read "every chapter closed" since. Candidate: the trace's
 end as its own pinned column, a test that fails when a window's end is
-short of its trace's frames; 2099 re-pins the two by hand.
+short of its trace's frames; 2099 re-pins the two by hand. **Item 2099 built the test**
+(`floors::a_golden_widening_s_window_reaches_its_trace_s_end`, made to fail on `ch61` and `ch62`) and a
+trace column for a row whose widening stops at its word (`TRACE_CHAPTER_SIXTY_TWO`).~~ **Closed by item 2099.**
 
 (2104) **`stage_walk` has no "what if" seam** (2066's Loop line, filed at
 its merge): to ask the head beside the headless search, 2066's probe
@@ -3817,7 +3829,7 @@ landed sweeps for the inflation (beside 1725, the same score's other leak).
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
-(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062). **2072** (sixth reach): built `vcall --base` (2021); the per-player table and the `buildtypes` forest by hand, five on two shapes (parked 2073). **2083** (seventh reach): a stub answered per argument on the object at `this+VIA`, three by hand (parked 2084).
+(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062). **2072** (sixth reach): built `vcall --base` (2021); the per-player table and the `buildtypes` forest by hand, five on two shapes (parked 2073). **2083** (seventh reach): a stub answered per argument on the object at `this+VIA`, three by hand (parked 2084). **2090** (eighth and ninth reaches): a slot against its base whose base arm is inline, four by hand (parked 2095); the order-list iterator, three by hand (parked 2096); and `obj` compared no `eax` by default — fixed, eight earlier sweeps now assert it. **2112** (tenth reach): built `vcall --base ADDR --base-call OFF` — the base inlined as a call of the same object's slot, constants or forwarded arguments, `--base-not` — four (`makes_roads`, both `can_capture`s, `ObjectData::isnt`); a table cell placed so the reads land in a buffer, three by hand (parked 2113).
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
@@ -4386,7 +4398,7 @@ a negative pool would name the frame. Parked rather than fixed: no score reads i
 
 ## Parked by item 2066, 2026-10-13 — chapter sixty-two
 
-(2067) **Chapter sixty-one's 780 is the captain's re-search finding nothing there** (2066, measured on run814 while
+(2067) **Answered by item 2099 (`docs/GOLDEN.md` §76): neither fog nor search, but `fight`'s `poor_target` arm ahead of both; chapter sixty-one closed at 1000.** **Chapter sixty-one's 780 is the captain's re-search finding nothing there** (2066, measured on run814 while
 staging): on 778 `0/10`'s attack on who=1's Citizen `1/6` takes `fight`'s captain arm — the one-in-five draw, a
 non-combat target, `find_new_target` — and the original's search writes `near` −1 and adds nothing, where this crate's
 finds `1/6` again and chases. `target_is_seen` answers true here: four of who=0's discs lit `1/6`'s half-cell (104, 79)
@@ -4437,21 +4449,37 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AK — reserved
+## Parked by item 2090, 2026-10-13 — the sweep's forty-eighth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2095) **A slot against its base whose base arm is inline, by hand four times** (Loop 2003's eighth reach; names
+no score). `BuildData::is_wonder` (0x472320), `TypeData::time` (0x663f20), `TypeData::research_time` (0x6639a0)
+and `UnitData::is_flying_high` (0x60a310) each compare a vtable slot with a base's address and, when equal, run the
+base's body **inline** (a range test, a bit of a word) rather than call through another object — so 2072's `vcall
+--base`, whose base arm is a call, does not fit. Item 2090's four scripts write the base's own address into a
+page of their own (or, for `is_wonder`, the record's vtable *is* the image's `BuildType::vftable`) on half the rows
+and a stub vtable on the other half. Candidate: `obj --vbase OFF:ADDR[:via]` alternating the two vtables a row,
+the stub's answer and the base flag printed, with a test made to fail first.
 
-## Parked by the next landing, slot AL — reserved
+(2096) **The order-list iterator, by hand three times** (Loop 2003's ninth reach; names no score).
+`UnitData::is_idle` (0x46fa40), `UnitData::is_fleeing` (0x46efa0) and `BuildData::get_first_gather` (0x46f140)
+reset a list iterator on the way to their answer — head at `list+0x14` (through a sentinel's `+4` for the order
+list, the head itself for the gather list), the node, its data `+8` and byte `+0xc` written to `list+0xc`,
+`+0x4` and `+0x8` — and the bytes are part of the answer. Item 2090 laid out head, sentinel, node and data by hand
+and printed before, after and node bytes. Candidate: `iter --list OFF [--sentinel] [--count]` writing that
+layout and the test's model of the reset, the answer left to `--port`.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**Loop 2003's seventh reach (2084), twice more and not through `this+VIA`**: `BuildTypeData::is_gather_enhancer`
+(0x472b50) asks its own slot `+0x60` four times by argument, `CityData::lumber_level` (0x736820) a direct callee
+(`has_preq`) three times; both by hand, the asks' order the finding. 2084's candidate would serve both with its
+`--stub-via` optional.
+
+## Parked by item 2099, 2026-10-13 — chapter sixty-one closes
+
+(2100) **`fight`'s re-search predicate for a unit whose `unit_masks2 & 4` is set is not carried** (2099,
+`docs/GOLDEN.md` §76). `Unit::fight@005fd4d0:396`–`400` uses another test for `local_14` there: the
+target's role `0x10000` set and its type's `+0x2b4 & 0x2000` clear. This crate reads only "not combat role",
+which is the arm for a unit with the bit clear. No walk is known to set the bit on a captain that reaches the arm.
+Names no frame.
 
 ## Parked by item 2106, 2026-10-13 — Great Sahara's closing state, and the wonders nobody held
 
@@ -4480,13 +4508,16 @@ closing) is not, and the harness now compares ours against it.
 and the census adjustment in `ai_sites` (the chosen citizen's nearest city) never decrements one at zero on
 any capture.
 
-## Parked by the next landing, slot AN — reserved
+## Parked by item 2112, 2026-10-13 — the sweep's forty-ninth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2113) **A leader or cell table placed so the reads land in the script's buffer, by hand three times** (Loop
+2003's tenth reach; names no score). `BuildTypeData::get_kill_value` (0x639790) reads two words of
+`leaders[who]` indexed by the type, `WorldData::is_enemy_territory` (0x6b2490) a cell record through the world's
+width and two `diplos` words of two leaders, and `UnitData::can_ever_transport` (0x46f290) `units[p][i]`: item
+2112's scripts point the global cell at `buffer − (the offset the function will add)` a row, so `who`, the type,
+`x`, `y` and the width are drawn over all 32 bits instead of laid out in a table the size of the game's. Candidate:
+`obj --land CELL:EXPR:SIZE`, the cell written as `buffer − EXPR` over the row's arguments and fields, with a test
+made to fail first. The WCoord world shape (parked 1994) was reached once, not built.
 
 ## Parked by the next landing, slot AO — reserved
 
@@ -4500,6 +4531,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot AP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AT renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

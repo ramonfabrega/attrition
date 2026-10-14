@@ -449,8 +449,87 @@ mod tests {
         );
     }
 
-    /// `(name on the line, word, widening window)` — closed when the word
-    /// is the window's last block.
+    /// **A golden widening's window reaches its trace's end** (parked 2105,
+    /// item 2099). [`golden_line_verdict`] reads a chapter closed when its
+    /// word is its window's last block, so a window cut at the word reads
+    /// an open chapter closed: chapters sixty-one and sixty-two pinned
+    /// `(605, 781)` and `(605, 901)` on run814 and run818, which run to
+    /// 1000, and the `Golden:` line called both closed. The trace's end is
+    /// the `length` its `walk_script` call gives; every chapter whose
+    /// widening and walk both name a run is held to `hi - 1 >= length`.
+    /// Made to fail first on `ch61` and `ch62`. Chapter sixty-two's widening
+    /// stays cut at its word (the tail past it is some five hundred rows
+    /// that every later move re-pins), and the list names its trace,
+    /// [`TRACE_CHAPTER_SIXTY_TWO`]; chapter sixty-one closed in the same
+    /// item and its widening is run814 whole.
+    #[test]
+    fn a_golden_widening_s_window_reaches_its_trace_s_end() {
+        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff/");
+        let golden = std::fs::read_to_string(format!("{dir}golden.rs")).expect("golden.rs");
+        let windows: Vec<(&str, (i64, i64))> = GOLDEN_WORDS
+            .iter()
+            .map(|(name, _, window)| (*name, *window))
+            .collect();
+        let short = short_golden_windows(&golden, &windows);
+        assert!(
+            short.is_empty(),
+            "a golden widening's window ends before its trace, so the `Golden:` line \
+             reads its open word closed; widen it to the trace: {short:?}"
+        );
+    }
+
+    /// run818 whole: chapter sixty-two's trace, whose widening
+    /// ([`WIDENING_CHAPTER_SIXTY_TWO`]) ends at the word.
+    const TRACE_CHAPTER_SIXTY_TWO: (i64, i64) = (605, 1001);
+
+    /// Each `(name, window, trace length)` whose window ends before the
+    /// trace's last block: the name's `walk_script("<name>", …, <length>)`
+    /// in `golden.rs`.
+    fn short_golden_windows(
+        golden: &str,
+        windows: &[(&str, (i64, i64))],
+    ) -> Vec<(String, (i64, i64), i64)> {
+        let flat: String = golden.split_whitespace().collect();
+        let mut short = Vec::new();
+        for (name, (lo, hi)) in windows {
+            let needle = format!("walk_script(\"{name}\",");
+            let Some((_, rest)) = flat.split_once(needle.as_str()) else {
+                continue;
+            };
+            let Some(args) = rest.split(')').next() else {
+                continue;
+            };
+            let Some(length) = args
+                .split(',')
+                .filter(|a| !a.is_empty())
+                .nth(3)
+                .and_then(|a| a.replace('_', "").parse::<i64>().ok())
+            else {
+                continue;
+            };
+            if hi - 1 < length {
+                short.push((name.to_string(), (*lo, *hi), length));
+            }
+        }
+        short
+    }
+
+    #[test]
+    fn a_window_cut_at_its_word_is_short() {
+        let golden = "walk_script(\"ch61\", \"chapter61\", 61, 13, 1000)\n\
+                      walk_script(\"ch9\", \"chapter9\", 9, 4, 1_100)";
+        assert_eq!(
+            short_golden_windows(golden, &[("ch61", (605, 781)), ("ch9", (605, 1101))]),
+            vec![("ch61".to_string(), (605, 781), 1000)]
+        );
+        assert!(short_golden_windows(golden, &[("ch61", (605, 1001))]).is_empty());
+    }
+
+    /// `(name on the line, word, the trace's window)` — closed when the
+    /// word is the window's last block. The window is the chapter's
+    /// widening's wherever that widening is its trace whole; a widening cut
+    /// at its word names its trace here instead
+    /// ([`a_golden_widening_s_window_reaches_its_trace_s_end`]).
     const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 62] = [
         ("ch1", GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
         ("ch2", GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
@@ -677,7 +756,7 @@ mod tests {
         (
             "ch62",
             GOLDEN_WORD_CHAPTER_SIXTY_TWO,
-            WIDENING_CHAPTER_SIXTY_TWO,
+            TRACE_CHAPTER_SIXTY_TWO,
         ),
         (
             "restage",

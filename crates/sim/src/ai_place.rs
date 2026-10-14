@@ -121,11 +121,10 @@ pub(crate) fn enhancing_good(ident: Ident) -> Option<usize> {
     })
 }
 
+/// `BuildTypeData::is_gather_enhancer@00472b50` on an identity: [`crate::build::is_gather_enhancer_by`] with
+/// the lineage test an identity's equality.
 pub(crate) fn is_enhancer(ident: Ident) -> bool {
-    matches!(
-        ident,
-        Ident::Granary | Ident::Lumbermill | Ident::Smelter | Ident::Refinery
-    )
+    crate::build::is_gather_enhancer_by(|i| i == ident)
 }
 
 /// `grid_index_x`/`grid_index_y` (`.rdata`, VA `0xADECF0`/`0xADED30`): the

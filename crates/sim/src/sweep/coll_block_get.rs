@@ -47,7 +47,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 i64::from(m[(0xc + (i >> 3)) as usize] & (1u8 << (i & 7)) != 0)
             }
         };
-        let _ = (got, want_eax);
+        assert_eq!(got, want_eax, "get — eax, row `{line}`");
         assert_eq!(m, unhex(after.trim()), "get — bytes, row `{line}`");
         n += 1;
     }

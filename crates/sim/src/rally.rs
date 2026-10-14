@@ -329,6 +329,13 @@ impl Sim {
         (0..self.buildings.len()).find(|&b| self.buildings[b].alive && self.covers_tile(b, tile))
     }
 
+    /// `BuildData::get_first_gather@0046f140`: the building's first gather point, or none when the list is
+    /// empty — the original's head null or its count not positive (item 2090's sweep holds both, and the
+    /// iterator reset it writes on the way).
+    pub fn first_gather(&self, b: usize) -> Option<GatherPoint> {
+        self.buildings[b].gather.first().copied()
+    }
+
     /// `come_out`'s **gather-point block** (`6181a3`..`618377`): a captain
     /// leaving a building with a point, not "inside", is given the free
     /// spot nearest its head point (`UnitType::find_nearby_spot(point, 0,
@@ -337,7 +344,7 @@ impl Sim {
     /// `angle` (`+0x50`) and the exit sweep's bias in place of south.
     /// Returns the spot and the bearing; `None` leaves the exit as it was.
     pub(crate) fn gather_exit(&mut self, captain: usize, b: usize) -> Option<(crate::Pos, Angle)> {
-        let head = *self.buildings[b].gather.first()?;
+        let head = self.first_gather(b)?;
         if self.gather_inside(b) || head.action == 3 {
             // SEAM: action 3's point is an object's (`HotKeyGroups::copy`
             // and the object's own point); no capture sets one.

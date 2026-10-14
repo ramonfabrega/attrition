@@ -2984,7 +2984,7 @@ impl Sim {
     /// than twenty later.
     pub fn tech_time(&self, who: Player, t: tech::TypeId) -> i32 {
         let time = self.tech_tree.types[t].job_time * production::TIME_SCALE;
-        let time = (time * self.tuning.research_tick_premium) >> 8;
+        let time = production::research_tick(time, self.tuning.research_tick_premium);
         let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
         let tail = production::science_speedup(&self.tuning, science, self.tech_tree.types[t].age);
         production::adjusted(time, tail.as_slice()).max(production::MIN_TIME)
@@ -3651,7 +3651,7 @@ impl Sim {
             }
         }
         if hangar
-            && let Some(q) = self.buildings[at].gather.first().copied()
+            && let Some(q) = self.first_gather(at)
             && (self
                 .profile(crate::combat::Obj::Unit(unit))
                 .has(crate::combat::mask::MISSILE)

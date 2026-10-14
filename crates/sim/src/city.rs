@@ -280,6 +280,30 @@ pub(crate) const fn upgrade_kinds(tuning: &crate::Tuning, next: Ident) -> Option
     }
 }
 
+/// `CityData::num_kinds_needed@00736640`: the kinds a city of type `ty` needs for its next level — 0 for a
+/// `METROPOLIS` (0x1a0) or `FORBIDDENCITY` (0x213), at the top; otherwise the next level is `TOWN` (0x19f) from
+/// a `VILLAGE` (0x19e) and `METROPOLIS` from anything else, 0 when `type_avail(next)` says the leader may not have it, and
+/// [`upgrade_kinds`]' count when it may. Item 2112's sweep holds the order: the type test before the ask.
+#[must_use]
+pub fn kinds_needed_by(
+    tuning: &crate::Tuning,
+    ty: i32,
+    type_avail: impl FnOnce(i32) -> bool,
+) -> i32 {
+    if ty == 0x1a0 || ty == 0x213 {
+        return 0;
+    }
+    let (next, ident) = if ty == 0x19e {
+        (0x19f, Ident::Town)
+    } else {
+        (0x1a0, Ident::Metropolis)
+    };
+    if !type_avail(next) {
+        return 0;
+    }
+    upgrade_kinds(tuning, ident).unwrap_or(0)
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // Small accessors
@@ -374,7 +398,11 @@ impl Sim {
         } else {
             self.tuning.farms_per_city_base
         };
-        base + (self.city_level_of(c) - 1) * self.tuning.farms_per_city_level
+        farm_limit_by(
+            self.city_level_of(c),
+            base,
+            self.tuning.farms_per_city_level,
+        )
     }
 
     /// Whether the city holds an active building of a kind — the
@@ -3232,4 +3260,10 @@ impl Sim {
             self.ledgers[killer as usize].bucket[g] += v + hero;
         }
     }
+}
+
+/// `CityData::get_farm_limit@00738230`'s arithmetic: the leader's `get_farm_limit` plus `(level − 1) ·
+/// FARMS_PER_CITY_LEVEL`, the multiply and the add wrapping (item 2090's sweep holds it).
+pub fn farm_limit_by(level: i32, leader: i32, per_level: i32) -> i32 {
+    leader.wrapping_add((level - 1).wrapping_mul(per_level))
 }

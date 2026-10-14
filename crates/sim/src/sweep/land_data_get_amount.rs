@@ -43,7 +43,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 .find(|&i| rd(m, 4 + 4 * i) == a[0])
                 .map_or(0, |i| i64::from(rd(m, 0x14 + 4 * i)))
         };
-        let _ = (got, want_eax);
+        assert_eq!(got, want_eax, "get_amount — eax, row `{line}`");
         assert_eq!(m, unhex(after.trim()), "get_amount — bytes, row `{line}`");
         n += 1;
     }
