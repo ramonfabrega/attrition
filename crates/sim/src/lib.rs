@@ -1921,11 +1921,12 @@ impl Sim {
 
     /// `Object::insert_inside@00647e90` (`delta` 1) and
     /// `remove_from_inside@006480f0` (−1): a captain going into or out of a
-    /// building moves one of the leader's four garrison counts — a peasant,
-    /// else a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout
-    /// bit), else a Barracks type (`0x1ab`) — and a Lakota count with
-    /// `LAKOTA_FOOD` set raises the leader's `0x2000000` (`docs/AI.md`
-    /// §219). The Americans' Barracks arm's flag is not modelled.
+    /// building moves one of the leader's garrison counts — a peasant, else
+    /// a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout bit)
+    /// — and with `LAKOTA_FOOD` set a Lakota leader's `0x2000000`
+    /// (`docs/AI.md` §219). The chain's fourth arm, `barracks_garr` for a
+    /// Barracks type (`0x1ab`), feeds only the Americans' term, which is not
+    /// built, and is not kept.
     ///
     /// SEAM: the gate's `unit_masks & 1` is not read.
     pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
@@ -1950,9 +1951,6 @@ impl Sim {
             census.scout_garr += delta;
             true
         } else {
-            if trainer == Some(build::Ident::Barracks) {
-                census.barracks_garr += delta;
-            }
             false
         };
         if lakota_count

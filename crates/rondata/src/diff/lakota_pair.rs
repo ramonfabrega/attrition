@@ -28,8 +28,11 @@ pub(crate) const LAKOTA: Pair = Pair {
     // Item 2320: the first try, count and sequence both at 1384 (ours 596
     // draws, theirs 564, index 28: ours `Leader::create_buildings+0xffb`,
     // theirs `Animal::think_bird+0x82`), inside the five minutes' peace.
-    count: 1384,
-    sequence: 1384,
+    // Item 2351: 1384 → 1984, the Lakota food term and its live counts
+    // (`docs/AI.md` §219): ours 61 draws, theirs 62, index 28 — ours
+    // `Animal::think_bird+0x82`, theirs `6bdab8` in `Leader::diplomacy`.
+    count: 1984,
+    sequence: 1984,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -94,7 +97,7 @@ fn run848_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 870, "initial run848 baseline");
+    pin_eq!(w.firsts.len(), 72, "initial run848 baseline");
     // Item 2320: 870 keys part on blocks 1378..1634, the word's own block
     // being 1385 (frame 1384: ours 596 draws, theirs 564, index 28; ours
     // `Leader::create_buildings+0xffb`, theirs `Animal::think_bird+0x82`).
@@ -105,4 +108,11 @@ fn run848_s_word_frame_is_widened_whole() {
     // (38963,38203)/(39009,38201); on 1383 the building `1/2026`
     // stands at (35904,39744) with `constr_time` 70000 in ours and at
     // (40800,41568) with 560000 in theirs (`docs/AI.md` §218).
+    // Item 2351: 870 → 72 (`docs/AI.md` §219), the word now 1984, past the
+    // window. Every food row closes with the Lakota term — on 1378
+    // `income[food]` 1728 both sides (16 peasants + 3 scouts + 3 Stable
+    // units, × 64) — and with it `MAKE[5].val` and `1/13`'s path on
+    // 1382..1384. What stands from 1378: who=1's `bucket[1:timber]`
+    // 18475/18435 and `bucket[4:metal]` 15805/15765, and the control's
+    // `SITE[n].reg`, `form` and its groups' `held`.
 }

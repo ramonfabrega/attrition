@@ -20495,12 +20495,71 @@ arm stand modelled as "always allowed" (`crates/sim/src/army.rs`'s seam list), p
 **Diff-backed**: the lobby's read-back, the game's end at 6822, the first word and its widening. **Reading only**: the
 callers in point 1.
 
-## 219. Reserved for the next item on the AI track
+## 219. The Lakota's food: a nation term in `calc_gather` and four live garrison counts, and the peace pair's word at 1984 (2026-10-14, item 2351)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Baseline.** Word 1384, 596 draws ours against 564, index 28 (ours `Leader::create_buildings+0xffb`, theirs
+`Animal::think_bird+0x82`); run848's widening, 870 keys. §218 walked it back to who=1's food: `income[0:food]` 160 / 864
+on run846's block 1.
+
+**Walked back to the first parted field: frame 1, a count.** run846's block 1 prints who=1 with `peasants 10`,
+`scouts 1`, `stable_units 0`, every garrison count 0. `864 − 160 = 704 = 11 × 4 × 16`. On run848's 1378 it prints
+16 + 3 + 3 = 22, and `1728 − 320 = 1408 = 22 × 64`. Both hold exactly.
+
+**Cause.** `Leader::calc_gather@006ceee0:116–122`: with `has_tribe_bonus(0x13)` (**the Lakota**), food gains
+`(stable_units − scout_garr − stable_garr − peasants_garr + scouts + peasants) × LAKOTA_FOOD × 16`, right after the
+base trickle (`rules.xml`: `LAKOTA_FOOD` 4). The six are `LeaderData +0x9fc, +0xa30, +0xa2c, +0xa28, +0x988, +0x978`.
+Their writers:
+- `Leader::track_unit_type@006e0dd0` moves `peasants` (`is_peasant`), `scouts` (`role & 0x10`, on a type neither
+  peasant nor scholar) and `stable_units` (a type with `+0x1e8` set and `+0x40 == 0x1ac`, the Stable).
+  `plan_strategy` zeroes and recounts `peasants` only.
+- `Object::insert_inside@00647e90` and `remove_from_inside@006480f0` move the garrison counts by ±1. The gate is
+  `unit_masks & 1` clear, a captain, and `in_a_building` (a `Build`'s vslot `+0x20` is a folded `return 1`). The
+  chain is a peasant, else `+0x40 == 0x1ac`, else `UnitData::is_special@0046cea0` (`unit_flags2 & 0x10`, the land
+  scout line alone), else `0x1ab` (`barracks_garr`, the Americans').
+- A Lakota count with `LAKOTA_FOOD` set also raises the leader's `0x2000000`. So does
+  `Unit::init@00612100:613–626`, for a citizen (`TypeIndex` `0x32`, `0x33`), `is(SCOUT, 0)` or a Stable type.
+
+**Built.**
+- `economy::lakota_food` (assembled after the trickle), `Tuning::lakota_food`, `Holdings::{lakota, lakota_units}`
+  and `Sim::lakota_food_units` (`holdings.rs`).
+- `Census::scouts`, kept live by `track_civilian_type`. Nothing had written it: ours read 0 against theirs' 3.
+- `Census::{peasants_garr, stable_garr, scout_garr}`, kept live by `Sim::track_garrison` at `go_inside` and
+  `come_out`. The chain's fourth arm, `barracks_garr`, feeds only the Americans' term and is not kept.
+- `Unit::init`'s Lakota flag, in `init_unit`.
+- Test: `the_lakota_eat_off_their_citizens_and_scouts_and_nobody_else_does` (`economy`).
+
+**Two predicates the window settled, each by a key that parted:**
+- **The garrison counts are counters, never a recount.** run848's `1/9`, a citizen, rides boat `1/15` into dock
+  `1/2017` between 1378 and 1388. That splice never calls `insert_inside`, so theirs' `peasants_garr` stays 0 with
+  `1/9` inside. A recount of the garrison lists took it off ours: `income[0:food]` 1664 / 1728 on 1392.
+- **`scout_garr` is `is_special`, not the role word.** A Bark (type 330, `role & 0x10` at sea) born at a dock goes
+  in and out in ours on 1457. Theirs raises no flag (`gather_stamp` 1447 to 1464), and the role-word arm gave ours
+  a reassembly at 1463: 2048 / 1984 on 1464.
+
+**Value diff and score.** run848's widening goes 870 → 72 keys. Every food row closes: `income`, `rate`,
+`resources`, `leftover`, `econ`, and with them `leader:MAKE[5].val` and `MAKE[8].t` on 1382–1384, and `1/13`'s
+path to `1/2026`. What stands:
+- who=1's `bucket[1:timber]` 18475 / 18435 and `bucket[4:metal]` 15805 / 15765, both from before 1378. run846
+  covers frames 1–37 and run847 prints no `bucket`, so nothing on disk walks them back.
+- The control's `SITE[n].reg`, `form` and its groups' `held`, as before.
+
+**The word moves 1384 → 1984**, count and sequence both: 61 draws ours against 62, index 28. Ours is
+`Animal::think_bird+0x82`; theirs is `6bdab8`, inside `Leader::diplomacy@006bc950`. 1984 is inside the five
+minutes' peace (war from 4500). `Leader::diplomacy` is one of parked 2321's rush-rules readers, so a diplomacy draw
+the peace changes is the next item's hypothesis. The frame is outside run848 (1378..1634), so its value diff needs a
+window around 1984, overlapping six blocks before it.
+
+**Not established.**
+- `unit_masks & 1` in the garrison gate is not read (a `SEAM` in `track_garrison`). A unit that dies inside a
+  building leaves its count as `come_out` would not.
+- The three garrison counts are not compared by the leader diff (parked 2352), so they are checked only through the
+  food rate they feed.
+- The Americans' `americans_barracks_gather` term in the same function is still not built.
+- A mutation of the term was not made: the unit test and the widening both fail without it.
+
+**Diff-backed**: the term and its six inputs on run846 block 1 and across run848's window; the live garrison counter
+and `is_special`, by the keys each closed. Every citizen trained in the window (`1/24` on 1446)
+goes in and out of its trainer through both counters. **Reading only**: the `unit_masks & 1` gate.
 
 ## 220. Reserved for the next item on the AI track
 

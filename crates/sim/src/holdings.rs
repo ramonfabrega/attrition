@@ -477,7 +477,11 @@ impl Sim {
         // Step 6, and the `rare_owned` it rebuilds ([`crate::rares`]).
         let (rares, rare_owned) = self.gather_rares(who);
         let lakota = self.nation[w].lakota && self.tuning.lakota_food != 0;
-        let lakota_units = if lakota { self.lakota_food_units(who) } else { 0 };
+        let lakota_units = if lakota {
+            self.lakota_food_units(who)
+        } else {
+            0
+        };
         let h = &mut self.holdings[w];
         h.cities = cities;
         h.outside = outside;
