@@ -3752,6 +3752,11 @@ Candidate: match the suffix without case, with a test made to fail on run827's 6
 carries `BUILDS=7`. Which category the pool's print needs is not read. Candidate: `refused_detail` refuses the shape
 before staging, as it does `GROUPS` beside `DEATHS` (1885).
 
+(2180) **A standing non-scoring row on a unit the word's block names goes unread** (2155's "for the Loop"
+line). The word 4338's cause was `order:move.facing`, exempt from `OrderMismatch::scores`, standing on run820's first
+block for three items (2088, 2130, 2155). Candidate: a brief-checklist row for step 6 — "a standing row on a unit the
+block names is a candidate, scoring or not" — with the frame's test held to it. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
