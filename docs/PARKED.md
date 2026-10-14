@@ -3782,6 +3782,12 @@ line): the flag takes the trace after it, so called with the flag first it print
 a pass. Candidate: a positional the flag cannot swallow, or a non-zero exit on a missing trace, with a test made to fail
 first. One reach.
 
+(2216) **A table the image builds at boot reads as zeros under the emulator** (2187's "for the Loop" line).
+`tile_corner` reads `div_3_table` through a cell; unfilled, the original answered 0 on all 220 rows of
+`covers_tile`'s first draw, and a port that also answered 0 would have agreed. 2122's sweep had met the same cell.
+Candidate: a `sweep_gen.py` note or `--fill` preset naming the cells the image fills at start-up, or a refusal when
+a draw's every row answers one value, with a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**

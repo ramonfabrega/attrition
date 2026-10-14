@@ -12,20 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-14, **the thirty-third tranche: eleven landings booked** (by `git log` from the pass's `d41d5666`), Opus
+*2026-10-14, **the thirty-third tranche: twelve landings booked** (by `git log` from the pass's `d41d5666`), Opus
 5.5 medium on four lanes (DECISIONS 68, 69; the pass recommends Sonnet — Ramon's call). The headline moved three
 times, the successor pair 4246 → 4338 → 4353 → 4603; Great Sahara in the successor lobby closed on its first build
-(3268 of 3268); chapter sixty-three closed at 760 and sixty-four opened at 637; the census 571 → 639. Every booking
+(3268 of 3268); chapter sixty-three closed at 760 and sixty-four opened at 637; the census 571 → 649. Every booking
 gate green; no kill rule tripped.*
 
-- **At the commander's clear**: 2187 (tip `eef4890a`) and 2200 (tip `3579cb49`, `obj --argeq`, parked
-  2201–2203) landed on their branches, each census 649 on 639 — merge 2187, book 649 and the fifty-seventh
-  batch as 2211 (park BF, items 2212–2215); 2200 then conflicts on census.rs and takes `ccc update` (659 if
-  disjoint) before its merge, and its lane's next is the port-consumer sweep again. The fourth lane is a
-  second sweep lane (DECISIONS 61): no map word is open. Lane wait `--deep 340` (Loop 2186). Blind list 332.
-- **Lanes live** (tranche 33, 2026-10-14): 2193 (AI §214, BC, run 838), 2200 (BD), 2187 (BB), 2205 (GOLDEN §80,
-  BE, runs 839–840). Next 2211, run 841, AI §215, GOLDEN §81, park BF (pools BF and BG–BL, AI §215–§221, GOLDEN §81–§83).
-- **Fable backlog: 19 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198, 2199, 2210).
+- **After 2187's booking**: 2200 (tip `3579cb49`, `obj --argeq`, parked 2201–2203) landed on its branch at
+  census 649 on 639 and conflicts with 2187's pin on census.rs — told to take `ccc update` (659 if disjoint) and
+  re-gate; its lane's next is the port-consumer sweep again. The fourth lane is a second sweep lane (DECISIONS
+  61): no map word is open. Lane wait `--deep 340` (Loop 2186). Blind list 332.
+- **Lanes live** (tranche 33, 2026-10-14): 2193 (AI §214, BC, runs 838, 841), 2200 (BD), 2211 (BF), 2205 (GOLDEN §80,
+  BE, runs 839–840). Next 2217, run 842, AI §215, GOLDEN §81, park BG (pools BB and BG–BL, AI §215–§221, GOLDEN §81–§83).
+- **Fable backlog: 20 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198, 2199, 2210, 2216).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,7 +32,7 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w4603 of 5,056
-Census: simulation backed 639 of 3611
+Census: simulation backed 649 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 w637
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -44,7 +43,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2193 the headline's word, 2205, 2187 and 2200 the other three lanes —
+2193 the headline's word, 2205, 2211 and 2200 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -71,12 +70,13 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     2165's hypothesis (parked 2166). Every record on 637 both ways first.
     Runs 839–840; GOLDEN §80.
 
-2187. **The sweep's fifty-sixth batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 632 of 3611): 2181's shape,
-    merged by SHA; past the 551 swept, shortest decompile first; skip
-    operators (parked 1722); cite no hooked callee in a sweep test's chunk
-    (parked 2012); the generator's owed shapes are Loop 2003's (2181's
-    null `--place` the newest). `--kind sweep`.
+2211. **The sweep's fifty-seventh batch: ten never-backed simulation
+    functions** (DECISIONS 63 (iv); the score `Census:` 649 of 3611):
+    2187's shape, merged by SHA; past the 561 swept, shortest decompile
+    first; `add_early` (2187's twin) the first; skip operators (parked
+    1722); cite no hooked callee in a sweep test's chunk (parked 2012);
+    fill a boot-built table read through a cell (2187's `div_3_table`).
+    `--kind sweep`.
 
 ## How to maintain this file
 
