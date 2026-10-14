@@ -257,6 +257,7 @@ mod armies_leader_defeated;
 mod armies_num_armies;
 mod army_count;
 mod army_member;
+mod army_set_stance;
 mod army_use_generals;
 mod balance_return_modifier;
 mod border_spline_on_field_change;
