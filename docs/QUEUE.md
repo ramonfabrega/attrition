@@ -25,8 +25,8 @@ four lanes, until Ramon says (`ccc spawn --model 'claude-opus-5-5[1m]' --effort 
   last (2059); the runner refuses `RON_STATE_FRAME` without its plan (2054); `hooks.py`'s stubs grow (2043);
   `groups.py <dump> <frame>` (2037); `census.py --hooked` (2025, 0 of 501). Blind list 331 over all 380
   coverage logs — the lobbies' floor (DECISIONS 69 §4). Battery unmoved an eighth tranche. Disk 199 GiB.
-- **Lanes live** (tranche 33, 2026-10-14): 2155 (AI §212, AV, run 833), 2107 (AI §211, AR, runs 830–832), 2149 (AU), 2131 (GOLDEN §78,
-  AT, runs 827–828). Next 2160, run 834, AI §213, GOLDEN §79, park AW (pools AW–AZ, AI §213–§215, GOLDEN §79–§83).
+- **Lanes live** (tranche 33, 2026-10-14): 2155 (AI §212, AV, run 833), 2107 (AI §211, AR, runs 830–832), 2160 (AW), 2131 (GOLDEN §78,
+  AT, runs 827–828). Next 2165, run 834, AI §213, GOLDEN §79, park AX (pools AX–AZ, AI §213–§215, GOLDEN §79–§83).
 - **Fable backlog: 12 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2154).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -35,7 +35,7 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w4338 of 5,056
-Census: simulation backed 581 of 3611
+Census: simulation backed 591 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +46,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2155 the headline's word, 2107, 2131 and 2149 the other three lanes —
+2155 the headline's word, 2107, 2131 and 2160 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -72,12 +72,12 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     raid's `raid_stamp` writer (2110), `ai_sites`' wrapping decrement
     (2111). Name the census rows first; runs 827–828. GOLDEN §78.
 
-2149. **The sweep's fifty-second batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 581 of 3611): 2129's shape,
-    merged by SHA; past the 511 swept, shortest decompile first; skip
+2160. **The sweep's fifty-third batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 591 of 3611): 2149's shape,
+    merged by SHA; past the 521 swept, shortest decompile first; skip
     operators (parked 1722); cite no hooked callee in a sweep test's chunk
     (parked 2012); the generator's owed shapes are Loop 2003's (2141's
-    `--answers` and `--ecx-int` the newest). `--kind sweep`.
+    `--answers` and 2151's hidden-return `Coord` the newest). `--kind sweep`.
 
 ## How to maintain this file
 
