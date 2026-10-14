@@ -198,7 +198,10 @@ fn run598_french_great_lakes_closing_state() {
     // `ever_seen` and `ever_seen_completed` (parked 1450): on the closing
     // block the original's `1/2019`..`1/2025` carry player 0's bit too (3
     // against ours' 2, and `1/2020`'s `ever_seen` 1) — a closing residue.
-    assert_eq!(e.counts(), [0, 0, 0, 0, 14, 0, 4]);
+    // Item 2106 (`docs/AI.md` §209): `[0, 0, 0, 0, 14, 0, 4]` → zero on
+    // its record changes (`Wall::swap_team`'s `ever_seen`, `City::init`'s
+    // stamps and AI half); which change took which row was not read.
+    assert_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0]);
 }
 
 pub(super) fn incomplete_long(log: &Log<'_>) -> Vec<&'static str> {
