@@ -47,12 +47,18 @@ pub(crate) const MONGOL: Pair = Pair {
     // Despot `1/191` is a supply unit as well as a hero, so it is capped by
     // army 0's three wagons and joins group 89, and group 83's helicopters
     // keep the original's posts on 4349 (`docs/AI.md` section 213).
+    // Item 2193: 4603 -> 4637 (ours 37 draws, theirs 37, index 0; the
+    // count parts at 4638): `come_out`'s turn to the boat's heading is
+    // `Unit::set_angle`, and the BMP `1/28` lands on 4363 as army 1's
+    // leader, so the group's `facing` toggles to 1 there; group 69's
+    // `GROUP_ATTACK_TO` on 4602 lays out unmirrored, and `1/111` and
+    // `1/112` take the original's slots (`docs/AI.md` section 214).
     // `1/24` re-inited a transport on 3835 that the original holds a
     // frame: its captain `1/23` had taken its own transport cast on its
     // step, and `do_cast`'s member check hands the clock back
     // (`005ecd9c`..`005ecdf0`, `docs/AI.md` section 207).
-    count: 4603,
-    sequence: 4603,
+    count: 4638,
+    sequence: 4637,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -384,8 +390,8 @@ pub(crate) const RUN820: &str = "gamelog-run820-eastindies-mongol-alltech-window
 /// The window: block 4232 through 4488; the word 4238's own block is 4239.
 pub(crate) const WIDENING_MONGOL_FRAME_4238: (i64, i64) = (4232, 4490);
 
-/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
-pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+/// run820's window, the word 4238's (item 2088).
+pub(crate) fn mongol_frame_4238_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[MONGOL.start],
         true,
@@ -402,7 +408,7 @@ pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run820_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = mongol_word_window() else {
+    let Some(w) = mongol_frame_4238_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -443,4 +449,51 @@ fn run820_s_word_frame_is_widened_whole() {
     // 4343..4357 leaves with group 83's five helicopters' posts on 4349
     // (`docs/AI.md` section 213).
     pin_eq!(w.firsts.len(), 201, "run820 baseline");
+}
+
+/// run838: the word 4603's window, blocks 4597..4852 at the long's detail (item 2193).
+pub(crate) const RUN838: &str = "gamelog-run838-eastindies-mongol-alltech-window-4597-4854.txt";
+
+/// The window: block 4597 through 4852; the word 4603's own block is 4604.
+pub(crate) const WIDENING_MONGOL_FRAME_4603: (i64, i64) = (4597, 4854);
+
+/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
+pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL.start],
+        true,
+        MONGOL.long,
+        "run838",
+        &[(RUN838, WIDENING_MONGOL_FRAME_4603.0)],
+        WIDENING_MONGOL_FRAME_4603,
+        1,
+        &[4604],
+        true,
+    )
+}
+
+#[test]
+fn run838_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // The word 4603's block is 4604. Item 2193: 1,694 keys before the
+    // build, 159 on the first block (the leaders' counts, `form`, the
+    // bombers' `mirror`, `1/2073`'s build clock, `1/93`'s point); the
+    // first past them were 74 on block 4603, group 69's layout mirrored
+    // (`order:move.facing` 1 against 0 on `1/79`, `1/110`..`1/112`, and
+    // `1/111`'s slot (6600, 6744) against (6312, 6696)). 1,694 -> 1,515
+    // with `come_out`'s leader toggle: all 74 leave, and the new word
+    // 4637's block opens on `1/8`'s `BUILD` on `1/2073`, ended a frame
+    // early (`docs/AI.md` section 214).
+    pin_eq!(w.firsts.len(), 1515, "run838 baseline");
 }

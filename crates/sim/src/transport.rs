@@ -1816,9 +1816,25 @@ impl Sim {
         // not `+0x58`, so `dest_angle` stays what step 1's
         // `update_action` seeded it with, the heading the passenger
         // boarded on: run249's `0/6` prints 1073741824 on 1160.
+        //
+        // **And `set_angle` is the whole of it** (item 2193, `docs/AI.md`
+        // §214): a turn of 90° or more (`605409`..`605418`, the same
+        // `reversing` window) flips the unit's `unit_masks & 2`, which
+        // `set_facing` does, and — when the passenger is its group's
+        // leader on landing — `GroupData::facing`. The successor pair's
+        // BMP `1/28` lands on 4363 and leads army 1 at once; its turn to
+        // the boat's heading is a reversal, so the original's flag is 1
+        // from there (run841's `GROUPDATA` reads 1 on 4482) and ours was
+        // 0 until the formation on 4602 came out mirrored.
         let des_angle = self.units[r].movement.des_angle;
+        let turned = crate::group::reversing(crate::movement::Angle(
+            angle.0.wrapping_sub(self.units[r].movement.heading.0),
+        ));
         self.units[r].movement.set_facing(angle);
         self.units[r].movement.des_angle = des_angle;
+        if turned {
+            self.toggle_leader_facing(r);
+        }
         // `set_new_location`'s `param_3` reaches `Guy::set_new_location(0,
         // pos, 1)`, which seats the crew **on** its track offset rather
         // than letting it walk there from wherever it boarded. Without
@@ -2589,6 +2605,43 @@ mod tests {
             assert_eq!(f.sim.muster[1].control, control);
             assert_eq!(f.sim.ai[1].census.caras, before_close - counted);
         }
+    }
+
+    /// **A passenger that lands as its group's leader toggles the group's
+    /// mirror** (item 2193, `docs/AI.md` §214): `come_out`'s turn to the
+    /// boat's heading is `Unit::set_angle@00605400`, whose reversing arm
+    /// flips `GroupData::facing` when `find_leader` names the unit. The
+    /// successor pair's BMP `1/28` landed on 4363 as army 1's leader, and
+    /// the original's flag was 1 from there (run841). Made to fail by
+    /// dropping the toggle from `land_tail`: the flag stays clear.
+    #[test]
+    fn a_passenger_that_lands_as_its_group_s_leader_toggles_the_group_s_mirror() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        let slot = f.sim.init_army(1, None);
+        f.sim.army_add_unit(1, slot, rider);
+        f.sim.units[rider]
+            .movement
+            .set_facing(crate::movement::Angle::NORTH);
+        let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
+        f.sim.units[boat].auto_transport = true;
+        f.sim.board(rider, boat);
+        f.sim.units[boat]
+            .movement
+            .set_facing(crate::movement::Angle::SOUTH);
+        assert!(!f.sim.armies[1].list[slot].group.facing);
+        f.sim.disembark(boat);
+        assert!(f.sim.units[rider].on_map, "it is ashore");
+        assert_eq!(
+            f.sim.units[rider].movement.heading,
+            crate::movement::Angle::SOUTH,
+            "turned to the boat's heading"
+        );
+        assert!(
+            f.sim.armies[1].list[slot].group.facing,
+            "a reversing turn by the leader toggles the army's flag"
+        );
     }
 
     /// The other arm of the same test: a boat that steps off the water

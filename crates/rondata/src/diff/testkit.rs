@@ -6942,7 +6942,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2077: 113 -> 516, the walk past 3835 to the word 4238.
     // Item 2088: 516 -> 524, past 4238.
     // Item 2175: 656 -> 688, the walk past 4353 to the word 4603.
-    ("mongol_pair_first_parting", 688),
+    // Item 2193: 688 -> 873, the walk past 4603 to the word 4637.
+    ("mongol_pair_first_parting", 873),
     // Great Sahara in the successor pair's lobby (item 2107): its walk.
     // Item 2107: 193 -> 204, the walk past 2995 to the game's end.
     ("sahara_mongol_first_parting", 204),
@@ -6956,6 +6957,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run809_s_word_frame_is_widened_whole", 181),
     // run820 (item 2088): the word 4238's window, 765 reads.
     ("run820_s_word_frame_is_widened_whole", 765),
+    // run838 (item 2193): the word 4603's window, 897 reads.
+    ("run838_s_word_frame_is_widened_whole", 897),
     // The same lobby walked to the word (items 1584, 1585): the nuke's
     // flight reads the five corners run702's window does.
     // Item 1726: the walk now reaches the word 3182, past the nuke's

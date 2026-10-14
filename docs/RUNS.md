@@ -16597,6 +16597,41 @@ Waited on another lane's capture: none. **What it holds**: `golden::chapter_sixt
 (**760**, the trace's end, closed) and `chapter_sixty_three_s_word_frame_is_widened_whole` (605..761, the eleven
 standing `form` rows, no pool row). run828 unused.
 
+## run838 — the successor pair: the word 4603's widening, blocks 4597..4852 (2026-10-13, item 2193, `att-2193`)
+
+`docs/AI.md` §214. **Disk gap** (parked 2176): item 2175 moved the word 4353 → 4603, past run820's last block (4488). run820's recipe
+with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 4860 --timeout 3600 --log-window
+4597 4853 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`, click-free lane 1 from the pool; `success`, 4861 frames, 1689 s launch to
+exit. `rngcmp.py rontrace-run775.log rontrace-run838.log`: **0 differing**. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run838-eastindies-mongol-alltech-window-4597-4854.txt`, 641,502,263 bytes,
+SHA-256 `42ca017cc0725e4caa695dd73689d368e9976b34b8386571f01586a20aa1ab82`.
+
+Archive `rontrace-run838.log`, 163,368,288 bytes,
+SHA-256 `4a72f379fecdc5818f1ef364e3d80a2e6825ee3d1c61e7f285c21e6bf1486e0c`.
+
+**What it holds**: `diff::mongol_pair::run838_s_word_frame_is_widened_whole` (blocks 4597..4852, `mongol_word_window`; run820's window
+renamed `mongol_frame_4238_window`), the coverage driver's `mongol_4603` window, and `mongol_pair_first_parting`'s walk to 4637.
+
+## run841 — the successor pair's group pool, blocks 4482..4606 (2026-10-14, item 2193, `att-2193`)
+
+`docs/AI.md` §214.3. **What the disk could not answer**: run838 parts on group 69's `facing` on 4603. Ours' last writes of that
+flag fall between run820 (to 4488) and run838 (from 4597), and no capture of this lobby has dumped `GROUPDATA`. run820's recipe with
+`GROUPS=1` added, `GUYS=4` as run827's second take had, and no `DEATHS` (Loop 2146: every `GROUPS=1` capture here carries
+`BUILDS=7`): `--map 18 --end-frame 4612 --timeout 3600 --log-window 4482 4606 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,
+LEADERS=9,GROUPS=1 --ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`,
+click-free lane 1; `success`, 4613 frames, 1183 s launch to exit, `groupdata_blocks` 63,488. `rngcmp.py` against run775: **0
+differing**. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run841-eastindies-mongol-alltech-groups-4482-4607.txt`, 412,721,646 bytes,
+SHA-256 `0fb8c5f4c0215ea4ee8059eb030bd481cf25effefa12376e5b514f0311987dd5`.
+
+Archive `rontrace-run841.log`, 155,673,344 bytes,
+SHA-256 `c7933f8adc26254c6570781573a701289909fcfcb9df103f6c30c4ea37eadb1b`.
+
+**What it holds**: group 69 (who 1, army 1) reads `facing 1` on 4482, 0 on 4513 and 1 on 4524 through 4606, with ours' list
+order. No test reads it.
 ## run835 — chapter sixty-four: two human Barks, a computer's, and a player's stance button (2026-10-14, item 2165, `att-2165`)
 
 `docs/GOLDEN.md` §79, `tools/gamelog/golden/chapter64.cmd` (10 staged lines, two `@stance`: the DLL's new verb 26,
