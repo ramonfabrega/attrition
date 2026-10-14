@@ -350,23 +350,22 @@ impl Sim {
     /// including the city building, whose type `is(t, 0)`.
     pub fn count_buildings(&self, c: usize, ident: Ident, active_only: bool) -> i32 {
         let city = &self.cities[c];
-        std::iter::once(city.building)
-            .chain(city.members.iter().copied())
-            .filter(|&b| {
-                let bd = &self.buildings[b];
-                bd.alive && (!active_only || bd.active) && self.building_is(b, ident)
-            })
-            .count() as i32
+        count_typed(
+            std::iter::once(city.building).chain(city.members.iter().copied()),
+            |b| self.buildings[b].alive,
+            active_only.then_some(|b: usize| self.buildings[b].active),
+            |b| self.building_is(b, ident),
+        )
     }
 
     /// `CityData::num_buildings`: alive, active members — the city building
     /// counts itself.
     pub fn num_buildings(&self, c: usize) -> i32 {
         let city = &self.cities[c];
-        std::iter::once(city.building)
-            .chain(city.members.iter().copied())
-            .filter(|&b| self.buildings[b].alive && self.buildings[b].active)
-            .count() as i32
+        live_members(
+            std::iter::once(city.building).chain(city.members.iter().copied()),
+            |b| self.buildings[b].alive && self.buildings[b].active,
+        )
     }
 
     /// `CityData::num_wonders@007382b0(exclude_city)`: wonders on the chain,
@@ -378,16 +377,15 @@ impl Sim {
     /// counts itself — and `blocked_location`'s is `> egyptians`.
     pub fn num_wonders(&self, c: usize, exclude_city: bool) -> i32 {
         let city = &self.cities[c];
-        std::iter::once(city.building)
-            .chain(city.members.iter().copied())
-            .filter(|&b| {
+        count_wonders(
+            std::iter::once(city.building).chain(city.members.iter().copied()),
+            |b| {
                 let bd = &self.buildings[b];
-                bd.alive
-                    && bd.ty.is_some_and(|t| self.build_types[t].wonder)
-                    && !self.building_is(b, Ident::RedFort)
-                    && !(exclude_city && self.building_is_city(b))
-            })
-            .count() as i32
+                bd.alive && bd.ty.is_some_and(|t| self.build_types[t].wonder)
+            },
+            |b| self.building_is(b, Ident::RedFort),
+            |b| exclude_city && self.building_is_city(b),
+        )
     }
 
     /// `CityData::get_farm_limit`.
@@ -802,40 +800,22 @@ impl Sim {
     /// `CityData::enough_kinds(n)`: at least `n` distinct completed building
     /// types on the chain, the city itself first.
     pub fn enough_kinds(&self, c: usize, n: i32) -> bool {
-        let n = n.min(24);
-        let city = &self.cities[c];
-        let mut kinds: Vec<usize> = Vec::new();
-        for b in std::iter::once(city.building).chain(city.members.iter().copied()) {
-            let bd = &self.buildings[b];
-            if !bd.alive || !bd.active {
-                continue;
-            }
-            let Some(t) = bd.ty else { continue };
-            if !kinds.contains(&t) {
-                kinds.push(t);
-                if kinds.len() as i32 >= n {
-                    return true;
-                }
-            }
-        }
-        false
+        self.kinds_on_chain(c, n.min(24)).1
     }
 
     /// `CityData::num_kinds`: the same count, unbounded.
     pub fn num_kinds(&self, c: usize) -> i32 {
+        self.kinds_on_chain(c, i32::MAX).0
+    }
+
+    fn kinds_on_chain(&self, c: usize, cap: i32) -> (i32, bool) {
         let city = &self.cities[c];
-        let mut kinds: Vec<usize> = Vec::new();
-        for b in std::iter::once(city.building).chain(city.members.iter().copied()) {
-            let bd = &self.buildings[b];
-            if bd.alive
-                && bd.active
-                && let Some(t) = bd.ty
-                && !kinds.contains(&t)
-            {
-                kinds.push(t);
-            }
-        }
-        kinds.len() as i32
+        distinct_kinds(
+            std::iter::once(city.building).chain(city.members.iter().copied()),
+            |b| self.buildings[b].alive && self.buildings[b].active,
+            |b| self.buildings[b].ty,
+            cap,
+        )
     }
 
     /// `CityData::ready_to_upgrade`: not at the top, the next level
@@ -3288,4 +3268,77 @@ pub(crate) fn wear_site_vals(
         d.val >>= if i < radius[k] { 2 } else { 1 };
         world.set_cell_data(cell, d);
     }
+}
+
+/// **`CityData::num_buildings@00738190`**'s count: the members of the
+/// city's chain (`+8`, then each building's `+0x74`) whose slot is in use
+/// (`flags & 1`) and which answer `+0x20` and `+0x4c` — on a `Build`, 1 and
+/// `flags & 4`, its active bit — so `live`. Item 2276's sweep holds it.
+pub(crate) fn live_members(
+    chain: impl IntoIterator<Item = usize>,
+    live: impl Fn(usize) -> bool,
+) -> i32 {
+    chain.into_iter().filter(|&b| live(b)).count() as i32
+}
+
+/// **`CityData::num_kinds@007366c0`** and **`CityData::enough_kinds@00736540`**:
+/// the distinct kinds (the type record's `+4`) of the chain's `live`
+/// members (`num_buildings`'s test), in chain order; `None` is no kind.
+/// Answers the count and whether a new kind brought it to `cap` —
+/// `enough_kinds` returns there, so `cap <= 0` still wants one live kind.
+/// Item 2276's sweeps hold it.
+pub(crate) fn distinct_kinds<K: PartialEq>(
+    chain: impl IntoIterator<Item = usize>,
+    live: impl Fn(usize) -> bool,
+    kind: impl Fn(usize) -> Option<K>,
+    cap: i32,
+) -> (i32, bool) {
+    let mut kinds: Vec<K> = Vec::new();
+    for b in chain {
+        if !live(b) {
+            continue;
+        }
+        let Some(k) = kind(b) else { continue };
+        if !kinds.contains(&k) {
+            kinds.push(k);
+            if kinds.len() as i32 >= cap {
+                return (kinds.len() as i32, true);
+            }
+        }
+    }
+    (kinds.len() as i32, false)
+}
+
+/// **`CityData::num_wonders@007382b0`**'s count: the chain's members that
+/// are a `wonder` (`BuildData::is_wonder`, vslot `+0x2c`), then not the
+/// Red Fort (`is(0x216)`, asked only of a wonder), and not `skip_city`
+/// (`exclude_city` and the object's `flags & 0x20`). Item 2276's sweep
+/// holds it.
+pub(crate) fn count_wonders(
+    chain: impl IntoIterator<Item = usize>,
+    mut wonder: impl FnMut(usize) -> bool,
+    mut red_fort: impl FnMut(usize) -> bool,
+    skip_city: impl Fn(usize) -> bool,
+) -> i32 {
+    chain
+        .into_iter()
+        .filter(|&b| wonder(b) && !red_fort(b) && !skip_city(b))
+        .count() as i32
+}
+
+/// **`CityData::count_buildings@00739390`**'s count: the chain's members
+/// whose slot is in use (`flags & 1`), then — when `active` is given, the
+/// original's `active_only` — active (a `Build`'s `flags & 4`), then of the
+/// type: `is(t, 0)`, or with `exact` the type record's `+4`, which the
+/// caller folds into `is`. Item 2276's sweep holds it.
+pub(crate) fn count_typed(
+    chain: impl IntoIterator<Item = usize>,
+    used: impl Fn(usize) -> bool,
+    active: Option<impl Fn(usize) -> bool>,
+    mut is: impl FnMut(usize) -> bool,
+) -> i32 {
+    chain
+        .into_iter()
+        .filter(|&b| used(b) && active.as_ref().is_none_or(|f| f(b)) && is(b))
+        .count() as i32
 }

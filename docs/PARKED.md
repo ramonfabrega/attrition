@@ -4683,13 +4683,31 @@ The 141 rows of `chapter_sixty_four_s_word_frame_is_widened_whole` from 634 on a
 `1/6` `ammo[2]` (`sx` 12348 / 12349), which stood before. Grep `docs/COMBAT.md` §55 (a pivot piece releases
 through its turret) first: the Bark may carry a release node this crate does not read.
 
-## Parked by the next landing, slot BF — reserved
+## Parked by item 2276, 2026-10-14 — the second sweep lane's ten, the squad and city chains
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2277) **One `obj` shape built: `--link pA..B+OFF:SIZE:DIR[:T,T..]`** (Loop 2003's reach from 2247's line; names no
+score). Figure k (window `p(A+k)`) draws its link at `OFF` from the figures on `DIR`'s side of its own index (`<`
+below, `>` above) or a terminator (−1 by default), a quarter of the rows the terminator — `sweeplib.link_value` —
+so every walk through the table ends. Its test was made to fail first (no `link_value`, no `links=`), and runs the
+draw itself: 400 tables of 1–9 figures, each walk at most n steps, walks of more than four lengths. With it came
+`Unit::set_in_danger`, `Unit::set_group` and `ObjectTypeData::upgrade_level` (2247's three) and seven more chain
+walkers — the gather chain (`+0x70`/`+0x92`) and the city chain (`+8`/`+0x74`).
+
+(2278) **`upgrade_level`'s `is` and the port's differ on a non-empty `is_list`** (a reading; names no score).
+`ObjectTypeData::upgrade_level@00661090` inlines `is` as `this == next`, then the `is_list` (`+0x280` count,
+`+0x28c` list) — and **when the list is non-empty and lacks `next` it answers no**, never asking `is_slow` (`+0xf4`);
+only an empty list asks it (`006610d5`..`00661119`). The port's `TechTree::is` checks the list, then the graft, then
+the `from` chain, whatever the list held. They part only on a type whose loaded `is_list` omits an ancestor
+`is_slow` would reach; whether the loader ever builds such a list is the question (`ObjectTypeData`'s loader, the
+writers of `+0x280`). The sweep holds the original's arms with the `is` closure, so the port's own `is` is not under
+it. The `this == next` arm is unreachable on a terminating chain — only a `FROM` cycle through `this` reaches it,
+and that hangs the original — so a break of it passes, read against the draw (Loop 2222).
+
+(2279) **The census's `port` mark can name a different function** (for the Loop; names no score).
+`CityData::num_city_buildings` is marked `port` because `ai_host.rs` has a `num_city_buildings` — the AI
+script verb, a different function — so it was skipped here; and `CityData::count_buildings`'s `exact` arm (the
+type record's `+4` equal to the argument) has no port caller, only the sweep's. `Caravan::trade_value@0073d9d0`
+takes its partner in `ecx` **and `edx`** beside its stack arguments; `--ecx-int` has no `edx` twin, so it waits on one.
 
 ## Parked by item 2217, 2026-10-14 — the second sweep lane's ten with a port consumer
 

@@ -1088,6 +1088,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
+from sweeplib import link_value  # noqa: E402
 
 ENTRY = 0x{va:08x}
 WIN = {win}
@@ -1118,6 +1119,7 @@ ANSRANGE = {ansrange!r}
 CELLTHIS = {cellthis!r}
 VTALSO = {vtalso!r}
 SPARSE = {sparse!r}
+LINKS = {links!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1320,6 +1322,14 @@ def main(argv):
             if rng.random() < 0.5:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[off:off + 4] = vt.to_bytes(4, "little")
+        for lo, hi, off, size, d, terms in LINKS:
+            # A link field (`o_up`, a type's upgrade) of figures p(lo)..p(hi),
+            # drawn from the figures on one side of each one's own index or a
+            # terminator, so a walk through them ends (item 2276).
+            n = hi - lo + 1
+            for k in range(n):
+                v = link_value(rng, n, k, d, terms)
+                p[lo + k][off:off + size] = (v & ((1 << 8 * size) - 1)).to_bytes(size, "little")
         for idx, win, off in ARGEQ:
             # An argument the function compares with a word of a window laid
             # after the arguments were drawn: the word copied (item 2200).
@@ -1501,6 +1511,20 @@ def _sparse(spec):
     return (None, loc, stride, n, slices)
 
 
+def _link(spec):
+    """`pA..B+OFF:SIZE:DIR[:T,T..]` — figure k is window p(A+k); its link at
+    OFF, SIZE bytes, drawn below (`<`) or above (`>`) k or a terminator,
+    -1 by default (item 2276)."""
+    loc, size, d, *terms = spec.split(':')
+    m = re.fullmatch(r'p(\d+)\.\.(\d+)\+(\w+)', loc)
+    if not m or int(m.group(1)) > int(m.group(2)):
+        raise ValueError(f'--link names a run of figures pA..B+OFF, A <= B, not {loc!r}')
+    if size not in ('1', '2', '4') or d not in ('<', '>') or len(terms) > 1:
+        raise ValueError(f'--link is pA..B+OFF:1|2|4:<|>[:T,T..], not {spec!r}')
+    terms = [int(t, 0) for t in terms[0].split(',')] if terms else [-1]
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3), 0), int(size), d, terms)
+
+
 def _wbias(spec):
     """`WIN+OFF:V,V,..` or `WIN+OFF:LO..HI`, OFF `*` for every word, held every row."""
     loc, vals = spec.rsplit(':', 1)
@@ -1523,7 +1547,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
-                 place_null=(), sparse=(), ptrarg_null=()):
+                 place_null=(), sparse=(), ptrarg_null=(), links=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1556,6 +1580,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--place-null K names one of the --place pointers, by its order on the line')
     pwbias = [w for s in wbias for w in _wbias(s)]
     psparse = [_sparse(s) for s in sparse]
+    plinks = [_link(s) for s in links]
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
     pslot = [tuple(int(x, 0) for x in s.split(':')) for s in slotbase]
@@ -1621,7 +1646,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or psparse):
+            or pseq or pansr or pthis or palso or phalf or psparse or plinks):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if cdecl:
@@ -1654,6 +1679,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'{n} rows {st:#x} apart at `{"@" if w == "@" else (w + "+" if w else "")}{lo}`, slices '
            + ', '.join(f'+{o:#x}:{z:#x}' for o, z in sl) + ' (`p` windows after the pointed buffers, before the places)'
            for w, lo, st, n, sl in psparse]
+        + [f'figures p{lo}..p{hi} link at +{o:#x} ({z} bytes) '
+           + ('below' if d == '<' else 'above') + ' their own index or to ' + ', '.join(map(str, t))
+           for lo, hi, o, z, d, t in plinks]
         + [f'the stubbed vtable laid at `{w}+{o:#x}` as well as at `this`'.replace('+0x0`', '+0`')
            for w, o in palso]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
@@ -1665,7 +1693,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
-                                   sparse=psparse)
+                                   sparse=psparse, links=plinks)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1863,6 +1891,10 @@ def main(argv=None):
                     help='obj: LOC points at a zeroed table of N rows STRIDE apart, each row\'s slices `p` '
                          'windows after the pointed buffers and before the places; `@VA` the image\'s own table '
                          '(the leaders table, parked 2201; item 2247)')
+    ap.add_argument('--link', action='append', default=[], metavar='pA..B+OFF:SIZE:DIR[:T,T..]',
+                    help='obj: figure k (window p(A+k))\'s link at OFF drawn from the figures below (`<`) or '
+                         'above (`>`) its own index or a terminator (-1), so a walk through them ends '
+                         '(`o_up`, an upgrade chain; item 2276)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1886,7 +1918,8 @@ def main(argv=None):
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
-                                                    sparse=args.sparse, ptrarg_null=args.ptrarg_null)
+                                                    sparse=args.sparse, ptrarg_null=args.ptrarg_null,
+                                                    links=args.link)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
