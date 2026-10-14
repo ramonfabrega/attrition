@@ -4869,13 +4869,25 @@ names no score). A sweep's helper waits on settling which representation the por
 (2291) **Unused.** `Caravan::trade_value`'s `edx` twin is still owed one: no second `edx` function came up in 2287's
 batch.
 
-## Parked by the next landing, slot BO — reserved
+## Parked by item 2293, 2026-10-14 — Socialism speeds an Airbase's unit; the successor pair closes at its end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2294) **The successor pair's closing residue: two units apart on block 5057** (2293; `docs/AI.md` §217.4;
+`run775_mongol_pair_closing_state`, counts `[2, 0, 0, 0, 0, 0, 0]`, 237 units). `1/93` is off by (−96, −720) and
+`1/176` by (20, 17). Both are standing rows in run838: `1/93`'s `g.x[0]` (ours 42456, theirs 42552) stands from 4597,
+the window's first block, and `1/176`'s `mirror` (ours 0, theirs 1) parts on 4702. The coverage pair's closing state
+has a unit off by the same (−96, −720) (`1/84`, `run652_coverage_pair_closing_state`). Neither is walked back past
+run838's first block. Names the closing pin and no draw word.
+
+(2295) **The Monarchy arm's walk is inert** (2293; names no score). `train_time`'s Stable arm under `MONARCHY_1`/`_2`
+is built and its test holds it. Dropped, it failed nothing on the successor pair's walk. No capture shows a Stable
+unit finishing under Monarchy on a different frame. Both tiers' constants are 25, so the tier is numerically inert.
+
+(2296) **run844's residue past its standing block** (2293; `docs/AI.md` §217.4; `run844_s_closing_frame_is_widened_whole`,
+225 keys). Ours charges `attrition` 6 (12 on `1/104`) where theirs charges 0 on who=1's units `1/20` (4941), `1/17`
+(4944), `1/64` (4961), `1/27` (4966) and `1/104` (5017). A hit point follows each, `hits_left` one under theirs, which
+is 2137's shape on Great Sahara. Group 64's `held` is `[37]` against none on 4972. `1/176`'s point is (19570, 18270)
+against (19566, 18267) on 4977, its standing `mirror`'s wake. `1/191`'s `orders.len` is 0 against 1 on 5009. The
+draw stream agrees to the end; these name the widening's pin only.
 
 ## Parked by item 2298, 2026-10-14 — a generated sweep redrawn in place
 

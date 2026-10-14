@@ -376,6 +376,12 @@ pub struct Roles {
     /// Full prerequisites of `DEMOCRACY_1` and `DEMOCRACY_2`, in tier
     /// order. An unknown bonus is not held (`docs/AI.md` §109).
     pub democracy_preqs: [Option<[Preq; 3]>; 2],
+    /// Full prerequisites of `MONARCHY_1` and `MONARCHY_2` (`0x320`,
+    /// `0x321`): `train_time`'s Stable arm (`docs/AI.md` §217).
+    pub monarchy_preqs: [Option<[Preq; 3]>; 2],
+    /// Full prerequisites of `SOCIALISM_1` (`0x324`): `train_time`'s
+    /// Siege Factory, Airbase and Dock arm (`docs/AI.md` §217).
+    pub socialism_preqs: Option<[Preq; 3]>,
     /// `FISHERMEN1`–`FISHERMEN3`' prerequisites, in level order — the
     /// twentieth, twenty-first and twenty-second of `rules.xml`'s
     /// `TECHBONUSES` (`0x2bf`–`0x2c1`; Agriculture, Crop Rotation and Food

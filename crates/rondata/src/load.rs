@@ -1699,6 +1699,13 @@ pub fn load_tables(
         bonus_preqs.get(0x322 - 0x2ac).copied(),
         bonus_preqs.get(0x323 - 0x2ac).copied(),
     ];
+    // `MONARCHY_1..2` and `SOCIALISM_1`: `train_time`'s two government
+    // arms (`docs/AI.md` §217).
+    tree.roles.monarchy_preqs = [
+        bonus_preqs.get(0x320 - 0x2ac).copied(),
+        bonus_preqs.get(0x321 - 0x2ac).copied(),
+    ];
+    tree.roles.socialism_preqs = bonus_preqs.get(0x324 - 0x2ac).copied();
     tree.roles.fishermen_preq = [bonus_at(19), bonus_at(20), bonus_at(21)];
     tree.roles.merchants_preq = [bonus_at(99), bonus_at(100), bonus_at(101), bonus_at(102)];
     // `REPUBLIC_1..3` (`0x31d`–`0x31f`): the commerce cap's republic term
