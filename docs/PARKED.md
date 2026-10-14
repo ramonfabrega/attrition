@@ -3794,6 +3794,14 @@ guard, whose empty-list arm a `--wbias` set drew on ~1% of rows. Redrawn, the br
 brief-checklist row — "a break that passes is read against the draw before the code" — or `sweep_gen.py` printing
 each `--wbias` value's row share so a starved arm shows before the run. One reach.
 
+(2234) **A turn written around `unit_set_angle` drops `set_angle`'s group arm in silence** (2193's "for the
+Loop" line). `land_tail` turned the lander through `Movement::set_facing`, so army 1's `GroupData::facing` never
+toggled and the successor pair's word sat at 4603. `unit_set_angle`'s own doc lists the callers left out (`do_gather`,
+`fight`, `come_out`, …), and `seams.py --item` did not print it for a word named `set_anim`/`move_step`/`do_guard`.
+Candidate: a brief-checklist row for a mirror or `facing` parting — "list every original `Unit::set_angle` caller this
+crate reaches without `unit_set_angle`" — or `seams.py` printing a doc's left-out callers when the word's unit turns.
+One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**

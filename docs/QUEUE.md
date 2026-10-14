@@ -12,9 +12,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-14, **the thirty-third tranche: fourteen landings booked** (by `git log` from the pass's `d41d5666`), Opus
-5.5 medium on four lanes (DECISIONS 68, 69; the pass recommends Sonnet — Ramon's call). The headline moved three
-times, the successor pair 4246 → 4338 → 4353 → 4603; Great Sahara in the successor lobby closed on its first build
+*2026-10-14, **the thirty-third tranche: fifteen landings booked** (by `git log` from the pass's `d41d5666`), Opus
+5.5 medium on four lanes (DECISIONS 68, 69; the pass recommends Sonnet — Ramon's call). The headline moved four
+times, the successor pair 4246 → 4338 → 4353 → 4603 → 4637; Great Sahara in the successor lobby closed on its first build
 (3268 of 3268); chapter sixty-three closed at 760 and sixty-four opened at 637; the census 571 → 669. Every booking
 gate green; no kill rule tripped.*
 
@@ -22,16 +22,16 @@ gate green; no kill rule tripped.*
   each excluding the other's ten; the census.rs pin conflicts on every second landing, and the lane that lands
   second takes `ccc update` and re-counts. The fourth lane is a second sweep lane (DECISIONS 61): no map word is
   open. Lane wait `--deep 340` (Loop 2186). Blind list 332.
-- **Lanes live** (tranche 33, 2026-10-14): 2193 (AI §214, BC, runs 838, 841), 2217 (BG), 2223 (BH), 2205 (GOLDEN §80,
-  BE, runs 839–840). Next 2229, run 842, AI §215, GOLDEN §81, park BI (pools BB, BF and BI–BL, AI §215–§221, GOLDEN §81–§83).
-- **Fable backlog: 21 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198, 2199, 2210, 2216, 2222).
+- **Lanes live** (tranche 33, 2026-10-14): 2229 (AI §215, BI), 2217 (BG), 2223 (BH), 2205 (GOLDEN §80,
+  BE, runs 839–840). Next 2235, run 842, AI §216, GOLDEN §81, park BJ (pools BB, BF and BJ–BL, AI §216–§221, GOLDEN §81–§83).
+- **Fable backlog: 22 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198, 2199, 2210, 2216, 2222, 2234).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
-Successor pair: EastIndiesMongolAllTech w4603 of 5,056
+Successor pair: EastIndiesMongolAllTech w4637 of 5,056
 Census: simulation backed 669 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 w637
@@ -43,18 +43,19 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2193 the headline's word, 2205, 2223 and 2217 the other three lanes —
+2229 the headline's word, 2205, 2223 and 2217 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2193. **The successor pair's word: frame 4603, 22 versus 21 draws**,
-    index 17: ours `Guy::set_anim+0x97a < Unit::move_step+0x823` (a
-    stop) for the Mechanized Infantry `1/111`, theirs `< Unit::do_guard+
-    0x7f4`; 2175 moved 4353 → 4603 (The Despot is a supply unit to
-    `update_hits` and the army search). **Past run820** (to 4488): run 838,
-    run820's recipe at `--log-window 4597 4853` (parked 2176), then every
-    record on 4604 both ways. East Indies, Mongols. AI §214.
+2229. **The successor pair's word: frame 4637, 37 versus 37 draws**,
+    index 0 (the count parts at 4638): ours `set_anim < Unit::do_idle`,
+    theirs `< Guy::do_turn < Unit::move_step`; 2193 moved 4603 → 4637
+    (a lander leading its group toggles the mirror). `1/8` holds its
+    `BUILD` on `1/2073` in theirs only; that its build clock, two hits
+    behind since run820's 4370, is the cause is 2193's hypothesis
+    (parked 2194). Inside run838, widened whole (`run838_s_word_frame_
+    is_widened_whole`). East Indies, Mongols. AI §215.
 
 2217. **The second sweep lane's next ten: never-backed functions with
     a port consumer** (DECISIONS 61; parked 1725; no map word is open;
