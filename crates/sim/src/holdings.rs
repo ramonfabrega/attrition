@@ -535,20 +535,8 @@ impl Sim {
                     && u.ty.is_some_and(|t| self.lakota_garrison_kind(t))
                 {
                     n -= 1;
-                    if std::env::var("RON_PROBE_LAKOTA").is_ok() {
-                        eprintln!("LAKOTA_GARR f{} who{} u{} o{} ty{} tyname{:?} in{:?} bo{} bty{:?}", self.frame, who, g, u.index, u.ty.unwrap_or(0), u.ty.map(|t| self.unit_types[t].type_index), u.inside, b.index, b.ty);
-                    }
                 }
             }
-        }
-        if std::env::var("RON_PROBE_LAKOTA").is_ok() {
-            let st: Vec<(usize, i32)> = (0..self.unit_types.len())
-                .filter(|&t| self.muster[w].by_type[t] != 0
-                    && self.unit_types[t].combat.attack != 0
-                    && self.trainer_ident(t) == Some(crate::build::Ident::Stable))
-                .map(|t| (t, self.muster[w].by_type[t]))
-                .collect();
-            eprintln!("LAKOTA f{} who{} n{} peas{} sc{} stable{:?}", self.frame, who, n, self.ai[w].census.peasants, self.ai[w].census.scouts, st);
         }
         n
     }
