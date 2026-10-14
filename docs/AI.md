@@ -19833,12 +19833,60 @@ arms and the Colosseum's and Eiffel Tower's border arms now read
 keep four other readers (parked 2109). Group 66's standing `sheltered` and
 `attrition` rows on run817 are left (parked 2108).
 
-## 210. Reserved for the next item on the AI track
+## 210. A tied builder is the lower object number, and the successor pair's word moves 4246 → 4338 (2026-10-13, item 2130)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed** (`mongol_pair_first_parting`, run820's widening). No capture: run820 (4232..4488) held the
+word, and our own walk dated the decision in the gap no dump covers.
+
+### 210.1 The frame, both sides
+
+Frame **4246, ours 156 draws, theirs 157, index 147** (`report.py rontrace-run820.log draws 4246`; `RON_DEBUG_SITES=4246-4246`
+on the walk). Both spend `1/139`'s two `do_guard+0x7f4` rolls at 145–146. Theirs then spends one `Guy::set_anim+0x97a <
+Unit::set_anim+0x56 < Unit::move_step+0x823` (seed `05d763f0`) before the two `do_move+0x11cf` rolls that ours gives to `1/205`.
+The extra draw is a stop. On block 4247 theirs' Citizen `1/186` (`TypeIndex` 50, `PEASANTS`, land) carries `collide_o 80`,
+`collide_who 1`, `order:coll` (30610, 37096) and a collision waypoint `path[41]` (30600, 37128) flags 2. `1/80` is a Caravan
+(`TypeIndex` 59, `CARA`). Ours' `1/208` takes the same collision with `1/80` on block 4249, two frames late.
+
+### 210.2 The swap is a job, not a birth
+
+run820's 295 first-block rows held 63 of `1/186` and 62 of `1/208`. Each of ours carried the other's orders: ours' `1/186` held
+`[Build 2072, ExploreTo (15960, 3144)]` and theirs' held `[Build 2071, ExploreTo (1608, 35016)]`. The positions differ as well
+as the orders (block 4232 `pos`: ours `1/186` (31739, 35419), theirs (30970, 36959)), so each citizen walks from the other's
+start. On run809's 3800 both agree: uids 346 and 334, both `GATHERORDER` at `2035`, the same points. So the two were not
+renumbered at birth. They were given each other's sites.
+
+Ours (`RON_DEBUG_UNIT`, 3880..4240): `1/208` takes `[Move, Build]` to (1608, 35016) on 4182/4183, and `1/186` takes
+(15960, 3144) on 4185/4186. A probe in `produce_building`'s builder loop (one commit, reverted whole) printed every candidate for
+4182's site (1152, 34944), corner tile (4, 180). **`1/208` (`units` #392, tile (166, 188)) and `1/186` (#404, tile (166, 189))
+both score `d` 171**, and the strict `<` keeps the first one walked. That was `1/208`, because ours walked `self.units` in birth
+order: uid 334 before 346, since `1/186` was born later into a freed number.
+
+### 210.3 The rule
+
+`Leader::produce_building@006e1400`'s builder loop (`006e2650`–`006e27b6`, the decompile's `do … while (param_2 <
+objects->field_0x15c[who])`) walks `objects->units[who][param_2]`, which is **object-number order**. It keeps a tie on `iVar12 <
+local_2c`, so a tie goes to the lower `o`. `Sim::upgrade_units_to` already sorts by `index` for the same reason.
+
+**Built**: `produce_building`'s builder walk (`ai_place.rs`) collects the player's units and sorts them by `index` before
+scoring. Test: `ai_make::tests::a_tied_builder_is_the_lower_object_number_not_the_elder` (two citizens on one tile, `o` 9 born
+first and `o` 3 second; the farm's builder is 3). Mutation through `tools/mutate.py`, the sort dropped: **held** by the test
+(exit 101) and by the walk (`mongol_pair_first_parting` back at 4246).
+
+### 210.4 What moved, and the next word
+
+**The value diff**: block 4232's `1/186` and `1/208` rows leave run820's window whole. `1/186` `pos` was ours (31739, 35419)
+against theirs (30970, 36959) and now agrees. On 4247 theirs' `collide_o 80` and `path[41]` (30600, 37128) agree too. run820's
+keys go from 2,079 to 1,123. Past the standing rows, the first row is `1/82`'s `orders.len` on 4257 (ours 1, theirs 2).
+`GROUND_INEXACT`'s `mongol_pair_first_parting` goes from 524 to 612.
+
+**The word 4246 → 4338.** Frame **4338: ours 159 draws, theirs 161, index 142**. Ours spends `Unit::do_guard+0x8fb` for the
+Transport Helicopter `1/215` (`TypeIndex` 311, uid 324, group 89). Theirs spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+Block 4339 opens on `1/215` (13 rows: `dest_angle` 0 against −478609408, `g.x` 30984 against 30911), the second helicopter
+`1/172` (15 rows: its guard post (29784, 34056) against (30984, 33048)), the General `1/175` (31) and `1/205`'s `mirror`.
+Inside run820. Parked 2133.
+
+Not established: any other loop of this crate that walks `self.units` where the original walks `objects->units[who]` and
+breaks a tie on order. This one was found by its tie; no audit of the rest was run.
 
 ## 211. Reserved for the next item on the AI track
 
