@@ -1098,6 +1098,7 @@ ARGFROM = {argfrom!r}
 CELLS = {cells!r}
 AT = {at!r}
 PTRARGS = {ptrargs!r}
+PNULLS = {pnulls!r}
 STUBS = {stubs!r}
 PLACES = {places!r}
 NULLS = {nulls!r}
@@ -1214,6 +1215,11 @@ def main(argv):
             b = bytearray(rng.randrange(256) for _ in range(size))
             uc.mem_write(buf, bytes(b))
             args[idx] = buf
+            # `--ptrarg-null IDX`: the argument laid as 0 a third of the rows,
+            # its buffer still drawn so every later window keeps its index
+            # (item 2271; a guarded null argument ran one arm).
+            if idx in PNULLS and rng.random() < 1 / 3:
+                args[idx] = 0
             wins.append((buf, b))
         nc = len(CELLS) + len(AT)
         c = [b for _, b in wins[:nc]]
@@ -1517,7 +1523,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
-                 place_null=(), sparse=()):
+                 place_null=(), sparse=(), ptrarg_null=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1540,6 +1546,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pptr = [_window(p, 0x100) for p in ptrargs]
     if any(idx >= own for idx, _ in pptr):
         raise ValueError('--ptrarg IDX names one of the --own arguments')
+    ppnull = [int(k, 0) for k in ptrarg_null]
+    if any(k not in {idx for idx, _ in pptr} for k in ppnull):
+        raise ValueError('--ptrarg-null IDX names one of the --ptrarg arguments')
     pstubs = [_stub(s) for s in stubs]
     pplaces = [_place(s) for s in places]
     pnull = [int(k, 0) for k in place_null]
@@ -1625,7 +1634,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     windoc = '; '.join(
         [f'the global cell 0x{va:08x} points at {size} random bytes' for va, size in pcells]
         + [f'{size} random bytes at 0x{va:08x}' for va, size in pat]
-        + [f'argument {idx} names {size} random bytes' for idx, size in pptr]
+        + [f'argument {idx} names {size} random bytes' + (' (null a third of the rows)' if idx in ppnull else '')
+           for idx, size in pptr]
         + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot' else f'callee 0x{a:08x} ({n} args) stubbed'
            for k, a, n in pstubs]
         + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed'
@@ -1651,7 +1661,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            if pecx else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
-                                   cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces, nulls=pnull,
+                                   cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
@@ -1765,6 +1775,9 @@ def main(argv=None):
                     help='obj: SIZE random bytes written at VA itself (a table in the image\'s data)')
     ap.add_argument('--ptrarg', action='append', default=[], metavar='IDX[:SIZE]',
                     help='obj: argument IDX names SIZE (default 0x100) random bytes')
+    ap.add_argument('--ptrarg-null', action='append', default=[], metavar='IDX',
+                    help='obj: --ptrarg IDX laid as a null pointer a third of the rows, its buffer still drawn '
+                         '(a guard against a null argument; item 2271)')
     ap.add_argument('--stub', action='append', default=[], metavar='slot:OFF:NARGS|ADDR:NARGS',
                     help='obj: a vtable slot of this, or a direct callee, answered per row (the answer printed after the arguments)')
     ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
@@ -1873,7 +1886,7 @@ def main(argv=None):
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
-                                                    sparse=args.sparse)
+                                                    sparse=args.sparse, ptrarg_null=args.ptrarg_null)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
