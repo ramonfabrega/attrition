@@ -3761,6 +3761,12 @@ walk-back named only the mechanism. Candidate: a brief-checklist row — "a birt
 `RON_DEBUG_BUILDS` over the word's frame and name the queue that emptied, before reading which building the booking
 guesses" — beside Loop 2292's leader-record diff. One reach.
 
+(2330) **A chapter books a capture only when no packet of the game is on disk** (2304's "for the Loop" line).
+Chapter sixty-four's closed widening held 126 release-point rows no word sees, and two packets on disk (run839,
+run842) answered chapter sixty-six without run 845. The brief's "books a capture" reads as an order. Candidate: the
+frame's chapter row says "a capture only when no packet or widening of the game on disk answers the arm", and a
+closed chapter's standing rows are read as candidates before a new staging. One reach.
+
 ## Loop, filed 2026-10-14 — the thirty-third tranche's
 
 (2146) **`GROUPS=1` without `BUILDS=7` prints no `GROUPDATA`** (Loop; names no score). run827's first take asked
