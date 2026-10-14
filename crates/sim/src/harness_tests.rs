@@ -2456,6 +2456,22 @@ fn a_government_speeds_its_trainer_lines_by_equality() {
         [false, false, true, false, true],
         "Socialism: the Siege Factory and the Airbase, not the Factory"
     );
+    // `get_cost@00664090:666`–`672`, the same three trainers by equality:
+    // Socialism prices the Siege Factory's and the Airbase's units, and
+    // the Factory's and the Auto Plant's take nothing (item 2357,
+    // `docs/GOLDEN.md` §85).
+    let socialist = |s: &Sim| -> Vec<i32> {
+        tys.iter()
+            .map(|&ty| s.socialism_cost_discount(0, ty))
+            .collect()
+    };
+    assert_eq!(
+        socialist(&sim),
+        [0, 0, 25, 0, 25],
+        "Socialism prices the Siege Factory's and the Airbase's units"
+    );
+    sim.tech[0].tech[socialism] = false;
+    assert_eq!(socialist(&sim), [0; 5], "no government, no price arm");
 }
 
 #[test]

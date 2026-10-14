@@ -20404,7 +20404,8 @@ Test: `harness_tests::a_government_speeds_its_trainer_lines_by_equality`.
 
 ~~So the Monarchy arm rests on the reading and its test.~~ The Monarchy arm is diff-backed by run845 since item 2331
 (`docs/GOLDEN.md` §84): it finishes a Light Horse in progress on 800 and a fresh one on 977, and dropped it parts
-chapter sixty-seven at 800. The Socialism arm is diff-backed on the Airbase only.
+chapter sixty-seven at 800. The Socialism arm is diff-backed on the Airbase, and since item 2357 on a Siege Factory
+(`docs/GOLDEN.md` §85: run852's Catapult A, born on 857, falls to the word without it).
 
 ### 217.4 What moved: the pair closes at the game's end
 
