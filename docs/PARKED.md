@@ -4517,10 +4517,11 @@ its own `wonders_held` test) and `Nation::versailles` (`ClockMods`, the heal per
 have no writer. Each is `has_wonder` in the original by the readings cited at its site; none is reached by a walk
 that holds the wonder.
 
-(2110) **`CityData::raid_stamp`'s raid writer is not carried** (names no score; one closing row). Item 2106
+(2110) ~~**`CityData::raid_stamp`'s raid writer is not carried** (names no score; one closing row). Item 2106
 carries the transfer's stamps (`City::init`, `City::capture`); the raid's (`Leader::raid`, the human city's
 2133 on Great Sahara and 9451 on the second pair, `0/2000`'s 17326 the one row left on French East Indies'
-closing) is not, and the harness now compares ours against it.
+closing) is not, and the harness now compares ours against it.~~ **Closed by item 2235** (`docs/GOLDEN.md`
+§81): the writer is `Object::do_damage@0064a480`'s city alarm, both arms; the raid row left every pin.
 
 (2111) **`ai_sites`' `gatherers` decrement wraps in no walk** (a mutation that failed nothing). Item 2106 made
 `CityAi::gatherers` a wrapping byte at all three writers; `ai_place`'s decrement is what wraps Rigan to 255,
@@ -4830,13 +4831,16 @@ now resolve through `building_by_o`. An attack copy re-aims at the unit's own `c
 object, never a reused slot. A guard copy re-aims at `gd.target`. Follow, trade and spell copies are seams. No capture
 has a copy whose target's number was reused.
 
-## Parked by the next landing, slot BJ — reserved
+## Parked by item 2235, 2026-10-14 — the city alarm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2236) **Chapter sixty-five's word 777, open (ours 8 draws, theirs 6)** (item 2235, `docs/GOLDEN.md` §81, run843).
+Ours' two extra draws are `Guy::set_anim+0xf2f < Unit::set_anim` for the Catapult `0/9`. Block 777: `0/9`'s
+`near` is (2006, 1) here against (−1, −1) there, `orders.len` 1 against 0 — this crate's idle search finds the
+Small City `1/2006` on 777; the original's Catapult engages the Barracks `1/2008` later (its first damage on block
+850). Seed on 777 `0x0be7ad26`. 2235's hypothesis, not read: the idle search's reach or its building filter for a
+siege unit, or its reach against a building's footprint; the next item's first read is the original's search on
+777 (a packet). The
+widening (605..1101, 357 rows) is the eleven standing `form` rows and this wake.
 
 ## Parked by the next landing, slot BK — reserved
 

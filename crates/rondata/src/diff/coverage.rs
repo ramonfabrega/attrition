@@ -655,6 +655,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch50 = golden_dump("ch50");
     let ch63 = golden_dump("ch63");
     let ch64 = golden_dump("ch64");
+    let ch65 = golden_dump("ch65");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2353,6 +2354,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 636, 682] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter sixty-four carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter sixty-five, on run843** (item 2235): 850, the Catapult's
+    // first round on the Small City, the siege arm's `attack_stamp`; 916,
+    // the Hoplites' first hit past the Tower's `/10` ceiling.
+    if let Some(p) = &ch65 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTY_FIVE;
+        for w in [850, 916] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter sixty-five carries the window's five blocks");
             frames += n;
         }
     }

@@ -2125,6 +2125,10 @@ mod tests {
         // `@stance` lines, the stance button (item 2165, `docs/GOLDEN.md`
         // §79).
         ("chapter64.cmd", &[]),
+        // Chapter sixty-five: a non-capital Small City, a Tower and a
+        // Barracks in it, struck by Hoplites and a Catapult: the city
+        // alarm's heavy arms (item 2235, `docs/GOLDEN.md` §81).
+        ("chapter65.cmd", &[]),
         // Chapter six-b: chapter six with an Airbase a side (item 651).
         ("chapter6b.cmd", &[]),
         ("chapter7.cmd", &[]),

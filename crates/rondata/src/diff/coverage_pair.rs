@@ -1143,7 +1143,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 107, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 106, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1272,7 +1272,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
-    pin_eq!(w.firsts.len(), 106, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 105, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1375,7 +1375,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // own base); 116 stand from the window's first block (135 on 1602's,
     // 181 on 1598's merged tree), the human leader's `control`,
     // `num_units`, `treaties[1]` and `SITE` `reg` (65 against 0, item
-    // 1591's), Napata's `raid_stamp` and its units' `death:extra` among
+    // 1591's), Napata's `raid_stamp` (agreeing since item 2235) and its units' `death:extra` among
     // them. Until item 1602 the word 2288's own block parted on `1/83`,
     // `collide` 0 against 1: the original's `1/83` stood blocked by `1/91`
     // on its way to the other Oil Platform site (`docs/AI.md` §168).
@@ -1392,7 +1392,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 110, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 109, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1415,8 +1415,8 @@ fn run714_s_word_frame_is_widened_whole() {
             .filter(|(who, o, what)| *who == 0 && *o == 2000 && what.starts_with("city:"))
             .map(|(_, _, what)| what.as_str())
             .collect::<Vec<_>>(),
-        vec!["city:raid_stamp"],
-        "Napata's census rows agree; its raid stamp stands"
+        Vec::<&str>::new(),
+        "Napata's census rows agree, its raid stamp with them (item 2235)"
     );
     let first = w
         .firsts
@@ -1532,7 +1532,7 @@ fn run715_s_word_frame_is_widened_whole() {
     // of 2933 and 2938 are missiles, and land on 2945 and 2950 along their
     // spline where the straight line put them on 2939 and 2942
     // (`docs/AI.md` §174). **147** on item 1625's tree merged with 1620's.
-    pin_eq!(w.firsts.len(), 114, "initial run715 baseline");
+    pin_eq!(w.firsts.len(), 113, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1618,7 +1618,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 154, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 153, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1743,7 +1743,7 @@ fn run763_s_closing_frame_is_widened_whole() {
     // Item 1870 (the nuke embargo, the Fort's count): 230 -> 228.
     // Item 2193 (a landing leader's turn toggles its group's `facing`):
     // 192 -> 191; no draw parts, and the key that left was not named.
-    pin_eq!(w.firsts.len(), 191, "run763 keys that part (item 1719)");
+    pin_eq!(w.firsts.len(), 190, "run763 keys that part (item 1719)");
 }
 
 #[test]
@@ -1769,7 +1769,7 @@ fn run762_s_word_frame_is_widened_whole() {
     // 250 keys.
     // Item 2193 (a landing leader's turn toggles its group's `facing`):
     // 199 -> 197; the keys that left were not named.
-    pin_eq!(w.firsts.len(), 197, "run762 keys that part (item 1719)");
+    pin_eq!(w.firsts.len(), 196, "run762 keys that part (item 1719)");
 }
 
 #[test]
@@ -1797,7 +1797,7 @@ fn run754_s_word_frame_is_widened_whole() {
     // **4425**, past this window's last block (4094).
     // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
     // on the tree before item 1700 (411); measured on the merged tree: 204.
-    pin_eq!(w.firsts.len(), 177, "run754 keys that part (item 1669)");
+    pin_eq!(w.firsts.len(), 176, "run754 keys that part (item 1669)");
 }
 
 #[test]
@@ -1835,7 +1835,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        180,
+        179,
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");

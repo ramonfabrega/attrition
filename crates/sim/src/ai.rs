@@ -713,6 +713,12 @@ pub struct Leader {
     /// (`Object::take_damage`, `docs/AI.md` §71).
     pub frame_attacked: i64,
     pub attacked_by: i32,
+    /// `capital_stamp[8]` (`LeaderData +0x134`), indexed by the attacker:
+    /// the frame a heavy hit by that player on this leader's **capital**
+    /// last raised the alarm (`Object::do_damage@0064a480`'s capital arm,
+    /// [`crate::Sim::city_alarm`]). Its 300-frame window is the capital's
+    /// `local_30` gate, where a city's own is its `attack_stamp`.
+    pub capital_stamp: [i64; 8],
     /// `popwin_stamp` (`+0x440`) and `popwin_timer` (`+0x444`): the
     /// territory victory's clock and its running flag
     /// (`GameDaemon::process_victory@00730ef0`, [`crate::victory`]). The
@@ -893,6 +899,7 @@ impl Leader {
             tech_frame: 0,
             frame_attacked: 0,
             attacked_by: -1,
+            capital_stamp: [0; 8],
             popwin_stamp: 0,
             popwin_timer: 0,
             tech_cat_frame: [0; 4],

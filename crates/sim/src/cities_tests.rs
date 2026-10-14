@@ -7387,3 +7387,89 @@ fn a_fort_is_placed_where_the_danger_is() {
         });
     assert!(moved, "the danger a cell carries draws the Fort to it");
 }
+
+/// **The city alarm: a light hit raids, a heavy one attacks, and the
+/// capital keeps its own clock** (item 2235, `docs/GOLDEN.md` §81;
+/// `Object::do_damage@0064a480`'s building branch, [`Sim::city_alarm`]).
+/// Heavy is a siege shooter or `damage + dealt` at the ceiling — `hits / 10`
+/// for a city or a fort or tower, `hits / 4` for anything else. A
+/// non-capital city takes `attack_stamp` and `raid_stamp` on a heavy hit and
+/// raises the alarm once in 300 frames; the capital takes neither, and its
+/// leader's `capital_stamp[attacker]` keeps the 300 frames instead.
+///
+/// Made to fail with the ceiling's `/ 10` taken to `/ 4` (the second
+/// assertion), with the siege term dropped (the fifth), and with the
+/// capital arm writing the city's stamps (the last block).
+#[test]
+fn the_city_alarm_raids_light_attacks_heavy_and_spares_the_capital_s_stamps() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, c) = city_at(&mut sim, &t, 1, 8, 8);
+    let barracks = sim
+        .place_building(1, t.barracks, tile_pos(15, 8))
+        .unwrap_or_else(|e| panic!("the barracks should place: {e:?}"));
+    finish(&mut sim, barracks);
+    assert_eq!(
+        sim.buildings[barracks].city,
+        Some(c),
+        "the fixture's member"
+    );
+    let foot = sim.add_unit_type(hoplite_type(t.barracks));
+    let shooter = spawn(&mut sim, 0, foot, tile_pos(4, 4));
+    sim.cities[c].capital = false;
+    let hits = sim.buildings[b].hits_now();
+    let alarm = |s: &mut Sim, at: usize, siege: bool, whole: i32, f: i64| {
+        s.city_alarm(
+            combat::Obj::Unit(shooter),
+            combat::Obj::Building(at),
+            siege,
+            whole,
+            f,
+        )
+    };
+    // A city's ceiling is a tenth: one short is a raid.
+    sim.buildings[b].damage = hits / 10 - 6;
+    assert!(!alarm(&mut sim, b, false, 5, 700));
+    assert_eq!(
+        (sim.cities[c].raid_stamp, sim.cities[c].attack_stamp),
+        (700, 0),
+        "a light hit raids"
+    );
+    // At the ceiling: an attack, and the alarm.
+    assert!(alarm(&mut sim, b, false, 6, 710));
+    assert_eq!(
+        (sim.cities[c].raid_stamp, sim.cities[c].attack_stamp),
+        (710, 710)
+    );
+    // Inside 300 frames the stamps move and the alarm does not.
+    assert!(!alarm(&mut sim, b, false, 6, 900));
+    assert_eq!(sim.cities[c].attack_stamp, 900);
+    // A siege shooter is heavy on an undamaged Barracks.
+    let bh = sim.buildings[barracks].hits_now();
+    assert!(alarm(&mut sim, barracks, true, 1, 1300));
+    assert_eq!(sim.cities[c].attack_stamp, 1300);
+    // Anything else's ceiling is a quarter: a tenth is still a raid.
+    sim.buildings[barracks].damage = bh / 10;
+    assert!(!alarm(&mut sim, barracks, false, 1, 1400));
+    assert_eq!(
+        (sim.cities[c].raid_stamp, sim.cities[c].attack_stamp),
+        (1400, 1300)
+    );
+    // The capital: a heavy hit writes neither city stamp, and raises the
+    // alarm on the leader's clock.
+    sim.cities[c].capital = true;
+    assert!(alarm(&mut sim, barracks, true, 1, 1500));
+    assert_eq!(
+        (sim.cities[c].raid_stamp, sim.cities[c].attack_stamp),
+        (1400, 1300),
+        "the capital's heavy arm writes no city stamp"
+    );
+    assert_eq!(sim.ai[1].capital_stamp[0], 1500);
+    assert!(!alarm(&mut sim, barracks, true, 1, 1700));
+    assert_eq!(sim.ai[1].capital_stamp[0], 1500, "stamped only past 300");
+    assert!(!alarm(&mut sim, barracks, false, 1, 1710));
+    assert_eq!(
+        sim.cities[c].raid_stamp, 1710,
+        "a light hit on the capital raids"
+    );
+}

@@ -219,7 +219,7 @@ fn run780_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 134, "initial run780 baseline");
+    pin_eq!(w.firsts.len(), 133, "initial run780 baseline");
     // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
     // window's first block (nothing dumped parts on the word's own block
     // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle
@@ -271,7 +271,7 @@ fn run788_s_word_frame_is_widened_whole() {
     // that took the number, uid 214 (`docs/AI.md` section 215).
     pin_eq!(
         w.firsts.len(),
-        133,
+        132,
         "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
@@ -320,7 +320,7 @@ fn run799_s_word_frame_is_widened_whole() {
     }
     // Item 2229: 163 -> 161 — `1/82`'s standing `orders.len` (ours 1,
     // theirs 3) leaves with the re-issued `BUILD 2057` (section 215).
-    pin_eq!(w.firsts.len(), 161, "run799 baseline");
+    pin_eq!(w.firsts.len(), 160, "run799 baseline");
     // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
     // them on the window's first block; the word 3131 (ours 62 draws, theirs
     // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell
@@ -396,7 +396,7 @@ fn run809_s_word_frame_is_widened_whole() {
     // them (section 207).
     // Item 2229: 180 -> 178 — `1/82`'s standing `orders.len` leaves
     // (section 215).
-    pin_eq!(w.firsts.len(), 178, "run809 baseline");
+    pin_eq!(w.firsts.len(), 177, "run809 baseline");
 }
 
 /// run820: the word 4238's window, blocks 4232..4488 at the long's detail (item 2088).
@@ -468,7 +468,7 @@ fn run820_s_word_frame_is_widened_whole() {
     // order rows, `orders.len` on 4257, `angle` on 4371), and so does
     // `1/2073`'s build clock (`job_counter` 16850 against 16800 on 4370):
     // `1/82` reaches `2073` on the original's frame (section 215).
-    pin_eq!(w.firsts.len(), 171, "run820 baseline");
+    pin_eq!(w.firsts.len(), 170, "run820 baseline");
 }
 
 /// run838: the word 4603's window, blocks 4597..4852 at the long's detail (item 2193).
@@ -523,5 +523,5 @@ fn run838_s_word_frame_is_widened_whole() {
     // the new word 4671's block 4672 opens on the leader's `num_units`
     // (302 ours, 304 theirs) and `1/2019`'s `queue:queued` 1 against 0
     // (`docs/AI.md` section 215).
-    pin_eq!(w.firsts.len(), 1371, "run838 baseline");
+    pin_eq!(w.firsts.len(), 1370, "run838 baseline");
 }

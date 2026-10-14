@@ -16671,3 +16671,27 @@ SHA-256 `da978dbcc04dba035081700dcf047239443a95bbd2143681996704e4ac31e264`. Wait
 seed one roll past the frame's opening `c312e778`): `compare_target` returns 1023, 168, 9543 for `1/7`, `1/6`,
 `1/8`; `find_nearby_target(0x900, …)` adds the attack on `1/8`; `Unit::do_move+0x6e6` calls `change_target(8, 1, 7,
 1)`. No test reads it. run840 unused.
+
+## run843 — chapter sixty-five: a non-capital city struck by Hoplites and a Catapult, the city alarm's heavy arms (2026-10-14, item 2235, `att-2235`)
+
+`docs/GOLDEN.md` §81, `tools/gamelog/golden/chapter65.cmd` (six staged lines and one `@attack`). **What the disk
+could not answer**: every city struck on disk is a capital, so `CityData::attack_stamp` had never been written by
+anything but a transfer; the non-capital heavy arm of `Object::do_damage@0064a480`'s city alarm, its siege term and
+its `/10` ceiling for a tower had no record that could part on them.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch65 \
+    --map 14 --end-frame 1100 --log-window 605 1100 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=2,AMMO=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter65.cmd
+```
+
+**One take**, click-free lane 1: `success: true`, `settings_restored`, 1,101 frames, seed 12345, map 14, 592 s launch
+to exit. Kept in `~/ron-golden/ch65/map-14`; `rontrace.dll` SHA-256
+`8bebdddab167e8aea61b3ef055ee2db0ff7ccef8c5751967b4843c4e3ce189f6`. Waited on another lane's capture: none. All four
+falsifiers in the `.cmd` header held: `1/2006` is a city of its own with the Tower and Barracks as members;
+`attack_stamp` 849 on the Catapult's first round on the Barracks `1/2008` (0 + 70 < 1200/4); heavy on 915 at 72 + 4
+= 76 ≥ 750/10; `1/2000` never stamped. **What it holds**: `golden::chapter_sixty_five_holds_to_the_golden_word`
+(**777**, open; ours 8 draws, theirs 6) and `chapter_sixty_five_s_word_frame_is_widened_whole` (605..1101, 357 rows:
+the eleven standing `form` rows and the Catapult's wake from 777). run844 unused.
