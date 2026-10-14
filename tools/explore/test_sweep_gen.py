@@ -296,6 +296,26 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2170, win=8, bias=[], stubs=['0x401000:0'],
                                    vtat='p0+0')
 
+    def test_a_record_s_vtable_may_be_a_class_s_half_the_rows(self):
+        # Item 2223: `UnbuiltCity::is_started` calls slot +0xac of
+        # `objects[who][o]` and compares the record it answers with
+        # `Build::vftable`: equal, a flag byte; else the record's own slot
+        # +0x50. The stubbed vtable is laid at the object (`--vtat`) and at
+        # the record half the rows (`--vtat-half`), the other half left as
+        # the record's word was drawn (a `--wbias` of the class's address).
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2223, win=8, bias=[], stubs=['slot:0xac:0', 'slot:0x50:0'],
+            places=['0xc0618c:0x14+i8(m,2)*0x1c:4', 'p0+0:i16(m,0)*4:4', 'p1+0:0:0xc'],
+            vtat='p2+0', answer_wins=['0:0xc'], vtat_half=['p3+0'], wbias=['p3+0:0xb42174'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("VTATHALF = [('p3', 0)]", script)
+        self.assertLess(script.index('if VTAT is not None:'), script.index('for win, off in VTATHALF:'))
+        self.assertLess(script.index('for win, off in VTATHALF:'), script.index('for a_, b in wins:'))
+        self.assertIn('the stubbed vtable laid at `p3+0` half the rows', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2223, win=8, bias=[], stubs=['0x401000:0'],
+                                   vtat_half=['p0+0'])
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
