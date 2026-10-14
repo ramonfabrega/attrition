@@ -43,9 +43,10 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-                if i16::from_le_bytes([m[0x72], m[0x73]]) < 0 {
-                    0
-                } else if i32::from(p[2][0x5f] as i8) == i32::from(m[9]) {
+                // no city, or the city's owner is the building's: assimilated
+                if i16::from_le_bytes([m[0x72], m[0x73]]) < 0
+                    || i32::from(p[2][0x5f] as i8) == i32::from(m[9])
+                {
                     0
                 } else if m[8] & 0x20 != 0 {
                     1
