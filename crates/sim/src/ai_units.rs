@@ -1677,7 +1677,7 @@ impl Sim {
             return None;
         }
         let ca = self.ai[w].city_ai.get(c).copied().unwrap_or_default();
-        let (free, busy, gatherers) = (i32::from(ca.free), ca.busy, ca.gatherers);
+        let (free, busy, gatherers) = (i32::from(ca.free), ca.busy, i32::from(ca.gatherers));
         if busy == 0 && free == 0 && q == 0 {
             b = wm(b, 30);
         }
@@ -2962,6 +2962,7 @@ mod tests {
             assimilation_timer: 0,
             attack_stamp: 0,
             reduce_stamp: 0,
+            raid_stamp: 0,
             capture_strength: 0,
             pop: 1,
             has_citizen: false,

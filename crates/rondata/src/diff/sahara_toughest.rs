@@ -924,7 +924,7 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 147.
         // Item 1377: 103 → 102, who=1's `defense` (`Build::init`'s `+1`).
         // Item 1457: 98 → 88; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 37, "every key parted on run476");
+        pin_eq!(w.firsts.len(), 35, "every key parted on run476");
     }
 
     /// **The third map's word at Toughest, 7070, widened whole** (item
@@ -2361,7 +2361,7 @@ mod tests {
         // item 1388 (the research queue's two rows, `epoch[2]`, `epochs`,
         // `queued`, `resource_cap` ×5 and `MAKE[3].t`).
         // Item 1451, `largest_gather` (AI §115): 126 → 125, MAKE[3].t.
-        pin_eq!(w.firsts.len(), 60, "every key parted on run562");
+        pin_eq!(w.firsts.len(), 58, "every key parted on run562");
     }
 
     /// **The word 10144, widened whole** (item 1354):
@@ -2555,7 +2555,7 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (9759, 32),
+                (9759, 30),
                 (9765, 1),
                 (9781, 1),
                 (9782, 1),
@@ -2574,7 +2574,7 @@ mod tests {
         // Item 1354, the troops term and the `mylos` cache: 262 → 114.
         // Item 1377, who=1's `defense` standing on 9759 no more: 114 → 113.
         // Item 1461: 110 → 95; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-        pin_eq!(w.firsts.len(), 41, "every key parted on run529");
+        pin_eq!(w.firsts.len(), 39, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):
