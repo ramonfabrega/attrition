@@ -4826,13 +4826,24 @@ with no change of answer.
 swapping `ground_attacker`'s four `has_objmask` masks passes, the answer being an OR of pure predicates with the
 stubbed slot answered in call order (2219's call log would see it).
 
-## Parked by the next landing, slot BM — reserved
+## Parked by item 2281, 2026-10-14 — a stub that records what it was handed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2282) **`obj --record IDX` built** (Loop 2003's twenty-fourth reach, parked 2272 and 2219; names no score): stub
+IDX's calls printed after ` # `, each `ecx,arg..` with a pointer into a window named by it (`m+0x0`, `p0+0x10`) and
+anything else as a signed word, `-` when it was not called; the test hands the port a `log` and holds it to the row.
+It draws no random number, so a script regenerated with it keeps every earlier row. Its test
+(`test_a_stub_may_record_what_it_was_handed`) was made to fail first (`generate_obj() got an unexpected keyword
+argument 'record'`). 2271's six backups and restores regenerated with it now hold their tail `jmp`'s hand-off
+(`m+0x0,p0+0x0` on 157 rows, `-` on the 63 null ones); seven of 2281's ten rest on it. Still owed from 2219: an
+argument that points at the caller's own local (`space_at_corner`'s `&local_c`) prints as a stack address, not
+the words behind it — a dereference per argument would hold `check_building_wcoord`'s corner walk.
+
+(2283) **The decompile drops the arguments of `UnitData::transport_type@0046f790`'s base arm** (2281; names no
+score). It prints the type's slot `+0x60` called with none; the listing pushes `(0x45, 0)` and `(0x3b, 0)` before it
+compares slot `+0xb8` with `ObjectData::is@00653790`, so the base arm hands the type's slot the same pair. Its answers
+are the enum's (`TransportType`: scout 1, military 2, civilian 3, read off the PDB). `ObjectData::num_aircraft_limit@006454a0`
+has the same shape with `(0x15f, 1)`, `(0x1bf, 1)` and `(0x208, 1)`. Both are swept with `--record` holding the pairs;
+no port reads either yet.
 
 ## Parked by the next landing, slot BN — reserved
 

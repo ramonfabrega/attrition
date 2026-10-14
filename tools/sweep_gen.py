@@ -1119,6 +1119,7 @@ ANSRANGE = {ansrange!r}
 CELLTHIS = {cellthis!r}
 VTALSO = {vtalso!r}
 SPARSE = {sparse!r}
+RECORD = {record!r}
 LINKS = {links!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
@@ -1145,6 +1146,16 @@ def u16(w, off):
 
 def u8(w, off):
     return w[off]
+
+
+def token(v, spans):
+    """A recorded value: a pointer into a window by the window's name and
+    offset (`m+0x0`, `p0+0x10`), anything else as a signed word (item 2281)."""
+    v &= 0xFFFFFFFF
+    for name, at, size in spans:
+        if at <= v <= at + size:
+            return f"{{name}}+{{v - at:#x}}"
+    return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
 def wdraw(rng, vals):
@@ -1389,7 +1400,18 @@ def main(argv):
         shown = ([str(a) for a in args] + [str(v) for v in answers]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
                  + ([] if ECXINT is None else [str(ecx)]))
-        print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}")
+        # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
+        # calls joined by `/`, `-` when it was not called, after ` # `
+        # (item 2281: a tail target's `ecx` and argument, parked 2272).
+        log = ""
+        if RECORD:
+            spans = [("m", this, WIN)] + [(f"c{{k}}" if k < nc else f"p{{k - nc}}", a_, len(b))
+                                          for k, (a_, b) in enumerate(wins)]
+            log = " # " + " ".join(
+                "/".join(",".join(token(v, spans) for v in [ecx_] + list(args_))
+                         for name_, ecx_, args_, _ in h.calls if name_ == names[idx]) or "-"
+                for idx in RECORD)
+        print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + log)
     return 0
 
 
@@ -1424,7 +1446,7 @@ fn the_emulated_original_agrees_on_every_row() {{
     }};
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+{logsplit}        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
         let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
@@ -1433,13 +1455,13 @@ fn the_emulated_original_agrees_on_every_row() {{
         let mut p: Vec<Vec<u8>> = wins.split_off({nc});
         let mut c: Vec<Vec<u8>> = wins;
         let want_eax: i64 = eax.trim().parse().expect("an integer");
-        let got: i64 = {{
+{logdecl}        let got: i64 = {{
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {port}
         }};
 {ret}
-        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
+{logcheck}        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "{short} — this's bytes, row `{{line}}`");
         for (i, w) in c.iter().enumerate() {{
             assert_eq!(w, &want[1 + i], "{short} — window c[{{i}}], row `{{line}}`");
@@ -1547,7 +1569,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
-                 place_null=(), sparse=(), ptrarg_null=(), links=()):
+                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1592,6 +1614,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if any(w and w[0] == 's' and not int(w[1:]) < len(pstubs) for w, _, _, _ in pplaces):
         raise ValueError('--place sN:EXPR:SIZE names one of the --stub callees, by its order on the line')
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
+    precord = [int(k, 0) for k in record]
+    if any(not 0 <= k < len(pstubs) for k in precord):
+        raise ValueError('--record IDX names one of the --stub callees, by its order on the line')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
         raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
     peq = []
@@ -1675,6 +1700,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
         + [f'stub {idx} answers {n} values in call order, printed after the answers' for idx, n in pseq]
         + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
+        + [f'stub {idx} records its `ecx` and arguments, a window\'s pointer by its name, after ` # `'
+           for idx in precord]
         + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
         + [f'{n} rows {st:#x} apart at `{"@" if w == "@" else (w + "+" if w else "")}{lo}`, slices '
            + ', '.join(f'+{o:#x}:{z:#x}' for o, z in sl) + ' (`p` windows after the pointed buffers, before the places)'
@@ -1693,12 +1720,20 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
-                                   sparse=psparse, links=plinks)
+                                   sparse=psparse, record=precord, links=plinks)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
+    if precord:
+        logsplit = ('        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");\n'
+                    '        let want_log: Vec<&str> = calls.split_whitespace().collect();\n')
+        logdecl = '        let mut log: Vec<String> = Vec::new();\n'
+        logcheck = (f'        assert_eq!(log, want_log, "{short} — the recorded calls, row `{{line}}`");\n')
+    else:
+        logsplit = logdecl = logcheck = ''
     test = OBJ_WIN_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
-                               ret=retcode, nc=len(pcells) + len(pat), pbase=1 + len(pcells) + len(pat))
+                               ret=retcode, nc=len(pcells) + len(pat), pbase=1 + len(pcells) + len(pat),
+                               logsplit=logsplit, logdecl=logdecl, logcheck=logcheck)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -1875,6 +1910,10 @@ def main(argv=None):
     ap.add_argument('--argeq', action='append', default=[], metavar='IDX:WIN+OFF',
                     help='obj: argument IDX copies the 32-bit word at WIN+OFF (45%%) once every window is laid — '
                          'an argument compared with a placed record\'s field (item 2200)')
+    ap.add_argument('--record', action='append', default=[], metavar='IDX',
+                    help='obj: stub IDX\'s calls printed after ` # `, each `ecx,arg..` with a pointer into a '
+                         'window by its name, and held to a `log` the port pushes (a tail target\'s hand-off; '
+                         'item 2281)')
     ap.add_argument('--seq', action='append', default=[], metavar='IDX:N',
                     help='obj: stub IDX answers N values a row in call order, the last repeated past N, '
                          'printed after the stubs\' answers (a callee called more than once; item 2217)')
@@ -1919,7 +1958,7 @@ def main(argv=None):
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
-                                                    links=args.link)
+                                                    record=args.record, links=args.link)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
