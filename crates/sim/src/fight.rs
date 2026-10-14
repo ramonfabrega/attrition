@@ -3367,6 +3367,9 @@ impl Sim {
             range
         };
         let flags = self.melee_search_flags_with(i, word);
+        if std::env::var_os("RON_PROBE_2205").is_some() {
+            eprintln!("probe2205 f{} melee {i} range {range} r {r} radius {radius} flags {flags:#x}", self.frame);
+        }
         let found = self.find_nearby_target_as(me, radius, flags, cavarch);
         if found.is_none() && self.fires_on_move(i) {
             let n = self.units[i].guys.len().min(crate::anim::SQUAD_SIZE);
