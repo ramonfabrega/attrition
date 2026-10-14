@@ -51,8 +51,10 @@
 /// item 2362: 835 -> 845, the sweep's sixty-eighth batch, eight `vtordisp` thunks through `fwd`'s
 /// `vtordisp` token, `set_shooter_vis` and `issue_unqueue`;
 /// item 2374: 845 -> 873, the sweep's sixty-ninth batch, the twenty-eight `vtordisp` thunks left, one `fwd`
-/// line each, the band empty on `census.py --unbacked`).
-pub const SIMULATION_BACKED: usize = 873;
+/// line each, the band empty on `census.py --unbacked`;
+/// item 2368: 873 -> 883, the second sweep lane's ten with a port consumer, `Caravan::trade_value`'s eight
+/// windows among them, on `--regen`'s kept port block and `--seq`'s terminator).
+pub const SIMULATION_BACKED: usize = 883;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

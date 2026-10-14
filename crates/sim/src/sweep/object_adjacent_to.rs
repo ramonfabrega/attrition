@@ -46,8 +46,8 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // `a[0]` the target's id, `a[1]` its player; the answers from
-            // `a[2]`: `+0x18` (is a unit), `attack_dist@0064c880` (the boat
-            // arm), `attack_dist@006488f0`. This's slot is `m` (`+8` in use,
+            // `a[2]`: `+0x18` (is a unit), the boat arm's `attack_dist`, the
+            // generic arm's `attack_dist`. This's slot is `m` (`+8` in use,
             // `+0x10`/`+0x14` the masked position), the target's `p[1]`
             // (`+8`), this's type `p[2]` (`+0x218` the domain), the unit's
             // own type read back through the units table `p[5]` (`+0x2b4`
