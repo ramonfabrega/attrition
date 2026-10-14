@@ -21,8 +21,9 @@
 /// 2131: 591 -> 602, `docs/GOLDEN.md` §78.1 — `get_final_loc`, `get_loc_to`, `action_move_near`,
 /// `action_move_to`, `process_move_to`, `compute_form`, `add_group_move_order`, and chapter twelve's
 /// follow line, `process_follow`, `action_follow`, `add_follow_order`, `do_follow`; item 2160: 602 -> 612, the sweep's
-/// fifty-third batch; item 2170: 612 -> 622, the fifty-fourth).
-pub const SIMULATION_BACKED: usize = 622;
+/// fifty-third batch; item 2170: 612 -> 622, the fifty-fourth; item 2181: 622 -> 632, the
+/// fifty-fifth).
+pub const SIMULATION_BACKED: usize = 632;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
