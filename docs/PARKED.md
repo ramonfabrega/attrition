@@ -4782,13 +4782,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BI — reserved
+## Parked by item 2229, 2026-10-14 — a re-entry re-issues a queued build by its site's number
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2230) **The successor pair's word 4671: ours 161 draws, theirs 165, index 145** (2229; `docs/AI.md` §215.5; count
+and sequence both). Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`, a birth.
+Block 4672 opens on the leader's `num_units[302]` (ours 1, theirs 0) and `num_units[304]` (ours 0, theirs 1),
+`discovered` 42 against 43, `gov` 623 against 625, and `1/2019`'s `queue:queued` 1 against 0. The Despot `1/191`'s
+figures `g.x[1]`/`g.x[2]` and `mylos` (22 against 14) part on the same block. The word is inside run838
+(4597..4852), so no capture is owed, and its widening is `run838_s_word_frame_is_widened_whole` (`near` now names
+4672). That `1/2019` trained a different type, or trained a frame later, is unread.
+
+(2231) **`finish_insert`'s other target copies are not re-issued by slot** (2229; names no score). Cases 6 and `0xd`
+now resolve through `building_by_o`. An attack copy re-aims at the unit's own `combat.target`, which is a live
+object, never a reused slot. A guard copy re-aims at `gd.target`. Follow, trade and spell copies are seams. No capture
+has a copy whose target's number was reused.
 
 ## Parked by the next landing, slot BJ — reserved
 
