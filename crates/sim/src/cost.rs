@@ -254,6 +254,14 @@ pub struct Modifiers {
     /// `MILITARY_UNIT_DISCOUNT` (item 2331, `docs/GOLDEN.md` §84). Zero is
     /// the identity.
     pub monarchy: i32,
+    /// `get_cost`'s **Socialism arm** (`TypeData::get_cost@00664090:666`–
+    /// `672`, the train arm only, the line after Monarchy's):
+    /// `SOCIALISM_UNIT_BONUS` off a unit whose trainer is the Siege Factory,
+    /// the Airbase or the Dock (`+0x40` `0x1ae`, `0x1bf`, `0x1b0`, each by
+    /// equality) when `has_preq(SOCIALISM_1)` holds. Its own
+    /// `(100 − x) × cost / 100`, after [`Modifiers::monarchy`] (item 2357,
+    /// `docs/GOLDEN.md` §85). Zero is the identity.
+    pub socialism: i32,
     /// `get_cost`'s **library-line tail** (`00666b7d`): up to three
     /// percentages off a library epoch's price, each its own
     /// `(100 − x) × cost / 100` in order, after
@@ -541,6 +549,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     cost = cost * (100 - m.late_discount) / 100;
     if m.monarchy != 0 {
         cost = (100 - m.monarchy) * cost / 100;
+    }
+    if m.socialism != 0 {
+        cost = (100 - m.socialism) * cost / 100;
     }
     if m.silver != 0 {
         cost = (100 - m.silver) * cost / 100;
