@@ -271,6 +271,7 @@ mod borders_out_no_border;
 mod build_add_attack_order;
 mod build_all_gathering;
 mod build_check_gatherers;
+mod build_data_calc_gather;
 mod build_data_can_make;
 mod build_data_can_queue;
 mod build_data_can_queue_4d2030;
