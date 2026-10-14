@@ -24,9 +24,9 @@
 /// fifty-third batch; item 2170: 612 -> 622, the fifty-fourth; item 2181: 622 -> 632, the
 /// fifty-fifth; item 2165: 632 -> 639, `docs/GOLDEN.md` §79.1 — `Unit::init`'s Bark arm,
 /// `set_stance`, `fight`'s re-search, `issue_stance`, `process_stance`, `action_stance`,
-/// `get_stance_option`, `get_stance_type`; item 2200: 639 -> 649, a second sweep lane's ten with a
-/// port consumer).
-pub const SIMULATION_BACKED: usize = 649;
+/// `get_stance_option`, `get_stance_type`; item 2187: 639 -> 649, the sweep's fifty-sixth batch; item
+/// 2200: 649 -> 659, a second sweep lane's ten with a port consumer).
+pub const SIMULATION_BACKED: usize = 659;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
