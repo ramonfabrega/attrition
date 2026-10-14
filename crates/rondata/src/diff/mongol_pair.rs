@@ -36,12 +36,19 @@ pub(crate) const MONGOL: Pair = Pair {
     // `produce_building`'s builder walk runs in object-number order, so
     // the Citizens `1/186` and `1/208`, tied at 171 for 4182's site, keep
     // the original's jobs (`docs/AI.md` section 210).
+    // Item 2155: 4338 -> 4353 (ours 36 draws, theirs 35, index 17): the
+    // Supply Wagon `1/205`'s dying move on 4082 hands its mirror to its
+    // army's record rather than the siege sub-group's stack record, so its
+    // re-issued `ATTACK_TO` carries the original's `facing` 1 and its
+    // hand-back on 4338 clears `unit_masks & 2` as the original's does —
+    // the helicopters guarding it keep their posts (`docs/AI.md` section
+    // 212).
     // `1/24` re-inited a transport on 3835 that the original holds a
     // frame: its captain `1/23` had taken its own transport cast on its
     // step, and `do_cast`'s member check hands the clock back
     // (`005ecd9c`..`005ecdf0`, `docs/AI.md` section 207).
-    count: 4338,
-    sequence: 4338,
+    count: 4353,
+    sequence: 4353,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -417,5 +424,12 @@ fn run820_s_word_frame_is_widened_whole() {
     // sends `1/186` west as the original does; the first row past the
     // standing ones is `1/82`'s `orders.len` on 4257 (`docs/AI.md`
     // section 210).
-    pin_eq!(w.firsts.len(), 1123, "run820 baseline");
+    // Item 2155: 1,123 -> 1,128 — block 4232's standing `1/205`
+    // `order:move.facing` (ours 0, theirs 1) and all 60 rows of block 4339
+    // leave (`1/205`'s `mirror` ours 1 theirs 0, `1/215`'s `orders.len` 1
+    // against 2, `1/172`'s guard post (29784, 34056) against (30984,
+    // 33048), the General `1/175`'s 31); the Freighter `1/191` parts first
+    // on 4343 (`myhits` 599 against 659) and the run's tail moves
+    // (`docs/AI.md` section 212).
+    pin_eq!(w.firsts.len(), 1128, "run820 baseline");
 }

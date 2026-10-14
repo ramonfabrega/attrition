@@ -4553,13 +4553,20 @@ answer record's `+0x10` or `+0x14` `^ 0x63637` through `[esp+4]`, the hidden ret
 `outptr` with a per-player-table object and a stubbed slot whose answer names a window. Build it as `obj` with
 `--stub slot` answering a pointer to a window when two are taken.
 
-## Parked by the next landing, slot AV — reserved
+## Parked by item 2155, 2026-10-13 — a dying move's mirror goes to the army, not the stack
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2156) **The successor pair's word 4353: 36 draws against 35, index 17** (2155; `docs/AI.md` §212.5). Ours spends
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` for the Transport Helicopter `1/227` (`TypeIndex` 311, group 83, guarding `1/171`).
+Theirs spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`. `1/227`'s `order:kind` parts on its block (ours 12, theirs 2). Ahead
+of it: The Despot `1/191` (`TypeIndex` 352) parts on 4343 (`myhits` 599 against 659) and 4344 (`group` 83 against 89), and
+`1/153`, `1/184`, `1/227` on `g.angle[0]` on 4350. That The Despot is the cause is a hypothesis. Inside run820's window
+(4232..4488): every record on 4353 both ways first.
+
+(2157) **Other writes a member makes to its group's record while a stack group holds the seat** (2155; names no score).
+`Sim::set_aside` routes the dying move's hand-back and `unit_set_angle`'s toggle to the parent's record. Any other member-side
+writer of `GroupState` reached from inside `group_action_move_to` (`hurry`, `stamp`, the slot tables) would still land on the
+stack. Candidate: grep `gstate_mut(&self.group_of(` and `group_of(u)` + `gstate_mut` in the functions `group_action_move_to`
+calls.
 
 ## Parked by item 2160, 2026-10-13 — the sweep's fifty-third batch
 
