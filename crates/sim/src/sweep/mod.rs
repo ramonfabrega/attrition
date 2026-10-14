@@ -283,6 +283,7 @@ mod build_data_max_gatherers;
 mod build_data_most_shots;
 mod build_data_num_gather;
 mod build_data_num_gatherers;
+mod build_find_city;
 mod build_finished;
 mod build_queue_data_get_job_counter;
 mod build_queue_data_get_next_non_caravan;
