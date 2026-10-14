@@ -11788,12 +11788,84 @@ The draw stream does not see it. Parked 2206.
 
 **Reading alone**: the transport's `×40`, the `/ (full + 1)`.
 
-## 81. Reserved for the next item on the rules track
+## 81. Chapter sixty-five — the city alarm: a struck city's raid and attack stamps (item 2235)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** DECISIONS 56 §3, three candidates: the raid's `raid_stamp` writer (2110), `ai_sites`' wrapping
+decrement (2111) and 2196. **The arm chosen is 2110**, because the disk already held it: five golden widenings
+(chapter forty-one's 672, forty-three's and forty-six's 1426, forty-eight's 1490, fifty-five's 777) and about fifty
+long pins (the third pair's closing, run714's) stood on `1/2000 city:raid_stamp` or `0/2000`'s. 2196 has no staging
+(a unit in a building group); 2111 is AI-driven.
+
+**The reading** (`Object::do_damage@0064a480`, the export's lines 296–735). Under `attacker != victim`, before
+`take_damage`, `local_14` is "a siege attacker (type vslot `+0x10c`, `ObjectTypeData::is_siege`; for a unit
+`UnitTypeData::is_siege`, `unit_flags & 0x20000`) against a building (target vslot `+0x1c`)". Then:
+
+- **The building branch** (an active building whose `BuildData +0x72 city` ≥ 0). Heavy (`local_34`) is `local_14`,
+  or `damage + dealt >= hits / 10` when the type answers vslot `+0x104` (`ObjectTypeData::is_defense`, `is_fort ||
+  is_tower`) or the building carries `obj_flags & 0x20` (a city), else `>= hits / 4`.
+  - Not the capital: heavy raises the alarm (`local_30 = 1`) when `frame − city.attack_stamp > 300`, then writes
+    `attack_stamp = raid_stamp = frame`; light writes `raid_stamp` alone.
+  - The capital (`city_flags & 0x10`): heavy raises it when `frame − leader[victim].capital_stamp[attacker]`
+    (`LeaderData +0x134`) `> 300` and stamps that; **no city stamp**. Light writes `raid_stamp`.
+  - The leader's own `attack_stamp`, `raid_stamp`, `ally_stamp[attacker]` and the notices are not carried: only
+    `LEADERS=9` prints them.
+- **The worker arm** (the unit branch, lines 400–424): a struck worker (`is_worker`, types 0x32–0x35) whose action
+  (`UnitData::get_action@00608450`) answers `get_gather_order` (order vslot `+0xe4`, by the PDB's method record)
+  with an active building of the victim's in a city raids that city — always light.
+- `Armies::emergency(victim)` (`docs/ARMY.md` §15.8) only when `local_30` is set, the take did **not** kill (a
+  non-zero `take_damage` returns first) and the victim is a computer. This crate fired it on every cross-owner hit
+  on a city building.
+
+**Built** (`crates/sim/src/fight.rs`, `Sim::city_alarm`, called before the take; `AiLeader::capital_stamp`): both
+arms, and the emergency gated on the alarm's answer and on `!killed`.
+`the_city_alarm_raids_light_attacks_heavy_and_spares_the_capital_s_stamps` (`crates/sim/src/cities_tests.rs`)
+holds the ceilings and the capital on a fixture.
+
+**On disk, before the capture** (run437, chapter forty-one). Theirs' `raid_stamp` 671, 672 and 690 are hits on
+citizens gathering at the Farm `1/2001` (the worker arm); 722 on are hits on `1/2002`. The capital's heavy arm at its
+boundary: `1/2002` (400 hits) at 95 + 5 = 100 on 946, and theirs' `raid_stamp` stays 940 from there to 1770. With
+both arms the raid row leaves chapter forty-one's widening, which holds through 1770, and every pin that stood on it
+is one row fewer (`tools/repin.py --write`, 76 pins in 8 files; run100's standing city residue one → zero).
+
+**What the disk could not answer.** Every city struck on disk is a capital, so `attack_stamp` had never been written
+by anything but a transfer: the non-capital heavy arm, the siege term and the `/10` ceiling.
+
+**The census rows the lobby reaches**, named before the capture (`census.py --unbacked`, never backed):
+`UnitData::get_action@00608450` (the worker arm, run437's); `Armies::emergency@006f3250` is the alarm's consumer,
+and a computer under `!ai off` holds no army, so the staging does not reach it.
+
+**The staging** (`tools/gamelog/golden/chapter65.cmd`), walked by this crate on run437's start: who=1 `add
+small_city` on (196, 116) founds `1/2006`, a city that is not the capital; its Tower `1/2007` on (200, 113) and
+Barracks `1/2008` on (190, 121); who=0's Hoplites `0/6` on (206, 113) attack the Tower on 620; the Catapult `0/9` on
+(180, 128) is left to engage on its own.
+
+**run843** (605..1100, one take, click-free lane 1, 592 s, 1,101 frames, seed 12345). The four falsifiers written
+before the run held. The original's `1/2006`: `raid_stamp` alone 659 … 823 (light, as walked); **`attack_stamp` 849,
+the Catapult's first round on the Barracks** — 0 + 70 < 1200/4, so only the siege term makes it heavy; then light
+851–887; **heavy on 915**, a Hoplite's hit at 72 + 4 = 76 ≥ 750/10, the `/10` ceiling, walked and dumped on the same
+frame; `1/2000` never stamped.
+
+**The word: 777, open** (ours 8 draws, theirs 6: ours' two `Guy::set_anim+0xf2f < Unit::set_anim` for `0/9`).
+Block 777: `0/9`'s `near` is (2006, 1) here against (−1, −1) there, `orders.len` 1 against 0 — this crate's idle
+search finds the Small City on 777, and the original's Catapult engages the Barracks later (its first damage on
+block 850). Seed on 777 `0x0be7ad26`. The widening (605..1101, 357 rows) is the eleven standing `form` rows (605)
+and the Catapult's wake. Parked 2236.
+
+**Not established.**
+
+- The leader's `attack_stamp`, `raid_stamp` and `ally_stamp`, and the notices (`LEADERS=9` alone prints them).
+- `Armies::emergency`'s gate: no capture under `!ai off` holds an army.
+- Chapter sixty-five's stamps after 777 are compared on a walk whose Catapult has already parted (ours strikes the
+  Small City, theirs the Barracks): the dump's 849 is heavy by the siege term alone (0 + 70 < 1200/4), and 915's
+  Hoplite hit crosses the `/10` ceiling on the same frame on both sides, but the widening holds neither as a row
+  until the word moves past them.
+
+### 81.1 Coverage
+
+**Diff-backed**: the light arm and the worker arm with `UnitData::get_action@00608450` (run437's widening, the
+raid row gone from every pin); the capital's heavy arm at its `/4` boundary (run437, 946). **Walked against a dump
+row, not yet held by a widening**: the siege term (run843, 849) and the `/10` ceiling (run843, 915). **Reading
+only**: the `Armies::emergency@006f3250` gate.
 
 ## 82. Reserved for the next item on the rules track
 

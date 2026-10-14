@@ -8452,7 +8452,9 @@ pub(crate) mod tests {
         /// block. They are the one thing besides the queue that opens
         /// inside the window, and they are who=0's. **Since item 1034
         /// `0x2` is held** (`docs/COMBAT.md` §69) and agrees; `raid_stamp`
-        /// opens here alone.
+        /// opened here alone. **Closed on item 2235** (`docs/GOLDEN.md`
+        /// §81): `Object::do_damage`'s city alarm writes it, and the row
+        /// no longer opens; the exemption stays so the history reads.
         const RAID: i64 = 9_451;
         /// ~~**`1/28` one world unit east**, item 477's row and the
         /// block the word stood on until item 478 moved it past.~~
@@ -8889,11 +8891,13 @@ pub(crate) mod tests {
         // who=1's city rows (the census's `land`/`filled`/`space`) agree
         // now that the circle walk starts at entry 1. **Fourteen → one on
         // item 1605** (`docs/AI.md` §169): the human's thirteen census rows
-        // agree once its sweep runs; `raid_stamp` stands alone.
+        // agree once its sweep runs; `raid_stamp` stands alone. **One →
+        // zero on item 2235** (`docs/GOLDEN.md` §81): `do_damage`'s city
+        // alarm writes `raid_stamp`, and the window's city records agree.
         assert_eq!(
             cities.len(),
-            1,
-            "the window's standing city residue is not one field: {cities:?}"
+            0,
+            "the window's standing city residue is not empty: {cities:?}"
         );
         assert!(
             cities.keys().all(|(w, o, _)| (*w, *o) != (1, 2_019)),

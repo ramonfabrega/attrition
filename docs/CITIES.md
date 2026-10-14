@@ -108,7 +108,7 @@ Fields this mechanic reads and writes, named from `types.txt`:
 | `CityData +0x4 city_flags` | §1.4 |
 | `+0x6 city`, `+0x8 o` | its own index; the city **building's** `o` — the head of the member chain |
 | `+0xa reg`, `+0xc/+0x10 x, y` | the region of its cell; the building's position |
-| `+0x14 attack_stamp`, `+0x18 raid_stamp`, `+0x20 capture_stamp`, `+0x24 assimilation_timer` | 0 at founding; the current frame on a transfer |
+| `+0x14 attack_stamp`, `+0x18 raid_stamp`, `+0x20 capture_stamp`, `+0x24 assimilation_timer` | 0 at founding; the current frame on a transfer; `attack_stamp`/`raid_stamp` also by `Object::do_damage`'s city alarm on a hit (`docs/GOLDEN.md` §81, item 2235) |
 | `+0x28 capture_strength` | §7.2 |
 | `+0x52 trade_val`, `+0x56..+0x59 granary/lumber_mill/smelter/refinery` | `docs/ECONOMY.md` |
 | `+0x5d pop` | 1 at init, copied on capture; **not** the pop value (`get_pop_value` is computed from the level) and not touched by a level-up |

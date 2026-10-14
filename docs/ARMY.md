@@ -1431,13 +1431,19 @@ of the point's tile.
    12129 — this entry's original evidence — is a blow on the AI's **capital**,
    not on a unit.
 
-   **What `crates/sim/src/fight.rs` carries**: the building-with-a-city
-   conjunct alone. The threshold and the 300-frame cooldown are read-only
-   and both only make the emergency *rarer*, so the crate still fires where
-   the original would not on a lightly-damaged city building.
-   *Falsifier:* a `DUMP_ALL` window over a frame on which an AI leader's city
-   building takes a hit under a quarter of its hits, read for whether that
-   leader's armies' `target_o` goes to `-1`.
+   ~~**What `crates/sim/src/fight.rs` carries**: the building-with-a-city
+   conjunct alone.~~ **Since item 2235** (`docs/GOLDEN.md` §81) it carries
+   the whole gate: `Sim::city_alarm` is the building branch — the siege
+   term, the `/10` and `/4` ceilings, the non-capital arm's
+   `attack_stamp` cooldown and the capital arm's `capital_stamp[attacker]`
+   (`LeaderData +0x134`, `AiLeader::capital_stamp`) — and the emergency
+   fires on its answer, only when `take_damage` did not kill (a non-zero
+   take returns before the call) and the victim is a computer. The stamps
+   and both thresholds are diff-backed (§81.1); the `emergency` call
+   behind them is reading only, since no capture under `!ai off` holds an
+   army. *Falsifier:* a `DUMP_ALL` window over a frame on which an AI
+   leader's city building takes a hit under a quarter of its hits, read for
+   whether that leader's armies' `target_o` goes to `-1`.
 
    The body, for the in-use, non-human leader
    with `leader_flags2 & 0xa == 0`, **every valid army** has `target =
