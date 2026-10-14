@@ -294,6 +294,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `Game::current_age@005946d0` (`docs/AI.md` §218, `docs/PARKED.md` 2321):
 /// the rush rules' arms, which no pinned trace sets; the peace pair's
 /// lobby reaches them at `cover=0`, so a `cover=1` take would enter them.
+/// **336** with item 2341's cite of `Group::kill_group_move@007123f0`
+/// (`docs/PARKED.md` 2345): `Unit::repath`'s grouped-`GROUP_MOVE` arm,
+/// swept under the emulator with it stubbed, and no trace enters it.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -319,7 +322,7 @@ pub const NEVER: &[u32] = &[
     0x0070_0010, 0x0070_20c0,
     0x0070_84c0,
     0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60,
-    0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0, 0x0071_3390,
+    0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0, 0x0071_23f0, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,
     0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0, 0x0073_c5e0, 0x0073_c780, 0x0073_c7e0, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060,
     0x0074_1a40, 0x0074_1d50, 0x0082_c520, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7050, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0091_25e0, 0x0091_3960, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_1530, 0x0094_17a0,

@@ -1563,12 +1563,25 @@ impl Sim {
 
     /// `Army::set_stance(s)` (§6): `Group::action_stance` on the one group,
     /// and only when its stance panel is the combat one.
+    /// The steps are [`set_stance_steps`]'s (item 2341's sweep); the army's
+    /// group slots collapse to the one group (`num_groups` 1 while it has
+    /// members), whose `num` is its member count.
     fn army_set_stance(&mut self, who: Player, slot: usize, s: Stance) {
-        let g = self.army_group(who, slot);
-        if self.group_stance_type(&g) != crate::group::StanceType::Combat {
-            return;
-        }
-        self.group_action_stance(&g, crate::group::stance_option(s));
+        set_stance_steps(
+            self,
+            |sim| i16::from(!sim.armies[who as usize].list[slot].units.is_empty()),
+            |_, _| 0,
+            |sim, _| sim.armies[who as usize].list[slot].units.len() as i32,
+            |sim, _| {
+                let g = sim.army_group(who, slot);
+                sim.group_stance_type(&g) == crate::group::StanceType::Combat
+            },
+            |sim, _, s| {
+                let g = sim.army_group(who, slot);
+                sim.group_action_stance(&g, s);
+            },
+            crate::group::stance_option(s),
+        );
     }
 
     // ---- the helpers (§14) ----
@@ -3242,6 +3255,33 @@ pub(crate) fn generals_walk<C>(
         if in_use(cx, u) && hero(cx, u) && cast(cx, u) {
             return;
         }
+    }
+}
+
+/// **`Army::set_stance@006f8750`'s steps** (item 2341): for each of the
+/// army's group slots (`+0x54`, the count the short `+0x96`, re-read every
+/// pass), a slot `>= 0` names a group (`groups` `+0x10`, stride `0x9d4`);
+/// one whose `num` (`+0xc`) is non-zero and whose
+/// `GroupData::get_stance_type@0070d370` is `STANCE_COMBAT` (0) is handed
+/// `Group::action_stance@0070d440(s)`, in slot order. The callees are the
+/// caller's: `count`, `slot_at(i)`, `num(g)`, `is_combat(g)` and
+/// `action(g, s)`.
+pub(crate) fn set_stance_steps<C>(
+    cx: &mut C,
+    count: impl Fn(&C) -> i16,
+    slot_at: impl Fn(&C, usize) -> i32,
+    num: impl Fn(&C, i32) -> i32,
+    mut is_combat: impl FnMut(&mut C, i32) -> bool,
+    mut action: impl FnMut(&mut C, i32, i32),
+    s: i32,
+) {
+    let mut i = 0usize;
+    while (i as i32) < i32::from(count(cx)) {
+        let g = slot_at(cx, i);
+        if g >= 0 && num(cx, g) != 0 && is_combat(cx, g) {
+            action(cx, g, s);
+        }
+        i += 1;
     }
 }
 
