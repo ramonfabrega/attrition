@@ -890,6 +890,15 @@ class Shapes(unittest.TestCase):
         self.assertEqual(sweeplib.xmm_bits(-2.5), 0xc0200000)
         self.assertEqual(sweeplib.xmm_bits(0x42280000, raw=True), 0x42280000)
 
+    def test_a_free_function_is_a_name(self):
+        # Item 2346: `add_type_bucket2@00669140` and `add_type_bucket` are
+        # free functions (`types.cpp`), and the name refused them; the census
+        # backs one by `name@va` as it backs `get_unique_types@00669120`.
+        self.assertEqual(sweep_gen.parse('add_type_bucket2@00669140'), ('add_type_bucket2', 0x669140))
+        self.assertEqual(sweep_gen.snake('add_type_bucket2'), 'add_type_bucket2')
+        _, test = self.check('const', 'add_type_bucket@00669160', port='0')
+        self.assertIn('add_type_bucket@00669160', test)
+
     def test_a_function_spelled_another_way_is_refused(self):
         with self.assertRaises(ValueError):
             sweep_gen.generate('const', 'get_type', item=1)

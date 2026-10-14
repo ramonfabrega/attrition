@@ -136,7 +136,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 EMU = ROOT / 'tools/emu'
 SWEEP = ROOT / 'crates/sim/src/sweep'
-NAME = re.compile(r'^([A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_~][A-Za-z0-9_<>=!\[\]+\-*/%&|^]*)+)@(00[0-9a-f]{6})$')
+# A method `Class::name`, or a free function `name` (item 2346: `add_type_bucket2`).
+NAME = re.compile(r'^([A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_~][A-Za-z0-9_<>=!\[\]+\-*/%&|^]*)*)@(00[0-9a-f]{6})$')
 
 
 def snake(qualified):
@@ -151,7 +152,7 @@ def snake(qualified):
 def parse(spec):
     m = NAME.match(spec)
     if not m:
-        raise ValueError(f'a function is `Class::method@00xxxxxx`, not `{spec}`')
+        raise ValueError(f'a function is `Class::method@00xxxxxx` or `name@00xxxxxx`, not `{spec}`')
     return m.group(1), int(m.group(2), 16)
 
 
