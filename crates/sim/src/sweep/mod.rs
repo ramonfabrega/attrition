@@ -659,6 +659,7 @@ mod unit_data_transport_type;
 mod unit_data_turn_speed;
 mod unit_data_will_be_corner;
 mod unit_die;
+mod unit_do_attack_to_pause;
 mod unit_do_flee_to;
 mod unit_do_gather;
 mod unit_do_spec_unit_anim;

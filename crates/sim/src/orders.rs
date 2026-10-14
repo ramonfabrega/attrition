@@ -2929,12 +2929,27 @@ impl Sim {
     /// 0 — so a Supply Wagon with its escort's captain inside `0x600`
     /// stops. The order's `pause` becomes 15, and `do_move` stands it out.
     fn do_attack_to_pause(&mut self, u: usize) {
-        let Some(seat) = self.seat_of(u) else { return };
-        if !self.units[u].alive() || !self.seat_list(seat).contains(&u) {
-            return;
+        let seat = self.seat_of(u);
+        let pause = attack_to_pause_steps(
+            self,
+            seat,
+            |w, &s| w.units[u].alive() && w.seat_list(s).contains(&u),
+            |w, &s| w.is_attacking_near(s, w.units[u].pos),
+        );
+        if pause
+            && let Some(front) = self.units[u].orders.front_mut()
+            && let Some(m) = front.move_mut()
+        {
+            m.pause = 15;
         }
+    }
+
+    /// `Group::is_attacking_near@00710e40`, as
+    /// [`Self::do_attack_to_pause`] describes it: `normalize`, then the
+    /// armed captains within `0x600` of `at`, yes when `near ≠ 0` and no
+    /// more than half of them are walking.
+    fn is_attacking_near(&mut self, seat: crate::group::Seat, at: Pos) -> bool {
         self.seat_normalize(seat);
-        let at = self.units[u].pos;
         let (mut near, mut attacking) = (0, 0);
         for m in self.seat_list(seat).clone() {
             let unit = &self.units[m];
@@ -2962,13 +2977,7 @@ impl Sim {
                 attacking += 1;
             }
         }
-        if near != 0
-            && attacking >= near / 2
-            && let Some(front) = self.units[u].orders.front_mut()
-            && let Some(m) = front.move_mut()
-        {
-            m.pause = 15;
-        }
+        near != 0 && attacking >= near / 2
     }
 
     /// **The pack arm** of `Unit::work@0060d180` (`0060d440`–`0060d626`,
@@ -10263,6 +10272,20 @@ pub(crate) fn group_member_walk<C>(
 /// `kill_current_order(0)`; then, when an order is left (the list's head,
 /// `+0xdc`), its type (vslot `+0x10`) ends the call unless it is `NONE`;
 /// a worker type (`0x32`..`0x35`) runs `think_peasant(1)`.
+/// **`Unit::do_attack_to_pause@005f22a0`'s steps** (item 2314): a unit
+/// in a group (`+0x80 >= 0`) that holds it active (`GroupData::member(o,
+/// who, 1)`) pauses when `Group::is_attacking_near` at its position says
+/// yes; `near` is not asked when `member` says no.
+pub(crate) fn attack_to_pause_steps<C, G>(
+    cx: &mut C,
+    group: Option<G>,
+    member: impl FnOnce(&mut C, &G) -> bool,
+    near: impl FnOnce(&mut C, &G) -> bool,
+) -> bool {
+    let Some(g) = group else { return false };
+    member(cx, &g) && near(cx, &g)
+}
+
 pub(crate) fn think_order_steps<C>(
     cx: &mut C,
     kill: impl FnOnce(&mut C),
