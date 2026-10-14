@@ -21,8 +21,8 @@ measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 mediu
 - **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
   `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
 - **Lanes: three** (Ramon, DECISIONS 71): 2384 on Opus 5.5 medium; 2389 and the sweep lane (2395 landed, then 2400)
-  on Sonnet 5.5 medium. Live: 2384 (AI §220, CF, runs 853–855), 2389 (GOLDEN §86, CG, run 856), 2400 (CI, items
-  2401–2404). Landed: 2395 (Census 894 → 904). Next 2410, run 857, AI §221, GOLDEN §87, park CJ.
+  on Sonnet 5.5 medium. Live: 2384 (AI §220, CF, runs 853–855), 2389 (GOLDEN §86, CG, run 856), 2400 (CI).
+  Landed: 2395 (Census 894 → 904). Next 2410, run 857, AI §221, GOLDEN §87, park CJ.
 - **Fable backlog: 11 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407, 2408, 2409).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
