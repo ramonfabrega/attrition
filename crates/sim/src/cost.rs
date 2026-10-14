@@ -246,6 +246,14 @@ pub struct Modifiers {
     /// the original, after the captured-building doubling rather than before it
     /// — the Supercollider surcharge and the Indian elephant discount.
     pub late_discount: i32,
+    /// `get_cost`'s **Monarchy arm** (`TypeData::get_cost@00664090:657`–`665`,
+    /// the train arm only): `MONARCHY_UNIT_PROD` off a unit whose trainer is
+    /// the Stable (`+0x40 == 0x1ac`, by equality) when either `MONARCHY_1` or
+    /// `MONARCHY_2` is held — `_PROD2` is never read here. Its own
+    /// `(100 − x) × cost / 100`, after [`Modifiers::late_discount`]'s
+    /// `MILITARY_UNIT_DISCOUNT` (item 2331, `docs/GOLDEN.md` §84). Zero is
+    /// the identity.
+    pub monarchy: i32,
     /// `get_cost`'s **library-line tail** (`00666b7d`): up to three
     /// percentages off a library epoch's price, each its own
     /// `(100 − x) × cost / 100` in order, after
@@ -531,6 +539,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
         cost = cost.wrapping_mul(100 - m.democracy) / 100;
     }
     cost = cost * (100 - m.late_discount) / 100;
+    if m.monarchy != 0 {
+        cost = (100 - m.monarchy) * cost / 100;
+    }
     if m.silver != 0 {
         cost = (100 - m.silver) * cost / 100;
     }
@@ -1311,6 +1322,34 @@ mod tests {
         assert_eq!(at(Resource::Food, [15, 0]), 51);
         assert_eq!(at(Resource::Timber, [15, 0]), 34);
         assert_eq!(at(Resource::Food, [15, 15]), 43);
+    }
+
+    /// **Monarchy takes its quarter after `MILITARY_UNIT_DISCOUNT`, in a
+    /// truncation of its own** (`get_cost@00664090:657`–`665`; item 2331,
+    /// `docs/GOLDEN.md` §84). run845's second Light Horse is 61 food ramped,
+    /// 45 under Monarchy alone; under a 10% military discount as well it is
+    /// 54 then 40, where one fold of 35% would give 39.
+    #[test]
+    fn monarchy_takes_its_quarter_after_the_military_discount() {
+        let horse = Price {
+            class: RampClass::Military,
+            pop: 1,
+            ..Price::free()
+                .with_base(Resource::Food, 6)
+                .with_support(Resource::Food, 1)
+        };
+        let at = |late_discount, monarchy| {
+            let m = Modifiers {
+                late_discount,
+                monarchy,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &horse, Resource::Food, owned(1), &m)
+        };
+        assert_eq!(at(0, 0), 61);
+        assert_eq!(at(0, 25), 45);
+        assert_eq!(at(10, 25), 40);
+        assert_eq!(at(35, 0), 39);
     }
 
     /// **The Statue of Liberty takes its third off the base, not the

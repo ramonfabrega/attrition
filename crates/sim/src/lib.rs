@@ -2226,6 +2226,7 @@ impl Sim {
             },
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
+                monarchy: self.monarchy_cost_discount(who, ty),
                 discount,
                 stable_rares,
                 liberty,
@@ -2234,6 +2235,30 @@ impl Sim {
             },
         };
         self.price_with(who, ty, &m)
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Monarchy arm** (`:657`–`665`, the
+    /// train arm, after `MILITARY_UNIT_DISCOUNT`): a unit whose trainer
+    /// (`UnitTypeData +0x40`) is the Stable, by equality, of a player for
+    /// whom `has_preq(MONARCHY_1)` or `has_preq(MONARCHY_2)` holds, takes
+    /// `MONARCHY_UNIT_PROD` — on either tier; `MONARCHY_UNIT_PROD2` is
+    /// `train_time`'s alone (item 2331, `docs/GOLDEN.md` §84).
+    pub fn monarchy_cost_discount(&self, who: Player, ty: usize) -> i32 {
+        let trainer = self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.where_);
+        let preqs = &self.tech_tree.roles.monarchy_preqs;
+        let p = &self.tech[who as usize];
+        let held = preqs.iter().flatten().any(|qs| {
+            qs.iter()
+                .all(|&q| self.tech_tree.has_tech_p(&self.setup, p, q))
+        });
+        if trainer == Some(nations::ty::STABLES[0]) && held {
+            self.tuning.monarchy_unit_prod[0]
+        } else {
+            0
+        }
     }
 
     /// The building type a unit type is trained at — `UnitTypeData +0x40`,
@@ -5755,12 +5780,22 @@ impl Sim {
         // Gaia's animals: `Animal::process` is `Unit::process` without
         // a player behind it — no heal, no attrition, no reload; the
         // order step (`Animal::do_idle` when idle) and the body follow.
+        //
+        // `Animal::process@005d72c0` is [`anim::animal_process_steps`]: the
+        // `+0x188` think (`Animal::work`), then `Guy::process` on the
+        // squad and the crew, the walk handed to the body's frame.
         if self.units[i].is_gaia() {
             if self.units[i].on_map {
-                self.work(i, frame);
-                if self.units[i].alive() && self.units[i].on_map {
-                    self.process_movement(i);
-                }
+                anim::animal_process_steps(
+                    self,
+                    |s| s.work(i, frame),
+                    |s| s.guy_walk_counts(i),
+                    |s, walk| {
+                        if s.units[i].alive() && s.units[i].on_map {
+                            s.process_movement_on(i, walk);
+                        }
+                    },
+                );
             }
             return;
         }
@@ -6005,6 +6040,14 @@ impl Sim {
     /// the unit *now* is. The unit step itself is the move order's
     /// (`orders::do_move`), in the same frame and before this.
     fn process_movement(&mut self, i: usize) {
+        let (guy_mark, squad, len) = self.guy_walk_counts(i);
+        let walk: Vec<usize> = anim::process_walk(guy_mark, squad, len).collect();
+        self.process_movement_on(i, &walk);
+    }
+
+    /// [`Sim::process_movement`] on the figures `Guy::process` runs on, in
+    /// [`anim::process_walk`]'s order.
+    fn process_movement_on(&mut self, i: usize, walk: &[usize]) {
         let unit = &self.units[i];
         let m = unit.movement;
         let facing = m.facing;
@@ -6067,7 +6110,7 @@ impl Sim {
             let pos = self.units[i].pos;
             self.crew_des(i, pos, follow.facing, false);
         }
-        self.guys_follow(i, was_at_des, &mut turn);
+        self.guys_follow_on(i, walk, was_at_des, &mut turn);
         // A helicopter's figure height (item 1048): `Guy::move:47`'s
         // `last_z = z` at its head, and the moving arm's
         // `Guy::set_new_location(·, 0)` (`:190`) climbs it at the body's
@@ -6115,7 +6158,7 @@ impl Sim {
         //
         // Guy 0's position after either arm is the unit's own, so the two
         // are one expression here — written above, ahead of the figures
-        // ([`Sim::guys_follow`] runs the tracked ones in their slots).
+        // ([`Sim::guys_follow_on`] runs the tracked ones in their slots).
         // `Guy::process@005e0230:30–56`, right after `Guy::move`: a pivot
         // figure (`guy_flags & 0x100`, its type has `<RESTRICTION>` rows)
         // turns each turret toward where `set_all_pivots` last told it,
@@ -6206,7 +6249,24 @@ impl Sim {
         // order scale and the slow ground, never the group cap
         // (`docs/MOVEMENT.md`, "The crew's speed"). The type's base
         // speed stepped a guarding computer's crew a quarter slow.
-        let speed = self.get_speed_at(i, f.body.pos, 1);
+        // Its `+9` for a squad figure on a group order is
+        // [`orders::guy_speed_steps`]'s; `g` is this figure's `guy_num`.
+        let speed = orders::guy_speed_steps(
+            &mut (),
+            g as i32,
+            |_| self.get_speed_at(i, f.body.pos, 1),
+            |_| anim::SQUAD_SIZE as i32,
+            |_| !self.units[i].orders.is_empty(),
+            |_| self.current_order(i).is_some(),
+            |_| {
+                matches!(
+                    self.order_type(i),
+                    orders::index::GROUP_MOVE
+                        | orders::index::GROUP_ATTACK_TO
+                        | orders::index::GROUP_PATROL
+                )
+            },
+        );
         let at_des = f.body.pos == f.des;
         self.guy_follow_anim(i, g, at_des, f.facing == f.des_angle);
         // A tracked crew guy's rate is [`movement::CREW_TURN_SPEED`] and

@@ -377,6 +377,85 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, ecx_int='1..2')
 
+    def test_edx_may_carry_an_integer_beside_ecx(self):
+        # Item 2346 (parked 2338, Loop 2003): `add_type_bucket` indexes its
+        # byte table by `edx * 0x1ed + ecx`, and a sibling hands `edx` to its
+        # callee unset; `obj` set no `edx`. `--edx` draws an integer into
+        # `edx` every row, printed after `ecx` (or last when `ecx` is the
+        # object), and the harness enters with it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=0,
+            at=['0xed89ce:0xf68'], ecx_int='0..0x1ec', edx='0..7', port='i64::from(a[a.len() - 1])')
+        compile(script, str(sp), 'exec')
+        self.assertIn("EDX = ('range', 0, 7)", script)
+        self.assertIn('edx=0 if EDX is None else edx', script)
+        self.assertIn('+ ([] if EDX is None else [str(edx)])', script)
+        self.assertIn('`edx` an integer in 0..7', test)
+        # Beside the object in `ecx` as well, and from a list.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=2, stubs=['0x402000:4'], edx='0,1,-1')
+        self.assertIn("EDX = ('set', [0, 1, -1])", script)
+        self.assertIn('ECXINT = None', script)
+        # Without it, `edx` is entered as 0 and nothing is printed.
+        _, script, _, test, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=0, stubs=['0x402000:0'])
+        self.assertIn('EDX = None', script)
+        self.assertNotIn('`edx` an integer', test)
+        # The plain obj has no row for it, and the harness takes the register.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, edx='1..2')
+        hooks = (ROOT / 'tools/emu/hooks.py').read_text()
+        self.assertIn('def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0):', hooks)
+        self.assertIn('edx=edx', hooks)
+
+    def test_a_stub_may_write_a_window_word(self):
+        # Item 2346 (parked 2338's spare): `Object::kill_contents` loops while
+        # its container's head (+0x28) is not negative, and only the callee
+        # that kills the head unlinks it; a stub that writes nothing loops
+        # until the instruction budget. `--stub-write IDX:WIN+OFF:SIZE:VAL`
+        # writes VAL (SIZE bytes) at the window's word each call of stub IDX.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x40, bias=[], own=0, ret='none',
+            stubs=['0x402000:1', '0x403000:1'], stub_write=['1:m+0x28:2:-1'])
+        compile(script, str(sp), 'exec')
+        self.assertIn("STUBWRITE = [(1, 'm', 40, 2, -1)]", script)
+        self.assertIn('def win_write(', script)
+        self.assertIn('stub 1 writes -1 (2 bytes) at `m+0x28` each call', test)
+        for bad in ('1:m+0x28:3:-1', '2:m+0x28:2:-1', '1:q+0x28:2:-1', '1:m:2:-1'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
+                                       stubs=['0x402000:1', '0x403000:1'], stub_write=[bad])
+
+    def test_a_tame_register_draws_no_wild_rows(self):
+        # Item 2346 (parked 2338): `add_type_bucket2` increments a byte of a
+        # table at `ecx`, and `--ecx-int` drew a random word one row in ten,
+        # which faults the index. `--tame` holds `ecx` (and `edx`) to the
+        # range or the list every row.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=0,
+            at=['0xed9936:0x1ed'], ecx_int='0..0x1ec', tame=True, port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('WILD = 0.0', script)
+        self.assertIn('draw_reg(rng, ECXINT, WILD, rand32)', script)
+        self.assertIn('every row, no wild word', test)
+        _, script, _, test, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x20, bias=[], own=0, at=['0xed9936:0x1ed'], ecx_int='0..0x1ec')
+        self.assertIn('WILD = 0.1', script)
+        self.assertNotIn('no wild word', test)
+        # Tame with no register drawn is refused: there is nothing to tame.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0,
+                                   at=['0xed9936:0x10'], tame=True)
+        # And the draw itself: a thousand tame rows stay inside the range,
+        # and an untamed thousand do not.
+        import random
+        import sweeplib
+        self.assertIn('from sweeplib import draw_reg', script)
+        rng = random.Random(1)
+        self.assertTrue(all(0 <= sweeplib.draw_reg(rng, ('range', 0, 0x1ec), 0.0) <= 0x1ec for _ in range(1000)))
+        self.assertTrue(all(sweeplib.draw_reg(rng, ('set', [3, 9]), 0.0) in (3, 9) for _ in range(1000)))
+        self.assertFalse(all(0 <= sweeplib.draw_reg(rng, ('range', 0, 0x1ec), 0.1) <= 0x1ec for _ in range(1000)))
+
     def test_a_stub_s_answer_may_be_drawn_from_a_list(self):
         # Parked 2141 (Loop 2003's twelfth reach), built by item 2160:
         # `UnitData::is_cloaked` and `WorldData::is_pass_land` compare a
@@ -610,6 +689,47 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2309, win=0x20, bias=[], own=0,
                                    sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1'], record=['0@1'])
 
+    def test_a_record_may_name_the_callee_in_call_order(self):
+        # Item 2341 (2314's Loop line, parked 2318, Loop 2003):
+        # `Unit::add_think_order` calls `clear_partial_path` and then
+        # `update_action`, both argument-less on one `ecx`, and `--record`
+        # prints each stub's calls in a column of its own, in stub order,
+        # so the break that swapped them passed. `--record-order` prints
+        # one token a call, in the order the calls were made, each headed
+        # by the callee's stub index (`s3:m+0x0`).
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
+            stubs=['0x402000:0', '0x403000:0'], record=['0', '1'], record_order=True,
+            ret='none', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('RECORDORDER = True', script)
+        self.assertIn('in call order, each headed `sIDX:`', test)
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
+        for fn in ('def token(', 'def in_order('):
+            body = script[script.index(fn):]
+            exec(body[:body.index('\n\n\ndef ')], ns)
+        spans = [('m', 0x1000, 0x20)]
+        names = ['a', 'b', 'c']
+        calls = [('b', 0x1000, ()), ('c', 0x1000, ()), ('a', 0x1000, (5,)), ('b', 0x77, ())]
+        self.assertEqual(ns['in_order'](calls, [0, 1], names, spans),
+                         ['s1:m+0x0', 's0:m+0x0,5', 's1:119'])
+        self.assertEqual(ns['in_order'](calls, [0], names, spans), ['s0:m+0x0,5'])
+        self.assertEqual(ns['in_order']([], [0, 1], names, spans), ['-'])
+        # Without the flag the columns are as before.
+        _, script2, _, test2, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
+            stubs=['0x402000:0', '0x403000:0'], record=['0', '1'], ret='none', port='0')
+        self.assertIn('RECORDORDER = False', script2)
+        self.assertNotIn('in call order', test2)
+        # It orders what --record records, and a row split has its own columns.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:0'], record_order=True)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
+                                   sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1'],
+                                   record=['0@0'], record_order=True)
+
     def test_a_stub_may_answer_through_its_pointer_argument(self):
         # Item 2325 (2309's Loop line, Loop 2003): `ObjectData::in_a_building`
         # hands a callee the address of a local, and the callee writes the
@@ -828,6 +948,31 @@ class Shapes(unittest.TestCase):
         self.assertEqual(sweeplib.xmm_bits(1.0), 0x3f800000)
         self.assertEqual(sweeplib.xmm_bits(-2.5), 0xc0200000)
         self.assertEqual(sweeplib.xmm_bits(0x42280000, raw=True), 0x42280000)
+
+    def test_a_vtordisp_thunk_moves_this_by_the_word_before_it(self):
+        # Item 2362 (parked 2348, Loop 2003): a `vtordisp` thunk is `sub ecx,
+        # [ecx-4]; jmp target`, and `fwd` drew `this` as an address nothing
+        # maps, so the thunk's one read faulted. The `vtordisp` token lays
+        # `this` in the heap with a drawn displacement at `this-4`, prints it
+        # sixth on the row, and holds the callee's `ecx` to `this - disp`.
+        sp, script, tp, test, mod = sweep_gen.generate_fwd(
+            'MoveOrder::is_pathed_vtordisp@0048898f', item=1, calls=['0x488980:0:vtordisp:'], ret='last')
+        compile(script, str(sp), 'exec')
+        self.assertIn('VTORDISP = True', script)
+        self.assertIn('let disp = a[5];', test)
+        self.assertIn('(this as u32).wrapping_sub(disp as u32)', test)
+        _, plain, _, ptest, _ = sweep_gen.generate_fwd('X::y@00401000', item=1, calls=['0x401000:0:this:'])
+        self.assertIn('VTORDISP = False', plain)
+        self.assertNotIn('disp', ptest)
+
+    def test_a_free_function_is_a_name(self):
+        # Item 2346: `add_type_bucket2@00669140` and `add_type_bucket` are
+        # free functions (`types.cpp`), and the name refused them; the census
+        # backs one by `name@va` as it backs `get_unique_types@00669120`.
+        self.assertEqual(sweep_gen.parse('add_type_bucket2@00669140'), ('add_type_bucket2', 0x669140))
+        self.assertEqual(sweep_gen.snake('add_type_bucket2'), 'add_type_bucket2')
+        _, test = self.check('const', 'add_type_bucket@00669160', port='0')
+        self.assertIn('add_type_bucket@00669160', test)
 
     def test_a_function_spelled_another_way_is_refused(self):
         with self.assertRaises(ValueError):

@@ -291,6 +291,10 @@ pub mod flag {
     /// where `fight` reads this one on the *current* order it **narrows**
     /// the search — `005fde93`'s one-in-five suppression.
     pub const FIGHT_REENTRY: u8 = 0x10;
+    /// `add_move_facing_order@005e55c0`'s `param_11` and
+    /// `add_group_move_order`'s `param_17` (`docs/ORDERS.md` §4.3: the
+    /// group move's "disembark" argument). Nothing in this crate sets it.
+    pub const DISEMBARK: u8 = 0x20;
     /// **An attack-ground order has fired** (`docs/ORDERS.md` §1.3).
     /// `Unit::do_attack_ground@005f1410` sets it on the shot, and while
     /// the reload runs a set bit holds the unit still rather than
@@ -883,6 +887,49 @@ impl Order {
     }
 }
 
+/// `Unit::repath@005e29b0`, in the original's own call order (item 2341's
+/// sweep, `crate::sweep::unit_repath`): while there is a head, `get_type`
+/// (vslot `+0x10`) is asked; outside the move family (`1, 2, 3, 4, 0x12,
+/// 0x13, 0x15`) it is asked again and the walk stops unless that answer
+/// is `CHANGE_FORM` without the action bit (dead with one answer a head,
+/// but a second call all the same). In the family, `get_type` a third
+/// time: a `GROUP_MOVE` of a unit whose group (`+0x80`) is not `-1` has
+/// `Group::kill_group_move(groups[group], get_group_move_order()->id)`
+/// (`+0x10c`, `+0xc`), anything else `kill_current_order(0)`, and the
+/// walk goes round. The action bit is never read on the family's arm.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn repath_steps<C, G, I>(
+    cx: &mut C,
+    has_head: impl Fn(&mut C) -> bool,
+    mut get_type: impl FnMut(&mut C) -> i32,
+    action: impl Fn(&mut C) -> bool,
+    group: impl Fn(&mut C) -> Option<G>,
+    mut group_id: impl FnMut(&mut C) -> I,
+    mut kill_group_move: impl FnMut(&mut C, G, I),
+    mut kill_current: impl FnMut(&mut C),
+) {
+    let family = |t: i32| u8::try_from(t).is_ok_and(index::is_move_family);
+    loop {
+        if !has_head(cx) {
+            return;
+        }
+        if !family(get_type(cx))
+            && (!has_head(cx) || get_type(cx) != i32::from(index::CHANGE_FORM) || action(cx))
+        {
+            return;
+        }
+        if has_head(cx)
+            && get_type(cx) == i32::from(index::GROUP_MOVE)
+            && let Some(g) = group(cx)
+        {
+            let id = group_id(cx);
+            kill_group_move(cx, g, id);
+            continue;
+        }
+        kill_current(cx);
+    }
+}
+
 /// What `Unit::do_move` reports back to `work`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Did {
@@ -1229,15 +1276,17 @@ impl Sim {
         // Both classes open on `UnitData::speed`, layer two.
         let speed = self.unit_speed(u);
         if unit.is_gaia() {
-            if unit.kind.domain == crate::attrition::Domain::Air {
-                return speed;
-            }
-            let far = self
-                .current_order(u)
-                .and_then(Order::move_dest)
-                .is_some_and(|to| vector_dist(unit.pos.x - to.x, unit.pos.y - to.y) > 0x180);
-            let speed = if far { speed * 3 / 2 } else { speed };
-            return speed.max(movement::SPEED_FLOOR);
+            // SEAM: the original's air test is the type's `+0x218 == 2`;
+            // this crate's is the unit's domain.
+            return animal_speed_steps(
+                &mut (),
+                |_| speed,
+                |_| unit.kind.domain == crate::attrition::Domain::Air,
+                |_| self.current_order(u),
+                |_, o| o.is_move(),
+                |_, o| o.move_dest().unwrap_or(unit.pos),
+                |_| unit.pos,
+            );
         }
         // The **action**'s own scale, `00608743`–`00608777`. `get_action`
         // is the first order that is neither a transit move nor a
@@ -1319,32 +1368,34 @@ impl Sim {
     /// `Unit::update_action`: `orders_x/y` = the final destination of the
     /// leading run of transit moves, `dest_angle` = the last one's angle;
     /// returns the action's position (§3.3).
+    ///
+    /// The walk is [`update_action_steps`] (item 2341), which the sweep
+    /// `sweep::unit_update_action` holds to the original.
     pub fn update_action(&mut self, u: usize) -> Option<usize> {
         let unit = &mut self.units[u];
-        unit.orders_pos = unit.pos;
-        unit.movement.des_angle = unit.movement.heading;
-        let mut action = None;
-        for (i, o) in unit.orders.iter().enumerate() {
-            match o.body {
-                Body::Move(m) if !o.has(flag::ACTION) => {
+        let n = unit.orders.len();
+        update_action_steps(
+            unit,
+            n,
+            |unit| {
+                unit.orders_pos = unit.pos;
+                unit.movement.des_angle = unit.movement.heading;
+            },
+            // The engine's iterator (`+0xcc`, `+0xd0`, `+0xd4`): the port
+            // indexes the list and keeps none.
+            |_, _| {},
+            |unit, i| unit.orders[i].is_move(),
+            |unit, i| unit.orders[i].has(flag::ACTION),
+            // SEAM: `CHANGE_FORM` (`FormOrder`) is not an order this crate
+            // has, so this is never true here (`index::CHANGE_FORM`).
+            |unit, i| unit.orders[i].index() == index::CHANGE_FORM,
+            |unit, i| {
+                if let Body::Move(m) = unit.orders[i].body {
                     unit.orders_pos = m.dest;
                     unit.movement.des_angle = m.angle;
                 }
-                Body::Move(m) => {
-                    // A move that is itself the action: `update_action`
-                    // copies it once more and stops.
-                    unit.orders_pos = m.dest;
-                    unit.movement.des_angle = m.angle;
-                    action = Some(i);
-                    break;
-                }
-                _ => {
-                    action = Some(i);
-                    break;
-                }
-            }
-        }
-        action
+            },
+        )
     }
 
     /// The generic enqueue (§3.1): `QUEUE_NEW` clears first, then the order
@@ -1640,27 +1691,67 @@ impl Sim {
         group: Option<GroupMove>,
         orig: Option<Pos>,
     ) {
-        let dest = snapped(to);
-        let order = Order {
-            flags: if action { flag::ACTION } else { 0 } | if pathed { flag::PATHED } else { 0 },
-            body: Body::Move(MoveOrder {
-                kind,
-                dest,
-                angle,
-                facing,
-                has_waypoint: false,
-                waypoint: dest,
-                last: None,
-                pause: 0,
-                retry: 0,
-                attempts: 0,
-                timer: 0,
-                coll: None,
-                orig,
-                group,
-            }),
-        };
-        self.enqueue(u, order, pos);
+        let mode = i32::from(match kind {
+            MoveKind::MoveTo => index::MOVE_TO,
+            MoveKind::AttackTo => index::ATTACK_TO,
+            MoveKind::ExploreTo => index::EXPLORE_TO,
+            MoveKind::FleeTo => index::FLEE_TO,
+        });
+        let plain = group.is_none();
+        add_move_facing_steps(
+            self,
+            (to.x.div_euclid(SNAP), to.y.div_euclid(SNAP)),
+            mode,
+            pos,
+            MoveBits {
+                pathed,
+                action,
+                // SEAM: the disembark argument (`param_11`, the order's
+                // `0x20`) — no caller in this crate passes it.
+                disembark: false,
+            },
+            |sim| {
+                // `add_group_move_order@005e4710` has no attack to keep.
+                if !plain {
+                    return None;
+                }
+                match sim.current_order(u).map(|o| o.body) {
+                    Some(Body::Attack(_)) => sim.units[u].combat.target,
+                    _ => None,
+                }
+            },
+            |sim, &t| matches!(sim.profile(t).domain, crate::attrition::Domain::Air),
+            |sim| sim.profile(Obj::Unit(u)).has(combat::mask::ANTI_AIR),
+            // SEAM: the scout's shift-queued `MOVE_TO` turned `EXPLORE_TO`
+            // with `unit_masks |= 0x4000000` (`role & 0x10`): the mask is
+            // not carried (`work`'s and `think`'s readers), so neither is
+            // the conversion. The group adder has no such arm.
+            |_| false,
+            |_| {},
+            // `unit_masks &= ~0x4000000` (not carried), `+0xc0 = 0`.
+            |sim| sim.units[u].path.clear(),
+            |sim| sim.close_orders(u),
+            |sim| sim.clear_partial_path(u),
+            |sim| {
+                sim.update_action(u);
+            },
+            |_, idx| new_move_order(idx, angle, facing, orig, group),
+            fill_move_order,
+            |sim, o| {
+                // `LinkListBase::add` appends; an empty list's new node is
+                // a new head (the generic enqueue's `Last`/`New`).
+                if sim.units[u].orders.is_empty() && pos != QueuePos::First {
+                    sim.new_head(u);
+                }
+                sim.units[u].orders.push_back(o);
+            },
+            |sim| {
+                let o = sim.units[u].orders.pop_back().expect("just linked");
+                sim.units[u].orders.push_front(o);
+                sim.new_head(u);
+            },
+            |sim, t| sim.add_attack_order(u, t, QueuePos::First, false, false),
+        );
     }
 
     /// `Unit::add_build_order`.
@@ -1816,8 +1907,9 @@ impl Sim {
     /// queue, action)@005e48c0` (`docs/ORDERS.md` §32): a `StrafeOrder`
     /// with the target, its point in `xx/yy`, `returning` set exactly when
     /// there is no target, the home base, `cruising_alt` 0x640, and the
-    /// action bit as asked. The `QUEUE_NEW` head and the `QUEUE_FIRST`
-    /// rotation are [`Self::enqueue`]'s, as for `add_guard_order`.
+    /// action bit as asked. The `QUEUE_NEW` head is [`Self::enqueue`]'s
+    /// and the `QUEUE_FIRST` rotation its tail's, but no queue closes with
+    /// `update_action` ([`add_strafe_steps`], item 2341).
     ///
     /// **The missile arm at its head** (`5e48c0`..`5e4919`, item 1050): a
     /// type with the missile flag (`type +0x1e4 & 0x8000000`) and a target
@@ -1835,41 +1927,66 @@ impl Sim {
         pos: QueuePos,
         action: bool,
     ) {
-        if let Some(t) = target
-            && self.profile(Obj::Unit(u)).has(crate::combat::mask::MISSILE)
-            && self.valid_target(Obj::Unit(u), t)
-        {
-            let at = self.pos_of(t);
-            self.add_air_attack_ground_order(u, at, home, pos, action);
-            return;
-        }
-        let at = target.map(|t| self.pos_of(t));
-        let order = Order {
-            flags: if action { flag::ACTION } else { 0 },
-            body: Body::Strafe(StrafeOrder {
-                target,
-                mandatory,
-                home,
-                cruising_alt: CRUISING_ALT,
-                sharp_turn: 0,
-                returning: target.is_none(),
-                at,
-            }),
-        };
-        // **`QUEUE_FIRST` takes no `update_action`** (`0x5e4a2b`): the
-        // adder's tail is `clear_partial_path` and the list's rotate, so
-        // `orders_x/orders_y` and `dest_angle` keep the frame's own —
+        // The steps are [`add_strafe_steps`]'s (item 2341's sweep).
+        // **`QUEUE_FIRST` takes no `update_action`** (`0x5e4a2b`), and
+        // neither does any other queue: the adder's tail is the link and,
+        // under `QUEUE_FIRST`, `clear_partial_path` and the list's rotate,
+        // so `orders_x/orders_y` and `dest_angle` keep the frame's own —
         // run223's 777, where the patrol's search pushes the strike after
         // the step and the dump still names the point before it
         // (`docs/ORDERS.md` §34.5). The generic enqueue's closing
         // `update_action` is the other adders'.
-        if pos == QueuePos::First {
-            self.clear_partial_path(u);
-            self.units[u].orders.push_front(order);
-            self.new_head(u);
-            return;
-        }
-        self.enqueue(u, order, pos);
+        add_strafe_steps(
+            self,
+            target,
+            target.is_some(),
+            pos,
+            action,
+            |s| s.profile(Obj::Unit(u)).has(crate::combat::mask::MISSILE),
+            |s, t| t.is_some_and(|t| s.valid_target(Obj::Unit(u), t)),
+            |s, t| s.pos_of(t.expect("a live target")),
+            |s, at| s.add_air_attack_ground_order(u, at, home, pos, action),
+            // SEAM: `unit_masks &= ~0x4000000` (`+0x68`), the defended
+            // return's bit, which this crate does not carry.
+            |s| s.units[u].path.clear(),
+            |s| s.close_orders(u),
+            |s| s.clear_partial_path(u),
+            |s| {
+                s.update_action(u);
+            },
+            |_, at, returning| Order {
+                flags: 0,
+                body: Body::Strafe(StrafeOrder {
+                    target,
+                    mandatory,
+                    home,
+                    cruising_alt: CRUISING_ALT,
+                    sharp_turn: 0,
+                    returning,
+                    at,
+                }),
+            },
+            |_, o, on| {
+                if on {
+                    o.flags |= flag::ACTION;
+                } else {
+                    o.flags &= !flag::ACTION;
+                }
+            },
+            |s, o| {
+                if s.units[u].orders.is_empty() {
+                    s.new_head(u);
+                }
+                s.units[u].orders.push_back(o);
+            },
+            |s| {
+                let orders = &mut s.units[u].orders;
+                if orders.len() > 1 {
+                    orders.rotate_right(1);
+                    s.new_head(u);
+                }
+            },
+        );
     }
 
     /// **`Unit::add_air_attack_ground_order(x, y, home_o, home_who, queue,
@@ -1929,29 +2046,48 @@ impl Sim {
         home: Option<usize>,
         action: bool,
     ) {
-        if self.is_helicopter(u) {
-            let here = self.units[u].pos;
-            let angle = find_angle(point.x - here.x, point.y - here.y);
-            self.add_move_facing_order(
-                u,
-                point,
-                MoveKind::AttackTo,
-                QueuePos::New,
-                action,
-                angle,
-                None,
-                false,
-            );
-            return;
-        }
-        self.units[u].path.clear();
-        self.close_orders(u);
-        self.clear_partial_path(u);
-        self.update_action(u);
-        self.units[u].orders.push_back(Order {
-            flags: if action { flag::ACTION } else { 0 },
-            body: Body::AirPatrol(AirPatrolOrder::over(point, home)),
-        });
+        add_air_patrol_steps(
+            self,
+            point,
+            action,
+            |s| s.is_helicopter(u),
+            |s| s.units[u].pos,
+            |s, to, angle, action| {
+                s.add_move_facing_order(
+                    u,
+                    to,
+                    MoveKind::AttackTo,
+                    QueuePos::New,
+                    action,
+                    angle,
+                    None,
+                    false,
+                );
+            },
+            // SEAM: `unit_masks &= ~0x4000000`, the defended return's bit,
+            // which this crate does not carry; `+0xc0 = 0` is the path.
+            |s| s.units[u].path.clear(),
+            |s| s.close_orders(u),
+            |s| s.clear_partial_path(u),
+            |s| {
+                s.update_action(u);
+            },
+            |_| Order {
+                flags: 0,
+                body: Body::AirPatrol(AirPatrolOrder::over(Pos::new(0, 0), home)),
+            },
+            // SEAM: a home here is a building, whose `is_active` slot
+            // (`Window::get_button`, 0) never answers; a unit home (a
+            // carrier) would store the point relative to it.
+            |_| None,
+            |_, o, at| {
+                if let Body::AirPatrol(ap) = &mut o.body {
+                    ap.points[0] = at;
+                }
+            },
+            |o| &mut o.flags,
+            |s, o| s.units[u].orders.push_back(o),
+        );
     }
 
     /// `Unit::do_strafe@005eab00`, the air order a flight is
@@ -3326,12 +3462,38 @@ impl Sim {
         true
     }
 
-    /// `Unit::repath`: pop the leading transit legs so the target order
-    /// re-issues them.
+    /// `Unit::repath@005e29b0` ([`repath_steps`], item 2341): while the
+    /// head is of the move family it goes — a `GROUP_MOVE` of a unit in a
+    /// group through `Group::kill_group_move` (the whole group's plan),
+    /// anything else through `kill_current_order(0)`. The action bit is
+    /// not asked (it was until item 2341's sweep: the port popped only
+    /// transit legs and kept a player's own move).
+    ///
+    /// SEAM: a `GROUP_MOVE` whose group's walk leaves the head standing
+    /// (the unit not in the list, dead or off the map) loops for ever in
+    /// the original; here it falls through to `kill_current_order`.
     pub(crate) fn repath(&mut self, u: usize) {
-        while self.current_order(u).is_some_and(Order::is_transit) {
-            self.kill_current_order(u);
-        }
+        repath_steps(
+            self,
+            |s| s.current_order(u).is_some(),
+            |s| i32::from(s.order_type(u)),
+            |s| s.current_order(u).is_some_and(|o| o.has(flag::ACTION)),
+            |s| s.group_of(u),
+            |s| match s.current_order(u).map(|o| o.body) {
+                Some(Body::Move(MoveOrder {
+                    group: Some(gm), ..
+                })) => gm.id,
+                _ => 0,
+            },
+            |s, g, id| {
+                let head = s.units[u].head_serial;
+                s.kill_group_move(&g, id);
+                if s.units[u].head_serial == head && s.current_order(u).is_some() {
+                    s.kill_current_order(u);
+                }
+            },
+            |s| s.kill_current_order(u),
+        );
     }
 
     // ------------------------------------------------------------------
@@ -6449,7 +6611,7 @@ impl Sim {
             // snap at `:355` — call `Unit::set_anim(CHAR_WALK, 0, 1)` on
             // **every guy** immediately before `set_new_location`, so a
             // walking unit asks for its walk *twice* a frame: here, and
-            // again in `Guy::move`'s own half ([`Sim::guys_follow`]).
+            // again in `Guy::move`'s own half ([`Sim::guys_follow_on`]).
             //
             // For guy 0 the pair is idempotent — a walk still inside its
             // length keeps its clock — and for a **crew figure whose
@@ -10275,6 +10437,295 @@ pub(crate) fn group_member_walk<C>(
     }
 }
 
+/// **`GuyData::get_speed@005de410`'s steps** (item 2341): the unit's
+/// `get_speed(x, y, 1)` (vslot `+0x17c`, asked at the figure's point —
+/// `speed`); then, for a figure inside the squad (`guy_num`, `+0xa2`,
+/// signed, `<` the type's `squad_size` `+0x304`, `5de473` `jge`) whose
+/// unit has an order list (`+0xdc`, `head`), the list's iterator is
+/// rewound to the head's next node (`rewind`, which answers whether the
+/// current order `+0xcc` is non-null), and a current order that
+/// `is_group` (`UnitData::get_order`, then the order's vslot `+0x2c`)
+/// adds 9. The sum wraps, as the original's `add` does.
+pub(crate) fn guy_speed_steps<C>(
+    cx: &mut C,
+    guy_num: i32,
+    speed: impl FnOnce(&mut C) -> i32,
+    squad_size: impl FnOnce(&mut C) -> i32,
+    head: impl FnOnce(&mut C) -> bool,
+    rewind: impl FnOnce(&mut C) -> bool,
+    is_group: impl FnOnce(&mut C) -> bool,
+) -> i32 {
+    let v = speed(cx);
+    if guy_num < squad_size(cx) && head(cx) && rewind(cx) && is_group(cx) {
+        return v.wrapping_add(9);
+    }
+    v
+}
+
+/// **`Unit::add_air_patrol_order@005e4350`'s steps** (item 2341, swept by
+/// `sweep::unit_add_air_patrol_order`). A helicopter (`unit_flags & 0x20`)
+/// is handed `add_move_facing_order` to the point with `find_angle(point −
+/// here)`, the subtraction wrapping as the listing's `sub` does, and
+/// nothing else. A plane: the masks and the path (`+0xc0 = 0`),
+/// `close_orders(0)`, `clear_partial_path`, `update_action`; the order
+/// made (`get_obj(AIR_PATROL)` and its slot `+0x8c`); then a home that
+/// answers `is_active` (`objects[who][o]`, vslot `+0x8`, asked only when
+/// both indices are non-negative) has its position subtracted from the
+/// point; the point laid; the action bit set or cleared as asked; and the
+/// order linked (`LinkListBase::add` on `+0xcc`).
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn add_air_patrol_steps<C, O>(
+    cx: &mut C,
+    point: Pos,
+    action: bool,
+    helicopter: impl FnOnce(&mut C) -> bool,
+    here: impl FnOnce(&mut C) -> Pos,
+    move_facing: impl FnOnce(&mut C, Pos, Angle, bool),
+    clear: impl FnOnce(&mut C),
+    close: impl FnOnce(&mut C),
+    clear_path: impl FnOnce(&mut C),
+    update: impl FnOnce(&mut C),
+    make: impl FnOnce(&mut C) -> O,
+    home: impl FnOnce(&mut C) -> Option<Pos>,
+    lay: impl FnOnce(&mut C, &mut O, Pos),
+    flags: impl FnOnce(&mut O) -> &mut u8,
+    link: impl FnOnce(&mut C, O),
+) {
+    if helicopter(cx) {
+        let h = here(cx);
+        let angle = find_angle(point.x.wrapping_sub(h.x), point.y.wrapping_sub(h.y));
+        move_facing(cx, point, angle, action);
+        return;
+    }
+    clear(cx);
+    close(cx);
+    clear_path(cx);
+    update(cx);
+    let mut o = make(cx);
+    let at = match home(cx) {
+        Some(h) => Pos::new(point.x.wrapping_sub(h.x), point.y.wrapping_sub(h.y)),
+        None => point,
+    };
+    lay(cx, &mut o, at);
+    let f = flags(&mut o);
+    if action {
+        *f |= flag::ACTION;
+    } else {
+        *f &= !flag::ACTION;
+    }
+    link(cx, o);
+}
+
+/// **`Unit::update_action@0060a870`'s steps** (item 2341), over a list of
+/// `n` orders, `0` the current one (the engine's `head_node->next`, `+0xdc`)
+/// and `n - 1` the last (the node equal to `head_node`):
+///
+/// - `reset`: `orders_x/y` (`+0x70`/`+0x74`) the unit's own position and
+///   `dest_angle` (`+0x58`) its `angle` (`+0x50`); an empty list ends
+///   there, answering `None`.
+/// - `at(i)`: the iterator stepped onto order `i` (`+0xd4` the node,
+///   `+0xcc` its order, `+0xd0` its byte `+0xc`).
+/// - A lone order that is not a move (vslot `+0x14`) resets again.
+/// - Otherwise every **transit** order — a move without the action bit
+///   (`+4 & 4`), or a `CHANGE_FORM` (vslot `+0x10` `== 0x12`) — before the
+///   last is walked past, a move among them copying its record's `x, y,
+///   angle` (vslot `+0x40`, `+4`/`+8`/`+0xc`) as it goes; the order it stops
+///   on copies too when it is a move and the last or the action.
+/// - It answers the order it stopped on, or `None` when that one is
+///   transit.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn update_action_steps<C>(
+    cx: &mut C,
+    n: usize,
+    reset: impl Fn(&mut C),
+    at: impl Fn(&mut C, usize),
+    is_move: impl Fn(&mut C, usize) -> bool,
+    action: impl Fn(&mut C, usize) -> bool,
+    change_form: impl Fn(&mut C, usize) -> bool,
+    copy: impl Fn(&mut C, usize),
+) -> Option<usize> {
+    reset(cx);
+    if n == 0 {
+        return None;
+    }
+    let last = n - 1;
+    let transit = |cx: &mut C, i: usize| (is_move(cx, i) && !action(cx, i)) || change_form(cx, i);
+    let mut i = 0;
+    at(cx, i);
+    if i == last && !is_move(cx, i) {
+        reset(cx);
+    } else {
+        while transit(cx, i) && i != last {
+            if is_move(cx, i) {
+                copy(cx, i);
+            }
+            i += 1;
+            at(cx, i);
+        }
+        if is_move(cx, i) && (i == last || action(cx, i)) {
+            copy(cx, i);
+        }
+    }
+    (!transit(cx, i)).then_some(i)
+}
+
+/// The three flag arguments of `Unit::add_move_facing_order@005e55c0`:
+/// `param_5` (`PATHED`, `1`), `param_7` (`ACTION`, `4`) and `param_11`
+/// (`0x20`, [`flag::DISEMBARK`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct MoveBits {
+    pub pathed: bool,
+    pub action: bool,
+    pub disembark: bool,
+}
+
+/// What `add_move_facing_order` writes into the order it made: the cell's
+/// centre (`u · 0x30 + 0x18`, twice — `x`/`y` and `dest_x`/`dest_y`) and
+/// the three flag bits.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct MoveFields {
+    pub at: Pos,
+    pub bits: MoveBits,
+}
+
+/// The order `OrdersMemManager::get_obj(idx)` hands out for a move of
+/// `OrderIndex` `idx` (1..=4), with the caller's angle, the formation's
+/// `facing`, the click `orig` and a group move's own block; the cell and
+/// the flags are [`fill_move_order`]'s.
+pub(crate) fn new_move_order(
+    idx: i32,
+    angle: Angle,
+    facing: Option<bool>,
+    orig: Option<Pos>,
+    group: Option<GroupMove>,
+) -> Order {
+    let kind = match idx {
+        2 => MoveKind::AttackTo,
+        3 => MoveKind::ExploreTo,
+        4 => MoveKind::FleeTo,
+        _ => MoveKind::MoveTo,
+    };
+    let at = Pos::new(0, 0);
+    Order {
+        flags: 0,
+        body: Body::Move(MoveOrder {
+            kind,
+            dest: at,
+            angle,
+            facing,
+            has_waypoint: false,
+            waypoint: at,
+            last: None,
+            pause: 0,
+            retry: 0,
+            attempts: 0,
+            timer: 0,
+            coll: None,
+            orig,
+            group,
+        }),
+    }
+}
+
+/// `add_move_facing_order`'s writes into the made order: `x`/`y` and
+/// `dest_x`/`dest_y` the cell's centre, and the bits `1`, `4`, `0x20`
+/// each set or cleared by its argument.
+pub(crate) fn fill_move_order(o: &mut Order, f: &MoveFields) {
+    if let Body::Move(m) = &mut o.body {
+        m.dest = f.at;
+        m.waypoint = f.at;
+    }
+    for (on, bit) in [
+        (f.bits.pathed, flag::PATHED),
+        (f.bits.action, flag::ACTION),
+        (f.bits.disembark, flag::DISEMBARK),
+    ] {
+        if on {
+            o.flags |= bit;
+        } else {
+            o.flags &= !bit;
+        }
+    }
+}
+
+/// **`Unit::add_move_facing_order@005e55c0`'s steps** (item 2341).
+///
+/// Under `QUEUE_NEW` an attack-move (`mode == 2`) first asks whether the
+/// current order is an `ATTACK` (`UnitData::order_type`) and, if it is,
+/// reads its target (`get_order`'s vslot `+0xcc`, `+8`/`+0xc`); a target
+/// whose type is of the air domain (`+0x218 == 2`) is kept only by a unit
+/// that `has_objmask(0x80000000)` (`ANTI_AIR`), any other is kept. Then
+/// the clear: `unit_masks &= ~0x4000000` and `+0xc0 = 0`, `close_orders`,
+/// `clear_partial_path`, `update_action`. A `QUEUE_LAST` `MOVE_TO` of a
+/// `role & 0x10` type sets `unit_masks |= 0x4000000` and becomes
+/// `EXPLORE_TO`. The order is made by mode (2 `ATTACK_TO`, 3
+/// `EXPLORE_TO`, 4 `FLEE_TO`, any other `MOVE_TO`), filled, linked;
+/// `QUEUE_FIRST` runs `clear_partial_path` and rotates the head; a kept
+/// target is re-attacked `QUEUE_FIRST`; and `update_action`.
+///
+/// `add_group_move_order@005e4710` is the same steps without the kept
+/// attack and the scout's conversion, which its port closures answer.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn add_move_facing_steps<C, O, T>(
+    cx: &mut C,
+    cell: (i32, i32),
+    mode: i32,
+    pos: QueuePos,
+    bits: MoveBits,
+    attack_target: impl FnOnce(&mut C) -> Option<T>,
+    air: impl FnOnce(&mut C, &T) -> bool,
+    anti_air: impl FnOnce(&mut C) -> bool,
+    scout: impl FnOnce(&mut C) -> bool,
+    set_explore: impl FnOnce(&mut C),
+    clear_new: impl FnOnce(&mut C),
+    close: impl FnOnce(&mut C),
+    mut clear_path: impl FnMut(&mut C),
+    mut update: impl FnMut(&mut C),
+    make: impl FnOnce(&mut C, i32) -> O,
+    fill: impl FnOnce(&mut O, &MoveFields),
+    link: impl FnOnce(&mut C, O),
+    rotate: impl FnOnce(&mut C),
+    attack: impl FnOnce(&mut C, T),
+) {
+    let mut mode = mode;
+    let mut keep = None;
+    if pos == QueuePos::New {
+        if mode == i32::from(index::ATTACK_TO)
+            && let Some(t) = attack_target(cx)
+            && (!air(cx, &t) || anti_air(cx))
+        {
+            keep = Some(t);
+        }
+        clear_new(cx);
+        close(cx);
+        clear_path(cx);
+        update(cx);
+    } else if pos == QueuePos::Last && mode == i32::from(index::MOVE_TO) && scout(cx) {
+        set_explore(cx);
+        mode = i32::from(index::EXPLORE_TO);
+    }
+    let idx = match mode {
+        2..=4 => mode,
+        _ => i32::from(index::MOVE_TO),
+    };
+    let mut o = make(cx, idx);
+    let at = |v: i32| v.wrapping_mul(SNAP).wrapping_add(SNAP_CENTRE);
+    let fields = MoveFields {
+        at: Pos::new(at(cell.0), at(cell.1)),
+        bits,
+    };
+    fill(&mut o, &fields);
+    link(cx, o);
+    if pos == QueuePos::First {
+        clear_path(cx);
+        rotate(cx);
+    }
+    if let Some(t) = keep {
+        attack(cx, t);
+    }
+    update(cx);
+}
+
 /// **`Unit::add_think_order@005e3df0`'s steps** (item 2314): a `THINK`
 /// order made (`OrdersMemManager::get_obj(THINK)`, then its vslot `+0xb0`),
 /// its flags `| ACTION`; linked (`LinkListBase::add`, which makes the new
@@ -10282,6 +10733,44 @@ pub(crate) fn group_member_walk<C>(
 /// head_node->next` (`+0xdc`), which leaves the new node at `head->prev`,
 /// the end the engine reads as the current order — so the order goes to
 /// the front whatever `QueuePos` says; and `update_action`.
+/// **`AnimalData::get_speed@005d8380`'s steps** (item 2341): `speed`
+/// (`UnitData::speed`) is the answer outright for an air animal (`air`,
+/// the type's `+0x218 == 2`) — no hurry and no floor. Otherwise, when the
+/// list's current order (`order`, the `+0xdc` head refreshed into
+/// `+0xcc`) answers `is_move` (vslot `+0x14`), the unit's point (`at`,
+/// the objects table's `+0x10`/`+0x14`) is measured against
+/// `get_move_order`'s goal (vslot `+0xb8`, asked twice: its `+0x8` first,
+/// then its `+0x4`) with `vector_dist(|dx|, |dy|)`; more than `0x180`
+/// makes the speed `speed * 3 / 2`, truncated. The result is floored at
+/// [`movement::SPEED_FLOOR`].
+pub(crate) fn animal_speed_steps<C, O>(
+    cx: &mut C,
+    speed: impl FnOnce(&mut C) -> i32,
+    air: impl FnOnce(&mut C) -> bool,
+    order: impl FnOnce(&mut C) -> Option<O>,
+    is_move: impl FnOnce(&mut C, &O) -> bool,
+    mut goal: impl FnMut(&mut C, &O) -> Pos,
+    at: impl FnOnce(&mut C) -> Pos,
+) -> i32 {
+    let mut speed = speed(cx);
+    if air(cx) {
+        return speed;
+    }
+    if let Some(o) = order(cx)
+        && is_move(cx, &o)
+    {
+        let at = at(cx);
+        let gy = goal(cx, &o).y;
+        let gx = goal(cx, &o).x;
+        let dx = at.x.wrapping_sub(gx).wrapping_abs();
+        let dy = at.y.wrapping_sub(gy).wrapping_abs();
+        if vector_dist(dx, dy) > 0x180 {
+            speed = speed * 3 / 2;
+        }
+    }
+    speed.max(movement::SPEED_FLOOR)
+}
+
 pub(crate) fn add_think_steps<C, O>(
     cx: &mut C,
     make: impl FnOnce(&mut C) -> O,
@@ -10297,6 +10786,59 @@ pub(crate) fn add_think_steps<C, O>(
     clear_path(cx);
     rotate(cx);
     update(cx);
+}
+
+/// **`Unit::add_strafe_order@005e48c0`'s steps** (item 2341;
+/// `docs/ORDERS.md` §32). A type with the missile bit (`type +0x1e4 &
+/// 0x8000000`, asked first) whose target `Object::valid_target(ox, whom,
+/// 0)` passes is handed to `add_air_attack_ground_order` at the target's
+/// point (`objects[whom][ox] +0x10/+0x14`, unscrambled), and nothing else
+/// happens. Otherwise, under `QUEUE_NEW`: the path dropped (`+0x68`'s bit,
+/// `+0xc0 = 0`), `close_orders(0)`, `clear_partial_path`, `update_action`.
+/// Then `get_obj(STRAFE)` is made — the target's point when `live` (`ox`
+/// and `whom` both non-negative), `returning` exactly when not — its
+/// action bit set or cleared as asked, and linked at the list's tail;
+/// under `QUEUE_FIRST`, `clear_partial_path` and the rotate that heads
+/// the list with it. **No queue takes a closing `update_action`.**
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn add_strafe_steps<C, T: Copy, P, O>(
+    cx: &mut C,
+    target: T,
+    live: bool,
+    pos: QueuePos,
+    action: bool,
+    missile: impl FnOnce(&mut C) -> bool,
+    valid: impl FnOnce(&mut C, T) -> bool,
+    mut point: impl FnMut(&mut C, T) -> P,
+    attack_ground: impl FnOnce(&mut C, P),
+    drop_path: impl FnOnce(&mut C),
+    close: impl FnOnce(&mut C),
+    mut clear_path: impl FnMut(&mut C),
+    update: impl FnOnce(&mut C),
+    make: impl FnOnce(&mut C, Option<P>, bool) -> O,
+    set_action: impl FnOnce(&mut C, &mut O, bool),
+    link: impl FnOnce(&mut C, O),
+    rotate: impl FnOnce(&mut C),
+) {
+    if missile(cx) && valid(cx, target) {
+        let at = point(cx, target);
+        attack_ground(cx, at);
+        return;
+    }
+    if pos == QueuePos::New {
+        drop_path(cx);
+        close(cx);
+        clear_path(cx);
+        update(cx);
+    }
+    let at = if live { Some(point(cx, target)) } else { None };
+    let mut o = make(cx, at, !live);
+    set_action(cx, &mut o, action);
+    link(cx, o);
+    if pos == QueuePos::First {
+        clear_path(cx);
+        rotate(cx);
+    }
 }
 
 /// **`Unit::do_think_order@005e5bf0`'s steps** (item 2287):

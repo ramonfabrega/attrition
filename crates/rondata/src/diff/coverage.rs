@@ -656,6 +656,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch63 = golden_dump("ch63");
     let ch64 = golden_dump("ch64");
     let ch65 = golden_dump("ch65");
+    let ch67 = golden_dump("ch67");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2365,6 +2366,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [850, 916] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter sixty-five carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter sixty-seven, on run845** (item 2331): 804, the second Light
+    // Horse's queue entry under Monarchy (`get_cost`'s arm); 979, its birth
+    // (`train_time`'s).
+    if let Some(p) = &ch67 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTY_SEVEN;
+        for w in [804, 979] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter sixty-seven carries the window's five blocks");
             frames += n;
         }
     }

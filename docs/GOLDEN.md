@@ -12012,12 +12012,80 @@ against (855, 7990, 496), now agreeing (`chapter_three_s_catapult_fires_on_the_g
 non-pivot arm for pieces 273, 567 and 290, and `fast_angle_to_degrees@00a28f70`'s half-way byte (Bark `0/7`, byte 80).
 Each fails its widening when taken out.
 
-## 84. Reserved for the next item on the rules track
+## 84. Chapter sixty-seven — a Stable's unit under Monarchy: `train_time`'s arm, and `get_cost`'s nobody built (item 2331)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** DECISIONS 56 §3, three candidates: `train_time`'s Monarchy arm (2295, built by 2293 and inert on
+every walk), `ai_sites`' wrapping decrement (2111) and `land_tail`'s building group (2196). **The arm chosen is
+Monarchy's**, because it is the only one with a staging the console reaches: two cheats and two presses. 2111 still
+needs a computer's census adjustment under `!ai off`, and 2196 a building group whose `list[0]` turns (parked 2305,
+carried to 2332). No frame and no draw delta: no capture on disk finishes a Stable unit under Monarchy, so nothing
+could part, and run 845 was booked for that reason.
+
+**Reading the arm found its sibling.** `rules.xml`'s bonus row says Stable units are "cheaper **and** faster", and
+`TypeData::get_cost@00664090:657`–`665` is the cheaper half. It sits in the train arm, after
+`MILITARY_UNIT_DISCOUNT`'s truncation and before Socialism's. It applies `(100 − MONARCHY_UNIT_PROD) × cost / 100`
+to a unit whose `UnitTypeData +0x40` is `0x1ac` (the Stable, by equality) when `has_preq(MONARCHY_1)` or
+`has_preq(MONARCHY_2)` holds; `MONARCHY_UNIT_PROD2` is never read there. `docs/COSTS.md` named it; this crate's
+`late_discount` carried the military discount alone. **Built**: `cost::Modifiers::monarchy`, a truncation of its own
+after `late_discount`, and `Sim::monarchy_cost_discount`.
+
+**Census rows the chapter reaches**: `ObjectData::train_time@006508c0` and `TypeData::get_cost@00664090`, both
+never backed before (`census.py --unbacked`).
+
+**The staging** (`tools/gamelog/golden/chapter67.cmd`, walked on run492's start). Every Stable unit needs the
+Classical Age (`unitrules.xml`'s `PREQ0`), so `library who=0 1` comes first. Then a Stable `0/2007` and a Barracks
+`0/2008`. Light Horse A (TypeIndex 209, `JOB_TIME` 175) is queued at 610 and Hoplites at 612. Monarchy is gained at
+800 (`tech who=0 monarchy on`). Light Horse B is queued at 802 and a second Hoplites at 804. Monarchy's King patriot
+is the Senate's tail (`docs/AI.md` §217), and the staging has no Senate.
+
+**What the walk found before the capture**: A is not a control. The target is recomputed every frame
+(`Sim::queue_target`), so Monarchy arriving on 800 takes A's 210 to 168 while A has already run 189, and A is out the
+same frame. Without the arm, A is out on 821. So the chapter holds the arm twice: on a build in progress (A) and on a
+fresh one (B).
+
+**run845** (one take, pool lane 2, 1,331 frames, 695 s) held every falsifier, read off the dump:
+
+| | block | the original | this crate before | this crate now |
+|---|---|---|---|---|
+| A's queue entry | 612 | 60 food 40 timber | 60/40 | 60/40 |
+| A out (`0/6`) | 801 | 801 | 801 | 801 |
+| B's queue entry | 804 | **45 food 30 timber** | 61/41 | 45/30 |
+| B out (`0/10`) | 978 | 978 | 978 | 978 |
+| Hoplites, second entry | 806 | 51 food 31 timber | 51/31 | 51/31 |
+| Hoplites out | 840, 1075 | 840, 1075 | same | same |
+
+No patriot is born. **The word: 1330, the trace's end, closed on its first take** (`GOLDEN_WORD_CHAPTER_SIXTY_SEVEN`).
+`chapter_sixty_seven_s_word_frame_is_widened_whole` holds run845 whole, 600..1331, in eleven rows: the standing
+`form` rows on 600, and nothing else.
+
+**The value diff, block 804**: `0/2007`'s `queue[0].cost[0]` and `cost[1]` were 61 and 41 here against 45 and 30
+there, and who=0's food and timber buckets were 2099/2172 against 2115/2183. Both now agree.
+
+**Mutations** (`tools/mutate.py`, each `held`, cargo 101):
+
+- The cost arm zeroed: the widening parts on 804 (the queue entry and both buckets). The word holds, because a price
+  moves no draw.
+- `train_time`'s arm made the identity (`Faster(0)`): the word falls to **800**. A is still queued on 801 (`queued`
+  1 against 0) and B is out on 1040; 357 rows.
+- The Stable's equality widened to any trainer: the word falls to 800. The first Hoplites, mid-build at 800, are out
+  the same frame.
+
+The unit test `a_government_speeds_its_trainer_lines_by_equality` holds the cost arm's trainers too, and
+`monarchy_takes_its_quarter_after_the_military_discount` holds its order against a 10% military discount (40, where
+one fold of 35% gives 39).
+
+**Not established.**
+
+- **The tiers.** `MONARCHY_2` is not staged: `train_time`'s `_PROD2` and `_PROD` are both 25.
+- **The order against a live military discount.** Light Horse's level is the age's own, so run845's discount is 0,
+  and the order rests on the listing and the unit test.
+- **Socialism's cost arm**, the next line of the same listing, is still unbuilt (parked 2333).
+
+### 84.1 Coverage
+
+**Diff-backed** by run845's widening and word: `ObjectData::train_time@006508c0`'s Monarchy arm on a Stable unit,
+on a build in progress and on a fresh one, and its trainer by equality; `TypeData::get_cost@00664090`'s Monarchy arm
+on the train arm. Each fails its walk when taken out.
 
 ## 85. Reserved for the next item on the rules track
 

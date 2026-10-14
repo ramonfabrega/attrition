@@ -358,15 +358,19 @@ def sweep_backed(src, by_name):
 # `HOOKS.items()` for a tranche (the thirty-third pass).
 HOOKED_SCRIPT = re.compile(r"Harness\(\s*[^,()]*,\s*\{(.*?)\}", re.S)
 SCRIPT = re.compile(r"tools/emu/(sweep_[a-z0-9_]+\.py)")
+STUBS_LIST = re.compile(r"^STUBS = \[(.*)\]$", re.M)
 
 
-def hooked_in_sweeps(src, emu_dir):
+def hooked_in_sweeps(src, emu_dir, by_name=None):
     """Every (test file, script, address) where a sweep test's chunk cites
     an address its own script hands `Harness(exe, {ADDR: …})` as a hooked
     callee — a function the sweep answers for, not one it runs, which the
     census would count as backed beside the one swept (parked 2012, Loop
     2025: 1998's first draft read 461 for ten). The brief's rule is to
-    cite no hooked callee in the chunk; this is the audit of it."""
+    cite no hooked callee in the chunk; this is the audit of it. An `obj`
+    script hooks the `('call', ADDR, N)` rows of its `STUBS` list, and with
+    `by_name` a callee cited by name counts as cited (item 2341: the audit
+    read neither, and `UnitData::speed` was counted beside its caller)."""
     out = []
     for p in sorted(glob.glob(os.path.join(src, "**", "*.rs"), recursive=True)):
         if os.path.basename(p) in NOT_A_SWEEP:
@@ -377,13 +381,19 @@ def hooked_in_sweeps(src, emu_dir):
             if not SWEEP.search(chunk):
                 continue
             cited = {int(m.group(1), 16) for m in CITE.finditer(chunk)}
+            if by_name is not None:
+                cited |= named(chunk, by_name)
             for m in SCRIPT.finditer(chunk):
                 script = os.path.join(emu_dir, m.group(1))
                 if not os.path.isfile(script):
                     continue
                 with open(script, errors="replace") as f:
-                    hm = HOOKED_SCRIPT.search(f.read())
+                        body = f.read()
+                hm = HOOKED_SCRIPT.search(body)
                 hooked = {int(a, 16) for a in re.findall(r"0x(00[0-9a-f]{6})", hm.group(1))} if hm else set()
+                sm = STUBS_LIST.search(body)
+                if sm:
+                    hooked |= {int(a) for a in re.findall(r"\(\s*'call'\s*,\s*(\d+)", sm.group(1))}
                 for addr in sorted(hooked & cited):
                     out.append((os.path.relpath(p, src), m.group(1), addr))
     return out
@@ -590,7 +600,12 @@ def main():
         unbacked(a.index, a.docs, a.sim_src, a.pdb, a.top, a.all)
         return
     if a.hooked:
-        rows = hooked_in_sweeps(a.sim_src, os.path.join(HERE, "emu"))
+        by_name = {}
+        with open(a.index) as f:
+            for line in f:
+                addr, name = line.rstrip("\n").split("\t")[:2]
+                by_name.setdefault(name, []).append(int(addr, 16))
+        rows = hooked_in_sweeps(a.sim_src, os.path.join(HERE, "emu"), by_name)
         for file, script, addr in rows:
             print(f"{file}\t{script}\t{addr:08x}")
         print(f"hooked callees cited in sweep chunks: {len(rows)}")

@@ -51,7 +51,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // the unit's id. `GROUP` is the `Group` the function builds on
             // its own stack at `ebp-0x9d8`: the emulator's stack top
             // `0x8000_0000`, less the 0x100 the harness keeps, the two
-            // arguments, the return and the saved `ebp`. `Group::add` and
+            // arguments, the return and the saved `ebp`. The group's add and
             // `push_group` are entered with that `ecx` because the stub
             // before each leaves it standing. `c[0]` the groups table
             // (`0xe85f20`), slot stride `0x9d4`. `QUEUE_FIRST` is 0 and
