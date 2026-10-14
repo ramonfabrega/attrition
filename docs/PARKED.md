@@ -5072,13 +5072,32 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BY — reserved
+## Parked by item 2346, 2026-10-14 — `edx` beside `ecx`, a tame register, and a stub that writes a window
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2347) **`tools/sweep_gen.py obj --edx`, `--tame`, `--stub-write` and a free function's name built** (parked
+2338, Loop 2003's thirtieth reach; names no score). `--edx LO..HI|V,..` draws an integer into `edx` beside
+`ecx` (the object, or `--ecx-int`'s integer), printed after `ecx` on the row; `hooks.Harness.call` takes `edx`
+(`add_type_bucket`'s row index, `GameAccessConst::find_data_z`'s pass-through). `--tame` holds `--ecx-int` and
+`--edx` to their draw every row, so a register that indexes a table never draws the wild word that faults it
+(`add_type_bucket2`); the draw is `sweeplib.draw_reg`, and an untamed `--ecx-int` draws the rows it drew
+before, so `--regen` moves no existing sweep. `--stub-write IDX:WIN+OFF:SIZE:VAL` has stub IDX write VAL at a
+window's word each call — a callee that unlinks the head its caller loops over (`Object::kill_contents`,
+which looped to the instruction budget under a stub that wrote nothing). A free function's `name@va`
+(`types.cpp`'s `add_type_bucket2`) is a name now; it was refused. Each has a test in
+`tools/explore/test_sweep_gen.py` made to fail first; 51 of 51 pass.
+
+(2348) **Read and not taken by 2346** (names no score; the Loop's next reach). `Caravan::trade_value@0073d9d0`
+(`port`) is reachable on 2347's `--edx`, and wants eight windows, each a flag that exists: the cities table
+`@0xc09970` (rows 0x1c apart, two rows drawn by `edx` and argument 1 held to 0..1) with each row's city-pointer
+array and two city records placed (`--sparse @`, four `--place`), `div_3_table` through the cell 0xcae5fc
+`--fill`ed, `distance` `--stub-cdecl`, `get_trade_value` `--seq 0:2`, `has_tribe_bonus` answered 0 or 1,
+the constants cell 0xc061f0 (+0x890 and the spice word), and the leaders' flags `@0xe3a390` (rows 0x6eec
+apart, +0x6da4 and +0x6dcc); left to the port-consumer lane's next ten. `AmmoOut::set_shooter_vis` and
+`UnitOut::issue_unqueue` are reachable now and were not taken. `CommandManager::issue_speed_up`,
+`issue_speed_down` and their siblings hand `add_command` a local `Command` whose byte is never written in
+the function (the decompile's `local_5`); the listing decides whether it is a garbage byte or a type the
+compiler folded in. The `vtordisp` thunks in the 370-430 byte range (`MoveOrder::is_pathed`, the `walk_data`
+and `get_type` families) are the `fwd` shape (1895) and no sweep holds one yet.
 
 ## Parked by the next landing, slot BZ — reserved
 
