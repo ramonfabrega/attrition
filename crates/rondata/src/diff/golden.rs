@@ -14348,8 +14348,23 @@ fn chapter_sixty_seven_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch67: what parts under the word moved");
 }
 
-// **What parts through run845** (item 2331, `docs/GOLDEN.md` §84).
-const WANT_CH67: &[&str] = &[];
+// **What parts through run845** (item 2331, `docs/GOLDEN.md` §84): the
+// eleven standing `form` rows (600) alone. Without `get_cost`'s Monarchy arm
+// the second Light Horse's queue entry parts on 804 (61/41 against 45/30);
+// without `train_time`'s, its birth on 978.
+const WANT_CH67: &[&str] = &[
+    "600 0/0 form",
+    "600 0/1 form",
+    "600 0/2 form",
+    "600 0/3 form",
+    "600 0/4 form",
+    "600 0/5 form",
+    "600 1/1 form",
+    "600 1/2 form",
+    "600 1/3 form",
+    "600 1/4 form",
+    "600 1/5 form",
+];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
