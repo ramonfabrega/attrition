@@ -222,22 +222,13 @@ impl Sim {
     /// was on is dropped rather than stacked behind.
     fn get_goody_box(&mut self, u: usize, c: Cell) {
         let who = self.units[u].owner;
+        let o = goody_box_order(c);
         let mut g = crate::group::Group::stack(who);
         self.group_add(&mut g, u);
-        if !self.push_group(&mut g, true) {
+        if !self.push_group(&mut g, o.force) {
             return;
         }
-        let half = UNITS_PER_CELL / 2;
-        let to = Pos::new(c.x * UNITS_PER_CELL + half, c.y * UNITS_PER_CELL + half);
-        self.group_action_move_to(
-            &g,
-            to,
-            QueuePos::First,
-            false,
-            crate::movement::Angle(0),
-            MoveKind::ExploreTo,
-            false,
-        );
+        self.group_action_move_to(&g, o.to, o.queue, o.set_angle, o.angle, o.kind, o.action);
     }
 
     /// The pile: `epoch * GOODY_BOX_AGE + GOODY_BOX`, and the Spanish pair
@@ -259,6 +250,37 @@ impl Sim {
         } else {
             level * t.goody_box_age + t.goody_box
         }
+    }
+}
+
+/// What `Unit::get_goody_box@005f7690` hands its one-member group:
+/// `push_group`'s `force`, and `Group::action_move_to`'s arguments.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct GoodyBoxOrder {
+    /// `push_group(who, g, 1)`: a group of one is installed.
+    pub force: bool,
+    /// The box's **cell centre**, `cell * 0x300 + 0x180` on each axis.
+    pub to: Pos,
+    pub queue: QueuePos,
+    pub set_angle: bool,
+    pub angle: crate::movement::Angle,
+    pub kind: MoveKind,
+    pub action: bool,
+}
+
+/// [`GoodyBoxOrder`] for the box on cell `c` — the whole of
+/// `get_goody_box` but the group it is handed to, so the emulated
+/// original can be held to it (`sweep::unit_get_goody_box`, item 2314).
+pub(crate) fn goody_box_order(c: Cell) -> GoodyBoxOrder {
+    let half = UNITS_PER_CELL / 2;
+    GoodyBoxOrder {
+        force: true,
+        to: Pos::new(c.x * UNITS_PER_CELL + half, c.y * UNITS_PER_CELL + half),
+        queue: QueuePos::First,
+        set_angle: false,
+        angle: crate::movement::Angle(0),
+        kind: MoveKind::ExploreTo,
+        action: false,
     }
 }
 

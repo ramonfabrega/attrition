@@ -523,7 +523,7 @@ impl Sim {
     /// edge of reach, an opportunistic one three quarters of a tile
     /// inside it.
     pub fn is_in_range_at_margin(&self, attacker: Obj, at: Pos, target: Obj, margin: bool) -> bool {
-        self.active(target) && self.in_range_past_head(attacker, at, target, margin)
+        self.in_range_from(attacker, at, target, margin, true)
     }
 
     /// `is_in_range@00648d70` as `006486b0`'s head has it: **the slot,
@@ -536,38 +536,58 @@ impl Sim {
     /// coverage pair parts at 3142 (`1/59`), so some reader leans on the
     /// health term (parked 2051).
     pub(crate) fn is_in_range_struck(&self, attacker: Obj, target: Obj) -> bool {
-        self.struck(target)
-            && self.in_range_past_head(attacker, self.pos_of(attacker), target, false)
+        self.in_range_from(attacker, self.pos_of(attacker), target, false, false)
     }
 
-    /// `006486b0` past its slot test: the world cell, then the distance.
-    fn in_range_past_head(&self, attacker: Obj, at: Pos, target: Obj, margin: bool) -> bool {
-        // **The world-cell test** (`6486b0`..`64875b`, item 1200): the
-        // tile under the point asked from — `div_3_table[x >> 6]`, the
-        // tile, of the eight-argument overload's own `x/y` — answers no
-        // when its surface is forest (`TData.mask & 0x30 == 0x30`). It
-        // asks no domain, so a plane over a wood holds its fire:
-        // chapter forty-one's Biplane on 839, at `0x7138` (`docs/GOLDEN.md`
-        // §50).
-        if self.world.tile_mask(at.tile()) & crate::world::tile::SURFACE
-            == crate::world::tile::SURFACE_FOREST
-        {
-            return false;
-        }
+    /// `006486b0` whole, through [`in_range_steps`]: the slot test is
+    /// [`Self::active`]'s when `health` (a building with no health left is
+    /// out), [`Self::struck`]'s when not — split into the slot's own
+    /// condition and, for a unit, `is_on_map`.
+    fn in_range_from(
+        &self,
+        attacker: Obj,
+        at: Pos,
+        target: Obj,
+        margin: bool,
+        health: bool,
+    ) -> bool {
+        let slot = match target {
+            Obj::Unit(u) => self.units.get(u).is_some_and(|u| u.alive()),
+            Obj::Building(b) => self
+                .buildings
+                .get(b)
+                .is_some_and(|b| b.alive && b.combat.is_some() && (!health || b.health > 0)),
+        };
         let ap = self.profile(attacker);
-        // `attack_dist` is called at the quarter-tile centre of the position.
-        let centre = Pos::new(
-            at.x.div_euclid(48) * 48 + 0x18,
-            at.y.div_euclid(48) * 48 + 0x18,
-        );
-        let d = self.attack_dist_from(attacker, centre, target);
-        let big = ap.big_radius + self.profile(target).big_radius;
-        combat::in_range(
-            d,
-            self.max_range_of(attacker),
-            ap.min_range,
-            self.reaches_like_a_hoplite(attacker),
-            big,
+        in_range_steps(
+            slot,
+            || matches!(target, Obj::Unit(_)),
+            || match target {
+                Obj::Unit(u) => self.units[u].on_map,
+                Obj::Building(_) => true,
+            },
+            at,
+            // **The world-cell test** (`6486b0`..`64875b`, item 1200): the
+            // tile under the point asked from — `div_3_table[x >> 6]`, the
+            // tile, of the eight-argument overload's own `x/y` — answers no
+            // when its surface is forest (`TData.mask & 0x30 == 0x30`). It
+            // asks no domain, so a plane over a wood holds its fire:
+            // chapter forty-one's Biplane on 839, at `0x7138`
+            // (`docs/GOLDEN.md` §50).
+            |at| {
+                self.world.tile_mask(at.tile()) & crate::world::tile::SURFACE
+                    == crate::world::tile::SURFACE_FOREST
+            },
+            |centre| self.attack_dist_from(attacker, centre, target),
+            None,
+            ap.max_range != 0,
+            || self.reaches_like_a_hoplite(attacker),
+            || ap.min_range,
+            |of_target| {
+                let o = if of_target { target } else { attacker };
+                (matches!(o, Obj::Unit(_)), self.profile(o).big_radius)
+            },
+            || self.max_range_of(attacker),
             margin,
         )
     }
@@ -4761,6 +4781,61 @@ pub(crate) fn attacking_bits(
     let reveal = !sees();
     *visible |= bit;
     reveal
+}
+
+/// **`ObjectData::is_in_range@006486b0`'s steps** (item 2314,
+/// `docs/COMBAT.md` §13.2), in its order: the target's slot (`flags & 1`)
+/// and, for a unit (vslot `+8`), `is_on_map` (vslot `+0xbc`); the world
+/// cell under `at`, refused when forest; `attack_dist` at the quarter-tile
+/// centre of `at` (`div_3_table[v >> 4] * 0x30 + 0x18`), written to the
+/// out-word. A type with no range (`+0x1fc` zero) reaches `0x66`, or
+/// `0xf6` for the HOPLITES lineage (`is(0x84, 0)`). Otherwise inside
+/// `min_range × 0xc0 − 6` (vslot `+0x12c`) the attacker's and the target's
+/// `big_radius` (`type +0x244`, each only for a unit, vslot `+0x18`) are
+/// added before the inner bound is asked again, and the outer bound is
+/// `max_range × 0xc0 + 6` (vslot `+0x130`) with `0x90` added for the
+/// margin. The sums are the original's 32-bit ones, wrapping.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn in_range_steps(
+    slot: bool,
+    target_unit: impl FnOnce() -> bool,
+    on_map: impl FnOnce() -> bool,
+    at: Pos,
+    forest: impl FnOnce(Pos) -> bool,
+    dist: impl FnOnce(Pos) -> i32,
+    out: Option<&mut i32>,
+    ranged: bool,
+    hoplite: impl FnOnce() -> bool,
+    min_range: impl FnOnce() -> i32,
+    mut big: impl FnMut(bool) -> (bool, i32),
+    max_range: impl FnOnce() -> i32,
+    margin: bool,
+) -> bool {
+    if !slot || (target_unit() && !on_map()) || forest(at) {
+        return false;
+    }
+    let centre = Pos::new(
+        at.x.div_euclid(48) * 48 + 0x18,
+        at.y.div_euclid(48) * 48 + 0x18,
+    );
+    let d = dist(centre);
+    if let Some(o) = out {
+        *o = d;
+    }
+    if !ranged {
+        return d <= if hoplite() { 0xf6 } else { 0x66 };
+    }
+    let inner = min_range().wrapping_mul(0xc0).wrapping_sub(6);
+    if d < inner {
+        let radius = |(unit, r): (bool, i32)| if unit { r } else { 0 };
+        let mine = radius(big(false));
+        let theirs = radius(big(true));
+        if d.wrapping_add(theirs).wrapping_add(mine) < inner {
+            return false;
+        }
+    }
+    let reach = max_range().wrapping_mul(0xc0).wrapping_add(6);
+    d.wrapping_add(if margin { 0x90 } else { 0 }) <= reach
 }
 
 /// **`Object::valid_target@00648ba0`'s steps** (item 2287): the out-word

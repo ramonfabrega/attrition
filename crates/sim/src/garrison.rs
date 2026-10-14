@@ -159,17 +159,41 @@ impl Sim {
     }
 
     /// `ObjectData::num_inside(0)`: the slots occupied.
+    ///
+    /// The port's garrison list holds captains only, every one a unit, and
+    /// a building with a garrison is on the map, so the three questions
+    /// `inside_count` asks first answer yes here. A decoy is not asked:
+    /// the port answers its control cost (`slot_cost`).
     pub fn num_inside(&self, b: usize) -> i32 {
-        self.buildings[b]
-            .garrison
-            .iter()
-            .map(|&u| self.slot_cost(u))
-            .sum()
+        inside_count(
+            || true,
+            false,
+            self.buildings[b].garrison.iter().copied(),
+            |_| true,
+            |_| true,
+            // `slot_cost`'s two arms: a squad with no type counts 1.
+            |&u| {
+                self.units[u]
+                    .ty
+                    .is_none_or(|t| self.unit_types[t].garrison.gov_hero)
+            },
+            |_| false,
+            |&u| self.units[u].ty.map_or(1, |t| self.unit_types[t].price.pop),
+        )
     }
 
     /// `ObjectData::num_inside(1)`: squads inside.
     pub fn squads_inside(&self, b: usize) -> i32 {
-        self.buildings[b].garrison.len() as i32
+        inside_count(
+            || true,
+            true,
+            self.buildings[b].garrison.iter().copied(),
+            |_| true,
+            |_| true,
+            |_| false,
+            |_| false,
+            |_| 0,
+        )
     }
 
     /// The figures of a squad — every unit of the same owner sharing a
@@ -912,3 +936,45 @@ pub const TILE: i32 = UNITS_PER_TILE;
 
 /// A player index, re-exported for the garrison tests.
 pub type Who = Player;
+
+/// `ObjectData::num_inside@00646d50`'s count over the figures inside, in
+/// the order the original walks them: nothing when the building is not on
+/// the map (slot `+0xbc`, asked once, first); else each figure that is a
+/// captain (`+0xe8`) counts 1 when `squads` (the argument non-zero),
+/// otherwise only a unit (`+0x18`) counts — 1 for a government patriot
+/// (`is_gov_hero`, `+0xc8`), 0 for a decoy (`unit_masks & 1`), else its
+/// type's `control_cost` (`+0x2f0`). Each question is asked only where the
+/// original asks it, so a test can answer them in call order.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn inside_count<T>(
+    on_map: impl FnOnce() -> bool,
+    squads: bool,
+    figures: impl IntoIterator<Item = T>,
+    mut captain: impl FnMut(&T) -> bool,
+    mut unit: impl FnMut(&T) -> bool,
+    mut gov_hero: impl FnMut(&T) -> bool,
+    mut decoy: impl FnMut(&T) -> bool,
+    mut control_cost: impl FnMut(&T) -> i32,
+) -> i32 {
+    if !on_map() {
+        return 0;
+    }
+    let mut n = 0i32;
+    for f in figures {
+        if !captain(&f) {
+            continue;
+        }
+        if squads {
+            n = n.wrapping_add(1);
+        } else if unit(&f) {
+            n = n.wrapping_add(if gov_hero(&f) {
+                1
+            } else if decoy(&f) {
+                0
+            } else {
+                control_cost(&f)
+            });
+        }
+    }
+    n
+}
