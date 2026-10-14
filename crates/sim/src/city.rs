@@ -350,13 +350,12 @@ impl Sim {
     /// including the city building, whose type `is(t, 0)`.
     pub fn count_buildings(&self, c: usize, ident: Ident, active_only: bool) -> i32 {
         let city = &self.cities[c];
-        std::iter::once(city.building)
-            .chain(city.members.iter().copied())
-            .filter(|&b| {
-                let bd = &self.buildings[b];
-                bd.alive && (!active_only || bd.active) && self.building_is(b, ident)
-            })
-            .count() as i32
+        count_typed(
+            std::iter::once(city.building).chain(city.members.iter().copied()),
+            |b| self.buildings[b].alive,
+            active_only.then_some(|b: usize| self.buildings[b].active),
+            |b| self.building_is(b, ident),
+        )
     }
 
     /// `CityData::num_buildings`: alive, active members — the city building
@@ -3320,5 +3319,22 @@ pub(crate) fn count_wonders(
     chain
         .into_iter()
         .filter(|&b| wonder(b) && !red_fort(b) && !skip_city(b))
+        .count() as i32
+}
+
+/// **`CityData::count_buildings@00739390`**'s count: the chain's members
+/// whose slot is in use (`flags & 1`), then — when `active` is given, the
+/// original's `active_only` — active (a `Build`'s `flags & 4`), then of the
+/// type: `is(t, 0)`, or with `exact` the type record's `+4`, which the
+/// caller folds into `is`. Item 2276's sweep holds it.
+pub(crate) fn count_typed(
+    chain: impl IntoIterator<Item = usize>,
+    used: impl Fn(usize) -> bool,
+    active: Option<impl Fn(usize) -> bool>,
+    mut is: impl FnMut(usize) -> bool,
+) -> i32 {
+    chain
+        .into_iter()
+        .filter(|&b| used(b) && active.as_ref().is_none_or(|f| f(b)) && is(b))
         .count() as i32
 }

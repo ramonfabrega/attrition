@@ -715,3 +715,4 @@ mod city_data_num_buildings;
 mod city_data_num_kinds;
 mod city_data_enough_kinds;
 mod city_data_num_wonders;
+mod city_data_count_buildings;
