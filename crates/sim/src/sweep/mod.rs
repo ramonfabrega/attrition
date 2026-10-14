@@ -332,6 +332,7 @@ mod build_type_data_is_spellcaster;
 mod build_type_data_is_training_building;
 mod build_type_data_makes_roads;
 mod build_type_data_max_flat_gatherers;
+mod build_type_data_max_gatherers;
 mod build_type_data_max_knowledge_gatherers;
 mod build_type_data_non_friendly_territory;
 mod build_type_data_tile_corner;
