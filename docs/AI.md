@@ -19730,8 +19730,8 @@ for the figure's: the figure is not on its `des`, and `Guy::move` steps it on th
 ### 208.4 The build
 
 `Sim::process_unit`'s dead-boat arm (`lib.rs`, item 1191's, whose comment said `coll_follow` could skip the dead boat because its figure
-was on its `des`) runs `coll_move(i, body before, body after)` round its `process_movement`; `coll_move` is `pub(crate)`. `move_unit` has
-no gate on the unit, so the disc moves with the body as on a live one.
+was on its `des`) runs `coll_move(i, body before, body after)` round its `process_movement`; `coll_move` is `pub(crate)`. `move_unit`
+asks nothing of the unit's life, so the disc moves with the body as on a live one.
 
 Test: `transport::tests::a_boat_that_dies_stepping_ashore_paints_its_figure_s_step` — the fixture's disc at the unit's own point
 cleared, the figure painted a cell behind; after the death the leading row is set and the trailing one clear. Mutation through

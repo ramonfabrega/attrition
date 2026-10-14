@@ -5711,8 +5711,8 @@ impl Sim {
             // `CollCheck::move_unit` steps the figure to (384, 621), whose
             // set pass paints the disc's new row (624) on no unit at all.
             // Those four bits walled `1/183` in thirty-four frames later.
-            // `move_unit` has no gate on the unit, so the disc moves with
-            // the body here as it would on a live one.
+            // `move_unit` asks nothing of the unit's life, so the disc moves
+            // with the body here as it would on a live one.
             if self.units[i].kind.domain == attrition::Domain::Sea && !self.units[i].on_map {
                 let from = self.units[i].movement.body.pos;
                 self.process_movement(i);
