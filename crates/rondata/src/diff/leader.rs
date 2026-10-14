@@ -595,7 +595,14 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // against a `gather_slots` of `10 12 1 0 0 0`, so the good's own
     // high-water mark is at stride two and the six-in-a-row reading
     // reported five of the six goods as divergences on every frame.
-    for key in ["diplos", "treaties", "agendas", "aggression", "strong", "weak"] {
+    for key in [
+        "diplos",
+        "treaties",
+        "agendas",
+        "aggression",
+        "strong",
+        "weak",
+    ] {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }

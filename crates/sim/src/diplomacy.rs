@@ -545,7 +545,10 @@ mod tests {
         sim.ai[0].got_diplo_message = 1984 + 100;
         sim.frame = 2496;
         sim.diplomacy(1);
-        assert_eq!(sim.agendas[1][0], 0, "the receiver heard one 412 frames ago");
+        assert_eq!(
+            sim.agendas[1][0], 0,
+            "the receiver heard one 412 frames ago"
+        );
 
         // At difficulty 1 nothing raises `aggression` and nothing is sent.
         let mut sim = peace_pair();

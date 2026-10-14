@@ -9128,12 +9128,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
-    // Lakota food term, widened on run849 over 1978..2235 (block 1985).
+    // Lakota food term, widened on run849 over 1978..2235 (block 1985);
+    // **2040** after item 2384's `Leader::diplomacy`, in the same window
+    // (block 2041).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         Some("run849_s_word_frame_is_widened_whole"),
-        2351,
+        2384,
         Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_1984),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

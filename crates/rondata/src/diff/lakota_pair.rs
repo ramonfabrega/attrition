@@ -31,8 +31,11 @@ pub(crate) const LAKOTA: Pair = Pair {
     // Item 2351: 1384 → 1984, the Lakota food term and its live counts
     // (`docs/AI.md` §219): ours 61 draws, theirs 62, index 28 — ours
     // `Animal::think_bird+0x82`, theirs `6bdab8` in `Leader::diplomacy`.
-    count: 1984,
-    sequence: 1984,
+    // Item 2384: 1984 → 2040, `Leader::diplomacy`'s peace arm (`docs/AI.md`
+    // §220): ours 37 draws, theirs 35, index 0 — ours
+    // `Army::find_target+0x7df`, theirs `Unit::do_move+0xe84`.
+    count: 2040,
+    sequence: 2040,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -132,7 +135,7 @@ pub(crate) fn lakota_frame_1984_window() -> Option<harness::tests::Widened> {
         &[(RUN849, WIDENING_LAKOTA_FRAME_1984.0)],
         WIDENING_LAKOTA_FRAME_1984,
         1,
-        &[1985],
+        &[1985, 2041],
         true,
     )
 }
@@ -151,7 +154,7 @@ fn run849_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 1242, "initial run849 baseline");
+    pin_eq!(w.firsts.len(), 1240, "initial run849 baseline");
     // Item 2351: 1242 keys part on blocks 1978..2235, the word's own block
     // being 1985 (frame 1984: ours 61 draws, theirs 62, index 28; ours
     // `Animal::think_bird+0x82`, theirs `6bdab8` in `Leader::diplomacy`).
@@ -160,4 +163,11 @@ fn run849_s_word_frame_is_widened_whole() {
     // and `bucket[4:metal]` 15317/15212 (40 apart on run848's 1378), and
     // the control's `SITE[n].reg`, `form` and groups' `held`
     // (`docs/AI.md` §219).
+    // Item 2384: 1242 → 1240, `Leader::diplomacy` (`docs/AI.md` §220). The
+    // word's block 1985 holds no row: who=1's `agendas[0]` 64, `aggression[0]`
+    // 1, `strong[0]` 160, `weak[0]` 0 and who=0's `got_diplo_message` 1984,
+    // both sides, the last four compared from this item. The word is now
+    // 2040 (block 2041, in this window): 47 keys part there, who=1's
+    // `1/25`, `1/26`, `1/36` given moves in ours (`1/25` to (35112, 44088)
+    // against theirs' (44424, 32904); `1/26` and `1/36` none in theirs).
 }
