@@ -143,6 +143,52 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1, slotbase=['0xc:0x401000'])
 
+    def test_a_range_bias_draws_its_own_edges(self):
+        # Loop 2003's sixteenth reach (item 2170's "for the Loop", built by
+        # item 2181): a `--wbias LO..HI` range was drawn uniformly, so a
+        # predicate on a boundary inside a wide range (`t < 1` in `-2..3000`)
+        # was tested by luck. The draw now takes LO, HI and the small
+        # integers inside the range a few rows in ten.
+        import random
+        import re
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2181, win=0x10, bias=[], own=0,
+            cells=['0xc06188:0x20'], wbias=['c0+0:-2..3000'], port='0')
+        compile(script, str(sp), 'exec')
+        body = re.search(r'^def wdraw\(.*?(?=^\S)', script, re.S | re.M)
+        self.assertIsNotNone(body, 'the script draws a bias through `wdraw`')
+        env = {}
+        exec(body.group(0), env)
+        rng = random.Random(1)
+        drawn = {env['wdraw'](rng, ('range', -2, 3000)) for _ in range(100)}
+        for edge in (-2, -1, 0, 1, 2, 3000):
+            self.assertIn(edge, drawn, f'the edge {edge} in a hundred draws')
+        self.assertTrue(all(-2 <= v <= 3000 for v in drawn))
+        # Edges outside the range are never drawn; a set stays a set.
+        drawn = {env['wdraw'](rng, ('range', 5, 9)) for _ in range(100)}
+        self.assertEqual(drawn, {5, 6, 7, 8, 9})
+        self.assertEqual({env['wdraw'](rng, ('set', [4, 6])) for _ in range(50)}, {4, 6})
+
+    def test_a_cdecl_function_leaves_its_arguments_to_the_caller(self):
+        # Loop 2003's sixteenth reach (item 2181): `Caravan::distance@0073d300`
+        # is `__cdecl` and ends in a bare `ret`, so the obj shape's esp check
+        # (the callee pops its arguments) refused every row; item 2170 left
+        # `add_type_bucket` for the same reason. `--cdecl` expects the caller's
+        # pop: esp short by four bytes an argument.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2181, win=8, bias=[], own=4,
+            cells=['0xc06188:4'], cdecl=True, port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('CDECL = True', script)
+        self.assertIn('- (4 * len(args) if CDECL else 0)', script)
+        self.assertIn('`__cdecl`', script)
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2181, win=8, bias=[], own=1, cells=['0xc06188:4'])
+        self.assertIn('CDECL = False', script)
+        # The plain obj has no window to carry it, and refuses it.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=1, cdecl=True)
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,
