@@ -22,17 +22,17 @@ successor 4246 → 4671, Great Sahara (Mongols) closed on its first build, chapt
   (`--deep-state`, 2186); `unitat.py` prints a `GroupMoveOrder` (2145); the runner refuses a long with no
   `--detail` (2199); `census.py --pin --never` runs again — cited 1574, never **333**. Six Loop lines are brief
   rows; 1947, 1965, 2210 closed. Battery 576 / 6566 / 2974, a ninth tranche. Disk 182 GiB. `main` 476 behind.
-- **Lanes live** (tranche 34; landed 2271, 2276, 2281, 2298, 2287 — census 721 → 771 — 2259, successor 4671 → 4946,
-  and 2265, chapter 65 closed at 1100): 2293 (AI §217, BO, run 844), 2304 (GOLDEN §83, BQ, run 845), 2309 (BR), 2314
-  (BS); four parked numbers follow each. Next 2319, run 846, AI §218, GOLDEN §84, park BT (BT–BX, AI §218–§221, GOLDEN §84–§87).
-- **Fable backlog: 13 Loop items** (1570, 1725, 1900, 2003, 2031, 2060, 2089, 2104, 2146, 2240, 2286, 2292, 2303).
+- **The successor pair closed at 5056 of 5,056** (2259 → 4946, 2293 → 5056); chapter 65 closed (2265); census 721 → 771
+  (2271, 2276, 2281, 2298, 2287). **Live**: 2304 (GOLDEN §83, BQ, run 845), 2309 (BR), 2314 (BS), 2320 (AI §218, BT,
+  runs 846–848); four parked numbers follow each. Next 2325, run 849, AI §219, GOLDEN §84, park BU (pools to BX, §221, §87).
+- **Fable backlog: 14 Loop items** (1570, 1725, 1900, 2003, 2031, 2060, 2089, 2104, 2146, 2240, 2286, 2292, 2303, 2319).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
-Successor pair: EastIndiesMongolAllTech w4946 of 5,056
+Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Census: simulation backed 771 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed
@@ -46,18 +46,18 @@ DECISIONS 70 names, their reservations in the queue's words; at twenty landings 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2293 the headline's word, 2304 the rules track's, 2309 and 2314 the
-sweep lanes' — lower map first — East Indies (Mongols), the successor pair's.
+2320 the next pair's choice, 2304 the rules track's, 2309 and 2314 the
+sweep lanes' — lower map first — closed, the successor pair's; 2320 names its successor.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2293. **The successor pair's word: frame 4946, 161 versus 162 draws**,
-    index 150: theirs spends one `Guy::init_real+0x52` (a birth) ahead
-    of the `Guy::inc_time+0x271` run ours opens on; 2259 moved 4671 →
-    4946 (a held Supercollider zeroes a tech's research time). Past
-    run838 (4597..4852): its widening is a capture's, run 844, after
-    run838's standing rows on 4702..4784 are walked (parked 2260).
-    East Indies, Mongols. AI §217.
+2320. **The successor pair's successor: the lobby that reaches the
+    most census rows no trace has entered** (DECISIONS 61 §6; the pair
+    closed at 5056, 2293). 1466's method: `census.py --pin --never`,
+    the never-entered simulation functions' entered callers, read by
+    what each caller's branch needs; named with those rows before its
+    first run is booked, a late starting age first; the scoreboard line
+    and `NEWEST_PAIR` with it. Runs 846–848. AI §218.
 
 2304. **Chapter sixty-six: the arms the AI track built that no walk
     holds** (DECISIONS 56 §3; 2265 closed sixty-five at 1100, GOLDEN

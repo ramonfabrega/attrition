@@ -3753,6 +3753,13 @@ the dump first prints on block N was made on tick N−1. The brief's "a packet a
 second take. Candidate: the frame's packet row and `docs/EMULATOR.md` §8 say "the frame before the block that first
 prints the decision", and `frame_snapshot.py` names the tick it holds. One reach.
 
+(2319) **A birth on the word's frame: diff ours' `RON_DEBUG_BUILDS` over the word's frame first** (2293's "for the
+Loop" line). 2259 booked 4946's birth as the Airbase's from a standing row; the row was a sibling of the cause (one
+arm, two Airbases). `RON_DEBUG_BUILDS` over `<word−1>–<word>` named the birth's building in one run, where the
+walk-back named only the mechanism. Candidate: a brief-checklist row — "a birth on the word's frame: diff ours'
+`RON_DEBUG_BUILDS` over the word's frame and name the queue that emptied, before reading which building the booking
+guesses" — beside Loop 2292's leader-record diff. One reach.
+
 ## Loop, filed 2026-10-14 — the thirty-third tranche's
 
 (2146) **`GROUPS=1` without `BUILDS=7` prints no `GROUPDATA`** (Loop; names no score). run827's first take asked
