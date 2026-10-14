@@ -45,8 +45,10 @@
 /// `timeGetTime` through `--stub iat`;
 /// item 2331: 813 -> 815, chapter sixty-seven's coverage, `train_time` and `get_cost` diff-backed by run845;
 /// item 2346: 815 -> 825, the sweep's sixty-seventh batch, `edx` beside `ecx` through `obj --edx`, a table
-/// index through `--tame`, a container emptied through `--stub-write`).
-pub const SIMULATION_BACKED: usize = 825;
+/// index through `--tame`, a container emptied through `--stub-write`;
+/// item 2362: 825 -> 835, the sweep's sixty-eighth batch, eight `vtordisp` thunks through `fwd`'s
+/// `vtordisp` token, `set_shooter_vis` and `issue_unqueue`).
+pub const SIMULATION_BACKED: usize = 835;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

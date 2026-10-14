@@ -260,6 +260,10 @@ FWD_TAIL = '''
 
 CALLS = {calls}
 OWN = {own}
+# A `vtordisp` thunk (`sub ecx, [ecx-4]; jmp target`, item 2362) reads the word
+# before `this`: `this` is laid in the heap with a drawn displacement there.
+VTORDISP = {vtordisp}
+DISPS = (0, 4, 8, 0x10, 0x1c, 0x58, 0x60, 0x100, -4, -0x60)
 
 
 def rows():
@@ -273,7 +277,14 @@ def main(argv):
     from hooks import Harness
     from callfn import STACK_BASE, STACK_SIZE
     h = Harness(argv[1], {{a: (f"{{a:x}}", n) for a, n, _, _ in CALLS}})
+    drng = random.Random({item} + 1)
     for this, p0, ans, p1, p2 in rows():
+        tail = ""
+        if VTORDISP:
+            disp = drng.choice(DISPS) if drng.random() < 0.6 else drng.randint(-0x80000000, 0x7FFFFFFF)
+            buf = h.alloc(8)
+            h.w32(buf, disp)
+            this, tail = buf + 4, f" {{disp}}"
         h.calls.clear()
         for i, (a, n, _, _) in enumerate(CALLS):
             h.answers[f"{{a:x}}"] = (ans + i) & 0xFFFFFFFF
@@ -281,7 +292,7 @@ def main(argv):
         esp = h.m.uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
         seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
-        print(f"{{this}} {{p0}} {{ans}} {{p1}} {{p2}} -> {{r}} | {{seen}}")
+        print(f"{{this}} {{p0}} {{ans}} {{p1}} {{p2}}{{tail}} -> {{r}} | {{seen}}")
     return 0
 
 
@@ -305,7 +316,7 @@ fn the_emulated_original_agrees_on_every_row() {{
         let (eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
         let (this, _p0, ans, _p1, _p2) = (a[0], a[1], a[2], a[3], a[4]);
         let _ = (this, _p0, ans, _p1, _p2);
-        let calls: Vec<Vec<i64>> = {calls};
+{disp}        let calls: Vec<Vec<i64>> = {calls};
         let want: String = calls
             .iter()
             .map(|c| c.iter().map(i64::to_string).collect::<Vec<_>>().join(","))
@@ -405,6 +416,9 @@ def _fwd_expr(tok):
         return '_p0'
     if tok in ('p1', 'p2'):
         return '_' + tok
+    if tok == 'vtordisp':
+        # `this` less the displacement the thunk reads at `this-4` (item 2362)
+        return 'i64::from((this as u32).wrapping_sub(disp as u32))'
     return str(int(tok, 0))
 
 
@@ -429,12 +443,17 @@ def generate_fwd(spec, *, item, calls, own=0, ret='none'):
         retcode = (f'        assert_eq!(eax.trim().parse::<i64>().unwrap(), {int(ret, 0)}, '
                    f'"{short} — eax, row `{{line}}`");')
     cs = [(a, n, e, g) for a, n, e, g in parsed]
+    vtordisp = any(e.strip() == 'vtordisp' for _, _, e, _ in parsed)
     script = (SCRIPT_HEAD.format(snake=sn, name=name, va=va, item=item,
                                  what=f'the object; calls {len(calls)} direct callee(s) and returns {ret}')
               + ROWS['const'].split('def rows')[0]
-              + FWD_TAIL.format(calls=repr(cs), own=own, item=item)).replace('\n\n\n\ndef main', '\n\n\ndef main')
+              + FWD_TAIL.format(calls=repr(cs), own=own, item=item, vtordisp=vtordisp)).replace('\n\n\n\ndef main', '\n\n\ndef main')
     doc = (f'{len(calls)} hooked callee(s), `ecx` and arguments held to the spec, `eax` {ret}.')
+    if vtordisp:
+        doc += (' `this` is laid in the heap with a drawn displacement at `this-4` (the row\'s sixth'
+                ' figure), and the callee\'s `ecx` is `this` less it.')
     test = FWD_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
+                           disp='        let disp = a[5];\n' if vtordisp else '',
                            calls='vec![' + ', '.join(exprs) + ']', ret=retcode)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 

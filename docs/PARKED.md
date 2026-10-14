@@ -5123,13 +5123,28 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CB — reserved
+## Parked by item 2362, 2026-10-14 — the `vtordisp` thunks through `fwd`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2363) **`tools/sweep_gen.py fwd`'s `vtordisp` ECX token built** (parked 2348, Loop 2003's thirty-second
+reach; names no score). A `vtordisp{4294967292,0}` thunk is two instructions, `sub ecx, [ecx-4]; jmp
+target` (the listing; the decompile prints `this - this[-1].field_0xNN`), and `fwd` drew `this` as an
+address nothing maps, so the thunk's one read faulted. `--call ADDR:N:vtordisp:ARGS` lays `this` in the
+heap with a displacement at `this-4` — 60 % from a list of small ones (0, 4, …, 0x100, -4, -0x60), the rest
+a wild word, drawn from its own seed so a `fwd` without the token draws the rows it drew before — prints
+it sixth on the row, and holds the hooked target's `ecx` to `this - disp` (u32, wrapping). The tail `jmp`
+hooks as an ordinary call (1895). A thunk's name has a backtick and braces that neither `NAME` nor the
+census's `CITE` reads, so a sweep spells it `Class::method_vtordisp@va`; the census backs it by the
+address. Test `test_a_vtordisp_thunk_moves_this_by_the_word_before_it`, made to fail first; 52 of 52.
+
+(2364) **The `vtordisp` thunks left** (names no score; the Loop's next reach). 2362 took eight (370-385
+bytes). Twenty-eight remain on `tools/census.py --unbacked`, 385-573 bytes, every one `{4294967292,0}`
+and the same two instructions: `GarrisonOrder`, `AirPatrolOrder`, `GroupMoveOrder`, `GroupPatrolOrder`,
+`GroupAttackOrder`, `AttackGroundOrder`, `GroupAttackToOrder` and the rest's `walk_data`; `BuildOrder`,
+`AttackOrder`, `RepairOrder`, `FollowOrder`, `GatherOrder`, `AttackGroundOrder`'s `get_type`;
+`GroupMoveOrder::is_pathed`/`is_fleeing`; `GuardOrder::get_guard_order`. Each is one generated line —
+`fwd 'C::m_vtordisp@va' --call TARGET:N:vtordisp:ARGS`, N off the target's `ret`. Three more sweep
+batches, or one lane told to take them all at once, empty the band. `CommandManager::issue_speed_up`'s
+`local_5` (2348) was not read: no function of this batch reached that family.
 
 ## Parked by the next landing, slot CC — reserved
 
