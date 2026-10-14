@@ -737,6 +737,7 @@ mod unit_order_walk_data;
 mod unit_repath;
 mod unit_set_ai_control;
 mod unit_set_anim;
+mod unit_set_attack;
 mod unit_set_attacking;
 mod unit_set_group;
 mod unit_set_in_danger;
