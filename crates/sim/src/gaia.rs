@@ -444,19 +444,63 @@ impl Sim {
             return;
         }
         let h = idx as usize;
-        self.mark(SITE_HERD_X);
-        let x = self.gaia.herds[h].cx - 1 + self.rng.roll() % 3;
-        self.mark(SITE_HERD_Y);
-        let y = self.gaia.herds[h].cy - 1 + self.rng.roll() % 3;
-        if x < 0 || y < 0 || x >= self.world.width() || y >= self.world.height() {
-            return;
-        }
-        let d = self.world.cell_data(Cell { x, y });
-        if d.flags & FEATURE_MASK == 0 && d.blocked < 8 {
+        let (cx, cy) = (self.gaia.herds[h].cx, self.gaia.herds[h].cy);
+        let (rng, marks, trace, world) = (
+            &mut self.rng,
+            &mut self.phase_marks,
+            self.trace_phases,
+            &self.world,
+        );
+        let walked = herd_process_steps(
+            cx,
+            cy,
+            world.width(),
+            world.height(),
+            |site| {
+                // `Sim::mark`, spelled on the fields so the world stays
+                // borrowed beside the draw.
+                if trace {
+                    marks.push((site.to_string(), rng.seed));
+                }
+                rng.roll()
+            },
+            |x, y| {
+                let d = world.cell_data(Cell { x, y });
+                (d.flags, d.blocked)
+            },
+        );
+        if let Some((x, y)) = walked {
             self.gaia.herds[h].wx = x;
             self.gaia.herds[h].wy = y;
         }
     }
+}
+
+/// `Herd::process@00741760` (item 2341) — the herd's walk as steps over
+/// its callees: `draw(site)` is `Random::get(game_random, 0, 0xffff)`
+/// named by its draw site ([`SITE_HERD_X`], then [`SITE_HERD_Y`]; both are
+/// drawn before any test), and `tile(x, y)` the cell's `WData.flags` and
+/// `WData.blocked` (the record at `world+0x134`, stride `0x1c`: the word
+/// at `+0` and the byte at `+0x11`), asked only for a cell on the map
+/// (`0 <= x < width`, `0 <= y < height`, `world+0` and `world+4`). The
+/// answer is the new wander centre `(wx, wy)`, or `None` when the original
+/// leaves it as it was. The remainder is `idiv`'s, truncated toward zero,
+/// which Rust's `%` is.
+pub(crate) fn herd_process_steps(
+    cx: i32,
+    cy: i32,
+    width: i32,
+    height: i32,
+    mut draw: impl FnMut(&'static str) -> i32,
+    tile: impl Fn(i32, i32) -> (u16, u8),
+) -> Option<(i32, i32)> {
+    let x = cx - 1 + draw(SITE_HERD_X) % 3;
+    let y = cy - 1 + draw(SITE_HERD_Y) % 3;
+    if x < 0 || y < 0 || x >= width || y >= height {
+        return None;
+    }
+    let (flags, blocked) = tile(x, y);
+    (flags & FEATURE_MASK == 0 && blocked < 8).then_some((x, y))
 }
 
 #[cfg(test)]

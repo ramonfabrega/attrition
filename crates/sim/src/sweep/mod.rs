@@ -453,6 +453,7 @@ mod guy_set_pitch;
 mod guy_set_pivot_angle;
 mod guy_turn_angles;
 mod guy_turn_towards;
+mod herd_process;
 mod herd_walk_data;
 mod herds_find_herd;
 mod hero_walk_data;
