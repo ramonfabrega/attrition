@@ -3734,6 +3734,16 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2127) **A cross-session clear reported fired on a lane that went on in
+one session** (found at 2088's second `DEEP`): `ccc clear 4aa11452
+--status` said "cleared … 9m ago" at 18:51, and the lane's transcript
+(`4aa11452-491c…`, the only file in its project dir) went on to 351 k at
+18:58 with no `/clear` and no new session file; the lane had been told
+to end its turn and had not yet. A re-arm at 19:00 and a second line
+took. Candidate: the waiter checks, on its next pass after a clear, that
+the lane's newest transcript is not the one it measured, and exits
+`UNCLEARED <lane>` if it is — a test fed two transcript listings.
+
 (2059) **`unitat.py`'s order labels are inverted** (Loop; names no score; filed here at 2055's merge). The dump prints an order list
 from the ring's anchor, the **bottom** (`OrderList::log_data`, `docs/AI.md` §206), and `unitat.py`
 reverses it into "first issued first". So its `[0]` is the current order and `<top>` marks the bottom.
