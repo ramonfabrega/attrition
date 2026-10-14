@@ -625,7 +625,7 @@ class Shapes(unittest.TestCase):
         compile(script, str(sp), 'exec')
         self.assertIn('RECORDORDER = True', script)
         self.assertIn('in call order, each headed `sIDX:`', test)
-        ns = {}
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
         for fn in ('def token(', 'def in_order('):
             body = script[script.index(fn):]
             exec(body[:body.index('\n\n\ndef ')], ns)
