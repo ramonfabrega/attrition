@@ -34,8 +34,10 @@
 /// `UnitData::get_action`, by the city alarm's worker arm, `docs/GOLDEN.md` §81.1; item 2271: 721 ->
 /// 731, the sweep's sixty-first batch, the backups and restores through `obj --ptrarg-null`; item
 /// 2276: 731 -> 741, the second sweep lane's ten, the squad and city chains through `obj --link`; item
-/// 2281: 741 -> 751, the sweep's sixty-second batch, seven of its ten through `obj --record`).
-pub const SIMULATION_BACKED: usize = 751;
+/// 2281: 741 -> 751, the sweep's sixty-second batch, seven of its ten through `obj --record`; item
+/// item 2298: 751 -> 761, the sweep's sixty-third batch, the unbuilt lists, the speed and the spells;
+/// item 2287: 761 -> 771, the second sweep lane's ten with a port consumer, five through `obj --record`).
+pub const SIMULATION_BACKED: usize = 771;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
