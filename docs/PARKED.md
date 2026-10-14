@@ -4745,22 +4745,25 @@ has a copy whose target's number was reused.
 
 ## Parked by item 2235, 2026-10-14 — the city alarm
 
-(2236) **Chapter sixty-five's word 777, open (ours 8 draws, theirs 6)** (item 2235, `docs/GOLDEN.md` §81, run843).
+(2236) ~~**Chapter sixty-five's word 777, open (ours 8 draws, theirs 6)** (item 2235, `docs/GOLDEN.md` §81, run843).
 Ours' two extra draws are `Guy::set_anim+0xf2f < Unit::set_anim` for the Catapult `0/9`. Block 777: `0/9`'s
 `near` is (2006, 1) here against (−1, −1) there, `orders.len` 1 against 0 — this crate's idle search finds the
 Small City `1/2006` on 777; the original's Catapult engages the Barracks `1/2008` later (its first damage on block
 850). Seed on 777 `0x0be7ad26`. 2235's hypothesis, not read: the idle search's reach or its building filter for a
 siege unit, or its reach against a building's footprint; the next item's first read is the original's search on
 777 (a packet). The
-widening (605..1101, 357 rows) is the eleven standing `form` rows and this wake.
+widening (605..1101, 357 rows) is the eleven standing `form` rows and this wake.~~ **Closed by item 2265**
+(`docs/GOLDEN.md` §82): not the reach against a footprint but the radius — a packer's combat stance is
+`COMBAT_STAND_GROUND`, so the search runs at 0xc00 and the Small City is outside it (run842's packet at 776).
 
-## Parked by the next landing, slot BK — reserved
+## Parked by item 2265, 2026-10-14 — chapter sixty-five closed: a packer's combat stance is STAND_GROUND
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2266) **A Catapult's round leaves the unit's square here and a release point there** (item 2265,
+`docs/GOLDEN.md` §82, run843; names no score — chapter sixty-five is closed at 1100 and the draw stream does not
+see it). Block 818, `0/9`'s `ammo[0]`: `sx` 34680 / 34655, `sy` 24696 / 24716, `sz` 50 / 295, `v1z` 179377090 /
+171952850 — the four rows `chapter_sixty_five_s_word_frame_is_widened_whole` keeps past the standing `form` rows.
+The siege engine's twin of the Bark's 2206: read the two together, and `docs/COMBAT.md` §55 (a pivot piece releases
+through its turret) first.
 
 ## Parked by item 2247, 2026-10-14 — the second sweep lane's next ten, the territory family
 
