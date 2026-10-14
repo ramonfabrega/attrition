@@ -6393,11 +6393,12 @@ pub(crate) const WIDENING_CHAPTER_SIXTY_FOUR: (i64, i64) = (605, 821);
 /// **Chapter sixty-five** (item 2235, `docs/GOLDEN.md` §81, run843): a
 /// computer's second city, its Tower struck by Hoplites past the `/10`
 /// ceiling and its centre by a Catapult — `Object::do_damage`'s city alarm,
-/// the non-capital heavy arm and the siege arm. **Open at 777** (8 draws
-/// here against 6 there, ours' two `Guy::set_anim+0xf2f < Unit::set_anim`
-/// for the Catapult `0/9`): its idle search finds the Small City here and
-/// nothing there.
-pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_FIVE: i64 = 777;
+/// the non-capital heavy arm and the siege arm. **Closed at 1100, the
+/// trace's end** (item 2265, `docs/GOLDEN.md` §82): 777 → 1100, 8 draws
+/// against 6 on 777 — the Catapult `0/9`'s idle search ran at 0xc00 here
+/// as there once a packer reads `COMBAT_STAND_GROUND`
+/// (`get_combat_stance@00610a30`), and the Small City at 2781 is outside it.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_FIVE: i64 = 1100;
 
 /// `chapter_sixty_five_s_word_frame_is_widened_whole`'s window: run843
 /// whole.
