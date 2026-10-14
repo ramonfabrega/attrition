@@ -6603,6 +6603,39 @@ mod tests {
         assert!(s.current_order(m).is_none());
     }
 
+    /// **A human's 1, 2 or 5 kills an order it was not given** (item 2165,
+    /// `docs/GOLDEN.md` §79; `Group::action_stance@0070d440`'s middle arm):
+    /// a current order without the action bit goes, one with it stays, and a
+    /// computer's stays whatever it carries.
+    #[test]
+    fn a_human_s_stand_ground_kills_an_order_without_the_action_bit() {
+        let mut s = sim();
+        s.nation[0].human = true;
+        s.nation[1].human = false;
+        let t = fighter(&mut s);
+        let found = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1000));
+        let given = spawn(&mut s, 0, t, Pos::new(0x1100, 0x1000));
+        let ai = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        for (u, action) in [(found, false), (given, true), (ai, false)] {
+            s.add_move_order(
+                u,
+                Pos::new(0x4000, 0x4000),
+                MoveKind::MoveTo,
+                QueuePos::New,
+                action,
+            );
+        }
+        s.group_action_stance(
+            &group_of(0, &[found, given]),
+            stance_option(Stance::StandGround),
+        );
+        s.group_action_stance(&group_of(1, &[ai]), stance_option(Stance::StandGround));
+        assert!(s.current_order(found).is_none(), "a found order goes");
+        assert!(s.current_order(given).is_some(), "a given one stays");
+        assert!(s.current_order(ai).is_some(), "a computer's stays");
+        assert_eq!(s.units[found].combat.stance, Stance::StandGround);
+    }
+
     #[test]
     fn action_stance_writes_the_combat_stance_and_cycles_on_a_negative() {
         let mut s = sim();
