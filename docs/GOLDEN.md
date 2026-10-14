@@ -11511,7 +11511,10 @@ On 900 `1/12` finds army 0 with `units []`.
 - **An army reads the pool record on its index** (`crates/sim/src/army.rs`, `army_pool_record` and `add_to_army`).
   When the army's own seat lists no live member and a pushed group of the same player stands on the army's pool
   index with a live member, that group is the army's record: its first live member is `get_unit(0)`, the walk goes
-  there, and the join is that group's `Group::add`. **Value diff, block 901**: `1/12 group` was 65 here against 64
+  there, and the join is that group's `Group::add`. A joiner the record already lists is `Army::member` there, and the
+  original's `add_unit` does nothing; for it this crate keeps the earlier arm, which seats the record on the army.
+  Built without that exception, run460's lone who=1 unit, re-joining every 32 frames from 908, took the new arm, and
+  golden chapter forty-two fell 1160 → 1020 on `1/6`'s `stance` (0 here, 1 there). **Value diff, block 901**: `1/12 group` was 65 here against 64
   there, and is 64 on both sides. `1/13`'s order was `ATTACK` against `ATTACK_TO`, and is `ATTACK_TO` (45912,
   10056) on both sides. The walk's points are the original's: (46056, 10056) for `1/12` and `1/14`, and (45912,
   10056) for `1/13`.
@@ -11528,6 +11531,8 @@ chapter tests fail. `army_pool_record` answering nothing: held, both fail.
 
 **Not established.**
 
+- Why the earlier arm (seating the record on the army) agrees with run460 where the original's `add_unit` returns:
+  the army's tick then acts on the record, as it would on the original's index. This was not read.
 - The rest of the army's reads of its index are not carried: its counts, `role` and ticks on an adopted record, and
   `Army::process` issuing orders to it. No capture with live armies is known to reach an army whose index a later
   push took.

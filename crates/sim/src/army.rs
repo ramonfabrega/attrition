@@ -671,8 +671,14 @@ impl Sim {
         // **The army's group is a pool index, and the record on it may be
         // another group's** (`docs/GOLDEN.md` §77): an army whose own seat lists no live
         // member, and whose index a later push took, reads that pushed
-        // group as its own — the count, `get_unit(0)` and the join.
-        if let Some(p) = self.army_pool_record(who, slot) {
+        // group as its own — the count, `get_unit(0)` and the join. A
+        // joiner the record already lists is `Army::member` there and
+        // the original's `add_unit` does nothing; this crate keeps the
+        // arm below for it, which seats the record on the army and
+        // agrees with run460 (golden chapter forty-two) through its end.
+        if let Some(p) = self.army_pool_record(who, slot)
+            && !self.pushed[p].list.contains(&u)
+        {
             let s = self.armies[who as usize].list[slot].group.pool;
             let first = self.pushed[p]
                 .list
