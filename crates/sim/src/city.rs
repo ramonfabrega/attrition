@@ -549,18 +549,9 @@ impl Sim {
     /// down again. `City::close` gives nothing back.
     fn fix_world_vals(&mut self, c: usize) {
         let centre = self.cities[c].pos.cell();
-        let r = self.radius_of(c).min(0x40);
-        let k = ((r + 3) / 4).min(0x3d) as usize;
+        let r = self.radius_of(c);
         let circle = crate::ai_place::circle();
-        for i in 0..circle.radius[k + 3] {
-            let cell = crate::world::Cell::new(centre.x + circle.x[i], centre.y + circle.y[i]);
-            if !self.world.contains(cell) {
-                continue;
-            }
-            let mut d = self.world.cell_data(cell);
-            d.val >>= if i < circle.radius[k] { 2 } else { 1 };
-            self.world.set_cell_data(cell, d);
-        }
+        wear_site_vals(&mut self.world, centre, r, &circle.radius, &circle.x, &circle.y);
     }
 
     /// `City::close`: the record dies; members re-home.
@@ -3266,4 +3257,28 @@ impl Sim {
 /// FARMS_PER_CITY_LEVEL`, the multiply and the add wrapping (item 2090's sweep holds it).
 pub fn farm_limit_by(level: i32, leader: i32, per_level: i32) -> i32 {
     leader.wrapping_add((level - 1).wrapping_mul(per_level))
+}
+
+/// [`Sim::fix_world_vals`]' walk over the circle tables, for a city of
+/// radius `r` at `centre`: `WData.val` quartered on the circle's first
+/// `radius[k]` entries and halved on the rest of its first `radius[k + 3]`,
+/// `k = min((min(r, 0x40) + 3) / 4, 0x3d)`, cells off the map skipped.
+pub(crate) fn wear_site_vals(
+    world: &mut crate::World,
+    centre: crate::world::Cell,
+    r: i32,
+    radius: &[usize],
+    x: &[i32],
+    y: &[i32],
+) {
+    let k = ((r.min(0x40) + 3) / 4).min(0x3d) as usize;
+    for i in 0..radius[k + 3] {
+        let cell = crate::world::Cell::new(centre.x + x[i], centre.y + y[i]);
+        if !world.contains(cell) {
+            continue;
+        }
+        let mut d = world.cell_data(cell);
+        d.val >>= if i < radius[k] { 2 } else { 1 };
+        world.set_cell_data(cell, d);
+    }
 }

@@ -1111,6 +1111,7 @@ ANSWERWIN = {answerwin!r}
 CDECL = {cdecl!r}
 ARGEQ = {argeq!r}
 SEQ = {seq!r}
+ANSRANGE = {ansrange!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1222,6 +1223,10 @@ def main(argv):
         answers = [rand32(rng) for _ in STUBS]
         for idx, vals in ANSWERS:
             answers[idx] = rng.choice(vals) if rng.random() < 0.9 else answers[idx]
+        # `--answer-range`: an answer the function indexes a table by, held
+        # to the range every row (item 2217).
+        for idx, lo, hi in ANSRANGE:
+            answers[idx] = rng.randint(lo, hi)
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
@@ -1422,7 +1427,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=()):
+                 cdecl=False, argeq=(), seq=(), answer_range=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1473,6 +1478,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--seq IDX:N names one of the --stub callees, by its order on the line, and N >= 1')
     if any(idx in {i for i, _ in pansw} for idx, _ in pseq):
         raise ValueError('--seq and --answer-win answer one stub two ways')
+    pansr = [tuple(int(x, 0) for x in r.split(':')) for r in answer_range]
+    if any(not 0 <= idx < len(pstubs) for idx, _, _ in pansr):
+        raise ValueError('--answer-range IDX:LO:HI names one of the --stub callees, by its order on the line')
     pvtat = None
     if vtat is not None:
         vwin, plus, voff = vtat.partition('+')
@@ -1489,7 +1497,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq):
+            or pseq or pansr):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if cdecl:
@@ -1514,6 +1522,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + (['`__cdecl`: the caller pops the arguments'] if cdecl else [])
         + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
         + [f'stub {idx} answers {n} values in call order, printed after the answers' for idx, n in pseq]
+        + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
             if pecx[0] == 'range' else f'`ecx` an integer in {pecx[1]}, not the object, the row\'s last']
            if pecx else [])) or 'no windows'
@@ -1522,7 +1531,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
-                                   seq=pseq)
+                                   seq=pseq, ansrange=pansr)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1697,6 +1706,9 @@ def main(argv=None):
     ap.add_argument('--seq', action='append', default=[], metavar='IDX:N',
                     help='obj: stub IDX answers N values a row in call order, the last repeated past N, '
                          'printed after the stubs\' answers (a callee called more than once; item 2217)')
+    ap.add_argument('--answer-range', action='append', default=[], metavar='IDX:LO:HI',
+                    help='obj: stub IDX\'s answer drawn from LO..HI every row, as --argrange an argument '
+                         '(an answer the function indexes a table by; item 2217)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1716,7 +1728,8 @@ def main(argv=None):
                                                     module=args.module, ecx_int=args.ecx_int,
                                                     answers=args.answers, vtat=args.vtat,
                                                     answer_wins=args.answer_win, cdecl=args.cdecl,
-                                                    argeq=args.argeq, seq=args.seq)
+                                                    argeq=args.argeq, seq=args.seq,
+                                                    answer_range=args.answer_range)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:

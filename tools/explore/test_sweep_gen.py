@@ -238,6 +238,24 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
                                    stubs=['0x401100:2'], seq=['1:3'])
 
+    def test_a_stub_s_answer_may_be_held_to_a_range(self):
+        # Item 2217: `City::fix_world_vals` indexes `circle_radius` by its
+        # callee's answer, and `--answers`' 10% of random words reads before
+        # the table. `--answer-range IDX:LO:HI` draws it from the range every
+        # row, as `--argrange` does an argument.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x20, bias=[], own=0,
+            stubs=['0x401100:1'], answer_range=['0:0:80'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('ANSRANGE = [(0, 0, 80)]', script)
+        self.assertIn('for idx, lo, hi in ANSRANGE:', script)
+        # Drawn after `--answers`, so the range is the last word.
+        self.assertLess(script.index('for idx, vals in ANSWERS:'), script.index('for idx, lo, hi in ANSRANGE:'))
+        self.assertIn('stub 0 answers 0..80 every row', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   stubs=['0x401100:1'], answer_range=['1:0:3'])
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,
