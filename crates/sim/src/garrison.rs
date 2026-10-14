@@ -307,7 +307,7 @@ impl Sim {
         if !self.buildings[b].garrison.contains(&captain) {
             self.buildings[b].garrison.push(captain);
         }
-        self.lakota_garrison_changed(captain);
+        self.track_garrison(captain, 1);
         for f in self.squad_of(captain) {
             // `Object::remove_from_world`: off the map is out of both
             // collision indices (`docs/COLLISION.md` §2, §3).
@@ -409,7 +409,7 @@ impl Sim {
         // (run265's 778: 25, the value it stood inside with).
         let avg = self.units[captain].movement.body.avg_speed;
         self.come_out_place(captain, spot, gather.map(|g| g.1), false);
-        self.lakota_garrison_changed(captain);
+        self.track_garrison(captain, -1);
         // The captain's `orders_x/y` and `dest_angle` are its new place
         // on the block it leaves (run208's `0/6` on 902, `0/7` on 903);
         // a member's are rewritten by its own next `work`.

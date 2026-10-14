@@ -514,40 +514,18 @@ impl Sim {
     /// same number at the moment the rate is assembled.
     pub(crate) fn lakota_food_units(&self, who: Player) -> i32 {
         let w = who as usize;
-        let mut n = self.ai[w].census.peasants + self.ai[w].census.scouts;
+        let c = &self.ai[w].census;
+        let mut n = c.peasants + c.scouts - c.peasants_garr - c.stable_garr - c.scout_garr;
         for t in 0..self.unit_types.len() {
-            let c = self.muster[w].by_type[t];
-            if c == 0 {
-                continue;
-            }
-            if self.unit_types[t].combat.attack != 0
+            let k = self.muster[w].by_type[t];
+            if k != 0
+                && self.unit_types[t].combat.attack != 0
                 && self.trainer_ident(t) == Some(crate::build::Ident::Stable)
             {
-                n += c;
-            }
-        }
-        for b in &self.buildings {
-            for &g in &b.garrison {
-                let u = &self.units[g];
-                if u.owner == who
-                    && u.captain
-                    && u.inside.is_some()
-                    && u.ty.is_some_and(|t| self.lakota_garrison_kind(t))
-                {
-                    n -= 1;
-                }
+                n += k;
             }
         }
         n
-    }
-
-    /// Whether a captain of type `t` in a building is one of the three
-    /// garrison counts the Lakota term subtracts — `insert_inside`'s chain:
-    /// a peasant, else a Stable type, else a scout.
-    pub(crate) fn lakota_garrison_kind(&self, t: usize) -> bool {
-        matches!(self.unit_types[t].worker, crate::orders::Worker::Citizen)
-            || self.trainer_ident(t) == Some(crate::build::Ident::Stable)
-            || self.unit_types[t].cols.is(crate::ai_load::role::SCOUT)
     }
 
     /// Whether this player's rate would be reassembled on this frame, so the

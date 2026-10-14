@@ -1919,17 +1919,42 @@ impl Sim {
         self.ledgers[who as usize].dirty = true;
     }
 
-    /// `Object::insert_inside@00647e90` and `remove_from_inside@006480f0`:
-    /// a captain entering or leaving a building moves a Lakota garrison
-    /// count, and with `LAKOTA_FOOD` set raises the leader's `0x2000000`
-    /// (`docs/AI.md` §219).
-    pub(crate) fn lakota_garrison_changed(&mut self, u: usize) {
+    /// `Object::insert_inside@00647e90` (`delta` 1) and
+    /// `remove_from_inside@006480f0` (−1): a captain going into or out of a
+    /// building moves one of the leader's four garrison counts — a peasant,
+    /// else a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout
+    /// bit), else a Barracks type (`0x1ab`) — and a Lakota count with
+    /// `LAKOTA_FOOD` set raises the leader's `0x2000000` (`docs/AI.md`
+    /// §219). The Americans' Barracks arm's flag is not modelled.
+    ///
+    /// SEAM: the gate's `unit_masks & 1` is not read.
+    pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
         let unit = &self.units[u];
         let who = unit.owner;
-        if unit.captain
+        let Some(t) = unit.ty else { return };
+        if !unit.captain {
+            return;
+        }
+        let trainer = self.trainer_ident(t);
+        let census = &mut self.ai[who as usize].census;
+        let lakota_count = if matches!(self.unit_types[t].worker, orders::Worker::Citizen) {
+            census.peasants_garr += delta;
+            true
+        } else if trainer == Some(build::Ident::Stable) {
+            census.stable_garr += delta;
+            true
+        } else if self.unit_types[t].cols.is(ai_load::role::SCOUT) {
+            census.scout_garr += delta;
+            true
+        } else {
+            if trainer == Some(build::Ident::Barracks) {
+                census.barracks_garr += delta;
+            }
+            false
+        };
+        if lakota_count
             && self.nation.get(who as usize).is_some_and(|n| n.lakota)
             && self.tuning.lakota_food != 0
-            && unit.ty.is_some_and(|t| self.lakota_garrison_kind(t))
         {
             self.economy_changed(who);
         }
