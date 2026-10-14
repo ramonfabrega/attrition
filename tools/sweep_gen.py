@@ -105,7 +105,10 @@ Three shapes, each a `__thiscall` on `ecx`:
           as `get_inside` writes a player index — printed after the
           answers and `o` in a place; `--stub-cdecl IDX` hooks a direct
           callee as `__cdecl`, its arguments left for the caller to pop
-          (`memcpy`, an import).
+          (`memcpy`, an import). `--deref IDX:K:N` (item 2379) prints
+          the N bytes stub IDX's argument K points at, read when it is
+          called, after the record's columns: a caller's local the
+          record names only by depth (`add_command`'s `Command`).
 
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
@@ -117,8 +120,8 @@ function N stack arguments of its own, which the port reads as `p[..]`
 (1966's `has_stance_type` compares the slot's answer with its `p0`).
 
 Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
-the `mod <snake>;` line for `sweep/mod.rs` is printed, or inserted at its sorted place in the last `mod` run with
-`--write-mod`; `--regen` redraws a generated sweep in place (both files
+the `mod <snake>;` line for `sweep/mod.rs` is printed, or inserted with
+`--write-mod` at its sorted place in the file's last `mod` run (item 2379); `--regen` redraws a generated sweep in place (both files
 rewritten, `mod.rs` left alone), so a starved draw is one line. The script
 keeps the line that drew it (`# sweep_gen: [...]`, its last line), so
 `--regen tools/emu/sweep_<snake>.py` — or `--regen <snake>` — redraws it
