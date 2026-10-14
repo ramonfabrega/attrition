@@ -100,6 +100,13 @@ Three shapes, each a `__thiscall` on `ecx`:
           order) and `p: &mut [Vec<u8>]` beside `a` and `m`; every byte
           of every window is held.
 
+          `--outarg IDX:K:VALS` (item 2325) makes stub IDX write a value
+          drawn from VALS through its argument K — the caller's local,
+          as `get_inside` writes a player index — printed after the
+          answers and `o` in a place; `--stub-cdecl IDX` hooks a direct
+          callee as `__cdecl`, its arguments left for the caller to pop
+          (`memcpy`, an import).
+
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
           (parked 1889).
@@ -112,11 +119,16 @@ function N stack arguments of its own, which the port reads as `p[..]`
 Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
 the `mod <snake>;` line for `sweep/mod.rs` is printed, or appended with
 `--write-mod`; `--regen` redraws a generated sweep in place (both files
-rewritten, `mod.rs` left alone), so a starved draw is one line. Without `--port` the test's port is `todo!()`, so the row
+rewritten, `mod.rs` left alone), so a starved draw is one line. The script
+keeps the line that drew it (`# sweep_gen: [...]`, its last line), so
+`--regen tools/emu/sweep_<snake>.py` — or `--regen <snake>` — redraws it
+with no line at hand (item 2325, parked 2311); a whole line given with
+`--regen` replaces the kept one. Without `--port` the test's port is `todo!()`, so the row
 fails until the lane writes it — a sweep lands when the two sides agree,
 never when a file exists. `--dry-run` prints both files instead.
 """
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -1121,7 +1133,10 @@ CELLTHIS = {cellthis!r}
 VTALSO = {vtalso!r}
 SPARSE = {sparse!r}
 RECORD = {record!r}
+ROWSPLIT = {rowsplit!r}
 LINKS = {links!r}
+OUTARG = {outarg!r}
+CDECLSTUBS = {cdeclstubs!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1159,6 +1174,34 @@ def token(v, spans):
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
+def by_row(calls, base, stride, n, spans):
+    """`--record IDX@S` (item 2309): a stub's calls `(ecx, args)` split by
+    the row of a sparse table their `ecx` lies in — one token a row, `ecx`
+    written `r+OFF` within it, `-` for a row not called — and a last token
+    for the calls whose `ecx` lies outside the table."""
+    cols = [[] for _ in range(n + 1)]
+    for ecx_, args_ in calls:
+        k = ((ecx_ & 0xFFFFFFFF) - base) // stride
+        if 0 <= k < n:
+            head = f"r+{{(ecx_ & 0xFFFFFFFF) - base - k * stride:#x}}"
+        else:
+            k, head = n, token(ecx_, spans)
+        cols[k].append(",".join([head] + [token(v, spans) for v in args_]))
+    return ["/".join(col) or "-" for col in cols]
+
+
+def out_answer(inner, k, v, write):
+    """`--outarg IDX:K:VALS` (item 2325): a stub that writes `v` through its
+    argument K — the address of the caller's local, as `get_inside` writes
+    the player index — unless that argument is null, then answers as
+    `inner` would (a value, or a function of `ecx` and the arguments)."""
+    def answer(ecx, args):
+        if args[k]:
+            write(args[k] & 0xFFFFFFFF, v)
+        return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
 def wdraw(rng, vals):
     """A bias's value: a set's member, or a range's — its own edges and the
     small integers inside it three rows in ten, so a boundary inside a wide
@@ -1188,7 +1231,9 @@ def shape(rng, name, buf):
 def main(argv):
     from hooks import Harness
     rng = random.Random({item})
-    h = Harness(argv[1], {{a: (f"{{a:x}}", n) for k, a, n in STUBS if k == "call"}})
+    # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
+    h = Harness(argv[1], {{a: (f"{{a:x}}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
+                          if k == "call"}})
     uc = h.m.uc
     slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
     vt = h.vtable(slots) if slots else None
@@ -1242,6 +1287,7 @@ def main(argv):
             shape(rng, f"c{{k}}", b)
         for k, b in enumerate(p):
             shape(rng, f"p{{k}}", b)
+        tables = []
         for win, loc, stride, n, slices in SPARSE:
             # A table of N rows STRIDE apart of which the function reads a
             # few slices: the table zeroed, each row's slices `p` windows, the
@@ -1254,6 +1300,7 @@ def main(argv):
             else:
                 tbase = h.alloc(stride * n + 0x20)
                 uc.mem_write(tbase, bytes(stride * n))
+            tables.append((tbase, stride, n))
             for k in range(n):
                 for off, size in slices:
                     b = bytearray(rng.randrange(256) for _ in range(size))
@@ -1278,12 +1325,15 @@ def main(argv):
         # to the range every row (item 2217).
         for idx, lo, hi in ANSRANGE:
             answers[idx] = rng.randint(lo, hi)
+        # `--outarg`: the values stubs write through a pointer argument, drawn
+        # with the answers so a place may index by one (`o`, item 2325).
+        outs = [wdraw(rng, vals) for _, _, vals in OUTARG]
         k = -1
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
             k += 1
-            env = {{"a": args, "s": answers, "m": mem, "c": c, "p": p,
+            env = {{"a": args, "s": answers, "o": outs, "m": mem, "c": c, "p": p,
                    "i32": i32, "i16": i16, "i8": i8, "u16": u16, "u8": u8}}
             off = eval(expr, env)
             buf = h.alloc(size + 0x20)
@@ -1372,6 +1422,9 @@ def main(argv):
                 turn[0] += 1
                 return v & 0xFFFFFFFF
             h.answers[names[idx]] = answer
+        for (idx, k, _), v in zip(OUTARG, outs):
+            h.answers[names[idx]] = out_answer(h.answers[names[idx]], k, v,
+                                               lambda a_, v_: uc.mem_write(a_, (v_ & 0xFFFFFFFF).to_bytes(4, "little")))
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -1398,7 +1451,7 @@ def main(argv):
         before = ";".join([bytes(mem).hex()] + [bytes(b).hex() for _, b in wins])
         after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
-        shown = ([str(a) for a in args] + [str(v) for v in answers]
+        shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
                  + ([] if ECXINT is None else [str(ecx)]))
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
@@ -1408,10 +1461,15 @@ def main(argv):
         if RECORD:
             spans = [("m", this, WIN)] + [(f"c{{k}}" if k < nc else f"p{{k - nc}}", a_, len(b))
                                           for k, (a_, b) in enumerate(wins)]
-            log = " # " + " ".join(
-                "/".join(",".join(token(v, spans) for v in [ecx_] + list(args_))
-                         for name_, ecx_, args_, _ in h.calls if name_ == names[idx]) or "-"
-                for idx in RECORD)
+            cols = []
+            for idx in RECORD:
+                calls = [(ecx_, list(args_)) for name_, ecx_, args_, _ in h.calls if name_ == names[idx]]
+                if idx in ROWSPLIT:
+                    cols += by_row(calls, *tables[ROWSPLIT[idx]], spans)
+                else:
+                    cols.append("/".join(",".join(token(v, spans) for v in [e] + a_)
+                                         for e, a_ in calls) or "-")
+            log = " # " + " ".join(cols)
         print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + log)
     return 0
 
@@ -1570,7 +1628,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
-                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=()):
+                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1615,9 +1673,28 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if any(w and w[0] == 's' and not int(w[1:]) < len(pstubs) for w, _, _, _ in pplaces):
         raise ValueError('--place sN:EXPR:SIZE names one of the --stub callees, by its order on the line')
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
-    precord = [int(k, 0) for k in record]
+    pcdecl = [int(k, 0) for k in stub_cdecl]
+    if any(not 0 <= k < len(pstubs) or pstubs[k][0] != 'call' for k in pcdecl):
+        raise ValueError('--stub-cdecl IDX names a direct callee among the --stub callees, by its order on the line')
+    pout = []
+    for o in outarg:
+        idx, k, vals = o.split(':', 2)
+        idx, k = int(idx, 0), int(k, 0)
+        if not 0 <= idx < len(pstubs):
+            raise ValueError('--outarg IDX:K:VALS names one of the --stub callees, by its order on the line')
+        if not 0 <= k < pstubs[idx][2]:
+            raise ValueError(f'--outarg {o}: stub {idx} takes {pstubs[idx][2]} argument(s); K names one')
+        pout.append((idx, k, _wbias(f'm+0:{vals}')[0][2]))
+    precord, prowsplit = [], {}
+    for one in record:
+        k, at, tab = str(one).partition('@')
+        precord.append(int(k, 0))
+        if at:
+            prowsplit[int(k, 0)] = int(tab, 0)
     if any(not 0 <= k < len(pstubs) for k in precord):
         raise ValueError('--record IDX names one of the --stub callees, by its order on the line')
+    if any(not 0 <= t < len(psparse) for t in prowsplit.values()):
+        raise ValueError('--record IDX@S names a --sparse table S, by its order on the line (item 2309)')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
         raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
     peq = []
@@ -1672,7 +1749,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or psparse or plinks):
+            or pseq or pansr or pthis or palso or phalf or psparse or plinks or pout or pcdecl):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if cdecl:
@@ -1702,7 +1779,13 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'stub {idx} answers {n} values in call order, printed after the answers' for idx, n in pseq]
         + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
         + [f'stub {idx} records its `ecx` and arguments, a window\'s pointer by its name, after ` # `'
+           + (f', split by the rows of sparse table {prowsplit[idx]} (a token a row, `ecx` `r+OFF`, '
+              f'then the calls outside it)' if idx in prowsplit else '')
            for idx in precord]
+        + [f'stub {idx} writes a value in '
+           + (f'{v[1]}..{v[2]}' if v[0] == 'range' else str(v[1]))
+           + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
+        + [f'stub {k} is `__cdecl`: the caller pops its arguments' for k in pcdecl]
         + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
         + [f'{n} rows {st:#x} apart at `{"@" if w == "@" else (w + "+" if w else "")}{lo}`, slices '
            + ', '.join(f'+{o:#x}:{z:#x}' for o, z in sl) + ' (`p` windows after the pointed buffers, before the places)'
@@ -1721,7 +1804,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
-                                   sparse=psparse, record=precord, links=plinks)
+                                   sparse=psparse, record=precord, rowsplit=prowsplit, links=plinks,
+                                   outarg=pout, cdeclstubs=pcdecl)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1830,7 +1914,46 @@ def shown(path):
         return str(path)
 
 
+KEPT = '# sweep_gen: '
+NOT_KEPT = ('--write-mod', '--regen', '--dry-run')
+
+
+def kept_line(path):
+    """The `sweep_gen.py` line a generated script carries (item 2325, parked
+    2311), as an argument list, or None when the script keeps none."""
+    for line in reversed(Path(path).read_text().splitlines()):
+        if line.startswith(KEPT):
+            return json.loads(line[len(KEPT):])
+    return None
+
+
+def _kept_for_regen(argv):
+    """`--regen SCRIPT` (or its snake name): the line the script keeps, to
+    be redrawn; None when `argv` is a whole line."""
+    rest = [a for a in argv if a != '--regen']
+    if '--regen' not in argv or len(rest) != 1 or rest[0].startswith('-'):
+        return None
+    path = Path(rest[0])
+    if not path.exists():
+        path = EMU / f'sweep_{rest[0]}.py'
+    if not path.exists():
+        raise ValueError(f'--regen {rest[0]}: no such script, nor tools/emu/sweep_{rest[0]}.py')
+    line = kept_line(path)
+    if line is None:
+        raise ValueError(f'{shown(path)} keeps no `{KEPT.strip()}` line (drawn before item 2325); '
+                         'give --regen the whole line')
+    return line
+
+
 def main(argv=None):
+    argv = sys.argv[1:] if argv is None else list(argv)
+    try:
+        line = _kept_for_regen(argv)
+    except ValueError as e:
+        print(f'sweep_gen.py: {e}', file=sys.stderr)
+        return 2
+    if line is not None:
+        argv = line + ['--regen']
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk', 'mix', 'obj', 'void'))
     ap.add_argument('--cell-win', action='append', default=[], dest='cells', metavar='VA[:SIZE]',
@@ -1911,10 +2034,11 @@ def main(argv=None):
     ap.add_argument('--argeq', action='append', default=[], metavar='IDX:WIN+OFF',
                     help='obj: argument IDX copies the 32-bit word at WIN+OFF (45%%) once every window is laid — '
                          'an argument compared with a placed record\'s field (item 2200)')
-    ap.add_argument('--record', action='append', default=[], metavar='IDX',
+    ap.add_argument('--record', action='append', default=[], metavar='IDX[@S]',
                     help='obj: stub IDX\'s calls printed after ` # `, each `ecx,arg..` with a pointer into a '
                          'window by its name, and held to a `log` the port pushes (a tail target\'s hand-off; '
-                         'item 2281)')
+                         'item 2281); `@S` splits them by the row of --sparse table S their `ecx` lies in, a '
+                         'token a row and one for the rest (a walk of the leaders table; item 2309)')
     ap.add_argument('--seq', action='append', default=[], metavar='IDX:N',
                     help='obj: stub IDX answers N values a row in call order, the last repeated past N, '
                          'printed after the stubs\' answers (a callee called more than once; item 2217)')
@@ -1935,6 +2059,13 @@ def main(argv=None):
                     help='obj: figure k (window p(A+k))\'s link at OFF drawn from the figures below (`<`) or '
                          'above (`>`) its own index or a terminator (-1), so a walk through them ends '
                          '(`o_up`, an upgrade chain; item 2276)')
+    ap.add_argument('--outarg', action='append', default=[], metavar='IDX:K:V,V|LO..HI',
+                    help='obj: stub IDX writes a value drawn from the list or range through its argument K '
+                         '(unless null), printed after the answers, `o` in a place (a callee that answers through '
+                         'the address of the caller\'s local: `get_inside`; item 2325)')
+    ap.add_argument('--stub-cdecl', action='append', default=[], metavar='IDX',
+                    help='obj: --stub IDX (a direct callee) is `__cdecl`: its arguments are read and the caller '
+                         'pops them (`memcpy`, an import the emulator cannot enter; item 2325)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
                     '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
@@ -1964,7 +2095,8 @@ def main(argv=None):
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
-                                                    record=args.record, links=args.link)
+                                                    record=args.record, links=args.link,
+                                                    outarg=args.outarg, stub_cdecl=args.stub_cdecl)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
@@ -1989,6 +2121,9 @@ def main(argv=None):
     except ValueError as e:
         print(f'sweep_gen.py: {e}', file=sys.stderr)
         return 2
+    # The script keeps the line that drew it, so `--regen SCRIPT` redraws it
+    # after the lane's job directory is gone (item 2325, parked 2311).
+    script = script.rstrip('\n') + '\n\n' + KEPT + json.dumps([a for a in argv if a not in NOT_KEPT]) + '\n'
     if args.dry_run:
         print(f'# {sp}\n{script}\n# {tp}\n{test}\n# sweep/mod.rs\n{mod}')
         return 0

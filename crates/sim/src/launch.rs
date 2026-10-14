@@ -318,18 +318,18 @@ const COS_DEG: [i64; 91] = [
     0,
 ];
 
-/// `fast_angle_to_degrees`' whole degree for an angle: its top byte in
-/// 256ths of a turn, to the nearest degree. SEAM: the half-way bytes
-/// (`byte ≡ 16 mod 32`, 22.5° and its kin) are taken to the even degree;
-/// no measured heading sits on one.
+/// The whole degree [`Bay::point`] turns by: `fast_angle_to_degrees` of
+/// the figure's angle less a half turn, as `execute_game_events` hands it
+/// to `get_position` ([`crate::pivot::release_rotation`]), turned back by
+/// the half turn — `Bay`'s axes are the figure's, not the flipped ones.
+///
+/// **A half-way byte rounds up** (item 2304): `byte ≡ 16 mod 32`, 22.5°
+/// and its kin, is read by `angle_to_degrees`, which rounds a half degree
+/// early (`docs/COMBAT.md` §52). This was taken to the even degree while no
+/// measured heading sat on one; run835's Bark `0/7` faces byte 80 (112.5°)
+/// on blocks 638–653, and only 113 puts its rounds at the dump's points.
 pub fn whole_degrees(facing: Angle) -> i64 {
-    let byte = i64::from((facing.0 as u32) >> 24);
-    let (q, r) = ((byte * 45) / 32, (byte * 45) % 32);
-    if r > 16 || (r == 16 && q % 2 == 1) {
-        q + 1
-    } else {
-        q
-    }
+    i64::from((crate::pivot::release_rotation(facing) + 180) % 360)
 }
 
 /// `(cos, sin)` of a whole degree, scaled by 2^30.
@@ -435,13 +435,20 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // at `PROJ_SPEED` 100. Each row is the centroid of the region that
     // reproduces both facings to the unit under the whole-degree
     // rotation. `CHAR_ATTACK2` plays the same file with the same events.
+    // **Since item 2304 each row is the packet's** (run839, chapter
+    // sixty-four's game, which fields the computer's Trireme `1/6`): the
+    // model point times `guy_scale × RData +0x88` (4.8 × 0.8), `right =
+    // −s·x` and `fwd = −s·y`, inside the region that reproduces
+    // `get_position`'s truncated answer at all 256 headings. The centroids
+    // of two facings had the third key's round a unit out at a third:
+    // run835's `1/6` at 63° (`756678656`), `sx` 12348 against 12349.
     (
         290,
         crate::anim::ATTACK1,
         5,
         Bay {
-            right: -259,
-            fwd: 45_488,
+            right: -293,
+            fwd: 45_430,
             dz: 88,
         },
     ),
@@ -450,8 +457,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK1,
         9,
         Bay {
-            right: -777,
-            fwd: -14_523,
+            right: -1_294,
+            fwd: -14_718,
             dz: 88,
         },
     ),
@@ -460,8 +467,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK1,
         17,
         Bay {
-            right: -2_166,
-            fwd: -66_602,
+            right: -2_106,
+            fwd: -66_171,
             dz: 87,
         },
     ),
@@ -470,8 +477,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK2,
         5,
         Bay {
-            right: -259,
-            fwd: 45_488,
+            right: -293,
+            fwd: 45_430,
             dz: 88,
         },
     ),
@@ -480,8 +487,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK2,
         9,
         Bay {
-            right: -777,
-            fwd: -14_523,
+            right: -1_294,
+            fwd: -14_718,
             dz: 88,
         },
     ),
@@ -490,8 +497,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK2,
         17,
         Bay {
-            right: -2_166,
-            fwd: -66_602,
+            right: -2_106,
+            fwd: -66_171,
             dz: 87,
         },
     ),
@@ -719,6 +726,122 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             right: 21_769,
             fwd: 74_413,
             dz: 156,
+        },
+    ),
+    // **Piece 273, the Bark (type 323), and piece 567, the Catapult (type
+    // 265): the original's own `get_position`** (item 2304, `docs/GOLDEN.md`
+    // §83). Neither pivots (`turret_angles` and `node_flags` read 0 on every
+    // round), so the round takes the non-pivot arm, and without a row it left
+    // the figure's own square: the Bark's 52 under its release and up to
+    // 110 units off, the Catapult's 245 under and 33 off (parked 2206,
+    // 2266). run839's packet (chapter sixty-four's game) holds the Bark's
+    // nine `AttachPos` entries — node 0 at frames 2, 10 and 17 of
+    // `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2`, one point a
+    // frame across the three — and run842's (chapter sixty-five's) the
+    // Catapult's one, node 0 at frame 12 of `CHAR_ATTACK2`. Each row is the
+    // model point times the piece's scale (`guy_scale` × `RData +0x88`:
+    // 4.8 × 0.78 for the Bark, 4.8 for the Catapult), `right = −s·x` and
+    // `fwd = −s·y` in thousandths, and sits inside the region that
+    // reproduces `get_position`'s truncated answer at all 256 headings
+    // under unicorn.
+    (
+        273,
+        crate::anim::ATTACKWALK,
+        2,
+        Bay {
+            right: -150,
+            fwd: 67_991,
+            dz: 52,
+        },
+    ),
+    (
+        273,
+        crate::anim::ATTACKWALK,
+        10,
+        Bay {
+            right: 1_110,
+            fwd: -110_298,
+            dz: 52,
+        },
+    ),
+    (
+        273,
+        crate::anim::ATTACKWALK,
+        17,
+        Bay {
+            right: -1_724,
+            fwd: -26_208,
+            dz: 52,
+        },
+    ),
+    (
+        273,
+        crate::anim::ATTACK1,
+        2,
+        Bay {
+            right: -150,
+            fwd: 67_991,
+            dz: 52,
+        },
+    ),
+    (
+        273,
+        crate::anim::ATTACK1,
+        10,
+        Bay {
+            right: 1_110,
+            fwd: -110_298,
+            dz: 52,
+        },
+    ),
+    (
+        273,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: -1_724,
+            fwd: -26_208,
+            dz: 52,
+        },
+    ),
+    (
+        273,
+        crate::anim::ATTACK2,
+        2,
+        Bay {
+            right: -150,
+            fwd: 67_991,
+            dz: 52,
+        },
+    ),
+    (
+        273,
+        crate::anim::ATTACK2,
+        10,
+        Bay {
+            right: 1_110,
+            fwd: -110_298,
+            dz: 52,
+        },
+    ),
+    (
+        273,
+        crate::anim::ATTACK2,
+        17,
+        Bay {
+            right: -1_724,
+            fwd: -26_208,
+            dz: 52,
+        },
+    ),
+    (
+        567,
+        crate::anim::ATTACK2,
+        12,
+        Bay {
+            right: 0,
+            fwd: -33_219,
+            dz: 245,
         },
     ),
 ];
@@ -1168,6 +1291,94 @@ mod tests {
         assert!(
             bay(33, crate::anim::ATTACK2, 6, 0).is_some(),
             "all three of the piece's events have a row"
+        );
+    }
+
+    /// **Every distinct launch point of chapter sixty-four's Barks and
+    /// chapter sixty-five's Catapult** (item 2304, `docs/GOLDEN.md` §83):
+    /// run835's three Barks (`0/6`, `0/7` and the computer's `1/8`, piece
+    /// 273) at five headings, and run843's Catapult `0/9` (piece 567),
+    /// `(anim, starttime, figure x, y, angle, figure z, sx, sy, sz)` — the
+    /// `GUY` record and the `AMMO` record on the round's first block. The
+    /// rows were read off two packets (run839, run842), and so were the
+    /// Trireme's that fire beside them; these are the dump,
+    /// so the two are independent. Made to fail first: with the rows taken
+    /// out every round leaves the figure's square at its own `z`.
+    #[test]
+    fn run835_s_barks_and_run843_s_catapult_leave_from_their_release_nodes() {
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        #[rustfmt::skip]
+        const BARK: &[Row] = &[
+            (crate::anim::ATTACK2, 2, 11640, 34680, 982056960, 0, 11707, 34671, 52), // 638 0/6
+            (crate::anim::ATTACK2, 2, 12312, 34872, 1344339968, 0, 12374, 34898, 52), // 638 0/7
+            (crate::anim::ATTACK2, 10, 11640, 34680, 982056960, 0, 11531, 34696, 52), // 646 0/6
+            (crate::anim::ATTACK2, 10, 12312, 34872, 1344339968, 0, 12211, 34830, 52), // 646 0/7
+            (crate::anim::ATTACK2, 17, 11640, 34680, 982056960, 0, 11614, 34681, 52), // 653 0/6
+            (crate::anim::ATTACK2, 17, 12312, 34872, 1344339968, 0, 12289, 34861, 52), // 653 0/7
+            (crate::anim::ATTACK2, 2, 13464, 35880, 494338048, 0, 13508, 35829, 52), // 658 1/8
+            (crate::anim::ATTACK2, 2, 11640, 34680, 531824640, 0, 11687, 34631, 52), // 663 0/6
+            (crate::anim::ATTACK2, 2, 12312, 34872, 787349504, 0, 12373, 34844, 52), // 663 0/7
+            (crate::anim::ATTACK2, 10, 13464, 35880, 494338048, 0, 13393, 35963, 52), // 666 1/8
+            (crate::anim::ATTACK2, 10, 11640, 34680, 531824640, 0, 11565, 34760, 52), // 671 0/6
+            (crate::anim::ATTACK2, 10, 12312, 34872, 787349504, 0, 12213, 34919, 52), // 671 0/7
+            (crate::anim::ATTACK2, 17, 13464, 35880, 494338048, 0, 13446, 35898, 52), // 673 1/8
+            (crate::anim::ATTACK2, 17, 11640, 34680, 531824640, 0, 11621, 34697, 52), // 678 0/6
+            (crate::anim::ATTACK2, 17, 12312, 34872, 787349504, 0, 12288, 34881, 52), // 678 0/7
+            (crate::anim::ATTACK1, 2, 11640, 34680, 531824640, 0, 11687, 34631, 52), // 688 0/6
+            (crate::anim::ATTACK2, 2, 12312, 34872, 494338048, 0, 12356, 34821, 52), // 688 0/7
+            (crate::anim::ATTACK1, 10, 11640, 34680, 531824640, 0, 11565, 34760, 52), // 696 0/6
+            (crate::anim::ATTACK2, 10, 12312, 34872, 494338048, 0, 12241, 34955, 52), // 696 0/7
+            (crate::anim::ATTACK1, 17, 11640, 34680, 531824640, 0, 11621, 34697, 52), // 703 0/6
+            (crate::anim::ATTACK2, 17, 12312, 34872, 494338048, 0, 12294, 34890, 52), // 703 0/7
+            (crate::anim::ATTACK1, 2, 13464, 35880, 494338048, 0, 13508, 35829, 52), // 708 1/8
+            (crate::anim::ATTACK1, 10, 13464, 35880, 494338048, 0, 13393, 35963, 52), // 716 1/8
+            (crate::anim::ATTACK1, 17, 13464, 35880, 494338048, 0, 13446, 35898, 52), // 723 1/8
+        ];
+        for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in BARK {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 273, anim, t, 0);
+            assert_eq!(
+                (got.x, got.y),
+                (sx, sy),
+                "piece 273 anim {anim} t {t} facing {ga}"
+            );
+            assert_eq!(
+                gz + release_dz(273, anim, t, 0).unwrap_or(0),
+                sz,
+                "piece 273 dz"
+            );
+        }
+        // run835's computer Trireme `1/6` (piece 290), whose rows are the
+        // packet's since this item: 634's third key was a unit out.
+        #[rustfmt::skip]
+        const TRIREME: &[Row] = &[
+            (crate::anim::ATTACK2, 5, 12408, 36216, 756678656, 0, 12448, 36196, 88), // 622
+            (crate::anim::ATTACK2, 9, 12408, 36216, 756678656, 0, 12395, 36221, 88), // 626
+            (crate::anim::ATTACK2, 17, 12408, 36216, 756678656, 0, 12349, 36244, 87), // 634
+            (crate::anim::ATTACK1, 17, 12408, 36216, 756678656, 0, 12349, 36244, 87), // 713
+        ];
+        for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in TRIREME {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 290, anim, t, 0);
+            assert_eq!((got.x, got.y), (sx, sy), "piece 290 anim {anim} t {t}");
+            assert_eq!(
+                gz + release_dz(290, anim, t, 0).unwrap_or(0),
+                sz,
+                "piece 290 dz"
+            );
+        }
+        // run843 block 818: `0/9`'s first round on the Barracks `1/2008`.
+        let got = launch_point(
+            Pos::new(34680, 24696),
+            Angle(605_028_352),
+            567,
+            crate::anim::ATTACK2,
+            12,
+            0,
+        );
+        assert_eq!((got.x, got.y), (34655, 24716), "piece 567");
+        assert_eq!(
+            50 + release_dz(567, crate::anim::ATTACK2, 12, 0).unwrap_or(0),
+            295,
+            "piece 567 dz"
         );
     }
 

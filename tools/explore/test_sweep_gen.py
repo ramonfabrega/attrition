@@ -556,6 +556,94 @@ class Shapes(unittest.TestCase):
         self.assertEqual(ns['token'](0xFFFFFFFF, spans), '-1')
         self.assertEqual(ns['token'](0, spans), '0')
 
+    def test_a_record_may_split_by_the_table_row(self):
+        # Item 2309 (2298's Loop line, Loop 2003): `Game::defeat_all` walks
+        # the image's leaders table (`--sparse @`) and calls two stubs a
+        # row; a plain `--record` reads nine rows' calls as one `/`-joined
+        # token. `--record IDX@S` splits stub IDX's calls by the row of
+        # sparse table S its `ecx` lies in: one token a row, `ecx` written
+        # `r+OFF` within it, and a last token for the calls outside it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2309, win=0x20, bias=[], own=0,
+            sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1', '0x403000:2'],
+            record=['0', '1@0'], ret='none', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('RECORD = [0, 1]', script)
+        self.assertIn('ROWSPLIT = {1: 0}', script)
+        self.assertIn('after ` # `, split by the rows of sparse table 0', test)
+        ns = {}
+        for fn in ('def token(', 'def by_row('):
+            body = script[script.index(fn):]
+            exec(body[:body.index('\n\n\ndef ')], ns)
+        spans = [('m', 0x1000, 0x20)]
+        calls = [(0x100, [5, 0x1004]), (0x100 + 2 * 0x10 + 4, [-1, 0]), (0x77, [1, 2])]
+        self.assertEqual(ns['by_row'](calls, 0x100, 0x10, 3, spans),
+                         ['r+0x0,5,m+0x4', '-', 'r+0x4,-1,0', '119,1,2'])
+        self.assertEqual(ns['by_row']([], 0x100, 0x10, 2, spans), ['-', '-', '-'])
+        # A split names a --sparse table that exists, and a recorded stub.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2309, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:1'], record=['0@0'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2309, win=0x20, bias=[], own=0,
+                                   sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1'], record=['0@1'])
+
+    def test_a_stub_may_answer_through_its_pointer_argument(self):
+        # Item 2325 (2309's Loop line, Loop 2003): `ObjectData::in_a_building`
+        # hands a callee the address of a local, and the callee writes the
+        # player index there that the function then indexes a table by; a
+        # stub answered `eax` alone and left the local as the caller laid it.
+        # `--outarg IDX:K:VALS` writes a value drawn from VALS through stub
+        # IDX's argument K, printed after the answers, `o` in a place.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
+            stubs=['0x402000:1'], outarg=['0:0:0..7'],
+            places=['0xc0ab84+o[0]*0x1c:s[0]*4:4'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("OUTARG = [(0, 0, ('range', 0, 7))]", script)
+        self.assertIn('stub 0 writes a value in 0..7 through its argument 0', test)
+        ns = {}
+        body = script[script.index('def out_answer('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        wrote = []
+        answer = ns['out_answer'](5, 0, 3, lambda a, v: wrote.append((a, v)))
+        self.assertEqual(answer(0x99, [0x1000]), 5)
+        self.assertEqual(wrote, [(0x1000, 3)])
+        # A null pointer argument is not written through, as `if (p) *p = ..`.
+        self.assertEqual(answer(0x99, [0]), 5)
+        self.assertEqual(wrote, [(0x1000, 3)])
+        # An inner answer that is itself a function (`--seq`) still answers.
+        answer = ns['out_answer'](lambda e, a: e + 1, 0, 3, lambda a, v: wrote.append((a, v)))
+        self.assertEqual(answer(0x99, [0x2000]), 0x9a)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:1'], outarg=['1:0:0..7'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:1'], outarg=['0:1:0..7'])
+
+    def test_a_stubbed_callee_may_leave_its_arguments_to_the_caller(self):
+        # Item 2325: `BuildQueue::un_queue` calls `memcpy` (an import, which
+        # the emulator cannot enter) and pops its three arguments itself
+        # (`add esp, 0xc`); a stub that popped them too left `esp` twelve
+        # bytes high. `--stub-cdecl IDX` hooks stub IDX as `__cdecl`: its
+        # arguments are read and recorded, and only the return is popped.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
+            stubs=['0x402000:3', '0x403000:1'], stub_cdecl=['0'], record=['0'], ret='none', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('CDECLSTUBS = [0]', script)
+        self.assertIn('stub 0 is `__cdecl`: the caller pops its arguments', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
+                                   stubs=['slot:0x10:1'], stub_cdecl=['0'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:3'], stub_cdecl=['1'])
+        # The hook pops the return address alone for a `__cdecl` callee.
+        src = (ROOT / 'tools/emu/hooks.py').read_text()
+        self.assertIn('cdecl', src[src.index('def _on_code'):])
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
@@ -694,6 +782,40 @@ class Shapes(unittest.TestCase):
                 self.assertIn('ARGRANGE = [(0, 0, 2)]', (Path(tmp) / 'sweep_x_y.py').read_text())
                 self.assertEqual(sweep_gen.main(line + ['--regen', '--write-mod']), 2)
                 self.assertEqual(mod.read_text().count('mod x_y;'), 1)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_a_generated_sweep_keeps_its_own_line(self):
+        # Item 2325 (parked 2311, Loop 2003): `--regen` wants the line that
+        # drew a sweep, and a lane kept it in its job's tmp directory, gone
+        # with the job. The script carries its line, and `--regen` with the
+        # script alone redraws it from that line.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20', '--argrange', '0:0:2',
+                        '--own', '1', '--port', 'let v = 1;\n0']
+                self.assertEqual(sweep_gen.main(line + ['--write-mod']), 0)
+                sp = Path(tmp) / 'sweep_x_y.py'
+                drawn = sp.read_text()
+                self.assertEqual(sweep_gen.kept_line(sp), line)
+                sp.write_text('# a lane hand-edited this\n' + drawn.splitlines()[-1] + '\n')
+                (Path(tmp) / 'x_y.rs').write_text('')
+                self.assertEqual(sweep_gen.main(['--regen', str(sp)]), 0)
+                self.assertEqual(sp.read_text(), drawn)
+                self.assertIn('let v = 1;', (Path(tmp) / 'x_y.rs').read_text())
+                self.assertEqual((Path(tmp) / 'mod.rs').read_text().count('mod x_y;'), 1)
+                # The snake name finds the script too.
+                self.assertEqual(sweep_gen.main(['--regen', 'x_y']), 0)
+                # A whole line given with --regen replaces the kept one.
+                self.assertEqual(sweep_gen.main(line + ['--bias', '0:1', '--regen']), 0)
+                self.assertEqual(sweep_gen.kept_line(sp), line + ['--bias', '0:1'])
+                # A script with no line kept is refused by name.
+                sp.write_text('print(1)\n')
+                self.assertEqual(sweep_gen.main(['--regen', str(sp)]), 2)
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
