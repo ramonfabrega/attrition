@@ -16738,6 +16738,27 @@ trace: 781 frames, 0 differing. Waited on another lane's capture: none.
 `think_attack` → `find_melee_target` → `find_nearby_target(0xc00, …)`, whose ring walk calls `valid_target@00648ba0`
 on two objects and reaches no `compare_target`. No test reads it.
 
+## run845 — chapter sixty-seven: a Stable's unit each side of Monarchy, and Hoplites behind them (2026-10-14, item 2331, `att-2331`)
+
+`docs/GOLDEN.md` §84, `tools/gamelog/golden/chapter67.cmd` (ten staged lines). **What the disk could not answer**: no
+capture on disk finishes a Stable unit under Monarchy (parked 2295), so `train_time`'s Monarchy arm had no record that
+could part on it, and nothing had ever printed the price of a Stable unit queued under Monarchy (`get_cost`'s arm).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch67 \
+    --map 14 --end-frame 1330 --log-window 600 1330 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter67.cmd
+```
+
+**One take**, click-free pool lane 2: `success: true`, `settings_restored`, 1,331 frames, seed 12345, map 14, 695 s
+launch to exit. Kept in `~/ron-golden/ch67/map-14`; `rontrace.dll` SHA-256
+`5bf56054b4e41f31d73c5a33b76183e81d575ce8b0f0500f3d50f76931caedb0`. Waited on another lane's capture: none (the pool
+seated it on lane 2 while lane 1 was held). All four falsifiers in the `.cmd` header held: A out on block 801, B
+queued at 45/30 on 804 and out on 978, the Hoplites at 51/31 and out on 840 and 1075, no patriot. **What it holds**:
+`golden::chapter_sixty_seven_holds_to_the_golden_word` (**1330**, the trace's end, closed) and
+`chapter_sixty_seven_s_word_frame_is_widened_whole` (600..1331, eleven standing `form` rows).
 ## run846 — the peace pair: East Indies, the Lakota, Difficulty 3, All Technologies, five minutes' peace, the `DUMP_ALL` start (2026-10-14, item 2320, `att-2320`)
 
 `docs/AI.md` §218. **What the disk could not answer**: no capture on disk sets `RUSH_RULES` (0 hits in this file and in

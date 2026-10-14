@@ -6404,6 +6404,17 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_FIVE: i64 = 1100;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SIXTY_FIVE: (i64, i64) = (605, 1101);
 
+/// **Chapter sixty-seven** (item 2331, `docs/GOLDEN.md` §84, run845): a
+/// Stable and a Barracks for who=0 at the Classical Age, a Light Horse
+/// each side of Monarchy and Hoplites behind them — `train_time`'s and
+/// `get_cost`'s Monarchy arms on a Stable unit, and the trainer by
+/// equality.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_SEVEN: i64 = 1330;
+
+/// `chapter_sixty_seven_s_word_frame_is_widened_whole`'s window: run845
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SIXTY_SEVEN: (i64, i64) = (600, 1331);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8745,6 +8756,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_sixty_five_s_word_frame_is_widened_whole"),
         2235,
         Some(WIDENING_CHAPTER_SIXTY_FIVE),
+    ),
+    // Item 2331: run845, chapter sixty-seven, a Stable's unit under
+    // Monarchy. The widening is run845 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_SIXTY_SEVEN",
+        GOLDEN_WORD_CHAPTER_SIXTY_SEVEN,
+        Some("chapter_sixty_seven_s_word_frame_is_widened_whole"),
+        2331,
+        Some(WIDENING_CHAPTER_SIXTY_SEVEN),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

@@ -2129,6 +2129,10 @@ mod tests {
         // Barracks in it, struck by Hoplites and a Catapult: the city
         // alarm's heavy arms (item 2235, `docs/GOLDEN.md` §81).
         ("chapter65.cmd", &[]),
+        // Chapter sixty-seven: a Stable and a Barracks at the Classical Age,
+        // a Light Horse each side of Monarchy (item 2331, `docs/GOLDEN.md`
+        // §84).
+        ("chapter67.cmd", &[]),
         // Chapter six-b: chapter six with an Airbase a side (item 651).
         ("chapter6b.cmd", &[]),
         ("chapter7.cmd", &[]),

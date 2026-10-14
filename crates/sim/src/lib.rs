@@ -2184,6 +2184,7 @@ impl Sim {
             },
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
+                monarchy: self.monarchy_cost_discount(who, ty),
                 discount,
                 stable_rares,
                 liberty,
@@ -2192,6 +2193,30 @@ impl Sim {
             },
         };
         self.price_with(who, ty, &m)
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Monarchy arm** (`:657`–`665`, the
+    /// train arm, after `MILITARY_UNIT_DISCOUNT`): a unit whose trainer
+    /// (`UnitTypeData +0x40`) is the Stable, by equality, of a player for
+    /// whom `has_preq(MONARCHY_1)` or `has_preq(MONARCHY_2)` holds, takes
+    /// `MONARCHY_UNIT_PROD` — on either tier; `MONARCHY_UNIT_PROD2` is
+    /// `train_time`'s alone (item 2331, `docs/GOLDEN.md` §84).
+    pub fn monarchy_cost_discount(&self, who: Player, ty: usize) -> i32 {
+        let trainer = self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.where_);
+        let preqs = &self.tech_tree.roles.monarchy_preqs;
+        let p = &self.tech[who as usize];
+        let held = preqs.iter().flatten().any(|qs| {
+            qs.iter()
+                .all(|&q| self.tech_tree.has_tech_p(&self.setup, p, q))
+        });
+        if trainer == Some(nations::ty::STABLES[0]) && held {
+            self.tuning.monarchy_unit_prod[0]
+        } else {
+            0
+        }
     }
 
     /// The building type a unit type is trained at — `UnitTypeData +0x40`,

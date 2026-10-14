@@ -4894,9 +4894,10 @@ the window's first block, and `1/176`'s `mirror` (ours 0, theirs 1) parts on 470
 has a unit off by the same (−96, −720) (`1/84`, `run652_coverage_pair_closing_state`). Neither is walked back past
 run838's first block. Names the closing pin and no draw word.
 
-(2295) **The Monarchy arm's walk is inert** (2293; names no score). `train_time`'s Stable arm under `MONARCHY_1`/`_2`
+~~(2295) **The Monarchy arm's walk is inert** (2293; names no score). `train_time`'s Stable arm under `MONARCHY_1`/`_2`
 is built and its test holds it. Dropped, it failed nothing on the successor pair's walk. No capture shows a Stable
-unit finishing under Monarchy on a different frame. Both tiers' constants are 25, so the tier is numerically inert.
+unit finishing under Monarchy on a different frame. Both tiers' constants are 25, so the tier is numerically inert.~~ **Walked by item 2331** (`docs/GOLDEN.md` §84): run845 holds the arm on a build in progress and a
+fresh one, and dropped it parts chapter sixty-seven's word at 800. The tier stays unstaged.
 
 (2296) **run844's residue past its standing block** (2293; `docs/AI.md` §217.4; `run844_s_closing_frame_is_widened_whole`,
 225 keys). Ours charges `attrition` 6 (12 on `1/104`) where theirs charges 0 on who=1's units `1/20` (4941), `1/17`
@@ -5013,13 +5014,24 @@ cell; it needs a stub laid in the cell. `PathFinderData::find_node_closed` reads
 The jump-table switches `Setup::get_starting_citizens`, `Search::valid_filter` and
 `GameInfo::default_setting` were not read this batch.
 
-## Parked by the next landing, slot BV — reserved
+## Parked by item 2331, 2026-10-14 — a Stable's unit under Monarchy
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2332) **2111 and 2196 still have no staging** (item 2331, `docs/GOLDEN.md` §84; names no score; 2305's sequel).
+Chapter sixty-seven took Monarchy, the one candidate the console stages. `ai_sites`' wrapping decrement (2111) needs a
+computer's census adjustment, which `!ai off` never runs; `land_tail`'s `buildings` toggle (2196) needs a building
+group whose `list[0]` turns. A chapter that books either names its staging first.
+
+(2333) **`get_cost`'s Socialism arm is not built** (item 2331; names no score). `TypeData::get_cost@00664090:666`–
+`672`, the line after Monarchy's: `has_preq(SOCIALISM_1)` and a trainer of `0x1ae`, `0x1bf` or `0x1b0` (the Siege
+Factory, the Airbase, the Dock, by equality) take `(100 − SOCIALISM_UNIT_BONUS) × cost / 100`, a truncation after
+Monarchy's. Item 2293 built the train-time half. The successor pair's who=1 holds Socialism from 4782, and no landing
+has read the price of an Airbase unit queued there. Then comes Salmon's naval arm (`salmon_naval_cost`, `+0x218 ==
+1`), also unbuilt. `cost::Modifiers::monarchy` is where both would sit.
+
+(2334) **Monarchy's cost arm against a live military discount** (item 2331; names no score). run845's Light Horse is
+at its own age's level, so `MILITARY_UNIT_DISCOUNT` is 0 and the order of the two truncations rests on the listing and
+`monarchy_takes_its_quarter_after_the_military_discount`. A Stable unit queued two Military levels past its own
+under Monarchy parts the two orders by a unit.
 
 ## Parked by item 2336, 2026-10-14 — a bool's low byte, a stub in an import cell, and a local by its depth
 

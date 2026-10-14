@@ -525,6 +525,9 @@ shape carries no information and the predicates do:
 - **Governments.** Despotism has three tiers on barracks units, Monarchy two on
   stable units (**one** `MONARCHY_UNIT_PROD` on either tier; `..._PROD2` is never read, A1 row 56), Socialism one on siege, aircraft and ships, Democracy two on
   research. Each uses the highest held tier, not compounded tiers.
+  Monarchy's is built and diff-backed (item 2331, `docs/GOLDEN.md` §84: run845's
+  Light Horse at 45/30 where the whole price is 61/41), its own truncation after
+  `MILITARY_UNIT_DISCOUNT`; Socialism's is not (parked 2333).
   Democracy's non-library term is built; see `docs/AI.md` §109 for the
   rule, run574's paid-price diff, and the remaining review debt.
 - **Being behind.** `MILITARY_UNIT_DISCOUNT` is 5% per **Military tech level**
