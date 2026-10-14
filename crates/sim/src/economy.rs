@@ -1422,6 +1422,20 @@ mod tests {
         assert_eq!(mongol_nomadic_food(&t, &h), 0);
     }
 
+    /// **The Lakota's food** (`docs/AI.md` §219): run846's who=1 on block
+    /// 1 holds ten citizens and a scout, none garrisoned — `11 × 4 × 16 =
+    /// 704` sixteenths, the whole of its 864 against the human's 160.
+    #[test]
+    fn the_lakota_eat_off_their_citizens_and_scouts_and_nobody_else_does() {
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.lakota_units = 11;
+        assert_eq!(lakota_food(&t, &h), 0);
+        h.lakota = true;
+        assert_eq!(lakota_food(&t, &h), 704);
+        assert_eq!(assemble(&t, &h)[Resource::Food.index()], 704);
+    }
+
     /// **The British double it** (`docs/ECONOMY.md` §16): East Indies'
     /// British AI on tick 17183, Taxation held, 305 of 1669 tiles — one
     /// tax is 146 sixteenths and the original's rate rose by 292.

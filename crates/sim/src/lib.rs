@@ -4860,12 +4860,19 @@ impl Sim {
         let caravan = self.unit_types[ty]
             .cols
             .flag2(crate::ai_load::uflags2::CARAVAN);
+        // `scouts` (`+0x988`) is the third arm of the same chain —
+        // `role & 0x10` on a type neither peasant nor scholar — and no
+        // sweep recounts it (`docs/AI.md` §219).
+        let scout = self.unit_types[ty].cols.is(crate::ai_load::role::SCOUT);
         let census = &mut self.ai[who as usize].census;
         match worker {
             crate::orders::Worker::Citizen => census.peasants += delta,
             crate::orders::Worker::Scholar => census.scholars += delta,
             crate::orders::Worker::None if caravan => census.caras += delta,
             crate::orders::Worker::None => {}
+        }
+        if scout && matches!(worker, crate::orders::Worker::None) {
+            census.scouts += delta;
         }
     }
 

@@ -503,25 +503,22 @@ impl Sim {
     /// peasants` (`docs/AI.md` §219).
     ///
     /// The original keeps all six live: `Leader::track_unit_type@006e0dd0`
-    /// moves `peasants` (`is_peasant`), `scouts` (`role & 0x10`) and
-    /// `stable_units` (a type with `+0x1e8` set whose `+0x40` is the
+    /// moves `peasants` (`is_peasant`), `scouts` (`role & 0x10`; both
+    /// the census's) and `stable_units` (a type with `+0x1e8` set whose `+0x40` is the
     /// Stable, `0x1ac`), and `Object::insert_inside@00647e90` and
     /// `remove_from_inside@006480f0` move the three garrison counts for a
     /// captain in a building — a peasant, else a Stable type (no `+0x1e8`
     /// test there), else `UnitData::is_special` (`+0x2b8 & 0x10`, the
-    /// scout bit). `peasants` is the census's, which the sweep also
-    /// zeroes and recounts; the rest are read off the units here, which is
-    /// the same number at the moment the rate is assembled.
+    /// scout bit). The sweep also zeroes and recounts `peasants`; the
+    /// Stable and garrison counts are read off the units here, which is the
+    /// same number at the moment the rate is assembled.
     pub(crate) fn lakota_food_units(&self, who: Player) -> i32 {
         let w = who as usize;
-        let mut n = self.ai[w].census.peasants;
+        let mut n = self.ai[w].census.peasants + self.ai[w].census.scouts;
         for t in 0..self.unit_types.len() {
             let c = self.muster[w].by_type[t];
             if c == 0 {
                 continue;
-            }
-            if self.unit_types[t].cols.is(crate::ai_load::role::SCOUT) {
-                n += c;
             }
             if self.unit_types[t].combat.attack != 0
                 && self.trainer_ident(t) == Some(crate::build::Ident::Stable)
