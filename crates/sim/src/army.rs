@@ -2896,6 +2896,13 @@ impl Sim {
     // ---- the Armies queries (§15) ----
 
     /// The supply-wagon and hero caps of `find_army` / `find_local_army`.
+    ///
+    /// **The arm is the joiner's `is_supply`, `unit_flags2 & 0x40` alone**
+    /// (`find_local_army@006f32e0`, `find_army@006f34f0`: vslot `0xcc`, then
+    /// `is_hero`'s `& 0x20` only when it is clear), and the count is the
+    /// army's wagons. A government patriot `FROM General` carries both bits
+    /// and is capped by the wagons: run820's Despot `1/191` refuses army 0's
+    /// three wagons and joins army 5's two, group 89 (`docs/AI.md` §213).
     fn army_admits(
         &self,
         who: Player,
@@ -2905,7 +2912,10 @@ impl Sim {
         hero_cap: i32,
     ) -> bool {
         let Some(u) = unit else { return true };
-        if self.is_supply_wagon(u) {
+        let supply = self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO));
+        if supply {
             return self.army_count_supply(who, slot) < supply_cap;
         }
         if self.is_general(u) {
