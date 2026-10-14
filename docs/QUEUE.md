@@ -21,7 +21,7 @@ gate green but 2205's (`run583`'s widening 139 → 138 at 2193's and 2205's join
 - **At the twentieth landing (2229)**: the steering pass is due; the lanes drain unrefilled — 2235 (chapter
   sixty-five, run843, word 777, cleared at 343k and continuing from its draft), 2247 and 2253 (the two sweep
   lanes, each excluding the other's ten). 2259, the headline's word 4671, is queued unspawned for the next
-  tranche (items 2260–2263 reserved for its parks). Lane wait `--deep 340` (Loop 2186). Blind list 332.
+  tranche, its parks the four numbers after it. Lane wait `--deep 340` (Loop 2186). Blind list 332.
 - **Lanes live** (tranche 33, 2026-10-14, draining — twenty landed, not refilled): 2247 (BL), 2253 (BB), 2235 (GOLDEN §81,
   BJ, runs 843–844). Next 2265, run 842, AI §217, GOLDEN §82, park BF (pools BF, BH, BK and BM–BR, AI §217–§221, GOLDEN §82–§87).
 - **Fable backlog: 24 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198, 2199, 2210, 2216, 2222, 2234, 2240, 2264).
