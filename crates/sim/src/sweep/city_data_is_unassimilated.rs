@@ -47,7 +47,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let _ = (&a, &m, &c, &p);
             {
                 // The city's object (objects[+0x5e][+8], a byte and a short) asked for
-                // its record (slot +0x3c); BuildData::is_unassimilated, entered by a
+                // its record (slot +0x3c); the build record's twin, entered by a
                 // tail jump on that record, answers.
                 log.push("p1+0x0".into());
                 log.push("p2+0x0".into());

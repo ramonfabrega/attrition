@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `Unit::add_think_order@005e3df0`, run by `tools/emu/sweep_unit_add_think_order.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 1 argument(s), callee 0x00730ac0 (1 args) stubbed; vtable slot +0xb0 (0 args) stubbed; callee 0x0046d5a0 (1 args) stubbed; callee 0x005e3920 (0 args) stubbed; callee 0x0060a870 (0 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed); stub 0 answers the address of 192 random bytes, a `p` window after the places; stub 1 answers the address of 64 random bytes, a `p` window after the places; the stubbed vtable laid at `p1+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// (tools/emu): 256 random bytes of object, 1 argument(s), callee 0x00730ac0 (1 args) stubbed; vtable slot +0xb0 (0 args) stubbed; callee 0x0046d5a0 (1 args) stubbed; callee 0x005e3920 (0 args) stubbed; callee 0x0060a870 (0 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed); stub 0 answers the address of 192 random bytes, a `p` window after the places; stub 1 answers the address of 64 random bytes, a `p` window after the places; the stubbed vtable laid at `p1+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_unit_add_think_order.py") else {
@@ -48,28 +48,28 @@ fn the_emulated_original_agrees_on_every_row() {
             // The made order is `p[2]` (stub 1's answer, through `p[1]`'s
             // vtable, `p[1]` being stub 0's), carried as its flags byte
             // `+4`; the link, `clear_partial_path` and `update_action`
-            // are recorded; the list's head node `+0xdc` is `p[0]`, and
+            // are recorded, in call order (`--record-order`, item 2341); the list's head node `+0xdc` is `p[0]`, and
             // the rotation `head = head->next` (`+0`) is the engine's
             // iterator, held here as bytes (the port's is `new_head`).
             let mut cx = (m, p, &mut log);
             crate::orders::add_think_steps(
                 &mut cx,
                 |(_, p, log)| {
-                    log.push(format!("m+0x0,{}", crate::orders::index::THINK));
-                    log.push("p1+0x0".into());
+                    log.push(format!("s0:m+0x0,{}", crate::orders::index::THINK));
+                    log.push("s1:p1+0x0".into());
                     p[2][4]
                 },
                 |f| f,
                 |(_, p, log), f| {
                     p[2][4] = f;
-                    log.push("m+0xcc,p2+0x0".into());
+                    log.push("s2:m+0xcc,p2+0x0".into());
                 },
-                |(_, _, log)| log.push("m+0x0".into()),
+                |(_, _, log)| log.push("s3:m+0x0".into()),
                 |(m, p, _)| {
                     let next = rd(&p[0], 0);
                     wr(m, 0xdc, next);
                 },
-                |(_, _, log)| log.push("m+0x0".into()),
+                |(_, _, log)| log.push("s4:m+0x0".into()),
             );
             0
         };

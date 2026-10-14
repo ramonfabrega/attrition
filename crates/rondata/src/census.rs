@@ -44,8 +44,14 @@
 /// item 2336: 803 -> 813, the sweep's sixty-sixth batch, a `bool`'s low byte through `obj --ret al` and
 /// `timeGetTime` through `--stub iat`;
 /// item 2331: 813 -> 815, chapter sixty-seven's coverage, `train_time` and `get_cost` diff-backed by run845;
-/// item 2357: 815 -> 816, chapter sixty-eight's coverage, `get_military_level_slow` diff-backed by run852).
-pub const SIMULATION_BACKED: usize = 816;
+/// item 2346: 815 -> 825, the sweep's sixty-seventh batch, `edx` beside `ecx` through `obj --edx`, a table
+/// index through `--tame`, a container emptied through `--stub-write`;
+/// item 2341: 825 -> 835, the second sweep lane's next ten with a port consumer, the order adders and the
+/// gaia walks, five through `obj --record-order`;
+/// item 2362: 835 -> 845, the sweep's sixty-eighth batch, eight `vtordisp` thunks through `fwd`'s
+/// `vtordisp` token, `set_shooter_vis` and `issue_unqueue`;
+/// item 2357: 845 -> 846, chapter sixty-eight's coverage, `get_military_level_slow` diff-backed by run852).
+pub const SIMULATION_BACKED: usize = 846;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_unit_add_think_order.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 256-byte object of random bytes (no bias), 1 stack argument(s);
-callee 0x00730ac0 (1 args) stubbed; vtable slot +0xb0 (0 args) stubbed; callee 0x0046d5a0 (1 args) stubbed; callee 0x005e3920 (0 args) stubbed; callee 0x0060a870 (0 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed); stub 0 answers the address of 192 random bytes, a `p` window after the places; stub 1 answers the address of 64 random bytes, a `p` window after the places; the stubbed vtable laid at `p1+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `.
+callee 0x00730ac0 (1 args) stubbed; vtable slot +0xb0 (0 args) stubbed; callee 0x0046d5a0 (1 args) stubbed; callee 0x005e3920 (0 args) stubbed; callee 0x0060a870 (0 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed); stub 0 answers the address of 192 random bytes, a `p` window after the places; stub 1 answers the address of 64 random bytes, a `p` window after the places; the stubbed vtable laid at `p1+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -51,7 +51,11 @@ CELLTHIS = []
 VTALSO = []
 SPARSE = []
 RECORD = [0, 1, 2, 3, 4]
+RECORDORDER = True
+ROWSPLIT = {}
 LINKS = []
+OUTARG = []
+CDECLSTUBS = []
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -89,6 +93,44 @@ def token(v, spans):
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
+def by_row(calls, base, stride, n, spans):
+    """`--record IDX@S` (item 2309): a stub's calls `(ecx, args)` split by
+    the row of a sparse table their `ecx` lies in — one token a row, `ecx`
+    written `r+OFF` within it, `-` for a row not called — and a last token
+    for the calls whose `ecx` lies outside the table."""
+    cols = [[] for _ in range(n + 1)]
+    for ecx_, args_ in calls:
+        k = ((ecx_ & 0xFFFFFFFF) - base) // stride
+        if 0 <= k < n:
+            head = f"r+{(ecx_ & 0xFFFFFFFF) - base - k * stride:#x}"
+        else:
+            k, head = n, token(ecx_, spans)
+        cols[k].append(",".join([head] + [token(v, spans) for v in args_]))
+    return ["/".join(col) or "-" for col in cols]
+
+
+def in_order(calls, record, names, spans):
+    """`--record-order` (item 2341): the recorded stubs' calls as one token
+    a call, in the order they were made, each headed by the callee's stub
+    index (`s3:m+0x0`), so two argument-less callees on one `ecx` are
+    ordered (`add_think_order`, parked 2318); `-` when none was called."""
+    want = {names[idx]: idx for idx in record}
+    return [f"s{want[n]}:" + ",".join(token(v, spans) for v in [e] + list(a))
+            for n, e, a in calls if n in want] or ["-"]
+
+
+def out_answer(inner, k, v, write):
+    """`--outarg IDX:K:VALS` (item 2325): a stub that writes `v` through its
+    argument K — the address of the caller's local, as `get_inside` writes
+    the player index — unless that argument is null, then answers as
+    `inner` would (a value, or a function of `ecx` and the arguments)."""
+    def answer(ecx, args):
+        if args[k]:
+            write(args[k] & 0xFFFFFFFF, v)
+        return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
 def wdraw(rng, vals):
     """A bias's value: a set's member, or a range's — its own edges and the
     small integers inside it three rows in ten, so a boundary inside a wide
@@ -118,7 +160,9 @@ def shape(rng, name, buf):
 def main(argv):
     from hooks import Harness
     rng = random.Random(2314)
-    h = Harness(argv[1], {a: (f"{a:x}", n) for k, a, n in STUBS if k == "call"})
+    # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
+    h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
+                          if k == "call"})
     uc = h.m.uc
     slots = {off: (f"slot{off:x}", n, 0) for k, off, n in STUBS if k == "slot"}
     vt = h.vtable(slots) if slots else None
@@ -172,6 +216,7 @@ def main(argv):
             shape(rng, f"c{k}", b)
         for k, b in enumerate(p):
             shape(rng, f"p{k}", b)
+        tables = []
         for win, loc, stride, n, slices in SPARSE:
             # A table of N rows STRIDE apart of which the function reads a
             # few slices: the table zeroed, each row's slices `p` windows, the
@@ -184,6 +229,7 @@ def main(argv):
             else:
                 tbase = h.alloc(stride * n + 0x20)
                 uc.mem_write(tbase, bytes(stride * n))
+            tables.append((tbase, stride, n))
             for k in range(n):
                 for off, size in slices:
                     b = bytearray(rng.randrange(256) for _ in range(size))
@@ -208,12 +254,15 @@ def main(argv):
         # to the range every row (item 2217).
         for idx, lo, hi in ANSRANGE:
             answers[idx] = rng.randint(lo, hi)
+        # `--outarg`: the values stubs write through a pointer argument, drawn
+        # with the answers so a place may index by one (`o`, item 2325).
+        outs = [wdraw(rng, vals) for _, _, vals in OUTARG]
         k = -1
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
             k += 1
-            env = {"a": args, "s": answers, "m": mem, "c": c, "p": p,
+            env = {"a": args, "s": answers, "o": outs, "m": mem, "c": c, "p": p,
                    "i32": i32, "i16": i16, "i8": i8, "u16": u16, "u8": u8}
             off = eval(expr, env)
             buf = h.alloc(size + 0x20)
@@ -302,6 +351,9 @@ def main(argv):
                 turn[0] += 1
                 return v & 0xFFFFFFFF
             h.answers[names[idx]] = answer
+        for (idx, k, _), v in zip(OUTARG, outs):
+            h.answers[names[idx]] = out_answer(h.answers[names[idx]], k, v,
+                                               lambda a_, v_: uc.mem_write(a_, (v_ & 0xFFFFFFFF).to_bytes(4, "little")))
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -328,7 +380,7 @@ def main(argv):
         before = ";".join([bytes(mem).hex()] + [bytes(b).hex() for _, b in wins])
         after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
-        shown = ([str(a) for a in args] + [str(v) for v in answers]
+        shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
                  + ([] if ECXINT is None else [str(ecx)]))
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
@@ -338,13 +390,22 @@ def main(argv):
         if RECORD:
             spans = [("m", this, WIN)] + [(f"c{k}" if k < nc else f"p{k - nc}", a_, len(b))
                                           for k, (a_, b) in enumerate(wins)]
-            log = " # " + " ".join(
-                "/".join(",".join(token(v, spans) for v in [ecx_] + list(args_))
-                         for name_, ecx_, args_, _ in h.calls if name_ == names[idx]) or "-"
-                for idx in RECORD)
+            cols = []
+            if RECORDORDER:
+                cols = in_order([(n_, e_, a_) for n_, e_, a_, _ in h.calls], RECORD, names, spans)
+            for idx in ([] if RECORDORDER else RECORD):
+                calls = [(ecx_, list(args_)) for name_, ecx_, args_, _ in h.calls if name_ == names[idx]]
+                if idx in ROWSPLIT:
+                    cols += by_row(calls, *tables[ROWSPLIT[idx]], spans)
+                else:
+                    cols.append("/".join(",".join(token(v, spans) for v in [e] + a_)
+                                         for e, a_ in calls) or "-")
+            log = " # " + " ".join(cols)
         print(" ".join(shown) + f" | {before} -> {r} | {after}" + log)
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
+
+# sweep_gen: ["obj", "Unit::add_think_order@005e3df0", "--item", "2314", "--win", "0x100", "--own", "1", "--stub", "0x730ac0:1", "--stub", "slot:0xb0:0", "--stub", "0x46d5a0:1", "--stub", "0x5e3920:0", "--stub", "0x60a870:0", "--place", "m+0xdc:0:16", "--answer-win", "0:192", "--answer-win", "1:64", "--vtat", "p1+0", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--record", "4", "--record-order", "--ret", "none"]

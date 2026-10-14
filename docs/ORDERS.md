@@ -853,8 +853,8 @@ right; R1 — and the bit is `is(SCOUT)` on land, `is(BARK)` at sea:
 `QUEUE_NEW` attack-move (`mode == 2`) while the current order is `ATTACK`
 re-adds that attack `QUEUE_FIRST` after the move, so an attack-move issued
 mid-fight keeps the fight. The second reading corrects that last rule twice
-(R2): there is **no liveness test** on the target, and sea targets are
-**kept**, under `has_objmask(0x80000000)`.
+(R2): there is **no liveness test** on the target, and air targets are
+**kept** only under `has_objmask(0x80000000)`.
 
 The player's right-click reaches it through `CommandPackage::process_move_to`
 → `Group::action_move_to@0070fba0` → `action_move_near@00704990`, which for a
