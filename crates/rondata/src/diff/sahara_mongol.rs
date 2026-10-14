@@ -56,9 +56,17 @@ fn sahara_mongol_first_parting() {
         "SAHARA_MONGOL {}: count {} sequence {} of {}; {}",
         SAHARA_MONGOL.name, w.count, w.sequence, w.last, w.row
     );
-    pin_eq!(w.difficulty, SAHARA_MONGOL.difficulty, "the lobby read back");
+    pin_eq!(
+        w.difficulty,
+        SAHARA_MONGOL.difficulty,
+        "the lobby read back"
+    );
     pin_eq!(w.last, SAHARA_MONGOL.length, "the game's last frame");
-    pin_eq!(w.count, SAHARA_MONGOL.count, "the draw count's first parting");
+    pin_eq!(
+        w.count,
+        SAHARA_MONGOL.count,
+        "the draw count's first parting"
+    );
     pin_eq!(
         w.sequence,
         SAHARA_MONGOL.sequence,
@@ -193,8 +201,8 @@ pub(crate) const RUN834: &str = "gamelog-run834-greatsahara-mongol-alltech-windo
 /// own block is 2996.
 pub(crate) const WIDENING_SAHARA_MONGOL_FRAME_2995: (i64, i64) = (2989, 3269);
 
-/// **The map's word's window** (`AI_WORDS`' `GreatSaharaMongolAllTech` row).
-pub(crate) fn sahara_mongol_word_window() -> Option<harness::tests::Widened> {
+/// **The word 2995's window**: run834 walked from run832's start with the recorder on. The word closed at the game's end inside it (item 2107).
+pub(crate) fn sahara_mongol_frame_2995_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_MONGOL.start],
         true,
@@ -211,7 +219,7 @@ pub(crate) fn sahara_mongol_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run834_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_mongol_word_window() else {
+    let Some(w) = sahara_mongol_frame_2995_window() else {
         return;
     };
     pin_eq!(w.blocks, 280, "every captured block");

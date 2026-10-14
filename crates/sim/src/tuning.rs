@@ -2017,10 +2017,7 @@ impl Tuning {
             ("NUBIAN_FREE_CARAVAN", Slot::Value(T.nubian_free_caravan)),
             ("COLOSSUS_CARAVAN", Slot::Value(T.colossus_caravan)),
             ("SILK_CARAVAN", Slot::Value(T.silk_caravan)),
-            (
-                "NUBIAN_CARAVAN_LIMIT",
-                Slot::Value(T.nubian_caravan_limit),
-            ),
+            ("NUBIAN_CARAVAN_LIMIT", Slot::Value(T.nubian_caravan_limit)),
             ("IROQUOIS_FREE_SCOUT", Slot::Value(T.iroquois_free_scout)),
             (
                 "ROMAN_BARRACKS_LEGION",
