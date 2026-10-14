@@ -4620,13 +4620,17 @@ made to fail first (`tools/explore/test_sweep_gen.py`); scripts generated before
 owed, met once: a `--place` pointer is never null, so `ResourceDivvyPool::refresh_*`'s `ptr != 0` arm runs on no
 row — a place that lays 0 a few rows in ten would reach it.
 
-## Parked by the next landing, slot BB — reserved
+## Parked by item 2271, 2026-10-14 — a pointer argument drawn null
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2272) **`obj --ptrarg-null IDX` built** (Loop 2003's twenty-second reach, 2253's line; names no score): a
+`--ptrarg` argument laid as 0 a third of the rows, its buffer still drawn so every later window keeps its index, and
+a line without the flag draws no extra number. Its test (`test_a_ptrarg_may_be_drawn_null`) was made to fail first
+(`generate_obj() got an unexpected keyword argument 'ptrarg_null'`). The five that waited on it landed in 2271
+(`UnitType::backup`/`restore`, `ObjectType::backup`, `BuildType::backup`, `TimeSync::on_player_deleted`), with the
+two restores beside them. Still owed, met six times in one batch: every backup and restore ends in `pop ebp; jmp`
+into its base's, and a stubbed tail target cannot see its `ecx` or argument (parked 2219), so that each hands the
+base `this` and the record is asserted by no row. And the chain's root, `Type::backup@00667ee0` and
+`Type::restore@00668000`, copies two `String`s by `memcpy` and stays unswept.
 
 ## Parked by item 2193, 2026-10-14 — a landing leader turns its group's mirror
 
