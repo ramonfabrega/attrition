@@ -610,6 +610,47 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2309, win=0x20, bias=[], own=0,
                                    sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1'], record=['0@1'])
 
+    def test_a_record_may_name_the_callee_in_call_order(self):
+        # Item 2341 (2314's Loop line, parked 2318, Loop 2003):
+        # `Unit::add_think_order` calls `clear_partial_path` and then
+        # `update_action`, both argument-less on one `ecx`, and `--record`
+        # prints each stub's calls in a column of its own, in stub order,
+        # so the break that swapped them passed. `--record-order` prints
+        # one token a call, in the order the calls were made, each headed
+        # by the callee's stub index (`s3:m+0x0`).
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
+            stubs=['0x402000:0', '0x403000:0'], record=['0', '1'], record_order=True,
+            ret='none', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('RECORDORDER = True', script)
+        self.assertIn('in call order, each headed `sIDX:`', test)
+        ns = {}
+        for fn in ('def token(', 'def in_order('):
+            body = script[script.index(fn):]
+            exec(body[:body.index('\n\n\ndef ')], ns)
+        spans = [('m', 0x1000, 0x20)]
+        names = ['a', 'b', 'c']
+        calls = [('b', 0x1000, ()), ('c', 0x1000, ()), ('a', 0x1000, (5,)), ('b', 0x77, ())]
+        self.assertEqual(ns['in_order'](calls, [0, 1], names, spans),
+                         ['s1:m+0x0', 's0:m+0x0,5', 's1:119'])
+        self.assertEqual(ns['in_order'](calls, [0], names, spans), ['s0:m+0x0,5'])
+        self.assertEqual(ns['in_order']([], [0, 1], names, spans), ['-'])
+        # Without the flag the columns are as before.
+        _, script2, _, test2, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
+            stubs=['0x402000:0', '0x403000:0'], record=['0', '1'], ret='none', port='0')
+        self.assertIn('RECORDORDER = False', script2)
+        self.assertNotIn('in call order', test2)
+        # It orders what --record records, and a row split has its own columns.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:0'], record_order=True)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
+                                   sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1'],
+                                   record=['0@0'], record_order=True)
+
     def test_a_stub_may_answer_through_its_pointer_argument(self):
         # Item 2325 (2309's Loop line, Loop 2003): `ObjectData::in_a_building`
         # hands a callee the address of a local, and the callee writes the
