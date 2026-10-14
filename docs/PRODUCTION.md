@@ -561,8 +561,10 @@ library and everything else.
 
 **Built for the Airbase's arm** (item 1905, `docs/AI.md` §198, run790's `1/2011` on
 3767): `Advanced::Limited` is the negative answer, and `Sim::process_queue`
-runs the first Helicopter behind a head the pad refuses. The non-Airbase
-`get_next_non_caravan` is not modelled.
+runs the first Helicopter behind a head the pad refuses. ~~The non-Airbase
+`get_next_non_caravan` is not modelled.~~ Built by item 2107 (`docs/AI.md`
+§211, run834's Market `1/2019` from 2996), with the caravan arm of
+`finished`.
 
 (An earlier draft said zero means "nothing happens" and that "a pop cap blocks
 the whole queue". It blocks every *train* entry behind it; a research entry
@@ -2165,10 +2167,12 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   as `num_queued`'s is (`Sim::untrack_queued`; `docs/TECH.md`, "The queue
   loop", item 1243). `combat_queued`, which barracks and stable types both
   move, is not carried.
-- **Not modelled, by choice, and recorded so nobody looks for it:** the
+- **Not modelled, by choice, and recorded so nobody looks for it:** ~~the
   caravan-limit and aircraft-pad refusals (`finished` returning -1) and the
   `get_next_non_caravan` / `get_next_helicopter` fallback that follows them,
-  because the simulation has neither caravans nor aircraft; the missile-silo
+  because the simulation has neither caravans nor aircraft~~ (built: the pad
+  and `get_next_helicopter` by item 1905, `docs/AI.md` §198; the caravan
+  limit and `get_next_non_caravan` by item 2107, §211); the missile-silo
   gate in `do_queue`; ~~the infinite-queue flag~~ (built, "The infinite
   queue"); ~~the University's six-scholar
   rule~~ (implemented by item 1445, "The university admission limit"); the library quirk that removes an entry on a negative answer. Each is

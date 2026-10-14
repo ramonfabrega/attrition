@@ -9622,3 +9622,18 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks, as a stanza would carry them: `MAP_STYLE 18` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `(int)seed 12345` in `GAME INFO`;
 # `rngcmp.py rontrace-run775.log rontrace-run809.log` -> 0 differing in 3890 frames; run810 0 differing in 3639.
 # ==== TAKEN 2026-10-13, run809 one take, run810 two (take 1 died in the tracer build: no RON_STATE_PLAN) ====
+
+# ==== item 2107: Great Sahara in the successor pair's lobby (`docs/AI.md` §211; `docs/RUNS.md` run830..832, run834) ====
+#
+# Four runs on the click-free lane, none a stanza: run774's and run775's recipes with the map moved to Great Sahara (`--map 7`)
+# and nothing else — human Nubians (4) against Mongols (`--ai-tribe 17`), `STARTING_TECHNOLOGY=8`, `STARTING_RESOURCES=7`,
+# `DIFFICULTY=3`, seed 12345:
+#   run832  --map 7 --end-frame 36 --dump-all-start (run774's recipe)
+#   run831  --map 7 --end-frame 24000 --allow-early-end --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#           with run652's four --detail flags (end:MISC, start:..., misc:CHECKSUM=2, endgame:...); the game ended itself at 3268
+#   run830  run831's line WITHOUT the --detail flags: the runner's default end:UNITS=3 on every frame, no endgame records —
+#           **a long needs its four --detail flags**; kept as an every-frame unit census
+#   run834  --map 7 --end-frame 3268 --allow-early-end --log-window 2989 3269 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+# Checks, as a stanza would carry them: `MAP_STYLE 7` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` /
+# `(int)seed 12345` in `GAME INFO`; `rngcmp.py rontrace-run831.log rontrace-run834.log` -> 0 differing in 3269 frames.
+# ==== TAKEN 2026-10-13, one take each, 21:04-22:17 ====

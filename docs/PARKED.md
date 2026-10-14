@@ -4532,13 +4532,24 @@ loop walked birth order where the original walks `objects->units[who]`, and a re
 strict-`<` best and a `units` index order has the same exposure. Candidate: grep `for u in 0..self.units.len()` beside a
 `best` and check each against its original's loop.
 
-## Parked by the next landing, slot AR — reserved
+## Parked by item 2107, 2026-10-13 — Great Sahara (Mongols), closed on its first build
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2137) **Leader 1's `attrition` and `sheltered` rows on run834** (names no score: the draw stream and the closing
+agree). After item 2107, run834 reads 296 keys. Past the standing block they are one family: `attrition` ours 6 or 12
+against theirs 48 or 96 (`1/43`, `1/57`, `1/103`, `1/105`, `1/106`, `1/110`, `1/23`, `1/26`, `1/27`, `1/58`, `1/118`
+…), each followed a few blocks later by one point of `hits:damage`/`hits_left` ours and none theirs, and `1/58`'s
+`sheltered` ours 0 against 1 on 3015. It is parked 2108's shape on the coverage lobby's run817, on a second lobby with a
+second nation. The ratio is 8 on every row. The namesake's fields; read with 2108.
+
+(2138) **Player 0's leader record after the human's units die** (names no score; standing on run834's 2989). Ours
+`control` 14, `num_units[0]` 13, `num_units[27]` 1, ten `SITE[].reg` 1. Theirs zero on all of them, and the fourteen
+`0/0`..`0/13` death records are ours alone on that block. Which writer zeroes a dead player's counts in the original
+was not read.
+
+(2139) **`get_caravan_limit`'s Colossus, Taj and Silk arms, and `get_units`' graft walk over `CARADUTCH`, are reached by
+no walk** (built by item 2107, `docs/AI.md` §211). `taj_caravan` is −1 as loaded, so a held Taj Mahal lowers the limit
+in both the make list and `Build::finished`. A lobby whose AI holds the Taj with a done Caravan at its limit would back
+it with a diff.
 
 ## Parked by item 2129, 2026-10-13 — the sweep's fifty-first batch
 

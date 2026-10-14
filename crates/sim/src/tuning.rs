@@ -855,6 +855,14 @@ pub struct Tuning {
     /// Whether a Nubian Market delivers a free caravan. Ships as zero, so
     /// the arm is live and inert at once.
     pub nubian_free_caravan: i32,
+
+    // ---- `LeaderData::get_caravan_limit@006dca50`'s bonuses ----
+    /// Caravans the Colossus adds to the limit (`has_wonder(0x20f)`).
+    pub colossus_caravan: i32,
+    /// Caravans Silk adds (`rare.ptr[0] & 0x20`, either mask).
+    pub silk_caravan: i32,
+    /// Caravans the Nubians add (`has_tribe_bonus(4)`).
+    pub nubian_caravan_limit: i32,
     /// Scouts an Iroquois Barracks delivers.
     pub iroquois_free_scout: i32,
     /// Legions a Roman Barracks delivers per tier of the age ladder, and the
@@ -1306,6 +1314,9 @@ impl Tuning {
         thepresident_building_speed: 33,
         iroquois_quick_senate: 1,
         nubian_free_caravan: 0,
+        colossus_caravan: 0,
+        silk_caravan: 0,
+        nubian_caravan_limit: 1,
         iroquois_free_scout: 1,
         roman_barracks_legion: 1,
         roman_max_legion: 3,
@@ -1362,7 +1373,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 372] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 375] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -2004,6 +2015,9 @@ impl Tuning {
                 Slot::Value(T.iroquois_quick_senate),
             ),
             ("NUBIAN_FREE_CARAVAN", Slot::Value(T.nubian_free_caravan)),
+            ("COLOSSUS_CARAVAN", Slot::Value(T.colossus_caravan)),
+            ("SILK_CARAVAN", Slot::Value(T.silk_caravan)),
+            ("NUBIAN_CARAVAN_LIMIT", Slot::Value(T.nubian_caravan_limit)),
             ("IROQUOIS_FREE_SCOUT", Slot::Value(T.iroquois_free_scout)),
             (
                 "ROMAN_BARRACKS_LEGION",

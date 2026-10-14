@@ -157,6 +157,10 @@ pub const WINE: usize = 8;
 /// bit 6 of `rare` or of `rare_conquest`, which is bit `12 - `[`BASE_RARE`]`
 /// = 6`; `resourcerules.xml`'s thirteenth `RESOURCE` is Spice.
 pub const SPICE: usize = 12;
+/// `TypeIndex::SILK` — the rare `LeaderData::get_caravan_limit@006dca50`
+/// reads: `rare.ptr[0] & 0x20`, else `rare_conquest`'s, byte 0 bit 5, which
+/// is bit `11 - `[`BASE_RARE`]` = 5`.
+pub const SILK: usize = 11;
 /// `TypeIndex::WOOL` — the rare `ObjectData::train_time@006508c0`'s Citizen
 /// arm reads: `0x6da7 & 8`, else `0x6dcf & 8`, byte 3 bit 3 of `rare` or of
 /// `rare_conquest`, which is bit `33 - `[`BASE_RARE`]` = 27`

@@ -16500,6 +16500,78 @@ SHA-256 `f43145cf8af4151bd06f73ea21d9190b456ec6a739c229f85383c877ce2e7083`.
 
 **What it holds**: group 66 (`groups` at `0xe85f10`, list `+0x10`, record `0x113488c8`): `num` 104, `(ox, oy)` (6240, 30048), `o_angle` −1523843072, `facing` 0, slot 80 (the MLRS `1/144`) `off` **(−10, 37)** against ours (10, −37): every member's offsets negated, `compute_form`'s tail. `GroupData::get_loc_to@0070c5d0` entered on the record (`step4.py`) answers **(14743, 25626)**, the MLRS's point under the leader's bottom `GUARDORDER`. Read by item 2055 (`docs/AI.md` §206); nothing a test reads.
 
+## run830 — Great Sahara in the successor pair's lobby: the long, launched without its details (2026-10-13, item 2107, `att-2107`)
+
+Meant as the lobby's long and launched without run652's four `--detail` flags: `--map 7 --end-frame 24000 --timeout 2400
+--allow-early-end --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`, so the runner staged its default `end:UNITS=3`
+and `misc:COMMANDMANAGER=1`. That is **a `UNITS=3` dump on every frame** and no `start:` or `endgame:` records. Click-free
+lane 1, `success`, the game ended itself at 3268 (3269 frames, `ended_early`), 2233.1 s launch-to-exit, five settings files
+restored, seed 12345, tribes 4 and 17. `rngcmp.py` against run831: **3269 in common, 0 differing**. Output
+`~/ron-data/lab-captures/2026-10-13-run830`. It is kept as an every-frame unit census of the game: `births.py` over it put
+theirs' `1/162` on 3007 and the Market's Merchant on 3154 (`docs/AI.md` §211). Minutes waited on another lane: none.
+
+Archive `gamelog-run830-greatsahara-mongol-alltech-units-every-frame.txt`, 717,499,009 bytes,
+SHA-256 `b35c0aabf6189618297240f88dc26e2720f678e9a313725e28b522c96fd9c451`.
+
+Archive `rontrace-run830.log`, 114,204,768 bytes,
+SHA-256 `52b7d37356767d85ce210c62f132e7fa592b8a4a9f9d77334ba47fd272ecb3ed`.
+
+## run831 — Great Sahara in the successor pair's lobby: the draw stream to the game's end (2026-10-13, item 2107, `att-2107`)
+
+run775's recipe with the map moved: `--map 7 --end-frame 24000 --timeout 2400 --allow-early-end --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 17 --detail end:MISC --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2 --detail
+endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3`. Click-free lane 1, `success`. **The game ended itself at frame 3268** (3269
+frames, closing block 3269, `ended_early`), 78.9 s launch-to-exit, five files restored. `MAP_STYLE 7`, `DIFFICULTY 3`,
+`STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, seed 12345 read back, tribes 4 and 17. `rngcmp.py` against run832: 37 in
+common, 0 differing. Output `~/ron-data/lab-captures/2026-10-13-run831`. No wait for the lane.
+
+Archive `gamelog-run831-greatsahara-mongol-alltech-trace.txt`, 13,209,356 bytes,
+SHA-256 `7c803fd4f4c344851b2803f1666dc60cf5d1e5949bf3aab3be12dd2620527c99`.
+
+Archive `rontrace-run831.log`, 115,568,480 bytes,
+SHA-256 `5e85250694163877905cf4e58e14c682b7fa2559f89042fe85322e4bb9493d71`.
+
+**What it holds**: `diff::sahara_mongol::sahara_mongol_first_parting` walks it from run832's start. It parted first on
+**frame 2995, ours 30 draws against 26, index 3**, and agrees to **3268 of 3268** after item 2107's build.
+`run831_sahara_mongol_closing_state` compares its closing dump whole: 178 units, `[0, 0, 0, 0, 0, 0, 0]`.
+
+## run832 — Great Sahara in the successor pair's lobby: the `DUMP_ALL` start (2026-10-13, item 2107, `att-2107`)
+
+run774's recipe with the map moved: `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`, click-free lane 2 from the pool, `cover=0`;
+`success`, 37 frames, 383.4 s launch-to-exit, five files restored, seed 12345, tribes 4 and 17, 3370 `GROUPDATA` blocks on
+frame 1. Output `~/ron-data/lab-captures/2026-10-13-run832`. No wait for the lane.
+
+Archive `gamelog-run832-greatsahara-mongol-alltech-start.txt`, 149,937,187 bytes,
+SHA-256 `9e5ae4f890806160bb08a47320a79d9917ad55db3ecb2bac2182c10a62deb828`.
+
+Archive `rontrace-run832.log`, 9,245,856 bytes,
+SHA-256 `bf0009605cf25a45b085a1b214c35de8c5109112ee524fe5eb13a613d143e2c0`.
+
+## run834 — Great Sahara in the successor pair's lobby: the word 2995's widening, blocks 2989..3269, to the game's end (2026-10-13, item 2107, `att-2107`)
+
+**Disk gap**: run832 holds whole records of the first blocks only and run831 the draw stream and the closing state, so no dump
+of this lobby held a building, a city or a leader record at the word's frame 2995 (block 2996). run830 has units only. run817's
+recipe with the window moved to six blocks before the word and on to the game's closing block: `--map 7 --end-frame 3268
+--allow-early-end --timeout 3600 --log-window 2989 3269 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`.
+Click-free lane 1, `success`, 3269 frames, 1653.5 s launch-to-exit, five files restored, the lobby read back. 281 `BEGIN
+FRAME`s, 2989..3269. `rngcmp.py` against run831: **3269 in common, 0 differing**. Output
+`~/ron-data/lab-captures/2026-10-13-run834`. No wait for the lane.
+
+Archive `gamelog-run834-greatsahara-mongol-alltech-window-2989-3269.txt`, 616,293,347 bytes,
+SHA-256 `eb5f23190cbc4eab1f3481643c09957c818cf4b2260a4e67a6cfa0b63408f7f1`.
+
+Archive `rontrace-run834.log`, 115,657,632 bytes,
+SHA-256 `9078d362aa5f83d87fae096be265afea4947907beaf6af5cd5036adfbda17b4d`.
+
+**What it holds**: `diff::sahara_mongol::run834_s_word_frame_is_widened_whole`. It read 1,284 keys before item 2107's build
+and 296 after. The word's value diff is on block 2996: the Market `1/2019`'s `queue:queued` 4 against 5, its head Caravan
+held at 17304 to the game's end, and `num_units[9]` 9 against 8 (`docs/AI.md` §211). The window runs to the closing block,
+so it is also the word's last-blocks capture.
 ## run827 — chapter sixty-three: two squads follow a Chariot and are shift-moved (2026-10-13, item 2131, `att-2131`)
 
 `docs/GOLDEN.md` §78, `tools/gamelog/golden/chapter63.cmd` (9 staged lines, two `@moveadd`: the DLL's new
