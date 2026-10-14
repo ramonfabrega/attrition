@@ -1972,6 +1972,27 @@ impl Sim {
         {
             self.units[i].combat.packed = true;
         }
+        // **`UnitData::get_combat_stance@00610a30` answers
+        // `COMBAT_STAND_GROUND` for a type with no combat stances**
+        // ([`crate::stance::get_stance`]): the `+0xb1` byte is the packer's,
+        // the worker's or the caster's own, and every reader of vslot
+        // `+0xf4` sees 2. This crate keeps the combat half apart as
+        // [`combat::Stance`], so it is written here once. run842's packet
+        // (item 2265, `docs/GOLDEN.md` §82): the Catapult `0/9`'s idle
+        // search on tick 776 runs `find_nearby_target(0xc00, …)` — no
+        // AGGRESSIVE `+0x180` — and never reaches the Small City at 2781.
+        // The predicate is `UnitTypeData::get_stance_type@0061d350`'s
+        // `Combat` arm: `role & MILITARY` and not `unit_flags2 & 4`. The
+        // loader fills the profile's `combat_role` and `packs` from those
+        // two columns, and a hand-built type may set either spelling.
+        if self.units[i].ty.is_some_and(|t| {
+            let ty = &self.unit_types[t];
+            let military = ty.combat.combat_role || ty.cols.is(crate::ai_load::role::MILITARY);
+            let packs = ty.combat.packs || ty.cols.flag2(crate::ai_load::uflags2::PACKS);
+            !military || packs
+        }) {
+            self.units[i].combat.stance = crate::combat::Stance::StandGround;
+        }
         if source {
             self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
         }

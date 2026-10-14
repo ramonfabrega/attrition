@@ -11858,10 +11858,10 @@ and the Catapult's wake. Parked 2236.
 
 - The leader's `attack_stamp`, `raid_stamp` and `ally_stamp`, and the notices (`LEADERS=9` alone prints them).
 - `Armies::emergency`'s gate: no capture under `!ai off` holds an army.
-- Chapter sixty-five's stamps after 777 are compared on a walk whose Catapult has already parted (ours strikes the
+- ~~Chapter sixty-five's stamps after 777 are compared on a walk whose Catapult has already parted (ours strikes the
   Small City, theirs the Barracks): the dump's 849 is heavy by the siege term alone (0 + 70 < 1200/4), and 915's
   Hoplite hit crosses the `/10` ceiling on the same frame on both sides, but the widening holds neither as a row
-  until the word moves past them.
+  until the word moves past them.~~ Answered by item 2265 (§82): the word is at the trace's end and both agree.
 
 ### 81.1 Coverage
 
@@ -11869,17 +11869,69 @@ and the Catapult's wake. Parked 2236.
 and the worker arm of `Object::do_damage@0064a480`'s city alarm, with `UnitData::get_action@00608450`; the capital's
 heavy arm at its `/4` boundary (946).
 
-**Unit-backed only**: the siege term and the `/10` ceiling. run843's dump shows both (849, 915), but the widening
-parts at 777 before either, so the fixture and its two mutations hold them until the word moves.
+~~**Unit-backed only**: the siege term and the `/10` ceiling. run843's dump shows both (849, 915), but the widening
+parts at 777 before either, so the fixture and its two mutations hold them until the word moves.~~ Diff-backed since
+item 2265 (§82.1): the word moved to the trace's end.
 
 **Reading-only**: the `Armies::emergency@006f3250` gate, since no capture under `!ai off` holds an army.
 
-## 82. Reserved for the next item on the rules track
+## 82. Chapter sixty-five closed — a packer's combat stance is STAND_GROUND (item 2265)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Word 777 on run843 (§81), ours 8 draws against 6: ours' two `Guy::set_anim+0xf2f <
+Unit::set_anim+0xb6` for the Catapult `0/9` (`TI` 265, `CATAPULT`, land). Seed on 777 `0x0be7ad26`. Block 777: `0/9`'s
+`near` (2006, 1) here against (−1, −1) there, `orders.len` 1 against 0. 2235's hypothesis was the idle search's reach.
+
+**On disk first.** The original's `0/9` casts `UNPACK` (652) from 697 to 776 (idle 7 at 696, the human threshold);
+block 776 has `unit_masks` `0x80000` cleared and `mylos` 4 → 10; block 777 `idle 1`, no order, `near −1`; block 792
+(tick 791, `(791 + 9) & 31 == 0`) `near 1/2008` and an `ATTACKORDER` on the Barracks. `1/2006`'s `ever_seen` holds
+player 0's bit from 626, `1/2008`'s only from 778 — so the Small City was seen and still not taken on 777. A probe
+(behind `RON_PROBE_2265`, reverted whole) had this crate's search on tick 776 at `max_dist` 3456, the Barracks refused
+by `valid_target` (unseen) and the Small City admitted at `attack_dist` 2781.
+
+**run842, two packets** (§82 is the first rules-track chapter to need two: the first answered the wrong tick). Logger
+frame 777 holds block 777's state — `idle` (`+0xb0`) already 1, and `Unit::process` on it runs tick 777, where `think`
+takes the `idle != 1` phase arm and never reaches the search. Logger frame 776 is the decision's: `step4.py --entry
+610bc0 --this 15ab857c` (`Unit::process` on `0/9` from the frame's opening seed, unpoked: the search draws nothing, so which roll the unit saw does not reach it) enters
+`think_attack` → `find_melee_target` → **`find_nearby_target(0xc00, …)`**, and `valid_target@00648ba0` is called on
+two chain objects only: no building is on the rings 0xc00 reaches, and nothing reaches `compare_target`.
+
+**The reading.** `find_melee_target@005ff9c0`'s idle radius (lines 175–195): `(max_range + 1) × 0xc0`, plus `0x180`
+only when vslot `+0xf4` answers 0. Vslot `+0xf4` is `UnitData::get_combat_stance@00610a30`: the `+0xb1` byte when
+`has_stance_type(STANCE_COMBAT)`, else **`COMBAT_STAND_GROUND`** (2). `UnitTypeData::has_stance_type@0061d3b0` is
+`get_stance_type() == kind`, and a packing military type is `STANCE_PACKER` (`crate::stance::stance_type`). So the
+Catapult, whose raw byte is `PACKER_AUTO` 0, searches as STAND_GROUND: (15 + 1) × 0xc0 = 0xc00, four rings, and the
+Small City's cell is on the fifth. This crate kept `combat::Stance` apart from the byte and gave every unit
+AGGRESSIVE, so it searched at 3456.
+
+**Built.** `Sim::add_unit` (`crates/sim/src/lib.rs`): a type whose stance type is not `Combat` takes `combat.stance =
+StandGround` — every reader of vslot `+0xf4` in the original sees 2 for a packer, a worker, a caster or a type with no
+stances. That moved two closed floors (Great Sahara at Toughest 15432 → 15025, East Indies at Toughest 18140 →
+17944): run589's packed cannon `1/132`, attack-moving, takes `0/2000` on 17944 and the original walks at it on 17945
+(a `MOVEORDER` pushed, `find_attack_pos < fight+0xcb4` the extra draw at Toughest's 15025). **`Unit::fight`'s chase
+gate reads `get_combat_stance() == 2 && !Unit::on_duty()`** (`005fe139`–`005fe151`), and this crate had the stance
+alone: built (`crates/sim/src/orders.rs`), both floors hold again.
+
+**The word: 777 → 1100, the trace's end — chapter sixty-five closed.** The value diff on 777: `0/9`'s `near` (−1, −1)
+and `orders.len` 0 on both sides (were (2006, 1) and 1 here); on 792 both take the Barracks `1/2008`. The widening
+(605..1101) falls 357 → 15 rows: the eleven standing `form` rows and the Catapult's first round's launch point on 818
+(`sx`/`sy`/`sz`/`v1z`: the unit's square here, a release node there; parked 2266). The city's stamps agree to the end,
+the siege term's 849 and the `/10` ceiling's 915 among them.
+
+**Not established.**
+
+- `fight`'s chase gate also skips an entrenched unit without `unit_masks2 & 0x20000` (`005fe157`–`005fe167`); this
+  crate's chase has no entrench term. No capture on disk entrenches a unit in a chase.
+- The other readers of `combat.stance` in this crate were not each walked against their listing's vslot `+0xf4` read:
+  a reader that in the original takes the raw `+0xb1` byte would now see STAND_GROUND for a packer. The suite's floors
+  and widenings are what holds them.
+
+### 82.1 Coverage
+
+**Diff-backed** by run843's widening and the two Toughest floors: `UnitData::get_combat_stance@00610a30`'s default arm
+for a packer, through `find_melee_target@005ff9c0`'s radius (777 parts without it); `Unit::fight@005fd4d0`'s
+STAND_GROUND chase gate with `Unit::on_duty@005fff70` (run346's 17944 and run470's 15025 part without it); and,
+now that the Catapult strikes the Barracks as there, §81's siege term and `/10` ceiling (849, 915), moved from
+unit-backed to diff-backed.
 
 ## 83. Reserved for the next item on the rules track
 

@@ -16718,3 +16718,22 @@ SHA-256 `1b12fb90e2c7c1f908ab3ca841284f6bb2a99827960450b63b730ae1c1301907`.
 **What it holds**: `diff::mongol_pair::run844_s_closing_frame_is_widened_whole` (blocks 4940..5057,
 `mongol_closing_window`, 225 keys) and the coverage driver's `mongol_closing` window. run838's window is renamed
 `mongol_frame_4603_window`.
+## run842 — chapter sixty-five's packets at logger frames 777 and 776 (2026-10-14, item 2265, `att-2265`)
+
+`docs/GOLDEN.md` §82. **What the disk could not answer**: run843's dump prints `near` and the order a search adds,
+never the search's radius or which candidates it walked, and the original's `0/9` on block 777 holds `near −1` with
+the Small City `1/2006` seen by player 0 since 626. run843's recipe (`tools/gamelog/golden/chapter65.cmd`) with
+`--end-frame 780 --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5 --tracer-def RON_STATE_FRAME=<N> --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`, two takes, both
+click-free lane 1 from the pool, `success`, `settings_restored`, 781 frames, seed 12345; `rngcmp.py` against run843's
+trace: 781 frames, 0 differing. Waited on another lane's capture: none.
+
+- **Logger frame 777** (`--log-window 775 779`, 19 s launch to exit): `~/ron-golden/run842/map-14/frame-snapshot.bin`,
+  824,314,844 bytes, SHA-256 `baf9cf65dcd65374ced0dea263db52cf4d59e5ae5eda9752c5b2185e4d712cd5`. It holds block 777's
+  state (`0/9`'s `idle` already 1), so `Unit::process` on it is tick 777, past the decision.
+- **Logger frame 776** (`--log-window 774 779`, 25 s): `~/ron-golden/run842b/map-14/frame-snapshot.bin`, 807,681,032
+  bytes, SHA-256 `cd100f47e51fa5f7be3cb32f4b0e8ef24f14ea00876e234a1846b16c553e4f47`.
+
+**What it holds**: `step4.py --entry 610bc0 --this 15ab857c` on the second (`Unit::process` on `0/9`, unpoked) enters
+`think_attack` → `find_melee_target` → `find_nearby_target(0xc00, …)`, whose ring walk calls `valid_target@00648ba0`
+on two objects and reaches no `compare_target`. No test reads it.
