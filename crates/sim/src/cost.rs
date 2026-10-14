@@ -1397,7 +1397,11 @@ mod tests {
         assert_eq!(at(&horse, 5, 0, 0, 0), 70);
         assert_eq!(at(&horse, 5, 10, 25, 0), 47);
         assert_eq!(at(&horse, 5, 25, 0, 0), 52);
-        assert_eq!(at(&horse, 5, 10, 25, 25), 35, "Monarchy and Socialism both, in order");
+        assert_eq!(
+            at(&horse, 5, 10, 25, 25),
+            35,
+            "Monarchy and Socialism both, in order"
+        );
     }
 
     /// **The Statue of Liberty takes its third off the base, not the
