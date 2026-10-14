@@ -4969,12 +4969,13 @@ is given) would make every generated sweep redrawable by anyone.
 
 ## Parked by item 2314, 2026-10-14 — the second sweep lane's ten, with a port consumer
 
-(2315) **`Sim::adjacent_to` has no boat-garrison arm and skips both in-use guards** (2314; names no score). The
+~~(2315) **`Sim::adjacent_to` has no boat-garrison arm and skips both in-use guards** (2314; names no score). The
 original `Object::adjacent_to@00651f40` answers 0 unless `this +0x8 & 1` and the target's `+0x8 & 1` are set. When
 `[this+0x18]+0x218 == 1` and vslot `+0x18` answers nonzero, and the unit record's type has `+0x2b4 & 0x10` clear, it
 compares the three-argument `attack_dist@0064c880` against `constants(0xc061f0)->boat_garrison_max_distance`
 (`+0x94`), plus `0x180` when type `+0x248 <= 3`, instead of `0x60`. `transport.rs`'s test hands it a barge. Not swept
-in 2314 for that reason. Once the arm is ported, it is a stub sweep of both `attack_dist` overloads and the vslot.
+in 2314 for that reason. Once the arm is ported, it is a stub sweep of both `attack_dist` overloads and the vslot.~~
+**Built by item 2368**: the sea arm and both in-use checks, `Tuning::boat_garrison_max_distance`, swept on 1500 rows.
 
 (2316) **`Sim::num_inside` charges a decoy captain its pop; the original counts it 0** (2314; names no score).
 `ObjectData::num_inside@00646d50` gives a captain with `unit_masks & 1` no slots. The sweep's helper
@@ -5095,6 +5096,8 @@ filled. Spares read and reachable now: `GroupData::equals_group_const` (`--seq` 
 - `--fill` cannot draw per-row values (`Herd::process` used `--wbias p0+*`), and a short field is biased only through
   its whole word (`Army::set_stance`'s `+0x96`, through `+0x94`).
 - With `--seq`, the stub's own answer is still printed as an argument and never used. This is cosmetic.
+**The first two built by item 2368**: `--regen` keeps the test's port block, and `--seq IDX:N:T,T..` ends on a
+terminator; `get_speed`, `Herd::process` and `repath` were regenerated on them, with no hand edit left.
 
 (2343) **Sweep subagents' scratch scripts collide in `/tmp`** (2341, for the Loop; names no score). One subagent's
 write to `/tmp/brk.py` was refused, and it ran another subagent's break script of that name, against that
@@ -5184,13 +5187,30 @@ and the same two instructions: `GarrisonOrder`, `AirPatrolOrder`, `GroupMoveOrde
 batches, or one lane told to take them all at once, empty the band. `CommandManager::issue_speed_up`'s
 `local_5` (2348) was not read: no function of this batch reached that family.
 
-## Parked by the next landing, slot CC — reserved
+## Parked by item 2368, 2026-10-14 — the second sweep lane's next ten, with a port consumer
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2369) **Four `sweep_gen` gaps this batch met** (2368, for the Loop; Loop 2003):
+- No shape lays a circular doubly linked list, and none answers a slot from its own `ecx`.
+  `Unit::kill_group_move` hand-edits both, commented in its script; `--regen` drops them (2342's third gap, a
+  second reach).
+- The `esp` check cannot catch a stub's wrong argument count when the caller has a frame pointer: `max_gatherers`
+  restores `esp` from `ebp` before its `ret 0x10`, and a 14-argument stub of a 13-argument `calc_gather` passed.
+- `--record` does not record `edx`: `hooks.py` keeps `(name, ecx, args, eax)`, so `compute_trade`'s hand-off of the
+  near end's leader to `trade_value` is compared by no row.
+- `token()` counts a window's end as inside it, so windows packed end to end print the next one's address as
+  the previous one's `+size` (`kill_group_move` spaced its orders `0x80` apart for it).
+
+(2370) **SEAMs the batch's readers named** (2368; names no score):
+- `Unit::set_attack` writes the raw `(o, who)` into `GuyData +0x8e/+0x9f`. When only one is −1, the port's
+  `Option<Obj>` cannot carry the aim.
+- `economy::enhancer_bonus` clamps the level to 1..=5, where the original indexes `level + 4` off the table and
+  would read a neighbouring table. No level in the sim falls outside the range.
+- `Unit::kill_group_move`: the group id is compared as an `i64` (the original compares 32 bits), and the group-move
+  record's vbase is the order itself, so its second `is_move`/`get_type` ask the same order.
+- `max_gatherers`' `active` and `city` closures (`bd.alive && bd.active`, `bd.city`) stand in for flag bit 0,
+  slots `+0x20`/`+0x4c` and `BuildData::city` `+0x72`; no row backs the sim's side.
+- `BuildData::calc_gather`'s port computes the corner, the active flag and the scholar count, and nothing reads them
+  while `BuildTypeData::calc_gather` is `economy::per_gatherer` and `gather.rs`.
 
 ## Parked by item 2374, 2026-10-14 — the `vtordisp` band closed
 

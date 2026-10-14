@@ -4322,8 +4322,8 @@ swarm's approach move always `EXPLORE_TO` where the original makes it
 `MOVE_TO` for a human builder and every repairer; the arrived gatherer's AI
 repair arm; the tile approach ignoring `avoid_x/y`; ~~the tile score's
 `MTN_TINY_SIZE` `dist_mod` clamp~~ (built by item 620, §6.4); `add_gather_order` not clearing the "has
-been a builder" bit; `adjacent_to`'s missing sea arm, with
-`BOAT_GARRISON_MAX_DISTANCE` unused; and a re-plan returning 0 with an
+been a builder" bit; ~~`adjacent_to`'s missing sea arm, with
+`BOAT_GARRISON_MAX_DISTANCE` unused~~ (built by item 2368, §10); and a re-plan returning 0 with an
 empty stack killing the order instead of taking the top (left marked
 `UNSURE:`).
 
