@@ -3767,6 +3767,12 @@ run842) answered chapter sixty-six without run 845. The brief's "books a capture
 frame's chapter row says "a capture only when no packet or widening of the game on disk answers the arm", and a
 closed chapter's standing rows are read as candidates before a new staging. One reach.
 
+(2356) **Before staging a built arm, grep the constant's every reader in the export** (2331's "for the Loop" line).
+2293 built `train_time`'s Monarchy arm off `MONARCHY_UNIT_PROD`; its cost twin in `TypeData::get_cost` sat one listing
+away, unported, and chapter sixty-seven found it only when the staged Light Horse's price parted on 804. Candidate: a
+brief-checklist row for the rules track — "an arm the AI track built: grep its constant's every reader in the export,
+and port or park each, before the staging is booked" — beside Loop 2330's packet-first row. One reach.
+
 ## Loop, filed 2026-10-14 — the thirty-third tranche's
 
 (2146) **`GROUPS=1` without `BUILDS=7` prints no `GROUPDATA`** (Loop; names no score). run827's first take asked
@@ -5102,6 +5108,46 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot CC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CH renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
