@@ -3921,6 +3921,9 @@ impl Sim {
         self.units[u].movement.mirror = f;
         let Some(g) = self.group_of(u) else { return };
         let (pf, pi) = (self.frame, self.units[u].index);
+        if std::env::var_os("RON_PROBE_2193").is_some() && g.who == 1 && g.army == Some(1) {
+            eprintln!("PROBEH f{} any-handback 1/{} f {} leader {} on_map {} captain {}", pf, pi, f, self.is_group_leader(u, &g), self.units[u].on_map, self.units[u].captain);
+        }
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)
         {
