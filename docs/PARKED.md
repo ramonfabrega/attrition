@@ -4429,11 +4429,12 @@ layout and the test's model of the reset, the answer left to `--port`.
 
 ## Parked by item 2099, 2026-10-13 — chapter sixty-one closes
 
-(2100) **`fight`'s re-search predicate for a unit whose `unit_masks2 & 4` is set is not carried** (2099,
+~~(2100) **`fight`'s re-search predicate for a unit whose `unit_masks2 & 4` is set is not carried** (2099,
 `docs/GOLDEN.md` §76). `Unit::fight@005fd4d0:396`–`400` uses another test for `local_14` there: the
 target's role `0x10000` set and its type's `+0x2b4 & 0x2000` clear. This crate reads only "not combat role",
 which is the arm for a unit with the bit clear. No walk is known to set the bit on a captain that reaches the arm.
-Names no frame.
+Names no frame.~~ **Closed by item 2165** (`docs/GOLDEN.md` §79): the bit is the Bark line's, set by
+`Unit::init`; built, and run835's block 635 holds the predicate.
 
 ## Parked by item 2106, 2026-10-13 — Great Sahara's closing state, and the wonders nobody held
 
@@ -4569,13 +4570,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AX — reserved
+## Parked by item 2165, 2026-10-14 — chapter sixty-four, the Bark's bit and a player's stance button
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2166) **Chapter sixty-four's word 637, open (ours 6 draws, theirs 10)** (item 2165, `docs/GOLDEN.md` §79,
+run835). The first value parting is block 634, `0/7`'s first target: here the Trireme `1/6`, the nearest; there
+the Bark `1/8`, which has shot `0/7` since 622 from 2,570 units off. Both sides spend `Unit::fight+0x9b0` for
+`0/7` on 634. 2165's hypothesis, not read: the original's idle Bark is handed its attacker (a `target_opportunity`
+or `took_hit` arm) where this crate takes the nearest; which caller hands it `1/8` is the next item's first read.
+Block 635's `0/6` is the same choice (Trireme here, fishing boat there).
 
 ## Parked by the next landing, slot AY — reserved
 

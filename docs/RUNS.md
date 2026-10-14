@@ -16524,3 +16524,27 @@ and its units' blocks agree with the second take's on 662 and 712. The second ta
 Waited on another lane's capture: none. **What it holds**: `golden::chapter_sixty_three_holds_to_the_golden_word`
 (**760**, the trace's end, closed) and `chapter_sixty_three_s_word_frame_is_widened_whole` (605..761, the eleven
 standing `form` rows, no pool row). run828 unused.
+
+## run835 — chapter sixty-four: two human Barks, a computer's, and a player's stance button (2026-10-14, item 2165, `att-2165`)
+
+`docs/GOLDEN.md` §79, `tools/gamelog/golden/chapter64.cmd` (10 staged lines, two `@stance`: the DLL's new verb 26,
+`issue_stance@00941530`, built from this tree). **What the disk could not answer**: every computer Bark on disk
+carries `unit_masks2 4` and `stance 3` (run155's `1/34`), but no golden chapter holds a Bark, so `fight`'s
+re-search with the bit set (parked 2100) was never reached on a widened window; and no capture issues a stance
+command, since the DLL had no stance verb.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch64 \
+    --map 14 --end-frame 820 --log-window 605 820 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter64.cmd
+```
+
+**One take**, pool lane 2: `success: true`, `settings_restored`, 821 frames, seed 12345, map 14, 306 s launch to
+exit. `issuesmatch.py --none-refused … 2`: both `@stance` lines issued, none refused; the dump logs
+`process_stance 2 681` and `process_stance -1 721`. Kept in `~/ron-golden/ch64/map-14`; `rontrace.dll` SHA-256
+`a3f9fb333e651f63a8c833b71147677666086eaa028d01ca3eb0bfa953cb283b`. Waited on another lane's capture: none.
+**What it holds**: `golden::chapter_sixty_four_holds_to_the_golden_word` (**637**, open; ours 6 draws, theirs 10)
+and `chapter_sixty_four_s_word_frame_is_widened_whole` (605..821, 401 rows: the eleven standing `form` rows and the
+wake of block 634's first target, parked 2166). run836 unused.
