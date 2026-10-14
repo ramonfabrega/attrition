@@ -531,7 +531,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-six verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-seven verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
@@ -585,6 +585,8 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@alarm <who> <b> [<b> ...]`          building ids, issue_alarm
  *   `@gather <who> <ox> <o> [<o> ...]`    the building's id, issue_gather
  *                                         with QUEUE_NEW
+ *   `@stance <who> <s> <o> [<o> ...]`     a stance option, or −1/−2 to
+ *                                         cycle, issue_stance
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -788,6 +790,12 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * process_gather@009488b0` asks the building's `+8 & 1` and `Group::
  * action_gather@00700b90` takes the members at process time.
  *
+ * `@stance` calls `CommandManager::issue_stance@00941530(&command_manager,
+ * group, s)` and appends a 5-byte `stance` (type 0x02, `[stance]`) behind a
+ * group of units (item 2165, `docs/GOLDEN.md` §79): a stance button on the
+ * panel. `CommandPackage::process_stance@00949ed0` forwards it unchecked to
+ * `Group::action_stance@0070d440` at process time.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -849,7 +857,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`, 15
      * `settransport`, 16 `repair`, 17 `buildmask`, 18 `queueup`, 19
      * `unqueue`, 20 `gatherpoint`, 21 `launchpatrol`, 22 `launchpatrolall`,
-     * 23 `launchstrike`, 24 `alarm`, 25 `gather`:
+     * 23 `launchstrike`, 24 `alarm`, 25 `gather`, 26 `stance`:
      * the issuer and its prologue (`issue_guard.h`)
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
@@ -890,6 +898,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "launchmove ") ? (launch_move = 1, 23)
                : issue_verb(&t, "alarm ")    ? 24
                : issue_verb(&t, "gather ")   ? 25
+               : issue_verb(&t, "stance ")   ? 26
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, type = 0, ox = 0, whom = 0, ids[ISSUE_MAX];
@@ -900,11 +909,11 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * selector; `@queueup`'s type and count ride in `x` and `y`;
      * `@gatherpoint`'s action rides in `type`, after its point;
      * `@alarm` has none, as `@eject`, and `@gather` one, the building's
-     * id, in `x`. */
+     * id, in `x`, as `@stance` its option. */
     if (!issue_int(&t, &who) ||
         (verb == 14 && (!issue_int(&t, &type) || !issue_int(&t, &ox) || !issue_int(&t, &whom))) ||
-        ((verb == 15 || verb == 17 || verb == 19 || verb == 25) && !issue_int(&t, &x)) ||
-        (verb != 5 && verb != 15 && verb != 17 && verb != 19 && verb != 24 && verb != 25 &&
+        ((verb == 15 || verb == 17 || verb == 19 || verb == 25 || verb == 26) && !issue_int(&t, &x)) ||
+        (verb != 5 && verb != 15 && verb != 17 && verb != 19 && verb != 24 && verb != 25 && verb != 26 &&
          (!issue_int(&t, &x) || !issue_int(&t, &y))) ||
         ((verb == 13 || verb == 20) && !issue_int(&t, &type))) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
@@ -920,7 +929,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
     u32 rva = ISSUER_RVA[verb];
-    u32 size = verb == 25  ? 0x09
+    u32 size = verb == 26  ? 0x05
+               : verb == 25  ? 0x09
                : verb == 24  ? 0x01
                : verb >= 21  ? 0x19
                : verb == 20  ? 0x11
@@ -980,7 +990,11 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb == 25) {
+    if (verb == 26) {
+        /* issue_stance(group, s): a stance button (item 2165). */
+        typedef void(__thiscall *stance_fn)(void *, void *, i32);
+        ((stance_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x);
+    } else if (verb == 25) {
         /* issue_gather(group, ox, QUEUE_NEW 2): a right-click on a
          * building of one's own. */
         typedef void(__thiscall *gather_fn)(void *, void *, i32, i32);

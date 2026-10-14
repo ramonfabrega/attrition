@@ -593,6 +593,14 @@ pub enum Issued {
         ox: i32,
         objects: Vec<i16>,
     },
+    /// `@stance <who> <s> <o>…` — `issue_stance@00941530(group, s)`: a
+    /// stance button on the panel, a 5-byte `stance` (0x02, `[stance]`),
+    /// item 2165, `docs/GOLDEN.md` §79. `s` is an option, or −1/−2 to cycle.
+    Stance {
+        who: i32,
+        stance: i32,
+        objects: Vec<i16>,
+    },
     /// `@buildmask <who> <mask> <b>…` — `issue_buildmask@00941f80(group,
     /// mask, 1)` on a group of the player's own buildings: the repeat
     /// button's 0x80 (`Options::set_air_repeat@0071c740`), item 867,
@@ -695,7 +703,8 @@ impl Issued {
             | Issued::Spell { who, objects, .. }
             | Issued::SetTransport { who, objects, .. }
             | Issued::Repair { who, objects, .. }
-            | Issued::Gather { who, objects, .. } => (*who, objects, false),
+            | Issued::Gather { who, objects, .. }
+            | Issued::Stance { who, objects, .. } => (*who, objects, false),
             Issued::Eject { who, buildings }
             | Issued::Alarm { who, buildings }
             | Issued::Buildmask { who, buildings, .. }
@@ -801,6 +810,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "launchmove"
             | "alarm"
             | "gather"
+            | "stance"
     ) {
         return None;
     }
@@ -849,6 +859,25 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             return None;
         }
         return Some(Issued::Gather { who, ox, objects });
+    }
+    // `@stance`'s one number is the option.
+    if verb == "stance" {
+        let [who, stance, ref objects @ ..] = nums[..] else {
+            return None;
+        };
+        let objects: Vec<i16> = objects
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if objects.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::Stance {
+            who,
+            stance,
+            objects,
+        });
     }
     // `@buildmask`'s one number is the mask, and its objects are buildings.
     if verb == "buildmask" {
@@ -1247,6 +1276,14 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         Some(Issued::Gather { who, ox, objects }) => {
             crate::input::group_gather(built, who, &objects, ox, 2)
         }
+        // `@stance` is `issue_stance@00941530`, a `group` and a `stance`,
+        // whose entry is [`crate::input::group_stance`] (item 2165,
+        // `docs/GOLDEN.md` §79).
+        Some(Issued::Stance {
+            who,
+            stance,
+            objects,
+        }) => crate::input::group_stance(built, who, &objects, stance),
         // `@buildmask` is `issue_buildmask@00941f80` on a group of
         // buildings, a `group` and a `buildmask`, whose entry is
         // [`crate::input::group_buildmask`] (item 867, `docs/GOLDEN.md`
@@ -2084,6 +2121,10 @@ mod tests {
         // Chapter sixty-three: two squads follow a Chariot and are
         // shift-moved, `@moveadd` (item 2131, `docs/GOLDEN.md` §78).
         ("chapter63.cmd", &[]),
+        // Chapter sixty-four: two human Barks, a computer's, and two
+        // `@stance` lines, the stance button (item 2165, `docs/GOLDEN.md`
+        // §79).
+        ("chapter64.cmd", &[]),
         // Chapter six-b: chapter six with an Airbase a side (item 651).
         ("chapter6b.cmd", &[]),
         ("chapter7.cmd", &[]),
@@ -2452,6 +2493,15 @@ mod tests {
             })
         );
         assert_eq!(parse_issuer("@gather 0 2001"), None);
+        assert_eq!(
+            parse_issuer("@stance 0 -1 10"),
+            Some(Issued::Stance {
+                who: 0,
+                stance: -1,
+                objects: vec![10],
+            })
+        );
+        assert_eq!(parse_issuer("@stance 0 2"), None);
     }
 
     /// **An issuer line parses as the DLL reads it** (item 676): the verb,

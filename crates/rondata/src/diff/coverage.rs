@@ -349,10 +349,13 @@ const UNREAD: &[(&str, &str)] = &[
     // windows `console.play`**, the line `be` logs as it moves the
     // console's seat; the harness carries the seat on its script
     // (`golden::Script`), and no field of the simulation reads it.
+    // **Item 2165's run835 windows `process_stance`** (`stance frame`), the
+    // first player's stance button; what it writes is read off the units'
+    // `stance` and stacks.
     (
         "GAME",
         // Item 1444: run609 prints the closing marker as GameInfo closing.
-        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
+        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_stance process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -651,6 +654,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch49 = golden_dump("ch49");
     let ch50 = golden_dump("ch50");
     let ch63 = golden_dump("ch63");
+    let ch64 = golden_dump("ch64");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2341,6 +2345,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // **Chapter sixty-four, on run835** (item 2165): 622, a computer's Bark
+    // born RAID; 636, the word's re-search; 682, the stance button's kill.
+    if let Some(p) = &ch64 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTY_FOUR;
+        for w in [622, 636, 682] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter sixty-four carries the window's five blocks");
+            frames += n;
+        }
+    }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
     // shot, the original's alone.
     if let Some(p) = &ch50 {
@@ -2960,6 +2974,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let mongol_3632 = super::mongol_pair::mongol_frame_3632_window();
     // Item 2088: and run820's blocks around the word 4238.
     let mongol_4238 = super::mongol_pair::mongol_word_window();
+    // Item 2107: Great Sahara in the successor pair's lobby, run834's
+    // blocks around the word 2995 to the game's closing block 3269.
+    let sahara_mongol_2995 = super::sahara_mongol::sahara_mongol_frame_2995_window();
     let seen = compared::stop();
     // **A window is one line** (parked 1959, the thirty-first pass): 1905
     // and 1868 each added a binding and a slot to a 49-tuple pattern, both
@@ -3020,6 +3037,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         mongol_3131,
         mongol_3632,
         mongol_4238,
+        sahara_mongol_2995,
     ];
     if windows.iter().any(Option::is_none) {
         eprintln!("skipping: the open words' captures are not all on disk");

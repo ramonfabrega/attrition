@@ -3771,6 +3771,17 @@ successor pair's word sat on it. Candidate: a brief-checklist row — "a flag pr
 checked at each reader against the reader's own vslot" — or a grep guard over `crates/sim` for the copied predicate.
 One reach.
 
+(2199) **A long launched without `--detail` is a silent waste** (2107's "for the Loop" line). run830 was the
+long with no `--detail`: the runner staged `end:UNITS=3` on every frame (37 minutes, 717 MB) and the walker cannot
+stand on it, so run831 became the long. Every `captures.txt` entry says "run652's details" and none prints them.
+Candidate: `unattended_capture.py` refuses `--log-window 0 24001` with no `--detail`, or `captures.txt` carries the
+long's line whole, flags included, with a test made to fail first. One reach.
+
+(2210) **`issuesmatch.py --none-refused` before its trace prints help and exits 0** (2165's "for the Loop"
+line): the flag takes the trace after it, so called with the flag first it prints its help and exits 0, which reads like
+a pass. Candidate: a positional the flag cannot swallow, or a non-zero exit on a missing trace, with a test made to fail
+first. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
@@ -4448,11 +4459,12 @@ layout and the test's model of the reset, the answer left to `--port`.
 
 ## Parked by item 2099, 2026-10-13 — chapter sixty-one closes
 
-(2100) **`fight`'s re-search predicate for a unit whose `unit_masks2 & 4` is set is not carried** (2099,
+~~(2100) **`fight`'s re-search predicate for a unit whose `unit_masks2 & 4` is set is not carried** (2099,
 `docs/GOLDEN.md` §76). `Unit::fight@005fd4d0:396`–`400` uses another test for `local_14` there: the
 target's role `0x10000` set and its type's `+0x2b4 & 0x2000` clear. This crate reads only "not combat role",
 which is the arm for a unit with the bit clear. No walk is known to set the bit on a captain that reaches the arm.
-Names no frame.
+Names no frame.~~ **Closed by item 2165** (`docs/GOLDEN.md` §79): the bit is the Bark line's, set by
+`Unit::init`; built, and run835's block 635 holds the predicate.
 
 ## Parked by item 2106, 2026-10-13 — Great Sahara's closing state, and the wonders nobody held
 
@@ -4532,13 +4544,24 @@ loop walked birth order where the original walks `objects->units[who]`, and a re
 strict-`<` best and a `units` index order has the same exposure. Candidate: grep `for u in 0..self.units.len()` beside a
 `best` and check each against its original's loop.
 
-## Parked by the next landing, slot AR — reserved
+## Parked by item 2107, 2026-10-13 — Great Sahara (Mongols), closed on its first build
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2137) **Leader 1's `attrition` and `sheltered` rows on run834** (names no score: the draw stream and the closing
+agree). After item 2107, run834 reads 296 keys. Past the standing block they are one family: `attrition` ours 6 or 12
+against theirs 48 or 96 (`1/43`, `1/57`, `1/103`, `1/105`, `1/106`, `1/110`, `1/23`, `1/26`, `1/27`, `1/58`, `1/118`
+…), each followed a few blocks later by one point of `hits:damage`/`hits_left` ours and none theirs, and `1/58`'s
+`sheltered` ours 0 against 1 on 3015. It is parked 2108's shape on the coverage lobby's run817, on a second lobby with a
+second nation. The ratio is 8 on every row. The namesake's fields; read with 2108.
+
+(2138) **Player 0's leader record after the human's units die** (names no score; standing on run834's 2989). Ours
+`control` 14, `num_units[0]` 13, `num_units[27]` 1, ten `SITE[].reg` 1. Theirs zero on all of them, and the fourteen
+`0/0`..`0/13` death records are ours alone on that block. Which writer zeroes a dead player's counts in the original
+was not read.
+
+(2139) **`get_caravan_limit`'s Colossus, Taj and Silk arms, and `get_units`' graft walk over `CARADUTCH`, are reached by
+no walk** (built by item 2107, `docs/AI.md` §211). `taj_caravan` is −1 as loaded, so a held Taj Mahal lowers the limit
+in both the make list and `Build::finished`. A lobby whose AI holds the Taj with a done Caravan at its limit would back
+it with a diff.
 
 ## Parked by item 2129, 2026-10-13 — the sweep's fifty-first batch
 
@@ -4601,13 +4624,14 @@ answer (`--place 'c0+0x10+a[2]*0x1c:s[0]*4:4'`). Tests made to fail first:
 `test_a_placed_window_may_read_the_stubs_answers`. Scripts generated before this draw their answers after the
 places; each is a written file and none was regenerated.
 
-## Parked by the next landing, slot AX — reserved
+## Parked by item 2165, 2026-10-14 — chapter sixty-four, the Bark's bit and a player's stance button
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2166) **Chapter sixty-four's word 637, open (ours 6 draws, theirs 10)** (item 2165, `docs/GOLDEN.md` §79,
+run835). The first value parting is block 634, `0/7`'s first target: here the Trireme `1/6`, the nearest; there
+the Bark `1/8`, which has shot `0/7` since 622 from 2,570 units off. Both sides spend `Unit::fight+0x9b0` for
+`0/7` on 634. 2165's hypothesis, not read: the original's idle Bark is handed its attacker (a `target_opportunity`
+or `took_hit` arm) where this crate takes the nearest; which caller hands it `1/8` is the next item's first read.
+Block 635's `0/6` is the same choice (Trireme here, fishing boat there).
 
 ## Parked by item 2170, 2026-10-13 — the sweep's fifty-fourth batch
 
@@ -4683,6 +4707,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot BF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BL renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

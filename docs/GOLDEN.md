@@ -11650,12 +11650,80 @@ because the follows never end. A unit test, `get_final_loc_reads_a_follow_s_lead
 
 **Reading only**: `FollowOrder`'s vslot `+0x20`, which the thunks name and the angle confirms.
 
-## 79. Reserved for the next item on the rules track
+## 79. Chapter sixty-four — the Bark's bit and a player's stance button (item 2165)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** DECISIONS 56 §3, three candidates: `fight`'s `unit_masks2 & 4` predicate (2100), the raid's
+`raid_stamp` writer (2110), `ai_sites`' wrapping decrement (2111). **The arm chosen is 2100**, because its bit has a
+writer a staging can aim at. `Unit::init@00612100:598-611` sets `unit_masks2 |= 4` on every unit of the Bark line
+(`is(BARK)`, `TypeIndex` 0x143, `BARK`, sea: Bark → Dromon → Caravel …), and for a computer's leader
+(`leader_flags & 4` clear, `LeaderData::is_human` inlined) calls `Unit::set_stance@00605310(3, 0)`, RAID. 2110 and
+2111 are AI-driven, and a chapter runs `!ai off`. The chapter's other two arms ride the same staging: the birth arm
+itself, and a player's stance button (`Group::action_stance@0070d440`'s human arm), which the AI track built for
+its armies (`docs/GROUPS.md` §8) and no walk had reached for a human.
+
+**What the disk could not answer.** Every AI Bark on disk carries `unit_masks2 4` and `stance 3` (run155's `1/34`,
+`type 323`), but no golden chapter holds a Bark, `unit_masks2` is compared on its `0x10` bit alone, and this crate
+set neither. No capture issues a stance command: the DLL had no stance verb.
+
+**The census rows the lobby reaches**, named before the capture (`census.py --unbacked`, never backed):
+`CommandManager::issue_stance@00941530`, `CommandPackage::process_stance@00949ed0`, `Group::action_stance@0070d440`,
+`GroupData::get_stance_type@0070d370`, `GroupData::get_stance_option@0070bab0` (the −1 cycle) and
+`Unit::set_stance@00605310` (the computer Bark's birth).
+
+**`@stance <who> <s> <o>…`** (`tools/trace/tracer.c`, verb 26; `crate::golden::Issued::Stance`;
+`crate::input::group_stance`) calls `issue_stance(group, s)`, a 5-byte `stance` (type 0x02). Its prologue is
+`issue_set_transport`'s (`sub esp, 8`, read off the listing at `941530`). `process_stance` forwards `s` unchecked.
+
+**The staging** (`tools/gamelog/golden/chapter64.cmd`), walked by this crate on run127's start, chapter five's sea.
+Human Barks `0/6` on tile (60, 180) and `0/7` on (62, 180); who=1's Trireme `1/6` on (64, 188), fishing boat `1/7`
+on (58, 188) and Bark `1/8` on (76, 192). On 680 `0/7` is set to STAND_GROUND (2); on 720 it cycles forward (−1).
+
+**run835** (605..820, one take, pool lane 2, 306 s launch to exit, 821 frames, seed 12345). `issuesmatch.py
+--none-refused … 2`: both lines issued, none refused; the dump logs `process_stance 2 681` and `process_stance -1
+721`, so a line on trace frame F shows on block F+2. All five falsifiers written before the run held, one block
+later than written: `1/8` is born `stance 3` and the human Barks at 0; 594 rows carry `unit_masks2 4`; on 682 `0/7`
+reads `stance 2`, group 1, and its found attack on the fishing boat is gone for a fresh one on `1/8` (`new_ord 1`,
+`idle 1`); on 722 it reads `stance 3`, one past the group's modal 2.
+
+**Built**, each held by the widening (`tools/mutate.py`, cargo exit 101 on `chapter_sixty_four_s_word_frame_is_
+widened_whole`):
+
+- **The birth arm** (`crates/sim/src/lib.rs`, `init_unit`; `combat::umask2::BARK`). Without it, block 622: `1/8`
+  `stance` 0 here against 3 there (402 rows against 401).
+- **`fight`'s predicate** (`crates/sim/src/orders.rs`, the captain's re-search, `fight@005fd4d0:394-400`): with the
+  bit, a target whose role is combat and whose type is not `n` (`unit_flags & 0x2000`) is searched past; without
+  it, one whose role is not. Without the arm, block 635: `0/7`'s `near` (6, 1) here against (7, 1) there — the
+  original drops the Bark it was handed for the fishing boat (402 rows).
+- **The stance button's human arm** (`crates/sim/src/group.rs`, `group_action_stance`): for options 1, 2 and 5, a
+  human's current order without the action bit, under an action order without it, is `repath`ed and killed. Without
+  it, block 682: `0/7`'s `idle` 0 here against 1 there, and its stale attack held (411 rows).
+  `a_human_s_stand_ground_kills_an_order_without_the_action_bit` holds it on a fixture.
+
+**The word: 637, open** (ours 6 draws, theirs 10; the sequence parts on 635, the values on 638). **The first value
+parting is block 634, `0/7`'s first target**: here the Trireme `1/6`, the nearest; there the Bark `1/8`, which has
+been shooting `0/7` since 622 from 2,570 units off (`unitat.py` on 634: `near 1/6`, the attack on `1/8`). Both sides
+spend the same `Unit::fight+0x9b0` for `0/7` on 634. So the original's idle Bark answers its attacker where this
+crate takes the nearest; which caller hands it `1/8` is not read (parked 2166). Block 635's `0/6` is the same
+choice (Trireme here, fishing boat there), and the 401 rows of the widening over run835 whole (605..821) are its
+wake, with the eleven standing `form` rows (605). The pool parts nothing.
+
+**Not established.**
+
+- The `+0x8 |= 0x10` that `action_stance` writes on every member (`ObjectData::flags`), not carried.
+- `Unit::do_move@005f7b30:273`'s copy of the same predicate, for a unit firing on the move: a Bark does not.
+- The attack the original's idle `0/7` takes on 634 (parked 2166), and so whether the 635 re-search's agreement is
+  more than the search agreeing from a different start.
+- A computer's Bark born inside a squad: `set_stance` walks the captain's chain, and every Bark is one figure.
+
+### 79.1 Coverage
+
+**Diff-backed** by run835's widening whole, with each mutation failing it:
+
+- `Unit::init@00612100`'s Bark arm and, through it, `Unit::set_stance@00605310(3, 0)` on a computer's Bark (622).
+- `Unit::fight@005fd4d0`'s re-search predicate for a unit with `unit_masks2 & 4` (635).
+- `CommandManager::issue_stance@00941530` → `CommandPackage::process_stance@00949ed0` → `Group::action_stance@
+  0070d440`, its human arm for option 2 (682) and its −1 cycle from `GroupData::get_stance_option@0070bab0`'s modal
+  option (722), with `GroupData::get_stance_type@0070d370` choosing the six combat options.
 
 ## 80. Reserved for the next item on the rules track
 

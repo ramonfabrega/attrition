@@ -4689,6 +4689,78 @@ fn a_senate_moves_the_capital_to_its_city_unless_the_capital_has_one() {
     );
 }
 
+/// **`Build::finished`'s caravan arm and `get_next_non_caravan`** (item
+/// 2107, `docs/AI.md` §211): a done Caravan at the head of a Market's queue
+/// is held at full progress while the owner's Caravans number
+/// `get_caravan_limit(0)` — the Commerce level plus one, with no city bound
+/// — and the first entry behind it that is not a `CARA` trains instead;
+/// under the limit the Caravan itself trains. run834's Market `1/2019`
+/// holds its Caravan at 17304 from 2995 and trains the Merchant behind it.
+///
+/// Made to fail by dropping either arm: the held Caravan trains, or
+/// nothing does.
+#[test]
+fn a_caravan_at_the_limit_is_held_and_the_merchant_behind_it_trains() {
+    let build = |owned: i32| {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let unit = |sim: &mut Sim| {
+            sim.add_unit_type(UnitType {
+                price: cost::Price {
+                    pop: 1,
+                    ..cost::Price::free().with_base(economy::Resource::Wealth, 100)
+                },
+                hits: 40,
+                ..UnitType::default()
+            })
+        };
+        let caravan = unit(&mut sim);
+        let merchant = unit(&mut sim);
+        while sim.tech_tree.types.len() <= crate::nations::ty::CARA {
+            sim.tech_tree
+                .add(tech::TypeDef::unit("Caravan", tech::UnitTraits::default()));
+        }
+        let n = sim.tech_tree.types.len();
+        sim.tech[0].queued.resize(n, 0);
+        sim.unit_types[caravan].tree = Some(crate::nations::ty::CARA);
+        sim.unit_types[caravan].type_index = 0x3b;
+        sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+        // Commerce level 0: the limit is one.
+        sim.tech[0].epoch[tech::Line::Commerce as usize] = 0;
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let m = sim.init_build(0, t.market, tile_pos(38, 32), false);
+        finish(&mut sim, m);
+        sim.muster[0].cap = 1000;
+        sim.muster[0].by_type[caravan] = owned;
+        let c = [0; crate::economy::RESOURCES];
+        for ty in [caravan, merchant] {
+            sim.muster[0].researched[ty] = true;
+            sim.buildings[m]
+                .queue
+                .items
+                .push(crate::production::Item::queued(ty, &c));
+        }
+        sim.buildings[m].queue.items[0].job_counter = 1_000_000;
+        sim.buildings[m].queue.items[1].job_counter = 1_000_000;
+        (sim, m, caravan, merchant)
+    };
+    let (mut sim, m, caravan, _) = build(1);
+    assert_eq!(sim.caravan_cap(0), 1, "Commerce 0, plus one");
+    let out = sim.process_queues();
+    assert_eq!(out.len(), 1, "the Merchant behind the held Caravan trains");
+    assert_eq!(sim.buildings[m].queue.items.len(), 1);
+    assert_eq!(
+        sim.buildings[m].queue.items[0].ty, caravan,
+        "the Caravan stays at the head"
+    );
+    let (mut sim, m, _, merchant) = build(0);
+    assert_eq!(sim.process_queues().len(), 1, "under the limit");
+    assert_eq!(
+        sim.buildings[m].queue.items[0].ty, merchant,
+        "the Caravan trained"
+    );
+}
+
 /// **The Persians' Market trains a caravan on its fifteen-frame slot**
 /// (`Build::process@0061edf0:362–381`, `docs/AI.md` §146): a finished
 /// Market of a leader with `has_tribe_bonus(0x17)` trains a `CARA` through
