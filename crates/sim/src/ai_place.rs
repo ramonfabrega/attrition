@@ -895,9 +895,20 @@ impl Sim {
         if frame != 0 {
             let citizen = self.tech_tree.types.iter().position(|d| d.kind.is_unit());
             let mut best_d = i32::MAX;
-            for u in 0..self.units.len() {
+            // **In object-number order** (`006e2650`–`006e27b6`): the loop
+            // walks `objects->units[who][0..count]`, so a tie keeps the
+            // lower `o`, never the earlier birth. A recycled number puts
+            // the two apart — run820's Citizens `1/208` (uid 334) and
+            // `1/186` (uid 346, born later into a freed slot) tie at 171
+            // for the site on 4182, and the original sends `1/186`
+            // (`docs/AI.md` §210).
+            let mut order: Vec<usize> = (0..self.units.len())
+                .filter(|&u| self.units[u].owner == who)
+                .collect();
+            order.sort_by_key(|&u| self.units[u].index);
+            for u in order {
                 let unit = &self.units[u];
-                if unit.owner != who || !unit.alive() || !unit.on_map {
+                if !unit.alive() || !unit.on_map {
                     continue;
                 }
                 let is_citizen = citizen.is_some_and(|c| {

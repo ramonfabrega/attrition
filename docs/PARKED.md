@@ -3732,6 +3732,14 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-14 — the thirty-third tranche's
+
+(2154) **A "swapped" row pair in a handoff does not say which swap it is** (2130's "for the Loop"
+line). run820's block 4247 opened on Citizens `1/186` and `1/80` read as swapped, and the queue booked it as a
+collision; `unitat.py` on an earlier window (run809's 3800) showed a job swap — a numbering, in one command.
+Candidate: a brief-checklist row, or `unitat.py` printing whether a first-block pair is a numbering or a state
+swap, so a word's opening rows name which. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
@@ -3781,7 +3789,7 @@ the dump's, so a parted building row dates itself in one command. **The thirty-s
 
 (2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062). **2072** (sixth reach): built `vcall --base` (2021); the per-player table and the `buildtypes` forest by hand, five on two shapes (parked 2073). **2083** (seventh reach): a stub answered per argument on the object at `this+VIA`, three by hand (parked 2084). **2090** (eighth and ninth reaches): a slot against its base whose base arm is inline, four by hand (parked 2095); the order-list iterator, three by hand (parked 2096); and `obj` compared no `eax` by default — fixed, eight earlier sweeps now assert it. **2112** (tenth reach): built `vcall --base ADDR --base-call OFF` — the base inlined as a call of the same object's slot, constants or forwarded arguments, `--base-not` — four (`makes_roads`, both `can_capture`s, `ObjectData::isnt`); a table cell placed so the reads land in a buffer, three by hand (parked 2113). **2122** (eleventh reach): built
 `obj --place` (2113, 2046), `--wbias`, `--fill`, `--argrange` and `--name` (2045), `--slotbase` (2095's range-test
-arm), all ten of the batch generated (parked 2123). **The thirty-second pass**: eleven reaches, the lane built at six of them (2072, 2090, 2112, 2122 and the pass's own); the owed shapes are 1896 (`fwd`'s field argument), 1972, 2039, 2040, 2062, 2073, 2084, 2096, named in 2129's brief; the generator is the sweep lane's at each reach, and this row is the ledger of them, not an item to build whole.
+arm), all ten of the batch generated (parked 2123). **The thirty-second pass**: eleven reaches, the lane built at six of them (2072, 2090, 2112, 2122 and the pass's own); the owed shapes are 1896 (`fwd`'s field argument), 1972, 2039, 2040, 2062, 2073, 2084, 2096, named in 2129's brief; the generator is the sweep lane's at each reach, and this row is the ledger of them, not an item to build whole. **2129** (twelfth reach): a stub's answer drawn from a list beside `--argset` (`obj --answers`) and an integer `ecx` (`obj --ecx-int`), one hand-widened `I32` and two read and not taken (parked 2141). **2149** (thirteenth reach): built `obj --ecx-int` (parked 2150); a hidden-return `Coord` through `[esp+4]` with a per-player-table object, four read and not taken (parked 2151). **2129** (twelfth reach): all ten generated, one script's `I32` widened by hand for a stub's thresholds; a stub answered from a list and `ecx` an integer, one function each (parked 2141).
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
@@ -4480,13 +4488,18 @@ IDX:LO:HI` and `--name SNAKE` are 2045's candidates (a second `WorldData::get_la
 order-list iterator (2096), `--who-table` (2039; `GroupData::get_num_const`/`get_num_cap_const`, read and not
 taken: `this->list` is a second pointer field and `--place` lays it, a lane may try), `vcall --jmp` (2013).
 
-## Parked by the next landing, slot AQ — reserved
+## Parked by item 2130, 2026-10-13 — a tied builder is the lower object number
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2133) **The successor pair's word 4338: 159 draws against 161, index 142** (2130; `docs/AI.md` §210.4). Ours
+spends `Unit::do_guard+0x8fb` for the Transport Helicopter `1/215` (`TypeIndex` 311). Theirs spends `Guy::set_anim+0x97a
+< Guy::inc_time+0x271`. Block 4339 opens on `1/215` (`dest_angle` 0 against −478609408), the second helicopter `1/172` (its
+guard post (29784, 34056) against (30984, 33048)) and the General `1/175`, all in group 89. That group 89 is the cause is a
+hypothesis. Inside run820's window (4232..4488): every record on 4338 both ways first.
+
+(2134) **Other `self.units` walks that break a tie by order** (2130; names no score). `produce_building`'s builder
+loop walked birth order where the original walks `objects->units[who]`, and a recycled number turned a tie. Any loop with a
+strict-`<` best and a `units` index order has the same exposure. Candidate: grep `for u in 0..self.units.len()` beside a
+`best` and check each against its original's loop.
 
 ## Parked by the next landing, slot AR — reserved
 
@@ -4496,13 +4509,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AS — reserved
+## Parked by item 2129, 2026-10-13 — the sweep's fifty-first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2141) **Two generator shapes owed, one row each in item 2129** (Loop 2003's twelfth reach; names no score).
+`obj --answers V,..` — a stub's answer drawn from a list, as `--argset` draws an argument: `BuildData::
+check_capture_health` (0x62d250) compares slot `+0x118`'s answer against 5 and 6, which the generated `I32`
+never draws, so its script's `I32` was widened by hand (5, 6) and says so in a comment. And `obj --ecx-int` —
+`ecx` an integer rather than the object: `Map::scale_by_axis` (0x6a08d0) and its sibling at 0x6a0910 take the
+axis length in `ecx` (`(map_sizes.list[4]+0x144)/2 + world.xs·n) / that`, floored at 1), read and not taken for
+want of it. Build either when a second function of its shape is taken, with a test made to fail first.
+~~`--ecx-int`~~ built by item 2149 (parked 2150); `--answers` still owed.
 
 ## Parked by item 2131, 2026-10-13 — chapter sixty-three, a shift-move under a follow
 
@@ -4518,13 +4534,21 @@ Candidate: match the suffix without case, with a test made to fail on run827's 6
 carries `BUILDS=7`. Which category the pool's print needs is not read. Candidate: `refused_detail` refuses the shape
 before staging, as it does `GROUPS` beside `DEATHS` (1885).
 
-## Parked by the next landing, slot AU — reserved
+## Parked by item 2149, 2026-10-13 — the sweep's fifty-second batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2150) **`obj --ecx-int LO..HI|V,V,..` built** (Loop 2003's thirteenth reach; names no score): `ecx` an integer
+drawn from the range or the list (90%, else the generic `I32`), not the object, printed last on the row — the
+test reads it as `a[a.len() - 1]`; refused on the plain `obj`, which has no row for it. Two of its shape taken,
+`Map::scale_by_axis` (0x6a08d0) and `Map::scale_by_area` (0x6a0910), with
+`tools/explore/test_sweep_gen.py::test_ecx_may_be_an_integer_rather_than_the_object` made to fail first. 2141's
+`--answers` is still owed.
+
+(2151) **A fifth shape read and not taken: the hidden-return `Coord`** (Loop 2003; names no score).
+`UnbuiltCity::get_x`/`get_y` (0x73b740, 0x73b780) and `UnbuiltFort::get_x`/`get_y` (0x73bb80, 0x73bbc0) ask
+slot `+0xac` of `objects[who][o]` (the per-player table, `this->who`·0x1c + `+0x14`, `this->o`·4) and write the
+answer record's `+0x10` or `+0x14` `^ 0x63637` through `[esp+4]`, the hidden return pointer — four of one shape,
+`outptr` with a per-player-table object and a stubbed slot whose answer names a window. Build it as `obj` with
+`--stub slot` answering a pointer to a window when two are taken.
 
 ## Parked by the next landing, slot AV — reserved
 
