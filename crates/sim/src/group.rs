@@ -3885,6 +3885,12 @@ impl Sim {
                 eprintln!("PROBEF f{} set_angle {}/{} army {:?} pushed {:?} -> {}", pf, g.who, pi, g.army, g.pushed, st.facing);
             }
         }
+        if std::env::var_os("RON_PROBE_2193").is_some() && g.who == 1 && g.army == Some(1) {
+            let human = self.nation[1].human;
+            let c: Vec<_> = g.list.iter().enumerate().filter(|(_, &m)| self.units[m].alive() && self.units[m].captain && self.units[m].on_map)
+                .map(|(i, &m)| (i, self.units[m].index, self.units[m].ty.map(|t| crate::form::type_cat(&self.unit_types[t], t, human)))).collect();
+            eprintln!("PROBEC f{} turner 1/{} cands {:?}", pf, pi, c);
+        }
     }
 
     /// `Unit::kill_current_order@005e2cb0`'s move branch, the third writer
