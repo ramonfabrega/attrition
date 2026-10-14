@@ -32,12 +32,16 @@ pub(crate) const MONGOL: Pair = Pair {
     // Item 2088: 4238 -> 4246 (ours 156 draws, theirs 157, index 147): the
     // dead Freighter `1/191`'s figure step on 4204 paints its disc's new
     // row after the close cleared it (`docs/AI.md` section 208).
+    // Item 2130: 4246 -> 4338 (ours 159 draws, theirs 161, index 142):
+    // `produce_building`'s builder walk runs in object-number order, so
+    // the Citizens `1/186` and `1/208`, tied at 171 for 4182's site, keep
+    // the original's jobs (`docs/AI.md` section 210).
     // `1/24` re-inited a transport on 3835 that the original holds a
     // frame: its captain `1/23` had taken its own transport cast on its
     // step, and `do_cast`'s member check hands the clock back
     // (`005ecd9c`..`005ecdf0`, `docs/AI.md` section 207).
-    count: 4246,
-    sequence: 4246,
+    count: 4338,
+    sequence: 4338,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -406,5 +410,12 @@ fn run820_s_word_frame_is_widened_whole() {
     // of row 624 the dead `1/191`'s figure painted on 4204. 2,316 -> 2,079
     // with the paint: both rows agree, and the new word 4246's block 4247
     // opens on `1/186` (`docs/AI.md` section 208).
-    pin_eq!(w.firsts.len(), 2079, "run820 baseline");
+    // Item 2130: 2,079 -> 1,123 — the swapped Citizens `1/186` and `1/208`
+    // leave the window whole (125 rows on block 4232, `pos` ours
+    // (31739,35419) against theirs (30970,36959)): `produce_building`'s
+    // builder walk is in object-number order, so the tie at 171 on 4182
+    // sends `1/186` west as the original does; the first row past the
+    // standing ones is `1/82`'s `orders.len` on 4257 (`docs/AI.md`
+    // section 210).
+    pin_eq!(w.firsts.len(), 1123, "run820 baseline");
 }
