@@ -274,6 +274,30 @@ pub(crate) const fn upgrade_kinds(tuning: &crate::Tuning, next: Ident) -> Option
     }
 }
 
+/// `CityData::num_kinds_needed@00736640`: the kinds a city of type `ty` needs for its next level — 0 for a
+/// `METROPOLIS` (0x1a0) or `FORBIDDENCITY` (0x213), at the top; otherwise the next level is `TOWN` (0x19f) from
+/// a `VILLAGE` (0x19e) and `METROPOLIS` from anything else, 0 when `type_avail(next)` says the leader may not have it, and
+/// [`upgrade_kinds`]' count when it may. Item 2112's sweep holds the order: the type test before the ask.
+#[must_use]
+pub fn kinds_needed_by(
+    tuning: &crate::Tuning,
+    ty: i32,
+    type_avail: impl FnOnce(i32) -> bool,
+) -> i32 {
+    if ty == 0x1a0 || ty == 0x213 {
+        return 0;
+    }
+    let (next, ident) = if ty == 0x19e {
+        (0x19f, Ident::Town)
+    } else {
+        (0x1a0, Ident::Metropolis)
+    };
+    if !type_avail(next) {
+        return 0;
+    }
+    upgrade_kinds(tuning, ident).unwrap_or(0)
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // Small accessors

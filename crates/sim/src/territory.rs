@@ -486,6 +486,22 @@ fn compute_region_territory_won(
     }
 }
 
+/// `WorldData::is_enemy_territory@006b2490`: the cell's owner (the signed byte `+0xf` of its record) is a player,
+/// is not `who`, and is not an ally of `who`'s leader — `LeaderData::is_ally` inlined on `leaders[who]`, whose own
+/// `who` field is `me`: the owner is `me`, or both `diplos` entries are 2 (`diplo(of, toward)`, `who`'s toward the
+/// owner first, the owner's toward `me` only when that one is 2). Item 2112's sweep holds the order of the reads.
+pub fn enemy_territory_by(
+    owner: i32,
+    who: i32,
+    me: i32,
+    mut diplo: impl FnMut(i32, i32) -> i32,
+) -> bool {
+    if owner < 0 || owner == who || owner == me {
+        return false;
+    }
+    !(diplo(who, owner) == 2 && diplo(owner, me) == 2)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
