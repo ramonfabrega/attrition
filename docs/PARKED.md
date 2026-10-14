@@ -4314,7 +4314,8 @@ last frame: the next score of a closed lobby.
 25656) on block 4285; `1/168`'s four on 4292 by the same 768). It sits in the same stream as group 66's
 standing attrition and `sheltered` rows from 4260, which this item left alone.
 
-(2058) **`get_final_loc`'s target arm and `Follow`** (`SEAM`, `Sim::unit_final_loc`; names no score). The
+(2058) ~~**`get_final_loc`'s target arm and `Follow`**~~ **Closed by item 2131** (`docs/GOLDEN.md` §78: a follow is
+a target order, run827). **`get_final_loc`'s target arm and `Follow`** (`SEAM`, `Sim::unit_final_loc`; names no score). The
 original takes any order whose vslot `+0x20` answers non-zero and reads `+0xb4`'s `TargetOrder`. Item 2055
 read the arm for a `GUARDORDER` off run821's packet. A `FOLLOWORDER` is likely one too, but no listing or
 packet has read it, so ours still walks past a `Follow`.
@@ -4519,13 +4520,19 @@ axis length in `ecx` (`(map_sizes.list[4]+0x144)/2 + world.xs·n) / that`, floor
 want of it. Build either when a second function of its shape is taken, with a test made to fail first.
 ~~`--ecx-int`~~ built by item 2149 (parked 2150); `--answers` still owed.
 
-## Parked by the next landing, slot AT — reserved
+## Parked by item 2131, 2026-10-13 — chapter sixty-three, a shift-move under a follow
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2145) **`unitat.py` prints no `GroupMoveOrder`** (Loop; names no score). It keeps the children whose name
+`endswith('ORDER')` (`tools/gamelog/unitat.py:144`), and the dump spells a group move `BEGIN GroupMoveOrder`, mixed
+case. run827's block 662 printed `0/6`'s list as `orders 1 … FOLLOWORDER` where the dump's `length 2` holds a type-19
+`GroupMoveOrder` beneath it. Item 2131 read it as "the original queued nothing" until it read the raw block.
+Candidate: match the suffix without case, with a test made to fail on run827's 662.
+
+(2146) **`GROUPS=1` without `BUILDS=7` prints no `GROUPDATA`** (Loop; names no score). run827's first take asked
+`end:UNITS=3,GUYS=2,LEADERS=2,GROUPS=1` and the runner's `verify_game` refused it after the game, with no receipt
+(parked 735's check). The second take, with `GUYS=4,BUILDS=7`, held. Every `GROUPS=1` capture in `docs/RUNS.md`
+carries `BUILDS=7`. Which category the pool's print needs is not read. Candidate: `refused_detail` refuses the shape
+before staging, as it does `GROUPS` beside `DEATHS` (1885).
 
 ## Parked by item 2149, 2026-10-13 — the sweep's fifty-second batch
 
