@@ -644,6 +644,54 @@ class Shapes(unittest.TestCase):
         src = (ROOT / 'tools/emu/hooks.py').read_text()
         self.assertIn('cdecl', src[src.index('def _on_code'):])
 
+    def test_an_obj_may_hold_only_the_low_byte_of_its_answer(self):
+        # Item 2336 (parked 2327): `Game::is_game_ready` answers a `bool` by
+        # `sete al` over an `eax` whose upper bytes are the game pointer's,
+        # so a whole-`eax` compare holds the port to a pointer it never
+        # sees. `--ret al` compares the low byte only.
+        _, script, _, test, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2336, win=0x20, bias=[], own=0, ret='al', port='0',
+            cells=['0xc06210:0x10'])
+        self.assertIn('assert_eq!(got & 0xff, want_eax & 0xff', test)
+        self.assertNotIn('assert_eq!(got, want_eax', test)
+        _, _, _, test, _ = sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[], ret='al')
+        self.assertIn('assert_eq!(got & 0xff, want_eax & 0xff', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[], ret='ax')
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            try:
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--ret', 'al']), 0)
+                self.assertIn('assert_eq!(got & 0xff, want_eax & 0xff', (Path(tmp) / 'x_y.rs').read_text())
+                self.assertEqual(sweep_gen.main(['obj', 'X::z@00401000', '--item', '1', '--ret', 'bogus']), 2)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_a_stub_may_be_laid_in_an_import_cell(self):
+        # Item 2336 (parked 2327): `TurnControl::get_lag_time` calls
+        # `timeGetTime` through its IAT cell (`call [0xac5460]`), which no
+        # import resolves under the emulator; a hooked address cannot answer
+        # an indirect call. `--stub iat:VA:NARGS` lays a stub's address in
+        # the cell, so the call lands on the stub and is answered.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2336, win=0x40, bias=[], own=0,
+            stubs=['iat:0xac5460:0', '0x402000:1'], answers=['0:5,6'], record=['0'])
+        compile(script, str(sp), 'exec')
+        self.assertIn("('iat', 11293792, 0)", script)
+        self.assertIn('the import cell 0x00ac5460 holds a stub (0 args)', test)
+        # The cell is laid every row with the stub's address, and only the
+        # direct callee is hooked by its own address.
+        self.assertIn('if k == "iat"', script)
+        self.assertIn('iatac5460', script.replace('iat{a:x}', 'iatac5460'))
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[],
+                                   stubs=['iat:0xac5460'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[],
+                                   stubs=['iat:0xac5460:0'], stub_cdecl=['0'])
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
