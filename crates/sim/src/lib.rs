@@ -5691,14 +5691,6 @@ impl Sim {
             // the frame it dies: East Indies' `1/56` on 8519, whose draw is
             // invisible in every dump because the boat is gone on 8520.
             //
-            // [`Sim::disembark`] is the only death this crate takes inside
-            // a unit's own work; it leaves the boat dead and off the map.
-            // SEAM: a unit killed in its own work with a death animation
-            // (`Unit::close`'s `param_1 != 0`) has its figures handed to
-            // `Objects::kill_guy` first, and this crate kills none that way
-            // there. `coll_repaint` takes the boat too (item 1223): the
-            // sixty-fourth-frame repaint re-marks the disc the close cleared.
-            //
             // **And the figure's step moves the disc after the close has
             // cleared it** (item 2088, `docs/AI.md` §208). `coll_follow`
             // skips a dead unit, and the reading here was that it could:
@@ -5713,6 +5705,14 @@ impl Sim {
             // Those four bits walled `1/183` in thirty-four frames later.
             // `move_unit` asks nothing of the unit's life, so the disc moves
             // with the body here as it would on a live one.
+            //
+            // [`Sim::disembark`] is the only death this crate takes inside
+            // a unit's own work; it leaves the boat dead and off the map.
+            // SEAM: a unit killed in its own work with a death animation
+            // (`Unit::close`'s `param_1 != 0`) has its figures handed to
+            // `Objects::kill_guy` first, and this crate kills none that way
+            // there. `coll_repaint` takes the boat too (item 1223): the
+            // sixty-fourth-frame repaint re-marks the disc the close cleared.
             if self.units[i].kind.domain == attrition::Domain::Sea && !self.units[i].on_map {
                 let from = self.units[i].movement.body.pos;
                 self.process_movement(i);
