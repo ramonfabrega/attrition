@@ -4608,13 +4608,19 @@ can_queue` (0x62da00), takes `--vtat` alone: slot `+0x84` of `types.list[t]`. Te
 `WIN = 8` line caught `--vtat`'s parse shadowing the window size, which the first generation shipped as `WIN = p2`
 and the scripts refused to run).
 
-## Parked by the next landing, slot AZ — reserved
+## Parked by item 2175, 2026-10-13 — a government patriot is a supply unit
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2176) **The successor pair's word 4603: 22 draws against 21, index 17** (2175; `docs/AI.md` §213.4). Ours spends
+`Guy::set_anim+0x97a < Unit::move_step+0x823` (a stop) for the Mechanized Infantry `1/111` (`TypeIndex` 104, army 1). Theirs
+spends `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, `1/139`'s next guard roll. **Disk gap**: past run820's last block (4488),
+and no capture holds 4603. The first act is run820's recipe (`docs/RUNS.md`, run820) with `--log-window 4597 4853` and
+`--end-frame` past it. Then every record on block 4604 both ways.
+
+(2177) **`Army::count(COUNT_TYPE, 0x3f)` is a lineage count, and this crate counts a flag** (2175; names no score).
+`army_count_supply` counts `unit_flags2 & 0x40` without `0x20`, which agrees with `is(SUPPLYWAGON)` for every type this lobby
+fields, The Despot included (it is `FROM General` and not counted). A type that is `0x40` and not of the wagon's lineage
+(`THEMONARCH`, `THECITIZEN`, and the other `BASE_GOV_HEROTYPES` not `FROM General`) would count here and not in the original.
+Candidate: count by `unit_line_is(u, SUPPLYWAGON)`, after reading `GroupData::count`'s `COUNT_TYPE` arm for the decoy test.
 
 ## Parked by the next landing, slot BA — reserved
 
