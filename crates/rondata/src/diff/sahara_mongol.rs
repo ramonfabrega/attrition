@@ -201,7 +201,8 @@ pub(crate) const RUN834: &str = "gamelog-run834-greatsahara-mongol-alltech-windo
 /// own block is 2996.
 pub(crate) const WIDENING_SAHARA_MONGOL_FRAME_2995: (i64, i64) = (2989, 3269);
 
-/// **The word 2995's window**: run834 walked from run832's start with the recorder on. The word closed at the game's end inside it (item 2107).
+/// **The word 2995's window**: run834 walked from run832's start with the
+/// recorder on. The word closed at the game's end inside it (item 2107).
 pub(crate) fn sahara_mongol_frame_2995_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_MONGOL.start],
