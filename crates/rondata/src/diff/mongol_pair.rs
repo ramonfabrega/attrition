@@ -43,12 +43,16 @@ pub(crate) const MONGOL: Pair = Pair {
     // hand-back on 4338 clears `unit_masks & 2` as the original's does —
     // the helicopters guarding it keep their posts (`docs/AI.md` section
     // 212).
+    // Item 2175: 4353 -> 4603 (ours 22 draws, theirs 21, index 17): The
+    // Despot `1/191` is a supply unit as well as a hero, so it is capped by
+    // army 0's three wagons and joins group 89, and group 83's helicopters
+    // keep the original's posts on 4349 (`docs/AI.md` section 213).
     // `1/24` re-inited a transport on 3835 that the original holds a
     // frame: its captain `1/23` had taken its own transport cast on its
     // step, and `do_cast`'s member check hands the clock back
     // (`005ecd9c`..`005ecdf0`, `docs/AI.md` section 207).
-    count: 4353,
-    sequence: 4353,
+    count: 4603,
+    sequence: 4603,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -431,5 +435,12 @@ fn run820_s_word_frame_is_widened_whole() {
     // 33048), the General `1/175`'s 31); the Freighter `1/191` parts first
     // on 4343 (`myhits` 599 against 659) and the run's tail moves
     // (`docs/AI.md` section 212).
-    pin_eq!(w.firsts.len(), 1128, "run820 baseline");
+    // Item 2175: 1,128 -> 201 — The Despot `1/191` (`TypeIndex` 352) is
+    // 659 on its birth block 4343 (ours 599: `update_hits`' supply term
+    // skipped a patriot that is also `FROM General`), joins army 5's group
+    // 89 on 4344 (ours 83: `find_local_army`'s cap arm is the joiner's
+    // `is_supply`, and army 0's three wagons refuse it), and every row of
+    // 4343..4357 leaves with group 83's five helicopters' posts on 4349
+    // (`docs/AI.md` section 213).
+    pin_eq!(w.firsts.len(), 201, "run820 baseline");
 }

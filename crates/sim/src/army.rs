@@ -34,7 +34,7 @@ use crate::{Player, Sim};
 /// | --- | --- | --- |
 /// | `find_target`'s forts | §12's second scan | never a fort target |
 /// | `pop_issues`, `wonderwin_timer`, `score`, `num_wonders`, `GLOBAL_GOVERNMENT_BONUS`, `weak[]`/`strong[]`, the tribute period | leader and city fields the sim does not keep | the multipliers they gate are ×1; a leader at peace is never a target |
-/// | `is(SUPPLYWAGON)` | the lineage test behind `num_standard` and the caps | `unit_flags2 & 0x40` without `0x20` — the supply-or-hero bit less the generals, which also admits the government patriots |
+/// | `is(SUPPLYWAGON)` | the lineage test behind `num_standard` and the caps | `unit_flags2 & 0x40` without `0x20` — the supply-or-hero bit less the generals; a government patriot `FROM General` (The Despot) carries both and is not counted, as the lineage would not count it. The *joiner's* arm in the caps is `is_supply` alone (`army_admits`, §213 of `docs/AI.md`) |
 /// | `Game::war_allowed` under rush rules | §7's pre-war gate | always allowed |
 /// | `leader_flags & 8`, `leader_flags2 & 8` | the two stop bits (§18) | never set |
 /// | `Region::flags & 8` | `go_here`'s resource-region bit | bit 1 never set; `do_transporting` does not read it |
@@ -2896,6 +2896,13 @@ impl Sim {
     // ---- the Armies queries (§15) ----
 
     /// The supply-wagon and hero caps of `find_army` / `find_local_army`.
+    ///
+    /// **The arm is the joiner's `is_supply`, `unit_flags2 & 0x40` alone**
+    /// (`find_local_army@006f32e0`, `find_army@006f34f0`: vslot `0xcc`, then
+    /// `is_hero`'s `& 0x20` only when it is clear), and the count is the
+    /// army's wagons. A government patriot `FROM General` carries both bits
+    /// and is capped by the wagons: run820's Despot `1/191` refuses army 0's
+    /// three wagons and joins army 5's two, group 89 (`docs/AI.md` §213).
     fn army_admits(
         &self,
         who: Player,
@@ -2905,7 +2912,10 @@ impl Sim {
         hero_cap: i32,
     ) -> bool {
         let Some(u) = unit else { return true };
-        if self.is_supply_wagon(u) {
+        let supply = self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO));
+        if supply {
             return self.army_count_supply(who, slot) < supply_cap;
         }
         if self.is_general(u) {
@@ -4145,6 +4155,62 @@ mod tests {
         let h = put(&mut sim, 1, hero, Pos::new(0x1000, 0x1000));
         sim.think_join_army(h);
         assert!(sim.army_of(h).is_some(), "`is_hero` is the second");
+    }
+
+    /// **A government patriot is capped by the army's wagons, not its
+    /// heroes** (`find_local_army@006f32e0`, `docs/AI.md` §213): the arm is
+    /// the joiner's `is_supply` (`& 0x40`), and `is_hero` (`& 0x20`) is
+    /// asked only when that is clear. The Despot (`FROM General`, both
+    /// bits) refuses the near army's three wagons and takes the far army,
+    /// as run820's `1/191` does on 4344; a General (`0x20` alone) takes
+    /// the near one. Made to fail with the arm read as "a wagon is `0x40`
+    /// without `0x20`": the Despot joins the near army.
+    #[test]
+    fn a_government_patriot_is_capped_by_the_army_s_wagons() {
+        let (mut sim, c) = sim_with_city();
+        let near = sim.init_army(1, Some(c));
+        let far = sim.init_army(1, Some(c));
+        let here = sim.armies[1].list[near].pos;
+        sim.armies[1].list[far].pos = Pos::new(here.x + 0x1800, here.y);
+        let ty = |sim: &mut Sim, flags2: u32| {
+            sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                cols: crate::ai_load::UnitCols {
+                    unit_flags2: flags2,
+                    ..crate::ai_load::UnitCols::default()
+                },
+                ..crate::UnitType::default()
+            })
+        };
+        let wagon = ty(&mut sim, uflags2::SUPPLY_OR_HERO);
+        let general = ty(&mut sim, uflags2::GENERAL);
+        let despot = ty(&mut sim, uflags2::GENERAL | uflags2::SUPPLY_OR_HERO);
+        for _ in 0..3 {
+            let w = put(&mut sim, 1, wagon, here);
+            sim.army_add_unit(1, near, w);
+        }
+        let w = put(&mut sim, 1, wagon, here);
+        sim.army_add_unit(1, far, w);
+        for slot in [near, far] {
+            sim.armies[1].list[slot].status |= status::MUSTERING;
+        }
+        let d = put(&mut sim, 1, despot, here);
+        assert_eq!(
+            sim.find_local_army(1, here, Some(d)).map(|(s, _)| s),
+            Some(far),
+            "three wagons refuse a patriot"
+        );
+        let g = put(&mut sim, 1, general, here);
+        assert_eq!(
+            sim.find_local_army(1, here, Some(g)).map(|(s, _)| s),
+            Some(near),
+            "a General is asked about generals"
+        );
+        assert_eq!(
+            sim.find_army(1, here, -1, Some(d)).map(|(s, _)| s),
+            Some(far),
+            "`find_army` has the same arm"
+        );
     }
 
     /// **`think_attack`'s head is the one an AI soldier takes** (§4.2) —
