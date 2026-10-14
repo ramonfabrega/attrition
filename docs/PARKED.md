@@ -5144,13 +5144,14 @@ the function (the decompile's `local_5`); the listing decides whether it is a ga
 compiler folded in. The `vtordisp` thunks in the 370-430 byte range (`MoveOrder::is_pathed`, the `walk_data`
 and `get_type` families) are the `fwd` shape (1895) and no sweep holds one yet.
 
-## Parked by the next landing, slot BZ — reserved
+## Parked by item 2351, 2026-10-14 — the Lakota's food
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2352) **The garrison counts are not compared** (item 2351, `docs/AI.md` §219). `Census::{peasants_garr,
+    stable_garr, scout_garr}` (`LeaderData +0xa28, +0xa2c, +0xa30`) are live counters this crate now keeps
+    (`Sim::track_garrison`), and every `LEADERS` dump prints them (`LeaderData::log_data@006e5110:2162–2174`). But
+    `rondata::diff::leader`'s census list does not carry them, so they are checked only through the Lakota food rate.
+    Adding them to the list moves every lobby's coverage pin and widenings, which is why it was left out of a word's
+    landing. It names no score until a non-Lakota lobby's garrison parts.
 
 ## Parked by the next landing, slot CA — reserved
 

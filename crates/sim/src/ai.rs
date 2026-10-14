@@ -516,6 +516,15 @@ pub struct Census {
     // Kept by the unit lifecycle, read here.
     pub pop: i32,
     pub scouts: i32,
+    /// `peasants_garr`, `stable_garr`, `scout_garr` (`+0xa28`, `+0xa2c`,
+    /// `+0xa30`): live counters, moved by
+    /// `Object::insert_inside@00647e90` and `remove_from_inside@006480f0`
+    /// for a captain in a building ([`crate::Sim::track_garrison`]) and by
+    /// nothing else — a rider a boat carries into a dock is never counted
+    /// in, and is counted out when it leaves (`docs/AI.md` §219).
+    pub peasants_garr: i32,
+    pub stable_garr: i32,
+    pub scout_garr: i32,
     // Territory (step 4).
     pub my_team_terr: i32,
     pub other_team_terr: i32,
@@ -835,6 +844,9 @@ impl Leader {
                 full_cities: 0,
                 pop: 0,
                 scouts: 0,
+                peasants_garr: 0,
+                stable_garr: 0,
+                scout_garr: 0,
                 my_team_terr: 0,
                 other_team_terr: 0,
                 min_other_team_terr: 0,

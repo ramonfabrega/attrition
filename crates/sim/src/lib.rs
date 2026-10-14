@@ -1919,6 +1919,48 @@ impl Sim {
         self.ledgers[who as usize].dirty = true;
     }
 
+    /// `Object::insert_inside@00647e90` (`delta` 1) and
+    /// `remove_from_inside@006480f0` (−1): a captain going into or out of a
+    /// building moves one of the leader's garrison counts — a peasant, else
+    /// a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout bit)
+    /// — and with `LAKOTA_FOOD` set a Lakota leader's `0x2000000`
+    /// (`docs/AI.md` §219). The chain's fourth arm, `barracks_garr` for a
+    /// Barracks type (`0x1ab`), feeds only the Americans' term, which is not
+    /// built, and is not kept.
+    ///
+    /// SEAM: the gate's `unit_masks & 1` is not read.
+    pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
+        let unit = &self.units[u];
+        let who = unit.owner;
+        let Some(t) = unit.ty else { return };
+        if !unit.captain {
+            return;
+        }
+        let trainer = self.trainer_ident(t);
+        let census = &mut self.ai[who as usize].census;
+        let lakota_count = if matches!(self.unit_types[t].worker, orders::Worker::Citizen) {
+            census.peasants_garr += delta;
+            true
+        } else if trainer == Some(build::Ident::Stable) {
+            census.stable_garr += delta;
+            true
+        } else if self.unit_types[t].cols.flag2(ai_load::uflags2::SCOUT) {
+            // `UnitData::is_special@0046cea0`: `unit_flags2 & 0x10`, the
+            // land scout line alone — a Bark (the role word's other `0x10`)
+            // is not one, and a Bark born at a dock raises nothing.
+            census.scout_garr += delta;
+            true
+        } else {
+            false
+        };
+        if lakota_count
+            && self.nation.get(who as usize).is_some_and(|n| n.lakota)
+            && self.tuning.lakota_food != 0
+        {
+            self.economy_changed(who);
+        }
+    }
+
     /// Adds a unit, registering it as a supply source if its type is one.
     ///
     /// This is `Unit::init`'s half of the supply bookkeeping and the reason to
@@ -3788,8 +3830,8 @@ impl Sim {
         // an exit from a University or an Oil Platform (`is(0x1a4)` or
         // `is(0x1a6)` on the container). Every other trained unit is born
         // clean; `Build::queue_up` raises nothing either.
-        // SEAM: `Unit::init`'s two tribe arms (Lakota food gatherers, the
-        // Americans' Barracks) and `insert_inside`'s are not modelled.
+        // SEAM: `Unit::init`'s Americans' Barracks arm is not modelled
+        // (its Lakota arm is built, `docs/AI.md` §219).
         let container = matches!(
             self.building_ident(at),
             crate::build::Ident::University | crate::build::Ident::OilPlatform
@@ -3868,6 +3910,18 @@ impl Sim {
                     self.units[u].stance = 3;
                     self.units[u].combat.stance = crate::combat::Stance::Raid;
                 }
+            }
+            // `Unit::init@00612100:613-626` (item 2351, `docs/AI.md` §219):
+            // a Lakota unit the food term counts — a citizen (`TypeIndex`
+            // `0x32`, `0x33`), a scout (`is(SCOUT, 0)`) or a Stable type
+            // (`+0x40 == 0x1ac`) — raises the leader's `0x2000000`.
+            if self.nation.get(who as usize).is_some_and(|n| n.lakota)
+                && self.tuning.lakota_food != 0
+                && (matches!(self.unit_types[ty].type_index, 0x32 | 0x33)
+                    || self.unit_line_is(u, 0x45)
+                    || self.trainer_ident(ty) == Some(build::Ident::Stable))
+            {
+                self.economy_changed(who);
             }
             // `Unit::init` → `Guy::init_real`: the figure's one draw.
             // (The unit's `ty` stays unset here, as it always has; the
@@ -4856,12 +4910,19 @@ impl Sim {
         let caravan = self.unit_types[ty]
             .cols
             .flag2(crate::ai_load::uflags2::CARAVAN);
+        // `scouts` (`+0x988`) is the third arm of the same chain —
+        // `role & 0x10` on a type neither peasant nor scholar — and no
+        // sweep recounts it (`docs/AI.md` §219).
+        let scout = self.unit_types[ty].cols.is(crate::ai_load::role::SCOUT);
         let census = &mut self.ai[who as usize].census;
         match worker {
             crate::orders::Worker::Citizen => census.peasants += delta,
             crate::orders::Worker::Scholar => census.scholars += delta,
             crate::orders::Worker::None if caravan => census.caras += delta,
             crate::orders::Worker::None => {}
+        }
+        if scout && matches!(worker, crate::orders::Worker::None) {
+            census.scouts += delta;
         }
     }
 

@@ -563,7 +563,7 @@ fn run651_s_word_frame_is_widened_whole() {
     // `hits_left` and `hits:myhits` (ours 40, theirs 85), their gather
     // order's `been_there`/`wait` and `idle`, and a move order and its
     // path. The word's own draw delta is §127's.
-    pin_eq!(w.firsts.len(), 42, "initial run651 baseline");
+    pin_eq!(w.firsts.len(), 40, "initial run651 baseline");
 }
 
 /// run656, item 1496: the lobby's first 33 blocks at the long's detail
@@ -605,7 +605,7 @@ fn run656_s_word_frame_is_widened_whole() {
     // 364 before item 1505 (the oil patches): block 9's 275 keys are gone and the
     // 89 left are block 1's (the control's 48 and the SITE list's). 68 since
     // item 1511: the SITE list agrees (`docs/AI.md` §141).
-    pin_eq!(w.firsts.len(), 44, "initial run656 baseline");
+    pin_eq!(w.firsts.len(), 42, "initial run656 baseline");
 }
 
 /// run660, item 1505: the lobby's blocks 171..184 at the long's detail, so
@@ -643,7 +643,7 @@ fn run660_s_word_frame_is_widened_whole() {
     // **74** since item 1530: the Silo `1/2021` placed on frame 182 stands
     // where the original puts it, and block 183's make list with it.
     // **71** since item 1532: `1/10`'s order stack agrees on 183.
-    pin_eq!(w.firsts.len(), 48, "initial run660 baseline");
+    pin_eq!(w.firsts.len(), 46, "initial run660 baseline");
 }
 
 /// run669, item 1511: the lobby's blocks 180..436 at the long's detail —
@@ -688,7 +688,7 @@ fn run669_s_word_frame_is_widened_whole() {
     // leader 0's `production_step` on 201 and a blank `SITE` slot's `reg`
     // on 376, nothing else: a busy builder's next build takes its own
     // approach.
-    pin_eq!(w.firsts.len(), 49, "initial run669 baseline");
+    pin_eq!(w.firsts.len(), 47, "initial run669 baseline");
     // **The move's value diff, block 183** (item 1530, `docs/AI.md` §143):
     // the Silo `1/2021` stood at (36480, 41088) in ours against (41088,
     // 37248) and agrees in every field now; the three buildings placed on
@@ -775,7 +775,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`). Item 1634 removes the false regeneration flags on
     // 1/2007 and 1/2016 at 658: 57 -> 55.
-    pin_eq!(w.firsts.len(), 54, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 52, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -909,7 +909,7 @@ fn run678_s_word_frame_is_widened_whole() {
     // **139** on the tree item 1558 landed (160 on item 1552's, 307 on item
     // 1546's, 1,378 on item 1544's); 98 stand from the window's first block
     // — `1/2006`'s capital bit no longer among them.
-    pin_eq!(w.firsts.len(), 68, "initial run678 baseline");
+    pin_eq!(w.firsts.len(), 66, "initial run678 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
     // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
     // in both — ours held the Farm (417, 2,520,000) — and the site
@@ -1023,7 +1023,7 @@ fn run679_s_word_frame_is_widened_whole() {
     // frame 1419, its 128-frame phase (1419 + 2037 = 27 × 128), with no
     // unit of leader 1's holding it as its action (`docs/AI.md` §162) —
     // and leader 1's `gather_stamp`, 1391 in ours against 1423 on 1424.
-    pin_eq!(w.firsts.len(), 76, "initial run679 baseline");
+    pin_eq!(w.firsts.len(), 74, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -1143,7 +1143,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 106, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 105, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
