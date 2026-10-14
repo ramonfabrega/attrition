@@ -16499,3 +16499,28 @@ SHA-256 `f43145cf8af4151bd06f73ea21d9190b456ec6a739c229f85383c877ce2e7083`.
 **Disk gap**: `GroupData`'s slot table (`off_x/off_y +0x4c/+0x24c`, `curr_x/curr_y +0x44c/+0x64c`, `facing +0x48`) is printed by no dump of this lobby (run817's `groupdata_blocks` is 0). run817's recipe with `--end-frame 4270 --log-window 4263 4268 --tracer-def RON_STATE_FRAME=4265` and `RON_STATE_PLAN` = run781's plan (`~/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h`), the commander's number. Click-free lane 1, `success`, `settings_restored`. Packet `~/ron-data/lab-captures/2026-10-13-run821/map-7/frame-snapshot.bin`, 906,248,532 bytes, frame 4265 (trace frame 4264).
 
 **What it holds**: group 66 (`groups` at `0xe85f10`, list `+0x10`, record `0x113488c8`): `num` 104, `(ox, oy)` (6240, 30048), `o_angle` −1523843072, `facing` 0, slot 80 (the MLRS `1/144`) `off` **(−10, 37)** against ours (10, −37): every member's offsets negated, `compute_form`'s tail. `GroupData::get_loc_to@0070c5d0` entered on the record (`step4.py`) answers **(14743, 25626)**, the MLRS's point under the leader's bottom `GUARDORDER`. Read by item 2055 (`docs/AI.md` §206); nothing a test reads.
+
+## run827 — chapter sixty-three: two squads follow a Chariot and are shift-moved (2026-10-13, item 2131, `att-2131`)
+
+`docs/GOLDEN.md` §78, `tools/gamelog/golden/chapter63.cmd` (9 staged lines, two `@moveadd`: the DLL's new
+`QUEUE_LAST` verb, built from this tree). **What the disk could not answer**: no dump holds a shift-command on a
+unit whose list holds a `FOLLOWORDER`. run204's follows (chapter twelve) carry no shift-move, and the DLL had no
+shift verb. So `get_final_loc`'s answer for a follow was never read through `get_loc_to`.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch63 \
+    --map 14 --end-frame 760 --log-window 605 760 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter63.cmd
+```
+
+**Two takes.** The first asked `end:UNITS=3,GUYS=2,LEADERS=2,GROUPS=1` and ran on lane 3. Its game ended, and
+`verify_game` refused it after the run: no `GROUPDATA` (parked 2146). It is kept as `~/ron-golden/ch63-take1-nogroups`,
+and its units' blocks agree with the second take's on 662 and 712. The second take, above, ran pool lane 2 and held:
+`success: true`, 761 frames, seed 12345, map 14, 293 s launch to exit, `GROUPDATA` on every block 605..759.
+`issuesmatch.py --none-refused … 5`: five issue records, none refused. The dump and trace are kept in
+`~/ron-golden/ch63/map-14`; `rontrace.dll` SHA-256 `0d136b60707d4dcf0f8078c747f5c7e55d2315879b7aa41a53a4062def2e698a`.
+Waited on another lane's capture: none. **What it holds**: `golden::chapter_sixty_three_holds_to_the_golden_word`
+(**760**, the trace's end, closed) and `chapter_sixty_three_s_word_frame_is_widened_whole` (605..761, the eleven
+standing `form` rows, no pool row). run828 unused.

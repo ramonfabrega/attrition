@@ -1914,8 +1914,12 @@ impl Sim {
     /// at its head on block 4265, and the original's `get_loc_to` on run821's
     /// packet answers (14743, 25626), the MLRS's point. Walked past, the
     /// answer was the charge's (6216, 29784), and `compute_form`'s reverse
-    /// on the last re-issue never fired. SEAM: `Follow` is not read off the
-    /// listing as one and still walks past.
+    /// on the last re-issue never fired. **And so is a follow** (item 2131,
+    /// `docs/GOLDEN.md` §78): `FollowOrder`'s block carries `TargetOrder`'s
+    /// `is_targeted` and `get_target_order` thunks, and run827's two
+    /// shift-moves on following squads lay their formation out from the
+    /// leader's point — under a leg, too, since the walk starts at the
+    /// bottom.
     pub(crate) fn unit_final_loc(&self, u: usize) -> Pos {
         let here = self.units[u].pos;
         let found = self.units[u]
@@ -1933,6 +1937,7 @@ impl Sim {
                 }
                 Body::Gather(gt) => self.obj_alive_pos(crate::combat::Obj::Building(gt.building)),
                 Body::Guard(gd) => self.obj_alive_pos(crate::combat::Obj::Unit(gd.target)),
+                Body::Follow(f) => self.obj_alive_pos(crate::combat::Obj::Unit(f.target)),
                 _ => None,
             });
         let Some(p) = found else { return here };
@@ -5907,6 +5912,20 @@ mod tests {
         // Moved after the order went on, so the post and the unit part.
         s.units[ward].pos = Pos::new(0x1200, 0x6400);
         assert_eq!(s.unit_final_loc(u), s.units[ward].pos);
+    }
+
+    /// **A follow names its leader's position** (item 2131, `docs/GOLDEN.md`
+    /// §78): `FollowOrder` is a `TargetOrder` too. run827: `0/6`'s squad,
+    /// following the Chariot `0/9`, is shift-moved on 660, and the queued
+    /// `GroupMoveOrder`'s angle is the bearing from the Chariot's point.
+    #[test]
+    fn get_final_loc_reads_a_follow_s_leader() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let u = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4000));
+        let leader = spawn(&mut s, 1, t, Pos::new(0x1000, 0x6000));
+        s.add_follow_order(u, leader, QueuePos::New);
+        assert_eq!(s.unit_final_loc(u), s.units[leader].pos);
     }
 
     /// **The follower tracks the leader's current position, not the

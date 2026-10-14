@@ -6371,6 +6371,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_TWO: i64 = 1000;
 /// (item 2117; item 2066's ended at the word, 901).
 pub(crate) const WIDENING_CHAPTER_SIXTY_TWO: (i64, i64) = (605, 1001);
 
+/// **Chapter sixty-three** (item 2131, `docs/GOLDEN.md` §78, run827): two
+/// Hoplite squads follow a Chariot and are shift-moved, `QUEUE_LAST`, 605
+/// to 760 — `GroupData::get_loc_to` reading `get_final_loc`'s `Follow` arm.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_THREE: i64 = 760;
+
+/// `chapter_sixty_three_s_word_frame_is_widened_whole`'s window: run827
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SIXTY_THREE: (i64, i64) = (605, 761);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8668,6 +8677,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_sixty_two_s_word_frame_is_widened_whole"),
         2066,
         Some(WIDENING_CHAPTER_SIXTY_TWO),
+    ),
+    // Item 2131: run827, chapter sixty-three, a shift-queued move laid out
+    // from a Follow's leader. The widening is run827 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_SIXTY_THREE",
+        GOLDEN_WORD_CHAPTER_SIXTY_THREE,
+        Some("chapter_sixty_three_s_word_frame_is_widened_whole"),
+        2131,
+        Some(WIDENING_CHAPTER_SIXTY_THREE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

@@ -1104,6 +1104,7 @@ WBIAS = {wbias!r}
 FILLS = {fills!r}
 ARGRANGE = {argrange!r}
 SLOTBASE = {slotbase!r}
+ECXINT = {ecxint!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1226,15 +1227,26 @@ def main(argv):
             h.answers[name] = v & 0xFFFFFFFF
         uc.mem_write(this, bytes(mem))
         guard = bytes(uc.mem_read(this + WIN, 0x20))
+        # `ecx` an integer rather than the object (parked 2141), the row's last.
+        ecx = None
+        if ECXINT is not None:
+            kind, *vals = ECXINT
+            if rng.random() < 0.1:
+                ecx = rand32(rng)
+            elif kind == "set":
+                ecx = rng.choice(vals[0])
+            else:
+                ecx = rng.randint(vals[0], vals[1])
         h.calls.clear()
-        r = h.call(ENTRY, tuple(args), ecx=this)  # Harness.call signs eax; signed() again would double a negative
+        r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
         assert bytes(uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"
         before = ";".join([bytes(mem).hex()] + [bytes(b).hex() for _, b in wins])
         after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
-        shown = [str(a) for a in args] + [str(v) for v in answers] + [str(f) for f in based]
+        shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(f) for f in based]
+                 + ([] if ECXINT is None else [str(ecx)]))
         print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}")
     return 0
 
@@ -1346,7 +1358,7 @@ def _wbias(spec):
 
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
-                 argrange=(), slotbase=(), module=None):
+                 argrange=(), slotbase=(), module=None, ecx_int=None):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1377,7 +1389,16 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pslot = [tuple(int(x, 0) for x in s.split(':')) for s in slotbase]
     if any(('slot', off) not in {(k, a) for k, a, _ in pstubs} for off, _ in pslot):
         raise ValueError('--slotbase OFF:ADDR names a slot --stub slot:OFF:N stubs')
+    pecx = None
+    if ecx_int is not None:
+        if '..' in ecx_int:
+            lo, hi = ecx_int.split('..')
+            pecx = ('range', int(lo, 0), int(hi, 0))
+        else:
+            pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot):
+        if pecx is not None:
+            raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, argset=pset, argfrom=pfrom)
         doc = doc or f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.'
@@ -1390,11 +1411,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot' else f'callee 0x{a:08x} ({n} args) stubbed'
            for k, a, n in pstubs]
         + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed)' for w, o, e, n in pplaces]
-        + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a in pslot]) or 'no windows'
+        + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a in pslot]
+        + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
+            if pecx[0] == 'range' else f'`ecx` an integer in {pecx[1]}, not the object, the row\'s last']
+           if pecx else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
                                    cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces,
-                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot)
+                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1552,6 +1576,8 @@ def main(argv=None):
                          'answers (parked 2095)')
     ap.add_argument('--name', dest='module', help='obj: the module\'s snake name, for an overload whose snake an '
                     'earlier sweep holds (parked 2045: two `WorldData::restrict`s, two `get_land`s)')
+    ap.add_argument('--ecx-int', metavar='LO..HI|V,V,..', help='obj: `ecx` an integer drawn from the range or '
+                    'the list (90%%), not the object; printed last on the row (parked 2141)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1568,7 +1594,7 @@ def main(argv=None):
                                                     at=args.at, ptrargs=args.ptrarg, stubs=args.stub,
                                                     places=args.place, wbias=args.wbias, fills=args.fill,
                                                     argrange=args.argrange, slotbase=args.slotbase,
-                                                    module=args.module)
+                                                    module=args.module, ecx_int=args.ecx_int)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:

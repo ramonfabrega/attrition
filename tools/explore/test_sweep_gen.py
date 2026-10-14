@@ -143,6 +143,30 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1, slotbase=['0xc:0x401000'])
 
+    def test_ecx_may_be_an_integer_rather_than_the_object(self):
+        # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
+        # and `Map::scale_by_area` take the axis length in `ecx`, an integer,
+        # and `obj` laid `ecx` as the object. The integer is the row's last.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2149, win=0x20, bias=[], own=0,
+            cells=['0xc06188:0x20'], ecx_int='-4..5000', port='i64::from(a[a.len() - 1])')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ECXINT = ('range', -4, 5000)", script)
+        self.assertIn('ecx=this if ECXINT is None else ecx', script)
+        self.assertIn('+ ([] if ECXINT is None else [str(ecx)])', script)
+        self.assertIn('`ecx` an integer', test)
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2149, win=0x20, bias=[], own=1, cells=['0xc06188:0x20'], ecx_int='0,1,7')
+        self.assertIn("ECXINT = ('set', [0, 1, 7])", script)
+        # Without it, `ecx` stays the object.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2149, win=0x20, bias=[], own=0, cells=['0xc06188:0x20'])
+        self.assertIn('ECXINT = None', script)
+        self.assertNotIn('`ecx` an integer', test)
+        # And the shape refuses it on the plain `obj`, which has no row for it.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, ecx_int='1..2')
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
