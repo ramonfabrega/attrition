@@ -19889,12 +19889,86 @@ Inside run820. Parked 2133.
 Not established: any other loop of this crate that walks `self.units` where the original walks `objects->units[who]` and
 breaks a tie on order. This one was found by its tie; no audit of the rest was run.
 
-## 211. Reserved for the next item on the AI track
+## 211. Great Sahara in the successor pair's lobby: a caravan the limit holds, to the game's end (2026-10-13, item 2107)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed. The lobby closed on its first build: the word
+2995 → 3268, the game's last frame, and `run831_sahara_mongol_closing_state`
+reads `[0, 0, 0, 0, 0, 0, 0]` on block 3269, 178 units compared.**
+
+**The lobby** (DECISIONS 56 §1): the successor pair's settings (run774/775:
+human Nubians against the Mongols, 17, at Difficulty 3, All Technologies,
+Deathmatch resources, seed 12345) on Great Sahara, `MAP_STYLE 7`. Captures on
+the click-free lane, `cover=0`: run832 (the `DUMP_ALL` start), run831 (the draw
+stream to the game's end), run834 (blocks 2989..3269 at the long's detail).
+run830 is the same game launched without run652's `--detail` flags: the
+runner's default, a `UNITS=3` dump on every frame and no closing records. Its
+draw stream is identical to run831's on all 3269 frames. `GAME INFO` reads back
+`MAP_STYLE 7`, `DIFFICULTY 3`, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`,
+seed 12345, tribes 4 and 17 (`sahara_mongol_captures_say_their_lobby`). The
+game ends itself at frame 3268.
+
+**The first walk: frame 2995, ours 30 draws against 26, index 3**, ours
+`Guy::init_real+0x52` ×3, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+Ours' three extra draws are the three figures of a Caravan born on 2995, `1/162`
+(TI 59 `CARA`, TY 9, at (40056, 16200)), and its first animation is the fourth
+extra draw. Theirs' `1/162` is born on 3007 at (30360, 20280) with
+`guys=1` (run830's every-frame dump, `births.py`).
+
+**The widening (run834, 1,284 keys).** 87 standing on 2989: player 0's leader
+record (`control`, `num_units`, the ten `SITE[].reg`: ours 14/13/1, theirs
+0; the idle human's fourteen units have death records on our side, and why
+theirs reads zero was not read), the pools and
+groups this detail does not print, leader 1's buckets and `scouts` (0
+against 2), and the `attrition` family below. On the word's block 2996: the
+Market `1/2019`'s `queue:queued` 4 against 5, and leader 1's `num_units[9]`
+(the Caravan) 9 against 8, `caras` 9 against 8, `active`/`control` one ahead.
+Theirs' queue on `1/2019`, block by block: the head `CARA` climbs 100 a frame
+to 17300 on 2994, then 17304 on 2995, **and holds at 17304 to the game's last
+frame**. The `MERCHANT` (TI 61) in slot 2 advances 100 a frame from 2996 and
+completes on 3154 (run830's birth at that Market). `caras` is 8. The Commerce
+line is complete (All Technologies), so 7 + 1 = 8.
+
+**The mechanism** (a reading, then the diff). `Build::finished@00628490` has a
+caravan arm after the population test. A unit type whose `unit_flags2`
+(`+0x2b8`) has bit 8, when `LeaderData::get_units(type, 0) >=
+LeaderData::get_caravan_limit(0)`, answers **−1**, and the entry stays at full
+progress. `get_caravan_limit@006dca50` with argument 0 is the Commerce epoch
+plus one, plus `COLOSSUS_CARAVAN` (`has_wonder(0x20f)`), plus `taj_caravan`
+(`0x21b`), plus `SILK_CARAVAN` (`rare & 0x20`, Silk), plus
+`NUBIAN_CARAVAN_LIMIT` (`has_tribe_bonus(4)`). It is at most 99, and the city
+pairings bound it only under argument 1. `taj_caravan` loads as **−1**:
+`Constants::init` reads the tag `TAJ_CARAVAN`, the file writes
+`TAJ_CARAVAN_LIMIT`, and an absent key reads −1. So the Taj costs a caravan.
+Then `Build::do_queue@0061e410:425`–`452` takes over. A negative answer at slot
+0, with no research entry behind it and two or more queued, runs
+`BuildQueueData::get_next_non_caravan@00630c20` at every building but an
+Airbase. That is the first slot from 1 below `queued` whose type is not `0x3b`
+itself (a `CARADUTCH` is not a caravan here), and `do_queue` advances it.
+`docs/PRODUCTION.md`, "What is not established", had both as "not modelled,
+by choice": the simulation had no caravans then.
+
+**Built.** `Sim::caravan_cap` is `get_caravan_limit(0)`. `Sim::caravan_limit`,
+the `(1)` form the make list and the Persian Market read, is now that value
+bounded by the pairings, so it takes the four bonuses too. `Sim::advance_slot`
+feeds the caravan arm into `finished`'s negative answer (`Handover::Limit`),
+counting `line_count(who, CARA)`, the graft-aware `get_units`.
+`Sim::process_queue`'s second fallback runs `get_next_non_caravan`'s slot off
+an Airbase. Three tuning slots: `COLOSSUS_CARAVAN` 0, `SILK_CARAVAN` 0,
+`NUBIAN_CARAVAN_LIMIT` 1. The test is
+`a_caravan_at_the_limit_is_held_and_the_merchant_behind_it_trains`.
+
+**Measured.** The walk runs 2995 → **3268 of 3268**. run834's widening goes
+1,284 → 296 keys. The closing state agrees whole, with no building or city
+field-row. What stands on run834 is the standing block and one family: leader
+1's units' `attrition` (ours 6 or 12 against 48 or 96), with the one point of
+`hits`/`damage_frac` behind it and `1/58`'s `sheltered`. That is the shape of
+parked 2108 on the coverage lobby's run817, and it is parked 2137.
+
+**Not established.** The allies' cities that `get_caravan_limit(1)` adds under
+`has_preq(BASE_BONUSTYPES)` (no capture has an ally). The Colossus, Taj and
+Silk arms are reached by no walk: no lobby's AI holds one of them with a done
+Caravan at the limit. A Dutch caravan's own count, `get_units`' graft walk
+over `CARADUTCH`, is reached by no walk either.
 
 ## 212. A siege sub-group member's dying move hands its mirror to the army, and the successor pair's word moves 4338 → 4353 (2026-10-13, item 2155)
 

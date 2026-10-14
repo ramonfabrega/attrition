@@ -125,6 +125,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the second pair's walks: it compares no field itself, and its widenings are harness.rs's",
     ),
     (
+        "diff/sahara_mongol.rs",
+        "the third map in the successor pair's lobby: its walks and fixture checks, and its widening is harness.rs's (item 2107)",
+    ),
+    (
         "diff/sahara_coverage.rs",
         "the third map in the coverage pair's lobby: its walks and fixture checks, and its widening is harness.rs's (item 1538)",
     ),

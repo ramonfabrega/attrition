@@ -1288,6 +1288,10 @@ Per member, twice over:
 | 1, 2, 5 | for a **human** leader only, and only when the current order lacks the action bit and there is no action order carrying it: `Unit::repath` then `kill_current_order(0)` |
 | else | `Unit::clear_orders` |
 
+The human arm of rows 1, 2, 5 is built (`group_action_stance`) and
+diff-backed by run835's block 682, a player's stand-ground button
+(item 2165, `docs/GOLDEN.md` §79).
+
 That last row is **reachable**, and the first reading called it dead: there
 is no clamp on a non-negative `s`, and
 `CommandPackage::process_stance@00949ed0` forwards `StanceCommand::stance`

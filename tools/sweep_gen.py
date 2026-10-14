@@ -1109,6 +1109,7 @@ ANSWERS = {answers!r}
 VTAT = {vtat!r}
 ANSWERWIN = {answerwin!r}
 CDECL = {cdecl!r}
+ARGEQ = {argeq!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1253,6 +1254,12 @@ def main(argv):
             win, off = VTAT
             w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
             w[off:off + 4] = vt.to_bytes(4, "little")
+        for idx, win, off in ARGEQ:
+            # An argument the function compares with a word of a window laid
+            # after the arguments were drawn: the word copied (item 2200).
+            if rng.random() < 0.45:
+                w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+                args[idx] = i32(w, off)
         for a_, b in wins:
             uc.mem_write(a_, bytes(b))
         based = []
@@ -1398,7 +1405,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False):
+                 cdecl=False, argeq=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1435,6 +1442,15 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
         raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
+    peq = []
+    for e in argeq:
+        idx, loc = e.split(':', 1)
+        ewin, plus, eoff = loc.partition('+')
+        if not (plus and re.fullmatch(r'm|c\d+|p\d+', ewin)):
+            raise ValueError(f'--argeq is IDX:m+OFF, IDX:cN+OFF or IDX:pN+OFF, not {e!r}')
+        if not 0 <= int(idx) < own:
+            raise ValueError('--argeq IDX names one of the --own arguments')
+        peq.append((int(idx), ewin, int(eoff, 0)))
     pvtat = None
     if vtat is not None:
         vwin, plus, voff = vtat.partition('+')
@@ -1450,7 +1466,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
             pecx = ('range', int(lo, 0), int(hi, 0))
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
-    if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw):
+    if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if cdecl:
@@ -1473,6 +1489,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            for idx, n in pansw]
         + ([f'the stubbed vtable laid at `{vtat}`'] if pvtat else [])
         + (['`__cdecl`: the caller pops the arguments'] if cdecl else [])
+        + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
             if pecx[0] == 'range' else f'`ecx` an integer in {pecx[1]}, not the object, the row\'s last']
            if pecx else [])) or 'no windows'
@@ -1480,7 +1497,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
                                    cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
-                                   answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl)
+                                   answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1649,6 +1666,9 @@ def main(argv=None):
                          'places (a callee that answers a record; parked 2151)')
     ap.add_argument('--cdecl', action='store_true', help='obj: the function is `__cdecl` (a bare `ret`), so '
                     'the caller pops its arguments and the esp check expects them left (item 2181)')
+    ap.add_argument('--argeq', action='append', default=[], metavar='IDX:WIN+OFF',
+                    help='obj: argument IDX copies the 32-bit word at WIN+OFF (45%%) once every window is laid — '
+                         'an argument compared with a placed record\'s field (item 2200)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1667,7 +1687,8 @@ def main(argv=None):
                                                     argrange=args.argrange, slotbase=args.slotbase,
                                                     module=args.module, ecx_int=args.ecx_int,
                                                     answers=args.answers, vtat=args.vtat,
-                                                    answer_wins=args.answer_win, cdecl=args.cdecl)
+                                                    answer_wins=args.answer_win, cdecl=args.cdecl,
+                                                    argeq=args.argeq)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
