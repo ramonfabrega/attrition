@@ -708,3 +708,4 @@ mod world_set_tocean;
 mod world_set_was_seen;
 mod world_set_waterhalf;
 mod unit_set_in_danger;
+mod unit_set_group;

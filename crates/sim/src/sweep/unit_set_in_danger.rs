@@ -49,7 +49,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let marked = {
                     let fig = |i: usize| -> &[u8] { if i == N { &m[..] } else { &p[1 + i][..] } };
                     let short = |i: usize, off: usize| i16::from_le_bytes([fig(i)[off], fig(i)[off + 1]]);
-                    crate::fight::danger_squad(
+                    crate::squad_walk(
                         N,
                         64,
                         |i| {

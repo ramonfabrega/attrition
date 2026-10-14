@@ -6198,6 +6198,33 @@ pub(crate) fn squad_size(
     n
 }
 
+/// The figures a squad walk reaches, in its order — **`Unit::set_in_danger@005fcfb0`**
+/// and **`Unit::set_group@00605220`** walk alike: the climb up `up` (the
+/// original's `o_up`, `None` at the captain — its `is_captain`, the link's
+/// sign bit) from `start`, then the captain and each `down` link (the
+/// original's `o_down` whose slot is active, `flags & 1`; `None` past the
+/// last). Both walks stop after `limit` links, a guard the original does
+/// not have: a cycle would hang it. Item 2276's sweeps hold it.
+pub(crate) fn squad_walk(
+    start: usize,
+    limit: usize,
+    up: impl Fn(usize) -> Option<usize>,
+    down: impl Fn(usize) -> Option<usize>,
+) -> Vec<usize> {
+    let mut at = start;
+    for _ in 0..limit {
+        let Some(u) = up(at) else { break };
+        at = u;
+    }
+    let mut out = vec![at];
+    for _ in 0..limit {
+        let Some(d) = down(at) else { break };
+        out.push(d);
+        at = d;
+    }
+    out
+}
+
 #[cfg(test)]
 #[path = "harness_tests.rs"]
 mod tests;

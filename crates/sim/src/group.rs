@@ -1193,13 +1193,15 @@ impl Sim {
     /// figure down its `o_down` chain. `Army::add_unit`'s last act, and
     /// the only writer that points a unit **at** an army's group.
     pub(crate) fn set_group(&mut self, u: usize, s: Option<u8>) {
-        let mut f = self.top_captain(u);
-        loop {
+        let units = &self.units;
+        let walked = crate::squad_walk(
+            u,
+            units.len(),
+            |i| units[i].o_up,
+            |i| units[i].o_down.filter(|&d| units[d].alive()),
+        );
+        for f in walked {
             self.units[f].group_ptr = s;
-            match self.units[f].o_down {
-                Some(d) if self.units[d].alive() => f = d,
-                _ => return,
-            }
         }
     }
 
