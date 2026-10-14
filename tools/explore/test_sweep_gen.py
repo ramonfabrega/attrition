@@ -256,6 +256,23 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
                                    stubs=['0x401100:1'], answer_range=['1:0:3'])
 
+    def test_a_global_cell_may_hold_this(self):
+        # Item 2217: `World::set_road_at` writes through `this` and scans
+        # through `GameAccess::world`, which in the game are one object;
+        # `--cell-win` gave the cell a record of its own. `--cell-this VA`
+        # points the cell at `this` every row, no window of its own.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x140, bias=[], own=0,
+            cell_this=['0xc06188'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('CELLTHIS = [12607880]', script)
+        self.assertIn('for va in CELLTHIS:', script)
+        self.assertIn('the global cell 0x00c06188 holds `this`', script)
+        # A cell is `this` or a record of its own, never both.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   cells=['0xc06188:4'], cell_this=['0xc06188'])
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,

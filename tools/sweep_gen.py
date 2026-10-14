@@ -1112,6 +1112,7 @@ CDECL = {cdecl!r}
 ARGEQ = {argeq!r}
 SEQ = {seq!r}
 ANSRANGE = {ansrange!r}
+CELLTHIS = {cellthis!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1291,6 +1292,10 @@ def main(argv):
                 return v & 0xFFFFFFFF
             h.answers[names[idx]] = answer
         uc.mem_write(this, bytes(mem))
+        # A global cell that holds `this` itself: a method that reads the
+        # global as well as its object sees one object (item 2217).
+        for va in CELLTHIS:
+            uc.mem_write(va, this.to_bytes(4, "little"))
         guard = bytes(uc.mem_read(this + WIN, 0x20))
         # `ecx` an integer rather than the object (parked 2141), the row's last.
         ecx = None
@@ -1427,7 +1432,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=()):
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1481,6 +1486,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pansr = [tuple(int(x, 0) for x in r.split(':')) for r in answer_range]
     if any(not 0 <= idx < len(pstubs) for idx, _, _ in pansr):
         raise ValueError('--answer-range IDX:LO:HI names one of the --stub callees, by its order on the line')
+    pthis = [int(v, 0) for v in cell_this]
+    if set(pthis) & {va for va, _ in pcells}:
+        raise ValueError('--cell-this names a cell --cell-win gives a record of its own')
     pvtat = None
     if vtat is not None:
         vwin, plus, voff = vtat.partition('+')
@@ -1497,7 +1505,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr):
+            or pseq or pansr or pthis):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if cdecl:
@@ -1523,6 +1531,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
         + [f'stub {idx} answers {n} values in call order, printed after the answers' for idx, n in pseq]
         + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
+        + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
             if pecx[0] == 'range' else f'`ecx` an integer in {pecx[1]}, not the object, the row\'s last']
            if pecx else [])) or 'no windows'
@@ -1531,7 +1540,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
-                                   seq=pseq, ansrange=pansr)
+                                   seq=pseq, ansrange=pansr, cellthis=pthis)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1709,6 +1718,9 @@ def main(argv=None):
     ap.add_argument('--answer-range', action='append', default=[], metavar='IDX:LO:HI',
                     help='obj: stub IDX\'s answer drawn from LO..HI every row, as --argrange an argument '
                          '(an answer the function indexes a table by; item 2217)')
+    ap.add_argument('--cell-this', action='append', default=[], metavar='VA',
+                    help='obj: the global cell at VA holds `this` itself, so a method that reads the global '
+                         'as well as its object sees one object (item 2217)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1729,7 +1741,8 @@ def main(argv=None):
                                                     answers=args.answers, vtat=args.vtat,
                                                     answer_wins=args.answer_win, cdecl=args.cdecl,
                                                     argeq=args.argeq, seq=args.seq,
-                                                    answer_range=args.answer_range)
+                                                    answer_range=args.answer_range,
+                                                    cell_this=args.cell_this)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
