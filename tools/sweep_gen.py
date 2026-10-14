@@ -1005,7 +1005,7 @@ def main(argv):
     from hooks import Harness
     rng = random.Random({item})
     h = Harness(argv[1], {{}})
-    for i in range(220):
+    for i in range({rows}):
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -1074,7 +1074,7 @@ fn the_emulated_original_agrees_on_every_row() {{
         assert_eq!(m, unhex(after.trim()), "{short} — bytes, row `{{line}}`");
         n += 1;
     }}
-    assert!(n >= 200, "only {{n}} rows");
+    assert!(n >= {floor}, "only {{n}} rows");
     eprintln!("{name}@{va:08x}: {{n}} rows agree");
 }}
 '''
@@ -1166,11 +1166,17 @@ def u8(w, off):
 
 def token(v, spans):
     """A recorded value: a pointer into a window by the window's name and
-    offset (`m+0x0`, `p0+0x10`), anything else as a signed word (item 2281)."""
+    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), anything
+    else as a signed word (item 2281)."""
     v &= 0xFFFFFFFF
     for name, at, size in spans:
         if at <= v <= at + size:
             return f"{{name}}+{{v - at:#x}}"
+    # A caller's local handed to a callee: its depth under the caller's
+    # `esp`, which the harness holds every row (item 2336).
+    top = STACK_BASE + STACK_SIZE - 0x100
+    if top - 0x1000 <= v < top:
+        return f"sp-{{top - v:#x}}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
@@ -1237,11 +1243,15 @@ def main(argv):
     uc = h.m.uc
     slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
     vt = h.vtable(slots) if slots else None
-    names = [f"slot{{a:x}}" if k == "slot" else f"{{a:x}}" for k, a, _ in STUBS]
+    names = [f"slot{{a:x}}" if k == "slot" else f"iat{{a:x}}" if k == "iat" else f"{{a:x}}" for k, a, _ in STUBS]
+    # `--stub iat:VA:N`: a stub whose address is laid in an import's IAT cell,
+    # which the emulator resolves to nothing, so `call [VA]` lands on it
+    # (item 2336: `timeGetTime`, parked 2327).
+    iats = [(a, h.stub(f"iat{{a:x}}", n, 0)) for k, a, n in STUBS if k == "iat"]
     stubbed = {{off: h.r32(vt + off) & 0xFFFFFFFF for off, _ in SLOTBASE}}
     base = h.brk
-    for i in range(220):
-        h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
+    for i in range({rows}):
+        h.brk = base  # the bump heap is reused a row; {rows} rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -1400,6 +1410,8 @@ def main(argv):
                 args[idx] = i32(w, off)
         for a_, b in wins:
             uc.mem_write(a_, bytes(b))
+        for cell, stub in iats:
+            uc.mem_write(cell, stub.to_bytes(4, "little"))
         based = []
         for off, addr in SLOTBASE:
             on = rng.random() < 0.5
@@ -1530,7 +1542,7 @@ fn the_emulated_original_agrees_on_every_row() {{
         }}
         n += 1;
     }}
-    assert!(n >= 200, "only {{n}} rows");
+    assert!(n >= {floor}, "only {{n}} rows");
     eprintln!("{name}@{va:08x}: {{n}} rows agree");
 }}
 '''
@@ -1545,9 +1557,13 @@ def _stub(spec):
     parts = spec.split(':')
     if parts[0] == 'slot' and len(parts) == 3:
         return ('slot', int(parts[1], 0), int(parts[2]))
+    if parts[0] == 'iat' and len(parts) == 3:
+        # An import called through its IAT cell (`call [VA]`): a stub's
+        # address laid in the cell (item 2336, parked 2327).
+        return ('iat', int(parts[1], 0), int(parts[2]))
     if len(parts) == 2:
         return ('call', int(parts[0], 0), int(parts[1]))
-    raise ValueError(f'a stub is slot:OFF:NARGS or ADDR:NARGS, not {spec!r}')
+    raise ValueError(f'a stub is slot:OFF:NARGS, iat:VA:NARGS or ADDR:NARGS, not {spec!r}')
 
 
 def _place(spec):
@@ -1628,8 +1644,13 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
-                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=()):
+                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
+                 rows=220):
     name, va = parse(spec)
+    if rows < 200:
+        raise ValueError('--rows N is at least the 200 rows the test asks for')
+    floor = 200 if rows == 220 else rows
+    rowdoc = '' if rows == 220 else f' {rows} rows (an arm few rows reach).'
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
     parsed = []
@@ -1642,8 +1663,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     biasdoc = ', '.join(f'+{o:#x} in {v}' for o, v in parsed) or 'no bias'
     if ret == 'none':
         retcode = '        let _ = (got, want_eax);'
-    else:
+    elif ret == 'al':
+        # A `bool` in `al` over an `eax` whose upper bytes are a pointer's
+        # (`sete al`; item 2336, parked 2327): the low byte alone is held.
+        retcode = f'        assert_eq!(got & 0xff, want_eax & 0xff, "{short} — al, row `{{line}}`");'
+    elif ret == 'eax':
         retcode = f'        assert_eq!(got, want_eax, "{short} — eax, row `{{line}}`");'
+    else:
+        raise ValueError(f'obj --ret is eax, al or none, not {ret!r}')
     pcells = [_window(c, 0x400) for c in cells]
     pat = [_window(t, None) for t in at]
     if any(size is None for _, size in pat):
@@ -1755,17 +1782,19 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if cdecl:
             raise ValueError('--cdecl needs a window: the plain obj keeps the callee-pops check')
         script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
-                                   biasdoc=biasdoc, argset=pset, argfrom=pfrom)
-        doc = doc or f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.'
-        test = OBJ_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port, ret=retcode)
+                                   biasdoc=biasdoc, argset=pset, argfrom=pfrom, rows=rows)
+        doc = (doc or f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.') + rowdoc
+        test = OBJ_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port, ret=retcode,
+                               floor=floor)
         return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
     windoc = '; '.join(
         [f'the global cell 0x{va:08x} points at {size} random bytes' for va, size in pcells]
         + [f'{size} random bytes at 0x{va:08x}' for va, size in pat]
         + [f'argument {idx} names {size} random bytes' + (' (null a third of the rows)' if idx in ppnull else '')
            for idx, size in pptr]
-        + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot' else f'callee 0x{a:08x} ({n} args) stubbed'
-           for k, a, n in pstubs]
+        + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot'
+           else f'the import cell 0x{a:08x} holds a stub ({n} args)' if k == 'iat'
+           else f'callee 0x{a:08x} ({n} args) stubbed' for k, a, n in pstubs]
         + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed'
            + (', null a third of the rows)' if k in pnull else ')') for k, (w, o, e, n) in enumerate(pplaces)]
         + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a in pslot]
@@ -1805,10 +1834,11 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
                                    sparse=psparse, record=precord, rowsplit=prowsplit, links=plinks,
-                                   outarg=pout, cdeclstubs=pcdecl)
+                                   outarg=pout, cdeclstubs=pcdecl, rows=rows)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
+    doc += rowdoc
     if precord:
         logsplit = ('        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");\n'
                     '        let want_log: Vec<&str> = calls.split_whitespace().collect();\n')
@@ -1818,7 +1848,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         logsplit = logdecl = logcheck = ''
     test = OBJ_WIN_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
                                ret=retcode, nc=len(pcells) + len(pat), pbase=1 + len(pcells) + len(pat),
-                               logsplit=logsplit, logdecl=logdecl, logcheck=logcheck)
+                               logsplit=logsplit, logdecl=logdecl, logcheck=logcheck, floor=floor)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -1979,7 +2009,7 @@ def main(argv=None):
     ap.add_argument('--win', type=lambda s: int(s, 0), default=0x400, help='obj: bytes of random object')
     ap.add_argument('--bias', action='append', default=[], help='obj: OFF:V,V,.. — a 32-bit word at OFF drawn from the list')
     ap.add_argument('--ret', default=None, help='fwd: none (the default), an integer, or last (the last callee\'s answer); '
-                    'obj: eax (the default) or none, said only for a void function (item 2090: the obj shape '
+                    'obj: eax (the default), al (a bool\'s low byte, item 2336) or none, said only for a void function (item 2090: the obj shape '
                     'took fwd\'s none and eight value-returning sweeps compared no eax)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
     ap.add_argument('--item', type=int, required=True)
@@ -2059,6 +2089,8 @@ def main(argv=None):
                     help='obj: figure k (window p(A+k))\'s link at OFF drawn from the figures below (`<`) or '
                          'above (`>`) its own index or a terminator (-1), so a walk through them ends '
                          '(`o_up`, an upgrade chain; item 2276)')
+    ap.add_argument('--rows', type=int, default=220, help='obj: rows drawn, for an arm few of the 220 reach '
+                    '(Loop 2003, 2287\'s line; item 2314)')
     ap.add_argument('--outarg', action='append', default=[], metavar='IDX:K:V,V|LO..HI',
                     help='obj: stub IDX writes a value drawn from the list or range through its argument K '
                          '(unless null), printed after the answers, `o` in a place (a callee that answers through '
@@ -2082,7 +2114,7 @@ def main(argv=None):
                                                     glob=args.glob, gate=args.gate)
         elif args.shape == 'obj':
             sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
-                                                    own=args.own, ret='none' if args.ret == 'none' else 'eax', port=args.port,
+                                                    own=args.own, ret=args.ret or 'eax', port=args.port,
                                                     argset=args.argset, argfrom=args.argfrom, cells=args.cells,
                                                     at=args.at, ptrargs=args.ptrarg, stubs=args.stub,
                                                     places=args.place, wbias=args.wbias, fills=args.fill,
@@ -2096,7 +2128,7 @@ def main(argv=None):
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, links=args.link,
-                                                    outarg=args.outarg, stub_cdecl=args.stub_cdecl)
+                                                    outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:

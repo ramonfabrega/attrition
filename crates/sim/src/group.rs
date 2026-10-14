@@ -408,6 +408,47 @@ pub fn stance_option(s: Stance) -> i32 {
         .expect("every Stance is in COMBAT_STANCES") as i32
 }
 
+/// `Groups::push_group@0070f9e0(who, g, force)`'s own steps (§3.2), the
+/// callees answered by the caller: with `force == 0` a group of fewer than
+/// two (`+0xc`, signed) is not installed — every member `in_use` is `seat`ed
+/// at −1 and the answer is −1; else `slot` (`equals_group` against
+/// `last_group[who]`, else `get_open_slot`, `copy_group` and the
+/// `last_group` write) names the slot, and every member `in_use` whose
+/// `+0x80` (`seat_of`) names another group (`>= 0`, `!=` the slot) is
+/// `kill`ed from it (`(*old->vtbl+0x10)(o, who, 0, 0)`) before it is
+/// `seat`ed at the slot. Answers the slot.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn push_group_steps<C: ?Sized>(
+    cx: &mut C,
+    n: i32,
+    force: bool,
+    mut in_use: impl FnMut(&mut C, usize) -> bool,
+    mut slot: impl FnMut(&mut C) -> i32,
+    mut seat_of: impl FnMut(&mut C, usize) -> i16,
+    mut kill: impl FnMut(&mut C, i16, usize),
+    mut seat: impl FnMut(&mut C, usize, i32),
+) -> i32 {
+    if !force && n < 2 {
+        for k in 0..n.max(0) as usize {
+            if in_use(cx, k) {
+                seat(cx, k, -1);
+            }
+        }
+        return -1;
+    }
+    let s = slot(cx);
+    for k in 0..n.max(0) as usize {
+        if in_use(cx, k) {
+            let old = seat_of(cx, k);
+            if old >= 0 && i32::from(old) != s {
+                kill(cx, old, k);
+            }
+            seat(cx, k, s);
+        }
+    }
+    s
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // Building a group (§3, §4)
@@ -511,17 +552,36 @@ impl Sim {
     /// installed group **takes its members out of the group they were
     /// in** (§3.3). Returns whether the group took a slot.
     pub fn push_group(&mut self, g: &mut Group, force: bool) -> bool {
-        if !(force || g.num() >= 2) {
-            // `+0x80 = −1` on every active member, and no list is
-            // touched: the unit stays wherever it was listed, naming
-            // nothing (§23).
-            for &u in &g.list {
-                if self.units[u].alive() {
-                    self.units[u].group_ptr = None;
-                }
-            }
-            return false;
-        }
+        // The original's own steps, [`push_group_steps`] (swept under the
+        // emulator, `sweep::groups_push_group`): the gate's arm writes
+        // `+0x80 = −1` on every active member and touches no list — the unit
+        // stays wherever it was listed, naming nothing (§23); past it the
+        // slot is chosen and every active member pointed at it.
+        let n = g.num();
+        let mut cx = (self, g);
+        let s = push_group_steps(
+            &mut cx,
+            n,
+            force,
+            |(s, g), k| s.units[g.list[k]].alive(),
+            |(s, g)| i32::from(s.push_group_slot(g)),
+            |(s, g), k| s.units[g.list[k]].group_ptr.map_or(-1, i16::from),
+            // The port asks each member's named group before the copy, in
+            // `unseat_group` ([`Sim::kill_from_named`], its whole squad),
+            // where the original asks it here, after; so this walk's kill
+            // is already done (and on the equal arm, none is owed).
+            |_, _, _| {},
+            |(s, g), k, slot| {
+                s.units[g.list[k]].group_ptr = u8::try_from(slot).ok();
+            },
+        );
+        s >= 0
+    }
+
+    /// `push_group`'s slot (`70fa86`..`70fac6`): `equals_group` against the
+    /// last pushed slot, else `get_open_slot` and `copy_group` into it —
+    /// with the port's own bookkeeping of the record it lands in.
+    fn push_group_slot(&mut self, g: &mut Group) -> u8 {
         let last = self.last_group[g.who as usize];
         // `Group::equals_group@00708000` opens by normalizing each side
         // whose `id` is not −1 — so the last pushed slot is pruned and its
@@ -548,14 +608,9 @@ impl Sim {
                 .iter()
                 .position(|x| x.who == g.who && x.state.pool == Some(pool) && x.list == g.list)
         {
-            for &u in &g.list {
-                if self.units[u].alive() {
-                    self.units[u].group_ptr = Some(pool);
-                }
-            }
             g.army = None;
             g.pushed = Some(i);
-            return true;
+            return pool;
         }
         // **Parked, twenty-fourth pass, group 15 row 9 (A9 row 9).** The
         // listing has the equal arm skip `get_open_slot` and `copy_group`
@@ -596,15 +651,9 @@ impl Sim {
                 self.pushed.len() - 1
             }
         };
-        // The second walk's tail: `+0x80 = slot` on every active member.
-        for &u in &g.list {
-            if self.units[u].alive() {
-                self.units[u].group_ptr = Some(pool);
-            }
-        }
         g.army = None;
         g.pushed = Some(slot);
-        true
+        pool
     }
 
     /// `push_group`'s second walk (`0070f9e0`), which the first reading

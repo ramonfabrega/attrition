@@ -547,7 +547,7 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2281, win=0x20, bias=[], own=1,
                                    stubs=['0x402000:1'], record=['1'])
         # The token: a pointer into a window by its name, anything else signed.
-        ns = {}
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
         body = script[script.index('def token('):]
         exec(body[:body.index('\n\n\ndef ')], ns)
         spans = [('m', 0x1000, 0x20), ('p0', 0x2000, 0x40)]
@@ -555,6 +555,28 @@ class Shapes(unittest.TestCase):
         self.assertEqual(ns['token'](0x2010, spans), 'p0+0x10')
         self.assertEqual(ns['token'](0xFFFFFFFF, spans), '-1')
         self.assertEqual(ns['token'](0, spans), '0')
+
+    def test_an_obj_may_draw_more_rows(self):
+        # Item 2314 (Loop 2003, 2287's line): `Object::valid_target` and
+        # `UnitData::is_gathering_at` each had an arm few of 220 rows
+        # reached, and 2287 edited the generated `range(220)` by hand.
+        # `--rows N` draws N rows, on the plain obj and the windowed one;
+        # a line without it draws the 220 it always did.
+        for kw in ({}, {'stubs': ['0x402000:1']}):
+            _, script, _, test, _ = sweep_gen.generate_obj(
+                'Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, rows=600, port='0', **kw)
+            self.assertIn('for i in range(600):', script)
+            self.assertNotIn('range(220)', script)
+            self.assertIn('600 rows', test)
+            # The test asks for every row drawn, not the default's 200 (2314's num_inside).
+            self.assertIn('assert!(n >= 600,', test)
+            _, script2, _, test2, _ = sweep_gen.generate_obj(
+                'Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, port='0', **kw)
+            self.assertIn('for i in range(220):', script2)
+            self.assertNotIn('600 rows', test2)
+            self.assertIn('assert!(n >= 200,', test2)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, rows=50)
 
     def test_a_record_may_split_by_the_table_row(self):
         # Item 2309 (2298's Loop line, Loop 2003): `Game::defeat_all` walks
@@ -571,7 +593,7 @@ class Shapes(unittest.TestCase):
         self.assertIn('RECORD = [0, 1]', script)
         self.assertIn('ROWSPLIT = {1: 0}', script)
         self.assertIn('after ` # `, split by the rows of sparse table 0', test)
-        ns = {}
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
         for fn in ('def token(', 'def by_row('):
             body = script[script.index(fn):]
             exec(body[:body.index('\n\n\ndef ')], ns)
@@ -643,6 +665,70 @@ class Shapes(unittest.TestCase):
         # The hook pops the return address alone for a `__cdecl` callee.
         src = (ROOT / 'tools/emu/hooks.py').read_text()
         self.assertIn('cdecl', src[src.index('def _on_code'):])
+
+    def test_an_obj_may_hold_only_the_low_byte_of_its_answer(self):
+        # Item 2336 (parked 2327): `Game::is_game_ready` answers a `bool` by
+        # `sete al` over an `eax` whose upper bytes are the game pointer's,
+        # so a whole-`eax` compare holds the port to a pointer it never
+        # sees. `--ret al` compares the low byte only.
+        _, script, _, test, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2336, win=0x20, bias=[], own=0, ret='al', port='0',
+            cells=['0xc06210:0x10'])
+        self.assertIn('assert_eq!(got & 0xff, want_eax & 0xff', test)
+        self.assertNotIn('assert_eq!(got, want_eax', test)
+        _, _, _, test, _ = sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[], ret='al')
+        self.assertIn('assert_eq!(got & 0xff, want_eax & 0xff', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[], ret='ax')
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            try:
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--ret', 'al']), 0)
+                self.assertIn('assert_eq!(got & 0xff, want_eax & 0xff', (Path(tmp) / 'x_y.rs').read_text())
+                self.assertEqual(sweep_gen.main(['obj', 'X::z@00401000', '--item', '1', '--ret', 'bogus']), 2)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_a_stub_may_be_laid_in_an_import_cell(self):
+        # Item 2336 (parked 2327): `TurnControl::get_lag_time` calls
+        # `timeGetTime` through its IAT cell (`call [0xac5460]`), which no
+        # import resolves under the emulator; a hooked address cannot answer
+        # an indirect call. `--stub iat:VA:NARGS` lays a stub's address in
+        # the cell, so the call lands on the stub and is answered.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2336, win=0x40, bias=[], own=0,
+            stubs=['iat:0xac5460:0', '0x402000:1'], answers=['0:5,6'], record=['0'])
+        compile(script, str(sp), 'exec')
+        self.assertIn("('iat', 11293792, 0)", script)
+        self.assertIn('the import cell 0x00ac5460 holds a stub (0 args)', test)
+        # The cell is laid every row with the stub's address, and only the
+        # direct callee is hooked by its own address.
+        self.assertIn('if k == "iat"', script)
+        self.assertIn('iatac5460', script.replace('iat{a:x}', 'iatac5460'))
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[],
+                                   stubs=['iat:0xac5460'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[],
+                                   stubs=['iat:0xac5460:0'], stub_cdecl=['0'])
+
+    def test_a_recorded_local_is_named_by_its_depth(self):
+        # Item 2336: `MiscAccess::coord_vis@00583aa0` hands its callees the
+        # addresses of its own locals; a record printed them as raw stack
+        # words, which a port can only copy. A word inside the stack below
+        # the caller's `esp` prints as `sp-0xNN`, its depth under it.
+        _, script, _, _, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2336, win=0x20, bias=[], own=0,
+            stubs=['0x402000:1'], record=['0'])
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
+        body = script[script.index('def token('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        top = ns['STACK_BASE'] + ns['STACK_SIZE'] - 0x100
+        self.assertEqual(ns['token'](top - 0x14, []), 'sp-0x14')
+        self.assertEqual(ns['token'](top - 0x2000, []), str(top - 0x2000))
+        self.assertEqual(ns['token'](5, []), '5')
 
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
