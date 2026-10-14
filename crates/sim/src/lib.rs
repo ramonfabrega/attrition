@@ -1115,6 +1115,14 @@ pub struct Sim {
     /// not hand out (`docs/GROUPS.md` §19). `Groups::clear` starts every
     /// player on its own slot 0.
     pub(crate) last_group: [u8; 16],
+    /// The record `Group::action_siege_attack_to` sets aside while its
+    /// stack sub-group holds the seat (`docs/GROUPS.md` §26.3), with the
+    /// seat it belongs to: owner, army, pushed slot. A member's own dying
+    /// move hands its mirror back through the unit's `+0x80`, which names
+    /// the **real** group and never the stack (`docs/AI.md` §212), so
+    /// [`Sim::facing_record_mut`] sends that write here. `None` outside the
+    /// call.
+    pub(crate) set_aside: Option<(Player, Option<usize>, Option<usize>, group::GroupState)>,
     /// Draw marks spent by **staged input** at `Game::do_frame`'s entry,
     /// before the frame's first phase — the cheat channel's, which
     /// `rontrace.dll` hands to `ConsoleWin::parse_cmd` there
@@ -1655,6 +1663,7 @@ impl Sim {
         Sim {
             pushed: Vec::new(),
             last_group: [0; 16],
+            set_aside: None,
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
             caravans: vec![caravan::Caravans::default(); players],
