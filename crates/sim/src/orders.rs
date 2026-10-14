@@ -7925,13 +7925,12 @@ impl Sim {
                 .filter(|&&u| !(skip_decoys && self.units[u].decoy))
                 .count() as i32;
         }
-        n += self.buildings[b]
-            .gatherers
-            .iter()
-            .filter(|&&u| self.is_gathering_at(u, b, arrived))
-            .filter(|&&u| !(skip_decoys && self.units[u].decoy))
-            .count() as i32;
-        n
+        n + chain_gatherers(
+            self.buildings[b].gatherers.iter().copied(),
+            skip_decoys,
+            |u| self.units[u].decoy,
+            |u| self.is_gathering_at(u, b, arrived),
+        )
     }
 
     /// `Build::all_gathering`: every chain member is out at its tile.
@@ -9642,6 +9641,23 @@ impl Sim {
     }
 }
 
+/// **`BuildData::num_gatherers@00630450`**'s chain term: the members of
+/// the building's gather chain (`+0x70`, then each unit's `+0x92`) that
+/// `gathering` answers for — `UnitData::is_gathering_at` — skipping, when
+/// `skip_decoys`, a decoy (`unit_masks & 1`) **before** asking. Item
+/// 2276's sweep holds it.
+pub(crate) fn chain_gatherers(
+    chain: impl IntoIterator<Item = usize>,
+    skip_decoys: bool,
+    decoy: impl Fn(usize) -> bool,
+    mut gathering: impl FnMut(usize) -> bool,
+) -> i32 {
+    chain
+        .into_iter()
+        .filter(|&u| !(skip_decoys && decoy(u)) && gathering(u))
+        .count() as i32
+}
+
 #[cfg(test)]
 mod chase_tests {
     use super::*;
@@ -10169,3 +10185,4 @@ mod unreachable_goal_tests {
         );
     }
 }
+
