@@ -19588,8 +19588,9 @@ the MLRS's point under the leader's bottom guard. Ours walked past a
 
 **Built.** `Sim::unit_final_loc` walks `orders.iter().rev()` (ours keeps the
 current order at the front), and its `Guard` arm answers the escorted
-unit's position. `Follow` is not read off the listing as one, and is left
-as a `SEAM`.
+unit's position. ~~`Follow` is not read off the listing as one, and is left
+as a `SEAM`.~~ Built by item 2131 (`docs/GOLDEN.md` §78): a follow answers
+its leader's point, run827.
 
 **Measured.** The word moves **4266 → 4340**, count and sequence: the
 game's last frame, so the draw stream agrees to the end. run817: **10740 →

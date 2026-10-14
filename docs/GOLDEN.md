@@ -11557,12 +11557,98 @@ chapter tests fail. `army_pool_record` answering nothing: held, both fail.
 Five functions enter the census for the first time here: `think_attack`, `add_to_army`, `get_unit`, `go_to_unit`
 and `go_to`. The census is 566 → 571 of 3611 (`census.py --layers`, on the tree merged with 2122).
 
-## 78. Reserved for the next item on the rules track
+## 78. Chapter sixty-three — a shift-queued move laid out from a follow's leader (item 2131)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** DECISIONS 56 §3, from four parked rows: `fight`'s `unit_masks2 & 4` predicate (2100),
+`get_final_loc`'s target arm and `Follow` (2058), the raid's `raid_stamp` writer (2110), and `ai_sites`' wrapping
+decrement (2111). **The arm chosen is 2058**, because a staging can aim at it. 2100 names a bit no known walk sets.
+2110 needs a raid and 2111 the AI's citizen census, and both are AI-driven where a chapter runs `!ai off`. A
+`Follow` is a player's command: the AI never issues one (§20), so no long capture reaches it.
+
+**What the disk could not answer.** `UnitData::get_final_loc@00608040` is read only through
+`GroupData::get_loc_to@0070c5d0`, and only for a `QUEUE_LAST` command: `Group::action_move_near@00704990:360`,
+`action_patrol@007030c0:85`, `action_attack@00712490:192`, and `action_form@00707220:124` after its own insert
+dance. That dance copies a follow aside first, so a `@form` never reaches the arm. The only `FOLLOWORDER`s on disk
+are chapter twelve's run204, which holds no shift command, and the DLL had no shift verb.
+
+**The census rows the lobby reaches**, named before the capture (`census.py --unbacked`, never backed):
+`GroupData::get_loc_to@0070c5d0`, `UnitData::get_final_loc@00608040`, `Group::action_move_near@00704990` (its
+`QUEUE_LAST` arm), `Group::action_move_to@0070fba0`, `CommandPackage::process_move_to@009497c0`,
+`CommandPackage::process_follow@009479c0`, `Group::action_follow@006fd510`, `Unit::add_follow_order@005e3f60` and
+`Unit::do_follow@005e65d0`. Chapter twelve walked the last four, but its section carries no coverage heading, so
+the census never counted them.
+
+**The reading.** `get_final_loc` walks its unit's list from the bottom. An order whose vslot `+0x20` answers non-zero
+is a target order, and the position of its `+0xb4` `TargetOrder`'s `ox/whom` object is the answer. `FollowOrder`'s
+block (`00486aa0`–`00486cb0`) carries `TargetOrder::is_targeted`'s and `get_target_order`'s `vtordisp{-4,12}`
+thunks (`00486c2e`, `00486c54`), and `is_targeted` is a folded `return 1` (`Buffer::is_pending_load@0041e0e0`).
+So a follow answers its leader's point. This crate walked past it.
+
+**`@moveadd`** (`tools/trace/tracer.c`, `crate::golden::Issued::MoveAdd`) is `@move` at `QUEUE_LAST`, the queue
+`WorldMap::on_right_up@008c7050:88` takes with shift held. It goes through the same `CommandManager::issue_move_to`.
+
+**The staging** (`tools/gamelog/golden/chapter63.cmd`), walked by this crate on run204's start. A Hoplite squad
+`0/6`–`0/8` stands on tile (60, 56), a Chariot `0/9` on (60, 60) 768 south of it, and a second squad `0/10`–`0/12`
+on (64, 56). Both squads follow the Chariot (620 and 622) and stand. On 660 `0/6`'s squad is shift-moved to (12384,
+12384), its list the follow alone. On 700 the Chariot walks south, and on 710 `0/10`'s squad, which holds a leg
+above its follow, is shift-moved to (13536, 13536). A call on trace frame F is on block F+2.
+
+**run827** (605..760, two takes). The first, without `BUILDS=7`, printed no `GROUPDATA`, and the runner refused
+it (parked 2146). The second, with `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`, held on lane 2: 761 frames in
+293 s. `issuesmatch.py --none-refused … 5`: five issue records, none refused. **The original queues a
+`GroupMoveOrder` (type 19) beneath the `FOLLOWORDER`**, and stacks the slot's point onto the unit's path (`+0xb8`,
+`Stack<PathData>::invert` under `QUEUE_LAST`). `unitat.py` prints neither order (parked 2145). The raw dump's
+block 662 has it. **The draws never part: the word is 760, the trace's end, and the chapter is closed on its first
+capture.**
+
+**The value diff, block 662**, without the arm (this crate's prior tree, `tools/mutate.py`):
+
+- `0/6`'s queued move: `angle` 1834745856 here against 1605566464 there, and the same on `group_angle`. `0/6`'s
+  own point (11640, 10872) gives the first bearing, and the Chariot's (11640, 11640) gives the second.
+- `0/7`: `y` 12456 against 12504, `off_y` 168 against 216, and `path[0].to` (12254, 12447) against (12282, 12486).
+- `0/8`: `y` 12312 against 12264, and `off_y` 24 against 744.
+- The pool's slot 2: `o_angle` 1834745856 against 1605566464.
+
+**Block 712**: `0/10`–`0/12`'s `angle` 1722810368, read from the leg's end (11976, 11352), against 1554448384,
+read from the Chariot. `facing` is 0 against 1. `0/11`'s and `0/12`'s slots are swapped: `x` 13416 against 13608,
+and the pool's `curr[1]`/`curr[2]` and `off[1]`/`off[2]` swapped too. 42 rows and 6 pool keys in all.
+
+**Built** (`crates/sim/src/group.rs`, `Sim::unit_final_loc`): `Body::Follow` answers its leader's point when the
+leader is `flags & 1`, as a guard does. With it, every row on 662 and 712 agrees. That holds under the leg too,
+since the walk starts at the bottom. The widening over run827 whole (605..761) leaves the eleven standing `form` rows
+(605). The pool parts nothing.
+
+**Mutation** (`tools/mutate.py`, the `Body::Follow` arm removed): held. `chapter_sixty_three_s_word_frame_is_
+widened_whole` fails (11 → 42 rows), and cargo exits 101. The draw word stays at 760: the queued moves never run,
+because the follows never end. A unit test, `get_final_loc_reads_a_follow_s_leader`, fails the same way.
+
+**Not established.**
+
+- The queued move under a follow never runs here. Nothing in the chapter kills a follow, and no staging verb
+  removes a leader. So what the unit does when its follow ends, with the move beneath it and the path already
+  stacked, is unread. The stack itself agrees on 662 and 712: `path[·].to` is compared, and this crate's `QUEUE_LAST`
+  reverse (`docs/GROUPS.md` §6.6 step 2) and its legs give the original's nodes.
+- `get_final_loc`'s other target orders: a `GarrisonOrder` is read through its building, and the rest of
+  `TargetOrder`'s family (vtordisp thunk displacements 4, 16, 20 and 24) is not named here.
+- `action_patrol`'s and `action_attack`'s `QUEUE_LAST` reads of `get_loc_to` are not staged.
+
+### 78.1 Coverage
+
+**Diff-backed** by run827's widening whole, with the mutation failing it:
+
+- `UnitData::get_final_loc@00608040`'s target arm on a `FOLLOWORDER`, through `GroupData::get_loc_to@0070c5d0`.
+- `Group::action_move_near@00704990`'s `QUEUE_LAST` arm, through `Group::action_move_to@0070fba0` and
+  `CommandPackage::process_move_to@009497c0`.
+- `Group::compute_form@00707c80`'s slots from that point, and `Unit::add_group_move_order@005e4710`'s queued order:
+  its point, angle, offsets, group angle and form id.
+
+**Diff-backed** by the same widening, compared and agreeing through 760:
+
+- `CommandPackage::process_follow@009479c0` → `Group::action_follow@006fd510` → `Unit::add_follow_order@005e3f60`
+  (620, 622).
+- `Unit::do_follow@005e65d0`'s standing and its legs (from 702).
+
+**Reading only**: `FollowOrder`'s vslot `+0x20`, which the thunks name and the angle confirms.
 
 ## 79. Reserved for the next item on the rules track
 
