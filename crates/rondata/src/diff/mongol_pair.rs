@@ -607,3 +607,54 @@ fn run838_s_word_frame_is_widened_whole() {
     // the counter clamps there on both sides (`docs/AI.md` section 217).
     pin_eq!(w.firsts.len(), 188, "run838 baseline");
 }
+
+/// run844: the pair's last blocks, 4940..5057 at the long's detail — six
+/// blocks before the word 4946's block 4947, and on to the game's closing
+/// block 5057 (item 2293).
+pub(crate) const RUN844: &str = "gamelog-run844-eastindies-mongol-alltech-window-4940-5057.txt";
+
+/// The window: block 4940 through the closing block 5057; the word 4946's
+/// own block is 4947.
+pub(crate) const WIDENING_MONGOL_CLOSING: (i64, i64) = (4940, 5057);
+
+/// **The pair's last blocks**: run844 walked from run774's start with the
+/// recorder on. The word 4946 closed at the game's end inside it (item
+/// 2293).
+pub(crate) fn mongol_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL.start],
+        true,
+        MONGOL.long,
+        "run844",
+        &[(RUN844, WIDENING_MONGOL_CLOSING.0)],
+        WIDENING_MONGOL_CLOSING,
+        1,
+        &[4947],
+        true,
+    )
+}
+
+#[test]
+fn run844_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 117, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 2293, the first walk: 225 keys, 186 standing on 4940 (the
+    // pair's standing rows, `1/93`'s point and `1/176`'s `mirror` among
+    // them). Past them: the `attrition`/`damage_frac` family on who=1's
+    // units (`1/20` on 4941, ours 6 against 0; `1/17`, `1/21`, `1/64`,
+    // `1/27`, `1/104`), group 64's `held` on 4972, `1/176`'s point on 4977
+    // and `1/191`'s order on 5009. The word 4946's block 4947 parts no key
+    // of its own; the draw stream agrees to 5056 (`docs/AI.md` section
+    // 217).
+    pin_eq!(w.firsts.len(), 225, "run844 baseline");
+}

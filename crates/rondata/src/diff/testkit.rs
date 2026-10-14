@@ -6963,6 +6963,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("mongol_pair_first_parting", 923),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
+    // run844 (item 2293): the pair's last blocks, 4940..5057.
+    ("run844_s_closing_frame_is_widened_whole", 923),
     // Great Sahara in the successor pair's lobby (item 2107): its walk.
     // Item 2107: 193 -> 204, the walk past 2995 to the game's end.
     ("sahara_mongol_first_parting", 204),
@@ -9073,10 +9075,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // keeps 1354's value diff); item 1768 widened 2207 on run780 over
         // 2201..2457 (block 2208); item 1845 built `think_carry`'s worker arm
         // and the word moved 2207 -> 2838, past run780 (its test keeps
-        // 2207's value diff: 897 -> 136 keys); item 1848 owes 2838's widening.
-        None,
-        1848,
-        None,
+        // 2207's value diff: 897 -> 136 keys). Item 2293 moved it 4946 ->
+        // **5056**, the game's last frame (`train_time`'s Socialism arm):
+        // run844 widens the last blocks over 4940..5057 (the word's block
+        // 4947, on to the closing block), and the closing state is scored by
+        // `run775_mongol_pair_closing_state`.
+        Some("run844_s_closing_frame_is_widened_whole"),
+        2293,
+        Some(crate::diff::mongol_pair::WIDENING_MONGOL_CLOSING),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

@@ -4855,6 +4855,13 @@ run838's first block. Names the closing pin and no draw word.
 is built and its test holds it. Dropped, it failed nothing on the successor pair's walk. No capture shows a Stable
 unit finishing under Monarchy on a different frame. Both tiers' constants are 25, so the tier is numerically inert.
 
+(2296) **run844's residue past its standing block** (2293; `docs/AI.md` §217.4; `run844_s_closing_frame_is_widened_whole`,
+225 keys). Ours charges `attrition` 6 (12 on `1/104`) where theirs charges 0 on who=1's units `1/20` (4941), `1/17`
+(4944), `1/64` (4961), `1/27` (4966) and `1/104` (5017). A hit point follows each, `hits_left` one under theirs, which
+is 2137's shape on Great Sahara. Group 64's `held` is `[37]` against none on 4972. `1/176`'s point is (19570, 18270)
+against (19566, 18267) on 4977, its standing `mirror`'s wake. `1/191`'s `orders.len` is 0 against 1 on 5009. The
+draw stream agrees to the end; these name the widening's pin only.
+
 ## Parked by the next landing, slot BP — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief

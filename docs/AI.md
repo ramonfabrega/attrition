@@ -20421,8 +20421,18 @@ against 42552) and `1/176`'s `mirror` from 4702. The coverage pair's closing sta
 
 **What the closed word owes**: the `AI_WORDS` row closed (`endpoint: run775_mongol_pair_closing_state`). run838's
 window is renamed `mongol_frame_4603_window`, a closed word's window the coverage driver still walks. The last blocks
-are run 844, 4940..5057: six blocks before 4946's block 4947, on to the closing block. Its test and its `WIDENINGS`
-row are below once it lands.
+are **run844**, 4940..5057: six blocks before 4946's block 4947, on to the closing block. Its draw stream matches
+run775 on all 5057 frames. `run844_s_closing_frame_is_widened_whole` holds 225 keys, 186 of them standing on 4940.
+Block 4947 parts no key of its own. Past the standing rows are:
+
+- the `attrition`/`damage_frac` family on who=1's units, ours 6 against 0: `1/20` from 4941, then `1/21`, `1/17`,
+  `1/64`, `1/27` and `1/104`;
+- group 64's `held` on 4972;
+- `1/176`'s point on 4977, 4 and 3 apart;
+- `1/191`'s order on 5009.
+
+Parked 2296. The `WIDENINGS` row names it (`WIDENING_MONGOL_CLOSING`), and the coverage driver walks
+`mongol_closing_window`.
 
 **Not established**: the Monarchy arm's second tier against a capture. Both constants are 25, so the tier is
 numerically inert. The unit wonders after the arms (Liberty on land, Porcelain on ships, the Space Program on
