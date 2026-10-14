@@ -473,6 +473,7 @@ mod object_data_hits_left;
 mod object_data_is_active_build;
 mod object_data_is_cargo;
 mod object_data_is_dock;
+mod object_data_is_in_range;
 mod object_data_is_in_range_margin;
 mod object_data_is_in_range_this;
 mod object_data_is_infiltrated;
