@@ -1113,6 +1113,7 @@ ARGEQ = {argeq!r}
 SEQ = {seq!r}
 ANSRANGE = {ansrange!r}
 CELLTHIS = {cellthis!r}
+VTALSO = {vtalso!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1259,6 +1260,11 @@ def main(argv):
             # The stubbed vtable laid in a window: a slot of an object the
             # function reaches through a table, not of `this` (item 2170).
             win, off = VTAT
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = vt.to_bytes(4, "little")
+        for win, off in VTALSO:
+            # The stubbed vtable laid in a window as well, `this` keeping it:
+            # a record the function reaches whose slots it asks too (item 2217).
             w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
             w[off:off + 4] = vt.to_bytes(4, "little")
         for idx, win, off in ARGEQ:
@@ -1432,7 +1438,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=()):
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1489,6 +1495,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pthis = [int(v, 0) for v in cell_this]
     if set(pthis) & {va for va, _ in pcells}:
         raise ValueError('--cell-this names a cell --cell-win gives a record of its own')
+    palso = []
+    for v in vtat_also:
+        awin, plus, aoff = v.partition('+')
+        if not (plus and re.fullmatch(r'm|c\d+|p\d+', awin)):
+            raise ValueError(f'--vtat-also is m+OFF, cN+OFF or pN+OFF, not {v!r}')
+        if not any(k == 'slot' for k, _, _ in pstubs):
+            raise ValueError('--vtat-also lays the stubbed vtable: it needs a --stub slot:OFF:N')
+        palso.append((awin, int(aoff, 0)))
     pvtat = None
     if vtat is not None:
         vwin, plus, voff = vtat.partition('+')
@@ -1505,7 +1519,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis):
+            or pseq or pansr or pthis or palso):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if cdecl:
@@ -1532,6 +1546,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'stub {idx} answers {n} values in call order, printed after the answers' for idx, n in pseq]
         + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
         + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
+        + [f'the stubbed vtable laid at `{w}+{o:#x}` as well as at `this`'.replace('+0x0`', '+0`')
+           for w, o in palso]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
             if pecx[0] == 'range' else f'`ecx` an integer in {pecx[1]}, not the object, the row\'s last']
            if pecx else [])) or 'no windows'
@@ -1540,7 +1556,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
-                                   seq=pseq, ansrange=pansr, cellthis=pthis)
+                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1721,6 +1737,9 @@ def main(argv=None):
     ap.add_argument('--cell-this', action='append', default=[], metavar='VA',
                     help='obj: the global cell at VA holds `this` itself, so a method that reads the global '
                          'as well as its object sees one object (item 2217)')
+    ap.add_argument('--vtat-also', action='append', default=[], metavar='WIN+OFF',
+                    help='obj: the stubbed vtable laid at this word of window m, cN or pN as well, `this` '
+                         'keeping it (a record whose slots the function asks beside its own; item 2217)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1742,7 +1761,7 @@ def main(argv=None):
                                                     answer_wins=args.answer_win, cdecl=args.cdecl,
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
-                                                    cell_this=args.cell_this)
+                                                    cell_this=args.cell_this, vtat_also=args.vtat_also)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:

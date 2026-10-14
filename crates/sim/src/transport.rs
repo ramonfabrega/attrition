@@ -542,10 +542,8 @@ impl Sim {
     /// `ObjectData::is_cargo@00653600`: an on-map unit whose type is a unit
     /// type in `0x32..=0x19d` of the **land** domain. What can ride a boat.
     fn is_cargo(&self, u: usize) -> bool {
-        let ti = self.units[u].type_index;
         self.units[u].on_map
-            && (0x32..=0x19d).contains(&ti)
-            && self.unit_domain_of(u) == Domain::Land
+            && cargo_type(self.units[u].type_index, self.unit_domain_of(u) == Domain::Land)
     }
 
     /// `Unit::think_civilian_transport(colonise)@005f40d0` (§7) — the AI's
@@ -1940,6 +1938,13 @@ impl Sim {
         }
         false
     }
+}
+
+/// `ObjectData::is_cargo`'s test on the type of a unit on the map, with
+/// `ObjectTypeData::is_cargo` and `TypeData::is_unit_type` the base ones:
+/// a unit type id `0x32..=0x19d` whose domain (`+0x218`) is land.
+pub(crate) fn cargo_type(type_index: i32, land: bool) -> bool {
+    (0x32..=0x19d).contains(&type_index) && land
 }
 
 #[cfg(test)]

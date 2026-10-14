@@ -273,6 +273,23 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
                                    cells=['0xc06188:4'], cell_this=['0xc06188'])
 
+    def test_the_stubbed_vtable_may_serve_this_and_a_placed_record(self):
+        # Item 2217: `ObjectData::is_cargo` asks `this`'s slot `+0xbc` and then
+        # its type record's slots `+0xc` and `+0x12c`; `--vtat` moves the one
+        # stubbed vtable off `this`. `--vtat-also WIN+OFF` lays it in the
+        # window as well, `this` keeping it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x20, bias=[], own=0,
+            places=['m+0x18:0:0x220'], stubs=['slot:0xbc:0', 'slot:0xc:0'], vtat_also=['p0+0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("VTALSO = [('p0', 0)]", script)
+        self.assertIn('for win, off in VTALSO:', script)
+        self.assertIn('VTAT = None', script)
+        self.assertIn('the stubbed vtable laid at `p0+0` as well as at `this`', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   places=['m+0x18:0:8'], vtat_also=['p0+0'])
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,

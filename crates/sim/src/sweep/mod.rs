@@ -656,3 +656,4 @@ mod world_set_blocked_at;
 mod unit_data_in_supply;
 mod city_fix_world_vals;
 mod world_set_road_at;
+mod object_data_is_cargo;
