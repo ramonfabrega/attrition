@@ -10379,7 +10379,10 @@ retaliation ends without a chase.
 
 `local_24` is set, from the listing, at `64911b`–`64918d`:
 
-- the unit's combat stance (vslot `+0xf4`) is 2, STAND_GROUND; or
+- the unit's combat stance (vslot `+0xf4`) is 2, STAND_GROUND — and that is
+  **every packer**, packed or not, since `get_combat_stance@00610a30` answers
+  STAND_GROUND for a type without combat stances (item 2265, `docs/GOLDEN.md`
+  §82; this crate had a packed human engine deemed in range); or
 - `unit_masks & 0x2000000` with `unit_masks2 & 0x20000` clear (entrenched
   without the Antipater bit); or
 - the type packs (`+0x2b8 & 4`) and the unit is **unpacked**

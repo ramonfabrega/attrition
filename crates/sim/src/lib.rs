@@ -1981,10 +1981,16 @@ impl Sim {
         // (item 2265, `docs/GOLDEN.md` §82): the Catapult `0/9`'s idle
         // search on tick 776 runs `find_nearby_target(0xc00, …)` — no
         // AGGRESSIVE `+0x180` — and never reaches the Small City at 2781.
-        if self.units[i]
-            .ty
-            .is_some_and(|t| self.type_stance_type(t) != crate::stance::StanceType::Combat)
-        {
+        // The predicate is `UnitTypeData::get_stance_type@0061d350`'s
+        // `Combat` arm: `role & MILITARY` and not `unit_flags2 & 4`. The
+        // loader fills the profile's `combat_role` and `packs` from those
+        // two columns, and a hand-built type may set either spelling.
+        if self.units[i].ty.is_some_and(|t| {
+            let ty = &self.unit_types[t];
+            let military = ty.combat.combat_role || ty.cols.is(crate::ai_load::role::MILITARY);
+            let packs = ty.combat.packs || ty.cols.flag2(crate::ai_load::uflags2::PACKS);
+            !military || packs
+        }) {
             self.units[i].combat.stance = crate::combat::Stance::StandGround;
         }
         if source {

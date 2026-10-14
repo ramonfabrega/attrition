@@ -3938,6 +3938,7 @@ mod tests {
                     uber_size: 1,
                     block_radius: 48,
                     big_radius: 48,
+                    combat_role: true,
                     ..crate::combat::Profile::default()
                 },
                 ..UnitType::default()
