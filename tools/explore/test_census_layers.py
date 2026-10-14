@@ -113,10 +113,13 @@ class TheUnbackedList(unittest.TestCase):
             (0x50, 'Render::draw', M + 'game\\rendersystem.cpp', 10),
             (0x60, 'Unit::hits', sim, 80),
         ]
-        rows = census.rank_unbacked(entries, backed={0x40}, port={'is_tank', 'hits'})
+        # Loop 2286 (the thirty-fourth pass): `port` needs the crate to spell
+        # the function's own `Class::method`; a name match alone is `name`.
+        rows = census.rank_unbacked(entries, backed={0x40}, port={'is_tank', 'hits'},
+                                    spelled={'Unit::hits'})
         self.assertEqual([(r[2], r[3]) for r in rows],
                          [('Unit::hits', 'port'), ('TCoord::operator<', 'operator'),
-                          ('Unit::get_captain', '-'), ('Unit::is_tank', 'port')])
+                          ('Unit::get_captain', '-'), ('Unit::is_tank', 'name')])
         self.assertEqual(rows[0][0], 80)
         self.assertEqual(rows[1][4], 'coord.h')
 
