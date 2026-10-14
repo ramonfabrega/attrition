@@ -7876,9 +7876,7 @@ impl Sim {
             |n, k, v| n[k as usize] = v,
             |_, k| {
                 let u = list[k as usize];
-                self.units[u].alive()
-                    && self.is_gathering_at(u, b, false)
-                    && self.units[u].on_map
+                self.units[u].alive() && self.is_gathering_at(u, b, false) && self.units[u].on_map
             },
         );
         let mut keep = Vec::new();
@@ -7920,7 +7918,11 @@ impl Sim {
             || unit.inside == Some(b),
             strict,
             worker != Worker::None,
-            || match self.action_of(u).and_then(|i| unit.orders.get(i)).map(|o| o.body) {
+            || match self
+                .action_of(u)
+                .and_then(|i| unit.orders.get(i))
+                .map(|o| o.body)
+            {
                 Some(Body::Gather(g)) => Some((g.building == b, i32::from(g.been_there))),
                 _ => None,
             },

@@ -4741,6 +4741,70 @@ pub(crate) const fn turret_near(a: i32, b: i32) -> bool {
     d < 0x0aaa_aaaa
 }
 
+/// **`Unit::set_attacking@005ff5b0`'s own bytes** (item 2287): `flags |=
+/// 0x80` whatever follows; then, when the victim `who`'s bit of
+/// `visible` (`+0x40`, read sign-extended, `1 << who`) is clear, the bit
+/// goes in and the answer is whether `who` could **not** already see the
+/// unit's half-cell (`WorldData::is_seen`, asked only then) — the caller
+/// lights the unit's disc (`vtable[0x164]`) on a yes.
+pub(crate) fn attacking_bits(
+    flags: &mut u8,
+    visible: &mut u8,
+    who: crate::Player,
+    sees: impl FnOnce() -> bool,
+) -> bool {
+    *flags |= 0x80;
+    let bit = Sim::who_bit(who);
+    if *visible & bit != 0 {
+        return false;
+    }
+    let reveal = !sees();
+    *visible |= bit;
+    reveal
+}
+
+/// **`Object::valid_target@00648ba0`'s steps** (item 2287): the out-word
+/// zeroed; `valid_target_const` (vslot `+0x138`), refused on a no; a
+/// target that is not a capture-eligible city building (`flags & 1`,
+/// vslots `+0x20` and `+0x4c`, `check_capture_eligible`) is valid. For
+/// one, the out-word is 1, a missile asker (`type +0x1e4 & 0x8000000`)
+/// is answered yes, and otherwise the capture is tried (`check_capture`,
+/// the asker as captor), the out-word going back to 0 when it takes; the
+/// answer is then the armed-attack test alone — on the map, `VEHICLE`
+/// and `WAR_MACHINE`, on an `ATTACK` order naming exactly this target,
+/// mandatory.
+pub(crate) fn valid_target_steps<C>(
+    cx: &mut C,
+    mut out: Option<&mut i32>,
+    is_const: impl FnOnce(&mut C) -> bool,
+    eligible: impl FnOnce(&mut C) -> bool,
+    missile: impl FnOnce(&mut C) -> bool,
+    capture: impl FnOnce(&mut C) -> bool,
+    armed_attack: impl FnOnce(&mut C) -> bool,
+) -> bool {
+    if let Some(o) = out.as_deref_mut() {
+        *o = 0;
+    }
+    if !is_const(cx) {
+        return false;
+    }
+    if !eligible(cx) {
+        return true;
+    }
+    if let Some(o) = out.as_deref_mut() {
+        *o = 1;
+    }
+    if missile(cx) {
+        return true;
+    }
+    if capture(cx)
+        && let Some(o) = out
+    {
+        *o = 0;
+    }
+    armed_attack(cx)
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -8917,68 +8981,4 @@ mod tests {
             "idle"
         );
     }
-}
-
-/// **`Unit::set_attacking@005ff5b0`'s own bytes** (item 2287): `flags |=
-/// 0x80` whatever follows; then, when the victim `who`'s bit of
-/// `visible` (`+0x40`, read sign-extended, `1 << who`) is clear, the bit
-/// goes in and the answer is whether `who` could **not** already see the
-/// unit's half-cell (`WorldData::is_seen`, asked only then) — the caller
-/// lights the unit's disc (`vtable[0x164]`) on a yes.
-pub(crate) fn attacking_bits(
-    flags: &mut u8,
-    visible: &mut u8,
-    who: crate::Player,
-    sees: impl FnOnce() -> bool,
-) -> bool {
-    *flags |= 0x80;
-    let bit = Sim::who_bit(who);
-    if *visible & bit != 0 {
-        return false;
-    }
-    let reveal = !sees();
-    *visible |= bit;
-    reveal
-}
-
-/// **`Object::valid_target@00648ba0`'s steps** (item 2287): the out-word
-/// zeroed; `valid_target_const` (vslot `+0x138`), refused on a no; a
-/// target that is not a capture-eligible city building (`flags & 1`,
-/// vslots `+0x20` and `+0x4c`, `check_capture_eligible`) is valid. For
-/// one, the out-word is 1, a missile asker (`type +0x1e4 & 0x8000000`)
-/// is answered yes, and otherwise the capture is tried (`check_capture`,
-/// the asker as captor), the out-word going back to 0 when it takes; the
-/// answer is then the armed-attack test alone — on the map, `VEHICLE`
-/// and `WAR_MACHINE`, on an `ATTACK` order naming exactly this target,
-/// mandatory.
-pub(crate) fn valid_target_steps<C>(
-    cx: &mut C,
-    mut out: Option<&mut i32>,
-    is_const: impl FnOnce(&mut C) -> bool,
-    eligible: impl FnOnce(&mut C) -> bool,
-    missile: impl FnOnce(&mut C) -> bool,
-    capture: impl FnOnce(&mut C) -> bool,
-    armed_attack: impl FnOnce(&mut C) -> bool,
-) -> bool {
-    if let Some(o) = out.as_deref_mut() {
-        *o = 0;
-    }
-    if !is_const(cx) {
-        return false;
-    }
-    if !eligible(cx) {
-        return true;
-    }
-    if let Some(o) = out.as_deref_mut() {
-        *o = 1;
-    }
-    if missile(cx) {
-        return true;
-    }
-    if capture(cx)
-        && let Some(o) = out.as_deref_mut()
-    {
-        *o = 0;
-    }
-    armed_attack(cx)
 }

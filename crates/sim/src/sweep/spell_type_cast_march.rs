@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -50,10 +55,15 @@ fn the_emulated_original_agrees_on_every_row() {
             let who = a[1] as usize;
             let h = i16::from_le_bytes([p[4][0x86], p[4][0x87]]) as usize;
             let frame = rd(&p[2], 0);
-            let end = frame.wrapping_add(crate::cast::march_extent(rd(m, 0x1d4), rd(m, 0x1d8), a[2]));
+            let end =
+                frame.wrapping_add(crate::cast::march_extent(rd(m, 0x1d4), rd(m, 0x1d8), a[2]));
             let count = rd(&p[6 + h], 8);
             log.push(if count >= rd(&p[6 + h], 0xc) {
-                format!("p{}+0x4,{}", 6 + h, i16::from_le_bytes([p[6 + h][0x10], p[6 + h][0x11]]))
+                format!(
+                    "p{}+0x4,{}",
+                    6 + h,
+                    i16::from_le_bytes([p[6 + h][0x10], p[6 + h][0x11]])
+                )
             } else {
                 "-".into()
             });
@@ -66,11 +76,18 @@ fn the_emulated_original_agrees_on_every_row() {
             wr(&mut p[4], 0x68, v);
             let v = rd(&p[who], 0) | 0x8000;
             wr(&mut p[who], 0, v);
-            log.push(if rd(&p[14], 0) == a[1] { format!("{},47", a[1]) } else { "-".into() });
+            log.push(if rd(&p[14], 0) == a[1] {
+                format!("{},47", a[1])
+            } else {
+                "-".into()
+            });
             0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "cast_march — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "cast_march — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "cast_march — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

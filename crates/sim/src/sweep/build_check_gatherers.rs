@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -54,7 +59,12 @@ fn the_emulated_original_agrees_on_every_row() {
             let r = crate::orders::prune_chain(
                 &mut links,
                 &mut head,
-                |l, k| i32::from(i16::from_le_bytes([l[9 + k as usize][0x92], l[9 + k as usize][0x93]])),
+                |l, k| {
+                    i32::from(i16::from_le_bytes([
+                        l[9 + k as usize][0x92],
+                        l[9 + k as usize][0x93],
+                    ]))
+                },
                 |l, k, v| l[9 + k as usize][0x92..0x94].copy_from_slice(&(v as i16).to_le_bytes()),
                 |_, k| {
                     let mut ask8 = || {
@@ -79,18 +89,33 @@ fn the_emulated_original_agrees_on_every_row() {
             if i16::from_le_bytes([m[0x70], m[0x71]]) >= 0 {
                 m[0x70..0x72].copy_from_slice(&(head as i16).to_le_bytes());
             }
-            log.push(if gath.is_empty() { "-".into() } else { gath.join("/") });
+            log.push(if gath.is_empty() {
+                "-".into()
+            } else {
+                gath.join("/")
+            });
             i64::from(r)
         };
         assert_eq!(got, want_eax, "check_gatherers — eax, row `{line}`");
-        assert_eq!(log, want_log, "check_gatherers — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "check_gatherers — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "check_gatherers — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "check_gatherers — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "check_gatherers — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "check_gatherers — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "check_gatherers — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

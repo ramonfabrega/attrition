@@ -1123,6 +1123,14 @@ mod decoy_type_tests {
     }
 }
 
+/// **`SpellType::cast_march@00671500`'s span** (item 2287): the
+/// `ActiveSpell` it appends ends `duration (+0x1d4) + general_upgrade ×
+/// duration_upgrade (+0x1d8)` frames past the frame it is cast on, in the
+/// original's 32-bit arithmetic.
+pub(crate) fn march_extent(duration: i32, duration_upgrade: i32, level: i32) -> i32 {
+    duration.wrapping_add(level.wrapping_mul(duration_upgrade))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::tech::{TypeDef, UnitTraits};
@@ -1223,12 +1231,4 @@ mod tests {
         assert_eq!(s.unit_mana(general), 1200, "(20 + 100) × 1000 / 100");
         assert_eq!(s.unit_mana(filler), 1000, "only a General's pool");
     }
-}
-
-/// **`SpellType::cast_march@00671500`'s span** (item 2287): the
-/// `ActiveSpell` it appends ends `duration (+0x1d4) + general_upgrade ×
-/// duration_upgrade (+0x1d8)` frames past the frame it is cast on, in the
-/// original's 32-bit arithmetic.
-pub(crate) fn march_extent(duration: i32, duration_upgrade: i32, level: i32) -> i32 {
-    duration.wrapping_add(level.wrapping_mul(duration_upgrade))
 }
