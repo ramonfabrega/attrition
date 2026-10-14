@@ -674,6 +674,9 @@ impl Sim {
         // group as its own — the count, `get_unit(0)` and the join.
         if let Some(p) = self.army_pool_record(who, slot) {
             let s = self.armies[who as usize].list[slot].group.pool;
+            if std::env::var("RON_PROBE_2117").is_ok() {
+                eprintln!("PROBE2117 f{} adopt u{u} who {who} slot {slot} pool {s:?} pushed {p} list {:?} army_units {:?} num_units {}", self.frame, self.pushed[p].list, self.armies[who as usize].list[slot].units, self.armies[who as usize].list[slot].num_units);
+            }
             let first = self.pushed[p]
                 .list
                 .iter()
