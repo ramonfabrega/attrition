@@ -4854,13 +4854,20 @@ are the enum's (`TransportType`: scout 1, military 2, civilian 3, read off the P
 has the same shape with `(0x15f, 1)`, `(0x1bf, 1)` and `(0x208, 1)`. Both are swept with `--record` holding the pairs;
 no port reads either yet.
 
-## Parked by the next landing, slot BN — reserved
+## Parked by item 2287, 2026-10-14 — the second sweep lane's ten
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2288) **`ObjectData::is_in_range@0064e4a0`, the four-coordinate overload, has no port** (2287; names no score).
+Its census `port` mark is a name collision with the `006486b0` overload, which `air.rs` alone cites. The third
+collision on Loop 2286's row.
+
+(2289) **The no-argument `Farms::add_animals@008d92d0` has no port** (2287; names no score). Its name matches the
+per-farm `add_animals@008d8f30`, whose port is real and still unbacked by a sweep.
+
+(2290) **`Build::find_city@00628180` answers the town's building index; the port answers a city index** (2287;
+names no score). A sweep's helper waits on settling which representation the port carries.
+
+(2291) **Unused.** `Caravan::trade_value`'s `edx` twin is still owed one: no second `edx` function came up in 2287's
+batch.
 
 ## Parked by the next landing, slot BO — reserved
 
