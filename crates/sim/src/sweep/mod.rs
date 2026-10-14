@@ -702,6 +702,7 @@ mod unit_data_is_cloaked;
 mod unit_data_is_detected;
 mod unit_data_is_fleeing;
 mod unit_data_is_flying_high;
+mod unit_data_is_flying_low;
 mod unit_data_is_gathering_at;
 mod unit_data_is_idle;
 mod unit_data_is_modern_infantry;
