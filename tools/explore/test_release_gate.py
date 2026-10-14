@@ -355,11 +355,20 @@ class GateTests(unittest.TestCase):
         source='\n'.join(p.read_text() for p in [
             root/'crates/rondata/src/diff/floors.rs',
             root/'crates/rondata/src/diff/endpoint.rs',
+            root/'crates/rondata/src/census.rs',
             root/'crates/sim/src/docs_guard.rs'])
         for name in gate.COMMANDERS_LINES:
             self.assertIn(f'fn {name}()', source, name)
         guard=(root/'tools/guard.sh').read_text()
         self.assertIn('RON_LANE', guard)
+
+    def test_the_census_s_pin_is_one_of_the_commander_s_lines(self):
+        # Loop 2367 (the thirty-fourth pass): two sweep lanes re-pinned
+        # `census::SIMULATION_BACKED` in the same landing and seven of the
+        # thirteen merges of one commander session backed out on it. The
+        # shared pin is the commander's at booking, so its red is forgiven on
+        # a lane, like the queue's lines.
+        self.assertIn('the_census_s_simulation_share_is_pinned', gate.COMMANDERS_LINES)
 
     def test_every_test_that_reads_the_handoff_is_one_of_the_commander_s_lines(self):
         # The other direction (the nineteenth pass): a handoff guard added

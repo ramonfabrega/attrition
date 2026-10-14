@@ -140,6 +140,12 @@ COMMANDERS_LINES = (
     'the_handoff_s_successor_pair_is_the_pinned_word',
     'the_handoff_s_peace_pair_is_the_pinned_word',
     'the_handoff_s_census_is_the_pinned_share',
+    # The census's own pin (Loop 2367, the thirty-fourth pass): two sweep
+    # lanes re-pinned `census::SIMULATION_BACKED` in the same landing and
+    # seven of thirteen merges backed out on it. The shared pin is the
+    # commander's at booking, with the `Census:` line; a lane reports the
+    # count it measured.
+    'the_census_s_simulation_share_is_pinned',
 )
 # **The lane gate's suite** (1567): the timed tests over this many seconds
 # alone are the booking gate's. The file is the twenty-seventh pass's

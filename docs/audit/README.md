@@ -315,6 +315,49 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.
+## The brief checklist, from the thirty-fourth pass
+
+The thirty-fourth tranche (DECISIONS 71): twenty-three landings on four
+Opus 5.5 medium lanes in 6 h 04 min from the first booking, 7.07 USD and
+36.3 minutes waiting a landing. The pass added these rows, each from the
+tranche's own journals.
+
+- **A leader row on the word's block: `diff` the dump's whole
+  `LEADERDATA` across the block, unread fields included** (2292, 2259's
+  Loop line): 4671's booked lead was the effect; the one-line diff named
+  `wonder_mark` and `num_buildings`, both fields the coverage pin lists
+  as unread.
+- **A birth on the word's frame: `RON_DEBUG_BUILDS` over `<word−1>–<word>`
+  names the queue that emptied, before guessing the building** (2319,
+  2293's Loop line): 4946's booking guessed the Airbase from a standing
+  row that was a sibling of the cause.
+- **A packet for a decision first printed on block N is taken at
+  `RON_STATE_FRAME=N−1`** (2303, 2265's Loop line): the brief's "at the
+  word's own frame" cost run842 a second take; `docs/EMULATOR.md` §8
+  had the rule.
+- **No capture while a packet or widening of the game on disk answers the
+  arm** (2330, 2304's Loop line): two packets answered chapter sixty-six
+  without run 845, and a closed chapter's widening held 126 rows no word
+  sees.
+- **An arm the AI track built: grep its constant's every reader in the
+  export, port or park each, before staging** (2356, 2331's Loop line):
+  Monarchy's train arm had a cost twin one listing away, unported, found
+  when the staged unit's price parted.
+- **A sweep subagent's scratch goes under the job's tmp, named by
+  function, never `/tmp`** (2373, 2341's Loop line): one subagent ran a
+  sibling's break script against the sibling's worktree.
+- **The census's backed column is reported, never re-pinned by a lane**
+  (2367, the commander's): `census::SIMULATION_BACKED` is the two sweep
+  lanes' shared pin and seven of thirteen merges backed out on it; the
+  commander pins it at booking and the lane gate forgives its red.
+- **`port` marks a consumer whose `Class::method` the crate spells;
+  `name` a name match alone** (2286, 2221's and 2276's Loop lines):
+  `BorderNodes::find` was marked a port consumer because something
+  defines a `fn find`.
+- **A backticked name is the compiler's and is dead weight** (2394,
+  2379's Loop line): the forty shortest rows of `--unbacked` were
+  initializers every lane read past by eye.
+
 ## The brief checklist, from the thirty-third pass
 
 The thirty-third tranche (DECISIONS 70): twenty-three landings on four

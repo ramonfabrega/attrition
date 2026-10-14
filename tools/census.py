@@ -431,6 +431,24 @@ def layers(index, docs, sim_src, pdb):
 PORT_FN = re.compile(r"\bfn ([a-z0-9_]+)\s*[(<]")
 
 
+SPELLED = re.compile(r"\b([A-Z][A-Za-z0-9]*::[a-z_][a-z0-9_]*)\b")
+
+
+def port_spellings(sim_src):
+    """Every `Class::method` the crate's text spells outside `sweep/` — a
+    `SEAM`, a doc comment, a citation: the original functions this crate
+    names as the thing it ports or leaves out (Loop 2286: a bare name match
+    marked `BorderNodes::find` a port consumer because something defines a
+    `fn find`)."""
+    out = set()
+    for p in glob.glob(os.path.join(sim_src, "**", "*.rs"), recursive=True):
+        if os.sep + "sweep" + os.sep in p:
+            continue
+        with open(p, errors="replace") as f:
+            out |= set(SPELLED.findall(f.read()))
+    return out
+
+
 def port_names(sim_src):
     """Every function name `crates/sim` defines outside `sweep/`: the names a
     port consumer of an original function would be spelled by (snake case
@@ -470,16 +488,19 @@ def default_pdb(here):
     return candidate if os.path.isfile(candidate) else beside
 
 
-def rank_unbacked(entries, backed, port):
+def rank_unbacked(entries, backed, port, spelled=()):
     """`(size, va, name, mark, file)` for every simulation function not yet
     backed, shortest decompile first (parked 1703: four batches wrote this
     lister as a scratch script). `entries` is `(va, name, source path,
     decompile size)`; `backed` the by-doc and by-sweep union; `port` the
-    names `crates/sim` defines. The mark says what the sweep lane wants to
-    know before it reads a function: `port` when this crate defines the
-    method's snake-case name (a consumer the sweep can run against — parked
-    1725), `operator` for a name the citation pattern spells with a symbol,
-    `-` otherwise."""
+    names `crates/sim` defines; `spelled` the `Class::method` names its text
+    carries. The mark says what the sweep lane wants to know before it
+    reads a function: `port` when this crate spells the function's own
+    `Class::method` and defines the method's snake-case name (a consumer the
+    sweep can run against — parked 1725; Loop 2286: the class, not the name
+    alone), `name` when only the snake-case name is defined somewhere,
+    `operator` for a name the citation pattern spells with a symbol, `-`
+    otherwise."""
     rows = []
     for va, name, path, size in entries:
         if layer_of(path) != "simulation" or va in backed:
@@ -489,8 +510,10 @@ def rank_unbacked(entries, backed, port):
             mark = "operator"
         elif is_dead_weight(name):
             mark = "skip"
-        elif snake(short) in port:
+        elif snake(short) in port and name in spelled:
             mark = "port"
+        elif snake(short) in port:
+            mark = "name"
         else:
             mark = "-"
         rows.append((size, va, name, mark, (path or "").rsplit("\\", 1)[-1]))
@@ -501,12 +524,20 @@ def rank_unbacked(entries, backed, port):
 # The name classes every sweep lane skipped by hand (parked 1861): a
 # destructor, a class's open/close/init/clear, a registration, a logger, a
 # compiler's dynamic initializer. None reads a value a port can be held to.
-DEAD_WEIGHT = re.compile(r"(^|::)(~|close|close_class|init|init_class|clear|reset|registration|"
+# The export spells an initializer `` `dynamic_initializer_for_'X'' ``, the
+# backtick first (Loop 2394: forty of them opened the default listing).
+DEAD_WEIGHT = re.compile(r"(^|::)`?(~|close|close_class|init|init_class|clear|reset|registration|"
                          r"log|log_data|log_state|dump|print|print_data|dynamic_initializer|"
                          r"dynamic_atexit|scalar_deleting|vector_deleting)")
 
 
 def is_dead_weight(name):
+    # A backticked name is the compiler's — an initializer, an atexit
+    # destructor, a `string'` — and its quoted part may carry a `::` of its
+    # own (`` `dynamic_initializer_for_'MiscAccess::intro'' ``), so it is
+    # read whole before the short name is cut (Loop 2394).
+    if name.startswith("`"):
+        return True
     cls, _, short = name.rpartition("::")
     constructor = bool(cls) and short == cls.rsplit("::", 1)[-1]
     return (constructor or short.startswith("one_time_") or bool(DEAD_WEIGHT.search("::" + short))
@@ -535,14 +566,15 @@ def unbacked(index, docs, sim_src, pdb, top, show_all=False):
     source = source_of(source_ranges(pdb), [e[0] for e in entries])
     entries = [(va, name, source.get(va), size) for va, name, _, size in entries]
     backed = (doc_backed(docs, by_name) | sweep_backed(sim_src, by_name))
-    rows = rank_unbacked(entries, backed, port_names(sim_src))
+    rows = rank_unbacked(entries, backed, port_names(sim_src), port_spellings(sim_src))
     shown = rows if show_all else worth_sweeping(rows)
     print(f"{'bytes':>6} {'function':52} {'mark':8} file")
     for size, va, name, mark, fname in shown[:top]:
         print(f"{size:6} {name + '@' + format(va, '08x'):52} {mark:8} {fname}")
     marks = Counter(r[3] for r in rows)
     print(f"\n{len(rows)} never-backed simulation functions: {marks.get('port', 0)} with a port "
-          f"consumer by name, {marks.get('operator', 0)} operators, {marks.get('skip', 0)} dead weight "
+          f"consumer (the crate spells the Class::method), {marks.get('name', 0)} matched by name alone, "
+          f"{marks.get('operator', 0)} operators, {marks.get('skip', 0)} dead weight "
           f"(destructors, close/init/clear, loggers, initializers"
           f"{'; shown' if show_all else '; hidden, --all shows them'}); the {min(top, len(shown))} "
           f"shortest shown (--top)")

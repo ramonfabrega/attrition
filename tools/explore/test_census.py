@@ -150,6 +150,54 @@ class PinnedTraces(unittest.TestCase):
         self.assertEqual(marks['World::adjust_fog'], '-')
         self.assertEqual([r[2] for r in census.worth_sweeping(rows)], ['World::adjust_fog'])
 
+    def test_a_backticked_initializer_is_dead_weight(self):
+        # Loop 2394 (2379's line, the thirty-fourth pass): the export spells
+        # the compiler's initializers `` `dynamic_initializer_for_'X'' `` and
+        # the pattern matched them only after `^` or `::`, so the forty
+        # shortest rows of `--unbacked` were initializers every lane read
+        # past by eye.
+        entries = [(0x10, "`dynamic_initializer_for_'profile_init''", 'c:\\rise\\game\\profile.cpp', 40),
+                   (0x20, "`dynamic_atexit_destructor_for_'profile_init''", 'c:\\rise\\game\\profile.cpp', 41),
+                   (0x25, "`dynamic_initializer_for_'MiscAccess::intro''", 'c:\\rise\\game\\miscaccess.cpp', 181),
+                   (0x30, 'World::adjust_fog', 'c:\\rise\\game\\world.cpp', 106)]
+        with patch.object(census, 'layer_of', return_value='simulation'):
+            rows = census.rank_unbacked(entries, set(), set())
+        marks = {name: mark for _, _, name, mark, _ in rows}
+        self.assertEqual(marks["`dynamic_initializer_for_'profile_init''"], 'skip')
+        self.assertEqual(marks["`dynamic_atexit_destructor_for_'profile_init''"], 'skip')
+        # The quoted name carries its own `::`, so the short name is `intro''`.
+        self.assertEqual(marks["`dynamic_initializer_for_'MiscAccess::intro''"], 'skip')
+        self.assertEqual([r[2] for r in census.worth_sweeping(rows)], ['World::adjust_fog'])
+
+    def test_the_port_mark_names_the_function_s_own_class(self):
+        # Loop 2286 (2221, 2276; the thirty-fourth pass): `BorderNodes::find`
+        # was marked `port` because this crate defines a `fn find` somewhere,
+        # and a sweep lane told to take port consumers took a function nobody
+        # ports. `port` now needs the crate to spell the function's own
+        # `Class::method`; a bare name match is `name`.
+        entries = [(0x10, 'BorderNodes::find', 'c:\\rise\\game\\borders.cpp', 120),
+                   (0x20, 'Caravan::trade_value', 'c:\\rise\\game\\caravan.cpp', 130),
+                   (0x30, 'World::adjust_fog', 'c:\\rise\\game\\world.cpp', 106)]
+        with patch.object(census, 'layer_of', return_value='simulation'):
+            rows = census.rank_unbacked(entries, set(), {'find', 'trade_value'},
+                                        spelled={'Caravan::trade_value'})
+        marks = {name: mark for _, _, name, mark, _ in rows}
+        self.assertEqual(marks['Caravan::trade_value'], 'port')
+        self.assertEqual(marks['BorderNodes::find'], 'name')
+        self.assertEqual(marks['World::adjust_fog'], '-')
+
+    def test_the_spelled_names_are_read_off_the_crate_outside_sweep(self):
+        # The same row: the spellings are every `Class::method` the crate's
+        # text carries outside `sweep/` — a SEAM, a doc comment, a citation.
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d)
+            (src / 'caravan.rs').write_text("// the original's `Caravan::trade_value@00612340` is read here\n")
+            (src / 'sweep').mkdir()
+            (src / 'sweep' / 'x.rs').write_text("// BorderNodes::find under the emulator\n")
+            spelled = census.port_spellings(str(src))
+        self.assertIn('Caravan::trade_value', spelled)
+        self.assertNotIn('BorderNodes::find', spelled)
+
     def test_the_pdb_default_resolves_the_main_checkout_from_a_worktree(self):
         # Parked 1792: `../game` is absent under `.claude/worktrees/`, so
         # every lane passed `--pdb <main checkout>/game/sbl/rise.pdb` by hand.

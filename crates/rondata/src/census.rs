@@ -57,6 +57,11 @@
 /// bytes `obj --deref` reads at the call;
 /// item 2368: 884 -> 894, the second sweep lane's ten with a port consumer, `Caravan::trade_value`'s eight
 /// windows among them, on `--regen`'s kept port block and `--seq`'s terminator).
+/// **The commander re-pins this constant in the booking commit** (Loop 2367,
+/// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
+/// thirteen merges backed out on it, and the lane gate forgives its red
+/// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
+/// `tools/census.py --layers` measures on its tree.
 pub const SIMULATION_BACKED: usize = 894;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
