@@ -1481,7 +1481,8 @@ here against the decompile on the predicates the implementation carries. The
 enum names come from the PDB's `OrderIndex` and `CombatStanceIndex`:
 combat stances are `AGGRESSIVE 0, DEFENSIVE 1, STAND_GROUND 2, RAID 3, RAZE 4,
 HOLD_FIRE 5`; `UnitData::get_combat_stance` is the unit's stance if its type's
-stance type is combat, else `STAND_GROUND`.
+stance type is combat, else `STAND_GROUND` (built by item 2265, `docs/GOLDEN.md`
+§82: until then this crate gave a packer, a worker and a caster AGGRESSIVE).
 
 ### 12.1 Validity — `ObjectData::valid_target_const(o, who)`
 
@@ -1697,7 +1698,9 @@ computer's land raider takes `+900,000` for a peasant or a caravan and
   otherwise.
 - **Stances**: AGGRESSIVE chases at respond range; DEFENSIVE ties the
   attack to a return point; STAND_GROUND ignores range in the search and
-  never chases; RAID weights civilians and never retaliates; RAZE prefers
+  never chases **off duty** (`fight@005fd4d0`, `005fe139`: `stance == 2 &&
+  !on_duty()` skips the chase, so an attack-move's packed siege still walks;
+  item 2265, `docs/GOLDEN.md` §82); RAID weights civilians and never retaliates; RAZE prefers
   buildings and never retaliates; HOLD_FIRE does nothing — **except under
   a mandatory order**, which skips every stance test in `Unit::do_attack`:
   `005f1b80:225`-`244` reads the order's `+0x1c` and jumps straight to
@@ -10376,7 +10379,10 @@ retaliation ends without a chase.
 
 `local_24` is set, from the listing, at `64911b`–`64918d`:
 
-- the unit's combat stance (vslot `+0xf4`) is 2, STAND_GROUND; or
+- the unit's combat stance (vslot `+0xf4`) is 2, STAND_GROUND — and that is
+  **every packer**, packed or not, since `get_combat_stance@00610a30` answers
+  STAND_GROUND for a type without combat stances (item 2265, `docs/GOLDEN.md`
+  §82; this crate had a packed human engine deemed in range); or
 - `unit_masks & 0x2000000` with `unit_masks2 & 0x20000` clear (entrenched
   without the Antipater bit); or
 - the type packs (`+0x2b8 & 4`) and the unit is **unpacked**

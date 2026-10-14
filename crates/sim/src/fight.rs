@@ -6479,6 +6479,9 @@ mod tests {
     #[test]
     fn a_captains_attack_on_a_building_re_searches_every_frame() {
         let (mut sim, ty) = at_war();
+        // A soldier (`role & MILITARY`): its combat stance is its own byte,
+        // not `get_combat_stance`'s STAND_GROUND default (item 2265).
+        sim.unit_types[ty].combat.combat_role = true;
         let bt = sim.add_build_type(crate::build::BuildType {
             x_size: 3,
             y_size: 3,
@@ -6548,6 +6551,9 @@ mod tests {
     fn a_candidate_in_another_region_is_taken_only_in_range() {
         use crate::world::Terrain;
         let (mut sim, ty) = at_war();
+        // A soldier (`role & MILITARY`): its combat stance is its own byte,
+        // not `get_combat_stance`'s STAND_GROUND default (item 2265).
+        sim.unit_types[ty].combat.combat_role = true;
         sim.nation[0].human = true;
         sim.nation[1].human = false;
         let land = sim.world.add_region(Terrain::Land);
@@ -6652,6 +6658,9 @@ mod tests {
     #[test]
     fn an_attack_move_passes_over_an_unarmed_building() {
         let (mut sim, ty) = at_war();
+        // A soldier (`role & MILITARY`): its combat stance is its own byte,
+        // not `get_combat_stance`'s STAND_GROUND default (item 2265).
+        sim.unit_types[ty].combat.combat_role = true;
         sim.nation[0].human = true;
         sim.nation[1].human = false;
         let bt = sim.add_build_type(crate::build::BuildType {
@@ -7114,9 +7123,12 @@ mod tests {
             None,
             "an unpacked packer's search took a foe inside its minimum"
         );
-        // Packed, the same engine need not reach, and it names the foe.
+        // Packed, the same engine must reach too: a packer's combat stance
+        // is `get_combat_stance`'s STAND_GROUND (`00610a30`), and
+        // `local_24` is set by `stance == 2` before the packer arm is read
+        // (item 2265, `docs/GOLDEN.md` §82).
         sim.units[me].combat.packed = true;
-        assert_eq!(sim.find_melee_target(me, -1), Some(Obj::Unit(near)));
+        assert_eq!(sim.find_melee_target(me, -1), None);
         sim.units[me].combat.packed = false;
         // The hit: an attack on the hitter, then on the engine's next
         // frame the attack is gone and the engine has not moved.
@@ -7146,14 +7158,17 @@ mod tests {
     /// **A computer's packed siege engine must reach what it takes**
     /// (twenty-fourth pass, group 10; A6 row 14): `local_24` and `local_5c`
     /// are set before `get_army`, so with the army shortcut failed the
-    /// ranked search still skips an out-of-range unit. A human's packed
-    /// engine, and the EASIEST computer's, take it untested.
+    /// ranked search still skips an out-of-range unit. ~~A human's packed
+    /// engine, and the EASIEST computer's, take it untested.~~ They skip it
+    /// too, through the stance: a packer reads `get_combat_stance`'s
+    /// STAND_GROUND, and `stance == 2` sets `local_24` for every packer
+    /// (item 2265, `docs/GOLDEN.md` §82).
     #[test]
     fn a_packed_computer_siege_engine_skips_what_it_cannot_reach() {
         for (case, human, difficulty, want) in [
             ("computer", false, 5, false),
-            ("human", true, 5, true),
-            ("easiest", false, 0, true),
+            ("human", true, 5, false),
+            ("easiest", false, 0, false),
         ] {
             let (mut sim, foe_ty) = at_war();
             sim.nation[0].human = human;
