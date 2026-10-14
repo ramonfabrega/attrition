@@ -16597,6 +16597,41 @@ Waited on another lane's capture: none. **What it holds**: `golden::chapter_sixt
 (**760**, the trace's end, closed) and `chapter_sixty_three_s_word_frame_is_widened_whole` (605..761, the eleven
 standing `form` rows, no pool row). run828 unused.
 
+## run838 — the successor pair: the word 4603's widening, blocks 4597..4852 (2026-10-13, item 2193, `att-2193`)
+
+`docs/AI.md` §214. **Disk gap** (parked 2176): item 2175 moved the word 4353 → 4603, past run820's last block (4488). run820's recipe
+with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 4860 --timeout 3600 --log-window
+4597 4853 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`, click-free lane 1 from the pool; `success`, 4861 frames, 1689 s launch to
+exit. `rngcmp.py rontrace-run775.log rontrace-run838.log`: **0 differing**. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run838-eastindies-mongol-alltech-window-4597-4854.txt`, 641,502,263 bytes,
+SHA-256 `42ca017cc0725e4caa695dd73689d368e9976b34b8386571f01586a20aa1ab82`.
+
+Archive `rontrace-run838.log`, 163,368,288 bytes,
+SHA-256 `4a72f379fecdc5818f1ef364e3d80a2e6825ee3d1c61e7f285c21e6bf1486e0c`.
+
+**What it holds**: `diff::mongol_pair::run838_s_word_frame_is_widened_whole` (blocks 4597..4852, `mongol_word_window`; run820's window
+renamed `mongol_frame_4238_window`), the coverage driver's `mongol_4603` window, and `mongol_pair_first_parting`'s walk to 4637.
+
+## run841 — the successor pair's group pool, blocks 4482..4606 (2026-10-14, item 2193, `att-2193`)
+
+`docs/AI.md` §214.3. **What the disk could not answer**: run838 parts on group 69's `facing` on 4603. Ours' last writes of that
+flag fall between run820 (to 4488) and run838 (from 4597), and no capture of this lobby has dumped `GROUPDATA`. run820's recipe with
+`GROUPS=1` added, `GUYS=4` as run827's second take had, and no `DEATHS` (Loop 2146: every `GROUPS=1` capture here carries
+`BUILDS=7`): `--map 18 --end-frame 4612 --timeout 3600 --log-window 4482 4606 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,
+LEADERS=9,GROUPS=1 --ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`,
+click-free lane 1; `success`, 4613 frames, 1183 s launch to exit, `groupdata_blocks` 63,488. `rngcmp.py` against run775: **0
+differing**. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run841-eastindies-mongol-alltech-groups-4482-4607.txt`, 412,721,646 bytes,
+SHA-256 `0fb8c5f4c0215ea4ee8059eb030bd481cf25effefa12376e5b514f0311987dd5`.
+
+Archive `rontrace-run841.log`, 155,673,344 bytes,
+SHA-256 `c7933f8adc26254c6570781573a701289909fcfcb9df103f6c30c4ea37eadb1b`.
+
+**What it holds**: group 69 (who 1, army 1) reads `facing 1` on 4482, 0 on 4513 and 1 on 4524 through 4606, with ours' list
+order. No test reads it.
 ## run835 — chapter sixty-four: two human Barks, a computer's, and a player's stance button (2026-10-14, item 2165, `att-2165`)
 
 `docs/GOLDEN.md` §79, `tools/gamelog/golden/chapter64.cmd` (10 staged lines, two `@stance`: the DLL's new verb 26,
@@ -16620,3 +16655,19 @@ exit. `issuesmatch.py --none-refused … 2`: both `@stance` lines issued, none r
 **What it holds**: `golden::chapter_sixty_four_holds_to_the_golden_word` (**637**, open; ours 6 draws, theirs 10)
 and `chapter_sixty_four_s_word_frame_is_widened_whole` (605..821, 401 rows: the eleven standing `form` rows and the
 wake of block 634's first target, parked 2166). run836 unused.
+
+## run839 — chapter sixty-four's packet at logger frame 634 (2026-10-14, item 2205, `att-2205`)
+
+`docs/GOLDEN.md` §80. **What the disk could not answer**: run835's dump prints `near` and the order a search adds,
+never `compare_target`'s value for a candidate, and the original's `0/7` on block 634 holds `near 1/6` beside an
+attack on `1/8`. run835's recipe less its two `@stance` lines (both past the end frame; the runner refuses a staged
+line beyond it), with `--end-frame 640 --log-window 630 638 --tracer-def RON_STATE_FRAME=634 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`, no `misc` detail.
+Pool lane 1, `success`, `settings_restored`, 53 s launch to exit, 641 frames, seed 12345. Kept in
+`~/ron-golden/run839/map-14/frame-snapshot.bin`, 815,750,012 bytes,
+SHA-256 `da978dbcc04dba035081700dcf047239443a95bbd2143681996704e4ac31e264`. Waited on another lane's capture: none.
+
+**What it holds**: `step4.py --entry 610bc0 --this 0b9a0cd4 --poke e37a8c=77845647` (`Unit::process` on `0/7`, the
+seed one roll past the frame's opening `c312e778`): `compare_target` returns 1023, 168, 9543 for `1/7`, `1/6`,
+`1/8`; `find_nearby_target(0x900, …)` adds the attack on `1/8`; `Unit::do_move+0x6e6` calls `change_target(8, 1, 7,
+1)`. No test reads it. run840 unused.

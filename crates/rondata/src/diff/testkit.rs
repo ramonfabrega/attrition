@@ -6382,8 +6382,10 @@ pub(crate) const WIDENING_CHAPTER_SIXTY_THREE: (i64, i64) = (605, 761);
 
 /// **Chapter sixty-four** (item 2165, `docs/GOLDEN.md` §79, run835): two
 /// human Barks, a computer's, a Trireme and a fishing boat, and a player's
-/// stance button twice.
-pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_FOUR: i64 = 637;
+/// stance button twice. **Closed at 820, the trace's end** (item 2205,
+/// `docs/GOLDEN.md` §80): 637 → 820, 6 draws against 10 on 637 — the
+/// Barks' sea arm of `compare_target` and the chase's retarget predicate.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_FOUR: i64 = 820;
 
 /// `chapter_sixty_four_s_word_frame_is_widened_whole`'s window.
 pub(crate) const WIDENING_CHAPTER_SIXTY_FOUR: (i64, i64) = (605, 821);
@@ -6942,7 +6944,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2077: 113 -> 516, the walk past 3835 to the word 4238.
     // Item 2088: 516 -> 524, past 4238.
     // Item 2175: 656 -> 688, the walk past 4353 to the word 4603.
-    ("mongol_pair_first_parting", 688),
+    // Item 2193: 688 -> 873, the walk past 4603 to the word 4637.
+    ("mongol_pair_first_parting", 873),
     // Great Sahara in the successor pair's lobby (item 2107): its walk.
     // Item 2107: 193 -> 204, the walk past 2995 to the game's end.
     ("sahara_mongol_first_parting", 204),
@@ -6956,6 +6959,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run809_s_word_frame_is_widened_whole", 181),
     // run820 (item 2088): the word 4238's window, 765 reads.
     ("run820_s_word_frame_is_widened_whole", 765),
+    // run838 (item 2193): the word 4603's window, 897 reads.
+    ("run838_s_word_frame_is_widened_whole", 897),
     // The same lobby walked to the word (items 1584, 1585): the nuke's
     // flight reads the five corners run702's window does.
     // Item 1726: the walk now reaches the word 3182, past the nuke's
@@ -8703,8 +8708,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_SIXTY_THREE),
     ),
     // Item 2165: run835, chapter sixty-four, the Bark's bit and a player's
-    // stance button; open at 637 (6 draws here, 10 there). The widening is
-    // run835 whole.
+    // stance button; open at 637 (6 draws here, 10 there), closed at 820
+    // by item 2205 (the trace's end). The widening is run835 whole.
     (
         "GOLDEN_WORD_CHAPTER_SIXTY_FOUR",
         GOLDEN_WORD_CHAPTER_SIXTY_FOUR,

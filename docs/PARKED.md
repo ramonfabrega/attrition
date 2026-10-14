@@ -3794,6 +3794,20 @@ guard, whose empty-list arm a `--wbias` set drew on ~1% of rows. Redrawn, the br
 brief-checklist row — "a break that passes is read against the draw before the code" — or `sweep_gen.py` printing
 each `--wbias` value's row share so a starved arm shows before the run. One reach.
 
+(2234) **A turn written around `unit_set_angle` drops `set_angle`'s group arm in silence** (2193's "for the
+Loop" line). `land_tail` turned the lander through `Movement::set_facing`, so army 1's `GroupData::facing` never
+toggled and the successor pair's word sat at 4603. `unit_set_angle`'s own doc lists the callers left out (`do_gather`,
+`fight`, `come_out`, …), and `seams.py --item` did not print it for a word named `set_anim`/`move_step`/`do_guard`.
+Candidate: a brief-checklist row for a mirror or `facing` parting — "list every original `Unit::set_angle` caller this
+crate reaches without `unit_set_angle`" — or `seams.py` printing a doc's left-out callers when the word's unit turns.
+One reach.
+
+(2240) **`step4.py` on one unit's `process` draws from the frame's opening seed** (2205's "for the Loop"
+line). The unit saw the seed some rolls past the opening; 2205's first packet run took the one-in-five's other
+branch in silence, and the second poked the seed by hand (8/3 draws first). Candidate: `--seed-after <n draws>`, or
+the walk's printed seed at the unit's draw, so a per-unit packet run says which roll it took, with a test made to
+fail first. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
@@ -4638,12 +4652,14 @@ places; each is a written file and none was regenerated.
 
 ## Parked by item 2165, 2026-10-14 — chapter sixty-four, the Bark's bit and a player's stance button
 
-(2166) **Chapter sixty-four's word 637, open (ours 6 draws, theirs 10)** (item 2165, `docs/GOLDEN.md` §79,
+(2166) ~~**Chapter sixty-four's word 637, open (ours 6 draws, theirs 10)** (item 2165, `docs/GOLDEN.md` §79,
 run835). The first value parting is block 634, `0/7`'s first target: here the Trireme `1/6`, the nearest; there
 the Bark `1/8`, which has shot `0/7` since 622 from 2,570 units off. Both sides spend `Unit::fight+0x9b0` for
 `0/7` on 634. 2165's hypothesis, not read: the original's idle Bark is handed its attacker (a `target_opportunity`
 or `took_hit` arm) where this crate takes the nearest; which caller hands it `1/8` is the next item's first read.
-Block 635's `0/6` is the same choice (Trireme here, fishing boat there).
+Block 635's `0/6` is the same choice (Trireme here, fishing boat there).~~ **Closed by item 2205**
+(`docs/GOLDEN.md` §80): the hypothesis died on the dump (no hit before 669); `compare_target`'s sea arm and the
+chase's retarget predicate, word 637 → 820.
 
 ## Parked by item 2170, 2026-10-13 — the sweep's fifty-fourth batch
 
@@ -4691,13 +4707,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BC — reserved
+## Parked by item 2193, 2026-10-14 — a landing leader turns its group's mirror
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2194) **The successor pair's word 4637: 37 draws each, index 0** (2193; `docs/AI.md` §214.5; the count parts at 4638).
+Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Unit::move_step+0x389`. The first row is on block 4637: the Citizen `1/8` (`TypeIndex` 50) holds its `BUILD` on `1/2073`
+(uid 374) in theirs and has none in ours (`orders.len` 1 against 0, `idle` on 4638). `1/2073`'s build clock has stood since
+run820's 4370 (`build:construct_hits` 315 against 313 there; on run838's 4597, 1134 against 1132 and `build:job_counter`
+61083 against 60983). The word is inside run838 (4597..4852), so no capture is owed. Its widening, every record on 4638 both
+ways, is `run838_s_word_frame_is_widened_whole`.
+
+(2195) **Four of group 83's helicopters part on `dest_angle` from 4608 to 4615 and spend no draw** (2193; names no score).
+`1/196`, `1/227`, `1/184`, `1/226`: ours, for example, −1707540480 against −541917184 on `1/227`. Theirs reads the guard's
+outward bearing on three of them. Not read.
+
+(2196) **`land_tail`'s toggle names no `buildings` group** (2193; names no score). `Unit::set_angle@00605400` asks
+`list[0]` instead of `find_leader` when the group's `buildings` byte is set. `is_group_leader` asks `find_leader` alone, in
+both of its callers. No capture has had a building group whose `list[0]` turned.
 
 ## Parked by item 2200, 2026-10-13 — a second sweep lane's ten with a port consumer
 
@@ -4722,13 +4748,15 @@ cell's `WData.bad` is `inc`/`dec byte`; the port's `saturating_add`/`saturating_
 real count never reaches. `world::bad_path_step` wraps; the sweep draws the count from `0, 255, 1, 254, 128, 127`
 and failed on the saturating version (`[255, 0, 0, 0]` against `[0, 0, 0, 0]`).
 
-## Parked by the next landing, slot BE — reserved
+## Parked by item 2205, 2026-10-14 — chapter sixty-four closed: a Bark's round leaves the hull here
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2206) **A Bark's round leaves the hull's own square here and a point 52 up and off it there** (item 2205,
+`docs/GOLDEN.md` §80, run835; names no score — chapter sixty-four is closed at 820 and the draw stream does not see
+it). From block 638 every human Bark round parts on its launch point: `0/6`'s `ammo[3]` `sx` 11640 / 11707, `sy`
+34680 / 34671, `sz` 0 / 52, `total_time` 11 / 10; the landings and wounds follow (647's `1/7` `hits:damage` 4 / 5).
+The 141 rows of `chapter_sixty_four_s_word_frame_is_widened_whole` from 634 on are this family and block 634's
+`1/6` `ammo[2]` (`sx` 12348 / 12349), which stood before. Grep `docs/COMBAT.md` §55 (a pivot piece releases
+through its turret) first: the Bark may carry a release node this crate does not read.
 
 ## Parked by the next landing, slot BF — reserved
 
