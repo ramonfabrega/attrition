@@ -167,6 +167,36 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, ecx_int='1..2')
 
+    def test_a_stub_s_answer_may_be_drawn_from_a_list(self):
+        # Parked 2141 (Loop 2003's twelfth reach), built by item 2160:
+        # `UnitData::is_cloaked` and `WorldData::is_pass_land` compare a
+        # callee's answer with 0, which the generic `I32` draws one row in
+        # thirty; `--answers IDX:V,..` draws stub IDX's answer from the list.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2160, win=0x20, bias=[], own=0,
+            stubs=['0x60b030:0'], answers=['0:0,1'], port='i64::from(a[0] == 0)')
+        compile(script, str(sp), 'exec')
+        self.assertIn('ANSWERS = [(0, [0, 1])]', script)
+        self.assertIn('for idx, vals in ANSWERS:', script)
+        self.assertIn('stub 0 answered from [0, 1]', test)
+        # It names a stub the line stubs.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0,
+                                   stubs=['0x60b030:0'], answers=['1:0,1'])
+
+    def test_a_placed_window_may_read_the_stubs_answers(self):
+        # Item 2160: `ObjectsData::find_town` indexes the cities' table with
+        # its callee's answer, so the answers are drawn before the windows
+        # are placed, and a `--place` expression reads them as `s`.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2160, win=0x20, bias=[], own=3,
+            cells=['0xc061d4:0x100'], stubs=['0x658190:3'], argrange=['2:0:7'],
+            places=['c0+0x10+a[2]*0x1c:s[0]*4:4'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertLess(script.index('answers = [rand32(rng) for _ in STUBS]'),
+                        script.index('for win, loc, expr, size in PLACES:'))
+        self.assertIn('"s": answers', script)
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.

@@ -25,17 +25,17 @@ four lanes, until Ramon says (`ccc spawn --model 'claude-opus-5-5[1m]' --effort 
   last (2059); the runner refuses `RON_STATE_FRAME` without its plan (2054); `hooks.py`'s stubs grow (2043);
   `groups.py <dump> <frame>` (2037); `census.py --hooked` (2025, 0 of 501). Blind list 331 over all 380
   coverage logs — the lobbies' floor (DECISIONS 69 §4). Battery unmoved an eighth tranche. Disk 199 GiB.
-- **Lanes live** (tranche 33, 2026-10-14): 2155 (AI §212, AV, run 833), 2107 (AI §211, AR, runs 830–832, 834), 2160 (AW), 2165 (GOLDEN §79,
-  AX, runs 835–836). Next 2170, run 837, AI §213, GOLDEN §80, park AY (pools AY–AZ, AI §213–§215, GOLDEN §80–§83).
-- **Fable backlog: 14 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154).
+- **Lanes live** (tranche 33, 2026-10-14): 2175 (AI §213, AZ, run 837), 2107 (AI §211, AR, runs 830–832, 834), 2170 (AY), 2165 (GOLDEN §79,
+  AX, runs 835–836). Next 2181, run 838, AI §214, GOLDEN §80, park BA (pools BA–BF, AI §214–§215, GOLDEN §80–§83).
+- **Fable backlog: 15 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
-Successor pair: EastIndiesMongolAllTech w4338 of 5,056
-Census: simulation backed 602 of 3611
+Successor pair: EastIndiesMongolAllTech w4353 of 5,056
+Census: simulation backed 612 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,18 +46,18 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2155 the headline's word, 2107, 2165 and 2160 the other three lanes —
+2175 the headline's word, 2107, 2165 and 2170 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2155. **The successor pair's word: frame 4338, 159 versus 161 draws**,
-    index 142: ours `Unit::do_guard+0x8fb` for the Transport Helicopter
-    `1/215`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`; 2130
-    moved 4246 → 4338 (`produce_building`'s builders in object-number
-    order). Block 4339 opens on `1/215`, `1/172` and the General `1/175`,
-    all group 89 — a hypothesis (parked 2133). Inside run820 (4232..4488):
-    every record on 4338 both ways first. East Indies, Mongols. AI §212.
+2175. **The successor pair's word: frame 4353, 36 versus 35 draws**,
+    index 17: ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` for the
+    Transport Helicopter `1/227`, theirs `< Guy::inc_time+0x271`; 2155
+    moved 4338 → 4353 (a stack sub-group held the army's seat). The
+    Despot `1/191` parts on 4343 (`myhits`) and 4344 (`group`) — a
+    hypothesis (parked 2156). Inside run820 (4232..4488): every record on
+    4353 both ways first. East Indies, Mongols. AI §213.
 
 2107. **Great Sahara in the successor pair's lobby** (DECISIONS 56 §1):
     the closed map's successor; 2106's closing state agrees (0s) — seed
@@ -73,12 +73,12 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     wrapping decrement (2111). Name the census rows first; runs 835–836.
     GOLDEN §79.
 
-2160. **The sweep's fifty-third batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 591 of 3611): 2149's shape,
-    merged by SHA; past the 521 swept, shortest decompile first; skip
+2170. **The sweep's fifty-fourth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 612 of 3611): 2160's shape,
+    merged by SHA; past the 531 swept, shortest decompile first; skip
     operators (parked 1722); cite no hooked callee in a sweep test's chunk
-    (parked 2012); the generator's owed shapes are Loop 2003's (2141's
-    `--answers` and 2151's hidden-return `Coord` the newest). `--kind sweep`.
+    (parked 2012); the generator's owed shapes are Loop 2003's (2151's
+    hidden-return `Coord` the newest). `--kind sweep`.
 
 ## How to maintain this file
 
