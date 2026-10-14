@@ -25,9 +25,9 @@ four lanes, until Ramon says (`ccc spawn --model 'claude-opus-5-5[1m]' --effort 
   last (2059); the runner refuses `RON_STATE_FRAME` without its plan (2054); `hooks.py`'s stubs grow (2043);
   `groups.py <dump> <frame>` (2037); `census.py --hooked` (2025, 0 of 501). Blind list 331 over all 380
   coverage logs — the lobbies' floor (DECISIONS 69 §4). Battery unmoved an eighth tranche. Disk 199 GiB.
-- **Lanes live** (tranche 33, 2026-10-14): 2155 (AI §212, AV, run 833), 2107 (AI §211, AR, runs 830–832, 834), 2160 (AW), 2131 (GOLDEN §78,
-  AT, runs 827–828). Next 2165, run 835, AI §213, GOLDEN §79, park AX (pools AX–AZ, AI §213–§215, GOLDEN §79–§83).
-- **Fable backlog: 12 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2154).
+- **Lanes live** (tranche 33, 2026-10-14): 2155 (AI §212, AV, run 833), 2107 (AI §211, AR, runs 830–832, 834), 2160 (AW), 2165 (GOLDEN §79,
+  AX, runs 835–836). Next 2170, run 837, AI §213, GOLDEN §80, park AY (pools AY–AZ, AI §213–§215, GOLDEN §80–§83).
+- **Fable backlog: 14 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,9 +35,9 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w4338 of 5,056
-Census: simulation backed 591 of 3611
+Census: simulation backed 602 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-third tranche's commander, on Opus — four lanes live (Opus 5.5 medium, DECISIONS 68,
@@ -46,7 +46,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2155 the headline's word, 2107, 2131 and 2160 the other three lanes —
+2155 the headline's word, 2107, 2165 and 2160 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -65,12 +65,13 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     map style 7, a `cover=0` trace to the game's end, the lobby read
     back; its first parting is the third map's word.
 
-2131. **Chapter sixty-three: the arms the AI track built that no walk
-    holds** (DECISIONS 56 §3; 2117 closed chapter sixty-two at 1000, GOLDEN
-    §77). Candidates by their parked rows: `fight`'s `unit_masks2 & 4`
-    predicate (2100), `get_final_loc`'s target arm and `Follow` (2058), the
-    raid's `raid_stamp` writer (2110), `ai_sites`' wrapping decrement
-    (2111). Name the census rows first; runs 827–828. GOLDEN §78.
+2165. **Chapter sixty-four: the arms the AI track built that no walk
+    holds** (DECISIONS 56 §3; 2131 closed chapter sixty-three at 760, a
+    shift-queued move laid out from a follow's leader, GOLDEN §78).
+    Candidates by their parked rows: `fight`'s `unit_masks2 & 4`
+    predicate (2100), the raid's `raid_stamp` writer (2110), `ai_sites`'
+    wrapping decrement (2111). Name the census rows first; runs 835–836.
+    GOLDEN §79.
 
 2160. **The sweep's fifty-third batch: ten never-backed simulation functions**
     (DECISIONS 63 (iv); the score `Census:` 591 of 3611): 2149's shape,

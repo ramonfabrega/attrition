@@ -3740,6 +3740,18 @@ collision; `unitat.py` on an earlier window (run809's 3800) showed a job swap �
 Candidate: a brief-checklist row, or `unitat.py` printing whether a first-block pair is a numbering or a state
 swap, so a word's opening rows name which. One reach.
 
+(2145) **`unitat.py` prints no `GroupMoveOrder`** (Loop; names no score). It keeps the children whose name
+`endswith('ORDER')` (`tools/gamelog/unitat.py:144`), and the dump spells a group move `BEGIN GroupMoveOrder`, mixed
+case. run827's block 662 printed `0/6`'s list as `orders 1 … FOLLOWORDER` where the dump's `length 2` holds a type-19
+`GroupMoveOrder` beneath it. Item 2131 read it as "the original queued nothing" until it read the raw block.
+Candidate: match the suffix without case, with a test made to fail on run827's 662.
+
+(2146) **`GROUPS=1` without `BUILDS=7` prints no `GROUPDATA`** (Loop; names no score). run827's first take asked
+`end:UNITS=3,GUYS=2,LEADERS=2,GROUPS=1` and the runner's `verify_game` refused it after the game, with no receipt
+(parked 735's check). The second take, with `GUYS=4,BUILDS=7`, held. Every `GROUPS=1` capture in `docs/RUNS.md`
+carries `BUILDS=7`. Which category the pool's print needs is not read. Candidate: `refused_detail` refuses the shape
+before staging, as it does `GROUPS` beside `DEATHS` (1885).
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
@@ -4522,17 +4534,8 @@ want of it. Build either when a second function of its shape is taken, with a te
 
 ## Parked by item 2131, 2026-10-13 — chapter sixty-three, a shift-move under a follow
 
-(2145) **`unitat.py` prints no `GroupMoveOrder`** (Loop; names no score). It keeps the children whose name
-`endswith('ORDER')` (`tools/gamelog/unitat.py:144`), and the dump spells a group move `BEGIN GroupMoveOrder`, mixed
-case. run827's block 662 printed `0/6`'s list as `orders 1 … FOLLOWORDER` where the dump's `length 2` holds a type-19
-`GroupMoveOrder` beneath it. Item 2131 read it as "the original queued nothing" until it read the raw block.
-Candidate: match the suffix without case, with a test made to fail on run827's 662.
-
-(2146) **`GROUPS=1` without `BUILDS=7` prints no `GROUPDATA`** (Loop; names no score). run827's first take asked
-`end:UNITS=3,GUYS=2,LEADERS=2,GROUPS=1` and the runner's `verify_game` refused it after the game, with no receipt
-(parked 735's check). The second take, with `GUYS=4,BUILDS=7`, held. Every `GROUPS=1` capture in `docs/RUNS.md`
-carries `BUILDS=7`. Which category the pool's print needs is not read. Candidate: `refused_detail` refuses the shape
-before staging, as it does `GROUPS` beside `DEATHS` (1885).
+Its two rows, 2145 and 2146, are the loop's and stand in the thirty-third tranche's Loop section (moved at the
+merge); 2058 is closed in place.
 
 ## Parked by item 2149, 2026-10-13 — the sweep's fifty-second batch
 
