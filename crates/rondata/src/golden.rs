@@ -443,6 +443,14 @@ pub enum Issued {
         whom: i32,
         objects: Vec<i16>,
     },
+    /// `@moveadd <who> <x> <y> <o> [<o> …]`: `@move` at `QUEUE_LAST`, the
+    /// shift+right-click on the ground (`WorldMap::on_right_up@008c7050:88`),
+    /// item 2131, `docs/GOLDEN.md` §78.
+    MoveAdd {
+        who: i32,
+        to: Pos,
+        objects: Vec<i16>,
+    },
     /// `@follow <who> <ox> <whom> <o> [<o> …]`: the leader's object id and
     /// owner, through `CommandManager::issue_follow@00941e70` (item 714).
     Follow {
@@ -671,6 +679,7 @@ impl Issued {
     fn named(&self) -> (i32, &[i16], bool) {
         match self {
             Issued::Move { who, objects, .. }
+            | Issued::MoveAdd { who, objects, .. }
             | Issued::Patrol { who, objects, .. }
             | Issued::Guard { who, objects, .. }
             | Issued::Follow { who, objects, .. }
@@ -760,6 +769,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
     if !matches!(
         verb,
         "move"
+            | "moveadd"
             | "patrol"
             | "guard"
             | "follow"
@@ -1045,6 +1055,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             objects,
         },
         "amove" => Issued::AttackMove { who, to, objects },
+        "moveadd" => Issued::MoveAdd { who, to, objects },
         "explore" => Issued::Explore { who, to, objects },
         "flee" => Issued::Flee { who, to, objects },
         "flight" => Issued::Flight {
@@ -1100,6 +1111,10 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
     let n = match parse_issuer(&line.text) {
         Some(Issued::Move { who, to, objects }) => {
             crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 1)
+        }
+        // `@moveadd` is the same issuer at `QUEUE_LAST` (item 2131).
+        Some(Issued::MoveAdd { who, to, objects }) => {
+            crate::input::group_move_to(built, who, &objects, to, 1, false, 0, 1)
         }
         Some(Issued::Patrol { who, to, objects }) => {
             crate::input::group_patrol(built, who, &objects, to, 2)
@@ -2456,6 +2471,14 @@ mod tests {
                 who: 0,
                 to: Pos::new(14208, 11904),
                 objects: vec![7, 8],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@moveadd 0 14208 11904 8"),
+            Some(Issued::MoveAdd {
+                who: 0,
+                to: Pos::new(14208, 11904),
+                objects: vec![8],
             })
         );
         assert_eq!(
