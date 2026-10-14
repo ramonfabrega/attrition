@@ -347,45 +347,44 @@ impl Sim {
 
         // `006bc950:762–860`: a target at peace with me.
         let mut plan_war = false;
-        if self.diplos(me, t) != 0 && self.diplos(t, me) != 0 {
-            if target_human {
-                // SEAM: `dow` (`+0x270`) and `blacken` (`+0x20c`) are not
-                // carried, so the clearing arm reads both as 0.
-                let their_wars = self.ai[t].census.wars;
-                if their_wars > 0 {
-                    let clear = match diff {
-                        d if d < 2 => true,
-                        2 => their_wars > 1,
-                        3 => their_wars > 2,
-                        _ => false,
-                    };
-                    if clear {
-                        aggression = 0;
-                    }
+        if self.diplos(me, t) != 0 && self.diplos(t, me) != 0 && target_human {
+            // SEAM: `dow` (`+0x270`) and `blacken` (`+0x20c`) are not
+            // carried, so the clearing arm reads both as 0.
+            let their_wars = self.ai[t].census.wars;
+            if their_wars > 0 {
+                let clear = match diff {
+                    d if d < 2 => true,
+                    2 => their_wars > 1,
+                    3 => their_wars > 2,
+                    _ => false,
+                };
+                if clear {
+                    aggression = 0;
                 }
-                if !too_many_wars {
-                    let war_now = at_war;
-                    match diff {
-                        3 => {
-                            if their_wars <= war_now {
-                                self.mark(SITE_PEACE_COIN);
-                                let coin = self.rng.roll();
-                                let early_boomer = boomer && self.tech[me].epoch[0] < 4;
-                                plan_war = !((coin & 1 != 0 || early_boomer) && !rusher);
-                            }
+            }
+            if !too_many_wars {
+                let war_now = at_war;
+                match diff {
+                    3 => {
+                        if their_wars <= war_now {
+                            self.mark(SITE_PEACE_COIN);
+                            let coin = self.rng.roll();
+                            let early_boomer = boomer && self.tech[me].epoch[0] < 4;
+                            plan_war = !((coin & 1 != 0 || early_boomer) && !rusher);
                         }
-                        2 => {
-                            if their_wars <= war_now {
-                                plan_war = rusher;
-                            }
-                        }
-                        d if d >= 4 => {
-                            if their_wars <= war_now && (!boomer || self.tech[me].epoch[0] > 3) {
-                                plan_war = true;
-                            }
-                        }
-                        _ => {}
                     }
+                    2 => {
+                        if their_wars <= war_now {
+                            plan_war = rusher;
+                        }
+                    }
+                    d if d >= 4
+                        && their_wars <= war_now
+                        && (!boomer || self.tech[me].epoch[0] > 3) =>
+                    {
+                        plan_war = true;
+                    }
+                    _ => {}
                 }
             }
         }
