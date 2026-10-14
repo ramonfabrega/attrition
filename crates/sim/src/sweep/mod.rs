@@ -665,6 +665,7 @@ mod unit_do_flee_to;
 mod unit_do_gather;
 mod unit_do_spec_unit_anim;
 mod unit_do_think_order;
+mod unit_get_goody_box;
 mod unit_kill_current_action;
 mod unit_kill_current_path;
 mod unit_on_duty;
