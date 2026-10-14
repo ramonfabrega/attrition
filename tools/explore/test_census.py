@@ -98,6 +98,14 @@ class PinnedTraces(unittest.TestCase):
         # 501 landed sweeps cites a callee its script hooks.
         self.assertEqual(census.hooked_in_sweeps(str(ROOT / 'crates/sim/src'), str(ROOT / 'tools/emu')), [])
 
+    def test_the_trampoline_table_is_not_shadowed_by_the_sweep_regex(self):
+        # The thirty-second pass named its `Harness(exe, {…})` regex `HOOKS`,
+        # the trampolined functions' table's name, so `--pin --never` died
+        # on `HOOKS.items()` for a whole tranche; found at the thirty-third.
+        self.assertIsInstance(census.HOOKS, dict)
+        self.assertIn(0x591ef0, census.HOOKS)
+        self.assertTrue(census.HOOKED_SCRIPT.search('Harness(exe, {0x401000: f})'))
+
     def test_the_unbacked_list_skips_the_dead_weight_by_default(self):
         # Parked 1861, the thirtieth pass: destructors, `close`/`init`/
         # `clear`, loggers and `dynamic_initializer`s fill the shortest-first

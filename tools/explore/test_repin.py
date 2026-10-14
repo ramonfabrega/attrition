@@ -114,6 +114,44 @@ fn t() {
         self.assertIn('    sequence: 2838,', text)
         self.assertIn('pin_eq!(w.count, MONGOL.count,', text)
 
+    def test_a_want_that_is_a_const_array_rewrites_the_const(self):
+        # Loop 2071 (2032, 2099, 2117, 2235: four chapters re-pinned by
+        # hand): a golden widening pins its rows as a `const WANT: &[&str]`
+        # the test copies into a local and sorts, so the `want` at the site
+        # is a local's name and the literal is the const's. The local is
+        # followed to its `let … = CONST.iter()` and the const's array is
+        # rewritten; a want that names the const itself is rewritten too.
+        self.file.write_text('''const WANT_CH9: &[&str] = &[
+    "1000 1/2006 city:city_flags[0x4]",
+    "1004 0/3 order:flags", // the move
+];
+const WANT_POOL: &[&str] = &[];
+
+fn t() {
+    let _pins = Pins::hold();
+    let mut want: Vec<String> = WANT_CH9.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch9: what parts under the word moved");
+    pin_eq!(pool, WANT_POOL, "ch9: the pool");
+}
+''')
+        log = '''2 pins moved:
+  crates/rondata/src/diff/fixture.rs:11: ch9: what parts under the word moved
+    got  ["1000 1/2006 city:city_flags[0x4]", "1004 0/3 order:flags", "1022 1/5 mirror"]
+    want ["1000 1/2006 city:city_flags[0x4]", "1004 0/3 order:flags"]
+  crates/rondata/src/diff/fixture.rs:12: ch9: the pool
+    got  ["7 0/9 near"]
+    want []
+'''
+        edits, by_hand = repin.plan(repin.parse(log), self.root)
+        self.assertEqual(by_hand, [])
+        self.assertEqual(sum(len(v) for v in edits.values()), 2)
+        repin.apply(edits, self.root)
+        text = self.file.read_text()
+        self.assertIn('const WANT_CH9: &[&str] = &["1000 1/2006 city:city_flags[0x4]", "1004 0/3 order:flags", "1022 1/5 mirror"];', text)
+        self.assertIn('const WANT_POOL: &[&str] = &["7 0/9 near"];', text)
+        self.assertIn('pin_eq!(got, want, "ch9', text, 'the site itself is untouched')
+
     def test_a_site_two_tests_moved_to_two_values_is_by_hand(self):
         log = LOG + '''
 1 pin moved:

@@ -127,17 +127,62 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None):
     return None
 
 
-def deep(ctxs, k_tokens, reported):
+DEEP_STEP = 40_000
+
+
+def deep(ctxs, k_tokens, reported, answered=None, step=DEEP_STEP):
     """The first watched lane whose next turn carries `k_tokens` or more
     and is not in `reported`, as (exit code, line), or None. `ctxs` maps a
-    lane to lore's `ctx` (None when lore has no transcript for it)."""
+    lane to lore's `ctx` (None when lore has no transcript for it).
+
+    `answered` maps a lane to the context its last DEEP was answered at,
+    and outlives the process (`--deep-state`; Loop 2186): `reported` lived
+    in the process alone, so a DEEP answered while the lane's gate ran
+    fired again at the next re-arm — 2107 at 303k, then 310k three minutes
+    later — and the commander raised `--deep` for every lane to quiet one.
+    A lane answered at k is quiet until it has grown `step` past k; the
+    exit moves the answer."""
     if not k_tokens:
         return None
+    answered = {} if answered is None else answered
     for lane, ctx in ctxs.items():
-        if ctx is not None and ctx >= k_tokens and lane not in reported:
-            reported.add(lane)
-            return 5, f"DEEP {lane} {ctx // 1000}k"
+        if ctx is None or ctx < k_tokens or lane in reported:
+            continue
+        last = answered.get(lane)
+        if last is not None and ctx < last + step:
+            continue
+        reported.add(lane)
+        answered[lane] = ctx
+        return 5, f"DEEP {lane} {ctx // 1000}k"
     return None
+
+
+def deep_state_default():
+    """Where the DEEP answers persist between arms: the job's scratch
+    directory when the harness names one, else nowhere."""
+    job = os.environ.get('CLAUDE_JOB_DIR')
+    return os.path.join(job, 'tmp', 'lanewait-deep.json') if job else None
+
+
+def load_answered(path):
+    """`{lane: ctx}` from the state file, `{}` when there is none or it
+    does not parse — a lost file re-fires a DEEP, never hides one."""
+    if not path or not os.path.exists(path):
+        return {}
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        return {str(k): int(v) for k, v in data.items()}
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
+def save_answered(path, answered):
+    if not path:
+        return
+    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+    with open(path, 'w') as f:
+        json.dump(answered, f)
 
 
 SERVERS = ('bun ', 'node ', 'npx ')
@@ -375,6 +420,11 @@ def main(argv=None):
     parser.add_argument('--interval', type=float, default=30, metavar='S')
     parser.add_argument('--deep', type=int, default=300, metavar='K',
                         help='exit DEEP once per lane whose next turn carries K k tokens or more; 0 off')
+    parser.add_argument('--deep-state', default=deep_state_default(), metavar='FILE',
+                        help='where a DEEP answer persists between arms, so an answered lane is quiet '
+                             'until it grows --deep-step (Loop 2186); default $CLAUDE_JOB_DIR/tmp/lanewait-deep.json')
+    parser.add_argument('--deep-step', type=int, default=DEEP_STEP // 1000, metavar='K',
+                        help='k tokens a DEEP lane must grow past its last answer to be named again')
     parser.add_argument('--deep-every', type=int, default=10, metavar='POLLS',
                         help='read lore agents every this many polls')
     parser.add_argument('--stalled-after', type=float, default=30, metavar='MIN',
@@ -414,8 +464,10 @@ def main(argv=None):
         time.sleep(args.interval)
         polls += 1
         if args.deep and polls % max(args.deep_every, 1) == 0:
-            found = deep(contexts(list(watch)), args.deep * 1000, reported)
+            answered = load_answered(args.deep_state)
+            found = deep(contexts(list(watch)), args.deep * 1000, reported, answered, args.deep_step * 1000)
             if found:
+                save_answered(args.deep_state, answered)
                 print(found[1], flush=True)
                 return found[0]
         rows = roster()

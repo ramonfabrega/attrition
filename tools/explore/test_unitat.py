@@ -108,6 +108,17 @@ def dump(path):
     path.write_text(text)
 
 
+GROUP_MOVE = """   length 1
+   type 19
+   metric 0
+   BEGIN GroupMoveOrder
+    BEGIN UNITORDER
+     flags 1
+    x 100
+    y 200
+"""
+
+
 class OneUnit(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -126,6 +137,22 @@ class OneUnit(unittest.TestCase):
         with redirect_stdout(out):
             rc = unitat.main([str(self.path), *argv, '--enums', str(self.enums)])
         return rc, out.getvalue()
+
+    def test_a_group_move_order_is_an_order(self):
+        # Loop 2145: the dump spells a group move `BEGIN GroupMoveOrder`,
+        # mixed case, and the printer kept the children ending in `ORDER`;
+        # run827's block 662 printed `0/6` as `orders 1 … FOLLOWORDER` over a
+        # `length 2` that held a type-19 GroupMoveOrder, and 2131 read it as
+        # "the original queued nothing".
+        self.path.write_text(' MAP_STYLE 18\n BEGIN FRAME 662\n'
+                             + UNIT.format(hits=130, inside_up=-1, plen=3, extra=LAST).replace(
+                                 '   BEGIN GUY', GROUP_MOVE + '   BEGIN GUY')
+                             + ' BEGIN FRAME 663\n GameInfo closing\n')
+        rc, out = self.run_tool('662', '1/27')
+        self.assertEqual(rc, 0, out)
+        self.assertIn('orders 3', out)
+        self.assertIn('[2] GroupMoveOrder', out)
+        self.assertIn('x=100', out)
 
     def test_one_frame_names_the_type_the_path_s_ends_and_the_orders_bottom_first(self):
         rc, out = self.run_tool('3131', '1/27')

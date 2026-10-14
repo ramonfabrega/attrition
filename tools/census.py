@@ -353,7 +353,10 @@ def sweep_backed(src, by_name):
     return out
 
 
-HOOKS = re.compile(r"Harness\(\s*[^,()]*,\s*\{(.*?)\}", re.S)
+# Not `HOOKS`: that name is the trampolined functions' table above, and the
+# thirty-second pass shadowed it with this regex, so `--pin --never` died on
+# `HOOKS.items()` for a tranche (the thirty-third pass).
+HOOKED_SCRIPT = re.compile(r"Harness\(\s*[^,()]*,\s*\{(.*?)\}", re.S)
 SCRIPT = re.compile(r"tools/emu/(sweep_[a-z0-9_]+\.py)")
 
 
@@ -379,7 +382,7 @@ def hooked_in_sweeps(src, emu_dir):
                 if not os.path.isfile(script):
                     continue
                 with open(script, errors="replace") as f:
-                    hm = HOOKS.search(f.read())
+                    hm = HOOKED_SCRIPT.search(f.read())
                 hooked = {int(a, 16) for a in re.findall(r"0x(00[0-9a-f]{6})", hm.group(1))} if hm else set()
                 for addr in sorted(hooked & cited):
                     out.append((os.path.relpath(p, src), m.group(1), addr))

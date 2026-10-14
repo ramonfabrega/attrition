@@ -81,6 +81,7 @@ is append-only and amended in place, as it always was.
 - 67 standing — The second Sonnet tranche is scored, the done line held, the waiter names a stalled lane, the parked file gets a pool, and the brief carries the seams
 - 68 standing — The third Sonnet tranche is scored, the captures are the price, the sweep generator takes its thirteen reaches, and the dump gets a unit printer
 - 69 standing — The Opus medium trial is scored against three Sonnet tranches, the waiter names an uncleared lane, and eight Loop items become tools
+- 70 standing — The Opus medium trial's second tranche is scored, the roster goes to the steer, the census's pinned mode is mended, and seven Loop items become tools or rows
 
 ## 1. Fidelity before divergence
 
@@ -5251,3 +5252,134 @@ backed against 571, cited against 1564; the backlog against eleven; the
 timings file's `--stale` against 36 untimed; the disk against 199 GiB;
 `census.py --hooked` against 0; and whether a journal names the three
 tools' new forms.
+
+## 70. The Opus medium trial's second tranche is scored, the roster goes to the steer, the census's pinned mode is mended, and seven Loop items become tools or rows
+
+**Decided 2026-10-14**, the thirty-third pass
+(`docs/audit/2026-10-14-fable-pass-33.md`), with Ramon present at the
+steer. Applies entry 61's rules 2, 4 and 5; declines entry 61's
+one-lane-a-tranche addition a fourth time, and says so; changes no
+roster itself — **the roster for the thirty-fourth tranche is Ramon's
+word at this steer, written here when given** (see the last paragraph).
+
+**What was measured.** Twenty-three landings on four lanes, every
+session Opus 5.5 at `--effort medium` (2,718 requests, 26 sessions for
+23 items — 2131, 2165 and 2235 cleared and continued), in 5 h 36 min
+from the thirty-second steer's gate commit (`d41d5666`, 20:59 −05:00) to
+the handoff (`44b4cfa9`, 02:37): 174.88 USD list for the workers (7.60 a
+landing; the ten word lanes 10.49, the ten generator sweeps 3.77, the
+three port-consumer sweeps 10.76) and 18.19 for the commander's two
+sessions; 23.8 minutes waiting a landing (the word lanes 44.2, the
+sweeps 13.7; captures 5.6, gates 8.4, the suite 5.3); the successor
+pair's word 4246 → 4671 (2130, 2155, 2175, 2193, 2229); Great Sahara in
+the successor pair's lobby opened at 2995 and **closed at 3268 of 3268
+on its first build** (2107, one landing, its closing state agreeing
+whole); chapters sixty-three and sixty-four closed (2131, 2205),
+sixty-five open at 777 (2235); the census backed 571 → 721 on thirteen
+batches, every one generated whole; cited 1564 → 1574 and never 331 →
+333 (two new citations no trace enters); peak context 239 k a session,
+**eight sessions over 300 k**, five `DEEP` exits (2107 twice — Loop
+2186's re-fire — 2131, 2165, 2235) and four lanes over 300 k with none
+(2193, 2205, 2217, 2247); no `UNCLEARED`, no `STALLED`; no kill rule;
+two booking gates red, each a second commit; three merges backed out,
+all on `census.rs`, none on a document; the battery 576 / 6566 / 2974,
+**unmoved a ninth tranche**; the backlog 24.
+
+**What it means.**
+
+1. **Two Opus tranches against three Sonnet tranches, and the loop's
+   throughput did not move.** Twenty-three landings in 4 h 33, 4 h 52
+   and 5 h 36 on four lanes whichever model ran them: the clock is the
+   gates, the captures and the merges, not the model. The price did
+   move — 7.60 and 8.14 against 3.56, 2.78 and 3.93 — and so did depth:
+   fourteen sessions over 300 k in two Opus tranches against two in one
+   Sonnet tranche, and the long contexts are where the money went. The
+   generator's sweep lane fell from 5.65 to 3.77 as every batch came
+   out generated whole — still twice Sonnet's 1.86 for ten agreeing
+   functions either way. The word lanes cost 10.49 against 10.05 and
+   5.78 and moved words that are not the same words: the frames a
+   landing buys fall as a pair's word advances, so frames a landing
+   cannot rank the rosters. What Opus did that no Sonnet tranche did:
+   zero blocked endings in forty-six landings (Sonnet: two and one in
+   twenty-three), and both map closes — Great Sahara at 4340 in the
+   coverage lobby (2055) and at 3268 in the successor lobby on a first
+   build (2107). **The pass recommends** Sonnet 5.5 medium on the two
+   sweep lanes outright — the same product at half the price — and, on
+   the word lanes, one tranche split (Opus 5.5 medium on the headline's
+   word, Sonnet 5.5 medium on the rules track) so the word-lane
+   question is answered on one tranche's clock; all-Sonnet with the
+   kill rule's Opus-high successor is the defensible cheap line. **The
+   pass decides nothing** (entry 61 §2): Ramon does, at this steer.
+2. **The lane count holds at four**, entry 61 §5 notwithstanding (the
+   waiting 23.4 → 23.8, inside a fifth): the opener names four items one
+   to a lane, two of them sweeps because no third map word is open, and
+   entry 68 holds four by Ramon's word.
+3. **The census's `--pin --never` was dead for a tranche.** The
+   thirty-second pass named its `Harness(exe, {…})` regex `HOOKS`, the
+   trampolined functions' table's name, and `hooked_in` died on
+   `HOOKS.items()`; no lane ran that mode, the sweeps count with
+   `--layers`. Renamed, held by a test red against the old file; the
+   first run read cited 1574, never 333.
+4. **A `DEEP` answer persists across arms** (Loop 2186): `lanewait.py`
+   writes the context each DEEP was answered at to
+   `$CLAUDE_JOB_DIR/tmp/lanewait-deep.json` (`--deep-state`) and names a
+   lane again only `--deep-step` (40 k) past it; the test fed the
+   commander's own shape (303 k answered, 310 k three minutes later).
+5. **`repin.py --write` rewrites a golden `WANT_CH*` list** (Loop 2071,
+   four chapters by hand): the want at the site is a local the test
+   builds from the const, followed back to its `let … = CONST.iter()`,
+   and the const's array is the edit, `&` kept; a want that names the
+   const itself is rewritten too.
+6. **`unitat.py` prints a `GroupMoveOrder`** (2145: the suffix match
+   dropped the dump's mixed case) and **the runner refuses a long with
+   no `--detail` before staging** (2199: run830's 37 minutes and 717 MB).
+7. **Six Loop lines become brief rows** — a swapped pair says which swap
+   (2154); a standing row on the block's unit is a candidate scoring or
+   not and is walked back through every earlier widening (2180, 2264);
+   a flag predicate is checked at each reader (2198); a mirror parting
+   lists the `set_angle` callers (2234); a break that passes is read
+   against the draw, and a boot-built table reads as zeros (2222, 2216)
+   — the frame tightened under its ceiling to take them.
+8. **Three close**: 1947 and 1965 unreached two tranches (entry 54);
+   2210 on measurement — `issuesmatch.py --none-refused` with no trace
+   exits 1 (`sys.exit(__doc__)` prints and exits 1), so the filed
+   claim was wrong. **2146 is not built**: the group pool is not gated
+   on `BUILDS` — `GameLog::full_dump` gates `dump_groups` on GROUPS'
+   own byte, and the pool's lines are accepted against the dumper
+   before it in `full_dump`'s order (`docs/ORACLE.md` holds the trap);
+   the right refusal names that category's level, a worker's.
+9. **The battery is unmoved a ninth tranche** at 576 / 6566 / 2974 —
+   entry 61's finish-line number, which no word lane has moved since it
+   was pinned; a question for Ramon, not a lane.
+10. **Fourteen Loop items leave the backlog**: five built (2071, 2145,
+    2186, 2199, and the census mend beside them), three closed, six as
+    brief rows; ten stay, two of them Ramon's (1725, 1570) and one the
+    generator's ledger (2003, twenty-three reaches).
+
+**The steer's own shape, this once**: Ramon paused the loop to update the
+harness, so this pass clears no row; the commander is continued by hand
+on the queue's opener, and nothing in the loop's rules changes for it.
+
+**The estimate, written down to be wrong on record** (four lanes, on
+whatever roster Ramon sets): twenty landings in under five and a half
+hours; the successor pair past 4,900; chapter sixty-five closes and
+sixty-six opens; the backed column past 820; the sweep lanes under 2.50
+USD a landing on Sonnet or under 4.00 on Opus; no `DEEP` re-fire on an
+answered lane; no blocked ending; no merge backed out on a document;
+the battery moves on at least one lobby.
+
+**The measure for the next pass**: each lane's USD and waiting a landing
+against 7.60 / 23.8 (the word lanes 10.49 / 44.2, the generator sweeps
+3.77 / 13.7) or against the Sonnet figures where the roster moved; the
+waiter's exits against 6 of 23 and re-fires against one; sessions over
+300 k against eight and those with no `DEEP` against four; blocked
+endings against 0; merges backed out against 3 of 23, documents 0; the
+battery against 576 / 6566 / 2974; the census's never against 333,
+backed against 721, cited against 1574; the backlog against ten, and
+whether 2104, 2089, 2060 and 2031 reached; `census.py --pin --never`
+runs; and whether a journal names `repin.py` rewriting a `WANT_CH*`
+list, a `GroupMoveOrder` line, or the long's refusal.
+
+**The roster for the thirty-fourth tranche**: Opus 5.5 at `--effort
+medium` on every lane, entry 68's, until Ramon's word at this steer
+replaces this paragraph.

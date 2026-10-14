@@ -130,6 +130,25 @@ def refused_detail(detail):
     return None
 
 
+LONG_WINDOW = 1000
+
+
+def refused_window(log_window, detail):
+    """Why a `--log-window` is refused before anything is staged, or None:
+    a window of `LONG_WINDOW` frames or more with no `--detail` stages the
+    default (`end:UNITS=3`) on every frame — run830 was the long launched
+    so, 37 minutes and 717 MB the walker could not stand on, and run831
+    became the long (2107's line, Loop 2199). A long names its detail."""
+    if not log_window or detail:
+        return None
+    lo, hi = log_window
+    if hi - lo < LONG_WINDOW:
+        return None
+    return (f'--log-window {lo} {hi} with no --detail stages end:UNITS=3 on every frame (Loop 2199; run830: '
+            "37 minutes, 717 MB, unwalkable); pass the long's own --detail lines (run831's in docs/RUNS.md), "
+            'or a window under 1000 frames')
+
+
 def refused_tracer_defs(defs):
     """Why a `--tracer-def` set is refused before the lane is taken, or
     None: `RON_STATE_FRAME` names a packet frame and the tracer's
@@ -727,7 +746,8 @@ def main():
             live_session.parse_commands(args.cmd_file, args.end_frame)
         except ValueError as exc:
             ap.error(f'{exc} — raise --end-frame past every staged line, or drop the line')
-    why = refused_detail(args.detail) or refused_tracer_defs(getattr(args, 'tracer_defs', None))
+    why = (refused_detail(args.detail) or refused_tracer_defs(getattr(args, 'tracer_defs', None))
+           or refused_window(getattr(args, 'log_window', None), args.detail))
     if why:
         ap.error(why)
     # **The pool** (parked 1139; items 1568, 1569): `-` for the install and

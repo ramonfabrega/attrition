@@ -201,6 +201,56 @@ def constant_field(text, want_src):
     return head.end() + f.start(1), head.end() + f.end(1)
 
 
+CONST_NAME = re.compile(r'^[A-Z][A-Z0-9_]*$')
+LOCAL_NAME = re.compile(r'^[a-z_][a-z0-9_]*$')
+
+
+def const_array(text, want_src, before):
+    """`(start, end)` of the array literal a want names — `WANT` itself, or
+    a local the test built from one (`let mut want: Vec<String> =
+    WANT.iter()…`, the nearest such `let` before offset `before`) — in
+    `const WANT: &[…] = &[…];` of the same file, the `&` kept; or None.
+    Loop 2071: a golden widening pins its rows as a const list, so four
+    chapters' first pins (2032, 2099, 2117, 2235) were re-pinned by hand
+    because the `want` at the site "is not a literal"."""
+    name = want_src.strip()
+    if LOCAL_NAME.match(name):
+        lets = list(re.finditer(r'\blet\s+(?:mut\s+)?' + re.escape(name) + r'\b[^=;]*=\s*([A-Z][A-Z0-9_]*)\s*\.',
+                                text[:before]))
+        if not lets:
+            return None
+        name = lets[-1].group(1)
+    if not CONST_NAME.match(name):
+        return None
+    head = re.search(r'\bconst\s+' + re.escape(name) + r'\s*:[^=]*=\s*', text)
+    if not head:
+        return None
+    start = head.end()
+    k = start
+    if text.startswith('&', k):
+        k += 1
+    if not text.startswith('[', k):
+        return None
+    depth, in_str = 0, False
+    while k < len(text):
+        c = text[k]
+        if in_str:
+            if c == '\\':
+                k += 1
+            elif c == '"':
+                in_str = False
+        elif c == '"':
+            in_str = True
+        elif c == '[':
+            depth += 1
+        elif c == ']':
+            depth -= 1
+            if depth == 0:
+                return start, k + 1
+        k += 1
+    return None
+
+
 def plan(sites, root=ROOT):
     """`(edits, by_hand)`: edits as `{file: [(start, end, new)]}` by offset
     into the file's text; by_hand as `[(file, line, why, msg, got, want)]`."""
@@ -234,6 +284,10 @@ def plan(sites, root=ROOT):
             span = constant_field(text, text[a:b])
             if span and LITERAL.match(got.strip()):
                 edits[file].append((span[0], span[1], got.strip()))
+                continue
+            span = const_array(text, text[a:b], a)
+            if span and LITERAL.match(got.strip()):
+                edits[file].append((span[0], span[1], replacement(text[span[0]:span[1]], got.strip())))
                 continue
             by_hand.append((file, line, 'the want is not a literal', msg, got, want))
             continue

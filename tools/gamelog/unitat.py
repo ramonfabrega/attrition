@@ -141,7 +141,10 @@ def describe(unit, names, every):
         if not every and len(ends) > 2:
             ends = [ends[0], '…', ends[-1]]
         lines.append(f"path {len(entries)}: " + ' '.join(ends))
-    orders = [(n, c) for n, c in unit['children'] if n.endswith('ORDER')]
+    # Loop 2145: the dump spells a group move `BEGIN GroupMoveOrder`, mixed
+    # case, beside `MOVEORDER`; a suffix read in one case dropped it, and
+    # run827's block 662 read as "the original queued nothing" (item 2131).
+    orders = [(n, c) for n, c in unit['children'] if n.upper().endswith('ORDER')]
     # `OrderList::log_data` starts at the ring's anchor and follows `+0`, so
     # the dump prints the bottom of the list first and the current order
     # last (`docs/AI.md` §206, item 2055; Loop 2059: this tool once

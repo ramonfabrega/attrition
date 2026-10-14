@@ -315,6 +315,46 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.
+## The brief checklist, from the thirty-third pass
+
+The thirty-third tranche (DECISIONS 70): twenty-three landings on four
+Opus 5.5 medium lanes in 5 h 36 min, 7.60 USD and 23.8 minutes waiting
+a landing. The pass added these rows, each from the tranche's own
+journals.
+
+- **A pair read as swapped says which swap it is** (2154, 2130's Loop
+  line): run820's block 4247 read as a collision and was a job swap,
+  shown by `unitat.py` on an earlier window in one command.
+- **A standing row on a unit the block names is a candidate, scoring or
+  not, and is walked back through every earlier widening of the pair
+  before its mechanism is read** (2180, 2264; 2155's and 2229's Loop
+  lines): `order:move.facing`, exempt from the score, stood on run820's
+  first block for three items; 2229's parting was 1,665 frames before
+  its word and each widening's standing rows led one window back.
+- **A flag predicate standing in for a lineage is checked at each reader
+  against the reader's own vslot** (2198, 2175's Loop line): `0x40 &&
+  !0x20` was copied into two readers where the original asks
+  `is_supply` alone, and the successor pair's word sat on it.
+- **A mirror or `facing` parting lists every original `Unit::set_angle`
+  caller this crate reaches without `unit_set_angle`** (2234, 2193's
+  Loop line): a turn written through `Movement::set_facing` dropped the
+  group arm in silence, and `seams.py --item` did not print the doc
+  that listed it.
+- **A break that passes is read against the draw before the code**
+  (2222, 2200's Loop line); **a table the image builds at boot reads as
+  zeros under the emulator** (2216, 2187's Loop line): two of ten breaks
+  passed on a starved arm; `covers_tile`'s original answered 0 on every
+  row through an unfilled `div_3_table`.
+- **A long with no `--detail` is refused before staging** (2199, 2107's
+  Loop line): run830 staged `end:UNITS=3` on every frame, 37 minutes and
+  717 MB the walker could not stand on.
+- **`unitat.py` prints a `GroupMoveOrder`** (2145, 2131's Loop line):
+  the dump spells it mixed-case and the printer's suffix match dropped
+  it, so run827's 662 read as "the original queued nothing".
+- **`repin.py --write` rewrites a golden `WANT_CH*` list** (2071, four
+  chapters by hand): the want at the site is a local built from the
+  const, followed to its `let … = CONST.iter()`.
+
 ## The brief checklist, from the twentieth pass
 
 The rows continue. The twentieth pass (2026-09-29) added these from the

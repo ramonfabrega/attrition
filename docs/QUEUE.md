@@ -12,19 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-14, **the thirty-third pass is due**: twenty-three landings in 5 h 36 min since `d41d5666`,
-Opus 5.5 `--effort medium` on four lanes (DECISIONS 68, 69). Successor pair 4246 → 4671 (2175, 2193, 2229); Great
-Sahara (Mongols) closed on its first build, 3268 of 3268 (2107); chapters 63 and 64 closed (2131, 2205), 65 open at
-777 (2235); census 571 → 721 (eleven sweeps on two lanes). No kill rule tripped.*
+*2026-10-14, **the thirty-third pass is done** (`docs/audit/2026-10-14-fable-pass-33.md`, DECISIONS 70): the
+Opus 5.5 medium trial's second tranche scored — 23 landings in 5 h 36, **7.60 USD a landing** (8.14 before;
+Sonnet 5.5 medium's 3.56), 23.8 min waiting; word lanes 10.49 (Sonnet 5.78), generated sweeps 3.77 (1.86);
+successor 4246 → 4671, Great Sahara (Mongols) closed on its first build, chapters 63–64 closed, 65 open, census
+571 → 721. **The roster is Ramon's at this steer** (DECISIONS 70 names it); the pass recommends, changes none.*
 
-- **Measured** (`tools/tranche.py`, 23 items, 25 sessions): 174.88 USD list, **7.60 a landing** (the thirty-second's
-  8.14; Sonnet 5.5 medium's last 3.56), **23.8 min waiting** a landing (23.4); peak 368 k (2235, one `DEEP` cleared
-  from its draft). Booking gates: two red, each fixed by a second commit — `run583`'s widening 139 → 138 at 2193's
-  and 2205's joint merge (a re-pin), and the ledger on a handoff that named unbooked numbers; three merges backed out
-  on `census.rs` (2187, 2200, 2223), each re-landed by `ccc update`. Blind list 332. Disk 181 GiB.
-- **No lanes live**: 2259 and 2265 wait; no sweep item queued (the pass's call, DECISIONS 61). Next 2271, run 844,
-  AI §217, GOLDEN §83, park BF (pools BB, BF, BH, BK, BM–BR, AI §217–§221, GOLDEN §83–§87); run 842 unused.
-- **Fable backlog: 24 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198, 2199, 2210, 2216, 2222, 2234, 2240, 2264).
+- **Built**: `repin.py --write` rewrites a golden `WANT_CH*` list (2071); `lanewait.py`'s DEEP answers persist
+  (`--deep-state`, 2186); `unitat.py` prints a `GroupMoveOrder` (2145); the runner refuses a long with no
+  `--detail` (2199); `census.py --pin --never` runs again — cited 1574, never **333**. Six Loop lines are brief
+  rows; 1947, 1965, 2210 closed. Battery 576 / 6566 / 2974, a ninth tranche. Disk 182 GiB. `main` 476 behind.
+- **No lanes live; the commander is continued by hand** (Ramon's, at the steer; this pass clears no row).
+  2259 (AI §216, park BH, run 838), 2265 (GOLDEN §82, park BK, run 842), 2271 (park BB), 2276 (park BF); each
+  sweep's four parked numbers follow its own. Next 2281, run 844, AI §217, GOLDEN §83, park BM (pools BM–BR, AI §217–§221, GOLDEN §83–§87).
+- **Fable backlog: 10 Loop items** (1570, 1725, 1900, 2003, 2031, 2060, 2089, 2104, 2146, 2240).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -37,17 +38,16 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 w777
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-third steering pass, on Fable — score the thirty-third
-tranche whole (Opus 5.5 medium, Ramon's trial: 7.60 USD a landing against the
-thirty-second's 8.14 and Sonnet 5.5 medium's 3.56, the roster his to decide),
-rule the twenty-four Loop items (2003's twenty-three reaches first), then clear
-`commander` into the thirty-fourth tranche with 2259 and 2265, one to a lane.**
+**Opener: the thirty-fourth tranche's commander — continued by hand after the thirty-third steer, cleared
+into by nobody: read this handoff, then spawn 2259, 2265, 2271 and 2276 one to a lane on the roster
+DECISIONS 70 names, their reservations in the queue's words; at twenty landings write the handoff and clear
+`steer` into the thirty-fourth pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2259 the headline's word, 2265 the rules track's —
-lower map first — East Indies (Mongols), the successor pair's.
+2259 the headline's word, 2265 the rules track's, 2271 and 2276 the
+sweep lanes' — lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
@@ -66,6 +66,22 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     (−1, −1) there; that this crate's idle search reaches a building
     the original's does not is 2235's hypothesis (parked 2236). The
     original's search on 777 first (a packet). Run 842; GOLDEN §82.
+
+2271. **The sweep's sixty-first batch: ten never-backed simulation
+    functions** (DECISIONS 63 (iv); the score `Census:` 721 of 3611):
+    2253's shape, merged by SHA; past the functions `crates/sim/src/sweep/`
+    holds, shortest decompile first; 2276's ten excluded by name; skip
+    operators (parked 1722); a `--ptrarg` drawn null some rows,
+    `--place-null`'s twin, owed with five waiting (Loop 2003, 2253): build
+    it first, with a test made to fail first. `--kind sweep`.
+
+2276. **The second sweep lane's next ten: never-backed functions with
+    a port consumer** (DECISIONS 61; parked 1725; no map word is open
+    for a third lane; the score `Census:` 721 of 3611): 2247's shape,
+    ordered by port readers; 2271's ten excluded by name; a link field
+    drawn to terminate (`o_up`, an upgrade chain), owed with three
+    waiting (Loop 2003, 2247): build it first, with a test made to fail
+    first. `--kind sweep`.
 
 ## How to maintain this file
 

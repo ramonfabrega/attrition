@@ -204,6 +204,20 @@ class RunnerTest(unittest.TestCase):
         self.assertIn('GROUPS',why)
         self.assertIn('DEATHS',why)
 
+    def test_a_long_window_with_no_detail_is_refused_before_the_launch(self):
+        # Loop 2199 (2107's line): run830 was the long with no `--detail`,
+        # so the runner staged the default `end:UNITS=3` on every frame — 37
+        # minutes, 717 MB — and the walker could not stand on it; run831
+        # became the long. A window of a thousand frames or more names its
+        # detail or is refused, naming the long's own line.
+        self.assertIsNone(runner.refused_window(None, None))
+        self.assertIsNone(runner.refused_window([2283, 2539], None))
+        self.assertIsNone(runner.refused_window([0, 24001], ['end:MISC']))
+        why = runner.refused_window([0, 24001], None)
+        self.assertIn('2199', why)
+        self.assertIn('--detail', why)
+        self.assertIn('run830', why)
+
     def test_a_frame_define_without_its_plan_is_refused_before_the_lane(self):
         # Parked 2006, Loop 2054: run810's first take died in the tracer
         # build — `RON_STATE_FRAME` without `RON_STATE_PLAN` — after the lane

@@ -7,6 +7,7 @@ turn having sent nothing (parked 1412), a turn that ended on a backgrounded
 wait and came back, a commit that was not a push, and a quiet lane.
 """
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -134,6 +135,25 @@ class EndedCarriesTheRowsDetail(unittest.TestCase):
         ctxs['a'] = 305_500
         self.assertEqual(lanewait.deep(ctxs, 300_000, reported), (5, 'DEEP a 305k'))
         self.assertIsNone(lanewait.deep({'b': 400_000}, 0, set()), 'off at 0')
+
+    def test_a_deep_lane_already_answered_is_not_named_again_until_it_grows(self):
+        # Loop 2186 (the commander, 2026-10-14): `reported` lived in the
+        # process, so a DEEP answered while the lane's gate ran fired again
+        # at the next re-arm (2107 at 303k, then 310k three minutes later),
+        # and the commander raised --deep for every lane to quiet one. The
+        # answers persist across arms: a lane answered at k is quiet until
+        # it has grown a step past k.
+        answered = {'a': 303_000}
+        self.assertIsNone(lanewait.deep({'a': 310_000}, 300_000, set(), answered=answered))
+        self.assertEqual(lanewait.deep({'a': 345_000}, 300_000, set(), answered=answered, step=40_000),
+                         (5, 'DEEP a 345k'))
+        self.assertEqual(answered['a'], 345_000, 'the answer moves with the exit')
+        self.assertEqual(lanewait.deep({'b': 301_000}, 300_000, set(), answered=answered), (5, 'DEEP b 301k'))
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / 'deep.json'
+            self.assertEqual(lanewait.load_answered(path), {})
+            lanewait.save_answered(path, {'a': 345_000})
+            self.assertEqual(lanewait.load_answered(path), {'a': 345_000})
 
     def test_a_working_row_idle_with_nothing_running_has_stalled(self):
         # Parked 1871, the thirtieth pass: 1738's lane gate exited and the
