@@ -6925,6 +6925,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2077: 113 -> 516, the walk past 3835 to the word 4238.
     // Item 2088: 516 -> 524, past 4238.
     ("mongol_pair_first_parting", 524),
+    // Great Sahara in the successor pair's lobby (item 2107): its walk.
+    ("sahara_mongol_first_parting", 193),
     ("run780_s_word_frame_is_widened_whole", 4),
     ("run788_s_word_frame_is_widened_whole", 4),
     ("run799_s_word_frame_is_widened_whole", 4),
@@ -9045,6 +9047,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         2055,
         Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_4266),
     ),
+    // **The third map in the successor pair's lobby** (item 2107): frame
+    // 2995 on run831, walked from run832's start; widened on run834 over
+    // 2989..3269 (block 2996), which runs to the game's closing block.
+    (
+        "SAHARA_MONGOL_WORD",
+        crate::diff::sahara_mongol::SAHARA_MONGOL_WORD,
+        Some("run834_s_word_frame_is_widened_whole"),
+        2107,
+        Some(crate::diff::sahara_mongol::WIDENING_SAHARA_MONGOL_FRAME_2995),
+    ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
@@ -9392,5 +9404,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // Item 2055: closed at the game's last frame.
         endpoint: Some("run676_sahara_coverage_closing_state"),
         window: None,
+    },
+    // **The third map in the successor pair's lobby** (DECISIONS 56 §1,
+    // item 2107): Great Sahara with the Mongols at Difficulty 3 and All
+    // Technologies, which ends at 3268.
+    AiWord {
+        line: "Third map",
+        map: "GreatSaharaMongolAllTech",
+        named: "Great Sahara (Mongols)",
+        word: crate::diff::sahara_mongol::SAHARA_MONGOL_WORD,
+        length: 3_268,
+        endpoint: None,
+        window: Some("sahara_mongol_word_window"),
     },
 ];
