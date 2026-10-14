@@ -3333,7 +3333,8 @@ impl Sim {
         // SEAM: the unit wonders after them — the Statue of Liberty on a
         // land unit, the Porcelain Tower on a ship, the Space Program on an
         // aircraft (`+0x218`) — and the Kremlin's and `INSTANT_UNIT_BONUS`'s
-        // `ACCEL_TRAIN * 5 - 1` return. No capture's player holds one.
+        // `ACCEL_TRAIN * 5 - 1` return, read in `docs/PRODUCTION.md` and
+        // not built (`docs/AI.md` §217.4).
         tail
     }
 
