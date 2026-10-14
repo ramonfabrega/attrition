@@ -853,13 +853,8 @@ right; R1 — and the bit is `is(SCOUT)` on land, `is(BARK)` at sea:
 `QUEUE_NEW` attack-move (`mode == 2`) while the current order is `ATTACK`
 re-adds that attack `QUEUE_FIRST` after the move, so an attack-move issued
 mid-fight keeps the fight. The second reading corrects that last rule twice
-(R2): there is **no liveness test** on the target, and an **air** target
-(the type's `+0x218 == 2`; "sea" was this line's slip, item 2341) is kept
-only under `has_objmask(0x80000000)` (`ANTI_AIR`) and dropped otherwise.
-`add_group_move_order@005e4710` has no such arm. Implemented in
-`orders::add_move_facing_steps` and swept against the original (item 2341,
-`sweep::unit_add_move_facing_order`); the scout rule's `unit_masks` bit is
-not carried, and its closure answers no.
+(R2): there is **no liveness test** on the target, and air targets are
+**kept** only under `has_objmask(0x80000000)`.
 
 The player's right-click reaches it through `CommandPackage::process_move_to`
 → `Group::action_move_to@0070fba0` → `action_move_near@00704990`, which for a
