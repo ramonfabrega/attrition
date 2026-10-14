@@ -20309,7 +20309,7 @@ pin's unread list, so the two sides' agreement on it is quiet, not compared.
 ### 216.3 The mechanism, and the build
 
 `ObjectData::train_time@006508c0`'s tech block (a type in `0x220..0x274`) ends with `has_wonder(0x21d)` and a type
-that is neither `DISBAND` (`0x29a`) nor `RAZE` (`0x29b`): `local_8 = 0`. Every step after it multiplies a zero, and
+that is neither `DISBAND` nor `RAZE`: `local_8 = 0`. Every step after it multiplies a zero, and
 the `max(1, local_8)` at the foot answers 1. The function's last `has_wonder(0x21d)` block zeroes again for any type
 that is neither a unit nor a building. So a unit's research job keeps its time. `docs/PRODUCTION.md` names the arm
 ("the Supercollider … zeroes research time entirely"); this crate's `tech_time` had only the science speedup.
