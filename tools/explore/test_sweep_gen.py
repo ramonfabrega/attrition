@@ -316,6 +316,43 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
                                    sparse=['0xc061e0:0x100:2:0xf0,0x20'])
 
+    def test_a_link_field_is_drawn_to_terminate(self):
+        # Loop 2003's reach from item 2247 (item 2276): `curr_uber_size`
+        # climbs `o_up` to the captain and walks `o_down`; `set_in_danger`,
+        # `set_group` and `upgrade_level` walk a link the same way, and a
+        # random link can cycle. `--link pA..B+OFF:SIZE:DIR[:T,T..]` draws
+        # figure k's (window p(A+k)'s) link from the figures on DIR's side of
+        # its own index (`<` below, `>` above) or a terminator, so every
+        # walk ends.
+        import random
+        import sweeplib
+        rng = random.Random(1)
+        ends = set()
+        for _ in range(400):
+            n = rng.randint(1, 9)
+            for d in '<>':
+                links = [sweeplib.link_value(rng, n, k, d, (-1,)) for k in range(n)]
+                for k, v in enumerate(links):
+                    self.assertTrue(v == -1 or (v < k if d == '<' else k < v < n), (d, k, v, links))
+                k, seen = rng.randrange(n), 0
+                while k >= 0:
+                    k, seen = links[k], seen + 1
+                    self.assertLessEqual(seen, n)
+                ends.add(seen)
+        self.assertGreater(len(ends), 4, 'a walk of every length, not only the first step')
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2276, win=0x20, bias=[], own=0,
+            places=['p0+0:0:0x94', 'p0+4:0:0x94', 'p0+8:0:0x94'], cells=['0xc0aec0:0x10'],
+            links=['p1..3+0x8e:2:<:-1,-0x8000', 'p1..3+0x90:2:>'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("LINKS = [(1, 3, 142, 2, '<', [-1, -32768]), (1, 3, 144, 2, '>', [-1])]", script)
+        self.assertIn('link_value(rng, n, k, d, terms)', script)
+        self.assertIn('from sweeplib import link_value', script)
+        self.assertIn('figures p1..p3 link at +0x8e (2 bytes) below their own index or to -1, -32768', test)
+        for bad in ('p1..3+0x8e:3:<', 'p1..3+0x8e:2:=', 'm+0x8e:2:<', 'p3..1+0x8e:2:<'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], links=[bad])
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,
