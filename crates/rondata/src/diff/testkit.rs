@@ -6924,7 +6924,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // The successor pair walked to its word 2207 (item 1744): four reads.
     // Item 2077: 113 -> 516, the walk past 3835 to the word 4238.
     // Item 2088: 516 -> 524, past 4238.
-    ("mongol_pair_first_parting", 524),
+    ("mongol_pair_first_parting", 612),
     ("run780_s_word_frame_is_widened_whole", 4),
     ("run788_s_word_frame_is_widened_whole", 4),
     ("run799_s_word_frame_is_widened_whole", 4),

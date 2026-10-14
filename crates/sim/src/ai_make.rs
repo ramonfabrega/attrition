@@ -1825,6 +1825,60 @@ mod tests {
         assert_eq!((s.ledgers[1].bucket[g], s.market.price[g]), (100, 53));
     }
 
+    /// **The builder walk is in object-number order** (item 2130,
+    /// `docs/AI.md` §210; `Leader::produce_building@006e1400`,
+    /// `006e2650`–`006e27b6`, walks `objects->units[who][0..count]` and keeps
+    /// a tie on `<`). Two citizens on one tile tie for the farm; the one with
+    /// the lower `o` is sent though it was born second — run820's `1/186`
+    /// (uid 346, a recycled number) against `1/208` (uid 334) on 4182.
+    ///
+    /// Made to fail once with the walk in `units` order: the elder `1/9` is
+    /// sent.
+    #[test]
+    fn a_tied_builder_is_the_lower_object_number_not_the_elder() {
+        let mut f = fx();
+        let s = &mut f.sim;
+        s.frame = 100;
+        let at = tile_pos(32, 32);
+        let b = s.init_build(1, f.village_rec, at, false);
+        s.activate(b, false, true);
+        let c = s.buildings[b].city.expect("a finished city has a record");
+        s.ai[1].city_ai = vec![CityAi::default(); s.cities.len()];
+        s.ai[1].city_ai[c].land = 40;
+        s.ai[1].city_ai[c].space = [40, 40, 40];
+        s.ai[1].census.resize(256, 2);
+        let reg = s.world.region_of(at.cell()).expect("a region");
+        s.ai[1].census.reg_free_peasants[usize::from(reg)] = 2;
+        s.ledgers[1].bucket = [10_000; RESOURCES];
+        // The tree's first unit type is the one `produce_building` counts
+        // as a citizen (`0x32`/`0x33` in the original): record 0 here.
+        let citizen = s
+            .unit_types
+            .iter()
+            .position(|t| {
+                t.tree.is_some_and(|id| {
+                    Some(id) == s.tech_tree.types.iter().position(|d| d.kind.is_unit())
+                })
+            })
+            .expect("the counted type");
+        for o in [9, 3] {
+            let mut u = crate::Unit::new(1, o, tile_pos(38, 32), 40);
+            u.ty = Some(citizen);
+            s.add_unit(u);
+        }
+        let mut m = slot(f.farm, 500);
+        m.city = c as i32;
+        s.ai[1].make_list.list[0] = m;
+        assert!(s.make_this(1, 0), "produce_building placed the farm");
+        let sent: Vec<i16> = s
+            .units
+            .iter()
+            .filter(|u| u.orders.iter().any(|o| matches!(o.body, Body::Build(_))))
+            .map(|u| u.index)
+            .collect();
+        assert_eq!(sent, vec![3], "the lower number keeps the tie");
+    }
+
     /// A never-started site with no builder is disbanded where the danger
     /// map is positive, and gets a citizen where it is not.
     #[test]
