@@ -437,6 +437,28 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2241, win=8, bias=[], stubs=['slot:0x3c:0'],
                                    places=['s1:0:4'])
 
+    def test_a_place_may_be_drawn_null(self):
+        # Item 2253 (Loop 2003, 2241's line): `Unit::update_order` and
+        # `UnitData::get_order` guard the pointer at `+0xdc` against null,
+        # and a place is never null, so the guard ran one arm. `--place-null
+        # K` lays place K's pointer as 0 a third of the rows; the buffer is
+        # still drawn so every later window keeps its index, and a line
+        # without the flag draws no extra number.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2253, win=0xe0, bias=[],
+            places=['m+0xdc:0:8', 'p0+4:0:0x10'], place_null=['0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('NULLS = [0]', script)
+        self.assertIn('if k in NULLS and rng.random() < 1 / 3:', script)
+        self.assertIn('null a third of the rows', test)
+        sp2, script2, *_ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2253, win=0xe0, bias=[],
+            places=['m+0xdc:0:8', 'p0+4:0:0x10'], port='0')
+        self.assertIn('NULLS = []', script2)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2253, win=0xe0, bias=[],
+                                   places=['m+0xdc:0:8'], place_null=['1'])
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
