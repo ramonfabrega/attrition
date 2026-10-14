@@ -5224,13 +5224,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CH — reserved
+## Parked by item 2395, 2026-10-14 — the sweep's seventy-first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2396) **The issuers left after 2395** (names no score; the sweep's next batch). `GroupOut::issue_halt`
+(0x70ad70, byte 0x0c) is the same shape as the four taken (`group_out_issue_alarm`'s line, byte changed);
+the other `GroupOut::issue_*` and `CommandManager::issue_*` rows (`hotkey`, `attack`, `disband`, `trade`,
+`flight`, `build`, `camera`, `buy`, `sell`, ...) carry arguments and are not read.
+(2397) **A gate-closed arm of an `obj` port logs one more `-` than the stubs it names** (the Loop's, names no
+score): `GroupOut::issue_*`'s port, with three `--record`s, printed four columns on both the gate-closed and the
+check-refused row; a lane learns the count from one failed run. A `sweep_gen` that wrote the dash count from the
+record list (or a closing line in the usage) would save the round trip.
 
 ## Parked by the next landing, slot CI — reserved
 
