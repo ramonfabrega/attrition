@@ -18,14 +18,13 @@ Sonnet 5.5 medium's 3.56), 23.8 min waiting; word lanes 10.49 (Sonnet 5.78), gen
 successor 4246 → 4671, Great Sahara (Mongols) closed on its first build, chapters 63–64 closed, 65 open, census
 571 → 721. **The roster is Ramon's at this steer** (DECISIONS 70 names it); the pass recommends, changes none.*
 
-- **Built**: `repin.py --write` rewrites a golden `WANT_CH*` list (2071); `lanewait.py`'s DEEP answers persist
-  (`--deep-state`, 2186); `unitat.py` prints a `GroupMoveOrder` (2145); the runner refuses a long with no
-  `--detail` (2199); `census.py --pin --never` runs again — cited 1574, never **333**. Six Loop lines are brief
-  rows; 1947, 1965, 2210 closed. Battery 576 / 6566 / 2974, a ninth tranche. Disk 182 GiB. `main` 476 behind.
-- **The successor pair closed at 5056 of 5,056** (2259 → 4946, 2293 → 5056); chapters 65 and 66 closed (2265, 2304);
-  census 721 → 813 (2271, 2276, 2281, 2298, 2287, 2309, 2325, 2314, 2336). **Live**: 2320 (AI §218, BT, runs 846–848),
-  2331 (GOLDEN §84, BV, run 845), 2341 (BX), 2346 (BY); four parked numbers follow each. Next 2351, run 849, AI §219, GOLDEN §85, park BZ.
-- **Fable backlog: 15 Loop items** (1570, 1725, 1900, 2003, 2031, 2060, 2089, 2104, 2146, 2240, 2286, 2292, 2303, 2319, 2330).
+- **Built** (the pass): `repin.py --write`, `lanewait.py --deep-state`, `unitat.py`'s `GroupMoveOrder`, the long's
+  `--detail` refusal, `census.py --pin --never`. Battery 576 / 6566 / 2974, a ninth tranche. Disk 182 GiB.
+- **The successor pair closed at 5056** (2293); chapters 65–67 closed (2265, 2304, 2331); census 721 → 815.
+  **The peace pair** (2320: East Indies, the Lakota, All Technologies, `RUSH_RULES 10`) ends at 6822; its first word
+  1384 (596 / 564, index 28). **Live**: 2341 (BX), 2346 (BY), 2351 (AI §219, BZ, runs 849–851), 2357
+  (GOLDEN §85, CA, run 852); four parked numbers follow each. Next 2362, run 853, AI §220, GOLDEN §86, park CB.
+- **Fable backlog: 16 Loop items** (1570, 1725, 1900, 2003, 2031, 2060, 2089, 2104, 2146, 2240, 2286, 2292, 2303, 2319, 2330, 2356).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,9 +32,10 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Census: simulation backed 813 of 3611
+Peace pair: EastIndiesLakotaPeace w1384 of 6,822
+Census: simulation backed 815 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-fourth tranche's commander, cleared at the tenth landing (2304): read this handoff,
@@ -46,26 +46,28 @@ thirty-fourth pass.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2320 the next pair's choice, 2331 the rules track's, 2346 and 2341 the
-sweep lanes' — lower map first — closed, the successor pair's; 2320 names its successor.
+2351 the AI word's, 2357 the rules track's, 2346 and 2341 the
+sweep lanes' — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2320. **The successor pair's successor: the lobby that reaches the
-    most census rows no trace has entered** (DECISIONS 61 §6; the pair
-    closed at 5056, 2293). 1466's method: `census.py --pin --never`,
-    the never-entered simulation functions' entered callers, read by
-    what each caller's branch needs; named with those rows before its
-    first run is booked, a late starting age first; the scoreboard line
-    and `NEWEST_PAIR` with it. Runs 846–848. AI §218.
+2351. **The peace pair's word 1384: ours 596 draws, theirs 564, index
+    28** (2320; ours `Leader::create_buildings+0xffb`, theirs
+    `Animal::think_bird+0x82`; widened whole on run848, 870 keys). The
+    previous item's hypothesis: who=1's food economy parts from block 1
+    (`income[0:food]` 160 / 864 on run846's block 1, `econ` 3 / 8 on
+    1378) — the first parting walked back, not the word's frame. A
+    pre-war gate before 4500 is parked 2321's frame (`war_allowed`'s
+    time arm). Runs 849–851. AI §219.
 
-2331. **Chapter sixty-seven: the arms the AI track built that no walk
-    holds** (DECISIONS 56 §3; 2304 closed sixty-six on the disk, a
-    round's release point, GOLDEN §83). Candidates: `train_time`'s
-    Monarchy arm, inert on every walk (2295, 2293's); `ai_sites`'
-    wrapping decrement (2111) and `land_tail` (2196), each naming its
-    staging first (parked 2305). Name the census rows first; run 845
-    only when no packet of the game is on disk. GOLDEN §84.
+2357. **Chapter sixty-eight: the arms the AI track built that no walk
+    holds** (DECISIONS 56 §3; 2331 closed sixty-seven at 1330, Monarchy's
+    cost and train arms, GOLDEN §84). Candidates: Monarchy's cost arm
+    against a live `MILITARY_UNIT_DISCOUNT`, the two truncations' order
+    resting on a reading (parked 2334); `get_cost`'s Socialism and
+    Salmon arms, unbuilt beside 2293's train-time half (2333). Grep the
+    constant's every reader first (Loop 2356). Name the census rows
+    first; run 852 only when no packet of the game is on disk. GOLDEN §85.
 
 2346. **The sweep's sixty-seventh batch: ten never-backed simulation
     functions** (DECISIONS 63 (iv); the score `Census:` 813 of 3611):

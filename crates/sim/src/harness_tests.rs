@@ -2435,7 +2435,21 @@ fn a_government_speeds_its_trainer_lines_by_equality() {
         [true, false, false, false, false],
         "Monarchy: the Stable"
     );
+    // `get_cost@00664090:657`–`665`, the same trainer by equality: the
+    // Stable's unit takes `MONARCHY_UNIT_PROD` off its price under either
+    // tier, and no other trainer does (item 2331, `docs/GOLDEN.md` §84).
+    let cheaper = |s: &Sim| -> Vec<i32> {
+        tys.iter()
+            .map(|&ty| s.monarchy_cost_discount(0, ty))
+            .collect()
+    };
+    assert_eq!(
+        cheaper(&sim),
+        [25, 0, 0, 0, 0],
+        "Monarchy prices the Stable's unit"
+    );
     sim.tech[0].tech[monarchy] = false;
+    assert_eq!(cheaper(&sim), [0; 5], "no government, no price arm");
     sim.tech[0].tech[socialism] = true;
     assert_eq!(
         faster(&sim),

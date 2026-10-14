@@ -3767,6 +3767,12 @@ run842) answered chapter sixty-six without run 845. The brief's "books a capture
 frame's chapter row says "a capture only when no packet or widening of the game on disk answers the arm", and a
 closed chapter's standing rows are read as candidates before a new staging. One reach.
 
+(2356) **Before staging a built arm, grep the constant's every reader in the export** (2331's "for the Loop" line).
+2293 built `train_time`'s Monarchy arm off `MONARCHY_UNIT_PROD`; its cost twin in `TypeData::get_cost` sat one listing
+away, unported, and chapter sixty-seven found it only when the staged Light Horse's price parted on 804. Candidate: a
+brief-checklist row for the rules track — "an arm the AI track built: grep its constant's every reader in the export,
+and port or park each, before the staging is booked" — beside Loop 2330's packet-first row. One reach.
+
 ## Loop, filed 2026-10-14 — the thirty-third tranche's
 
 (2146) **`GROUPS=1` without `BUILDS=7` prints no `GROUPDATA`** (Loop; names no score). run827's first take asked
@@ -4894,9 +4900,10 @@ the window's first block, and `1/176`'s `mirror` (ours 0, theirs 1) parts on 470
 has a unit off by the same (−96, −720) (`1/84`, `run652_coverage_pair_closing_state`). Neither is walked back past
 run838's first block. Names the closing pin and no draw word.
 
-(2295) **The Monarchy arm's walk is inert** (2293; names no score). `train_time`'s Stable arm under `MONARCHY_1`/`_2`
+~~(2295) **The Monarchy arm's walk is inert** (2293; names no score). `train_time`'s Stable arm under `MONARCHY_1`/`_2`
 is built and its test holds it. Dropped, it failed nothing on the successor pair's walk. No capture shows a Stable
-unit finishing under Monarchy on a different frame. Both tiers' constants are 25, so the tier is numerically inert.
+unit finishing under Monarchy on a different frame. Both tiers' constants are 25, so the tier is numerically inert.~~ **Walked by item 2331** (`docs/GOLDEN.md` §84): run845 holds the arm on a build in progress and a
+fresh one, and dropped it parts chapter sixty-seven's word at 800. The tier stays unstaged.
 
 (2296) **run844's residue past its standing block** (2293; `docs/AI.md` §217.4; `run844_s_closing_frame_is_widened_whole`,
 225 keys). Ours charges `attrition` 6 (12 on `1/104`) where theirs charges 0 on who=1's units `1/20` (4941), `1/17`
@@ -4979,13 +4986,15 @@ The port assumes every member already points at the slot. The sweep holds the he
   wrap its sums).
 
 
-## Parked by the next landing, slot BT — reserved
+## Parked by item 2320, 2026-10-14 — the peace pair
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2321) **The peace pair's rush rules: `Game::war_allowed`'s time arm and its readers** (item 2320, `docs/AI.md` §218).
+    `RUSH_RULES 10` forbids war until frame 4500 (`rush_rules` table minutes 5 × 900; `war_allowed@00594670`, the
+    `9 <= rush_rules` arm after `current_age@005946d0`). `crates/sim/src/army.rs`'s seam list models it as "always
+    allowed" in `release_mustering`, and the other readers — `Unit::process_attrition`, `PathFinder::calc_cost`,
+    `Leader::diplomacy`, `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,
+    `UnitTypeData::can_attack_ground`, `Nuke::do_damage`, `Game::do_frame`'s frame-4500 event — are not read. Names
+    the peace pair's word once it passes 1384; a word that parts before 4500 on a pre-war gate is this row's frame.
 
 ## Parked by item 2325, 2026-10-14 — a stub that answers through its argument, and a sweep that keeps its line
 
@@ -5011,13 +5020,24 @@ cell; it needs a stub laid in the cell. `PathFinderData::find_node_closed` reads
 The jump-table switches `Setup::get_starting_citizens`, `Search::valid_filter` and
 `GameInfo::default_setting` were not read this batch.
 
-## Parked by the next landing, slot BV — reserved
+## Parked by item 2331, 2026-10-14 — a Stable's unit under Monarchy
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2332) **2111 and 2196 still have no staging** (item 2331, `docs/GOLDEN.md` §84; names no score; 2305's sequel).
+Chapter sixty-seven took Monarchy, the one candidate the console stages. `ai_sites`' wrapping decrement (2111) needs a
+computer's census adjustment, which `!ai off` never runs; `land_tail`'s `buildings` toggle (2196) needs a building
+group whose `list[0]` turns. A chapter that books either names its staging first.
+
+(2333) **`get_cost`'s Socialism arm is not built** (item 2331; names no score). `TypeData::get_cost@00664090:666`–
+`672`, the line after Monarchy's: `has_preq(SOCIALISM_1)` and a trainer of `0x1ae`, `0x1bf` or `0x1b0` (the Siege
+Factory, the Airbase, the Dock, by equality) take `(100 − SOCIALISM_UNIT_BONUS) × cost / 100`, a truncation after
+Monarchy's. Item 2293 built the train-time half. The successor pair's who=1 holds Socialism from 4782, and no landing
+has read the price of an Airbase unit queued there. Then comes Salmon's naval arm (`salmon_naval_cost`, `+0x218 ==
+1`), also unbuilt. `cost::Modifiers::monarchy` is where both would sit.
+
+(2334) **Monarchy's cost arm against a live military discount** (item 2331; names no score). run845's Light Horse is
+at its own age's level, so `MILITARY_UNIT_DISCOUNT` is 0 and the order of the two truncations rests on the listing and
+`monarchy_takes_its_quarter_after_the_military_discount`. A Stable unit queued two Military levels past its own
+under Monarchy parts the two orders by a unit.
 
 ## Parked by item 2336, 2026-10-14 — a bool's low byte, a stub in an import cell, and a local by its depth
 
@@ -5107,6 +5127,46 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot CC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CH renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

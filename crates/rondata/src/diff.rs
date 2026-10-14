@@ -42,6 +42,8 @@ mod floors;
 mod golden;
 mod harness;
 #[cfg(test)]
+mod lakota_pair;
+#[cfg(test)]
 mod leader;
 #[cfg(test)]
 mod mongol_pair;

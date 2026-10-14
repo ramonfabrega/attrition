@@ -16737,3 +16737,77 @@ trace: 781 frames, 0 differing. Waited on another lane's capture: none.
 **What it holds**: `step4.py --entry 610bc0 --this 15ab857c` on the second (`Unit::process` on `0/9`, unpoked) enters
 `think_attack` → `find_melee_target` → `find_nearby_target(0xc00, …)`, whose ring walk calls `valid_target@00648ba0`
 on two objects and reaches no `compare_target`. No test reads it.
+
+## run845 — chapter sixty-seven: a Stable's unit each side of Monarchy, and Hoplites behind them (2026-10-14, item 2331, `att-2331`)
+
+`docs/GOLDEN.md` §84, `tools/gamelog/golden/chapter67.cmd` (ten staged lines). **What the disk could not answer**: no
+capture on disk finishes a Stable unit under Monarchy (parked 2295), so `train_time`'s Monarchy arm had no record that
+could part on it, and nothing had ever printed the price of a Stable unit queued under Monarchy (`get_cost`'s arm).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch67 \
+    --map 14 --end-frame 1330 --log-window 600 1330 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter67.cmd
+```
+
+**One take**, click-free pool lane 2: `success: true`, `settings_restored`, 1,331 frames, seed 12345, map 14, 695 s
+launch to exit. Kept in `~/ron-golden/ch67/map-14`; `rontrace.dll` SHA-256
+`5bf56054b4e41f31d73c5a33b76183e81d575ce8b0f0500f3d50f76931caedb0`. Waited on another lane's capture: none (the pool
+seated it on lane 2 while lane 1 was held). All four falsifiers in the `.cmd` header held: A out on block 801, B
+queued at 45/30 on 804 and out on 978, the Hoplites at 51/31 and out on 840 and 1075, no patriot. **What it holds**:
+`golden::chapter_sixty_seven_holds_to_the_golden_word` (**1330**, the trace's end, closed) and
+`chapter_sixty_seven_s_word_frame_is_widened_whole` (600..1331, eleven standing `form` rows).
+## run846 — the peace pair: East Indies, the Lakota, Difficulty 3, All Technologies, five minutes' peace, the `DUMP_ALL` start (2026-10-14, item 2320, `att-2320`)
+
+`docs/AI.md` §218. **What the disk could not answer**: no capture on disk sets `RUSH_RULES` (0 hits in this file and in
+`tools/gamelog/captures.txt`) or has the Lakota (19) in any slot, so no dump holds this lobby. Through `viadriver.sh
+tools/explore/golden_capture.sh`: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 19 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`, click-free lane 1
+from the pool, `cover=0`; `success`, 37 frames, 494.6 s launch to exit, five settings files restored, tribes 4 and 19,
+seed 12345. `GAME INFO` reads back `MAP_STYLE 18`, `DIFFICULTY 3`, `STARTING_RESOURCES 7`, `RUSH_RULES 10`,
+`STARTING_TECHNOLOGY 8`, `(int)seed 12345`. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run846-eastindies-lakota-peace-start.txt`, 153,368,115 bytes,
+SHA-256 `8cf2526ed5fa6aedc010cbd6bcda0f7f84783d0c83f26cc0a5210d30bfb03ff5`.
+
+Archive `rontrace-run846.log`, 10,662,688 bytes,
+SHA-256 `393f5f3858e1da76cd5aac5b95a42b6c280631cde68044be7a10263f8245042c`.
+
+## run847 — the peace pair: the draw stream to the game's end (2026-10-14, item 2320)
+
+Run775's recipe in run846's lobby: `--map 18 --end-frame 24000 --allow-early-end --timeout 2400 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 19`, the profile of run846, and run652's details (`end:MISC`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`, `misc:CHECKSUM=2`,
+`endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`). The first launch passed no `--detail` and the runner
+refused it before staging (Loop 2199's guard). **The game ended itself at frame 6822** (6,823 frames, closing block 6823;
+the human `defeated_by 1`), 104.2 s launch to exit, click-free lane 1. `rngcmp.py rontrace-run846.log rontrace-run847.log`:
+37 in common, 0 differing.
+
+Archive `gamelog-run847-eastindies-lakota-peace-trace.txt`, 14,460,480 bytes,
+SHA-256 `bb9fdf1a88432cd2008ad584852bd76db5437309b52e781aab383a427363df11`.
+
+Archive `rontrace-run847.log`, 277,291,392 bytes,
+SHA-256 `bd0f71147e7ca8fffffa4ae6ebe6ca7fea4d57369673b1114515070d74872436`.
+
+**What it holds**: `diff::lakota_pair::lakota_pair_first_parting` — frame 1384, count and sequence, first try.
+
+## run848 — the peace pair: the word 1384's widening, blocks 1378..1634 (2026-10-14, item 2320)
+
+**Disk gap**: run846's dump holds blocks 0..2 and run847 checksums and the closing block only; no dump of this lobby held a
+record on 1384. run776's recipe with the window six blocks before the word's block 1385 and 250 after, through
+`viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 1640 --timeout 3600 --log-window 1378 1635 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19` and run846's profile, `--cover cover=0`, click-free lane
+1 from the pool; `success`, 1641 frames, 1226.7 s launch to exit. 258 `BEGIN FRAME`s 1378..1634 and a 1641 closing
+block. `rngcmp.py rontrace-run847.log rontrace-run848.log`: **1641 in common, 0 differing**. Minutes waited on another
+lane's capture: none.
+
+Archive `gamelog-run848-eastindies-lakota-peace-window-1378-1635.txt`, 479,307,820 bytes,
+SHA-256 `55f1ab50056c8e04a3cef210dd483195c78fbc092f383d5b53ea75e986ed8347`.
+
+Archive `rontrace-run848.log`, 23,029,120 bytes,
+SHA-256 `228256e15ad06009967c8a82d994c2baa6f6d4f1ed27838c0c793d875ba5130b`.
+
+**What it holds**: `diff::lakota_pair::run848_s_word_frame_is_widened_whole` — 870 keys on blocks 1378..1634; the word's
+value diff (`docs/AI.md` §218).
