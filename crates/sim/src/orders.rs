@@ -1816,8 +1816,9 @@ impl Sim {
     /// queue, action)@005e48c0` (`docs/ORDERS.md` §32): a `StrafeOrder`
     /// with the target, its point in `xx/yy`, `returning` set exactly when
     /// there is no target, the home base, `cruising_alt` 0x640, and the
-    /// action bit as asked. The `QUEUE_NEW` head and the `QUEUE_FIRST`
-    /// rotation are [`Self::enqueue`]'s, as for `add_guard_order`.
+    /// action bit as asked. The `QUEUE_NEW` head is [`Self::enqueue`]'s
+    /// and the `QUEUE_FIRST` rotation its tail's, but no queue closes with
+    /// `update_action` ([`add_strafe_steps`], item 2341).
     ///
     /// **The missile arm at its head** (`5e48c0`..`5e4919`, item 1050): a
     /// type with the missile flag (`type +0x1e4 & 0x8000000`) and a target
@@ -1835,41 +1836,66 @@ impl Sim {
         pos: QueuePos,
         action: bool,
     ) {
-        if let Some(t) = target
-            && self.profile(Obj::Unit(u)).has(crate::combat::mask::MISSILE)
-            && self.valid_target(Obj::Unit(u), t)
-        {
-            let at = self.pos_of(t);
-            self.add_air_attack_ground_order(u, at, home, pos, action);
-            return;
-        }
-        let at = target.map(|t| self.pos_of(t));
-        let order = Order {
-            flags: if action { flag::ACTION } else { 0 },
-            body: Body::Strafe(StrafeOrder {
-                target,
-                mandatory,
-                home,
-                cruising_alt: CRUISING_ALT,
-                sharp_turn: 0,
-                returning: target.is_none(),
-                at,
-            }),
-        };
-        // **`QUEUE_FIRST` takes no `update_action`** (`0x5e4a2b`): the
-        // adder's tail is `clear_partial_path` and the list's rotate, so
-        // `orders_x/orders_y` and `dest_angle` keep the frame's own —
+        // The steps are [`add_strafe_steps`]'s (item 2341's sweep).
+        // **`QUEUE_FIRST` takes no `update_action`** (`0x5e4a2b`), and
+        // neither does any other queue: the adder's tail is the link and,
+        // under `QUEUE_FIRST`, `clear_partial_path` and the list's rotate,
+        // so `orders_x/orders_y` and `dest_angle` keep the frame's own —
         // run223's 777, where the patrol's search pushes the strike after
         // the step and the dump still names the point before it
         // (`docs/ORDERS.md` §34.5). The generic enqueue's closing
         // `update_action` is the other adders'.
-        if pos == QueuePos::First {
-            self.clear_partial_path(u);
-            self.units[u].orders.push_front(order);
-            self.new_head(u);
-            return;
-        }
-        self.enqueue(u, order, pos);
+        add_strafe_steps(
+            self,
+            target,
+            target.is_some(),
+            pos,
+            action,
+            |s| s.profile(Obj::Unit(u)).has(crate::combat::mask::MISSILE),
+            |s, t| t.is_some_and(|t| s.valid_target(Obj::Unit(u), t)),
+            |s, t| s.pos_of(t.expect("a live target")),
+            |s, at| s.add_air_attack_ground_order(u, at, home, pos, action),
+            // SEAM: `unit_masks &= ~0x4000000` (`+0x68`), the defended
+            // return's bit, which this crate does not carry.
+            |s| s.units[u].path.clear(),
+            |s| s.close_orders(u),
+            |s| s.clear_partial_path(u),
+            |s| {
+                s.update_action(u);
+            },
+            |_, at, returning| Order {
+                flags: 0,
+                body: Body::Strafe(StrafeOrder {
+                    target,
+                    mandatory,
+                    home,
+                    cruising_alt: CRUISING_ALT,
+                    sharp_turn: 0,
+                    returning,
+                    at,
+                }),
+            },
+            |_, o, on| {
+                if on {
+                    o.flags |= flag::ACTION;
+                } else {
+                    o.flags &= !flag::ACTION;
+                }
+            },
+            |s, o| {
+                if s.units[u].orders.is_empty() {
+                    s.new_head(u);
+                }
+                s.units[u].orders.push_back(o);
+            },
+            |s| {
+                let orders = &mut s.units[u].orders;
+                if orders.len() > 1 {
+                    orders.rotate_right(1);
+                    s.new_head(u);
+                }
+            },
+        );
     }
 
     /// **`Unit::add_air_attack_ground_order(x, y, home_o, home_who, queue,
@@ -10395,6 +10421,59 @@ pub(crate) fn add_think_steps<C, O>(
     clear_path(cx);
     rotate(cx);
     update(cx);
+}
+
+/// **`Unit::add_strafe_order@005e48c0`'s steps** (item 2341;
+/// `docs/ORDERS.md` §32). A type with the missile bit (`type +0x1e4 &
+/// 0x8000000`, asked first) whose target `Object::valid_target(ox, whom,
+/// 0)` passes is handed to `add_air_attack_ground_order` at the target's
+/// point (`objects[whom][ox] +0x10/+0x14`, unscrambled), and nothing else
+/// happens. Otherwise, under `QUEUE_NEW`: the path dropped (`+0x68`'s bit,
+/// `+0xc0 = 0`), `close_orders(0)`, `clear_partial_path`, `update_action`.
+/// Then `get_obj(STRAFE)` is made — the target's point when `live` (`ox`
+/// and `whom` both non-negative), `returning` exactly when not — its
+/// action bit set or cleared as asked, and linked at the list's tail;
+/// under `QUEUE_FIRST`, `clear_partial_path` and the rotate that heads
+/// the list with it. **No queue takes a closing `update_action`.**
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn add_strafe_steps<C, T: Copy, P, O>(
+    cx: &mut C,
+    target: T,
+    live: bool,
+    pos: QueuePos,
+    action: bool,
+    missile: impl FnOnce(&mut C) -> bool,
+    valid: impl FnOnce(&mut C, T) -> bool,
+    mut point: impl FnMut(&mut C, T) -> P,
+    attack_ground: impl FnOnce(&mut C, P),
+    drop_path: impl FnOnce(&mut C),
+    close: impl FnOnce(&mut C),
+    mut clear_path: impl FnMut(&mut C),
+    update: impl FnOnce(&mut C),
+    make: impl FnOnce(&mut C, Option<P>, bool) -> O,
+    set_action: impl FnOnce(&mut C, &mut O, bool),
+    link: impl FnOnce(&mut C, O),
+    rotate: impl FnOnce(&mut C),
+) {
+    if missile(cx) && valid(cx, target) {
+        let at = point(cx, target);
+        attack_ground(cx, at);
+        return;
+    }
+    if pos == QueuePos::New {
+        drop_path(cx);
+        close(cx);
+        clear_path(cx);
+        update(cx);
+    }
+    let at = if live { Some(point(cx, target)) } else { None };
+    let mut o = make(cx, at, !live);
+    set_action(cx, &mut o, action);
+    link(cx, o);
+    if pos == QueuePos::First {
+        clear_path(cx);
+        rotate(cx);
+    }
 }
 
 /// **`Unit::do_think_order@005e5bf0`'s steps** (item 2287):
