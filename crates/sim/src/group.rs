@@ -2496,6 +2496,10 @@ impl Sim {
                 self.group_leader_faces_away(g, angle), angle.0, self.group_find_leader_slot(g).map(|(u, s)| (self.units[u].index, s)),
                 self.group_leader_bearing(g).map(|a| a.0), to, kind, form
             );
+            let human = self.nation[g.who as usize].human;
+            let c: Vec<_> = g.list.iter().enumerate().filter(|(_, m)| self.units[**m].alive() && self.units[**m].captain && self.units[**m].on_map)
+                .map(|(i, &m)| (i, self.units[m].index, self.units[m].ty, self.units[m].ty.map(|t| crate::form::type_cat(&self.unit_types[t], t, human)))).collect();
+            eprintln!("PROBE2193C f{} cands {:?}", self.frame, c);
         }
         // `Form::compute` → `Form::categorize`, whose first statement is
         // `Group::sort@00708090` (§4.1, §23) — after the clear and the
