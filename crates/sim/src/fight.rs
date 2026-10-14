@@ -3749,12 +3749,6 @@ impl Sim {
                         dist += (targeted + 8) * 0x30;
                         let value = self.compare_target(attacker, o, in_range, ai);
                         let mut score = value / (dist / 0xc0 + 1);
-                        if std::env::var_os("RON_PROBE_2205").is_some() {
-                            eprintln!(
-                                "probe2205 f{} {:?} -> {:?}: dist {} targeted {} in_range {} ai {} value {} score {}",
-                                self.frame, attacker, o, dist, targeted, in_range, ai, value, score
-                            );
-                        }
                         // **The `flags` preferences** (`00649766`–
                         // `006497b2`): `0x10` halves what is not a unit,
                         // else `0x20` what is not a `Build` (a wall
