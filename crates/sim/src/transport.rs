@@ -1833,9 +1833,6 @@ impl Sim {
         self.units[r].movement.set_facing(angle);
         self.units[r].movement.des_angle = des_angle;
         if turned {
-            if std::env::var_os("RON_PROBE_2193").is_some() {
-                eprintln!("PROBEL f{} land 1/{} who {} group {:?}", self.frame, self.units[r].index, self.units[r].owner, self.group_of(r).map(|g| (g.army, self.group_find_leader(&g).map(|l| self.units[l].index))));
-            }
             self.toggle_leader_facing(r);
         }
         // `set_new_location`'s `param_3` reaches `Guy::set_new_location(0,
