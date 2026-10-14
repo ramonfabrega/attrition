@@ -14421,8 +14421,22 @@ fn chapter_sixty_eight_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch68: what parts under the word moved");
 }
 
-// **What parts through run852** (item 2357, `docs/GOLDEN.md` §85).
-const WANT_CH68: &[&str] = &[];
+// **What parts through run852** (item 2357, `docs/GOLDEN.md` §85): the
+// eleven standing `form` rows (600) alone. Without `get_cost`'s Socialism
+// arm Catapult B's queue entry parts on 804 (81/81 against 60/60).
+const WANT_CH68: &[&str] = &[
+    "600 0/0 form",
+    "600 0/1 form",
+    "600 0/2 form",
+    "600 0/3 form",
+    "600 0/4 form",
+    "600 0/5 form",
+    "600 1/1 form",
+    "600 1/2 form",
+    "600 1/3 form",
+    "600 1/4 form",
+    "600 1/5 form",
+];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the

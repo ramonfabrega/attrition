@@ -2383,11 +2383,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     // **Chapter sixty-eight, on run852** (item 2357): 616, Light Horse A's
     // queue entry under a live military discount and Monarchy; 804,
-    // Catapult B's under Socialism (`get_cost`'s arms); 859, Catapult A's
+    // Catapult B's under Socialism (`get_cost`'s arms); 858, Catapult A's
     // birth (`train_time`'s Socialism arm on a Siege Factory).
     if let Some(p) = &ch68 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTY_EIGHT;
-        for w in [616, 804, 859] {
+        for w in [616, 804, 858] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter sixty-eight carries the window's five blocks");
             frames += n;
