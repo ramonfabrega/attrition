@@ -37,8 +37,9 @@
 /// 2281: 741 -> 751, the sweep's sixty-second batch, seven of its ten through `obj --record`; item
 /// 2298: 751 -> 761, the sweep's sixty-third batch, the unbuilt lists, the speed and the spells;
 /// item 2287: 761 -> 771, the second sweep lane's ten with a port consumer, five through `obj --record`;
-/// item 2309: 771 -> 782, the sweep's sixty-fourth batch, the leaders-table walks through `obj --record IDX@S`).
-pub const SIMULATION_BACKED: usize = 782;
+/// item 2309: 771 -> 782, the sweep's sixty-fourth batch, the leaders-table walks through `obj --record IDX@S`;
+/// item 2314: 782 -> 792, the second sweep lane's ten with a port consumer, three through `obj --rows N`).
+pub const SIMULATION_BACKED: usize = 792;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
