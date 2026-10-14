@@ -572,6 +572,12 @@ impl Sim {
         let outside = self.gather_sites_outside_cities(who);
         // Step 6, and the `rare_owned` it rebuilds ([`crate::rares`]).
         let (rares, rare_owned) = self.gather_rares(who);
+        let lakota = self.nation[w].lakota && self.tuning.lakota_food != 0;
+        let lakota_units = if lakota {
+            self.lakota_food_units(who)
+        } else {
+            0
+        };
         let h = &mut self.holdings[w];
         h.cities = cities;
         h.outside = outside;
@@ -585,9 +591,41 @@ impl Sim {
         h.british = self.nation[w].british;
         h.mongols = self.nation[w].mongols;
         h.num_nations = self.players.len() as i32;
+        h.lakota = lakota;
+        h.lakota_units = lakota_units;
         h.egyptians = self.nation[w].egyptians;
         h.french = self.nation[w].french;
         h.inca = self.nation[w].inca;
+    }
+
+    /// The count `Leader::calc_gather@006ceee0:116`'s Lakota arm multiplies:
+    /// `stable_units − scout_garr − stable_garr − peasants_garr + scouts +
+    /// peasants` (`docs/AI.md` §219).
+    ///
+    /// The original keeps all six live: `Leader::track_unit_type@006e0dd0`
+    /// moves `peasants` (`is_peasant`), `scouts` (`role & 0x10`; both
+    /// the census's) and `stable_units` (a type with `+0x1e8` set whose `+0x40` is the
+    /// Stable, `0x1ac`), and `Object::insert_inside@00647e90` and
+    /// `remove_from_inside@006480f0` move the three garrison counts for a
+    /// captain in a building — a peasant, else a Stable type (no `+0x1e8`
+    /// test there), else `UnitData::is_special` (`+0x2b8 & 0x10`, the
+    /// scout bit). The sweep also zeroes and recounts `peasants`; the
+    /// Stable and garrison counts are read off the units here, which is the
+    /// same number at the moment the rate is assembled.
+    pub(crate) fn lakota_food_units(&self, who: Player) -> i32 {
+        let w = who as usize;
+        let c = &self.ai[w].census;
+        let mut n = c.peasants + c.scouts - c.peasants_garr - c.stable_garr - c.scout_garr;
+        for t in 0..self.unit_types.len() {
+            let k = self.muster[w].by_type[t];
+            if k != 0
+                && self.unit_types[t].combat.attack != 0
+                && self.trainer_ident(t) == Some(crate::build::Ident::Stable)
+            {
+                n += k;
+            }
+        }
+        n
     }
 
     /// Whether this player's rate would be reassembled on this frame, so the

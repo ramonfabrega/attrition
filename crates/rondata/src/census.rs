@@ -47,8 +47,12 @@
 /// item 2346: 815 -> 825, the sweep's sixty-seventh batch, `edx` beside `ecx` through `obj --edx`, a table
 /// index through `--tame`, a container emptied through `--stub-write`;
 /// item 2341: 825 -> 835, the second sweep lane's next ten with a port consumer, the order adders and the
-/// gaia walks, five through `obj --record-order`).
-pub const SIMULATION_BACKED: usize = 835;
+/// gaia walks, five through `obj --record-order`;
+/// item 2362: 835 -> 845, the sweep's sixty-eighth batch, eight `vtordisp` thunks through `fwd`'s
+/// `vtordisp` token, `set_shooter_vis` and `issue_unqueue`;
+/// item 2374: 845 -> 873, the sweep's sixty-ninth batch, the twenty-eight `vtordisp` thunks left, one `fwd`
+/// line each, the band empty on `census.py --unbacked`).
+pub const SIMULATION_BACKED: usize = 873;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

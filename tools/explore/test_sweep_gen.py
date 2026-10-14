@@ -949,6 +949,22 @@ class Shapes(unittest.TestCase):
         self.assertEqual(sweeplib.xmm_bits(-2.5), 0xc0200000)
         self.assertEqual(sweeplib.xmm_bits(0x42280000, raw=True), 0x42280000)
 
+    def test_a_vtordisp_thunk_moves_this_by_the_word_before_it(self):
+        # Item 2362 (parked 2348, Loop 2003): a `vtordisp` thunk is `sub ecx,
+        # [ecx-4]; jmp target`, and `fwd` drew `this` as an address nothing
+        # maps, so the thunk's one read faulted. The `vtordisp` token lays
+        # `this` in the heap with a drawn displacement at `this-4`, prints it
+        # sixth on the row, and holds the callee's `ecx` to `this - disp`.
+        sp, script, tp, test, mod = sweep_gen.generate_fwd(
+            'MoveOrder::is_pathed_vtordisp@0048898f', item=1, calls=['0x488980:0:vtordisp:'], ret='last')
+        compile(script, str(sp), 'exec')
+        self.assertIn('VTORDISP = True', script)
+        self.assertIn('let disp = a[5];', test)
+        self.assertIn('(this as u32).wrapping_sub(disp as u32)', test)
+        _, plain, _, ptest, _ = sweep_gen.generate_fwd('X::y@00401000', item=1, calls=['0x401000:0:this:'])
+        self.assertIn('VTORDISP = False', plain)
+        self.assertNotIn('disp', ptest)
+
     def test_a_free_function_is_a_name(self):
         # Item 2346: `add_type_bucket2@00669140` and `add_type_bucket` are
         # free functions (`types.cpp`), and the name refused them; the census

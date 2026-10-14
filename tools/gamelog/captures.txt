@@ -9661,3 +9661,8 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # `RUSH_RULES 10` / `(int)seed 12345` in `GAME INFO`; `rngcmp.py` run846 vs run847 -> 0 differing in 37 frames, run847 vs
 # run848 -> 0 differing in 1641. The game ended itself at 6822.
 # ==== TAKEN 2026-10-14, one take each, 13:04-13:39 (run847's first launch refused before staging: no --detail) ====
+# ==== item 2351: the peace pair's word 1984 (`docs/AI.md` §219; `docs/RUNS.md` run849) ====
+#   run849  --map 18 --end-frame 2240 --log-window 1978 2236 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#           --ai-tribe 19 --cover cover=0 (run846's profile)
+# Checks: `rngcmp.py` run847 vs run849 -> 0 differing in 2241.
+# ==== TAKEN 2026-10-14, 15:19-15:46, lane 2 (first take exit 40, retaken once) ====

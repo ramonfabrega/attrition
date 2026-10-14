@@ -203,7 +203,7 @@ fn run776_s_word_frame_is_widened_whole() {
     // window, the word's own block being 12 (frame 11, before 1737: ours 556 draws,
     // theirs 629, index 3; the leader's MAKE list holds the Oil Well's
     // category first in theirs, `docs/AI.md` §190).
-    pin_eq!(w.firsts.len(), 46, "initial run776 baseline");
+    pin_eq!(w.firsts.len(), 44, "initial run776 baseline");
     // Item 1737: the Mongol food term closes the leader economy (frame 3's
     // `econ`/`rate`, food income 435 against 160 from frame 1) and with it
     // the make list's order on 11; 128 -> 46, the control's start set. The
@@ -244,7 +244,7 @@ fn run779_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 106, "initial run779 baseline");
+    pin_eq!(w.firsts.len(), 104, "initial run779 baseline");
     // Item 1744: 1406 keys part on blocks 1349..1605 before the build, the
     // word's own block being 1355 (frame 1354: ours 5 draws, theirs 7, index
     // 1; building `1/2024`'s `queue[0].job_counter` 17200 against 17150 and

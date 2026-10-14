@@ -20,10 +20,10 @@ successor 4246 → 4671, Great Sahara (Mongols) closed on its first build, chapt
 
 - **Built** (the pass): `repin.py --write`, `lanewait.py --deep-state`, `unitat.py`'s `GroupMoveOrder`, the long's
   `--detail` refusal, `census.py --pin --never`. Battery 576 / 6566 / 2974, a ninth tranche. Disk 182 GiB.
-- **The successor pair closed at 5056** (2293); chapters 65–67 closed (2265, 2304, 2331); census 721 → 835.
-  **The peace pair** (2320: East Indies, the Lakota, All Technologies, `RUSH_RULES 10`) ends at 6822; its first word
-  1384 (596 / 564, index 28). **Live**: 2351 (AI §219, BZ, runs 849–851), 2357 (GOLDEN §85, CA, run 852),
-  2362 (CB), 2368 (CC); four parked numbers follow each. Next 2374, run 853, AI §220, GOLDEN §86, park CD.
+- **The successor pair closed at 5056** (2293); chapters 65–67 closed (2265, 2304, 2331); census 721 → 873.
+  **The peace pair** (2320: East Indies, the Lakota, All Technologies, `RUSH_RULES 10`) ends at 6822; its word 1384
+  → 1984 (2351, the Lakota's food). **Live**: 2357 (GOLDEN §85, CA, run 852), 2368 (CC), 2379 (CE); twenty
+  landed, draining. Next 2389, run 856, AI §221, GOLDEN §86, park CG; 2384 is queued (AI §220, CF, runs 853–855).
 - **Fable backlog: 18 Loop items** (1570, 1725, 1900, 2003, 2031, 2060, 2089, 2104, 2146, 2240, 2286, 2292, 2303, 2319, 2330, 2356, 2367, 2373).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -32,8 +32,8 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Peace pair: EastIndiesLakotaPeace w1384 of 6,822
-Census: simulation backed 835 of 3611
+Peace pair: EastIndiesLakotaPeace w1984 of 6,822
+Census: simulation backed 873 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,19 +46,18 @@ thirty-fourth pass.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2351 the AI word's, 2357 the rules track's, 2362 and 2368 the
+2384 the AI word's, 2357 the rules track's, 2379 and 2368 the
 sweep lanes' — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2351. **The peace pair's word 1384: ours 596 draws, theirs 564, index
-    28** (2320; ours `Leader::create_buildings+0xffb`, theirs
-    `Animal::think_bird+0x82`; widened whole on run848, 870 keys). The
-    previous item's hypothesis: who=1's food economy parts from block 1
-    (`income[0:food]` 160 / 864 on run846's block 1, `econ` 3 / 8 on
-    1378) — the first parting walked back, not the word's frame. A
-    pre-war gate before 4500 is parked 2321's frame (`war_allowed`'s
-    time arm). Runs 849–851. AI §219.
+2384. **The peace pair's word 1984: ours 61 draws, theirs 62, index
+    28** (2351; theirs `0x6bdab8` in `Leader::diplomacy`; widened whole
+    on run849, 1242 keys). The value diff on block 1985: who=1's
+    `leader:agendas[0]` 0 / 64. 1984 is before 4500, and `diplomacy`
+    reads `war_allowed`, whose time arm the crate models as always
+    allowed (parked 2321) — the previous item's hypothesis, not a build
+    order. Runs 853–855. AI §220.
 
 2357. **Chapter sixty-eight: the arms the AI track built that no walk
     holds** (DECISIONS 56 §3; 2331 closed sixty-seven at 1330, Monarchy's
@@ -69,19 +68,18 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     constant's every reader first (Loop 2356). Name the census rows
     first; run 852 only when no packet of the game is on disk. GOLDEN §85.
 
-2362. **The sweep's sixty-eighth batch: ten never-backed simulation
-    functions** (DECISIONS 63 (iv); the score `Census:` 825 of 3611):
-    2346's shape, merged by SHA; past the functions `crates/sim/src/sweep/`
+2379. **The sweep's seventieth batch: ten never-backed simulation
+    functions** (DECISIONS 63 (iv); the score `Census:` 873 of 3611):
+    2362's shape, merged by SHA; past the functions `crates/sim/src/sweep/`
     holds, shortest decompile first; 2368's ten excluded by name; skip
-    operators (parked 1722); the `vtordisp` thunks in the 370–430 byte
-    range on 1895's `fwd` shape, and `AmmoOut::set_shooter_vis`,
-    `UnitOut::issue_unqueue`, now reachable (parked 2348, Loop 2003).
-    `--kind sweep`.
+    operators (parked 1722); a `--write-mod` that inserts in sorted order
+    (sorted by hand twice, parked 2318, 2375; Loop 2003): build it first,
+    with a test made to fail first. `--kind sweep`.
 
 2368. **The second sweep lane's next ten: never-backed functions with
     a port consumer** (DECISIONS 61; parked 1725; no map word is open
-    for a third lane; the score `Census:` 835 of 3611): 2341's shape,
-    ordered by port readers; 2362's ten excluded by name; a port mark
+    for a third lane; the score `Census:` 845 of 3611): 2341's shape,
+    ordered by port readers; 2379's ten excluded by name; a port mark
     that is a name collision is no consumer (Loop 2286); a `--regen`
     keeping the hand-written port block and a `--seq` with a terminating
     last value (parked 2342, Loop 2003): build both first, tests made to
