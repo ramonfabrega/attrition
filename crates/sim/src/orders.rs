@@ -3549,8 +3549,7 @@ impl Sim {
                 && unit.combat.target.is_none()
                 && let Some(t) = self.find_melee_target(u, -1)
             {
-                self.nearby_normalize(u);
-                self.add_attack_order(u, t, QueuePos::New, false, false);
+                self.nearby_add(u, t);
                 // `think_attack`'s tail (`005f5da6`..): a **unit** find by
                 // a unit its group lists is handed to
                 // `Group::target_opportunity(…, param_4 = 1)`
