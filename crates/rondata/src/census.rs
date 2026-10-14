@@ -39,8 +39,9 @@
 /// item 2287: 761 -> 771, the second sweep lane's ten with a port consumer, five through `obj --record`;
 /// item 2309: 771 -> 782, the sweep's sixty-fourth batch, the leaders-table walks through `obj --record IDX@S`;
 /// item 2325: 782 -> 793, the sweep's sixty-fifth batch, eleven, `get_inside`'s out-pointer through
-/// `obj --outarg` and `memcpy` through `--stub-cdecl`).
-pub const SIMULATION_BACKED: usize = 793;
+/// `obj --outarg` and `memcpy` through `--stub-cdecl`; item 2336: 793 -> 803, the sweep's sixty-sixth
+/// batch, a `bool`'s low byte through `obj --ret al` and `timeGetTime` through `--stub iat`).
+pub const SIMULATION_BACKED: usize = 803;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
