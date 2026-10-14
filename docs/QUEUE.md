@@ -25,8 +25,8 @@ four lanes, until Ramon says (`ccc spawn --model 'claude-opus-5-5[1m]' --effort 
   last (2059); the runner refuses `RON_STATE_FRAME` without its plan (2054); `hooks.py`'s stubs grow (2043);
   `groups.py <dump> <frame>` (2037); `census.py --hooked` (2025, 0 of 501). Blind list 331 over all 380
   coverage logs — the lobbies' floor (DECISIONS 69 §4). Battery unmoved an eighth tranche. Disk 199 GiB.
-- **Lanes live** (tranche 33, 2026-10-14): 2155 (AI §212, AV, run 833), 2107 (AI §211, AR, runs 830–832), 2160 (AW), 2131 (GOLDEN §78,
-  AT, runs 827–828). Next 2165, run 834, AI §213, GOLDEN §79, park AX (pools AX–AZ, AI §213–§215, GOLDEN §79–§83).
+- **Lanes live** (tranche 33, 2026-10-14): 2155 (AI §212, AV, run 833), 2107 (AI §211, AR, runs 830–832, 834), 2160 (AW), 2131 (GOLDEN §78,
+  AT, runs 827–828). Next 2165, run 835, AI §213, GOLDEN §79, park AX (pools AX–AZ, AI §213–§215, GOLDEN §79–§83).
 - **Fable backlog: 12 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2154).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850

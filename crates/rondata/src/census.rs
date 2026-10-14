@@ -18,8 +18,11 @@
 /// Simulation-layer functions a coverage section's diff or a sweep backs (item 2117: 566 -> 571,
 /// `docs/GOLDEN.md` §77.1 — `think_attack`, `add_to_army`, `get_unit`, `go_to_unit`, `go_to`; item
 /// 2129: 571 -> 581, the sweep's fifty-first batch; item 2149: 581 -> 591, the fifty-second; item
-/// 2160: 591 -> 601, the fifty-third).
-pub const SIMULATION_BACKED: usize = 601;
+/// 2131: 591 -> 602, `docs/GOLDEN.md` §78.1 — `get_final_loc`, `get_loc_to`, `action_move_near`,
+/// `action_move_to`, `process_move_to`, `compute_form`, `add_group_move_order`, and chapter twelve's
+/// follow line, `process_follow`, `action_follow`, `add_follow_order`, `do_follow`; item 2160: 602 -> 612, the sweep's
+/// fifty-third batch).
+pub const SIMULATION_BACKED: usize = 612;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
