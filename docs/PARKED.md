@@ -3777,6 +3777,11 @@ stand on it, so run831 became the long. Every `captures.txt` entry says "run652'
 Candidate: `unattended_capture.py` refuses `--log-window 0 24001` with no `--detail`, or `captures.txt` carries the
 long's line whole, flags included, with a test made to fail first. One reach.
 
+(2210) **`issuesmatch.py --none-refused` before its trace prints help and exits 0** (2165's "for the Loop"
+line): the flag takes the trace after it, so called with the flag first it prints its help and exits 0, which reads like
+a pass. Candidate: a positional the flag cannot swallow, or a non-zero exit on a missing trace, with a test made to fail
+first. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
@@ -4702,6 +4707,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot BF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BL renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
