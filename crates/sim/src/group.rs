@@ -3853,10 +3853,11 @@ impl Sim {
     ///
     /// `Unit::move_step`'s call is modelled — the one a marching unit
     /// makes every frame — and `Unit::do_build`'s turn to its site (item
-    /// 1330). The other callers (`do_gather`, `fight`, `come_out`, …) are
-    /// turns this simulation makes through `Movement::set_heading` or not
-    /// at all, and each is a place a group's flag would move that this one
-    /// leaves still.
+    /// 1330). `come_out`'s turn to a boat's heading reaches the group arm
+    /// through [`Self::toggle_leader_facing`] (item 2193). The other
+    /// callers (`do_gather`, `fight`, …) are turns this simulation makes
+    /// through `Movement::set_heading` or not at all, and each is a place a
+    /// group's flag would move that this one leaves still.
     ///
     /// **And the tail of it is `Guy::set_angle(guy 0, angle, 0)`**, whose
     /// crew loop rewrites every tracked figure's `des_angle` and `des`
@@ -3882,9 +3883,19 @@ impl Sim {
         }
         let from = self.units[u].movement.body.pos;
         self.crew_des(u, from, angle, false);
-        if !turned {
-            return;
+        if turned {
+            self.toggle_leader_facing(u);
         }
+    }
+
+    /// `Unit::set_angle@00605400`'s group arm on its own: a turn of 90° or
+    /// more by the group's **leader** (`find_leader`, through the unit's
+    /// `+0x80`) toggles `GroupData::facing`. Its two callers are
+    /// [`Self::unit_set_angle`] and `come_out`'s turn to the host's angle
+    /// (`crate::transport`'s `land_tail`, item 2193), which writes the
+    /// heading through [`crate::Movement::set_facing`] and so reaches
+    /// here only for the flag.
+    pub(crate) fn toggle_leader_facing(&mut self, u: usize) {
         let Some(g) = self.group_of(u) else { return };
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)

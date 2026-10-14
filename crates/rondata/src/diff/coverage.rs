@@ -2346,7 +2346,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         }
     }
     // **Chapter sixty-four, on run835** (item 2165): 622, a computer's Bark
-    // born RAID; 636, the word's re-search; 682, the stance button's kill.
+    // born RAID; 636, the re-search and the chase's retarget (item 2205); 682,
+    // the stance button's kill.
     if let Some(p) = &ch64 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTY_FOUR;
         for w in [622, 636, 682] {
@@ -2973,7 +2974,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 2001: and run809's blocks around the word 3632.
     let mongol_3632 = super::mongol_pair::mongol_frame_3632_window();
     // Item 2088: and run820's blocks around the word 4238.
-    let mongol_4238 = super::mongol_pair::mongol_word_window();
+    let mongol_4238 = super::mongol_pair::mongol_frame_4238_window();
+    // Item 2193: and run838's blocks around the word 4603.
+    let mongol_4603 = super::mongol_pair::mongol_word_window();
     // Item 2107: Great Sahara in the successor pair's lobby, run834's
     // blocks around the word 2995 to the game's closing block 3269.
     let sahara_mongol_2995 = super::sahara_mongol::sahara_mongol_frame_2995_window();
@@ -3037,6 +3040,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         mongol_3131,
         mongol_3632,
         mongol_4238,
+        mongol_4603,
         sahara_mongol_2995,
     ];
     if windows.iter().any(Option::is_none) {

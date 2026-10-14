@@ -4572,7 +4572,7 @@ impl Sim {
                             && self.is_in_range(me, c)
                             && !self.poor_target(me, c)
                             && matches!(c, Obj::Unit(_))
-                            && self.profile(c).combat_role
+                            && self.retarget_admits(u, c)
                         {
                             // `005f820a`, and it is the fingerprint the
                             // item was found by: `in_range` is written
@@ -8988,8 +8988,9 @@ impl Sim {
                     // re-finds a target whose role is combat and whose
                     // type is not `n` ("destroyed when it attacks",
                     // `unit_flags & 0x2000`); any other re-finds one whose
-                    // role is not combat. run835's `0/7` drops the Trireme
-                    // `1/6` for the Bark `1/8` on 634.
+                    // role is not combat. run835's `0/7` re-finds the Bark
+                    // `1/8` on 634 and keeps it here; the chase's retarget
+                    // ([`Sim::retarget_admits`]) hands it the fishing boat.
                     let p = self.profile(Obj::Unit(t));
                     let off = if self.units[u].unit_masks2 & combat::umask2::BARK != 0 {
                         p.combat_role
@@ -9459,6 +9460,28 @@ impl Sim {
     /// order's `kill_group_order`, which this crate has no group attack
     /// order for. Neither is reached by `1/6`, `stance 0` and not grouped
     /// in its order.
+    /// **`fight`'s re-search predicate, which the chase's retarget copies**
+    /// (`do_move@005f7b30:262`–`271`, `uVar17`; `fight@005fd4d0:394`–`400`):
+    /// a unit without `unit_masks2 & 4` takes a candidate whose role is
+    /// combat; a Bark (item 2165's bit) takes one that is **not** a combat
+    /// role without `n` (`unit_flags & 0x2000`, destroyed when it attacks).
+    /// run839's packet (item 2205, `docs/GOLDEN.md` §80): on tick 634 the
+    /// Bark `0/7` re-finds the Bark `1/8`, and `do_move+0x6e6` hands it
+    /// `change_target(1/8 → 1/7)`, the fishing boat in range.
+    pub(crate) fn retarget_admits(&self, u: usize, c: Obj) -> bool {
+        let combat = self.profile(c).combat_role;
+        if self.units[u].unit_masks2 & combat::umask2::BARK == 0 {
+            return combat;
+        }
+        let n = match c {
+            Obj::Unit(t) => self.units[t]
+                .ty
+                .is_some_and(|ty| self.unit_types[ty].cols.unit_flags & 0x2000 != 0),
+            Obj::Building(_) => false,
+        };
+        !combat || n
+    }
+
     pub(crate) fn find_new_target(&mut self, u: usize, stand: bool) -> Option<Obj> {
         self.repath(u);
         self.kill_current_order(u);
