@@ -25,7 +25,8 @@ four lanes, until Ramon says (`ccc spawn --model 'claude-opus-5-5[1m]' --effort 
   last (2059); the runner refuses `RON_STATE_FRAME` without its plan (2054); `hooks.py`'s stubs grow (2043);
   `groups.py <dump> <frame>` (2037); `census.py --hooked` (2025, 0 of 501). Blind list 331 over all 380
   coverage logs — the lobbies' floor (DECISIONS 69 §4). Battery unmoved an eighth tranche. Disk 199 GiB.
-- **No lanes live**: 2130, 2107, 2129, 2131 wait. Next 2133, run 829, AI §211, GOLDEN §79, park slot AQ (pools AQ–AT, AI §211–§215, GOLDEN §79); runs 827–828 are 2131's.
+- **Lanes live** (tranche 33, 2026-10-14): 2130 (AI §210, AQ, run 829), 2107 (AI §211, AR, runs 830–831), 2129 (AS), 2131 (GOLDEN §78,
+  AT, runs 827–828). Next 2149, run 832, AI §212, GOLDEN §79, park AU (pools AU–AZ, AI §212–§215, GOLDEN §79–§83).
 - **Fable backlog: 11 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -39,9 +40,8 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-third tranche's commander, on Opus — spawn 2130, 2107, 2129
-and 2131 one to a lane (Opus 5.5 medium, DECISIONS 68, 69), the lane wait with
-`--uncleared-after 5`, and run the chain to twenty landings; the pass is due at twenty.**
+**Opener: the thirty-third tranche's commander, on Opus — four lanes live (Opus 5.5 medium, DECISIONS 68,
+69); run the chain to twenty landings, the lane wait with `--uncleared-after 5`; the pass is due at twenty.**
 
 ## The queue
 
