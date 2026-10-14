@@ -25,6 +25,8 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
+        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
+        let want_log: Vec<&str> = calls.split_whitespace().collect();
         let (lhs, rhs) = line
             .split_once(" -> ")
             .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
@@ -39,10 +41,14 @@ fn the_emulated_original_agrees_on_every_row() {
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
         let mut c: Vec<Vec<u8>> = wins;
         let want_eax: i64 = eax.trim().parse().expect("an integer");
+        let mut log: Vec<String> = Vec::new();
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
+                // The tail `jmp` into the base's twin hands it `this` and
+                // the record; a null record returns before it (item 2281).
+                log.push(if a[0] != 0 { "m+0x0,p0+0x0" } else { "-" }.into());
                 if a[0] != 0 {
                     for (s, d) in [
                         (0x1e8, 0x2f8),
@@ -61,6 +67,7 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let _ = (got, want_eax);
+        assert_eq!(log, want_log, "restore — the recorded calls, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "restore — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

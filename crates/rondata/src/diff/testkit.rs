@@ -6959,7 +6959,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2175: 656 -> 688, the walk past 4353 to the word 4603.
     // Item 2193: 688 -> 873, the walk past 4603 to the word 4637.
     // Item 2229: 873 -> 877, the walk past 4637 to the word 4671.
-    ("mongol_pair_first_parting", 877),
+    // Item 2259: 877 -> 923, the walk past 4671 to the word 4946.
+    ("mongol_pair_first_parting", 923),
     // Great Sahara in the successor pair's lobby (item 2107): its walk.
     // Item 2107: 193 -> 204, the walk past 2995 to the game's end.
     ("sahara_mongol_first_parting", 204),
