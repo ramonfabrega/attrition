@@ -734,14 +734,7 @@ impl Sim {
     fn trade_distance(&self, a: usize, b: usize) -> i32 {
         let (pa, pb) = (self.cities[a].pos.cell(), self.cities[b].pos.cell());
         let d = crate::world::vector_dist(pa.x - pb.x, pa.y - pb.y);
-        let w = self.world.width();
-        if d < w.div_euclid(4) {
-            return 0;
-        }
-        if d < w / 2 {
-            return 1;
-        }
-        2 + i32::from(w * 4 / 5 <= d)
+        distance_band(d, self.world.width())
     }
 
     /// `CityData::get_trade_value@007363f0`: the city's building count, plus
@@ -1059,6 +1052,20 @@ fn offset_road(path: &mut [PathData]) {
         e.to.x += dy / 3;
         e.to.y -= dx / 3;
     }
+}
+
+/// `Caravan::distance@0073d300`'s band of a cell distance `d` against the
+/// map's width `w` (`WorldData::xs`): every quotient truncates toward zero
+/// and `w * 4` wraps, as the original's `cdq`/`sar` and `imul` do — swept
+/// against the emulated original on any `i32` pair (item 2181).
+pub(crate) fn distance_band(d: i32, w: i32) -> i32 {
+    if d < w / 4 {
+        return 0;
+    }
+    if d < w / 2 {
+        return 1;
+    }
+    2 + i32::from(w.wrapping_mul(4) / 5 <= d)
 }
 
 #[cfg(test)]

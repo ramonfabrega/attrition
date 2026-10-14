@@ -19967,12 +19967,88 @@ Helicopters `1/153`, `1/184` and `1/227` part on `g.angle[0]` on 4350. Inside ru
 Not established: any other write a member's unit makes to its group's record while a stack group holds the seat. The two
 `facing` writers are routed, and nothing else was audited.
 
-## 213. Reserved for the next item on the AI track
+## 213. A government patriot is a supply unit: The Despot's hit points and its army, and the successor pair's word moves 4353 → 4603 (2026-10-13, item 2175)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed** (`mongol_pair_first_parting`, run820's widening). No capture and no packet: run820 (4232..4488)
+held the word and the frame its state parted. Run 837 unused.
+
+### 213.1 The frame, both sides
+
+Frame **4353, ours 36 draws, theirs 35, index 17** (`report.py rontrace-run820.log draws 4353`; `RON_DEBUG_SITES=4353-4353`).
+Indices 0–16 agree, and so do ours 18–35 and theirs 17–34. Ours spends one extra draw at 17: `Guy::set_anim+0x97a <
+Unit::do_guard+0x7f4` for the Transport Helicopter `1/227` (`TypeIndex` 311, `TRANSPORTHELICOPTER`, air, group 83). Theirs spends
+that seed (`abc99047`) on the next unit's `Guy::inc_time+0x271` wrap. On block 4353 theirs' `1/227` holds an `ATTACKTOORDER`
+over its `GUARDORDER` (`order:kind` 2, timer 55). Ours' attack leg had ended (kind 12, guard alone), so ours rolls the guard's
+idle where theirs is still flying.
+
+### 213.2 Every record from 4339 to 4353, and the field that parted first
+
+run820's widening (`RON_FIRSTS=1`), every row past the standing block 4232 and before the word:
+
+- **4343, The Despot `1/191`** (`TypeIndex` 352, `THEDESPOT`, `BASE_GOV_HEROTYPES`; slot 191 was the dead Freighter's, §208):
+  `myhits`, `hits_left`, `hits:myhits` ours 599 against theirs 659. This is its birth block. `Sim::senate_gov_hero` trains it
+  when who=1's Senate finishes Despotism.
+- **4344, the same unit**: `group` ours 83 against theirs 89. Ours marches to (37032, 36264) with group 83's army. Theirs marches
+  to (30456, 33384), 22 legs, with group 89's.
+- **4345**: its figures' angles and `dest`.
+- **4349, 101 rows**: the five helicopters of group 83 (`1/153`, `1/184`, `1/196`, `1/226`, `1/227`) re-guard `1/171`
+  (`targetorder.uid` 262) under a fresh `ATTACK_TO`. Their posts come out permuted between them (ours `1/227` (35592, 37128) is
+  theirs `1/196`'s, ours `1/226` (35064, 37704) is theirs `1/184`'s), with `timer` 29 against 59 for `1/227`. Ours' Despot takes a
+  `GUARD` on uid 326 in that formation, a sixth member, and theirs has no such order (`orders.len` 2 against 1).
+- **4353**: `1/227`'s `order:kind` 12 against 2. That is the word.
+
+So the helicopters are the consequence of the Despot's group, and the Despot's group is the first scoring row after its hit
+points. `RON_DEBUG_ARMIES=4342-4344` shows ours' armies: army 0 (pool 19, group 83) at (39264, 40800) with fifteen members,
+**three of them Supply Wagons** (`1/106`, `1/146`, `1/139`, `TypeIndex` 63). Army 5 (group 89) is at (30816, 36960) with five: the
+General `1/175`, two helicopters and **two wagons** (`1/205`, `1/207`). Both are mustering and in the Despot's region. The Despot
+stands at (36936, 41544), about 2,440 from army 0 and 7,650 from army 5.
+
+### 213.3 The two rules
+
+**Which bits The Despot carries.** `UnitType::init_final_flags` (`crate::ai_load::flags2`) sets `0x40` on
+`is(BASE_GOV_HEROTYPES)` and `0x20` on `is(GENERAL)`. The Despot is `FROM General` in `unitrules.xml`, so it carries **both**. A
+General carries `0x20` alone and a Supply Wagon `0x40` alone.
+
+1. **`Unit::update_hits@0060e930`'s supply term tests `is_supply` alone.** The listing at `0060ecad`–`0060eceb`: vslot `0xcc`
+   compared with `UnitData::is_supply@0046ce80` (`+0x2b8 & 0x40`, every class's slot), then `supply_hp_upgrade[get_supply_upgrade]`
+   added. Nothing excludes a hero. The term before it (`0060ec03`, `is_hero`, `& 0x20`) has already added `level² × hits / 2`. So
+   The Despot is 109 → 599 (the General's term at level 3) → **659** (the supply term at level 3, 60). `Sim::unit_hits` skipped the
+   supply term on `GENERAL` (§157 wrote it for the wagon, and the exclusion had no listing behind it). The General itself never
+   reaches the term, since it lacks `0x40`.
+2. **`Armies::find_local_army@006f32e0` and `find_army@006f34f0` choose the cap's arm by the joiner's `is_supply`.** When it is
+   set, `Army::count(COUNT_TYPE, 0x3f)` (the wagons) caps at `> 2`. Only when it is clear is `is_hero` asked, and
+   `count(COUNT_TYPE, 0x36)` (the Generals) caps at `> 1`. `Sim::army_admits` tested "a wagon" as `0x40` without `0x20`, which
+   sent The Despot down the hero arm: army 0 has no General, so the nearer army won. The original sends it down the wagon arm.
+   Army 0's three wagons refuse it, and army 5's two admit it. Group 89 is that army.
+
+**Built** (`crates/sim/src/cast.rs`, `crates/sim/src/army.rs`): `unit_hits`' supply term on `SUPPLY_OR_HERO` alone, and
+`army_admits`' arm on the joiner's `SUPPLY_OR_HERO` alone. The counts are unchanged: `army_count_supply` still counts `0x40`
+without `0x20`, which is what `COUNT_TYPE 0x3f`'s lineage counts for every type this lobby has. Tests
+`rares::tests::a_supply_unit_adds_the_supply_hp_upgrade` (a patriot type of both bits is 150 at level 3) and
+`army::tests::a_government_patriot_is_capped_by_the_army_s_wagons` (a patriot refuses the near army's three wagons, a General
+takes it, and `find_army` agrees).
+
+**Mutations** (`tools/mutate.py`): the arm read as `supply && !is_general`. **Held** by the army test (101) and by the walk
+(`mongol_pair_first_parting` back at 4353). The supply term read with `!GENERAL`. **Held** by the rares test (101) and by run820's
+widening (201 → 204 keys: the three `myhits` rows).
+
+### 213.4 What moved, and the next word
+
+**The value diff**: on block 4343 The Despot `1/191`'s `myhits`/`hits_left` agree at 659 (ours was 599). On 4344 its `group` is
+89 on both sides, with theirs' `ATTACK_TO` to (30456, 33384). On 4349 the five helicopters' guard posts, `dx`/`dy` and timers
+agree, and `1/227` holds (36168, 36600) with timer 59. On 4353 `1/227` holds the `ATTACKTOORDER` on both sides (kind 2). run820's
+keys go **1,128 → 201**. Every row from 4343 to 4357 leaves; what stays past the standing block is `1/82`'s rows (4257..4371),
+`form` on five newborns, the `pool:90`/`group:90.held` pair on 4312, `1/2073`'s build clock on 4370 and two `mirror`s (4446,
+4456). `GROUND_INEXACT`'s `mongol_pair_first_parting` goes 656 → 688. Every other lobby's `first_parting` holds (the `mongol_pair::
+floors:: coverage_pair:: first_parting coverage::` run: 68 passed, the two Mongol pins the only reds before the re-pin).
+
+**The word 4353 → 4603.** Frame **4603: ours 22 draws, theirs 21, index 17**. Ours spends `Guy::set_anim+0x97a <
+Unit::move_step+0x823` (a stop) for the Mechanized Infantry `1/111` (`TypeIndex` 104, `MECHINFANTRY`, army 1). Theirs spends
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, the next of `1/139`'s guard rolls. **Past run820's last block (4488)**, and no
+capture on disk holds it, so the first act on it is run820's recipe with the window moved. Parked 2176.
+
+Not established: whether `COUNT_TYPE 0x3f`'s lineage counts a type this crate's flag test does not (no lobby has fielded one).
+The counts were not changed.
 
 ## 214. Reserved for the next item on the AI track
 
@@ -19982,6 +20058,48 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 215. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 216. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 217. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 218. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 219. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 220. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 221. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

@@ -3757,6 +3757,20 @@ line). The word 4338's cause was `order:move.facing`, exempt from `OrderMismatch
 block for three items (2088, 2130, 2155). Candidate: a brief-checklist row for step 6 — "a standing row on a unit the
 block names is a candidate, scoring or not" — with the frame's test held to it. One reach.
 
+(2186) **`lanewait.py`'s DEEP is once per lane per wait, not per lane** (the commander, 2026-10-14). A DEEP
+answered while its lane's gate runs — 2107 at 303k, told to land at the gate's exit — fires again at the next re-arm
+(310k, three minutes later), since `reported` lives in the process. The commander raised `--deep` to 340 for every
+lane to quiet one, so a second lane crossing 300k would have gone unflagged to 340k. Candidate: `--answered
+<lane>:<k>` (or a state file under the job dir) so a re-arm skips a lane already answered below a new mark, with a
+test made to fail first. One reach.
+
+(2198) **A flag predicate standing in for a lineage is copied to readers that ask the flag alone** (2175's
+"for the Loop" line). `0x40 && !0x20` was written for `is(SUPPLYWAGON)`'s count and copied into `update_hits`' supply term
+and `find_army`'s cap arm, where the original asks `is_supply` (`& 0x40` alone); The Despot carries both bits, and the
+successor pair's word sat on it. Candidate: a brief-checklist row — "a flag predicate that stands in for a lineage is
+checked at each reader against the reader's own vslot" — or a grep guard over `crates/sim` for the copied predicate.
+One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
@@ -3806,7 +3820,7 @@ the dump's, so a parted building row dates itself in one command. **The thirty-s
 
 (2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062). **2072** (sixth reach): built `vcall --base` (2021); the per-player table and the `buildtypes` forest by hand, five on two shapes (parked 2073). **2083** (seventh reach): a stub answered per argument on the object at `this+VIA`, three by hand (parked 2084). **2090** (eighth and ninth reaches): a slot against its base whose base arm is inline, four by hand (parked 2095); the order-list iterator, three by hand (parked 2096); and `obj` compared no `eax` by default — fixed, eight earlier sweeps now assert it. **2112** (tenth reach): built `vcall --base ADDR --base-call OFF` — the base inlined as a call of the same object's slot, constants or forwarded arguments, `--base-not` — four (`makes_roads`, both `can_capture`s, `ObjectData::isnt`); a table cell placed so the reads land in a buffer, three by hand (parked 2113). **2122** (eleventh reach): built
 `obj --place` (2113, 2046), `--wbias`, `--fill`, `--argrange` and `--name` (2045), `--slotbase` (2095's range-test
-arm), all ten of the batch generated (parked 2123). **The thirty-second pass**: eleven reaches, the lane built at six of them (2072, 2090, 2112, 2122 and the pass's own); the owed shapes are 1896 (`fwd`'s field argument), 1972, 2039, 2040, 2062, 2073, 2084, 2096, named in 2129's brief; the generator is the sweep lane's at each reach, and this row is the ledger of them, not an item to build whole. **2129** (twelfth reach): a stub's answer drawn from a list beside `--argset` (`obj --answers`) and an integer `ecx` (`obj --ecx-int`), one hand-widened `I32` and two read and not taken (parked 2141). **2149** (thirteenth reach): built `obj --ecx-int` (parked 2150); a hidden-return `Coord` through `[esp+4]` with a per-player-table object, four read and not taken (parked 2151). **2160** (fourteenth reach): built `obj --answers IDX:V,..` and the stubs' answers readable by `--place` as `s` (parked 2161); a `--place` LOC of a negative index is clamped by hand with `max(0, …)` where a guard skips the read — a `--place` that skips the row would say it directly. **2160** (fourteenth reach): built `obj --answers` and the answers as `s` in a `--place` expression (parked 2161); 2151's hidden-return `Coord` still owed. **2129** (twelfth reach): all ten generated, one script's `I32` widened by hand for a stub's thresholds; a stub answered from a list and `ecx` an integer, one function each (parked 2141).
+arm), all ten of the batch generated (parked 2123). **The thirty-second pass**: eleven reaches, the lane built at six of them (2072, 2090, 2112, 2122 and the pass's own); the owed shapes are 1896 (`fwd`'s field argument), 1972, 2039, 2040, 2062, 2073, 2084, 2096, named in 2129's brief; the generator is the sweep lane's at each reach, and this row is the ledger of them, not an item to build whole. **2129** (twelfth reach): a stub's answer drawn from a list beside `--argset` (`obj --answers`) and an integer `ecx` (`obj --ecx-int`), one hand-widened `I32` and two read and not taken (parked 2141). **2149** (thirteenth reach): built `obj --ecx-int` (parked 2150); a hidden-return `Coord` through `[esp+4]` with a per-player-table object, four read and not taken (parked 2151). **2160** (fourteenth reach): built `obj --answers IDX:V,..` and the stubs' answers readable by `--place` as `s` (parked 2161); a `--place` LOC of a negative index is clamped by hand with `max(0, …)` where a guard skips the read — a `--place` that skips the row would say it directly. **2170** (fifteenth reach): built `obj --vtat WIN+OFF` and `--answer-win IDX:SIZE`, 2151's hidden-return `Coord` taken four times (parked 2171); and a `--wbias` range is drawn uniformly, so a boundary inside a wide range (`t < 1` in `-2..3000`) is tested by luck — a range that always draws its own edges and 0 a few rows in ten would have caught `popwin_timer`'s break. **2181** (sixteenth reach): built `obj --cdecl` and the `--wbias` edge draw (parked 2182); and a `--place` pointer is never null, so a `ptr != 0` guard (`refresh_*`) runs one arm on every row — a place that lays 0 a few rows in ten would reach the other. **2160** (fourteenth reach): built `obj --answers` and the answers as `s` in a `--place` expression (parked 2161); 2151's hidden-return `Coord` still owed. **2170** (fifteenth reach): built `obj --vtat` and `--answer-win` (parked 2171), 2151's hidden-return `Coord` taken four times and `--vtat` a fifth; all ten generated. **2129** (twelfth reach): all ten generated, one script's `I32` widened by hand for a stub's thresholds; a stub answered from a list and `ecx` an integer, one function each (parked 2141). **2181** (sixteenth reach): built `obj --cdecl` and the `--wbias` range's edge draw (parked 2182); all ten generated; a `--place` that lays a null pointer, owed once (`refresh_*`).
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
@@ -4557,7 +4571,8 @@ test reads it as `a[a.len() - 1]`; refused on the plain `obj`, which has no row 
 slot `+0xac` of `objects[who][o]` (the per-player table, `this->who`·0x1c + `+0x14`, `this->o`·4) and write the
 answer record's `+0x10` or `+0x14` `^ 0x63637` through `[esp+4]`, the hidden return pointer — four of one shape,
 `outptr` with a per-player-table object and a stubbed slot whose answer names a window. Build it as `obj` with
-`--stub slot` answering a pointer to a window when two are taken.
+`--stub slot` answering a pointer to a window when two are taken. ~~Built by item 2170~~ (parked 2171): all four
+taken.
 
 ## Parked by item 2155, 2026-10-13 — a dying move's mirror goes to the army, not the stack
 
@@ -4596,29 +4611,43 @@ the Bark `1/8`, which has shot `0/7` since 622 from 2,570 units off. Both sides 
 or `took_hit` arm) where this crate takes the nearest; which caller hands it `1/8` is the next item's first read.
 Block 635's `0/6` is the same choice (Trireme here, fishing boat there).
 
-## Parked by the next landing, slot AY — reserved
+## Parked by item 2170, 2026-10-13 — the sweep's fifty-fourth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2171) **`obj --vtat WIN+OFF` and `obj --answer-win IDX:SIZE` built** (Loop 2003's fifteenth reach; names no
+score): the stubbed vtable laid at a word of a window rather than at `this` — a slot of an object the function
+reaches through a table — and a stub that answers the address of SIZE random bytes of its own, a `p` window after
+the places. Together they are 2151's hidden-return `Coord`: `UnbuiltCity::get_x`/`get_y` and `UnbuiltFort::get_x`/
+`get_y` (0x73b740, 0x73b780, 0x73bb80, 0x73bbc0) take `[esp+4]` as `--ptrarg 0:4`, reach `objects[who][o]` by two
+places, lay the vtable there and read `+0x10`/`+0x14` of slot `+0xac`'s answer window. A fifth, `BuildData::
+can_queue` (0x62da00), takes `--vtat` alone: slot `+0x84` of `types.list[t]`. Test made to fail first:
+`tools/explore/test_sweep_gen.py::test_a_slot_of_a_placed_object_may_answer_a_window` (no keywords; then its
+`WIN = 8` line caught `--vtat`'s parse shadowing the window size, which the first generation shipped as `WIN = p2`
+and the scripts refused to run).
 
-## Parked by the next landing, slot AZ — reserved
+## Parked by item 2175, 2026-10-13 — a government patriot is a supply unit
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2176) **The successor pair's word 4603: 22 draws against 21, index 17** (2175; `docs/AI.md` §213.4). Ours spends
+`Guy::set_anim+0x97a < Unit::move_step+0x823` (a stop) for the Mechanized Infantry `1/111` (`TypeIndex` 104, army 1). Theirs
+spends `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, `1/139`'s next guard roll. **Disk gap**: past run820's last block (4488),
+and no capture holds 4603. The first act is run820's recipe (`docs/RUNS.md`, run820) with `--log-window 4597 4853` and
+`--end-frame` past it. Then every record on block 4604 both ways.
 
-## Parked by the next landing, slot BA — reserved
+(2177) **`Army::count(COUNT_TYPE, 0x3f)` is a lineage count, and this crate counts a flag** (2175; names no score).
+`army_count_supply` counts `unit_flags2 & 0x40` without `0x20`, which agrees with `is(SUPPLYWAGON)` for every type this lobby
+fields, The Despot included (it is `FROM General` and not counted). A type that is `0x40` and not of the wagon's lineage
+(`THEMONARCH`, `THECITIZEN`, and the other `BASE_GOV_HEROTYPES` not `FROM General`) would count here and not in the original.
+Candidate: count by `unit_line_is(u, SUPPLYWAGON)`, after reading `GroupData::count`'s `COUNT_TYPE` arm for the decoy test.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 2181, 2026-10-14 — the sweep's fifty-fifth batch
+
+(2182) **`obj --cdecl` and the `--wbias` edge draw built** (Loop 2003's sixteenth reach; names no score).
+`Caravan::distance@0073d300` is `__cdecl` and ends in a bare `ret`, so `obj`'s esp check (the callee pops)
+refused every row; 2170 left `add_type_bucket` for the same reason. `--cdecl` expects the caller's pop, four
+bytes an argument short. And a `--wbias LO..HI` range now draws LO, LO+1, HI−1, HI and −1..2 inside it three
+rows in ten (2170's "for the Loop": `popwin_timer`'s `t < 1` in `-2..3000` was tested by luck). Each with a test
+made to fail first (`tools/explore/test_sweep_gen.py`); scripts generated before keep their uniform draw. Still
+owed, met once: a `--place` pointer is never null, so `ResourceDivvyPool::refresh_*`'s `ptr != 0` arm runs on no
+row — a place that lays 0 a few rows in ten would reach it.
 
 ## Parked by the next landing, slot BB — reserved
 

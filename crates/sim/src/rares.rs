@@ -908,8 +908,9 @@ mod tests {
     /// **A supply unit's hits climb with the supply upgrades its leader
     /// holds** (`Unit::update_hits`' last term, `SUPPLY_HP_UPGRADE`
     /// `[0, 20, 40, 60]`; `docs/AI.md` §157): the Persian wagon `1/67` is 150
-    /// on a type of 90 once all three steps are held, and a General or any
-    /// other type takes the type's.
+    /// on a type of 90 once all three steps are held, and so is a government
+    /// patriot, which carries the General's bit as well (§213); a General or
+    /// any other type takes the type's.
     ///
     /// Made to fail once with the term dropped: the wagon stays at 90.
     #[test]
@@ -934,6 +935,7 @@ mod tests {
         };
         let wagon = s.add_unit_type(ty(uflags2::SUPPLY_OR_HERO));
         let general = s.add_unit_type(ty(uflags2::GENERAL));
+        let patriot = s.add_unit_type(ty(uflags2::GENERAL | uflags2::SUPPLY_OR_HERO));
         let other = s.add_unit_type(ty(0));
         assert_eq!(s.unit_hits(0, wagon), 90);
         for (step, expected) in [(steps[0], 110), (steps[1], 130), (steps[2], 150)] {
@@ -942,6 +944,10 @@ mod tests {
         }
         assert_eq!(s.unit_hits(1, wagon), 90, "another leader");
         assert_eq!(s.unit_hits(0, general), 90, "a General is not a wagon");
+        // A government patriot (`FROM General`, `is(BASE_GOV_HEROTYPES)`)
+        // carries both bits and takes the supply term as well
+        // (`docs/AI.md` §213): run820's Despot `1/191` is 659, not 599.
+        assert_eq!(s.unit_hits(0, patriot), 150, "a patriot is a wagon too");
         assert_eq!(s.unit_hits(0, other), 90);
     }
 

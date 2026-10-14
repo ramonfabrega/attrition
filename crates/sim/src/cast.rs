@@ -234,10 +234,11 @@ impl Sim {
         }
         // The last term (`0060ecad`): a supply unit adds
         // `supply_hp_upgrade[get_supply_upgrade]`, the count of the three
-        // upgrade prerequisites its leader holds (`docs/AI.md` §157).
-        if t.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
-            && !t.cols.flag2(crate::ai_load::uflags2::GENERAL)
-        {
+        // upgrade prerequisites its leader holds (`docs/AI.md` §157). The
+        // test is `is_supply`, `+0x2b8 & 0x40` alone (`0060ecc3`): a
+        // government patriot `FROM General` carries both bits and takes
+        // both terms — The Despot is 109 → 599 → 659 (`docs/AI.md` §213).
+        if t.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO) {
             let level = self.supply_upgrade_level(who).clamp(0, 3) as usize;
             hits += self.tuning.supply_hp_upgrade[level];
         }
