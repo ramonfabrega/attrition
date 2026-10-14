@@ -676,20 +676,32 @@ impl Sim {
 
     /// `Build::find_city`: a non-city building joins its owner's nearest
     /// covering city, through `get_town`.
+    ///
+    /// The steps are [`find_city_steps`]'s, swept against the original
+    /// (`sweep::build_find_city`). The port's town index *is* a city index,
+    /// so the original's `objects[who][r]->slot 0xac ->city` is the identity
+    /// here, and a building with no type asks no town.
     pub fn find_city(&mut self, b: usize) -> Option<usize> {
-        if self.building_is_city(b) {
-            return self.buildings[b].city;
-        }
-        if self.buildings[b].city.is_some() {
-            self.remove_from_city(b);
-        }
-        let (who, pos, ty) = {
-            let bd = &self.buildings[b];
-            (bd.owner, bd.pos, bd.ty?)
-        };
-        let c = self.get_town(who, ty, pos)?;
-        self.add_to_city(b, c);
-        Some(c)
+        let centre = self
+            .building_is_city(b)
+            .then(|| self.buildings[b].city.map_or(-1, |c| c as i32));
+        let in_city = self.buildings[b].city.is_some();
+        let r = find_city_steps(
+            self,
+            centre,
+            in_city,
+            |s| s.remove_from_city(b),
+            |s| {
+                let bd = &s.buildings[b];
+                let (who, pos) = (bd.owner, bd.pos);
+                bd.ty
+                    .and_then(|ty| s.get_town(who, ty, pos))
+                    .map_or(-1, |c| c as i32)
+            },
+            |_, r| r,
+            |s, c| s.add_to_city(b, c as usize),
+        );
+        usize::try_from(r).ok()
     }
 
     /// `Build::add_to_city`.
@@ -3341,4 +3353,36 @@ pub(crate) fn count_typed(
         .into_iter()
         .filter(|&b| used(b) && active.as_ref().is_none_or(|f| f(b)) && is(b))
         .count() as i32
+}
+
+/// `Build::find_city@00628180`'s steps, over whatever holds the building.
+///
+/// A city centre (`flags & 0x20`) answers `centre`, its own `+0xa`, and does
+/// nothing else. Otherwise a building already in a city (`+0x72 >= 0`)
+/// leaves it first; the town is asked (`get_town`, an object index of the
+/// owner's, `-1` for none); a town found has its city asked (`city_of`, the
+/// object's slot `0xac` and that record's `+0x72`) and the building joins it.
+/// The answer is the town's object index, never the city's.
+pub(crate) fn find_city_steps<C: ?Sized>(
+    cx: &mut C,
+    centre: Option<i32>,
+    in_city: bool,
+    remove: impl FnOnce(&mut C),
+    town: impl FnOnce(&mut C) -> i32,
+    city_of: impl FnOnce(&mut C, i32) -> i32,
+    add: impl FnOnce(&mut C, i32),
+) -> i32 {
+    if let Some(id) = centre {
+        return id;
+    }
+    if in_city {
+        remove(cx);
+    }
+    let r = town(cx);
+    if r < 0 {
+        return -1;
+    }
+    let c = city_of(cx, r);
+    add(cx, c);
+    r
 }
