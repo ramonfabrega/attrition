@@ -2092,8 +2092,10 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   the handicap, The President, the Mongol stable, the Japanese barracks and
   carrier, the Chinese citizen, the French siege and special, the German air
   and submarine and the Roman legion are read here and implemented nowhere,
-  as are the rares, Monarchy, Socialism, the unit wonders, the Kremlin and
-  `INSTANT_UNIT_BONUS`. Each is inert in every capture on disk.
+  as are the rares, ~~Monarchy, Socialism~~ (built, item 2293, `docs/AI.md`
+  §217; Socialism diff-backed on the successor pair's Airbase), the unit
+  wonders, the Kremlin and `INSTANT_UNIT_BONUS`. Each is inert in every
+  capture on disk.
   ~~`TROOPS_FASTER` and the ship/troop/vehicle speed-upgrade counts~~ —
   built, the troops' arm diff-backed (item 1365; "The tail's first
   caller", "The speed-upgrade step"). The Chinese

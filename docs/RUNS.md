@@ -16696,6 +16696,28 @@ falsifiers in the `.cmd` header held: `1/2006` is a city of its own with the Tow
 (**777**, open; ours 8 draws, theirs 6) and `chapter_sixty_five_s_word_frame_is_widened_whole` (605..1101, 357 rows:
 the eleven standing `form` rows and the Catapult's wake from 777). run844 unused.
 
+## run844 — the successor pair's last blocks, 4940..5057, to the game's end (2026-10-14, item 2293, `att-2293`)
+
+`docs/AI.md` §217. **Disk gap**: item 2293 moved the word 4946 → 5056, the game's last frame. run838 ends on 4852, and
+run775 holds checksums and the closing block only. No dump of this lobby held a record between 4853 and 5056. That
+includes the word 4946's block 4947 and the blocks before the close. run838's recipe with the window moved to six
+blocks before 4947 and on to the closing block, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18
+--end-frame 5056 --allow-early-end --timeout 3600 --log-window 4940 5057 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`. Click-free lane 1 from the pool; `success`, 5057 frames,
+841 s launch to exit, five files restored, seed 12345. 118 `BEGIN FRAME`s, 4940..5057. `rngcmp.py rontrace-run775.log
+rontrace-run844.log`: **5057 in common, 0 differing**. Output `~/ron-data/lab-captures/2026-10-14-run844`. Minutes
+waited on another lane's capture: none.
+
+Archive `gamelog-run844-eastindies-mongol-alltech-window-4940-5057.txt`, 288,544,003 bytes,
+SHA-256 `7e7f3c2447b91deb85f6ef0f673506f77364bc9aa7a914c3dfd8e452eb7d9400`.
+
+Archive `rontrace-run844.log`, 170,483,072 bytes,
+SHA-256 `1b12fb90e2c7c1f908ab3ca841284f6bb2a99827960450b63b730ae1c1301907`.
+
+**What it holds**: `diff::mongol_pair::run844_s_closing_frame_is_widened_whole` (blocks 4940..5057,
+`mongol_closing_window`, 225 keys) and the coverage driver's `mongol_closing` window. run838's window is renamed
+`mongol_frame_4603_window`.
 ## run842 — chapter sixty-five's packets at logger frames 777 and 776 (2026-10-14, item 2265, `att-2265`)
 
 `docs/GOLDEN.md` §82. **What the disk could not answer**: run843's dump prints `near` and the order a search adds,

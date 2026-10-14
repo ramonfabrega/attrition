@@ -578,6 +578,38 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, rows=50)
 
+    def test_a_record_may_split_by_the_table_row(self):
+        # Item 2309 (2298's Loop line, Loop 2003): `Game::defeat_all` walks
+        # the image's leaders table (`--sparse @`) and calls two stubs a
+        # row; a plain `--record` reads nine rows' calls as one `/`-joined
+        # token. `--record IDX@S` splits stub IDX's calls by the row of
+        # sparse table S its `ecx` lies in: one token a row, `ecx` written
+        # `r+OFF` within it, and a last token for the calls outside it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2309, win=0x20, bias=[], own=0,
+            sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1', '0x403000:2'],
+            record=['0', '1@0'], ret='none', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('RECORD = [0, 1]', script)
+        self.assertIn('ROWSPLIT = {1: 0}', script)
+        self.assertIn('after ` # `, split by the rows of sparse table 0', test)
+        ns = {}
+        for fn in ('def token(', 'def by_row('):
+            body = script[script.index(fn):]
+            exec(body[:body.index('\n\n\ndef ')], ns)
+        spans = [('m', 0x1000, 0x20)]
+        calls = [(0x100, [5, 0x1004]), (0x100 + 2 * 0x10 + 4, [-1, 0]), (0x77, [1, 2])]
+        self.assertEqual(ns['by_row'](calls, 0x100, 0x10, 3, spans),
+                         ['r+0x0,5,m+0x4', '-', 'r+0x4,-1,0', '119,1,2'])
+        self.assertEqual(ns['by_row']([], 0x100, 0x10, 2, spans), ['-', '-', '-'])
+        # A split names a --sparse table that exists, and a recorded stub.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2309, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:1'], record=['0@0'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2309, win=0x20, bias=[], own=0,
+                                   sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1'], record=['0@1'])
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.

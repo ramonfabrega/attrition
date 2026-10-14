@@ -9637,3 +9637,12 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks, as a stanza would carry them: `MAP_STYLE 7` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` /
 # `(int)seed 12345` in `GAME INFO`; `rngcmp.py rontrace-run831.log rontrace-run834.log` -> 0 differing in 3269 frames.
 # ==== TAKEN 2026-10-13, one take each, 21:04-22:17 ====
+
+# ==== item 2293: the successor pair's last blocks (`docs/AI.md` §217; `docs/RUNS.md` run844) ====
+#
+# One run on the click-free lane, not a stanza: run838's recipe with the window moved to the game's end:
+#   run844  --map 18 --end-frame 5056 --allow-early-end --timeout 3600 --log-window 4940 5057
+#           --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile STARTING_TECHNOLOGY=8
+#           --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0
+# Checks: `rngcmp.py rontrace-run775.log rontrace-run844.log` -> 0 differing in 5057 frames; 118 `BEGIN FRAME`s 4940..5057.
+# ==== TAKEN 2026-10-14, one take, 12:05-12:19 ====

@@ -840,6 +840,13 @@ pub struct Tuning {
     /// `ObjectData::train_time@006508c0`'s tail, on a type whose `TypeIndex`
     /// is a Citizen (0x32, 0x33). Ships as 33 (`docs/AI.md` §184).
     pub wool_citizens_speed: i32,
+    /// Percent faster training of a Stable's unit under `MONARCHY_1` and
+    /// `MONARCHY_2` — `train_time`'s Monarchy arm. Both ship as 25
+    /// (`docs/AI.md` §217).
+    pub monarchy_unit_prod: [i32; 2],
+    /// Percent faster training of a Siege Factory's, an Airbase's or a
+    /// Dock's unit under `SOCIALISM_1`. Ships as 25 (`docs/AI.md` §217).
+    pub socialism_unit_bonus: i32,
     /// Percent faster Dutch fort construction. Ships as zero.
     pub dutch_fort_speed: i32,
     /// Percent faster Roman fort construction.
@@ -1308,6 +1315,8 @@ impl Tuning {
         british_archer_speed: 0,
         british_aa_speed: 33,
         wool_citizens_speed: 33,
+        monarchy_unit_prod: [25, 25],
+        socialism_unit_bonus: 25,
         dutch_fort_speed: 0,
         roman_fort_speed: 50,
         hanging_gardens_build_time: 0,
@@ -1373,7 +1382,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 375] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 378] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -2000,6 +2009,9 @@ impl Tuning {
             ("BRITISH_ARCHER_SPEED", Slot::Value(T.british_archer_speed)),
             ("BRITISH_AA_SPEED", Slot::Value(T.british_aa_speed)),
             ("WOOL_CITIZENS_SPEED", Slot::Value(T.wool_citizens_speed)),
+            ("MONARCHY_UNIT_PROD", Slot::Value(T.monarchy_unit_prod[0])),
+            ("MONARCHY_UNIT_PROD2", Slot::Value(T.monarchy_unit_prod[1])),
+            ("SOCIALISM_UNIT_BONUS", Slot::Value(T.socialism_unit_bonus)),
             ("DUTCH_FORT_SPEED", Slot::Value(T.dutch_fort_speed)),
             ("ROMAN_FORT_SPEED", Slot::Value(T.roman_fort_speed)),
             (

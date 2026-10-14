@@ -2370,6 +2370,81 @@ fn a_mongol_attacker_from_the_stable_trains_faster() {
 }
 
 #[test]
+fn a_government_speeds_its_trainer_lines_by_equality() {
+    // `ObjectData::train_time@006508c0`'s two government arms, after the
+    // wool arm: a Stable's unit under `MONARCHY_1` takes
+    // `MONARCHY_UNIT_PROD`; a Siege Factory's, an Airbase's or a Dock's
+    // under `SOCIALISM_1` takes `SOCIALISM_UNIT_BONUS`. The trainer is
+    // tested by equality — the Auto Plant and the Factory are not on the
+    // lists. The successor pair's Airbase `1/2010`'s MiG target falls
+    // 27900 -> 22320 on 4782, the frame Socialism is researched (item 2293,
+    // `docs/AI.md` §217).
+    use crate::tech::{Preq, TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    let monarchy = tree.add(TypeDef::epoch("Monarchy", crate::tech::Line::Civic, 0));
+    let socialism = tree.add(TypeDef::epoch("Socialism", crate::tech::Line::Civic, 0));
+    while tree.types.len() < 0x1ac {
+        tree.add(TypeDef::building("pad"));
+    }
+    let stable = tree.add(TypeDef::building("Stable"));
+    let auto_plant = tree.add(TypeDef::building("Auto Plant"));
+    let siege = tree.add(TypeDef::building("Siege Factory"));
+    let factory = tree.add(TypeDef::building("Factory"));
+    assert_eq!((stable, factory), (0x1ac, 0x1af));
+    while tree.types.len() < 0x1bf {
+        tree.add(TypeDef::building("pad"));
+    }
+    let airbase = tree.add(TypeDef::building("Airbase"));
+    assert_eq!(airbase, 0x1bf);
+    let mut units = Vec::new();
+    for at in [stable, auto_plant, siege, factory, airbase] {
+        let mut u = TypeDef::unit("Unit", UnitTraits::default());
+        u.where_ = Some(at);
+        units.push(tree.add(u));
+    }
+    tree.roles.monarchy_preqs = [Some([Preq::Of(monarchy), Preq::None, Preq::None]), None];
+    tree.roles.socialism_preqs = Some([Preq::Of(socialism), Preq::None, Preq::None]);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let tys: Vec<usize> = units
+        .iter()
+        .map(|&t| {
+            sim.add_unit_type(UnitType {
+                tree: Some(t),
+                ..citizen_type()
+            })
+        })
+        .collect();
+    let faster = |s: &Sim| -> Vec<bool> {
+        tys.iter()
+            .map(|&ty| {
+                s.train_tail(0, ty)
+                    .iter()
+                    .any(|a| matches!(a, production::Adjust::Faster(25)))
+            })
+            .collect()
+    };
+    sim.tech[0].tech[monarchy] = false;
+    sim.tech[0].tech[socialism] = false;
+    assert_eq!(faster(&sim), [false; 5], "no government yet");
+    sim.tech[0].tech[monarchy] = true;
+    assert_eq!(
+        faster(&sim),
+        [true, false, false, false, false],
+        "Monarchy: the Stable"
+    );
+    sim.tech[0].tech[monarchy] = false;
+    sim.tech[0].tech[socialism] = true;
+    assert_eq!(
+        faster(&sim),
+        [false, false, true, false, true],
+        "Socialism: the Siege Factory and the Airbase, not the Factory"
+    );
+}
+
+#[test]
 fn a_research_is_charged_for_the_army_it_refits() {
     // `get_cost:438`–`505`: researching a type charges for every unit of
     // its own `FROM` (and of any type whose `JUMP` chain reaches it), per
