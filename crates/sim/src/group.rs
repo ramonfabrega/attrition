@@ -2489,18 +2489,6 @@ impl Sim {
         // `facing 1` and mirrors (§6.3, §12.3).
         let facing = self.group_facing(g);
         let reverse = facing != self.group_leader_faces_away(g, angle);
-        if std::env::var_os("RON_PROBE_2193").is_some() {
-            eprintln!(
-                "PROBE2193 f{} who {} list {:?} facing {} away {} angle {:x} leader {:?} bearing {:?} to {:?} kind {:?} form {}",
-                self.frame, g.who, g.list.iter().map(|&u| self.units[u].index).collect::<Vec<_>>(), facing,
-                self.group_leader_faces_away(g, angle), angle.0, self.group_find_leader_slot(g).map(|(u, s)| (self.units[u].index, s)),
-                self.group_leader_bearing(g).map(|a| a.0), to, kind, form
-            );
-            let human = self.nation[g.who as usize].human;
-            let c: Vec<_> = g.list.iter().enumerate().filter(|(_, m)| self.units[**m].alive() && self.units[**m].captain && self.units[**m].on_map)
-                .map(|(i, &m)| (i, self.units[m].index, self.units[m].ty, self.units[m].ty.map(|t| crate::form::type_cat(&self.unit_types[t], t, human)))).collect();
-            eprintln!("PROBE2193C f{} cands {:?}", self.frame, c);
-        }
         // `Form::compute` → `Form::categorize`, whose first statement is
         // `Group::sort@00708090` (§4.1, §23) — after the clear and the
         // mirror above, before the layout and the order loop, which
@@ -3880,23 +3868,10 @@ impl Sim {
             return;
         }
         let Some(g) = self.group_of(u) else { return };
-        let (pf, pi) = (self.frame, self.units[u].index);
-        if std::env::var_os("RON_PROBE_2193").is_some() && g.who == 1 && g.army == Some(1) {
-            eprintln!("PROBET f{} any-turn 1/{} at {:?} captain {} on_map {} list_pos {:?}", pf, pi, self.units[u].pos, self.units[u].captain, self.units[u].on_map, g.list.iter().position(|&m| m == u));
-        }
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)
         {
             st.facing = !st.facing;
-            if std::env::var_os("RON_PROBE_2193").is_some() {
-                eprintln!("PROBEF f{} set_angle {}/{} army {:?} pushed {:?} -> {}", pf, g.who, pi, g.army, g.pushed, st.facing);
-            }
-        }
-        if std::env::var_os("RON_PROBE_2193").is_some() && g.who == 1 && g.army == Some(1) {
-            let human = self.nation[1].human;
-            let c: Vec<_> = g.list.iter().enumerate().filter(|(_, m)| self.units[**m].alive() && self.units[**m].captain && self.units[**m].on_map)
-                .map(|(i, &m)| (i, self.units[m].index, self.units[m].ty.map(|t| crate::form::type_cat(&self.unit_types[t], t, human)))).collect();
-            eprintln!("PROBEC f{} turner 1/{} cands {:?}", pf, pi, c);
         }
     }
 
@@ -3924,17 +3899,10 @@ impl Sim {
         // `5e3087`/`5e308d`: `unit_masks & 2` takes it, leader or not.
         self.units[u].movement.mirror = f;
         let Some(g) = self.group_of(u) else { return };
-        let (pf, pi) = (self.frame, self.units[u].index);
-        if std::env::var_os("RON_PROBE_2193").is_some() && g.who == 1 && g.army == Some(1) {
-            eprintln!("PROBEH f{} any-handback 1/{} f {} leader {} on_map {} captain {}", pf, pi, f, self.is_group_leader(u, &g), self.units[u].on_map, self.units[u].captain);
-        }
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)
         {
             st.facing = f;
-            if std::env::var_os("RON_PROBE_2193").is_some() {
-                eprintln!("PROBEF f{} hand_back {}/{} army {:?} pushed {:?} -> {} (order {} turned {})", pf, g.who, pi, g.army, g.pushed, f, order_facing, f != order_facing);
-            }
         }
     }
 
