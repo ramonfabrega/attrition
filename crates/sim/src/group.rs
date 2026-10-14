@@ -2221,12 +2221,29 @@ impl Sim {
                 // to a site when the goody look halts it on 990, and
                 // the original keeps the build behind the box's walk
                 // (§24).
+                //
+                // **The copy names a slot, not a building**: the case
+                // passes the order's `ox` and `whom` (`+8`, `+0xc`) and no
+                // uid, and `action_swarm_around` asks only that the slot's
+                // object be alive (`objects[whom].list[ox] + 8 & 1`). A
+                // copy whose site closed and whose number a later site
+                // took is re-issued on the later site: run788's `1/82`
+                // re-entering `2053` on 2972 takes `BUILD 2057` uid 214
+                // where the copy held uid 196 (`docs/AI.md` §215).
                 Body::Build(b) | Body::Repair(b) => {
+                    let bd = &self.buildings[b];
+                    let Some(now) = self.building_by_o(bd.owner, bd.index) else {
+                        continue;
+                    };
+                    let body = match o.body {
+                        Body::Build(_) => Body::Build(now),
+                        _ => Body::Repair(now),
+                    };
                     self.group_action_swarm_around(
                         g,
-                        b,
+                        now,
                         QueuePos::Last,
-                        o.body,
+                        body,
                         o.has(flag::ACTION),
                     );
                 }
