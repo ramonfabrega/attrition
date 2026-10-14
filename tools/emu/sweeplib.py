@@ -99,3 +99,16 @@ def link_value(rng, n, k, d, terms):
     if not side or rng.random() < 0.25:
         return rng.choice(terms)
     return rng.choice(side)
+
+
+def draw_reg(rng, spec, wild, word=None):
+    """A register's integer (`--ecx-int`, `--edx`): a random word `wild` of
+    the rows (`word(rng)`, the script's own `rand32`, so a regenerated
+    `--ecx-int` draws the rows it drew before), else a member of the set or
+    the range. `--tame` passes 0, for a register that indexes a table a wild
+    word would fault (item 2346)."""
+    if rng.random() < wild:
+        return word(rng) if word else rng.randint(-0x80000000, 0x7FFFFFFF)
+    if spec[0] == "set":
+        return rng.choice(spec[1])
+    return rng.randint(spec[1], spec[2])
