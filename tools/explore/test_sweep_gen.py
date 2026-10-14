@@ -197,6 +197,34 @@ class Shapes(unittest.TestCase):
                         script.index('for win, loc, expr, size in PLACES:'))
         self.assertIn('"s": answers', script)
 
+    def test_a_slot_of_a_placed_object_may_answer_a_window(self):
+        # Parked 2151, built by item 2170: `UnbuiltCity::get_x` calls slot
+        # +0xac of `objects[who][o]`, an object reached through two placed
+        # windows, and reads `+0x10` of the record the slot answers; the
+        # coordinate goes out through the hidden return pointer `[esp+4]`.
+        # So the stubbed vtable is laid in a placed window (`--vtat`), and a
+        # stub answers the address of a window of its own (`--answer-win`).
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2170, win=8, bias=[], own=1,
+            cells=['0xc0618c:0xe0'], ptrargs=['0:4'], stubs=['slot:0xac:0'],
+            places=['c0+0x14+i8(m,2)*0x1c:i16(m,0)*4:4', 'p1+0:0:0x10'],
+            vtat='p2+0', answer_wins=['0:0x20'], port='a[0] as i64')
+        compile(script, str(sp), 'exec')
+        self.assertIn("VTAT = ('p2', 0)", script)
+        self.assertIn('WIN = 8\n', script)
+        self.assertIn('ANSWERWIN = [(0, 32)]', script)
+        self.assertLess(script.index('for win, loc, expr, size in PLACES:'),
+                        script.index('for idx, size in ANSWERWIN:'))
+        self.assertLess(script.index('for idx, size in ANSWERWIN:'),
+                        script.index('for a_, b in wins:'))
+        self.assertIn('vtable laid at `p2+0`', test)
+        self.assertIn('stub 0 answers the address of 32 random bytes', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2170, win=8, bias=[], answer_wins=['0:0x20'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2170, win=8, bias=[], stubs=['0x401000:0'],
+                                   vtat='p0+0')
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
