@@ -225,10 +225,10 @@ class Shapes(unittest.TestCase):
             'Foo::bar@00401000', item=2217, win=0x20, bias=[], own=1,
             stubs=['0x401100:2'], answers=['0:0,1,4'], seq=['0:6'], port='0')
         compile(script, str(sp), 'exec')
-        self.assertIn('SEQ = [(0, 6)]', script)
-        self.assertIn('for idx, n in SEQ:', script)
+        self.assertIn('SEQ = [(0, 6, None)]', script)
+        self.assertIn('for idx, n, terms in SEQ:', script)
         # Drawn from the stub's `--answers` list when it has one.
-        self.assertIn('ANSWERS', script[script.index('for idx, n in SEQ:'):])
+        self.assertIn('ANSWERS', script[script.index('for idx, n, terms in SEQ:'):])
         self.assertIn('+ [str(v) for s in seqs for v in s]', script)
         self.assertIn('stub 0 answers 6 values in call order', script)
         sp, script, tp, test, mod = sweep_gen.generate_obj(
@@ -1034,6 +1034,72 @@ class Shapes(unittest.TestCase):
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_a_regen_keeps_the_hand_written_port(self):
+        # Item 2368 (parked 2342, Loop 2003): `--regen` with no `--port`
+        # rewrote the test's hand-written port block to `todo!()`, and
+        # `AnimalData::get_speed` and `Herd::process` each restored it from a
+        # copy. A regen without `--port` keeps the block between the
+        # generated halves; one given `--port` still replaces it.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20', '--stub', '0x401100:0']
+                self.assertEqual(sweep_gen.main(line), 0)
+                tp = Path(tmp) / 'x_y.rs'
+                hand = ('            let v = crate::x::y(m);\n'
+                        '            if v > 0 {\n'
+                        '                wr(m, 0, v);\n'
+                        '            }\n'
+                        '            i64::from(v)')
+                tp.write_text(tp.read_text().replace('            todo!("the port of X::y")', hand))
+                self.assertEqual(sweep_gen.main(line + ['--rows', '300', '--regen']), 0)
+                text = tp.read_text()
+                self.assertIn(hand, text)
+                self.assertNotIn('todo!', text)
+                self.assertIn('n >= ', text)
+                self.assertEqual(text.count('let got: i64 = {'), 1)
+                # The kept line redraws it too.
+                self.assertEqual(sweep_gen.main(['--regen', 'x_y']), 0)
+                self.assertIn(hand, tp.read_text())
+                # A `--port` given replaces the block.
+                self.assertEqual(sweep_gen.main(line + ['--port', '0', '--regen']), 0)
+                self.assertNotIn(hand, tp.read_text())
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_a_seq_may_end_on_a_terminating_answer(self):
+        # Item 2368 (parked 2342, Loop 2003): `--seq` repeats its last answer
+        # forever, so a function that loops while a stub answers inside a set
+        # never returns once the stubbed kills change nothing (`Unit::repath`,
+        # hand-edited). `--seq IDX:N:T,T..` draws the last of the N answers
+        # from the terminators, and answers it past N.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2368, win=0x20, bias=[], own=0,
+            stubs=['0x401100:0'], answers=['0:1,2,3'], seq=['0:4:0,7'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('SEQ = [(0, 4, [0, 7])]', script)
+        self.assertIn('stub 0 answers 4 values in call order, the last from [0, 7]', script)
+        ns = {}
+        start = script.index('def seq_values')
+        exec(script[start:script.index('\n\n\n', start)], ns)
+        import random
+        rng = random.Random(1)
+        for _ in range(200):
+            vals = ns['seq_values'](rng, 4, [1, 2, 3], [0, 7], lambda r: 99)
+            self.assertEqual(len(vals), 4)
+            self.assertIn(vals[-1], (0, 7))
+        # Without terminators the last is drawn as the rest.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2368, win=0x20, bias=[], own=0,
+            stubs=['0x401100:0'], seq=['0:3'], port='0')
+        self.assertIn('SEQ = [(0, 3, None)]', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   stubs=['0x401100:0'], seq=['0:3:'])
 
     def test_an_obj_from_the_command_line_holds_its_answer(self):
         # Item 2090: `--ret` defaulted to fwd's `none` for every shape, so an
