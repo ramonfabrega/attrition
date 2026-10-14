@@ -12,18 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-14, **the thirty-third tranche: twenty-two landings booked, one draining** (by `git log` from the pass's `d41d5666`), Opus
-5.5 medium on four lanes (DECISIONS 68, 69; the pass recommends Sonnet — Ramon's call). The headline moved five
-times, the successor pair 4246 → 4338 → 4353 → 4603 → 4637 → 4671; Great Sahara in the successor lobby closed on its first build
-(3268 of 3268); chapter sixty-three closed at 760, sixty-four opened at 637 and closed at 820; the census 571 → 720. Every booking
-gate green but 2205's (`run583`'s widening 139 → 138 at 2193's and 2205's joint merge, a re-pin) and 2229's (the ledger); no kill rule tripped.*
+*2026-10-14, **the thirty-third pass is due**: twenty-three landings in 5 h 36 min since `d41d5666`,
+Opus 5.5 `--effort medium` on four lanes (DECISIONS 68, 69). Successor pair 4246 → 4671 (2175, 2193, 2229); Great
+Sahara (Mongols) closed on its first build, 3268 of 3268 (2107); chapters 63 and 64 closed (2131, 2205), 65 open at
+777 (2235); census 571 → 721 (eleven sweeps on two lanes). No kill rule tripped.*
 
-- **At the twentieth landing (2229)**: the steering pass is due; the lanes drain unrefilled — 2235 (chapter
-  sixty-five, run843, word 777, cleared at 343k and continuing from its draft); the sweep lanes landed
-  as the twenty-first and twenty-second (2253, 2247). 2259, the headline's word 4671, is queued unspawned for the next
-  tranche, its parks the four numbers after it. Lane wait `--deep 340` (Loop 2186). Blind list 332.
-- **Lanes live** (tranche 33, 2026-10-14, draining — twenty landed, not refilled): 2235 (GOLDEN §81,
-  BJ, runs 843–844). Next 2265, run 842, AI §217, GOLDEN §82, park BF (pools BF, BH, BK and BM–BR, AI §217–§221, GOLDEN §82–§87).
+- **Measured** (`tools/tranche.py`, 23 items, 25 sessions): 174.88 USD list, **7.60 a landing** (the thirty-second's
+  8.14; Sonnet 5.5 medium's last 3.56), **23.8 min waiting** a landing (23.4); peak 368 k (2235, one `DEEP` cleared
+  from its draft). Booking gates: two red, each fixed by a second commit — `run583`'s widening 139 → 138 at 2193's
+  and 2205's joint merge (a re-pin), and the ledger on a handoff that named unbooked numbers; three merges backed out
+  on `census.rs` (2187, 2200, 2223), each re-landed by `ccc update`. Blind list 332. Disk 181 GiB.
+- **No lanes live**: 2259 and 2265 wait; no sweep item queued (the pass's call, DECISIONS 61). Next 2271, run 844,
+  AI §217, GOLDEN §83, park BF (pools BB, BF, BH, BK, BM–BR, AI §217–§221, GOLDEN §83–§87); run 842 unused.
 - **Fable backlog: 24 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198, 2199, 2210, 2216, 2222, 2234, 2240, 2264).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -32,18 +32,21 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w4671 of 5,056
-Census: simulation backed 720 of 3611
+Census: simulation backed 721 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed
+Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 w777
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-third tranche's commander, on Opus — four lanes live (Opus 5.5 medium, DECISIONS 68,
-69); run the chain to twenty landings, the lane wait with `--uncleared-after 5`; the pass is due at twenty.**
+**Opener: the thirty-third steering pass, on Fable — score the thirty-third
+tranche whole (Opus 5.5 medium, Ramon's trial: 7.60 USD a landing against the
+thirty-second's 8.14 and Sonnet 5.5 medium's 3.56, the roster his to decide),
+rule the twenty-four Loop items (2003's twenty-three reaches first), then clear
+`commander` into the thirty-fourth tranche with 2259 and 2265, one to a lane.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2259 the headline's word (unspawned, for the next tranche), 2235 the other lane —
+2259 the headline's word, 2265 the rules track's —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -56,13 +59,13 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     `queue:queued` 1 against 0 (parked 2230). Inside run838, widened
     whole. East Indies, Mongols. AI §216.
 
-2235. **Chapter sixty-five: the arms the AI track built that no walk
-    holds** (DECISIONS 56 §3; 2205 closed sixty-four at 820, a Bark
-    weighs ships by their line and retargets to what it may take,
-    GOLDEN §80). Candidates by their parked rows: the raid's
-    `raid_stamp` writer (2110), `ai_sites`' wrapping decrement (2111),
-    a building group's `list[0]` turn (2196). Name the census rows
-    first; runs 843–844. GOLDEN §81.
+2265. **Chapter sixty-five's word: frame 777, 8 versus 6 draws** (2235
+    opened it on run843, GOLDEN §81: the city alarm's arms; the raid
+    row gone from every pin). Ours' extra draws are the Catapult `0/9`'s
+    `set_anim`; block 777's `0/9` `near` is (2006, 1) here against
+    (−1, −1) there; that this crate's idle search reaches a building
+    the original's does not is 2235's hypothesis (parked 2236). The
+    original's search on 777 first (a packet). Run 842; GOLDEN §82.
 
 ## How to maintain this file
 

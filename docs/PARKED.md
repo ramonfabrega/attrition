@@ -3846,7 +3846,7 @@ line, held by a test on a run809 block whose captain it names. **The thirty-seco
 arrays** (2032's Loop line, filed at its merge): "the want is not a
 literal", so a new chapter's first pin is always by hand. Candidate:
 `repin.py` rewriting a `const NAME: &[…] = &[…];` array in place, with a
-test that fails on a chapter's const first. **2099 and 2117** re-pinned 13 and 73 rows by hand again. **The thirty-second pass**: three by hand now (2032, 2099, 2117); stays, the next pass's to build if a fourth lands by hand — `repin.py`'s `replacement` says "not a literal" for a `const` want, and the array rewrite is its own parser.
+test that fails on a chapter's const first. **2099 and 2117** re-pinned 13 and 73 rows by hand again. **The thirty-second pass**: three by hand now (2032, 2099, 2117); stays, the next pass's to build if a fourth lands by hand — `repin.py`'s `replacement` says "not a literal" for a `const` want, and the array rewrite is its own parser. **2235** (a reach, filed at its merge): about fifty `raid_stamp` pins re-pinned, the golden `WANT_CH*` row lists by hand.
 
 (2060) **A parted `queue[k].cost` has no price print with its inputs**
 (2026's Loop line, filed at its merge): `RON_PRICE` lives in one older walk
