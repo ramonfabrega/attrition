@@ -11819,7 +11819,10 @@ long pins (the third pair's closing, run714's) stood on `1/2000 city:raid_stamp`
 **Built** (`crates/sim/src/fight.rs`, `Sim::city_alarm`, called before the take; `AiLeader::capital_stamp`): both
 arms, and the emergency gated on the alarm's answer and on `!killed`.
 `the_city_alarm_raids_light_attacks_heavy_and_spares_the_capital_s_stamps` (`crates/sim/src/cities_tests.rs`)
-holds the ceilings and the capital on a fixture.
+holds the ceilings and the capital on a fixture. Each arm is held by a mutation (`tools/mutate.py`, cargo exit 101):
+the worker arm taken out, the capital arm made to write the city, and `>=` made `>`, each on
+`chapter_forty_one_s_word_frame_is_widened_whole`; the `/10` made `/4` and the siege term taken out, each on the
+fixture.
 
 **On disk, before the capture** (run437, chapter forty-one). Theirs' `raid_stamp` 671, 672 and 690 are hits on
 citizens gathering at the Farm `1/2001` (the worker arm); 722 on are hits on `1/2002`. The capital's heavy arm at its
