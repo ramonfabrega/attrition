@@ -4962,13 +4962,29 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BU — reserved
+## Parked by item 2325, 2026-10-14 — a stub that answers through its argument, and a sweep that keeps its line
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2326) **`tools/sweep_gen.py obj --outarg`, `--stub-cdecl` and the kept line built** (Loop 2003's twenty-eighth
+reach; parked 2311 and 2309's Loop line; names no score). `--outarg IDX:K:VALS` makes stub IDX write a value drawn
+from VALS through its argument K, unless that argument is null. The value is printed after the answers and is
+`o` in a place expression (`get_inside` writes the owner of the object `in_a_building` then indexes `objects`
+by). `--stub-cdecl IDX` hooks a direct callee as `__cdecl`: its arguments are read and recorded, and only the
+return address is popped (`tools/emu/hooks.py`, a fourth element of a hooked entry). This is `memcpy`, an
+import the emulator cannot enter, whose caller pops it with `add esp, 0xc`. Every generated script now ends
+`# sweep_gen: [...]`, the line that drew it, and `--regen <script or snake>` redraws it from that line; a whole
+line given with `--regen` replaces the kept one. Each of the three has a test in
+`tools/explore/test_sweep_gen.py` made to fail first; 43 of 43 pass. The sweeps drawn before 2325 keep no line
+and still take the whole line once.
+
+(2327) **Read and not taken by 2325, each for a shape the generator lacks** (names no score; the Loop's next
+reach). `Game::is_game_ready` answers a `bool` in `al` over an `eax` whose upper bytes are the game pointer's
+(2181), so it needs a `--ret al` that compares the low byte only. `TurnControl::get_lag_time` calls
+`timeGetTime` through the IAT, and a hooked address cannot answer an indirect call through an unresolved IAT
+cell; it needs a stub laid in the cell. `PathFinderData::find_node_closed` reads `current_node`, which
+`BRTree::seek` sets as a side effect (2170). `WorldData::get_bottom` and `ObjectData::inside_bottom` walk
+`objects` by (owner, index) pairs that each record names, so they need `--link` across a two-key table to end.
+The jump-table switches `Setup::get_starting_citizens`, `Search::valid_filter` and
+`GameInfo::default_setting` were not read this batch.
 
 ## Parked by the next landing, slot BV — reserved
 

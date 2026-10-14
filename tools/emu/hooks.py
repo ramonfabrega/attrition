@@ -109,7 +109,9 @@ class Harness:
     def _on_code(self, uc, addr, size, _):
         if addr not in self.hooked:
             return
-        name, nargs, tail = (self.hooked[addr] + (False,))[:3]
+        # A fourth element marks a `__cdecl` callee (item 2325: `memcpy`, an
+        # import): its arguments are read, and the caller pops them.
+        name, nargs, tail, cdecl = (self.hooked[addr] + (False, False))[:4]
         esp = uc.reg_read(UC_X86_REG_ESP)
         if tail:
             args = list(struct.unpack(f"<{nargs}i", uc.mem_read(esp, 4 * nargs))) if nargs else []
@@ -125,7 +127,7 @@ class Harness:
             # An answer `(eax, ecx)` leaves `ecx` as a real callee would
             # (parked 1922); the register is otherwise the callee's own.
             uc.reg_write(UC_X86_REG_ECX, ecx_out & 0xFFFF_FFFF)
-        uc.reg_write(UC_X86_REG_ESP, esp + 4 + 4 * nargs)
+        uc.reg_write(UC_X86_REG_ESP, esp + 4 + (0 if cdecl else 4 * nargs))
         uc.reg_write(UC_X86_REG_EIP, ret)
 
     def call(self, entry, stack_args=(), ecx=0, max_insns=200_000):
