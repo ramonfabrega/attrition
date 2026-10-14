@@ -3877,6 +3877,9 @@ impl Sim {
         }
         let Some(g) = self.group_of(u) else { return };
         let (pf, pi) = (self.frame, self.units[u].index);
+        if std::env::var_os("RON_PROBE_2193").is_some() && g.who == 1 && g.army == Some(1) {
+            eprintln!("PROBET f{} any-turn 1/{} at {:?} captain {} on_map {} list_pos {:?}", pf, pi, self.units[u].pos, self.units[u].captain, self.units[u].on_map, g.list.iter().position(|&m| m == u));
+        }
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)
         {
