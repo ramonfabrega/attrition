@@ -3740,9 +3740,13 @@ one session** (found at 2088's second `DEEP`): `ccc clear 4aa11452
 (`4aa11452-491c…`, the only file in its project dir) went on to 351 k at
 18:58 with no `/clear` and no new session file; the lane had been told
 to end its turn and had not yet. A re-arm at 19:00 and a second line
-took. Candidate: the waiter checks, on its next pass after a clear, that
-the lane's newest transcript is not the one it measured, and exits
-`UNCLEARED <lane>` if it is — a test fed two transcript listings.
+took. **And the clear's `--then` prompt does not run** (twice: 2055 at
+17:3x, 2088 at 19:01): the new session's transcript holds the `/clear`
+and nothing after it, the row reads `working`/`idle` (or `blocked`) with
+model `-`, and it sat twenty minutes until a message carrying the prompt
+woke it. Candidate: the waiter checks, on its next pass after a clear,
+that the lane's newest transcript has a turn past the `/clear`, and exits
+`UNCLEARED <lane>` if not — a test fed two transcript listings.
 
 (2059) **`unitat.py`'s order labels are inverted** (Loop; names no score; filed here at 2055's merge). The dump prints an order list
 from the ring's anchor, the **bottom** (`OrderList::log_data`, `docs/AI.md` §206), and `unitat.py`
