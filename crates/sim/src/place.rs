@@ -971,7 +971,7 @@ impl Sim {
     }
 
     /// `BuildTypeData::count_water`: footprint tiles that are ocean.
-    fn count_water(&self, ty: usize, corner: Pos) -> i32 {
+    pub(crate) fn count_water(&self, ty: usize, corner: Pos) -> i32 {
         self.footprint(ty, corner)
             .into_iter()
             .filter(|t| self.is_ocean_tile(*t))
