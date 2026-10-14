@@ -279,7 +279,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **148** with item 1625's cites of `Spline::set_min_seg_length@009125e0`
 /// and `Spline::calc_from_dir@00913960` (`docs/AI.md` §174): run717's
 /// `AMMO` prints the spline they build on every one of `1/49`'s rounds,
-/// but its `cover=0` trace enters no function.
+/// but its `cover=0` trace enters no function. **331** with item 2165's
+/// cite of `CommandManager::issue_stance@00941530` (`docs/GOLDEN.md` §79):
+/// run835's `@stance` calls it and the dump logs `process_stance`, but its
+/// `cover=0` trace enters no function; a `cover=1` take would move it to
+/// [`ENTERED_BY_THE_DLL_ONLY`].
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -308,7 +312,7 @@ pub const NEVER: &[u32] = &[
     0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,
     0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0, 0x0073_c5e0, 0x0073_c780, 0x0073_c7e0, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060,
-    0x0074_1a40, 0x0074_1d50, 0x0082_c520, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7050, 0x008d_1830, 0x008d_9190, 0x0091_25e0, 0x0091_3960, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_17a0,
+    0x0074_1a40, 0x0074_1d50, 0x0082_c520, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7050, 0x008d_1830, 0x008d_9190, 0x0091_25e0, 0x0091_3960, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_1530, 0x0094_17a0,
     0x0094_1960, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
     0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
     0x0094_9ed0, 0x0094_c1c0, 0x0095_2d90, 0x0095_4c60, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930,
