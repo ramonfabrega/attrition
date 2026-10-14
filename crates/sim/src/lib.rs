@@ -1943,7 +1943,10 @@ impl Sim {
         } else if trainer == Some(build::Ident::Stable) {
             census.stable_garr += delta;
             true
-        } else if self.unit_types[t].cols.is(ai_load::role::SCOUT) {
+        } else if self.unit_types[t].cols.flag2(ai_load::uflags2::SCOUT) {
+            // `UnitData::is_special@0046cea0`: `unit_flags2 & 0x10`, the
+            // land scout line alone — a Bark (the role word's other `0x10`)
+            // is not one, and a Bark born at a dock raises nothing.
             census.scout_garr += delta;
             true
         } else {
