@@ -671,6 +671,7 @@ mod unbuilt_forts_remove_unbuilt_fort;
 mod unbuilt_wonder_is_started;
 mod unbuilt_wonder_walk_data;
 mod unbuilt_wonders_remove_unbuilt_wonder;
+mod unit_add_air_attack_ground_order;
 mod unit_add_air_patrol_order;
 mod unit_add_move_facing_order;
 mod unit_add_strafe_order;

@@ -2005,19 +2005,53 @@ impl Sim {
         pos: QueuePos,
         action: bool,
     ) {
-        // SEAM: `unit_masks &= ~0x4000000` under `QUEUE_NEW`, the defended
-        // return's bit, which this crate does not carry.
-        let order = Order {
-            flags: if action { flag::ACTION } else { 0 },
-            body: Body::AirAttackGround(AirAttackGroundOrder {
-                at,
-                home,
-                cruising_alt: CRUISING_ALT,
-                sharp_turn: 0,
-                returning: false,
-            }),
-        };
-        self.enqueue(u, order, pos);
+        // The steps are [`add_air_attack_ground_steps`]'s (item 2368's
+        // sweep): the generic enqueue's shape, its `QUEUE_FIRST` rotate
+        // taken after the link as the original's is.
+        add_air_attack_ground_steps(
+            self,
+            pos,
+            action,
+            // SEAM: `unit_masks &= ~0x4000000` under `QUEUE_NEW`, the
+            // defended return's bit, which this crate does not carry;
+            // `+0xc0 = 0` is the path.
+            |s| s.units[u].path.clear(),
+            |s| s.close_orders(u),
+            |s| s.clear_partial_path(u),
+            |s| {
+                s.update_action(u);
+            },
+            |_| Order {
+                flags: 0,
+                body: Body::AirAttackGround(AirAttackGroundOrder {
+                    at,
+                    home,
+                    cruising_alt: CRUISING_ALT,
+                    sharp_turn: 0,
+                    returning: false,
+                }),
+            },
+            |_, o, on| {
+                if on {
+                    o.flags |= flag::ACTION;
+                } else {
+                    o.flags &= !flag::ACTION;
+                }
+            },
+            |s, o| {
+                if s.units[u].orders.is_empty() {
+                    s.new_head(u);
+                }
+                s.units[u].orders.push_back(o);
+            },
+            |s| {
+                let orders = &mut s.units[u].orders;
+                if orders.len() > 1 {
+                    orders.rotate_right(1);
+                    s.new_head(u);
+                }
+            },
+        );
     }
 
     /// **`Unit::add_air_patrol_order(x, y, home_o, home_who, action,
@@ -10839,6 +10873,46 @@ pub(crate) fn add_strafe_steps<C, T: Copy, P, O>(
         clear_path(cx);
         rotate(cx);
     }
+}
+
+/// **`Unit::add_air_attack_ground_order@005e41c0`'s steps** (item 2368,
+/// swept by `sweep::unit_add_air_attack_ground_order`). Under `QUEUE_NEW`
+/// (`5e41c4`): the path dropped (`+0x68 &= ~0x4000000`, `+0xc0 = 0`),
+/// `close_orders(0)`, `clear_partial_path`, `update_action`. Then
+/// `get_obj(AIR_ATTACK_GROUND)` and its slot `+0x58` make the order, filled
+/// (`+4/+8` the point, `+0x18/+0x1c` the home, `+0x20` 0x640, `+0xc`,
+/// `+0x10`, `+0x2c` 0); its action bit set or cleared as asked; linked at
+/// the list's tail (`LinkListBase::add` on `+0xcc`); under `QUEUE_FIRST`
+/// (`5e4261`), `clear_partial_path` and the rotate that heads the list
+/// with it (`+0xdc = *+0xdc`); and `update_action` for every queue.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn add_air_attack_ground_steps<C, O>(
+    cx: &mut C,
+    pos: QueuePos,
+    action: bool,
+    drop_path: impl FnOnce(&mut C),
+    close: impl FnOnce(&mut C),
+    mut clear_path: impl FnMut(&mut C),
+    mut update: impl FnMut(&mut C),
+    make: impl FnOnce(&mut C) -> O,
+    set_action: impl FnOnce(&mut C, &mut O, bool),
+    link: impl FnOnce(&mut C, O),
+    rotate: impl FnOnce(&mut C),
+) {
+    if pos == QueuePos::New {
+        drop_path(cx);
+        close(cx);
+        clear_path(cx);
+        update(cx);
+    }
+    let mut o = make(cx);
+    set_action(cx, &mut o, action);
+    link(cx, o);
+    if pos == QueuePos::First {
+        clear_path(cx);
+        rotate(cx);
+    }
+    update(cx);
 }
 
 /// **`Unit::do_think_order@005e5bf0`'s steps** (item 2287):
