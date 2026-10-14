@@ -547,7 +547,7 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2281, win=0x20, bias=[], own=1,
                                    stubs=['0x402000:1'], record=['1'])
         # The token: a pointer into a window by its name, anything else signed.
-        ns = {}
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
         body = script[script.index('def token('):]
         exec(body[:body.index('\n\n\ndef ')], ns)
         spans = [('m', 0x1000, 0x20), ('p0', 0x2000, 0x40)]
@@ -571,7 +571,7 @@ class Shapes(unittest.TestCase):
         self.assertIn('RECORD = [0, 1]', script)
         self.assertIn('ROWSPLIT = {1: 0}', script)
         self.assertIn('after ` # `, split by the rows of sparse table 0', test)
-        ns = {}
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
         for fn in ('def token(', 'def by_row('):
             body = script[script.index(fn):]
             exec(body[:body.index('\n\n\ndef ')], ns)
@@ -691,6 +691,22 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[],
                                    stubs=['iat:0xac5460:0'], stub_cdecl=['0'])
+
+    def test_a_recorded_local_is_named_by_its_depth(self):
+        # Item 2336: `MiscAccess::coord_vis@00583aa0` hands its callees the
+        # addresses of its own locals; a record printed them as raw stack
+        # words, which a port can only copy. A word inside the stack below
+        # the caller's `esp` prints as `sp-0xNN`, its depth under it.
+        _, script, _, _, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2336, win=0x20, bias=[], own=0,
+            stubs=['0x402000:1'], record=['0'])
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
+        body = script[script.index('def token('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        top = ns['STACK_BASE'] + ns['STACK_SIZE'] - 0x100
+        self.assertEqual(ns['token'](top - 0x14, []), 'sp-0x14')
+        self.assertEqual(ns['token'](top - 0x2000, []), str(top - 0x2000))
+        self.assertEqual(ns['token'](5, []), '5')
 
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer

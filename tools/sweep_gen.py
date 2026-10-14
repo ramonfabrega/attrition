@@ -1166,11 +1166,17 @@ def u8(w, off):
 
 def token(v, spans):
     """A recorded value: a pointer into a window by the window's name and
-    offset (`m+0x0`, `p0+0x10`), anything else as a signed word (item 2281)."""
+    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), anything
+    else as a signed word (item 2281)."""
     v &= 0xFFFFFFFF
     for name, at, size in spans:
         if at <= v <= at + size:
             return f"{{name}}+{{v - at:#x}}"
+    # A caller's local handed to a callee: its depth under the caller's
+    # `esp`, which the harness holds every row (item 2336).
+    top = STACK_BASE + STACK_SIZE - 0x100
+    if top - 0x1000 <= v < top:
+        return f"sp-{{top - v:#x}}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
