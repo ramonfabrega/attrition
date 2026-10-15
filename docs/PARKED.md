@@ -3746,6 +3746,10 @@ object argument, a shape no flag writes yet (parked 2466; minted as 2469's first
 **2469** (forty-third reach, filed at its merge): built `--cmd-obj`, a test failing first, and the three
 object-argument issuers regenerate from it; seven group-first issuers on `--cmd-gate` with no new flag; `_flight`'s
 no-argument siblings are a four-line shape no flag writes (parked 2472; minted as 2481's first build).
+**2481** (forty-fourth reach, filed at its merge): built `--cmd-byte`, a test failing first, `issue_recall`'s hand
+line equal to it; three of ten landed, the other seven read and not the shape — an SEH and feedback-log arm, a
+global-record read, strings, floats (parked 2482; the arm minted as 2486's first build); four hand lines may
+regenerate from `--cmd-byte` when next touched (parked 2483).
 
 (2449) **`waitrun.sh` on a launcher's redirected log exits 2** (2436's "for the Loop" line, filed at its merge;
 parked 656's sibling). A launcher log written with `>` holds no banner, so `tools/gamelog/waitrun.sh` on it exits 2
