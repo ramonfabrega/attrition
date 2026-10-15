@@ -17258,15 +17258,6 @@ fn stage_walk() {
             }
         }
     }
-    if std::env::var_os("RON_STAGE_AVAIL").is_some() {
-        let s = &built.sim;
-        for (i, t) in s.unit_types.iter().enumerate() {
-            if let Some(id) = t.tree {
-                let a = s.tech_tree.type_avail(&s.setup, &s.tech[0], id, true);
-                eprintln!("avail ty={i} {} -> {a}", unit_name(Some(i)));
-            }
-        }
-    }
     eprintln!(
         "staged: {} ran, {} unit(s), {} building(s); skipped {:?}",
         applied.ran, applied.units, applied.buildings, applied.skipped
