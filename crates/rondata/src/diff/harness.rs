@@ -1399,7 +1399,9 @@ pub(crate) fn debug_gap(
                         }
                     })
                     .collect();
-                format!("orders {stack:?}")
+                // `line_ok` and `tolerance` are what `Unit::do_move` branches
+                // on first (Loop 2678: 2638 took a probe commit for each).
+                format!("orders {stack:?} line_ok {} tol {}", x.line_ok, x.tolerance)
             },
         );
         rows.push((format!("{w}/{o}"), val));

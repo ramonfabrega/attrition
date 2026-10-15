@@ -37,6 +37,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import time
 import sys
 import tempfile
 
@@ -455,6 +456,54 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
                 raise ValueError(f"the word's filters matched no test that ran: {', '.join(missed)}")
 
 
+STALE_AGENT_HOURS = 6
+
+
+def stale_agent_worktrees(porcelain, age_hours, *, limit=STALE_AGENT_HOURS):
+    """Loop 2724: the `agent-*` worktrees `git worktree list --porcelain`
+    names whose age (`age_hours(path)`, None when unknown) is past the limit.
+    The harness cuts a subagent's worktree under the main checkout's
+    `.claude/worktrees/`, every lane's in one directory; a sweep's go with
+    its landing (the frame's row), and three of the thirty-fifth tranche's
+    stood a day, two with unmerged tips, named by nothing."""
+    out = []
+    for block in porcelain.strip().split('\n\n'):
+        head = block.strip().split('\n', 1)[0]
+        if not head.startswith('worktree '):
+            continue
+        path = head[len('worktree '):].strip()
+        if '/.claude/worktrees/agent-' not in path:
+            continue
+        age = age_hours(path)
+        if age is not None and age > limit:
+            out.append((path, age))
+    return out
+
+
+def refuse_stale_agent_worktrees(stale, *, lane):
+    """The booking gate refuses; a lane gate never looks, because the
+    directory is every lane's and a red would land on the wrong lane."""
+    if lane or not stale:
+        return
+    names = ', '.join(f'{Path(p).name} ({h:.1f} h)' for p, h in stale)
+    raise ValueError(f'{len(stale)} stale agent-* worktree(s) under the main checkout, past '
+                     f'{STALE_AGENT_HOURS} h: {names} — a sweep\'s go with its landing (Loop 2724); '
+                     f'`git worktree remove` each once read, or `git worktree prune`')
+
+
+def stale_agent_worktrees_now():
+    porcelain = subprocess.run(['git', 'worktree', 'list', '--porcelain'], cwd=ROOT, check=True,
+                               capture_output=True, text=True).stdout
+    now = time.time()
+
+    def age_hours(path):
+        try:
+            return (now - os.path.getmtime(path)) / 3600
+        except OSError:
+            return None
+    return stale_agent_worktrees(porcelain, age_hours)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('install', type=Path, help='owned install directory; always exported as RON_INSTALL')
@@ -481,6 +530,7 @@ def main():
                              'timed test (Loop 2415); default: worktree-replan-pdb')
     args = parser.parse_args()
     try:
+        refuse_stale_agent_worktrees(stale_agent_worktrees_now(), lane=args.lane)
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
              test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
              base=args.base, scope=args.scope)

@@ -21180,3 +21180,24 @@ type's name in `RON_DEBUG_UNIT` (item 1846), the pivot docstring (item
 closed on two tranches without a reach and item 1601's letters with
 them; item 1862 hardened. Six Loop items stay. **DECISIONS 67.**
 `docs/audit/2026-10-13-fable-pass-30.md`.
+
+**2026-10-13 to 2026-10-15 — the thirty-first to thirty-sixth Fable
+passes** appended nothing here; their records are
+`docs/audit/2026-10-1*-fable-pass-3[1-6].md` and DECISIONS 68 to 73.
+
+**2026-10-15 — the thirty-seventh Fable pass: the mixed roster's third
+tranche scored, the fourth lane goes, the sweep's cycle measured.**
+Twenty-three landings on four lanes in 6 h 11 min: 4.22 USD and 36.5
+minutes waiting a landing against 3.92 / 27.0 — a fifth broken, so the
+fourth lane goes by entry 61 §5; the peace pair 5315 → 5564, chapter
+seventy-nine closed and eighty staged at 1198, the census 1068 → 1140,
+one `DEEP`, no kill rule, no red gate, the battery unmoved a thirteenth
+tranche. The waiting was named: the harvest lane's forty release cycles
+a batch under four lanes, where a touched sweep test cycles in 4 s under
+debug against 29 — the frame says debug now (2787). Ramon's hog measured:
+one coverage test is 200 s and 2.7 GB alone (2763). Built, each made to
+fail first: the booking gate's stale `agent-*` refusal (2724),
+`mutate.py --nth` (2784), `--sparse`'s help (2744), `RON_DEBUG_UNIT`'s
+two fields (2678); six rows into the frame, eight struck; 2524 closed,
+2786 folded into 2654 at three reaches. Nine Loop items stay.
+**DECISIONS 74.** `docs/audit/2026-10-15-fable-pass-37.md`.

@@ -85,6 +85,7 @@ is append-only and amended in place, as it always was.
 - 71 standing — The Opus medium trial's third tranche is scored, the waiting breaks a fifth for the first time, the census pin becomes the commander's, and nine Loop items become tools or rows
 - 72 standing — The mixed roster's first tranche is scored, the kill rules' one route is closed in the lane gate, and fifteen Loop items become tools, rows or closes
 - 73 standing — The mixed roster's second tranche is scored, the fourth lane is added under entry 61 §5, the build cache is measured moot, and twenty-two Loop items become tools, rows or closes
+- 74 standing — The mixed roster's third tranche is scored, the fourth lane goes by entry 61 §5, the sweep's cycle is measured as the box's cost, and twenty-two Loop items become tools, rows or closes
 
 ## 1. Fidelity before divergence
 
@@ -5793,3 +5794,110 @@ backlog against six and whether 2518 or 2654 reached; the timings
 file's stale count against 0; and whether every journal's Loop line is
 in the parked file at the handoff.
 
+## 74. The mixed roster's third tranche is scored, the fourth lane goes by entry 61 §5, the sweep's cycle is measured as the box's cost, and twenty-two Loop items become tools, rows or closes
+
+**Decided 2026-10-15**, the thirty-seventh pass
+(`docs/audit/2026-10-15-fable-pass-37.md`), with Ramon at the steer
+after the measures. Applies entry 61 §5 and entry 73 §2's measure;
+changes no roster.
+
+**What was measured.** Twenty-three landings on four lanes — the AI
+word on Opus 5.5 at `--effort medium`, the rules track and two sweep
+lanes on Sonnet 5.5 at medium, every session's model read off its
+transcript and `effort: medium` on one transcript of each lane kind —
+in **6 h 11 min** from the pass's commit (`23e2df12`, 10:35 −05:00) to
+the handoff (`2e78ba2e`, 16:46), the first booking at 11:17 and the
+twentieth at 15:48 (4 h 31 from the first booking): **97.12 USD** list
+for the workers (**4.22 a landing**; the AI word 8.06 over four, the
+rules track 3.57 over five, the builder sweep 2.84 over nine, the
+harvest sweep 4.30 over five) and 19.12 for the commander's two
+sessions, 116.24 in all against 102.61; **36.5 minutes waiting a
+landing** (27.0 the tranche before: gates **16.4** from 14.5, scripts
+**9.9** from 0.6, the suite 5.0 from 5.8, captures 2.6); the peace pair
+5315 → **5564 of 6822** (2638, 2677, 2737, 2761; runs 867–873); chapter
+seventy-nine opened at 938 and **closed** at 1500 (2649, 2693, 2703),
+eighty built from the listing (2725) and staged at 1198 (2755, run877);
+the census backed 1068 → **1140** on fourteen batches, cited 1590 →
+1591, never 338, `port` 171 → 156; peak context 201 k a session, one
+over 300 k (2677, drawn `DEEP` at 302 k, cleared and continued); two
+waiter exits (`DEEP` 2677, `LANDED` 2714), no `STALLED`, no
+`UNCLEARED`; no blocked ending; **no kill rule tripped, no red booking
+gate, no merge backed out**; the clear at ten taken; the battery 576 /
+6566 / 2974, **unmoved a thirteenth tranche**; every journal's Loop
+line filed at its merge (23 of 23, seven of them generator reaches);
+three tests untimed; the backlog 22.
+
+**What it means.**
+
+1. **The waiting broke a fifth and the fourth lane goes** (entry 61
+   §5, entry 73 §2's measure: 32.4): 36.5 against 27.0, every lane's
+   up — the AI word 46.2 → 49.1, the rules track 41.4 → 52.2, the
+   builder sweep 15.7 → 19.9, and the harvest lane 48.1. The pass
+   removes the lane the last pass added; the one sweep lane takes
+   2782 then 2783. The roster's models stand, and the pass decides
+   nothing about them (entry 61 §2).
+2. **The cost was named, not guessed**: the harvest lane's waiting was
+   `script` — each function's `cargo test --release -p sim <test>` and
+   its two or three breaks, about forty release cycles a batch, 35 to
+   49 minutes a landing (2683, 2743, 2774) with four lanes' release
+   builds on one box. Measured idle: a touched sweep test cycles in
+   **4 s under debug against 29 s under release** (`caravan_trade_value`,
+   this pass). The frame's sweep section now says the per-function
+   check and its breaks run in debug and the release build is the lane
+   gate's (2787); a red in debug alone is an overflow the port must
+   spell. Whether that alone returns the fourth lane is the next
+   pass's measure, by the same rule.
+3. **Ramon's hog is measured** (Loop 2763):
+   `every_parsed_field_is_compared_by_the_instrument_or_pinned` alone is
+   200 s and 2.70 GB resident on one core; with its sibling (137 s) and
+   the third-pair window test (56 s) it is the binary's 7.8 GB at eight
+   threads. The suite is 2,762 s of CPU over 865 tests, so a gate's
+   floor at any width is that one test: the drain gate's suite ran 314
+   s at eight threads. The levers are the two coverage tests split per
+   window, or a parsed-dump cache (entry 56 §3). To Ramon.
+4. **Four Loop items become tools**, each red first: the booking gate
+   refuses a stale `agent-*` worktree past six hours (2724;
+   `stale_agent_worktrees`, `refuse_stale_agent_worktrees`, a lane gate
+   never looks); `mutate.py --edit --nth N` names an ambiguous match
+   (2784, its `--place` half folded into 2003 as the sixty-sixth reach);
+   `sweep_gen.py --sparse`'s help names both forms (2744, the refusal
+   not statically decidable); `RON_DEBUG_UNIT`'s unit row prints
+   `line_ok` and `tolerance` (2678).
+5. **Six Loop lines become brief rows** (`docs/audit/README.md`, "from
+   the thirty-seventh pass"; `tools/brief/frame.md`): 2726, 2738, 2762,
+   2781 before a reading, 2756 on the chapter, 2732 on the sweep; 2704
+   is the queue's own booking rule; 2787 is the measure above. Eight
+   rows the tools now enforce are struck (1150, 1180, 1217, 1234, 1513,
+   1543, 1699, 1987), and the chapter kind stands at 12,986 of 13,000.
+6. **2524 closes, measured twice**: the pass's long measures ran in the
+   background in minutes; what holds the loop is the writing, and this
+   pass held it with Ramon at the steer. **2724 closes** on the ruling
+   above (two of the three trees superseded, 2400's six files an
+   unlanded sweep kept as a WIP commit on its branch); the removal is
+   Ramon's — the classifier refused it. **2786 folds into 2654** as its
+   third reach, graduated, the build owed and sized in the row. Nine
+   stay: 1570 and 1725 Ramon's, 2003 the ledger, 2518 at two reaches,
+   2654 graduated, 2750 and 2775 at one, 2763 to Ramon, 2769 half booked
+   as 2782. The backlog 22 → 9.
+7. **The battery is unmoved a thirteenth tranche**; entry 73 §7's
+   recommendation stands and is not moved.
+
+**The estimate, written down to be wrong on record**: twenty landings
+in under six hours on three lanes; the peace pair's word past 5,900;
+chapter eighty closes and eighty-one opens; the backed column past
+1,200 on one sweep lane running debug cycles; waiting a landing under
+30, which by entry 61 §5 (within a fifth of 36.5) adds a fourth lane
+back at the next pass; gate minutes under 16; no kill rule tripped; no blocked ending; no merge backed out.
+
+**The measure for the next pass**: each lane's USD and waiting a
+landing against 4.22 / 36.5 (the AI word 8.06 / 49.1, the rules track
+3.57 / 52.2, the sweep 3.36 / 30.0 over fourteen); gate and script
+minutes against 16.4 and 9.9, on three lanes; the waiter's exits
+against 2 of 23; sessions over 300 k against one; blocked endings
+against 0; kill rules against none; merges backed out against 0 of 23;
+the battery against 576 / 6566 / 2974; the census's never against 338,
+backed against 1140, cited against 1591, `port` against 156; the
+backlog against nine and whether 2518, 2750, 2769 or 2775 reached; the
+timings file's stale count against 3; whether the stale `agent-*`
+trees are gone; and whether every journal's Loop line is in the parked
+file at the handoff.

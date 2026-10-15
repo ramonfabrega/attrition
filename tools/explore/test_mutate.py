@@ -70,6 +70,19 @@ class Mutate(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn('mutation: failed nothing', self.out.getvalue())
 
+    def test_an_ambiguous_edit_names_nth_and_nth_takes_the_one_match(self):
+        # Loop 2784: `--edit` refused an ambiguous match three times and the
+        # lane re-ran; `--nth N` names which occurrence, counted from one.
+        (Path(self.d) / 'src.rs').write_text('fn f() { let x = 1; let x = 1; }\n')
+        subprocess.run(['git', 'commit', '-qam', 'two'], cwd=self.d, check=True)
+        with self.assertRaises(mutate.Refused) as cm:
+            mutate.apply_edit(self.d, 'src.rs', 'let x = 1;', 'let x = 2;')
+        self.assertIn('--nth', str(cm.exception))
+        with self.assertRaises(mutate.Refused):
+            mutate.apply_edit(self.d, 'src.rs', 'let x = 1;', 'let x = 2;', nth=3)
+        mutate.apply_edit(self.d, 'src.rs', 'let x = 1;', 'let x = 2;', nth=2)
+        self.assertEqual((Path(self.d) / 'src.rs').read_text(), 'fn f() { let x = 1; let x = 2; }\n')
+
     def test_a_dirty_tree_is_refused_before_anything_is_written(self):
         (Path(self.d) / 'src.rs').write_text('fn f() {}\n')
         with self.assertRaises(mutate.Refused) as cm:

@@ -71,6 +71,49 @@ def release_ran(kwargs, log=RELEASE_LOG, present=True):
     Path(kwargs['log']).write_text(log)
 
 
+class StaleAgentWorktrees(unittest.TestCase):
+    # Loop 2724: three `agent-*` subagent worktrees of the thirty-fifth
+    # tranche stood a day under the main checkout, two with unmerged tips,
+    # and nothing named them. The booking gate refuses one older than the
+    # limit; a lane gate never looks (the directory is shared by every lane).
+    PORCELAIN = """\
+worktree /Users/x/code/fun/attrition
+HEAD 054d603c12000898e95165608c837e90ffac2580
+branch refs/heads/main
+
+worktree /Users/x/code/fun/attrition/.claude/worktrees/agent-a0651062ff871c606
+HEAD b4e0ac06aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+branch refs/heads/worktree-agent-a0651062ff871c606
+
+worktree /Users/x/code/fun/attrition/.claude/worktrees/agent-a0bec46101a67bd2c
+HEAD e4d4aaa6aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+branch refs/heads/worktree-agent-a0bec46101a67bd2c
+
+worktree /Users/x/code/fun/attrition/.claude/worktrees/replan-pdb
+HEAD 2e78ba2eaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+branch refs/heads/worktree-replan-pdb
+"""
+
+    def test_a_tree_past_the_limit_is_named_and_a_young_one_is_not(self):
+        ages = {'agent-a0651062ff871c606': 21.5, 'agent-a0bec46101a67bd2c': 1.2}
+        stale = gate.stale_agent_worktrees(self.PORCELAIN, lambda p: ages[Path(p).name])
+        self.assertEqual([(Path(p).name, round(h, 1)) for p, h in stale],
+                         [('agent-a0651062ff871c606', 21.5)])
+
+    def test_a_tree_whose_age_is_unknown_is_not_named(self):
+        stale = gate.stale_agent_worktrees(self.PORCELAIN, lambda p: None)
+        self.assertEqual(stale, [])
+
+    def test_the_booking_gate_refuses_and_the_lane_gate_does_not(self):
+        stale = [('/x/.claude/worktrees/agent-a0651062ff871c606', 21.5)]
+        with self.assertRaises(ValueError) as cm:
+            gate.refuse_stale_agent_worktrees(stale, lane=False)
+        self.assertIn('agent-a0651062ff871c606', str(cm.exception))
+        self.assertIn('21.5 h', str(cm.exception))
+        gate.refuse_stale_agent_worktrees(stale, lane=True)
+        gate.refuse_stale_agent_worktrees([], lane=False)
+
+
 class GateTests(unittest.TestCase):
     def test_missing_install_never_runs(self):
         with tempfile.TemporaryDirectory() as tmp:

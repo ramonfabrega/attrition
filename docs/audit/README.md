@@ -315,6 +315,43 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.
+## The brief checklist, from the thirty-seventh pass
+
+The thirty-seventh tranche (DECISIONS 74): twenty-three landings on
+four lanes in 6 h 11 min from the pass's commit, 4.22 USD and 36.5
+minutes waiting a landing (3.92 / 27.0 before) — the waiting broke a
+fifth, and the fourth lane goes by entry 61 §5. The pass added these
+rows, each from the tranche's own journals or its own measure, and
+struck eight rows the tools now enforce: 1150, 1180, 1217, 1234,
+1513, 1543, 1699 and 1987.
+
+- **A sweep's per-function check and its breaks run in debug, never
+  `--release`** (2787, the pass's measure): a touched sweep test cycles
+  in 4 s against 29 on an idle box; the harvest lane ran about forty
+  release cycles a batch under four lanes and waited 40 to 49 minutes
+  on them in items 2683, 2743 and 2774. The release build is the lane gate's; a
+  red in debug alone is an overflow the port must spell.
+- **A shape two batches parked is its own item, never a third batch's
+  tail** (2732, 2719's Loop line): 2701, 2712 and 2720 parked the
+  callee-run shape while each brief led with another build.
+- **A fallback's parting asks first which of its gate's inputs
+  differs** (2726, 2703's Loop line): draws 0..24 agreeing said the
+  inputs were equal up to one, and the 195 in `danger` was the cause;
+  2761 found its word by the same row in four commands.
+- **A standing row on the object the parted orders target is walked
+  back too** (2738, 2677's Loop line): 5407's cause sat two windows
+  back in two standing rows on the capital that two widenings listed
+  and nobody walked.
+- **A one-field path parting lists the writers that copy an entry
+  first** (2762, 2737's Loop line): `path[34]` agreed on `to` and
+  parted on `tolerance` alone, a popped `goal_e` copied whole.
+- **A standing `num_units`/`control` row on the parted queue's player
+  is grepped in the parked file first** (2781, 2761's Loop line): a
+  two-week-old parked gap, parked 1092 and 1328, said when it returns.
+- **The staging is the landing; a build without it parks** (2756,
+  2725's Loop line): chapter eighty was booked to stage an arm, built
+  it from the listing and staged nothing, and was booked again.
+
 ## The brief checklist, from the thirty-sixth pass
 
 The thirty-sixth tranche (DECISIONS 73): twenty-two landings on the
@@ -508,15 +545,15 @@ had been broken by the landings that filed it.
 - **A function whose export prints `unaff_` arguments is read at each
   call site's listing** (1166): `find_unit_ordered`'s distance was read
   right for the merchant and wrong for the scout for four weeks.
-- **The lane says its own state** (1180): `ron_lane_state` prints
+- ~~**The lane says its own state** (1180): `ron_lane_state` prints
   `free`, `stale` or `held by`. A lock whose pids were dead read as a
   busy lane on eight landings, and one whose pid had been handed to
   another process refused a capture with no game running; the lock
   carries each pid's start time now. A stale lock is never removed by
-  hand — one removal was refused by the permission classifier, rightly.
-- **A first take that dies before frame 0 is taken again once** before
+  hand — one removal was refused by the permission classifier, rightly.~~ **Struck by the thirty-seventh pass**: the tool says so itself.
+- ~~**A first take that dies before frame 0 is taken again once** before
   anything is read into it (1150): run416's and run420's first takes
-  faulted inside Wine within four seconds of the launch.
+  faulted inside Wine within four seconds of the launch.~~ **Struck by the thirty-seventh pass**: the tool says so itself.
 - ~~**A release node is read with the `get_position` sweep on a packet**
   (1208): reached three times from one scratch file; the item that
   reaches it next commits it under `tools/recomp/`.~~ Struck by the
@@ -531,10 +568,11 @@ had been broken by the landings that filed it.
   again on the merged tree. Six landings met a refused update and none
   was on code; the capture stanzas merge by union now, and a
   specification does not, because it is amended in place.
-- **A word that reaches its trace's end owes five things** (1217): the
+- ~~**A word that reaches its trace's end owes five things** (1217): the
   `ENDPOINTS` row and its `Endpoint` part, the `AI_WORDS` row closed,
   the compared pin's window dropped with its fields re-pinned, the
-  coverage driver's word block a constant, a capture of the last blocks.
+  coverage driver's word block a constant, a capture of the last blocks.~~
+  **Struck by the thirty-seventh pass**: `tools/runwiring.py` says which (1729).
 - **A type or an object a booking names is a supposition** (1213): "a
   Gate across a path" booked chapter forty-two, no type in the rules
   carries a gate, and one `cmovne` of `invalid_loc` made it any armed
@@ -582,11 +620,11 @@ failures of its own, and struck the frame's own story to pay for them.
   says "a seam" without the word is a seam.
 - **A chapter's `chNN f…` firsts pipe through `standing.py` as the AI
   track's `first …` do** (1250): item 1235 converted them with `sed`.
-- **The lane is held through the runner's restore and released after**
+- ~~**The lane is held through the runner's restore and released after**
   (1234, three reaches; `unattended_capture.capture_lane`,
   `ron_lane_take <pid>`, `ron_lane_release`): run467's game exited, the
   lane read `stale`, and 1221's long trace launched into the restore.
-  A waiter accepts `free` or `stale`; a `held by` is a live pid.
+  A waiter accepts `free` or `stale`; a `held by` is a live pid.~~ **Struck by the thirty-seventh pass**: the tool says so itself.
 - **A take with `@` lines is read with `issuesmatch.py --none-refused`
   first** (966, 1256): two Loop lines of the tranche asked for a decoder
   of `INFO 17` that the seventeenth pass had built; the row had not
@@ -669,9 +707,9 @@ and paid by condensing four rows' wording, no number struck.
   third pair's and the coverage pair's `widen_on_siblings` write
   `standing <block> …` and `f<block> …`, and two landings fed them through
   `sed`; the tool reads both now.
-- **No `mkdir -p` before a launch, and a traceback with no receipt is a
-  dead take** (1513, 1503): `captures.txt`'s runner refuses an output
-  directory that exists, so the habit loses a launch; run659's first
+- ~~**No `mkdir -p` before a launch** (1513)~~ (struck by the thirty-seventh pass: the runner refuses the directory and retakes), **and a traceback with no receipt is a
+  dead take** (1503): ~~`captures.txt`'s runner refuses an output
+  directory that exists, so the habit loses a launch~~; run659's first
   take died in `autostart_receipt.py` with no receipt and the lane's
   waiter sat on another lane's runner — `waitrun.sh` exits 2 on the
   traceback at once.
@@ -700,10 +738,10 @@ struck (`tools/brief/frame.md` at 12,989 of 13,000).
   hashed name, and 1511's kill of its own suite matched 1524's.
 - **`timeout` is absent on macOS** (1537): a brief habit of `timeout 3000
   cargo …` exits 127 with nothing useful.
-- **A one-string command is refused, the cap for the whole suite is 20,
-  one filter a `cargo test`** (1543, 1551): `tools/mutate.py -- $T` under
+- ~~**A one-string command is refused** (1543)~~, **the cap for the whole suite is 20,
+  one filter a `cargo test`** (1551): ~~`tools/mutate.py -- $T` under
   zsh hands the command as one word and printed a traceback — it refuses
-  now; `tools/memcap.sh 10` is breached by the full run (10.2 GiB) where
+  now~~ (struck by the thirty-seventh pass: the tool says so itself); `tools/memcap.sh 10` is breached by the full run (10.2 GiB) where
   the gate caps at 20; `cargo test … run677 sahara_coverage` errors and
   prints nothing.
 - **The lane gate names the word's tests; the slow ones are the
@@ -819,9 +857,9 @@ rows' wording, no number struck; the chapter kind stands at 12,990 of
   `tools/sweep_gen.py` writes a shape's two files** (1703, 1725, 1706):
   four batches wrote the lister and three the generator as scratch
   scripts; the lister marks a port consumer, since 1724's ten had none.
-- **The lane gate takes `--item N` and refuses a tree with no journal**
+- ~~**The lane gate takes `--item N` and refuses a tree with no journal**
   (1699): 1639's chain died on a `sed` and its done line went out
-  without the journal.
+  without the journal.~~ **Struck by the thirty-seventh pass**: the tool says so itself.
 - **At 300 k the waiter tells the commander, and the commander arms the
   clear** (1637, 1638): five sessions over 300 k in two tranches took
   the frame's self-arm none — a lane cannot read its own context, and
@@ -894,8 +932,8 @@ tranche's own journals.
   changes.
 - **A unit's packet address is `unitaddr.py`** (1953): three lanes
   scanned for the masked pair by hand.
-- **The runner retakes a take that died before frame 0 once** (1987):
-  run801's first take, 1988's lost take. ~~**It refuses a staged line
+- ~~**The runner retakes a take that died before frame 0 once** (1987):
+  run801's first take, 1988's lost take.~~ **Struck by the thirty-seventh pass**: the tool says so itself. ~~**It refuses a staged line
   past `--end-frame` in one line, and refuses `GROUPS` beside `DEATHS`
   before staging** (1885, 1931): run791's two takes.~~ **Struck by the
   thirty-sixth pass**: the runner says so itself.

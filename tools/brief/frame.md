@@ -18,22 +18,21 @@ item's words cite.
 **The frame and the draw delta are the booking; the rest is the item
 before's hypothesis** — a mechanism, **the direction**: which side
 acted (778, 1076), which made a record — an event it names cited with
-the record that shows it. **A type or an object a
-booking names is a supposition too** (1213): the arm's predicate says
-what enters.
+the record that shows it. **A type or an object a booking names is a
+supposition too** (1213): the arm's predicate says what enters.
 **Name each unit the booking names by `TypeIndex` and domain before
 reading its chain** (1267): `RON_DEBUG_UNIT` prints `TI`, `TY` and the
 name (1846).
 
 ## lanes
 
-**Code is not fenced** (DECISIONS 55): touch what your
-word needs; the lanes below say where the other words sit; a build
-where theirs touches is one line to me. **Grep the integration
-branch, `docs/AI.md` and the journals for a function before building
-it** (1601): two lanes built one arm. **Your lane
-gate carries every lobby's `first_parting`** (1910, 2000): a fix on one
-map broke another's floor.
+**Code is not fenced** (DECISIONS 55): touch what your word needs;
+the lanes below say where the other words sit; a build where theirs
+touches is one line to me. **Grep the integration branch, `docs/AI.md`
+and the journals for a function before building it** (1601): two
+lanes built one arm. **Your lane gate carries every lobby's
+`first_parting`** (1910, 2000): a fix on one map broke another's
+floor.
 
 ## before-reading
 
@@ -66,7 +65,10 @@ Before any reading, in order:
    875, 914): a parked row, a captain's members, a group's gap, a
    proxied route. **A projectile's landing reads the shooter's firsts;
    two swapped numbers are births, by `uid`** (1597) — numbering or
-   state, `unitat.py` on an earlier window says (2154).
+   state, `unitat.py` on an earlier window says (2154). **A fallback's
+   parting asks first which of its gate's inputs differs** (2726); **a
+   one-field path parting lists the writers that copy an entry first**
+   (2762).
 5. **Count the writers of the field that parted**, by its offset in
    every spelling, never by name (823, 869); a row booked
    under a mechanism counts its writers first (889).
@@ -77,10 +79,12 @@ Before any reading, in order:
    (1250, 1471): a standing field this crate reads goes in the journal,
    both values (769, 834, 1162, 1187); a row three widenings
    pin is a rule (1176); **agreeing is quiet, not proven** (898, 1039).
-   **A standing row on a unit the block names is walked back through
-   every earlier widening before its mechanism is read**
-   (2180, 2264). **A leader row: `diff` the whole `LEADERDATA` across
-   the block, unread fields too** (2292).
+   **A standing row on a unit the block names, or on the object the
+   parted orders target, is walked back through every earlier widening
+   before its mechanism is read** (2180, 2264, 2738). **A leader row:
+   `diff` the whole `LEADERDATA` across the block, unread fields too**
+   (2292); **a standing `num_units`/`control` row on the parted
+   queue's player is grepped in the parked file first** (2781).
 7. **"Seams, read for you" below**, `seams.py --item {item}` (1743),
    then `--field <first parted field>`, `--callees <its writer>`,
    `--unwritten <Struct>` (1397, 1382, 1400, 1560): the `SEAM`s and the
@@ -117,34 +121,32 @@ Before any reading, in order:
   disk could not say; a round's packet asks whether `AMMO` printed
   (1079, 783).
 - **A value no dump prints takes a packet, not a detail capture**, at
-  `RON_STATE_FRAME=N−1` for a decision block N first prints (2303,
-  EMULATOR §8), the function entered named, never `Game::do_frame`
-  (1026, 685). **On a packet, run the unit's whole `process` first** (1526),
+  `RON_STATE_FRAME=N−1` for a decision block N prints (2303, EMULATOR
+  §8), the entered function named, never `Game::do_frame` (1026, 685).
+  **On a packet, run the unit's whole `process` first** (1526),
   `step4.py --poke`/`--hook` (1869), the address off `unitaddr.py
   <packet> <x> <y>` (1953).
 - **The window is sized to the word**: six blocks before it for
   `samegame.py`, 250 after (799); a `check:` wraps the count in
-  `(… || true)` (1080); a measurement names its instrument (881); **`--end-frame` is the game's last frame when the window reaches
-  it** (1529); a self-ending lobby takes `--allow-early-end` (1551).
+  `(… || true)` (1080); a measurement names its instrument (881);
+  **`--end-frame` is the game's last frame when the window reaches it**
+  (1529); a self-ending lobby takes `--allow-early-end` (1551).
 - **A capture names its lane by its cover**: never `cover=1` on the
   click-free lane (1047); a stanza with `@` lines runs on your tree's DLL
   (936); a new pair's names its `GAME INFO` line (979, 992).
 - **Wait on a capture with `tools/gamelog/waitrun.sh <viadriver
-  log>`** — the log the launcher's `log:` line names, never one you
-  redirected, which has no banner (2449) — backgrounded with **the Bash
-  tool's `timeout: 3600000`, never a `timeout` command** (1672, 2599);
-  end your turn; minutes waited on another lane go in the journal.
+  log>`** — the launcher's `log:` file, never one you redirected
+  (2449) — backgrounded, **the Bash tool's `timeout:
+  3600000`, never a `timeout` command** (1672, 2599); end your turn;
+  minutes waited on another lane go in the journal.
 - **The pool picks the lane** (1568, 1569): never set
-  `RON_CAPTURE_LANE`; the receipt names the lane, `ron_lane_state` its
-  state (1180); a stale lock is the next launch's (1234). **A take dead
-  before frame 0 is retaken once** (1150, 1987), a traceback with no
-  receipt is one (1503); no `mkdir -p` before a launch (1513).
+  `RON_CAPTURE_LANE`; a traceback with no receipt is a dead take (1503).
 
 ## chapter
 
 - **A chapter is three arms of one staging at most**: more booked,
-  take three. **A chapter that opens with a parting ends
-  there**: staging walked, capture taken, word pinned, section written;
+  take three. **A chapter that opens with a parting ends there**:
+  staging walked, capture taken, word pinned, section written;
   **at its trace's end, `word == hi − 1` in its widening and `chN
   closed` on `Golden:`** (1781).
 - **An issuer chapter's staging is walked before its capture** (794):
@@ -158,10 +160,10 @@ Before any reading, in order:
   constant's every reader in the export, port or park each, first**
   (2356).
 - **`blind.rs` is a pin an issuer chapter moves** (950); an address cited
-  for context picks the address or the pin (943); a `cover=1`
-  batch is ranked by its stagings' `NEVER` rows (1033).
+  for context picks the address or the pin (943).
 - **A control is the recipe with `--cmd-without <the arm's frame>` on
-  your second run** (2542).
+  your second run** (2542). **The staging is the landing; a build
+  without it parks** (2756).
 - **A script that stages nothing still exits `success: true`** (1170):
   `stage_walk` it first. **A command to another player's units holds
   `be` across the pump** (1205). **A take with `@` lines:
@@ -209,9 +211,16 @@ Before any reading, in order:
   (2552). **Your subagents' `agent-*` worktrees go with your landing**,
   `git worktree remove` each once merged (three stood a day).
 - **A break is `tools/mutate.py --edit <file> 'old' 'new' -- cargo test
-  --release -p sim <test>`** (784, 907), never a hand script: it restores
+  -p sim <test>`** (784, 907), never a hand script: it restores
   from git and `touch`es (2442), and its verdict is the command's exit,
-  not a grep for `failed` (2480). **A break that passes is read against
+  not a grep for `failed` (2480); `--nth N` names an ambiguous match.
+  **Your per-function check and its breaks run in debug, never
+  `--release`** (2787): a touched sweep test cycles in 4 s against 29
+  on an idle box, forty cycles a batch, and four lanes' release builds
+  were the tranche's waiting; the release build is the lane gate's. A
+  red in debug alone is an overflow the port must spell (`wrapping_*`),
+  a finding. **A shape two batches parked is its own item, never a
+  third batch's tail** (2732): say so in your landing; I mint it. **A break that passes is read against
   the draw before the code** (2222): a `--wbias` set's one dense value, or a starved arm, is what
   reached it; two of ten passed so in one batch. **A table the image
   builds at boot reads as zeros under the emulator** (2216): a draw
@@ -223,23 +232,23 @@ Before any reading, in order:
 - **Per reading, a killer that tests the claim's own unit and that the
   readings disagree on** (789), a mutation on the built tree (864)
   **through `tools/mutate.py`**: a clean tree, committed (784, 907,
-  1391), one string (1543).
+  1391).
 - **A mutation is scored by the exit code and the failed tests'
   names**, never an output pattern, `git diff --stat` non-empty first,
   **and means what it is for** (918, 1018); a mechanism called built
   has a test that fails without it; one no walk holds names its arm.
 - **A re-pin's tests run green before a mutation is scored** (1083):
   `Pins::hold()` and the `pin*!` macros show every moved pin in one
-  run, `tools/repin.py <log> --write` rewrites them (1349, 1411);
-  "stands from N" is the window's first block or the gap's. **A
-  mechanism that makes a record kind appear in a window runs the
-  `coverage` tests** (1601).
+  run, `repin.py <log> --write` rewrites them (1349, 1411); "stands
+  from N" is the window's first block or the gap's. **A mechanism that
+  makes a record kind appear in a window runs the `coverage` tests**
+  (1601).
 - **A gate's test uses a key the measured table lacks** (1126); **a sea
   or air fixture sets the domain in type `kind`, type `combat` and unit
   `kind`** (1130).
 - **Your own test run is `--test-threads 2` or `tools/memcap.sh <gib>
-  <cmd…>`: `12` a filter, `20` the suite** (1081, 1086, 1089, 1543,
-  2082), one filter a run (1551); **kill a gate by its `Gate pid:`,
+  <cmd…>`: `12` a filter, `20` the suite** (1081, 1086, 1089, 2082),
+  one filter a run (1551); **kill a gate by its `Gate pid:`,
   never `pkill -f`** (1527, 1713).
 - **A probe goes in behind one env guard, in one commit reverted
   whole** — never stripped by a pattern or a `git checkout <file>`
@@ -259,27 +268,25 @@ Before any reading, in order:
 - **The word moves with its value diff beside it**: the record, the
   field and both sides' values on the word's frame, or on the frame the
   state first parted, walked back; the constant re-pinned, the delta
-  in its comment, the block in its widening, its window one line in the
-  coverage driver's slice (1959).
+  in its comment, the block in its widening, its window in the coverage
+  driver's slice (1959).
 - **Documents and journal by the file tool, never in a backgrounded
-  `&&` chain (1781); commit, then gate — no suite run
-  before it (2409): it runs every timed test when your branch touches
-  sim outside `sweep/` or a `diff` row list (2415).** Parked rows go
-  under your park heading (1812). The gate is
-  `python3 tools/release_gate.py ~/code/fun/attrition/game
-  --test-threads 4 --lane --item {item} --tests {tests}` (1567, 1623,
-  1699), to a file, backgrounded; its exit read before you say landed,
-  `Lane verdict:` and `Gate steps:` quoted (969); its verdict is a
-  second commit.
+  `&&` chain (1781); commit, then gate, no suite before it (2409):
+  every timed test runs when your branch touches sim outside `sweep/`
+  or a `diff` row list (2415).** Parked rows go under your park heading
+  (1812). The gate: `python3 tools/release_gate.py
+  ~/code/fun/attrition/game --test-threads 4 --lane --item {item}
+  --tests {tests}` (1567, 1623), to a file, backgrounded; read
+  its exit before you say landed, quote `Lane verdict:` and `Gate
+  steps:` (969); its verdict is a second commit.
 - **`ccc update att-<n>` takes the ref, never a SHA** (1557); a conflict
-  takes `--keep-conflicts`, keep both, commit the merge (1161);
-  a re-pinned count is the merged tree's (1151); read your run's
-  RUNS section after it (1285); a landing that moves another
-  lane's word says so (1289).
-- **A word at its trace's end owes five things** (1217),
-  `tools/runwiring.py runNNN` says which (1729); a `Pair`'s
-  word and a golden `WANT_CH*` list are consts `repin.py --write`
-  rewrites (1767, 2071).
+  takes `--keep-conflicts`, keep both, commit the merge (1161); a
+  re-pinned count is the merged tree's (1151); read your run's RUNS
+  section after it (1285); a landing that moves another lane's word
+  says so (1289).
+- **At a trace's end, `tools/runwiring.py runNNN` says what the word
+  owes** (1729); a `Pair`'s word and a golden `WANT_CH*` list are
+  consts `repin.py --write` rewrites (1767, 2071).
 - **The constants and their widenings are yours to pin; the queue's
   lines are mine**: report what books and parks, and the next word by
   frame and delta.
@@ -289,6 +296,6 @@ Before any reading, in order:
   end the turn.
 - **When you are done, send me one line** — `ToolSearch("select:SendMessage")`, then `SendMessage` to `commander` (1412): your tip
   SHA, a non-empty `git log <base>..<branch>`, `Lane verdict:` and
-  `Gate steps:` (1406); **then end the turn as done, never as needing
+  `Gate steps:` (1406); **then end the turn done, never needing
   input** — a `blocked` row never takes the clear (1671). At ninety
   minutes unlanded, send your step and what runs.

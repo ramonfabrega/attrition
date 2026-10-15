@@ -3078,7 +3078,9 @@ def main(argv=None):
     ap.add_argument('--sparse', action='append', default=[], metavar='LOC:STRIDE:N:OFF,SIZE[/OFF,SIZE]',
                     help='obj: LOC points at a zeroed table of N rows STRIDE apart, each row\'s slices `p` '
                          'windows after the pointed buffers and before the places; `@VA` the image\'s own table '
-                         '(the leaders table, parked 2201; item 2247)')
+                         '(the leaders table, parked 2201; item 2247). Two forms, not one: `@VA` is the table '
+                         'itself at VA; a bare address is a CELL holding a pointer to the table — `@` on a cell '
+                         'reads the pointer as row 0 and faults as a wild index (Loop 2744)')
     ap.add_argument('--gtab', action='append', default=[], metavar='CNT:LO..HI:PTR:SIZE',
                     help='obj: a counted array behind image words (item 2709, parked 2699): the count at CNT drawn from LO..HI, '
                          'the array pointer at PTR, SIZE random bytes an element; `c` windows the head and array, `p` the elements')

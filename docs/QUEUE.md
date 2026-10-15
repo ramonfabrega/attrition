@@ -12,19 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-15, **the thirty-seventh tranche at twenty-three landings, drained,** from `23e2df12` (the thirty-sixth pass, DECISIONS
-73): four lanes — Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rules track and two sweeps (one builds,
-one harvests); every booking gate green, three of them whole; no kill rule, no merge backed out; one `DEEP` (2677
-at 302 k, cleared and continued). The peace pair 5315 → 5564, chapter 79 opened and closed (1500), 80 built and staged (word 1198), the census 1068 → 1140.*
+*2026-10-15, **the thirty-seventh pass (steer, Fable) after the thirty-seventh tranche: 23 landings from `23e2df12`** (DECISIONS
+74), four lanes (Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rules track and two sweeps): 4.22 USD and **36.5 minutes
+waiting a landing** against 3.92 / 27.0 — a fifth broken, so **the fourth lane goes** (entry 61 §5); every gate green, no kill rule, one `DEEP`.*
 
-- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 4859 → 5564, the open word.
-  Chapters 75–79 closed, 80 staged (run877) at 1198; 69 built, 70 surveyed. Census 994 → 1140. Battery 576 / 6566 / 2974, unmoved a twelfth
-  tranche; **when the peace pair closes, the AI word's successor is its lowest lobby** (DECISIONS 72).
-- **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every
-  third landing and at the drain; a fresh worktree's whole release build is 40 s, so the gate's minutes are tests.
-- **Lanes: none live** (DECISIONS 73); booked, unspawned: 2780 (AI §233, EU, run 873), 2785 (GOLDEN §103, EX, run
-  878), 2782 (EV), 2783 (EW). Next 2787, run 879 (Astra 900–909). Pools: GOLDEN §104–105, AI §234, park EY–FC.
-- **Fable backlog: 22 Loop items** (1570, 1725, 2003, 2518, 2524, 2654, 2678, 2704, 2724, 2726, 2732, 2738, 2744, 2750, 2756, 2762, 2763, 2769, 2775, 2781, 2784, 2786).
+- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5315 → 5564, the open word.
+  Chapter 79 closed (1500), 80 staged (run877) at 1198; 69 built, 70 surveyed. Census 1068 → 1140, `port` 171 → 156. Battery 576 / 6566
+  / 2974; **when the peace pair closes, the AI word's successor is its lowest lobby** (DECISIONS 72).
+- **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every third landing
+  and at the drain; a whole gate refuses a stale `agent-*` worktree (Loop 2724). The sweep's per-function check runs in debug (2787).
+- **Lanes: three, none live** (DECISIONS 74) — booked, unspawned: 2780 (AI §233, EU, run 873), 2785 (GOLDEN §103, EX, run 878),
+  2782 then 2783 on the one sweep lane (EV, EW). Next 2788, run 879 (Astra 900–909). Pools: GOLDEN §104–109, AI §234–239, park EY–FC.
+- **Fable backlog: 9 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,16 +37,16 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: ch80 w1198 of 1204 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-seventh pass (steer, Fable): the thirty-seventh tranche is drained at 23 landings from
-`23e2df12`, no lane live, the whole gate green at the drain; measure the tranche, ratify the marked rows, rule the
-22 Loop items (2763 is Ramon's: the rondata test binary's footprint), rewrite this handoff, then clear `commander`
-into the thirty-eighth tranche — 2780, 2785, 2782 and 2783 are booked for its four lanes.**
+**Opener: the thirty-eighth tranche (commander, Opus): three lanes from the thirty-seventh pass's commit — 2780 on
+the AI word (Opus 5.5 `--effort medium`), 2785 on the rules track and 2782 on the one sweep lane (Sonnet 5.5 `--effort
+medium`; 2783 is its next); the whole gate green at the pass; count landings from that commit, stop at twenty, and clear
+`steer` into the thirty-eighth pass with the handoff written.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2780 the AI word's (Opus), 2785 the rules track's, 2782 and 2783 the
-sweep lanes' (Sonnet) — lower map first — East Indies (Lakota), the
+2780 the AI word's (Opus), 2785 the rules track's, 2782 then 2783 the
+one sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the
 peace pair's only map. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
@@ -88,8 +87,8 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
 - **End of session:** rewrite "Where things stand" from scratch, headline
   first and whether it moved; delete finished items — their story is in
   `docs/journal/`. Shorten only what you touch; never widen a line to beat a count.
-- **A residue item is booked by its frame and its draw delta** (DECISIONS
-  42); a mechanism in its title is the previous item's hypothesis, not a build order.
+- **A residue item is booked by its frame and its draw delta** (DECISIONS 42); a mechanism in its title is the previous
+  item's hypothesis, not a build order, and an absence it cites ("ours has no X") names the probe that showed it (Loop 2704).
 - **A finding parks by default.** `docs/PARKED.md` takes what names no
   score; this file takes only what names a headline's frame, a floor, or
   a takes-chain to one. **Neither headline slot is ever empty**: no item

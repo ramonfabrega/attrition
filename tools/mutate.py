@@ -50,13 +50,22 @@ def dirty(root):
     return [l[3:] for l in git(root, 'status', '--porcelain', '-uno').splitlines() if l]
 
 
-def apply_edit(root, path, old, new):
+def apply_edit(root, path, old, new, nth=None):
+    """Replace one occurrence of `old`: the only one, or the `nth` (from one,
+    Loop 2784 — an ambiguous match cost a lane three refusals and a rerun)."""
     p = Path(root) / path
     text = p.read_text()
     n = text.count(old)
-    if n != 1:
-        raise Refused(f'{path}: the old text occurs {n} times, not once')
-    p.write_text(text.replace(old, new, 1))
+    if nth is None:
+        if n != 1:
+            raise Refused(f'{path}: the old text occurs {n} times, not once; --nth N takes the Nth')
+        nth = 1
+    elif not 1 <= nth <= n:
+        raise Refused(f'{path}: --nth {nth} but the old text occurs {n} time(s)')
+    at = -1
+    for _ in range(nth):
+        at = text.index(old, at + 1)
+    p.write_text(text[:at] + new + text[at + len(old):])
     return [path]
 
 
@@ -116,8 +125,9 @@ def main(argv=None):
     ap.add_argument('--root', default='.', help='the repository (default: the current directory)')
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument('--edit', nargs=3, metavar=('FILE', 'OLD', 'NEW'),
-                   help='replace OLD (exactly once) with NEW in FILE')
+                   help='replace OLD (exactly once, or the --nth occurrence) with NEW in FILE')
     g.add_argument('--patch', help='a unified diff for `git apply`')
+    ap.add_argument('--nth', type=int, metavar='N', help='with --edit: which occurrence of OLD, from one (Loop 2784)')
     ap.add_argument('command', nargs='+', help='the test command, after `--`')
     a = ap.parse_args(argv)
     if len(a.command) == 1 and ' ' in a.command[0].strip():
@@ -129,7 +139,7 @@ def main(argv=None):
     root = str(Path(a.root).resolve())
     if a.edit:
         path, old, new = a.edit
-        mutate = lambda r: apply_edit(r, path, old, new)  # noqa: E731
+        mutate = lambda r: apply_edit(r, path, old, new, a.nth)  # noqa: E731
     else:
         mutate = lambda r: apply_patch(r, a.patch)  # noqa: E731
     try:
