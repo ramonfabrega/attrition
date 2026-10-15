@@ -3799,6 +3799,11 @@ the capture launch behind it never ran, silently. `CLAUDE.md`'s convention alrea
 the python heredoc; candidate: the brief's frame names the one-line case too ("an edit in a chain is python or `sed
 -i ''`"). One reach.
 
+(2639) **One `Guy::inc_time` draw of delta is placed by `Unit::inc_time`'s callers** (2609's "for the Loop" line,
+filed at its merge). When a word's draw delta is a single `Guy::inc_time` draw, the `+0x3e` and `+0x6e` callers of
+`Unit::inc_time` in theirs' trace place it against ours' unit order without a probe; 2609 found its unit in one
+read. Candidate: a row in the brief's step 1 for a one-draw `inc_time` delta. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
