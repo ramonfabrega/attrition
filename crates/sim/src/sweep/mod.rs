@@ -1004,3 +1004,5 @@ mod trade_order_walk_data;
 mod cast_order_walk_data;
 mod player_walk_data;
 mod command_package_walk_data;
+mod form_order_walk_data;
+mod caravan_walk_data;
