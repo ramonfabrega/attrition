@@ -6836,6 +6836,31 @@ fn widen_civilians_walk(
                     bad3 += 1;
                 }
             }
+            // **And the danger planes** (`calc_danger`, every 200th frame,
+            // which `is_seen`'s stealth arm weighs): every viewer's row.
+            let dg = crate::gamelog::world_danger(&world.fields().to_vec());
+            if !dg.is_empty() {
+                let reg = dg.len() / 8;
+                let mut badd = 0usize;
+                let mut firstd = String::new();
+                for (i, &t) in dg.iter().enumerate() {
+                    rows += 1;
+                    let (who, c) = (i / reg, i % reg);
+                    let row = w.danger_row(who as u8);
+                    let ours = i64::from(row.get(c).copied().unwrap_or(0));
+                    if ours != t {
+                        if badd == 0 {
+                            firstd = format!("who {who} cell {c} ours {ours} theirs {t}");
+                        }
+                        badd += 1;
+                    }
+                }
+                if badd > 0 {
+                    firsts
+                        .entry((0, -1, "world:danger".into()))
+                        .or_insert((n, format!("{badd} cells, first {firstd}")));
+                }
+            }
             if bad3 > 0 {
                 firsts
                     .entry((0, -1, "world:seen3".into()))
@@ -15028,76 +15053,120 @@ fn run875_start_seen3_plane_is_compared_cell_for_cell() {
 }
 
 /// **Chapter eighty's staging, read off this crate** (item 2755,
-/// `docs/GOLDEN.md` §102): three sites on run871's start, a Commando under a
-/// hoplite's sight (hidden), a Commando a Scout's disc reaches on 1100
-/// (weighed whole from the 1200 pass), a Hoplite (the control).
+/// `docs/GOLDEN.md` §102): an Airbase `1/2006` (190, 60) lights, never
+/// detecting, the three sites 14 tiles from it — an idle Partisan `0/6`
+/// (`FLAGS s`), a Partisan `0/7` a Scout's disc reaches on 1197, and three
+/// Hoplites, the control. At the 1000 pass the first two weigh half
+/// (`unit_stealth_hides`), at the 1200 pass the second whole, the Hoplites
+/// whole throughout.
 #[test]
 fn chapter_eighty_staging_reaches_the_stealth_arm() {
     let Some(mut s) = stage_script("ch76", "chapter80") else {
         return;
     };
-    for _ in 0..1201 {
-        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
-        s.built.tick();
-    }
-    let sim = &s.built.sim;
-    for (t, ty) in sim.unit_types.iter().enumerate() {
-        if ty.cols.unit_flags & (sim::ai_load::uflags::STEALTH | sim::ai_load::uflags::CLOAKED) != 0 {
-            eprintln!(
-                "ch80 type {t} {} atk {} range {}..{} mil {} los {}",
-                s.built.unit_type_names.get(t).cloned().unwrap_or_default(),
-                ty.combat.attack,
-                ty.combat.min_range,
-                ty.combat.max_range,
-                ty.cols.is(sim::ai_load::role::MILITARY),
-                ty.cols.unit_flags,
-            );
+    let mut at = |s: &mut Staged4, to: i64| {
+        while s.built.sim.frame < to {
+            s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+            s.built.tick();
         }
-    }
-    for b in sim.buildings.iter().filter(|b| b.alive && b.owner == 1 && b.pos.tile().y < 80) {
-        eprintln!("ch80 bld 1/{} tile {:?} active {} ty {:?}", b.index, b.pos.tile(), b.active, b.ty);
-        let t = b.pos.tile();
-        for d in [6, 8, 10, 12, 14, 16] {
-            let row: Vec<bool> = [(d, 0), (-d, 0), (0, d), (0, -d)]
-                .iter()
-                .map(|&(dx, dy)| sim.world_sees(sim::world::Pos::new((t.x + dx) * 192 + 96, (t.y + dy) * 192 + 96), 1))
-                .collect();
-            eprintln!("ch80 lit d{d} E W S N {row:?}");
-        }
-    }
-    for (t, bt) in sim.build_types.iter().enumerate() {
-        if bt.los >= 99 {
-            eprintln!("ch80 btype {t} los {} sci {} {:?}", bt.los, bt.science_los, bt.ident);
-        }
-    }
-    for (i, u) in sim.units.iter().enumerate() {
-        if u.owner <= 1 && u.index >= 6 && !u.alive() {
-            eprintln!("ch80 dead {}/{} slot {i}", u.owner, u.index);
-        }
-        if !u.alive() || u.owner > 1 {
-            continue;
-        }
-        let name = u
-            .ty
-            .and_then(|t| s.built.unit_type_names.get(t).cloned())
-            .unwrap_or_default();
-        if u.index < 5 && u.owner < 2 {
-            continue;
-        }
-        eprintln!("ch80 any {}/{} {name} atk {} los {} order {:?}", u.owner, u.index, sim.attack_of(sim::combat::Obj::Unit(i)), u.mylos, sim.units[i].orders.len());
-        let (hx, hy) = (u.pos.cell().x / 2, u.pos.cell().y / 2);
-        eprintln!(
-            "ch80 u{i} {}/{} {name} tile {:?} half ({hx},{hy}) danger1 {} seen3 {} sees1 {} hides {}",
-            u.owner,
-            u.index,
-            u.pos.tile(),
-            sim.world.danger_half(1, sim::world::Cell::new(hx * 2, hy * 2)),
-            sim.world.seen3(u.pos.x / 0x180, u.pos.y / 0x180),
-            sim.world_sees(u.pos, 1),
+    };
+    let find = |s: &Staged4, who: u8, o: i16| {
+        s.built
+            .sim
+            .units
+            .iter()
+            .position(|u| u.alive() && u.owner == who && u.index == o)
+            .expect("a staged unit")
+    };
+    let probe = |s: &Staged4, who: u8, o: i16| {
+        let sim = &s.built.sim;
+        let i = find(s, who, o);
+        let u = &sim.units[i];
+        (
+            sim.world.danger_half(1, sim::world::Cell::new(u.pos.cell().x, u.pos.cell().y)),
             sim.unit_stealth_hides(i, 1),
-        );
-    }
+            sim.world_sees(u.pos, 1),
+            u.orders.len(),
+        )
+    };
+    at(&mut s, 1001);
+    // (danger for leader 1 at the unit's half-cell, hidden by the arm, lit,
+    // orders)
+    assert_eq!(probe(&s, 0, 6), (60, true, true, 0), "an idle Partisan, lit, undetected");
+    assert_eq!(probe(&s, 0, 7), (60, true, true, 0), "the second Partisan before the Scout");
+    let (_, hides, lit, _) = probe(&s, 0, 8);
+    assert!(!hides && lit, "the Hoplites are the control: lit, never hidden");
+    at(&mut s, 1198);
+    assert!(!probe(&s, 0, 7).1, "the Scout's disc reaches the second Partisan");
+    assert!(probe(&s, 0, 6).1, "and not the first");
+    at(&mut s, 1201);
+    assert_eq!(probe(&s, 0, 7).0, 120, "weighed whole at the 1200 pass");
+    assert_eq!(probe(&s, 0, 6).0, 60, "still half");
 }
+
+/// **Chapter eighty** (item 2755, `docs/GOLDEN.md` §102, run877): the stealth
+/// arm of `is_seen` under a computer's `calc_danger`.
+#[test]
+fn chapter_eighty_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch80", "chapter80", 80, 6, 1204) else {
+        return;
+    };
+    eprintln!(
+        "chapter eighty: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+}
+
+/// **run877 whole, both directions** (item 2755, `docs/GOLDEN.md` §102).
+#[test]
+fn chapter_eighty_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch80", "chapter80", (1198, 1204), 0, 0, (1199, 1204), false, 92,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch80 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch80: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH80.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch80: what parts in the window moved");
+}
+
+/// What parts on run877's blocks 1198–1203 (block 1204 is not in the dump). **The first**, `1198 0/-1
+/// world:danger`, is the word: who 1's danger at half-cell (25, 7), the
+/// second Partisan's, is 120 theirs and 60 ours on the first dumped block —
+/// the plane the 1000 pass wrote, before the Scout stood there. The 1200
+/// pass, where the Scout's disc covers it, agrees. The rest are the added
+/// Scout's own walk from 1199 and the `seen3` cells its path leaves.
+const WANT_CH80: &[&str] = &[
+    "1198 0/-1 world:danger",
+    "1198 0/0 form",
+    "1198 0/1 form",
+    "1198 0/2 form",
+    "1198 0/3 form",
+    "1198 0/4 form",
+    "1198 0/5 form",
+    "1198 1/1 form",
+    "1198 1/2 form",
+    "1198 1/3 form",
+    "1198 1/4 form",
+    "1198 1/5 form",
+    "1198 1/6 path:length",
+    "1198 1/6 path[1].to",
+    "1199 1/6 heading",
+    "1199 1/6 mirror",
+    "1199 1/6 order:move.dest_x",
+    "1199 1/6 pos",
+    "1203 0/-1 world:seen3",
+];
 
 const WANT_CH79: &[&str] = &[
     "600 0/0 form",
