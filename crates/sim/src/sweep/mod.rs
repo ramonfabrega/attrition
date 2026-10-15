@@ -988,6 +988,7 @@ mod unit_type_walk_rules_data;
 mod unit_update_action;
 mod unit_update_gpiece;
 mod unit_update_order;
+mod units_make_valid;
 mod vector_dist_coords;
 mod vector_dist_ints;
 mod wall_data_can_capture;
