@@ -7065,7 +7065,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2609: 1653 -> 1672, the crash rounds' ground reads (their
     // landing's `ez` and each frame's fall) and the walk past 5225 to the
     // word 5315.
-    ("lakota_pair_first_parting", 1672),
+    // Item 2638: 1672 -> 1678, the walk past 5315 to the word 5407.
+    ("lakota_pair_first_parting", 1678),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
@@ -9313,13 +9314,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // over 5129..5385 (block 5136, item 2554). **Item 2554 moved it 5135 →
     // 5225** with `attack_dist`'s `is_plane`, and **item 2609 5225 → 5315**
     // with the crash round's held slot, both in the same window (blocks
-    // 5226 and 5316).
+    // 5226 and 5316). **Item 2638 moved it 5315 → 5407** with `move_step`'s
+    // snap-arm tile refusal, past run866's last block (5385): run866's test
+    // keeps 5315's value diff (block 5316), and 5407's widening is owed by
+    // parked 2656.
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        Some("run866_s_word_frame_is_widened_whole"),
-        2554,
-        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_5135),
+        None,
+        2656,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
