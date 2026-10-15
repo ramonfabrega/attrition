@@ -1326,6 +1326,10 @@ def main(argv):
     # which the emulator resolves to nothing, so `call [VA]` lands on it
     # (item 2336: `timeGetTime`, parked 2327).
     iats = [(a, h.stub(f"iat{{a:x}}", n, 0)) for k, a, n in STUBS if k == "iat"]
+    # `--stub-cdecl IDX` on an `iat` stub (`malloc`: `call [VA]; add esp, 4`).
+    for (_, sa), (i, (k, _, _)) in zip(iats, [e for e in enumerate(STUBS) if e[1][0] == "iat"]):
+        if i in CDECLSTUBS:
+            h.hooked[sa] = h.hooked[sa][:3] + (True,)
     stubbed = {{off: h.r32(vt + off) & 0xFFFFFFFF for off, _ in SLOTBASE}}
     base = h.brk
     for i in range({rows}):
@@ -1823,7 +1827,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--place sN:EXPR:SIZE names one of the --stub callees, by its order on the line')
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
     pcdecl = [int(k, 0) for k in stub_cdecl]
-    if any(not 0 <= k < len(pstubs) or pstubs[k][0] != 'call' for k in pcdecl):
+    if any(not 0 <= k < len(pstubs) or pstubs[k][0] not in ('call', 'iat') for k in pcdecl):
         raise ValueError('--stub-cdecl IDX names a direct callee among the --stub callees, by its order on the line')
     pout = []
     for o in outarg:
