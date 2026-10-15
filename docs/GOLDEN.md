@@ -12486,12 +12486,50 @@ behind it) with no `finish`: the Special Forces entry's `job_counter` is 25600 o
 not re-walked here; a one-frame offset at the entry's last step would be a second finding, and the amount's fix would
 absorb it. No widening is added: the control's block 1100..1250 agrees with the walked arithmetic by the counter alone.
 
-## 94. Reserved for the next item on the rules track
+## 94. Chapter seventy-five closed: `finish` is `run_cmd` case `0x4f` and pays 500000 — not `hurry_action`'s train time
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2543 (Claude Sonnet 5.5, `--effort medium`; run870, a packet of run868's start at logger frame 901, and run870b, a
+second take with the `finish` at 850). **The word moves 901 → 960, the trace's end** (`word == hi − 1`, the widening's
+window 600..961): `golden::chapter_seventy_five_holds_to_the_golden_word` pins 960 and
+`chapter_seventy_five_s_word_frame_is_widened_whole` is down to the 13 standing `form`/`aggression` rows. **Chapter
+seventy-five closes.**
+
+**How it was found.** `step4.py` into `Console::hurry_action@007c3810` on the packet (`this` 1, `--watch` on the queue
+array): one pass, `get_next_non_unit` → entry 1, **one write of 25980 (5700 + 20280)**, the entered list
+(`step4-entered.txt`) `get_next_non_unit`, `train_time`, `do_queue`, `finished`, `research_time` — the arm §92 read, and the
+arm this crate had — and the function leaves the entry at 26080 (hurry's own `do_queue(0)`), 26180 after the frame's. A
+second application (poked: 26080 + 20280, with `this` 1 or 0) reaches 36000 and enters the completion path (`wcschr`, the
+message text). So a single `hurry_action` is not what the original ran on 901. Two facts the disk already held then
+named the command: the original's Barracks prints **`job_counter 500000`** on 902 (every `finish` capture on disk — ch73, ch74, ch75 — prints it;
+`hurry_action` adds 10000 to that field), and `run_cmd` has **a second arm of the same shape at case `0x4f`**
+(`ConsoleWin::run_cmd` lines 8590–8715): the same activate, the same library redirect, the same held-head test
+(`get_job_counter(head) == train_time(head)` → `get_next_non_unit`, else the head), then **`set_job_counter(slot,
+counter + 500000)`**, `+= 500000` on the building's own counter, and `do_queue(0)` (vslot `0x1b4`). The unit arm there adds **20000**,
+not 10000. The console's help string orders `finish`, `next objtype`, `hurry`, `bird` — `0x4f`, `0x50`, `0x51`, `0x52` (`bird`
+is `0x52` in `run_cmd`): **`finish` is `0x4f`; `hurry` is `0x51` and is what §90–§92 read.** Items 2474 and 2500 took
+the one-token console form for `finish` by the listing's address and never separated the two commands, because a
+single-application diff cannot part them on a completing amount (every amount ≥ the target completes) and the job counter of a
+finished building is not compared.
+
+**The control that separates them (run870b).** The same staging, `select` on 849 and `finish` on **850**, where the Special
+Forces entry holds 600 — a single train-time payment would leave it at ~20900, and the original completes it on 851 (`queued
+1`, `job_counter 500000`). Only a payment of at least 35400 does that. The entry's counter is not read, again, but the
+two readings (`hurry`'s 20280 once and `finish`'s 500000) are now parted: 600 + 20280 < 36000.
+
+**The build.** `Sim::cheat_finish_all` (`city.rs`), the one `finish_arm` the `hurry` form shares: the queue slot takes `+ 500000`,
+the building's counter `+ 500000`; `golden::Cheat::FinishAll` for the word `finish` (one token), `Cheat::Finish` kept for
+`hurry` and `hurry N`. A test made to fail first: `cities_tests::finish_pays_the_entry_and_the_building_500000` fails with the
+building's counter left at +10000.
+
+**What it moves.** Chapter seventy-five: 901 → 960, 111 → 13 rows (the 98 rows were the entry's completion and its wake:
+`gain_tech`, `leader:discovered`, the citizens' moves). Chapters 73 and 74 hold their words. No other lobby's floor moves
+(the battery's three numbers, below).
+
+**Not established.** `finish`'s unit arm (`+20000` on a `0x15f` type, an Aircraft Carrier): the same seam as `hurry`'s,
+unreached. The entry's counter is never read on a non-completing frame under `finish`; the 500000 is the listing's and the dump's
+`job_counter`, not a printed entry value. `hurry` (case `0x51`) with its one-token form is still §91's single train time.
+The packet's `hurry` writes 26080 where this crate's old walk wrote 26280: the 200 was the walk's second `do_queue` pass,
+which the original's `finish` no longer exposes — no test reads it.
 
 ## 95. Reserved for the next item on the rules track
 

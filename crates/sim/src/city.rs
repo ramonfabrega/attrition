@@ -2028,6 +2028,23 @@ impl Sim {
     /// here and its `Produced` dropped, as the original's `do_queue` return
     /// is.
     pub fn cheat_finish(&mut self, b: usize) {
+        self.finish_arm(b, false);
+    }
+
+    /// The console's **`finish`** — `run_cmd` case `0x4f`, not `hurry`'s
+    /// `0x51` (item 2543, `docs/GOLDEN.md` §94; the help string's order is
+    /// `finish`, `next objtype`, `hurry`, `bird`: `0x4f`..`0x52`). The same
+    /// two arms as [`Sim::cheat_finish`], paid **500000**: the chosen
+    /// queue entry's counter takes `+ 500000` (`BuildQueue::set_job_counter`,
+    /// `iVar + 500000`) where `hurry` adds a train time, and the building's
+    /// own counter takes `+ 500000` where `hurry` adds 10000. Run868's
+    /// `0/2007` prints `job_counter 500000` on the frame after, and its
+    /// held Special Forces entry completes from 600 as from 5700.
+    pub fn cheat_finish_all(&mut self, b: usize) {
+        self.finish_arm(b, true);
+    }
+
+    fn finish_arm(&mut self, b: usize, all: bool) {
         if !self.buildings[b].active {
             self.activate(b, false, true);
         }
@@ -2042,9 +2059,10 @@ impl Sim {
             } else {
                 0
             };
-            self.buildings[home].queue.items[slot].job_counter += target;
+            self.buildings[home].queue.items[slot].job_counter +=
+                if all { 500_000 } else { target };
         }
-        self.buildings[b].job_counter += 10_000;
+        self.buildings[b].job_counter += if all { 500_000 } else { 10_000 };
         let mut out = Vec::new();
         self.process_queue(b, &mut out);
     }

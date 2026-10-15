@@ -7659,3 +7659,43 @@ fn finish_pays_the_queue_head_its_train_time() {
         "the head was paid its train time (or has trained)"
     );
 }
+
+/// Item 2543 (`docs/GOLDEN.md` §94): the console's `finish` is `run_cmd` case
+/// `0x4f`, not `hurry`'s `0x51` — it pays the held entry **500000** where
+/// `hurry` pays a train time, and the building's own counter 500000 where
+/// `hurry` pays 10000. Run868's Special Forces entry (5700, target 36000)
+/// completes on the `finish` frame, and run870b's (600) with it.
+#[test]
+fn finish_pays_the_entry_and_the_building_500000() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.init_build(0, t.barracks, tile_pos(40, 32), false);
+    finish(&mut sim, b);
+    let ty = sim.add_unit_type(UnitType {
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free()
+        },
+        hits: 40,
+        ..UnitType::default()
+    });
+    sim.muster[0].researched[ty] = true;
+    sim.muster[0].cap = 1000;
+    let c = [0; crate::economy::RESOURCES];
+    sim.buildings[b]
+        .queue
+        .items
+        .push(crate::production::Item::queued(ty, &c));
+    let site = sim.buildings[b].job_counter;
+    sim.cheat_finish_all(b);
+    assert_eq!(
+        sim.buildings[b].job_counter,
+        site + 500_000,
+        "the building's own counter takes 500000, not hurry's 10000"
+    );
+    assert!(
+        sim.buildings[b].queue.items.is_empty(),
+        "500000 completes any entry in one pass, as a train time does the head"
+    );
+}
