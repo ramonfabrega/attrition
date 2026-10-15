@@ -21,8 +21,8 @@ measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 mediu
 - **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
   `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
 - **Lanes: three** (DECISIONS 71): live 2388 (Opus 5.5 medium; AI §221, CJ, runs 853–855), 2416 (GOLDEN §87, CK, run
-  857), 2400 (CI), Sonnet 5.5 medium. Landed 2395, 2384, 2389. Next 2419, run 858, AI §222, GOLDEN §88, park CL.
-- **Fable backlog: 14 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407, 2408, 2409, 2410, 2415, 2418).
+  857), 2421 (CL), Sonnet 5.5 medium. Landed 2395, 2384, 2389, 2400. Next 2422, run 858, AI §222, GOLDEN §88, park CM.
+- **Fable backlog: 16 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w2040 of 6,822
-Census: simulation backed 904 of 3611
+Census: simulation backed 916 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -45,7 +45,7 @@ its merge; at twenty landings write the handoff and clear `steer` into the thirt
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2388 the AI word's (Opus), 2416 the rules track's and 2400
+2388 the AI word's (Opus), 2416 the rules track's and 2421
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -67,13 +67,13 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     (2391). Name the census rows and the staging first; run 857 only when
     no packet of the game is on disk. GOLDEN §87.
 
-2400. **The second sweep lane's next ten: never-backed functions with
-    a port consumer** (DECISIONS 61; parked 1725; the score `Census:`
-    904 of 3611): 2368's shape, ordered by port readers; 2395's ten
-    excluded by name; a port mark that is a name collision is no
-    consumer (Loop 2286); `--record` keeping `edx` and a circular list's
-    shape (parked 2369, Loop 2003): build them first, tests made to fail
-    first; 2370's SEAMs left unless a function needs one. `--kind sweep`.
+2421. **The sweep's seventy-second batch: ten never-backed simulation
+    functions** (DECISIONS 63 (iv); the score `Census:` 916 of 3611):
+    2395's shape; parked 2396's issuers first (`GroupOut::issue_halt`,
+    then the `issue_*` that carry arguments), each listing's `mov byte`
+    read first; parked 2404's bounded `--seq` and `--record-order` with a
+    split built first, tests made to fail first; skip operators (parked
+    1722). `--kind sweep`.
 
 ## How to maintain this file
 
