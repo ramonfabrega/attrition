@@ -76,13 +76,15 @@
 /// item 2486: 965 -> 974, the sweep's seventy-eighth batch, `--cmd-seh` built and the treaty family's seven
 /// on it, `_chat_set` and `_player_speed` by hand on existing flags;
 /// item 2495: 974 -> 984, the sweep's seventy-ninth batch, `--chain` built and `PathFinder`'s four
-/// forwarders on it, `issue_cannon_time`'s by-value `String` arm and five more, ten of ten).
+/// forwarders on it, `issue_cannon_time`'s by-value `String` arm and five more, ten of ten;
+/// item 2507: 984 -> 994, the sweep's eightieth batch, `mix`'s `stale` token and the three `walk_data` on it,
+/// `TurnControl`'s three issuers, two `PathFinder` forwarders and `MapFairness`'s two, ten of ten).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 984;
+pub const SIMULATION_BACKED: usize = 994;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

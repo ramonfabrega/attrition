@@ -3757,6 +3757,9 @@ words as the zeroed emulator stack's `0,0`, an observation a stack seeded with a
 **2495** (forty-sixth reach, filed at its merge): built `--chain`, a test failing first, and `PathFinder`'s four
 forwarders on it; `issue_cannon_time` with no new token; ten of ten; a callee's stale `ecx` is the word
 `walk_data`'s three lack (parked 2498; minted as 2507's first build); its "for the Loop" line is Loop 2506.
+**2507** (forty-seventh reach, filed at its merge): built `mix`'s `stale` token, a test failing first, and the three
+`walk_data` on it; ten of ten; `--regen` without the window flags redraws a windowless sweep (Loop 2508); a flag a
+forwarder sets around its callee is unobserved (parked 2509; minted as 2513's first build).
 
 (2449) **`waitrun.sh` on a launcher's redirected log exits 2** (2436's "for the Loop" line, filed at its merge;
 parked 656's sibling). A launcher log written with `>` holds no banner, so `tools/gamelog/waitrun.sh` on it exits 2
@@ -3769,6 +3772,12 @@ where its header's ranges end. `tools/recomp/snapshot.py` raises on the missing 
 it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell read here skipped the check by
 hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
 `frame_snapshot.py`'s restore, which this lane does not run.
+
+(2508) **`--regen` with no window flags redraws a windowless `obj`** (2507's "for the Loop" line, filed at its merge).
+`sweep_gen.py obj … --regen --item N --port P` on `issue_toggle_pause` dropped the kept line's `--cell-win` and
+`--wbias`, so the regenerated test named `c` and `log` it no longer had; the sweep was deleted and generated again
+from the whole line. Candidate: `--regen` merges the kept line's flags under the new ones; a test made to fail first.
+One reach.
 
 (2512) **A window of frames' draws is one `report.py` call per frame** (2460's "for the Loop" line, filed at its
 merge). `tools/trace/report.py <log> draws <frame>` re-reads the whole 277 MB trace each call, about a minute, and
@@ -5649,12 +5658,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2507, 2026-10-15 — the sweep's eightieth batch
 
-(2508) **`--regen` with no window flags redraws a windowless `obj`** (2507's "for the Loop" line; names no score).
-`sweep_gen.py obj … --regen --item N --port P` on `issue_toggle_pause` dropped the kept line's `--cell-win` and
-`--wbias`, so the regenerated test named `c` and `log` it no longer had; the sweep was deleted and generated again
-from the whole line. Candidate: `--regen` merges the kept line's flags under the new ones; a test made to fail first.
-One reach.
-
+Its Loop row (2508) is filed in the Loop section, at 2507's merge.
 (2509) **A pathfinder flag set around a callee is observed only after the call** (2507: `find_wpath_army`,
 `find_road_restore`). `pathfinder+0x70` / `+0x84` is 1 while the hooked callee runs and 0 on return; the sweep's
 `--at` window shows the after-state (0) and a stub logs `ecx` and arguments, never memory, so "set to 1 before
