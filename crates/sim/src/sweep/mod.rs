@@ -642,6 +642,7 @@ mod group_report_speed;
 mod group_set_ordered;
 mod group_toggle;
 mod groupmoveorder_is_fleeing;
+mod groups_data_find_group_const;
 mod groups_push_group;
 mod groups_walk_data;
 mod guard_order_get_guard_order;
