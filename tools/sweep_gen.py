@@ -1183,6 +1183,7 @@ STUBWRITE = {stubwrite!r}
 ECXANSWER = {ecxanswer!r}
 RING = {ring!r}
 DEREF = {deref!r}
+RET = {ret!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1602,7 +1603,7 @@ def main(argv):
         h.calls.clear()
         h.edxs.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
-                   edx=0 if EDX is None else edx)  # Harness.call signs eax; signed() again would double a negative
+                   edx=0 if EDX is None else edx, ret=RET)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
         # A `__cdecl` function leaves its arguments for the caller (item 2181).
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
@@ -1826,10 +1827,10 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         # A `bool` in `al` over an `eax` whose upper bytes are a pointer's
         # (`sete al`; item 2336, parked 2327): the low byte alone is held.
         retcode = f'        assert_eq!(got & 0xff, want_eax & 0xff, "{short} — al, row `{{line}}`");'
-    elif ret == 'eax':
+    elif ret in ('eax', 'xmm0'):
         retcode = f'        assert_eq!(got, want_eax, "{short} — eax, row `{{line}}`");'
     else:
-        raise ValueError(f'obj --ret is eax, al or none, not {ret!r}')
+        raise ValueError(f'obj --ret is eax, xmm0, al or none, not {ret!r}')
     pcells = [_window(c, 0x400) for c in cells]
     pat = [_window(t, None) for t in at]
     if any(size is None for _, size in pat):
@@ -2071,7 +2072,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
                                    sparse=psparse, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ring=pring, rows=rows)
+                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ring=pring, rows=rows,
+                                   ret='xmm0' if ret == 'xmm0' else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -2556,7 +2558,7 @@ def main(argv=None):
     ap.add_argument('--win', type=lambda s: int(s, 0), default=0x400, help='obj: bytes of random object')
     ap.add_argument('--bias', action='append', default=[], help='obj: OFF:V,V,.. — a 32-bit word at OFF drawn from the list')
     ap.add_argument('--ret', default=None, help='fwd: none (the default), an integer, or last (the last callee\'s answer); '
-                    'obj: eax (the default), al (a bool\'s low byte, item 2336) or none, said only for a void function (item 2090: the obj shape '
+                    'obj: eax (the default), xmm0 (a float returned in xmm0, item 2537), al (a bool\'s low byte, item 2336) or none, said only for a void function (item 2090: the obj shape '
                     'took fwd\'s none and eight value-returning sweeps compared no eax)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
     ap.add_argument('--item', type=int, required=True)
