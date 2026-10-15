@@ -300,6 +300,7 @@ mod attack_order_get_type_vtordisp;
 mod attack_order_walk_data;
 mod attack_to_order_walk_data;
 mod balance_return_modifier;
+mod balance_walk_rules_data;
 mod border_build_border;
 mod border_nodes_find;
 mod border_spline_get_name;
