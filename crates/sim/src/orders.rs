@@ -2362,6 +2362,9 @@ impl Sim {
                 ..
             }))
         );
+        if std::env::var("RON_PROBE2693").is_ok() && (925..=940).contains(&self.frame) {
+            eprintln!("PROBE2693 f{} u{} off {:#x} ret {} inrange {} mand {} fighter {}", self.frame, u, off, now_returning, self.is_in_range(crate::combat::Obj::Unit(u), t), sf.mandatory, self.is_fighter_line(u));
+        }
         if now_returning || !self.is_in_range(crate::combat::Obj::Unit(u), t) {
             return true;
         }
