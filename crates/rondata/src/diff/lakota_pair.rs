@@ -34,8 +34,8 @@ pub(crate) const LAKOTA: Pair = Pair {
     // Item 2384: 1984 → 2040, `Leader::diplomacy`'s peace arm (`docs/AI.md`
     // §220): ours 37 draws, theirs 35, index 0 — ours
     // `Army::find_target+0x7df`, theirs `Unit::do_move+0xe84`.
-    count: 2040,
-    sequence: 2040,
+    count: 3302,
+    sequence: 3302,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -154,7 +154,7 @@ fn run849_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 1240, "initial run849 baseline");
+    pin_eq!(w.firsts.len(), 87, "initial run849 baseline");
     // Item 2351: 1242 keys part on blocks 1978..2235, the word's own block
     // being 1985 (frame 1984: ours 61 draws, theirs 62, index 28; ours
     // `Animal::think_bird+0x82`, theirs `6bdab8` in `Leader::diplomacy`).

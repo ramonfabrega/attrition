@@ -4557,6 +4557,27 @@ mod tests {
         );
     }
 
+    /// **The pre-war gate holds a ready army** (`006f87c0`; item 2388,
+    /// `docs/AI.md` §221): `RUSH_RULES 10`, five minutes' peace, keeps an
+    /// army that every threshold would release at the muster until frame
+    /// 4500, and lets it go on that frame.
+    #[test]
+    fn release_mustering_holds_the_army_through_the_peace() {
+        let (mut sim, c) = sim_with_city();
+        let s = sim.init_army(1, Some(c));
+        sim.muster[1].cap = 200;
+        sim.armies[1].list[s].num_standard = 6;
+        sim.ai[1].pers.rush = 1;
+        sim.tech[1].epoch[crate::tech::Line::Military.index()] = 1;
+        assert!(sim.release_mustering(1, s), "no rush rules: released");
+        sim.lobby.rush_rules = 10;
+        sim.lobby.rush_minutes = 5;
+        sim.frame = 4499;
+        assert!(!sim.release_mustering(1, s), "inside the peace: held");
+        sim.frame = 4500;
+        assert!(sim.release_mustering(1, s), "the peace over: released");
+    }
+
     // ---- the ring search (§13) ----
 
     use crate::world::CellData;
