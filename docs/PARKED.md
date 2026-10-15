@@ -5947,13 +5947,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EG — reserved
+## Parked by item 2698, 2026-10-15 — the sweep's ninety-eighth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2699) **`Herds::start_herds` 0x741d10** reads the count at the image word `0xc0a244` and the pointer array at `0xc0a250` (listing), each element a record whose byte `+0x1a` bit 0 gates a hooked `Herd::create_units` 0x7417f0. `obj --at 0xc0a244:4` draws the count as 32 random bits, so the loop never ends; the shape owed is an image word drawn from a range (`--at-word VA:LO..HI`) and an array of that many placed element pointers (a `--place` per element, a variable count). The same shape serves `GroupData::get_num_cap_const` (`this->num` is in `this`, the element array is `[0xc0ab84 + 0x1c*who]`-indexed, a vcall slot `0xe8` per element).
+
+(2700) **`ObjectData::inside_bottom` 0x644000, `UnitData::has_damage` 0x609b50** chase `o_up`/`o_down` shorts through the `[0xc0ab84 + 0x1c*who]` arrays until a negative link: random windows can loop forever, so the chain needs a bounded `--link`-style draw over the placed records (2276's `--link` runs figures `pA..B`; the table rows here are indexed by two bytes of the record itself).
+
+(2701) **`Group::equals_group` 0x708000** calls `normalize` on both groups (callees that write the group, guarded by `field_0x4 != -1`) and vcall slot `+4` on each; no shape holds a callee that writes `this` before a loop over `field_0xc` shorts at `+0x8cc`. `BuildQueue::walk_data`'s `close`/`init` are the same family and are hooked, not ported: the loop reads the count and record pointer the row drew, never what the callees would have written.
+
+(2702) Loop: `mix --elems count:CNT:PTR:STRIDE` and the `zero/`/`nz/` prefixes (2698) hold a counted record loop; a `walker`-less shape with a count read from an image word is the next generator gap (2699).
 
 ## Parked by the next landing, slot EH — reserved
 
