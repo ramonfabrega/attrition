@@ -16975,6 +16975,29 @@ blocks, about fifteen minutes. Falsifiers held: The Despot born 1011 at 659; The
 **What it holds**: `golden::chapter_seventy_two_holds_to_the_golden_word` (**1770**, the trace's end, closed) and
 `chapter_seventy_two_s_word_frame_is_widened_whole` (600..1771, thirteen standing rows).
 
+
+## run861 — the peace pair: the word 4859's widening, blocks 4853..5109 (2026-10-15, item 2460, `att-2460`)
+
+`docs/AI.md` §224. **Disk gap**: run855 ends at 4794, and run847 has checksums and the closing block only, so no
+dump of this lobby holds a record on 4859. This is run855's recipe with the window moved to the word, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run861`: `--map 18 --end-frame 5115 --timeout 5400
+--log-window 4853 5110 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 1 from the pool, on the first take: `success`, 5116 frames, 1825.3 s from launch to exit.
+- The dump holds 258 `BEGIN FRAME`s (4853..5109 and the closing block).
+- `rngcmp.py rontrace-run847.log rontrace-run861.log`: **5116 identical, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run861-eastindies-lakota-peace-window-4853-5110.txt`, 726,627,122 bytes,
+SHA-256 `e483468f6edc5465f92bbdcec87f24d80e678426ceb2be7145b9b87d3dc225a8`.
+
+Archive `rontrace-run861.log`, 201,404,736 bytes,
+SHA-256 `7b96aa6651e0563f89cf222a685102418e1d34988054a292990f301458e4fcf9`.
+
+**What it holds**: `diff::lakota_pair::run861_s_word_frame_is_widened_whole`, 1432 keys. On the word's block, 4860,
+`1/50` is unlinked (theirs' birth) and `1/2005`'s `queued` is ours 2 against theirs 1. 106 keys stand from 4853,
+among them the human's `control` (ours 14, theirs 0) and `1/2005`'s `queue[0].cost` (ours 240, theirs 224). The
+window is in the coverage driver's slice. Its walk reads 1552 heights at inexact corners.
 ## run860 — chapter seventy-three: a wonder finished on a human (2026-10-14, item 2474, `att-2474`)
 
 `docs/GOLDEN.md` §90, `tools/gamelog/golden/chapter73.cmd` (ten staged lines). **What the disk could not answer**: no
