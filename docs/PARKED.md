@@ -3735,6 +3735,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
+(2435) **No command names the unbacked census rows a SEAM reaches** (2416's "for the Loop" line, filed at its
+merge). Chapter seventy's lane could not list the never-entered functions behind `diplomacy.rs`'s seams —
+`census.py --never` printed nothing for `diplo`/`action_*` on its arguments — so GOLDEN §87 names them by hand.
+Candidate: `tools/census.py --callees <function>`, the cited-and-never-entered rows a function's call graph
+reaches, with a test made to fail first on `Leader::diplomacy`. One reach.
+
 (2422) **A word's draw delta is two commands where it could be one** (2388's "for the Loop" line, filed at its
 merge). `RON_DEBUG_SITES=<w>-<w>` on the pair's `first_parting`, beside `tools/trace/report.py draws <w>`, put
 the whole delta in two commands. Candidate: `tools/drawdiff.py <pair> <frame>`, the two lists aligned by site,
@@ -5034,7 +5040,7 @@ The jump-table switches `Setup::get_starting_citizens`, `Search::valid_filter` a
 
 ## Parked by item 2331, 2026-10-14 — a Stable's unit under Monarchy
 
-(2332) **2111 and 2196 still have no staging** (item 2331, `docs/GOLDEN.md` §84; names no score; 2305's sequel).
+(2332) closed 2026-10-15 by item 2416 (GOLDEN §87: no console staging; parked 2428): **2111 and 2196 still have no staging** (item 2331, `docs/GOLDEN.md` §84; names no score; 2305's sequel).
 Chapter sixty-seven took Monarchy, the one candidate the console stages. `ai_sites`' wrapping decrement (2111) needs a
 computer's census adjustment, which `!ai off` never runs; `land_tail`'s `buildings` toggle (2196) needs a building
 group whose `list[0]` turns. A chapter that books either names its staging first.
@@ -5283,7 +5289,7 @@ neither. A staging needs a lobby (map style and seed) that places one of them fo
 on it, then a sea unit queued (Salmon) or a ramped unit (Maize). Name the lobby from a map script or a start dump's
 `BEGIN GOOD` records before booking; this crate has no map generator to search seeds.
 
-(2391) **2111 and 2196 are still unstaged** (parked 2332; item 2389 took the rare arms instead).
+(2391) closed 2026-10-15 by item 2416 (GOLDEN §87; parked 2428): **2111 and 2196 are still unstaged** (parked 2332; item 2389 took the rare arms instead).
 
 ## Parked by item 2395, 2026-10-14 — the sweep's seventy-first batch
 
@@ -5322,6 +5328,14 @@ reaches them. `PathFinder::calc_road_cost` now prices an ambiguous owner byte (-
 arm (00686441–00686477); `Objects::find_free` gained the `UnitData +0x8e` captain term (0065adde). Each passed every
 lobby's `first_parting`.
 
+(2441) **`find_free`'s captain term is a SEAM: `UnitData +0x8e`'s field is unnamed** (the commander's, at 2400's
+booking gate; `crates/sim/src/lib.rs`, `Sim::find_free`). 2400 built the reuse test's third term — a dead unit's
+number is reused only if it is no unit or a captain (`+0x8e` negative, `0065adde`) — and fed it `o_up.is_none()`.
+The third pair's floor fell 17379 → 14461 (ours `Unit::do_guard`, theirs `Unit::do_idle`) and run587's projectile
+lifetimes 131 → 10; bisected to 3d3cdf0f. The call now passes `true` (every dead unit a captain, the old behaviour)
+and the floor stands; `find_free_reusable` keeps the term for the sweep. Parked 2370 reads `+0x8e` as `GuyData`'s
+attack target `o` (`Unit::set_attack`) — not `o_up`. Names no score until the field is named and a diff backs it.
+
 (2404) **`sweep_gen` gaps this batch met** (2400, for the Loop; Loop 2003):
 - `--seq` cannot take a bounded range for an index-like answer (a `Random::get` stub, `Farms::add_animals`), and a
   recorded stub cannot answer a different window per call (per-animal stamps).
@@ -5341,13 +5355,15 @@ later. who=1's groups 69, 79 and 80 hold `[56, 57, 58]`, `[20]` and `[20]` in ou
 `SITE[7].reg` reads 65 ours and 0 theirs (2176). None is on a word's frame; the draw stream agrees through
 3301.
 
-## Parked by the next landing, slot CK — reserved
+## Parked by item 2416, 2026-10-14 — the unreached diplomacy arms, surveyed (GOLDEN §87)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2427) **A TEAM_STYLE 0 pair is the cheapest way to reach `Leader::diplomacy`'s team-style SEAMs** (item 2416,
+`docs/GOLDEN.md` §87; names no score; 2387's sequel). The peace pair's lobby with `--profile TEAM_STYLE=0` reaches
+styles 0/8/11's elimination and capital arms at its first cadence after the peace; `lobby_of` reads `TEAM_STYLE`.
+A pair is the AI word's to book (DECISIONS 53, 61); the profile key is untested.
+(2428) **No golden chapter can stage 2387's allied, offers, `dow`, `blacken` and hiring arms, nor 2111 and 2196**
+(item 2416; names no score): each needs a human counterpart, an alliance, or the AI left on. 2391 and 2332's
+"name the staging first" is answered here: there is none; close both against §87.
 
 ## Parked by item 2421, 2026-10-14 — the sweep's seventy-second batch
 

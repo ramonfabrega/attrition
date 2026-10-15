@@ -5523,3 +5523,21 @@ loop's own making — about seventy full release builds and suites in six
 hours, no cache across the worktrees — so a build cache is the next
 pass's to measure, and the whole-suite run before the lane gate is the
 booking gate's work done twice.
+
+**Amended 2026-10-15, Ramon's word mid-tranche (asked by the
+commander):** two kill rules tripped in the thirty-fifth tranche's first
+six landings — 2384 (Opus 5.5 medium; its booking gate red on 144 pins
+`aggression` moved) and 2400 (Sonnet 5.5 medium; the third pair's floor
+17379 → 14461) — and both by one route: the lane gate leaves the timed
+`diff::` tests to the booking gate (1567). **The roster stands** (Opus
+medium on the AI word, Sonnet medium on the rules track and the sweep);
+the kill rule's return to Opus high is not applied, and 2412, spawned
+at high before the word, runs out at high. **The gap is fixed instead**:
+the brief's closing rows say a lane whose branch touches a
+`rondata::diff` row list or sim code outside `sweep/` runs the whole
+`diff::` suite before its gate (Loop 2415, the pass's to build into
+`release_gate.py`). Narrower than the whole-suite run Loop 2409 calls
+the booking gate's work done twice: only the timed `diff::` tests, and
+only on a branch that can move them. And the rules track, dry after
+2416 (GOLDEN §87), waits on 2436's survey; if it is empty too, the
+next step is the thirty-fifth pass's recommendation, not a lane's.
