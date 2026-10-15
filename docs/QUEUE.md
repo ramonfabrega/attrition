@@ -23,7 +23,7 @@ backed out. **Thirty-seventh tranche: four lanes** (entry 61 §5, Ramon's word),
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every
   third landing and at the drain; a fresh worktree's whole release build is 40 s, so the gate's minutes are tests.
 - **Lanes: four live** (DECISIONS 73): 2677 (AI §230, EC, runs 867, 873), 2693 (GOLDEN §99, EF), 2683
-  (ED), 2688 (EE). Next 2698, run 876 (Astra holds 900–909). Pools: GOLDEN §100–101, AI §231–234, park EG–EI.
+  (ED), 2688 (EE). Next 2698, run 876 (Astra holds 900–909). Pools: GOLDEN §100–105, AI §231–234, park EG–EI.
 - **Fable backlog: 7 Loop items** (1570, 1725, 2003, 2518, 2524, 2654, 2678).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
