@@ -3767,6 +3767,12 @@ it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell
 hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
 `frame_snapshot.py`'s restore, which this lane does not run.
 
+(2505) **A golden staging's site is found by trial runs** (2474's "for the Loop" line, filed at its merge).
+Chapter seventy-three's lane took six runs to find a legal Supercollider site — water at (30,74), then
+`Blocked(Building)` beside the city — each read off an env-guarded print of `place_building`'s refusal.
+Candidate: a `stage_walk` option that prints every placement's refusal with its reason, held by a test made to
+fail first on a blocked site. One reach.
+
 (2480) **A hand-written break script's pass check keys on a word a passing summary prints** (2469's "for the
 Loop" line, filed at its merge; Loop 2442's sibling). A break script that greps for `failed` matches cargo's `0
 failed` summary and reads a pass as the break; 2469 caught it on its first run. Candidate: the sweep's break helper
@@ -5552,13 +5558,11 @@ treaty family (`_treaty`, `_declare`, `_accept`, `_reject`, `_clear_all`, `_clea
 `_chat`, `_quit`, `_player_speed`) — none listed for `mov byte` yet; `_flight`'s siblings at 0x941db0.. (cmd 0x23, 0x24,
 0x1d: no-argument one-byte commands) are a four-line shape no flag writes.
 
-## Parked by the next landing, slot CU — reserved
+## Parked by item 2474, 2026-10-14 — a wonder finished on a human
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2475) **`hurry` and a unit's `finish` are unapplied** (item 2474, `docs/GOLDEN.md` §90). `Console::hurry_action@007c3810`
+with `this == 0` adds the train time, not 10000, to a finished building's queue head; the unit arm adds 10000 to
+`+0x64`. Nothing booked names either. Names no score.
 
 ## Parked by item 2481, 2026-10-15 — the sweep's seventy-seventh batch: three, not ten
 

@@ -2005,6 +2005,21 @@ impl Sim {
                 .any(|c| c.alive && c.owner != who && c.was_capital & (1u64 << (who as u32)) != 0)
     }
 
+    /// The console's `finish` on one selected building —
+    /// `Console::hurry_action@007c3810`'s building arm with `this != 0`
+    /// (item 2474, `docs/GOLDEN.md` §90): a building whose `BuildData` is
+    /// not active takes vslot `0x1a8`, `Build::activate(0, 1, 1)`; then
+    /// `job_counter += 10000`.
+    ///
+    /// SEAM: the tail's `do_queue(0)` and the library/train-time arm after
+    /// it, which touch a finished building's queue only.
+    pub fn cheat_finish(&mut self, b: usize) {
+        if !self.buildings[b].active {
+            self.activate(b, false, true);
+        }
+        self.buildings[b].job_counter += 10_000;
+    }
+
     /// `Build::activate(captured, announce, counted)` — `docs/CITIES.md` §4.
     /// A building type the tree files as a wonder — the test
     /// `Build::activate` and `Build::close` gate the unit-stats flag on.
