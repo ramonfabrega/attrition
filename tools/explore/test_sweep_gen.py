@@ -1757,6 +1757,19 @@ class Shapes(unittest.TestCase):
         _, script0, _, test0, _ = sweep_gen.generate_mix(spec, item=2583, gate=4, steps=steps)
         self.assertIn('if gate == 0 {', test0)
 
+    def test_a_mix_stale_may_be_a_column_of_its_own(self):
+        # parked 2673: `stale` was `g`, so swapping them in a step passed.
+        spec = 'ObjectType::walk_rules_data@0065fba0'
+        steps = ['call:0x476610:2:this+0x27c:p0,stale']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2688, gate=8, steps=steps, stale_col=True)
+        compile(script, 'sweep_object_type_walk_rules_data.py', 'exec')
+        self.assertIn('STALE_COL = True', script)
+        self.assertIn('let stale = a[4];', test)
+        self.assertNotIn('let stale = g;', test)
+        _, script0, _, test0, _ = sweep_gen.generate_mix(spec, item=2688, gate=8, steps=steps)
+        self.assertIn('STALE_COL = False', script0)
+        self.assertIn('let stale = g;', test0)
+
     def test_a_mix_may_assert_the_result_is_the_stack_argument(self):
         # parked 2570: a get_name returns its out-pointer ([ebp+8]), eax == walker.
         spec = 'Surf::get_name@004a5dc0'

@@ -3,7 +3,7 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_object_type_walk_rules_data.py — `ObjectType::walk_rules_data@0065fba0` under unicorn (item 2672, tools/sweep_gen.py, mix).
+"""sweep_object_type_walk_rules_data.py — `ObjectType::walk_rules_data@0065fba0` under unicorn (item 2688, tools/sweep_gen.py, mix).
 
     uv run tools/emu/sweep_object_type_walk_rules_data.py <install>/riseofnations.exe
 
@@ -31,6 +31,7 @@ GATE_AT = None
 LEN_AT = None
 VBASE = None
 STALE = True
+STALE_COL = True
 REC = False
 STORE = None
 ELEMS = None
@@ -39,7 +40,7 @@ ELEMS = None
 def main(argv):
     from hooks import Harness
     h = Harness(argv[1], {a: (f"{a:x}", n) for a, n, _, _ in CALLS})
-    rng = random.Random(2672)
+    rng = random.Random(2688)
     vt = h.vtable({0: ("walk", 2, 7), 4: ("walk4", 1, 9)})
     for i in range(140):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
@@ -57,7 +58,9 @@ def main(argv):
         if STALE:
             # the `ecx` a callback or a direct callee leaves (parked 1922, 2498, 2563), printed in the gate column
             sv = g  # a walker word is the gate: the leftover is the `g` column, the gate column stays the gate
-            if GATE is None:
+            if STALE_COL:
+                sv = rng.randrange(0x1000, 0x7FFF0000) & ~3  # its own column (parked 2673), printed after the gate
+            elif GATE is None:
                 gv = sv = rng.randrange(0x1000, 0x7FFF0000) & ~3
             h.answers["walk"] = (7, sv)
             h.answers["walk4"] = (9, sv)
@@ -105,12 +108,12 @@ def main(argv):
                 h.w32(e + nxt, elems[k + 1] if k + 1 < len(elems) else 0)
             h.w32(this + head, elems[0] if elems else 0)
             el = "".join(f" {e}" for e in elems)
-        sw = ""
+        sw = f" {sv}" if STALE and STALE_COL else ""
         if STORE is not None:
             off, val, size, woff = STORE
             w = 0 if i % 3 == 0 else rng.randint(1, 0x7FFFFFFF)
             h.w32(walker + woff, w)
-            sw = f" {w}"
+            sw += f" {w}"
             h.m.uc.mem_write(this, bytes(rng.randrange(256) for _ in range(0x100)))
             pre = bytes(h.m.uc.mem_read(this, 0x100))
         h.calls.clear()
@@ -131,4 +134,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["mix", "ObjectType::walk_rules_data@0065fba0", "--item", "2672", "--gate", "0x8", "--step", "walk:this+0x4:this+0x5e", "--step", "gated/call:0xa1b2d0:1:this+0x74:p0", "--step", "walk:this+0x1e4:this+0x27c", "--step", "call:0x476610:2:this+0x27c:p0,stale", "--step", "call:0x476610:2:this+0x298:p0,stale"]
+# sweep_gen: ["mix", "ObjectType::walk_rules_data@0065fba0", "--item", "2688", "--stale-col", "--gate", "0x8", "--step", "walk:this+0x4:this+0x5e", "--step", "gated/call:0xa1b2d0:1:this+0x74:p0", "--step", "walk:this+0x1e4:this+0x27c", "--step", "call:0x476610:2:this+0x27c:p0,stale", "--step", "call:0x476610:2:this+0x298:p0,stale"]
