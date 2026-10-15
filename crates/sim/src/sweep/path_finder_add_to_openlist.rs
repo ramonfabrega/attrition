@@ -1,4 +1,4 @@
-//! `PathFinder::add_to_openlist@00687aa0` under the emulator against the port (item 2655; tools/sweep_gen.py, obj with windows).
+//! `PathFinder::add_to_openlist@00687aa0` under the emulator against the port (item 2644; tools/sweep_gen.py, obj with windows).
 
 #[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {
@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `PathFinder::add_to_openlist@00687aa0`, run by `tools/emu/sweep_path_finder_add_to_openlist.py` under unicorn
-/// (tools/emu): 80 random bytes of object, 1 argument(s), argument 0 names 32 random bytes; callee 0x004796f0 (2 args) stubbed; callee 0x00479920 (2 args) stubbed; the word at `m+0x40` points at 32 random bytes less `0` (placed); the word at `m+0x44` points at 32 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// (tools/emu): 80 random bytes of object, 1 argument(s), argument 0 names 32 random bytes; callee 0x004796f0 (2 args) stubbed; callee 0x00479920 (2 args) stubbed; the word at `m+0x40` points at 32 random bytes less `0` (placed); the word at `m+0x44` points at 32 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_path_finder_add_to_openlist.py") else {
@@ -46,10 +46,8 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-                // The node is inserted into the tree at this+0x40 keyed by its +0x10, and the tree's root key (+0x10 of the record at this+0x40) into the one at this+0x44 keyed by the node's +0x18.
-                let node = &p[0];
-                log.push(format!("s0:p1+0x0,p0+0x0,{}", rd(node, 0x10)));
-                log.push(format!("s1:p2+0x0,{},{}", rd(&p[1], 0x10), rd(node, 0x18)));
+                log.push(format!("p1+0x0,p0+0x0,{}", rd(&p[0], 0x10)));
+                log.push(format!("p2+0x0,{},{}", rd(&p[1], 0x10), rd(&p[0], 0x18)));
                 0
             }
         };

@@ -3,12 +3,12 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_path_finder_add_to_openlist.py — `PathFinder::add_to_openlist@00687aa0` under unicorn (item 2655, tools/sweep_gen.py, obj with windows).
+"""sweep_path_finder_add_to_openlist.py — `PathFinder::add_to_openlist@00687aa0` under unicorn (item 2644, tools/sweep_gen.py, obj with windows).
 
     uv run tools/emu/sweep_path_finder_add_to_openlist.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 80-byte object of random bytes (no bias), 1 stack argument(s);
-argument 0 names 32 random bytes; callee 0x004796f0 (2 args) stubbed; callee 0x00479920 (2 args) stubbed; the word at `m+0x40` points at 32 random bytes less `0` (placed); the word at `m+0x44` points at 32 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee).
+argument 0 names 32 random bytes; callee 0x004796f0 (2 args) stubbed; callee 0x00479920 (2 args) stubbed; the word at `m+0x40` points at 32 random bytes less `0` (placed); the word at `m+0x44` points at 32 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -55,7 +55,7 @@ CELLTHIS = []
 VTALSO = []
 SPARSE = []
 RECORD = [0, 1]
-RECORDORDER = True
+RECORDORDER = False
 RECORDEDX = False
 ROWSPLIT = {}
 LINKS = []
@@ -170,17 +170,24 @@ def win_write(inner, at, size, v, write):
     return answer
 
 
-def read_arg(inner, k, n, read, sink):
+def read_arg(inner, k, n, read, sink, written=None):
     """`--deref IDX:K:N` (item 2379, parked 2348): a stub that reads the N
     bytes its argument K points at when it is called — a caller's local
     `Command`, gone once the call returns — into `sink` as hex (`null` for a
-    null argument), then answers as `inner` would."""
+    null argument), then answers as `inner` would. `written` (item 2644,
+    parked 2636) lists the byte indices the function wrote: every other byte
+    of a local is stack residue and prints `00`."""
+    def hexed(b):
+        if written is not None:
+            b = bytes(c if i in written else 0 for i, c in enumerate(b))
+        return b.hex()
+
     def answer(ecx, args):
         if isinstance(k, tuple):  # `@VA` (item 2513): an absolute cell, read as it stands now
-            sink.append(read(k[1], n).hex())
+            sink.append(hexed(read(k[1], n)))
             return inner(ecx, args) if callable(inner) else inner
         a = args[k] & 0xFFFFFFFF
-        sink.append(read(a, n).hex() if a else "null")
+        sink.append(hexed(read(a, n)) if a else "null")
         return inner(ecx, args) if callable(inner) else inner
     return answer
 
@@ -226,7 +233,7 @@ def shape(rng, name, buf):
 
 def main(argv):
     from hooks import Harness
-    rng = random.Random(2655)
+    rng = random.Random(2644)
     # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
     h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"})
@@ -482,9 +489,9 @@ def main(argv):
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write)
         derefs = [[] for _ in DEREF]
-        for (idx, k, n), sink in zip(DEREF, derefs):
+        for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
-                                             lambda a_, n_: bytes(uc.mem_read(a_, n_)), sink)
+                                             lambda a_, n_: bytes(uc.mem_read(a_, n_)), sink, wr)
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -544,4 +551,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "PathFinder::add_to_openlist@00687aa0", "--item", "2655", "--win", "0x50", "--own", "1", "--ptrarg", "0:0x20", "--place", "m+0x40:0:0x20", "--place", "m+0x44:0:0x20", "--stub", "0x4796f0:2", "--stub", "0x479920:2", "--record", "0", "--record", "1", "--record-order", "--ret", "none", "--port", "{\n                // The node is inserted into the tree at this+0x40 keyed by its +0x10, and the tree's root key (+0x10 of the record at this+0x40) into the one at this+0x44 keyed by the node's +0x18.\n                let node = &p[0];\n                log.push(format!(\"s0:p1+0x0,p0+0x0,{}\", rd(node, 0x10)));\n                log.push(format!(\"s1:p2+0x0,{},{}\", rd(&p[1], 0x10), rd(node, 0x18)));\n                0\n            }"]
+# sweep_gen: ["obj", "PathFinder::add_to_openlist@00687aa0", "--item", "2644", "--win", "0x50", "--own", "1", "--ptrarg", "0:0x20", "--place", "m+0x40:0:0x20", "--place", "m+0x44:0:0x20", "--stub", "0x4796f0:2", "--stub", "0x479920:2", "--record", "0", "--record", "1", "--ret", "none", "--port", "{ log.push(format!(\"p1+0x0,p0+0x0,{}\", rd(&p[0], 0x10))); log.push(format!(\"p2+0x0,{},{}\", rd(&p[1], 0x10), rd(&p[0], 0x18))); 0 }"]

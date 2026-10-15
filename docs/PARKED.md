@@ -3734,6 +3734,12 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-15 — the thirty-seventh tranche's
+
+(2678) **`RON_DEBUG_UNIT`'s line prints neither `line_ok` nor `tolerance`** (2638's "for the Loop" line, filed at
+its merge): the two fields `Unit::do_move` branches on first, and 2638 took a probe commit for each. Candidate: the
+line prints both, held by a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-sixth tranche's
 
 (2654) **A staged `@attack` on a target nothing of the player's can see is dropped as `skipped {}`** (2627's "for the
@@ -3802,6 +3808,10 @@ booked in 2633); the table users of the never-backed list are spent (2624).
 first; five of ten; three draws were first written in the wrong domain, and a `--wbias-xor C:LO..HI` drawing the
 word whose xor with C lies in a range is the candidate; a `switch` shape and a masked `--deref` are what 2634 and
 2636 want (booked in 2644).
+**2644** (fifty-ninth reach, filed at its merge): built `--deref IDX:K:N:W`, a written-byte mask, a test failing
+first; six of ten; `--jump` already held `valid_filter`'s index and its 27 arms are the gap (parked 2664), and a
+`fwd` blind to its callees' order (2666) and a quarter-million-call walker (2667) want a callee-order token and a
+call-count record (booked in 2672).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5848,21 +5858,23 @@ run900's own dump, the order stream driven, the applied/skipped report kept,
 the first parting pinned), then the random-map generator (parked 2390) as its
 own checkpoint. The next pass ratifies §7 and reads the route. **The thirty-sixth pass**: §7's scope correction **ratified** — §4's own sequencing (setup → rules → packages, the embedded save absent from a random-map recording) and the parser's accounting of all 21,884 packages and 25,779 commands leave no room for a snapshot; the route's blind reading is owed only if the replay oracle is pursued, which is Ramon's checkpoint (dump-seed the replay first), so this leaves the Loop for the ordinary list.
 
-## Parked by the next landing, slot DX — reserved
+## Parked by item 2638, 2026-10-15 — the snap arm's refused tile
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2656) **The peace pair's word 5407 owes its widening** (2638): the sequence parts on 5407 at index 0, ours 15 draws,
+theirs 15 — ours `1/67`'s `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`
+(seed `a00625e0`); the count parts on 5412. It is past run866's last block (5385), and no dump of this lobby holds
+5407, so the capture is the next item's: blocks 5401..5657 at the long's detail, block 5408 the word's own.
+`WIDENINGS` names this row until a test widens it.
 
-## Parked by the next landing, slot DY — reserved
+## Parked by item 2644, 2026-10-15 — the sweep's ninety-third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2664) **`Search::valid_filter` 0x67dbb0 is 27 arms, not one case**: `--jump IDX:N` (item 2615) already draws the index, so no new shape is wanted; what is missing is the arms — 746 listing lines, 54 calls, 19 distinct callees, most of them vtable slots of the `[0xc0ab84 + 28*who]` object tables. Census backs the function on the first sweep that cites it, so one arm's sweep would back 26 unread; it lands as 27 modules at once or not at all. A batch of its own, `--name valid_filter_caseK` a module.
+
+(2665) **`UnitOut::issue_come_out`'s `Command` is 11 bytes, all written** (`0x31`, a widened byte, a sign-extended short, a word): 2636's "16 bytes, five written" was the decompile's locals, not the listing's `push $0xb`. `--deref IDX:K:N:W` (written-byte ranges, every other byte printed `00`) is built and tested anyway, for the first function whose local has a hole; this one needs no mask.
+
+(2666) **`--call` (the `fwd` shape) does not hold the callees' order**: swapping two addresses in `ObjectsOut::sort_objects`'s `CALLS` passes (the row prints each call's `ecx` and arguments, not which callee). A `fwd` whose callees take the same `this` is blind to order; a `--record-order`-like token (`sIDX:`) for `fwd` is the Loop's build.
+
+(2667) **`Balance::walk_rules_data` 0x582cc0 calls its walker's slot 0 237,169 times** (`0x1ed` by `0x1ed`, a pair of addresses `2` apart): the `walk` shape hands one pair, a row would be a quarter-million hooked calls; a `--rows 3` and a call-count-only record is the shape it wants. The rest of the shortest unbacked rows are render/UI (`RiverDoober`, `Nuke`, `WorldMap`, `TerrainMap`, `WallOut::make_options`, `Border::generate_morph_side`, the two `project`s, `get_float_z` in st0).
 
 ## Parked by the next landing, slot DZ — reserved
 
@@ -5910,6 +5922,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EI renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
