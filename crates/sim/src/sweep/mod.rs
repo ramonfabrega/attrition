@@ -599,6 +599,7 @@ mod group_attack_order_walk_data_vtordisp;
 mod group_attack_to_order_get_group_attack_to_order;
 mod group_attack_to_order_walk_data;
 mod group_attack_to_order_walk_data_vtordisp;
+mod group_data_can_transport;
 mod group_data_equals_group_const;
 mod group_data_get_angle;
 mod group_data_get_num_cap_const;
