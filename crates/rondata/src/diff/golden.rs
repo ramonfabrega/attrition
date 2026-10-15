@@ -15026,7 +15026,11 @@ fn run875_start_seen3_plane_is_compared_cell_for_cell() {
     let log = Log::parse(&text);
     let init = log.initial().expect("run875 has a start block");
     let theirs = crate::gamelog::world_fog3(&init.world);
-    assert_eq!(theirs.len(), 14_400, "run875's start plane is the whole map");
+    assert_eq!(
+        theirs.len(),
+        14_400,
+        "run875's start plane is the whole map"
+    );
     let w = &s.built.sim.world;
     let fw = w.fog_xs();
     let ours: Vec<u8> = (0..theirs.len() as i32)
@@ -15064,7 +15068,7 @@ fn chapter_eighty_staging_reaches_the_stealth_arm() {
     let Some(mut s) = stage_script("ch76", "chapter80") else {
         return;
     };
-    let mut at = |s: &mut Staged4, to: i64| {
+    let at = |s: &mut Staged4, to: i64| {
         while s.built.sim.frame < to {
             s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
             s.built.tick();
@@ -15083,7 +15087,8 @@ fn chapter_eighty_staging_reaches_the_stealth_arm() {
         let i = find(s, who, o);
         let u = &sim.units[i];
         (
-            sim.world.danger_half(1, sim::world::Cell::new(u.pos.cell().x, u.pos.cell().y)),
+            sim.world
+                .danger_half(1, sim::world::Cell::new(u.pos.cell().x, u.pos.cell().y)),
             sim.unit_stealth_hides(i, 1),
             sim.world_sees(u.pos, 1),
             u.orders.len(),
@@ -15092,12 +15097,26 @@ fn chapter_eighty_staging_reaches_the_stealth_arm() {
     at(&mut s, 1001);
     // (danger for leader 1 at the unit's half-cell, hidden by the arm, lit,
     // orders)
-    assert_eq!(probe(&s, 0, 6), (60, true, true, 0), "an idle Partisan, lit, undetected");
-    assert_eq!(probe(&s, 0, 7), (60, true, true, 0), "the second Partisan before the Scout");
+    assert_eq!(
+        probe(&s, 0, 6),
+        (60, true, true, 0),
+        "an idle Partisan, lit, undetected"
+    );
+    assert_eq!(
+        probe(&s, 0, 7),
+        (60, true, true, 0),
+        "the second Partisan before the Scout"
+    );
     let (_, hides, lit, _) = probe(&s, 0, 8);
-    assert!(!hides && lit, "the Hoplites are the control: lit, never hidden");
+    assert!(
+        !hides && lit,
+        "the Hoplites are the control: lit, never hidden"
+    );
     at(&mut s, 1198);
-    assert!(!probe(&s, 0, 7).1, "the Scout's disc reaches the second Partisan");
+    assert!(
+        !probe(&s, 0, 7).1,
+        "the Scout's disc reaches the second Partisan"
+    );
     assert!(probe(&s, 0, 6).1, "and not the first");
     at(&mut s, 1201);
     assert_eq!(probe(&s, 0, 7).0, 120, "weighed whole at the 1200 pass");
@@ -15122,7 +15141,14 @@ fn chapter_eighty_holds_to_the_golden_word() {
 fn chapter_eighty_s_window_is_widened_whole() {
     let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
-        "ch80", "chapter80", (1198, 1204), 0, 0, (1199, 1204), false, 92,
+        "ch80",
+        "chapter80",
+        (1198, 1204),
+        0,
+        0,
+        (1199, 1204),
+        false,
+        92,
     ) else {
         return;
     };
