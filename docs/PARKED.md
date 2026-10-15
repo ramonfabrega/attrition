@@ -3786,6 +3786,10 @@ forwarder sets around its callee is unobserved (parked 2509; minted as 2513's fi
 first, and the three `find_*` regenerated on it (2509 closed); three of ten, seven parked 2534-2536.
 **2537** (forty-ninth reach, filed at its merge): built `obj --ret xmm0`, tests failing first, and six getters on it;
 the queue's `st0` premise was the decompile's misprint (parked 2538, Loop 2552); six of ten.
+**2547** (fiftieth reach, filed at its merge): built `mix --gate-this` and `--vbase`, tests failing first, and ten
+`walk_data`s on them; ten of ten; `sweep_gen.py` refuses an existing script without `--regen` in words a shell loop
+reads as a parse error, and a gate on another offset (`--gate-this OFF:MASK`) is the next shape (parked 2548, booked
+in 2562).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
