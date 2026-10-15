@@ -1279,7 +1279,7 @@ impl Sim {
                     });
                 }
                 if std::env::var("RON_PROBE_ASTAR").ok().and_then(|v| v.parse::<i64>().ok())
-                    == Some(self.frame)
+                    .is_some_and(|f| (f - self.frame).abs() <= 2)
                     && step == STEP_WORLD
                     && (10000..14000).contains(&nx)
                     && (18500..21500).contains(&ny)
