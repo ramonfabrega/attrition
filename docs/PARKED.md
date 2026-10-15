@@ -5879,13 +5879,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DR — reserved
+## Parked by item 2604, 2026-10-15 — the eighty-ninth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Closes 2594 (`obj --ret arg:N`: eax held to the out-pointer argument, the block of stores held as the window's bytes after) and 2595 (`find_x_pos`/`find_y_pos` as `obj --ptrarg 0:4 --argrange 3:0:21`).
+
+(2605) **`Doober::find_x_pos`/`find_y_pos` reach only `move_x[0..25]`/`move_y[0..25]`**: the sweep draws argument 3 in 0..=21 so the index stays in the ring table the crate spells (`ai_sites::MOVE_X`); the table's other 96 entries (the radius-4/5 rings, index up to 120) are unswept, and the port's copy of the 25 is a literal.
+
+(2606) **The five `get_name`s' byte `[0xcc2311]`** (stored at `+0xb`) reads as the image's initial value (0) under the emulator; the port writes 0. If the engine sets that cell at boot it is a global the port does not model: the byte is unproven past 0.
+
+(2607) **`Setup::get_starting_citizens` 0x5aaf50** is a one-line indexed jump (`(&PTR_LAB_005aafac)[param_2]()`); needs a jump-table shape, not a function the batch's shapes hold. The rest of the shortest never-backed list (257+ bytes: `RiverDoober::add_for_render`, `Game::run_unit_editor`, `compute_vert_height`, `setup_terrain_terraforming`, `Map::set_file`, `Game::clock_init`) is UI, float or file I/O and each needs its own listing read: seven of ten landed (2481).
 
 ## Parked by the next landing, slot DS — reserved
 
