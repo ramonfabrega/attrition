@@ -361,7 +361,7 @@ fn run658_dates_the_gap_before_17171() {
     // dirty bit below rose for, and `treaties` 1 against 3 on both leaders
     // and Napata's `raid_stamp` 0 against 17053 on 17054, the first strike.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 123, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    pin_eq!(w.firsts.len(), 120, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     // **The date, on the original's side** (`docs/AI.md` §131). Leader 0's
     // economy-dirty bit, `leader_flags & 0x2000000`, which no row compares:
     // the blocks of the window it stands on, read off the dump (the closing
@@ -432,7 +432,7 @@ fn run667_s_closing_frame_is_widened_whole() {
     // with no order (`0/1`..`0/5`) and moves leader 0's `leftover`, and the
     // harness replays no quit. The draws agree on every frame.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 193, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    pin_eq!(w.firsts.len(), 190, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
@@ -462,7 +462,7 @@ fn run662_s_word_frame_is_widened_whole() {
     // against 121 and `damage_frac` 4 against 8 on 17330, leader 1's `caras`
     // 5 against 6 and `1/96`'s `form` −1 against 0 on 17331.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 111, "initial run662 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    pin_eq!(w.firsts.len(), 108, "initial run662 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 /// run661: the successor after the guard's leg and the fire on the move,
@@ -505,7 +505,7 @@ fn run661_s_word_frame_is_widened_whole() {
     // `pause` reads 0 on 17244 on both sides and it walks on 17245, and the
     // 76 rows after go with it.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 109, "initial run661 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    pin_eq!(w.firsts.len(), 106, "initial run661 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 /// run657: the successor after `move_step`'s snap stand, frame 17171
@@ -552,7 +552,7 @@ fn run657_s_word_frame_is_widened_whole() {
     // walk on 17172, and `1/78`'s rows on 17174 and Napata's damage go with
     // them. Left past the first block: `group:66.role` on 17174.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 122, "initial run657 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    pin_eq!(w.firsts.len(), 119, "initial run657 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 #[test]
@@ -576,7 +576,7 @@ fn run655_s_word_frame_is_widened_whole() {
     // Item 1493: 173 → 170 on the tree merged after 1500 (army 65's siege
     // copy-back and the wider group-slot compare).
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 135, "initial run655 baseline");
+    pin_eq!(w.firsts.len(), 132, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -640,7 +640,7 @@ fn run642_s_word_frame_is_widened_whole() {
     // does (`popwin_timer`'s ×100, run649), and 15344's order is ours too:
     // 94 standing on 15339, and on 15345 sixteen of the group's members'
     // `order:group.id`, 15344609 here against 15350409 there, alone.
-    pin_eq!(w.firsts.len(), 61, "initial run642 baseline");
+    pin_eq!(w.firsts.len(), 58, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,

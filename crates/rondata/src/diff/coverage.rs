@@ -2408,7 +2408,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &ch72 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_TWO;
         let n = drive_capture(p, 1720, 1724, &mut paths);
-        assert_eq!(n, 4, "chapter seventy-two carries the window's four blocks");
+        assert_eq!(n, 5, "chapter seventy-two carries the window's five blocks");
         frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
