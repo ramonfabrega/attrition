@@ -7075,8 +7075,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // And run866 (item 2554): the word 5135's window, 1673 reads; 1678
     // with item 2609's crash rounds reading the ground.
     ("run866_s_word_frame_is_widened_whole", 1678),
-    // And run867 (item 2677): the word 5407's window, 1699 reads.
-    ("run867_s_word_frame_is_widened_whole", 1699),
+    // And run867 (item 2677): the word 5407's window.
+    ("run867_s_word_frame_is_widened_whole", 0),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
