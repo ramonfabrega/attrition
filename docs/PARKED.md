@@ -5952,13 +5952,14 @@ Names no score until a word reaches a crash's landing.
 
 (2625) **`is_corner`'s draw reaches a fourth call twice in 220 rows**, so a break of the last seq index (`k.min(3)` -> `k.min(2)`) passes; the break that holds the arm is `r = ans & 3`. A `--seq` over more than four values with a lower terminator rate would starve less.
 
-## Parked by the next landing, slot DV — reserved
+## Parked by item 2627, 2026-10-15 — a Helicopter's attack distance on a human
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2629) **An `add`ed Helicopter stands at `z` 30 the frame after in the original (611), at 0 until 631 in ours** (run874,
+`g.z[0]` and `g.last_z[0]` of `0/6`, two standing rows in `WANT_CH78`). Debug `add` only; no booked score names it.
+
+(2630) **A plane control on a human is not stageable with `add`**: a Biplane added with no Airbase flies in the original (z 248) and
+engages citizens; ours holds it on the ground (z 0), so the first take parted at 736 (`~/ron-golden/ch78-take1-biplane`). A
+control needs an Airbase and a `@flight` (chapter forty-one's recipe) — a chapter, not a row.
 
 ## Parked by item 2633, 2026-10-15 — the sweep's ninety-second batch
 

@@ -6484,6 +6484,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_SEVEN: i64 = 1400;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SEVENTY_SEVEN: (i64, i64) = (600, 1401);
 
+/// **Chapter seventy-eight** (item 2627, `docs/GOLDEN.md` §97, run874): a
+/// Helicopter's attack distance on a human.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_EIGHT: i64 = 1100;
+
+/// `chapter_seventy_eight_s_word_frame_is_widened_whole`'s window: run874
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SEVENTY_EIGHT: (i64, i64) = (600, 1101);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -7008,6 +7016,10 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 2627: run874, the Helicopter's flight to a Barracks reads eight
+    // inexact corners, in the walk and in the widening alike.
+    ("chapter_seventy_eight_holds_to_the_golden_word", 8),
+    ("chapter_seventy_eight_s_word_frame_is_widened_whole", 8),
     // The coverage pair's run715 (item 1605): four reads in the replay's
     // diverged tail past the word 2969 — `coverage_pair_first_parting`,
     // which walks to the word, reads none.
@@ -8931,6 +8943,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seventy_seven_s_word_frame_is_widened_whole"),
         2598,
         Some(WIDENING_CHAPTER_SEVENTY_SEVEN),
+    ),
+    // Item 2627: run874, chapter seventy-eight, a Helicopter's attack distance.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVENTY_EIGHT",
+        GOLDEN_WORD_CHAPTER_SEVENTY_EIGHT,
+        Some("chapter_seventy_eight_s_word_frame_is_widened_whole"),
+        2627,
+        Some(WIDENING_CHAPTER_SEVENTY_EIGHT),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

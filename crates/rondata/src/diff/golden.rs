@@ -14865,6 +14865,72 @@ const WANT_CH77: &[&str] = &[
     "600 1/5 form",
 ];
 
+/// **Chapter seventy-eight** (item 2627, `docs/GOLDEN.md` §97, run874): the
+/// Porcelain Tower's ship arm held on a human — a Galley at a Dock before the
+/// Tower and after it.
+#[test]
+fn chapter_seventy_eight_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch78", "chapter78", 78, 6, 1100) else {
+        return;
+    };
+    eprintln!(
+        "chapter seventy-eight: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    pin_eq!(
+        w.word,
+        GOLDEN_WORD_CHAPTER_SEVENTY_EIGHT,
+        "chapter seventy-eight's golden word moved; re-pin it here and say so in docs/GOLDEN.md §97"
+    );
+}
+
+/// **run874 whole, both directions** (item 2627, `docs/GOLDEN.md` §97).
+#[test]
+fn chapter_seventy_eight_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch78",
+        "chapter78",
+        WIDENING_CHAPTER_SEVENTY_EIGHT,
+        1100,
+        0,
+        (1099, 1104),
+        false,
+        92,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch78 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch78: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH78.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch78: what parts under the word moved");
+}
+
+const WANT_CH78: &[&str] = &[
+    "600 0/0 form",
+    "600 0/1 form",
+    "600 0/2 form",
+    "600 0/3 form",
+    "600 0/4 form",
+    "600 0/5 form",
+    "600 1/1 form",
+    "600 1/2 form",
+    "600 1/3 form",
+    "600 1/4 form",
+    "600 1/5 form",
+    // An `add`ed Helicopter stands at height 30 the frame after, 631 in ours.
+    "611 0/6 g.last_z[0]",
+    "611 0/6 g.z[0]",
+];
+
 /// **Chapter sixty-eight** (item 2357, `docs/GOLDEN.md` §85, run852): a
 /// Light Horse at a Stable under Monarchy and a live military discount,
 /// and a Catapult at a Siege Factory each side of Socialism — `get_cost`'s
