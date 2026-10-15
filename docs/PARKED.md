@@ -5862,13 +5862,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DQ — reserved
+## Parked by item 2598, 2026-10-15 — the Porcelain Tower's ship arm and its market tax
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2600) **`Leader::calc_gather@006ceee0` and `LeaderData::calc_rare@006e08d0` read `has_wonder(0x215)` too**: the rare
+term and the gather pass the Porcelain Tower touches are still the seam `docs/ECONOMY.md` names; no chapter holds a deposit
+under a human's Tower yet. Names no score; parks.
 
 ## Parked by the next landing, slot DR — reserved
 

@@ -1249,6 +1249,24 @@ mod tests {
     }
 
     #[test]
+    fn the_porcelain_tower_quadruples_a_markets_taxes_and_only_a_markets() {
+        // `get_taxes@00737b50`: `(PORCELAIN_MARKET + 100) * market_taxes / 100`
+        // under a market, nothing without one (item 2598).
+        let t = Tuning::RON;
+        let held = City {
+            market: true,
+            porcelain: true,
+            ..City::default()
+        };
+        assert_eq!(taxes(&t, &held), 40);
+        let bare = City {
+            porcelain: true,
+            ..City::default()
+        };
+        assert_eq!(taxes(&t, &bare), 0);
+    }
+
+    #[test]
     fn the_lazy_refresh_period_is_512_frames_not_256() {
         // The grid is 256 and the minimum gap is 300, so the first grid point
         // past the gap is 512. This is the kind of thing that reads as a bug

@@ -17175,3 +17175,12 @@ is `tools/gamelog/golden/chapter76.cmd`'s header (`--map 14 --end-frame 2100 --l
 and born 847 (226 frames), queued 1750 and born 1868 (117 frames) with The President `0/9` (TypeIndex 355) born 1731 from
 Democracy — whole record agrees, 2100 of 2,100.
 
+
+## run872 — chapter seventy-seven: the Porcelain Tower's ship arm on a human (2026-10-15, item 2598, `att-2598`)
+
+`docs/GOLDEN.md` §96. **What the disk could not answer**: no capture holds a human's Porcelain Tower, and the peace pair's
+who=1 holds none. The recipe is `tools/gamelog/golden/chapter77.cmd`'s header (`--map 14 --end-frame 1400 --log-window 600 1400`,
+the chapter-seventy-six `--detail` flags). Pool lane 1, `success`, `settings_restored`, kept in `~/ron-golden/ch77/map-14/`.
+Minutes waited on another lane: none. **What it holds**: Galleys at the Dock `0/2007`, queued 620 and born 1026 (405 frames),
+queued 1100 and born 1281 (180 frames) under the Tower `0/2009` finished 701; the wealth rows part on 705 (the market's
+taxes, built) and agree after — whole record agrees, 1400 of 1,400, thirteen standing rows.

@@ -347,7 +347,8 @@ impl Sim {
         // `get_taxes@00737b50`: the Porcelain Tower raises a market's taxes
         // (`docs/GOLDEN.md` §96, item 2598).
         out.porcelain = out.market
-            && self.wonders_held(self.cities[c].owner) & (1 << crate::tech::wonder::PORCELAIN_TOWER)
+            && self.wonders_held(self.cities[c].owner)
+                & (1 << crate::tech::wonder::PORCELAIN_TOWER)
                 != 0;
         out.temple = any(Ident::Temple);
         out.university = any(Ident::University);
