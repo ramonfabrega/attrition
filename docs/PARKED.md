@@ -3755,6 +3755,13 @@ branch a value took. 2491's `train_time` showed `has_general`/`find_hero` beside
 reading the tail's arms by hand. A brief row: "a value the original computes and ours does not: run it on a packet
 and read the entered list before reading the arms". One reach.
 
+(2577) **A packet that reproduces the original's write and still leaves the dumped state unreached names the wrong
+call site** (2543's "for the Loop" line, filed at its merge). 2530 read `hurry_action` whole and 2543 ran it on a
+packet — both agreed with this crate — while the dump's own `job_counter 500000` sat on every `finish` capture on
+disk; a grep of the export for 500000 named `run_cmd` case 0x4f in a minute. The brief's "each value the booking
+names, grepped in the dump" had it, but the value was another field's. Candidate: a frame row — "a value the dump
+prints that no reading produces is grepped in the export before the next reading". One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -5737,6 +5744,8 @@ at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2543, 2026-10-15 — chapter seventy-five's `finish` is case 0x4f
+
+Its "for the Loop" line is Loop 2577, at 2543's merge.
 
 (2558) **`hurry` N and `hurry`'s own `this`.** `run_cmd` case `0x51` computes `this` as `String::num` of its argument
 token (`hurry 5` → 5, none → 1; `hurry 0` → 0, the keymap's 10000). This crate maps `hurry` and `hurry N` to one train-time
