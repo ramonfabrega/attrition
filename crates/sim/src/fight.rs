@@ -2730,9 +2730,6 @@ impl Sim {
         }
         let mut hit = hit;
         let owner = self.buildings[b].owner;
-        if std::env::var_os("RON_PROBE_STRAFE").is_some() && b == 0 && (5150..5225).contains(&frame) {
-            eprintln!("PROBE hitb0 f{frame} {hit:?} by {by:?} attr {attrition} dmg {} frac {}", self.buildings[b].damage, self.buildings[b].damage_frac);
-        }
         if !attrition
             && let Some(by) = by
             && self.owner_of(by) != owner

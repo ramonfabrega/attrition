@@ -1103,13 +1103,6 @@ impl Sim {
                 continue;
             }
             let v = self.compare_target(plane, t, true, false) / (d / 0xc0 + 1);
-            if std::env::var_os("RON_PROBE_STRAFE").is_some() {
-                eprintln!(
-                    "PROBE bomber f{} {:?}/{} b{} owner {:?} type {} cmp {} d {} v {}",
-                    self.frame, who, self.units[u].index, b, owner, self.buildings[b].index,
-                    self.compare_target(plane, t, true, false), d, v
-                );
-            }
             if best.is_none_or(|(w, _)| w < v) {
                 best = Some((v, t));
             }
@@ -3837,9 +3830,6 @@ impl Sim {
                 .has(crate::combat::mask::MISSILE)
         {
             return false;
-        }
-        if std::env::var_os("RON_PROBE_STRAFE").is_some() && (5150..5225).contains(&self.frame) {
-            eprintln!("PROBE crash f{} {:?}/{} t{} at {:?} z {}", self.frame, self.units[u].owner, self.units[u].index, t, self.units[u].pos, self.units[u].airframe.z);
         }
         self.crash_round(u, t);
         true
