@@ -3768,6 +3768,12 @@ arm in one read; 2491 read the same counters by hand for the President's. Candid
 <lo-hi> <who>`, with the dump's CRLF and the `BEGIN BUILDQUEUE` sub-block under each `BUILDDATA` handled. Two
 reaches; the third graduates it.
 
+(2599) **`timeout 3600000` in a capture wait reads as a command, and macOS has none** (2572's "for the Loop" line,
+filed at its merge). `CLAUDE.md`'s "with a `timeout` past the capture's length (3600000)" means the Bash tool's
+argument; 2572 prefixed `waitrun.sh` with `timeout`, which is not installed here, so the wait exited at once and
+reported "completed" with run871 still capturing. Candidate: the clause names the tool argument ("the Bash tool's
+`timeout: 3600000`"), and `waitrun.sh` refuses to start under a non-existent wrapper. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
