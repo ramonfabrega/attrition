@@ -3806,6 +3806,9 @@ in 2562).
 **2562** (fifty-first reach, filed at its merge): built `--gate-this OFF:MASK` and `--len-at`, tests failing first,
 and ten on them; ten of ten; `--gate-this` taking an optional value swallows a following positional, and a `stale`
 `ecx` on a `call:` step now blocks two functions (parked 2563, 2564; booked in 2567).
+**2567** (fifty-second reach, filed at its merge): built `stale` on any step, a test failing first, and ten on it;
+ten of ten; `mix --gate` runs gated steps on `== 0` only (parked 2568) and `--gate-this` still swallows a positional
+(2569); both booked in 2583.
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
