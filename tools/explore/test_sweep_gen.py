@@ -755,6 +755,30 @@ class Shapes(unittest.TestCase):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=2379, win=0x20, bias=[], own=0,
                                        stubs=['0x402000:2'], deref=bad)
 
+    def test_a_stub_may_print_an_absolute_cell_read_at_call_time(self):
+        # Item 2513 (parked 2509): `find_wpath_army`, `find_road_restore` and
+        # `find_upath_restore` set `pathfinder+0x70`/`+0x84` to 1 around the
+        # hooked callee and 0 on return; the `--at` window saw only the 0.
+        # `--deref IDX:@VA:N` reads N bytes at the absolute cell VA when stub
+        # IDX is called, printed beside the argument derefs.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2513, win=0x20, bias=[], own=0,
+            stubs=['0x402000:1'], deref=['0:@0xe85eb0:4'], ret='none',
+            port='{ log.push("01000000".into()); 0 }')
+        compile(script, str(sp), 'exec')
+        self.assertIn("DEREF = [(0, ('@', 15228592), 4)]", script)
+        self.assertIn('prints the 4 bytes at the cell 0x00e85eb0 when it is called', test)
+        ns = {}
+        body = script[script.index('def read_arg('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        seen = []
+        ans = ns['read_arg'](7, ('@', 0x1000), 2, lambda a, n: bytes([a >> 8, n]), seen)
+        self.assertEqual(ans(0, [0]), 7)
+        self.assertEqual(seen, ['1002'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2513, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:1'], deref=['0:@0x1000:0'])
+
     def test_an_obj_may_draw_more_rows(self):
         # Item 2314 (Loop 2003, 2287's line): `Object::valid_target` and
         # `UnitData::is_gathering_at` each had an arm few of 220 rows

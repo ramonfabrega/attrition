@@ -108,7 +108,9 @@ Three shapes, each a `__thiscall` on `ecx`:
           (`memcpy`, an import). `--deref IDX:K:N` (item 2379) prints
           the N bytes stub IDX's argument K points at, read when it is
           called, after the record's columns: a caller's local the
-          record names only by depth (`add_command`'s `Command`).
+          record names only by depth (`add_command`'s `Command`). K `@VA`
+          (item 2513) reads the absolute cell VA, as it stands when the
+          stub is called: a flag the function sets around its callee.
 
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
@@ -1291,6 +1293,9 @@ def read_arg(inner, k, n, read, sink):
     `Command`, gone once the call returns — into `sink` as hex (`null` for a
     null argument), then answers as `inner` would."""
     def answer(ecx, args):
+        if isinstance(k, tuple):  # `@VA` (item 2513): an absolute cell, read as it stands now
+            sink.append(read(k[1], n).hex())
+            return inner(ecx, args) if callable(inner) else inner
         a = args[k] & 0xFFFFFFFF
         sink.append(read(a, n).hex() if a else "null")
         return inner(ecx, args) if callable(inner) else inner
@@ -1878,9 +1883,17 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--record IDX@S names a --sparse table S, by its order on the line (item 2309)')
     pderef = []
     for one in deref:
-        idx, k, n = (int(x, 0) for x in str(one).split(':'))
+        i_, k_, n_ = str(one).split(':')
+        idx, n = int(i_, 0), int(n_, 0)
         if not 0 <= idx < len(pstubs):
             raise ValueError('--deref IDX:K:N names one of the --stub callees, by its order on the line')
+        if k_.startswith('@'):
+            # `--deref IDX:@VA:N` (item 2513, parked 2509): an absolute cell, read at call time.
+            if n < 1:
+                raise ValueError(f'--deref {one}: N >= 1')
+            pderef.append((idx, ('@', int(k_[1:], 0)), n))
+            continue
+        k = int(k_, 0)
         if not 0 <= k < pstubs[idx][2] or n < 1:
             raise ValueError(f'--deref {one}: stub {idx} takes {pstubs[idx][2]} argument(s); K names one, N >= 1')
         pderef.append((idx, k, n))
@@ -2021,7 +2034,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            for idx in precord]
         + (['the recorded calls one token a call, in call order, each headed `sIDX:` (the callee)']
            if record_order else [])
-        + [f'stub {idx} prints the {n} bytes its argument {k} points at, hex, after the record (`/` a call)'
+        + [(f'stub {idx} prints the {n} bytes at the cell 0x{k[1]:08x} when it is called, hex, after the record (`/` a call)'
+            if isinstance(k, tuple) else
+            f'stub {idx} prints the {n} bytes its argument {k} points at, hex, after the record (`/` a call)')
            for idx, k, n in pderef]
         + [f'stub {idx} writes a value in '
            + (f'{v[1]}..{v[2]}' if v[0] == 'range' else str(v[1]))
@@ -2585,7 +2600,8 @@ def main(argv=None):
                     'list (90%%), beside `ecx`; printed after `ecx` on the row (item 2346, parked 2338)')
     ap.add_argument('--deref', action='append', default=[], metavar='IDX:K:N',
                     help='obj: stub IDX prints the N bytes its argument K points at, read when it is called '
-                         '(a caller\'s local the record names only by depth; item 2379, parked 2348)')
+                         '(a caller\'s local the record names only by depth; item 2379, parked 2348); K `@VA` reads '
+                         'the absolute cell VA instead, as it stands when the stub is called (item 2513, parked 2509)')
     ap.add_argument('--stub-write', action='append', default=[], metavar='IDX:WIN+OFF:SIZE:VAL',
                     help='obj: stub IDX writes VAL (SIZE 1, 2 or 4 bytes) at window m, cN or pN\'s word each call: '
                          'a callee that unlinks the head its caller loops over (item 2346)')
