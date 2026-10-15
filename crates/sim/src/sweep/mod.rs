@@ -970,6 +970,7 @@ mod unit_data_is_idle;
 mod unit_data_is_modern_infantry;
 mod unit_data_is_moving;
 mod unit_data_is_packing;
+mod unit_data_is_packing_or_unpacking;
 mod unit_data_is_rare_collector;
 mod unit_data_is_unpacking;
 mod unit_data_needs_transport;
