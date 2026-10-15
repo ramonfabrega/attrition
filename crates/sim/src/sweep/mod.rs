@@ -1110,3 +1110,4 @@ mod world_set_was_seen;
 mod world_set_waterhalf;
 mod group_compute_speed;
 mod unit_inc_time;
+mod unbuilt_cities_add_unbuilt_city;
