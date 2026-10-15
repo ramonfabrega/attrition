@@ -16,13 +16,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 medium; the thirty-fifth opens on entry 71's last paragraph.*
 
 - **Words**: the successor pair closed at 5056 (2293); the peace pair (2320: East Indies, the Lakota, All
-  Technologies, `RUSH_RULES 10`, ends at 6822) at 2040 (2384: `Leader::diplomacy`'s peace arm), the open word. Chapters 65–68 closed. Census 894.
+  Technologies, `RUSH_RULES 10`, ends at 6822) at 3302 (2388: `release_mustering`'s pre-war gate), the open word. Chapters 65–68 closed. Census 894.
   Battery 576 / 6566 / 2974, unmoved a tenth tranche. No floor fell; the pass moved no score.
 - **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
   `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
-- **Lanes: three** (DECISIONS 71): live 2388 (Opus 5.5 medium; AI §221, CJ, runs 853–855), 2416 (GOLDEN §87, CK, run
-  857), 2421 (CL), Sonnet 5.5 medium. Landed 2395, 2384, 2389, 2400. Next 2422, run 858, AI §222, GOLDEN §88, park CM.
-- **Fable backlog: 16 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420).
+- **Lanes: three** (DECISIONS 71; 2384 tripped a kill rule: the AI lane is Opus 5.5 **high** from 2412): 2412 (AI §222,
+  CM, runs 853–855), 2416 (GOLDEN §87, CK, run 857), 2421 (CL) live. Next 2423, run 858, AI §223, GOLDEN §88, park CN.
+- **Fable backlog: 17 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -30,7 +30,7 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Peace pair: EastIndiesLakotaPeace w2040 of 6,822
+Peace pair: EastIndiesLakotaPeace w3302 of 6,822
 Census: simulation backed 916 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed
@@ -45,18 +45,19 @@ its merge; at twenty landings write the handoff and clear `steer` into the thirt
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2388 the AI word's (Opus), 2416 the rules track's and 2421
+2412 the AI word's (Opus), 2416 the rules track's and 2421
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2388. **The peace pair's word 2040: ours 37 draws, theirs 35, index
-    0** (2384; ours `Army::find_target+0x7df`, theirs `Unit::do_move+0xe84`;
-    widened already on run849's block 2041, 47 keys). who=1's `1/25`,
-    `1/26` and `1/36` are given moves in ours that theirs gives elsewhere
-    or not at all. 2040 is inside the peace (war from 4500): parked 2321's
-    `release_mustering` reader, modelled as "war always allowed", is the
-    previous item's hypothesis, not a build order. Runs 853–855. AI §221.
+2412. **The peace pair's word 3302: ours 392 draws, theirs 391, index
+    388** (2388; ours `Guy::init_real+0x52`, a birth; theirs
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271`). No dump on disk holds
+    3302 (run849 ends on 2235): the widening first, run849's recipe with
+    `--log-window 3296 3553 --end-frame 3560`, both directions;
+    `RON_DEBUG_BUILDS=3301-3302` names the queue a birth empties (Loop
+    2319). 3302 is inside the peace: 2321's other `war_allowed` readers
+    are the previous item's hypothesis. Runs 853–855. AI §222.
 
 2416. **Chapter seventy: the arms the AI track built that no walk
     holds** (DECISIONS 56 §3; 2389 built Salmon's and Maize's price arms

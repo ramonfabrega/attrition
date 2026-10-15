@@ -3735,6 +3735,11 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
+(2422) **A word's draw delta is two commands where it could be one** (2388's "for the Loop" line, filed at its
+merge). `RON_DEBUG_SITES=<w>-<w>` on the pair's `first_parting`, beside `tools/trace/report.py draws <w>`, put
+the whole delta in two commands. Candidate: `tools/drawdiff.py <pair> <frame>`, the two lists aligned by site,
+with a test made to fail first on the peace pair's 3302. One reach.
+
 (2419) **A worktree subagent is cut from the integration tip, not the lane's tree** (2400's "for the Loop" line,
 filed at its merge; Loop 1629's sequel). The harness cuts `isolation: "worktree"` subagents off the integration
 branch, so a brief's "cut every worktree from the scaffold" has the subagent start without the lane's own commits
@@ -5335,13 +5340,6 @@ later. who=1's groups 69, 79 and 80 hold `[56, 57, 58]`, `[20]` and `[20]` in ou
 (2058–2150). who=0's `other_team_terr` and `min_other_team_terr` read 797 ours and 575 theirs (2001). who=1's
 `SITE[7].reg` reads 65 ours and 0 theirs (2176). None is on a word's frame; the draw stream agrees through
 3301.
-
-(2412) **The peace pair's word 3302: the widening is owed** (2388; the word's frame). Ours spends 392 draws and
-theirs 391, at index 388: ours `Guy::init_real+0x52`, a birth; theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-No dump on disk holds 3302. run849 ends on 2235, and run847 holds checksums and its closing block. The capture is
-run849's recipe with `--log-window 3296 3553` and `--end-frame 3560`. `LAKOTA_PAIR_WORD`'s `WIDENINGS` row names
-this item until a test widens block 3303. 3302 is inside the peace, so parked 2321's other `war_allowed` readers
-are candidates. `RON_DEBUG_BUILDS=3301-3302` names the queue a birth empties (Loop 2319).
 
 ## Parked by the next landing, slot CK — reserved
 
