@@ -6137,13 +6137,28 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ES — reserved
+## Parked by item 2768, 2026-10-15 — the group list's four, and what it leaves
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ES renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2770) **The group-list family's remaining never-backed functions** (names the census, `Census:` 1115 → 1119):
+`GroupData::has_air_units` 0x70b250 and `group_air` 0x70b160 walk a *second* list (`+0x28` short / `+0x3e` char
+through the objects table of the object's own index) with `ObjectData::can_carry` called directly — a
+`--stub ADDR:NARGS` plus a `--link`-style chain over the objects windows; `get_repeat_air` 0x70c0b0 calls
+`get_num_const` and `find_leader` and writes the image's `counts[2]`; `CityData::num_city_buildings` 0x737ae0 calls
+slot `+0x3c` twice an element and its loop ends on a short at `+0x74` of the answered record, so the answer windows
+(`--answer-win`, one a call) need `+0x74` forced to -1 on the last — `--wbias` on an answer window is the
+unbuilt piece. Each is a sweep of the shape the four below were built on.
+
+(2771) **Two of the four have an equivalent break, named rather than hidden**: `get_num_cap_const`'s walk runs
+`num-1..0`, but its result is `num - unflagged - zero answers among the flagged`, which no order changes (the
+`.rev()` removed: held nothing, correctly); `valid_target`'s early `return 1` is equivalent to a loop that keeps
+calling the stubs, since the sweep records no stub log (`--record` of stub 1 would make it observable, and would
+also hold the two arguments handed to slot `+0x138`, which the sweep draws but does not compare).
+
+(2772) **For the Loop**: `tools/sweep_gen.py` has the generator line of a sweep only in the `# sweep_gen:` footer
+of its script, and an eight-object group list is sixty-odd `--wbias` and `--place` flags written by a shell loop
+(`--ptrtab LOC:N:SIZE`, 2769, would be one flag; so would `--wbias m+OFF:LO..HI:COUNT` for a run of words).
+The stub answer layout (own arguments, one drawn answer a stub, then each `--seq` in stub order, `a[own + stubs +
+20*k + call]`) is read off the source here; the docstring does not say it.
 
 ## Parked by the next landing, slot ET — reserved
 
