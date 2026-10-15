@@ -604,6 +604,7 @@ mod group_data_get_unit;
 mod group_data_member;
 mod group_data_num_valid;
 mod group_equals_group;
+mod group_find_role;
 mod group_kill_group_move;
 mod group_leader_report_speed;
 mod group_move_order_get_group_move_order_vtordisp;
