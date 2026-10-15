@@ -3779,6 +3779,10 @@ hand. Either the stream's close is lost on the click-free lane's `!quit`, or the
 from the whole line. Candidate: `--regen` merges the kept line's flags under the new ones; a test made to fail first.
 One reach.
 
+(2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
+`stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
+`RON_STAGE_ALL=1`. Candidate: a dequeue prints `queue=[]` once, held by a test made to fail first. One reach.
+
 (2512) **A window of frames' draws is one `report.py` call per frame** (2460's "for the Loop" line, filed at its
 merge). `tools/trace/report.py <log> draws <frame>` re-reads the whole 277 MB trace each call, about a minute, and
 a loop over 200 frames ran out the two-minute foreground limit. Candidate: a `draws <lo>-<hi> [site filter]` form
