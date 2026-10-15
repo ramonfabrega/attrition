@@ -12571,12 +12571,34 @@ footprint, `docs/AI.md` §132); a walk that places him just beyond it needs a un
 walk into and out of reach is the peace pair's (parked 2526). The arm's order against the national block (a second multiplier
 on a unit the President is near) is held for none of Hoplites' tail. The held-head and queue arms are unchanged.
 
-## 96. Reserved for the next item on the rules track
+## 96. Chapter seventy-seven: the Porcelain Tower's ship arm held on a human — a Galley trains in 405 frames without it and 180 with it, and `get_taxes`'s market arm was unbuilt
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2598 (Claude Sonnet 5.5, `--effort medium`). **Closed at 1400 of 1400** (run872,
+`tools/gamelog/golden/chapter77.cmd`; `golden::chapter_seventy_seven_holds_to_the_golden_word`,
+`chapter_seventy_seven_s_word_frame_is_widened_whole`, 600..1401, the thirteen standing rows of chapter seventy-six
+less its `resource_cap` five).
+
+**The staging** (walked by this crate on run871's start, `RON_STAGE=ch76:chapter77:1400`): `library who=0 1` (the
+Dock needs Barter) and `age who=0 3` (the Tower needs the Gunpowder Age, the Galley the Classical), a Dock `0/2007` at
+(53, 153), chapter seventy-three's Small City, Citizen and wonder site with the Porcelain Tower `0/533` (`0/2009`),
+`select`/`finish` on 701, and a Galley (`341`) queued at the Dock on 620 (the control) and on 1100. A second Galley
+queued on 740 behind the first was refused (the queue holds one), so the second batch waits for the first's birth.
+
+**What run872 held** (one take, click-free lane 1, 801 frames): the Galley queued 621 is born 1026 (405 frames, cost 80),
+the one queued 1101 is born 1281 (180 frames, cost 40) — the held Tower pays `PORCELAIN_SHIPS` on the **ship arm** by
+domain, on a human, and the whole unit record agrees. Mutation (the arm's 50 made 0): the walk's word parts.
+
+**A second arm the capture found, and built.** The leader's wealth parted on block 705, four frames after the Tower
+finished: ours income 160, theirs 640. `CityData::get_taxes@00737b50` multiplies a market's taxes by
+`(PORCELAIN_MARKET + 100) / 100` under `has_wonder(0x215)`; `PORCELAIN_MARKET` ships as `300% bonus wealth`
+(`rules.xml`), so 10 wealth becomes 40, and the golden start's city has a market. `economy::taxes` carries it
+(`City::porcelain`, set in `city_holdings`; `Tuning::porcelain_market`). Test:
+`economy::tests::the_porcelain_tower_quadruples_a_markets_taxes_and_only_a_markets`; the chapter's widening is
+the diff that holds it (the `leader:income/resources/leftover/bucket` wealth rows part without it).
+
+**What is not established.** `calc_gather`'s and `calc_rare`'s Porcelain terms (still a seam, `docs/ECONOMY.md`), the
+Tower on a non-human, and the ships' arm on a second trainer type. Census rows reached: `CityData::get_taxes`'s
+wonder arm, `train_time@006508c0`'s ship arm on a human; the count is the commander's pin.
 
 ## 97. Reserved for the next item on the rules track
 
