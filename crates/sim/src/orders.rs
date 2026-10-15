@@ -2961,9 +2961,6 @@ impl Sim {
     /// handed to the group rather than to the unit when the whole group is
     /// still walking its attack-move ([`Self::attack_move_add`]).
     pub(crate) fn do_group_attack_to_tail(&mut self, u: usize, frame: i64, id: i64) {
-        if std::env::var_os("RON_PROBE2554").is_some() && self.units[u].owner == 1 && self.units[u].index == 145 {
-            eprintln!("P2554 f{frame} tail still={}", self.still_group_move(u, id));
-        }
         if (frame + i64::from(self.units[u].index)).rem_euclid(15) != 0 {
             return;
         }
@@ -2980,9 +2977,6 @@ impl Sim {
     /// search, whose find [`Self::attack_move_add`] adds.
     fn attack_move_look(&mut self, u: usize, hurry_gate: bool) {
         let me = Obj::Unit(u);
-        if std::env::var_os("RON_PROBE2554").is_some() && self.units[u].owner == 1 && self.units[u].index == 145 {
-            eprintln!("P2554 look attack={} head={:?}", self.profile(me).attack, matches!(self.melee_squad_head(u), SquadHead::Search));
-        }
         let supply = self.units[u]
             .ty
             .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO));
@@ -3011,11 +3005,7 @@ impl Sim {
                 if self.take_siege_army_target(u).is_some() {
                     return;
                 }
-                let found = self.find_melee_target(u, -1);
-                if std::env::var_os("RON_PROBE2554").is_some() && self.units[u].owner == 1 && self.units[u].index == 145 {
-                    eprintln!("P2554 search found {:?}", found);
-                }
-                if let Some(t) = found {
+                if let Some(t) = self.find_melee_target(u, -1) {
                     self.attack_move_add(u, t);
                 }
             }
