@@ -1065,6 +1065,28 @@ class Shapes(unittest.TestCase):
         self.assertEqual(sweeplib.xmm_bits(-2.5), 0xc0200000)
         self.assertEqual(sweeplib.xmm_bits(0x42280000, raw=True), 0x42280000)
 
+    def test_a_fwd_gate_writes_a_gate_and_forward_forwarder(self):
+        # Item 2443 (parked 2433, Loop 2003): `GroupOut::issue_*` tests a byte
+        # of `gamec`, then forwards its arguments to `CommandManager::issue_*`
+        # with the caller's stale `ecx` first. One flag writes what seven
+        # hand-written `--port`s of item 2421 wrote: the window, the cell, the
+        # byte's draw, the stub of N+1 arguments, the record and the port.
+        x = sweep_gen.fwd_gate_expand('0x820:0x10:0x9415e0', own=4)
+        self.assertEqual(x['stub'], ['0x9415e0:5'])
+        self.assertEqual(x['cells'], ['0xc061e8:0x900'])
+        self.assertEqual(x['wbias'], ['c0+0x820:0,0x10,0x20,0x30,0xef'])
+        self.assertEqual(x['record'], ['0'])
+        self.assertEqual(
+            x['port'],
+            '{ if c[0][0x820] & 0x10 != 0 { log.push("-".into()); } else { log.push(format!('
+            '"m+0x0,m+0x0,{},{},{},{}", a[0], a[1], a[2], a[3])); } 0 }')
+        # A constant tail (`hotkey`'s zero) is one more stub argument.
+        t = sweep_gen.fwd_gate_expand('0x820:0x10:0x941fd0:0', own=1)
+        self.assertEqual(t['stub'], ['0x941fd0:3'])
+        self.assertIn('"m+0x0,m+0x0,{},0", a[0]', t['port'])
+        with self.assertRaises(ValueError):
+            sweep_gen.fwd_gate_expand('0x820:0x10', own=1)
+
     def test_a_vtordisp_thunk_moves_this_by_the_word_before_it(self):
         # Item 2362 (parked 2348, Loop 2003): a `vtordisp` thunk is `sub ecx,
         # [ecx-4]; jmp target`, and `fwd` drew `this` as an address nothing

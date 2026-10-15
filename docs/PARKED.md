@@ -5405,13 +5405,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CO — reserved
+## Parked by item 2443, 2026-10-14 — the sweep's seventy-third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2444) **Parked 2431's list was not forwarders** (2443): only `GroupOut::issue_spell` of the twelve is a gate-and-forward
+(with a `validate_spell` stub); `issue_stance`, `_form`, `_unitmask`, `_buildmask`, `_garrison`, `_siege_attack`,
+`_patrol`, `_city_gather` are `issue_halt`'s shape — gate, `check_accept_issue`, `add_group`, the command built in a
+local, `add_command` — and were hand `--port`s. `--fwd-gate` (built, one test failed first) rewrites `issue_attack`'s
+script byte for byte but no function left in the list uses it; a `--cmd-gate OFF:MASK:CMD:SIZE:FIELD,..` that writes
+that shape (the `sp-` token is `c + 8 + 4*own`, `c` the local's `ebp` depth) would have written seven of this batch.
+(2445) **Left**: `GroupOut::issue_city_gather` (0x70ac70: a `SoundGlobal::play(0x2b)` call before the check, wants a
+stub), `CommandManager::issue_camera` (0x940a20: `cvttss2si` of two camera floats through `[0xc06200]`; the port
+needs the indefinite-integer rule, not Rust's saturating `as`), `GroupOut::issue_move_to`, `_attack_ground`,
+`_gather_point`, `CommandManager::issue_set_transport`, `_disband`.
 
 ## Parked by the next landing, slot CP — reserved
 
