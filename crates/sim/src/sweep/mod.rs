@@ -273,6 +273,7 @@ mod animal_data_get_speed;
 mod animal_data_valid_target_const;
 mod animal_process;
 mod armies_diplo_change;
+mod army_walk_data;
 mod armies_find_aggressive_army;
 mod armies_find_city;
 mod armies_leader_defeated;

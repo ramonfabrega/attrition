@@ -586,6 +586,7 @@ ENTRY = 0x{va:08x}
 CALLS = {calls}
 GLOBAL = {glob_cell}
 GATE = {gate_off}
+GATE_THIS = {gate_this}
 STALE = {stale}
 
 
@@ -596,6 +597,8 @@ def main(argv):
     vt = h.vtable({{0: ("walk", 2, 7), 4: ("walk4", 1, 9)}})
     for i in range(140):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
+        if GATE_THIS:
+            this = h.alloc(0x100)  # a written object: the gate is the short at [this]
         g = rng.randrange(0x1000, 0x7FFF0000) & ~3
         gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
         if STALE:
@@ -606,6 +609,9 @@ def main(argv):
         h.w32(walker, vt)
         if GATE is not None:
             h.w32(walker + GATE, gv)
+        if GATE_THIS:
+            gv = gv & 0xFFFF if i % 4 != 3 else 0
+            h.w16(this, gv - 0x10000 if gv & 0x8000 else gv)
         if GLOBAL is not None:
             rec = h.alloc(0x40)
             h.w32(rec + 0x10, g)
@@ -670,7 +676,7 @@ def _mix_expr(tok):
     return str(int(tok, 0))
 
 
-def generate_mix(spec, *, item, steps, glob=None, gate=None):
+def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False):
     """`steps`: `call:ADDR:NARGS:ECX:ARGS`, `walk:A0:A1` (the walker's slot 0),
     `walk4:OFF` (its slot 4, handed `**glob + 0x10` pointer's word + OFF),
     each optionally prefixed `gated/` — run only when `[walker+gate] == 0`."""
@@ -694,12 +700,14 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None):
         else:
             raise ValueError(f'a step is call:, walk: or walk4:, not `{st}`')
         push = f'calls.push(vec![{vec}]);'
-        code.append(('        if gate == 0 { ' + push + ' }') if gated else ('        ' + push))
+        cond = 'gate != 0' if gate_this else 'gate == 0'
+        code.append(('        if ' + cond + ' { ' + push + ' }') if gated else ('        ' + push))
     script = MIX_SCRIPT.format(snake=sn, name=name, va=va, item=item, nsteps=len(steps),
                                glob=', from the global cell' if glob else '',
                                gate=f', the last gated on [walker+{gate:#x}] == 0' if gate is not None else '',
                                calls=repr(calls), glob_cell=hex(glob) if glob else 'None',
                                gate_off=hex(gate) if gate is not None else 'None',
+                               gate_this=bool(gate_this),
                                stale=any('stale' in st.split(':', 1)[1] for st in steps))
     doc = f'{len(steps)} step(s) in order, `ecx` and arguments held to the spec.'
     test = MIX_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
@@ -2551,6 +2559,7 @@ def main(argv=None):
     ap.add_argument('--a1', default='this', help='walk: the second callback argument')
     ap.add_argument('--step', action='append', default=[], help='mix: call:ADDR:NARGS:ECX:ARGS | walk:A0:A1 | walk4:OFF, in order; `gated/` prefix')
     ap.add_argument('--glob', type=lambda s: int(s, 0), help='mix: the global cell (the walk4 argument is *(*cell+0x10)+OFF)')
+    ap.add_argument('--gate-this', action='store_true', help='mix: gated steps run when the short at [this] != 0 (`this` is a written object)')
     ap.add_argument('--gate', type=lambda s: int(s, 0), help='mix: gated steps run when [walker+GATE] == 0')
     ap.add_argument('--own', type=int, default=0, help='fwd, obj: stack arguments the function itself takes')
     ap.add_argument('--argset', action='append', default=[], help='obj: IDX:V,V,.. — argument IDX drawn from the list (90%%)')
@@ -2772,7 +2781,8 @@ def main(argv=None):
             sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1)
         elif args.shape == 'mix':
             sp, script, tp, test, mod = generate_mix(args.function, item=args.item, steps=args.step,
-                                                    glob=args.glob, gate=args.gate)
+                                                    glob=args.glob, gate=args.gate,
+                                                    gate_this=args.gate_this)
         elif args.shape == 'obj':
             sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
                                                     own=args.own, ret=args.ret or 'eax', port=args.port,
