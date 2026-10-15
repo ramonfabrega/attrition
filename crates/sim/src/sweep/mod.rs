@@ -587,6 +587,7 @@ mod guard_order_get_guard_order_vtordisp;
 mod guard_order_walk_data_vtordisp;
 mod guy_data_get_render_bank;
 mod guy_data_get_render_pitch;
+mod guy_data_get_render_x;
 mod guy_data_get_render_y;
 mod guy_data_get_render_z;
 mod guy_data_get_speed;
