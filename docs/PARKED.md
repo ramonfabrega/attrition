@@ -5341,7 +5341,7 @@ later. who=1's groups 69, 79 and 80 hold `[56, 57, 58]`, `[20]` and `[20]` in ou
 `SITE[7].reg` reads 65 ours and 0 theirs (2176). None is on a word's frame; the draw stream agrees through
 3301.
 
-## Parked by the next landing, slot CK — reserved
+## Parked by item 2416, 2026-10-14 — the unreached diplomacy arms, surveyed (GOLDEN §87)
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot CK renames this heading `## Parked by item N, <date> — <title>`
@@ -5380,3 +5380,11 @@ names slot CO renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
+
+(2427) **A TEAM_STYLE 0 pair is the cheapest way to reach `Leader::diplomacy`'s team-style SEAMs** (item 2416,
+`docs/GOLDEN.md` §87; names no score; 2387's sequel). The peace pair's lobby with `--profile TEAM_STYLE=0` reaches
+styles 0/8/11's elimination and capital arms at its first cadence after the peace; `lobby_of` reads `TEAM_STYLE`.
+A pair is the AI word's to book (DECISIONS 53, 61); the profile key is untested.
+(2428) **No golden chapter can stage 2387's allied, offers, `dow`, `blacken` and hiring arms, nor 2111 and 2196**
+(item 2416; names no score): each needs a human counterpart, an alliance, or the AI left on. 2391 and 2332's
+"name the staging first" is answered here: there is none; close both against §87.

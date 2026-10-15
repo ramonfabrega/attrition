@@ -12209,12 +12209,45 @@ research arm reads neither). Tests: `cost::tests::salmon_takes_its_fifth_after_s
 `rare_conquest` half (`+0x6dd1`) is Conquer the World's and is not modelled beyond the union `has_rare` keeps. Census
 rows these arms would reach (`get_cost`'s two rare arms) stay unbacked.
 
-## 87. Reserved for the next item on the rules track
+## 87. Chapter seventy: the unreached arms of `Leader::diplomacy`, surveyed and not staged
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2416 (Claude Sonnet 5.5, `--effort medium`). **Not a closed chapter, and no code moved**: no word, widening, floor or
+census row moved, and run 857 was not taken. This section is the staging analysis the queue asked for first, so the next
+lane that books one of these arms starts from it.
+
+**How it was established.** `crates/sim/src/diplomacy.rs`'s `SEAM`s read against parked 2387, 2390, 2391 and 2332;
+`tools/seams.py --item 2416`; `tools/gamelog/captures.txt`'s run 846–849 recipes (the peace pair's `--profile` lines);
+`crates/rondata/src/diff/setup.rs::lobby_of` (`TEAM_STYLE` is read from `GAME INFO`).
+
+| arm (SEAM in `diplomacy.rs`) | what reaches it | console can stage it? |
+|---|---|---|
+| team styles 0, 7, 8, 11 (`store_view` returns early; elimination, capital and declaring arms) | a lobby with `TEAM_STYLE` ≠ 1 | **No.** The style is a lobby setting read at game start; `--profile TEAM_STYLE=N` is the shape of the other profile keys, so it is a *new pair's* lobby, not a golden chapter on map 14. |
+| the allied arm past its opening clear (`006bc950:600–700`, `:757`) | a computer allied with the target; `allied_both` | **No.** An alliance is a diplomatic act between players; the console issues no diplomacy command, and a lobby team puts the pair on one team (`is_cooperative`, team style 8–12). Same new-pair answer. |
+| the offers arm and the at-war tail (`LAB_006bf0e0`) | `aggression == 0` (offers) or at war with `aggression != 0` | **Partly on disk already**: the coverage lobby is at war from frame 0 (run817, 4260) and the at-war early return is hit there; what it *draws* past the return is the arm's content, and no capture's window reaches a draw there. |
+| `dow` (`+0x270`), `blacken` (`+0x20c`), hiring (`hire_stamp`/`hire_who`), `dip[t].agree` (`+0x692c`) | `Leader::action_declare` raising `blacken`; a hired unit; a human's offer | **No.** `action_declare`'s only caller on a captured path is `Nuke::do_damage` (AI §171, "not evidenced"); a human computer-player interaction is not a console command. |
+| 2111 `ai_sites` wrapping decrement, 2196 `land_tail`'s `buildings` toggle (parked 2332, 2391) | a computer census adjustment (`!ai off` never runs it); a building group whose `list[0]` turns | **No**, as chapter sixty-seven found: both need the AI on, and a golden chapter turns it off. |
+| Salmon / Maize holders (parked 2390) | a lobby whose map places the deposit near a player | **No**: this crate carries no map generator, so no seed can be named from here. |
+
+**Why these are arms no walk holds.** Every capture on disk is team style 1; the peace pair is at peace until its
+word, the coverage pair is at war from frame 0 and agrees on `aggression` once its target is met, so each `SEAM`
+above waits behind a predicate no lobby set: a different team style, an alliance, a human offer, a rare deposit.
+
+**The census rows.** The rows this chapter would reach are the functions on the seven `SEAM` lines above that
+`tools/census.py --never` lists as cited and never entered: `Leader::action_declare`, `Leader::action_clear_all` and the
+offers arm's callees. None is backed by a trace today; the row count stays 916 of 3611 (the commander's pin).
+
+**What it would take, in order of cost.**
+1. A **TEAM_STYLE 0 pair** in the peace pair's lobby (run846's recipe plus `--profile TEAM_STYLE=0`): the cheapest
+   new lobby, and `lobby_of` already reads it. It reaches the style 0/8/11 SEAM at its first diplomacy cadence after
+   the peace, and every census row the elimination arm names. It is a *pair* (DECISIONS 53, 61), so it is the AI
+   word's lane to book, not this lane's.
+2. A lobby that places Salmon or Maize (2390): needs the original's map script run offline to name a seed.
+3. The rest need a human counterpart or the AI left on, which no golden chapter can have.
+
+**What is not established.** That `--profile TEAM_STYLE=N` takes (read off `lobby_of` and the other profile keys, not
+run). Whether the coverage lobby's at-war return draws nothing past it (it agrees to 4730, which says the
+return's draws match, not that the arm past it is exercised). Everything above is a reading of this crate's seams and the
+capture recipes; no claim here is backed by a diff.
 
 ## 88. Reserved for the next item on the rules track
 
