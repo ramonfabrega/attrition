@@ -545,6 +545,8 @@ pub mod wonder {
     pub const HANGING_GARDENS: usize = 0x210 - BASE;
     /// `COLOSSEUM`: `compute_reg_territory`'s fort and flat border arms.
     pub const COLOSSEUM: usize = 0x212 - BASE;
+    /// `PORCELAINTOWER`: `train_time`'s ship arm.
+    pub const PORCELAIN_TOWER: usize = 0x215 - BASE;
     pub const TIKAL: usize = 0x214 - BASE;
     /// The one wonder `has_wonder` holds without a city (`param_1 ==
     /// 0x216`).

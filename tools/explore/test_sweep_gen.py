@@ -1593,6 +1593,22 @@ class Shapes(unittest.TestCase):
                                                      steps=['walk4:0x21df4'])
         self.assertIn('STALE = False', script0)
 
+    def test_a_stale_ecx_on_a_call_step_after_slot_0_is_the_walkers_and_the_callees(self):
+        # parked 2563: PatrolOrder::walk_data does `pushl %ecx` after the slot-0
+        # callback and again after a direct callee: both are leftovers the
+        # hooked callee must leave (an answer `(eax, ecx)`), slot 0 included.
+        spec = 'PatrolOrder::walk_data@00483e80'
+        steps = ['walk:this-0x40+d:this-0x3f+d', 'walk:this-0x8:this-0x4',
+                 'call:0x483cc0:2:this-0x40:p0,stale', 'call:0x483cc0:2:this-0x24:p0,stale']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2567, vbase=0x44, steps=steps)
+        compile(script, 'sweep_patrol_order_walk_data.py', 'exec')
+        self.assertIn('STALE = True', script)
+        self.assertIn('h.answers["walk"] = (7, sv)', script)
+        self.assertIn('h.answers[f"{a:x}"] = (0, sv)', script)
+        self.assertIn('calls.push(vec![this - 0x24, walker, stale]);', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2567, vbase=0x44, steps=steps[:2])
+        self.assertIn('STALE = False', script0)
+
     def test_a_mix_may_gate_on_the_short_at_this(self):
         # parked 2536: Army::walk_data walks (this+2, this+0x98) only when the
         # short at `this` is non-zero; `this` must be a real, written object.
@@ -1647,6 +1663,40 @@ class Shapes(unittest.TestCase):
         self.assertIn('LEN_AT = 0x10', script)
         self.assertIn('this + 0x12 + gate', test)
         self.assertIn('if gate != 0 {', test)
+
+    def test_a_mix_may_gate_on_a_walker_word_not_equal_to_zero(self):
+        # parked 2568: Rivers::walk_data calls 0x8878f0 and 0x886020 (ecx = this)
+        # only when [walker+4] != 0, then 0x4a2f80 ungated.
+        spec = 'Rivers::walk_data@008890e0'
+        steps = ['gated/call:0x8878f0:0:this:', 'gated/call:0x886020:0:this:',
+                 'call:0x4a2f80:2:0xc11c10:p0,stale']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2583, gate=4, gate_ne=True, steps=steps)
+        compile(script, 'sweep_rivers_walk_data.py', 'exec')
+        self.assertIn('GATE = 0x4', script)
+        self.assertIn('if gate != 0 {', test)
+        self.assertNotIn('if gate == 0 {', test)
+        self.assertIn('let stale = g;', test)
+        self.assertIn('h.answers["walk"] = (7, sv)', script)
+        _, script0, _, test0, _ = sweep_gen.generate_mix(spec, item=2583, gate=4, steps=steps)
+        self.assertIn('if gate == 0 {', test0)
+
+    def test_a_mix_may_assert_the_result_is_the_stack_argument(self):
+        # parked 2570: a get_name returns its out-pointer ([ebp+8]), eax == walker.
+        spec = 'Surf::get_name@004a5dc0'
+        steps = ['call:0xa1d660:1:p0:11879128']
+        _, _, _, test, _ = sweep_gen.generate_mix(spec, item=2583, steps=steps, ret_arg=True)
+        self.assertIn('assert_eq!(eax, walker', test)
+        _, _, _, test0, _ = sweep_gen.generate_mix(spec, item=2583, steps=steps)
+        self.assertNotIn('assert_eq!(eax, walker', test0)
+
+    def test_gate_this_does_not_swallow_a_following_positional(self):
+        # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
+        self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', 'Foo::bar@00401000']),
+                         ['mix', '--gate-bare', 'Foo::bar@00401000'])
+        self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', '0x30:1', 'F@1']),
+                         ['mix', '--gate-this', '0x30:1', 'F@1'])
+        self.assertEqual(sweep_gen.split_gate_this(['mix', 'F@1', '--gate-this']),
+                         ['mix', 'F@1', '--gate-bare'])
 
 
 if __name__ == '__main__':
