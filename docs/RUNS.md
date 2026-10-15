@@ -17107,3 +17107,24 @@ Exploratory siblings `run900-playback-probe` and `run900-playback-probe-b`
 are failed runner attempts, not scored fixtures; the latter mixed two launches
 because the solo filename triggered a false retry. RECGAME §7 and
 `docs/journal/2026-10-15-astra-replay-oracle.md` carry limitations/reproduction.
+
+## run865 — the peace pair's packet at logger frame 4859 (2026-10-15, item 2491, `att-2491`)
+
+`docs/AI.md` §225. **What the disk could not answer**: no dump prints a queue's target (`ObjectData::train_time`),
+and run861 shows only that theirs' Airbase `1/2005` finishes its Strategic Bomber at a counter of 16500, where
+ours computes 33000. run861's recipe with the window at the word, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run865`: `--map 18 --end-frame 4863 --timeout 3600 --log-window 4855
+4860 --detail end:UNITS=3,BUILDS=7 --ai-tribe 19 --cover cover=0 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10 --tracer-def RON_STATE_FRAME=4859 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`.
+- Click-free pool lane 1, the first take: `success`, `settings_restored`, 4864 frames, 138.0 s launch to exit
+  (`!ffwd 6`), seed 12345.
+- Kept in `~/ron-golden/run865/map-18/frame-snapshot.bin`, 950,297,100 bytes, frame 4859,
+  SHA-256 `57a8462de7a528ef2d858b61e65eba938c2e9cee1c70ec9f3b66c9f5163b1ea8`.
+- Minutes waited on another lane's capture: none.
+
+**What it holds**: `unitaddr.py <packet> 42720 40992` → `1/2005` at `0x14bf3c34`. `step4.py --entry 6508c0 --this
+14bf3c34 --args 305` returns **16500** (2,972 instructions, 21 functions, every one lifted), entering
+`ObjectData::has_general`, `HeroesData::find_hero` and `HeroData::get_radius`: the President's arm, `33000 × 100 /
+200`. Read by `cities_tests::the_president_near_a_trainer_halves_a_trained_unit_s_time`'s premise and run861's
+4860 block; no test reads the packet. runs 866 and 867 unused.

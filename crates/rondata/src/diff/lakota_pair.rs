@@ -53,8 +53,14 @@ pub(crate) const LAKOTA: Pair = Pair {
     // run855's `diplos` agree (0 / 0 on 4538): ours 14 draws, theirs 15,
     // index 6 — ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::init_real+0x52` (a birth).
-    count: 4859,
-    sequence: 4859,
+    // Item 2491: 4859 → 5036, `train_time`'s President arm (`docs/AI.md`
+    // §225): who=1's President `1/161` stands in reach of the Airbase
+    // `1/2005`, so its Strategic Bomber trains in 16500, `33000 × 100 /
+    // 200`, and is born on 4859 both sides (`queued` 1 / 1 on 4860): ours
+    // 164 draws, theirs 168, index 152 — ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`, theirs `Guy::init_real+0x52` (a birth).
+    count: 5036,
+    sequence: 5036,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -335,7 +341,7 @@ fn run861_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 1432, "initial run861 baseline");
+    pin_eq!(w.firsts.len(), 378, "initial run861 baseline");
     // Item 2460: the word 4859's own block is 4860. Theirs spends a birth
     // there (`Guy::init_real < Unit::init < Objects::init_unit`): `1/50`
     // is unlinked on 4860 (the dump holds it alone), `1/2005`'s `queued`

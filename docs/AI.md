@@ -20905,12 +20905,69 @@ parting inside its window: `active` ours 14 against theirs 13 on 4679. That is w
 **Diff-backed**: the arm, on run847's draw stream to 4859 and run855's `diplos` from 4538. **Reading only**: the
 team-style gates past style 1, and the order of the walk (no lobby yet has a pair where it matters).
 
-## 225. Reserved for the next item on the AI track
+## 225. The President trains a unit twice as fast, and the peace pair's word moves 4859 → 5036 (2026-10-15, item 2491)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The draws on 4859.** Ours spends 14 and theirs 15, parting at index 6 (`RON_DEBUG_SITES`; run847's trace). Theirs
+spends `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd` (seed `447ffd44`). The birth is who=1's
+Strategic Bomber `1/50` (`TypeIndex` 305 `STRATEGICBOMBER`, air), on block 4860 at (42744, 41016). Its trainer is
+the Airbase `1/2005` (`TypeIndex` 447 `AIRBASE`): its `queued` drops 2 → 1 and its head's `job_counter` 16500 → 0.
+
+**The clock agrees and the target does not.** `1/2005`'s head counter is the same on both sides through the
+window: 15900 on block 4853, up 100 a frame (`RON_DEBUG_BUILDS` against the dump's `BUILDQUEUE`). `advance` reads
+the old counter, so theirs' target on tick 4859 is exactly 16500. Ours' `queue_target` was 33000:
+- the base: `JOB_TIME` 225 × 100 = 22500;
+- × `UNIT_RATE_BASE` 120 % = 27000;
+- \+ 8 bombers owned × 10 × 75 = 33000.
+
+The previous bomber from the same queue (run855, tick 4694) took 30750 in theirs, which is that formula with five
+owned. Who=1's `LEADERDATA` changes nothing between 4857 and 4861 except `escrow` and `retargets`. Its buckets rise
+by the trickle alone, so nothing was paid for a hurry. Its one wonder record (`wonder_mark` 1) is the Statue of
+Liberty `1/2026`; the Space Program `1/2042` stands at 572454 of 840000.
+
+**The packet.** run865 (logger frame 4859, `RON_STATE_FRAME=4859`) was taken because no dump prints a queue's
+target. `step4.py --entry 6508c0 --this 14bf3c34 --args 305` runs `ObjectData::train_time` on the Airbase
+(`unitaddr.py … 42720 40992`) and returns **16500** in 2,972 instructions. It entered `ObjectData::has_general`,
+`HeroesData::find_hero` and `HeroData::get_radius`. That is `train_time@006508c0:103`–`107`:
+`has_general(this, 0, THEPRESIDENT) >= 0` gives `t = t × 100 / (THEPRESIDENT_UNIT_BUILD_SPEED + 100)`, and the
+constant ships as 100 %. The arm sits after the ramp and the lobby handicap and before the national block. A
+building's `has_general` is the reach `construct_time`'s clause reads (item 1503,
+`Sim::president_near_building`): one of the owner's THEPRESIDENT heroes, on the map, within `get_radius × 0xc0` of
+the building's centre less `(x_size + y_size) × 0x60`. Who=1's President is `1/161`, at (40424, 40689) on block
+4853. run855 (4538..4794) holds no President, which is why the bomber of 4694 paid the whole 30750.
+
+**Built.** `Tuning::thepresident_unit_build_speed` (`THEPRESIDENT_UNIT_BUILD_SPEED`, 100). In
+`Sim::queue_target`, a train job's tail opens with `Faster(100)` when `president_near_building(at)` holds. A
+research entry never reaches the arm, since it sits inside the availability branch. Test:
+`cities_tests::the_president_near_a_trainer_halves_a_trained_unit_s_time` (a rival's President leaves the time
+whole, the owner's halves it, a research entry keeps its time). Two mutations, through `tools/mutate.py`, both
+exit 101:
+- the arm dropped fails the test;
+- the arm dropped fails `lakota_pair_first_parting`, whose word goes back to 4859.
+
+**Value diff and score.** On block 4860 `1/2005`'s `queued` is 1 / 1, and `1/50` is born on both sides; it was
+ours 2 against 1, with ours' `1/50` a different unit on 4878. run861 goes **1432 → 378**: the 4860 rows (`queued`,
+`num_units[255]` 8 / 9, `active`, `control`), `1/50`'s 4878 block and everything they fed close. One row is left on
+the newborn: `g.z[0]` ours 0 against theirs 19. The 106 keys from 4853 stand: the human's `control` 14 / 0, who=1's
+buckets, and `1/2006`'s `queue[0].cost` 240 / 224. The walk reads 1441 heights at inexact corners (1080 before),
+and run861's window 1553.
+
+**The word moves 4859 → 5036**, count and sequence both. Ours spends 164 draws and theirs 168, parting at index
+152. Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`; theirs spends `Guy::init_real+0x52`, a birth. It is
+inside run861 (block 5037). There theirs holds three units ours does not, `1/209`, `1/210` and `1/211`. The queues
+of `1/2030`, `1/2032` and `1/2037` are `queued` ours 1 against theirs 0, and who=1's `num_units[255]` is 9 / 11.
+`1/2005`'s head `job_counter` is ours 17700 against theirs 16875. In theirs it ran to 17600 on block 5036, past the
+16875 a President in reach would allow, and dropped to 16875 on 5037. So the President's reach changes on that
+frame: first a target of 33750, then 16875. That is the next item's lead, not its mechanism.
+
+**Not established.**
+- `has_general`'s first arm: the trainer is itself a general (`+0x18` and `+0xc4`), which is a unit's question,
+  never a building's.
+- Its early `return −1` when the leader's THEPRESIDENT count at `+0x56fe` is zero. `find_hero` finds none either,
+  which is the same SEAM `president_near_building` names.
+- The President's own walk into and out of reach, which is the next word's.
+
+**Diff-backed**: the arm's value, on run865's packet (16500) and on run861's 4860 block. **Reading only**: its
+place in the tail before the national arms. No capture has a second multiplier on a unit the President is near.
 
 ## 226. Reserved for the next item on the AI track
 
