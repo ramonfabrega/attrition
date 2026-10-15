@@ -182,13 +182,18 @@ def lane_skips(timings, tests):
 # those pins, so its lane gate skips nothing; one that touches neither — a
 # sweep batch, a document — cannot, and keeps the fast suite. The
 # whole-suite run before the gate (Loop 2409) is then the gate's own.
-WIDENS = ('crates/sim/src/', 'crates/rondata/src/diff/')
+# The thirty-fifth steer widened the rule from sim and the `diff` row lists
+# to every crate (a parser in `rondata` moves every pin) and the workspace
+# files, less the two things a pin cannot see: a sweep test and the census
+# count. `--scope` (below) reads the same rule for the booking gate.
+NEVER_WIDENS = ('crates/sim/src/sweep/', 'crates/rondata/src/census.rs')
 
 
 def lane_widens(paths):
     """The paths of a branch that can move the timed `diff::` pins."""
     return sorted(p for p in paths
-                  if p.startswith(WIDENS[1]) or (p.startswith(WIDENS[0]) and '/sweep/' not in p))
+                  if (p.startswith('crates/') or p in ('Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml'))
+                  and not p.startswith(NEVER_WIDENS))
 
 
 def branch_paths(base, run=subprocess.run):
@@ -235,15 +240,30 @@ def journal_of(item, root=ROOT):
     return sorted(Path(root, 'docs/journal').glob(f'*-item-{int(item)}.md'))
 
 
+# The release suite's width and its ceiling (the thirty-fifth steer, Ramon's
+# word): four threads under 20 GiB is a lane's, three of which may gate at
+# once; six or eight under 40 GiB is the booking gate's, which runs alone.
+# The box has 128 GiB; the widest single test binary measured 11.8 GiB at
+# four threads, and whether that is one test or four is the timing file's
+# memory column to say.
+WIDTHS = (2, 3, 4, 6, 8)
+
+
+def memory_cap_gib(test_threads):
+    return 20 if test_threads <= 4 else 40
+
+
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
-         lane=False, tests=None, item=None, base='worktree-replan-pdb'):
+         lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None):
     # Parked 1713: two lanes `pkill -f release_gate.py`'d every gate on the
     # box to stop their own; a gate names its pid first so it can be killed
     # by it.
     print(f"Gate pid: {os.getpid()} — kill this gate by its pid, never by `pkill -f` on a "
           'name every lane shares (parked 1713)', flush=True)
-    if type(test_threads) is not int or test_threads not in (2, 3, 4):
-        raise ValueError('test threads must be 2, 3, or 4')
+    if type(test_threads) is not int or test_threads not in WIDTHS:
+        raise ValueError(f'test threads must be one of {WIDTHS}')
+    if scope is not None and lane:
+        raise ValueError('--scope is the booking gate\'s; a lane gate has --tests and --base')
     tests = list(tests or [])
     if item is not None and not lane:
         raise ValueError('--item is a lane gate\'s: the booking gate reads the queue, not a journal')
@@ -260,8 +280,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     if any(not f.strip() for f in tests):
         raise ValueError('an empty --tests filter would keep every slow test')
     skips, widened, touched = [], [], None
-    if lane:
-        touched = branch_paths(base)
+    if lane or scope is not None:
+        touched = branch_paths(base if lane else scope)
         widened = lane_widens(touched or [])
         skips = [] if widened else lane_skips(TIMINGS.read_text(), tests)
     install = Path(install).resolve()
@@ -279,7 +299,14 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     env.pop('RON_TEST_MEMCAP_GIB', None)
     env['RUST_TEST_THREADS'] = '2'
     env['RON_INSTALL'] = str(install)
-    policy = {'schema': 1, 'release_test_threads': test_threads, 'memory_cap_gib': 20}
+    policy = {'schema': 1, 'release_test_threads': test_threads, 'memory_cap_gib': memory_cap_gib(test_threads)}
+    if scope is not None:
+        # The thirty-fifth steer (Ramon's word): a booking gate scoped to the
+        # merges since the last whole one runs the timed tests only when one
+        # of them can move a pin; every third landing, and the drain, take
+        # the whole gate with no --scope. Forgives nothing, as ever.
+        policy['scope'] = {'base': scope, 'widened': widened, 'skipped': len(skips),
+                           'timings': str(TIMINGS.relative_to(ROOT))}
     if lane:
         policy['lane'] = {'tests': tests, 'timings': str(TIMINGS.relative_to(ROOT)),
                           'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
@@ -301,10 +328,22 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],
         ['cargo', 'fmt', '--check'],
         ['cargo', 'run', '-p', 'rondata', '--', str(install)],
-        ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release', '--no-fail-fast', '--', f'--test-threads={test_threads}']
-        + (['--exact'] + [arg for name in skips for arg in ('--skip', name)] if lane else []),
-        ['zsh', 'tools/guard.sh'],
+        ['zsh', 'tools/memcap.sh', str(memory_cap_gib(test_threads)), 'cargo', 'test', '--release',
+         '--no-fail-fast', '--', f'--test-threads={test_threads}']
+        + (['--exact'] + [arg for name in skips for arg in ('--skip', name)] if (lane or scope is not None) else []),
+        # The guards ran in the release suite already; the reflex script
+        # re-runs them on the release binary in seconds (the thirty-fifth
+        # steer: a debug build a gate was three minutes, forty-four gates a
+        # tranche).
+        ['zsh', 'tools/guard.sh', '--built'],
     ]
+    if scope is not None:
+        print((f"Booking gate scoped to {scope}: " +
+               (f"every timed test — a merge touches {len(widened)} path(s) that can move the pins ({widened[0]}"
+                f"{', …' if len(widened) > 1 else ''})"
+                if widened else
+                f"{len(skips)} timed tests left to the next whole gate" +
+                (f"; {scope} is not a ref here, so nothing widened" if touched is None else ''))), flush=True)
     if lane and widened:
         print(f"Lane suite: every timed test — the branch touches {len(widened)} path(s) that can move "
               f"the diff:: pins ({widened[0]}{', …' if len(widened) > 1 else ''}; Loop 2415); "
@@ -335,7 +374,7 @@ def step_name(command):
         return 'survey'
     if '--release' in command:
         return 'release'
-    if command[-1].endswith('guard.sh'):
+    if any(str(a).endswith('guard.sh') for a in command):
         return 'guard'
     return command[-1]
 
@@ -419,8 +458,9 @@ def main():
     parser.add_argument('install', type=Path, help='owned install directory; always exported as RON_INSTALL')
     parser.add_argument('--report-dir', type=Path, help='fresh output directory; defaults to a retained temporary directory')
     parser.add_argument('--require-fixtures', action='store_true', help='fail if any observed fixture request was missing')
-    parser.add_argument('--test-threads', type=int, choices=(2, 3, 4), default=2,
-                        help='release width under the 20 GiB monitor; default: 2')
+    parser.add_argument('--test-threads', type=int, choices=WIDTHS, default=2,
+                        help='release width: 2-4 under the 20 GiB monitor (a lane\'s), 6 or 8 under 40 GiB '
+                             '(the booking gate\'s, which runs alone); default: 2')
     parser.add_argument('--lane', action='store_true',
                         help="a worker's gate: the suite without the slow timed tests, plus --tests; "
                              "red only on the commander's lines goes on to guard and exits 0")
@@ -430,6 +470,9 @@ def main():
     parser.add_argument('--item', type=int, metavar='N',
                         help='with --lane: the item; the gate refuses a tree with no '
                              'docs/journal/*-item-N.md (parked 1699)')
+    parser.add_argument('--scope', metavar='REF',
+                        help='the booking gate\'s: the tip the last whole gate ran on; the timed tests run only '
+                             'when a merge since it can move a pin (every third landing takes no --scope)')
     parser.add_argument('--base', default='worktree-replan-pdb', metavar='REF',
                         help='with --lane: the branch the lane was cut from; a branch that touches '
                              'sim code outside sweep/ or a rondata::diff row list since it runs every '
@@ -438,7 +481,7 @@ def main():
     try:
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
              test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
-             base=args.base)
+             base=args.base, scope=args.scope)
     except ValueError as exc:
         parser.error(str(exc))
 

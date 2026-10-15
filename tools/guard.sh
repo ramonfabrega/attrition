@@ -15,15 +15,19 @@
 # green here and red at the booking gate's first step.
 set -e
 cd "$(dirname "$0")/.."
+# `--built` (the gate's step 6, the thirty-fifth steer): the guards on the
+# release binary the suite just built, in seconds, instead of a debug build.
+PROFILE=()
+if [ "$1" = "--built" ]; then PROFILE=(--release); shift; fi
 (cd tools/explore && python3 -m unittest -q test_brief test_queueledger)
 if [ -n "$RON_LANE" ]; then
-  cargo test -q -p sim docs_guard -- --skip an_item_number_is_minted_once_and_in_its_file_s_form
+  cargo test -q "${PROFILE[@]}" -p sim docs_guard -- --skip an_item_number_is_minted_once_and_in_its_file_s_form
 else
-  cargo test -q -p sim docs_guard
+  cargo test -q "${PROFILE[@]}" -p sim docs_guard
 fi
-cargo test -q -p sim no_float
-if [ -z "$RON_LANE" ]; then cargo test -q -p rondata the_handoff; fi
+cargo test -q "${PROFILE[@]}" -p sim no_float
+if [ -z "$RON_LANE" ]; then cargo test -q "${PROFILE[@]}" -p rondata the_handoff; fi
 python3 tools/queueledger.py
 for f in "$@"; do
-  cargo test -q -p sim "$f"
+  cargo test -q "${PROFILE[@]}" -p sim "$f"
 done

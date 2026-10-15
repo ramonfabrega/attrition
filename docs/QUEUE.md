@@ -16,14 +16,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes (Opus 5.5 medium on the AI word
 8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **The thirty-sixth tranche opens.***
 
-- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 4859 in five landings,
-  the open word. Chapters 71–74 closed; 69 built (its Salmon/Maize lobby owed), 70 surveyed. Census 894 → 994.
-  Battery 576 / 6566 / 2974, **unmoved an eleventh tranche** — Ramon's question at the steer (DECISIONS 72 §8).
-- **The lane gate widens itself** (2415, 2409): a branch touching sim outside `sweep/` or a `rondata::diff` row
-  list runs every timed test at its own gate (`--base worktree-replan-pdb`), and no suite run precedes the gate.
-- **Lanes: none live.** Roster DECISIONS 72's last paragraph (Ramon's word at the steer; the thirty-fifth's
-  stands until given). Queued, not spawned: 2491 (AI §225, DB, runs 865–867), 2519 (GOLDEN §92, DD, run 868),
-  2513 (DC). Next 2524, run 869. Pools: GOLDEN §92–97, AI §225–230, park DB–DG.
+- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 4859, the open word.
+  Chapters 71–74 closed; 69 built, 70 surveyed. Census 894 → 994. Battery 576 / 6566 / 2974, unmoved an eleventh tranche.
+- **Gates (DECISIONS 72)**: a lane's gate widens when its branch can move a pin (2415, no suite run before it,
+  2409); the booking gate is `--scope <last whole gate's tip> --test-threads 8`, whole every third landing and at
+  the drain. **When the peace pair closes, the AI word's successor is the battery's lowest lobby**
+  (EastIndiesGermanTier3, 576 of 13519), a new held-out lobby minted beside it.
+- **Lanes: none live**; the roster stands (DECISIONS 72, Ramon's word). Queued, not spawned: 2491 (AI §225, DB,
+  runs 865–867), 2519 (GOLDEN §92, DD, run 868), 2513 (DC). Next 2524, run 869. Pools: GOLDEN §92–97, AI §225–230, park DB–DG.
 - **Fable backlog: 14 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -112,6 +112,6 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
   the block before the first print** (EMULATOR §8, 2303).
 - **Grep for the derived quantity, the SHAPE and the GATE**: a term zero in every dump is
   zero-valued or switched off (117, 178); **a never-cleared field asserts a CHANGE, not a value** (`collide_frame`, run85).
-- **The gate is `python3 tools/release_gate.py <install> --test-threads 4`**,
-  to a file, never piped — a pipe launders the 137 — ending `Gate steps:`; **a worker's takes `--lane --tests`**
-  (the brief's, 1623), quotes `Lane verdict:` (969), and runs every timed test on a branch that can move a pin (2415).
+- **The gate is `python3 tools/release_gate.py <install> --test-threads 8 [--scope <tip>]`** (DECISIONS 72), to
+  a file, never piped — a pipe launders the 137 — ending `Gate steps:`; **a worker's takes `--lane --tests
+  --test-threads 4`** (the brief's, 1623), quotes `Lane verdict:` (969), and widens on a branch that moves a pin (2415).

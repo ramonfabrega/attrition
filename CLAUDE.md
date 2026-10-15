@@ -507,7 +507,11 @@ spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 **The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
 --no-ff`, the booking commit, **the spawn that refills the lane, cut off
-that commit**, the gate to a file, **`git push origin
+that commit**, the gate to a file — **`--scope <the tip the last whole
+gate ran on> --test-threads 8` on a merge, and the whole gate, no
+`--scope`, every third landing and at the drain** (the thirty-fifth
+steer, DECISIONS 72: a scoped gate runs the timed tests only when a
+merge since the last whole one can move a pin) — **`git push origin
 worktree-replan-pdb`, read back by `git rev-parse HEAD
 origin/worktree-replan-pdb`** — `ccc push <ref> --base` pushes the
 row's *base*, which for the integration row is `main` (parked 1742),

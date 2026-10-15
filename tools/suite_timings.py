@@ -64,11 +64,29 @@ def list_tests(binary, ignored=False):
     return [l[:-len(': test')] for l in done.stdout.splitlines() if l.endswith(': test')]
 
 
+RSS = re.compile(r'^\s*(\d+)\s+maximum resident set size', re.M)
+
+
 def time_one(binary, name, env):
+    """Seconds, exit code and peak resident MiB of one test alone (the
+    thirty-fifth steer: a test binary peaked at 11.8 GiB under four threads,
+    and whether that is one test or four is this column's to say; macOS's
+    `/usr/bin/time -l` prints the peak in bytes on stderr)."""
     t0 = time.monotonic()
-    done = subprocess.run([binary, '--exact', name, '--test-threads', '1'],
+    done = subprocess.run(['/usr/bin/time', '-l', binary, '--exact', name, '--test-threads', '1'],
                           env=env, capture_output=True, text=True, check=False)
-    return time.monotonic() - t0, done.returncode
+    m = RSS.search(done.stderr)
+    mib = int(m.group(1)) / (1 << 20) if m else -1.0
+    return time.monotonic() - t0, done.returncode, mib
+
+
+def render_memory(rows, when, tree):
+    """A sibling file, `<stem>-memory.txt`: peak resident MiB then the test,
+    largest first; the gate reads only the timings file."""
+    rows = sorted(rows, key=lambda r: -r[0])
+    head = [f'# Every rondata release test\'s peak resident set alone, {when}, tools/suite_timings.py (tree {tree}).',
+            '# /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.']
+    return '\n'.join(head + [f'{m:.0f}\t{n}' for m, n in rows]) + '\n'
 
 
 def render(rows, when, tree, wall_note=''):
@@ -127,19 +145,22 @@ def main(argv=None):
     env = dict(os.environ, RON_INSTALL=str(Path(args.install).resolve()))
     tree = subprocess.run(['git', 'rev-parse', '--short=8', 'HEAD'], cwd=ROOT,
                           capture_output=True, text=True, check=True).stdout.strip()
-    rows, red = [], []
+    rows, mem, red = [], [], []
     t0 = time.monotonic()
     for i, (b, n) in enumerate(names, 1):
-        secs, code = time_one(b, n, env)
+        secs, code, mib = time_one(b, n, env)
         rows.append((secs, n))
+        mem.append((mib, n))
         if code != 0:
             red.append(n)
-        print(f'[{i}/{len(names)}] {secs:8.2f}  {n}{"  RED" if code else ""}', file=sys.stderr, flush=True)
+        print(f'[{i}/{len(names)}] {secs:8.2f} {mib:7.0f}M  {n}{"  RED" if code else ""}', file=sys.stderr, flush=True)
     wall = time.monotonic() - t0
     text = render(rows, date.today().isoformat(), tree, f'; the run {wall / 60:.0f} min wall')
     if args.out:
         args.out.write_text(text)
-        print(f'wrote {args.out} ({len(rows)} tests, {sum(s for s, _ in rows):,.0f} s)')
+        mem_out = args.out.with_name(args.out.name.replace('-suite-timings', '-suite-memory'))
+        mem_out.write_text(render_memory(mem, date.today().isoformat(), tree))
+        print(f'wrote {args.out} ({len(rows)} tests, {sum(s for s, _ in rows):,.0f} s) and {mem_out}')
     else:
         sys.stdout.write(text)
     if red:

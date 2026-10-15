@@ -118,7 +118,7 @@ class GateTests(unittest.TestCase):
         # last line, never inferred from what a worker remembers running.
         commands=[[sys.executable,'tools/offline_tests.py'],['cargo','clippy'],['cargo','fmt','--check'],
                   ['cargo','run','-p','rondata','--','x'],['zsh','tools/memcap.sh','20','cargo','test','--release'],
-                  ['zsh','tools/guard.sh']]
+                  ['zsh','tools/guard.sh','--built']]
         self.assertEqual(gate.steps_line(commands, commands),
                          'Gate steps: 6 of 6 ran (offline, clippy, fmt, survey, release, guard)')
         self.assertEqual(gate.steps_line(commands, commands[:2]),
@@ -127,7 +127,7 @@ class GateTests(unittest.TestCase):
                          'Gate steps: 0 of 6 ran (none); not reached: offline, clippy, fmt, survey, release, guard')
 
     def test_wider_release_is_capped_and_other_children_stay_conservative(self):
-        for width in (2, 3, 4):
+        for width in (2, 3, 4, 6, 8):
             with self.subTest(width=width), tempfile.TemporaryDirectory() as tmp:
                 path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
                 calls=[]
@@ -136,7 +136,8 @@ class GateTests(unittest.TestCase):
                     self.assertEqual(kwargs['env']['RUST_TEST_THREADS'], '2')
                     self.assertNotIn('RON_TEST_MEMCAP_GIB', kwargs['env'])
                     if '--release' in command:
-                        self.assertEqual(command[:3], ['zsh','tools/memcap.sh','20'])
+                        # The thirty-fifth steer: 20 GiB for a lane's width, 40 for the booking gate's.
+                        self.assertEqual(command[:3], ['zsh','tools/memcap.sh','20' if width <= 4 else '40'])
                         self.assertEqual(command[-2:], ['--', f'--test-threads={width}'])
                         self.assertNotIn('--skip', command)
                         release_ran(kwargs)
@@ -145,10 +146,10 @@ class GateTests(unittest.TestCase):
                 self.assertEqual(len(calls), 6)
                 policy=json.loads((path/'report/gate-policy.json').read_text())
                 self.assertEqual(policy['release_test_threads'], width)
-                self.assertEqual(policy['memory_cap_gib'], 20)
+                self.assertEqual(policy['memory_cap_gib'], 20 if width <= 4 else 40)
 
     def test_unmeasured_width_never_runs(self):
-        for width in (0, 1, 5, 16, '4', 4.0, True):
+        for width in (0, 1, 5, 7, 16, '4', 4.0, True):
             with self.subTest(width=width), tempfile.TemporaryDirectory() as tmp:
                 path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
                 with self.assertRaises(ValueError):
@@ -430,8 +431,10 @@ class GateTests(unittest.TestCase):
         # (Loop 2409) is then the gate itself.
         self.assertEqual(gate.lane_widens(['crates/sim/src/sweep/x.rs', 'docs/AI.md', 'tools/x.py',
                                            'crates/rondata/src/census.rs']), [])
-        self.assertEqual(gate.lane_widens(['crates/sim/src/diplomacy.rs', 'crates/rondata/src/diff/leader.rs']),
-                         ['crates/rondata/src/diff/leader.rs', 'crates/sim/src/diplomacy.rs'])
+        self.assertEqual(gate.lane_widens(['crates/sim/src/diplomacy.rs', 'crates/rondata/src/diff/leader.rs',
+                                           'crates/rondata/src/gamelog.rs', 'Cargo.lock']),
+                         ['Cargo.lock', 'crates/rondata/src/diff/leader.rs', 'crates/rondata/src/gamelog.rs',
+                          'crates/sim/src/diplomacy.rs'])
         command, policy = self.release_command(touched=['crates/sim/src/diplomacy.rs', 'docs/AI.md'],
                                                lane=True, tests=WORD)
         self.assertNotIn('--skip', command)
@@ -440,6 +443,27 @@ class GateTests(unittest.TestCase):
         command, policy = self.release_command(touched=['crates/sim/src/sweep/x.rs'], lane=True, tests=WORD)
         self.assertIn('--skip', command)
         self.assertEqual(policy['lane']['widened'], [])
+
+    def test_a_scoped_booking_gate_runs_the_timed_tests_only_when_a_merge_can_move_a_pin(self):
+        # The thirty-fifth steer, Ramon's word: the booking gate after every
+        # merge was 22 whole suites a tranche; scoped to the merges since the
+        # last whole gate it runs the timed tests when one of them can move a
+        # pin, and every third landing takes the whole gate. It forgives
+        # nothing and needs no journal.
+        command, policy = self.release_command(touched=['docs/AI.md', 'crates/sim/src/sweep/x.rs'],
+                                               scope='abc1234')
+        self.assertIn('--skip', command)
+        self.assertIn('--exact', command)
+        self.assertEqual(policy['scope']['widened'], [])
+        self.assertGreater(policy['scope']['skipped'], 400)
+        self.assertNotIn('lane', policy)
+        command, policy = self.release_command(touched=['crates/rondata/src/gamelog.rs'], scope='abc1234')
+        self.assertNotIn('--skip', command)
+        self.assertEqual(policy['scope']['widened'], ['crates/rondata/src/gamelog.rs'])
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            with self.assertRaises(ValueError):
+                gate.gate(path, lane=True, tests=WORD, scope='abc1234', run=lambda *a, **k: self.fail('ran'))
 
     def test_the_booking_gate_skips_nothing(self):
         command, policy = self.release_command()

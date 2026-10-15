@@ -5648,8 +5648,38 @@ which of the ten reached; the timings file's stale count against the
 re-timed one; and whether every journal's Loop line is in the parked
 file at the handoff.
 
-**The roster and the lane count for the thirty-sixth tranche — Ramon's
-word at this steer, 2026-10-15**: (written when given; until then the
-thirty-fifth's stands — three lanes, Opus 5.5 medium on the AI word,
-Sonnet 5.5 medium on the rules track and the sweep.)
+**Ramon's word at this steer, 2026-10-15, on device.** The roster
+stands — three lanes, Opus 5.5 medium on the AI word, Sonnet 5.5 medium
+on the rules track and the sweep; the fourth lane after one tranche
+under the new gate. **The box**: the booking gate runs alone at
+`--test-threads 8` under a 40 GiB ceiling (a lane's stays 4 under 20; a
+128 GiB box with a 20 GiB cap was waste), and the 11.8 GiB a test binary
+peaked at is measured per test by the timing run's new memory column
+before anyone calls it a leak; the guards run on the built release
+binary (`guard.sh --built`, 28 s against a three-minute debug build,
+forty-four gates a tranche); **the booking gate is scoped**
+(`--scope <the tip the last whole gate ran on>`: the timed tests only
+when a merge since it can move a pin, by the same rule the lane gate
+reads — every crate and the workspace files, less a sweep test and the
+census count) **with the whole gate every third landing and at the
+drain** — Ramon's "assuming you feel you have control": the scoped gate
+is the lane gate's logic, already tested, and the whole gate every
+third landing is the backstop; a build cache across the lanes
+(`sccache` with `--remap-path-prefix`, or whatever Rust's current
+answer is — a dependency is welcome if it moves the core loop) is
+**tried on one lane next tranche and measured**, never flipped blind; a
+second box is considerable and not now. **The archives are compressed
+at every steer** (`afsctool -c -f -T LZFSE -J8` on `~/ron-data` and
+`~/ron-golden`; in-place APFS compression, no originals to delete, the
+readers unchanged) — a pass step from this one. **The battery is acted
+on**: when the peace pair closes, the AI word's successor is the
+battery's lowest lobby (`EastIndiesGermanTier3`, 576 of 13519), and a
+new held-out lobby is minted beside it so three stay held out — the
+held-out set is replenishable, and the loop works on games nobody tuned
+for. Entry 61's "when minting pairs can stop" is read that way from
+here. The words and the queue stay as the loop's instrument; whether
+the loop's ordering is the best use of a lane is an open question Ramon
+raised and the pass did not answer: the first row is the battery's own
+partings, read beside each other (`compute_sites` against
+`think_bird` at 576; `set_anim` under a move step at 6563 and 2974).
 
