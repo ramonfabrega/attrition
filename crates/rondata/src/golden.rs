@@ -96,10 +96,13 @@ pub enum Cheat {
     /// (`select_groups`, `Console::hurry_action@007c3810`). The type-name
     /// form and `+` are not modelled and stay [`Cheat::Unmapped`].
     Select { who: i32, o: i16 },
-    /// `finish`/`hurry` with `this != 0` (case `0x51`, one-token form):
-    /// every selected building is activated and paid 10000 job counter
+    /// `hurry` with `this != 0` (case `0x51`, one-token form): every
+    /// selected building is activated and paid a train time
     /// ([`sim::Sim::cheat_finish`]).
     Finish,
+    /// `finish` (case `0x4f`, item 2543): the same arms paid 500000
+    /// ([`sim::Sim::cheat_finish_all`]).
+    FinishAll,
     /// A line the channel has and this interpreter does not model, or one
     /// whose arguments did not parse. The string is the command word.
     Unmapped(String),
@@ -1573,7 +1576,7 @@ fn parse(text: &str) -> Cheat {
             }
         }
         "bird" => Cheat::Bird,
-        "finish" if rest.is_empty() => Cheat::Finish,
+        "finish" if rest.is_empty() => Cheat::FinishAll,
         "hurry" if rest.len() <= 1 => Cheat::Finish,
         "select" => match rest.first().and_then(|t| t.parse::<i16>().ok()) {
             Some(o) => Cheat::Select {
@@ -1775,8 +1778,9 @@ fn run(
             *selected = vec![(who, o)];
             done.ran += 1;
         }
-        Cheat::Finish => {
-            // `hurry_action`'s building arm: not a unit (vslot `0xc`), so
+        finish @ (Cheat::Finish | Cheat::FinishAll) => {
+            // `finish` is case `0x4f` (500000), `hurry` case `0x51`
+            // (`hurry_action`): `hurry_action`'s building arm: not a unit (vslot `0xc`), so
             // `BuildData::is_active` clear → `Build::activate(0, 1, 1)`,
             // then the queue arm (`Sim::cheat_finish`: the head, or the
             // first non-unit behind a done head, takes its train time),
@@ -1786,7 +1790,11 @@ fn run(
             let mut any = false;
             for &(who, o) in selected.iter() {
                 if let Some(b) = built.sim.building_by_o(who as sim::Player, o) {
-                    built.sim.cheat_finish(b);
+                    if matches!(finish, Cheat::FinishAll) {
+                        built.sim.cheat_finish_all(b);
+                    } else {
+                        built.sim.cheat_finish(b);
+                    }
                     any = true;
                 }
             }
@@ -2957,7 +2965,7 @@ mod tests {
                 level: 6
             }
         );
-        assert_eq!(parse("finish"), Cheat::Finish);
+        assert_eq!(parse("finish"), Cheat::FinishAll);
         // Item 2500: `hurry` is the same case `0x51`, with or without a
         // number (`this` is the console's token either way, never null).
         assert_eq!(parse("hurry"), Cheat::Finish);
