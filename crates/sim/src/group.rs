@@ -4136,6 +4136,32 @@ mod tests {
         sim.add_unit_type(t)
     }
 
+    /// **A helicopter measures edge to edge; a plane, centre to centre**
+    /// (`ObjectData::attack_dist@006488f0`'s first arm is the attacker's
+    /// `is_plane`, vslot `+0xc0`; `docs/AI.md` §227). run866's Attack
+    /// Helicopter `1/145` takes the human's `0/2000` on 5135 only because
+    /// the footprint comes off its distance.
+    #[test]
+    fn a_helicopter_measures_attack_distance_edge_to_edge() {
+        let mut s = sim();
+        let heli = flier(&mut s, true);
+        let plane = flier(&mut s, false);
+        let foot = fighter(&mut s);
+        let h = spawn(&mut s, 0, heli, Pos::new(1920, 1920));
+        let p = spawn(&mut s, 0, plane, Pos::new(1920, 1920));
+        let t = spawn(&mut s, 1, foot, Pos::new(2880, 1920));
+        assert_eq!(
+            s.attack_dist(Obj::Unit(p), Obj::Unit(t)),
+            960,
+            "a plane: centre to centre"
+        );
+        assert_eq!(
+            s.attack_dist(Obj::Unit(h), Obj::Unit(t)),
+            960 - 2 * 0x18,
+            "a helicopter: each extent off"
+        );
+    }
+
     /// who=0's Airbase and who=1's other building, as chapter seventeen
     /// stages them (`docs/GOLDEN.md` §25).
     fn airbase_and_target(sim: &mut Sim) -> (usize, usize) {
