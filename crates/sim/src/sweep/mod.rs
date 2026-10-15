@@ -86,6 +86,7 @@ mod objects_find_collision;
 mod objects_find_free;
 mod path_finder_calc_road_cost;
 mod path_finder_out_get_name;
+mod path_finder_valid_ucoord;
 mod patrol_order_walk_data;
 mod player_is_over;
 mod repair_order_get_type;
