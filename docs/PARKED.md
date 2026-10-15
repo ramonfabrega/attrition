@@ -3794,6 +3794,11 @@ Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a sh
 `kill_tree`'s one stack argument (hidden by the decompile) faulted the first run at the stub page. Candidate: a
 `--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach.
 
+(2775) **A record array's bias is a `--place` per record, and `--answers` on a table-indexing stub draws wild words**
+(2743's "for the Loop" line, filed at its merge): parked 2747's record-array bias wants one flag, and `--answers`'
+help should say a stub that indexes a table wants `--answer-range` instead. Candidate: `--records
+BASE:STRIDE:N:OFF=VALS`, and the help line, each held by a test made to fail first. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
