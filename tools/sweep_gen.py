@@ -2371,6 +2371,27 @@ def cmd_obj_expand(spec, own):
             'deref': [f'1:0:{size}'], 'ptrarg': ['0:0x40'], 'port': port}
 
 
+def cmd_byte_expand(spec, own):
+    """`--cmd-byte CMD[:SIZE]` (item 2481, parked 2472): `issue_recall`'s
+    shape -- argument 0 a group id (a plain integer printed by name),
+    `check_accept_issue` and `add_group` answered 0/1, a one-byte (SIZE) local
+    holding CMD handed to `add_command`. The `sp-` token is
+    `SIZE + 8 + 4*own`. Returns the `obj` flags it stands for."""
+    parts = spec.split(':')
+    if not parts[0] or len(parts) > 2:
+        raise ValueError(f'--cmd-byte {spec}: want CMD[:SIZE]')
+    cmd = int(parts[0], 0)
+    size = int(parts[1], 0) if len(parts) > 1 else 1
+    sp = f'sp-{size + 8 + 4 * own:#x}'
+    dash = ' '.join(['log.push("-".into());'] * 3)
+    two = ' '.join(['log.push("-".into());'] * 2)
+    port = (f'{{ log.push("15269728".into()); if a[{own}] == 0 {{ {dash} }} else {{ '
+            f'log.push(format!("15269768,{{}}", a[0])); if a[{own + 1}] == 0 {{ {two} }} else {{ '
+            f'log.push("15269768,{sp},{size}".into()); log.push("{cmd:02x}".into()); }} }} 0 }}')
+    return {'stub': ['0x940a70:0', '0x94bb60:1', '0x94bae0:2'], 'answers': ['0:0,1', '1:0,1'],
+            'record': ['0', '1', '2'], 'deref': [f'2:0:{size}'], 'port': port}
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2531,8 +2552,22 @@ def main(argv=None):
     ap.add_argument('--cmd-obj', metavar='CMD:SIZE:FIELD,..[:C]',
                     help='obj: issue_come_out / issue_unqueue\'s shape -- a command whose fields are bytes and words '
                          'read off the object argument 0, check_accept_issue, add_command (item 2469, parked 2466)')
+    ap.add_argument('--cmd-byte', metavar='CMD[:SIZE]',
+                    help='obj: issue_recall\'s shape -- a group id, check_accept_issue, add_group, a one-byte '
+                         'command, add_command (item 2481, parked 2472)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
+    if args.cmd_byte:
+        try:
+            x = cmd_byte_expand(args.cmd_byte, args.own)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        args.stub, args.answers, args.record = x['stub'], x['answers'], x['record']
+        args.deref, args.port = x['deref'], x['port']
+        args.ret = args.ret or 'none'
+        if args.win == 0x400:
+            args.win = 0x20
     if args.cmd_obj:
         try:
             x = cmd_obj_expand(args.cmd_obj, args.own)
