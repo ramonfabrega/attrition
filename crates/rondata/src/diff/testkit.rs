@@ -9341,7 +9341,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // keeps 5315's value diff (block 5316), and 5407 is widened on run867
     // over 5401..5657 (block 5408, item 2677). **Item 2677 moved it 5407 →
     // 5476** with the crash round's strike, in the same window (block
-    // 5477).
+    // 5477), widened there by item 2737, which **moved it 5476 → 5499**
+    // with `find_upath`'s zeroed near goal, in the same window (block
+    // 5500).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
