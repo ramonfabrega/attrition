@@ -1593,6 +1593,22 @@ class Shapes(unittest.TestCase):
                                                      steps=['walk4:0x21df4'])
         self.assertIn('STALE = False', script0)
 
+    def test_a_stale_ecx_on_a_call_step_after_slot_0_is_the_walkers_and_the_callees(self):
+        # parked 2563: PatrolOrder::walk_data does `pushl %ecx` after the slot-0
+        # callback and again after a direct callee: both are leftovers the
+        # hooked callee must leave (an answer `(eax, ecx)`), slot 0 included.
+        spec = 'PatrolOrder::walk_data@00483e80'
+        steps = ['walk:this-0x40+d:this-0x3f+d', 'walk:this-0x8:this-0x4',
+                 'call:0x483cc0:2:this-0x40:p0,stale', 'call:0x483cc0:2:this-0x24:p0,stale']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2567, vbase=0x44, steps=steps)
+        compile(script, 'sweep_patrol_order_walk_data.py', 'exec')
+        self.assertIn('STALE = True', script)
+        self.assertIn('h.answers["walk"] = (7, gv)', script)
+        self.assertIn('h.answers[f"{a:x}"] = (0, gv)', script)
+        self.assertIn('calls.push(vec![this - 0x24, walker, stale]);', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2567, vbase=0x44, steps=steps[:2])
+        self.assertIn('STALE = False', script0)
+
     def test_a_mix_may_gate_on_the_short_at_this(self):
         # parked 2536: Army::walk_data walks (this+2, this+0x98) only when the
         # short at `this` is non-zero; `this` must be a real, written object.
