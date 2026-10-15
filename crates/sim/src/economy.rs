@@ -152,6 +152,13 @@ pub const RUBBER: usize = 15;
 /// unit's research before the premium (`docs/COSTS.md`, "Researching an
 /// upgrade is not building a unit"; `docs/AI.md` §94).
 pub const WINE: usize = 8;
+/// `TypeIndex::SALMON` — the rare `TypeData::get_cost@00664090`'s train arm
+/// reads for a sea unit: `0x6da9 & 1`, else `0x6dd1 & 1`, byte 5 bit 0,
+/// which is bit `46 - `[`BASE_RARE`]` = 40` (`SALMON_NAVAL_COST`).
+pub const SALMON: usize = 46;
+/// `TypeIndex::MAIZE` — the rare `get_cost`'s unit ramp reads: `0x6da9 & 4`,
+/// else `0x6dd1 & 4`, byte 5 bit 2 (`MAIZE_RAMPING_BONUS`).
+pub const MAIZE: usize = 48;
 /// `TypeIndex::SPICE` — the rare `Caravan::trade_value@0073d9d0` reads:
 /// `leaders.list[who] +0x6da4 & 0x40`, else the same at `+0x6dcc`, byte 0
 /// bit 6 of `rare` or of `rare_conquest`, which is bit `12 - `[`BASE_RARE`]`

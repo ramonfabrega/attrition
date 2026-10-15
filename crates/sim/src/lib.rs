@@ -2228,6 +2228,8 @@ impl Sim {
                 late_discount: self.military_unit_discount(who, ty),
                 monarchy: self.monarchy_cost_discount(who, ty),
                 socialism: self.socialism_cost_discount(who, ty),
+                salmon: self.salmon_cost_discount(who, ty),
+                maize: self.has_rare(who, economy::MAIZE),
                 discount,
                 stable_rares,
                 liberty,
@@ -2289,6 +2291,20 @@ impl Sim {
             .is_some()
         {
             self.tuning.socialism_unit_bonus
+        } else {
+            0
+        }
+    }
+
+    /// `SALMON_NAVAL_COST` — `TypeData::get_cost@00664090:673`–`677`, the
+    /// train arm after Socialism's: a sea unit (`UnitTypeData +0x218 == 1`)
+    /// of a player holding Salmon (`+0x6da9 & 1`, else `+0x6dd1 & 1`,
+    /// rare 46) (item 2389, `docs/GOLDEN.md` §86).
+    pub fn salmon_cost_discount(&self, who: Player, ty: usize) -> i32 {
+        if self.unit_types[ty].combat.domain == attrition::Domain::Sea
+            && self.has_rare(who, economy::SALMON)
+        {
+            self.tuning.salmon_naval_cost
         } else {
             0
         }

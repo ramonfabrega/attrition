@@ -262,6 +262,12 @@ pub struct Modifiers {
     /// `(100 − x) × cost / 100`, after [`Modifiers::monarchy`] (item 2357,
     /// `docs/GOLDEN.md` §85). Zero is the identity.
     pub socialism: i32,
+    /// `get_cost`'s **Salmon arm** (`TypeData::get_cost@00664090:673`–`677`,
+    /// the train arm only, the line after Socialism's): `SALMON_NAVAL_COST`
+    /// off a sea unit (`+0x218 == 1`) of a player holding Salmon. Its own
+    /// `(100 − x) × cost / 100`, after [`Modifiers::socialism`] (item 2389,
+    /// `docs/GOLDEN.md` §86). Zero is the identity.
+    pub salmon: i32,
     /// `get_cost`'s **library-line tail** (`00666b7d`): up to three
     /// percentages off a library epoch's price, each its own
     /// `(100 − x) × cost / 100` in order, after
@@ -552,6 +558,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.socialism != 0 {
         cost = (100 - m.socialism) * cost / 100;
+    }
+    if m.salmon != 0 {
+        cost = (100 - m.salmon) * cost / 100;
     }
     if m.silver != 0 {
         cost = (100 - m.silver) * cost / 100;
@@ -1440,6 +1449,22 @@ mod tests {
             ..Modifiers::default()
         };
         assert_eq!(cost_of(&T, &c, Resource::Food, owned(40), &m), 20 + 20);
+    }
+
+    #[test]
+    fn salmon_takes_its_fifth_after_socialism() {
+        let c = citizen();
+        let at = |salmon, socialism| {
+            let m = Modifiers {
+                salmon,
+                socialism,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &c, Resource::Food, owned(0), &m)
+        };
+        let base = at(0, 0);
+        assert_eq!(at(20, 0), (100 - 20) * base / 100);
+        assert_eq!(at(20, 25), (100 - 20) * ((100 - 25) * base / 100) / 100);
     }
 
     #[test]
