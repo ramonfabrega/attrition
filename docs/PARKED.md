@@ -5884,13 +5884,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EA — reserved
+## Parked by item 2655, 2026-10-15 — the sweep's ninety-fourth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2668) **Two-displacement `walk_data`s: `GroupMoveOrder` 0x4855c0, `GroupAttackOrder` 0x4850b0, `AirAttackGroundOrder` 0x4875a0 (and, by their size, `StrafeOrder` 0x47f310, `GroupPatrolOrder` 0x482c70, `AirPatrolOrder` 0x483ed0)** read a second displacement record mid-walk (`mov eax,[ebx-0x20]` / `[ebx-0x28]` / `[ebx-0x2c]`, then `[eax+4]` added to the next pair): `mix --vbase K` holds one `[this-K]` -> `d`; a second `--vbase2 K2` (a written pointer word at `this-K2` to a record whose `+4` is `d2`) is what the three need.
+
+(2669) **`City::walk_data` 0x489220 and `BuildQueue::walk_data` 0x6305f0** nest two gates in one walk (`City`: a byte of `this` (`+4` bit 0), then the walker's `[+8] == 0`, then two direct callees and a third; `BuildQueue`: the walker's slot 0/4, the queue count, a loop over 0x14-byte records handed to the walker): `mix` holds one gate kind per sweep (`--gate-this` or `--gate`, never both), and a `--elems` loop over an in-`this` array, not a list/table.
+
+(2670) **Four shapes none of the built ones holds**: `Doober::has_doobers` 0x8466d0 compares `cvttss2si`/`ucomiss` of a table of floats (a float-bit window the port must read through the soft float); `Balance::walk_rules_data` 0x582cc0 calls the walker's slot 0 `0x1ed * 0x1ed` times over the image's own table (245,761 hooked calls a row: a `--rows 3` `walk` with a counted tail); `PathFinder::kill_tree` 0x687c10 recurses on a tree of `left`/`right` nodes and pushes each datum on a global `Recycler` stack (a `--link`-built tree and a stub for `increase_size`); `Forts::find_fort` 0x73ebe0 walks leaders-table count (`@0xe3a7b8`, row 0x6eec), forts array (`0xc0a490 + 0x1c*leader`), objects table (`+0x14 + 0x1c*leader`) and `div_3_table` twice — a five-deep chain the `--chain` shape (one three-level walk) does not hold with the `--sparse @` table beside it.
+
+(2671) **`BuildData::find_in_queue`'s else arm is not drawn**: with the queue shorter than the queued byte (`i >= [this+0x88]`) the function indexes the types list at -1, a word before the array; the sweep holds the count at 3..4 and the byte at 0..3, so the arm is a port literal with no row. `Units::make_valid` is swept for leader 1 only (`--argrange 0:1:1`: the callback's vtable at one table row), so the `0x1c` row stride is held by one row's address.
 
 ## Parked by the next landing, slot EB — reserved
 
