@@ -3735,6 +3735,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
+(2435) **No command names the unbacked census rows a SEAM reaches** (2416's "for the Loop" line, filed at its
+merge). Chapter seventy's lane could not list the never-entered functions behind `diplomacy.rs`'s seams —
+`census.py --never` printed nothing for `diplo`/`action_*` on its arguments — so GOLDEN §87 names them by hand.
+Candidate: `tools/census.py --callees <function>`, the cited-and-never-entered rows a function's call graph
+reaches, with a test made to fail first on `Leader::diplomacy`. One reach.
+
 (2422) **A word's draw delta is two commands where it could be one** (2388's "for the Loop" line, filed at its
 merge). `RON_DEBUG_SITES=<w>-<w>` on the pair's `first_parting`, beside `tools/trace/report.py draws <w>`, put
 the whole delta in two commands. Candidate: `tools/drawdiff.py <pair> <frame>`, the two lists aligned by site,
@@ -5034,7 +5040,7 @@ The jump-table switches `Setup::get_starting_citizens`, `Search::valid_filter` a
 
 ## Parked by item 2331, 2026-10-14 — a Stable's unit under Monarchy
 
-(2332) **2111 and 2196 still have no staging** (item 2331, `docs/GOLDEN.md` §84; names no score; 2305's sequel).
+(2332) closed 2026-10-15 by item 2416 (GOLDEN §87: no console staging; parked 2428): **2111 and 2196 still have no staging** (item 2331, `docs/GOLDEN.md` §84; names no score; 2305's sequel).
 Chapter sixty-seven took Monarchy, the one candidate the console stages. `ai_sites`' wrapping decrement (2111) needs a
 computer's census adjustment, which `!ai off` never runs; `land_tail`'s `buildings` toggle (2196) needs a building
 group whose `list[0]` turns. A chapter that books either names its staging first.
@@ -5283,7 +5289,7 @@ neither. A staging needs a lobby (map style and seed) that places one of them fo
 on it, then a sea unit queued (Salmon) or a ramped unit (Maize). Name the lobby from a map script or a start dump's
 `BEGIN GOOD` records before booking; this crate has no map generator to search seeds.
 
-(2391) **2111 and 2196 are still unstaged** (parked 2332; item 2389 took the rare arms instead).
+(2391) closed 2026-10-15 by item 2416 (GOLDEN §87; parked 2428): **2111 and 2196 are still unstaged** (parked 2332; item 2389 took the rare arms instead).
 
 ## Parked by item 2395, 2026-10-14 — the sweep's seventy-first batch
 

@@ -21,8 +21,8 @@ measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 mediu
 - **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
   `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
 - **Lanes: three** (DECISIONS 71; 2384 tripped a kill rule: the AI lane is Opus 5.5 **high** from 2412): 2412 (AI §222,
-  CM, runs 853–855), 2416 (GOLDEN §87, CK, run 857), 2421 (CL) live. Next 2423, run 858, AI §223, GOLDEN §88, park CN.
-- **Fable backlog: 17 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422).
+  CM, runs 853–855), 2436 (GOLDEN §88, CN, run 858), 2421 (CL) live. Next 2437, run 859, AI §223, GOLDEN §89, park CO.
+- **Fable backlog: 18 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -45,7 +45,7 @@ its merge; at twenty landings write the handoff and clear `steer` into the thirt
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2412 the AI word's (Opus), 2416 the rules track's and 2421
+2412 the AI word's (Opus), 2436 the rules track's and 2421
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -59,14 +59,13 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     2319). 3302 is inside the peace: 2321's other `war_allowed` readers
     are the previous item's hypothesis. Runs 853–855. AI §222.
 
-2416. **Chapter seventy: the arms the AI track built that no walk
-    holds** (DECISIONS 56 §3; 2389 built Salmon's and Maize's price arms
-    from the listing, no capture, GOLDEN §86). Candidates:
-    `Leader::diplomacy`'s arms no capture reaches, SEAMs in 2384's
-    `diplomacy.rs` (parked 2387: the allied arm, the offers arm, `dow`,
-    `blacken`); a lobby that places Salmon or Maize (2390); 2111, 2196
-    (2391). Name the census rows and the staging first; run 857 only when
-    no packet of the game is on disk. GOLDEN §87.
+2436. **Chapter seventy-one: an arm the AI track built that no walk
+    holds, and the console stages** (DECISIONS 56 §3; 2416 surveyed
+    `Leader::diplomacy`'s arms: none stageable, GOLDEN §87, parked 2428).
+    Survey AI §200–222's built arms against GOLDEN's walks, name the
+    census rows and the staging first; if none is stageable, say so and
+    name the cheapest lobby that would reach one (2427's shape). Run 858
+    only when no packet of the game is on disk. GOLDEN §88.
 
 2421. **The sweep's seventy-second batch: ten never-backed simulation
     functions** (DECISIONS 63 (iv); the score `Census:` 916 of 3611):
