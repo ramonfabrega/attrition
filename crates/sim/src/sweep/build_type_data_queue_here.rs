@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -54,14 +59,10 @@ fn the_emulated_original_agrees_on_every_row() {
                 let r: i32 = if f30 == -2 || f40 < 0 {
                     0
                 } else {
-                    let unit_in_range = f4 >= 0x32 && f4 < 0x19e;
+                    let unit_in_range = (0x32..0x19e).contains(&f4);
                     let falls = if flag != 0 { unit_in_range } else { s1 != 0 };
                     if !falls {
-                        if s2 != 0 {
-                            call(f40, 1)
-                        } else {
-                            call(f40, 0)
-                        }
+                        if s2 != 0 { call(f40, 1) } else { call(f40, 0) }
                     } else if call(f40, 0) != 0 {
                         1
                     } else {
@@ -75,12 +76,19 @@ fn the_emulated_original_agrees_on_every_row() {
                         }
                     }
                 };
-                log.push(if calls.is_empty() { "-".into() } else { calls.join("/") });
+                log.push(if calls.is_empty() {
+                    "-".into()
+                } else {
+                    calls.join("/")
+                });
                 i64::from(r)
             }
         };
         assert_eq!(got, want_eax, "queue_here — eax, row `{line}`");
-        assert_eq!(log, want_log, "queue_here — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "queue_here — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "queue_here — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
