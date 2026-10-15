@@ -12,19 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-15, **the thirty-fifth tranche is drained** — 22 landings since the thirty-fourth pass (`git log dccda9f0..`,
-2384 → 2500), three lanes on DECISIONS 71 (Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rules track and
-the sweep), none live. **The thirty-fifth pass is due.***
+*2026-10-15, **the thirty-fifth pass is done** (`docs/audit/2026-10-15-fable-pass-35.md`, DECISIONS 72): the
+thirty-fifth tranche scored — 22 landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes
+(Opus 5.5 medium on the AI word 8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80), both kill
+rules tripped by the lane gate's one route, now closed (2415, 2409 built). **The thirty-sixth tranche opens.***
 
-- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 4859 in five landings
-  (2384 diplomacy's peace arm, 2388 the pre-war gate, 2412 the silo's queue, 2423 the no-rush timer, 2460 the
-  peace's end), the open word. Chapters 71–74 closed (2436 The Despot, 2448 The Monarch, 2474 a human's
-  Supercollider, 2500 `hurry`); 69 and 70 built or surveyed, not closed. Census 894 → 994. Battery 576 / 6566 / 2974, unmoved (2500).
-- **Red booking gates, each fixed by a second commit**: 2384's 144 `aggression` pins (re-pinned); 2400's
-  `find_free` captain term broke the third pair's floor 17379 → 14461 (bisected, the call reverted, parked 2441).
-- **Lanes: none live** (DECISIONS 71, amended: two kill rules tripped, the roster stands — Loop 2415). Queued, not
-  spawned: 2491 (AI §225, DB, runs 865–867), 2513 (DC), 2519 (GOLDEN §92, DD, run 868). Next 2524, run 869.
-- **Fable backlog: 29 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449, 2459, 2461, 2479, 2480, 2505, 2506, 2508, 2512, 2518).
+- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 4859 in five landings,
+  the open word. Chapters 71–74 closed; 69 built (its Salmon/Maize lobby owed), 70 surveyed. Census 894 → 994.
+  Battery 576 / 6566 / 2974, **unmoved an eleventh tranche** — Ramon's question at the steer (DECISIONS 72 §8).
+- **The lane gate widens itself** (2415): a branch touching sim outside `sweep/` or a `rondata::diff` row list
+  runs every timed test at its own gate (`--base worktree-replan-pdb`); no whole-suite run before it (2409).
+- **Lanes: none live.** Roster DECISIONS 72's last paragraph (Ramon's word at the steer; the thirty-fifth's
+  stands until given). Queued, not spawned: 2491 (AI §225, DB, runs 865–867), 2519 (GOLDEN §92, DD, run 868),
+  2513 (DC). Next 2524, run 869. Pools: GOLDEN §92–97, AI §225–230, park DB–DG.
+- **Fable backlog: 14 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,9 +39,11 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-fifth steering pass (Fable): measure the thirty-fifth tranche (`git log dccda9f0..`, 22 landings), ratify
-the marked rows, rule the Loop's items, score the roster lane by lane for Ramon, rewrite this file, and clear
-`commander` into the thirty-sixth tranche with the queue's opener.**
+**Opener: the thirty-sixth tranche (commander, Opus): read this handoff, then spawn 2491 on the AI word's lane
+(`--model 'claude-opus-5-5[1m]' --effort medium`), 2519 on the rules track and 2513 on the sweep lane
+(`--model 'claude-sonnet-5-5[1m]' --effort medium`), one to a lane, briefs by `tools/brief.py`; merge, book,
+spawn, gate, push, reap; count landings from `git log <this pass's commit>..`, clear at the tenth, stop at
+twenty with the handoff written and clear `steer` into the thirty-sixth pass.**
 
 ## The queue
 
@@ -113,4 +116,5 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
   zero-valued or switched off (117, 178); **a never-cleared field asserts a CHANGE, not a value** (`collide_frame`, run85).
 - **The gate is `python3 tools/release_gate.py <install> --test-threads 4`**,
   to a file, never piped — a pipe launders the 137 — ending `Gate steps:`;
-  **a worker's takes `--lane --tests`** (the brief's, 1623) and quotes `Lane verdict:` (969).
+  **a worker's takes `--lane --tests`** (the brief's, 1623) and quotes `Lane verdict:` (969);
+  **`--lane` runs every timed test on a branch that can move a `diff::` pin** (2415).

@@ -191,12 +191,31 @@ class PinnedTraces(unittest.TestCase):
         # text carries outside `sweep/` — a SEAM, a doc comment, a citation.
         with tempfile.TemporaryDirectory() as d:
             src = Path(d)
-            (src / 'caravan.rs').write_text("// the original's `Caravan::trade_value@00612340` is read here\n")
+            (src / 'caravan.rs').write_text("/// the original's `Caravan::trade_value@00612340`, read here\n"
+                                            "pub fn trade_value() {}\n")
             (src / 'sweep').mkdir()
             (src / 'sweep' / 'x.rs').write_text("// BorderNodes::find under the emulator\n")
             spelled = census.port_spellings(str(src))
         self.assertIn('Caravan::trade_value', spelled)
         self.assertNotIn('BorderNodes::find', spelled)
+
+    def test_a_comment_alone_is_not_a_consumer(self):
+        # Loop 2420 (2400's Loop line, parked 2401; the thirty-fifth pass):
+        # six of seventeen candidates carried a `port` mark from a comment
+        # that named the function beside no port of it — `Farms::add_animals`
+        # named in a note on the per-farm function, `Unit::go_inside` in a
+        # SEAM. A spelling counts when it sits on a code line, or in the doc
+        # comment attached to the `fn` whose name is the method's own.
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d)
+            (src / 'farms.rs').write_text("/// `Farms::add_animals@008d92d0` loops the farms; this is the per-farm one\n"
+                                          "pub fn add_animal_to(f: u32) {}\n\n"
+                                          "// SEAM: `Unit::go_inside@0061a2e0` is not modelled\n"
+                                          "fn go_inside() {}\n")
+            (src / 'caravan.rs').write_text("/// `Caravan::trade_value@00612340`\n#[inline]\npub fn trade_value() {}\n"
+                                            "let v = world_adjust_fog(); // World::adjust_fog's answer\n")
+            spelled = census.port_spellings(str(src))
+        self.assertEqual(sorted(spelled), ['Caravan::trade_value', 'World::adjust_fog'])
 
     def test_the_pdb_default_resolves_the_main_checkout_from_a_worktree(self):
         # Parked 1792: `../game` is absent under `.claude/worktrees/`, so

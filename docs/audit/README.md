@@ -315,6 +315,38 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.
+## The brief checklist, from the thirty-fifth pass
+
+The thirty-fifth tranche (DECISIONS 72): twenty-two landings on three
+lanes — Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rules
+track and the sweep — in 6 h 17 min from the first booking, 4.18 USD and
+33.6 minutes waiting a landing. The pass added these rows, each from the
+tranche's own journals or the commander's.
+
+- **The lane gate runs every timed test when the branch touches sim
+  outside `sweep/` or a `rondata::diff` row list, and there is no
+  whole-suite run before it** (2415, the commander's; 2409, the
+  thirty-fourth steer's): both kill rules of the tranche tripped by one
+  route — 2384's 144 `aggression` pins and 2400's floor 17379 → 14461
+  were red only at the booking gate — and the suite run before the lane
+  gate was the booking gate's work done twice, 5.9 minutes a landing.
+  `release_gate.py --lane` reads the branch's paths since `--base`.
+- **The harness cuts a worktree subagent from the integration tip; its
+  first line is `git merge <the lane's branch>`** (2419, 2400's Loop
+  line): a brief's "cut every worktree from the scaffold" had the
+  subagent start without the lane's commits.
+- **A break is `tools/mutate.py`, never a hand script** (2442, 2421's
+  Loop line; 2480, 2469's): a hand restore by `shutil.move` left cargo a
+  stale mutated binary, and a hand pass check keyed on `failed` matched
+  cargo's `0 failed`.
+- **The capture wait is on the viadriver log the launcher's `log:` line
+  names** (2449, 2436's Loop line): `waitrun.sh` on a launcher log
+  written with `>` holds no banner and exits 2 at once.
+- **A golden cheat goes two frames clear of a birth it could race**
+  (2479, 2448's Loop line): run859's first take put `age` on the
+  Despot's birth frame, read before the birth by the original and after
+  by the walk; a retake eight frames later closed.
+
 ## The brief checklist, from the thirty-fourth pass
 
 The thirty-fourth tranche (DECISIONS 71): twenty-three landings on four
@@ -516,9 +548,9 @@ failures of its own, and struck the frame's own story to pay for them.
   first** (966, 1256): two Loop lines of the tranche asked for a decoder
   of `INFO 17` that the seventeenth pass had built; the row had not
   reached the frame.
-- **A change on a shared path runs the widenings whose captures reach it
+- ~~**A change on a shared path runs the widenings whose captures reach it
   before the gate** (1313): `land_passenger`'s snap moved nineteen
-  widenings at the gate and seven more at the merge.
+  widenings at the gate and seven more at the merge.~~ **Struck by the thirty-fifth pass**: the lane gate runs those widenings itself (2415).
 - **Read your run's `docs/RUNS.md` section whole after `ccc update`**
   (1285): the union merge spliced run480's "Taken" into run476's, and
   run488's and run490's the same way.

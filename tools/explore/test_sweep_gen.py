@@ -1305,6 +1305,35 @@ class Shapes(unittest.TestCase):
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_regen_given_a_whole_line_keeps_the_flags_the_line_leaves_out(self):
+        # Loop 2508 (2507's Loop line; the thirty-fifth pass): `--regen` with
+        # a whole line redrew `issue_toggle_pause` without the kept line's
+        # `--cell-win` and `--wbias`, so the test named a cell it no longer
+        # had; the sweep was deleted and drawn again. A whole line merges
+        # the kept line's flags under its own: an option the new line sets
+        # wins, one it leaves out is kept.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
+                self.assertEqual(sweep_gen.main(line + ['--cell-win', '0x500000:0x40', '--write-mod']), 0)
+                self.assertEqual(sweep_gen.main(line + ['--argrange', '0:0:2', '--regen']), 0)
+                kept = sweep_gen.kept_line(Path(tmp) / 'sweep_x_y.py')
+                self.assertIn('--cell-win', kept)
+                self.assertIn('0x500000:0x40', kept)
+                self.assertIn('--argrange', kept)
+                self.assertEqual(kept.count('--item'), 1)
+                self.assertEqual(sweep_gen.main(line + ['--cell-win', '0x600000:0x40', '--regen']), 0)
+                kept = sweep_gen.kept_line(Path(tmp) / 'sweep_x_y.py')
+                self.assertIn('0x600000:0x40', kept)
+                self.assertNotIn('0x500000:0x40', kept)
+                self.assertIn('--argrange', kept)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
     def test_write_mod_inserts_its_line_in_sorted_order(self):
         # Item 2379 (Loop 2003; parked 2318, 2375): `--write-mod` appended its
         # `mod` line at `mod.rs`'s tail, and two batches sorted the run by

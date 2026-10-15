@@ -5541,3 +5541,114 @@ the booking gate's work done twice: only the timed `diff::` tests, and
 only on a branch that can move them. And the rules track, dry after
 2416 (GOLDEN §87), waits on 2436's survey; if it is empty too, the
 next step is the thirty-fifth pass's recommendation, not a lane's.
+
+## 72. The mixed roster's first tranche is scored, the kill rules' one route is closed in the lane gate, and fifteen Loop items become tools, rows or closes
+
+**Decided 2026-10-15**, the thirty-fifth pass
+(`docs/audit/2026-10-15-fable-pass-35.md`), Ramon present at the steer.
+Applies entry 61's rules 2, 4 and 5; **entry 61 §5 would add a lane
+this time** and the pass recommends rather than moves it, since the lane
+count past one-a-tranche is Ramon's (entry 61); changes no roster itself
+— **the roster and the lane count for the thirty-sixth tranche are
+Ramon's word at this steer, written here when given** (the last
+paragraph).
+
+**What was measured.** Twenty-two landings on three lanes — the AI
+word on Opus 5.5 at `--effort medium` (2412 at high, Ramon's mid-tranche
+word, entry 71 amended), the rules track and the sweep on Sonnet 5.5 at
+medium, every lane's model and effort read off its transcript — in
+6 h 17 min from the first booking (`5ffe0388`, 18:32 −05:00) to the
+handoff (`ac513487`, 00:49), the twentieth at 5 h 57: 92.05 USD list
+for the workers (4.18 a landing; the AI word 8.33, the rules track
+3.27, the sweep 2.80) and 23.26 for the commander's two sessions;
+**33.6 minutes waiting a landing** (36.3 the tranche before: gates
+10.9, the suite 6.2, captures 6.0, messages 4.6); the peace pair
+1984 → **4859 of 6822** (2384, 2388, 2412, 2423, 2460); chapters
+seventy-one to seventy-four **closed** (2436, 2448, 2474, 2500),
+sixty-nine built and not closed, seventy surveyed; the census backed
+894 → 994 on eleven batches, every one generated whole; cited 1586 →
+1588, never 337 → 338; peak context 199 k a session, one over 300 k
+(2384, drawn `DEEP`, cleared and continued); three waiter exits; no
+blocked ending; **both kill rules tripped** (2384 Opus medium, 2400
+Sonnet medium), both at the booking gate on pins the lane gate never
+ran; two red booking gates, each a second commit; **no merge backed
+out** (from six); the battery 576 / 6566 / 2974, **unmoved an eleventh
+tranche**; every journal's Loop line filed at its merge; the backlog
+29.
+
+**What it means.**
+
+1. **The mixed roster did the Opus roster's work at two thirds of the
+   price**: 115.31 against 180.49 for one fewer landing, the headline
+   word moved 2,875 frames, four chapters closed (Opus's best tranche
+   closed four), the census +100 (+173 on two sweep lanes before).
+   Sonnet on the rules track closed its four at 3.27 a landing where
+   Opus medium's four came at 9.02; Sonnet's sweep 2.80 against the
+   generator lane's 4.61. **The pass recommends** the roster stands,
+   and decides nothing (entry 61 §2).
+2. **Both kill rules tripped by one route, and the route is the lane
+   gate's own** (1567): it leaves the timed `diff::` tests to the
+   booking gate, so a branch that moves a pin — 2384's `aggression`
+   rows, 2400's captain term on another lobby's floor — is green at its
+   own gate and red at the booking. Ramon kept the roster mid-tranche
+   and asked for the gap closed instead. **Built** (Loop 2415, and 2409
+   with it): `release_gate.py --lane` reads the branch's paths since
+   `--base` and skips nothing when one is sim code outside `sweep/` or
+   a `rondata::diff` row list; the brief's whole-suite run before the
+   gate is gone. A kill rule that trips again trips on a different
+   route, which is the measure.
+3. **The waiting fell inside a fifth** (36.3 → 33.6), so entry 61 §5
+   adds a lane. The pass adds none: the widened lane gate changes a
+   word lane's gate minutes in both directions, and a fourth lane on a
+   box that is the bottleneck (Loop 2408, measured: gate and suite
+   minutes a landing 11.5 / 9.1 → 10.9 / 6.2 with one lane fewer) is
+   Ramon's call, now or after one tranche measured under the new gate.
+4. **The `port` mark counts a code line or an attached doc comment, never
+   a comment alone** (Loop 2420): 216 → 202 → 171 rows across two
+   passes, 86 `name`; the sweep lane's pool is the consumers' and six of
+   seventeen candidates read and dropped was the cost of the old mark.
+5. **`--regen` keeps the kept line's flags under the new ones** (Loop
+   2508); **`report.py draws lo-hi` reads the trace once** (Loop 2512);
+   **a footer-less packet loads when its ranges are whole** (Loop 2461).
+6. **Five Loop lines become brief rows** (`docs/audit/README.md`, "from
+   the thirty-fifth pass"): the subagent's first line is `git merge
+   <the lane's branch>` (2419); a break is `tools/mutate.py` (2442,
+   2480); the wait is on the viadriver log the `log:` line names (2449);
+   a golden cheat goes two frames clear of a birth (2479); and row 1313
+   is struck, the gate doing it. The chapter kind gave back 318
+   characters by tightening fourteen rows, every cited number kept.
+7. **Three close under entry 54** (1900, 2146, 2240, two tranches
+   unreached), **2407 folds into 2459**, ten stay one more, 2003 and
+   2408 stay as ledgers, 1570 and 1725 are Ramon's. The backlog 29 → 14.
+8. **The battery is unmoved an eleventh tranche.** Entry 61 made it the
+   number that says when minting pairs can stop, and entry 54 says a
+   held-out map is never debugged against; no lane has been pointed at
+   its lobbies and none can be under those words. Whether it is the
+   finish line's measure or a held-out one is Ramon's to say at this
+   steer, and the pass writes the question, not an answer.
+
+**The estimate, written down to be wrong on record** (on whatever
+roster and lane count Ramon sets): twenty landings in under six hours;
+the peace pair's word past 6,000, or closed; chapter seventy-five
+closes and sixty-nine's lobby is minted; the backed column past 1,080;
+the sweep under 2.80 a landing; waiting a landing under 30 minutes;
+no kill rule tripped on 2415's route; no blocked ending; no merge
+backed out; the battery's question answered at the steer.
+
+**The measure for the next pass**: each lane's USD and waiting a
+landing against 4.18 / 33.6 (the AI word 8.33 / 45.9, the rules track
+3.27 / 47.8, the sweep 2.80 / 20.4); gate and suite minutes against
+10.9 and 6.2; the waiter's exits against 3 of 22; sessions over 300 k
+against one; blocked endings against 0; kill rules against two and the
+route; merges backed out against 0 of 22; the battery against 576 /
+6566 / 2974; the census's never against 338, backed against 994, cited
+against 1588, `port` against 171; the backlog against fourteen and
+which of the ten reached; the timings file's stale count against the
+re-timed one; and whether every journal's Loop line is in the parked
+file at the handoff.
+
+**The roster and the lane count for the thirty-sixth tranche — Ramon's
+word at this steer, 2026-10-15**: (written when given; until then the
+thirty-fifth's stands — three lanes, Opus 5.5 medium on the AI word,
+Sonnet 5.5 medium on the rules track and the sweep.)
+

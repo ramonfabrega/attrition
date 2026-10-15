@@ -435,17 +435,40 @@ SPELLED = re.compile(r"\b([A-Z][A-Za-z0-9]*::[a-z_][a-z0-9_]*)\b")
 
 
 def port_spellings(sim_src):
-    """Every `Class::method` the crate's text spells outside `sweep/` — a
-    `SEAM`, a doc comment, a citation: the original functions this crate
-    names as the thing it ports or leaves out (Loop 2286: a bare name match
-    marked `BorderNodes::find` a port consumer because something defines a
-    `fn find`)."""
+    """Every `Class::method` the crate spells outside `sweep/` as the thing
+    it ports: on a code line, or in the doc comment attached to the `fn`
+    whose name is the method's own (Loop 2286: a bare name match marked
+    `BorderNodes::find` a port consumer because something defines a `fn
+    find`; Loop 2420: a comment alone — a SEAM, a note on a neighbour —
+    marked `Farms::add_animals` one, and six of seventeen candidates were
+    read and dropped)."""
     out = set()
     for p in glob.glob(os.path.join(sim_src, "**", "*.rs"), recursive=True):
         if os.sep + "sweep" + os.sep in p:
             continue
         with open(p, errors="replace") as f:
-            out |= set(SPELLED.findall(f.read()))
+            out |= spelled_in(f.read())
+    return out
+
+
+def spelled_in(text):
+    """The spellings of one file that count (see `port_spellings`)."""
+    out, doc = set(), []
+    for line in text.splitlines():
+        body = line.strip()
+        if body.startswith("///"):
+            doc.append(body)
+            continue
+        if body.startswith("#["):
+            continue
+        m = PORT_FN.search(line) if not body.startswith("//") else None
+        if m and doc:
+            out |= {s for s in SPELLED.findall("\n".join(doc)) if snake(s.split("::")[1]) == m.group(1)}
+        doc = []
+        if not body.startswith("//"):
+            # A code line, its trailing comment included: a citation beside
+            # the computation is the consumer; a line of comment alone is not.
+            out |= set(SPELLED.findall(line))
     return out
 
 

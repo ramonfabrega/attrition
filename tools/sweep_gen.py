@@ -2197,6 +2197,39 @@ def _kept_for_regen(argv):
     return line
 
 
+def merged_with_kept(argv):
+    """`--regen` given a whole line (Loop 2508): the kept line's options the
+    new line does not set are kept under it — a window, a bias, a range —
+    so a redraw that names one new flag does not drop the rest. The sweep
+    is found by its function, the token the kept line carries verbatim."""
+    if '--regen' not in argv:
+        return argv
+    fn = next((a for a in argv if '::' in a and '@' in a), None)
+    kept = None
+    for p in sorted(EMU.glob('sweep_*.py')) if fn else ():
+        line = kept_line(p)
+        if line and fn in line:
+            kept = line
+            break
+    if kept is None:
+        return argv
+    new_opts = {a for a in argv if a.startswith('--')}
+    extra, i = [], 0
+    while i < len(kept):
+        a = kept[i]
+        if not a.startswith('--'):
+            i += 1
+            continue
+        group = [a]
+        i += 1
+        while i < len(kept) and not kept[i].startswith('--'):
+            group.append(kept[i])
+            i += 1
+        if a not in new_opts and a not in NOT_KEPT:
+            extra += group
+    return argv + extra
+
+
 def kept_port(old, new, todo):
     """`--regen` with no `--port` (item 2368, parked 2342): the new test
     `new` with its `todo` port replaced by the block the old test `old`
@@ -2481,6 +2514,8 @@ def main(argv=None):
         return 2
     if line is not None:
         argv = line + ['--regen']
+    else:
+        argv = merged_with_kept(argv)
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk', 'mix', 'obj', 'void'))
     ap.add_argument('--cell-win', action='append', default=[], dest='cells', metavar='VA[:SIZE]',

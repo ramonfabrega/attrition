@@ -3,7 +3,8 @@
 
     report.py <log> [--index INDEX.tsv] summary
     report.py <log> draws [FRAME ...]          every draw of the given sim-frames
-                                               (default: all; `setup` = before frame 0),
+                                               (default: all; `setup` = before frame 0;
+                                               `lo-hi` a window, read in one pass),
                                                with the caller, the ebp chain, and the
                                                value the draw returned
     report.py <log> sites [FRAME ...]          the same, folded by caller site with counts
@@ -221,6 +222,22 @@ def frame_of(rec):
 
 def frame_arg(a):
     return -1 if a == "setup" else int(a)
+
+
+def frame_args(rest):
+    """The frames the arguments name: `setup`, a frame, or a window `lo-hi`
+    (Loop 2512: a window of two hundred frames was two hundred reads of a
+    277 MB trace)."""
+    want = set()
+    for a in rest:
+        if re.fullmatch(r"\d+-\d+", a):
+            lo, hi = (int(x) for x in a.split("-"))
+            if hi < lo:
+                raise ValueError(f"{a}: an empty window")
+            want |= set(range(lo, hi + 1))
+        else:
+            want.add(frame_arg(a))
+    return want
 
 
 def pe_sections(data):
@@ -457,7 +474,7 @@ def main():
             print(f"no draw in this trace is made from {' < '.join(want_chain)}")
         return
 
-    want = set(frame_arg(a) for a in rest) if rest and cmd != "blind" else None
+    want = frame_args(rest) if rest and cmd != "blind" else None
 
     if cmd in ("draws", "sites"):
         per_site = Counter()

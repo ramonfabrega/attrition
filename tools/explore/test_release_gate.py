@@ -395,7 +395,7 @@ class GateTests(unittest.TestCase):
                '1.00\tdiff::golden::at_the_budget\n'
                '0.02\tdiff::floors::tests::the_gate_has_a_bounded_test_width\n')
 
-    def release_command(self, **kw):
+    def release_command(self, touched=(), **kw):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls=[]
@@ -403,7 +403,7 @@ class GateTests(unittest.TestCase):
                 calls.append(command)
                 if '--release' in command:
                     release_ran(kwargs)
-            with patch('builtins.print'):
+            with patch('builtins.print'), patch.object(gate, 'branch_paths', return_value=list(touched)):
                 gate.gate(path, report_dir=path/'report', run=run, test_threads=4, **kw)
             policy=json.loads((path/'report/gate-policy.json').read_text())
         return next(c for c in calls if '--release' in c), policy
@@ -418,6 +418,28 @@ class GateTests(unittest.TestCase):
         self.assertEqual(len(skipped), policy['lane']['skipped'])
         self.assertGreater(len(skipped), 400)
         self.assertEqual(command[:8], ['zsh','tools/memcap.sh','20','cargo','test','--release','--no-fail-fast','--'])
+
+    def test_a_branch_that_can_move_the_diff_pins_widens_the_lane_gate(self):
+        # Loop 2415 (the thirty-fifth pass; DECISIONS 71 amended): both kill
+        # rules of the thirty-fifth tranche tripped by one route — 2384's
+        # 144 `aggression` pins and 2400's floor 17379 → 14461 were red only
+        # at the booking gate, because the lane gate leaves the timed
+        # `diff::` tests to it. A branch that touches sim code outside
+        # `sweep/` or a `rondata::diff` row list can move those pins, so its
+        # lane gate skips nothing; and the whole-suite run before the gate
+        # (Loop 2409) is then the gate itself.
+        self.assertEqual(gate.lane_widens(['crates/sim/src/sweep/x.rs', 'docs/AI.md', 'tools/x.py',
+                                           'crates/rondata/src/census.rs']), [])
+        self.assertEqual(gate.lane_widens(['crates/sim/src/diplomacy.rs', 'crates/rondata/src/diff/leader.rs']),
+                         ['crates/rondata/src/diff/leader.rs', 'crates/sim/src/diplomacy.rs'])
+        command, policy = self.release_command(touched=['crates/sim/src/diplomacy.rs', 'docs/AI.md'],
+                                               lane=True, tests=WORD)
+        self.assertNotIn('--skip', command)
+        self.assertEqual(policy['lane']['skipped'], 0)
+        self.assertEqual(policy['lane']['widened'], ['crates/sim/src/diplomacy.rs'])
+        command, policy = self.release_command(touched=['crates/sim/src/sweep/x.rs'], lane=True, tests=WORD)
+        self.assertIn('--skip', command)
+        self.assertEqual(policy['lane']['widened'], [])
 
     def test_the_booking_gate_skips_nothing(self):
         command, policy = self.release_command()

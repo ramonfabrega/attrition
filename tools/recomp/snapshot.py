@@ -38,9 +38,21 @@ class Snapshot:
             _, base, size = struct.unpack("<3I", f.read(12))
             self.ranges.append((base, size, f.tell()))
             f.seek(size, 1)
-        foot = struct.unpack("<7I", f.read(28))
-        if foot[0] != FOOTER or foot[3:5] != (count, total) or sum(r[1] for r in self.ranges) != total:
-            raise ValueError(f"{path}: the footer does not close the ranges the header promised")
+        tail = f.read(28)
+        whole = len(self.ranges) == count and sum(r[1] for r in self.ranges) == total
+        if len(tail) < 28:
+            # Loop 2461: a packet `golden_capture.sh` takes on the click-free
+            # lane ends where its ranges end — the close is lost at `!quit`.
+            # Whole ranges load, and `footer` says none came.
+            if not whole:
+                raise ValueError(f"{path}: no footer, and the ranges are not the {count} of {total} "
+                                 "bytes the header promised")
+            self.footer = None
+        else:
+            foot = struct.unpack("<7I", tail)
+            if foot[0] != FOOTER or foot[3:5] != (count, total) or not whole:
+                raise ValueError(f"{path}: the footer does not close the ranges the header promised")
+            self.footer = foot
         self.ranges.sort()
 
     def read(self, va, n):

@@ -174,6 +174,36 @@ def lane_skips(timings, tests):
     return sorted(skips)
 
 
+# Loop 2415 (the thirty-fifth pass): the lane gate leaves the timed
+# `diff::` tests to the booking gate (1567), and both kill rules of one
+# tranche tripped by that one route — 2384's 144 `aggression` pins and
+# 2400's floor 17379 → 14461 were red only at the booking. A branch that
+# touches sim code outside `sweep/` or a `rondata::diff` row list can move
+# those pins, so its lane gate skips nothing; one that touches neither — a
+# sweep batch, a document — cannot, and keeps the fast suite. The
+# whole-suite run before the gate (Loop 2409) is then the gate's own.
+WIDENS = ('crates/sim/src/', 'crates/rondata/src/diff/')
+
+
+def lane_widens(paths):
+    """The paths of a branch that can move the timed `diff::` pins."""
+    return sorted(p for p in paths
+                  if p.startswith(WIDENS[1]) or (p.startswith(WIDENS[0]) and '/sweep/' not in p))
+
+
+def branch_paths(base, run=subprocess.run):
+    """Every path the branch changed since it left `base`, or None when
+    `base` is not a ref this tree knows."""
+    try:
+        fork = run(['git', 'merge-base', base, 'HEAD'], capture_output=True, text=True,
+                   cwd=ROOT, check=True).stdout.strip()
+        out = run(['git', 'diff', '--name-only', fork, 'HEAD'], capture_output=True, text=True,
+                  cwd=ROOT, check=True).stdout
+    except subprocess.CalledProcessError:
+        return None
+    return out.split()
+
+
 def unmatched_filters(log, tests):
     """The word filters no test that ran contains — read off the release
     log's `test <name> ... ok|FAILED` lines, so an ignored test is not a
@@ -206,7 +236,7 @@ def journal_of(item, root=ROOT):
 
 
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
-         lane=False, tests=None, item=None):
+         lane=False, tests=None, item=None, base='worktree-replan-pdb'):
     # Parked 1713: two lanes `pkill -f release_gate.py`'d every gate on the
     # box to stop their own; a gate names its pid first so it can be killed
     # by it.
@@ -229,7 +259,11 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         raise ValueError('--tests is a lane gate\'s; the booking gate runs the whole suite')
     if any(not f.strip() for f in tests):
         raise ValueError('an empty --tests filter would keep every slow test')
-    skips = lane_skips(TIMINGS.read_text(), tests) if lane else []
+    skips, widened, touched = [], [], None
+    if lane:
+        touched = branch_paths(base)
+        widened = lane_widens(touched or [])
+        skips = [] if widened else lane_skips(TIMINGS.read_text(), tests)
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
@@ -248,7 +282,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     policy = {'schema': 1, 'release_test_threads': test_threads, 'memory_cap_gib': 20}
     if lane:
         policy['lane'] = {'tests': tests, 'timings': str(TIMINGS.relative_to(ROOT)),
-                          'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips)}
+                          'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
+                          'base': base, 'widened': widened}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
     # No game launch: rondata surveys the user's data files.
     #
@@ -270,9 +305,15 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         + (['--exact'] + [arg for name in skips for arg in ('--skip', name)] if lane else []),
         ['zsh', 'tools/guard.sh'],
     ]
-    if lane:
+    if lane and widened:
+        print(f"Lane suite: every timed test — the branch touches {len(widened)} path(s) that can move "
+              f"the diff:: pins ({widened[0]}{', …' if len(widened) > 1 else ''}; Loop 2415); "
+              f"the word's: {', '.join(tests)}", flush=True)
+    elif lane:
         print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
-              f"booking gate ({TIMINGS.relative_to(ROOT)}); the word's: {', '.join(tests)}", flush=True)
+              f"booking gate ({TIMINGS.relative_to(ROOT)}); the word's: {', '.join(tests)}"
+              + (f"; base {base} is not a ref here, so nothing widened" if touched is None else ''),
+              flush=True)
     reached = []
     try:
         _run_steps(commands, run=run, env=env, audit_dir=audit_dir, report_dir=report_dir,
@@ -389,10 +430,15 @@ def main():
     parser.add_argument('--item', type=int, metavar='N',
                         help='with --lane: the item; the gate refuses a tree with no '
                              'docs/journal/*-item-N.md (parked 1699)')
+    parser.add_argument('--base', default='worktree-replan-pdb', metavar='REF',
+                        help='with --lane: the branch the lane was cut from; a branch that touches '
+                             'sim code outside sweep/ or a rondata::diff row list since it runs every '
+                             'timed test (Loop 2415); default: worktree-replan-pdb')
     args = parser.parse_args()
     try:
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
-             test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item)
+             test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
+             base=args.base)
     except ValueError as exc:
         parser.error(str(exc))
 
