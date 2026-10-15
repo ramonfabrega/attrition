@@ -634,6 +634,7 @@ LEN_AT = {len_at}
 VBASE = {vbase}
 STALE = {stale}
 STALE_COL = {stale_col}
+VBASE2 = {vbase2}
 REC = {rec}
 STORE = {store}
 ELEMS = {elems}
@@ -656,6 +657,13 @@ def main(argv):
             vb = h.alloc(0x20)
             h.w32(vb + 4, g)
             h.w32(this - VBASE, vb)
+        d2 = 0
+        if VBASE2 is not None:
+            # a second displacement record at [this-VBASE2], its +4 the `d2` column (parked 2668, 2674)
+            d2 = rng.randint(-0x100, 0x1000)
+            vb2 = h.alloc(0x20)
+            h.w32(vb2 + 4, d2)
+            h.w32(this - VBASE2, vb2)
         gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
         if STALE:
             # the `ecx` a callback or a direct callee leaves (parked 1922, 2498, 2563), printed in the gate column
@@ -711,6 +719,8 @@ def main(argv):
             h.w32(this + head, elems[0] if elems else 0)
             el = "".join(f" {{e}}" for e in elems)
         sw = f" {{sv}}" if STALE and STALE_COL else ""
+        if VBASE2 is not None:
+            sw += f" {{d2}}"
         if STORE is not None:
             off, val, size, woff = STORE
             w = 0 if i % 3 == 0 else rng.randint(1, 0x7FFFFFFF)
@@ -757,7 +767,7 @@ fn the_emulated_original_agrees_on_every_row() {{
 {store_w}{store_split}{elems_src}        let _ = eax;
         let stale = {stale_src}; // the slot-4 callee's leftover `ecx` when a step names it
         let _ = (this, g, gate, stale);
-        let mut calls: Vec<Vec<i64>> = Vec::new();
+{d2_src}        let mut calls: Vec<Vec<i64>> = Vec::new();
 {steps}
         let want: String = calls
             .iter()
@@ -783,6 +793,9 @@ def _mix_expr(tok):
         return 'stale'  # the slot-4 callee's leftover ecx (parked 2498)
     if tok == 'stale|this':
         return 'if gate != 0 { g } else { this }'  # a gated callee's leftover, else the entry ecx (parked 2568)
+    if tok.startswith('this') and tok.endswith('+d2'):
+        k = int(tok[4:-3], 0)  # the second vbase displacement (parked 2668, 2674)
+        return f'this {"-" if k < 0 else "+"} {abs(k):#x} + d2'
     if tok.startswith('this') and ('-' in tok or tok.endswith('+d')):
         # `this-0x18+d`: an offset, and the vbase displacement `d` (the `g` column)
         body, disp = (tok[4:-2], ' + g') if tok.endswith('+d') else (tok[4:], '')
@@ -809,7 +822,7 @@ def _mix_expr(tok):
 
 
 def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vbase=None, len_at=None,
-                 gate_ne=False, ret_arg=False, store=None, elems=None, stale_col=False):
+                 gate_ne=False, ret_arg=False, store=None, elems=None, stale_col=False, vbase2=None):
     """`steps`: `call:ADDR:NARGS:ECX:ARGS`, `walk:A0:A1` (the walker's slot 0),
     `walk4:OFF` (its slot 4, handed `**glob + 0x10` pointer's word + OFF),
     each optionally prefixed `gated/` — run only when `[walker+gate] == 0`."""
@@ -863,6 +876,7 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
                                vbase=hex(vbase) if vbase is not None else 'None',
                                stale=any('stale' in st.split(':', 1)[1] for st in steps),
                                stale_col=bool(stale_col),
+                               vbase2=hex(vbase2) if vbase2 is not None else 'None',
                                rec=any('rec' in st.split(':', 1)[1] for st in steps),
                                elems=('(' + ', '.join(repr(x) if isinstance(x, str) else (f'{x:#x}' if i < len(ev) - 1 or ev[0] == 'list' else str(x)) for i, x in enumerate(ev)) + ')') if ev else 'None',
                                store=(f'({int(sv[0], 0):#x}, {int(sv[1], 0):#x}, {int(sv[2], 0)}, {int(sv[3], 0):#x})'
@@ -875,7 +889,7 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
         storecheck = (f'        let want_after = if {cond} && w != 0 {{ {int(sv[1], 0) & mask:#x} }} else {{ before }};\n'
                       f'        assert_eq!(after, want_after, "{short} — the store, row `{{line}}`");\n')
     elems_src = ''
-    ecol = 4 + int(bool(stale_col))
+    ecol = 4 + int(bool(stale_col)) + int(vbase2 is not None)
     if ev:
         elems_src = f'        let elems = &a[{ecol}..];\n'
         if ev[0] == 'table':
@@ -885,7 +899,8 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
                                         '        let (after, before) = tail.split_once(\' \').expect("`<after> <before>`");\n'
                                         '        let rd = |h: &str| (0..h.len() / 2).rev().fold(0i64, |acc, k| acc << 8 | i64::from_str_radix(&h[2 * k..2 * k + 2], 16).expect("hex"));\n'
                                         '        let (after, before) = (rd(after), rd(before));\n') if sv else '',
-                           store_w=f'        let w = a[{4 + int(bool(stale_col))}];\n' if sv else '',
+                           store_w=f'        let w = a[{ecol}];\n' if sv else '',
+                           d2_src=f'        let d2 = a[{4 + int(bool(stale_col))}];\n        let _ = d2;\n' if vbase2 is not None else '',
                            storecheck=storecheck,
                            steps='\n'.join(code), stale_src='a[4]' if stale_col else 'g' if gate is not None else 'gate',
                            retcheck='        assert_eq!(eax, walker, "{short} — the result is the out-pointer, row `{line}`");\n'.replace('{short}', short) if ret_arg else '')
@@ -2837,6 +2852,7 @@ def main(argv=None):
     ap.add_argument('--gate-ne', action='store_true', help='mix: with --gate, gated steps run when [walker+GATE] != 0')
     ap.add_argument('--store', help='mix: OFF:VAL:SIZE:WOFF — the function stores VAL (SIZE bytes) at this+OFF when the gated steps run and [walker+WOFF] != 0; asserted, and nothing else written')
     ap.add_argument('--elems', help='mix: table:LO:HI:STEP (the pointer words of *(*cell+0x10), a table read through --glob) or list:HEAD:NEXT (a linked list from [this+HEAD] by [node+NEXT]); an `each/` step runs once an element, tokens `elem`, `elem+K` (parked 2585, 2589)')
+    ap.add_argument('--vbase2', type=lambda s: int(s, 0), help='mix: a second displacement record at [this-VBASE2], its +4 the `d2` column (tokens `this-K+d2`)')
     ap.add_argument('--stale-col', action='store_true', help='mix: the `stale` leftover ecx is a drawn column of its own after the gate (parked 2673), not the g column')
     ap.add_argument('--ret-arg', action='store_true', help='mix: assert the result (eax) is the stack argument, an out-pointer returned')
     ap.add_argument('--own', type=int, default=0, help='fwd, obj: stack arguments the function itself takes')
@@ -3089,7 +3105,7 @@ def main(argv=None):
                                                     glob=args.glob, gate=args.gate,
                                                     gate_this=args.gate_this or args.gate_bare, vbase=args.vbase, len_at=args.len_at,
                                                     gate_ne=args.gate_ne, ret_arg=args.ret_arg, store=args.store, elems=args.elems,
-                                                    stale_col=args.stale_col)
+                                                    stale_col=args.stale_col, vbase2=args.vbase2)
         elif args.shape == 'obj':
             sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
                                                     own=args.own, ret=args.ret or 'eax', port=args.port,

@@ -1770,6 +1770,20 @@ class Shapes(unittest.TestCase):
         self.assertIn('STALE_COL = False', script0)
         self.assertIn('let stale = g;', test0)
 
+    def test_a_mix_may_read_a_second_vbase_displacement(self):
+        # parked 2668, 2674: GroupMoveOrder::walk_data reads [[this-0x70]+4] and later [[this-0x20]+4].
+        spec = 'GroupMoveOrder::walk_data@004855c0'
+        steps = ['walk:this-0x6c+d:this-0x6b+d', 'walk:this-0x6c:this-0x20',
+                 'walk:this-0x1c+d2:this-0x1b+d2', 'walk:this-0x1c:this-8', 'walk:this-8:this-4']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2688, vbase=0x70, vbase2=0x20, steps=steps)
+        compile(script, 'sweep_group_move_order_walk_data.py', 'exec')
+        self.assertIn('VBASE2 = 0x20', script)
+        self.assertIn('let d2 = a[4];', test)
+        self.assertIn('walker, this - 0x1c + d2, this - 0x1b + d2', test)
+        self.assertIn('walker, this - 0x6c + g, this - 0x6b + g', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2688, vbase=0x70, steps=steps[:2])
+        self.assertIn('VBASE2 = None', script0)
+
     def test_a_mix_may_assert_the_result_is_the_stack_argument(self):
         # parked 2570: a get_name returns its out-pointer ([ebp+8]), eax == walker.
         spec = 'Surf::get_name@004a5dc0'
