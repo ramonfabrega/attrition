@@ -2687,6 +2687,7 @@ impl Sim {
                     // `Object::die` is `close()` — the draw arm below —
                     // and **then** the slot hold, which is not gated on
                     // the draw arm's `dtype` at all (§42.3).
+                    self.close_count(i);
                     self.relink_squad(i);
                     self.close_unit(i, dtype, _frame);
                     self.kremlin_spy_closed(i);
@@ -2843,6 +2844,32 @@ impl Sim {
             bd.eject_pending = true;
         }
         taken
+    }
+
+    /// **`Unit::close@0060ee50`'s count, at `0060f3db`** — the general
+    /// death path's `track_unit_type(type, −1)`, with `control` and
+    /// `active` beside it (`docs/AI.md` §232; parked 1092, 1328).
+    ///
+    /// The listing takes the count off only for the squad's head
+    /// (`+0x8e < 0`) when no live figure follows it: a head whose next
+    /// figure (`+0x90`) is active hands the squad down at `0060f679`
+    /// instead, and the squad is still one unit. Then the gate
+    /// [`Sim::counts_in_muster`] shares with `set_type`'s `+1` — a type
+    /// with population, and `unit_masks & 1` (the decoy bit) clear. Called
+    /// before [`Self::relink_squad`], which is `close`'s relink after it.
+    /// run867's who=1 kept three shot-down Jet Fighters in `num_units`
+    /// (7 against 4), and its next Fighter's ramp ran twelve frames long.
+    pub(crate) fn close_count(&mut self, i: usize) {
+        let u = &self.units[i];
+        if u.o_up.is_some() || u.decoy || u.o_down.is_some_and(|d| self.units[d].alive()) {
+            return;
+        }
+        let Some(ty) = u.ty else { return };
+        if self.unit_types[ty].price.pop == 0 {
+            return;
+        }
+        let who = u.owner;
+        self.track_unit_type(who, ty, -1);
     }
 
     /// **`Unit::close@0060ee50`'s squad relink** (`docs/COMBAT.md` §47.2),
