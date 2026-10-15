@@ -12262,7 +12262,7 @@ golden walk of its own.
 |---|---|---|
 | §213 the government patriot is a supply unit: hits (`Unit::update_hits`' supply term on a unit that is hero and supply) | **No**: the pair's AI Senate only | **Yes**: `add senate`, the six upgrade techs by `tech who=0 <name> on`, Despotism queued at the Senate. **Staged here.** |
 | §213 the army cap by `is_supply` (`find_army`) | No | No: an army is the AI's (`!ai off`) |
-| §216 a held Supercollider zeroes research time | No | **No**: `wonders_held` needs the wonder in a city (`b.city.is_some()`), and an `add`ed building joins no city (§47, chapter thirty-eight: `1/2006` and `1/2007` read `city -1`); a wonder built by a Citizen takes 840,000 job and `finish`/`hurry` are parsed and unapplied (§16) |
+| §216 a held Supercollider zeroes research time | No | **No**: `wonders_held` needs the wonder in a city (`b.city.is_some()`), and an `add`ed building joins no city (§47, chapter thirty-eight: `1/2006` and `1/2007` read `city -1`); a wonder built by a Citizen takes 840,000 job and `finish`/`hurry` are parsed and unapplied (§16) — **reached by §90**: `finish` is applied (run860) |
 | §214 `land_tail`'s `toggle_leader_facing` | No | No: it needs a landing unit that leads a group by `find_leader` and a reversing turn; no console verb sets a unit's heading or a group's leader |
 | §217 Monarchy's King patriot (the Senate's tail), §220 the peace arm | No | The King rides the same tail; a second research at the staged Senate (`1100 @queueup 0 625 1 2007`) was refused by the walk (`skipped {("@queueup", "no named object is a live unit...")}`), so the `set_type` arm is not staged here |
 
@@ -12332,12 +12332,43 @@ the pairs' AI Senates or the lobbies' ages; the count is the commander's pin.
 `update_armor` half of `calc_unit_stats` (no armor field here changes on the staged units). §216's wonder and §214's
 facing stay unstageable (§88's table).
 
-## 90. Reserved for the next item on the rules track
+## 90. Chapter seventy-three: a wonder finished on a human — `finish` applied, AI §216's arm held on a human
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2474 (Claude Sonnet 5.5, `--effort medium`). **Closed at 760 of 760** (run860,
+`tools/gamelog/golden/chapter73.cmd`; `golden::chapter_seventy_three_holds_to_the_golden_word`,
+`chapter_seventy_three_s_word_frame_is_widened_whole`, 600..761, the thirteen standing rows of chapter seventy-two
+alone). **Nothing in the sim's rules moved**; the interpreter gained two verbs.
+
+**The verbs built** (§16's "`finish`/`hurry` parsed and unapplied", parked 2438). `run_cmd` case `0x51` is
+`Console::hurry_action@007c3810` over the console's selection (`select_groups`); with `this != 0` (the one-token
+`finish`) a selected **building** that is not active takes vslot `0x1a8`, `Build::activate(0, 1, 1)`, then
+`BuildData::job_counter += 10000`, then `do_queue(0)` (a site with no queue returns at its head, `field_0x82`).
+`golden.rs` carries `Cheat::Select { who, o }` (`select <ob#> [who]`, the one-object form) and `Cheat::Finish`;
+`Sim::cheat_finish` (`city.rs`) is the arm. **Test**: `cities_tests::finish_activates_a_site_and_pays_the_counter`
+and `chapter_one_parses_into_the_cheat_set`'s three parse lines (written alongside the code, not watched red first —
+the parse line's old `finish` → `Unmapped` assertion was the red one). SEAM: the unit arm (`+0x64 += 10000` on a
+`0x15f` type), `do_queue(0)`'s tail on a finished building's queue, and the library/train-time half of the building arm.
+
+**The staging** (walked by this crate on run492's start, `RON_STAGE=ch45:chapter73:900`): `age who=0 8` (not
+`library`, which maxes the military epoch and makes The Art of War unavailable to `@queueup`), `tech who=0
+supercollider on`, a Small City `0/2007` at (40, 160) — near who=0's start, *not* (30, 74), which is water, and a wonder
+site east of the city's footprint is `Blocked(Building)` (six sites probed, `place_building`'s refusals) — a Citizen
+`0/6` ordered to a Supercollider `0/2008` at world (7776, 29472), the Library `0/2005` researching The Art of War from
+640, and `700 select 2008 who=0`, `701 finish`. The site joins city 2007 (`members=[2008]`); a control walk with no
+`finish` has the research done on 841 and the wonder unfinished at its 840,000 job.
+
+**What run860 held** (one take, click-free lane 1, 168 s, 761 frames): the **whole record agrees both directions**,
+600..760 — 160 blocks, 152,446 record rows, 35,200 leader rows, thirteen standing keys. The leader's `wonder_mark`
+turns 1 on block 702 in the dump and in ours, and the Library's research ends there instead of 841: the held
+Supercollider zeroes a **human's** research time (AI §216, diff-backed before only on the Mongol pair's AI).
+
+**Census rows reached.** `Console::hurry_action@007c3810` (not a simulation row), `Build::activate@00623e20`'s wonder
+arm and `Wonders::init_wonder@0073c860` for a Citizen-built wonder, `Build::do_queue@0061e410` (the call's tail); the
+count is the commander's pin.
+
+**What is not established.** `hurry` (the `this == 0` form, `iVar6 = 10000` against the train time) and a unit's
+`finish`; `select` by type name or with `+`; whether the wonder's finish edge is one frame wide (a `finish` on block 703
+would show it — the line was put clear of any birth, parked 2450). The battery was not re-measured on this tip.
 
 ## 91. Reserved for the next item on the rules track
 

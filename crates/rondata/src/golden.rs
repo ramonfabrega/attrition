@@ -91,6 +91,15 @@ pub enum Cheat {
     /// `be [who]`, chat table case 43: the console's seat, which
     /// [`Script`] carries ([`Script::apply`] acts on it; item 1182).
     Be(Option<i32>),
+    /// `select <ob#> [who]`, table case `0x4f`'s sibling: the one-object
+    /// form of the console's selection, which `finish` reads
+    /// (`select_groups`, `Console::hurry_action@007c3810`). The type-name
+    /// form and `+` are not modelled and stay [`Cheat::Unmapped`].
+    Select { who: i32, o: i16 },
+    /// `finish`/`hurry` with `this != 0` (case `0x51`, one-token form):
+    /// every selected building is activated and paid 10000 job counter
+    /// ([`sim::Sim::cheat_finish`]).
+    Finish,
     /// A line the channel has and this interpreter does not model, or one
     /// whose arguments did not parse. The string is the command word.
     Unmapped(String),
@@ -152,6 +161,9 @@ pub struct Script {
     /// is staged as `be N` and the `@` line on one frame and `be 0` on the
     /// next.
     seat: i32,
+    /// The console's selection, `(who, o)` pairs, which `select` sets and
+    /// `finish` reads (item 2474).
+    selected: Vec<(i32, i16)>,
 }
 
 impl Script {
@@ -190,6 +202,7 @@ impl Script {
             next: 0,
             pending: Vec::new(),
             seat: CONSOLE_WHO,
+            selected: Vec::new(),
         }
     }
 
@@ -375,7 +388,7 @@ impl Script {
                 done.skip(&command_word(&line.text), "a cheat under another seat");
                 continue;
             }
-            run(&line, built, loaded, &mut done);
+            run(&line, built, loaded, &mut done, &mut self.selected);
         }
         done
     }
@@ -1560,6 +1573,17 @@ fn parse(text: &str) -> Cheat {
             }
         }
         "bird" => Cheat::Bird,
+        "finish" if rest.is_empty() => Cheat::Finish,
+        "select" => match rest.first().and_then(|t| t.parse::<i16>().ok()) {
+            Some(o) => Cheat::Select {
+                who: rest
+                    .get(1)
+                    .and_then(|t| parse_who(t, true))
+                    .unwrap_or(CONSOLE_WHO),
+                o,
+            },
+            None => Cheat::Unmapped(word),
+        },
         "be" => Cheat::Be(rest.first().and_then(|t| parse_who(t, true))),
         "resource" => {
             // The token walk is `run_cmd`'s (`7dd73f`..`7dd7e8`): an optional
@@ -1638,7 +1662,13 @@ fn parse_amount(tok: &str) -> Option<i32> {
 /// parked 653; run168 and run169 are two that did.
 pub const STAGED_CURSOR: Pos = Pos { x: 0, y: 6 };
 
-fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
+fn run(
+    line: &Staged,
+    built: &mut Built,
+    loaded: &Loaded,
+    done: &mut Applied,
+    selected: &mut Vec<(i32, i16)>,
+) {
     let word = command_word(&line.text);
     // `run_cmd`'s two switches are disjoint: 56 console-only commands and
     // 45 chat-reachable ones (`docs/ORACLE.md`). A script that puts a chat
@@ -1740,6 +1770,29 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
         // `Script::apply` takes `be` before `run` is reached: the seat is
         // the script's, not the simulation's.
         Cheat::Be(_) => done.skip(&word, "the seat is the script's (Script::apply)"),
+        Cheat::Select { who, o } => {
+            *selected = vec![(who, o)];
+            done.ran += 1;
+        }
+        Cheat::Finish => {
+            // `hurry_action`'s building arm: not a unit (vslot `0xc`), so
+            // `BuildData::is_active` clear → `Build::activate(0, 1, 1)`,
+            // then `job_counter += 10000`. SEAM: the unit arm (`+0x64 +=
+            // 10000` on a `0x15f` type) and `do_queue(0)`, which a site with
+            // no queue returns from.
+            let mut any = false;
+            for &(who, o) in selected.iter() {
+                if let Some(b) = built.sim.building_by_o(who as sim::Player, o) {
+                    built.sim.cheat_finish(b);
+                    any = true;
+                }
+            }
+            if any {
+                done.ran += 1;
+            } else {
+                done.skip(&word, "no selected building (the unit arm is not modelled)");
+            }
+        }
         Cheat::Bird => {
             // `run_cmd` case `0x52`: `Objects::init_unit(objects, 9,
             // BASE_GAIATYPES, x, y, −1, −1, −1)` on the raw cursor — no
@@ -2144,6 +2197,8 @@ mod tests {
         ("chapter71.cmd", &[]),
         // Chapter seventy-two: the Senate's second government (item 2448, `docs/GOLDEN.md` §89).
         ("chapter72.cmd", &[]),
+        // Chapter seventy-three: a wonder finished on a human (item 2474, `docs/GOLDEN.md` §90).
+        ("chapter73.cmd", &[]),
         // Chapter seven's control, the same file less `0 !ai off` (item 578).
         ("chapter7_control.cmd", &[]),
         // Chapter seven-b: the same five for who=1, and its control (item 628).
@@ -2895,7 +2950,13 @@ mod tests {
                 level: 6
             }
         );
-        assert_eq!(parse("finish"), Cheat::Unmapped("finish".into()));
+        assert_eq!(parse("finish"), Cheat::Finish);
+        assert_eq!(
+            parse("select 2006 who=1"),
+            Cheat::Select { who: 1, o: 2006 }
+        );
+        assert_eq!(parse("select 2006"), Cheat::Select { who: 0, o: 2006 });
+        assert_eq!(parse("select hoplite"), Cheat::Unmapped("select".into()));
     }
 
     /// `parse_coord`'s three arms. The bare number is a **tile** on this

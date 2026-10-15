@@ -16998,3 +16998,20 @@ SHA-256 `7b96aa6651e0563f89cf222a685102418e1d34988054a292990f301458e4fcf9`.
 `1/50` is unlinked (theirs' birth) and `1/2005`'s `queued` is ours 2 against theirs 1. 106 keys stand from 4853,
 among them the human's `control` (ours 14, theirs 0) and `1/2005`'s `queue[0].cost` (ours 240, theirs 224). The
 window is in the coverage driver's slice. Its walk reads 1552 heights at inexact corners.
+## run860 — chapter seventy-three: a wonder finished on a human (2026-10-14, item 2474, `att-2474`)
+
+`docs/GOLDEN.md` §90, `tools/gamelog/golden/chapter73.cmd` (ten staged lines). **What the disk could not answer**: no
+golden capture has a human's Citizen-built wonder in a city, `finish` being unapplied until this item; AI §216's
+Supercollider arm was backed only by an AI's.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch73 \
+    --map 14 --end-frame 760 --log-window 600 760 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter73.cmd
+```
+
+One take, click-free pool lane 1, `success: true`, 168 s, 761 frames. **What it holds**:
+`golden::chapter_seventy_three_holds_to_the_golden_word` (**760**, the trace's end, closed) and
+`chapter_seventy_three_s_word_frame_is_widened_whole` (600..761, thirteen standing rows).

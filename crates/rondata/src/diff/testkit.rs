@@ -6444,6 +6444,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_TWO: i64 = 1770;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SEVENTY_TWO: (i64, i64) = (600, 1771);
 
+/// **Chapter seventy-three** (item 2474, `docs/GOLDEN.md` §90, run860): a
+/// Supercollider finished by `finish` on a human, held by its city.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_THREE: i64 = 760;
+
+/// `chapter_seventy_three_s_word_frame_is_widened_whole`'s window: run860
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SEVENTY_THREE: (i64, i64) = (600, 761);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8833,6 +8841,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seventy_two_s_word_frame_is_widened_whole"),
         2448,
         Some(WIDENING_CHAPTER_SEVENTY_TWO),
+    ),
+    // Item 2474: run860, chapter seventy-three, a wonder finished on a
+    // human. The widening is run860 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVENTY_THREE",
+        GOLDEN_WORD_CHAPTER_SEVENTY_THREE,
+        Some("chapter_seventy_three_s_word_frame_is_widened_whole"),
+        2474,
+        Some(WIDENING_CHAPTER_SEVENTY_THREE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

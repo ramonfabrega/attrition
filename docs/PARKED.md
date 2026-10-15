@@ -3750,6 +3750,10 @@ no-argument siblings are a four-line shape no flag writes (parked 2472; minted a
 line equal to it; three of ten landed, the other seven read and not the shape — an SEH and feedback-log arm, a
 global-record read, strings, floats (parked 2482; the arm minted as 2486's first build); four hand lines may
 regenerate from `--cmd-byte` when next touched (parked 2483).
+**2486** (forty-fifth reach, filed at its merge): built `--cmd-seh`, a test failing first, the treaty family's seven
+on it and two hand `--port`s, nine of ten; its "for the Loop" line: the arm holds `Error::report`'s two stale stack
+words as the zeroed emulator stack's `0,0`, an observation a stack seeded with a marker would make a test (parked
+2488).
 
 (2449) **`waitrun.sh` on a launcher's redirected log exits 2** (2436's "for the Loop" line, filed at its merge;
 parked 656's sibling). A launcher log written with `>` holds no banner, so `tools/gamelog/waitrun.sh` on it exits 2
@@ -3762,6 +3766,12 @@ where its header's ranges end. `tools/recomp/snapshot.py` raises on the missing 
 it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell read here skipped the check by
 hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
 `frame_snapshot.py`'s restore, which this lane does not run.
+
+(2505) **A golden staging's site is found by trial runs** (2474's "for the Loop" line, filed at its merge).
+Chapter seventy-three's lane took six runs to find a legal Supercollider site — water at (30,74), then
+`Blocked(Building)` beside the city — each read off an env-guarded print of `place_building`'s refusal.
+Candidate: a `stage_walk` option that prints every placement's refusal with its reason, held by a test made to
+fail first on a blocked site. One reach.
 
 (2480) **A hand-written break script's pass check keys on a word a passing summary prints** (2469's "for the
 Loop" line, filed at its merge; Loop 2442's sibling). A break script that greps for `failed` matches cargo's `0
@@ -5548,13 +5558,11 @@ treaty family (`_treaty`, `_declare`, `_accept`, `_reject`, `_clear_all`, `_clea
 `_chat`, `_quit`, `_player_speed`) — none listed for `mov byte` yet; `_flight`'s siblings at 0x941db0.. (cmd 0x23, 0x24,
 0x1d: no-argument one-byte commands) are a four-line shape no flag writes.
 
-## Parked by the next landing, slot CU — reserved
+## Parked by item 2474, 2026-10-14 — a wonder finished on a human
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2475) **`hurry` and a unit's `finish` are unapplied** (item 2474, `docs/GOLDEN.md` §90). `Console::hurry_action@007c3810`
+with `this == 0` adds the train time, not 10000, to a finished building's queue head; the unit arm adds 10000 to
+`+0x64`. Nothing booked names either. Names no score.
 
 ## Parked by item 2481, 2026-10-15 — the sweep's seventy-seventh batch: three, not ten
 
@@ -5581,13 +5589,25 @@ table of four, or a `--chain` token, is the missing word. Names no score. One re
 (2485) **`GroupOut::issue_guard` / `issue_follow`** carry a `SoundGlobal::play`-shaped six-argument call
 (0x981f90) behind `gamec+0x821 & 8`, not `--cmd-gate`'s one-argument sound. Names no score.
 
-## Parked by the next landing, slot CW — reserved
+## Parked by item 2486, 2026-10-15 — the SEH/log-arm word and the treaty family
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2487) **`issue_cannon_time` (0x941260) read and not built** (names no score). Its success arm is a
+two-byte command behind `gamec+0x820 & 4` and a leaders word, but both failed arms build a feedback message: a
+`String::operator=` on the global `msg` (0xa1eeb0), a by-value `String` copy on the stack (0xa1d590, `ecx` the
+moving `esp`) and a `MessageWin::add_feedback` (0x7e9ab0) handed twenty stale stack bytes, `-1` and `&RED`. Word it
+lacks: a feedback arm whose log call takes the `String` by value (`--cmd-seh`'s arm is two constructed locals and an
+`Error::report`). One reach.
+
+(2488) **`--cmd-seh CMD:SIZE:FIELD,..:C:IGN:WIDE:NARROW:DW:DN` built** (Loop 2003's forty-fifth reach; test made to
+fail first): the seven treaty-family issuers (`treaty`, `declare`, `accept`, `reject`, `clear_all`,
+`clear_tributes`, `tribute`) generated, each broken once on its command byte and the report record. Held by hand:
+`Error::report`'s two stale stack words print `0` (the emulator's zeroed stack), and the answer is held at 0 — a
+nonzero answer is the `int3` the port cannot model. One reach.
+
+(2489) **Two hand `--port`s on existing flags: `issue_chat_set` and `issue_player_speed`** (names no score): the
+console cell 0xc06210 (`who` at +0x298 / +0x2a0, `--wbias 0..3`) and the leaders table (`--sparse @0xe3a390`,
+a slice at stride 4) or the `gamec` row (`0x8c * who`, zeroed after the copy) behind it. No generator word; a
+`--cmd-console` shape would be a four-line expansion if a third reads the console's `who` into a command.
 
 ## Parked by item 2460, 2026-10-15 — the peace pair's word 4859
 

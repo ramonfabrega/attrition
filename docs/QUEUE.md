@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-15, **the thirty-fifth tranche, sixteen landings** since `dccda9f0`; three
+*2026-10-15, **the thirty-fifth tranche, eighteen landings** since `dccda9f0`; three
 lanes on DECISIONS 71, amended mid-tranche by Ramon: two kill rules tripped, the roster stands, the gap is a brief row.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 4544 in four landings
-  (2384 diplomacy's peace arm, 2388 the pre-war gate, 2412 the silo's queue, 2423 the no-rush timer), the open word. Chapters 71 and 72
-  closed (2436 The Despot, 2448 The Monarch); 69 and 70 built or surveyed, not closed. Census 894 → 965. Battery unmeasured since 576/6566/2974.
+  (2384 diplomacy's peace arm, 2388 the pre-war gate, 2412 the silo's queue, 2423 the no-rush timer), the open word. Chapters 71–73
+  closed (2436 The Despot, 2448 The Monarch, 2474 a human's Supercollider); 69 and 70 built or surveyed, not closed. Census 894 → 974. Battery unmeasured since 576/6566/2974.
 - **Red booking gates, each fixed by a second commit**: 2384's 144 `aggression` pins (re-pinned); 2400's
   `find_free` captain term broke the third pair's floor 17379 → 14461 (bisected, the call reverted, parked 2441).
 - **Lanes: three** (DECISIONS 71, amended: two kill rules tripped, the roster stands, the gap fixed — Loop 2415): 2460 (AI §224,
-  CX, runs 861–863), 2474 (GOLDEN §90, CU, run 860), 2486 (CW) live. Next 2495, run 864, AI §225, GOLDEN §91, park CY.
-- **Fable backlog: 24 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449, 2459, 2461, 2479, 2480).
+  CX, runs 861–863), 2495 (CY), 2500 (GOLDEN §91, CZ, run 864) live. Next 2506, run 865, AI §225, GOLDEN §92, park DA.
+- **Fable backlog: 25 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449, 2459, 2461, 2479, 2480, 2505).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,9 +31,9 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w4544 of 6,822
-Census: simulation backed 965 of 3611
+Census: simulation backed 974 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-fifth tranche (commander): read this file, spawn three lanes on DECISIONS 71's roster — 2384
@@ -45,7 +45,7 @@ its merge; at twenty landings write the handoff and clear `steer` into the thirt
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2460 the AI word's (Opus), 2474 the rules track's and 2486
+2460 the AI word's (Opus), 2500 the rules track's and 2495
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -59,22 +59,23 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     3552..4538, which no dump holds: `RON_DEBUG_LEADER` over 4499..4538
     names the frame the `diplos` were written. Runs 861–863. AI §224.
 
-2474. **Chapter seventy-three: a wonder finished on a human**
-    (DECISIONS 56 §3; 2448 closed seventy-two at 1770, The Monarch,
-    GOLDEN §89). Parked 2438: `wonders_held` needs a city's wonder, and
-    `finish`/`hurry` are unapplied verbs (GOLDEN §16); apply `finish`
-    in the walk's interpreter, test first, to a Citizen-built wonder in
-    a founded city (`small_city`), so AI §216's wonder arm is held on a
-    human. Name the census rows first; run 860 only when no packet of
-    the game is on disk. GOLDEN §90.
+2500. **Chapter seventy-four: `hurry` and a unit's `finish` on a
+    human** (DECISIONS 56 §3; 2474 closed seventy-three at 760, a
+    human's Supercollider, GOLDEN §90). Parked 2475:
+    `Console::hurry_action`'s `this == 0` form adds the train time, not
+    10000, to a building's queue head, and its unit arm adds 10000 to
+    `+0x64`; apply both in the walk's interpreter, test first, and stage
+    them. Name the census rows first; run 864 only when no packet of the
+    game is on disk. GOLDEN §91.
 
-2486. **The sweep's seventy-eighth batch: ten never-backed simulation
-    functions** (DECISIONS 63 (iv); the score `Census:` 965 of 3611):
-    2481's shape; a word for a command issuer's SEH frame and failed-check
-    feedback-log arm built first, a test made to fail first (parked 2482,
-    Loop 2003); then the treaty family's seven and the three that read
-    `game->info.player[console->play]` into the command (`_cannon_time`,
-    `_player_speed`, `_chat_set`); skip operators (parked 1722). `--kind sweep`.
+2495. **The sweep's seventy-ninth batch: ten never-backed simulation
+    functions** (DECISIONS 63 (iv); the score `Census:` 974 of 3611):
+    2486's shape; a `--chain` token for a pointer chain built first, a
+    test made to fail first, that writes `PathFinder::find_wpath`,
+    `_tpath`, `_upath` and `_upath_restore` (parked 2484, Loop 2003);
+    then `issue_cannon_time`'s by-value `String` arm (parked 2487) and
+    the shortest decompile past them; skip operators (parked 1722).
+    `--kind sweep`.
 
 ## How to maintain this file
 
