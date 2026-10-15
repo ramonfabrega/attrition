@@ -5939,13 +5939,13 @@ words and edits nothing here; a refill lands when two remain.
 
 (2691) **The shortest unbacked rows are render or UI** (`census.py --unbacked`, the 40 shortest: one `Doober::has_doobers`, `Search::valid_filter` (27 arms, parked 2664), `TurnControl::walk_data`, `Unit::find_nearby_spot` are the sim ones, each parked above or in 2670/2675). The batch is seven (2481), not ten.
 
-## Parked by the next landing, slot EF — reserved
+## Parked by item 2693, 2026-10-15 — the human Biplane's guns, piece 589
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2694) **Chapter seventy-nine's word 1393: ours 100 draws, theirs 28** (2693, run875, window 600..1501; the sequences part at draw 25, ours `Unit::think_scout+0x941`, theirs `Farms::inc_time+0x1ae`; `1/0 order:move` ours (38136, 19704) theirs (37368, 18936) on 1394, `path:length` 2 against 3). A who=1 scout's explore search takes a different point; the frame and delta are the booking, the mechanism unnamed. Widening first, every record on 1393, both directions; run875 on disk. GOLDEN §100.
+
+(2695) **`strafe_attack`'s SEAM names an arm no plane reaches** (2693): "a non-bomber's `fire_ammo`" — the Biplane strafes (`w`), the release is the animation's (`docs/ORDERS.md` §39.1), and the arm needs a plane that is neither; 2660's booking read it as the word and the draw stream killed it. Reword the SEAM when the next item touches `orders.rs`; no score.
+
+(2696) **A Biplane graph piece's bay is a measured row per piece** (2693): 589 shares 237's `Bay` and was found by a probe, not a sweep; a third piece (another age's Biplane, a Fighter on a human) lights `launch_point`'s none-arm silently. A `get_position` sweep over every `art.releases` piece with no `BAYS`/`GUNS` row would name them. Parks until a word names one.
 
 ## Parked by the next landing, slot EG — reserved
 
