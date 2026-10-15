@@ -295,7 +295,8 @@ fn run780_s_word_frame_is_widened_whole() {
     }
     // Item 2384: 133 -> 134, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
-    pin_eq!(w.firsts.len(), 133, "initial run780 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 2761: 133 → 129 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 129, "initial run780 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
     // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
     // window's first block (nothing dumped parts on the word's own block
     // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle
@@ -347,9 +348,10 @@ fn run788_s_word_frame_is_widened_whole() {
     // that took the number, uid 214 (`docs/AI.md` section 215).
     // Item 2384: 132 -> 133, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    // Item 2761: 133 → 129 with `Unit::close`'s count (`docs/AI.md` §232).
     pin_eq!(
         w.firsts.len(),
-        133,
+        129,
         "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
@@ -400,7 +402,8 @@ fn run799_s_word_frame_is_widened_whole() {
     // theirs 3) leaves with the re-issued `BUILD 2057` (section 215).
     // Item 2384: 160 -> 161, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
-    pin_eq!(w.firsts.len(), 161, "run799 baseline");
+    // Item 2761: 161 → 157 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 157, "run799 baseline");
     // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
     // them on the window's first block; the word 3131 (ours 62 draws, theirs
     // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell
@@ -478,7 +481,8 @@ fn run809_s_word_frame_is_widened_whole() {
     // (section 215).
     // Item 2384: 177 -> 178, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
-    pin_eq!(w.firsts.len(), 178, "run809 baseline");
+    // Item 2761: 178 → 174 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 174, "run809 baseline");
 }
 
 /// run820: the word 4238's window, blocks 4232..4488 at the long's detail (item 2088).
@@ -552,7 +556,8 @@ fn run820_s_word_frame_is_widened_whole() {
     // `1/82` reaches `2073` on the original's frame (section 215).
     // Item 2384: 170 -> 171, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
-    pin_eq!(w.firsts.len(), 171, "run820 baseline");
+    // Item 2761: 171 → 167 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 167, "run820 baseline");
 }
 
 /// run838: the word 4603's window, blocks 4597..4852 at the long's detail (item 2193).
@@ -621,7 +626,8 @@ fn run838_s_word_frame_is_widened_whole() {
     // the counter clamps there on both sides (`docs/AI.md` section 217).
     // Item 2384: 188 -> 189, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
-    pin_eq!(w.firsts.len(), 189, "run838 baseline");
+    // Item 2761: 189 → 185 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 185, "run838 baseline");
 }
 
 /// run844: the pair's last blocks, 4940..5057 at the long's detail — six
@@ -674,5 +680,6 @@ fn run844_s_closing_frame_is_widened_whole() {
     // 217).
     // Item 2384: 225 -> 226, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
-    pin_eq!(w.firsts.len(), 225, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 2761: 225 → 221 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 221, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }

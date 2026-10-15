@@ -243,5 +243,6 @@ fn run834_s_word_frame_is_widened_whole() {
     // Item 2412: 296 -> 295, `do_queue`'s silo return (`docs/AI.md` §222):
     // the Missile Silo `1/2010`'s `queue[0].job_counter`, ours 20700 theirs
     // 0 on 2989, holds at 0 while a missile is inside.
-    pin_eq!(w.firsts.len(), 294, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 2761: 294 → 290 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 290, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }

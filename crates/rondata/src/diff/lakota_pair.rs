@@ -115,8 +115,18 @@ pub(crate) const LAKOTA: Pair = Pair {
     // index 11 — ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::init_real+0x52`: theirs births `1/263` out of `1/2032`'s
     // queue (block 5500: `queued` ours 3 against 2).
-    count: 5499,
-    sequence: 5499,
+    // Item 2761: 5499 → 5564, `Unit::close`'s count on the general death
+    // path (`0060f3db`; `docs/AI.md` §232): ours kept three shot-down Jet
+    // Fighters in who=1's `num_units[245]` (7 against 4 from 5401, and
+    // `control` 176 against 171), so the next Fighter's ramp ran twelve
+    // frames long and `1/2032` handed it over on 5511. Now `1/263` is born
+    // on 5499 both sides and block 5500 holds no row. Ours 26 draws,
+    // theirs 24, index 7 — ours `Unit::think_scout+0xaba`, theirs
+    // `Guy::set_anim+0x97a < Guy::move+0x19f`: who=1's scout `1/0` holds a
+    // move ours alone on 5565 (`orders.len` 1 against 0, `group` 65
+    // against 75).
+    count: 5564,
+    sequence: 5564,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -345,7 +355,8 @@ fn run855_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 128, "initial run855 baseline");
+    // Item 2761: 128 → 122 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 122, "initial run855 baseline");
     // Item 2423: the word 4544's own block is 4545, and it holds no row:
     // the state parts before the window opens. On 4538 `leader:diplos` is
     // ours 1 against theirs 0 both ways (`0/-1 diplos[1]`, `1/-1
@@ -397,7 +408,8 @@ fn run861_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 126, "initial run861 baseline");
+    // Item 2761: 126 → 122 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 122, "initial run861 baseline");
     // Item 2460: the word 4859's own block is 4860. Theirs spends a birth
     // there (`Guy::init_real < Unit::init < Objects::init_unit`): `1/50`
     // is unlinked on 4860 (the dump holds it alone), `1/2005`'s `queued`
@@ -451,7 +463,9 @@ fn run866_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 178, "initial run866 baseline");
+    // Item 2761: 178 → 164 with `Unit::close`'s count (`docs/AI.md` §232):
+    // who=1's `num_units[245]` on 5178, `[255]` and `[261]` on 5201 agree.
+    pin_eq!(w.firsts.len(), 164, "initial run866 baseline");
     // Item 2554: the word 5135's own block is 5136, widened at 5707 keys.
     // Theirs gives who=1's naval army (group 72, nine members: the
     // Missile Cruisers `1/20`, `1/21`, `1/25`, `1/26`, `1/34`, `1/36`,
@@ -533,7 +547,7 @@ fn run867_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 1813, "initial run867 baseline");
+    pin_eq!(w.firsts.len(), 276, "initial run867 baseline");
     // Item 2677: the word 5407's own block is 5408, widened at 3418 keys.
     // Every who=1 Strategic Bomber (`TypeIndex` 305, air) on its
     // `AIRPATROLORDER` round the human's capital `0/2000` (6240, 7008)
@@ -563,4 +577,14 @@ fn run867_s_word_frame_is_widened_whole() {
     // 5471, and from 5500 `1/263`'s birth in theirs alone (who=1's
     // `num_queued[245]` ours 7 against 6, `1/2032` `queued` 3 against 2),
     // the new word's.
+    // Item 2761: the word 5499's own block is 5500, widened at 1813 keys.
+    // Its four rows are `1/263`'s birth in theirs alone, `1/2032`'s
+    // `queued`, who=1's `num_queued[245]` and `active`; walked back, the
+    // Airbase's `job_counter` agrees to 11700 on 5499 and the count that
+    // parts is the ramp's input, who=1's `num_units[245]` (7 against 4)
+    // and `control` (176 against 171), standing from 5401: three Jet
+    // Fighters shot down before the window, still counted in ours. 1813 →
+    // 276 with `Unit::close`'s count: `1/263` is born on 5499 both sides,
+    // no leader row stands from 5401 but the human's `SITE` and who=1's
+    // buckets, and from 5565 `1/0`'s scouting move parts, the new word's.
 }

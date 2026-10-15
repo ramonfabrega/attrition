@@ -6144,6 +6144,7 @@ impl Sim {
         unit.health -= lost;
         let killed = !unit.alive();
         if killed {
+            self.close_count(i);
             self.relink_squad(i);
             // `Object::take_damage`'s `die`: `Unit::close`'s orders, and
             // `close`'s thirty-frame hold on the number (`docs/COMBAT.md`
