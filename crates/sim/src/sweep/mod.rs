@@ -628,6 +628,7 @@ mod guy_data_get_render_y;
 mod guy_data_get_render_z;
 mod guy_data_get_speed;
 mod guy_data_is_corner;
+mod guy_update_z;
 mod guy_data_walk_data;
 mod guy_set_bank;
 mod guy_set_elev_angle;
