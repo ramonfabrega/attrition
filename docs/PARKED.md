@@ -5914,13 +5914,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ED — reserved
+## Parked by item 2683, 2026-10-15 — the harvest sweep's ninety-sixth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ED renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**2684.** Shapes no built generator holds, for 2672's lane (one line each; each listing read):
+`PathFinder::kill_lists` 0x687ae0 (a `remove_current` loop whose termination is a memory write by the callee — `--stub-write` writes once, not per call);
+`Armies::find_useful_army` 0x6f2fe0 (a 16-pointer table of records, `--sparse` lays rows not pointer arrays; vector_dist's args are `ecx`/`edx` as `--record-edx` excludes `--record-order`);
+`Build::add_gatherer` 0x62f640 / `remove_gatherer` 0x62f8d0 (a short-linked list through the units table plus an objects table of vtable'd objects, a walk that `--link` does not tie to a table row);
+`Unit::update_patrol_order` 0x5e35e0 (a loop on vcall answers that mutate `this`); `TechType::add_preq_ai` 0x66c350 (self-recursion); `CityData::num_city_buildings` 0x737ae0 (loop through the same pair of tables).
+
+**2685.** `ObjectData::is_in_range@0064e4a0`'s sweep is blind to two boundaries: `dist > e` vs `>=` (equivalent: the difference is 0) and the `- 6` of `d < slot12c*0xc0 - 6` (no draw puts `d` on the edge; `--answer-range` on stubs 0x12c and the distance would). Its vector_dist records `ecx` (|dx|) only: `--record-edx` and `--record-order` are exclusive, and `edx` is vtable residue on the slot calls. `Roads::road_cleared`'s high half of the stored word (`local_18`'s upper 16 bits) is stack residue: the emulator's is 0, the port writes `0x100`.
+
+**2686.** `--regen` keeps the old script's flags when a new line drops one (`--record-edx` stayed after I removed it); delete the two files and generate again.
+
+**2687.** `--at` with a `--place` at the global's own address writes the pointer to memory but not into the `cN` window, so the port reads a random word; `--place cN+OFF` is the form (Signposts head/next).
+
 
 ## Parked by the next landing, slot EE — reserved
 
