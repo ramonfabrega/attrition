@@ -3746,6 +3746,8 @@ line prints both, held by a test made to fail first. One reach.
 Loop" line, filed at its merge). 2627's second take lost its `@attack` until a Citizen stood within sight of the
 Barracks — (212, 96) dropped, (212, 101) taken — and the walk said only `skipped {}`. Candidate: a staged line
 refused for sight says so in `staged:`, a test made to fail first. One reach. **The thirty-sixth pass**: one reach; stays — `group_action_attack` returns nothing to the walk and the sight refusal sits inside the sim's per-member issue, so the print needs a return the walk can name; a worker's on its next staging that loses a line (chapter seventy-nine's `@flight` is the same family); closes at the next pass unreached (DECISIONS 54).
+**2649** (a second reach, filed at its merge): a `@launchpatrol` on a refuelling plane took effect on no unit and
+`staged:` printed `skipped {}` empty (parked 2661); the same print, named for a line that reached no unit.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
@@ -5883,13 +5885,11 @@ theirs 15 — ours `1/67`'s `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs 
 
 (2667) **`Balance::walk_rules_data` 0x582cc0 calls its walker's slot 0 237,169 times** (`0x1ed` by `0x1ed`, a pair of addresses `2` apart): the `walk` shape hands one pair, a row would be a quarter-million hooked calls; a `--rows 3` and a call-count-only record is the shape it wants. The rest of the shortest unbacked rows are render/UI (`RiverDoober`, `Nuke`, `WorldMap`, `TerrainMap`, `WallOut::make_options`, `Border::generate_morph_side`, the two `project`s, `get_float_z` in st0).
 
-## Parked by the next landing, slot DZ — reserved
+## Parked by item 2649, 2026-10-15 — a plane's attack distance held on a human
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2660) **The fighter's strafe release, `do_strafe`'s non-bomber `fire_ammo` arm** (`orders.rs::strafe_attack`'s SEAM): run875's Biplane `0/6` releases two rounds on 935 that land on the Barracks `1/2006` on 938 (`take_damage+0xe1` ×2; ours 6 draws, theirs 8; `1/2006 damage_frac` ours 0 theirs 6 on 939). Booked by its frame and delta, the mechanism a hypothesis; it is the headline for the rules track's next item.
+
+(2661) **A launch of a plane that is refuelling is passed over** (`Group::action_launch_patrol` without shift, `mana_burn != 0`): a staged `@launchpatrol` must wait for 808 on a fresh `add`ed plane here; a stage script that launches at 800 silently launches nothing and prints `staged: … skipped {}` empty. For the Loop: a line that took effect on no unit should say so.
 
 ## Parked by item 2655, 2026-10-15 — the sweep's ninety-fourth batch
 
