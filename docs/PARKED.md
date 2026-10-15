@@ -3735,6 +3735,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
+(2418) **No tool answers "does any dump hold X" for a leader's rares** (2389's "for the Loop" line, filed at its
+merge). The disk grep for a Salmon or Maize holder — `rares_collected` slots 40 and 42 (slot = good − 6) and
+`BEGIN GOOD` records over all 856 dumps — took about twenty minutes of shell. Candidate:
+`tools/gamelog/rareheld.py <good>`, every dump's holders and deposits by frame, with a test made to fail first
+on one dump's record. One reach.
+
 (2415) **A landing that newly compares a field moves pins its lane gate never runs** (the commander's, at
 2384's booking gate; a kill rule tripped). 2384 added `aggression[0..8]` to `rondata::diff::leader`'s rows and
 re-pinned 39 widenings in six lobbies; its lane gate (`--lane --tests lakota_pair:: floors:: first_parting`)
@@ -5294,6 +5300,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot CK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CO renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

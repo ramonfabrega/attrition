@@ -20,10 +20,9 @@ measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 mediu
   Battery 576 / 6566 / 2974, unmoved a tenth tranche. No floor fell; the pass moved no score.
 - **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
   `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
-- **Lanes: three** (Ramon, DECISIONS 71): 2384 on Opus 5.5 medium; 2389 and the sweep lane (2395 landed, then 2400)
-  on Sonnet 5.5 medium. Live: 2388 (AI §221, CJ, runs 853–855), 2389 (GOLDEN §86, CG, run 856), 2400 (CI).
-  Landed: 2395 (Census 894 → 904), 2384 (word 1984 → 2040). Next 2416, run 857, AI §222, GOLDEN §87, park CK.
-- **Fable backlog: 13 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407, 2408, 2409, 2410, 2415).
+- **Lanes: three** (DECISIONS 71): live 2388 (Opus 5.5 medium; AI §221, CJ, runs 853–855), 2416 (GOLDEN §87, CK, run
+  857), 2400 (CI), Sonnet 5.5 medium. Landed 2395, 2384, 2389. Next 2419, run 858, AI §222, GOLDEN §88, park CL.
+- **Fable backlog: 14 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407, 2408, 2409, 2410, 2415, 2418).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -46,7 +45,7 @@ its merge; at twenty landings write the handoff and clear `steer` into the thirt
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2388 the AI word's (Opus), 2389 the rules track's and 2400
+2388 the AI word's (Opus), 2416 the rules track's and 2400
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -59,14 +58,14 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     `release_mustering` reader, modelled as "war always allowed", is the
     previous item's hypothesis, not a build order. Runs 853–855. AI §221.
 
-2389. **Chapter sixty-nine: the arms the AI track built that no walk
-    holds** (DECISIONS 56 §3; 2357 closed sixty-eight at 1360, Socialism's
-    cost arm and the discount-then-Monarchy order, GOLDEN §85).
-    Candidates: `get_cost`'s Salmon and Maize arms, unbuilt or never set
-    (parked 2358; a Merchant on the deposit first); 2111 and 2196 still
-    unstaged (2332). Grep the constant's every reader first (Loop 2356).
-    Name the census rows first; run 856 only when no packet of the game
-    is on disk. GOLDEN §86.
+2416. **Chapter seventy: the arms the AI track built that no walk
+    holds** (DECISIONS 56 §3; 2389 built Salmon's and Maize's price arms
+    from the listing, no capture, GOLDEN §86). Candidates:
+    `Leader::diplomacy`'s arms no capture reaches, SEAMs in 2384's
+    `diplomacy.rs` (parked 2387: the allied arm, the offers arm, `dow`,
+    `blacken`); a lobby that places Salmon or Maize (2390); 2111, 2196
+    (2391). Name the census rows and the staging first; run 857 only when
+    no packet of the game is on disk. GOLDEN §87.
 
 2400. **The second sweep lane's next ten: never-backed functions with
     a port consumer** (DECISIONS 61; parked 1725; the score `Census:`
