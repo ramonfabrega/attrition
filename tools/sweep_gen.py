@@ -2225,6 +2225,26 @@ def insert_mod(text, line):
     return '\n'.join(lines) + '\n'
 
 
+def fwd_gate_expand(spec, own):
+    """`--fwd-gate OFF:MASK:VA[:T,T..]` (item 2443, parked 2433): a forwarder
+    that tests `gamec`'s byte at OFF against MASK (set: it does nothing), then
+    calls VA with the caller's stale `ecx` first, its `own` arguments in order
+    and the constant tail T.. last. Returns the `obj` flags it stands for."""
+    parts = spec.split(':')
+    if len(parts) not in (3, 4):
+        raise ValueError(f'--fwd-gate {spec}: want OFF:MASK:VA[:T,T..]')
+    off, mask, va = int(parts[0], 0), int(parts[1], 0), int(parts[2], 0)
+    tail = [t for t in parts[3].split(',') if t] if len(parts) == 4 else []
+    vals = sorted({0, mask, mask * 2, mask * 3, 0xff & ~mask})
+    args = [f'a[{i}]' for i in range(own)]
+    fmt = ','.join(['m+0x0', 'm+0x0'] + ['{}'] * own + tail)
+    call = f'log.push(format!("{fmt}"' + ''.join(f', {a}' for a in args) + '));'
+    port = (f'{{ if c[0][{off:#x}] & {mask:#x} != 0 {{ log.push("-".into()); }} else {{ {call} }} 0 }}')
+    return {'stub': [f'{va:#x}:{own + len(tail) + 1}'], 'cells': ['0xc061e8:0x900'],
+            'wbias': [f'c0+{off:#x}:' + ','.join(f'{v:#x}' if v else '0' for v in vals)],
+            'record': ['0'], 'port': port}
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2376,8 +2396,22 @@ def main(argv=None):
     ap.add_argument('--write-mod', action='store_true', help='insert the `mod` line into sweep/mod.rs in sorted order')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
                     '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
+    ap.add_argument('--fwd-gate', metavar='OFF:MASK:VA[:T,T..]',
+                    help='obj: a forwarder gated on a byte of gamec, then a call to VA with the caller\'s stale ecx, '
+                         '--own arguments and the tail T.. (GroupOut::issue_*; item 2443, parked 2433)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
+    if args.fwd_gate:
+        try:
+            x = fwd_gate_expand(args.fwd_gate, args.own)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        args.stub, args.cells, args.wbias, args.record = x['stub'], x['cells'], x['wbias'], x['record']
+        args.port = x['port']
+        args.ret = args.ret or 'none'
+        if args.win == 0x400:
+            args.win = 0x20
     if args.regen and args.write_mod:
         print('sweep_gen.py: --regen leaves mod.rs alone; drop --write-mod', file=sys.stderr)
         return 2
