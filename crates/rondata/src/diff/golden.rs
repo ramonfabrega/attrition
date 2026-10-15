@@ -14530,6 +14530,71 @@ const WANT_CH72: &[&str] = &[
     "600 1/5 form",
 ];
 
+/// **Chapter seventy-three** (item 2474, `docs/GOLDEN.md` §90, run860): a
+/// Senate that trained The Despot researches Monarchy at the Gunpowder
+/// Age — the tail's `set_type` arm on a human.
+#[test]
+fn chapter_seventy_three_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch73", "chapter73", 73, 10, 760) else {
+        return;
+    };
+    eprintln!(
+        "chapter seventy-three: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    pin_eq!(
+        w.word,
+        GOLDEN_WORD_CHAPTER_SEVENTY_THREE,
+        "chapter seventy-three's golden word moved; re-pin it here and say so in docs/GOLDEN.md §90"
+    );
+}
+
+/// **run860 whole, both directions** (item 2474, `docs/GOLDEN.md` §90).
+#[test]
+fn chapter_seventy_three_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch73",
+        "chapter73",
+        WIDENING_CHAPTER_SEVENTY_THREE,
+        760,
+        0,
+        (698, 705),
+        false,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch73 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch73: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH73.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch73: what parts under the word moved");
+}
+
+const WANT_CH73: &[&str] = &[
+    "600 0/-1 leader:aggression[1]",
+    "600 0/0 form",
+    "600 0/1 form",
+    "600 0/2 form",
+    "600 0/3 form",
+    "600 0/4 form",
+    "600 0/5 form",
+    "600 1/-1 leader:aggression[0]",
+    "600 1/1 form",
+    "600 1/2 form",
+    "600 1/3 form",
+    "600 1/4 form",
+    "600 1/5 form",
+];
+
 /// **Chapter sixty-eight** (item 2357, `docs/GOLDEN.md` §85, run852): a
 /// Light Horse at a Stable under Monarchy and a live military discount,
 /// and a Catapult at a Siege Factory each side of Socialism — `get_cost`'s

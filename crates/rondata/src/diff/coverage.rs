@@ -660,6 +660,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch68 = golden_dump("ch68");
     let ch71 = golden_dump("ch71");
     let ch72 = golden_dump("ch72");
+    let ch73 = golden_dump("ch73");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2409,6 +2410,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_TWO;
         let n = drive_capture(p, 1720, 1724, &mut paths);
         assert_eq!(n, 5, "chapter seventy-two carries the window's five blocks");
+        frames += n;
+    }
+    // **Chapter seventy-three, on run860** (item 2474): 701, `finish`.
+    if let Some(p) = &ch73 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_THREE;
+        let n = drive_capture(p, 700, 705, &mut paths);
+        assert_eq!(n, 5, "chapter seventy-three carries the window's five blocks");
         frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
