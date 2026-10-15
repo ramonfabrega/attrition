@@ -1519,9 +1519,11 @@ fn run609_s_closing_frame_is_widened_whole() {
     // the seven of player 1's buildings `1/2019`..`1/2025` read 3 in the
     // original against 2 (`1/2020`'s `ever_seen` 1) — the closing residue
     // `run598_french_great_lakes_closing_state` counts.
+    // Item 2384: 46 -> 47, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     pin_eq!(
         w.firsts.len(),
-        46, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        47, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         "run609 closing residue, not whole-record parity"
     );
 }
@@ -1538,7 +1540,9 @@ fn run602_s_word_frame_is_widened_whole() {
         "all record keys are read: {:?}",
         w.missing
     );
-    pin_eq!(w.firsts.len(), 29, "run602 after French worker capacity");
+    // Item 2384: 29 -> 31, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 31, "run602 after French worker capacity");
     assert!(
         w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 2010)),
         "the preserved camp agrees in every compared field"
@@ -1564,7 +1568,9 @@ fn run601_s_word_frame_is_widened_whole() {
         w.missing
     );
     // Item 1457: 71 → 69; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-    pin_eq!(w.firsts.len(), 26, "run601 after ruins placement");
+    // Item 2384: 26 -> 28, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 28, "run601 after ruins placement");
     pin!(
         w.firsts.keys().all(|(who, _, field)| *who != 1
             || !(field.starts_with("leader:SITE[8].") || field.starts_with("leader:SITE[9]."))),

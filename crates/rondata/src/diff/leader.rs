@@ -175,7 +175,21 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             .copied()
             .unwrap_or(0);
         out.push((format!("agendas[{i}]"), i64::from(agenda)));
+        // `aggression`, `strong`, `weak` (`+0x210`, `+0x230`, `+0x250`):
+        // `Leader::diplomacy`'s view of `i` (item 2384, `docs/AI.md` §220).
+        if let Some(l) = built.sim.ai.get(who).filter(|_| i < 8) {
+            out.push((format!("aggression[{i}]"), i64::from(l.aggression[i])));
+            out.push((format!("strong[{i}]"), i64::from(l.strong[i])));
+            out.push((format!("weak[{i}]"), i64::from(l.weak[i])));
+        }
     }
+    // `got_diplo_message` (`+0x2f0`), a scalar the dump prints once per
+    // `[scan]` slot: the frame another leader's diplomacy last messaged
+    // this one.
+    out.push((
+        "got_diplo_message".to_string(),
+        built.sim.ai.get(who).map_or(0, |l| l.got_diplo_message),
+    ));
     // The AI's own step machine and its biases.
     out.push(("production_step".to_string(), i64::from(a.step.number())));
     out.push(("prod_script_run".to_string(), i64::from(a.script_live)));
@@ -581,10 +595,20 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // against a `gather_slots` of `10 12 1 0 0 0`, so the good's own
     // high-water mark is at stride two and the six-in-a-row reading
     // reported five of the six goods as divergences on every frame.
-    for key in ["diplos", "treaties", "agendas"] {
+    for key in [
+        "diplos",
+        "treaties",
+        "agendas",
+        "aggression",
+        "strong",
+        "weak",
+    ] {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }
+    }
+    if let Some(x) = all("got_diplo_message").first() {
+        out.insert("got_diplo_message".to_string(), *x);
     }
     for (i, x) in all("epoch_get(scan)").iter().enumerate().take(4) {
         out.insert(format!("epoch[{i}]"), *x);

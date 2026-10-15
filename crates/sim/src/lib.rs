@@ -67,6 +67,7 @@ pub mod collide;
 pub mod combat;
 pub mod cost;
 pub mod danger;
+pub mod diplomacy;
 pub mod economy;
 pub mod farms;
 pub mod fight;

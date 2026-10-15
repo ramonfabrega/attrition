@@ -13466,12 +13466,15 @@ fn chapter_fifty_three_s_word_frame_is_widened_whole() {
 }
 
 const WANT_CH53: &[&str] = &[
+    // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -13547,12 +13550,15 @@ fn chapter_fifty_five_s_word_frame_is_widened_whole() {
 }
 
 const WANT_CH55: &[&str] = &[
+    // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -13626,12 +13632,15 @@ fn chapter_fifty_six_s_word_frame_is_widened_whole() {
 }
 
 const WANT_CH56: &[&str] = &[
+    // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -13697,12 +13706,15 @@ fn chapter_fifty_seven_s_word_frame_is_widened_whole() {
 }
 
 const WANT_CH57: &[&str] = &[
+    // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -13775,12 +13787,15 @@ fn chapter_fifty_nine_s_word_frame_is_widened_whole() {
 }
 
 const WANT_CH59: &[&str] = &[
+    // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -13865,12 +13880,15 @@ fn chapter_sixty_one_s_word_frame_is_widened_whole() {
 // family. Scene two's captain `0/10` on 779–780 left with `fight`'s
 // `poor_target` arm (item 2099): the chapter is closed at 1000.
 const WANT_CH61: &[&str] = &[
+    // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -13962,12 +13980,15 @@ fn chapter_sixty_two_s_word_frame_is_widened_whole() {
 // first step and heading part (parked 2118). `1/9`'s rows on 702–703 left
 // with item 2117's `QUEUE_FIRST`.
 const WANT_CH62: &[&str] = &[
+    // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -14353,12 +14374,15 @@ fn chapter_sixty_seven_s_word_frame_is_widened_whole() {
 // the second Light Horse's queue entry parts on 804 (61/41 against 45/30);
 // without `train_time`'s, its birth on 978.
 const WANT_CH67: &[&str] = &[
+    // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
+    "600 0/-1 leader:aggression[1]",
     "600 0/0 form",
     "600 0/1 form",
     "600 0/2 form",
     "600 0/3 form",
     "600 0/4 form",
     "600 0/5 form",
+    "600 1/-1 leader:aggression[0]",
     "600 1/1 form",
     "600 1/2 form",
     "600 1/3 form",
@@ -14425,12 +14449,15 @@ fn chapter_sixty_eight_s_word_frame_is_widened_whole() {
 // eleven standing `form` rows (600) alone. Without `get_cost`'s Socialism
 // arm Catapult B's queue entry parts on 804 (81/81 against 60/60).
 const WANT_CH68: &[&str] = &[
+    // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
+    "600 0/-1 leader:aggression[1]",
     "600 0/0 form",
     "600 0/1 form",
     "600 0/2 form",
     "600 0/3 form",
     "600 0/4 form",
     "600 0/5 form",
+    "600 1/-1 leader:aggression[0]",
     "600 1/1 form",
     "600 1/2 form",
     "600 1/3 form",
@@ -14466,7 +14493,8 @@ fn chapter_fifty_two_s_fog_plane_agrees_through_the_first_round() {
     got.sort();
     // The eleven rows are the units' `form`, standing on the window's first
     // block (every chapter's); no fog cell parts on any of 25 frames.
-    pin_eq!(got.len(), 11, "ch52fog: keys that part");
+    // Item 2384: 11 -> 13, the two `aggression` rows (parked 2385).
+    pin_eq!(got.len(), 13, "ch52fog: keys that part");
     pin_eq!(
         got.iter().filter(|r| r.contains("seen2")).count(),
         0,

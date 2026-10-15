@@ -203,7 +203,9 @@ fn run776_s_word_frame_is_widened_whole() {
     // window, the word's own block being 12 (frame 11, before 1737: ours 556 draws,
     // theirs 629, index 3; the leader's MAKE list holds the Oil Well's
     // category first in theirs, `docs/AI.md` §190).
-    pin_eq!(w.firsts.len(), 44, "initial run776 baseline");
+    // Item 2384: 44 -> 46, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 46, "initial run776 baseline");
     // Item 1737: the Mongol food term closes the leader economy (frame 3's
     // `econ`/`rate`, food income 435 against 160 from frame 1) and with it
     // the make list's order on 11; 128 -> 46, the control's start set. The
@@ -244,7 +246,9 @@ fn run779_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 104, "initial run779 baseline");
+    // Item 2384: 104 -> 106, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 106, "initial run779 baseline");
     // Item 1744: 1406 keys part on blocks 1349..1605 before the build, the
     // word's own block being 1355 (frame 1354: ours 5 draws, theirs 7, index
     // 1; building `1/2024`'s `queue[0].job_counter` 17200 against 17150 and
@@ -289,7 +293,9 @@ fn run780_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 133, "initial run780 baseline");
+    // Item 2384: 133 -> 134, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 134, "initial run780 baseline");
     // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
     // window's first block (nothing dumped parts on the word's own block
     // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle
@@ -339,9 +345,11 @@ fn run788_s_word_frame_is_widened_whole() {
     // on 2972 (ours 2, theirs 4) leave: re-entering `2053`, its insert
     // dance re-issues the copy of a build on the closed `2057` on the site
     // that took the number, uid 214 (`docs/AI.md` section 215).
+    // Item 2384: 132 -> 133, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     pin_eq!(
         w.firsts.len(),
-        132,
+        133,
         "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
@@ -390,7 +398,9 @@ fn run799_s_word_frame_is_widened_whole() {
     }
     // Item 2229: 163 -> 161 — `1/82`'s standing `orders.len` (ours 1,
     // theirs 3) leaves with the re-issued `BUILD 2057` (section 215).
-    pin_eq!(w.firsts.len(), 160, "run799 baseline");
+    // Item 2384: 160 -> 161, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 161, "run799 baseline");
     // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
     // them on the window's first block; the word 3131 (ours 62 draws, theirs
     // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell
@@ -466,7 +476,9 @@ fn run809_s_word_frame_is_widened_whole() {
     // them (section 207).
     // Item 2229: 180 -> 178 — `1/82`'s standing `orders.len` leaves
     // (section 215).
-    pin_eq!(w.firsts.len(), 177, "run809 baseline");
+    // Item 2384: 177 -> 178, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 178, "run809 baseline");
 }
 
 /// run820: the word 4238's window, blocks 4232..4488 at the long's detail (item 2088).
@@ -538,7 +550,9 @@ fn run820_s_word_frame_is_widened_whole() {
     // order rows, `orders.len` on 4257, `angle` on 4371), and so does
     // `1/2073`'s build clock (`job_counter` 16850 against 16800 on 4370):
     // `1/82` reaches `2073` on the original's frame (section 215).
-    pin_eq!(w.firsts.len(), 170, "run820 baseline");
+    // Item 2384: 170 -> 171, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 171, "run820 baseline");
 }
 
 /// run838: the word 4603's window, blocks 4597..4852 at the long's detail (item 2193).
@@ -605,7 +619,9 @@ fn run838_s_word_frame_is_widened_whole() {
     // `queue:queue[0].job_counter` on 4784 (ours 27250, theirs 22320)
     // leaves: the Socialism arm drops its MiG's target to 22320 on 4782 and
     // the counter clamps there on both sides (`docs/AI.md` section 217).
-    pin_eq!(w.firsts.len(), 188, "run838 baseline");
+    // Item 2384: 188 -> 189, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 189, "run838 baseline");
 }
 
 /// run844: the pair's last blocks, 4940..5057 at the long's detail — six
@@ -656,5 +672,7 @@ fn run844_s_closing_frame_is_widened_whole() {
     // and `1/191`'s order on 5009. The word 4946's block 4947 parts no key
     // of its own; the draw stream agrees to 5056 (`docs/AI.md` section
     // 217).
-    pin_eq!(w.firsts.len(), 225, "run844 baseline");
+    // Item 2384: 225 -> 226, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 226, "run844 baseline");
 }
