@@ -1999,6 +1999,7 @@ impl Sim {
     /// with the home, the queue and the action bit; `mandatory` is not
     /// passed on. run371's V2 `0/10` on 2672: an `AIRATTACKGROUNDORDER` on
     /// `1/2006`'s point, home `0/2009`, flags 4.
+    #[track_caller]
     pub fn add_strafe_order(
         &mut self,
         u: usize,
@@ -2008,6 +2009,13 @@ impl Sim {
         pos: QueuePos,
         action: bool,
     ) {
+        if std::env::var_os("RON_PROBE_STRAFE").is_some() && (5395..5412).contains(&self.frame) {
+            eprintln!(
+                "PROBE strafe f{} {:?}/{} target {:?} home {:?} mand {} pos {:?} act {} from {}",
+                self.frame, self.units[u].owner, self.units[u].index, target, home, mandatory, pos, action,
+                std::panic::Location::caller()
+            );
+        }
         // The steps are [`add_strafe_steps`]'s (item 2341's sweep).
         // **`QUEUE_FIRST` takes no `update_action`** (`0x5e4a2b`), and
         // neither does any other queue: the adder's tail is the link and,
