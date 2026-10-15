@@ -1683,10 +1683,16 @@ impl Sim {
         // §14).
         let who = self.buildings[b].owner;
         if who < 8 && self.world.has_fog() {
-            for t in self.footprint(ty, corner) {
-                if self.world.tile_in_bounds(t) {
-                    self.world.set_seen2_only(t.x >> 1, t.y >> 1, 1 << who);
-                }
+            let t = &self.build_types[ty];
+            let steps = wall_start_seen_steps(
+                (corner.x, corner.y),
+                t.x_size,
+                t.y_size,
+                self.world.width() * crate::world::TILES_PER_CELL,
+                self.world.height() * crate::world::TILES_PER_CELL,
+            );
+            for (fx, fy) in steps {
+                self.world.set_seen2_only(fx, fy, 1 << who);
             }
         }
         // `Wall::start@0063e810`'s own last-but-one statement.
@@ -3385,4 +3391,37 @@ pub(crate) fn find_city_steps<C: ?Sized>(
     let c = city_of(cx, r);
     add(cx, c);
     r
+}
+
+/// `Wall::start@0063e810`'s footprint walk (the loop between `mask_me` and
+/// `check_ever_seen`): the half-cells `(tile.x >> 1, tile.y >> 1)` whose
+/// owner bit is or-ed in, in the order the original visits them. The outer
+/// loop runs the type's `+0x234` (x size), the inner its `+0x238` (y
+/// size); a tile off the `w × h` grid (`world+0x18`, `+0x1c`) is skipped,
+/// and a tile whose half-cell is the one just written is not written again.
+pub(crate) fn wall_start_seen_steps(
+    corner: (i32, i32),
+    xs: i32,
+    ys: i32,
+    w: i32,
+    h: i32,
+) -> Vec<(i32, i32)> {
+    let mut out = Vec::new();
+    let (mut last_x, mut last_y) = (-1, -1);
+    for u in 0..xs {
+        let x = corner.0.wrapping_add(u);
+        for v in 0..ys {
+            let y = corner.1.wrapping_add(v);
+            if x < 0 || y < 0 || x >= w || y >= h {
+                continue;
+            }
+            let (hx, hy) = (x >> 1, y >> 1);
+            if hx != last_x || hy != last_y {
+                out.push((hx, hy));
+                last_x = hx;
+                last_y = hy;
+            }
+        }
+    }
+    out
 }
