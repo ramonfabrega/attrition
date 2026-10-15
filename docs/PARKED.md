@@ -5397,13 +5397,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CN — reserved
+## Parked by item 2436, 2026-10-14 — chapter seventy-one: the Senate's patriot, and the AI arms no walk can hold
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**2437.** The Senate tail's `set_type` arm for a human (a patriot already born, a second government researched):
+chapter seventy-one's second `@queueup 0 625 1 2007` (Monarchy) at the staged Senate was skipped by the walk. Name why
+(the research's gate at a Senate under Despotism: an age, or `get_preq`) and stage it; it holds `senate_gov_hero`'s
+second arm on a human, diff-backed today only on Great Sahara's AI Senate (item 1416's Senator `1/80`). Names no score.
+
+**2438.** AI §216's Supercollider (and any wonder arm): `wonders_held` needs a city's wonder, an `add`ed building joins
+no city, and `finish`/`hurry` are unapplied verbs (GOLDEN §16). The cheapest reach is applying `finish` to a Citizen-built
+wonder in a founded city (`small_city`, chapter sixty-nine's verb) — interpreter work, not a capture. Names no score.
 
 ## Parked by the next landing, slot CO — reserved
 

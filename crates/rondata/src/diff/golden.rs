@@ -14397,6 +14397,74 @@ const WANT_CH67: &[&str] = &[
     "600 1/5 form",
 ];
 
+/// **Chapter seventy-one** (item 2436, `docs/GOLDEN.md` §88, run858): a
+/// Senate researching Despotism under the Generals' and Supply upgrades —
+/// The Despot is born at 659 hits.
+#[test]
+fn chapter_seventy_one_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch71", "chapter71", 71, 11, 1120) else {
+        return;
+    };
+    eprintln!(
+        "chapter seventy-one: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    pin_eq!(
+        w.word,
+        GOLDEN_WORD_CHAPTER_SEVENTY_ONE,
+        "chapter seventy-one's golden word moved; re-pin it here and say so in docs/GOLDEN.md §88"
+    );
+}
+
+/// **run858 whole, both directions** (item 2436, `docs/GOLDEN.md` §88).
+#[test]
+fn chapter_seventy_one_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch71",
+        "chapter71",
+        WIDENING_CHAPTER_SEVENTY_ONE,
+        1120,
+        0,
+        (1010, 1016),
+        false,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch71 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch71: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH71.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch71: what parts under the word moved");
+}
+
+// **What parts through run858** (item 2436, `docs/GOLDEN.md` §88): the
+// eleven standing `form` rows and item 2384's two `aggression` rows (600)
+// alone; The Despot's birth on 1013 agrees whole, 659 hits.
+const WANT_CH71: &[&str] = &[
+    "600 0/-1 leader:aggression[1]",
+    "600 0/0 form",
+    "600 0/1 form",
+    "600 0/2 form",
+    "600 0/3 form",
+    "600 0/4 form",
+    "600 0/5 form",
+    "600 1/-1 leader:aggression[0]",
+    "600 1/1 form",
+    "600 1/2 form",
+    "600 1/3 form",
+    "600 1/4 form",
+    "600 1/5 form",
+];
+
 /// **Chapter sixty-eight** (item 2357, `docs/GOLDEN.md` §85, run852): a
 /// Light Horse at a Stable under Monarchy and a live military discount,
 /// and a Catapult at a Siege Factory each side of Socialism — `get_cost`'s

@@ -530,7 +530,7 @@ mod tests {
     /// widening's wherever that widening is its trace whole; a widening cut
     /// at its word names its trace here instead
     /// ([`a_golden_widening_s_window_reaches_its_trace_s_end`]).
-    const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 67] = [
+    const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 68] = [
         ("ch1", GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
         ("ch2", GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
         ("ch3", GOLDEN_WORD_CHAPTER_THREE, WIDENING_CHAPTER_THREE),
@@ -782,6 +782,11 @@ mod tests {
             "ch68",
             GOLDEN_WORD_CHAPTER_SIXTY_EIGHT,
             WIDENING_CHAPTER_SIXTY_EIGHT,
+        ),
+        (
+            "ch71",
+            GOLDEN_WORD_CHAPTER_SEVENTY_ONE,
+            WIDENING_CHAPTER_SEVENTY_ONE,
         ),
         (
             "restage",

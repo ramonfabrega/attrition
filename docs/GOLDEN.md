@@ -12249,12 +12249,44 @@ run). Whether the coverage lobby's at-war return draws nothing past it (it agree
 return's draws match, not that the arm past it is exercised). Everything above is a reading of this crate's seams and the
 capture recipes; no claim here is backed by a diff.
 
-## 88. Reserved for the next item on the rules track
+## 88. Chapter seventy-one: the Senate's patriot at 659 hits — an arm the AI track built and no walk held
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2436 (Claude Sonnet 5.5, `--effort medium`). **Closed at 1120 of 1,120 on its first take** (run858,
+`tools/gamelog/golden/chapter71.cmd`; `golden::chapter_seventy_one_holds_to_the_golden_word`,
+`chapter_seventy_one_s_word_frame_is_widened_whole`). No code moved: the arm was built by item 2175 and now has a
+golden walk of its own.
+
+**The survey** (AI §200–222's built arms against the golden walks and the console's verbs; §87's method).
+
+| arm | held by a golden walk? | stageable on map 14, `!ai off`? |
+|---|---|---|
+| §213 the government patriot is a supply unit: hits (`Unit::update_hits`' supply term on a unit that is hero and supply) | **No**: the pair's AI Senate only | **Yes**: `add senate`, the six upgrade techs by `tech who=0 <name> on`, Despotism queued at the Senate. **Staged here.** |
+| §213 the army cap by `is_supply` (`find_army`) | No | No: an army is the AI's (`!ai off`) |
+| §216 a held Supercollider zeroes research time | No | **No**: `wonders_held` needs the wonder in a city (`b.city.is_some()`), and an `add`ed building joins no city (§47, chapter thirty-eight: `1/2006` and `1/2007` read `city -1`); a wonder built by a Citizen takes 840,000 job and `finish`/`hurry` are parsed and unapplied (§16) |
+| §214 `land_tail`'s `toggle_leader_facing` | No | No: it needs a landing unit that leads a group by `find_leader` and a reversing turn; no console verb sets a unit's heading or a group's leader |
+| §217 Monarchy's King patriot (the Senate's tail), §220 the peace arm | No | The King rides the same tail; a second research at the staged Senate (`1100 @queueup 0 625 1 2007`) was refused by the walk (`skipped {("@queueup", "no named object is a live unit...")}`), so the `set_type` arm is not staged here |
+
+**The staging** (`chapter71.cmd`, walked by this crate's `stage_walk` on run492's start before the capture): a Senate
+`0/2007` on (14, 74) at 602; Forage, Supply and Logistics (`SUPPLY_WAGONS_1..3`, TypeIndex 763–765's preqs) and Tactics,
+Operations and Strategy (`GENERALS_UPGRADE_1..3`) by `tech who=0 .. on` at 604–609; Despotism (623) queued at the
+Senate at 610. The research finishes on 1011 and `Build::finished`'s Senate tail trains The Despot `0/6` (TypeIndex 352,
+`THEDESPOT`). Without the upgrades the same walk gives **109** hits (level 0); with them **659**: 109, plus the hero's
+`3² × 109 / 2` (599), plus the supply term at level 3 (60).
+
+**What run858 held.** The Despot's whole record agrees block for block from 1011 to the end: `hits`, `myhits`,
+`hits_left` 659 on both sides, birth frame 1011, its figure's animation clock. What parts is the standing block of
+chapter sixty-eight (the eleven `form` rows and the two `aggression` rows of item 2384, all on 600). **Mutation**: the
+supply term gated `&& !GENERAL` in `Sim::unit_hits`: the widening fails (hits 599), the word still reads 1120 (hits are
+not a draw), so the widening is the guard.
+
+**Census rows.** None new: `Build::finished`, `Unit::update_hits` and `get_gov_hero` were already entered by the pairs;
+the count is the commander's pin.
+
+**What is not established.** The Senate tail's second arm (a patriot already born, `set_type`) on a human's Senate: the
+queue line was refused and its cause (the walk names no live object for the second `@queueup`; probably Monarchy is not
+yet offered at the Senate under this staging's government) was not chased. §216's Supercollider needs a city wonder: the
+cheapest lobby is a map that starts a player with one, which this crate cannot name a seed for (parked 2437). The
+`army_admits` half of §213 has no console staging.
 
 ## 89. Reserved for the next item on the rules track
 
