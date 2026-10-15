@@ -103,8 +103,20 @@ pub(crate) const LAKOTA: Pair = Pair {
     // drew on 5407. Ours 22 draws, theirs 21, index 7 — ours
     // `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
-    count: 5476,
-    sequence: 5476,
+    // Item 2737: 5476 → 5499, `find_upath`'s near test zeroes the goal's
+    // tolerance (`683273`–`68327d`; `docs/AI.md` §231): who=1's
+    // Flamethrower `1/187` (`TypeIndex` 131, land), on its group's
+    // `ATTACK_TO` on the shore, collides on 5459, snaps to (29208, 38280)
+    // and has its far waypoint pulled back to (29185, 38216), one 48-cell
+    // away. Theirs pushes it with `tolerance` 0 and walks it (block 5461:
+    // (29199, 38258), `path` 35, `dest` 1); ours kept the leg's 384,
+    // popped it where it stood (`path` 34, `dest` 0), and on 5476 its
+    // `move_step` swing drew at index 7. Now ours 19 draws, theirs 20,
+    // index 11 — ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Guy::init_real+0x52`: theirs births `1/263` out of `1/2032`'s
+    // queue (block 5500: `queued` ours 3 against 2).
+    count: 5499,
+    sequence: 5499,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -521,7 +533,7 @@ fn run867_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 2430, "initial run867 baseline");
+    pin_eq!(w.firsts.len(), 1813, "initial run867 baseline");
     // Item 2677: the word 5407's own block is 5408, widened at 3418 keys.
     // Every who=1 Strategic Bomber (`TypeIndex` 305, air) on its
     // `AIRPATROLORDER` round the human's capital `0/2000` (6240, 7008)
@@ -539,4 +551,16 @@ fn run867_s_word_frame_is_widened_whole() {
     // from 5401 (163, the bombers' `mirror` among them), the `form` rows,
     // `1/187` on 5460 (`path[34].tolerance` ours 384 against 0, on the
     // shore at (29208, 38280)) and its move from 5461, the new word's.
+    // Item 2737: the word 5476's own block is 5477, widened at 2430 keys.
+    // Its four rows are `1/187`'s collision (`collide_o` ours 177 against
+    // −1, `order:coll`), the sequel of 5460's `path[34].tolerance` (ours
+    // 384 against 0), walked back: block 5461 `pos`, `dest`, `path:length`
+    // and `tolerance`, 5466 the re-plan, 5477 the collision. 2430 → 1813
+    // with `find_upath`'s zeroed near goal: on 5460 `path[34]` reads
+    // (29185, 38216) `tolerance` 0 both sides, on 5477 `1/187` stands at
+    // agreeing coordinates, and it holds no row in the window. Left: the
+    // keys standing from 5401, the `form` rows, `1/261`'s `g.angle[0]` on
+    // 5471, and from 5500 `1/263`'s birth in theirs alone (who=1's
+    // `num_queued[245]` ours 7 against 6, `1/2032` `queued` 3 against 2),
+    // the new word's.
 }

@@ -21361,12 +21361,75 @@ ours 384 against 0, on the shore at (29208, 38280). Its move parts from 5461 (`p
 fraction (run866 from 5161); the capture's zero (run676's closing). **Reading only**: the unit branch's
 `+0x8`/`+0xbc` tests, unchanged here.
 
-## 231. Reserved for the next item on the AI track
+## 231. `find_upath`'s near goal takes no tolerance, and the peace pair's word moves 5476 → 5499 (2026-10-15, item 2737)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The widening is on disk.** The word 5476 lies inside run867's window (5401..5657), so its block 5477 is compared
+whole by `diff::lakota_pair::run867_s_word_frame_is_widened_whole`. No capture or packet was booked.
+
+**The draws on 5476** (run867's trace; `RON_DEBUG_SITES`): ours spends 22 and theirs 21. Index 7 is ours' extra:
+`1/187`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`. Theirs' index 7 is `1/193`'s `Unit::do_idle+0x7d`, the
+first of the draws both sides share from there on.
+
+**The cast**, both directions over the window, is one unit after the standing keys and the `form` rows:
+- `1/187`, a Flamethrower (`TypeIndex` 131, `TY` 81, land), in group 68. Its one order is an `ATTACK_TO` (10008,
+  2136) on the far side of the water, and it stands among who=1's army on the shore near (29185, 38277).
+- **5460** (the state after frame 5459): `path[34].tolerance` ours 384, theirs 0. The entry's `to` agrees,
+  (29185, 38216). Both sides snapped the unit onto the 48-cell centre (29208, 38280).
+- **5461**: theirs has walked toward it, (29199, 38258), with `path` 35 and `dest` 1. Ours popped it where it
+  stood, with `path` 34, `dest` 0 and the unit's `tolerance` 384.
+- **5466**: ours re-planned (`path_recursion` 2 against 1).
+- **5477**: ours collides with `1/177` (`collide_o` 177 against −1), and its `move_step` drew on 5476.
+
+**The walk back.** Ours' `coll 1@5459` (`RON_DEBUG_UNIT`) is `resolve_unit_collision`'s step 6. A probe
+(`RON_PROBE_WPCOLL`, reverted whole) showed that `do_move`'s waypoint collision test did not fire. So step 6 pops to
+the kept leg (15384, 25944), whose tolerance is 384 and flags 0, snaps, and hands it to `find_upath`. The pull-back
+walks the goal home across the water in `0x18` steps until its region is the unit's. That ends at (29185, 38216),
+one 48-cell from the snap: the near test's `md < 2`.
+
+**What the near test writes** (the listing): `683273 cmp ecx, 1; jg 68329f`, then `68327d mov [ebp-0x3c], 0`.
+That is `PathData +0x8` (`tolerance`, `types.txt`) of the entry at `ebp-0x44`, written before the push at
+`683284`. `docs/PATHFINDER.md` §3 already said "the same-cell and Manhattan-<2 pushes forcing tolerance 0", but
+ours zeroed only the same-cell one.
+- The input is the same on both sides: the gate's operands, `md` and the goal, agree (Loop 2726). The difference is
+  the arm's own store.
+- The parted order targets a position, not an object, so no standing row on a target was there to walk (Loop 2738).
+  `1/187` stands in no earlier widening's rows.
+
+**The give-up arm**, read on the same listing: `68322e testb $1, [ebp-0x34]; jne 683082`. A final goal given up on
+within `0x18` jumps to the plain push and keeps its tolerance. Ours fell from that `break` into the near test, which
+now zeroes it, and at a diagonal `md` of 2 into the search. That arm is built too, so the fix does not open a second
+gap. `find_tpath` has the same shape: parked 2739.
+
+**Built**: `Sim::upath`'s near test zeroes `goal_e.tolerance`, and its final give-up pushes the goal as it stands and
+returns.
+
+**Tests and mutations** (`tools/mutate.py`):
+- `path::tests::a_near_unit_goal_is_pushed_with_no_tolerance`: a goal one 48-cell away, with tolerance 384, is
+  pushed alone with 0. Mutating the zero to `+= 0` fails it (exit 101), and `lakota_pair_first_parting` falls back
+  to 5476 (exit 101 on the re-pinned tree).
+- `path::tests::a_final_unit_goal_given_up_on_keeps_its_tolerance`: a final goal 10 units across a shore keeps its
+  384. With the `break` back, it fails (exit 101).
+
+**Value diff.**
+- **On 5460**, `1/187`'s `path[34]` reads (29185, 38216) with `tolerance` 0 on both sides. On 5477 it agrees, and it
+  holds no row in the window.
+- **run867 goes 2430 → 1813.** No other lobby's floor or coverage pin moved.
+- Still standing: the keys from 5401, the `form` rows, and `1/261`'s `g.angle[0]` on 5471.
+- The held-out battery: see the journal.
+
+**The word moves 5476 → 5499** (count and sequence). Ours spends 19 draws and theirs 20, parting at index 11:
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`. Theirs births `1/263` and ours does
+not. Block 5500 holds `1/263` in theirs alone, `1/2032` `queued` ours 3 against 2, and who=1's `num_queued[245]`
+7 against 6, with `active` 164 against 165. The word is in the same window (block 5500), so it is widened by the
+same test.
+
+**Not established.**
+- The tile-grid twin, `find_tpath`'s give-up (parked 2739).
+- Why the pulled-back goal's region test passes on 5459 at (29185, 38216) and not a step earlier. Both sides agree on
+  the entry's `to`, so the walk is diff-backed only at its end.
+
+**Diff-backed**: the near test's zero (run867, `1/187`, blocks 5460–5477). **Reading only**: the final give-up's
+plain push (no frame on disk reaches it).
 
 ## 232. Reserved for the next item on the AI track
 

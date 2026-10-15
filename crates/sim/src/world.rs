@@ -333,6 +333,12 @@ pub struct World {
     /// simulation reads it yet; it is kept because the write is free and
     /// the `WORLD` dump prints it beside `seen2`.
     fog_now: Vec<u8>,
+    /// `WorldData::seen3` (`World +0x164`) — the inner disc of every object
+    /// whose `ObjectData` flag `0x40` is set (`Object::init` sets it for a
+    /// `DETECT` objmask), one bit per player, written beside `seen` and
+    /// cleared with it. `UnitData::is_detected@0060a630` reads it. Allocated
+    /// on the first write (`docs/VISION.md` §1, `docs/GOLDEN.md` §101).
+    fog_detect: Vec<u8>,
     /// `Region::coast` per region: for a land region, the sea regions any
     /// of its cells touches in the eight-neighbourhood — `Regions::
     /// set_coastals`' first mask (`docs/TRANSPORT.md` §9.1). Sorted,
@@ -803,6 +809,7 @@ impl World {
             sea_map: 0,
             fog: Vec::new(),
             fog_now: Vec::new(),
+            fog_detect: Vec::new(),
             coast: Vec::new(),
         }
     }
@@ -907,6 +914,26 @@ impl World {
     /// §10.
     pub fn clear_seen(&mut self) {
         self.fog_now.fill(0);
+        self.fog_detect.fill(0);
+    }
+
+    /// `World::set_seen`'s `param_4` write: `mask` into `seen3`
+    /// (`World +0x164`) at one fog cell. Off the grid it writes nothing.
+    pub fn set_seen3(&mut self, fx: i32, fy: i32, mask: u8) {
+        let Some(i) = self.fog_index(fx, fy) else {
+            return;
+        };
+        if self.fog_detect.len() != self.fog.len() {
+            self.fog_detect = vec![0; self.fog.len()];
+        }
+        self.fog_detect[i] |= mask;
+    }
+
+    /// `WorldData::seen3[fy × fog_xs + fx]`, zero where nothing wrote it.
+    pub fn seen3(&self, fx: i32, fy: i32) -> u8 {
+        self.fog_index(fx, fy)
+            .and_then(|i| self.fog_detect.get(i).copied())
+            .unwrap_or(0)
     }
 
     /// `WorldData::seen[fy × fog_xs + fx]` — current line of sight.
