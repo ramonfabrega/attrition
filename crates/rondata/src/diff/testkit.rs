@@ -7023,11 +7023,13 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // The peace pair walked to its word (item 2423): 858 reads in the walk
     // past 3479 to the word 4544, where it read none before.
     // Item 2460: 858 -> 1080, the walk past 4544 to the word 4859.
-    ("lakota_pair_first_parting", 1080),
+    // Item 2491: 1080 -> 1441, the walk past 4859 to the word 5036.
+    ("lakota_pair_first_parting", 1441),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
-    // And run861 (item 2460): the word 4859's window, 1552 reads.
-    ("run861_s_word_frame_is_widened_whole", 1552),
+    // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
+    // with item 2491's President arm.
+    ("run861_s_word_frame_is_widened_whole", 1553),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -7204,10 +7206,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // closing window: 514, as that window's own. Item 2055's run817 window,
     // once the formation's reverse is built: 1013, as run817's own walk.
     // Item 2423's run855 window: 1122, as that window's own. Item 2460's
-    // run861 window: 1552, as that window's own.
+    // run861 window: 1552, as that window's own; 1553 with item 2491's
+    // President arm, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        1552,
+        1553,
     ),
 ];
 
@@ -9221,7 +9224,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // over 4538..4794 (block 4545). **Item 2460 moved it 4544 → 4859**
     // with the peace's end (`Game::do_frame:202`), past run855's last
     // block (4794): run855's test keeps 4544's value diff, and 4859 is
-    // widened on run861 over 4853..5109 (block 4860).
+    // widened on run861 over 4853..5109 (block 4860). **Item 2491 moved it
+    // 4859 → 5036** with `train_time`'s President arm, in the same window
+    // (block 5037).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
