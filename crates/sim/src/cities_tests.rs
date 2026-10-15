@@ -1515,6 +1515,11 @@ fn the_president_near_a_trainer_halves_a_trained_unit_s_time() {
     finish(&mut sim, b);
     let ty = sim.add_unit_type(UnitType {
         hits: 40,
+        times: crate::production::Times {
+            job_time: 225,
+            research_premium_time: 2,
+            job_extra_time: 10,
+        },
         ..UnitType::default()
     });
     sim.muster[0].researched[ty] = true;
