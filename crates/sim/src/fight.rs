@@ -4513,7 +4513,7 @@ impl Sim {
                         self.units[s].hold_frames += 1;
                     }
                 }
-                // SEAM: `Ammo::do_damage` for a crash that has come down
+                // SEAM: the damage a crash deals where it has come down
                 // (`docs/AI.md` §228) is not built.
                 self.projectiles.remove(i);
                 continue;

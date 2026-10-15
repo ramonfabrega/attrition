@@ -3817,9 +3817,9 @@ impl Sim {
     /// [`Sim::hold_frames_tick`]), and it takes a slot in the ammo pool.
     /// [`Sim::crash_round`] is `init_crash` itself.
     ///
-    /// SEAM: `Ammo::do_damage` when the crash comes down (its `splash_area`
-    /// is the pool slot's leftover) is not built; run404's two land with
-    /// no draw from the game's stream.
+    /// SEAM: the damage a crash deals where it comes down (its
+    /// `splash_area` is the pool slot's leftover) is not built; run404's two
+    /// land with no draw from the game's stream.
     pub(crate) fn crashes(&mut self, u: usize) -> bool {
         let Some(t) = self.units[u].ty else {
             return false;
