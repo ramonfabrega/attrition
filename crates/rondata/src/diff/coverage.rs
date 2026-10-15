@@ -664,6 +664,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch73 = golden_dump("ch73");
     let ch74 = golden_dump("ch74");
     let ch75 = golden_dump("ch75");
+    let ch76 = golden_dump("ch76");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2437,6 +2438,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_FIVE;
         let n = drive_capture(p, 900, 905, &mut paths);
         assert_eq!(n, 6, "chapter seventy-five carries the window's six blocks");
+        frames += n;
+    }
+    // **Chapter seventy-six, on run871** (item 2572): 1751, the Hoplites
+    // queued under The President.
+    if let Some(p) = &ch76 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_SIX;
+        let n = drive_capture(p, 1748, 1753, &mut paths);
+        assert_eq!(n, 6, "chapter seventy-six carries the window's six blocks");
         frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
