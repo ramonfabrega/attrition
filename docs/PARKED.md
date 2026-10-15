@@ -5848,13 +5848,13 @@ run900's own dump, the order stream driven, the applied/skipped report kept,
 the first parting pinned), then the random-map generator (parked 2390) as its
 own checkpoint. The next pass ratifies §7 and reads the route. **The thirty-sixth pass**: §7's scope correction **ratified** — §4's own sequencing (setup → rules → packages, the embedded save absent from a random-map recording) and the parser's accounting of all 21,884 packages and 25,779 commands leave no room for a snapshot; the route's blind reading is owed only if the replay oracle is pursued, which is Ramon's checkpoint (dump-seed the replay first), so this leaves the Loop for the ordinary list.
 
-## Parked by the next landing, slot DX — reserved
+## Parked by item 2638, 2026-10-15 — the snap arm's refused tile
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2656) **The peace pair's word 5407 owes its widening** (2638): the sequence parts on 5407 at index 0, ours 15 draws,
+theirs 15 — ours `1/67`'s `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`
+(seed `a00625e0`); the count parts on 5412. It is past run866's last block (5385), and no dump of this lobby holds
+5407, so the capture is the next item's: blocks 5401..5657 at the long's detail, block 5408 the word's own.
+`WIDENINGS` names this row until a test widens it.
 
 ## Parked by the next landing, slot DY — reserved
 

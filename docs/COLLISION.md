@@ -2281,7 +2281,7 @@ three clauses rests on `get_action@00608450` read against the dump's own
 
 ## 10. What is not established
 
-- **The snap arm's `invalid_loc` refusal** (§5.4). The same `if` has a
+- ~~**The snap arm's `invalid_loc` refusal** (§5.4). The same `if` has a
   *free* sub-arm, and its tile refusal at `005fb443` does **not** behave
   like §5's: it jumps to `005fb48e`, which is the accepted step's own
   `dest = 0` and pop, so the waypoint is consumed without the step and
@@ -2291,7 +2291,10 @@ three clauses rests on `get_action@00608450` read against the dump's own
   alone, because no frame on disk demands it. *What would refuse it:* a
   `UNITS=3` window over a unit whose last hop into a waypoint crosses into
   a tile `invalid_loc` rejects — the record would show the original's
-  `dest_x`/`dest_y` and path stack moving on where this crate's stand.
+  `dest_x`/`dest_y` and path stack moving on where this crate's stand.~~
+  **Built, item 2638 (`docs/AI.md` §229)**: run866's Heavy Tank `1/11`
+  is the window — block 5315's path stack and `dest` move on where this
+  crate's stood.
 - **`Movement::dest` on a blocked snap.** This crate sets it to `None`
   there, matching what the accepted step's arrival tail does, because the
   waypoint has been consumed. The original has no such field — it is a

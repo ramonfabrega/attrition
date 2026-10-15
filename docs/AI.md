@@ -21209,12 +21209,65 @@ word lies inside run866's window, so block 5316 is widened. Its rows are all `1/
 slots (run866's 5210 and 5226 numbering). **Reading only**: the hold's arithmetic past death (the dump prints no dead
 slot), and the gpiece gate.
 
-## 229. Reserved for the next item on the AI track
+## 229. A snap onto a refused tile consumes its waypoint, and the peace pair's word moves 5315 → 5407 (2026-10-15, item 2638)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The widening is on disk.** The word 5315 lies inside run866's window (5129..5385), so its block 5316 was compared
+whole by `diff::lakota_pair::run866_s_word_frame_is_widened_whole`. No capture or packet was booked.
+
+**The draws on 5315** (run847's trace, `RON_DEBUG_SITES`). Ours spends 30 and theirs 29. Ours' first is who=1's
+`1/11` at `Unit::do_move+0xe84`, the grid draw of a move `find_path` refused. The 29 after it are theirs, in order.
+
+**The cast on 5315 and 5316**, both directions, is one unit: `1/11`, a Heavy Tank (`TypeIndex` 251, land) on an
+`ATTACK_TO`, at (28993, 38631) on the shore. Its path stack's top is a sidestep (28968, 38616, flags 2) over a
+boarding waypoint (28728, 38184, flags 4).
+- Block 5315: theirs has popped the sidestep (`path` 51, `dest` 0, `dest_x` still 28968, the unit unmoved); ours
+  holds it (`path` 52, `dest` 1).
+- Block 5316: theirs has taken the boarding waypoint and met the Transport Freighter `1/221` (`collide_o` 221);
+  ours has popped the sidestep a frame late, after the draw.
+- The walk back: ours' unit holds `line_ok` through 5314's step, and clears it on 5315's. The step is the
+  Manhattan snap (25 + 15 short of the sidestep, within one step of 40), and its tile, across the shore, is the one
+  `invalid_loc` refuses.
+
+**`move_step@005faf30`'s two refusals** (the listing). The snap arm's free sub-arm asks
+`invalid_loc` at `005fb443` only when the tile changes, and its `jne 005fb48e` jumps past the walk's `set_anim`
+and `set_new_location` and onto `dest = 0` at `005fb491` and the pop. So the waypoint is consumed where the unit
+stands, `unit_masks & 8` is untouched, and no animation is asked for. The partial step's refusal (`005fb7c1`–
+`005fb7fd`) is the other one: it clears the bit and answers 0. Ours had the partial step's for both arms;
+`docs/COLLISION.md` §10 had named the gap, unreached by any frame on disk.
+
+**Built**: `Sim::unit_step`'s tile refusal splits on `step.snapped`. The snap pops the top, clears the waypoint,
+stores the move, and runs the arrival tail (`arrive` under a final waypoint) without stepping; the partial step's
+refusal is unchanged.
+
+**Tests and mutations**:
+- `orders::snap_refusal_tests::a_snap_onto_a_refused_tile_pops_the_waypoint_where_it_stands`: a walker 16 short
+  of the sea snaps onto a sidestep 10 into it, pops it where it stands, keeps `line_ok` and marks no grid draw.
+- `tools/mutate.py`, `if false && step.snapped`: the unit test fails (exit 101), and so does
+  `lakota_pair_first_parting`, its count back at 5315.
+
+**Value diff.**
+- **On 5315**, `1/11` reads `path` 51 and `dest` 0 both sides; on 5316, `collide_o` 221 and the boarding waypoint
+  both sides. `1/11` holds no row in the window.
+- **run866 goes 1340 → 180.** The boarding's sequels go with it: `1/11`'s `inside` 229 and `1/229`'s birth on
+  5319, and the knock-on collisions of `1/86`, `1/106`, `1/172` and `1/179`.
+- Still standing: the keys from 5129, 57 `form` rows, `1/228`'s `g.angle[0]` on 5316 (a Scholar inside `1/114`,
+  ours 1431655765 against 0), group 69's held `1/184` on 5327, `1/187`'s `path[2]` on 5378, who=1's `MAKE` on
+  5381 and its buckets and queue `cost` on 5383.
+- The pair's height reads 1672 → 1678, the walk past 5315.
+- The held-out battery is 576 / 6566 / 2974, unmoved.
+
+**The word moves 5315 → 5407** (sequence; the count parts on 5412). Ours spends 15 draws and theirs 15, parting at
+index 0: ours `1/67`'s `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`
+(seed `a00625e0`). It is past run866's last block, so its widening is owed: parked 2656.
+
+**Not established.**
+- The snap's refusal under a **final** waypoint, which runs the arrival tail where the unit stands. The order of
+  `set_angle` and the kill there is the accepted snap's, read off the listing's shared tail, and no capture shows
+  one.
+- `Movement::dest` on the refusal is set to `None`, as on the snap's collision block (COLLISION §10's next row).
+
+**Diff-backed**: the non-final refusal's pop, `dest` and unmoved position (run866, `1/11`, blocks 5315 and 5316).
+**Reading only**: the final-waypoint case.
 
 ## 230. Reserved for the next item on the AI track
 

@@ -453,4 +453,19 @@ fn run866_s_word_frame_is_widened_whole() {
     // `cost[1]` on 5183 (155 against 116, parked 2579), who=1's
     // `num_units[255]`, `[261]` on 5201 and `1/2005`'s `job_counter` on
     // 5202 (17625 against 17250).
+    // Item 2638: the word 5315's own block is 5316, widened at 1340 keys.
+    // Every row is who=1's Heavy Tank `1/11` (`TypeIndex` 251, land): on
+    // 5315 theirs has popped the sidestep (28968, 38616) it snapped onto
+    // over the shore (`path` 51, `dest` 0) where ours kept it (`path` 52,
+    // `dest` 1); on 5316 theirs has taken the boarding waypoint (28728,
+    // 38184) and met the Transport Freighter `1/221` (`collide_o` 221)
+    // where ours re-planned. 1340 → 180 with the snap arm's refusal built:
+    // `1/11` holds no row in the window, and with it go the boarding's
+    // sequels (`1/229`'s birth and `1/11`'s `inside` on 5319, `1/86`,
+    // `1/106`, `1/172`, `1/179`). Left: the keys standing from 5129 (the
+    // human's `SITE` and `control`, `death:extra`, `mirror`, the pools and
+    // held groups), 57 `form` rows, `1/228`'s `g.angle[0]` on 5316 (a
+    // Scholar inside `1/114`, ours 1431655765 against 0), group 69's held
+    // `1/184` on 5327, `1/187`'s `path[2]` on 5378, who=1's `MAKE` values
+    // on 5381, and its buckets and queue `cost` rows on 5383.
 }
