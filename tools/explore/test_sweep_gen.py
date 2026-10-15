@@ -950,9 +950,8 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[],
                                    stubs=['iat:0xac5460'])
-        with self.assertRaises(ValueError):
-            sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[],
-                                   stubs=['iat:0xac5460:0'], stub_cdecl=['0'])
+        # (Item 2400 lifted the refusal of `--stub-cdecl` on an `iat` stub:
+        # `malloc` is `call [VA]; add esp, 4`; see test_an_iat_stub_may_be_cdecl.)
 
     def test_a_recorded_local_is_named_by_its_depth(self):
         # Item 2336: `MiscAccess::coord_vis@00583aa0` hands its callees the
