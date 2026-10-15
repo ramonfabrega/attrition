@@ -8630,6 +8630,55 @@ mod tests {
         );
     }
 
+    /// **A squad leaves the muster when its last live figure dies, and
+    /// not before** (`Unit::close@0060ee50`, `0060f3db`; `docs/AI.md`
+    /// §232). A head over a live figure hands the squad down and keeps the
+    /// count; the last head, over the dead, takes `num_units`, `control`
+    /// and `active` off. run867's who=1 kept three shot-down Jet Fighters
+    /// counted, and its next Fighter finished on 5511 against 5499.
+    #[test]
+    fn a_squad_leaves_the_muster_with_its_last_figure() {
+        let (mut sim, ty) = at_war();
+        sim.unit_types[ty].price.pop = 1;
+        let [a, b, c] = chain3(&mut sim, ty);
+        sim.track_unit_type(0, ty, 1);
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        let hit = combat::Sixteenths {
+            whole: 500,
+            frac: 0,
+        };
+        let count = |s: &Sim| {
+            (
+                s.muster[0].by_type[ty],
+                s.muster[0].control,
+                s.ai[0].census.active,
+            )
+        };
+        for f in [a, b] {
+            let taken = sim.take_damage(Obj::Unit(f), hit, Obj::Unit(foe), 10);
+            assert!(matches!(taken, Taken::Died { .. }));
+            assert_eq!(
+                count(&sim),
+                (1, 1, 1),
+                "a live figure below holds the squad"
+            );
+        }
+        let taken = sim.take_damage(Obj::Unit(c), hit, Obj::Unit(foe), 10);
+        assert!(matches!(taken, Taken::Died { .. }));
+        assert_eq!(
+            count(&sim),
+            (0, 0, 0),
+            "the last figure takes the squad off"
+        );
+
+        // A lone unit of a type with no population is never counted.
+        sim.unit_types[ty].price.pop = 0;
+        let lone = put(&mut sim, 0, ty, Pos::new(0x1200, 0x1000));
+        sim.units[lone].captain = true;
+        sim.take_damage(Obj::Unit(lone), hit, Obj::Unit(foe), 10);
+        assert_eq!(count(&sim), (0, 0, 0));
+    }
+
     /// **The lead is the target's first figure's `avg_speed`, along its
     /// angle** (`docs/COMBAT.md` §47.4, `Ammo::init@0067bbf0`,
     /// `0067ceb4`-`0067cec7`), and not the unit's per-frame speed. Two
