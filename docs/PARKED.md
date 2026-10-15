@@ -3762,6 +3762,12 @@ disk; a grep of the export for 500000 named `run_cmd` case 0x4f in a minute. The
 names, grepped in the dump" had it, but the value was another field's. Candidate: a frame row — "a value the dump
 prints that no reading produces is grepped in the export before the next reading". One reach.
 
+(2578) **A player's build queues walked frame by frame are a second-reach probe** (2526's "for the Loop" line,
+filed at its merge). `BUILDQUEUE`'s head `job_counter` across every trainer of one player named the Space Program's
+arm in one read; 2491 read the same counters by hand for the President's. Candidate: `tools/gamelog/queues.py <dump>
+<lo-hi> <who>`, with the dump's CRLF and the `BEGIN BUILDQUEUE` sub-block under each `BUILDDATA` handled. Two
+reaches; the third graduates it.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -5735,13 +5741,16 @@ list) need a record through a global cell: `obj --cell-win`. Not built.
 0x486550, `FollowOrder` 0x486b50 (its first walk is before the `d` read), `GatherOrder`, `TradeOrder`, `CastOrder`, `PatrolOrder`:
 listings not read. Ready for `mix --vbase` as `AttackOrder` (0x47f260) was.
 
-## Parked by the next landing, slot DH — reserved
+## Parked by item 2526, 2026-10-15 — the Space Program's air arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2553) **`get_cost`'s domain arms are not built** (2526): `TypeData::get_cost@00664090:357`–`377`, by `+0x218`
+— the Angkor Wat on a ship (`ANGKOR_SHIPS`), Aluminum (`+0x6dab & 1` or the conquest twin, `ALUMINUM_AIR_COST`) and
+the Space Program (`SPACE_AIR_COST`, 50 %) on an aircraft. The peace pair's who=1 holds the Space Program from 5036,
+so its next queued aircraft is priced at half in theirs and whole here. run861 holds no air entry queued after 5036
+(no `cost` key parts past 4853), so no score names it yet; the first air `queue[*].cost` row past 5036 in the next
+widening does.
+
+2554 is booked in the queue, at 2526's merge; its "for the Loop" line is Loop 2578.
 
 ## Parked by item 2543, 2026-10-15 — chapter seventy-five's `finish` is case 0x4f
 
