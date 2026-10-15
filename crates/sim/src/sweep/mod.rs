@@ -274,6 +274,8 @@ mod animal_data_valid_target_const;
 mod animal_process;
 mod armies_diplo_change;
 mod army_walk_data;
+mod attack_order_walk_data;
+mod death_obj_data_walk_data;
 mod land_walk_data;
 mod groups_walk_data;
 mod group_order_walk_data;
