@@ -5984,13 +5984,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EI — reserved
+## Parked by item 2709, 2026-10-15 — the sweep's ninety-ninth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2710) **`Herds::start_herds` was already swept** (item 2655, `--at 0xc0a244:32` and places); the brief's example was stale. `--gtab CNT:LO..HI:PTR:SIZE` (2709) is the shape the count-behind-image-words family wants; no live row uses it yet — `GroupData::get_num_cap_const` 0x70f960 (`this->num` in `this`, elements `[0xc0ab84 + 0x1c*who]`-indexed, a vcall slot `0xe8` per element) is the next candidate.
+
+(2711) **`has_damage`'s stub arm answers 1..5 only**: a zero stub answer with a captain link of -1 indexes `table[-1]`, memory the port cannot model, so the `uVar1 == 0` up-walk is covered by the base (`is_captain`) arm alone. A `--link`-style draw of a stub answer that is zero only on a record with a non-negative `o_up` would reach it.
+
+(2712) **`Group::equals_group`'s `normalize` is hooked**, not run: the original rewrites `field_0xc` and the `+0x8cc` shorts before the loop; the row's count and shorts are the drawn ones. A callee that writes `this` before a loop (parked 2701) is still unbuilt as a shape (`--stub-write` writes one window, one value, every call; `normalize` is called on two windows).
+
+(2713) Loop: `--table` with ROWS > 1 gives each record a drawn next-row word at `VOFF`; `has_damage` needed a record's own row (`who`, its +9 byte) and the links within the row, so its two rows were written as `--place`/`--link`/`--wbias` by hand. A `--table`'s `--row-byte OFF` (the record's row at OFF, no next-row word) would generate it.
+
 
 ## Parked by the next landing, slot EJ — reserved
 

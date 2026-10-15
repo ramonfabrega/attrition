@@ -1413,6 +1413,7 @@ ANSRANGE = {ansrange!r}
 CELLTHIS = {cellthis!r}
 VTALSO = {vtalso!r}
 SPARSE = {sparse!r}
+GTAB = {gtab!r}
 RECORD = {record!r}
 RECORDORDER = {recordorder!r}
 RECORDEDX = {recordedx!r}
@@ -1639,6 +1640,22 @@ def main(argv):
             buf = bytearray(rng.randrange(256) for _ in range(size))
             uc.mem_write(va, bytes(buf))
             wins.append((va, buf))
+        gelems = []
+        for cnt, lo, hi, ptr, esize in GTAB:
+            # A counted array behind image words (item 2709, parked 2699): the count
+            # drawn from LO..HI at CNT, the array's pointer at PTR, one record of
+            # ESIZE random bytes an element — the head CNT..PTR+4 and the array are
+            # `c` windows, the records `p` windows after the pointer arguments'.
+            n = rng.randint(lo, hi)
+            recs = [h.alloc(esize + 0x20) for _ in range(max(n, 0))]
+            arr = h.alloc(4 * max(n, 1) + 0x20)
+            head = bytearray(rng.randrange(256) for _ in range(ptr + 4 - cnt))
+            head[0:4] = (n & 0xFFFFFFFF).to_bytes(4, "little")
+            head[ptr - cnt:] = arr.to_bytes(4, "little")
+            body = bytearray(b"".join(r.to_bytes(4, "little") for r in recs) or bytes(4))
+            wins.append((cnt, head))
+            wins.append((arr, body))
+            gelems += [(r, bytearray(rng.randrange(256) for _ in range(esize))) for r in recs]
         for idx, size in PTRARGS:
             buf = h.alloc(size + 0x20)
             b = bytearray(rng.randrange(256) for _ in range(size))
@@ -1650,7 +1667,8 @@ def main(argv):
             if idx in PNULLS and rng.random() < 1 / 3:
                 args[idx] = 0
             wins.append((buf, b))
-        nc = len(CELLS) + len(AT)
+        wins += gelems
+        nc = len(CELLS) + len(AT) + 2 * len(GTAB)
         c = [b for _, b in wins[:nc]]
         p = [b for _, b in wins[nc:]]
         for k, b in enumerate(c):
@@ -2009,6 +2027,19 @@ def _placed(win, off):
     return f'the word at `{win}+{off}`' if win else f'the word at `{off}`'
 
 
+def _gtab(spec):
+    """`CNT:LO..HI:PTR:SIZE` — a count word at the image address CNT drawn from
+    LO..HI, the array's pointer at PTR (above CNT), SIZE random bytes an element
+    (item 2709, parked 2699)."""
+    m = re.fullmatch(r'(\w+):(-?\w+)\.\.(-?\w+):(\w+):(\w+)', spec)
+    if not m:
+        raise ValueError(f'--gtab is CNT:LO..HI:PTR:SIZE, not {spec!r}')
+    cnt, lo, hi, ptr, size = (int(x, 0) for x in m.groups())
+    if not cnt < ptr or not lo <= hi or size < 0x20 or hi > 64:
+        raise ValueError(f'--gtab wants CNT < PTR, LO <= HI <= 64 and SIZE at least 0x20, not {spec!r}')
+    return (cnt, lo, hi, ptr, size)
+
+
 def _sparse(spec):
     """`LOC:STRIDE:N:OFF,SIZE[/OFF,SIZE..]` — LOC a window's `m+OFF`, `cN+OFF`,
     `pN+OFF`, an address expression, or `@VA` for a table in the image itself
@@ -2066,7 +2097,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, tame=False, stub_write=(), deref=(), ecx_answer=(), ring=()):
+                 rows=220, record_order=False, record_edx=False, edx=None, tame=False, stub_write=(), deref=(), ecx_answer=(), ring=(), gtab=()):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2114,6 +2145,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--place-null K names one of the --place pointers, by its order on the line')
     pwbias = [w for s in wbias for w in _wbias(s)]
     psparse = [_sparse(s) for s in sparse]
+    pgtab = [_gtab(s) for s in gtab]
     plinks = [_link(s) for s in links]
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
@@ -2272,7 +2304,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or psparse or plinks or pout or pcdecl or pwrite):
+            or pseq or pansr or pthis or palso or phalf or psparse or pgtab or plinks or pout or pcdecl or pwrite):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2335,6 +2367,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'{n} rows {st:#x} apart at `{"@" if w == "@" else (w + "+" if w else "")}{lo}`, slices '
            + ', '.join(f'+{o:#x}:{z:#x}' for o, z in sl) + ' (`p` windows after the pointed buffers, before the places)'
            for w, lo, st, n, sl in psparse]
+        + [f'a counted array behind image words: the count at 0x{c:08x} in {lo}..{hi}, the array\'s pointer at 0x{p:08x}, '
+           f'{z:#x} random bytes an element (`c` windows head and array, `p` windows the elements after the pointer arguments\')'
+           for c, lo, hi, p, z in pgtab]
         + [f'figures p{lo}..p{hi} link at +{o:#x} ({z} bytes) '
            + ('below' if d == '<' else 'above') + ' their own index or to ' + ', '.join(map(str, t))
            for lo, hi, o, z, d, t in plinks]
@@ -2353,7 +2388,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
-                                   sparse=psparse, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
+                                   sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
@@ -2368,7 +2403,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     else:
         logsplit = logdecl = logcheck = ''
     test = OBJ_WIN_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
-                               ret=retcode, nc=len(pcells) + len(pat), pbase=1 + len(pcells) + len(pat),
+                               ret=retcode, nc=len(pcells) + len(pat) + 2 * len(pgtab), pbase=1 + len(pcells) + len(pat) + 2 * len(pgtab),
                                logsplit=logsplit, logdecl=logdecl, logcheck=logcheck, floor=floor)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
@@ -3006,6 +3041,9 @@ def main(argv=None):
                     help='obj: LOC points at a zeroed table of N rows STRIDE apart, each row\'s slices `p` '
                          'windows after the pointed buffers and before the places; `@VA` the image\'s own table '
                          '(the leaders table, parked 2201; item 2247)')
+    ap.add_argument('--gtab', action='append', default=[], metavar='CNT:LO..HI:PTR:SIZE',
+                    help='obj: a counted array behind image words (item 2709, parked 2699): the count at CNT drawn from LO..HI, '
+                         'the array pointer at PTR, SIZE random bytes an element; `c` windows the head and array, `p` the elements')
     ap.add_argument('--link', action='append', default=[], metavar='pA..B+OFF:SIZE:DIR[:T,T..]',
                     help='obj: figure k (window p(A+k))\'s link at OFF drawn from the figures below (`<`) or '
                          'above (`>`) its own index or a terminator (-1), so a walk through them ends '
@@ -3166,7 +3204,7 @@ def main(argv=None):
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
                                                     edx=args.edx, tame=args.tame, stub_write=args.stub_write,
-                                                    deref=args.deref, ecx_answer=args.ecx_answer, ring=args.ring)
+                                                    deref=args.deref, ecx_answer=args.ecx_answer, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
