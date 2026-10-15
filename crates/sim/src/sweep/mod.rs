@@ -75,6 +75,7 @@ mod object_min_range;
 mod object_recharge;
 mod object_support_cost;
 mod objects_data_find_good_at_tcoord;
+mod objects_find_free;
 mod player_is_over;
 mod repair_order_get_type;
 mod resource_divvy_pool_add_late;
