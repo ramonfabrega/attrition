@@ -914,6 +914,7 @@ mod unit_data_is_attacking;
 mod unit_data_is_caravan;
 mod unit_data_is_casting;
 mod unit_data_is_cloaked;
+mod unit_data_is_corner;
 mod unit_data_is_detected;
 mod unit_data_is_fleeing;
 mod unit_data_is_flying_high;
