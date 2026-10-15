@@ -6056,13 +6056,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EN — reserved
+## Parked by item 2737, 2026-10-15 — `find_upath`'s near goal
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2739) **`find_tpath`'s final give-up is the same plain push** (`006897d0`: the `< 0x60` break, then `local_2c & 1` and `goto LAB_00689a75`, the push with the entry's tolerance kept). Ours' `Sim::find_tpath` falls from that `break` into the `td < 2` test, which zeroes the tolerance, and at a diagonal `td` of 2 into the centre pushes and A\*. Item 2737 built the twin in `upath` (`68322e`–`683232`, `docs/AI.md` §231). The tile walk's arm names no frame yet: no capture's unit was walked to it. The listing settles the branch (`689a75`), and `tools/mutate.py` on the built twin would show whether any floor reaches it.
+
+(2740) **`upath`'s pull-back keeps an `sx == 0 && cy == 0` break that the listing lacks.** `00682f30`'s walk is a `do … while (g48(goal) != hg)` with only the `0x18` give-up inside it, so ours' guard, which falls through to the near test, is this crate's own. A step of `0x18` cannot round both components to zero, so it is believed unreachable. A `debug_assert!` would say so, and it names no score.
 
 ## Parked by the next landing, slot EO — reserved
 
