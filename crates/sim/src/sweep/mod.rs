@@ -779,6 +779,7 @@ mod path_finder_find_upath;
 mod path_finder_find_upath_restore;
 mod path_finder_find_wpath;
 mod path_finder_find_wpath_army;
+mod path_finder_kill_lists;
 mod path_finder_out_dbg_draw_failures;
 mod path_finder_valid_tcoord;
 mod path_finder_valid_wcoord;
