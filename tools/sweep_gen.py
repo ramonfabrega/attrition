@@ -1617,6 +1617,7 @@ def main(argv):
             else:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[at:at + 4] = ptr
+        callwins = {{}}
         for idx, size in ANSWERWIN:
             # A stub that answers a record: the address of SIZE random bytes,
             # a new `p` window after the places (parked 2151, item 2170).
@@ -1626,6 +1627,7 @@ def main(argv):
             wins.append((buf, b))
             shape(rng, f"p{{len(p) - 1}}", b)
             answers[idx] = buf
+            callwins.setdefault(idx, []).append(buf)
         if VTAT is not None:
             # The stubbed vtable laid in a window: a slot of an object the
             # function reaches through a table, not of `this` (item 2170).
@@ -1694,6 +1696,17 @@ def main(argv):
             based.append(int(on))
         for name, v in zip(names, answers):
             h.answers[name] = v & 0xFFFFFFFF
+        # A stub with several `--answer-win` windows answers one a call, in
+        # call order, the last repeated past them (parked 2623, item 2633).
+        for idx, bufs in callwins.items():
+            if len(bufs) > 1:
+                turn = [0]
+
+                def answer(ecx, args, bufs=bufs, turn=turn):
+                    v = bufs[min(turn[0], len(bufs) - 1)]
+                    turn[0] += 1
+                    return v
+                h.answers[names[idx]] = answer
         # A callee called more than once a row answers each call in turn:
         # N values drawn a row (from its `--answers` list when it has one),
         # the last repeated past N — from the terminators when given (item
@@ -2164,7 +2177,10 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a in pslot]
         + [f'stub {idx} answered from {vals} (90%)' for idx, vals in pans]
         + [f'stub {idx} answers the address of {n} random bytes, a `p` window after the places'
-           for idx, n in pansw]
+           for idx, n in pansw if [i for i, _ in pansw].count(idx) == 1]
+        + [f'stub {idx} answers a window of its own to each call, in call order ({n} bytes, ...)'
+           for k, (idx, n) in enumerate(pansw) if [i for i, _ in pansw].count(idx) > 1
+           and idx not in [i for i, _ in pansw[:k]]]
         + ([f'the stubbed vtable laid at `{vtat}`'] if pvtat else [])
         + [f'the stubbed vtable laid at `{vh}` half the rows' for vh in vtat_half]
         + (['`__cdecl`: the caller pops the arguments'] if cdecl else [])
@@ -2828,7 +2844,8 @@ def main(argv=None):
                          '(a record compared with a class\'s vtable, a `--wbias` of its address; item 2223)')
     ap.add_argument('--answer-win', action='append', default=[], metavar='IDX:SIZE',
                     help='obj: stub IDX answers the address of SIZE random bytes, a new `p` window after the '
-                         'places (a callee that answers a record; parked 2151)')
+                         'places (a callee that answers a record; parked 2151); repeated for one IDX, '
+                         'one window a call in call order, the last repeated (parked 2623)')
     ap.add_argument('--cdecl', action='store_true', help='obj: the function is `__cdecl` (a bare `ret`), so '
                     'the caller pops its arguments and the esp check expects them left (item 2181)')
     ap.add_argument('--argeq', action='append', default=[], metavar='IDX:WIN+OFF',
