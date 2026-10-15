@@ -3774,6 +3774,21 @@ commander's at its merge): 2725's journal says a capture should first ask whethe
 key (`grep seen3` answered); the landing then built the arm and staged nothing, so chapter eighty is still unwalked and
 re-booked as 2755. Candidate: a chapter brief's row "the staging is the landing; a build without it parks". One reach.
 
+(2762) **A path entry that parts on one field lists the writers that push a caller's entry back first** (2737's
+"for the Loop" line, filed at its merge): `1/187`'s `path[34]` agreed on `to` and parted on `tolerance` alone, which
+named a writer that copies an entry (`..top`, a popped `goal_e`) rather than builds one; four commands found it.
+Candidate: a brief checklist row for a one-field path parting. One reach.
+
+(2763) **The rondata test binary is the box's CPU and memory hog** (Ramon, 2026-10-15, for the steer): measured on
+2725's booking gate (`replan-pdb`, `--scope 1c2bb098 --test-threads=8`), `rondata-4337e333078eb556` held **7,836 MB
+resident at 7 min 08 s**, one core at 100 % by then, beside two lanes' `rustc --crate-name sim` at ~950 MB each; the
+gate's slow rows were `coverage::every_key_the_dump_prints_is_read_or_pinned`,
+`coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned` and `third_pair_windows_check_groups_and_
+projectiles_on_both_sides` (each "running for over 60 seconds"). Four lanes' lane gates run the same binary name, so a
+hog is named by its cwd, not its name. Not measured: which test holds the 7.8 GB (a `sample` at its peak missed it).
+Candidate: one sampled whole gate at its RSS peak, then the dump reader's footprint (entry 56 §3 found half the
+suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four lanes and a booking gate live. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
@@ -6075,13 +6090,11 @@ words and edits nothing here; a refill lands when two remain.
 
 (2734) **Slot ED's shapes (parked 2684, 2721) are unchecked and unbuilt**: `PathFinder::kill_lists` 0x687ae0, `Armies::find_useful_army` 0x6f2fe0, `Build::add_gatherer`/`remove_gatherer`. This landing built the callee-run shape only (the commander's correction: `equals_group` and `has_damage` were already backed by 2709, so the census did not move).
 
-## Parked by the next landing, slot EN — reserved
+## Parked by item 2737, 2026-10-15 — `find_upath`'s near goal
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2739) **`find_tpath`'s final give-up is the same plain push** (`006897d0`: the `< 0x60` break, then `local_2c & 1` and `goto LAB_00689a75`, the push with the entry's tolerance kept). Ours' `Sim::find_tpath` falls from that `break` into the `td < 2` test, which zeroes the tolerance, and at a diagonal `td` of 2 into the centre pushes and A\*. Item 2737 built the twin in `upath` (`68322e`–`683232`, `docs/AI.md` §231). The tile walk's arm names no frame yet: no capture's unit was walked to it. The listing settles the branch (`689a75`), and `tools/mutate.py` on the built twin would show whether any floor reaches it.
+
+(2740) **`upath`'s pull-back keeps an `sx == 0 && cy == 0` break that the listing lacks.** `00682f30`'s walk is a `do … while (g48(goal) != hg)` with only the `0x18` give-up inside it, so ours' guard, which falls through to the near test, is this crate's own. A step of `0x18` cannot round both components to zero, so it is believed unreachable. A `debug_assert!` would say so, and it names no score.
 
 ## Parked by the next landing, slot EO — reserved
 
