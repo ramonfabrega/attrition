@@ -7012,6 +7012,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2229: 873 -> 877, the walk past 4637 to the word 4671.
     // Item 2259: 877 -> 923, the walk past 4671 to the word 4946.
     ("mongol_pair_first_parting", 923),
+    // The peace pair walked to its word (item 2423): 858 reads in the walk
+    // past 3479 to the word 4544, where it read none before.
+    ("lakota_pair_first_parting", 858),
+    // And run855 (item 2423): the word 4544's window, 1122 reads.
+    ("run855_s_word_frame_is_widened_whole", 1122),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -7187,9 +7192,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1700 put run762's: 456, as that window's own. Item 1719's run763
     // closing window: 514, as that window's own. Item 2055's run817 window,
     // once the formation's reverse is built: 1013, as run817's own walk.
+    // Item 2423's run855 window: 1122, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        1013,
+        1122,
     ),
 ];
 
@@ -9189,13 +9195,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // keeps 2040's value diff (block 2041 holds no row). Item 2412 widened
     // 3302 on run853 over 3296..3552 (block 3303) and moved it **3302 →
     // 3479** with `do_queue`'s silo return, in the same window (block
-    // 3480).
+    // 3480). **Item 2423 moved it 3479 → 4544** with `calc_cost`'s no-rush
+    // timer, past run853's last block (3552), and widened 4544 on run855
+    // over 4538..4794 (block 4545).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        Some("run853_s_word_frame_is_widened_whole"),
-        2412,
-        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_3302),
+        Some("run855_s_word_frame_is_widened_whole"),
+        2423,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_4544),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -9518,7 +9526,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         length: 6_822,
         endpoint: None,
-        window: Some("lakota_frame_3302_window"),
+        window: Some("lakota_frame_4544_window"),
     },
     // **The successor pair** (DECISIONS 53 §2, 61 §6; item 1728): East
     // Indies, the Mongols at Difficulty 3 and All Technologies.

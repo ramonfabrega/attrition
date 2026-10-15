@@ -1114,6 +1114,49 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.cmd_gate_expand('0x820:0x10:2', own=1)
 
+    def test_a_cmd_obj_reads_a_commands_fields_off_an_object_argument(self):
+        # Item 2469 (parked 2466, Loop 2003): `issue_come_out` and both
+        # `issue_unqueue` read a `UnitOut`/`WallOut` through argument 0 and
+        # write `cmd, zx(byte+9), sx(word+0xa), [a1 | 0], word+0x30`; 2464
+        # wrote the three as hand `--port`s. `--cmd-obj CMD:SIZE:FIELD,..`
+        # writes the stubs, the deref and the port: `zOFF` a byte widened to
+        # a dword, `sOFF` a signed word widened to a dword, `wOFF` a word's
+        # two bytes as they lie, `aN` an argument, `kV` a constant.
+        x = sweep_gen.cmd_obj_expand('0x31:11:z9,s0xa,w0x30', own=1)
+        self.assertEqual(x['stub'], ['0x940a70:0', '0x94bae0:2'])
+        self.assertEqual(x['answers'], ['0:0,1'])
+        self.assertEqual(x['record'], ['0', '1'])
+        self.assertEqual(x['deref'], ['1:0:11'])
+        self.assertEqual(x['ptrarg'], ['0:0x40'])
+        self.assertIn('if a[1] == 0 {', x['port'])
+        self.assertIn('log.push("15269768,sp-0x18,11".into());', x['port'])
+        self.assertIn('format!("31{:02x}000000{}{:02x}{:02x}", p[0][0x9], le(w0xa), p[0][0x30], p[0][0x31])', x['port'])
+        y = sweep_gen.cmd_obj_expand('0x30:15:z9,s0xa,a1,w0x30', own=2)
+        self.assertIn('if a[2] == 0 {', y['port'])
+        self.assertIn('sp-0x20,15', y['port'])
+        self.assertIn('format!("30{:02x}000000{}{}{:02x}{:02x}"', y['port'])
+        z = sweep_gen.cmd_obj_expand('0x30:15:z9,s0xa,k0,w0x30', own=2)
+        self.assertIn('"00000000"', z['port'])
+        with self.assertRaises(ValueError):
+            sweep_gen.cmd_obj_expand('0x30:15:q9', own=1)
+
+    def test_a_cmd_byte_is_a_group_id_and_a_one_byte_command(self):
+        # Item 2481 (parked 2472, Loop 2003): `issue_recall`, `_scramble`,
+        # `_stop_spell` and `_alarm` take a group id (a plain integer, not a
+        # buffer), pass it through `add_group` and hand `add_command` a
+        # one-byte local; four hand `--port`s. `--cmd-byte CMD[:SIZE]`.
+        x = sweep_gen.cmd_byte_expand('0x23', own=1)
+        self.assertEqual(x['stub'], ['0x940a70:0', '0x94bb60:1', '0x94bae0:2'])
+        self.assertEqual(x['answers'], ['0:0,1', '1:0,1'])
+        self.assertEqual(x['record'], ['0', '1', '2'])
+        self.assertEqual(x['deref'], ['2:0:1'])
+        self.assertIn('log.push(format!("15269768,{}", a[0]));', x['port'])
+        self.assertIn('log.push("15269768,sp-0xd,1".into()); log.push("23".into());', x['port'])
+        self.assertIn('if a[1] == 0 {', x['port'])
+        self.assertIn('if a[2] == 0 {', x['port'])
+        with self.assertRaises(ValueError):
+            sweep_gen.cmd_byte_expand('', own=1)
+
     def test_an_ecx_derived_from_this_prints_as_this_plus_its_offset(self):
         # Item 2464 (parked 2455, Loop 2003): `this + 0x28` handed to a callee
         # lies past the `m` window (WIN bytes) and printed as the absolute

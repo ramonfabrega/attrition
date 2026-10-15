@@ -52,7 +52,7 @@ fn the_emulated_original_agrees_on_every_row() {
                         .map(|b| format!("{b:02x}"))
                         .collect::<String>()
                 };
-                let w = i32::from(i16::from_le_bytes([p[0][0xa], p[0][0xb]]));
+                let w0xa = i32::from(i16::from_le_bytes([p[0][0xa], p[0][0xb]]));
                 log.push("15269728".into());
                 if a[2] == 0 {
                     log.push("-".into());
@@ -61,8 +61,8 @@ fn the_emulated_original_agrees_on_every_row() {
                     log.push("15269768,sp-0x20,15".into());
                     log.push(format!(
                         "30{:02x}000000{}{}{:02x}{:02x}",
-                        p[0][9],
-                        le(w),
+                        p[0][0x9],
+                        le(w0xa),
                         le(a[1]),
                         p[0][0x30],
                         p[0][0x31]

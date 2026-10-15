@@ -527,4 +527,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "CommandManager::issue_unqueue@00942ce0", "--own", "2", "--item", "2464", "--ret", "none", "--stub", "0x940a70:0", "--stub", "0x94bae0:2", "--answers", "0:0,1", "--record", "0", "--record", "1", "--ptrarg", "0:0x40", "--deref", "1:0:15", "--port", "{ let le = |v: i32| v.to_le_bytes().iter().map(|b| format!(\"{b:02x}\")).collect::<String>(); let w = i32::from(i16::from_le_bytes([p[0][0xa], p[0][0xb]])); log.push(\"15269728\".into()); if a[2] == 0 { log.push(\"-\".into()); log.push(\"-\".into()); } else { log.push(\"15269768,sp-0x20,15\".into()); log.push(format!(\"30{:02x}000000{}00000000{:02x}{:02x}\", p[0][9], le(w), p[0][0x30], p[0][0x31])); } 0 }", "--name", "command_manager_issue_unqueue_unit"]
+# sweep_gen: ["obj", "CommandManager::issue_unqueue@00942ce0", "--own", "2", "--item", "2464", "--cmd-obj", "0x30:15:z9,s0xa,k0,w0x30", "--name", "command_manager_issue_unqueue_unit"]

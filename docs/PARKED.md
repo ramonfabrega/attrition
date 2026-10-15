@@ -3743,12 +3743,24 @@ an absolute address, so a hand-patched port is edited in the kept line too — a
 **2464** (forty-second reach, filed at its merge): built the `this+OFF` token, a test failing first; six issuers on
 `--cmd-gate`, four hand `--port`s — `issue_come_out` and both `issue_unqueue` read their command's fields off an
 object argument, a shape no flag writes yet (parked 2466; minted as 2469's first build).
+**2469** (forty-third reach, filed at its merge): built `--cmd-obj`, a test failing first, and the three
+object-argument issuers regenerate from it; seven group-first issuers on `--cmd-gate` with no new flag; `_flight`'s
+no-argument siblings are a four-line shape no flag writes (parked 2472; minted as 2481's first build).
+**2481** (forty-fourth reach, filed at its merge): built `--cmd-byte`, a test failing first, `issue_recall`'s hand
+line equal to it; three of ten landed, the other seven read and not the shape — an SEH and feedback-log arm, a
+global-record read, strings, floats (parked 2482; the arm minted as 2486's first build); four hand lines may
+regenerate from `--cmd-byte` when next touched (parked 2483).
 
 (2449) **`waitrun.sh` on a launcher's redirected log exits 2** (2436's "for the Loop" line, filed at its merge;
 parked 656's sibling). A launcher log written with `>` holds no banner, so `tools/gamelog/waitrun.sh` on it exits 2
 at once; the launcher's own `log:` line names the viadriver log to wait on. Candidate: `waitrun.sh` follows the
 `log:` line when handed a launcher log, or the frame's capture row names the file; a test made to fail first.
 One reach.
+
+(2480) **A hand-written break script's pass check keys on a word a passing summary prints** (2469's "for the
+Loop" line, filed at its merge; Loop 2442's sibling). A break script that greps for `failed` matches cargo's `0
+failed` summary and reads a pass as the break; 2469 caught it on its first run. Candidate: the sweep's break helper
+owns the check, keyed on `test result: FAILED`, held by a test in `tools/explore/test_sweep_gen.py`. One reach.
 
 (2479) **A golden staging's cheat on a unit's birth frame is ambiguous by one** (2448's "for the Loop" line,
 filed at its merge; parked 2450). run859's first take put `age` on the Despot's birth frame and the original read
@@ -5484,13 +5496,21 @@ break is only visible once the draw holds an exponent of 23 or more (two `--wbia
 The census's next issuers: `CommandManager::issue_come_out`, `_resign`, `_gather`, `_unqueue` x2, `_form`,
 `_follow`, `_garrison`, `_queue_up`, `_patrol`; `--cmd-gate` takes the ungated ones with a 4-byte field list.
 
-## Parked by the next landing, slot CR — reserved
+## Parked by item 2423, 2026-10-14 — the peace pair's word 4544, and a packet with no footer
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2460) **The peace pair's word 4544: ours 145 draws, theirs 201, index 0** (2423, `docs/AI.md` §223; ours
+`Leader::diplomacy+0x1168`, theirs `GameDaemon::calc_market+0x54`). It is 44 frames after the peace ends at 4500.
+Ours spends one extra `Leader::diplomacy` draw first. Of the rest, `Animal::think_bird+0x2aa` and `+0x2d3` are
+theirs 60 each against ours 30, and the `Guy::set_anim+0x97a` rolls are ours 48 against theirs 45. The widening
+is run855 (blocks 4538..4794, 977 keys). Block 4545 holds no row. On 4538 `leader:diplos` is ours 1 against
+theirs 0 both ways, and the ICBM `1/50` holds an order in theirs only. On 4542 theirs' `1/50` is gone. The cause
+is between 3552 and 4538, which no dump holds: `RON_DEBUG_LEADER` over 4499..4538 on ours names the frame the
+`diplos` were written.
+(2461) **run854's packet has no footer** (2423, for the Loop): `golden_capture.sh`'s `RON_STATE_FRAME` packet ends
+where its header's ranges end. `tools/recomp/snapshot.py` raises on the missing 28 bytes, so every reader of
+it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell read here skipped the check by
+hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
+`frame_snapshot.py`'s restore, which this lane does not run.
 
 ## Parked by item 2464, 2026-10-14 — the sweep's seventy-fifth batch
 
@@ -5512,13 +5532,26 @@ the other `CommandManager::issue_*` the census still lists (`issue_turn_data`, `
 `_trade`, `_spell`, `_build`, `_eject_all`, `_flight`, `_guard`, `_hotkey`, `_leader_option`, treaty family,
 `_buy`/`_sell` done, `_chat`, `_player_speed`); the group-first ones take `--cmd-gate` as is.
 
-## Parked by the next landing, slot CT — reserved
+## Parked by item 2469, 2026-10-15 — the sweep's seventy-sixth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2470) **`--cmd-obj` is built** (2469; parked 2466): `CMD:SIZE:FIELD,..[:C]`, fields `zOFF` (a byte widened to a
+dword), `sOFF` (a signed word widened), `wOFF` (a word's two bytes as they lie), `aN`, `kV`; argument 0 the object
+(`--ptrarg 0:0x40`), `check_accept_issue` answered 0/1, no group. `test_a_cmd_obj_reads_a_commands_fields_off_an_object_argument`
+failed first (no `cmd_obj_expand`). `issue_come_out`, both `issue_unqueue` regenerate from it: the emulator scripts differ
+from 2464's by the kept line alone, the Rust only by the local's name (`w` -> `w0xa`).
+(2471) **Seven group-first issuers on `--cmd-gate`, no new flag** (`_eject_all` 0x1a/17, `_siege_attack` 5/13,
+`_attack` 4/17, `_swarm_around` 6/17, `_flight` 0x1c/25, `_spell` 0x17/21, `_build` 0x19/25): every listing read for
+`movb` first — only the command byte is a byte store (the neighbouring `movb`s in the ranges are other functions,
+`issue_cancel`-family and the `0x23`/`0x24`/`0x1d` flight siblings). Field order is the local's offset order, not the
+argument order: `_flight` is `a1,a2,a4,a5,a6,a3`, `_spell` `a2,a3,a1,a4,a5`. `_siege_attack`, `_attack`,
+`_swarm_around` test `a1>=0,a2>=0` before the check (`PRE`). 220 rows each agree; each broken once on the command
+byte and failing.
+(2472) **Left** from 2467's list: `GroupOut::issue_move_to`, `_attack_ground`, `_gather_point` (2456's editor branch),
+`_launch_patrol`, `_trade`, `_guard`, `_leader_option`, `_hotkey`, `_rename_city`, `_chat_set`, `_cannon_time`, the
+treaty family (`_treaty`, `_declare`, `_accept`, `_reject`, `_clear_all`, `_clear_tributes`, `_tribute`,
+`_demand_tribute`, `_propose_attack`), and the console/network ones (`_turn_data`, `_check_sums`, `_console_cmd`,
+`_chat`, `_quit`, `_player_speed`) — none listed for `mov byte` yet; `_flight`'s siblings at 0x941db0.. (cmd 0x23, 0x24,
+0x1d: no-argument one-byte commands) are a four-line shape no flag writes.
 
 ## Parked by item 2474, 2026-10-14 — a wonder finished on a human
 
@@ -5526,13 +5559,30 @@ words and edits nothing here; a refill lands when two remain.
 with `this == 0` adds the train time, not 10000, to a finished building's queue head; the unit arm adds 10000 to
 `+0x64`. Nothing booked names either. Names no score.
 
-## Parked by the next landing, slot CV — reserved
+## Parked by item 2481, 2026-10-15 — the sweep's seventy-seventh batch: three, not ten
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2482) **Only three `CommandManager` issuers are `--cmd-gate`'s shape; the rest of 2472's list is not** (names no
+score). Listings read for `movb`: `_launch_patrol` (0xb/25), `_trade` (0x11/21, `a1>=0,a2>=0`) and `_guard`
+(0x1f/13) are group-first with only the command byte a byte store — landed. `_treaty`, `_declare`, `_accept`,
+`_reject`, `_clear_all`, `_clear_tributes`, `_tribute` carry an SEH frame and a feedback-log arm on a failed
+check (String/MessageWin calls); `_rename_city` writes a name through a string copy; `_hotkey` writes floats
+(`movss`) on a branch of `a2`; `_leader_option` builds a `BitMask` and reads `console->who`; `_cannon_time`,
+`_player_speed`, `_chat_set` read `game->info.player[console->play]` / `leaders.list[who]` into the command.
+Each wants a window (`--cell-win`) and a log-arm stub the generator has no word for. One reach.
+
+(2483) **`--cmd-byte CMD[:SIZE]` built** (Loop 2003's forty-fourth reach; test made to fail first): `issue_recall`'s
+hand `--port` equals the generated one byte for byte (checked in a script, not regenerated: a `--regen` redraw
+also moves the emulator script's template). Four sweeps (`_recall`, `_scramble`, `_stop_spell`, `_alarm`) carry
+that hand line and may regenerate from it whenever one is next touched. One reach.
+
+(2484) **`PathFinder::find_wpath/find_tpath/find_upath/find_upath_restore` (0x688e10..)** are four forwarders
+through a three-level pointer chain (`objects` cell 0xc0618c -> `+0x14 + 0x1c*p2` -> `[p3*4]` -> words 0x10, 0x14
+xored with 0x63637) into an overloaded finder; the last two also write `pathfinder+128/132` from
+`repaths[p2]^2`. `--place` takes a static offset and the second level's is `0x1c*p2`; a `--place`-per-player
+table of four, or a `--chain` token, is the missing word. Names no score. One reach.
+
+(2485) **`GroupOut::issue_guard` / `issue_follow`** carry a `SoundGlobal::play`-shaped six-argument call
+(0x981f90) behind `gamec+0x821 & 8`, not `--cmd-gate`'s one-argument sound. Names no score.
 
 ## Parked by the next landing, slot CW — reserved
 
