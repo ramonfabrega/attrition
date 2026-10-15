@@ -6056,7 +6056,7 @@ stealth unit of a military role weighed by `calc_danger`; names no score, so par
 
 (2721) Slot ED's shapes (2684: `PathFinder::kill_lists` 0x687ae0, `Armies::find_useful_army` 0x6f2fe0, `Build::add_gatherer`/`remove_gatherer`) are unbuilt and unchecked against `tools/census.py --never`; the next builder lane starts there.
 
-## Parked by the next landing, slot EL — reserved
+## Parked by item 2725, 2026-10-15 — is_seen's stealth arm built, seen3 unchecked
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EL renames this heading `## Parked by item N, <date> — <title>`
@@ -6101,6 +6101,14 @@ names slot EQ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
+
+(2727) **`seen3[scan]` is a dumped key nothing parses** (item 2725; `docs/GOLDEN.md` §101). run875's WORLD block prints it nonzero
+(63 cells of bit 1, 63 of bit 2); `World::seen3` is built from the listing and compared with nothing. A value row on the
+`coverage` pin and a plane compare on a window with a detector would back the writer; names no score, so parked.
+
+(2728) **A building's `seen3` write and the `0x800` / `0x1000` masks are not carried** (item 2725): `Object::init`'s flag
+`0x40` is for any object with objmask `Z`; this crate writes `seen3` for units only, and no unit mask here sets `0x800`
+(disguise) or `0x1000` (blown, `unit_is_blown`). Each can only change a stealth unit's answer; no capture reaches one.
 
 ## Parked by the next landing, slot ER — reserved
 

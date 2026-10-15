@@ -251,12 +251,15 @@ impl crate::Sim {
     /// `visible` byte (set by attacking the viewer) — not the ever-seen bit
     /// a building takes (item 2703, `docs/GOLDEN.md` §100).
     ///
-    /// SEAM: the stealth arm above the fog test (`unit_masks` `0x800` /
-    /// `0x1000`, `is_detected`) is not carried; it can only refuse further.
+    /// The stealth arm above the fog test is [`Sim::unit_stealth_hides`]
+    /// (item 2725, `docs/GOLDEN.md` §101).
     fn danger_unit_is_seen(&self, u: usize, viewer: Player) -> bool {
         let un = &self.units[u];
         if un.owner == viewer || !self.world.has_fog() {
             return true;
+        }
+        if self.unit_stealth_hides(u, viewer) {
+            return false;
         }
         self.world_sees(un.pos, viewer) || un.visible & Self::who_bit(viewer) != 0
     }
@@ -435,6 +438,72 @@ mod tests {
         assert!(!sim.danger_unit_is_seen(u, 1), "ever seen is not seen");
         sim.units[u].visible |= 1 << 1;
         assert!(sim.danger_unit_is_seen(u, 1), "it attacked leader 1");
+    }
+
+    /// **A stealth unit is hidden until a detector's inner disc covers it**
+    /// (item 2725, `UnitData::is_seen@00607a60`'s stealth arm and
+    /// `is_detected@0060a630`): an idle `s` unit (the Explorer) or an `o`
+    /// one (the Spy) answers unseen through a lit cell until a `DETECT`
+    /// object of the viewer's alliance has written `seen3` over it; a plain
+    /// unit on the same cell is the control.
+    #[test]
+    fn a_stealth_unit_is_hidden_until_a_detector_s_disc_covers_it() {
+        use crate::UnitType;
+        use crate::ai_load::{UnitCols, uflags};
+        let (mut sim, _city, _barracks) = fx();
+        let mk = |sim: &mut Sim, flags: u32, obj: u32| {
+            let mut ty = UnitType {
+                cols: UnitCols {
+                    unit_flags: flags,
+                    ..UnitCols::default()
+                },
+                ..UnitType::default()
+            };
+            ty.combat.obj_masks = obj;
+            sim.add_unit_type(ty)
+        };
+        let plain = mk(&mut sim, 0, 0);
+        let idle_stealth = mk(&mut sim, uflags::STEALTH, 0);
+        let cloaked = mk(&mut sim, uflags::CLOAKED, 0);
+        let at = tile_pos(8 * 4 + 1, 8 * 4 + 1);
+        let (p, s, c) = (
+            sim.init_unit(0, plain, at),
+            sim.init_unit(0, idle_stealth, at),
+            sim.init_unit(0, cloaked, at),
+        );
+        assert!(sim.world.set_fog(vec![0; 32 * 32]), "a 16 x 16 world's fog");
+        let t = at.tile();
+        // The cell is lit for leader 1; nothing detects.
+        sim.world.set_seen(t.x >> 1, t.y >> 1, 1 << 1);
+        assert!(sim.danger_unit_is_seen(p, 1), "the control");
+        assert!(
+            !sim.danger_unit_is_seen(s, 1),
+            "idle stealth, lit, undetected"
+        );
+        assert!(!sim.danger_unit_is_seen(c, 1), "cloaked, lit, undetected");
+        assert!(sim.danger_unit_is_seen(s, 0), "its owner sees it");
+        // A detector's inner disc over the cell.
+        sim.world.set_seen3(t.x >> 1, t.y >> 1, 1 << 1);
+        assert!(
+            sim.danger_unit_is_seen(s, 1) && sim.danger_unit_is_seen(c, 1),
+            "detected"
+        );
+        // The hundredth-frame clear takes `seen3` with `seen`.
+        sim.world.clear_seen();
+        assert_eq!(sim.world.seen3(t.x >> 1, t.y >> 1), 0, "cleared with seen");
+        // A detector unit lights `seen3` through `update_seen`.
+        let det = mk(&mut sim, 0, crate::combat::mask::DETECT);
+        let d = sim.init_unit(1, det, at);
+        sim.units[d].on_map = true;
+        sim.units[d].mylos = 6;
+        sim.units[d].health = 10;
+        sim.update_seen(d, false);
+        assert_ne!(
+            sim.world.seen3(t.x >> 1, t.y >> 1) & (1 << 1),
+            0,
+            "the scout's disc"
+        );
+        assert!(sim.danger_unit_is_seen(s, 1), "seen through it");
     }
 
     /// The weights: a city a flat hundred, a fort or a tower its own
