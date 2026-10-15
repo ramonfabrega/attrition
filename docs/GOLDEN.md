@@ -12370,12 +12370,39 @@ count is the commander's pin.
 `finish`; `select` by type name or with `+`; whether the wonder's finish edge is one frame wide (a `finish` on block 703
 would show it — the line was put clear of any birth, parked 2450). The battery was not re-measured on this tip.
 
-## 91. Reserved for the next item on the rules track
+## 91. Chapter seventy-four: `finish` on a human's Library queue — `hurry_action`'s queue arm, held
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2500 (Claude Sonnet 5.5, `--effort medium`). **Closed at 760 of 760** (run864,
+`tools/gamelog/golden/chapter74.cmd`; `golden::chapter_seventy_four_holds_to_the_golden_word`,
+`chapter_seventy_four_s_word_frame_is_widened_whole`, 600..761, the thirteen standing rows of chapter seventy-three
+alone). Nothing in the rules moved beyond the interpreter's verb.
+
+**The arm built** (`Sim::cheat_finish`, `city.rs`; test `cities_tests::finish_pays_the_queue_head_its_train_time`,
+watched red first). `Console::hurry_action@007c3810`, between `activate` and the `+0x48 += 10000`: when the selected
+building's queue is non-empty — a library's being the owner's first library's (`get_first_library`) — the entry at
+index 0 (or, when its counter already equals its own `train_time`, `get_next_non_unit`'s) takes **the head's train
+time**: listing `7c3a33`..`7c3a4b`, `cmpl $0, this; movl $10000; cmovne train_time`. The console's form (`this != 0`)
+adds the train time; the keymap's `this == 0` form (`exec_keymap` case `0x45`) adds 10000 (parked 2502 corrects 2475's
+wording). Then `do_queue(0)` runs at once. `hurry [n]` parses to the same verb as `finish`.
+
+**The staging**: chapter 73's with the wonder and the city out: `age who=0 8`, `resource who=0 all +50000`, The Art of
+War queued at the Library `0/2005` on 640, `select 2005` on 700, `finish` on 701. The walk (`RON_STAGE_ALL=1`) empties
+the Library's queue on 701; the control (no `finish`) completes on 841.
+
+**What run864 held** (one take, click-free lane 1, 181 s, 761 frames): whole record agrees both directions, 600..760,
+160 blocks, 141,600 record rows, thirteen standing `form`/`aggression` rows. The original finishes the human Library's
+research on 701 as this crate does.
+
+**The unit arm is not reached** (parked 2501): `is(0x15f)`, an Aircraft Carrier, `+0x64 += 10000`; no carrier
+production counter here, and a carrier is beyond map 14's three-line staging (a Harbor, water, an age).
+
+**Census rows reached.** `Console::hurry_action@007c3810` (the queue arm), `BuildQueueData::get_next_non_unit` (the
+held-head path is unit-tested only, parked 2503), `Build::do_queue@0061e410` on a research head; the count is the
+commander's pin.
+
+**What is not established.** The held head (parked 2503), the unit arm (parked 2501), the library type test's redirect from
+a non-first library (the code redirects; no capture has two libraries). The battery (576 / 6566 / 2974) is on the gate's
+tail below.
 
 ## 92. Reserved for the next item on the rules track
 

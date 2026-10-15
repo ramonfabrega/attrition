@@ -5648,13 +5648,20 @@ Its row left at 2460's merge: 2491 is booked in the queue as the AI word's item.
 
 (2499) **`Unit/Object/SubObject::must_walk` built by `obj`** (no new token): the walker's slot 0 is a stub (`--vtat p0+0`), its `ecx` the walker and its two arguments `sp-0x1` and the caller's frame top (2147483392), the byte it is handed read by `--deref 0:0:1`; on `input != 0` the byte is the high byte of the walker pointer argument (`movb` is skipped, `0xb(%ebp)` is the argument slot's own top byte), which the port reads from `a[0] >> 24`. Nothing parked: recorded so a reader who wonders why the flag is `0x20` knows it is the window's address.
 
-## Parked by the next landing, slot CZ — reserved
+## Parked by item 2500, 2026-10-15 — `finish` on a human's Library queue
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2501) **A unit's `finish` (the Aircraft Carrier arm) is unbuilt and unstaged** (item 2500, `docs/GOLDEN.md` §91).
+`Console::hurry_action@007c3810`'s unit arm is `is(0x15f, 0)` (`AIRCRAFTCARRIER`, the type's line) with the unit's
+`short +0xa0 != 0`, then `+0x64 += 10000`. This crate holds no carrier production counter (`lib.rs` names the carrier
+arm unread) and a carrier needs a Harbor, water and an age past the golden start's map-14 reach in 3 lines. Names no score.
+
+(2502) **Parked 2475's wording was inverted.** The listing (`7c3a33`: `cmpl $0, this; movl $10000, %edx; cmovne
+train_time, %edx`) has the **console's** form (`this != 0`: `run_cmd` case `0x51`, `finish` and `hurry [n]`) add the
+head's *train time*, and only the keymap's (`exec_keymap` case `0x45`, `cheat_keys`, `this == 0`) add 10000; no
+interpreter command reaches the 10000 form. Built accordingly. Names no score.
+
+(2503) **The held-head arm** (`get_next_non_unit` when the head's counter already equals its train time) is built and
+unit-tested only through the research-behind-head path; no capture stages a population-capped head. Names no score.
 
 ## Parked by item 2507, 2026-10-15 — the sweep's eightieth batch
 
