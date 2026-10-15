@@ -1550,11 +1550,9 @@ fn the_president_near_a_trainer_halves_a_trained_unit_s_time() {
     assert_eq!(sim.tuning.thepresident_unit_build_speed, 100);
     sim.muster[0].researched[ty] = false;
     let research = sim.queue_target(b, 0);
-    let _ = sim
-        .units
-        .iter_mut()
-        .filter(|u| u.owner == 0)
-        .for_each(|u| u.pos = tile_pos(110, 110));
+    for u in sim.units.iter_mut().filter(|u| u.owner == 0) {
+        u.pos = tile_pos(110, 110);
+    }
     assert_eq!(
         sim.queue_target(b, 0),
         research,
