@@ -17034,6 +17034,25 @@ One take, click-free pool lane 1, `success: true`, 181 s, 761 frames. **What it 
 `chapter_seventy_four_s_word_frame_is_widened_whole` (600..761, thirteen standing rows).
 
 
+## run868 — chapter seventy-five: `finish` behind a population-capped unit head (2026-10-15, item 2519, `att-2519`)
+
+`docs/GOLDEN.md` §92, `tools/gamelog/golden/chapter75.cmd` (eight staged lines). **What the disk could not answer**: no
+capture held a unit head done and refused with a non-unit entry behind it; run864's Library had research on both sides.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch75 \
+    --map 14 --end-frame 960 --log-window 600 960 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter75.cmd
+```
+
+One take, click-free pool lane 1, `success: true`, 398 s, 961 frames. **What it holds**:
+`golden::chapter_seventy_five_holds_to_the_golden_word` (**901**, open: the trace runs to 960) and
+`chapter_seventy_five_s_word_frame_is_widened_whole` (600..961, 111 rows). The Barracks' Special Forces entry completes on
+901 in the original and not here.
+
+
 ## run900 — external recorded-game playback preflight (2026-10-15, Astra)
 
 Reserved by `docs/lab/2026-10-15-astra-brief.md` (900–909); no queue item.

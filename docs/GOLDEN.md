@@ -12404,12 +12404,55 @@ commander's pin.
 a non-first library (the code redirects; no capture has two libraries). The battery (576 / 6566 / 2974) is on the gate's
 tail below.
 
-## 92. Reserved for the next item on the rules track
+## 92. Chapter seventy-five: `finish` behind a population-capped unit head — the held-head arm held on a human, and a parting on its research
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2519 (Claude Sonnet 5.5, `--effort medium`). **Open at 901** (run868, `tools/gamelog/golden/chapter75.cmd`;
+`golden::chapter_seventy_five_holds_to_the_golden_word` pins **901**, `chapter_seventy_five_s_word_frame_is_widened_whole`
+the run whole, 600..961, 111 rows). The word is the draw stream's; the value diff is on 902.
+
+**The arm is held, and that is the finding.** Parked 2503: `Console::hurry_action@007c3810` pays an entry the head's train
+time, and when the head's counter already equals its own train time `get_next_non_unit@00630b10`'s entry instead. Chapter
+seventy-four held the head arm behind a Library's research; here a **unit** head is done and refused. **How the original
+refuses a birth at the cap** (`Build::do_queue@0061e410` → `finished`, the predicate, not the name): `cap < control + pop`
+(`production::hand_over`), 36 against the Ancient cap of 25 on this staging; the head's counter clamps at its target and
+stays, and `get_next_non_unit` finds the first entry that is not a unit type **or whose availability bit is clear**. The
+**one** unit type of the golden start that is researchable and not held (`type_avail` 2) at age 8 is Special Forces
+(TypeIndex 75, `WHERE` Barracks, `JOB_TIME` 180, `RESEARCH_PREMIUM_TIME` 2); the
+Phalanx, Legion, Pike, Archer and Knight lines answer 0 (probed). `@queueup` is `Build::queue_up`, which refuses only
+`NOT_AVAILABLE`, so Special Forces sits behind a capped Bowmen head at a Barracks (a non-library queue: research is the
+Library's, so no other human queue holds a non-unit entry behind a unit head).
+
+**The staging** (walked by this crate on run492's start, `RON_STAGE=ch45:chapter75:960`): `age who=0 8`, resources
++50000, a Barracks `0/2007` at (14,74), `add 30 citizen` (control 36), Bowmen on 640, Special Forces on 641, `select
+2007` on 900 and `finish` on 901. **Not 801**: Bowmen's train time is 20280 and its counter reaches it on 843, so a
+`finish` earlier pays the plain head arm (walked: head 16000 → 20280 + the rest). Special Forces runs at 100 a frame behind
+the stuck head from 843 (5600 on 899, the dump's 5600 on 900). Control (no `finish`), walked on this crate to 800: the head stuck at 20280, Special
+Forces at 5600 on 899 and, at 100 a frame, **36000** (`18000 · 512 >> 8`) on ~1203; not captured.
+
+**What run868 holds** (one take, click-free lane 1, 398 s, 961 frames, `success: true`). On **902** the original's Barracks
+queue is `queued 1` (ours 2): the Special Forces entry **completed on the `finish` frame** — `gain_tech` ran (unit `0/0`'s
+`myhits` 110 against our 50 and its `Guy` re-timed, `leader:discovered` 7 against 6) — and ours leaves it at `26280` of a
+target of `36000`. So the arm is the original's, and the **amount or the target is not**: the entry needed at least 36000
+there, 5700 + 20280 = 25980 + the frame's accel is 26080..26280. What follows is who=1's citizens' move destinations
+(909, 942) and a Barracks-area citizen's (957): the draw stream after the research's `gain_tech`. The 13 standing
+`form`/`aggression` rows of every chapter are on the 600 block.
+
+**What is not established, and what would kill each reading** (parked 2530, none built by this item):
+1. *The paid amount is more than the head's train time* — the listing (`7c39c9`..`7c3a4b`) reads `train_time(head type)`;
+   a second application (two selected objects, or the arm run twice) would give 5700 + 40560 ≥ 36000. Killer: the
+   original's Special Forces counter on a frame it does not complete, i.e. a capture whose `finish` pays a **non-completing**
+   amount.
+2. *The entry's target is below 36000* — an arm of `train_time@006508c0`'s research tail this crate does not carry
+   (`RESEARCH_FASTER`, the relics rare, the handicap semaphore, Angkor; `TECH_COST 3` is inert, run860's research agrees).
+   Killer: the **control** run — this staging with no `finish`, to frame ~1250 — reads the frame Special Forces completes
+   on in the original: 1204 says 36000, anything earlier gives the target.
+3. *Special Forces' base is not `JOB_TIME · 100 · premium`* — only this entry has run the unit-research base against a
+   dump (`UnitTypeData::research_time@0061d760`).
+
+**Census rows reached.** `BuildQueueData::get_next_non_unit@00630b10` (a unit head's held arm, **now backed**: the
+Special Forces entry is taken), `Console::hurry_action@007c3810`'s held-head arm, `Build::do_queue@0061e410`'s
+`get_next_non_unit` fallback on a human, `UnitTypeData::research_time@0061d760` (Special Forces, `gain_tech` on a unit
+type), `LeaderData::gain_tech` on a unit; the count is the commander's pin.
 
 ## 93. Reserved for the next item on the rules track
 

@@ -5636,13 +5636,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DD — reserved
+## Parked by item 2519, 2026-10-15 — chapter seventy-five, the held-head arm and a unit's research time
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2530) **Special Forces completes on the `finish` frame in the original, and not here** (2519, run868, word 901, values
+on 902: `0/2007 queue:queued` ours 2, theirs 1; unit `0/0`'s `myhits` 50 / 110; `leader:discovered` 6 / 7). The held-head
+arm is the original's (the entry behind the capped Bowmen head is taken); ours pays it 20280 → 26280 of a target of 36000.
+Three readings, `docs/GOLDEN.md` §92: an amount above the head's train time; a target below 36000 (an arm of the research
+tail of `train_time@006508c0` this crate lacks); the unit-research base. **The measurement that separates them is the
+control**: chapter75.cmd without `901 finish`, `--end-frame 1250`: the frame Special Forces completes on in the original
+(ours ~1203 for 36000). Names the word's frame and draw delta (901, the research's `gain_tech` draws).
+
+(2531) **A human's non-library queue holds a non-unit entry only through an unresearched unit type** (2519): the sole
+researchable unit at age 8 on the golden start is Special Forces (probed with `type_avail`). A staging for a second type
+needs another age (`age 2`/`4`: Explorer, not a Barracks type). Names no score.
+
+(2532) **`stage_walk` prints a queue's types and never its counters** (2519): a chapter whose arm is a counter walks it by
+a scratch probe each time (two reaches here, one in 2500). A `RON_STAGE_COUNTERS` print at the walk's last frame is the
+third-reach tool. Names no score.
 
 ## Parked by the next landing, slot DE — reserved
 
