@@ -1784,6 +1784,20 @@ class Shapes(unittest.TestCase):
         _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2688, vbase=0x70, steps=steps[:2])
         self.assertIn('VBASE2 = None', script0)
 
+    def test_a_mix_may_hold_a_second_gate_a_bit_of_this(self):
+        # parked 2669, 2675: City::walk_data tests [this+4] & 1, then [walker+8] == 0.
+        spec = 'City::walk_data@00489220'
+        steps = ['walk:this+4:this+6', 'bit/walk:this+6:this+0x72', 'bit/gated/call:0xa1b2d0:1:this+0x90:p0',
+                 'bit/gated/call:0xa1b2d0:1:this+0xa4:p0', 'bit/call:0x489040:2:this+0x74:p0,stale']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2688, gate=8, bit_at='4:1', stale_col=True, steps=steps)
+        compile(script, 'sweep_city_walk_data.py', 'exec')
+        self.assertIn('BIT_AT = (0x4, 0x1)', script)
+        self.assertIn('let bit = a[5];', test)
+        self.assertIn('if bit != 0 && gate == 0 {', test)
+        self.assertIn('if bit != 0 { calls.push(vec![walker, this + 0x6, this + 0x72]); }', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2688, gate=8, steps=steps[:1])
+        self.assertIn('BIT_AT = None', script0)
+
     def test_a_mix_may_assert_the_result_is_the_stack_argument(self):
         # parked 2570: a get_name returns its out-pointer ([ebp+8]), eax == walker.
         spec = 'Surf::get_name@004a5dc0'
