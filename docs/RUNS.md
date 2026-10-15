@@ -17071,6 +17071,24 @@ One take, click-free pool lane 1, `success: true`, 221 s, 1251 frames. **What it
 amount on run868 is not (parked 2543). No test pins it (no word moves).
 
 
+## run870 — chapter seventy-five's packet at logger frame 901, and a `finish` at 850 (2026-10-15, item 2543, `att-2543`)
+
+`docs/GOLDEN.md` §94. **What the disk could not answer**: no dump prints the entry's counter on the frame the `finish` completes it,
+and both candidate amounts (a train time once, a second application) complete it; the question was which function the original entered.
+run868's recipe with `--end-frame 905 --log-window 895 903` and `--tracer-def RON_STATE_FRAME=901 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'` (a packet at logger frame 901: the
+`finish` runs at the top of `do_frame` 901, so the state before it is the one after tick 900). Pool lane 1, `success`, `settings_restored`,
+78 s, 906 frames, seed 12345. Kept in `~/ron-golden/run870/map-14/frame-snapshot.bin`, 852,172,000 bytes. Minutes waited on another lane: none.
+
+**What it holds**: `step4.py --entry 7c3810 --this 1 --watch 0ba9f778+0x3c` (the Barracks `13f85354`, queue array `0ba9f778`): one pass,
+a write of 25980 to entry 1 from `7c3a4b`, `do_queue` entered twice (the second its depth-one recursion), the entry at 26080; the
+second application poked in reaches 36000. The dump's own `job_counter 500000` named `run_cmd` case `0x4f`, not `0x51`.
+
+**run870b** (`chapter75.cmd` with `sed -e 's/^900 select/849 select/' -e 's/^901 finish/850 finish/'`, cut to the job tmp dir), `--end-frame 860 --log-window 845 856`,
+no packet, one take, pool lane 1, `success`, 861 frames, kept in `~/ron-golden/run870b/map-14/`: Special Forces 600 on 850, gone on 851,
+`queued 1`, `job_counter 500000`.
+
+
 ## run900 — external recorded-game playback preflight (2026-10-15, Astra)
 
 Reserved by `docs/lab/2026-10-15-astra-brief.md` (900–909); no queue item.

@@ -5736,13 +5736,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DI — reserved
+## Parked by item 2543, 2026-10-15 — chapter seventy-five's `finish` is case 0x4f
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2558) **`hurry` N and `hurry`'s own `this`.** `run_cmd` case `0x51` computes `this` as `String::num` of its argument
+token (`hurry 5` → 5, none → 1; `hurry 0` → 0, the keymap's 10000). This crate maps `hurry` and `hurry N` to one train-time
+arm; a `hurry 0` would pay 10000. No chapter stages it; names no score.
+
+(2559) **Case `0x4f`'s unit arm**, `+0x64 += 20000` on a type `0x15f` (Aircraft Carrier) with `+0xa0` set, is as unreached as `hurry`'s
+10000 form. No carrier production counter here; names no score.
 
 ## Parked by item 2562, 2026-10-15 — the eighty-fourth sweep batch
 
