@@ -758,8 +758,22 @@ impl Sim {
             {
                 extra *= 3;
             }
-            // SEAM: the no-rush timer (+500) and the team-style diplomacy
-            // wall (+5000) read game rules the simulation does not carry.
+            // **The no-rush timer** (`calc_cost@00684e50:411`-`420`, item
+            // 2423, `docs/AI.md` §223): while the lobby's rush rules still
+            // forbid war — [`Sim::war_allowed`] false, the same three
+            // clauses — a cell another leader owns, and not an ally,
+            // costs 500 more. After fleeing's triple and outside the
+            // clamp, on the world-seen and tile branches only; an
+            // unowned cell and the walker's own (`is_ally` answers 1 for
+            // oneself) pay nothing.
+            if !self.war_allowed()
+                && let Owner::Player(p) = self.world.owner(to.cell())
+                && !self.is_ally(who, p)
+            {
+                extra += 500;
+            }
+            // SEAM: the team-style diplomacy wall (+5000) reads game rules
+            // the simulation does not carry.
         }
 
         // The transport tail. `Sim::unit_can_transport(u)` is the predicate
