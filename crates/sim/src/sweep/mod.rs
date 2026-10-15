@@ -284,6 +284,7 @@ mod attack_ground_order_get_type_vtordisp;
 mod attack_ground_order_walk_data_vtordisp;
 mod attack_order_get_type_vtordisp;
 mod balance_return_modifier;
+mod border_build_border;
 mod border_spline_on_field_change;
 mod borders_get_who;
 mod borders_is_border_hidden;
