@@ -20568,12 +20568,78 @@ the peace changes is the next item's hypothesis. **Its widening is run849** (blo
 and `is_special`, by the keys each closed. Every citizen trained in the window (`1/24` on 1446)
 goes in and out of its trainer through both counters. **Reading only**: the `unit_masks & 1` gate.
 
-## 220. Reserved for the next item on the AI track
+## 220. `Leader::diplomacy`: the peace arm's one message, and the peace pair's word at 2040 (2026-10-14, item 2384)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Baseline.** Word 1984, 61 draws ours against 62, index 28: theirs `Leader::diplomacy+0x1168` (`6bdab8`, the game
+stream). §219's value diff on run849's block 1985: who=1's `agendas[0]` ours 0, theirs 64. Parked 2321 named the
+crate's "war always allowed" as the hypothesis; the cause was wider — **`Leader::diplomacy@006bc950` was not
+modelled at all** (`ai_drive.rs` said so).
+
+**Why 1984 is the first.** The cadence is per pair: `(t + who·8)·(period >> 6) + frame ≡ 0 (mod period)` (listing
+`6bcaf5..6bcb0e`), period `0x800`, `>> 2` while `agendas & 8` is clear. For who=1, t=0 that is 448, 960, 1472,
+1984. The loop's gate is `treaties[t] & 1` set and `& 4` clear, and run848 prints who=1's `treaties[0]` 0 → 1 on
+block 1474. So 1984 is the first view after contact. `when Leader::diplomacy` on run847's trace: 1984, 2496,
+3008, 3520, 4032, none after the war at 4500.
+
+**The whole record, 1984 → 1985** (run849, one `LEADERDATA` diffed whole):
+- who=1: `agendas[0]` 0 → 64, `aggression[0]` 0 → 1, `strong[0]` 0 → 160, `weak[0]` 0.
+- who=0: `got_diplo_message` 0 → 1984. The stamp at `6bef3a` is written on the *target's* record.
+- Only `agendas` was compared before; the other four were on the coverage pin's unread list.
+
+**How each value arises.**
+- `strong` is 5 << 5. who=1 and who=0 share no land region (who=1's cities in region 11, who=0's in 1). The ages
+  are equal, so there is no age term. Difficulty 3 against a human target gives +1. Barracks, Stable (its `to`,
+  the Auto Plant), Siege Factory (the Factory) and Airbase give +1 each: who=1 stands one of each line and who=0
+  none (`num_buildings[13,15,17,33]`).
+- `aggression` is 1 twice over: `LAB_006bd941` (difficulty > 1 and exactly one non-ally in play), and team style
+  1's own arm (`LAB_006bdf25`: any target not my ally).
+- `agendas |= 0x40`: `aggression` set, not at war → `LAB_006bed3f`, no `0x48` bit, the receiver's
+  `got_diplo_message` 0 or 450 frames old (`0x1c2`) → stamp it with the frame, set `0x40`. Team style 1 reaches
+  `bed3f` whether war is allowed or not; the declaring arm past `LAB_006be54c` is team styles 0, 8 and 11 alone.
+- The draw at `+0x1168` is the peace coin: difficulty 3, a human target with no more wars than mine.
+
+**Built.**
+- `crates/sim/src/diplomacy.rs`: `Sim::diplomacy` (one leader, from `strategy_all` after `plan_strategy`),
+  `diplomacy_with` (one target), `war_allowed` and `current_age`. Four draw sites: `+0x1168` (peace coin),
+  `+0x1322` (the target's cities that were mine), `+0x1388` (mine that were the target's), `+0x1b12` (the quiet
+  coin).
+- `Leader::{player_flags, aggression, strong, weak, got_diplo_message}`, and `Lobby::rush_minutes` (rules.xml's
+  `rushrules`, read by `load.rs`).
+- The leader diff compares `aggression[i]`, `strong[i]`, `weak[i]` and `got_diplo_message`. The coverage pin's
+  `LEADERDATA` unread list loses the four keys.
+- Tests: `a_pair_is_viewed_once_a_period_on_its_own_phase`,
+  `the_peace_arm_sends_one_message_and_stamps_the_receiver`, `war_is_allowed_after_the_rush_minutes`.
+- A mutation (difficulty 3's `+1` dropped) fails the second test and adds a row on the widening (1240 → 1241).
+
+**Every arm the pair does not reach is a `SEAM`.** The list: the score and top-scorer count (`compute_score`);
+team styles 0, 7, 8 and 11; the allied arm past its opening clear; the offers arm and the at-war tail
+(`LAB_006bf0e0`); `dow` and `blacken`; hiring (`hire_stamp`/`hire_who`); the Diplomacy records (`dip[t].agree`);
+`tribute_demanded`/`counteroffer`; region slot 0. A lobby that reaches one parts there rather than on a guess.
+
+**Value diff and score.** run849's widening goes 1242 → 1240 keys. On the word's block 1985 nothing stands: all
+five fields agree both sides. **The word moves 1984 → 2040**, count and sequence both: ours 37 draws, theirs 35,
+index 0, ours `Army::find_target+0x7df`, theirs `Unit::do_move+0xe84`. Block 2041 is in run849's window, and 47
+keys part there. who=1's `1/25` is given a move to (35112, 44088) in ours and to (44424, 32904) in theirs.
+`1/26` and `1/36` are given moves in ours and none in theirs. Nothing in the crate reads `aggression` or
+`agendas & 0x40` yet, so the new word is not this arm's. The armies' release is the next item's hypothesis
+(parked 2321's `release_mustering` reader, filed as 2388).
+
+**Elsewhere.** Every lobby at war from frame 0 stands 1 or 2 more keys on its widenings: 39 windows in all, ten
+`sahara_coverage`, five `coverage_pair`, nine Mongol, one Sahara Mongol, three third pair and eleven golden
+chapters, plus chapter eight's leader-key count (103 → 110). All are `aggression`: dropping that key from the
+comparison clears the eighteen non-golden ones. Theirs holds `aggression[i]` 1 on every at-war slot from the first
+block, the human's and the unused slots 2..7 too; ours holds 0 until diplomacy views a met target. `Leader::diplomacy` returns for a human and skips an
+unmet target, so the writer is not this function (parked 2385). No floor and no other lobby's word moved.
+
+**Not established.**
+- `semaphore[1] & 2` at the head is not carried.
+- The region pass walks every land region; the original skips region slot 0.
+- `weak`'s divisor (`dow[who]`) is taken as 1, and `dow` and `blacken` read 0 throughout.
+- No capture reaches the at-war tail or the offers arm.
+
+**Diff-backed**: the cadence (first view 1984 after the treaty on 1474), `aggression`, `strong`, `weak`,
+`agendas` and the receiver's stamp on run849's block 1985. **Reading only**: the arms past the stamp, the coin
+sites other than `+0x1168`, and `war_allowed`'s age arm.
 
 ## 221. Reserved for the next item on the AI track
 

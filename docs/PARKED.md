@@ -4963,7 +4963,8 @@ The port assumes every member already points at the slot. The sweep holds the he
     `RUSH_RULES 10` forbids war until frame 4500 (`rush_rules` table minutes 5 × 900; `war_allowed@00594670`, the
     `9 <= rush_rules` arm after `current_age@005946d0`). `crates/sim/src/army.rs`'s seam list models it as "always
     allowed" in `release_mustering`, and the other readers — `Unit::process_attrition`, `PathFinder::calc_cost`,
-    `Leader::diplomacy`, `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,
+    ~~`Leader::diplomacy`~~ (item 2384, `docs/AI.md` §220: modelled; team style 1 sends its message whether war is
+    allowed or not), `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,
     `UnitTypeData::can_attack_ground`, `Nuke::do_damage`, `Game::do_frame`'s frame-4500 event — are not read. Names
     the peace pair's word once it passes 1384; a word that parts before 4500 on a pre-war gate is this row's frame.
 
@@ -5208,13 +5209,36 @@ listing are initializers (`combat_table`, `game_random`, `MiscAccess::*`), not t
 2346 and 2379 read past them by eye. A backtick beside `^` and `::` in that pattern hides them as
 `--all`'s dead weight; a test made to fail first on one such name.
 
-## Parked by the next landing, slot CF — reserved
+## Parked by item 2384, 2026-10-14 — `Leader::diplomacy`'s seams, and the peace pair's word at 2040
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2385) **Theirs' `aggression[i]` is 1 on every at-war slot from the game's start** (2384, `docs/AI.md` §220; names
+the coverage lobby's standing rows, no word). run677's first block prints `aggression[scan] 1` wherever `diplos`
+is 0 — the human's record, and the unused slots 2..7 — with `treaties` 0 and `strong` 0. run849's third
+`LEADERDATA` does the same. `Leader::diplomacy` returns for a human and skips an unmet target, and its decompile
+writes `+0x210` only in place for the target it views. So the writer is elsewhere: an initializer, or the war's
+own setter. `Leader::set_diplo@006ec6a0` writes `diplos` both ways and not `+0x210` in the decompile; read its
+listing and `Leader::init@006e3930`'s before naming one. 39 widenings in six lobbies stand +1 or +2 for it
+(`docs/AI.md` §220, "Elsewhere"); a model closes them all at once.
+
+(2386) **`Leader::diplomacy`'s score arm: `LeaderData::score` and the top scorer** (2384; names no score). The
+head counts leaders scoring above me (`local_64`) and the top scorer (`local_70`). Their one reader on the peace
+path is the top-scorer arm, gated on frame 45 × 900 (30 × 900 at difficulty 3 and up), which no capture reaches
+(the peace pair ends at 6822). `compute_score` is not modelled; a `SEAM` in `diplomacy.rs`.
+
+(2387) **`Leader::diplomacy`'s unreached arms** (2384; names no score). Each is a `SEAM` in `diplomacy.rs`:
+- team styles 0, 8 and 11 (the elimination, capital and declaring arms past `LAB_006be54c`) and team style 7;
+- the allied arm past its opening clear (`006bc950:600–700`, `:757`);
+- the offers arm and the at-war tail (`LAB_006bf0e0`);
+- `dow` (`+0x270`), `blacken` (`+0x20c`, raised by `Leader::action_declare`), hiring
+  (`hire_stamp`/`hire_who`), and the Diplomacy records' `agree` (`+0x692c`).
+Every capture is team style 1 and reaches none of them while at peace. The coverage lobby is at war from frame 0
+and agrees on who=1's `aggression` once its target is met (run817, 4260).
+
+(2388) **The peace pair's word 2040: ours 37 draws, theirs 35, index 0** (2384; names the headline). Ours draws
+`Army::find_target+0x7df`, theirs `Unit::do_move+0xe84`. It is widened already: run849's block 2041 (47 keys),
+with who=1's `1/25`, `1/26` and `1/36` given moves in ours that theirs gives elsewhere or not at all. 2040 is
+inside the peace (war from 4500). Hypothesis: parked 2321's `release_mustering` reader, which the crate models
+as "war always allowed" — the previous item's hypothesis, not a build order. For the commander to book.
 
 ## Parked by the next landing, slot CG — reserved
 

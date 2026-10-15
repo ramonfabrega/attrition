@@ -138,6 +138,7 @@ pub fn lobby_of(
     wonder_wins: &[i32],
     starting_resources: &[(i32, i32)],
     pop_wins: &[i32],
+    rush_minutes: &[i32],
 ) -> sim::ai::Lobby {
     let mut l = sim::ai::Lobby::default();
     let int = |key: &str| -> Option<i32> {
@@ -192,6 +193,9 @@ pub fn lobby_of(
     }
     if let Some(v) = int("RUSH_RULES") {
         l.rush_rules = v;
+        if let Some(&m) = usize::try_from(v).ok().and_then(|i| rush_minutes.get(i)) {
+            l.rush_minutes = m;
+        }
     }
     if let Some(v) = int("ELIMINATION") {
         l.elimination = v;
@@ -562,6 +566,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         &loaded.wonder_wins,
         &loaded.starting_resources,
         &loaded.pop_wins,
+        &loaded.rush_minutes,
     );
     // `info.flags & 4` is asked of two layers — the AI's host function
     // `get_is_no_nation_powers` reads the lobby, `has_tribe_bonus` reads the

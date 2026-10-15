@@ -563,7 +563,9 @@ fn run651_s_word_frame_is_widened_whole() {
     // `hits_left` and `hits:myhits` (ours 40, theirs 85), their gather
     // order's `been_there`/`wait` and `idle`, and a move order and its
     // path. The word's own draw delta is §127's.
-    pin_eq!(w.firsts.len(), 40, "initial run651 baseline");
+    // Item 2384: 40 -> 42, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 42, "initial run651 baseline");
 }
 
 /// run656, item 1496: the lobby's first 33 blocks at the long's detail
@@ -605,7 +607,9 @@ fn run656_s_word_frame_is_widened_whole() {
     // 364 before item 1505 (the oil patches): block 9's 275 keys are gone and the
     // 89 left are block 1's (the control's 48 and the SITE list's). 68 since
     // item 1511: the SITE list agrees (`docs/AI.md` §141).
-    pin_eq!(w.firsts.len(), 42, "initial run656 baseline");
+    // Item 2384: 42 -> 44, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 44, "initial run656 baseline");
 }
 
 /// run660, item 1505: the lobby's blocks 171..184 at the long's detail, so
@@ -643,7 +647,9 @@ fn run660_s_word_frame_is_widened_whole() {
     // **74** since item 1530: the Silo `1/2021` placed on frame 182 stands
     // where the original puts it, and block 183's make list with it.
     // **71** since item 1532: `1/10`'s order stack agrees on 183.
-    pin_eq!(w.firsts.len(), 46, "initial run660 baseline");
+    // Item 2384: 46 -> 48, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 48, "initial run660 baseline");
 }
 
 /// run669, item 1511: the lobby's blocks 180..436 at the long's detail —
@@ -1743,7 +1749,9 @@ fn run763_s_closing_frame_is_widened_whole() {
     // Item 1870 (the nuke embargo, the Fort's count): 230 -> 228.
     // Item 2193 (a landing leader's turn toggles its group's `facing`):
     // 192 -> 191; no draw parts, and the key that left was not named.
-    pin_eq!(w.firsts.len(), 190, "run763 keys that part (item 1719)");
+    // Item 2384: 190 -> 191, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 191, "run763 keys that part (item 1719)");
 }
 
 #[test]
@@ -1769,7 +1777,9 @@ fn run762_s_word_frame_is_widened_whole() {
     // 250 keys.
     // Item 2193 (a landing leader's turn toggles its group's `facing`):
     // 199 -> 197; the keys that left were not named.
-    pin_eq!(w.firsts.len(), 196, "run762 keys that part (item 1719)");
+    // Item 2384: 196 -> 197, `leader:aggression[i]` ours 0 theirs 1
+    // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
+    pin_eq!(w.firsts.len(), 197, "run762 keys that part (item 1719)");
 }
 
 #[test]
