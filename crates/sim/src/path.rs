@@ -12,9 +12,9 @@
 //!
 //! What the world does not model yet enters as a named seam, each marked
 //! `SEAM:` with the `docs/PATHFINDER.md` §5 term it stubs — the danger map
-//! (zero), diplomacy and rush-rule penalties (none), transports (the unit
-//! cannot), and the per-type collision *stride* (one; the size itself is
-//! loaded, `docs/COLLISION.md` §2). Unit collision on the 48-grid is no
+//! (zero), the diplomacy penalty (none; the no-rush timer is built, item
+//! 2423), transports (the unit cannot), and the per-type collision
+//! *stride* (one; the size itself is loaded, `docs/COLLISION.md` §2). Unit collision on the 48-grid is no
 //! longer one: `valid_ucoord` asks `detect_unit_collision`. Each remaining
 //! stub returns the open-ground answer, so on the
 //! flat worlds the harness builds the search is exact; the seams are where
