@@ -2687,6 +2687,7 @@ impl Sim {
                     // `Object::die` is `close()` — the draw arm below —
                     // and **then** the slot hold, which is not gated on
                     // the draw arm's `dtype` at all (§42.3).
+                    self.close_count(i);
                     self.relink_squad(i);
                     self.close_unit(i, dtype, _frame);
                     self.kremlin_spy_closed(i);
@@ -2843,6 +2844,36 @@ impl Sim {
             bd.eject_pending = true;
         }
         taken
+    }
+
+    /// **`Unit::close@0060ee50`'s count, at `0060f3db`** — the general
+    /// death path's `track_unit_type(type, −1)`, with `control` and
+    /// `active` beside it (`docs/AI.md` §232; parked 1092, 1328).
+    ///
+    /// The listing takes the count off only for the squad's head
+    /// (`+0x8e < 0`) when no live figure follows it: a head whose next
+    /// figure (`+0x90`) is active hands the squad down at `0060f679`
+    /// instead, and the squad is still one unit. Then the gate
+    /// [`Sim::counts_in_muster`] shares with `set_type`'s `+1` — a type
+    /// with population, and `unit_masks & 1` (the decoy bit) clear. Called
+    /// before [`Self::relink_squad`], which is `close`'s relink after it.
+    /// run867's who=1 kept three shot-down Jet Fighters in `num_units`
+    /// (7 against 4), and its next Fighter's ramp ran twelve frames long.
+    pub(crate) fn close_count(&mut self, i: usize) {
+        let u = &self.units[i];
+        if u.o_up.is_some() || u.decoy || u.o_down.is_some_and(|d| self.units[d].alive()) {
+            return;
+        }
+        let Some(ty) = u.ty else { return };
+        if self.unit_types[ty].price.pop == 0 {
+            return;
+        }
+        // Gaia's animals carry population in some rows and hold no muster
+        // here: this crate keeps one per player slot.
+        let who = u.owner;
+        if (who as usize) < self.muster.len() && (who as usize) < self.ai.len() {
+            self.track_unit_type(who, ty, -1);
+        }
     }
 
     /// **`Unit::close@0060ee50`'s squad relink** (`docs/COMBAT.md` §47.2),
@@ -8597,6 +8628,55 @@ mod tests {
             before, after,
             "nobody alive below the head, nobody promoted"
         );
+    }
+
+    /// **A squad leaves the muster when its last live figure dies, and
+    /// not before** (`Unit::close@0060ee50`, `0060f3db`; `docs/AI.md`
+    /// §232). A head over a live figure hands the squad down and keeps the
+    /// count; the last head, over the dead, takes `num_units`, `control`
+    /// and `active` off. run867's who=1 kept three shot-down Jet Fighters
+    /// counted, and its next Fighter finished on 5511 against 5499.
+    #[test]
+    fn a_squad_leaves_the_muster_with_its_last_figure() {
+        let (mut sim, ty) = at_war();
+        sim.unit_types[ty].price.pop = 1;
+        let [a, b, c] = chain3(&mut sim, ty);
+        sim.track_unit_type(0, ty, 1);
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        let hit = combat::Sixteenths {
+            whole: 500,
+            frac: 0,
+        };
+        let count = |s: &Sim| {
+            (
+                s.muster[0].by_type[ty],
+                s.muster[0].control,
+                s.ai[0].census.active,
+            )
+        };
+        for f in [a, b] {
+            let taken = sim.take_damage(Obj::Unit(f), hit, Obj::Unit(foe), 10);
+            assert!(matches!(taken, Taken::Died { .. }));
+            assert_eq!(
+                count(&sim),
+                (1, 1, 1),
+                "a live figure below holds the squad"
+            );
+        }
+        let taken = sim.take_damage(Obj::Unit(c), hit, Obj::Unit(foe), 10);
+        assert!(matches!(taken, Taken::Died { .. }));
+        assert_eq!(
+            count(&sim),
+            (0, 0, 0),
+            "the last figure takes the squad off"
+        );
+
+        // A lone unit of a type with no population is never counted.
+        sim.unit_types[ty].price.pop = 0;
+        let lone = put(&mut sim, 0, ty, Pos::new(0x1200, 0x1000));
+        sim.units[lone].captain = true;
+        sim.take_damage(Obj::Unit(lone), hit, Obj::Unit(foe), 10);
+        assert_eq!(count(&sim), (0, 0, 0));
     }
 
     /// **The lead is the target's first figure's `avg_speed`, along its

@@ -783,6 +783,7 @@ impl Sim {
                 continue;
             }
             self.units[u].health = self.units[u].health.min(0);
+            self.close_count(u);
             self.relink_squad(u);
             self.close_dead_orders(u);
             self.hold_dead_slot(u);

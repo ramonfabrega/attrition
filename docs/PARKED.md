@@ -566,10 +566,11 @@ follower's `has_general` report (M2).
 (1327) **`1/93`'s `path_recursion` 1 against 0 on run506's 11638**: a
 decoy born into a reused slot; no draw reads it.
 
-(1328) **`num_units` at a death**: this crate has no
+~~(1328) **`num_units` at a death**: this crate has no
 `track_unit_type(−1)` in `Unit::close`'s combat path (only missiles,
 V2s and the transport paths call it); the original's sits at `0060f3db`
-behind `(unit_masks & 1) == 0`. Not measured on a widening row.
+behind `(unit_masks & 1) == 0`. Not measured on a widening row.~~
+**Closed by item 2761** (`docs/AI.md` §232): `Sim::close_count`.
 
 ## Parked by item 1310, 2026-09-30 — chapter forty-seven
 
@@ -1057,13 +1058,14 @@ capture has two planes full on one call.
 
 ## Parked by item 1078, 2026-09-28 — the missile's other edges
 
-(1092) **The general death path never lowers `num_units`**: the
+~~(1092) **The general death path never lowers `num_units`**: the
 original's `Unit::close@0060ee50` calls `track_unit_type(·, −1)` at
 `0060f3db`, and this crate does so for a missile's death alone (1078),
 so a player's count only grows. The AI reads those counts; 1074 said
 its frame does not turn on one. Returns when a word's decision does.
 **Narrowed by 1228** (TRANSPORT §16): a boat's close takes its `−1` in
-the muster now; every other death still does not.
+the muster now; every other death still does not.~~ **Closed by item 2761** (`docs/AI.md` §232): the combat, attrition,
+pasture and flock deaths take `Unit::close`'s count, `Sim::close_count`.
 
 (1093) **Chapter thirty-six's no-score edges** (PRODUCTION "The
 missile's other arms (item 1078)"): `UnitData::is_busy` in the launch's
@@ -6136,13 +6138,14 @@ words and edits nothing here; a refill lands when two remain.
 `0x40` is for any object with objmask `Z`; this crate writes `seen3` for units only, and no unit mask here sets `0x800`
 (disguise) or `0x1000` (blown, `unit_is_blown`). Each can only change a stealth unit's answer; no capture reaches one.
 
-## Parked by the next landing, slot ER — reserved
+## Parked by item 2761, 2026-10-15 — `Unit::close`'s count
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ER renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2764) **The count's unwalked arms** (`docs/AI.md` §232): a squad head
+over a live figure keeps the count (`0060f679`) — held by
+`a_squad_leaves_the_muster_with_its_last_figure` alone, its mutation
+fails no walk; `close`'s `pop == 0` arm (`is(0x134)`, `is_gov_hero`)
+and its call of `Leader::defeat` at `active` 0, after the count, are not built.
+No capture on disk names a frame either decides.
 
 ## Parked by the next landing, slot ES — reserved
 

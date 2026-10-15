@@ -21431,12 +21431,71 @@ same test.
 **Diff-backed**: the near test's zero (run867, `1/187`, blocks 5460–5477). **Reading only**: the final give-up's
 plain push (no frame on disk reaches it).
 
-## 232. Reserved for the next item on the AI track
+## 232. A dead squad leaves the muster, and the peace pair's word moves 5499 → 5564 (2026-10-15, item 2761)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The widening is on disk.** The word 5499 lies inside run867's window (5401..5657), so its block 5500 is compared
+whole by `diff::lakota_pair::run867_s_word_frame_is_widened_whole`. No capture or packet was booked; run 873 is unused.
+
+**The draws on 5499** (`report.py rontrace-run867.log draws 5499`): ours 19, theirs 20, parting at index 11. Theirs'
+index 11 is `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd` (seed `99054dfc`), a birth; ours goes
+on to `Guy::set_anim+0x97a < Guy::inc_time+0x271`, the draw theirs spends at 12.
+
+**The cast on 5500**, both directions, past the standing keys and the `form` rows, is four rows: `1/263`
+(`TypeIndex` 295, `JETFIGHTER`, air) in theirs alone, inside the Airbase `1/2032`; `1/2032`'s `queued` ours 3
+against 2; who=1's `num_queued[245]` 7 against 6 and `active` 164 against 165. Nothing parts on 5401..5499 but the
+standing keys, the `form` rows and `1/261`'s `g.angle[0]`.
+
+**The walk back.** `buildat.py` reads `1/2032`'s head Jet Fighter at `job_counter` 11700 on block 5499, 100 a frame
+from 1900 on 5401, and no `job_counter` row parts in the window: the clock agrees and the target does not. A probe
+(`RON_PROBE_HANDOVER`, reverted whole) put ours' handover on 5511, twelve frames late, with `cap` 200, `control`
+177, `pop` 1 and the pad empty (`aircraft_homed` 3): neither of `Build::finished`'s refusals. The fallback's gate
+inputs agree, so the parting is the target's own input — the ramp's `owned`, `num_units[245]`, which **stands from
+5401 at ours 7 against theirs 4**, with `num_units[255]` 11 against 10, `[261]` 6 against 5 and `control` 176
+against 171. Walked through the earlier widenings: run866 parts `num_units[245]` on 5178 (7 against 6) the frame
+after a Jet Fighter is shot down, and `[255]`, `[261]` on 5201. Each is a death the original takes off and ours
+does not. `Leader::track_unit_type`'s writers in this crate: `Unit::set_type`'s pair, the missile's, the decoy's and
+the transport's — and no combat death (parked 1092, 1328).
+
+**`Unit::close@0060ee50`'s count** (the decompile, lines 197–241). For a squad head (`+0x8e < 0`) with no next
+figure (`+0x90 < 0`), or whose next figure's slot is not active (`flags & 1` clear), the arm at `0060f3db` takes
+`control_cost` off `LeaderData +0x940` (`control`), one off `+0x93c` (`active`) and calls
+`Leader::track_unit_type(type, −1)`, behind `(unit_masks & 1) == 0`, for a type with population (or `is(0x134)`,
+or a governor hero). A head over a live figure goes to `0060f679` instead and hands the squad down; a follower
+(`+0x8e >= 0`) goes there too. So a squad is counted until its last figure dies.
+
+**Built**: `Sim::close_count` (`crates/sim/src/fight.rs`), before the relink on the combat death
+(`take_damage_typed`), attrition, the pasture's animals and the flock's birds; gaia, which holds no muster here, is
+skipped. The gate is `Sim::counts_in_muster`'s, read off the chain: no `o_up`, no live `o_down`, not a decoy, a
+type with population.
+
+**Tests and mutations** (`tools/mutate.py`):
+- `fight::tests::a_squad_leaves_the_muster_with_its_last_figure`: a three-figure squad keeps its count through two
+  deaths and loses it on the third; a type with no population is never counted. The live-follower test dropped:
+  the unit test fails (exit 101), and no walk does (the arm is parked 2764).
+- The count's `track_unit_type` dropped: `lakota_pair_first_parting` fails (exit 101), its word back at 5499.
+
+**Value diff.**
+- **On 5500**, `1/263` is born on 5499 both sides and the block holds no row: `1/2032` `queued` 2, who=1's
+  `num_queued[245]` 6 and `active` 165 agree. From 5401 who=1's `num_units` and `control` and the human's `control`
+  (14 against 0) no longer stand.
+- **run867 goes 1813 → 276**; run855 128 → 122, run861 126 → 122, run866 178 → 164. The third map's coverage
+  windows: run702 82 → 76, run718 65 → 61 (the human's `control` on 2267 agrees, 0 both sides), run766 and run767
+  79 → 75, run790 116 → 112, run817 297 → 293. Every other lobby's `first_parting` is unmoved.
+
+**The word moves 5499 → 5564** (count and sequence). Ours spends 26 draws and theirs 24, parting at index 7: ours
+`Unit::think_scout+0xaba`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`. On block 5565 who=1's scout `1/0` holds a
+move in ours alone (`orders.len` 1 against 0, `orders_x`/`orders_y` (16632, 5880) against (14976, 11136), `group` 65
+against 75). Group 65 is held ours alone from 5542 (`[268, 269, 270]`). The word is in the same window (block 5565),
+so it is widened by the same test.
+
+**Not established.**
+- The head-over-a-live-figure arm on a walk, `close`'s `pop == 0` admissions and its `Leader::defeat` at `active` 0
+  (parked 2764).
+- The upgrade's squad trim (`Unit::set_type`'s crew loop) kills followers only, so it takes no count; it is not
+  routed through `close_count`.
+
+**Diff-backed**: the count on a lone unit's death (run866 5178 and 5201, run867 5401..5500, run718 2267). **Reading
+only**: the squad arm.
 
 ## 233. Reserved for the next item on the AI track
 
