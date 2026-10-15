@@ -2536,6 +2536,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         u.orders,
         clocks.join(" ")
     );
+    eprintln!("  f{frame} {who}/{o} PROBE tol {} line_ok {} collide_o {}/{} rec {}", u.tolerance, u.line_ok, u.collide_who, u.collide_o, u.path_recursion);
     // A caster's craft (`mana_burn`) and its cast clock (`spell_time`),
     // the dump's own two fields (item 1302: a General's decoy cast).
     if u.mana_burn != 0 || u.spell_time != 0 {
