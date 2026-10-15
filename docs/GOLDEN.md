@@ -12454,12 +12454,37 @@ Special Forces entry is taken), `Console::hurry_action@007c3810`'s held-head arm
 `get_next_non_unit` fallback on a human, `UnitTypeData::research_time@0061d760` (Special Forces, `gain_tech` on a unit
 type), `LeaderData::gain_tech` on a unit; the count is the commander's pin.
 
-## 93. Reserved for the next item on the rules track
+## 93. Chapter seventy-five's control: the unhurried Special Forces completes on 1204 at 36000 — the target and the base are the original's
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2530 (Claude Sonnet 5.5, `--effort medium`; run869, `tools/gamelog/golden/chapter75.cmd` without lines 900 and 901,
+`--end-frame 1250`, log window 1100..1250, one take, lane 1, 221 s, 1251 frames). Nothing in `crates/sim` moves; the word stays
+**901**, open.
+
+**What the control reads.** The Barracks `0/2007`'s queue (Bowmen head `170` done and refused at 20280; Special Forces `75`
+behind it) with no `finish`: the Special Forces entry's `job_counter` is 25600 on 1100, **+100 a frame** (35400 on 1198,
+35900 on 1203), **36000 on 1204 and gone on 1205**; the head stays at 20280 throughout. The same line as run868's 5600 on 900
+(5600 + 100 × 304 = 36000 on 1204). So, of §92's three readings:
+
+2. **The target is below 36000 — killed.** The unhurried original completes the entry at exactly 36000, our walked target
+   (`18000 · 512 >> 8`), and at 100 a frame, our rate. No `train_time@006508c0` research-tail arm this crate lacks.
+3. **The unit-research base is not `JOB_TIME · 100 · premium` — killed** on the same counts: base, premium and accel are the
+   original's, from the first frame the entry runs.
+1. **The paid amount is more than the head's train time — stands, not separated.** On 901 the original's entry holds 5700 and
+   the finish pays it at least 30300 (to 36000 less the frame's 100); ours pays 20280. `hurry_action`'s listing
+   (`7c39c9`..`7c3a4b`) and `get_next_non_unit@00630b10` (read whole: entry 1 is SF, a unit type whose `has_tech` is clear) name
+   one addition of the head's `train_time`, 20280, which this crate carries. What the dumps on disk cannot say: a second
+   application (5700 + 40560) and an addition of the entry's own train time (5700 + 36000) both complete the entry, and the
+   dump prints a counter only at frame starts, so neither is observable on a completing amount. Building one by name would
+   be a guess, and the booking is the frame.
+
+**What would kill the remaining reading** (parked 2543): a packet of run868's start at `RON_STATE_FRAME=900`
+(`step4.py` entering `Console::hurry_action@007c3810` with the writes watched, EMULATOR §8) reads the amount written to
+`queue[1]`'s counter and whether the function is entered once. A single write of 20280 would send the cause to
+`do_queue`'s completion test on a counter below target; a write of 30300 or more names the amount.
+
+**Not established**: the original's unhurried frame is 1204 and this crate's walk is "~1203" by the journal of item 2519,
+not re-walked here; a one-frame offset at the entry's last step would be a second finding, and the amount's fix would
+absorb it. No widening is added: the control's block 1100..1250 agrees with the walked arithmetic by the counter alone.
 
 ## 94. Reserved for the next item on the rules track
 

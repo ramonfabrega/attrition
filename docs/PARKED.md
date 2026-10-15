@@ -5679,13 +5679,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DF — reserved
+## Parked by item 2530, 2026-10-15 — chapter seventy-five's control: the amount is the open reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+2543. **A packet of run868's start at 900, `step4.py` into `Console::hurry_action@007c3810`** (`docs/GOLDEN.md` §93). Run869
+    killed the target and base readings (the unhurried entry completes at 36000 on 1204, 100 a frame); the amount `finish`
+    pays the held-head entry (≥ 30300 where this crate pays 20280) is the one reading left, and both candidate amounts
+    complete the entry, so no dump on disk separates them. The packet reads the write to `queue[1]` and the entry count of
+    the function. Names the headline's frame (word 901); ~4 min, 843 MB, the single capture lane.
 
 ## Parked by the next landing, slot DG — reserved
 

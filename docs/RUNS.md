@@ -17053,6 +17053,24 @@ One take, click-free pool lane 1, `success: true`, 398 s, 961 frames. **What it 
 901 in the original and not here.
 
 
+## run869 — chapter seventy-five's control: the unhurried Special Forces entry (2026-10-15, item 2530, `att-2530`)
+
+`docs/GOLDEN.md` §93. **What the disk could not answer**: run868 ends its entry on 901 by the `finish`; no capture ran a held
+Special Forces entry unhurried to its completion, so the target, the base and the rate behind it were unread.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch75ctl \
+    --map 14 --end-frame 1250 --log-window 1100 1250 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file <chapter75.cmd without lines 900 and 901>
+```
+
+One take, click-free pool lane 1, `success: true`, 221 s, 1251 frames. **What it holds**: the Special Forces entry 25600 on
+1100, +100 a frame, 36000 on 1204, gone on 1205; the head 20280 throughout. Target and base are this crate's; the finish's
+amount on run868 is not (parked 2543). No test pins it (no word moves).
+
+
 ## run900 — external recorded-game playback preflight (2026-10-15, Astra)
 
 Reserved by `docs/lab/2026-10-15-astra-brief.md` (900–909); no queue item.
