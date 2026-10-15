@@ -48,12 +48,16 @@ mod tests {
 
     use crate::diff::testkit::*;
 
+    /// Two threads unmonitored; three or four under a cap of at most 20
+    /// GiB (a lane's gate, three of which may run at once); six or eight
+    /// under a cap of 21 to 40 (the booking gate's, which runs alone on a
+    /// 128 GiB box — the thirty-fifth steer, DECISIONS 72; the suite at
+    /// eight threads peaked at 14.2 GiB on 2026-10-15).
     fn permitted_test_width(threads: usize, cap: Option<&str>) -> bool {
+        let gib = cap.and_then(|value| value.parse::<u32>().ok());
         (1..=2).contains(&threads)
-            || (3..=4).contains(&threads)
-                && cap
-                    .and_then(|value| value.parse::<u32>().ok())
-                    .is_some_and(|gib| (1..=20).contains(&gib))
+            || (3..=4).contains(&threads) && gib.is_some_and(|g| (1..=20).contains(&g))
+            || [6, 8].contains(&threads) && gib.is_some_and(|g| (21..=40).contains(&g))
     }
 
     #[test]
@@ -69,8 +73,17 @@ mod tests {
                 assert!(permitted_test_width(threads, Some(cap)));
             }
         }
-        for threads in [0, 5, 16, usize::MAX] {
+        for threads in [6, 8] {
+            for cap in [None, Some(""), Some("20"), Some("41"), Some("invalid")] {
+                assert!(!permitted_test_width(threads, cap));
+            }
+            for cap in ["21", "40"] {
+                assert!(permitted_test_width(threads, Some(cap)));
+            }
+        }
+        for threads in [0, 5, 7, 16, usize::MAX] {
             assert!(!permitted_test_width(threads, Some("20")));
+            assert!(!permitted_test_width(threads, Some("40")));
         }
     }
 
@@ -111,7 +124,8 @@ mod tests {
         assert!(
             permitted_test_width(threads, cap.as_deref()),
             "the diff suite is running at {threads} test threads; use at most two \
-             directly, or at most four under tools/memcap.sh with a cap <= 20 GiB"
+             directly, at most four under tools/memcap.sh with a cap <= 20 GiB, or \
+             six or eight under a cap of 21..=40 GiB (the booking gate's, alone)"
         );
     }
 
