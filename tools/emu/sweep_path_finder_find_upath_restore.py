@@ -3,12 +3,12 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_path_finder_find_upath_restore.py — `PathFinder::find_upath_restore@00688f40` under unicorn (item 2495, tools/sweep_gen.py, obj with windows).
+"""sweep_path_finder_find_upath_restore.py — `PathFinder::find_upath_restore@00688f40` under unicorn (item 2513, tools/sweep_gen.py, obj with windows).
 
     uv run tools/emu/sweep_path_finder_find_upath_restore.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 1024-byte object of random bytes (no bias), 3 stack argument(s);
-the global cell 0x00c061bc points at 16 random bytes; the global cell 0x00c0618c points at 144 random bytes; 8 random bytes at 0x00e85ec0; callee 0x00682f30 (6 args) stubbed; the word at `c1+0x14+0x1c*a[1]` points at 16 random bytes less `0` (placed); the word at `p0+4*a[2]` points at 24 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `.
+the global cell 0x00c061bc points at 16 random bytes; the global cell 0x00c0618c points at 144 random bytes; 8 random bytes at 0x00e85ec0; callee 0x00682f30 (6 args) stubbed; the word at `c1+0x14+0x1c*a[1]` points at 16 random bytes less `0` (placed); the word at `p0+4*a[2]` points at 24 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 prints the 4 bytes at the cell 0x00e85ec4 when it is called, hex, after the record (`/` a call).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -64,7 +64,7 @@ CDECLSTUBS = []
 STUBWRITE = []
 ECXANSWER = []
 RING = []
-DEREF = []
+DEREF = [(0, ('@', 15228612), 4)]
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -175,6 +175,9 @@ def read_arg(inner, k, n, read, sink):
     `Command`, gone once the call returns — into `sink` as hex (`null` for a
     null argument), then answers as `inner` would."""
     def answer(ecx, args):
+        if isinstance(k, tuple):  # `@VA` (item 2513): an absolute cell, read as it stands now
+            sink.append(read(k[1], n).hex())
+            return inner(ecx, args) if callable(inner) else inner
         a = args[k] & 0xFFFFFFFF
         sink.append(read(a, n).hex() if a else "null")
         return inner(ecx, args) if callable(inner) else inner
@@ -222,7 +225,7 @@ def shape(rng, name, buf):
 
 def main(argv):
     from hooks import Harness
-    rng = random.Random(2495)
+    rng = random.Random(2513)
     # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
     h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"})
@@ -527,4 +530,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "PathFinder::find_upath_restore@00688f40", "--item", "2495", "--own", "3", "--cell-win", "0xc061bc:0x10", "--chain", "0xc0618c:0x14:0x1c:1:2:4:0x18", "--at", "0xe85ec0:8", "--wbias", "c0+*:0,1,2,3,4,5,10,-1,46341,100000,-2147483648", "--stub", "0x682f30:6", "--record", "0", "--port", "{ let x = rd(&p[1], 0x10) ^ 0x63637; let y = rd(&p[1], 0x14) ^ 0x63637; let sq = rd(&c[0], 4 * a[1] as usize).wrapping_mul(rd(&c[0], 4 * a[1] as usize)).max(1); wr(&mut c[2], 0, 300 / sq); log.push(format!(\"{},{},{},{},{},{},0\", y, a[0], x, y, a[1], a[2])); wr(&mut c[2], 4, 0); i64::from(a[3]) }"]
+# sweep_gen: ["obj", "PathFinder::find_upath_restore@00688f40", "--item", "2513", "--deref", "0:@0xe85ec4:4", "--port", "{ let x = rd(&p[1], 0x10) ^ 0x63637; let y = rd(&p[1], 0x14) ^ 0x63637; let sq = rd(&c[0], 4 * a[1] as usize).wrapping_mul(rd(&c[0], 4 * a[1] as usize)).max(1); wr(&mut c[2], 0, 300 / sq); log.push(format!(\"{},{},{},{},{},{},0\", y, a[0], x, y, a[1], a[2])); log.push(\"01000000\".into()); wr(&mut c[2], 4, 0); i64::from(a[3]) }", "--own", "3", "--cell-win", "0xc061bc:0x10", "--chain", "0xc0618c:0x14:0x1c:1:2:4:0x18", "--at", "0xe85ec0:8", "--wbias", "c0+*:0,1,2,3,4,5,10,-1,46341,100000,-2147483648", "--stub", "0x682f30:6", "--record", "0"]
