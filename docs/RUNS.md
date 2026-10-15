@@ -16865,3 +16865,23 @@ SHA-256 `04d0cfb5193b30260c041572bb8d23fe284c65d079048548cb2f3d7eb20c2784`.
 
 **What it holds**: `diff::lakota_pair::run849_s_word_frame_is_widened_whole`, 1242 keys on blocks 1978..2235. On the
 word's block 1985: who=1's `leader:agendas[0]`, ours 0 / theirs 64 (`docs/AI.md` §219).
+
+## run858 — chapter seventy-one: the Senate's patriot at 659 hits (2026-10-14, item 2436, `att-2436`)
+
+`docs/GOLDEN.md` §88, `tools/gamelog/golden/chapter71.cmd` (eleven staged lines). **What the disk could not answer**: no
+golden capture has a Senate finish a research job for who=0 under upgraded Generals and Supply; the patriot's hits arm
+(AI §213) was backed only by the successor pair's AI Senate.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch71 \
+    --map 14 --end-frame 1120 --log-window 600 1120 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter71.cmd
+```
+
+**One take**, click-free pool lane 2: `success: true`, `settings_restored`, 521 blocks (600..1120), about seven minutes.
+Kept in `~/ron-golden/ch71/map-14`; `rontrace.dll` SHA-256
+`3d909ec32bb77ab8d713fdfc21c65aa1d9d801834ebca2c9321e43a390f0ccd7`. Falsifiers held: The Despot born on 1011 at 659 hits.
+**What it holds**: `golden::chapter_seventy_one_holds_to_the_golden_word` (**1120**, the trace's end, closed) and
+`chapter_seventy_one_s_word_frame_is_widened_whole` (600..1121, thirteen standing rows).
