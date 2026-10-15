@@ -705,6 +705,20 @@ class Shapes(unittest.TestCase):
         else:
             self.fail('no seed drew the early stop')
 
+    def test_an_iat_stub_may_be_cdecl(self):
+        # Item 2400 (`Objects::add_ammo`): `malloc` is `call [VA]; add esp, 4`,
+        # an `iat` stub whose caller pops its argument; `--stub-cdecl` took
+        # direct callees only.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2400, win=0x20, bias=[], own=0, ret='none',
+            stubs=['iat:0xac54f0:1'], stub_cdecl=['0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('CDECLSTUBS = [0]', script)
+        self.assertIn('h.hooked[sa][:3] + (True,)', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2400, win=0x20, bias=[], own=0,
+                                   stubs=['slot:0x10:0'], stub_cdecl=['0'])
+
     def test_a_stub_may_print_the_bytes_an_argument_points_at(self):
         # Item 2379 (parked 2348): `CommandManager::issue_speed_up` and its
         # siblings hand `add_command` the address of a local `Command` whose
