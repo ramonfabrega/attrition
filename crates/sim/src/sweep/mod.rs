@@ -732,6 +732,7 @@ mod object_data_num_aircraft_limit;
 mod object_data_num_inside;
 mod object_data_say_name;
 mod object_execute_events;
+mod object_get_army;
 mod object_kill_contents;
 mod object_must_walk;
 mod object_repair_damage;
