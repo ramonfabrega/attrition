@@ -81,6 +81,7 @@ mod player_is_over;
 mod repair_order_get_type;
 mod resource_divvy_pool_add_late;
 mod reversing;
+mod spell_type_cast_unpack;
 mod storm_on_field_change;
 mod sub_object_data_is_spellcaster;
 mod sub_object_out_is_on_screen;
