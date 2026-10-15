@@ -5496,13 +5496,21 @@ break is only visible once the draw holds an exponent of 23 or more (two `--wbia
 The census's next issuers: `CommandManager::issue_come_out`, `_resign`, `_gather`, `_unqueue` x2, `_form`,
 `_follow`, `_garrison`, `_queue_up`, `_patrol`; `--cmd-gate` takes the ungated ones with a 4-byte field list.
 
-## Parked by the next landing, slot CR — reserved
+## Parked by item 2423, 2026-10-14 — the peace pair's word 4544, and a packet with no footer
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2460) **The peace pair's word 4544: ours 145 draws, theirs 201, index 0** (2423, `docs/AI.md` §223; ours
+`Leader::diplomacy+0x1168`, theirs `GameDaemon::calc_market+0x54`). It is 44 frames after the peace ends at 4500.
+Ours spends one extra `Leader::diplomacy` draw first. Of the rest, `Animal::think_bird+0x2aa` and `+0x2d3` are
+theirs 60 each against ours 30, and the `Guy::set_anim+0x97a` rolls are ours 48 against theirs 45. The widening
+is run855 (blocks 4538..4794, 977 keys). Block 4545 holds no row. On 4538 `leader:diplos` is ours 1 against
+theirs 0 both ways, and the ICBM `1/50` holds an order in theirs only. On 4542 theirs' `1/50` is gone. The cause
+is between 3552 and 4538, which no dump holds: `RON_DEBUG_LEADER` over 4499..4538 on ours names the frame the
+`diplos` were written.
+(2461) **run854's packet has no footer** (2423, for the Loop): `golden_capture.sh`'s `RON_STATE_FRAME` packet ends
+where its header's ranges end. `tools/recomp/snapshot.py` raises on the missing 28 bytes, so every reader of
+it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell read here skipped the check by
+hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
+`frame_snapshot.py`'s restore, which this lane does not run.
 
 ## Parked by item 2464, 2026-10-14 — the sweep's seventy-fifth batch
 

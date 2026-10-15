@@ -12,9 +12,9 @@
 //!
 //! What the world does not model yet enters as a named seam, each marked
 //! `SEAM:` with the `docs/PATHFINDER.md` §5 term it stubs — the danger map
-//! (zero), diplomacy and rush-rule penalties (none), transports (the unit
-//! cannot), and the per-type collision *stride* (one; the size itself is
-//! loaded, `docs/COLLISION.md` §2). Unit collision on the 48-grid is no
+//! (zero), the diplomacy penalty (none; the no-rush timer is built, item
+//! 2423), transports (the unit cannot), and the per-type collision
+//! *stride* (one; the size itself is loaded, `docs/COLLISION.md` §2). Unit collision on the 48-grid is no
 //! longer one: `valid_ucoord` asks `detect_unit_collision`. Each remaining
 //! stub returns the open-ground answer, so on the
 //! flat worlds the harness builds the search is exact; the seams are where
@@ -758,8 +758,22 @@ impl Sim {
             {
                 extra *= 3;
             }
-            // SEAM: the no-rush timer (+500) and the team-style diplomacy
-            // wall (+5000) read game rules the simulation does not carry.
+            // **The no-rush timer** (`calc_cost@00684e50:411`-`420`, item
+            // 2423, `docs/AI.md` §223): while the lobby's rush rules still
+            // forbid war — [`Sim::war_allowed`] false, the same three
+            // clauses — a cell another leader owns, and not an ally,
+            // costs 500 more. After fleeing's triple and outside the
+            // clamp, on the world-seen and tile branches only; an
+            // unowned cell and the walker's own (`is_ally` answers 1 for
+            // oneself) pay nothing.
+            if !self.war_allowed()
+                && let Owner::Player(p) = self.world.owner(to.cell())
+                && !self.is_ally(who, p)
+            {
+                extra += 500;
+            }
+            // SEAM: the team-style diplomacy wall (+5000) reads game rules
+            // the simulation does not carry.
         }
 
         // The transport tail. `Sim::unit_can_transport(u)` is the predicate
@@ -3009,6 +3023,41 @@ mod tests {
         sim.at_war[0][1] = true;
         let (enemy, _) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 1);
         assert_eq!(enemy, 36);
+    }
+
+    /// §5's no-rush timer (item 2423, `docs/AI.md` §223): while the rush
+    /// rules forbid war, a cell another leader owns costs 500 more unless
+    /// the two are allies; one's own cell, an unowned one, and any cell once
+    /// the peace is over pay nothing.
+    #[test]
+    fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let m = Modes::default();
+        let from = Pos::new(0x180, 0x180);
+        let to = Pos::new(0x180 + 0x300, 0x180);
+        sim.lobby.rush_rules = 10;
+        sim.lobby.rush_minutes = 5;
+        sim.frame = 4499;
+        let cost = |sim: &Sim| sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 0).0;
+        assert_eq!(cost(&sim), 32, "unowned");
+        sim.world
+            .set_owner(to.cell(), Owner::Player(0), Owner::None);
+        assert_eq!(cost(&sim), 32, "its own leader's");
+        sim.world
+            .set_owner(to.cell(), Owner::Player(1), Owner::None);
+        assert_eq!(cost(&sim), 532, "another leader's, during the peace");
+        sim.allied[0][1] = true;
+        assert_eq!(cost(&sim), 532, "an ally one way only");
+        sim.allied[1][0] = true;
+        assert_eq!(cost(&sim), 32, "an ally both ways");
+        sim.allied[0][1] = false;
+        sim.allied[1][0] = false;
+        sim.frame = 4500;
+        assert_eq!(cost(&sim), 32, "the peace is over");
+        sim.frame = 0;
+        sim.lobby.rush_rules = 0;
+        assert_eq!(cost(&sim), 32, "no rush rules");
     }
 
     /// §5's terrain term: `+20 × WData.blocked`, the `+100000` at 13, and

@@ -16889,6 +16889,52 @@ SHA-256 `ad890c9ab468d68029ba12d065ec18d339bce009472d73f6890dbc52f6b78fba`.
 holds 521 keys. On 3296, who=1's Missile Silo `1/2018` has `queue[0].job_counter` ours 71400 against theirs 0 (an
 ICBM, 316). On the word's block 3303, the second ICBM `1/135` is ours alone. With the return built (item 2412,
 `docs/AI.md` §222) it holds 169 keys, block 3303 has no row, and the word 3479 (block 3480) is in the window.
+## run854 — the peace pair's packet at logger frame 3301 (2026-10-14, item 2423, `att-2423`)
+
+`docs/AI.md` §223. **What the disk could not answer**: no dump of this lobby prints a cell's owner byte (`WData +0xf`),
+its fog or its danger, and those are what `PathFinder::calc_cost` reads for `1/6`'s crossing, planned on tick 3301
+and first printed on block 3302 (`path[11].to`, ours (11928, 19608) against theirs (11928, 20376)). run853's recipe
+with `--end-frame 3305 --log-window 3297 3302 --detail end:UNITS=3,GUYS=2 --tracer-def RON_STATE_FRAME=3301
+--tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`.
+- Click-free pool lane 2, the first take: `success`, `settings_restored`, 3306 frames, 33.3 s launch to exit
+  (`!ffwd 4`), seed 12345.
+- Kept in `~/ron-golden/run854/map-18/frame-snapshot.bin`, 945,816,188 bytes, frame 3301 (trace frame 3300),
+  SHA-256 `ff6fe4ed8d890c1fa1a95ccdd43cd9c5aecdf639b0d4051b21d5bff5a7d78f28`. **It has no footer**: the file ends
+  where the header's ranges end, and `tools/recomp/snapshot.py` refuses it (parked 2461); the ranges read whole.
+- Minutes waited on another lane's capture: none.
+
+**What it holds**: `World` at `0xc06188` (`0xc097e8`, width 60), cell records at `+0x134`, `0x1c` apart. Cell
+(15, 25) has owner 0 and flags `0x104`; (15, 26) has owner −1 and the same flags; (16, 25), (16, 26) owner −1;
+(17, 25), (17, 26) owner 1. That is the +500 the no-rush timer charges ours' `(11904, 19584)` and not theirs'
+`(11904, 20352)`. No test reads it. run856 unused.
+
+## run855 — the peace pair: the word 4544's widening, blocks 4538..4794 (2026-10-14, item 2423, `att-2423`)
+
+`docs/AI.md` §223. **Disk gap**: run853 ends at 3552, and run847 has checksums and the closing block only, so no
+dump of this lobby holds a record on 4544. This is run853's recipe with the window moved to the word, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run855`: `--map 18 --end-frame 4800 --timeout 5400
+--log-window 4538 4795 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 1 from the pool, on the first take: `success`, 4801 frames, 2116.5 s from launch to exit.
+- The dump holds 258 `BEGIN FRAME`s (4538..4794 and the closing block).
+- `rngcmp.py rontrace-run847.log rontrace-run855.log`: **4801 in common, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run855-eastindies-lakota-peace-window-4538-4795.txt`, 598,601,723 bytes,
+SHA-256 `9b041c1d89fe398c3d45dbdc980247a0bde8805fce4af6fccb8147067acc897c`.
+
+Archive `rontrace-run855.log`, 169,032,608 bytes,
+SHA-256 `f8d7e5f88338409322c3dbad229bfbb1382392264feb16ad01941aaeaab99830`.
+
+**What it holds**: `diff::lakota_pair::run855_s_word_frame_is_widened_whole`, 977 keys. The word's own block, 4545,
+holds no row, because the state parts before the window opens. On 4538:
+- `leader:diplos` is ours 1 against theirs 0, both ways;
+- the ICBM `1/50` holds one order in theirs and none in ours;
+- `1/0` walks a 36-leg path in theirs.
+
+On 4542, theirs' `1/50` is gone. The window is in the coverage driver's slice. Its walk reads 1122 heights at
+inexact corners.
+
 ## run858 — chapter seventy-one: the Senate's patriot at 659 hits (2026-10-14, item 2436, `att-2436`)
 
 `docs/GOLDEN.md` §88, `tools/gamelog/golden/chapter71.cmd` (eleven staged lines). **What the disk could not answer**: no

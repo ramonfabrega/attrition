@@ -42,8 +42,13 @@ pub(crate) const LAKOTA: Pair = Pair {
     // second ICBM while the first stands inside (`docs/AI.md` §222): ours
     // 44 draws, theirs 46, index 0 — ours `Guy::set_anim+0x97a <
     // Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a < do_cast`.
-    count: 3479,
-    sequence: 3479,
+    // Item 2423: 3479 → 4544, `calc_cost`'s no-rush timer (`docs/AI.md`
+    // §223): who=1's Citizen `1/6` plans its crossing on 3301 with the
+    // +500 on cell (15, 25), who=0's, so `path[11]` is (11928, 20376) and
+    // it casts at the shore on 3479: ours 145 draws, theirs 201, index 0 —
+    // ours `Leader::diplomacy+0x1168`, theirs `GameDaemon::calc_market+0x54`.
+    count: 4544,
+    sequence: 4544,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -219,7 +224,7 @@ fn run853_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 169, "initial run853 baseline");
+    pin_eq!(w.firsts.len(), 100, "initial run853 baseline");
     // Item 2412: the word 3302's own block is 3303. Without the silo
     // return, who=1's Missile Silo `1/2018` trains its second ICBM (316)
     // from 2582 and births it on 3302 (`Guy::init_real+0x52`, ours' extra
@@ -232,4 +237,54 @@ fn run853_s_word_frame_is_widened_whole() {
     // 14 to (12111, 20376)) and is inside the Transport Freighter `1/140`
     // on 3480; ours holds kind 1 to (2712, 18840). Group 69 holds `[6]`
     // in ours from 3302 and nothing in theirs (parked 2411's group).
+    // Item 2423: 169 → 100. With the no-rush timer built (`docs/AI.md`
+    // §223) `1/6`'s `path[11].to` is (11928, 20376) on 3302 on both sides
+    // (ours (11928, 19608) without it), and its 3441..3480 rows, the cast,
+    // the Freighter `1/140` and its rows all close.
+}
+
+/// run855: the word 4544's window, blocks 4538..4794 at the long's detail (item 2423).
+pub(crate) const RUN855: &str = "gamelog-run855-eastindies-lakota-peace-window-4538-4795.txt";
+
+/// The window: block 4538 through 4794; the word 4544's own block is 4545.
+pub(crate) const WIDENING_LAKOTA_FRAME_4544: (i64, i64) = (4538, 4794);
+
+pub(crate) fn lakota_frame_4544_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run855",
+        &[(RUN855, WIDENING_LAKOTA_FRAME_4544.0)],
+        WIDENING_LAKOTA_FRAME_4544,
+        1,
+        &[4545],
+        true,
+    )
+}
+
+#[test]
+fn run855_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_4544_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 977, "initial run855 baseline");
+    // Item 2423: the word 4544's own block is 4545, and it holds no row:
+    // the state parts before the window opens. On 4538 `leader:diplos` is
+    // ours 1 against theirs 0 both ways (`0/-1 diplos[1]`, `1/-1
+    // diplos[0]`), the ICBM `1/50` (inside the silo `1/2018`) holds one
+    // order in theirs and none in ours, `1/0` walks a 36-leg path to
+    // (15000, 11160) in theirs and idles in ours, and `1/6` has 7 damage
+    // ours against 2. On 4542 theirs' `1/50` is gone and `1/2018`'s
+    // `queue[0].job_counter` runs (0 / 100); on 4576 `wars` is 0 / 1.
+    // 102 keys stand from 4538, 28 of them `form`.
 }
