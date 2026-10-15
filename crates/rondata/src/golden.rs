@@ -2204,6 +2204,8 @@ mod tests {
         ("chapter73.cmd", &[]),
         // Chapter seventy-four: `finish` on a Library queue (item 2500).
         ("chapter74.cmd", &[]),
+        // Chapter seventy-five: `finish` behind a capped unit head (item 2519).
+        ("chapter75.cmd", &[]),
         // Chapter seven's control, the same file less `0 !ai off` (item 578).
         ("chapter7_control.cmd", &[]),
         // Chapter seven-b: the same five for who=1, and its control (item 628).
