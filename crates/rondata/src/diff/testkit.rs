@@ -6462,7 +6462,7 @@ pub(crate) const WIDENING_CHAPTER_SEVENTY_FOUR: (i64, i64) = (600, 761);
 
 /// **Chapter seventy-five** (item 2519, `docs/GOLDEN.md` §92, run868): the
 /// console's `finish` behind a population-capped unit head — the held-head arm.
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_FIVE: i64 = 960;
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_FIVE: i64 = 901;
 
 /// `chapter_seventy_five_s_word_frame_is_widened_whole`'s window: run868
 /// whole.
