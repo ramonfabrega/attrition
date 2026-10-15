@@ -2137,11 +2137,11 @@ mod tests {
         // military discount, Monarchy and then Socialism (item 2357,
         // `docs/GOLDEN.md` §85).
         ("chapter68.cmd", &[]),
-        // Chapter seventy-one: the Senate's patriot (item 2436, `docs/GOLDEN.md` §88).
-        ("chapter71.cmd", &[]),
         // Chapter six-b: chapter six with an Airbase a side (item 651).
         ("chapter6b.cmd", &[]),
         ("chapter7.cmd", &[]),
+        // Chapter seventy-one: the Senate's patriot (item 2436, `docs/GOLDEN.md` §88).
+        ("chapter71.cmd", &[]),
         // Chapter seven's control, the same file less `0 !ai off` (item 578).
         ("chapter7_control.cmd", &[]),
         // Chapter seven-b: the same five for who=1, and its control (item 628).
