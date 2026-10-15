@@ -607,6 +607,7 @@ mod group_data_get_o;
 mod group_data_get_unit;
 mod group_data_member;
 mod group_data_num_valid;
+mod group_data_valid_target;
 mod group_equals_group;
 mod group_kill_group_move;
 mod group_leader_report_speed;
