@@ -842,11 +842,7 @@ mod tests {
             GOLDEN_WORD_CHAPTER_SEVENTY_NINE,
             WIDENING_CHAPTER_SEVENTY_NINE,
         ),
-        (
-            "ch80",
-            GOLDEN_WORD_CHAPTER_EIGHTY,
-            WIDENING_CHAPTER_EIGHTY,
-        ),
+        ("ch80", GOLDEN_WORD_CHAPTER_EIGHTY, WIDENING_CHAPTER_EIGHTY),
         (
             "restage",
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
