@@ -2220,6 +2220,7 @@ mod tests {
         ("chapter77.cmd", &[]),
         ("chapter78.cmd", &[]),
         ("chapter79.cmd", &[]),
+        ("chapter80.cmd", &[]),
         // Chapter seven's control, the same file less `0 !ai off` (item 578).
         ("chapter7_control.cmd", &[]),
         // Chapter seven-b: the same five for who=1, and its control (item 628).
