@@ -415,6 +415,7 @@ mod city_data_can_upgrade;
 mod city_data_count_buildings;
 mod city_data_depop_can_queue;
 mod city_data_enhancer_amount;
+mod city_data_enhancer_level;
 mod city_data_enough_kinds;
 mod city_data_get_farm_limit;
 mod city_data_get_level;
