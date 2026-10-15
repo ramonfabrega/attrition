@@ -5936,7 +5936,9 @@ No capture on disk weighs a negative value here: run867's only candidate, the ca
 same `-1` start sits in its first arm (`param_3 ≥ 0`, a SEAM). Names no score; a one-line fix when one does.
 
 (2680) **The Sahara coverage pair's four windows each lost one key to item 2677** (run766, run767, run790, run817:
-80 → 79, 80 → 79, 117 → 116, 298 → 297), and which key is not measured. The likeliest is a city at its ceiling's
+80 → 79, 80 → 79, 117 → 116, 298 → 297), and which key is not measured. After the merge with the base, ten
+widenings in five other lobbies lost one key each the same way (run714, 716, 721, 754, 762, 763, 780, 844, 834,
+594; run716's first parting 3138 → 3139), re-pinned with the delta in each comment. The likeliest is a city at its ceiling's
 `damage_frac`, the row the clamp's kept fraction closes on run866. One `RON_FIRSTS=1` run of each against the base
 says. A record of what moved, not a score.
 
