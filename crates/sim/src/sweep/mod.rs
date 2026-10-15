@@ -122,6 +122,7 @@ mod unit_is_on_map;
 mod unit_is_plane;
 mod unit_is_special;
 mod unit_is_supply;
+mod unit_kill_garrison_order;
 mod unit_mana_left;
 mod unit_min_range;
 mod unit_supplies_left;
