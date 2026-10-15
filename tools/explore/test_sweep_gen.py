@@ -1087,6 +1087,33 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.fwd_gate_expand('0x820:0x10', own=1)
 
+    def test_a_cmd_gate_writes_issue_halts_shape(self):
+        # Item 2454 (parked 2444, Loop 2003): seven of 2443's ten were
+        # `issue_halt`'s shape -- a gamec byte gate, `check_accept_issue`,
+        # `add_group`, the command built in a local, `add_command` -- and
+        # were hand `--port`s. One flag writes the stubs, the answers, the
+        # records, the deref of the local and the port; the `sp-` token is
+        # `c + 8 + 4*own` with `c` the local's size rounded up to four.
+        x = sweep_gen.cmd_gate_expand('0x820:0x10:2:5:a0', own=1)
+        self.assertEqual(x['stub'], ['0x940a70:0', '0x94bb60:1', '0x94bae0:2'])
+        self.assertEqual(x['answers'], ['0:0,1', '1:0,1'])
+        self.assertEqual(x['record'], ['0', '1', '2'])
+        self.assertEqual(x['deref'], ['2:0:5'])
+        self.assertEqual(x['wbias'], ['c0+0x820:0,0x10,0x20,0x30,0xef'])
+        self.assertIn('log.push("15269768,sp-0x14,5".into()); log.push(format!("02{}", le(a[0])));', x['port'])
+        self.assertIn('if a[1] == 0 {', x['port'])
+        self.assertIn('if a[2] == 0 {', x['port'])
+        # A byte argument, a constant word and a guard before the check.
+        y = sweep_gen.cmd_gate_expand('0x820:0x10:0xa:10:a0,a1,b2', own=3)
+        self.assertIn('format!("0a{}{}{:02x}", le(a[0]), le(a[1]), a[2] as u8)', y['port'])
+        self.assertIn('sp-0x20,10', y['port'])
+        k = sweep_gen.cmd_gate_expand('0x820:0x10:0x21:9:a0,k1', own=2)
+        self.assertIn('format!("21{}{}", le(a[0]), "01000000")', k['port'])
+        g = sweep_gen.cmd_gate_expand('0x820:0x10:5:13:a0,a1,a2::a0>=0,a1>=0', own=3)
+        self.assertIn('if a[0] < 0 || a[1] < 0 {', g['port'])
+        with self.assertRaises(ValueError):
+            sweep_gen.cmd_gate_expand('0x820:0x10:2', own=1)
+
     def test_a_vtordisp_thunk_moves_this_by_the_word_before_it(self):
         # Item 2362 (parked 2348, Loop 2003): a `vtordisp` thunk is `sub ecx,
         # [ecx-4]; jmp target`, and `fwd` drew `this` as an address nothing

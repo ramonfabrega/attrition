@@ -2245,6 +2245,59 @@ def fwd_gate_expand(spec, own):
             'record': ['0'], 'port': port}
 
 
+def cmd_gate_expand(spec, own):
+    """`--cmd-gate OFF:MASK:CMD:SIZE:FIELD,..[:C[:PRE]]` (item 2454, parked
+    2444): `issue_halt`'s shape -- `gamec`'s byte at OFF tested against MASK
+    (set: nothing runs), `check_accept_issue` and `add_group` (two stubs
+    answered 0/1), the command built in a local of SIZE bytes (CMD first, then
+    each FIELD: `aN` the argument as a word, `bN` its low byte, `kV` the
+    constant word V), `add_command` handed it. The `sp-` token is
+    `C + 8 + 4*own`, C the local's `ebp` depth (default SIZE rounded up to
+    four); PRE, `aN>=0,..`, are arguments tested before the check (a
+    `siege_attack`). Returns the `obj` flags it stands for."""
+    parts = spec.split(':')
+    if not 5 <= len(parts) <= 7:
+        raise ValueError(f'--cmd-gate {spec}: want OFF:MASK:CMD:SIZE:FIELD,..[:C[:PRE]]')
+    off, mask, cmd, size = (int(x, 0) for x in parts[:4])
+    fields = [f for f in parts[4].split(',') if f]
+    depth = int(parts[5], 0) if len(parts) > 5 and parts[5] else (size + 3) // 4 * 4
+    pre = [g for g in parts[6].split(',') if g] if len(parts) > 6 else []
+    fmt, vals = f'{cmd:02x}', []
+    for f in fields:
+        if f[0] == 'a' and f[1:].isdigit() and int(f[1:]) < own:
+            fmt += '{}'
+            vals.append(f'le(a[{f[1:]}])')
+        elif f[0] == 'b' and f[1:].isdigit() and int(f[1:]) < own:
+            fmt += '{:02x}'
+            vals.append(f'a[{f[1:]}] as u8')
+        elif f[0] == 'k':
+            fmt += '{}'
+            vals.append('"%08x"' % int.from_bytes(int(f[1:], 0).to_bytes(4, 'little'), 'big'))
+        else:
+            raise ValueError(f'--cmd-gate {spec}: field {f!r} is aN, bN (N < --own) or kV')
+    pushes = lambda n, sp='': ' '.join(['log.push("-".into());'] * n)
+    cmp_ = {}
+    for g in pre:
+        m = re.fullmatch(r'a(\d+)>=0', g)
+        if not m or int(m.group(1)) >= own:
+            raise ValueError(f'--cmd-gate {spec}: guard {g!r} is aN>=0')
+        cmp_[g] = f'a[{m.group(1)}] < 0'
+    sp = f'sp-{depth + 8 + 4 * own:#x}'
+    fmtcall = f'format!("{fmt}"' + ''.join(f', {v}' for v in vals) + ')'
+    body = (f'log.push("15269728".into()); if a[{own}] == 0 {{ {pushes(3)} }} else {{ '
+            f'log.push("15269768,m+0x0".into()); if a[{own + 1}] == 0 {{ {pushes(2)} }} else {{ '
+            f'log.push("15269768,{sp},{size}".into()); log.push({fmtcall}); }} }}')
+    if pre:
+        body = f'if {" || ".join(cmp_.values())} {{ {pushes(4)} }} else {{ {body} }}'
+    le = ('let le = |v: i32| v.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect::<String>(); '
+          if any(v.startswith('le(') for v in vals) else '')
+    port = f'{{ {le}if c[0][{off:#x}] & {mask:#x} != 0 {{ {pushes(4)} }} else {{ {body} }} 0 }}'
+    vs = sorted({0, mask, mask * 2, mask * 3, 0xff & ~mask})
+    return {'stub': ['0x940a70:0', '0x94bb60:1', '0x94bae0:2'], 'answers': ['0:0,1', '1:0,1'],
+            'record': ['0', '1', '2'], 'deref': [f'2:0:{size}'], 'cells': ['0xc061e8:0x900'],
+            'wbias': [f'c0+{off:#x}:' + ','.join(f'{v:#x}' if v else '0' for v in vs)], 'port': port}
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2399,8 +2452,22 @@ def main(argv=None):
     ap.add_argument('--fwd-gate', metavar='OFF:MASK:VA[:T,T..]',
                     help='obj: a forwarder gated on a byte of gamec, then a call to VA with the caller\'s stale ecx, '
                          '--own arguments and the tail T.. (GroupOut::issue_*; item 2443, parked 2433)')
+    ap.add_argument('--cmd-gate', metavar='OFF:MASK:CMD:SIZE:FIELD,..[:C[:PRE]]',
+                    help='obj: issue_halt\'s shape -- gamec byte gate, check_accept_issue, add_group, the command '
+                         'built in a local, add_command (GroupOut::issue_*; item 2454, parked 2444)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
+    if args.cmd_gate:
+        try:
+            x = cmd_gate_expand(args.cmd_gate, args.own)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        args.stub, args.cells, args.wbias, args.record = x['stub'], x['cells'], x['wbias'], x['record']
+        args.answers, args.deref, args.port = x['answers'], x['deref'], x['port']
+        args.ret = args.ret or 'none'
+        if args.win == 0x400:
+            args.win = 0x20
     if args.fwd_gate:
         try:
             x = fwd_gate_expand(args.fwd_gate, args.own)
