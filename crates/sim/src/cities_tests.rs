@@ -1496,6 +1496,70 @@ fn the_president_near_a_site_shortens_its_clock_by_a_quarter() {
     );
 }
 
+/// **The President's arm of `ObjectData::train_time`** (item 2491,
+/// `train_time@006508c0:103`–`107`, `docs/AI.md` §225): a trained unit's time
+/// at a building with one of the owner's THEPRESIDENT heroes in
+/// `construct_time`'s reach takes `THEPRESIDENT_UNIT_BUILD_SPEED` (100 %)
+/// off — the peace pair's Airbase `1/2005` trains a Strategic Bomber in 16500
+/// on 4859, `33000 × 100 / 200` (run865's packet). A research entry, which
+/// never reaches the arm, keeps its time.
+///
+/// Made to fail with the arm removed (the time stays whole) and with the
+/// owner test of `president_near_building` dropped (a rival's President).
+#[test]
+fn the_president_near_a_trainer_halves_a_trained_unit_s_time() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.init_build(0, t.barracks, tile_pos(40, 32), false);
+    finish(&mut sim, b);
+    let ty = sim.add_unit_type(UnitType {
+        hits: 40,
+        times: crate::production::Times {
+            job_time: 225,
+            research_premium_time: 2,
+            job_extra_time: 10,
+        },
+        ..UnitType::default()
+    });
+    sim.muster[0].researched[ty] = true;
+    let c = [0; crate::economy::RESOURCES];
+    sim.buildings[b]
+        .queue
+        .items
+        .push(crate::production::Item::queued(ty, &c));
+    let base = sim.queue_target(b, 0);
+    assert!(base > 1, "a time to halve");
+    let president = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        type_index: 0x163,
+        cols: crate::ai_load::UnitCols {
+            unit_flags2: crate::ai_load::uflags2::GENERAL,
+            ..crate::ai_load::UnitCols::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let _ = sim.init_unit(1, president, tile_pos(41, 34));
+    assert_eq!(sim.queue_target(b, 0), base, "a rival's President");
+    let _ = sim.init_unit(0, president, tile_pos(41, 34));
+    assert_eq!(
+        sim.queue_target(b, 0),
+        base * 100 / (sim.tuning.thepresident_unit_build_speed + 100),
+        "THEPRESIDENT_UNIT_BUILD_SPEED 100 %"
+    );
+    assert_eq!(sim.tuning.thepresident_unit_build_speed, 100);
+    sim.muster[0].researched[ty] = false;
+    let research = sim.queue_target(b, 0);
+    for u in sim.units.iter_mut().filter(|u| u.owner == 0) {
+        u.pos = tile_pos(110, 110);
+    }
+    assert_eq!(
+        sim.queue_target(b, 0),
+        research,
+        "a research entry never reaches the arm"
+    );
+}
+
 #[test]
 fn a_repair_takes_twice_the_build_time_and_costs_the_price_again() {
     let mut sim = world_sim();

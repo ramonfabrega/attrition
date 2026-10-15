@@ -3747,6 +3747,11 @@ filed at its merge). The export prints `in_ST0` and a bare `return` for a float 
 Candidate: `sweep_gen.py` reads the listing's last register write before `ret` (`llvm-objdump`) and names the
 return, or `callfn` refuses a float return it was not told. One reach.
 
+(2527) **`step4.py` names an arm in one run** (2491's "for the Loop" line, filed at its merge). The function list `step4-entered.txt` names the
+branch a value took. 2491's `train_time` showed `has_general`/`find_hero` beside the 16500 in 0.01 s, after an hour
+reading the tail's arms by hand. A brief row: "a value the original computes and ours does not: run it on a packet
+and read the entered list before reading the arms". One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -5638,13 +5643,9 @@ and `issue_toggle_pause` ports). A reader of a generated port cannot tell a gate
 from the log alone; the stub answers are the first numbers of `a` (`a[1]` the check). Recorded here so the next
 port does not re-derive it; no change owed.
 
-## Parked by the next landing, slot DB — reserved
+## Parked by item 2491, 2026-10-15 — the President's train arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+2526 is booked in the queue, at 2491's merge; 2527 is filed in the Loop section.
 
 ## Parked by item 2513, 2026-10-15 — the eighty-first sweep batch
 
