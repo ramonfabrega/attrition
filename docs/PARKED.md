@@ -5927,13 +5927,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EE — reserved
+## Parked by item 2688, 2026-10-15 — the sweep's ninety-seventh batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2689) **`BuildQueue::walk_data` 0x6305f0** (2669's second half) is not built: it calls the walker's slot 4 with `*(int_str_array+0x10)+6000`, then on `input != 0` calls `close`/`init` by the queue count (callees that write `this`), then loops the count over 0x14-byte records handed to the walker. `mix --elems` holds a list or a table, never a count read from `this` with a stride; a `--count-at OFF:STRIDE` elems kind is the shape.
+
+(2690) **`TurnControl::get_delta_percent` 0x957950 and `UnbuiltForts::add_unbuilt_fort` 0x73bc00**: the first returns a float out of `get_frame_timing` and `timeGetTime` (the IAT cell is unhookable, parked 2675); the second indexes the global `unbuilt_forts.lists[param_2]` (a record table, 2676's shape) and calls a grow callback through it. Neither is a built shape.
+
+(2691) **The shortest unbacked rows are render or UI** (`census.py --unbacked`, the 40 shortest: one `Doober::has_doobers`, `Search::valid_filter` (27 arms, parked 2664), `TurnControl::walk_data`, `Unit::find_nearby_spot` are the sim ones, each parked above or in 2670/2675). The batch is seven (2481), not ten.
 
 ## Parked by the next landing, slot EF — reserved
 
