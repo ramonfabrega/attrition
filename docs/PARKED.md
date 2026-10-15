@@ -5478,13 +5478,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CS — reserved
+## Parked by item 2464, 2026-10-14 — the sweep's seventy-fifth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2465) **The `this+OFF` token is built** (2464; parked 2455): the emitted script's spans end with `("this", this,
+0x1000)`, after every window, so `this + 0x28` prints `this+0x28` and a window the heap laid past the object keeps
+its own name. `test_an_ecx_derived_from_this_prints_as_this_plus_its_offset` failed first (the span absent). No
+existing sweep is regenerated; a regen of one that printed an absolute `this` address now reads `this+OFF`.
+(2466) **`--cmd-gate` took six of the ten** (`CommandManager::issue_gather`, `_garrison`, `_follow`, `_form`,
+`_queue_up`, `_patrol`, empty OFF, `a1,a2[,a3]`, `b3` for patrol's byte). The other four are hand `--port`s on the
+generic flags: `issue_come_out` and both `issue_unqueue` read a `UnitOut`/`WallOut` through argument 0 (`ptrarg
+0:0x40`) and write the command as `cmd, zx(byte+9) as a dword, sx(word+0xa) as a dword, [a1 | 0], word+0x30`
+(15 bytes; come_out 11 with no fourth field); `issue_resign` compares argument 0 with the console record's `+0x2a0`
+(`--argeq 0:c0+0x2a0`) and, on bit 0xc of the game's `+0x820`, calls `Player::resign(game+0x44+0x8c*a0, 0)` else
+`add_command(0x46, a0, 5)` with no `check_accept_issue`. A shape for "a command whose fields are bytes and words read
+off an object argument" would take the three; filed for the Loop, not built.
+(2467) **Left**: `GroupOut::issue_move_to`, `_attack_ground`, `_gather_point` (parked 2456's editor branch) and
+the other `CommandManager::issue_*` the census still lists (`issue_turn_data`, `_check_sums`, `_console_cmd`,
+`_rename_city`, `_cannon_time`, `_quit`, `_chat_set`, `_attack`, `_siege_attack`, `_swarm_around`, `_launch_patrol`,
+`_trade`, `_spell`, `_build`, `_eject_all`, `_flight`, `_guard`, `_hotkey`, `_leader_option`, treaty family,
+`_buy`/`_sell` done, `_chat`, `_player_speed`); the group-first ones take `--cmd-gate` as is.
 
 ## Parked by the next landing, slot CT — reserved
 
