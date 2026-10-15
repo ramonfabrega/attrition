@@ -5823,13 +5823,12 @@ tree's `republic` term (`economy.rs` ~915, `REPUBLIC_COMMERCE_BONUS` 50, diff-ba
 bonus; check `calc_resource_caps@006ce900` at age 3 with and without the Republic. Names no word (no draw reads the cap),
 so it parks; its five rows stand in `golden::WANT_CH76`.
 
-## Parked by the next landing, slot DM — reserved
+## Parked by item 2554, 2026-10-15 — the helicopter's edge-to-edge search
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2579) **The Assault Infantry queues' `cost[1]` parts on run866's 5183** (2554): who=1's `1/2014` and `1/2022`, every
+queued `type 104`, read `cost[1]` ours 155 against theirs 116 (`cost[0]` agrees at 178). It is a ground unit, so it is
+not 2553's Space Program arm. Before the word 5225, it names no draw. The first read is `get_cost`'s timber term for
+the type (`leader.py` 5182 against 5183 for who=1).
 
 ## Parked by item 2583, 2026-10-15 — the eighty-sixth sweep batch
 
