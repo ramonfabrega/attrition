@@ -12600,12 +12600,38 @@ the diff that holds it (the `leader:income/resources/leftover/bucket` wealth row
 Tower on a non-human, and the ships' arm on a second trainer type. Census rows reached: `CityData::get_taxes`'s
 wonder arm, `train_time@006508c0`'s ship arm on a human; the count is the commander's pin.
 
-## 97. Reserved for the next item on the rules track
+## 97. Chapter seventy-eight: a helicopter's attack distance held on a human — the edge-to-edge arm agrees to the end of the run
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2627 (Claude Sonnet 5.5, `--effort medium`). **Closed at 1100 of 1100** (run874, `tools/gamelog/golden/chapter78.cmd`;
+`golden::chapter_seventy_eight_holds_to_the_golden_word`, `chapter_seventy_eight_s_word_frame_is_widened_whole`,
+600..1101, eleven `form` rows and two standing `z` rows).
+
+**The arm.** `ObjectData::attack_dist@006488f0` measures centre to centre only for the attacker's vslot `+0xc0`,
+`UnitData::is_plane@0046ce40` (`domain == 2 && !(unit_flags & 0x20)`); a Helicopter (`+0x2b4 & 0x20`) measures edge to edge.
+Item 2554 built it (`fight.rs::attack_dist_from`, AI §227) on the peace pair's AI Attack Helicopter; no walk held it on a human.
+
+**What the disk could not answer**: no capture holds a human's Helicopter ordered onto a building (the peace pair's is the AI's,
+run866). The Helicopter is Modern Age at an Airbase, but `add` takes no age and no base, so the chapter stages none.
+
+**The staging** (walked on run871's start, `RON_STAGE=ch76:chapter78:1000`): Barracks `1/2006` (190, 82) kept only so the
+target is `1/2007` (212, 104) — an `@attack` at `1/2006` was dropped in the walk — a human Helicopter `0/6` at (190, 66)
+`@attack`ed onto `1/2007` on 630, and a human Citizen `0/7` at (212, 101) **for sight**: with nothing of who=0's near the
+target this crate drops the order (a Citizen at (212, 96) and a Hoplite elsewhere did not take it; (212, 101) does).
+**First take, run874 as first booked** (kept in `~/ron-golden/ch78-take1-biplane`): a Biplane control `0/7`. It parted at
+736 for a reason that is not the chapter's: the original's Biplane flies (z 248) and engaged citizens, ours sat on the
+ground (z 0). That take was retaken with the Citizen in the Biplane's place; one run only, the second.
+
+**What run874 held** (click-free lane 1, 1101 frames): the Helicopter closes on the Barracks, stops at (39576, 18504) —
+1858 from the Barracks's centre, ~1344 + extents — and fires from there, both sides to block 1100 on the whole unit record.
+**Mutation** (`attack_dist_from`'s plane made the domain test again, as before 2554): the walk's word parts at 709.
+
+**Standing rows**: the `form` rows of chapters seventy-three to seventy-seven (the start's formations), and an `add`ed
+Helicopter's `g.z[0]`/`g.last_z[0]` on 611: theirs 30 the frame after, ours 0 until 631 (parked 2629).
+
+**What is not established**: a plane (`is_plane` true) on a human, the control the booking asked for — the Biplane staged
+without a base is not a walk (parked 2630); the Helicopter's range at an Attack Helicopter's different type; the Airbase
+trainer path (the unit is `add`ed). **Census rows reached**: `ObjectData::attack_dist@006488f0`'s non-plane arm and
+`UnitData::is_plane@0046ce40` on a human; the count is the commander's pin.
 
 ## 98. Reserved for the next item on the rules track
 

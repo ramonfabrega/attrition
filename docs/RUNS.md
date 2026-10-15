@@ -17208,3 +17208,12 @@ the chapter-seventy-six `--detail` flags). Pool lane 1, `success`, `settings_res
 Minutes waited on another lane: none. **What it holds**: Galleys at the Dock `0/2007`, queued 620 and born 1026 (405 frames),
 queued 1100 and born 1281 (180 frames) under the Tower `0/2009` finished 701; the wealth rows part on 705 (the market's
 taxes, built) and agree after — whole record agrees, 1400 of 1,400, thirteen standing rows.
+
+## run874 — chapter seventy-eight: a Helicopter's attack distance on a human (2026-10-15, item 2627, `att-2627`)
+
+`docs/GOLDEN.md` §97. **What the disk could not answer**: no capture holds a human's Helicopter ordered onto a building; run866's is
+the AI's. The recipe is `tools/gamelog/golden/chapter78.cmd`'s header (`--map 14 --end-frame 1100 --log-window 600 1100`, the
+chapter-seventy-six `--detail` flags with `LEADERS=2` at the end). Pool lane 1, `success`, `settings_restored`, kept in
+`~/ron-golden/ch78/map-14/`. A first take with a Biplane control parted at 736 and is in `~/ron-golden/ch78-take1-biplane`.
+Minutes waited on another lane: none. **What it holds**: the Helicopter `0/6` ordered on 630 onto the Barracks `1/2007`, closing
+and firing edge to edge from (39576, 18504); the whole record agrees, 1100 of 1,100, thirteen standing rows.
