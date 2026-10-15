@@ -290,3 +290,45 @@ install's own XML (`docs/COMBAT.md` §15.2–15.3). On the heavengames sample:
   is identical, and its backward dynamic program over the full 1.68 MB
   proved the package stream can start at exactly one offset — the same byte
   the landmark finds.
+
+## 7. Playback-oracle preflight (2026-10-15)
+
+The click-free runner accepts `--recording <absolute.rcx>` instead of lobby
+options. It retains the source path/hash and reads only §3.1's seed/map prefix
+for identity checking; this is **not** a second full container parser. A fresh
+capture directory links the source as `input.rcx`, avoiding the original
+command-line tokenizer's treatment of spaces and hyphens in filenames.
+
+`RON_REPLAY` selects the native menu's playback result (13), after calling the
+native String assignment for `record_game.file_name` from `sys.playback_file`.
+Evidence: `SetupWin::exec@005c67f0` instructions at `005c6970..005c697f`,
+`TopMenu::check_result@0059b1e0` at `0059b5c0`, and
+`Main::run_game_loop@00595f40`'s playback arm. The instrument checks the
+assignment and result bytes before patching. It neither loads simulation
+state itself nor routes through solo setup. These readings retain blind-review
+debt; run900's opening is executable evidence that this build plays the file.
+
+**Measured opening:** run900, Seifer008's 2017 EE match, frames 0..36,
+clean exit, map 7, five players, and all five backed-up settings restored.
+The recording's seed **340513920** survives `rise.ini` seed **12345**.
+`GAME INFO`/`GAMEINFO`, `FRAME` and closing records use the solo log's shape.
+`GameLog::init@00933190` names the output **`gamelog_p.txt`**, not
+`gamelog.txt`; the runner now uses that path for both its stall detector and
+its verifier. A playback receipt requires install → menu 13 → contiguous
+frames → menu 21, with no solo-modal events, faults or dropped records.
+
+**Absent evidence matters:** the existing Rust parser accounts for all
+21,884 packages and 25,779 commands, but finds **zero** `CheckRandom`,
+`CheckSums`, or `NextCheckSum` commands in this recording. Its sample test
+pins that absence. The emitted checksum log is a new playback measurement,
+not an embedded reference. No frame of agreement against recording checksums
+can be reported for this file. The combat table still matches all 243,049
+cells of this install; that does not certify dynamic playback fidelity.
+
+**Scope correction:** a standard random-map recording does not embed a full
+initial entity/world snapshot (§4). It carries setup and loaded rules; the
+native game regenerates the world. Only the embedded-save arm carries a save.
+A replay harness must explicitly choose reconstruction or a separately captured
+starting-state oracle. No snapshot loader or sim parting floor is established
+by this preflight. Full playback and its end condition are recorded separately
+in run900's ledger/journal; the opening alone proves no end-to-end result.

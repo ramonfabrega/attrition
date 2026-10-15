@@ -17032,3 +17032,32 @@ zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch74
 One take, click-free pool lane 1, `success: true`, 181 s, 761 frames. **What it holds**:
 `golden::chapter_seventy_four_holds_to_the_golden_word` (**760**, the trace's end, closed) and
 `chapter_seventy_four_s_word_frame_is_widened_whole` (600..761, thirteen standing rows).
+
+
+## run900 — external recorded-game playback preflight (2026-10-15, Astra)
+
+Reserved by `docs/lab/2026-10-15-astra-brief.md` (900–909); no queue item.
+**Disk gap:** no external match had a paired native-playback trace/gamelog.
+Source: HeavenGames file 2170, `game/external-recgames/seifer008 - Toughest AI 4 v 1.rcx`,
+SHA-256 `df7830d7b6c77e1318a1ef5b7725ae2f0b0c8db5957bed85db0479b506f72649`.
+The recording reader finds 21,884 packages, frames 0..21044, 25,779 commands,
+zero embedded sync commands, and a matching 493×493 combat table.
+
+**Opening:** `~/ron-data/lab-captures/2026-10-15-run900-playback-opening/map-7`.
+Click-free pool lane 1, 37 trace frames 0..36, exit 0, success and restoration
+true (5 files), 15.38 s launch to exit. Native playback prints `gamelog_p.txt`;
+`GAMEINFO` map 7, seed 340513920 rather than the staged ini's 12345. Player
+slots map to leaders 3/0/1/2/4, tribes 15/7/8/2/17; only leader 3 is human.
+Recipe: `golden_capture.sh <fresh-output> --recording <source> --end-frame 36
+--timeout 180 --stall-seconds 60 --log-window 0 2 --callwin 1 0
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2
+--detail misc:CHECKSUM=2 --detail endgame:UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2`,
+through `viadriver.sh` with a fresh build TMPDIR, then `waitrun.sh`.
+
+The full-length sibling is running at
+`~/ron-data/lab-captures/2026-10-15-run900-playback-full/map-7`; its receipt,
+endpoint and overlap are pending. Do not treat the opening as a full replay.
+Exploratory siblings `run900-playback-probe` and `run900-playback-probe-b`
+are failed runner attempts, not scored fixtures; the latter mixed two launches
+because the solo filename triggered a false retry. RECGAME §7 and
+`docs/journal/2026-10-15-astra-replay-oracle.md` carry limitations/reproduction.

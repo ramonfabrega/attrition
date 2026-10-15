@@ -28,7 +28,25 @@ static void (*auto_idle_original)(void);
 
 static i32 __thiscall auto_menu(void *self) {
     (void)self;
+#ifdef RON_REPLAY
+    /* SetupWin::exec+0x180 assigns this native String pair; the menu's
+     * playback arm returns 13 (TopMenu::check_result+0x3e0). Select the
+     * command-line file without entering the solo setup or file dialog. */
+    u32 result = auto_menu_count++ == 0 ? 13 : 21;
+    if (result == 13) {
+        if (!*(u16 *)(g_base + 0xa38b3c)) {
+            emit(K_INFO, 174, 4, 0, 0, 0, 0);
+            flush();
+            ExitProcess(6);
+        }
+        typedef void *(__thiscall *Assign)(void *, const void *);
+        ((Assign)(g_base + 0x61eeb0))((void *)(g_base + 0xa8f7c0),
+                                    (void *)(g_base + 0xa38b34));
+        auto_started = 1;
+    }
+#else
     u32 result = auto_menu_count++ == 0 ? 1 : 21; /* GAME_SOLO, GAME_QUIT */
+#endif
     emit(K_INFO, 170, result, auto_menu_count, 0, 0, 0);
     flush();
     if (result == 21) ExitProcess(auto_started && g_frame >= 0 ? 0 : 6);
@@ -91,6 +109,18 @@ static i32 auto_different(const void *a, const void *b, u32 n) {
 #endif
 static void install_autostart(void) {
     AddVectoredExceptionHandler(1, (void *)auto_fault);
+#ifdef RON_REPLAY
+    /* The assignment call and playback menu result are build-specific too.
+     * Refuse before any patch if their native evidence bytes changed. */
+    static const u8 replay_assign[] = {0x68,0x34,0x8b,0xe3,0,0xb9,0xc0,0xf7,0xe8,0,
+                                      0xe8,0x31,0x85,0x45,0};
+    static const u8 replay_result[] = {0xb8,0x0d,0,0,0};
+    if (g_base != 0x400000 ||
+        auto_different((void *)(g_base+0x1c6970), replay_assign, sizeof replay_assign) ||
+        auto_different((void *)(g_base+0x19b5c0), replay_result, sizeof replay_result)) {
+        emit(K_INFO, 174, 5, 0, 0, 0, 0); flush(); return;
+    }
+#endif
     static const u8 menu[] = {0x55,0x8b,0xec,0x64,0xa1,0,0,0,0};
     static const u8 idle[] = {0x55,0x8b,0xec,0x83,0xe4,0xf8};
     static const u8 modal[] = {0xff,0x90,0xc0,3,0,0};

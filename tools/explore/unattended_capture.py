@@ -8,6 +8,8 @@ import argparse
 from contextlib import contextmanager
 import fcntl
 import hashlib
+import gzip
+import struct
 import json
 import os
 from pathlib import Path
@@ -26,6 +28,29 @@ LAUNCH = '''source "$1"
 ron_wine "$2" "$3" "${@:4}"
 wait $RON_WINE_PID
 '''
+
+
+def recording_identity(path):
+    """Read only RECGAME §3.1's seed/map prefix; not a full RCX validator."""
+    with path.open('rb') as source:
+        compressed = source.read(2) == b'\x1f\x8b'
+    opener = gzip.open if compressed else open
+    with opener(path, 'rb') as source:
+        prefix = source.read(6)
+        if len(prefix) != 6 or prefix[:2] != b'\x16\x42':
+            raise ValueError('unsupported recording header')
+        size = struct.unpack_from('<I', prefix, 2)[0]
+        if size > 4096:
+            raise ValueError('unbounded recording version string')
+        data = source.read(size * 2 + 54)
+        if len(data) != size * 2 + 54:
+            raise ValueError('truncated recording identity')
+        return struct.unpack_from('<I', data, size * 2 + 4)[0], data[size * 2 + 25]
+
+
+def capture_log(output, playback=False):
+    # GameLog::init appends _p before the extension on the playback arm.
+    return output / ('gamelog_p.txt' if playback else 'gamelog.txt')
 
 
 def set_map(profile, style):
@@ -302,6 +327,10 @@ def capture(args, output, style):
     if HELD:
         report['lane'] = HELD['lane']
         report['lane_prefix'] = HELD['prefix']
+    recording = getattr(args, 'recording', None)
+    playback = recording is not None
+    gamelog = capture_log(output, playback)
+    launch_args = LAUNCH_ARGS + (['-config', 'input.rcx'] if playback else [])
     staged = False
     process = None
     started = time.monotonic()
@@ -332,6 +361,10 @@ def capture(args, output, style):
                             'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
                                             if (output/'rontrace.cmd').is_file() else None}
         staged = True
+        if playback:
+            (output / 'input.rcx').symlink_to(recording)
+            report['recording'] = {'path': str(recording), 'sha256': sha(recording),
+                                   'seed': args.recording_seed}
         set_map(args.profile, style)
         mute(args.profile)
         report['lobby'] = getattr(args, 'lobby', None) or []
@@ -343,15 +376,18 @@ def capture(args, output, style):
         env = os.environ.copy()
         report['startup_probe'] = getattr(args, 'startup_probe', False)
         env['TRACER_DEFS'] = ('-DRON_AUTOSTART'
+                              + (' -DRON_REPLAY' if playback else '')
                               + (' -DRON_STARTUP_PROBE' if report['startup_probe'] else '')
                               + ''.join(' -D' + d for d in getattr(args, 'tracer_defs', None) or []))
+        report['staged']['build_defines'] = env['TRACER_DEFS']
+        report['gamelog'] = gamelog.name
         with (output / 'build.log').open('w') as log:
             subprocess.run(['zsh', str(ROOT/'tools/trace/build.sh'), str(output)],
                            env=env, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=180)
         report['build_seconds'] = time.monotonic()-started
         report['sha256'] = {name: sha(output/name) for name in
                             ('riseofnations.exe','riseofnations_trace.exe','rontrace.dll','rontrace.cmd','rontrace.cfg')}
-        report['launch_args'] = LAUNCH_ARGS[:]
+        report['launch_args'] = launch_args[:]
         report['wine_debug'] = os.environ.get('WINEDEBUG', '-all')
         launch = time.monotonic()
         # Wall-clock stamps (item 1568): two lanes' runs overlap or not, and
@@ -359,7 +395,7 @@ def capture(args, output, style):
         report['launched_at'] = wall()
         def start():
             return subprocess.Popen(['zsh','-c',LAUNCH,'unattended',str(ROOT/'tools/gamelog/winelaunch.sh'),
-                                    str(output/'wine.log'),str(output/'riseofnations_trace.exe'),*LAUNCH_ARGS],
+                                    str(output/'wine.log'),str(output/'riseofnations_trace.exe'),*launch_args],
                                    cwd=output, start_new_session=True)
         process = start()
         # A launch that has written no gamelog by `--stall-seconds` is
@@ -373,7 +409,7 @@ def capture(args, output, style):
                 report['exit_code'] = process.wait(timeout=5)
                 # A take that died before frame 0 (no gamelog at all) is
                 # taken once more (parked 1987), the first take's log kept.
-                if exit_verdict(report, stalled_before_frame_zero(output/'gamelog.txt')) == 'retake':
+                if exit_verdict(report, stalled_before_frame_zero(gamelog)) == 'retake':
                     now = time.monotonic()
                     if (output/'wine.log').exists():
                         (output/'wine.log').replace(output/'wine-died.log')
@@ -389,7 +425,7 @@ def capture(args, output, style):
                 pass
             now = time.monotonic()
             verdict = stall_verdict(report, now - launch, stall,
-                                    stalled_before_frame_zero(output/'gamelog.txt'))
+                                    stalled_before_frame_zero(gamelog))
             if verdict == 'relaunch':
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait(timeout=10)
@@ -412,12 +448,15 @@ def capture(args, output, style):
         report['exited_at'] = wall()
         early = getattr(args, 'allow_early_end', False)
         report.update(receipt_file(output/'rontrace.log',args.end_frame,report['exit_code'],
-                                   allow_early_end=early))
-        report.update(verify_game(output/'gamelog.txt',style,args.end_frame,args.seed,
+                                   allow_early_end=early, playback=playback))
+        report.update(verify_game(gamelog,style,args.end_frame,
+                                  args.recording_seed if playback else args.seed,
                                   detail=getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL,
                                   ai_tribe=report['ai_tribe_requested'],
                                   log_window=getattr(args, 'log_window', None),
                                   allow_early_end=early))
+        if playback and sha(recording) != report['recording']['sha256']:
+            raise ValueError('recording changed during playback')
         report['map_verified'] = True
         report['seed_requested'] = args.seed
         report['success'] = True
@@ -687,6 +726,7 @@ def main():
     ap.add_argument('--allow-early-end',action='store_true',
                     help='a game that ends itself before --end-frame is a success, with `ended_early` '
                          'and `last_frame` in the receipt (a coverage long; parked 1551, 1529)')
+    ap.add_argument('--recording', type=Path, help='play an RCX using its own seed and map; --seed still sets the ini for comparison')
     ap.add_argument('--seed',type=int,default=12345)
     ap.add_argument('--timeout',type=int,default=180)
     ap.add_argument('--stall-seconds',type=int,default=300,
@@ -714,6 +754,12 @@ def main():
     args=ap.parse_args()
     if any(not re.fullmatch(r'[A-Z_0-9]+=-?\d+', p) for p in args.lobby or []):
         ap.error('--profile takes KEY=N')
+    if args.recording is not None:
+        args.recording = args.recording.resolve(strict=True)
+        args.recording_seed, recording_map = recording_identity(args.recording)
+        if args.maps or args.lobby or args.ai_tribe is not None or args.cmd_file:
+            ap.error('--recording owns the lobby; omit --map, --profile, --ai-tribe and --cmd-file')
+        args.maps = [recording_map]
     args.maps=tuple(args.maps or (14,18))
     signal.signal(signal.SIGTERM, interrupted)
     pinned=os.environ.get('RON_CAPTURE_LANE')
