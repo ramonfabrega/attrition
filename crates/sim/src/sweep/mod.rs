@@ -800,6 +800,7 @@ mod strafe_order_get_attack_order;
 mod strafe_order_get_strafe_order_vtordisp;
 mod strafe_order_walk_data_vtordisp;
 mod strip_builder_remove_end;
+mod sub_object_data_is_seen;
 mod sub_object_data_play_sound;
 mod sub_object_is;
 mod sub_object_must_walk;
