@@ -41,7 +41,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 **Opener: the thirty-seventh tranche continues (commander) at fourteen landings from `23e2df12`: four lanes live —
 2737 (`claude-opus-5-5[1m]`), 2725, 2743 and 2731 (`claude-sonnet-5-5[1m]`), all `--effort medium` — re-arm
 `tools/lanewait.py --deep-state $CLAUDE_JOB_DIR/tmp/lanewait-deep.json` on the four; merge, book, spawn, gate,
-push, reap as one chain, the last whole gate on `cdddeab3`, the next whole at the twelfth; stop at twenty.**
+push, reap as one chain, the last whole gate on `1c2bb098`, the next whole at the seventeenth; stop at twenty.**
 
 ## The queue
 
