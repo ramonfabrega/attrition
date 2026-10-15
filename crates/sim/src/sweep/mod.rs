@@ -642,6 +642,7 @@ mod guy_update_z;
 mod herd_process;
 mod herd_walk_data;
 mod herds_find_herd;
+mod herds_start_herds;
 mod herds_walk_data;
 mod hero_walk_data;
 mod item_data_get_gpiece;
