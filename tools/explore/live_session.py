@@ -51,10 +51,17 @@ def parse_detail(specs):
     return wanted
 
 
-def parse_commands(path, end):
-    """`<sim-frame> <text>` lines, as rontrace.dll reads them; `#` comments kept."""
+def parse_commands(path, end, without=()):
+    """`<sim-frame> <text>` lines, as rontrace.dll reads them; `#` comments kept.
+
+    `without` is the frames whose staged lines are dropped — a control is
+    the chapter's own script less one arm (Loop 2542: 2530 cut run869's
+    control with `grep -v` by hand and recorded a placeholder for it). A
+    frame no staged line holds is refused: a control that drops nothing is
+    no control."""
     lines = []
     previous = 0
+    dropped = set()
     for number, raw in enumerate(Path(path).read_text().splitlines(), 1):
         line = raw.strip()
         if not line or line.startswith('#'):
@@ -68,7 +75,13 @@ def parse_commands(path, end):
         if int(frame) < previous:
             raise ValueError(f'{path}:{number}: frame {frame} is below the previous {previous}')
         previous = int(frame)
+        if int(frame) in without:
+            dropped.add(int(frame))
+            continue
         lines.append(f'{int(frame)} {text.strip()}')
+    for frame in without:
+        if frame not in dropped:
+            raise ValueError(f'{path}: no staged line at frame {frame} to drop (--cmd-without)')
     return lines
 
 
@@ -174,7 +187,10 @@ def stage(args):
         raise ValueError('output must be outside the install and profile trees')
     if not (install / 'riseofnations.exe').is_file():
         raise ValueError('install has no riseofnations.exe')
-    commands = parse_commands(cmd_file, end) if cmd_file else []
+    without = tuple(getattr(args, 'cmd_without', None) or ())
+    commands = parse_commands(cmd_file, end, without) if cmd_file else []
+    if without and not cmd_file:
+        raise ValueError('--cmd-without needs a --cmd-file')
     # Validate all edits before changing shared settings.
     rise = key((profile / 'rise.ini').read_text(), 'InitialDump', int(full_start))
     if full_start:

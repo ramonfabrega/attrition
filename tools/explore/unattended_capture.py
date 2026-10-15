@@ -743,6 +743,9 @@ def main():
     ap.add_argument('--tracer-def', action='append', dest='tracer_defs', metavar='NAME',
                     help='extra tracer.c define, repeatable (e.g. RON_TARGET_PROBE)')
     ap.add_argument('--cmd-file',type=Path)
+    ap.add_argument('--cmd-without',type=int,action='append',metavar='FRAME',
+                    help='drop the staged lines at this frame: a chapter\'s control in one flag '
+                         '(Loop 2542); repeatable; a frame with no staged line is refused')
     ap.add_argument('--ffwd-minute',type=int)
     ap.add_argument('--dump-all-start', action='store_true',
                     help='full initial dump and WORLD=6, bounded to log window 0 2')
@@ -757,8 +760,8 @@ def main():
     if args.recording is not None:
         args.recording = args.recording.resolve(strict=True)
         args.recording_seed, recording_map = recording_identity(args.recording)
-        if args.maps or args.lobby or args.ai_tribe is not None or args.cmd_file:
-            ap.error('--recording owns the lobby; omit --map, --profile, --ai-tribe and --cmd-file')
+        if args.maps or args.lobby or args.ai_tribe is not None or args.cmd_file or args.cmd_without:
+            ap.error('--recording owns the lobby; omit --map, --profile, --ai-tribe, --cmd-file and --cmd-without')
         args.maps = [recording_map]
     args.maps=tuple(args.maps or (14,18))
     signal.signal(signal.SIGTERM, interrupted)
@@ -789,7 +792,7 @@ def main():
         # line (parked 1987): 1988 lost a take to a traceback on an
         # `--end-frame` below a staged `@` line's frame.
         try:
-            live_session.parse_commands(args.cmd_file, args.end_frame)
+            live_session.parse_commands(args.cmd_file, args.end_frame, tuple(args.cmd_without or ()))
         except ValueError as exc:
             ap.error(f'{exc} — raise --end-frame past every staged line, or drop the line')
     why = (refused_detail(args.detail) or refused_tracer_defs(getattr(args, 'tracer_defs', None))

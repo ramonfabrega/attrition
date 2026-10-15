@@ -113,6 +113,24 @@ def render(rows, when, tree, wall_note=''):
     return '\n'.join(head + [f'{s:.2f}\t{n}' for s, n in rows]) + '\n'
 
 
+def stale_only(names, text):
+    """The `(binary, name)` pairs the timings file's text has never timed."""
+    known = timed(text)
+    return [(b, n) for b, n in names if n not in known]
+
+
+def merged(text, rows, when, tree):
+    """The timings file's text with `rows` (`(seconds, name)`) merged under
+    the kept ones — a re-timed test's new row wins — rendered whole. The
+    thirty-sixth pass: ten tests were untimed one tranche after the suite
+    was re-timed whole (849 tests, 59 minutes, the loop held the while), so
+    `--stale-only` times the untimed alone and merges them here."""
+    kept = timed(text)
+    for secs, name in rows:
+        kept[name] = secs
+    return render([(s, n) for n, s in kept.items()], when, tree, '; --stale-only merged')
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('install', nargs='?', help="the game's install, for RON_INSTALL")
@@ -121,6 +139,9 @@ def main(argv=None):
                     help="list the tests the lane gate's timings file has never timed, and exit")
     ap.add_argument('--timings', type=Path, default=None,
                     help="the file --stale reads (default: release_gate.py's TIMINGS)")
+    ap.add_argument('--stale-only', action='store_true',
+                    help='time only the tests the timings file has never timed, and merge '
+                         'them into it (written to --out, or over the file itself)')
     args = ap.parse_args(argv)
     import release_gate  # noqa: E402  (the gate's own TIMINGS path)
     timings = args.timings or release_gate.TIMINGS
@@ -145,6 +166,9 @@ def main(argv=None):
     env = dict(os.environ, RON_INSTALL=str(Path(args.install).resolve()))
     tree = subprocess.run(['git', 'rev-parse', '--short=8', 'HEAD'], cwd=ROOT,
                           capture_output=True, text=True, check=True).stdout.strip()
+    if args.stale_only:
+        names = stale_only(names, timings.read_text())
+        print(f'{len(names)} untimed test(s) to time', file=sys.stderr)
     rows, mem, red = [], [], []
     t0 = time.monotonic()
     for i, (b, n) in enumerate(names, 1):
@@ -155,12 +179,22 @@ def main(argv=None):
             red.append(n)
         print(f'[{i}/{len(names)}] {secs:8.2f} {mib:7.0f}M  {n}{"  RED" if code else ""}', file=sys.stderr, flush=True)
     wall = time.monotonic() - t0
-    text = render(rows, date.today().isoformat(), tree, f'; the run {wall / 60:.0f} min wall')
-    if args.out:
-        args.out.write_text(text)
-        mem_out = args.out.with_name(args.out.name.replace('-suite-timings', '-suite-memory'))
+    if args.stale_only:
+        text = merged(timings.read_text(), rows, date.today().isoformat(), tree)
+    else:
+        text = render(rows, date.today().isoformat(), tree, f'; the run {wall / 60:.0f} min wall')
+    if args.out or args.stale_only:
+        out = args.out or timings
+        out.write_text(text)
+        mem_out = out.with_name(out.name.replace('-suite-timings', '-suite-memory'))
+        if args.stale_only and mem_out.exists():
+            old_mem = {n: m for m, n in ((float(a), b) for a, b in
+                       (l.split('\t') for l in mem_out.read_text().splitlines() if not l.startswith('#')))}
+            for mib, n in mem:
+                old_mem[n] = mib
+            mem = [(m, n) for n, m in old_mem.items()]
         mem_out.write_text(render_memory(mem, date.today().isoformat(), tree))
-        print(f'wrote {args.out} ({len(rows)} tests, {sum(s for s, _ in rows):,.0f} s) and {mem_out}')
+        print(f'wrote {out} ({len(timed(text))} tests, {sum(timed(text).values()):,.0f} s) and {mem_out}')
     else:
         sys.stdout.write(text)
     if red:

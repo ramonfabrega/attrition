@@ -407,6 +407,27 @@ def roster():
     return found
 
 
+def rows_for(lanes, wait, interval, roster_fn=None, sleep_fn=time.sleep):
+    """The roster once every lane in `lanes` has a worktree branch, or after
+    `wait` seconds: `(rows, missing)`, `rows` None when ccc did not answer.
+    Loop 2620 (the thirty-sixth pass): armed in the spawn's own turn, the
+    waiter exited 2 at once — the new row had not yet shown its branch — and
+    a wait that dies at arm leaves the commander waking on nothing, so a
+    missing branch is asked again every `interval` seconds for `wait`."""
+    roster_fn = roster_fn or roster
+    waited = 0.0
+    while True:
+        rows = roster_fn()
+        if rows is None:
+            return None, list(lanes)
+        missing = [lane for lane in lanes if lane not in rows or not rows[lane][2]]
+        if not missing or waited >= wait:
+            return rows, missing
+        step = min(interval, wait - waited)
+        sleep_fn(step)
+        waited += step
+
+
 def origin_tip(cwd, branch):
     out = subprocess.run(['git', 'rev-parse', '--verify', '-q', f'refs/remotes/origin/{branch}'],
                          cwd=cwd, capture_output=True, text=True, check=False)
@@ -432,13 +453,15 @@ def main(argv=None):
     parser.add_argument('--uncleared-after', type=float, default=5, metavar='MIN',
                         help="exit UNCLEARED once per lane whose newest transcript ends on a /clear "
                              "this long with no turn after it (parked 2127); 0 off")
+    parser.add_argument('--roster-wait', type=float, default=60, metavar='S',
+                        help='seconds to wait for a named lane to show its worktree branch before '
+                             'refusing (Loop 2620: a wait armed in the spawn\'s own turn died at arm)')
     args = parser.parse_args(argv)
 
-    rows = roster()
+    rows, missing = rows_for(args.lanes, args.roster_wait, 5)
     if rows is None:
         print('lanewait: ccc list did not answer', file=sys.stderr)
         return 2
-    missing = [lane for lane in args.lanes if lane not in rows or not rows[lane][2]]
     if missing:
         print(f"lanewait: no roster row with a worktree branch for {', '.join(missing)}", file=sys.stderr)
         return 2

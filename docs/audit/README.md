@@ -315,6 +315,48 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.
+## The brief checklist, from the thirty-sixth pass
+
+The thirty-sixth tranche (DECISIONS 73): twenty-two landings on the
+same three lanes in 5 h 52 min from the pass's commit, 3.92 USD and
+27.0 minutes waiting a landing, no kill rule tripped, no red booking
+gate. The pass added these rows, each from the tranche's own journals
+or the commander's, and struck three the tools now enforce, rows 1839,
+1885, 1931 and 2199.
+
+- **A one-draw `Guy::inc_time` delta is placed by `Unit::inc_time`'s
+  `+0x3e`/`+0x6e` callers in theirs' trace** (2639, 2609's Loop line):
+  the word's unit in one read, no probe.
+- **A word under a `Group::` caller takes `RON_DEBUG_ARMIES` beside
+  `RON_STACKS`** (2610, 2554's Loop line): the dump prints no army
+  record, and the probe named the army, its target and its leader.
+- **A value the dump prints that no reading produces is grepped in the
+  export** (2577, 2543's Loop line): a reading and a packet both agreed
+  with this crate while `job_counter 500000` sat on every `finish`
+  capture; the grep named `run_cmd` case 0x4f in a minute.
+- **A value the original computes and ours does not runs on a packet,
+  `step4-entered.txt` first** (2527, 2491's Loop line): the arm in 0.01
+  s after an hour of reading the tail by hand.
+- **The capture wait's `timeout` is the Bash tool's argument, never a
+  command** (2599, 2572's Loop line): macOS has no `timeout`, and a
+  prefixed wait exited at once with run871 still capturing.
+- **An edit inside a `&&` chain is python or `sed -i ''`** (2628,
+  2598's Loop line): a BSD `sed -i` failed first and the commit and the
+  launch behind it never ran.
+- **A control is the recipe with `--cmd-without <the arm's frame>` on
+  the second reserved run** (2542, 2519's and 2530's Loop lines):
+  run869's control was cut with `grep -v` into a job tmp, and its
+  record carries a placeholder.
+- **A float return's register is the listing's last write before
+  `ret`, never the export's `in_ST0`** (2552, 2537's Loop line): an
+  `st0` build was booked on the misprint and found wrong at the listing.
+- **A sweep batch takes the functions a built shape holds first,
+  shortest of the rest after** (2622, the commander's): six batches
+  backed 10, 3, 10, 6, 7 and 1 as each session built one shape for one
+  or two functions.
+- **A sweep's `agent-*` worktrees go with its landing**: three stood a
+  day after the thirty-fifth tranche, two with unmerged tips.
+
 ## The brief checklist, from the thirty-fifth pass
 
 The thirty-fifth tranche (DECISIONS 72): twenty-two landings on three
@@ -420,9 +462,10 @@ journals.
   zeros under the emulator** (2216, 2187's Loop line): two of ten breaks
   passed on a starved arm; `covers_tile`'s original answered 0 on every
   row through an unfilled `div_3_table`.
-- **A long with no `--detail` is refused before staging** (2199, 2107's
+- ~~**A long with no `--detail` is refused before staging** (2199, 2107's
   Loop line): run830 staged `end:UNITS=3` on every frame, 37 minutes and
-  717 MB the walker could not stand on.
+  717 MB the walker could not stand on.~~ **Struck by the thirty-sixth
+  pass**: the runner says so itself, before staging.
 - **`unitat.py` prints a `GroupMoveOrder`** (2145, 2131's Loop line):
   the dump spells it mixed-case and the printer's suffix match dropped
   it, so run827's 662 read as "the original queued nothing".
@@ -820,9 +863,10 @@ struck; the chapter kind stands at 12,979 of 13,000.
 - **`RON_DEBUG_UNIT` prints `TI`, `TY` and the type's name** (1846): a
   brief that named a unit by `TY` read 272 as a `HUMMEL`; the Freighter
   was `TI` 322.
-- **The staging walk refuses a frame below its predecessor, as the
+- ~~**The staging walk refuses a frame below its predecessor, as the
   capture does** (1839): run783's first launch died on a script
-  `stage_walk` had walked clean.
+  `stage_walk` had walked clean.~~ **Struck by the thirty-sixth pass**:
+  both refuse in their own words.
 - **The sweep's shapes are `sweep_gen.py`'s six, its helpers
   `sweeplib.py`, a float argument `xmm_bits`; the dead weight is hidden
   from `--unbacked`** (1761, 1867, 1861): fourteen batches threw away
@@ -850,10 +894,11 @@ tranche's own journals.
   changes.
 - **A unit's packet address is `unitaddr.py`** (1953): three lanes
   scanned for the masked pair by hand.
-- **The runner retakes a take that died before frame 0 once, refuses a
-  staged line past `--end-frame` in one line, and refuses `GROUPS`
-  beside `DEATHS` before staging** (1987, 1885, 1931): run801's first
-  take, 1988's lost take, run791's two takes.
+- **The runner retakes a take that died before frame 0 once** (1987):
+  run801's first take, 1988's lost take. ~~**It refuses a staged line
+  past `--end-frame` in one line, and refuses `GROUPS` beside `DEATHS`
+  before staging** (1885, 1931): run791's two takes.~~ **Struck by the
+  thirty-sixth pass**: the runner says so itself.
 - **`sweep_gen.py` has `obj` with windows, `void`, `vcall --own` and an
   answer that sets `ecx`** (1890, 1922): thirteen reaches of one Loop
   item, every batch of the tranche a hand-written script of one of

@@ -168,6 +168,27 @@ class SessionTest(unittest.TestCase):
         module.restore(self.output)
         self.assert_restored()
 
+    def test_a_control_drops_the_staged_lines_at_one_frame(self):
+        # Loop 2542 (the thirty-sixth pass): chapter seventy-five's control,
+        # "the script less its `finish` line", had no recipe — 2530 cut it
+        # with `grep -v` into its job tmp and `docs/RUNS.md` records run869
+        # with a placeholder for the file. `--cmd-without <frame>` is the
+        # control in one flag, and the receipt's staged lines show it.
+        script = self.root / 'chapter.cmd'
+        script.write_text('0 !ai off\n1200 age who=0 5\n1300 war\n1300 @finish 1\n')
+        self.args.cmd_file = script
+        self.args.end_frame = 2000
+        self.args.cmd_without = [1300]
+        module.stage(self.args)
+        self.assertEqual((self.output / 'rontrace.cmd').read_text(),
+                         '0 !ai off\n1200 age who=0 5\n2000 !quit\n')
+        module.restore(self.output)
+        # A frame no staged line holds is a control that drops nothing.
+        self.args.cmd_without = [1301]
+        with self.assertRaisesRegex(ValueError, 'no staged line at frame 1301'):
+            module.stage(self.args)
+        self.assert_restored()
+
     def test_a_window_or_a_command_past_the_quit_frame_is_refused(self):
         for attribute, value, pattern in [
                 ('log_window', [18, 500], 'log window'),

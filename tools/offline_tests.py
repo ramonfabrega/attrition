@@ -54,6 +54,8 @@ SUITES = (
     'test_births',
     'test_recomp_flags',
     'test_hooks_stubs',
+    'test_suite_timings',
+    'test_buildat',
     'test_offline_tests',
 )
 

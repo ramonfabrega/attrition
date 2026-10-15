@@ -231,3 +231,33 @@ class EndedCarriesTheRowsDetail(unittest.TestCase):
         self.assertEqual(lanewait.event(watch, states, tips, 6, 100, details=details),
                          (3, 'ENDED a blocked — reply `go` to merge tip a22bdbef'))
 
+
+
+class TheRosterIsAwaited(unittest.TestCase):
+    """Loop 2620 (the thirty-sixth pass): `lanewait.py` armed in the spawn's
+    own turn exited 2 at once — "no roster row with a worktree branch for
+    att-2615" — because the row had not yet shown its branch; a wait that
+    dies at arm leaves the commander waking on nothing."""
+
+    def test_a_lane_whose_branch_is_not_yet_listed_is_waited_for(self):
+        answers = [{'a': ('working', '/t/a', None, '1', None)},
+                   {'a': ('working', '/t/a', None, '1', None)},
+                   {'a': ('working', '/t/a', 'worktree-a', '1', None)}]
+        slept = []
+        rows, missing = lanewait.rows_for(['a'], 60, 5, roster_fn=lambda: answers.pop(0),
+                                          sleep_fn=slept.append)
+        self.assertEqual(missing, [])
+        self.assertEqual(rows['a'][2], 'worktree-a')
+        self.assertEqual(slept, [5, 5])
+
+    def test_a_lane_still_missing_after_the_wait_is_named(self):
+        slept = []
+        rows, missing = lanewait.rows_for(['a', 'b'], 12, 5,
+                                          roster_fn=lambda: {'a': ('working', '/t/a', 'worktree-a', '1', None)},
+                                          sleep_fn=slept.append)
+        self.assertEqual(missing, ['b'])
+        self.assertEqual(slept, [5, 5, 2])
+
+    def test_a_roster_that_does_not_answer_is_none(self):
+        rows, missing = lanewait.rows_for(['a'], 60, 5, roster_fn=lambda: None, sleep_fn=lambda s: None)
+        self.assertIsNone(rows)

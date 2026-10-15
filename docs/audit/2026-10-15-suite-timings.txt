@@ -1,8 +1,7 @@
-# Every rondata release test timed alone, 2026-10-15, tools/suite_timings.py (tree bb8dad3f).
+# Every rondata release test timed alone, 2026-10-15, tools/suite_timings.py (tree 993f01e6).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 2,726 s over 849 tests; the run 59 min wall. Top 10 = 617 s, top 30 = 939, top 100 = 1422; 323 tests under 1 s.
-# Two rows re-timed alone after the run (the run was paused under two gates and those tests carried the pause): every_parsed_field 618.56 -> 202.00, chapter_fifty_two_s_fog_plane 399.74 -> 3.08.
-# By module: golden 829 s / 217 tests, harness 471 s / 88 tests, coverage 339 s / 3 tests, second 246 s / 35 tests, third_pair 166 s / 45 tests.
+# Sum 2,762 s over 858 tests; --stale-only merged. Top 10 = 617 s, top 30 = 939, top 100 = 1423; 323 tests under 1 s.
+# By module: golden 860 s / 225 tests, harness 471 s / 88 tests, coverage 339 s / 3 tests, second 246 s / 35 tests, third_pair 166 s / 45 tests.
 202.00	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 137.36	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 55.58	diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides
@@ -68,6 +67,7 @@
 6.71	diff::golden::chapter_twenty_two_s_word_frame_is_widened_whole
 6.70	diff::harness::checkpoint::tests::run69_intervention_effects_are_visible_beyond_player_comparisons
 6.67	diff::harness::tests::run221_s_word_frame_is_widened_whole
+6.65	diff::golden::chapter_seventy_six_s_word_frame_is_widened_whole
 6.56	diff::third::tests::run383_s_long_trace_says_where_the_third_map_s_word_parts
 6.51	diff::harness::tests::run289_s_word_frame_is_widened_whole
 6.51	diff::testkit::indexed_road_setups_preserve_every_initial_field_except_audit_bodies
@@ -144,6 +144,7 @@
 4.49	diff::third_pair::run667_s_closing_frame_is_widened_whole
 4.48	diff::world::tests::run72_s_road_nodes_are_where_great_lakes_word_parts
 4.47	diff::harness::checkpoint::tests::run69_checkpoint_repeats_complete_suffix_and_report
+4.46	diff::golden::chapter_seventy_seven_s_word_frame_is_widened_whole
 4.45	diff::golden::chapter_sixty_one_s_word_frame_is_widened_whole
 4.42	diff::mongol_pair::run838_s_word_frame_is_widened_whole
 4.41	diff::sahara_toughest::tests::run483_s_word_frame_is_widened_whole
@@ -152,6 +153,7 @@
 4.40	diff::coverage_pair::run715_s_word_frame_is_widened_whole
 4.38	diff::golden::run430_s_casts_are_the_original_s_field_for_field
 4.37	diff::golden::chapter_nineteen_s_word_frame_is_widened_whole
+4.36	diff::lakota_pair::run866_s_word_frame_is_widened_whole
 4.34	diff::harness::tests::run97_s_build_queues_are_the_original_s
 4.33	diff::golden::chapter_forty_two_s_word_frame_is_widened_whole
 4.31	diff::golden::chapter_twenty_three_holds_to_the_golden_word
@@ -175,6 +177,7 @@
 3.99	diff::golden::chapter_seventy_one_s_word_frame_is_widened_whole
 3.98	diff::sahara_toughest::tests::run517_s_gap_is_widened_whole
 3.97	diff::second::tests::run414_s_word_frame_is_widened_whole
+3.96	diff::golden::chapter_seventy_six_holds_to_the_golden_word
 3.96	diff::sahara_toughest::tests::run471_s_word_frame_is_widened_whole
 3.94	diff::golden::chapter_fifty_holds_to_the_golden_word
 3.89	diff::golden::chapter_sixty_five_s_word_frame_is_widened_whole
@@ -199,6 +202,7 @@
 3.72	diff::endpoint::tests::the_east_indies_ladder_is_pinned
 3.70	diff::golden::chapter_seventeen_holds_to_the_golden_word
 3.69	diff::golden::run255_s_repair_is_the_original_s_unit_for_unit
+3.67	diff::golden::chapter_seventy_five_s_word_frame_is_widened_whole
 3.66	diff::golden::chapter_forty_one_holds_to_the_golden_word
 3.65	diff::order::tests::a_path_stack_s_rows_are_compared_whole
 3.65	diff::third::tests::run458_s_word_frame_is_widened_whole
@@ -217,6 +221,7 @@
 3.56	diff::unit::tests::run89_s_window_is_great_lakes_word_frame
 3.55	diff::coverage_pair::coverage_pair_first_parting
 3.55	diff::testkit::indexed_siblings_preserve_every_initial_field_except_audit_bodies
+3.54	diff::golden::chapter_seventy_eight_s_word_frame_is_widened_whole
 3.54	diff::second::tests::run356_s_word_frame_is_widened_whole
 3.52	diff::second::tests::run373_s_word_frame_is_widened_whole
 3.52	diff::golden::chapter_forty_five_holds_to_the_golden_word
@@ -243,6 +248,7 @@
 3.31	diff::golden::chapter_four_s_word_frame_is_widened_whole
 3.31	diff::golden::chapter_forty_four_holds_to_the_golden_word
 3.31	diff::leader::tests::run117_s_window_is_the_leader_record_across_two_rotations
+3.30	diff::golden::chapter_seventy_eight_holds_to_the_golden_word
 3.26	diff::golden::chapter_eleven_s_word_frame_is_widened_whole
 3.25	diff::harness::tests::run100_s_citizen_waits_twelve_idle_frames_for_the_same_job
 3.24	diff::sahara_toughest::tests::run574_s_word_frame_is_widened_whole
@@ -255,6 +261,7 @@
 3.21	diff::golden::chapter_fourteen_s_word_frame_is_widened_whole
 3.20	diff::lakota_pair::run853_s_word_frame_is_widened_whole
 3.19	diff::world::tests::run39_s_sixth_farm_lights_the_cells_its_scout_then_paths_around
+3.17	diff::golden::chapter_seventy_seven_holds_to_the_golden_word
 3.17	diff::order::tests::run39_s_woodcutters_reroll_on_the_chop_branch_not_the_arrival_s
 3.17	diff::golden::chapter_forty_holds_to_the_golden_word
 3.16	diff::world::tests::run14_s_road_rings_change_no_tile_the_original_does_not
@@ -328,6 +335,7 @@
 2.80	diff::golden::chapter_three_s_restage_numbers_its_objects
 2.79	diff::third_pair::run634_s_word_frame_is_widened_whole
 2.79	diff::golden::chapter_four_holds_to_the_golden_word
+2.77	diff::golden::chapter_seventy_five_holds_to_the_golden_word
 2.77	diff::third_pair::run635_s_word_frame_is_widened_whole
 2.76	diff::endpoint::tests::east_indies_endpoint_is_pinned
 2.73	diff::sahara_toughest::tests::run482_s_goods_are_widened_whole
