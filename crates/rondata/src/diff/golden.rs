@@ -6819,6 +6819,53 @@ fn widen_civilians_walk(
                     .entry((0, -1, "world:seen2".into()))
                     .or_insert((n, format!("{bad} cells, first {first}")));
             }
+            // **And the detect plane beside it** (item 2755, `docs/GOLDEN.md`
+            // §102): `seen3`, the inner disc of every `DETECT` object, which
+            // `is_detected` reads for a stealth unit (parked 2727).
+            let theirs3 = crate::gamelog::world_fog3(&world.fields().to_vec());
+            let mut bad3 = 0usize;
+            let mut first3 = String::new();
+            for (i, &t) in theirs3.iter().enumerate() {
+                rows += 1;
+                let (x, y) = (i as i32 % fw, i as i32 / fw);
+                let ours = w.seen3(x, y);
+                if ours != t {
+                    if bad3 == 0 {
+                        first3 = format!("cell ({x}, {y}) ours {ours} theirs {t}");
+                    }
+                    bad3 += 1;
+                }
+            }
+            // **And the danger planes** (`calc_danger`, every 200th frame,
+            // which `is_seen`'s stealth arm weighs): every viewer's row.
+            let dg = crate::gamelog::world_danger(&world.fields().to_vec());
+            if !dg.is_empty() {
+                let reg = dg.len() / 8;
+                let mut badd = 0usize;
+                let mut firstd = String::new();
+                for (i, &t) in dg.iter().enumerate() {
+                    rows += 1;
+                    let (who, c) = (i / reg, i % reg);
+                    let row = w.danger_row(who as u8);
+                    let ours = i64::from(row.get(c).copied().unwrap_or(0));
+                    if ours != t {
+                        if badd == 0 {
+                            firstd = format!("who {who} cell {c} ours {ours} theirs {t}");
+                        }
+                        badd += 1;
+                    }
+                }
+                if badd > 0 {
+                    firsts
+                        .entry((0, -1, "world:danger".into()))
+                        .or_insert((n, format!("{badd} cells, first {firstd}")));
+                }
+            }
+            if bad3 > 0 {
+                firsts
+                    .entry((0, -1, "world:seen3".into()))
+                    .or_insert((n, format!("{bad3} cells, first {first3}")));
+            }
         }
         for who in 0..2usize {
             let Some(block) = flog.leader_block(n, who as i64) else {
@@ -14961,6 +15008,195 @@ fn chapter_seventy_nine_s_word_frame_is_widened_whole() {
     want.sort();
     pin_eq!(got, want, "ch79: what parts under the word moved");
 }
+
+/// **run875's start-of-game `seen3` plane, cell for cell** (item 2755,
+/// `docs/GOLDEN.md` §102, parked 2727): the first `WORLD` block prints
+/// `seen3[scan]`, the inner disc of every `DETECT` object, and nothing read
+/// it. The start dump is the only block of the capture that prints the plane;
+/// ours is the staged sim before its first tick.
+#[test]
+fn run875_start_seen3_plane_is_compared_cell_for_cell() {
+    let Some(s) = stage_script("ch79", "chapter79") else {
+        return;
+    };
+    let Some((dump, _)) = golden("ch79") else {
+        return;
+    };
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let init = log.initial().expect("run875 has a start block");
+    let theirs = crate::gamelog::world_fog3(&init.world);
+    assert_eq!(
+        theirs.len(),
+        14_400,
+        "run875's start plane is the whole map"
+    );
+    let w = &s.built.sim.world;
+    let fw = w.fog_xs();
+    let ours: Vec<u8> = (0..theirs.len() as i32)
+        .map(|i| w.seen3(i % fw, i / fw))
+        .collect();
+    let bad: Vec<(i32, i32, u8, u8)> = (0..theirs.len())
+        .filter(|&i| ours[i] != theirs[i])
+        .map(|i| (i as i32 % fw, i as i32 / fw, ours[i], theirs[i]))
+        .collect();
+    eprintln!(
+        "run875 start seen3: theirs {} lit, ours {} lit, {} cells part, first {:?}",
+        theirs.iter().filter(|&&b| b != 0).count(),
+        ours.iter().filter(|&&b| b != 0).count(),
+        bad.len(),
+        bad.iter().take(5).collect::<Vec<_>>()
+    );
+    assert_eq!(
+        (bad.len(), theirs.iter().filter(|&&b| b != 0).count()),
+        (0, 42),
+        "run875's start `seen3` plane parts from this crate's: the writer \
+         (`World::set_seen3` through `update_seen`) is what lays the 42 lit \
+         half-cells, 63 of bit 1 and bit 2 together on later blocks"
+    );
+}
+
+/// **Chapter eighty's staging, read off this crate** (item 2755,
+/// `docs/GOLDEN.md` §102): an Airbase `1/2006` (190, 60) lights, never
+/// detecting, the three sites 14 tiles from it — an idle Partisan `0/6`
+/// (`FLAGS s`), a Partisan `0/7` a Scout's disc reaches on 1197, and three
+/// Hoplites, the control. At the 1000 pass the first two weigh half
+/// (`unit_stealth_hides`), at the 1200 pass the second whole, the Hoplites
+/// whole throughout.
+#[test]
+fn chapter_eighty_staging_reaches_the_stealth_arm() {
+    let Some(mut s) = stage_script("ch76", "chapter80") else {
+        return;
+    };
+    let at = |s: &mut Staged4, to: i64| {
+        while s.built.sim.frame < to {
+            s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+            s.built.tick();
+        }
+    };
+    let find = |s: &Staged4, who: u8, o: i16| {
+        s.built
+            .sim
+            .units
+            .iter()
+            .position(|u| u.alive() && u.owner == who && u.index == o)
+            .expect("a staged unit")
+    };
+    let probe = |s: &Staged4, who: u8, o: i16| {
+        let sim = &s.built.sim;
+        let i = find(s, who, o);
+        let u = &sim.units[i];
+        (
+            sim.world
+                .danger_half(1, sim::world::Cell::new(u.pos.cell().x, u.pos.cell().y)),
+            sim.unit_stealth_hides(i, 1),
+            sim.world_sees(u.pos, 1),
+            u.orders.len(),
+        )
+    };
+    at(&mut s, 1001);
+    // (danger for leader 1 at the unit's half-cell, hidden by the arm, lit,
+    // orders)
+    assert_eq!(
+        probe(&s, 0, 6),
+        (60, true, true, 0),
+        "an idle Partisan, lit, undetected"
+    );
+    assert_eq!(
+        probe(&s, 0, 7),
+        (60, true, true, 0),
+        "the second Partisan before the Scout"
+    );
+    let (_, hides, lit, _) = probe(&s, 0, 8);
+    assert!(
+        !hides && lit,
+        "the Hoplites are the control: lit, never hidden"
+    );
+    at(&mut s, 1198);
+    assert!(
+        !probe(&s, 0, 7).1,
+        "the Scout's disc reaches the second Partisan"
+    );
+    assert!(probe(&s, 0, 6).1, "and not the first");
+    at(&mut s, 1201);
+    assert_eq!(probe(&s, 0, 7).0, 120, "weighed whole at the 1200 pass");
+    assert_eq!(probe(&s, 0, 6).0, 60, "still half");
+}
+
+/// **Chapter eighty** (item 2755, `docs/GOLDEN.md` §102, run877): the stealth
+/// arm of `is_seen` under a computer's `calc_danger`.
+#[test]
+fn chapter_eighty_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch80", "chapter80", 80, 6, 1204) else {
+        return;
+    };
+    eprintln!(
+        "chapter eighty: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    // The draw stream agrees to the capture's end; the state word is
+    // `GOLDEN_WORD_CHAPTER_EIGHTY`, the widening's (`docs/GOLDEN.md` §102).
+    let _ = GOLDEN_WORD_CHAPTER_EIGHTY;
+    assert!(w.word >= 1204, "chapter eighty's draws part before 1204");
+}
+
+/// **run877 whole, both directions** (item 2755, `docs/GOLDEN.md` §102).
+#[test]
+fn chapter_eighty_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch80",
+        "chapter80",
+        (1198, 1204),
+        0,
+        0,
+        (1199, 1204),
+        false,
+        92,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch80 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch80: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH80.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch80: what parts in the window moved");
+}
+
+/// What parts on run877's blocks 1198–1203 (block 1204 is not in the dump). **The first**, `1198 0/-1
+/// world:danger`, is the word: who 1's danger at half-cell (25, 7), the
+/// second Partisan's, is 120 theirs and 60 ours on the first dumped block —
+/// the plane the 1000 pass wrote, before the Scout stood there. The 1200
+/// pass, where the Scout's disc covers it, agrees. The rest are the added
+/// Scout's own walk from 1199 and the `seen3` cells its path leaves.
+const WANT_CH80: &[&str] = &[
+    "1198 0/-1 world:danger",
+    "1198 0/0 form",
+    "1198 0/1 form",
+    "1198 0/2 form",
+    "1198 0/3 form",
+    "1198 0/4 form",
+    "1198 0/5 form",
+    "1198 1/1 form",
+    "1198 1/2 form",
+    "1198 1/3 form",
+    "1198 1/4 form",
+    "1198 1/5 form",
+    "1198 1/6 path:length",
+    "1198 1/6 path[1].to",
+    "1199 1/6 heading",
+    "1199 1/6 mirror",
+    "1199 1/6 order:move.dest_x",
+    "1199 1/6 pos",
+    "1203 0/-1 world:seen3",
+];
 
 const WANT_CH79: &[&str] = &[
     "600 0/0 form",

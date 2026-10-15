@@ -398,10 +398,6 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/UNITDATA/TRADEORDER",
         "loaded oxx started uid2 whose",
     ),
-    (
-        "GAME/FRAME/WORLD",
-        "forest_size goodies land_resources mountain_size rock_size sea_resources total_metal total_oil",
-    ),
 ];
 
 /// A block's path element: its name with a trailing number stripped, so
@@ -499,6 +495,15 @@ fn drive(text: &str, out: &mut Paths) {
             let _ = super::golden::cycle_rows(frame);
             // A building's `visible` byte (item 1423).
             let _ = super::golden::visible_rows(frame);
+            // The golden widening's fog and danger planes (items 1497,
+            // 2755): `seen2`, `seen3` and the whole `danger` run, read
+            // through the one field list the widening takes.
+            if let Some(world) = frame.find("WORLD") {
+                let fields = world.fields().to_vec();
+                let _ = crate::gamelog::world_fog(&fields);
+                let _ = crate::gamelog::world_fog3(&fields);
+                let _ = crate::gamelog::world_danger(&fields);
+            }
             // The leader widening's reader (item 520): run117's and
             // run123's tests compare the whole record through it.
             // Item 592 added the census's per-region arrays beside it:
@@ -668,6 +673,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch77 = golden_dump("ch77");
     let ch78 = golden_dump("ch78");
     let ch79 = golden_dump("ch79");
+    let ch80 = golden_dump("ch80");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2481,6 +2487,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             n, 1,
             "chapter seventy-nine carries one detailed block in the window"
         );
+        frames += n;
+    }
+    // **Chapter eighty, on run877** (item 2755): the stealth arm's danger and
+    // `seen3` planes, six per-frame WORLD blocks.
+    if let Some(p) = &ch80 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_EIGHTY;
+        let n = drive_capture(p, 1198, 1204, &mut paths);
+        assert_eq!(n, 6, "chapter eighty carries six blocks in the window");
         frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first

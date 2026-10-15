@@ -1063,7 +1063,7 @@ impl Sim {
     /// `ally_mask(who) & seen3[pos / 0x180]`, the inner disc of a `DETECT`
     /// object ([`crate::world::World::seen3`]). The viewer is never the
     /// owner's own side here — `who == owner` is detected.
-    pub(crate) fn unit_stealth_hides(&self, u: usize, who: crate::Player) -> bool {
+    pub fn unit_stealth_hides(&self, u: usize, who: crate::Player) -> bool {
         let un = &self.units[u];
         let Some(t) = un.ty else {
             return false;
@@ -1118,7 +1118,7 @@ impl Sim {
 
     /// `WorldData::is_seen@006b55c0` at one object's position: does `who`'s
     /// alliance currently light the half-cell it stands on?
-    pub(crate) fn world_sees(&self, p: Pos, who: crate::Player) -> bool {
+    pub fn world_sees(&self, p: Pos, who: crate::Player) -> bool {
         let fog = crate::vision::UNITS_PER_FOG;
         self.world_is_seen_fog(p.x / fog, p.y / fog, who)
     }

@@ -17251,3 +17251,13 @@ building; chapter forty-one's Biplane is who=1's and only patrols. The recipe is
 `settings_restored`, 1,501 frames, 991 s, kept in `~/ron-golden/ch79/map-14/`. Minutes waited on another lane: none.
 **What it holds**: the Biplane `0/6` home on 620, launched on patrol on 830, striking the Barracks `1/2006` from ~927 with two
 rounds on 935 that land on 938; ours releases none, the word is 938 (ours 6 draws, theirs 8).
+
+## run877 — chapter eighty: the stealth arm under a computer's `calc_danger` (2026-10-15, item 2755, `att-2755`)
+
+`docs/GOLDEN.md` §102. **What the disk could not answer**: no capture stages a stealth unit a who=1 `calc_danger` weighs; the
+`seen3` plane's start dump (run875) agreed with no capture needed. The recipe is `tools/gamelog/golden/chapter80.cmd`'s header
+(`--map 14 --end-frame 1204 --log-window 1198 1204`, `end:WORLD=6,…`). Pool lane 1, `success`, `settings_restored`, 1,205
+frames, 303 s, kept in `~/ron-golden/ch80/map-14/`; block 1204 is not in the dump. Minutes waited on another lane: none.
+**What it holds**: an idle Partisan `0/6` lit and undetected weighs 60 (half) on every block; `0/7` weighs 120 at the 1200 pass
+after a Scout's disc; ours agrees on both. The word is `1198 world:danger` (cell 235, ours 60, theirs 120: the 1000 pass,
+undumped).

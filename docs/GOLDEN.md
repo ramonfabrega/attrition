@@ -12767,12 +12767,41 @@ no such key, so the plane's value is unchecked — a quiet field (parked 2727). 
 `0x1000` (nothing here sets either), a **building** with a `DETECT` objmask writing `seen3`, and `seen3`'s ring-pass cutoff
 above radius 31 (unreachable). `get_order() == 0` is taken as an empty order list (`is_idle`).
 
-## 102. Reserved for the next item on the rules track
+## 102. Chapter eighty — the stealth arm staged: a Scout's disc detects a Partisan, an Airbase's light does not
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2755 (Claude Sonnet 5.5, `--effort medium`), run877 (`tools/gamelog/golden/chapter80.cmd`, `docs/RUNS.md`). **What the disk
+could not answer**: run875's `seen3` plane agrees (below), but no capture stages a stealth unit under `calc_danger`.
+
+**The value diff before the capture** (parked 2727, closed): `gamelog::world_fog3` reads `seen3[scan]`; run875's start dump
+(`BEGIN GAME`, 42 lit half-cells) against the staged sim before its first tick, cell for cell, **0 part**
+(`run875_start_seen3_plane_is_compared_cell_for_cell`). The widening (`widen_civilians_walk`) now compares `seen3` and the
+whole `danger[who][scan]` run on every block whose WORLD prints them — only the start dump of the older chapters, and run877's
+six blocks.
+
+**The staging** (walked on run871's start, `chapter_eighty_staging_reaches_the_stealth_arm`): an Airbase `1/2006` (190, 60)
+(`los` 12, no weapon: lit to ~14 tiles, and the Partisans' own sight, 10, does not reach its edge, so no order); a Partisan
+`0/6` (`FLAGS s`, attack 240, idle) 14 tiles south, a Partisan `0/7` 14 tiles east, three Hoplites as the control; a Scout
+(`DETECT`) for who 1 added on 1197 beside `0/7`. Every nearer or weaker light failed in this crate first: a Barracks (los 8) and
+a Citizen draw the Partisan's attack — an order, and the arm does not hide a unit with an order — and a Castle shoots it dead.
+`add town` places nothing. **Falsifiers, written before the run**: hidden while undetected (`0/6`: danger 60, half of 120);
+weighed whole only once the Scout's disc covers it (`0/7` at the 1200 pass); the control whole throughout.
+
+**What run877 says** (`chapter_eighty_s_window_is_widened_whole`, six blocks 1198–1203; `WANT_CH80`):
+- **Held, diff-backed**: `0/6`, the hidden Partisan, agrees at 60 on every block (the arm, a lit cell, no order); `0/7`'s cell
+  agrees at 120 on 1200–1203, the first pass after the Scout (the detection arm and `seen3`'s writer); the Hoplites' cell
+  agrees. The draw stream agrees to 1204 (`chapter_eighty_holds_to_the_golden_word`).
+- **The word: `1198 world:danger`, who 1 cell 235 (half-cell (25, 7), `0/7`'s), ours 60, theirs 120.** The plane is the 1000
+  pass's. In the original `0/7` is weighed whole at 1000, with no Scout yet and the same lit cell that hides `0/6`; ours hides
+  both. No dumped block holds 1000 (the window is the 1200 pass's), so what lifted the arm there is unread: not `seen3` (the
+  planes agree on 1198 and 1199), not an order (`orders` is empty on 1198), not `visible`. Candidates: an order the unit held
+  until `idle` began (its `idle` is 34 on 1198, `0/6`'s 39), or a `seen3` write at 1000 by who 1's start Scout `1/0`. A window
+  at 998–1002 on this recipe answers it (parked 2757).
+- The added Scout `1/6` parts from 1198 on its own path (`path:length` ours 2, theirs 6), then heading, `dest_x`, position, and
+  twelve `seen3` cells on 1203 where its disc is. That is the added-unit explore, not the arm; parked 2758.
+
+**Not established**: the arm's other inputs (`0x800`, `0x1000`; an `o` unit — a Spy or a Submarine has no attack to weigh);
+a building's `seen3` write (parked 2728); the 1000 pass. Confidence: the hide/detect predicate is diff-backed on `s`
+(`0/6`, `0/7`@1200), the first reading it rested on is not wrong; the original's weighing at 1000 says something unread.
 
 ## 103. Reserved for the next item on the rules track
 

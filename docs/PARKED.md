@@ -6132,7 +6132,7 @@ words and edits nothing here; a refill lands when two remain.
 
 (2751) **`PathFinder::kill_lists` is swept with its loop run once, not many times.** `remove_current` is hooked and `--stub-write 6:p3+0xc:4:0` clears the tree's head pointer in one call, so the `while (tree[0xc] != 0)` loop never runs a second iteration; the original removes every node. `--stub-write ... dec` lowers a count, but this word is a pointer the pre-loop dereferences (`edx+0xc`, `edx+0x10`), so a small-integer draw would fault. A second iteration wants a callee run (`--stub run:0x46dc60`) over a drawn list, which pulls in `Tree::remove_current`'s own callees. The other tree-clear arms, the six `Tree::clear` callees and the delete test are held on one iteration.
 
-## Parked by the next landing, slot EQ — reserved
+## Parked by item 2755, 2026-10-15 — chapter eighty staged: the stealth arm under calc_danger
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EQ renames this heading `## Parked by item N, <date> — <title>`
@@ -6140,13 +6140,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-(2727) **`seen3[scan]` is a dumped key nothing parses** (item 2725; `docs/GOLDEN.md` §101). run875's WORLD block prints it nonzero
+(2727) ~~**`seen3[scan]` is a dumped key nothing parses** (item 2725; `docs/GOLDEN.md` §101). run875's WORLD block prints it nonzero
 (63 cells of bit 1, 63 of bit 2); `World::seen3` is built from the listing and compared with nothing. A value row on the
-`coverage` pin and a plane compare on a window with a detector would back the writer; names no score, so parked.
+`coverage` pin and a plane compare on a window with a detector would back the writer; names no score, so parked.~~ **Closed by item 2755** (`gamelog::world_fog3`; run875's start plane agrees cell for cell, `docs/GOLDEN.md` §102).
 
 (2728) **A building's `seen3` write and the `0x800` / `0x1000` masks are not carried** (item 2725): `Object::init`'s flag
 `0x40` is for any object with objmask `Z`; this crate writes `seen3` for units only, and no unit mask here sets `0x800`
 (disguise) or `0x1000` (blown, `unit_is_blown`). Each can only change a stealth unit's answer; no capture reaches one.
+
+(2757) **run877's `0/7` is weighed whole at the 1000 pass in the original and halved in ours** (item 2755, `docs/GOLDEN.md` §102): `1198 world:danger`, who 1 cell 235 ours 60 theirs 120, on the first dumped block, the plane the 1000 pass wrote. The same recipe's `0/6`, lit by the same Airbase, agrees at 60. `seen3` agrees on 1198 and 1199, `orders` is empty. Booking: a window 998–1002 on `chapter80.cmd` (`--log-window 998 1002`, `WORLD=6` and `UNITS=3`), then the value diff on `0/7` and the start Scout `1/0`; names the headline of the rules track's stealth arm. Candidates unread: an order `0/7` still held at 1000 (`idle` 34 on 1198), a `seen3` write by `1/0`.
+
+(2758) **An added Scout's own path parts from 1198** (item 2755, run877): `1/6` `path:length` ours 2 theirs 6, `path[1].to` (38808, 11160) / (39576, 8856), then heading, mirror, `dest_x`, position on 1199 and twelve `seen3` cells on 1203. The Scout was added on 1197, `!ai off`; names no score beyond the stealth chapter's own rows.
 
 ## Parked by item 2761, 2026-10-15 — `Unit::close`'s count
 
