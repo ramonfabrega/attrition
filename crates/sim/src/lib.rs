@@ -3719,11 +3719,6 @@ impl Sim {
                 .tree
                 .is_some_and(|t| self.line_count(who, t, false) >= self.caravan_cap(who));
         let pad_full = researched && (caravan_full || self.airbase_pad_full(at, ty));
-        if std::env::var("RON_PROBE_HANDOVER").is_ok() && who == 1 && self.buildings[at].index == 2032 {
-            let m = &self.muster[1];
-            let homed: Vec<_> = (0..self.units.len()).filter(|&u| self.units[u].alive() && self.units[u].owner == 1 && self.home_base(u) == Some(at)).map(|u| (self.units[u].index, self.units[u].ty, self.units[u].inside.is_some(), self.units[u].health)).collect();
-            eprintln!("PROBE handover f{} slot {} ty {} cap {} control {} pop {} pad_full {} homed {} {} {:?}", self.frame, slot, ty, m.cap, m.control, self.unit_types[ty].price.pop, pad_full, self.aircraft_homed(at), homed.len(), homed);
-        }
         let muster = &self.muster[who as usize];
         let pop = self.unit_types[ty].price.pop;
         match production::finished(researched, muster.cap, muster.control, pop, pad_full) {
