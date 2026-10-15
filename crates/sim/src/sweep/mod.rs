@@ -1078,6 +1078,7 @@ mod world_data_start_city_wcoord;
 mod world_data_valid;
 mod world_data_was_really_seen;
 mod world_get_wdata;
+mod world_is_edge_of_region;
 mod world_map_fog_get_fog_lookup;
 mod world_scale_by_area;
 mod world_scale_by_axis;
