@@ -12562,7 +12562,7 @@ finish) — and the original's stays at 1920 to the record's end. The Republic t
 +800 on a base of 1120, which is no 50 % of it. Parked 2573 with its value diff; the cap is read by no draw, so no word moves
 and the five rows stand in `WANT_CH76`.
 
-**Census rows reached.** `UnitData::train_time@006508c0`'s `has_general` block for a **human** trainer on a ground unit
+**Census rows reached.** `ObjectData::train_time@006508c0`'s `has_general` block for a **human** trainer on a ground unit
 (diff-backed before only for a Strategic Bomber at an AI Airbase), `Leader::set_government`/`Build::finished`'s `set_type`
 arm into The President, and `HeroesData::find_hero@0073a1b0`'s building arm for a Barracks; the count is the commander's pin.
 
