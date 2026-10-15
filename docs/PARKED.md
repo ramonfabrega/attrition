@@ -6101,13 +6101,15 @@ words and edits nothing here; a refill lands when two remain.
 
 (2740) **`upath`'s pull-back keeps an `sx == 0 && cy == 0` break that the listing lacks.** `00682f30`'s walk is a `do … while (g48(goal) != hg)` with only the `0x18` give-up inside it, so ours' guard, which falls through to the near test, is this crate's own. A step of `0x18` cannot round both components to zero, so it is believed unreachable. A `debug_assert!` would say so, and it names no score.
 
-## Parked by the next landing, slot EO — reserved
+## Parked by item 2743, 2026-10-15 — the harvest sweep's hundred-and-third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2745) Ten of ten on built shapes, `sweep_gen.py` as it stands: `UnitData::is_entering_or_exiting` 0x60a6f0, `is_packing_or_unpacking` 0x60a410, `Object::get_army` 0x649d70, `World::is_edge_of_region` 0x6b3180, `Forts::find_fort` 0x73ebe0, `GroupsData::find_group_const` 0x7084c0, `ObjectsData::find_goody_at` 0x65b7c0, `Group::find_role` 0x7081f0, `City::could_queue` 0x737fa0, `CityData::enhancer_level` 0x7389d0. Every `port` row left in `census.py --unbacked` was already parked (2684, 2689, 2715) or too long, so the batch is the shortest unbacked sim rows with no parked slot. No `sweep_gen.py` change. Starved or equivalent breaks that passed, read against the draw: `find_fort`'s `k % 3` (the fourth list entry is the first hit in no row), `find_group_const`'s 46th record (the same), `enhancer_level`'s `kind <= 5` (kind 5 reaches the `_ => 0` arm either way), `is_packing_or_unpacking`'s `t2 = t1` (an equivalent token).
+
+(2746) Shapes no built generator holds, for 2731's lane (each listing read): `CityData::is_disbanding` 0x7380a0 (a loop over a chain whose next link is read through a vcall's answer, with a sum of a vcall-through-the-answer's slot 0x190 — `--answer-win` answers a window a call, not an object whose own vtable is stubbed); `GroupData::has_air_units` 0x70b250 (`has_damage`'s up-link walk, parked 2700/2711: a chain of shorts through two arrays that terminates only on a negative link); `MountainsData::total_gather_size` 0x89c110 (three callees, two answered pointers, the third's `ecx` an address plus a drawn word — `--record` prints an address the port cannot know, so only the sum could be held); `ObjectsData::find_goody_at` 0x65c040 (the second overload, 937 bytes, reached through 2743's stub).
+
+(2747) `find_group_const`'s image array is `0x9d4 * (who << 6 + r)`: a player's 46 records sit 64 apart, so the place is 110 records long for who 1 (0x1c8a8 bytes for who 0 only was the first draw, and the port read a different record). A `--place` that is bigger than a megabyte is a window of random bytes the row prints whole (220 rows of 270 KB); a `--wbias` a record is 138 lines of flags for one function — a `--records BASE:STRIDE:N:OFF=VALS` would write them.
+
+(2748) Loop: `--place N:0:SIZE` with a handle table through a global cell (`0xcae5fc`) is the third reach of the handle-table shape (`find_fort`, `find_goody_at`, `get_goody_at`'s sibling in 2714's `send_navy`); a `--handles CELL:N:LO..HI` would draw the table and the xor/shift the encoded arguments need.
 
 ## Parked by item 2749, 2026-10-15 — slot ED's shapes, five functions swept
 
