@@ -5834,13 +5834,14 @@ then `[walker+4]!=0` stores `-1` at `this+6` (`movw`). `mix` asserts calls, not 
 (2587) **A batch of only three new functions**: the five 2567 `get_name`s were already backed, so `--ret-arg` added assertions and no
 census row; the two new `get_name`s and `Rivers` are the +3. The shortest never-backed list has no more `mix` shapes until 2584/2586.
 
-## Parked by the next landing, slot DO — reserved
+## Parked by item 2588, 2026-10-15 — the eighty-seventh sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Closes 2584 (`mix` token `rec`, `rec+K`: the record base the `--glob` cell holds, printed as the `g` column) and 2586 (`mix --store OFF:VAL:SIZE:WOFF`).
+
+(2589) **The next shortest never-backed shapes**: `Types::walk_data` (0x669780, a loop of 85 over a table read through a global, 2585) and
+`TerrainList::walk_data` (0x84b9e0, a linked list) are still `obj` with windows, not `mix`; `Map::set_file` (0x6a06a0) is two `String` operators on a
+global-cell string, a callee-hooked `fwd`; `Game::run_unit_editor` (0x5860a0) calls `close` and `clear` on a global singleton; `Setup::get_starting_citizens`
+(0x5aaf50) is a jump table. None fits a built shape without a build.
 
 ## Parked by the next landing, slot DP — reserved
 
