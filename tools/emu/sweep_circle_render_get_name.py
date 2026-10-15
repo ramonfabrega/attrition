@@ -3,7 +3,7 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_circle_render_get_name.py — `CircleRender::get_name@00447880` under unicorn (item 2567, tools/sweep_gen.py, mix).
+"""sweep_circle_render_get_name.py — `CircleRender::get_name@00447880` under unicorn (item 2583, tools/sweep_gen.py, mix).
 
     uv run tools/emu/sweep_circle_render_get_name.py <install>/riseofnations.exe
 
@@ -36,7 +36,7 @@ STALE = False
 def main(argv):
     from hooks import Harness
     h = Harness(argv[1], {a: (f"{a:x}", n) for a, n, _, _ in CALLS})
-    rng = random.Random(2567)
+    rng = random.Random(2583)
     vt = h.vtable({0: ("walk", 2, 7), 4: ("walk4", 1, 9)})
     for i in range(140):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
@@ -53,11 +53,13 @@ def main(argv):
         gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
         if STALE:
             # the `ecx` a callback or a direct callee leaves (parked 1922, 2498, 2563), printed in the gate column
-            gv = rng.randrange(0x1000, 0x7FFF0000) & ~3
-            h.answers["walk"] = (7, gv)
-            h.answers["walk4"] = (9, gv)
+            sv = g  # a walker word is the gate: the leftover is the `g` column, the gate column stays the gate
+            if GATE is None:
+                gv = sv = rng.randrange(0x1000, 0x7FFF0000) & ~3
+            h.answers["walk"] = (7, sv)
+            h.answers["walk4"] = (9, sv)
             for a, _, _, _ in CALLS:
-                h.answers[f"{a:x}"] = (0, gv)
+                h.answers[f"{a:x}"] = (0, sv)
         walker = h.alloc(32)
         h.w32(walker, vt)
         if GATE is not None:
@@ -92,4 +94,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["mix", "CircleRender::get_name@00447880", "--item", "2567", "--step", "call:0xa1d660:1:p0:0xb2f8d4"]
+# sweep_gen: ["mix", "CircleRender::get_name@00447880", "--item", "2583", "--step", "call:0xa1d660:1:p0:0xb2f8d4", "--ret-arg"]

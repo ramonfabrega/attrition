@@ -5812,13 +5812,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DN — reserved
+## Parked by item 2583, 2026-10-15 — the eighty-sixth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Closes 2568 (`mix --gate-ne`), 2569 (a bare `--gate-this` is `--gate-bare` before the parse) and 2570 (`mix --ret-arg`).
+
+(2584) **`Constants::walk_data` (0x57f910) walks from the record the global cell holds, not from a word in it** (2583):
+`esi = *0xc061f0`; slot 0 `(esi, esi+0xd40)`, then slot 0 `(esi+0x804, esi+0x808)`. `mix --glob` writes a fresh record a
+row and prints only its `+0x10` word, so the arguments name no column. A `rec` token, or a printed record base, is the shape.
+
+(2585) **`Types::walk_data` (0x669780) loops 85 times** (2583): `for esi in 0x880..0x9d4 step 4`, `ecx = *(*(*0xc061b0+0x10)+esi)`,
+slot 0 `(ecx+0x1e2, ecx+0x1e3)`. A table of pointers read through a global; `obj` with windows, not `mix`.
+
+(2586) **`Dock::walk_data` (0x740c40) writes**: slot 0 `(this, this+6)`, `(this+8, this+0xa)`, `[walker+8]==0` then `(this+6, this+8)`,
+then `[walker+4]!=0` stores `-1` at `this+6` (`movw`). `mix` asserts calls, not stores; a `mix --store` is the shape. `TerrainList::walk_data`
+(0x84b9e0) is a linked-list loop (`[node+8]` next, slot 0 `(node+0x1c, node+0x1e)`).
+
+(2587) **A batch of only three new functions**: the five 2567 `get_name`s were already backed, so `--ret-arg` added assertions and no
+census row; the two new `get_name`s and `Rivers` are the +3. The shortest never-backed list has no more `mix` shapes until 2584/2586.
 
 ## Parked by the next landing, slot DO — reserved
 

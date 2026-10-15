@@ -613,11 +613,13 @@ def main(argv):
         gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
         if STALE:
             # the `ecx` a callback or a direct callee leaves (parked 1922, 2498, 2563), printed in the gate column
-            gv = rng.randrange(0x1000, 0x7FFF0000) & ~3
-            h.answers["walk"] = (7, gv)
-            h.answers["walk4"] = (9, gv)
+            sv = g  # a walker word is the gate: the leftover is the `g` column, the gate column stays the gate
+            if GATE is None:
+                gv = sv = rng.randrange(0x1000, 0x7FFF0000) & ~3
+            h.answers["walk"] = (7, sv)
+            h.answers["walk4"] = (9, sv)
             for a, _, _, _ in CALLS:
-                h.answers[f"{{a:x}}"] = (0, gv)
+                h.answers[f"{{a:x}}"] = (0, sv)
         walker = h.alloc(32)
         h.w32(walker, vt)
         if GATE is not None:
@@ -667,9 +669,11 @@ fn the_emulated_original_agrees_on_every_row() {{
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
         let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> -> <result>`");
         let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
-        let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let (eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let eax: i64 = eax.trim().parse().expect("an integer");
         let (this, walker, g, gate) = (a[0], a[1], a[2], a[3]);
-        let stale = gate; // the slot-4 callee's leftover `ecx` when a step names it
+        let _ = eax;
+        let stale = {stale_src}; // the slot-4 callee's leftover `ecx` when a step names it
         let _ = (this, g, gate, stale);
         let mut calls: Vec<Vec<i64>> = Vec::new();
 {steps}
@@ -679,7 +683,7 @@ fn the_emulated_original_agrees_on_every_row() {{
             .collect::<Vec<_>>()
             .join(";");
         assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
-        n += 1;
+{retcheck}        n += 1;
     }}
     assert!(n >= 100, "only {{n}} rows");
     eprintln!("{name}@{va:08x}: {{n}} rows agree");
@@ -695,6 +699,8 @@ def _mix_expr(tok):
         return 'this'
     if tok == 'stale':
         return 'stale'  # the slot-4 callee's leftover ecx (parked 2498)
+    if tok == 'stale|this':
+        return 'if gate != 0 { g } else { this }'  # a gated callee's leftover, else the entry ecx (parked 2568)
     if tok.startswith('this') and ('-' in tok or tok.endswith('+d')):
         # `this-0x18+d`: an offset, and the vbase displacement `d` (the `g` column)
         body, disp = (tok[4:-2], ' + g') if tok.endswith('+d') else (tok[4:], '')
@@ -708,7 +714,8 @@ def _mix_expr(tok):
     return str(int(tok, 0))
 
 
-def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vbase=None, len_at=None):
+def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vbase=None, len_at=None,
+                 gate_ne=False, ret_arg=False):
     """`steps`: `call:ADDR:NARGS:ECX:ARGS`, `walk:A0:A1` (the walker's slot 0),
     `walk4:OFF` (its slot 4, handed `**glob + 0x10` pointer's word + OFF),
     each optionally prefixed `gated/` — run only when `[walker+gate] == 0`."""
@@ -732,11 +739,11 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
         else:
             raise ValueError(f'a step is call:, walk: or walk4:, not `{st}`')
         push = f'calls.push(vec![{vec}]);'
-        cond = 'gate != 0' if (gate_this or len_at is not None) else 'gate == 0'
+        cond = 'gate != 0' if (gate_this or gate_ne or len_at is not None) else 'gate == 0'
         code.append(('        if ' + cond + ' { ' + push + ' }') if gated else ('        ' + push))
     script = MIX_SCRIPT.format(snake=sn, name=name, va=va, item=item, nsteps=len(steps),
                                glob=', from the global cell' if glob else '',
-                               gate=f', the last gated on [walker+{gate:#x}] == 0' if gate is not None else '',
+                               gate=f', the last gated on [walker+{gate:#x}] {"!=" if gate_ne else "=="} 0' if gate is not None else '',
                                calls=repr(calls), glob_cell=hex(glob) if glob else 'None',
                                gate_off=hex(gate) if gate is not None else 'None',
                                gate_this=bool(gate_this) or len_at is not None,
@@ -747,7 +754,8 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
                                stale=any('stale' in st.split(':', 1)[1] for st in steps))
     doc = f'{len(steps)} step(s) in order, `ecx` and arguments held to the spec.'
     test = MIX_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
-                           steps='\n'.join(code))
+                           steps='\n'.join(code), stale_src='g' if gate is not None else 'gate',
+                           retcheck='        assert_eq!(eax, walker, "{short} — the result is the out-pointer, row `{line}`");\n'.replace('{short}', short) if ret_arg else '')
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -2566,6 +2574,19 @@ def chain_expand(spec, own, cell_index, pbase):
             'argrange': [f'{pi}:0:{n - 1}', f'{ii}:0:{n - 1}']}
 
 
+def split_gate_this(argv):
+    """A bare `--gate-this` (its optional value is OFF:MASK) becomes `--gate-bare`, so it
+    never swallows the function that follows it (parked 2569)."""
+    out = []
+    for i, a in enumerate(argv):
+        nxt = argv[i + 1] if i + 1 < len(argv) else None
+        if a == '--gate-this' and (nxt is None or not re.fullmatch(r'0[xX][0-9a-fA-F]+:\w+|\d+:\w+', nxt)):
+            out.append('--gate-bare')
+        else:
+            out.append(a)
+    return out
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2596,9 +2617,12 @@ def main(argv=None):
     ap.add_argument('--step', action='append', default=[], help='mix: call:ADDR:NARGS:ECX:ARGS | walk:A0:A1 | walk4:OFF, in order; `gated/` prefix')
     ap.add_argument('--glob', type=lambda s: int(s, 0), help='mix: the global cell (the walk4 argument is *(*cell+0x10)+OFF)')
     ap.add_argument('--vbase', type=lambda s: int(s, 0), help='mix: `this` is a written record, [this-VBASE] points at one whose +4 is the displacement `d` (the g column)')
+    ap.add_argument('--gate-bare', action='store_true', help='mix: --gate-this with no value')
     ap.add_argument('--gate-this', nargs='?', const=True, default=False, metavar='OFF:MASK', help='mix: gated steps run when the short at [this] != 0 (`this` is a written object), or with OFF:MASK when the byte at this+OFF has MASK set')
     ap.add_argument('--len-at', type=lambda s: int(s, 0), help='mix: a walk length is the sign-extended short at this+LEN_AT, read as `this+K+len`; gated steps run when it is non-zero')
     ap.add_argument('--gate', type=lambda s: int(s, 0), help='mix: gated steps run when [walker+GATE] == 0')
+    ap.add_argument('--gate-ne', action='store_true', help='mix: with --gate, gated steps run when [walker+GATE] != 0')
+    ap.add_argument('--ret-arg', action='store_true', help='mix: assert the result (eax) is the stack argument, an out-pointer returned')
     ap.add_argument('--own', type=int, default=0, help='fwd, obj: stack arguments the function itself takes')
     ap.add_argument('--argset', action='append', default=[], help='obj: IDX:V,V,.. — argument IDX drawn from the list (90%%)')
     ap.add_argument('--argfrom', action='append', default=[], help='obj: IDX:OFF:SIZE — argument IDX copies the signed SIZE-byte word at OFF (45%%)')
@@ -2743,7 +2767,7 @@ def main(argv=None):
                     help='obj: PathFinder::find_wpath\'s three-level walk -- a global cell, a row word picked by '
                          'argument P, a table word picked by argument I, a SIZE-byte record (item 2495, parked 2484)')
     ap.add_argument('--dry-run', action='store_true')
-    args = ap.parse_args(argv)
+    args = ap.parse_args(split_gate_this(argv))
     if args.chain:
         try:
             pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))
@@ -2820,7 +2844,8 @@ def main(argv=None):
         elif args.shape == 'mix':
             sp, script, tp, test, mod = generate_mix(args.function, item=args.item, steps=args.step,
                                                     glob=args.glob, gate=args.gate,
-                                                    gate_this=args.gate_this, vbase=args.vbase, len_at=args.len_at)
+                                                    gate_this=args.gate_this or args.gate_bare, vbase=args.vbase, len_at=args.len_at,
+                                                    gate_ne=args.gate_ne, ret_arg=args.ret_arg)
         elif args.shape == 'obj':
             sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
                                                     own=args.own, ret=args.ret or 'eax', port=args.port,
