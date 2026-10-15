@@ -6152,13 +6152,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ET — reserved
+## Parked by item 2774, 2026-10-15 — the harvest sweep's hundred-and-sixth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ET renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2776) Ten of ten on built shapes, `sweep_gen.py` as it stands: `Group::compute_speed` 0x707f80, `Unit::inc_time` 0x610b40 (`--ret none`: its eax is the type pointer on one path), `UnbuiltCities::add_unbuilt_city` 0x73b7c0, `UnbuiltWonders::add_unbuilt_wonder` 0x73c1d0 (the two lists in `.data` as `--at` windows with the grow slot through `--vtat`), `Caravan::verify_road` 0x73d950, `Unit::do_board` 0x5ed1f0, `PathFinderData::find_node_open` 0x6882b0, `UnitData::los` 0x6100c0, `WallData::valid_buildmask` 0x63e2a0, `BuildData::get_garrison_arrows` 0x62e3d0 (`--slotbase` on slot 0x1bc). Survivors, read against the draw: `verify_road`'s `(b as i8) <= 0` (a tile byte of exactly 0 is 1 in 256 of random bytes, no row), `los`'s read of `p0[8]` for `p0[9]` (the `--wbias p0+8:0,1` puts the short in one byte, an equivalent), `get_garrison_arrows`'s `cap + s1 <= q + s1` (equal arms both assign the cap).
+
+(2777) **Shape lacking, for 2768's lane: `CityData::num_city_buildings` 0x737ae0.** A loop over a chain of records answered by slot 0x3c, each also read at `+0x18` for a type pointer (`+0x2c0 & 0x10`). `--answer-win` windows are drawn after every `--place`, so a place cannot reach into an answered record: `--place pN+0x18` for an answer window is a forward reference, and one answered record (`s0` place) loops on its own `+0x74`. A `--place` whose window may be an answer window, or `--answer-win IDX:SIZE:OFF=SIZE` that places a pointer inside the answer, would build it.
+
+(2778) Shapes lacking from the next rows read, each one line, none built: `Terrain::walk_coord_data` 0x850ef0 (two singletons and a walker through `param_1[0]`, a list per row at stride 0xc); `WorldData::is_seen` 0x6b55c0 (a leaders record at stride `0x6eec`, a game-info byte, two tile arrays: window sizes over a megabyte); `TurnControl::issue_speed_set` 0x956ad0 (a `Command` local the stub is handed by address and the function builds on its stack); `MapFairness::recompute` 0x68a100 (a float compare, no integer shape); `GatherPointList::get_new_data` 0x470e90 (a `malloc` and a constructor); `Player::end_game` 0x6ee110 (camera, scene and semaphore singletons, a write through each).
 
 ## Parked by the next landing, slot EU — reserved
 
