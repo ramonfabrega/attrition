@@ -3745,6 +3745,13 @@ line, filed at its merge): 2660 booked "ours has no non-bomber release" from the
 `add_ammo` print killed it in five minutes — ours released, from the wrong point. Candidate: a brief row, "an absence
 a booking cites is a probe's, named", or the commander's booking names one. One reach.
 
+(2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
+check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
+`agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
+of the integration tip), all dated 2026-10-14. The frame's row ("a sweep's `agent-*` worktrees go with its
+landing", the thirty-sixth pass) postdates them; nothing removed them. Candidate: the pass reads the two unmerged
+tips and the dirty files, then removes or keeps each; a guard that names a stale `agent-*` tree at a booking. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-sixth tranche's
 
 (2654) **A staged `@attack` on a target nothing of the player's can see is dropped as `skipped {}`** (2627's "for the
