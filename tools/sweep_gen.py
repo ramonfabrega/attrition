@@ -2324,6 +2324,53 @@ def cmd_gate_expand(spec, own):
     return x
 
 
+def cmd_obj_expand(spec, own):
+    """`--cmd-obj CMD:SIZE:FIELD,..[:C]` (item 2469, parked 2466):
+    `issue_come_out` / `issue_unqueue`'s shape -- argument 0 an object read
+    through (`--ptrarg 0:0x40`), `check_accept_issue` answered 0/1, the
+    command built in a local of SIZE bytes and handed to `add_command` (no
+    group). FIELDs, in the order they lie: `zOFF` the object's byte widened
+    to a dword, `sOFF` its signed word widened to a dword, `wOFF` its word's
+    two bytes as they lie, `aN` an argument (N >= 1) as a dword, `kV` a
+    constant dword. The `sp-` token is `C + 8 + 4*own`, C defaulting to SIZE
+    rounded up to four. Returns the `obj` flags it stands for."""
+    parts = spec.split(':')
+    if not 3 <= len(parts) <= 4:
+        raise ValueError(f'--cmd-obj {spec}: want CMD:SIZE:FIELD,..[:C]')
+    cmd, size = int(parts[0], 0), int(parts[1], 0)
+    depth = int(parts[3], 0) if len(parts) > 3 and parts[3] else (size + 3) // 4 * 4
+    fmt, vals, pre = f'{cmd:02x}', [], ''
+    for f in [f for f in parts[2].split(',') if f]:
+        if f[0] == 'z' and f[1:]:
+            off = int(f[1:], 0)
+            fmt += '{:02x}000000'
+            vals.append(f'p[0][{off:#x}]')
+        elif f[0] == 's' and f[1:]:
+            off = int(f[1:], 0)
+            pre += (f'let w{off:#x} = i32::from(i16::from_le_bytes([p[0][{off:#x}], p[0][{off + 1:#x}]])); ')
+            fmt += '{}'
+            vals.append(f'le(w{off:#x})')
+        elif f[0] == 'w' and f[1:]:
+            off = int(f[1:], 0)
+            fmt += '{:02x}{:02x}'
+            vals += [f'p[0][{off:#x}]', f'p[0][{off + 1:#x}]']
+        elif f[0] == 'a' and f[1:].isdigit() and 1 <= int(f[1:]) < own:
+            fmt += '{}'
+            vals.append(f'le(a[{f[1:]}])')
+        elif f[0] == 'k' and f[1:]:
+            fmt += '{}'
+            vals.append('"%08x"' % int.from_bytes(int(f[1:], 0).to_bytes(4, 'little'), 'big'))
+        else:
+            raise ValueError(f'--cmd-obj {spec}: field {f!r} is zOFF, sOFF, wOFF, aN (1 <= N < --own) or kV')
+    sp = f'sp-{depth + 8 + 4 * own:#x}'
+    le = ('let le = |v: i32| v.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect::<String>(); ')
+    call = f'format!("{fmt}"' + ''.join(f', {v}' for v in vals) + ')'
+    port = (f'{{ {le}{pre}log.push("15269728".into()); if a[{own}] == 0 {{ log.push("-".into()); '
+            f'log.push("-".into()); }} else {{ log.push("15269768,{sp},{size}".into()); log.push({call}); }} 0 }}')
+    return {'stub': ['0x940a70:0', '0x94bae0:2'], 'answers': ['0:0,1'], 'record': ['0', '1'],
+            'deref': [f'1:0:{size}'], 'ptrarg': ['0:0x40'], 'port': port}
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2481,8 +2528,20 @@ def main(argv=None):
     ap.add_argument('--cmd-gate', metavar='OFF:MASK:CMD:SIZE:FIELD,..[:C[:PRE]]',
                     help='obj: issue_halt\'s shape -- gamec byte gate, check_accept_issue, add_group, the command '
                          'built in a local, add_command (GroupOut::issue_*; item 2454, parked 2444)')
+    ap.add_argument('--cmd-obj', metavar='CMD:SIZE:FIELD,..[:C]',
+                    help='obj: issue_come_out / issue_unqueue\'s shape -- a command whose fields are bytes and words '
+                         'read off the object argument 0, check_accept_issue, add_command (item 2469, parked 2466)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
+    if args.cmd_obj:
+        try:
+            x = cmd_obj_expand(args.cmd_obj, args.own)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        args.stub, args.answers, args.record = x['stub'], x['answers'], x['record']
+        args.deref, args.ptrarg, args.port = x['deref'], x['ptrarg'], x['port']
+        args.ret = args.ret or 'none'
     if args.cmd_gate:
         try:
             x = cmd_gate_expand(args.cmd_gate, args.own)
