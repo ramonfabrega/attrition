@@ -3811,6 +3811,10 @@ pointed at the target (Loop 2726 did the work). Candidate: a brief checklist row
 the Loop" line, filed at its merge): `CityData::num_city_buildings` waits on the first (parked 2777); the second cost
 three refusals and a rerun. Candidate: `--place` into a stub's answer window, and `--edit` taking `--nth N`. One reach.
 
+(2786) **A staging recipe for a unit that must stay idle prints each light's effect on its orders** (2755's "for the
+Loop" line, filed at its merge): three of chapter eighty's six attempts left the stealth unit with an order, found
+only by reading `orders.len()` in ours. Candidate: `stage_walk` names any line that gives a unit an order. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
