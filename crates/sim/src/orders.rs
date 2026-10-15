@@ -5129,6 +5129,12 @@ impl Sim {
             } else {
                 self.detect_unit_collision(u, mo.waypoint)
             };
+            if std::env::var("RON_PROBE_WPCOLL").is_ok() && self.units[u].owner == 1 && self.units[u].index == 187 {
+                eprintln!("PROBE wpcoll f{} u187 at {:?} wp {:?} top {:?} hit {:?} tol {} other_order {:?} t {:?}",
+                    self.frame, self.units[u].pos, mo.waypoint, top, hit.map(|o| (self.units[o].owner, self.units[o].index, self.units[o].pos)),
+                    self.units[u].tolerance, hit.and_then(|o| self.current_order(o).map(|r| (r.index(), r.is_move()))),
+                    hit.map(|o| self.profile(Obj::Unit(o)).big_radius));
+            }
             if let Some(other) = hit {
                 let action = self.action_of(u).map(|a| self.units[u].orders[a].index());
                 if top.flags & path_flag::FINAL != 0
