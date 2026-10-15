@@ -3807,6 +3807,10 @@ BASE:STRIDE:N:OFF=VALS`, and the help line, each held by a test made to fail fir
 two-week-old parked gap (1092, 1328) that said "returns when a word's decision does"; the gate's inputs agreeing
 pointed at the target (Loop 2726 did the work). Candidate: a brief checklist row. One reach.
 
+(2784) **A `--place` cannot target an answer window, and `mutate.py --edit` refuses an ambiguous match** (2774's "for
+the Loop" line, filed at its merge): `CityData::num_city_buildings` waits on the first (parked 2777); the second cost
+three refusals and a rerun. Candidate: `--place` into a stub's answer window, and `--edit` taking `--nth N`. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
@@ -6204,6 +6208,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FC renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
