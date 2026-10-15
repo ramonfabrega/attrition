@@ -21021,7 +21021,7 @@ Past 5037 only two `form` rows part (`1/208` on 5033, `1/213` on 5055); the 106 
 **The word moves 5036 → 5135**, count and sequence both. Ours spends 24 draws and theirs 32, parting at index 4.
 Ours spends `Guy::set_anim+0x97a < Unit::do_move+0x11cf`; theirs spends `Unit::find_attack_pos+0xea9 <
 Group::action_attack+0x41a` (seed `f508e42b`), eight in a row. It is past run861's last block (5109), so no dump on
-disk holds it. Its widening is the next item's capture.
+disk holds it. Its widening is the next item's capture (parked 2554).
 
 **Not established.**
 - The land and sea arms: no capture holds a land unit under a Statue of Liberty with a non-zero `LIBERTY_UNITS`, or a
