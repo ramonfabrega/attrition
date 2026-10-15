@@ -3816,6 +3816,9 @@ call-count record (booked in 2672).
 `--port-file` taking the port body from a file (shell quoting the one recurring cost) and `--answers` with `--seq`
 printing the `a[]` slot its values land in are the candidates; the shapes none holds are slot EA's (parked
 2668-2671, for 2672).
+**2672** (sixty-first reach, filed at its merge): built `fwd --record-order` (an `sK:` callee token) and `walk
+--count-only --rows`, tests failing first; five of ten; a `mix` whose `stale` is its own drawn column and a second
+`--vbase` are the candidates (parked 2673, 2674; booked in 2688).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
