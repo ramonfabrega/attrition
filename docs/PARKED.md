@@ -3735,6 +3735,16 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
+(2415) **A landing that newly compares a field moves pins its lane gate never runs** (the commander's, at
+2384's booking gate; a kill rule tripped). 2384 added `aggression[0..8]` to `rondata::diff::leader`'s rows and
+re-pinned 39 widenings in six lobbies; its lane gate (`--lane --tests lakota_pair:: floors:: first_parting`)
+leaves the timed widenings to the booking gate (1567), so the 226 literal pins and 17 hand sites it did not reach
+(`second`, `third`, `third_pair`, `harness`, `sahara_toughest`, `golden`, `coverage_pair`, seven `leader.rs`
+residue lists and field totals) were red only at the booking — re-pinned by the commander in the second commit,
+and 2389's lane gate red on them meanwhile. Candidate: the lane gate adds every `diff::` module when the branch
+touches a `rondata::diff` row list (`leader.rs`'s rows, `UNMODELLED`), or the brief row says so; measured by
+whether a trip recurs. One reach.
+
 (2410) **A whole-`LEADERDATA` diff across a block is a reflex without a tool** (2384's "for the Loop" line, filed
 at its merge). Loop 2292's row — diff one leader's whole record across the word's block, unread fields included —
 named three unread fields and a write on the *other* leader's record in one command (`aggression`, `strong`,

@@ -22,8 +22,8 @@ measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 mediu
   `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
 - **Lanes: three** (Ramon, DECISIONS 71): 2384 on Opus 5.5 medium; 2389 and the sweep lane (2395 landed, then 2400)
   on Sonnet 5.5 medium. Live: 2388 (AI §221, CJ, runs 853–855), 2389 (GOLDEN §86, CG, run 856), 2400 (CI).
-  Landed: 2395 (Census 894 → 904), 2384 (word 1984 → 2040). Next 2415, run 857, AI §222, GOLDEN §87, park CK.
-- **Fable backlog: 12 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407, 2408, 2409, 2410).
+  Landed: 2395 (Census 894 → 904), 2384 (word 1984 → 2040). Next 2416, run 857, AI §222, GOLDEN §87, park CK.
+- **Fable backlog: 13 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407, 2408, 2409, 2410, 2415).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

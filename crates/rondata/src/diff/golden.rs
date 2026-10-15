@@ -9985,7 +9985,12 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
     // `filled_gather_slots`, and the thirteen start buildings as
     // `build:extra`, which run171 prints no `BUILDS` for.
     let standing = |what: &str| {
-        what == "form" || what.starts_with("leader:filled_gather_slots") || what == "build:extra"
+        what == "form"
+            || what.starts_with("leader:filled_gather_slots")
+            || what == "build:extra"
+            // Item 2384: both leaders' `aggression` on the first block,
+            // parked 2385's initializer.
+            || what.starts_with("leader:aggression")
     };
     let floor: Vec<&String> = firsts
         .iter()
@@ -9995,7 +10000,7 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
     // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
     // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 24,
+        floor.iter().all(|w| standing(w)) && floor.len() == 26,
         "ch8: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -13258,12 +13263,14 @@ fn chapter_forty_nine_s_word_frame_is_widened_whole() {
 }
 
 const WANT_CH49: &[&str] = &[
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -14536,17 +14543,15 @@ fn chapter_sixty_s_fog_plane() {
 }
 
 const WANT_CH51: &[&str] = &[
-    // Item 1502: an attack's `order:target` on a building the start dump did
-    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
-    // §131.4); these rows agree and leave: 698 0/7 order:target, 847 0/9
-    // order:target, 848 0/8 order:target.
     "1054 0/7 death:extra",
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -14565,16 +14570,15 @@ const WANT_CH51: &[&str] = &[
 const WANT_CH51_POOL: &[&str] = &[];
 
 const WANT_CH50: &[&str] = &[
-    // Item 1502: an attack's `order:target` on a building the start dump did
-    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
-    // §131.4); these rows agree and leave: 700 0/7 order:target, 832 0/9
-    // order:target, 833 0/8 order:target.
+    "1063 0/7 death:extra",
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -14583,7 +14587,6 @@ const WANT_CH50: &[&str] = &[
     "751 0/6 death:extra",
     "908 0/9 death:extra",
     "986 0/8 death:extra",
-    "1063 0/7 death:extra",
 ];
 
 // Item 1776: as chapter fifty-one's pool (770 slot 1 agrees and leaves).
@@ -14807,12 +14810,14 @@ fn chapter_forty_five_s_word_frame_is_widened_whole() {
 /// the Dye's pay from 769 (`income[2:wealth]` 320 against 400,
 /// `resources[3:knowledge]` 160 against 240).
 const WANT_CH45: &[&str] = &[
+    "600 0/-1 leader:aggression[1]",
     "600 0/0 form",
     "600 0/1 form",
     "600 0/2 form",
     "600 0/3 form",
     "600 0/4 form",
     "600 0/5 form",
+    "600 1/-1 leader:aggression[0]",
     "600 1/1 form",
     "600 1/2 form",
     "600 1/3 form",
@@ -14831,15 +14836,14 @@ const WANT_CH45: &[&str] = &[
 /// 686. The rounds are compared field by field (item 1257), and all 381
 /// agree.
 const WANT_CH44: &[&str] = &[
-    // Item 1502: an attack's `order:target` on a building the start dump did
-    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
-    // §131.4); these rows agree and leave: 611 1/6 order:target.
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -14908,21 +14912,23 @@ fn chapter_forty_six_s_word_frame_is_widened_whole() {
 ///   rows on slot 3 (ours stacked three moves on `0/7`, two on `0/8` and
 ///   one on `0/9`); all agree.
 const WANT_CH46: &[&str] = &[
+    "1404 0/-1 leader:treaties[1]",
+    "1404 1/-1 leader:treaties[0]",
+    "1487 1/7 death:extra",
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
     "704 0/10 form",
-    "1404 0/-1 leader:treaties[1]",
-    "1404 1/-1 leader:treaties[0]",
-    "1487 1/7 death:extra",
 ];
 
 /// Chapter forty-six's pool rows (item 1278): run496 whole, all the
@@ -15040,10 +15046,6 @@ fn chapter_forty_eight_s_word_frame_is_widened_whole() {
 /// builders' quarter rate (an aircraft's blow costs none); block 983, the
 /// original's fourth blow, 104/15 → 113/4 and 450 of progress (the carry).
 const WANT_CH48: &[&str] = &[
-    // Item 1502: an attack's `order:target` on a building the start dump did
-    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
-    // §131.4); these rows agree and leave: 901 0/10 order:target, 901 0/8
-    // order:target, 901 0/9 order:target.
     "1468 0/6 ammo[0].accuracy",
     "1468 0/6 ammo[0].ex",
     "1468 0/6 ammo[0].sx",
@@ -15065,12 +15067,14 @@ const WANT_CH48: &[&str] = &[
     "1482 0/6 ammo[6].whom",
     "1482 0/6 ammo[7].ox",
     "1482 0/6 ammo[7].whom",
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -15122,16 +15126,14 @@ const WANT_CH48_POOL: &[&str] = &[];
 /// birth `form` on 708, and two rows past the site's death on 1001 and
 /// 1021.
 const WANT_CH47: &[&str] = &[
-    // Item 1502: an attack's `order:target` on a building the start dump did
-    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
-    // §131.4); these rows agree and leave: 682 1/6 order:target, 682 1/7
-    // order:target, 682 1/8 order:target.
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
@@ -15200,21 +15202,23 @@ fn chapter_forty_three_s_word_frame_is_widened_whole() {
 /// 1488) and with it every row from 1553; and the 1900 line's refusal
 /// (the DLL's refusal 3) every row from 1902.
 const WANT_CH43: &[&str] = &[
+    "1404 0/-1 leader:treaties[1]",
+    "1404 1/-1 leader:treaties[0]",
+    "1488 1/6 death:extra",
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
     "704 0/10 form",
-    "1404 0/-1 leader:treaties[1]",
-    "1404 1/-1 leader:treaties[0]",
-    "1488 1/6 death:extra",
 ];
 
 /// Chapter forty-three's pool rows (items 1223, 1235, 1248): none, run466
@@ -15233,15 +15237,14 @@ const WANT_CH43_POOL: &[&str] = &[];
 /// `agendas[·]` is compared on every block and agrees: who=0's slot for
 /// who=1 turns 2 on 812.
 const WANT_CH42: &[&str] = &[
-    // Item 1502: an attack's `order:target` on a building the start dump did
-    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
-    // §131.4); these rows agree and leave: 622 0/6 order:target.
+    "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
+    "605 1/-1 leader:aggression[0]",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/3 form",

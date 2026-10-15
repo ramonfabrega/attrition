@@ -1191,7 +1191,8 @@ mod tests {
             .collect();
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
-            compared, 170_400,
+            compared,
+            171_520, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1294,7 +1295,8 @@ mod tests {
         }
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
-            compared, 183_180,
+            compared,
+            184_384, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1488,7 +1490,8 @@ mod tests {
         assert_eq!(blocks, 36, "eighteen blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 38_340,
+            compared,
+            38_592, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1626,7 +1629,8 @@ mod tests {
         assert_eq!(blocks, 260, "130 blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 276_900,
+            compared,
+            278_720, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1695,10 +1699,14 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (0, "aggression[1]"),
         // Item 2351: `scouts` agrees on both leaders, kept live by
         // `track_unit_type` (`docs/AI.md` §219).
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (1, "aggression[0]"),
     ];
 
     #[test]
@@ -1760,7 +1768,8 @@ mod tests {
         assert_eq!(blocks, 60, "thirty blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 63_900,
+            compared,
+            64_320, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -2365,6 +2374,8 @@ mod tests {
         (0, "SITE[9].reg"),
         // Item 2351: `scouts` agrees on both leaders, kept live by
         // `track_unit_type` (`docs/AI.md` §219).
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (0, "aggression[1]"),
         (1, "SITE[0].reg"),
         (1, "SITE[2].reg"),
     ];
@@ -2409,6 +2420,8 @@ mod tests {
         // economy flag (`docs/AI.md` §84).
         // Item 2351: `scouts` agrees on both leaders, kept live by
         // `track_unit_type` (`docs/AI.md` §219).
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (0, "aggression[1]"),
     ];
 
     /// The `(player, field)` pairs that part over run19's window. Filled
@@ -2483,6 +2496,8 @@ mod tests {
         (0, "SITE[9].reg"),
         // Item 2351: `scouts` agrees on both leaders, kept live by
         // `track_unit_type` (`docs/AI.md` §219).
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (0, "aggression[1]"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
     ];
@@ -2538,7 +2553,11 @@ mod tests {
         // economy flag (`docs/AI.md` §84).
         // Item 2351: `scouts` agrees on both leaders, kept live by
         // `track_unit_type` (`docs/AI.md` §219).
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (0, "aggression[1]"),
         (1, "SITE[0].reg"),
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (1, "aggression[0]"),
     ];
 
     /// The `(player, field)` pairs of the leader record that part over
@@ -2605,9 +2624,13 @@ mod tests {
         (0, "SITE[9].reg"),
         // Item 2351: `scouts` agrees on both leaders, kept live by
         // `track_unit_type` (`docs/AI.md` §219).
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (0, "aggression[1]"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "SITE[3].reg"),
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (1, "aggression[0]"),
     ];
 
     /// Item 303's probe: this crate's `active` against this crate's own
@@ -2766,6 +2789,8 @@ mod tests {
         (0, "SITE[9].reg"),
         // Item 2351: `scouts` agrees on both leaders, kept live by
         // `track_unit_type` (`docs/AI.md` §219).
+        // Item 2384: `aggression`, compared since; parked 2385.
+        (0, "aggression[1]"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
     ];
@@ -2841,7 +2866,8 @@ mod tests {
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(blocks, 490, "245 blocks, two leaders");
         assert_eq!(
-            compared, 521_850,
+            compared,
+            525_280, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
