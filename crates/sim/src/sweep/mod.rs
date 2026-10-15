@@ -359,6 +359,7 @@ mod build_queue_data_get_next_non_caravan;
 mod build_queue_data_get_queue;
 mod build_queue_set_job_counter;
 mod build_queue_un_queue;
+mod build_remove_gatherer;
 mod build_repair_damage;
 mod build_type_backup;
 mod build_type_data_already_built;
