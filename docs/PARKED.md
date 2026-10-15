@@ -3789,6 +3789,16 @@ hog is named by its cwd, not its name. Not measured: which test holds the 7.8 GB
 Candidate: one sampled whole gate at its RSS peak, then the dump reader's footprint (entry 56 §3 found half the
 suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four lanes and a booking gate live. One reach.
 
+(2769) **A pointer array of N records is N `--place` flags, and a callee's arity is read by hand** (2749's "for the
+Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a shell loop of `--place`s, and
+`kill_tree`'s one stack argument (hidden by the decompile) faulted the first run at the stub page. Candidate: a
+`--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach.
+
+(2775) **A record array's bias is a `--place` per record, and `--answers` on a table-indexing stub draws wild words**
+(2743's "for the Loop" line, filed at its merge): parked 2747's record-array bias wants one flag, and `--answers`'
+help should say a stub that indexes a table wants `--answer-range` instead. Candidate: `--records
+BASE:STRIDE:N:OFF=VALS`, and the help line, each held by a test made to fail first. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
@@ -6096,21 +6106,19 @@ words and edits nothing here; a refill lands when two remain.
 
 (2740) **`upath`'s pull-back keeps an `sx == 0 && cy == 0` break that the listing lacks.** `00682f30`'s walk is a `do … while (g48(goal) != hg)` with only the `0x18` give-up inside it, so ours' guard, which falls through to the near test, is this crate's own. A step of `0x18` cannot round both components to zero, so it is believed unreachable. A `debug_assert!` would say so, and it names no score.
 
-## Parked by the next landing, slot EO — reserved
+## Parked by item 2743, 2026-10-15 — the harvest sweep's hundred-and-third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2745) Ten of ten on built shapes, `sweep_gen.py` as it stands: `UnitData::is_entering_or_exiting` 0x60a6f0, `is_packing_or_unpacking` 0x60a410, `Object::get_army` 0x649d70, `World::is_edge_of_region` 0x6b3180, `Forts::find_fort` 0x73ebe0, `GroupsData::find_group_const` 0x7084c0, `ObjectsData::find_goody_at` 0x65b7c0, `Group::find_role` 0x7081f0, `City::could_queue` 0x737fa0, `CityData::enhancer_level` 0x7389d0. Every `port` row left in `census.py --unbacked` was already parked (2684, 2689, 2715) or too long, so the batch is the shortest unbacked sim rows with no parked slot. No `sweep_gen.py` change. Starved or equivalent breaks that passed, read against the draw: `find_fort`'s `k % 3` (the fourth list entry is the first hit in no row), `find_group_const`'s 46th record (the same), `enhancer_level`'s `kind <= 5` (kind 5 reaches the `_ => 0` arm either way), `is_packing_or_unpacking`'s `t2 = t1` (an equivalent token).
 
-## Parked by the next landing, slot EP — reserved
+(2746) Shapes no built generator holds, for 2731's lane (each listing read): `CityData::is_disbanding` 0x7380a0 (a loop over a chain whose next link is read through a vcall's answer, with a sum of a vcall-through-the-answer's slot 0x190 — `--answer-win` answers a window a call, not an object whose own vtable is stubbed); `GroupData::has_air_units` 0x70b250 (`has_damage`'s up-link walk, parked 2700/2711: a chain of shorts through two arrays that terminates only on a negative link); `MountainsData::total_gather_size` 0x89c110 (three callees, two answered pointers, the third's `ecx` an address plus a drawn word — `--record` prints an address the port cannot know, so only the sum could be held); `ObjectsData::find_goody_at` 0x65c040 (the second overload, 937 bytes, reached through 2743's stub).
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2747) `find_group_const`'s image array is `0x9d4 * (who << 6 + r)`: a player's 46 records sit 64 apart, so the place is 110 records long for who 1 (0x1c8a8 bytes for who 0 only was the first draw, and the port read a different record). A `--place` that is bigger than a megabyte is a window of random bytes the row prints whole (220 rows of 270 KB); a `--wbias` a record is 138 lines of flags for one function — a `--records BASE:STRIDE:N:OFF=VALS` would write them.
+
+(2748) Loop: `--place N:0:SIZE` with a handle table through a global cell (`0xcae5fc`) is the third reach of the handle-table shape (`find_fort`, `find_goody_at`, `get_goody_at`'s sibling in 2714's `send_navy`); a `--handles CELL:N:LO..HI` would draw the table and the xor/shift the encoded arguments need.
+
+## Parked by item 2749, 2026-10-15 — slot ED's shapes, five functions swept
+
+(2751) **`PathFinder::kill_lists` is swept with its loop run once, not many times.** `remove_current` is hooked and `--stub-write 6:p3+0xc:4:0` clears the tree's head pointer in one call, so the `while (tree[0xc] != 0)` loop never runs a second iteration; the original removes every node. `--stub-write ... dec` lowers a count, but this word is a pointer the pre-loop dereferences (`edx+0xc`, `edx+0x10`), so a small-integer draw would fault. A second iteration wants a callee run (`--stub run:0x46dc60`) over a drawn list, which pulls in `Tree::remove_current`'s own callees. The other tree-clear arms, the six `Tree::clear` callees and the delete test are held on one iteration.
 
 ## Parked by item 2755, 2026-10-15 — chapter eighty staged: the stealth arm under calc_danger
 

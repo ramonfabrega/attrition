@@ -1519,13 +1519,19 @@ def out_answer(inner, k, v, write):
     return answer
 
 
-def win_write(inner, at, size, v, write):
+def win_write(inner, at, size, v, write, read=None):
     """`--stub-write IDX:WIN+OFF:SIZE:VAL` (item 2346): a stub that writes VAL
     at a window's word each call — a callee that unlinks the head of the
     container its caller loops over (`Object::kill_contents`) — then answers
     as `inner` would."""
     def answer(ecx, args):
-        write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
+        if v == "dec":
+            # `dec` (item 2749, parked 2734): one less each call, a count a
+            # callee (`remove_current`, `Array::remove`) lowers.
+            w = (int.from_bytes(read(at, size), "little") - 1) & ((1 << 8 * size) - 1)
+            write(at, w.to_bytes(size, "little"))
+        else:
+            write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
         return inner(ecx, args) if callable(inner) else inner
     return answer
 
@@ -1864,7 +1870,8 @@ def main(argv):
                 h.answers[names[idx]] = lambda ecx, args, off=off, flag=flag: (ecx + off) & 0xFFFFFFFF if h.r32(ecx + flag) else 0
         for idx, win, off, size, v in STUBWRITE:
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
-            h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write)
+            h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write,
+                                                      lambda a_, n_: bytes(uc.mem_read(a_, n_)))
         derefs = [[] for _ in DEREF]
         for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
@@ -2285,7 +2292,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         idx = int(m_.group(1))
         if idx >= len(stubs):
             raise ValueError(f'--stub-write names stub {idx}, and there are {len(stubs)}')
-        pwrite.append((idx, m_.group(2), int(m_.group(3), 0), int(m_.group(4)), int(m_.group(5), 0)))
+        pwrite.append((idx, m_.group(2), int(m_.group(3), 0), int(m_.group(4)),
+                       'dec' if m_.group(5) == 'dec' else int(m_.group(5), 0)))
     pecxans = []
     for spec in ecx_answer:
         m_ = re.fullmatch(r'(\d+):(\w+)(?::(\w+))?', spec)
@@ -2363,7 +2371,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            + (f'{v[1]}..{v[2]}' if v[0] == 'range' else str(v[1]))
            + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
         + [f'stub {k} is `__cdecl`: the caller pops its arguments' for k in pcdecl]
-        + [f'stub {idx} writes {v} ({z} bytes) at `{w}+{o:#x}` each call' for idx, w, o, z, v in pwrite]
+        + [f'stub {idx} lowers `{w}+{o:#x}` ({z} bytes) by one each call' if v == 'dec'
+           else f'stub {idx} writes {v} ({z} bytes) at `{w}+{o:#x}` each call' for idx, w, o, z, v in pwrite]
         + [f'stub {idx} answers from its own `ecx`: the word at `+{o:#x}`'
            + (f', or `ecx+{o:#x}` when the word at `+{f:#x}` is set' if f is not None else '')
            for idx, o, f in pecxans]
