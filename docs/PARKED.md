@@ -5956,13 +5956,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DW — reserved
+## Parked by item 2633, 2026-10-15 — the sweep's ninety-second batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2634) **`Search::valid_filter` 0x67dbb0 is a jump-table dispatch** (`(&PTR_LAB_0067e57c)[param_4]` tail-jumped, one arm a case): no `obj` shape enters one case by index and compares its arm; a `switch` shape (`--jump TABLE:N`, one sweep a case, the case's own callee stubbed) is the Loop's build.
+
+(2635) **`Doober::has_doobers` 0x8466d0 compares through x87**: `(float)(a == (float)b) >> 8` as an index into `div_3_table`, a float the port cannot spell without the software float; it waits for a float-argument `obj` shape with a table (`xmm_bits` covers xmm, not the x87 stack).
+
+(2636) **`UnitOut::issue_come_out` 0x607be0 hands `add_command` a 16-byte `Command` local**: only five of its bytes are written, so the rest is the emulator's stack residue (Loop 2506); `--deref IDX:K:16` would bank it. A `--deref` with a written-bytes mask is the Loop's build.
+
+(2637) **`TurnControl::get_delta_percent` 0x957950 returns a float of `timeGetTime`**: an import (`iat`) answer and a float return in st0, both outside the shapes (`--ret xmm0` is xmm, the original returns in st0).
+
+Of ten, five landed (2481): `UnitData::is_gathering`, `SubObjectData::is_seen`, `Guy::update_z`, `BorderNodes::find`, `UnitData::is_here`. The five others the batch looked at and passed over are the four above and the render/UI rows (`RiverDoober::add_for_render`, `Nuke::draw_ctw` and their kind), which name no simulation state.
+
 
 ## Parked by the next landing, slot DX — reserved
 
