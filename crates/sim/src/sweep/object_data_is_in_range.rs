@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -41,48 +46,51 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    let ty = &p[2];
-    i64::from('blk: {
-        if rd(ty, 0x1e4) & 0x8000000 != 0 {
-            log.push("s0:m+0x0,0".into());
-            if a[4] < 0 {
-                break 'blk true;
+                let ty = &p[2];
+                i64::from('blk: {
+                    if rd(ty, 0x1e4) & 0x8000000 != 0 {
+                        log.push("s0:m+0x0,0".into());
+                        if a[4] < 0 {
+                            break 'blk true;
+                        }
+                    }
+                    let dx = a[0].wrapping_sub(a[2]).wrapping_abs();
+                    log.push("s2:m+0x0".into());
+                    log.push(format!("s1:{dx}"));
+                    let dist = a[5];
+                    log.push("s3:m+0x0".into());
+                    let d = if a[7] != 0 {
+                        let owner = ((rd(m, 8) >> 8) & 0xff) as usize;
+                        let idx = i16::from_le_bytes([m[0xa], m[0xb]]) as usize;
+                        let val = rd(&p[9 + 2 * owner + idx], 0);
+                        if val < dist { dist - val } else { 0 }
+                    } else {
+                        log.push("s2:m+0x0".into());
+                        if a[11] != 0 {
+                            let e = rd(ty, 0x238).wrapping_add(rd(ty, 0x234)).wrapping_mul(0x30);
+                            if dist > e { dist.wrapping_sub(e) } else { 0 }
+                        } else {
+                            dist
+                        }
+                    };
+                    if rd(ty, 0x1fc) == 0 {
+                        d <= 0x66
+                    } else {
+                        log.push("s4:m+0x0".into());
+                        if d < a[8].wrapping_mul(0xc0).wrapping_sub(6) {
+                            break 'blk false;
+                        }
+                        log.push("s5:m+0x0".into());
+                        d <= a[9].wrapping_mul(0xc0).wrapping_add(6)
+                    }
+                })
             }
-        }
-        let dx = a[0].wrapping_sub(a[2]).wrapping_abs();
-        log.push("s2:m+0x0".into());
-        log.push(format!("s1:{dx}"));
-        let dist = a[5];
-        log.push("s3:m+0x0".into());
-        let d = if a[7] != 0 {
-            let owner = ((rd(m, 8) >> 8) & 0xff) as usize;
-            let idx = i16::from_le_bytes([m[0xa], m[0xb]]) as usize;
-            let val = rd(&p[9 + 2 * owner + idx], 0);
-            if val < dist { dist - val } else { 0 }
-        } else {
-            log.push("s2:m+0x0".into());
-            if a[11] != 0 {
-                let e = rd(ty, 0x238).wrapping_add(rd(ty, 0x234)).wrapping_mul(0x30);
-                if dist > e { dist.wrapping_sub(e) } else { 0 }
-            } else {
-                dist
-            }
-        };
-        if rd(ty, 0x1fc) == 0 {
-            d <= 0x66
-        } else {
-            log.push("s4:m+0x0".into());
-            if d < a[8].wrapping_mul(0xc0).wrapping_sub(6) {
-                break 'blk false;
-            }
-            log.push("s5:m+0x0".into());
-            d <= a[9].wrapping_mul(0xc0).wrapping_add(6)
-        }
-    })
-}
         };
         assert_eq!(got, want_eax, "is_in_range — eax, row `{line}`");
-        assert_eq!(log, want_log, "is_in_range — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "is_in_range — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "is_in_range — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

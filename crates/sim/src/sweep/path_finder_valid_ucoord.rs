@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -41,41 +46,52 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    let (x, y, key) = (a[0], a[1], a[2]);
-    let (w, h) = (rd(&c[0], 0x18), rd(&c[0], 0x1c));
-    if x < 0 || y < 0 || x >= w.wrapping_mul(192) || y >= h.wrapping_mul(192) {
-        log.push("-".into());
-        0
-    } else {
-        log.push(format!("s0:p0+0x0,{key}"));
-        if a[3] != 0 {
-            let n = rd(m, 0x90);
-            wr(m, 0x90, n.wrapping_add(1));
-            i64::from(rd(&p[0], 0) != 0)
-        } else {
-            let tx = rd(&c[1], 4 * (x >> 6) as usize);
-            let ty = rd(&c[1], 4 * (y >> 6) as usize);
-            log.push(format!("s1:p1+0x0,{tx},{ty},0,1,0,1,0,{}", y >> 6));
-            let mut r = 0;
-            if a[4] == 0 {
-                log.push(format!("s2:p1+0x0,{x},{y},1,1,p1+0x0,1,0"));
-                r = i64::from(a[5] == 0);
+                let (x, y, key) = (a[0], a[1], a[2]);
+                let (w, h) = (rd(&c[0], 0x18), rd(&c[0], 0x1c));
+                if x < 0 || y < 0 || x >= w.wrapping_mul(192) || y >= h.wrapping_mul(192) {
+                    log.push("-".into());
+                    0
+                } else {
+                    log.push(format!("s0:p0+0x0,{key}"));
+                    if a[3] != 0 {
+                        let n = rd(m, 0x90);
+                        wr(m, 0x90, n.wrapping_add(1));
+                        i64::from(rd(&p[0], 0) != 0)
+                    } else {
+                        let tx = rd(&c[1], 4 * (x >> 6) as usize);
+                        let ty = rd(&c[1], 4 * (y >> 6) as usize);
+                        log.push(format!("s1:p1+0x0,{tx},{ty},0,1,0,1,0,{}", y >> 6));
+                        let mut r = 0;
+                        if a[4] == 0 {
+                            log.push(format!("s2:p1+0x0,{x},{y},1,1,p1+0x0,1,0"));
+                            r = i64::from(a[5] == 0);
+                        }
+                        log.push(format!("s3:p0+0x0,{r},{key}"));
+                        r
+                    }
+                }
             }
-            log.push(format!("s3:p0+0x0,{r},{key}"));
-            r
-        }
-    }
-}
         };
         assert_eq!(got, want_eax, "valid_ucoord — eax, row `{line}`");
-        assert_eq!(log, want_log, "valid_ucoord — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "valid_ucoord — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "valid_ucoord — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "valid_ucoord — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "valid_ucoord — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "valid_ucoord — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[3 + i],
+                "valid_ucoord — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

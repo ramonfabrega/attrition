@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -41,44 +46,51 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    let lead = a[2];
-    let b = 2 + 5 * lead.clamp(0, 7) as usize;
-    let (px, py) = (rd(&p[0], 0), rd(&p[1], 0));
-    let flags = rd(&p[b], 0);
-    let sh = |w: &[u8], i: usize| i16::from_le_bytes([w[2 * i], w[2 * i + 1]]);
-    let mut call: Option<String> = None;
-    let r = if lead >= 8 || rd(&c[0], 0x30) as u8 > 1 || flags & 0x1000 != 0 || flags & 0x800 != 0 || sh(&p[b + 3], 0) != 0 {
-        1
-    } else {
-        let xs = rd(m, 0);
-        let idx = (py >> 1).wrapping_mul(xs).wrapping_add(px >> 1) as usize;
-        let ent = &p[42][28 * idx..28 * idx + 28];
-        let who = ent[0xf] as i8 as i32;
-        let region = i16::from_le_bytes([ent[4], ent[5]]) as usize;
-        let mut hit = false;
-        if who >= 0 {
-            call = Some(format!("r+0x0,{who}"));
-            if a[3] != 0 {
-                let wb = 2 + 5 * who as usize;
-                hit = sh(&p[wb + 1], region) != 0 || sh(&p[wb + 2], region) != 0;
+                let lead = a[2];
+                let b = 2 + 5 * lead.clamp(0, 7) as usize;
+                let (px, py) = (rd(&p[0], 0), rd(&p[1], 0));
+                let flags = rd(&p[b], 0);
+                let sh = |w: &[u8], i: usize| i16::from_le_bytes([w[2 * i], w[2 * i + 1]]);
+                let mut call: Option<String> = None;
+                let r = if lead >= 8
+                    || rd(&c[0], 0x30) as u8 > 1
+                    || flags & 0x1000 != 0
+                    || flags & 0x800 != 0
+                    || sh(&p[b + 3], 0) != 0
+                {
+                    1
+                } else {
+                    let xs = rd(m, 0);
+                    let idx = (py >> 1).wrapping_mul(xs).wrapping_add(px >> 1) as usize;
+                    let ent = &p[42][28 * idx..28 * idx + 28];
+                    let who = ent[0xf] as i8 as i32;
+                    let region = i16::from_le_bytes([ent[4], ent[5]]) as usize;
+                    let mut hit = false;
+                    if who >= 0 {
+                        call = Some(format!("r+0x0,{who}"));
+                        if a[3] != 0 {
+                            let wb = 2 + 5 * who as usize;
+                            hit = sh(&p[wb + 1], region) != 0 || sh(&p[wb + 2], region) != 0;
+                        }
+                    }
+                    if hit {
+                        1
+                    } else {
+                        let fog = rd(m, 0xc);
+                        i64::from(
+                            p[43][fog.wrapping_mul(py).wrapping_add(px) as usize] & p[b + 4][0],
+                        )
+                    }
+                };
+                for k in 0..8 {
+                    log.push(match &call {
+                        Some(t) if k == lead => t.clone(),
+                        _ => "-".into(),
+                    });
+                }
+                log.push("-".into());
+                r
             }
-        }
-        if hit {
-            1
-        } else {
-            let fog = rd(m, 0xc);
-            i64::from(p[43][fog.wrapping_mul(py).wrapping_add(px) as usize] & p[b + 4][0])
-        }
-    };
-    for k in 0..8 {
-        log.push(match &call {
-            Some(t) if k == lead => t.clone(),
-            _ => "-".into(),
-        });
-    }
-    log.push("-".into());
-    r
-}
         };
         assert_eq!(got, want_eax, "was_seen — eax, row `{line}`");
         assert_eq!(log, want_log, "was_seen — the recorded calls, row `{line}`");

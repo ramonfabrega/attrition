@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -41,35 +46,38 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // Three lists' heads at 0xeb1a64 (c[0]): labels (head ptr +0x20, current +0x18,
-    // length short +0x14), x (+0x38, +0x30, value +0x28, short +0x2c), y (+0x50,
-    // +0x48, +0x40, +0x44); the nodes are p[0..3].
-    let mut called = false;
-    let head = rd(&c[0], 0x20);
-    if head != 0 {
-        wr(&mut c[0], 0x18, head);
-        log.push("c0+0x0,p0+0x8".into());
-        called = true;
-        let (b0, b1) = (p[0][0x1c], p[0][0x1d]);
-        c[0][0x14] = b0;
-        c[0][0x15] = b1;
-    }
-    for (win, hd, cur, val, sh) in [(1usize, 0x38usize, 0x30usize, 0x28usize, 0x2cusize), (2, 0x50, 0x48, 0x40, 0x44)] {
-        let node = rd(&c[0], hd);
-        if node != 0 {
-            wr(&mut c[0], cur, node);
-            let v = rd(&p[win], 8);
-            wr(&mut c[0], val, v);
-            let (b0, b1) = (p[win][0xc], p[win][0xd]);
-            c[0][sh] = b0;
-            c[0][sh + 1] = b1;
-        }
-    }
-    if !called {
-        log.push("-".into());
-    }
-    0
-}
+                // Three lists' heads at 0xeb1a64 (c[0]): labels (head ptr +0x20, current +0x18,
+                // length short +0x14), x (+0x38, +0x30, value +0x28, short +0x2c), y (+0x50,
+                // +0x48, +0x40, +0x44); the nodes are p[0..3].
+                let mut called = false;
+                let head = rd(&c[0], 0x20);
+                if head != 0 {
+                    wr(&mut c[0], 0x18, head);
+                    log.push("c0+0x0,p0+0x8".into());
+                    called = true;
+                    let (b0, b1) = (p[0][0x1c], p[0][0x1d]);
+                    c[0][0x14] = b0;
+                    c[0][0x15] = b1;
+                }
+                for (win, hd, cur, val, sh) in [
+                    (1usize, 0x38usize, 0x30usize, 0x28usize, 0x2cusize),
+                    (2, 0x50, 0x48, 0x40, 0x44),
+                ] {
+                    let node = rd(&c[0], hd);
+                    if node != 0 {
+                        wr(&mut c[0], cur, node);
+                        let v = rd(&p[win], 8);
+                        wr(&mut c[0], val, v);
+                        let (b0, b1) = (p[win][0xc], p[win][0xd]);
+                        c[0][sh] = b0;
+                        c[0][sh + 1] = b1;
+                    }
+                }
+                if !called {
+                    log.push("-".into());
+                }
+                0
+            }
         };
         let _ = (got, want_eax);
         assert_eq!(log, want_log, "head — the recorded calls, row `{line}`");
