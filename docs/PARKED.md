@@ -3734,6 +3734,12 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-15 — the thirty-seventh tranche's
+
+(2678) **`RON_DEBUG_UNIT`'s line prints neither `line_ok` nor `tolerance`** (2638's "for the Loop" line, filed at
+its merge): the two fields `Unit::do_move` branches on first, and 2638 took a probe commit for each. Candidate: the
+line prints both, held by a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-sixth tranche's
 
 (2654) **A staged `@attack` on a target nothing of the player's can see is dropped as `skipped {}`** (2627's "for the
@@ -5914,6 +5920,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EI renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
