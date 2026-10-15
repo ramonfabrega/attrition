@@ -617,6 +617,7 @@ mod map_scale_by_area;
 mod map_scale_by_axis;
 mod misc_access_coord_vis_3;
 mod misc_access_coord_vis_4;
+mod misc_access_find_global_render_z;
 mod mountain_range_validate_tcoord;
 mod mountains_out_mnt_locs;
 mod mountains_out_mnt_ranges;
