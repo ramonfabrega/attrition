@@ -333,6 +333,7 @@ mod build_data_most_shots;
 mod build_data_num_gather;
 mod build_data_num_gatherers;
 mod build_data_num_scholars;
+mod border_nodes_find;
 mod build_find_city;
 mod build_finished;
 mod build_order_get_type_vtordisp;
