@@ -3813,6 +3813,9 @@ ten of ten; `mix --gate` runs gated steps on `== 0` only (parked 2568) and `--ga
 first; three new rows and five regenerated; `--regen` drops a flag the original generation did not have, so a regen
 with a new flag needs the files removed first; `Constants` and `Dock` want a record token and a store (parked 2584,
 2586; booked in 2588).
+**2588** (fifty-fourth reach, filed at its merge): built `mix` `rec` tokens and `mix --store`, tests failing first;
+ten of ten; a cdecl empty body needs a dummy `obj --cdecl --ptrarg 0:4`, since `void` has no `--cdecl`; `Types` and
+`TerrainList` want an `obj` table loop and a linked-list walk (parked 2585, 2589; booked in 2593).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
