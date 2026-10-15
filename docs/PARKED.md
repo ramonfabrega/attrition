@@ -3757,6 +3757,12 @@ at once; the launcher's own `log:` line names the viadriver log to wait on. Cand
 `log:` line when handed a launcher log, or the frame's capture row names the file; a test made to fail first.
 One reach.
 
+(2461) **run854's packet has no footer** (2423's "for the Loop" line, filed at its merge): `golden_capture.sh`'s `RON_STATE_FRAME` packet ends
+where its header's ranges end. `tools/recomp/snapshot.py` raises on the missing 28 bytes, so every reader of
+it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell read here skipped the check by
+hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
+`frame_snapshot.py`'s restore, which this lane does not run.
+
 (2480) **A hand-written break script's pass check keys on a word a passing summary prints** (2469's "for the
 Loop" line, filed at its merge; Loop 2442's sibling). A break script that greps for `failed` matches cargo's `0
 failed` summary and reads a pass as the break; 2469 caught it on its first run. Candidate: the sweep's break helper
@@ -5498,19 +5504,8 @@ The census's next issuers: `CommandManager::issue_come_out`, `_resign`, `_gather
 
 ## Parked by item 2423, 2026-10-14 — the peace pair's word 4544, and a packet with no footer
 
-(2460) **The peace pair's word 4544: ours 145 draws, theirs 201, index 0** (2423, `docs/AI.md` §223; ours
-`Leader::diplomacy+0x1168`, theirs `GameDaemon::calc_market+0x54`). It is 44 frames after the peace ends at 4500.
-Ours spends one extra `Leader::diplomacy` draw first. Of the rest, `Animal::think_bird+0x2aa` and `+0x2d3` are
-theirs 60 each against ours 30, and the `Guy::set_anim+0x97a` rolls are ours 48 against theirs 45. The widening
-is run855 (blocks 4538..4794, 977 keys). Block 4545 holds no row. On 4538 `leader:diplos` is ours 1 against
-theirs 0 both ways, and the ICBM `1/50` holds an order in theirs only. On 4542 theirs' `1/50` is gone. The cause
-is between 3552 and 4538, which no dump holds: `RON_DEBUG_LEADER` over 4499..4538 on ours names the frame the
-`diplos` were written.
-(2461) **run854's packet has no footer** (2423, for the Loop): `golden_capture.sh`'s `RON_STATE_FRAME` packet ends
-where its header's ranges end. `tools/recomp/snapshot.py` raises on the missing 28 bytes, so every reader of
-it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell read here skipped the check by
-hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
-`frame_snapshot.py`'s restore, which this lane does not run.
+Its two rows left at 2423's merge: 2460 is booked in the queue as the AI word's item, and 2461 is filed in
+the Loop section.
 
 ## Parked by item 2464, 2026-10-14 — the sweep's seventy-fifth batch
 
@@ -5614,6 +5609,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot CZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DD renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
