@@ -1369,6 +1369,26 @@ class Shapes(unittest.TestCase):
         self.assertIn('ORDER = False', plain)
         self.assertNotIn('format!("s{k}:', ptest)
 
+    def test_a_walk_may_record_only_its_call_count_and_ends(self):
+        # Item 2672 (parked 2667): `Balance::walk_rules_data` calls its walker
+        # 0x1ed * 0x1ed times; a row of them is a quarter-million hooked
+        # calls. `count_only` prints one record a row: the count, the first
+        # and last call, and the sums of the two arguments; the port is an
+        # iterator of `(a0, a1)` pairs, and `rows` bounds the rows drawn.
+        sp, script, tp, test, mod = sweep_gen.generate_walk(
+            'Balance::walk_rules_data@00582cc0', item=1, a0='0xc12bf4', a1='0xc12bf6', count_only=True, rows=3,
+            port='(0..4i64).map(|k| (0xc12bf4 + 2 * k, 0xc12bf6 + 2 * k))')
+        compile(script, str(sp), 'exec')
+        self.assertIn('ROWS = 3', script)
+        self.assertIn('COUNT_ONLY = True', script)
+        self.assertIn('max_insns=', script)
+        self.assertIn('0xc12bf4 + 2 * k', test)
+        self.assertIn('sum', test)
+        self.assertIn('assert!(n >= 3', test)
+        _, plain, _, ptest, _ = sweep_gen.generate_walk('X::y@00401000', item=1, a0='this', a1='this')
+        self.assertIn('COUNT_ONLY = False', plain)
+        self.assertNotIn('sum', ptest)
+
     def test_a_free_function_is_a_name(self):
         # Item 2346: `add_type_bucket2@00669140` and `add_type_bucket` are
         # free functions (`types.cpp`), and the name refused them; the census

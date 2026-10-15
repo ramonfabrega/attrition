@@ -500,23 +500,33 @@ from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 
 ENTRY = 0x{va:08x}
+ROWS = {rows}
+# `--count-only` (item 2672, parked 2667): a walker called a quarter-million times
+# is one record, `<count> <first> <last> <sum a0> <sum a1>` (sums mod 2**32).
+COUNT_ONLY = {count_only}
 
 
 def main(argv):
     from hooks import Harness
     h = Harness(argv[1], {{}})
     rng = random.Random({item})
-    for _ in range(140):
+    for _ in range(ROWS):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
         ans = rng.randint(-0x80000000, 0x7FFFFFFF)
         vt = h.vtable({{0: ("walk", 2, ans & 0xFFFFFFFF)}})
         walker = h.alloc(16)
         h.w32(walker, vt)
         h.calls.clear()
-        r = h.call(ENTRY, (walker,), ecx=this)
+        r = h.call(ENTRY, (walker,), ecx=this, max_insns=200_000_000 if COUNT_ONLY else 200_000)
         esp = h.m.uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
-        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        if COUNT_ONLY:
+            fmt = lambda c: ",".join(str(x) for x in (c[1], *c[2]))
+            seen = " ".join([str(len(h.calls)), fmt(h.calls[0]), fmt(h.calls[-1]),
+                             str(sum(c[2][0] & 0xFFFFFFFF for c in h.calls) & 0xFFFFFFFF),
+                             str(sum(c[2][1] & 0xFFFFFFFF for c in h.calls) & 0xFFFFFFFF)])
+        else:
+            seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
         print(f"{{this}} {{walker}} -> {{r}} | {{seen}}")
     return 0
 
@@ -542,11 +552,11 @@ fn the_emulated_original_agrees_on_every_row() {{
         let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
         let (this, walker) = (a[0], a[1]);
         let _ = this;
-        let want = format!("{{walker}},{{}},{{}}", {e0}, {e1});
+{want}
         assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
         n += 1;
     }}
-    assert!(n >= 100, "only {{n}} rows");
+    assert!(n >= {least}, "only {{n}} rows");
     eprintln!("{name}@{va:08x}: {{n}} rows agree");
 }}
 '''
@@ -561,13 +571,32 @@ def _walk_expr(tok):
     return f'{int(tok, 0):#x}'  # an absolute address: PathFinder::walk_data hands two globals (item 1916)
 
 
-def generate_walk(spec, *, item, a0, a1):
+WALK_WANT = '''        let want = format!("{{walker}},{{}},{{}}", {e0}, {e1});'''
+WALK_WANT_COUNT = '''        let pairs: Vec<(i64, i64)> = {port}.collect();
+        let fmt = |p: &(i64, i64)| format!("{{walker}},{{}},{{}}", p.0, p.1);
+        let sum = |f: fn(&(i64, i64)) -> i64| pairs.iter().map(|p| f(p) as u32 as u64).sum::<u64>() as u32;
+        let want = format!(
+            "{{}} {{}} {{}} {{}} {{}}",
+            pairs.len(),
+            fmt(&pairs[0]),
+            fmt(pairs.last().unwrap()),
+            sum(|p| p.0),
+            sum(|p| p.1)
+        );'''
+
+
+def generate_walk(spec, *, item, a0, a1, count_only=False, rows=None, port=None):
     name, va = parse(spec)
     sn = snake(name)
     short = name.rsplit('::', 1)[-1]
-    script = WALK_SCRIPT.format(snake=sn, name=name, va=va, item=item, a0=a0, a1=a1)
+    if count_only and not port:
+        raise ValueError('--count-only wants --port, an iterator of the walker\'s `(a0, a1)` pairs (`walker`, `this` in scope)')
+    rows = rows if rows is not None else (3 if count_only else 140)
+    script = WALK_SCRIPT.format(snake=sn, name=name, va=va, item=item, a0=a0, a1=a1, rows=rows, count_only=count_only)
+    want = (WALK_WANT_COUNT.format(port=port) if count_only
+            else WALK_WANT.format(e0=_walk_expr(a0), e1=_walk_expr(a1)))
     test = WALK_TEST.format(snake=sn, name=name, va=va, item=item, short=short, a0=a0, a1=a1,
-                            e0=_walk_expr(a0), e1=_walk_expr(a1))
+                            want=want, least=rows if count_only else 100)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -2791,6 +2820,7 @@ def main(argv=None):
                     help='obj: a vtable slot of this, or a direct callee, answered per row (the answer printed after the arguments)')
     ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
     ap.add_argument('--a0', default='this', help='walk: the first callback argument, `this` or `this+0xNN`')
+    ap.add_argument('--count-only', action='store_true', help='walk: the walker is called a quarter-million times; one record a row (count, first, last, sums), --port an iterator of its (a0, a1) pairs, --rows N rows (default 3) (item 2672, parked 2667)')
     ap.add_argument('--a1', default='this', help='walk: the second callback argument')
     ap.add_argument('--step', action='append', default=[], help='mix: call:ADDR:NARGS:ECX:ARGS | walk:A0:A1 | walk4:OFF, in order; `gated/` prefix')
     ap.add_argument('--glob', type=lambda s: int(s, 0), help='mix: the global cell (the walk4 argument is *(*cell+0x10)+OFF)')
@@ -3045,7 +3075,9 @@ def main(argv=None):
         return 2
     try:
         if args.shape == 'walk':
-            sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1)
+            sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1,
+                                                      count_only=args.count_only,
+                                                      rows=args.rows if args.rows != 220 else None, port=args.port)
         elif args.shape == 'mix':
             sp, script, tp, test, mod = generate_mix(args.function, item=args.item, steps=args.step,
                                                     glob=args.glob, gate=args.gate,
