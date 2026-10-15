@@ -1758,6 +1758,15 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj(spec, item=2604, win=0x20, bias=[], own=1, ret='arg:1', ptrargs=['0:0x14'])
 
+    def test_a_jump_table_draws_its_index_inside_the_table(self):
+        # parked 2607: Setup::get_starting_citizens is `jmp *0x5aafac(,%eax,4)` over four arms; `--jump IDX:N`
+        # draws the index argument in 0..N-1 (a wild index jumps into the next table's bytes) and is an --own argument.
+        x = sweep_gen.jump_expand('1:4', own=2)
+        self.assertEqual(x['argrange'], ['1:0:3'])
+        for bad in ('1:0', '2:4', '1', '1:4:9'):
+            with self.assertRaises(ValueError):
+                sweep_gen.jump_expand(bad, own=2)
+
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
         self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', 'Foo::bar@00401000']),
