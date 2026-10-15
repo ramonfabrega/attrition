@@ -3764,6 +3764,11 @@ their target named the capital. Candidate: brief checklist row 2180 widened to t
 `--help` does not say so (2714's "for the Loop" line, filed at its merge): 2714 wrote `@` for a cell and read the
 fault as a wild index. Candidate: the help names both forms, a test that a cell given as `@` refuses. One reach.
 
+(2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
+its merge): adding `normalize` as a fourth stub moved `equals_group`'s seq answers from `a[4]`, `a[5]` to `a[5]`,
+`a[6]`, and the port broke until renumbered by hand. Candidate: the generator names each stub's answers in the
+port it writes. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
