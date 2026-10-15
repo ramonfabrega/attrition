@@ -14,17 +14,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-15, **the thirty-fifth pass is done** (`docs/audit/2026-10-15-fable-pass-35.md`, DECISIONS 72): 22
 landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes (Opus 5.5 medium on the AI word
-8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 1 landing.***
+8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 2 landings.***
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 4859, the open word.
-  Chapters 71–74 closed; 69 built, 70 surveyed. Census 894 → 997. Battery 576 / 6566 / 2974, unmoved an eleventh tranche.
+  Chapters 71–74 closed, 75 open at 901 of 961; 69 built, 70 surveyed. Census 894 → 997. Battery 576 / 6566 / 2974, unmoved an eleventh tranche.
 - **Gates (DECISIONS 72)**: a lane's gate widens when its branch can move a pin (2415, no suite run before it,
   2409); the booking gate is `--scope <last whole gate's tip> --test-threads 8`, whole every third landing and at
   the drain. **When the peace pair closes, the AI word's successor is the battery's lowest lobby**
   (EastIndiesGermanTier3, 576 of 13519), a new held-out lobby minted beside it.
-- **Lanes: three live** (DECISIONS 72): 2491 (AI §225, DB, runs 865–867), 2519 (GOLDEN §92, DD, run 868), 2537
-  (DE). Next 2542, run 869 (Astra holds 900–909). Pools: GOLDEN §93–97, AI §226–230, park DF–DG.
-- **Fable backlog: 16 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525).
+- **Lanes: three live** (DECISIONS 72): 2491 (AI §225, DB, runs 865–867), 2530 (GOLDEN §93, DF, run 869), 2537
+  (DE). Next 2543, run 870 (Astra holds 900–909). Pools: GOLDEN §94–97, AI §226–230, park DG.
+- **Fable backlog: 17 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525, 2542).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,7 +35,7 @@ Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w4859 of 6,822
 Census: simulation backed 997 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed
+Golden: ch75 w901 of 961 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-sixth tranche (commander, Opus): read this handoff, then spawn 2491 on the AI word's lane
@@ -46,7 +46,7 @@ landings from `git log <this pass's commit>..`, clear at the tenth, stop at twen
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2491 the AI word's (Opus), 2519 the rules track's and 2537
+2491 the AI word's (Opus), 2530 the rules track's and 2537
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -60,14 +60,14 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     the first value parting on disk after the war — 2460's lead, not a
     build order. Runs 865–867. AI §225.
 
-2519. **Chapter seventy-five: a population-capped queue head on a
-    human** (DECISIONS 56 §3; 2500 closed seventy-four at 760, `hurry`
-    paying the head its train time, GOLDEN §91). Parked 2503: the
-    held-head arm (`get_next_non_unit` when the head's counter already
-    equals its train time) is unit-tested only behind a research head;
-    stage a head held at the population cap so the arm is held on a
-    human. Name the census rows first; run 868 only when no packet of
-    the game is on disk. GOLDEN §92.
+2530. **Chapter seventy-five's word 901: the original completes the
+    queued Special Forces on the `finish` frame, ours does not** (2519,
+    run868; on 902 `0/2007 queue:queued` ours 2, theirs 1, unit `0/0`'s
+    `myhits` 50 / 110, `discovered` 6 / 7; ours pays 20280 → 26280 of
+    36000). Three readings in GOLDEN §92 — an amount, a target, the
+    unit-research base — are 2519's hypotheses; the control that parts
+    them is chapter75.cmd without `901 finish`, `--end-frame 1250`.
+    Run 869. GOLDEN §93.
 
 2537. **The sweep's eighty-second batch: ten never-backed simulation
     functions** (DECISIONS 63 (iv); the score `Census:` 997 of 3611):

@@ -3733,6 +3733,14 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-15 — the thirty-sixth tranche's
+
+(2542) **A chapter's reserved runs carry no spare for the control its own falsifier asks for** (2519's "for the
+Loop" line, filed at its merge). 2519 was reserved run 868 alone, found three readings that one control capture
+(the chapter's script without its `finish`) would part, and parked it for want of a run number; the control became
+the next item and a whole lane session. Candidate: `brief.py --kind chapter` reserves two runs, the second for the
+control, or the frame names the control as the same item's work. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -5653,13 +5661,7 @@ Its "for the Loop" line (an `st0` return and `--xmm`) is parked 2534 and 2535 an
 
 ## Parked by item 2519, 2026-10-15 — chapter seventy-five, the held-head arm and a unit's research time
 
-(2530) **Special Forces completes on the `finish` frame in the original, and not here** (2519, run868, word 901, values
-on 902: `0/2007 queue:queued` ours 2, theirs 1; unit `0/0`'s `myhits` 50 / 110; `leader:discovered` 6 / 7). The held-head
-arm is the original's (the entry behind the capped Bowmen head is taken); ours pays it 20280 → 26280 of a target of 36000.
-Three readings, `docs/GOLDEN.md` §92: an amount above the head's train time; a target below 36000 (an arm of the research
-tail of `train_time@006508c0` this crate lacks); the unit-research base. **The measurement that separates them is the
-control**: chapter75.cmd without `901 finish`, `--end-frame 1250`: the frame Special Forces completes on in the original
-(ours ~1203 for 36000). Names the word's frame and draw delta (901, the research's `gain_tech` draws).
+2530 is booked in the queue, at 2519's merge. Its "for the Loop" line on reserved runs is Loop 2542.
 
 (2531) **A human's non-library queue holds a non-unit entry only through an unresearched unit type** (2519): the sole
 researchable unit at age 8 on the golden start is Special Forces (probed with `type_avail`). A staging for a second type
