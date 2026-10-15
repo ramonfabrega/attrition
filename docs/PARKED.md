@@ -3790,6 +3790,9 @@ the queue's `st0` premise was the decompile's misprint (parked 2538, Loop 2552);
 `walk_data`s on them; ten of ten; `sweep_gen.py` refuses an existing script without `--regen` in words a shell loop
 reads as a parse error, and a gate on another offset (`--gate-this OFF:MASK`) is the next shape (parked 2548, booked
 in 2562).
+**2562** (fifty-first reach, filed at its merge): built `--gate-this OFF:MASK` and `--len-at`, tests failing first,
+and ten on them; ten of ten; `--gate-this` taking an optional value swallows a following positional, and a `stale`
+`ecx` on a `call:` step now blocks two functions (parked 2563, 2564; booked in 2567).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5777,6 +5780,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot DM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DS renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
