@@ -3779,6 +3779,12 @@ merge). The dump prints no army record; 2554's word was one group order's ring w
 the probe named the army, its target and its leader in one run. Candidate: the brief's step 2 names it beside
 `RON_STACKS` when a word's draws sit under a `Group::` caller. One reach.
 
+(2620) **`lanewait.py` armed in the spawn's own turn refuses the new lane** (the commander, 2026-10-15, at 2604's
+merge). Armed right after `ccc spawn` for att-2615, it exited 2 at once — "no roster row with a worktree branch for
+att-2615" — because the row had not yet shown its branch; re-armed a minute later it ran. A wait that dies at
+arm leaves the commander waking on nothing. Candidate: `lanewait.py` retries a missing branch for a minute before
+refusing, a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
