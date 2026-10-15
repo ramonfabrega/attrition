@@ -3313,7 +3313,22 @@ impl Sim {
         // a prerequisite that is not a technology has no `AGE` column, and
         // reads as zero here.
         let tail = if researched {
-            self.train_tail(who, item.ty)
+            // **The President arm** (`train_time@006508c0:103`–`107`), after
+            // the ramp and the lobby handicap and before the national block:
+            // `has_general(0, THEPRESIDENT) >= 0` asked of the trainer, the
+            // reach `construct_time`'s clause reads ([`Self::
+            // president_near_building`]). The peace pair's Airbase `1/2005`
+            // trains its Strategic Bomber in 16500 on 4859, `33000 × 100 /
+            // 200`, with who=1's President in reach (run865's packet,
+            // `docs/AI.md` §225).
+            let mut tail = Vec::new();
+            if self.president_near_building(at) {
+                tail.push(production::Adjust::Faster(
+                    self.tuning.thepresident_unit_build_speed,
+                ));
+            }
+            tail.extend(self.train_tail(who, item.ty));
+            tail
         } else {
             let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
             let level = match self.unit_types[item.ty]

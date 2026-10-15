@@ -863,6 +863,9 @@ pub struct Tuning {
     pub hanging_gardens_build_time: i32,
     /// Percent faster construction with the President nearby.
     pub thepresident_building_speed: i32,
+    /// Percent faster unit training at a building with the President nearby
+    /// (`ObjectData::train_time@006508c0:103`–`107`). Ships as 100.
+    pub thepresident_unit_build_speed: i32,
     /// Whether the Iroquois' first senate is instant.
     pub iroquois_quick_senate: i32,
 
@@ -1336,6 +1339,7 @@ impl Tuning {
         roman_fort_speed: 50,
         hanging_gardens_build_time: 0,
         thepresident_building_speed: 33,
+        thepresident_unit_build_speed: 100,
         iroquois_quick_senate: 1,
         nubian_free_caravan: 0,
         colossus_caravan: 0,
@@ -1398,7 +1402,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 381] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 382] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -2039,6 +2043,10 @@ impl Tuning {
             (
                 "THEPRESIDENT_BUILDING_SPEED",
                 Slot::Value(T.thepresident_building_speed),
+            ),
+            (
+                "THEPRESIDENT_UNIT_BUILD_SPEED",
+                Slot::Value(T.thepresident_unit_build_speed),
             ),
             (
                 "IROQUOIS_QUICK_SENATE",
