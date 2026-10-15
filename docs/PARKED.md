@@ -3750,6 +3750,12 @@ at once; the launcher's own `log:` line names the viadriver log to wait on. Cand
 `log:` line when handed a launcher log, or the frame's capture row names the file; a test made to fail first.
 One reach.
 
+(2479) **A golden staging's cheat on a unit's birth frame is ambiguous by one** (2448's "for the Loop" line,
+filed at its merge; parked 2450). run859's first take put `age` on the Despot's birth frame and the original read
+it before the birth, this crate's walk after; a retake eight frames later closed. Candidate: the frame's chapter
+row says a cheat goes clear of any birth it races, or `cmdsran.py` flags a cheat within one frame of a birth in the
+staging. One reach.
+
 (2459) **No tool prints a building's queue across frames** (2412's "for the Loop" line, filed at its merge).
 `tools/gamelog/unitat.py` names a unit's state; a building's queue (type, `job_counter`, `queued` per block)
 took a scratch script, and a queue clock that never moves — `1/2018`'s second ICBM at 71400 against 0 — is
@@ -5526,6 +5532,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot CV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CZ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
