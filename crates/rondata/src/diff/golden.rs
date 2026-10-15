@@ -6819,6 +6819,28 @@ fn widen_civilians_walk(
                     .entry((0, -1, "world:seen2".into()))
                     .or_insert((n, format!("{bad} cells, first {first}")));
             }
+            // **And the detect plane beside it** (item 2755, `docs/GOLDEN.md`
+            // §102): `seen3`, the inner disc of every `DETECT` object, which
+            // `is_detected` reads for a stealth unit (parked 2727).
+            let theirs3 = crate::gamelog::world_fog3(&world.fields().to_vec());
+            let mut bad3 = 0usize;
+            let mut first3 = String::new();
+            for (i, &t) in theirs3.iter().enumerate() {
+                rows += 1;
+                let (x, y) = (i as i32 % fw, i as i32 / fw);
+                let ours = w.seen3(x, y);
+                if ours != t {
+                    if bad3 == 0 {
+                        first3 = format!("cell ({x}, {y}) ours {ours} theirs {t}");
+                    }
+                    bad3 += 1;
+                }
+            }
+            if bad3 > 0 {
+                firsts
+                    .entry((0, -1, "world:seen3".into()))
+                    .or_insert((n, format!("{bad3} cells, first {first3}")));
+            }
         }
         for who in 0..2usize {
             let Some(block) = flog.leader_block(n, who as i64) else {
@@ -14960,6 +14982,121 @@ fn chapter_seventy_nine_s_word_frame_is_widened_whole() {
     let mut want: Vec<String> = WANT_CH79.iter().map(|r| r.to_string()).collect();
     want.sort();
     pin_eq!(got, want, "ch79: what parts under the word moved");
+}
+
+/// **run875's start-of-game `seen3` plane, cell for cell** (item 2755,
+/// `docs/GOLDEN.md` §102, parked 2727): the first `WORLD` block prints
+/// `seen3[scan]`, the inner disc of every `DETECT` object, and nothing read
+/// it. The start dump is the only block of the capture that prints the plane;
+/// ours is the staged sim before its first tick.
+#[test]
+fn run875_start_seen3_plane_is_compared_cell_for_cell() {
+    let Some(s) = stage_script("ch79", "chapter79") else {
+        return;
+    };
+    let Some((dump, _)) = golden("ch79") else {
+        return;
+    };
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let init = log.initial().expect("run875 has a start block");
+    let theirs = crate::gamelog::world_fog3(&init.world);
+    assert_eq!(theirs.len(), 14_400, "run875's start plane is the whole map");
+    let w = &s.built.sim.world;
+    let fw = w.fog_xs();
+    let ours: Vec<u8> = (0..theirs.len() as i32)
+        .map(|i| w.seen3(i % fw, i / fw))
+        .collect();
+    let bad: Vec<(i32, i32, u8, u8)> = (0..theirs.len())
+        .filter(|&i| ours[i] != theirs[i])
+        .map(|i| (i as i32 % fw, i as i32 / fw, ours[i], theirs[i]))
+        .collect();
+    eprintln!(
+        "run875 start seen3: theirs {} lit, ours {} lit, {} cells part, first {:?}",
+        theirs.iter().filter(|&&b| b != 0).count(),
+        ours.iter().filter(|&&b| b != 0).count(),
+        bad.len(),
+        bad.iter().take(5).collect::<Vec<_>>()
+    );
+    assert_eq!(
+        (bad.len(), theirs.iter().filter(|&&b| b != 0).count()),
+        (0, 42),
+        "run875's start `seen3` plane parts from this crate's: the writer \
+         (`World::set_seen3` through `update_seen`) is what lays the 42 lit \
+         half-cells, 63 of bit 1 and bit 2 together on later blocks"
+    );
+}
+
+/// **Chapter eighty's staging, read off this crate** (item 2755,
+/// `docs/GOLDEN.md` §102): three sites on run871's start, a Commando under a
+/// hoplite's sight (hidden), a Commando a Scout's disc reaches on 1100
+/// (weighed whole from the 1200 pass), a Hoplite (the control).
+#[test]
+fn chapter_eighty_staging_reaches_the_stealth_arm() {
+    let Some(mut s) = stage_script("ch76", "chapter80") else {
+        return;
+    };
+    for _ in 0..1201 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+    }
+    let sim = &s.built.sim;
+    for (t, ty) in sim.unit_types.iter().enumerate() {
+        if ty.cols.unit_flags & (sim::ai_load::uflags::STEALTH | sim::ai_load::uflags::CLOAKED) != 0 {
+            eprintln!(
+                "ch80 type {t} {} atk {} range {}..{} mil {} los {}",
+                s.built.unit_type_names.get(t).cloned().unwrap_or_default(),
+                ty.combat.attack,
+                ty.combat.min_range,
+                ty.combat.max_range,
+                ty.cols.is(sim::ai_load::role::MILITARY),
+                ty.cols.unit_flags,
+            );
+        }
+    }
+    for b in sim.buildings.iter().filter(|b| b.alive && b.owner == 1 && b.pos.tile().y < 80) {
+        eprintln!("ch80 bld 1/{} tile {:?} active {} ty {:?}", b.index, b.pos.tile(), b.active, b.ty);
+        let t = b.pos.tile();
+        for d in [6, 8, 10, 12, 14, 16] {
+            let row: Vec<bool> = [(d, 0), (-d, 0), (0, d), (0, -d)]
+                .iter()
+                .map(|&(dx, dy)| sim.world_sees(sim::world::Pos::new((t.x + dx) * 192 + 96, (t.y + dy) * 192 + 96), 1))
+                .collect();
+            eprintln!("ch80 lit d{d} E W S N {row:?}");
+        }
+    }
+    for (t, bt) in sim.build_types.iter().enumerate() {
+        if bt.los >= 99 {
+            eprintln!("ch80 btype {t} los {} sci {} {:?}", bt.los, bt.science_los, bt.ident);
+        }
+    }
+    for (i, u) in sim.units.iter().enumerate() {
+        if u.owner <= 1 && u.index >= 6 && !u.alive() {
+            eprintln!("ch80 dead {}/{} slot {i}", u.owner, u.index);
+        }
+        if !u.alive() || u.owner > 1 {
+            continue;
+        }
+        let name = u
+            .ty
+            .and_then(|t| s.built.unit_type_names.get(t).cloned())
+            .unwrap_or_default();
+        if u.index < 5 && u.owner < 2 {
+            continue;
+        }
+        eprintln!("ch80 any {}/{} {name} atk {} los {} order {:?}", u.owner, u.index, sim.attack_of(sim::combat::Obj::Unit(i)), u.mylos, sim.units[i].orders.len());
+        let (hx, hy) = (u.pos.cell().x / 2, u.pos.cell().y / 2);
+        eprintln!(
+            "ch80 u{i} {}/{} {name} tile {:?} half ({hx},{hy}) danger1 {} seen3 {} sees1 {} hides {}",
+            u.owner,
+            u.index,
+            u.pos.tile(),
+            sim.world.danger_half(1, sim::world::Cell::new(hx * 2, hy * 2)),
+            sim.world.seen3(u.pos.x / 0x180, u.pos.y / 0x180),
+            sim.world_sees(u.pos, 1),
+            sim.unit_stealth_hides(i, 1),
+        );
+    }
 }
 
 const WANT_CH79: &[&str] = &[

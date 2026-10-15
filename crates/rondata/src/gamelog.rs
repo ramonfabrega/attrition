@@ -2727,6 +2727,19 @@ pub fn world_fog(fields: &[(&str, &str)]) -> Vec<u8> {
         .collect()
 }
 
+/// The fog grid's `seen3` bytes — `WorldData +0x164`, the inner disc of every
+/// `DETECT` object (`World::set_seen`'s `param_4`), which
+/// `UnitData::is_detected@0060a630` reads for a stealth unit. Printed as the
+/// third of each cell's `seen[scan]`/`seen2[scan]`/`seen3[scan]` triplet;
+/// empty below the block that prints it.
+pub fn world_fog3(fields: &[(&str, &str)]) -> Vec<u8> {
+    fields
+        .iter()
+        .filter(|(k, _)| *k == "seen3[scan]")
+        .map(|(_, v)| v.trim().parse::<u32>().unwrap_or(0) as u8)
+        .collect()
+}
+
 /// The danger map — `WorldData::danger[8]` (`world+0x13c`), printed by
 /// `WorldData::log_data@006b6080:628` as `danger[who][scan]`, eight rows of
 /// `reg_size` `int`s back to back in leader order.
