@@ -3792,6 +3792,12 @@ global object tables, a float return and a garbled body (parked 2617, 2618). Can
 sweep by shape family — every function one built shape holds, across lengths — rather than by length, or score the
 lane against the AI word's census rows. One reach.
 
+(2628) **A `&&` chain that opens with a BSD `sed -i` skips its commit and its launch** (2598's "for the Loop" line,
+filed at its merge). macOS `sed -i` takes `''`; 2598's chain began with `sed -i 's/…/'`, failed, and the commit and
+the capture launch behind it never ran, silently. `CLAUDE.md`'s convention already routes a multi-line patch through
+the python heredoc; candidate: the brief's frame names the one-line case too ("an edit in a chain is python or `sed
+-i ''`"). One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
