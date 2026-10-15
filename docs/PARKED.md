@@ -5328,6 +5328,14 @@ reaches them. `PathFinder::calc_road_cost` now prices an ambiguous owner byte (-
 arm (00686441–00686477); `Objects::find_free` gained the `UnitData +0x8e` captain term (0065adde). Each passed every
 lobby's `first_parting`.
 
+(2441) **`find_free`'s captain term is a SEAM: `UnitData +0x8e`'s field is unnamed** (the commander's, at 2400's
+booking gate; `crates/sim/src/lib.rs`, `Sim::find_free`). 2400 built the reuse test's third term — a dead unit's
+number is reused only if it is no unit or a captain (`+0x8e` negative, `0065adde`) — and fed it `o_up.is_none()`.
+The third pair's floor fell 17379 → 14461 (ours `Unit::do_guard`, theirs `Unit::do_idle`) and run587's projectile
+lifetimes 131 → 10; bisected to 3d3cdf0f. The call now passes `true` (every dead unit a captain, the old behaviour)
+and the floor stands; `find_free_reusable` keeps the term for the sweep. Parked 2370 reads `+0x8e` as `GuyData`'s
+attack target `o` (`Unit::set_attack`) — not `o_up`. Names no score until the field is named and a diff backs it.
+
 (2404) **`sweep_gen` gaps this batch met** (2400, for the Loop; Loop 2003):
 - `--seq` cannot take a bounded range for an index-like answer (a `Random::get` stub, `Farms::add_animals`), and a
   recorded stub cannot answer a different window per call (per-animal stamps).

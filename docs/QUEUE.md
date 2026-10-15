@@ -20,8 +20,8 @@ measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 mediu
   Battery 576 / 6566 / 2974, unmoved a tenth tranche. No floor fell; the pass moved no score.
 - **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
   `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
-- **Lanes: three** (DECISIONS 71; 2384 tripped a kill rule: the AI lane is Opus 5.5 **high** from 2412): 2412 (AI §222,
-  CM, runs 853–855), 2436 (GOLDEN §88, CN, run 858), 2421 (CL) live. Next 2437, run 859, AI §223, GOLDEN §89, park CO.
+- **Lanes: three** (DECISIONS 71, amended: two kill rules tripped, the roster stands, the gap fixed — Loop 2415): 2412 (AI §222,
+  CM, runs 853–855), 2436 (GOLDEN §88, CN, run 858), 2421 (CL) live. Next 2442, run 859, AI §223, GOLDEN §89, park CO.
 - **Fable backlog: 18 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
