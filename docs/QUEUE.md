@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-14, **the thirty-fourth pass is done** (`docs/audit/2026-10-14-fable-pass-34.md`, DECISIONS 71): 23 landings
-measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 medium; the thirty-fifth opens on entry 71's last paragraph.*
+*2026-10-15, **the thirty-fifth tranche, ten landings** since `dccda9f0` (the commander clears at this seam); three
+lanes on DECISIONS 71, amended mid-tranche by Ramon: two kill rules tripped, the roster stands, the gap is a brief row.*
 
-- **Words**: the successor pair closed at 5056 (2293); the peace pair (2320: East Indies, the Lakota, All
-  Technologies, `RUSH_RULES 10`, ends at 6822) at 3479 (2412: `do_queue`'s silo return), the open word. Chapters 65–68 and 71 closed. Census 894.
-  Battery 576 / 6566 / 2974, unmoved a tenth tranche. No floor fell; the pass moved no score.
-- **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
-  `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
+- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 3479 in three landings
+  (2384 diplomacy's peace arm, 2388 the pre-war gate, 2412 the silo's queue), the open word. Chapter 71 closed
+  (2436, The Despot); 69 and 70 built or surveyed, not closed. Census 894 → 936. Battery unmeasured since 576/6566/2974.
+- **Red booking gates, each fixed by a second commit**: 2384's 144 `aggression` pins (re-pinned); 2400's
+  `find_free` captain term broke the third pair's floor 17379 → 14461 (bisected, the call reverted, parked 2441).
 - **Lanes: three** (DECISIONS 71, amended: two kill rules tripped, the roster stands, the gap fixed — Loop 2415): 2423 (AI §223,
   CR, runs 854–856), 2448 (GOLDEN §89, CP, run 859), 2454 (CQ) live. Next 2460, run 860, AI §224, GOLDEN §90, park CS.
 - **Fable backlog: 21 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449, 2459).
