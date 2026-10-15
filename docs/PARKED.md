@@ -3837,6 +3837,9 @@ variable-length pointer array no `obj` flag draws, a bounded link chase and a ca
 **2683** (sixty-fourth reach, filed at its merge): harvested ten of ten on the built shapes, no generator change;
 `--regen` inherits the old script's flags when a line drops one, and `--at` with a `--place` at the global's own
 address writes memory but not the `cN` window (parked 2686, 2687); six shapes none holds are 2684's.
+**2709** (sixty-fifth reach, filed at its merge): built `--gtab CNT:LO..HI:PTR:SIZE`, a test failing first; three
+of ten (`inside_bottom`, `has_damage`, `equals_group`); the brief's `start_herds` was already 2655's (parked 2710);
+a `--table` record's own row byte and links within the row were written by hand (2713; booked in 2719).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -6023,6 +6026,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EQ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
