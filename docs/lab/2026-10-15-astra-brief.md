@@ -146,3 +146,29 @@ name: what landed by commit, the parting frames and value diffs, the
 one line headed "for the Loop" per finding the loop's tools should take.
 The steer fast-forwards and gates; a branch that does not descend from
 the tip is rebased by Astra first.
+
+## The second checkpoint, after the first landed the same night
+
+Astra's first session delivered step 1 whole (run900: 21,044 frames of an
+external recording played back under the logger, leaders every frame, the
+cast at the end, one take) and corrected this brief's one wrong fact — a
+random-map recording carries setup and rules, not an initial-state
+snapshot (RECGAME §7). Settled at the steer: merged `274b9f45`, the whole
+gate green here. Ramon's word on step 2, dump-seed first:
+
+- **Dump-seed the replay**: build the sim's frame 0 from run900's own
+  dump through `diff::setup::build_sim`, as every pinned lobby does;
+  drive the recording's order stream; keep the applied/skipped report;
+  pin the first parting and its value diff as a floor.
+- **Reconstruction from inputs** — the random-map generator, parked
+  2390 — is the checkpoint after, not a substitute: the fork needs it to
+  be free of captures, and the oracle does not need it to score.
+- **The corpus**: the heavengames catalog pages
+  (`lister.php?category=rec`, `start=0..240`) carry 2018 and 2021
+  uploads; keep those dated 2017 or later whose header version matches
+  the install's Extended Edition build line, and skip the pre-2017 patch
+  builds the first three samples were. The Qt3 tournament's Discord
+  links are 2018 CDN attachments, dead for everyone since Discord
+  signed its links; no login opens them. Score each recording on first
+  try, no debugging against it.
+

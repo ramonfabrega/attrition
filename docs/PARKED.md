@@ -3778,6 +3778,25 @@ commander takes at a booking; or the long measures moved to a third row
 that owns no tree. The next pass measures the hours a pass holds the loop
 before building either. One reach.
 
+(2525) **Astra's replay-oracle branch, settled at the thirty-fifth steer: the
+review debt and three Loop lines** (`codex/astra-replay-oracle`, three commits
+on `c8eb478d`, merged `274b9f45`, the whole gate green here at eight threads;
+`docs/journal/2026-10-15-astra-replay-oracle.md`, `docs/RECGAME.md` §7,
+`docs/RUNS.md` run900). The debt: no blind reading of the playback route
+(`unattended_capture.py --recording`, the `gamelog_p.txt` reader, the receipt's
+playback validation, `live_autostart.h`'s trampoline) or of RECGAME §7's
+format correction — a random-map recording carries setup and rules, **not** a
+full initial-state snapshot, which §4 had said. The Loop lines: a playback's
+dump is `gamelog_p.txt`, and the solo runner's retake on the wrong name once
+destroyed a trace (fixed on the branch; the receipt test holds it); an external
+single-player recording embeds zero sync commands, so playback completion
+certifies the engine's own run of the order stream and nothing about the
+recorded match; and `end:MISC` alone prints no per-frame value block. Next
+checkpoint, Ramon's word: dump-seed the replay (`diff::setup::build_sim` from
+run900's own dump, the order stream driven, the applied/skipped report kept,
+the first parting pinned), then the random-map generator (parked 2390) as its
+own checkpoint. The next pass ratifies §7 and reads the route.
+
 (2506) **Two sweeps pin the emulator's stack residue in a port constant** (2495's "for the Loop" line, filed at
 its merge; parked 2488, 2497). `issue_cannon_time`'s port holds a `static` flag for a success arm's return address
 left on the stack between rows, and the treaty family's `Error::report` prints the zeroed stack's `0,0`: each port
