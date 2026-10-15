@@ -3740,6 +3740,11 @@ for: it cost one run rather than an item.
 its merge): the two fields `Unit::do_move` branches on first, and 2638 took a probe commit for each. Candidate: the
 line prints both, held by a test made to fail first. One reach.
 
+(2704) **A booking that names a mechanism from "ours has no X" names the probe that showed it** (2693's "for the Loop"
+line, filed at its merge): 2660 booked "ours has no non-bomber release" from the dump's `AMMO` rows alone, and one
+`add_ammo` print killed it in five minutes — ours released, from the wrong point. Candidate: a brief row, "an absence
+a booking cites is a probe's, named", or the commander's booking names one. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-sixth tranche's
 
 (2654) **A staged `@attack` on a target nothing of the player's can see is dropped as `skipped {}`** (2627's "for the
