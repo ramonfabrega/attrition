@@ -10,8 +10,13 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> -> <result>`");
-        let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> -> <result>`");
+        let a: Vec<i64> = lhs
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
         let (this, walker, g, gate) = (a[0], a[1], a[2], a[3]);
         let stale = gate; // the slot-4 callee's leftover `ecx` when a step names it
@@ -19,8 +24,12 @@ fn the_emulated_original_agrees_on_every_row() {
         let mut calls: Vec<Vec<i64>> = Vec::new();
         calls.push(vec![walker, g + 0x17a48]);
         calls.push(vec![walker, this + 0x30, this + 0x32]);
-        if gate != 0 { calls.push(vec![walker, this, this + 0x39]); }
-        if gate != 0 { calls.push(vec![this + 0x40, walker]); }
+        if gate != 0 {
+            calls.push(vec![walker, this, this + 0x39]);
+        }
+        if gate != 0 {
+            calls.push(vec![this + 0x40, walker]);
+        }
         let want: String = calls
             .iter()
             .map(|c| c.iter().map(i64::to_string).collect::<Vec<_>>().join(","))
