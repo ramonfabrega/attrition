@@ -6468,6 +6468,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_FIVE: i64 = 960;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SEVENTY_FIVE: (i64, i64) = (600, 961);
 
+/// **Chapter seventy-six** (item 2572, `docs/GOLDEN.md` §95, run871): the
+/// President's train arm on a human.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_SIX: i64 = 2100;
+
+/// `chapter_seventy_six_s_word_frame_is_widened_whole`'s window: run871
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SEVENTY_SIX: (i64, i64) = (600, 2101);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8888,6 +8896,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seventy_five_s_word_frame_is_widened_whole"),
         2519,
         Some(WIDENING_CHAPTER_SEVENTY_FIVE),
+    ),
+    // Item 2572: run871, chapter seventy-six, the President's train arm.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVENTY_SIX",
+        GOLDEN_WORD_CHAPTER_SEVENTY_SIX,
+        Some("chapter_seventy_six_s_word_frame_is_widened_whole"),
+        2572,
+        Some(WIDENING_CHAPTER_SEVENTY_SIX),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
