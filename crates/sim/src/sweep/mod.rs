@@ -147,6 +147,7 @@ mod wall_is_active;
 mod wall_is_started;
 mod wall_is_under_attack;
 mod wall_out_get_gpiece;
+mod wall_start;
 mod wcoord_to_tcoord;
 mod world_data_get_whose;
 mod world_data_is_edge;
