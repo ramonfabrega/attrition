@@ -3785,6 +3785,13 @@ att-2615" — because the row had not yet shown its branch; re-armed a minute la
 arm leaves the commander waking on nothing. Candidate: `lanewait.py` retries a missing branch for a minute before
 refusing, a test made to fail first. One reach.
 
+(2622) **The sweep's shortest-first order has run past the shapes in hand** (the commander, at 2615's merge). The
+thirty-sixth tranche's six batches backed 10, 3, 10, 6, 7 and 1: each now spends its session building one shape for
+the one or two functions the last batch parked, and 2615's list past its one was a clock, vcall chains over the
+global object tables, a float return and a garbled body (parked 2617, 2618). Candidate for the pass: order the
+sweep by shape family — every function one built shape holds, across lengths — rather than by length, or score the
+lane against the AI word's census rows. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -3837,6 +3844,8 @@ ten of ten; a cdecl empty body needs a dummy `obj --cdecl --ptrarg 0:4`, since `
 with an `each/` step and the `g` tokens, tests failing first; six of six, the rest of the shortest list UI or unbuilt
 shapes; the inlined `String` constructor, eight constant stores and no callee, is five `get_name`s no shape holds
 (parked 2594; booked in 2604).
+**2615** (fifty-sixth reach, filed at its merge): built `obj --jump IDX:N`, a test failing first; one of ten; a
+table-through-global `--at` shape is what `WorldData::get_bottom` wants (parked 2617; booked in 2621).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5935,6 +5944,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot DW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EA renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
