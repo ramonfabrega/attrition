@@ -446,6 +446,18 @@ class Shapes(unittest.TestCase):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
                                        stubs=['0x402000:1', '0x403000:1'], stub_write=[bad])
 
+    def test_a_stub_may_decrement_a_window_word_each_call(self):
+        # Item 2749 (parked 2734): `PathFinder::kill_lists` and `Build::verify_gather_tiles`
+        # loop on a count a callee (`remove_current`, `Array::remove`) lowers by
+        # one a call; `--stub-write IDX:WIN+OFF:SIZE:dec` is that, where VAL
+        # writes one value every call.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2749, win=0x40, bias=[], own=0, ret='none',
+            stubs=['0x402000:1', '0x403000:1'], stub_write=['1:m+0x28:4:dec'])
+        compile(script, str(sp), 'exec')
+        self.assertIn("STUBWRITE = [(1, 'm', 40, 4, 'dec')]", script)
+        self.assertIn('stub 1 lowers `m+0x28` (4 bytes) by one each call', test)
+
     def test_a_callee_may_be_run_not_hooked(self):
         # Item 2731 (parked 2701, 2712, 2720): `Group::equals_group` calls
         # `normalize`, which rewrites `this` before the loop reads it; a hooked
