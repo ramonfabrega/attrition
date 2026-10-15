@@ -6086,13 +6086,9 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EP — reserved
+## Parked by item 2749, 2026-10-15 — slot ED's shapes, five functions swept
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2751) **`PathFinder::kill_lists` is swept with its loop run once, not many times.** `remove_current` is hooked and `--stub-write 6:p3+0xc:4:0` clears the tree's head pointer in one call, so the `while (tree[0xc] != 0)` loop never runs a second iteration; the original removes every node. `--stub-write ... dec` lowers a count, but this word is a pointer the pre-loop dereferences (`edx+0xc`, `edx+0x10`), so a small-integer draw would fault. A second iteration wants a callee run (`--stub run:0x46dc60`) over a drawn list, which pulls in `Tree::remove_current`'s own callees. The other tree-clear arms, the six `Tree::clear` callees and the delete test are held on one iteration.
 
 ## Parked by the next landing, slot EQ — reserved
 
