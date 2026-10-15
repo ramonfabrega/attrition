@@ -1593,6 +1593,35 @@ class Shapes(unittest.TestCase):
                                                      steps=['walk4:0x21df4'])
         self.assertIn('STALE = False', script0)
 
+    def test_a_mix_may_gate_on_the_short_at_this(self):
+        # parked 2536: Army::walk_data walks (this+2, this+0x98) only when the
+        # short at `this` is non-zero; `this` must be a real, written object.
+        spec = 'Army::walk_data@006f9850'
+        steps = ['walk4:0xa78', 'walk:this:this+2', 'gated/walk:this+2:this+0x98']
+        _, script, _, test, _ = sweep_gen.generate_mix(
+            spec, item=2547, glob=0xc06378, gate_this=True, steps=steps)
+        compile(script, 'sweep_army_walk_data.py', 'exec')
+        self.assertIn('GATE_THIS = True', script)
+        self.assertIn('if gate != 0 {', test)
+        self.assertNotIn('if gate == 0 {', test)
+        _, script0, _, test0, _ = sweep_gen.generate_mix(
+            spec, item=2547, glob=0xc06378, gate=0x10, steps=steps)
+        self.assertIn('GATE_THIS = False', script0)
+        self.assertIn('if gate == 0 {', test0)
+
+    def test_a_mix_may_read_a_displacement_through_this_minus_k(self):
+        # parked 2536: GroupOrder::walk_data reads edx = [[this-0x1c]+4] and
+        # walks (this+edx-0x18, this+edx-0x17) then (this-0x18, this-4).
+        spec = 'GroupOrder::walk_data@00485580'
+        steps = ['walk:this-0x18+d:this-0x17+d', 'walk:this-0x18:this-4']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2547, vbase=0x1c, steps=steps)
+        compile(script, 'sweep_group_order_walk_data.py', 'exec')
+        self.assertIn('VBASE = 0x1c', script)
+        self.assertIn('this - 0x18 + g', test)
+        self.assertIn('this - 0x4', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2547, steps=['walk:this:this+2'])
+        self.assertIn('VBASE = None', script0)
+
 
 if __name__ == '__main__':
     unittest.main()

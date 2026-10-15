@@ -82,13 +82,15 @@
 /// item 2513: 994 -> 997, the sweep's eighty-first batch, `--deref`'s call-time cell read and the three `find_*`
 /// regenerated on it, `Border::build_border`, `find_global_render_z` and `air_alt_speed`, three of ten;
 /// item 2537: 997 -> 1003, the sweep's eighty-second batch, `obj --ret xmm0` and `GuyData`'s five render getters
-/// and `get_game_fps_average` on it, six of ten).
+/// and `get_game_fps_average` on it, six of ten;
+/// item 2547: 1003 -> 1013, the sweep's eighty-third batch, `mix --gate-this` and `--vbase` and ten `walk_data`s on
+/// them — `Army`, six orders, `Land`, `Groups`, `DeathObjData` — ten of ten).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1003;
+pub const SIMULATION_BACKED: usize = 1013;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

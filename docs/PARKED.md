@@ -3786,6 +3786,10 @@ forwarder sets around its callee is unobserved (parked 2509; minted as 2513's fi
 first, and the three `find_*` regenerated on it (2509 closed); three of ten, seven parked 2534-2536.
 **2537** (forty-ninth reach, filed at its merge): built `obj --ret xmm0`, tests failing first, and six getters on it;
 the queue's `st0` premise was the decompile's misprint (parked 2538, Loop 2552); six of ten.
+**2547** (fiftieth reach, filed at its merge): built `mix --gate-this` and `--vbase`, tests failing first, and ten
+`walk_data`s on them; ten of ten; `sweep_gen.py` refuses an existing script without `--regen` in words a shell loop
+reads as a parse error, and a gate on another offset (`--gate-this OFF:MASK`) is the next shape (parked 2548, booked
+in 2562).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5706,13 +5710,20 @@ hand script.
 
 2543 is booked in the queue, at 2530's merge. Its "for the Loop" line is Loop 2542's second reach.
 
-## Parked by the next landing, slot DG — reserved
+## Parked by item 2547, 2026-10-15 — the eighty-third sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2548) **`Player::walk_data` (0x6ee2d0) and `CommandPackage::walk_data` (0x94b740) want a gate that is not the short at `this`** (2547).
+`Player` gates on `testb $1,[this+0x30]` and `CommandPackage` walks `(this+0x12, this+0x12+sext([this+0x10]))`; `mix --gate-this`
+reads the short at `[this]` only. A `--gate-this OFF:MASK` and a length-from-memory step are the shape. One reach.
+
+(2549) **`CliffMiningData::walk_data` (0x8a6d70) hands its second callee a leftover `ecx`** (2547): `pushl %ecx` after the hooked
+`Array<WCoordData>::walk_data` (0x478990), the same stale-ecx as 2498 but on a `call:` step, which `stale` serves only for slot 4.
+`Constants::walk_data`, `Types::walk_data` (a table through `GameAccess::techtypes`) and `TerrainList::walk_data` (a linked
+list) need a record through a global cell: `obj --cell-win`. Not built.
+
+(2550) **Seven more order `walk_data`s share `--vbase`'s shape with a third walk** (2547): `GarrisonOrder` 0x484690, `GuardOrder`
+0x486550, `FollowOrder` 0x486b50 (its first walk is before the `d` read), `GatherOrder`, `TradeOrder`, `CastOrder`, `PatrolOrder`:
+listings not read. Ready for `mix --vbase` as `AttackOrder` (0x47f260) was.
 
 ## Parked by the next landing, slot DH — reserved
 
