@@ -759,6 +759,7 @@ mod object_update_hits;
 mod object_update_los;
 mod object_valid_target;
 mod objects_data_find_good_at;
+mod objects_data_find_goody_at;
 mod objects_data_find_town;
 mod objects_data_find_village;
 mod objects_out_sort_objects;
