@@ -1355,6 +1355,40 @@ class Shapes(unittest.TestCase):
         self.assertIn('VTORDISP = False', plain)
         self.assertNotIn('disp', ptest)
 
+    def test_a_fwd_order_token_names_the_callee_of_each_call(self):
+        # Item 2672 (parked 2666): `fwd` printed each call's `ecx` and
+        # arguments, not which callee, so five calls on one `this` passed
+        # with two of them swapped. `order=True` heads each call `sIDX:`,
+        # IDX the callee's place in `--call`, in the script and the test.
+        calls = ['0x401000:0:this:', '0x401010:0:this:']
+        sp, script, tp, test, mod = sweep_gen.generate_fwd('X::y@00401000', item=1, calls=calls, order=True)
+        compile(script, str(sp), 'exec')
+        self.assertIn('ORDER = True', script)
+        self.assertIn('format!("s{k}:', test)
+        _, plain, _, ptest, _ = sweep_gen.generate_fwd('X::y@00401000', item=1, calls=calls)
+        self.assertIn('ORDER = False', plain)
+        self.assertNotIn('format!("s{k}:', ptest)
+
+    def test_a_walk_may_record_only_its_call_count_and_ends(self):
+        # Item 2672 (parked 2667): `Balance::walk_rules_data` calls its walker
+        # 0x1ed * 0x1ed times; a row of them is a quarter-million hooked
+        # calls. `count_only` prints one record a row: the count, the first
+        # and last call, and the sums of the two arguments; the port is an
+        # iterator of `(a0, a1)` pairs, and `rows` bounds the rows drawn.
+        sp, script, tp, test, mod = sweep_gen.generate_walk(
+            'Balance::walk_rules_data@00582cc0', item=1, a0='0xc12bf4', a1='0xc12bf6', count_only=True, rows=3,
+            port='(0..4i64).map(|k| (0xc12bf4 + 2 * k, 0xc12bf6 + 2 * k))')
+        compile(script, str(sp), 'exec')
+        self.assertIn('ROWS = 3', script)
+        self.assertIn('COUNT_ONLY = True', script)
+        self.assertIn('max_insns=', script)
+        self.assertIn('0xc12bf4 + 2 * k', test)
+        self.assertIn('sum', test)
+        self.assertIn('assert!(n >= 3', test)
+        _, plain, _, ptest, _ = sweep_gen.generate_walk('X::y@00401000', item=1, a0='this', a1='this')
+        self.assertIn('COUNT_ONLY = False', plain)
+        self.assertNotIn('sum', ptest)
+
     def test_a_free_function_is_a_name(self):
         # Item 2346: `add_type_bucket2@00669140` and `add_type_bucket` are
         # free functions (`types.cpp`), and the name refused them; the census
@@ -1722,6 +1756,64 @@ class Shapes(unittest.TestCase):
         self.assertIn('h.answers["walk"] = (7, sv)', script)
         _, script0, _, test0, _ = sweep_gen.generate_mix(spec, item=2583, gate=4, steps=steps)
         self.assertIn('if gate == 0 {', test0)
+
+    def test_a_mix_stale_may_be_a_column_of_its_own(self):
+        # parked 2673: `stale` was `g`, so swapping them in a step passed.
+        spec = 'ObjectType::walk_rules_data@0065fba0'
+        steps = ['call:0x476610:2:this+0x27c:p0,stale']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2688, gate=8, steps=steps, stale_col=True)
+        compile(script, 'sweep_object_type_walk_rules_data.py', 'exec')
+        self.assertIn('STALE_COL = True', script)
+        self.assertIn('let stale = a[4];', test)
+        self.assertNotIn('let stale = g;', test)
+        _, script0, _, test0, _ = sweep_gen.generate_mix(spec, item=2688, gate=8, steps=steps)
+        self.assertIn('STALE_COL = False', script0)
+        self.assertIn('let stale = g;', test0)
+
+    def test_a_mix_may_read_a_second_vbase_displacement(self):
+        # parked 2668, 2674: GroupMoveOrder::walk_data reads [[this-0x70]+4] and later [[this-0x20]+4].
+        spec = 'GroupMoveOrder::walk_data@004855c0'
+        steps = ['walk:this-0x6c+d:this-0x6b+d', 'walk:this-0x6c:this-0x20',
+                 'walk:this-0x1c+d2:this-0x1b+d2', 'walk:this-0x1c:this-8', 'walk:this-8:this-4']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2688, vbase=0x70, vbase2=0x20, steps=steps)
+        compile(script, 'sweep_group_move_order_walk_data.py', 'exec')
+        self.assertIn('VBASE2 = 0x20', script)
+        self.assertIn('let d2 = a[4];', test)
+        self.assertIn('walker, this - 0x1c + d2, this - 0x1b + d2', test)
+        self.assertIn('walker, this - 0x6c + g, this - 0x6b + g', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2688, vbase=0x70, steps=steps[:2])
+        self.assertIn('VBASE2 = None', script0)
+
+    def test_a_mix_may_hold_a_second_gate_a_bit_of_this(self):
+        # parked 2669, 2675: City::walk_data tests [this+4] & 1, then [walker+8] == 0.
+        spec = 'City::walk_data@00489220'
+        steps = ['walk:this+4:this+6', 'bit/walk:this+6:this+0x72', 'bit/gated/call:0xa1b2d0:1:this+0x90:p0',
+                 'bit/gated/call:0xa1b2d0:1:this+0xa4:p0', 'bit/call:0x489040:2:this+0x74:p0,stale']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2688, gate=8, bit_at='4:1', stale_col=True, steps=steps)
+        compile(script, 'sweep_city_walk_data.py', 'exec')
+        self.assertIn('BIT_AT = (0x4, 0x1)', script)
+        self.assertIn('let bit = a[5];', test)
+        self.assertIn('if bit != 0 && gate == 0 {', test)
+        self.assertIn('if bit != 0 { calls.push(vec![walker, this + 0x6, this + 0x72]); }', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2688, gate=8, steps=steps[:1])
+        self.assertIn('BIT_AT = None', script0)
+
+    def test_a_mix_may_loop_a_count_read_from_this_over_records(self):
+        # parked 2689: BuildQueue::walk_data closes/inits on [this] == 0 / != 0 when [walker+4] != 0,
+        # then walks the [this]-many 0x14-byte records at [this+4].
+        spec = 'BuildQueue::walk_data@006305f0'
+        steps = ['walk4:6000', 'walk:this:this+4', 'gated/zero/call:0x6306c0:0:this:', 'gated/nz/call:0x6307d0:1:this:count',
+                 'each/walk:elem:elem+0x12']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2698, glob=0xc06378, gate=4, gate_ne=True,
+                                                       elems='count:0:4:20', steps=steps)
+        compile(script, 'sweep_build_queue_walk_data.py', 'exec')
+        self.assertIn("ELEMS = ('count', 0x0, 0x4, 20)", script)
+        self.assertIn('let count = a[4];', test)
+        self.assertIn('let elems = &a[5..];', test)
+        self.assertIn('if gate != 0 && count == 0 {', test)
+        self.assertIn('if gate != 0 && count != 0 {', test)
+        self.assertIn('calls.push(vec![this, count]);', test)
+        self.assertIn('for &e in elems { calls.push(vec![walker, e, e + 0x12]); }', test)
 
     def test_a_mix_may_assert_the_result_is_the_stack_argument(self):
         # parked 2570: a get_name returns its out-pointer ([ebp+8]), eax == walker.

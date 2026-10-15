@@ -1,7 +1,7 @@
-//! `ObjectsOut::sort_objects@00654a30` under the emulator against the port (item 2644; tools/sweep_gen.py, fwd).
+//! `ObjectsOut::sort_objects@00654a30` under the emulator against the port (item 2672; tools/sweep_gen.py, fwd).
 
 /// `ObjectsOut::sort_objects@00654a30`, run by `tools/emu/sweep_objects_out_sort_objects.py` under unicorn
-/// (tools/emu) with its callees hooked: 5 hooked callee(s), `ecx` and arguments held to the spec, `eax` none.
+/// (tools/emu) with its callees hooked: 5 hooked callee(s), `ecx` and arguments held to the spec, `eax` none. Each call is headed `sK:`, K its callee's place in the spec, so the order is held.
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_objects_out_sort_objects.py") else {
@@ -22,7 +22,12 @@ fn the_emulated_original_agrees_on_every_row() {
         let calls: Vec<Vec<i64>> = vec![vec![this], vec![this], vec![this], vec![this], vec![this]];
         let want: String = calls
             .iter()
-            .map(|c| c.iter().map(i64::to_string).collect::<Vec<_>>().join(","))
+            .enumerate()
+            .map(|(k, c)| {
+                let _ = k;
+                let t = c.iter().map(i64::to_string).collect::<Vec<_>>().join(",");
+                format!("s{k}:{t}")
+            })
             .collect::<Vec<_>>()
             .join(";");
         assert_eq!(seen.trim(), want, "sort_objects — calls, row `{line}`");

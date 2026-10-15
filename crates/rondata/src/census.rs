@@ -103,13 +103,20 @@
 /// item 2633: 1063 -> 1068, the sweep's ninety-second batch, `--answer-win` a call, `is_gathering`, `is_seen`,
 /// `Guy::update_z`, `BorderNodes::find` and `is_here`;
 /// item 2644: 1068 -> 1074, the sweep's ninety-third batch, `--deref` with a written-byte mask, `issue_come_out`,
-/// `action_hotkey`, `default_setting`, `add_to_openlist`, `sort_objects` and `Map::set_file`).
+/// `action_hotkey`, `default_setting`, `add_to_openlist`, `sort_objects` and `Map::set_file`;
+/// item 2655: 1074 -> 1083, the sweep's ninety-fourth batch, nine harvested on the built shapes, no generator change;
+/// item 2672: 1083 -> 1087, the sweep's ninety-fifth batch, `fwd --record-order` and `walk --count-only`, three
+/// `walk_rules_data`s and `Tribe::walk_data`;
+/// item 2688: 1087 -> 1094, the sweep's ninety-seventh batch, `mix --stale-col`, `--vbase2` and `--bit-at`, the six
+/// two-displacement order `walk_data`s and `City::walk_data`;
+/// item 2698: 1094 -> 1095, the sweep's ninety-eighth batch, `mix --elems count:`, `BuildQueue::walk_data`;
+/// item 2683: 1095 -> 1104, the sweep's ninety-sixth batch, ten harvested on the built shapes, no generator change).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1074;
+pub const SIMULATION_BACKED: usize = 1104;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

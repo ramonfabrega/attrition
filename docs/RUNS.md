@@ -17242,3 +17242,12 @@ chapter-seventy-six `--detail` flags with `LEADERS=2` at the end). Pool lane 1, 
 `~/ron-golden/ch78/map-14/`. A first take with a Biplane control parted at 736 and is in `~/ron-golden/ch78-take1-biplane`.
 Minutes waited on another lane: none. **What it holds**: the Helicopter `0/6` ordered on 630 onto the Barracks `1/2007`, closing
 and firing edge to edge from (39576, 18504); the whole record agrees, 1100 of 1,100, thirteen standing rows.
+
+## run875 — chapter seventy-nine: a Biplane's strike on a human (2026-10-15, item 2649, `att-2649`)
+
+`docs/GOLDEN.md` §98. **What the disk could not answer**: no capture holds a human's plane launched from an Airbase onto a
+building; chapter forty-one's Biplane is who=1's and only patrols. The recipe is `tools/gamelog/golden/chapter79.cmd`'s header
+(`--map 14 --end-frame 1500 --log-window 600 1500`, chapter seventy-eight's `--detail` flags). Pool lane 1, `success`,
+`settings_restored`, 1,501 frames, 991 s, kept in `~/ron-golden/ch79/map-14/`. Minutes waited on another lane: none.
+**What it holds**: the Biplane `0/6` home on 620, launched on patrol on 830, striking the Barracks `1/2006` from ~927 with two
+rounds on 935 that land on 938; ours releases none, the word is 938 (ours 6 draws, theirs 8).
