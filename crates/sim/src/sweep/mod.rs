@@ -1116,3 +1116,4 @@ mod caravan_verify_road;
 mod unit_do_board;
 mod path_finder_data_find_node_open;
 mod unit_data_los;
+mod wall_data_valid_buildmask;
