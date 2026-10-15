@@ -424,6 +424,7 @@ mod city_data_ready_to_upgrade;
 mod city_data_smelter_level;
 mod city_data_upgrades_to;
 mod city_fix_world_vals;
+mod city_walk_data;
 mod cliff_average_neighbor_norms;
 mod cliff_get_vert_offsets;
 mod cliff_render;
