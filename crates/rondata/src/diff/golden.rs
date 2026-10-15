@@ -14660,6 +14660,57 @@ const WANT_CH74: &[&str] = &[
     "600 1/5 form",
 ];
 
+/// **Chapter seventy-five** (item 2519, `docs/GOLDEN.md` §92, run868): the
+/// console's `finish` behind a population-capped unit head —
+/// `get_next_non_unit`'s entry takes the done head's train time.
+#[test]
+fn chapter_seventy_five_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch75", "chapter75", 75, 8, 960) else {
+        return;
+    };
+    eprintln!(
+        "chapter seventy-five: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    pin_eq!(
+        w.word,
+        GOLDEN_WORD_CHAPTER_SEVENTY_FIVE,
+        "chapter seventy-five's golden word moved; re-pin it here and say so in docs/GOLDEN.md §92"
+    );
+}
+
+/// **run868 whole, both directions** (item 2519, `docs/GOLDEN.md` §92).
+#[test]
+fn chapter_seventy_five_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch75",
+        "chapter75",
+        WIDENING_CHAPTER_SEVENTY_FIVE,
+        960,
+        0,
+        (898, 905),
+        false,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch75 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch75: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH75.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch75: what parts under the word moved");
+}
+
+const WANT_CH75: &[&str] = &[];
+
 /// **Chapter sixty-eight** (item 2357, `docs/GOLDEN.md` §85, run852): a
 /// Light Horse at a Stable under Monarchy and a live military discount,
 /// and a Catapult at a Siege Factory each side of Socialism — `get_cost`'s
