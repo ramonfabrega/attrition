@@ -1738,6 +1738,13 @@ class Shapes(unittest.TestCase):
         self.assertIn('vec![walker, e + 0x1c, e + 0x1e]', test)
         self.assertNotIn('assert_eq!(elems.len()', test)
 
+    def test_a_mix_token_may_name_the_word_the_global_cells_record_holds(self):
+        # parked 2593: OceanVars::get_name copies the string at *(*0xc06378+0x10)+0x163dc: the g column plus a constant.
+        spec = 'OceanVars::get_name@0049f320'
+        steps = ['call:0xa1d590:1:p0:g+0x163dc']
+        _, _, _, test, _ = sweep_gen.generate_mix(spec, item=2593, glob=0xc06378, steps=steps, ret_arg=True)
+        self.assertIn('vec![walker, g + 0x163dc]', test)
+
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
         self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', 'Foo::bar@00401000']),

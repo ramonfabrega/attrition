@@ -750,6 +750,10 @@ def _mix_expr(tok):
         return 'g'  # the record the global cell holds (parked 2584): its base is the g column
     if tok.startswith('rec+'):
         return f'g + {int(tok[4:], 0):#x}'
+    if tok == 'g':
+        return 'g'  # the word the global cell's record holds at +0x10
+    if tok.startswith('g+'):
+        return f'g + {int(tok[2:], 0):#x}'
     if tok == 'elem':
         return 'e'  # the element of an `each/` step (parked 2585, 2589)
     if tok.startswith('elem+'):
