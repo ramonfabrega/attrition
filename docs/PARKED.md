@@ -3767,6 +3767,12 @@ it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell
 hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
 `frame_snapshot.py`'s restore, which this lane does not run.
 
+(2505) **A golden staging's site is found by trial runs** (2474's "for the Loop" line, filed at its merge).
+Chapter seventy-three's lane took six runs to find a legal Supercollider site — water at (30,74), then
+`Blocked(Building)` beside the city — each read off an env-guarded print of `place_building`'s refusal.
+Candidate: a `stage_walk` option that prints every placement's refusal with its reason, held by a test made to
+fail first on a blocked site. One reach.
+
 (2480) **A hand-written break script's pass check keys on a word a passing summary prints** (2469's "for the
 Loop" line, filed at its merge; Loop 2442's sibling). A break script that greps for `failed` matches cargo's `0
 failed` summary and reads a pass as the break; 2469 caught it on its first run. Candidate: the sweep's break helper
