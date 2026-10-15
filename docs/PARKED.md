@@ -5349,13 +5349,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CL — reserved
+## Parked by item 2421, 2026-10-14 — the sweep's seventy-second batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2431) **The `GroupOut::issue_*` left after 2421** (names no score; the sweep's next batch). The forwarders to
+`CommandManager::issue_*` are one line each (gate, then a stub of N+1 arguments with `ecx` first): `issue_stance`,
+`issue_form`, `issue_move_to`, `issue_siege_attack`, `issue_attack_ground`, `issue_garrison`, `issue_patrol`,
+`issue_spell`, `issue_unitmask`, `issue_buildmask`, `issue_city_gather`, `issue_gather_point`; `CommandManager::issue_camera`,
+`_buy`, `_sell`, `_set_transport`, `_disband` (0x941ad0) are next and read for their `mov byte`.
+(2432) **The two generator shapes 2404 named were built and none of the ten met them** (2421, Loop 2003):
+`--seq IDX:N` beside `--answer-range IDX:LO:HI` draws every answer in the range, and `--record-order` takes a
+`--record IDX@S` split (`s1:r2+0x4,..`); both have unit tests that failed first, and no sweep of this batch uses
+either, so neither has a function's break behind it yet.
+(2433) **A forwarder's stub `ecx` is the caller's, stale** (2421): `GroupOut::issue_*` passes `ecx` on to
+`CommandManager::issue_*` as its first stack argument and never loads a `CommandManager`; the stub sees the
+`GroupOut` as `ecx` and again as the first argument. A `sweep_gen` `--fwd-gate` line (gate, N arguments forwarded)
+would write all seven forwarders of this batch from one flag; each was a hand-written `--port`.
 
 ## Parked by the next landing, slot CM — reserved
 
