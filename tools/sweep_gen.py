@@ -2392,6 +2392,54 @@ def cmd_byte_expand(spec, own):
             'record': ['0', '1', '2'], 'deref': [f'2:0:{size}'], 'port': port}
 
 
+def cmd_seh_expand(spec, own):
+    """`--cmd-seh CMD:SIZE:FIELD,..:C:IGN:WIDE:NARROW:DW:DN` (item 2486,
+    parked 2482): `issue_treaty`'s shape -- argument 0 a `LeaderOut` whose
+    word at +8 names a leader, argument 1 the other; `check_accept_issue`
+    answered 0/1; the command built in a local (CMD, then FIELDs: `w` the
+    leader at +8, `aN` an argument as a dword) and handed to `add_command`
+    when both leaders' flag bytes (the image's table, 0x6eec a row) are set;
+    else, the byte at IGN clear, an SEH-framed feedback arm: a wide and a
+    narrow `String` (constants WIDE, NARROW, locals DW and DN deep), an
+    `Error::report` answered 0 (its two stale stack words print 0, as the
+    emulator's zeroed stack leaves them -- a hand-held pair) and both strings closed. C is the command local's
+    `ebp` depth. Returns the `obj` flags it stands for."""
+    parts = spec.split(':')
+    if len(parts) != 9:
+        raise ValueError(f'--cmd-seh {spec}: want CMD:SIZE:FIELD,..:C:IGN:WIDE:NARROW:DW:DN')
+    cmd, size = int(parts[0], 0), int(parts[1], 0)
+    depth, ign, wide, narrow = int(parts[3], 0), int(parts[4], 0), int(parts[5], 0), int(parts[6], 0)
+    dw, dn = int(parts[7], 0), int(parts[8], 0)
+    fmt, vals = f'{cmd:02x}', []
+    for f in [f for f in parts[2].split(',') if f]:
+        if f == 'w':
+            fmt += '{}'
+            vals.append('le(who)')
+        elif f[0] == 'a' and f[1:].isdigit() and 1 <= int(f[1:]) < own:
+            fmt += '{}'
+            vals.append(f'le(a[{f[1:]}])')
+        else:
+            raise ValueError(f'--cmd-seh {spec}: field {f!r} is w or aN (1 <= N < --own)')
+    sp = lambda d: f'sp-{d + 8 + 4 * own:#x}'
+    dash = lambda n: ' '.join(['log.push("-".into());'] * n)
+    call = f'format!("{fmt}"' + ''.join(f', {v}' for v in vals) + ')'
+    le = 'let le = |v: i32| v.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect::<String>(); '
+    who = 'let who = i32::from_le_bytes([p[0][8], p[0][9], p[0][10], p[0][11]]); '
+    arm = (f'{dash(1)} log.push("{sp(dw)},{wide}".into()); log.push("{sp(dn)},{narrow}".into()); '
+           f'log.push("13161384,{sp(dn)},{sp(dn)},0,0,c0+{ign - 0xee12cc:#x},1".into()); '
+           f'log.push("{sp(dn)}/{sp(dw)}".into()); {dash(1)}')
+    body = (f'log.push("15269728".into()); if a[{own}] == 0 {{ {dash(6)} }} else if p[1 + who as usize][0] & 1 != 0 '
+            f'&& p[1 + a[1] as usize][0] & 1 != 0 {{ log.push("15269768,{sp(depth)},{size}".into()); {dash(4)} '
+            f'log.push({call}); }} else if c[0][{ign - 0xee12cc:#x}] != 0 {{ {dash(6)} }} else {{ {arm} }}')
+    port = f'{{ {le}{who}{body} 0 }}'
+    return {'stub': ['0x940a70:0', '0x94bae0:2', '0xa1edd0:1', '0xa1d660:1', '0xa2e550:6', '0xa1cf40:0'],
+            'answers': ['0:0,1'], 'answer_range': ['4:0:0'], 'record': ['0', '1', '2', '3', '4', '5'],
+            'deref': [f'1:0:{size}'], 'ptrarg': ['0:0x10'], 'wbias': ['p0+8:0..3', 'c0+0:0,0,0,0x01010101',
+            'c0+4:0,0,0,0x01010101', 'c0+8:0,0,0,0x01010101']
+            + [f'p{k}+0:1,1,1,3,0' for k in range(1, 5)], 'at': ['0xee12cc:12'],
+            'sparse': ['@0xe3a390:0x6eec:4:0,4'], 'argrange': ['1:0:3'], 'port': port}
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2555,8 +2603,25 @@ def main(argv=None):
     ap.add_argument('--cmd-byte', metavar='CMD[:SIZE]',
                     help='obj: issue_recall\'s shape -- a group id, check_accept_issue, add_group, a one-byte '
                          'command, add_command (item 2481, parked 2472)')
+    ap.add_argument('--cmd-seh', metavar='CMD:SIZE:FIELD,..:C:IGN:WIDE:NARROW:DW:DN',
+                    help='obj: issue_treaty\'s shape -- a LeaderOut and a leader checked against the image\'s '
+                         'leaders table, check_accept_issue, add_command, else an SEH-framed feedback-log arm '
+                         '(two Strings, Error::report, two closes) (item 2486, parked 2482)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
+    if args.cmd_seh:
+        try:
+            x = cmd_seh_expand(args.cmd_seh, args.own)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        args.stub, args.answers, args.record = x['stub'], x['answers'], x['record']
+        args.deref, args.ptrarg, args.port = x['deref'], x['ptrarg'], x['port']
+        args.wbias, args.at, args.sparse = x['wbias'], x['at'], x['sparse']
+        args.argrange, args.answer_range = x['argrange'], x['answer_range']
+        args.ret = args.ret or 'none'
+        if args.win == 0x400:
+            args.win = 0x20
     if args.cmd_byte:
         try:
             x = cmd_byte_expand(args.cmd_byte, args.own)
