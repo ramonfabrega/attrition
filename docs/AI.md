@@ -20724,7 +20724,9 @@ a research job runs; held again; an emptied silo runs). The mutation (`tools/mut
 is ours alone, `1/2018`'s `queued` is 0/1, and who=1's `num_units`/`num_queued` for the type are 2/1 and 0/1, with
 `control` 115/114 and `active` 107/106. **With the return built, block 3303 holds no row and the widening stands
 at 169 keys.** Of these, 81 stand from 3296: the bucket, `SITE[n].reg` and group rows that run849 carried (§219,
-parked 2411). **The word moves 3302 → 3479**, count and sequence both, inside run853's window (block 3480). Ours
+parked 2411). **Elsewhere**: the same return closes one key on Great Sahara in the successor pair's lobby. That
+key is run834's Missile Silo `1/2010`, `queue[0].job_counter`, ours 20,700 against theirs 0 on 2989; the widening
+goes 296 → 295 and no word moves. **The word moves 3302 → 3479**, count and sequence both, inside run853's window (block 3480). Ours
 spends 44 draws and theirs 46, parting at index 0. Ours spends `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`;
 theirs spends `Guy::set_anim+0x97a < do_cast`.
 
