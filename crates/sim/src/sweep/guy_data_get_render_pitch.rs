@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -37,16 +42,35 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            { let (a_, b_) = (f32::from_bits(rd(m, 0x4c) as u32), f32::from_bits(rd(m, 0x50) as u32)); if a_ == b_ { i64::from(a_.to_bits() as i32) } else { let al = f32::from_bits(rd(&c[0], 0x854) as u32); i64::from(((1.0f32 - al) * b_ + a_ * al).to_bits() as i32) } }
+            {
+                let (a_, b_) = (
+                    f32::from_bits(rd(m, 0x4c) as u32),
+                    f32::from_bits(rd(m, 0x50) as u32),
+                );
+                if a_ == b_ {
+                    i64::from(a_.to_bits() as i32)
+                } else {
+                    let al = f32::from_bits(rd(&c[0], 0x854) as u32);
+                    i64::from(((1.0f32 - al) * b_ + a_ * al).to_bits() as i32)
+                }
+            }
         };
         assert_eq!(got, want_eax, "get_render_pitch — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "get_render_pitch — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_render_pitch — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_render_pitch — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "get_render_pitch — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "get_render_pitch — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
