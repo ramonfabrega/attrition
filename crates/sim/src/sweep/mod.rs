@@ -300,6 +300,7 @@ mod animal_process;
 mod armies_diplo_change;
 mod armies_find_aggressive_army;
 mod armies_find_city;
+mod armies_find_useful_army;
 mod armies_leader_defeated;
 mod armies_num_armies;
 mod army_count;
