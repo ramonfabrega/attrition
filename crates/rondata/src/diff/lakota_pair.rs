@@ -242,3 +242,49 @@ fn run853_s_word_frame_is_widened_whole() {
     // (ours (11928, 19608) without it), and its 3441..3480 rows, the cast,
     // the Freighter `1/140` and its rows all close.
 }
+
+/// run855: the word 4544's window, blocks 4538..4794 at the long's detail (item 2423).
+pub(crate) const RUN855: &str = "gamelog-run855-eastindies-lakota-peace-window-4538-4795.txt";
+
+/// The window: block 4538 through 4794; the word 4544's own block is 4545.
+pub(crate) const WIDENING_LAKOTA_FRAME_4544: (i64, i64) = (4538, 4794);
+
+pub(crate) fn lakota_frame_4544_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run855",
+        &[(RUN855, WIDENING_LAKOTA_FRAME_4544.0)],
+        WIDENING_LAKOTA_FRAME_4544,
+        1,
+        &[4545],
+        true,
+    )
+}
+
+#[test]
+fn run855_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_4544_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 977, "initial run855 baseline");
+    // Item 2423: the word 4544's own block is 4545, and it holds no row:
+    // the state parts before the window opens. On 4538 `leader:diplos` is
+    // ours 1 against theirs 0 both ways (`0/-1 diplos[1]`, `1/-1
+    // diplos[0]`), the ICBM `1/50` (inside the silo `1/2018`) holds one
+    // order in theirs and none in ours, `1/0` walks a 36-leg path to
+    // (15000, 11160) in theirs and idles in ours, and `1/6` has 7 damage
+    // ours against 2. On 4542 theirs' `1/50` is gone and `1/2018`'s
+    // `queue[0].job_counter` runs (0 / 100); on 4576 `wars` is 0 / 1.
+    // 102 keys stand from 4538, 28 of them `form`.
+}
