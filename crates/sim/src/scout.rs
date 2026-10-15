@@ -633,6 +633,12 @@ impl Sim {
         if (cities == 0 && goods & 0x02 != 0) || (cities == 1 && goods & 0x10 != 0) {
             score /= 2;
         }
+        if std::env::var("RON_PROBE_2703").is_ok() && self.frame == 1393 {
+            eprintln!(
+                "PROBE2703 cell ({},{}) ring {} score {} best {} near {} here {:?} owner {} danger {} goods {}",
+                c.x, c.y, ring, score, scan.score, self.scout_unit_near(u, c), self.units[u].pos, owner, self.scout_danger(who, c), goods
+            );
+        }
         if score >= scan.score {
             return;
         }
