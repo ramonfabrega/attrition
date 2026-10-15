@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -53,7 +58,11 @@ fn the_emulated_original_agrees_on_every_row() {
                 log.push("m+0x0,0".to_string());
                 let w = i16::from_le_bytes([m[0xa], m[0xb]]);
                 log.push(format!("p{}+0x0,{},{}", 2 + ebx, w, m[9]));
-                log.push(if s4 != 0 { format!("m+0x0,{ebx},{edi},0") } else { "-".to_string() });
+                log.push(if s4 != 0 {
+                    format!("m+0x0,{ebx},{edi},0")
+                } else {
+                    "-".to_string()
+                });
             } else {
                 for _ in 0..3 {
                     log.push("-".to_string());
