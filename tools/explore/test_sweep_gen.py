@@ -514,6 +514,25 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2170, win=8, bias=[], stubs=['0x401000:0'],
                                    vtat='p0+0')
 
+    def test_a_stub_called_twice_may_answer_a_window_a_call(self):
+        # Parked 2623, built by item 2633: `UnitData::is_gathering` calls
+        # `get_action` on `this` and again on a unit reached through
+        # `units`; each answer is an order object whose vtable (slots +0x10
+        # and +0xe4 stubbed on one vtable) sits at its offset 0. `--answer-win`
+        # repeated for one stub answers a window of its own to each call, in
+        # call order, the last repeated past them.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2633, win=0x20, bias=[], own=1,
+            stubs=['0x401100:0', 'slot:0x10:0', 'slot:0xe4:0'],
+            answer_wins=['0:8', '0:8', '2:0x10'], vtat='p0+0', vtat_also=['p1+0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('ANSWERWIN = [(0, 8), (0, 8), (2, 16)]', script)
+        self.assertIn('stub 0 answers a window of its own to each call', test)
+        self.assertIn('callwins', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2633, win=8, bias=[], stubs=['0x401100:0'],
+                                   answer_wins=['0:8'], seq=['0:2'])
+
     def test_a_record_s_vtable_may_be_a_class_s_half_the_rows(self):
         # Item 2223: `UnbuiltCity::is_started` calls slot +0xac of
         # `objects[who][o]` and compares the record it answers with
