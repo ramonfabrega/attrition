@@ -2665,6 +2665,30 @@ def chain_expand(spec, own, cell_index, pbase):
             'argrange': [f'{pi}:0:{n - 1}', f'{ii}:0:{n - 1}']}
 
 
+def table_expand(spec, pbase):
+    """`--table VA:STRIDE:ROWS:COLS:SIZE:XOFF:VOFF` (item 2621, parked 2617):
+    `WorldData::get_bottom`'s walk -- the image's own table at VA, ROWS rows
+    STRIDE apart, each row's first word pointing at an array of COLS record
+    pointers, each a SIZE-byte record whose i16 at XOFF is the next column
+    (drawn below its own, or -1/-2, so the walk ends) and whose i16 at VOFF is
+    the next row (drawn inside 0..ROWS-1). The row's array is place `p<pbase +
+    r*(1+COLS)>` and its records the COLS after it. Returns the flags it stands for."""
+    parts = spec.split(':')
+    if len(parts) != 7:
+        raise ValueError(f'--table {spec}: want VA:STRIDE:ROWS:COLS:SIZE:XOFF:VOFF')
+    va, stride, rows, cols, size, xoff, voff = (int(x, 0) for x in parts)
+    if rows < 1 or cols < 1 or max(xoff, voff) + 4 > size:
+        raise ValueError(f'--table {spec}: ROWS, COLS >= 1 and SIZE past both fields')
+    place, link, wbias = [], [], []
+    for r in range(rows):
+        t = pbase + r * (1 + cols)
+        place.append(f'{parts[0]}+{parts[1]}*{r}:0:{4 * cols}')
+        place += [f'p{t}+{4 * c}:0:{parts[4]}' for c in range(cols)]
+        link.append(f'p{t + 1}..{t + cols}+{xoff:#x}:2:<:-1,-2')
+        wbias.append(f'p{t + 1}..{t + cols}+{voff:#x}:0..{rows - 1}')
+    return {'place': place, 'link': link, 'wbias': wbias}
+
+
 def jump_expand(spec, own):
     """`--jump IDX:N` (item 2615, parked 2607): a function whose body is one
     indexed jump over N arms (`jmp *TABLE(,%eax,4)`, `Setup::get_starting_citizens`)
@@ -2876,8 +2900,23 @@ def main(argv=None):
     ap.add_argument('--jump', metavar='IDX:N',
                     help='obj: a function that is one indexed jump over N arms -- argument IDX drawn in 0..N-1 '
                          '(item 2615, parked 2607)')
+    ap.add_argument('--table', metavar='VA:STRIDE:ROWS:COLS:SIZE:XOFF:VOFF',
+                    help='obj: WorldData::get_bottom\'s walk -- the image\'s table at VA, ROWS rows STRIDE apart, each '
+                         'a pointer to COLS record pointers whose i16 at XOFF is the next column (ends the walk) and '
+                         'at VOFF the next row (item 2621, parked 2617)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(split_gate_this(argv))
+    if args.table:
+        try:
+            pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))
+                                        for sp in args.sparse) + len(args.place)
+            x = table_expand(args.table, pb)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        args.place = args.place + x['place']
+        args.link = args.link + x['link']
+        args.wbias = args.wbias + x['wbias']
     if args.jump:
         try:
             args.argrange = args.argrange + jump_expand(args.jump, args.own)['argrange']

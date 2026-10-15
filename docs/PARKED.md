@@ -3852,6 +3852,9 @@ shapes; the inlined `String` constructor, eight constant stores and no callee, i
 (parked 2594; booked in 2604).
 **2615** (fifty-sixth reach, filed at its merge): built `obj --jump IDX:N`, a test failing first; one of ten; a
 table-through-global `--at` shape is what `WorldData::get_bottom` wants (parked 2617; booked in 2621).
+**2621** (fifty-seventh reach, filed at its merge): built `obj --table`, a test failing first; three of ten; a
+per-call answered-record stub, one getter on two objects, is what `UnitData::is_gathering` wants (parked 2623;
+booked in 2633); the table users of the never-backed list are spent (2624).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5928,13 +5931,13 @@ words and edits nothing here; a refill lands when two remain.
 
 (2618) **The rest of the shortest never-backed list is not packet-free on the shapes in hand**: `Game::clock_init` reads `timeGetTime` (a clock, nothing for the sim); `UnitData::is_corner` and `is_gathering` are vcall chains over `guys`/`units` global tables; `TurnControl::get_delta_percent` and `Group::action_hotkey` are a float return and a decompiler-garbled body (`unaff_EBP`/`unaff_ESI` — read the listing). Nine of ten not landed (2481).
 
-## Parked by the next landing, slot DU — reserved
+## Parked by item 2621, 2026-10-15 — the sweep's ninety-first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2623) **`UnitData::is_gathering` 0x6089b0 needs a two-level answered-record shape**: `get_action` 0x608450 is called twice (on `this`, then on a unit reached through `units + 0x1c*who` and `[+4*o]`), each answer an order object whose vtable slots +0x10 (answers 7) and +0xe4 (answers a record whose +0xc is compared with `who`) must both be stubbed on one vtable laid in a stub's answer window. `--stub ADDR:N` with `ANSWERWIN` gives one answered window, not a second call's different one; a `--stub` answer-window-per-call shape (and `--table` for the `units` array) is the Loop's build.
+
+(2624) **The never-backed list's table users are spent**: of every function whose decompile reads `objects.field_0x14`/`units.field_0x10`/`guys.field_0x10`, `tools/census.py --unbacked` lists only `SubObjectData::play_sound` (backed here); the next batch is back to the shortest-first list on shapes in hand.
+
+(2625) **`is_corner`'s draw reaches a fourth call twice in 220 rows**, so a break of the last seq index (`k.min(3)` -> `k.min(2)`) passes; the break that holds the arm is `r = ans & 3`. A `--seq` over more than four values with a lower terminator rate would starve less.
 
 ## Parked by item 2627, 2026-10-15 — a Helicopter's attack distance on a human
 

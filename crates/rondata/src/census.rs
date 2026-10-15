@@ -97,13 +97,15 @@
 /// `TerrainList` `walk_data` on them and four more, six new;
 /// item 2604: 1052 -> 1059, the sweep's eighty-ninth batch, `obj --ret arg:N`, five inlined-`String` `get_name`s
 /// and `Doober::find_x_pos`/`find_y_pos` on it, seven new;
-/// item 2615: 1059 -> 1060, the sweep's ninetieth batch, `obj --jump` and `Setup::get_starting_citizens` on it).
+/// item 2615: 1059 -> 1060, the sweep's ninetieth batch, `obj --jump` and `Setup::get_starting_citizens` on it;
+/// item 2621: 1060 -> 1063, the sweep's ninety-first batch, `obj --table`, `WorldData::get_bottom`,
+/// `UnitData::is_corner` and `SubObjectData::play_sound`).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1060;
+pub const SIMULATION_BACKED: usize = 1063;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
