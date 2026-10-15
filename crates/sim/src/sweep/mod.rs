@@ -67,6 +67,7 @@ mod moveorder_is_fleeing;
 mod nuke_get_name;
 mod object_assault_benefit;
 mod build_type_data_queue_here;
+mod armies_send_navy;
 mod object_data_is_active_wallbuild;
 mod object_data_is_map_unit;
 mod object_data_support;
