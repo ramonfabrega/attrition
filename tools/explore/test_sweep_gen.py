@@ -1714,6 +1714,30 @@ class Shapes(unittest.TestCase):
         self.assertIn('STORE = None', script0)
         self.assertNotIn('after', test0)
 
+    def test_a_mix_may_loop_over_a_table_read_through_a_global(self):
+        # parked 2585: Types::walk_data hands (e+0x1e2, e+0x1e3) for each of the 85 words of *(*0xc061b0+0x10)[0x880..0x9d4).
+        spec = 'Types::walk_data@00669780'
+        steps = ['each/walk:elem+0x1e2:elem+0x1e3']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2593, glob=0xc061b0, elems='table:0x880:0x9d4:4', steps=steps)
+        compile(script, 'sweep_types_walk_data.py', 'exec')
+        self.assertIn("ELEMS = ('table', 0x880, 0x9d4, 4)", script)
+        self.assertIn('for &e in elems', test)
+        self.assertIn('vec![walker, e + 0x1e2, e + 0x1e3]', test)
+        self.assertIn('assert_eq!(elems.len(), 85', test)
+        _, script0, _, test0, _ = sweep_gen.generate_mix(spec, item=2593, glob=0xc061b0, steps=['walk:this:this+2'])
+        self.assertIn('ELEMS = None', script0)
+        self.assertNotIn('elems', test0)
+
+    def test_a_mix_may_walk_a_linked_list_from_a_field(self):
+        # parked 2589: TerrainList::walk_data walks [this+8] by [node+8], handing (node+0x1c, node+0x1e).
+        spec = 'TerrainList::walk_data@0084b9e0'
+        steps = ['each/walk:elem+0x1c:elem+0x1e']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2593, elems='list:8:8', steps=steps)
+        compile(script, 'sweep_terrain_list_walk_data.py', 'exec')
+        self.assertIn("ELEMS = ('list', 0x8, 0x8)", script)
+        self.assertIn('vec![walker, e + 0x1c, e + 0x1e]', test)
+        self.assertNotIn('assert_eq!(elems.len()', test)
+
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
         self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', 'Foo::bar@00401000']),
