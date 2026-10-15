@@ -70,12 +70,7 @@ fn the_emulated_original_agrees_on_every_row() {
                             log.push("-".into());
                         } else {
                             log.push("15269768,sp-0x20,10".into());
-                            log.push(format!(
-                                "0a{}{}{}",
-                                le(a[0]),
-                                le(a[1]),
-                                format!("{:02x}", a[2] as u8)
-                            ));
+                            log.push(format!("0a{}{}{:02x}", le(a[0]), le(a[1]), a[2] as u8));
                         }
                     }
                 }

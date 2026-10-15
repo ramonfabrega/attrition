@@ -58,7 +58,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     log.push("-".into());
                     log.push("-".into());
                 } else {
-                    if (a[0] < 0 || a[1] < 0) {
+                    if a[0] < 0 || a[1] < 0 {
                         log.push("-".into());
                         log.push("-".into());
                         log.push("-".into());
