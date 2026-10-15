@@ -3741,6 +3741,12 @@ at once; the launcher's own `log:` line names the viadriver log to wait on. Cand
 `log:` line when handed a launcher log, or the frame's capture row names the file; a test made to fail first.
 One reach.
 
+(2459) **No tool prints a building's queue across frames** (2412's "for the Loop" line, filed at its merge).
+`tools/gamelog/unitat.py` names a unit's state; a building's queue (type, `job_counter`, `queued` per block)
+took a scratch script, and a queue clock that never moves — `1/2018`'s second ICBM at 71400 against 0 — is
+invisible to every other tool on disk. Candidate: `tools/gamelog/buildat.py <dump> <frames> <who>/<o>`, printed
+on change and cut at `queued` (Loop 2407), with a test made to fail first on run853's `1/2018`. One reach.
+
 (2442) **A break-test restored by `shutil.move` leaves cargo a stale mutated binary** (2421's parked 2434, for
 the Loop, filed at its merge; Loop 1629's sibling). The restored source kept its pre-mutation mtime, so the next
 `cargo test` ran the broken port and `issue_disband` failed the gate until touched. Candidate: the sweep's break
@@ -5395,13 +5401,20 @@ would write all seven forwarders of this batch from one flag; each was a hand-wr
 restored file kept its pre-mutation mtime, so the next `cargo test` ran the broken port and `issue_disband` failed
 the gate until `touch`ed. A break script writes the original back with a fresh mtime (or touches it).
 
-## Parked by the next landing, slot CM — reserved
+## Parked by item 2412, 2026-10-14 — the peace pair's word 3479, and run853's later rows
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2424) **run853's later rows** (2412; names no word). Beyond 2423's unit, the 169 keys hold 81 that stand from
+3296 (§219's bucket and `SITE[n].reg` rows) and these later ones:
+- who=1's groups 77 and 80 hold `[34]` and `[113]` in ours and nothing in theirs (3327, 3338), the shape of
+  2411's groups 69, 79 and 80;
+- `form` is −1 ours against 0 theirs on each newborn `1/135`..`1/141` (2411's `form` rows);
+- `dest_angle` parts alone on `1/29`, `1/79`, `1/33`, `1/91`, `1/27` and `1/64` (3335–3407), and `1/116`'s
+  `mirror` is 0/1 (3387);
+- who=0's `0/3` (3515) and `0/5` (3530) take a move whose `off_x`/`off_y` are swapped: 696/312 ours against
+  312/696 theirs, and so is the point they move to; on 3526 and 3541 each holds kind 7 in ours against kind 1
+  over a second order in theirs;
+- gaia `8/0` and `8/1` part in `pos` by a few units (3486, 3514).
+None of these is on the word's frame.
 
 ## Parked by item 2436, 2026-10-14 — chapter seventy-one: the Senate's patriot, and the AI arms no walk can hold
 
