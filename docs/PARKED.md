@@ -3754,6 +3754,9 @@ regenerate from `--cmd-byte` when next touched (parked 2483).
 on it and two hand `--port`s, nine of ten; its "for the Loop" line: the arm holds `Error::report`'s two stale stack
 words as the zeroed emulator stack's `0,0`, an observation a stack seeded with a marker would make a test (parked
 2488).
+**2495** (forty-sixth reach, filed at its merge): built `--chain`, a test failing first, and `PathFinder`'s four
+forwarders on it; `issue_cannon_time` with no new token; ten of ten; a callee's stale `ecx` is the word
+`walk_data`'s three lack (parked 2498; minted as 2507's first build); its "for the Loop" line is Loop 2506.
 
 (2449) **`waitrun.sh` on a launcher's redirected log exits 2** (2436's "for the Loop" line, filed at its merge;
 parked 656's sibling). A launcher log written with `>` holds no banner, so `tools/gamelog/waitrun.sh` on it exits 2
@@ -3766,6 +3769,13 @@ where its header's ranges end. `tools/recomp/snapshot.py` raises on the missing 
 it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell read here skipped the check by
 hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
 `frame_snapshot.py`'s restore, which this lane does not run.
+
+(2506) **Two sweeps pin the emulator's stack residue in a port constant** (2495's "for the Loop" line, filed at
+its merge; parked 2488, 2497). `issue_cannon_time`'s port holds a `static` flag for a success arm's return address
+left on the stack between rows, and the treaty family's `Error::report` prints the zeroed stack's `0,0`: each port
+constant is the harness's residue, not the original's. Candidate: `tools/emu/callfn.py`'s hooks zero the stack per
+row (or seed a marker), so a port reading stale words fails where it should; held by a test made to fail first on
+`issue_cannon_time`. One reach.
 
 (2505) **A golden staging's site is found by trial runs** (2474's "for the Loop" line, filed at its merge).
 Chapter seventy-three's lane took six runs to find a legal Supercollider site — water at (30,74), then
