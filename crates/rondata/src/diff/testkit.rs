@@ -7042,14 +7042,18 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2491: 1080 -> 1441, the walk past 4859 to the word 5036.
     // Item 2526: 1441 -> 1575, the walk past 5036 to the word 5135.
     // Item 2554: 1575 -> 1653, the walk past 5135 to the word 5225.
-    ("lakota_pair_first_parting", 1653),
+    // Item 2609: 1653 -> 1672, the crash rounds' ground reads (their
+    // landing's `ez` and each frame's fall) and the walk past 5225 to the
+    // word 5315.
+    ("lakota_pair_first_parting", 1672),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
     // with item 2491's President arm.
     ("run861_s_word_frame_is_widened_whole", 1553),
-    // And run866 (item 2554): the word 5135's window, 1673 reads.
-    ("run866_s_word_frame_is_widened_whole", 1673),
+    // And run866 (item 2554): the word 5135's window, 1673 reads; 1678
+    // with item 2609's crash rounds reading the ground.
+    ("run866_s_word_frame_is_widened_whole", 1678),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -7175,9 +7179,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Chapter thirty-eight (item 1102): the two Bombers' bombs on T and R,
     // chapter seventeen's reads on other ground (pinned at 40, it fails).
     // Item 1131: 44, the Bombers' strikes held on T to their deaths (pinned
-    // at 43, it fails).
-    ("chapter_thirty_eight_holds_to_the_golden_word", 44),
-    ("chapter_thirty_eight_s_word_frame_is_widened_whole", 44),
+    // at 43, it fails). Item 2609: 51, the two crash rounds' landing and
+    // each frame of their fall.
+    ("chapter_thirty_eight_holds_to_the_golden_word", 51),
+    ("chapter_thirty_eight_s_word_frame_is_widened_whole", 51),
     // Item 1117's word block stops at 780, before the bombs: one read, by
     // 780 (pinned at 0, it fails).
     (
@@ -7186,10 +7191,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ),
     // Item 1113's squad test walks run404 whole to its last block but
     // one, the Bombers' bombs with it: 31 reads (pinned at 0, it fails);
-    // 44 with item 1131's strikes held on T (pinned at 43, it fails).
+    // 44 with item 1131's strikes held on T (pinned at 43, it fails); 51
+    // with item 2609's crash rounds.
     (
         "chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase",
-        44,
+        51,
     ),
     // Chapter forty-eight (item 1358): the Bomber's four passes on T, on
     // run551's ground: 32 reads (pinned at 31, it fails).

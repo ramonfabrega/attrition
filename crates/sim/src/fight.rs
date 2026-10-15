@@ -3036,6 +3036,11 @@ impl Sim {
             }
         }
         for k in 0..self.projectiles.len() {
+            // A crash round bumps its own plane's slot in its step
+            // ([`Sim::process_projectiles`]).
+            if self.projectiles[k].crash.is_some() {
+                continue;
+            }
             let Obj::Unit(s) = self.projectiles[k].shooter else {
                 continue;
             };
@@ -4484,6 +4489,14 @@ impl Sim {
             self.projectiles[i].cur_time += 1;
             let p = self.projectiles[i];
             if p.crash.is_some() {
+                // `inc_time`'s first statement, here rather than in
+                // [`Sim::hold_frames_tick`]: a crash is laid inside this walk,
+                // and the frame it is laid on bumps its plane's slot too.
+                if let Obj::Unit(s) = p.shooter
+                    && !self.active(p.shooter)
+                {
+                    self.units[s].hold_frames += 1;
+                }
                 if p.cur_time < p.total_time {
                     if !self.crash_comes_down(i) {
                         i += 1;
@@ -4558,12 +4571,22 @@ impl Sim {
                     q.total_time = q.cur_time;
                 }
             }
-            let p = self.projectiles.remove(i);
+            // **The round keeps its pool slot while it lands** (item 2609,
+            // `docs/AI.md` §228): `Ammo::inc_time` runs `do_damage` and only
+            // then closes, so a plane it brings down lays its crash round in
+            // the next free slot — run405's `0/6` crash takes index 1 under
+            // the Battery's round in 0. The walk then goes on from the next
+            // slot past this one, as the pool's own walk does.
+            let p = self.projectiles[i];
             // `inc_time:260`: a round with flag `0x10` is closed, and
             // `Ammo::do_damage` is never called for it (§39.5).
             if !p.harmless {
                 self.land(p, frame);
             }
+            if let Some(k) = self.projectiles.iter().position(|q| q.slot == p.slot) {
+                self.projectiles.remove(k);
+            }
+            i = self.projectiles.partition_point(|q| q.slot <= p.slot);
         }
     }
 

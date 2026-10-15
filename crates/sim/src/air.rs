@@ -3871,10 +3871,7 @@ impl Sim {
         } else {
             (
                 drift(sin_component(angle, v)),
-                drift(sin_component(
-                    Angle(angle.0.wrapping_sub(Angle::EAST.0)),
-                    v,
-                )),
+                drift(sin_component(Angle(angle.0.wrapping_sub(Angle::EAST.0)), v)),
             )
         };
         let landing = self.restrict_pos(Pos::new(object.x + dx, object.y + dy));
@@ -3893,7 +3890,8 @@ impl Sim {
         };
         self.mark(SITE_CRASH_ROLL);
         let rolling = self.rng.roll() % 7 - 3;
-        let mut local = crate::combat::Rng::new(figure.x.wrapping_add(figure.y).wrapping_add(z) as u32);
+        let mut local =
+            crate::combat::Rng::new(figure.x.wrapping_add(figure.y).wrapping_add(z) as u32);
         let bank = (local.get(-0x1e, 0x1e), local.get(-0x1e, 0x1e));
         self.add_ammo(crate::combat::Projectile {
             shooter: crate::combat::Obj::Unit(u),
@@ -4425,6 +4423,59 @@ mod flak_tests {
         );
         assert!(!s.crashes(foot), "Foot takes add_death");
         assert_eq!(s.rng.seed, seed, "no draw for either");
+    }
+
+    /// **A plane shot down lays its crash round, and the round holds its
+    /// number** (item 2609, `docs/AI.md` §228): run405's two Bombers, from
+    /// their own figures — `0/6` at (21949, 18537, 1783) and `0/7` at
+    /// (22866, 16298, 1624), `moves` 60. The dump's first block prints each
+    /// landing one bank step on, so (22967, 19002) less (23, 5) and (21881,
+    /// 15895) less (0, 1).
+    #[test]
+    fn a_plane_shot_down_lays_the_crash_round_run405_prints() {
+        let mut s = sim();
+        for (at, z, facing, want, total, bank) in [
+            (
+                Pos::new(21949, 18537),
+                1783,
+                1_369_137_312,
+                Pos::new(22944, 18997),
+                18,
+                (23, 5),
+            ),
+            (
+                Pos::new(22866, 16298),
+                1624,
+                -806_122_848,
+                Pos::new(21881, 15894),
+                17,
+                (0, 1),
+            ),
+        ] {
+            let b = unit(&mut s, 0, at, bomber());
+            let ty = s.units[b].ty.unwrap();
+            s.unit_types[ty].cols.cat = super::CAT_AIR;
+            s.unit_types[ty].moves = 60;
+            s.units[b].movement.body.pos = at;
+            s.units[b].movement.facing = crate::movement::Angle(facing);
+            s.units[b].airframe.z = z;
+            let mut probe = s.rng;
+            let _ = probe.roll();
+            assert!(s.crashes(b));
+            assert_eq!(s.rng.seed, probe.seed, "one draw from the game's stream");
+            let p = *s
+                .projectiles
+                .iter()
+                .find(|p| p.shooter == Obj::Unit(b))
+                .expect("the crash round");
+            assert_eq!((p.landing, p.total_time, p.sz), (want, total, z));
+            assert_eq!(p.crash.map(|c| c.bank), Some(bank));
+            assert_eq!(p.target, None);
+            // `Object::die`'s tail: the round's remaining time over the
+            // close's thirty.
+            s.hold_dead_slot(b);
+            assert_eq!(s.units[b].hold_frames, Sim::NUKE_SPREAD + 1 + total);
+        }
     }
 
     /// **A fired round at a plane carries the roll's miss** (item 1102):
