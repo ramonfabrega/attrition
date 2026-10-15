@@ -5741,13 +5741,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DJ — reserved
+## Parked by item 2562, 2026-10-15 — the eighty-fourth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Closes 2548 (`mix --gate-this OFF:MASK`, `--len-at`) and 2550 (six of the seven order `walk_data`s on `--vbase`).
+
+(2563) **`PatrolOrder::walk_data` (0x483e80) hands two direct callees a stale `ecx`** (2562): after its slot-0 walk it does
+`pushl %ecx; pushl %edi; leal -0x40(%ebx),%ecx; calll 0x483cc0` and again with `this-0x24` — the leftover `ecx` of the
+walker's callback as the second argument, where `stale` serves only the slot-4 callee (2498, 2549). Listing read; vbase 0x44,
+walks `(this-0x40+d, this-0x3f+d)`, `(this-8, this-4)`. Not built.
+
+(2564) **`Farms::walk_data` (0x8d9280) is 2549's shape on a `call:` step** (2562): `pushl %ecx` after slot 0's second walk, then
+`calll 0x4a8db0` with `ecx` = the absolute 0xc0a904 and arguments `(walker, stale)`; the two walks are of absolute cells
+(`0xc0a8f0..0xc0a8fa`, `0xc0a8fc..0xc0a904`). Needs a `stale` on a `call:` step after slot 0.
+
+(2565) **`CommandPackage::walk_data`'s length is drawn in the gate column** (2562): the short at `this+0x10` is half zero, a third
+±1 and the rest uniform in a short; a length of 0x7fff past the written object's 0x100 bytes is walked only as an address.
 
 ## Parked by the next landing, slot DK — reserved
 
