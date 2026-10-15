@@ -5735,13 +5735,20 @@ list) need a record through a global cell: `obj --cell-win`. Not built.
 0x486550, `FollowOrder` 0x486b50 (its first walk is before the `d` read), `GatherOrder`, `TradeOrder`, `CastOrder`, `PatrolOrder`:
 listings not read. Ready for `mix --vbase` as `AttackOrder` (0x47f260) was.
 
-## Parked by the next landing, slot DH — reserved
+## Parked by item 2526, 2026-10-15 — the Space Program's air arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2553) **`get_cost`'s domain arms are not built** (2526): `TypeData::get_cost@00664090:357`–`377`, by `+0x218`
+— the Angkor Wat on a ship (`ANGKOR_SHIPS`), Aluminum (`+0x6dab & 1` or the conquest twin, `ALUMINUM_AIR_COST`) and
+the Space Program (`SPACE_AIR_COST`, 50 %) on an aircraft. The peace pair's who=1 holds the Space Program from 5036,
+so its next queued aircraft is priced at half in theirs and whole here. run861 holds no air entry queued after 5036
+(no `cost` key parts past 4853), so no score names it yet; the first air `queue[*].cost` row past 5036 in the next
+widening does.
+
+(2554) **The peace pair's word 5135 owes its widening** (2526): ours 24 draws, theirs 32, index 4 — ours
+`Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs `Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a`
+(seed `f508e42b`), eight in a row. It is past run861's last block (5109), and no dump of this lobby holds 5135, so
+the capture is the next item's: blocks 5129..5385 at the long's detail, block 5136 the word's own. `WIDENINGS`
+names this row until a test widens it.
 
 ## Parked by item 2543, 2026-10-15 — chapter seventy-five's `finish` is case 0x4f
 

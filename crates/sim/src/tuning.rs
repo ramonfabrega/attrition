@@ -526,6 +526,14 @@ pub struct Tuning {
     /// The same arm's percentage for a missile type (`00664dd2`). Ships as
     /// `0% cheaper`.
     pub liberty_missiles: i32,
+    /// The unit wonders' arm of `ObjectData::train_time@006508c0:316`–`340`,
+    /// by the type's domain (`UnitTypeData +0x218`): percent faster for a
+    /// land unit under the Statue of Liberty (ships as `0%`), a ship under
+    /// the Porcelain Tower (`50%`) and an aircraft under the Space Program
+    /// (`100%`; `docs/AI.md` §226).
+    pub liberty_units: i32,
+    pub porcelain_ships: i32,
+    pub space_air_speed: i32,
     /// Percent faster Nuclear Missile-line creation with the Uranium rare —
     /// `ObjectData::train_time@006508c0:79`–`85`. Ships as 10.
     pub uranium_nuke_speed: i32,
@@ -1189,6 +1197,9 @@ impl Tuning {
         uranium_nuke_cost: 5,
         liberty_bombers: 33,
         liberty_missiles: 0,
+        liberty_units: 0,
+        porcelain_ships: 50,
+        space_air_speed: 100,
         uranium_nuke_speed: 10,
 
         accel_train: 100,
@@ -1402,7 +1413,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 382] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 385] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1751,6 +1762,9 @@ impl Tuning {
             ("URANIUM_NUKE_COST", Slot::Value(T.uranium_nuke_cost)),
             ("LIBERTY_BOMBERS", Slot::Value(T.liberty_bombers)),
             ("LIBERTY_MISSILES", Slot::Value(T.liberty_missiles)),
+            ("LIBERTY_UNITS", Slot::Value(T.liberty_units)),
+            ("PORCELAIN_SHIPS", Slot::Value(T.porcelain_ships)),
+            ("SPACE_AIR_SPEED", Slot::Value(T.space_air_speed)),
             ("URANIUM_NUKE_SPEED", Slot::Value(T.uranium_nuke_speed)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),

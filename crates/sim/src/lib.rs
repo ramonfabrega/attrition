@@ -3496,11 +3496,26 @@ impl Sim {
         {
             tail.push(production::Adjust::Faster(self.tuning.socialism_unit_bonus));
         }
-        // SEAM: the unit wonders after them — the Statue of Liberty on a
-        // land unit, the Porcelain Tower on a ship, the Space Program on an
-        // aircraft (`+0x218`) — and the Kremlin's and `INSTANT_UNIT_BONUS`'s
-        // `ACCEL_TRAIN * 5 - 1` return, read in `docs/PRODUCTION.md` and
-        // not built (`docs/AI.md` §217.4).
+        // **The unit wonders' arm** (`train_time@006508c0:316`–`340`), after
+        // the government arms: by the type's domain (`+0x218`), the Statue
+        // of Liberty on a land unit, the Porcelain Tower on a ship and the
+        // Space Program on an aircraft, each `t × 100 / (k + 100)`. The
+        // peace pair's who=1 finishes its Space Program `1/2042` on 5036 and
+        // its three air trainers finish that frame: the ICBM at `1/2030` at
+        // 38000, the Strategic Bombers at `1/2032` and `1/2037` at 33500
+        // and 32700, against a whole bomber's 33750 (`docs/AI.md` §226).
+        let held = self.wonders_held(who);
+        let wonder = match self.unit_types[ty].combat.domain {
+            attrition::Domain::Land => (tech::wonder::STATUE_OF_LIBERTY, self.tuning.liberty_units),
+            attrition::Domain::Sea => (tech::wonder::PORCELAIN_TOWER, self.tuning.porcelain_ships),
+            attrition::Domain::Air => (tech::wonder::SPACE_PROGRAM, self.tuning.space_air_speed),
+        };
+        if held & (1 << wonder.0) != 0 {
+            tail.push(production::Adjust::Faster(wonder.1));
+        }
+        // SEAM: the Kremlin's and `INSTANT_UNIT_BONUS`'s `ACCEL_TRAIN * 5 -
+        // 1` return after it, read in `docs/PRODUCTION.md` and not built
+        // (`docs/AI.md` §217.4).
         tail
     }
 
