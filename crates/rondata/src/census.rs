@@ -68,13 +68,15 @@
 /// item 2454: 936 -> 946, the sweep's seventy-fourth batch, ten issuers on the new `--cmd-gate`,
 /// `issue_camera`'s truncation ported as integers;
 /// item 2464: 946 -> 956, the sweep's seventy-fifth batch, the `this+OFF` token and ten `CommandManager`
-/// issuers, six on `--cmd-gate` and four hand `--port`s reading an object argument).
+/// issuers, six on `--cmd-gate` and four hand `--port`s reading an object argument;
+/// item 2469: 956 -> 963, the sweep's seventy-sixth batch, `--cmd-obj` built (the three object-argument
+/// issuers regenerated from it) and seven group-first issuers on `--cmd-gate`).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 956;
+pub const SIMULATION_BACKED: usize = 963;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

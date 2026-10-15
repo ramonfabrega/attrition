@@ -3743,12 +3743,20 @@ an absolute address, so a hand-patched port is edited in the kept line too — a
 **2464** (forty-second reach, filed at its merge): built the `this+OFF` token, a test failing first; six issuers on
 `--cmd-gate`, four hand `--port`s — `issue_come_out` and both `issue_unqueue` read their command's fields off an
 object argument, a shape no flag writes yet (parked 2466; minted as 2469's first build).
+**2469** (forty-third reach, filed at its merge): built `--cmd-obj`, a test failing first, and the three
+object-argument issuers regenerate from it; seven group-first issuers on `--cmd-gate` with no new flag; `_flight`'s
+no-argument siblings are a four-line shape no flag writes (parked 2472; minted as 2481's first build).
 
 (2449) **`waitrun.sh` on a launcher's redirected log exits 2** (2436's "for the Loop" line, filed at its merge;
 parked 656's sibling). A launcher log written with `>` holds no banner, so `tools/gamelog/waitrun.sh` on it exits 2
 at once; the launcher's own `log:` line names the viadriver log to wait on. Candidate: `waitrun.sh` follows the
 `log:` line when handed a launcher log, or the frame's capture row names the file; a test made to fail first.
 One reach.
+
+(2480) **A hand-written break script's pass check keys on a word a passing summary prints** (2469's "for the
+Loop" line, filed at its merge; Loop 2442's sibling). A break script that greps for `failed` matches cargo's `0
+failed` summary and reads a pass as the break; 2469 caught it on its first run. Candidate: the sweep's break helper
+owns the check, keyed on `test result: FAILED`, held by a test in `tools/explore/test_sweep_gen.py`. One reach.
 
 (2479) **A golden staging's cheat on a unit's birth frame is ambiguous by one** (2448's "for the Loop" line,
 filed at its merge; parked 2450). run859's first take put `age` on the Despot's birth frame and the original read

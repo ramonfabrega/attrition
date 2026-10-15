@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-15, **the thirty-fifth tranche, thirteen landings** since `dccda9f0`; three
+*2026-10-15, **the thirty-fifth tranche, fourteen landings** since `dccda9f0`; three
 lanes on DECISIONS 71, amended mid-tranche by Ramon: two kill rules tripped, the roster stands, the gap is a brief row.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 3479 in three landings
   (2384 diplomacy's peace arm, 2388 the pre-war gate, 2412 the silo's queue), the open word. Chapters 71 and 72
-  closed (2436 The Despot, 2448 The Monarch); 69 and 70 built or surveyed, not closed. Census 894 → 956. Battery unmeasured since 576/6566/2974.
+  closed (2436 The Despot, 2448 The Monarch); 69 and 70 built or surveyed, not closed. Census 894 → 963. Battery unmeasured since 576/6566/2974.
 - **Red booking gates, each fixed by a second commit**: 2384's 144 `aggression` pins (re-pinned); 2400's
   `find_free` captain term broke the third pair's floor 17379 → 14461 (bisected, the call reverted, parked 2441).
 - **Lanes: three** (DECISIONS 71, amended: two kill rules tripped, the roster stands, the gap fixed — Loop 2415): 2423 (AI §223,
-  CR, runs 854–856), 2469 (CT), 2474 (GOLDEN §90, CU, run 860) live. Next 2480, run 861, AI §224, GOLDEN §91, park CV.
-- **Fable backlog: 22 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449, 2459, 2479).
+  CR, runs 854–856), 2474 (GOLDEN §90, CU, run 860), 2481 (CV) live. Next 2486, run 861, AI §224, GOLDEN §91, park CW.
+- **Fable backlog: 23 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449, 2459, 2479, 2480).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w3479 of 6,822
-Census: simulation backed 956 of 3611
+Census: simulation backed 963 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -45,7 +45,7 @@ its merge; at twenty landings write the handoff and clear `steer` into the thirt
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2423 the AI word's (Opus), 2474 the rules track's and 2469
+2423 the AI word's (Opus), 2474 the rules track's and 2481
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -68,13 +68,13 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     human. Name the census rows first; run 860 only when no packet of
     the game is on disk. GOLDEN §90.
 
-2469. **The sweep's seventy-sixth batch: ten never-backed simulation
-    functions** (DECISIONS 63 (iv); the score `Census:` 956 of 3611):
-    2464's shape; a line for a command whose fields are bytes and words
-    read off an object argument built first, a test made to fail first,
-    that regenerates `issue_come_out` and both `issue_unqueue` (parked
-    2466, Loop 2003); then parked 2467's group-first issuers on
-    `--cmd-gate`; skip operators (parked 1722). `--kind sweep`.
+2481. **The sweep's seventy-seventh batch: ten never-backed simulation
+    functions** (DECISIONS 63 (iv); the score `Census:` 963 of 3611):
+    2469's shape; a line for a no-argument one-byte command built first,
+    a test made to fail first (`_flight`'s siblings, cmd 0x23/0x24/0x1d,
+    parked 2472, Loop 2003); then 2472's left issuers whose listing is
+    `--cmd-gate`'s shape, each `mov byte` read first; skip operators
+    (parked 1722). `--kind sweep`.
 
 ## How to maintain this file
 
