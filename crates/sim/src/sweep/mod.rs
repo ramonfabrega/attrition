@@ -1000,6 +1000,7 @@ mod wonder_walk_data;
 mod world_adjust_fog;
 mod world_data_buildings_allowed;
 mod world_data_check_building_wcoord;
+mod world_data_get_bottom;
 mod world_data_get_coll_block;
 mod world_data_get_down;
 mod world_data_get_goods;
