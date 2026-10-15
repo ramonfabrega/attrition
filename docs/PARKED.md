@@ -5645,6 +5645,9 @@ function walks `(this, this+2)` always and `(this+2, this+0x98)` only when the s
 `walk4` of `int_str_array+0xa78`. Not built; the order walk_datas (`GroupOrder`/`TargetOrder`/`AirOrder`) read
 `this[-1].whose+4` through memory and want a `--cell-win`-style mix. One reach.
 
+Its "for the Loop" line (an `st0` return and `--xmm`) is parked 2534 and 2535 and booked as 2537's first build, at
+2513's merge.
+
 (2509, closed by 2513) `--deref IDX:@VA:N` reads an absolute cell when the stub is called: `find_wpath_army`,
 `find_road_restore` and `find_upath_restore` hold 1 at `0xe85eb0`, `0xe85ec4`, `0xe85ec4` while the callee runs.
 
