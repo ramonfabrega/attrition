@@ -3852,6 +3852,9 @@ shapes; the inlined `String` constructor, eight constant stores and no callee, i
 (parked 2594; booked in 2604).
 **2615** (fifty-sixth reach, filed at its merge): built `obj --jump IDX:N`, a test failing first; one of ten; a
 table-through-global `--at` shape is what `WorldData::get_bottom` wants (parked 2617; booked in 2621).
+**2621** (fifty-seventh reach, filed at its merge): built `obj --table`, a test failing first; three of ten; a
+per-call answered-record stub, one getter on two objects, is what `UnitData::is_gathering` wants (parked 2623;
+booked in 2633); the table users of the never-backed list are spent (2624).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
