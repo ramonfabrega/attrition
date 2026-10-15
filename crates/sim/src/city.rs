@@ -2011,13 +2011,42 @@ impl Sim {
     /// not active takes vslot `0x1a8`, `Build::activate(0, 1, 1)`; then
     /// `job_counter += 10000`.
     ///
-    /// SEAM: the tail's `do_queue(0)` and the library/train-time arm after
-    /// it, which touch a finished building's queue only.
+    /// **The queue arm** (item 2500, `docs/GOLDEN.md` §91; listing
+    /// `7c39c9`..`7c3a4b`): between the two, a building the console has
+    /// finished and whose queue (a library's is the owner's first library's,
+    /// `get_first_library`) is not empty adds to one entry. The head, unless
+    /// its counter already equals its own train time — a done head the
+    /// original holds — and `get_next_non_unit` finds an entry behind it,
+    /// which takes the **head's** train time. The console's form
+    /// (`this != 0`, `run_cmd` case `0x51`: `cmpl $0, this; cmovne`) adds
+    /// that train time; only the keymap's `this == 0` form adds 10000.
+    /// Then `do_queue(0)` on the selected building, at once.
+    ///
+    /// SEAM: the unit arm (`is(0x15f)`, an Aircraft Carrier, `+0x64 +=
+    /// 10000` when its `+0xa0` is set): this crate holds no carrier
+    /// production counter. A train that `do_queue(0)` completes is placed
+    /// here and its `Produced` dropped, as the original's `do_queue` return
+    /// is.
     pub fn cheat_finish(&mut self, b: usize) {
         if !self.buildings[b].active {
             self.activate(b, false, true);
         }
+        let home = self.queue_home(b);
+        if !self.buildings[home].queue.items.is_empty() {
+            let target = self.queue_target(home, 0);
+            let who = self.buildings[home].owner;
+            let q = &self.buildings[home].queue;
+            let slot = if q.items[0].job_counter == target {
+                let researched = &self.muster[who as usize].researched;
+                q.next_research(|ty| !researched[ty]).unwrap_or(0)
+            } else {
+                0
+            };
+            self.buildings[home].queue.items[slot].job_counter += target;
+        }
         self.buildings[b].job_counter += 10_000;
+        let mut out = Vec::new();
+        self.process_queue(b, &mut out);
     }
 
     /// `Build::activate(captured, announce, counted)` — `docs/CITIES.md` §4.

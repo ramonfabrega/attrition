@@ -7547,3 +7547,41 @@ fn finish_activates_a_site_and_pays_the_counter() {
         "a finished building is only paid"
     );
 }
+
+/// Item 2500 (`docs/GOLDEN.md` §91): the console's `finish` on a finished
+/// building with a queue — `Console::hurry_action@007c3810`'s queue arm,
+/// listing `7c3a33`..`7c3a4b`: `cmpl $0, this; movl $10000; cmovne
+/// train_time` — the console's own form (`this != 0`, `run_cmd` case 0x51)
+/// adds the head's **train time**, and only the keymap's `this == 0` form
+/// adds 10000. The added slot is the head, or — when the head's counter
+/// already equals its train time — the first non-unit entry behind it.
+#[test]
+fn finish_pays_the_queue_head_its_train_time() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.init_build(0, t.barracks, tile_pos(40, 32), false);
+    finish(&mut sim, b);
+    let ty = sim.add_unit_type(UnitType {
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free()
+        },
+        hits: 40,
+        ..UnitType::default()
+    });
+    sim.muster[0].researched[ty] = true;
+    sim.muster[0].cap = 1000;
+    let c = [0; crate::economy::RESOURCES];
+    sim.buildings[b].queue.items.push(crate::production::Item::queued(ty, &c));
+    let target = sim.queue_target(b, 0);
+    assert!(target > 0 && target != 10_000, "a train time to tell from 10000");
+    let site = sim.buildings[b].job_counter;
+    sim.cheat_finish(b);
+    assert_eq!(sim.buildings[b].job_counter, site + 10_000, "the building's own +0x48");
+    let head = &sim.buildings[b].queue.items;
+    assert!(
+        head.is_empty() || head[0].job_counter == target,
+        "the head was paid its train time (or has trained)"
+    );
+}

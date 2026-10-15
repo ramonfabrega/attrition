@@ -1574,6 +1574,7 @@ fn parse(text: &str) -> Cheat {
         }
         "bird" => Cheat::Bird,
         "finish" if rest.is_empty() => Cheat::Finish,
+        "hurry" if rest.len() <= 1 => Cheat::Finish,
         "select" => match rest.first().and_then(|t| t.parse::<i16>().ok()) {
             Some(o) => Cheat::Select {
                 who: rest
@@ -1777,9 +1778,11 @@ fn run(
         Cheat::Finish => {
             // `hurry_action`'s building arm: not a unit (vslot `0xc`), so
             // `BuildData::is_active` clear → `Build::activate(0, 1, 1)`,
-            // then `job_counter += 10000`. SEAM: the unit arm (`+0x64 +=
-            // 10000` on a `0x15f` type) and `do_queue(0)`, which a site with
-            // no queue returns from.
+            // then the queue arm (`Sim::cheat_finish`: the head, or the
+            // first non-unit behind a done head, takes its train time),
+            // then `job_counter += 10000` and `do_queue(0)`. SEAM: the
+            // unit arm (`+0x64 += 10000` on a `0x15f` type, an Aircraft
+            // Carrier: no counter here).
             let mut any = false;
             for &(who, o) in selected.iter() {
                 if let Some(b) = built.sim.building_by_o(who as sim::Player, o) {
@@ -2951,6 +2954,10 @@ mod tests {
             }
         );
         assert_eq!(parse("finish"), Cheat::Finish);
+        // Item 2500: `hurry` is the same case `0x51`, with or without a
+        // number (`this` is the console's token either way, never null).
+        assert_eq!(parse("hurry"), Cheat::Finish);
+        assert_eq!(parse("hurry 5"), Cheat::Finish);
         assert_eq!(
             parse("select 2006 who=1"),
             Cheat::Select { who: 1, o: 2006 }
