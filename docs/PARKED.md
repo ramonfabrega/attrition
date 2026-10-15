@@ -5583,7 +5583,7 @@ table of four, or a `--chain` token, is the missing word. Names no score. One re
 
 ## Parked by item 2486, 2026-10-15 — the SEH/log-arm word and the treaty family
 
-(2487) **`CommandManager::issue_cannon_time@00941260` read and not built** (names no score). Its success arm is a
+(2487) **`issue_cannon_time` (0x941260) read and not built** (names no score). Its success arm is a
 two-byte command behind `gamec+0x820 & 4` and a leaders word, but both failed arms build a feedback message: a
 `String::operator=` on the global `msg` (0xa1eeb0), a by-value `String` copy on the stack (0xa1d590, `ecx` the
 moving `esp`) and a `MessageWin::add_feedback` (0x7e9ab0) handed twenty stale stack bytes, `-1` and `&RED`. Word it
