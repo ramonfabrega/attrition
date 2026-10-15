@@ -492,10 +492,18 @@ impl Sim {
     // ------------------------------------------------------------------
 
     /// `ObjectData::attack_dist(o, who, x, y)` from `at` (§13.1).
+    ///
+    /// **The centre-to-centre arm is the attacker's `is_plane`** (vslot
+    /// `+0xc0`, `006488f0`; `UnitData::is_plane@0046ce40`, `domain == 2 &&
+    /// !(unit_flags & 0x20)`) **and not a missile** (type `+0x1e4 &
+    /// 0x8000000`): a helicopter measures edge to edge, as a ground unit
+    /// does. This crate read the domain alone, so an Attack Helicopter's
+    /// look at a city measured from the city's centre and passed it over
+    /// (`docs/AI.md` §227: run866's `1/145` on 5135).
     pub fn attack_dist_from(&self, attacker: Obj, at: Pos, target: Obj) -> i32 {
         let ap = self.profile(attacker);
         let tp = self.profile(target);
-        let plane = matches!(ap.domain, Domain::Air) && !ap.has(mask::MISSILE);
+        let plane = matches!(attacker, Obj::Unit(u) if self.is_plane(u)) && !ap.has(mask::MISSILE);
         combat::attack_dist(
             at,
             self.pos_of(target),

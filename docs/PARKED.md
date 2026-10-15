@@ -3774,6 +3774,11 @@ argument; 2572 prefixed `waitrun.sh` with `timeout`, which is not installed here
 reported "completed" with run871 still capturing. Candidate: the clause names the tool argument ("the Bash tool's
 `timeout: 3600000`"), and `waitrun.sh` refuses to start under a non-existent wrapper. One reach.
 
+(2610) **`RON_DEBUG_ARMIES` names a group order's army in one run** (2554's "for the Loop" line, filed at its
+merge). The dump prints no army record; 2554's word was one group order's ring walk (`Group::action_attack`), and
+the probe named the army, its target and its leader in one run. Candidate: the brief's step 2 names it beside
+`RON_STACKS` when a word's draws sit under a `Group::` caller. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -3822,6 +3827,10 @@ with a new flag needs the files removed first; `Constants` and `Dock` want a rec
 **2588** (fifty-fourth reach, filed at its merge): built `mix` `rec` tokens and `mix --store`, tests failing first;
 ten of ten; a cdecl empty body needs a dummy `obj --cdecl --ptrarg 0:4`, since `void` has no `--cdecl`; `Types` and
 `TerrainList` want an `obj` table loop and a linked-list walk (parked 2585, 2589; booked in 2593).
+**2593** (fifty-fifth reach, filed at its merge): built `mix --elems` (a table read through a global, a linked list)
+with an `each/` step and the `g` tokens, tests failing first; six of six, the rest of the shortest list UI or unbuilt
+shapes; the inlined `String` constructor, eight constant stores and no callee, is five `get_name`s no shape holds
+(parked 2594; booked in 2604).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5819,13 +5828,12 @@ tree's `republic` term (`economy.rs` ~915, `REPUBLIC_COMMERCE_BONUS` 50, diff-ba
 bonus; check `calc_resource_caps@006ce900` at age 3 with and without the Republic. Names no word (no draw reads the cap),
 so it parks; its five rows stand in `golden::WANT_CH76`.
 
-## Parked by the next landing, slot DM — reserved
+## Parked by item 2554, 2026-10-15 — the helicopter's edge-to-edge search
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2579) **The Assault Infantry queues' `cost[1]` parts on run866's 5183** (2554): who=1's `1/2014` and `1/2022`, every
+queued `type 104`, read `cost[1]` ours 155 against theirs 116 (`cost[0]` agrees at 178). It is a ground unit, so it is
+not 2553's Space Program arm. Before the word 5225, it names no draw. The first read is `get_cost`'s timber term for
+the type (`leader.py` 5182 against 5183 for who=1).
 
 ## Parked by item 2583, 2026-10-15 — the eighty-sixth sweep batch
 
@@ -5854,13 +5862,18 @@ Closes 2584 (`mix` token `rec`, `rec+K`: the record base the `--glob` cell holds
 global-cell string, a callee-hooked `fwd`; `Game::run_unit_editor` (0x5860a0) calls `close` and `clear` on a global singleton; `Setup::get_starting_citizens`
 (0x5aaf50) is a jump table. None fits a built shape without a build.
 
-## Parked by the next landing, slot DP — reserved
+## Parked by item 2593, 2026-10-15 — the eighty-eighth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Closes 2585 and 2589 (`mix --elems table:LO:HI:STEP | list:HEAD:NEXT` with an `each/` step, tokens `elem`, `elem+K`) and adds the `g`, `g+K` tokens.
+
+(2594) **Inlined `String` constructors** (`FarmsOut::get_name` 0x4352b0, `RoadsOut`, `RiversOut`, `FogMaster`, `Cliffs::get_parse_name`): the function stores eight
+constant fields (a vtable-like pointer at `[out]`, length 5, flags, the byte `[0xcc2311]` at `+0xb`) into the out buffer with no callee. No shape asserts a
+block of stores; a `mix --store` holds one. Candidate: an `obj` window check that prints the out buffer's bytes after.
+
+(2595) **`Doober::find_x_pos` 0x846480 / `find_y_pos` 0x8464d0**: pure arithmetic through the tables `move_x` 0xadcaf0 / `move_y` 0xadc400, the result stored through the first
+argument, `ret 0x14`. An `obj --at` with a port that reads `c[0]` and writes `p0`; not tried this batch.
+
+(2596) **`Balance::walk_rules_data` 0x582cc0** calls the walker 0x1ed * 0x1ed times: past any row's call list; needs a count-only shape.
 
 ## Parked by item 2598, 2026-10-15 — the Porcelain Tower's ship arm and its market tax
 
@@ -5880,6 +5893,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot DS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DW renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

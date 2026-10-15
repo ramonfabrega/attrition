@@ -7049,12 +7049,15 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2460: 858 -> 1080, the walk past 4544 to the word 4859.
     // Item 2491: 1080 -> 1441, the walk past 4859 to the word 5036.
     // Item 2526: 1441 -> 1575, the walk past 5036 to the word 5135.
-    ("lakota_pair_first_parting", 1575),
+    // Item 2554: 1575 -> 1653, the walk past 5135 to the word 5225.
+    ("lakota_pair_first_parting", 1653),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
     // with item 2491's President arm.
     ("run861_s_word_frame_is_widened_whole", 1553),
+    // And run866 (item 2554): the word 5135's window, 1673 reads.
+    ("run866_s_word_frame_is_widened_whole", 1673),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -7232,10 +7235,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // once the formation's reverse is built: 1013, as run817's own walk.
     // Item 2423's run855 window: 1122, as that window's own. Item 2460's
     // run861 window: 1552, as that window's own; 1553 with item 2491's
-    // President arm, as that window's own.
+    // President arm, as that window's own. Item 2554's run866 window: 1673,
+    // as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        1553,
+        1673,
     ),
 ];
 
@@ -9278,14 +9282,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 4859 → 5036** with `train_time`'s President arm, in the same window
     // (block 5037). **Item 2526 moved it 5036 → 5135** with `train_time`'s
     // Space Program arm, past run861's last block (5109): run861's test
-    // keeps 5036's value diff (block 5037), and 5135's widening is owed
-    // (parked 2554).
+    // keeps 5036's value diff (block 5037), and 5135 is widened on run866
+    // over 5129..5385 (block 5136, item 2554).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        None,
+        Some("run866_s_word_frame_is_widened_whole"),
         2554,
-        None,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_5135),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
