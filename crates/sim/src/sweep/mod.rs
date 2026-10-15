@@ -704,6 +704,7 @@ mod object_data_health_level;
 mod object_data_hits_left;
 mod object_data_in_a_building;
 mod object_data_in_a_ship;
+mod object_data_inside_bottom;
 mod object_data_is_active_build;
 mod object_data_is_cargo;
 mod object_data_is_dock;
