@@ -456,7 +456,7 @@ impl Sim {
         {
             self.update_local_seen_build(b);
         }
-        self.write_sweep(&sw, who)
+        self.write_sweep(&sw, who, false)
     }
 
     /// `ObjectData::is_visible_wonder@00471130`: a wonder without the city
@@ -499,11 +499,19 @@ impl Sim {
         if !ring_pass && self.units[u].visible != 0 {
             self.update_local_seen_unit(u);
         }
-        self.write_sweep(&sw, who)
+        // `Object::init@00647750` sets `ObjectData` flag `0x40` for a type
+        // with the `DETECT` objmask (`Z`); `update_seen` then lights `seen3`
+        // over the whole range it writes (the cutoff is the range's end
+        // below radius 32, `docs/VISION.md` §4).
+        let detect = self.units[u].ty.is_some_and(|t| {
+            self.unit_types[t].combat.obj_masks & crate::combat::mask::DETECT != 0
+        });
+        self.write_sweep(&sw, who, detect)
     }
 
-    /// §5's loop, shared by the unit's disc and the building's.
-    fn write_sweep(&mut self, sw: &Sweep, who: crate::Player) -> usize {
+    /// §5's loop, shared by the unit's disc and the building's. `detect`
+    /// is `World::set_seen`'s `param_4` for the whole range.
+    fn write_sweep(&mut self, sw: &Sweep, who: crate::Player, detect: bool) -> usize {
         let mask = 1u8 << who;
         let (cx, cy) = sw.centre;
         let (fw, fh) = (self.world.fog_xs(), self.world.fog_ys());
@@ -523,8 +531,13 @@ impl Sim {
         let mut revealed = 0;
         for i in sw.start..sw.end {
             let (x, y) = (xs[i] + cx, ys[i] + cy);
-            if (whole || (x >= 0 && y >= 0 && x < fw && y < fh)) && self.world.set_seen(x, y, mask)
-            {
+            if !(whole || (x >= 0 && y >= 0 && x < fw && y < fh)) {
+                continue;
+            }
+            if detect {
+                self.world.set_seen3(x, y, mask);
+            }
+            if self.world.set_seen(x, y, mask) {
                 revealed += 1;
                 // `World::set_seen`'s **return value is the gate**: the
                 // original calls `reveal_fog` on exactly the cells this

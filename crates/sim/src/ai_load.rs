@@ -128,6 +128,13 @@ pub mod uflags {
     /// plane of the kind wants half its cruising altitude
     /// (`docs/ORDERS.md` §39).
     pub const STRAFES: u32 = 0x40_0000;
+    /// `o` — "Unit is cloaked" (the Spy, the submarines). `UnitData::is_seen`'s
+    /// stealth arm tests the type's `0x4000` (`docs/GOLDEN.md` §101).
+    pub const CLOAKED: u32 = 0x4000;
+    /// `s` — "Unit is stealth (cloaked when not moving)": the Explorer and
+    /// the commando lines. The same arm tests the type's `0x40000` and an
+    /// empty order list.
+    pub const STEALTH: u32 = 0x4_0000;
 }
 
 /// The bits of `unit_flags2` (`+0x2b8`).
