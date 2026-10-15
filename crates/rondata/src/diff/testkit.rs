@@ -7032,7 +7032,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // past 3479 to the word 4544, where it read none before.
     // Item 2460: 858 -> 1080, the walk past 4544 to the word 4859.
     // Item 2491: 1080 -> 1441, the walk past 4859 to the word 5036.
-    ("lakota_pair_first_parting", 1441),
+    // Item 2526: 1441 -> 1575, the walk past 5036 to the word 5135.
+    ("lakota_pair_first_parting", 1575),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553

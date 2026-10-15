@@ -59,8 +59,15 @@ pub(crate) const LAKOTA: Pair = Pair {
     // 200`, and is born on 4859 both sides (`queued` 1 / 1 on 4860): ours
     // 164 draws, theirs 168, index 152 — ours `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271`, theirs `Guy::init_real+0x52` (a birth).
-    count: 5036,
-    sequence: 5036,
+    // Item 2526: 5036 → 5135, `train_time`'s unit wonders' arm (`docs/AI.md`
+    // §226): who=1's Space Program `1/2042` finishes on 5036 and halves
+    // an aircraft's time, so the ICBM at `1/2030` and the Strategic Bombers
+    // at `1/2032` and `1/2037` are born that frame both sides (`queued`
+    // 0 / 0 on 5037): ours 24 draws, theirs 32, index 4 — ours
+    // `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+    // `Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a`.
+    count: 5135,
+    sequence: 5135,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -341,7 +348,7 @@ fn run861_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 378, "initial run861 baseline");
+    pin_eq!(w.firsts.len(), 126, "initial run861 baseline");
     // Item 2460: the word 4859's own block is 4860. Theirs spends a birth
     // there (`Guy::init_real < Unit::init < Objects::init_unit`): `1/50`
     // is unlinked on 4860 (the dump holds it alone), `1/2005`'s `queued`
@@ -352,4 +359,11 @@ fn run861_s_word_frame_is_widened_whole() {
     // buckets, and `1/2005`'s `queue[0].cost[0..1]` ours 240 against
     // theirs 224. On 4859 `1/168`, `1/172`, `1/177` hold `cavarch_who` 0
     // in ours and −1 in theirs.
+    // Item 2526: 378 → 126 with the Space Program's air arm built. On
+    // block 5037 `1/2030`, `1/2032` and `1/2037` read `queued` 0 / 0,
+    // `1/209`–`1/211` are born both sides, who=1's `num_units[255]` is
+    // 11 / 11 and `1/2005`'s head `job_counter` 16875 / 16875 (clamped to
+    // the halved target, its pad full). Past 5037 only two `form` rows
+    // part (`1/208` on 5033, `1/213` on 5055); the 106 keys from 4853
+    // stand.
 }

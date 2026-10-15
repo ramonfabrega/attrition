@@ -2572,6 +2572,76 @@ fn a_held_tikal_raises_a_templed_city_s_hit_points() {
     assert_eq!(sim.buildings[b].hits, (k + 100) * 1200 / 100, "and Tikal's");
 }
 
+/// **A held Space Program halves an aircraft's time** (item 2526,
+/// `docs/AI.md` §226): `train_time@006508c0:316`–`340`'s unit wonders'
+/// arm, by the type's domain (`+0x218`) — `SPACE_AIR_SPEED` 100 % on an
+/// aircraft, and nothing on a land unit or a ship. The peace pair's who=1
+/// finishes `1/2042` on 5036 and its three air trainers finish that frame.
+#[test]
+fn a_held_space_program_halves_an_aircraft_s_time() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let mut sp = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+    sp.ident = Ident::default();
+    sp.tree = Some(line[tech::wonder::SPACE_PROGRAM]);
+    let sp = sim.add_build_type(sp);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.init_build(0, t.barracks, tile_pos(40, 32), false);
+    finish(&mut sim, b);
+    let times = crate::production::Times {
+        job_time: 225,
+        research_premium_time: 2,
+        job_extra_time: 10,
+    };
+    let c = [0; crate::economy::RESOURCES];
+    let mut base = Vec::new();
+    for domain in [
+        attrition::Domain::Air,
+        attrition::Domain::Land,
+        attrition::Domain::Sea,
+    ] {
+        let mut ut = UnitType {
+            hits: 40,
+            times,
+            ..UnitType::default()
+        };
+        ut.combat.domain = domain;
+        let ty = sim.add_unit_type(ut);
+        sim.muster[0].researched[ty] = true;
+        sim.buildings[b]
+            .queue
+            .items
+            .push(crate::production::Item::queued(ty, &c));
+        base.push(sim.queue_target(b, base.len()));
+    }
+    assert!(base[0] > 1, "a time to halve");
+    let w = sim.place_building(0, sp, tile_pos(32, 25)).unwrap();
+    finish(&mut sim, w);
+    assert_ne!(
+        sim.wonders_held(0) & (1 << tech::wonder::SPACE_PROGRAM),
+        0,
+        "the finished Space Program is held"
+    );
+    assert_eq!(sim.tuning.space_air_speed, 100);
+    assert_eq!(
+        sim.queue_target(b, 0),
+        base[0] * 100 / (sim.tuning.space_air_speed + 100),
+        "an aircraft takes half"
+    );
+    assert_eq!(
+        sim.queue_target(b, 1),
+        base[1],
+        "a land unit keeps its time"
+    );
+    assert_eq!(sim.queue_target(b, 2), base[2], "a ship keeps its time");
+}
+
 /// **A held Supercollider finishes a research job on its next tick**
 /// (item 2259, `docs/AI.md` §216): `train_time@006508c0`'s tech block sets
 /// the time to zero under `has_wonder(0x21d)`, so the floor answers one and
