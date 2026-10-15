@@ -3755,6 +3755,11 @@ filed at its merge): a callee run rather than hooked was parked by 2701, 2712 an
 with it behind another build; 2719 built the other and swept nothing. Answered once at this booking (2731 is the
 shape alone). Candidate: the commander's booking mints a shape parked by two batches as its own item. One reach.
 
+(2738) **A standing row on an object the parted orders target is walked back too** (2677's "for the Loop" line,
+filed at its merge): 5407's cause was two windows back in two standing rows on the capital (`city_flags[0x4]` on
+5206, `damage_frac` on 5161) that two widenings had listed and nobody walked — the block named the bombers, and only
+their target named the capital. Candidate: brief checklist row 2180 widened to the parted orders' targets. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
