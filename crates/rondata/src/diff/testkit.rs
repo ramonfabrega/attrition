@@ -7242,10 +7242,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2423's run855 window: 1122, as that window's own. Item 2460's
     // run861 window: 1552, as that window's own; 1553 with item 2491's
     // President arm, as that window's own. Item 2554's run866 window: 1673,
-    // as that window's own.
+    // as that window's own; 1678 with item 2609's crash round, as run866's
+    // own walk.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        1673,
+        1678,
     ),
 ];
 
