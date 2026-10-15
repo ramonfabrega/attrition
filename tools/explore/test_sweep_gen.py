@@ -1491,6 +1491,20 @@ class Shapes(unittest.TestCase):
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_a_mix_step_names_the_slot_4_callees_stale_ecx(self):
+        # parked 2498: Tribes::walk_data hands Array::walk_data the `ecx` the
+        # walker's slot 4 left, `pushl %ecx` after the call.
+        spec = 'Tribes::walk_data@006efb20'
+        _, script, _, test, _ = sweep_gen.generate_mix(
+            spec, item=2507, glob=0xc06378,
+            steps=['walk4:0x21df4', 'call:0x47e230:2:this+4:p0,stale'])
+        compile(script, 'sweep_tribes_walk_data.py', 'exec')
+        self.assertIn('STALE = True', script)
+        self.assertIn('stale', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2507, glob=0xc06378,
+                                                     steps=['walk4:0x21df4'])
+        self.assertIn('STALE = False', script0)
+
 
 if __name__ == '__main__':
     unittest.main()
