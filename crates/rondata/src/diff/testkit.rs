@@ -9343,7 +9343,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 5476** with the crash round's strike, in the same window (block
     // 5477), widened there by item 2737, which **moved it 5476 → 5499**
     // with `find_upath`'s zeroed near goal, in the same window (block
-    // 5500).
+    // 5500), widened there by item 2761, which **moved it 5499 → 5564**
+    // with `Unit::close`'s count, in the same window (block 5565).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
