@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -37,7 +42,13 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            let t = rd(&p[2], 0x248); let d = |v: i32| rd(&c[0], (((v ^ 0x63637) >> 4) as usize) * 4); if t == 0 { 0 } else if t < (rd(&p[0], 0) - d(rd(m, 0x10))).wrapping_abs() { 0 } else { i64::from((rd(&p[1], 0) - d(rd(m, 0x14))).wrapping_abs() <= t) }
+            let t = rd(&p[2], 0x248);
+            let d = |v: i32| rd(&c[0], (((v ^ 0x63637) >> 4) as usize) * 4);
+            if t == 0 || t < (rd(&p[0], 0) - d(rd(m, 0x10))).wrapping_abs() {
+                0
+            } else {
+                i64::from((rd(&p[1], 0) - d(rd(m, 0x14))).wrapping_abs() <= t)
+            }
         };
         assert_eq!(got, want_eax, "is_here — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
