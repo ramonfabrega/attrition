@@ -3789,6 +3789,11 @@ hog is named by its cwd, not its name. Not measured: which test holds the 7.8 GB
 Candidate: one sampled whole gate at its RSS peak, then the dump reader's footprint (entry 56 §3 found half the
 suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four lanes and a booking gate live. One reach.
 
+(2769) **A pointer array of N records is N `--place` flags, and a callee's arity is read by hand** (2749's "for the
+Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a shell loop of `--place`s, and
+`kill_tree`'s one stack argument (hidden by the decompile) faulted the first run at the stub page. Candidate: a
+`--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
