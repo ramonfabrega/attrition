@@ -493,6 +493,7 @@ mod dock_walk_data;
 mod doober_find_x_pos;
 mod doober_find_y_pos;
 mod doober_get_num;
+mod farms_add_animals_all;
 mod farms_data_get_farm_type;
 mod farms_data_get_wheat_status;
 mod farms_out_get_name;
