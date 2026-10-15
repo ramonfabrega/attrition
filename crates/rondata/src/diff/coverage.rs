@@ -2476,8 +2476,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter seventy-nine, on run875** (item 2649): the Biplane's strike.
     if let Some(p) = &ch79 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_NINE;
-        let n = drive_capture(p, 1392, 1397, &mut paths);
-        assert_eq!(n, 6, "chapter seventy-nine carries the window's six blocks");
+        let n = drive_capture(p, 1499, 1504, &mut paths);
+        assert_eq!(
+            n, 1,
+            "chapter seventy-nine carries one detailed block in the window"
+        );
         frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first

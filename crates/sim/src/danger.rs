@@ -246,15 +246,19 @@ impl crate::Sim {
         bd.owner == viewer || self.was_seen_fog(bd.pos.tile().x >> 1, bd.pos.tile().y >> 1, viewer)
     }
 
-    /// `UnitData::is_seen(viewer, 0)`.
+    /// `UnitData::is_seen@00607a60(viewer, 0)`, the fog half: the *live*
+    /// line of sight at the unit's own half-cell, then the unit's
+    /// `visible` byte (set by attacking the viewer) — not the ever-seen bit
+    /// a building takes (item 2703, `docs/GOLDEN.md` §100).
     ///
-    /// SEAM: the original's is the live visibility read plus the stealth and
-    /// detection machinery; this is the same ever-seen fog bit the building
-    /// takes. A unit standing in ground the viewer has explored and left
-    /// therefore counts double here where the original halves it.
+    /// SEAM: the stealth arm above the fog test (`unit_masks` `0x800` /
+    /// `0x1000`, `is_detected`) is not carried; it can only refuse further.
     fn danger_unit_is_seen(&self, u: usize, viewer: Player) -> bool {
         let un = &self.units[u];
-        un.owner == viewer || self.was_seen_fog(un.pos.tile().x >> 1, un.pos.tile().y >> 1, viewer)
+        if un.owner == viewer || !self.world.has_fog() {
+            return true;
+        }
+        self.world_sees(un.pos, viewer) || un.visible & Self::who_bit(viewer) != 0
     }
 }
 
@@ -405,6 +409,32 @@ mod tests {
         sim.allied[1][0] = true;
         sim.calc_danger();
         assert_eq!(sim.world.danger_half(1, Cell::new(8, 8)), -25, "an ally's");
+    }
+
+    /// **A unit is seen by the *live* fog, not the ever-seen bit** (item
+    /// 2703, `UnitData::is_seen@00607a60`, run875's Biplane over
+    /// (48, 24): 195 where the original's is 97). A building takes
+    /// `ever_seen`; a unit that has left ground the viewer once lit is
+    /// unseen, and its `visible` byte (set by attacking the viewer) is the
+    /// only other way in.
+    #[test]
+    fn a_unit_is_seen_by_the_live_fog_and_not_the_ever_seen_bit() {
+        use crate::UnitType;
+        let (mut sim, _city, _barracks) = fx();
+        let ty = sim.add_unit_type(UnitType::default());
+        let u = sim.init_unit(0, ty, tile_pos(8 * 4 + 1, 8 * 4 + 1));
+        assert!(sim.world.set_fog(vec![0; 32 * 32]), "a 16 x 16 world's fog");
+        assert!(!sim.danger_unit_is_seen(u, 1), "never lit");
+        let t = sim.units[u].pos.tile();
+        // Lit now, and seen.
+        sim.world.set_seen(t.x >> 1, t.y >> 1, 1 << 1);
+        assert!(sim.danger_unit_is_seen(u, 1), "lit now");
+        // Lit once and since left: `seen2` keeps it, `seen` does not.
+        sim.world.set_fog(vec![0; 32 * 32]);
+        sim.world.set_seen2_only(t.x >> 1, t.y >> 1, 1 << 1);
+        assert!(!sim.danger_unit_is_seen(u, 1), "ever seen is not seen");
+        sim.units[u].visible |= 1 << 1;
+        assert!(sim.danger_unit_is_seen(u, 1), "it attacked leader 1");
     }
 
     /// The weights: a city a flat hundred, a fort or a tower its own
