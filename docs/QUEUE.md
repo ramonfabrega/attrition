@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-15, **the thirty-fifth pass is done** (`docs/audit/2026-10-15-fable-pass-35.md`, DECISIONS 72): 22
 landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes (Opus 5.5 medium on the AI word
-8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 4 landings.***
+8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 5 landings.***
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 5036, the open word.
   Chapters 71–74 closed, 75 open at 901 of 961; 69 built, 70 surveyed. Census 894 → 1003. Battery 576 / 6566 / 2974, unmoved an eleventh tranche.
@@ -22,8 +22,8 @@ landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes (
   2409); the booking gate is `--scope <last whole gate's tip> --test-threads 8`, whole every third landing and at
   the drain. **When the peace pair closes, the AI word's successor is the battery's lowest lobby**
   (EastIndiesGermanTier3, 576 of 13519), a new held-out lobby minted beside it.
-- **Lanes: three live** (DECISIONS 72): 2526 (AI §226, DH, runs 866–867), 2530 (GOLDEN §93, DF, run 869), 2547
-  (DG). Next 2557, run 870 (Astra holds 900–909). Pools: GOLDEN §94–97, AI §227–230, park DI–DM.
+- **Lanes: three live** (DECISIONS 72): 2526 (AI §226, DH, runs 866–867), 2543 (GOLDEN §94, DI, run 870), 2547
+  (DG). Next 2562, run 871 (Astra holds 900–909). Pools: GOLDEN §95–97, AI §227–230, park DJ–DM.
 - **Fable backlog: 19 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525, 2527, 2542, 2552).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -46,7 +46,7 @@ landings from `git log <this pass's commit>..`, clear at the tenth, stop at twen
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2526 the AI word's (Opus), 2530 the rules track's and 2547
+2526 the AI word's (Opus), 2543 the rules track's and 2547
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -60,14 +60,14 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     and dropped on 5037). 2491's lead — the President `1/161`'s reach
     on 5036 — is a hypothesis. Runs 866–867. AI §226.
 
-2530. **Chapter seventy-five's word 901: the original completes the
-    queued Special Forces on the `finish` frame, ours does not** (2519,
-    run868; on 902 `0/2007 queue:queued` ours 2, theirs 1, unit `0/0`'s
-    `myhits` 50 / 110, `discovered` 6 / 7; ours pays 20280 → 26280 of
-    36000). Three readings in GOLDEN §92 — an amount, a target, the
-    unit-research base — are 2519's hypotheses; the control that parts
-    them is chapter75.cmd without `901 finish`, `--end-frame 1250`.
-    Run 869. GOLDEN §93.
+2543. **Chapter seventy-five's word 901: the amount `finish` pays the
+    held-head entry** (2530, run869's control: the unhurried entry
+    completes at 36000 on 1204, +100 a frame, killing §92's target and
+    base readings; the original pays ≥ 30300 where ours pays 20280, and
+    both candidate amounts complete the entry, so no dump on disk parts
+    them). A packet of run868 at 900, `step4.py` into
+    `Console::hurry_action@007c3810`: the write to `queue[1]` and the
+    entered list. Run 870. GOLDEN §94.
 
 2547. **The sweep's eighty-third batch: ten never-backed simulation
     functions** (DECISIONS 63 (iv); the score `Census:` 1003 of 3611):

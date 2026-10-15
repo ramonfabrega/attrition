@@ -3739,7 +3739,10 @@ for: it cost one run rather than an item.
 Loop" line, filed at its merge). 2519 was reserved run 868 alone, found three readings that one control capture
 (the chapter's script without its `finish`) would part, and parked it for want of a run number; the control became
 the next item and a whole lane session. Candidate: `brief.py --kind chapter` reserves two runs, the second for the
-control, or the frame names the control as the same item's work. One reach.
+control, or the frame names the control as the same item's work. **Second reach, 2530's "for the Loop" line,
+filed at its merge**: the control — the chapter's script less its `finish` line — has no recipe tool; the lane cut
+it with `grep -v` into its job tmp, and `docs/RUNS.md` records run869's command with a placeholder for the file. A
+`golden_capture.sh --without <frame>` would make the control one line and its record whole. Two reaches.
 
 (2552) **The sweep generator guesses a float's return register from the decompile** (2537's "for the Loop" line,
 filed at its merge). The export prints `in_ST0` and a bare `return` for a float the listing leaves in `xmm0` (parked
@@ -5701,11 +5704,7 @@ hand script.
 
 ## Parked by item 2530, 2026-10-15 — chapter seventy-five's control: the amount is the open reading
 
-2543. **A packet of run868's start at 900, `step4.py` into `Console::hurry_action@007c3810`** (`docs/GOLDEN.md` §93). Run869
-    killed the target and base readings (the unhurried entry completes at 36000 on 1204, 100 a frame); the amount `finish`
-    pays the held-head entry (≥ 30300 where this crate pays 20280) is the one reading left, and both candidate amounts
-    complete the entry, so no dump on disk separates them. The packet reads the write to `queue[1]` and the entry count of
-    the function. Names the headline's frame (word 901); ~4 min, 843 MB, the single capture lane.
+2543 is booked in the queue, at 2530's merge. Its "for the Loop" line is Loop 2542's second reach.
 
 ## Parked by the next landing, slot DG — reserved
 
