@@ -7573,12 +7573,22 @@ fn finish_pays_the_queue_head_its_train_time() {
     sim.muster[0].researched[ty] = true;
     sim.muster[0].cap = 1000;
     let c = [0; crate::economy::RESOURCES];
-    sim.buildings[b].queue.items.push(crate::production::Item::queued(ty, &c));
+    sim.buildings[b]
+        .queue
+        .items
+        .push(crate::production::Item::queued(ty, &c));
     let target = sim.queue_target(b, 0);
-    assert!(target > 0 && target != 10_000, "a train time to tell from 10000");
+    assert!(
+        target > 0 && target != 10_000,
+        "a train time to tell from 10000"
+    );
     let site = sim.buildings[b].job_counter;
     sim.cheat_finish(b);
-    assert_eq!(sim.buildings[b].job_counter, site + 10_000, "the building's own +0x48");
+    assert_eq!(
+        sim.buildings[b].job_counter,
+        site + 10_000,
+        "the building's own +0x48"
+    );
     let head = &sim.buildings[b].queue.items;
     assert!(
         head.is_empty() || head[0].job_counter == target,
