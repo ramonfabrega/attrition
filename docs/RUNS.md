@@ -17054,9 +17054,36 @@ Recipe: `golden_capture.sh <fresh-output> --recording <source> --end-frame 36
 --detail misc:CHECKSUM=2 --detail endgame:UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2`,
 through `viadriver.sh` with a fresh build TMPDIR, then `waitrun.sh`.
 
-The full-length sibling is running at
-`~/ron-data/lab-captures/2026-10-15-run900-playback-full/map-7`; its receipt,
-endpoint and overlap are pending. Do not treat the opening as a full replay.
+The first full-length attempt at
+`~/ron-data/lab-captures/2026-10-15-run900-playback-full/map-7` reached trace
+frame 21044 but stalled with a DXVK allocation error. Runner SIGTERM cleanup
+restored five files; receipt success is false. `end:MISC` alone also emitted
+no per-frame value blocks. It is not a completed paired oracle. Corrected
+sibling `run900-playback-full-values/map-7` was stopped at trace frame 284
+(210 seconds) for impractical logging cost; all five settings were restored.
+A further sibling `run900-playback-full-leaders/map-7` records leaders each
+frame and the wider object categories at endgame. It completed in one take:
+21,045 contiguous trace frames 0..21044, closing frame 21045, exit 0, success
+true, five settings restored, 1581.84 s launch-to-exit. Quit is scheduled at
+21044, the last recorded frame; automatic EOF shutdown is not established.
+The complete leader dump covers frames 1..21044, seven leaders per frame
+(147,308 records). All 21,045 RNG states match the first long attempt;
+all 1,981 leader records over the wide attempt's complete frames 1..283 match,
+including flags. This is native/native agreement, not a sim floor.
+
+Full recipe, through the same viadriver/build-TMPDIR flow:
+`--recording <source> --end-frame 21044 --timeout 3600 --stall-seconds 120
+--log-window 0 21045 --callwin 1 0 --detail end:LEADERS=2
+--detail misc:CHECKSUM=2 --detail endgame:UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2`.
+Durable hashes, receipts, comparison output and full gate audit:
+`~/ron-data/lab-experiments/2026-10-15-astra-replay-oracle/`.
+No whole-world per-frame comparison is claimed.
+
+The seed-control sibling (`run900-playback-seed-control/map-7`) requested
+ini seed 54321: native seed stayed 340513920, exit 0, 37 frames, five settings
+restored. Against the opening, all 37 shared RNG words and the whole complete
+frame-1 dump block agree (no exclusions). These are native/native checks;
+no sim score has been measured.
 Exploratory siblings `run900-playback-probe` and `run900-playback-probe-b`
 are failed runner attempts, not scored fixtures; the latter mixed two launches
 because the solo filename triggered a false retry. RECGAME §7 and

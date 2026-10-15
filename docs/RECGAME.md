@@ -332,3 +332,23 @@ A replay harness must explicitly choose reconstruction or a separately captured
 starting-state oracle. No snapshot loader or sim parting floor is established
 by this preflight. Full playback and its end condition are recorded separately
 in run900's ledger/journal; the opening alone proves no end-to-end result.
+
+**Seed control and logging coverage:** a second 37-frame run on the committed
+instrument requests ini seed 54321 and still observes 340513920. All 37 RNG
+states agree with the ini-12345 opening, as does the complete frame-1 value
+block (terminal blocks excluded, no field exclusions). A wider 284-frame
+attempt is retained for overlap: the leader-only long recipe agrees in all
+1,981 complete printed leader records over frames 1..283, including the two
+flag lines preceding each `LEADERDATA`; all 285 shared RNG frames agree.
+These are native/native reproducibility checks. The long recipe records
+leaders per frame and wider objects only at endgame; it does not provide
+whole-world per-frame comparison coverage. `end:MISC` alone emitted no frame
+blocks and is not a sufficient playback-oracle recipe.
+
+**Completed range:** run900's successful long recipe records trace frames
+0..21044 and closes at dump frame 21045, with exit 0 and five settings restored.
+There are 21,044 consecutive complete leader dump blocks (147,308 records).
+All 21,045 RNG states match the earlier long trace, whose lifecycle failed.
+Quit is explicitly scheduled at the final recorded frame; natural EOF shutdown
+is not established. The 2017 recording's original-match fidelity and the
+self-contained sim score remain unmeasured.
