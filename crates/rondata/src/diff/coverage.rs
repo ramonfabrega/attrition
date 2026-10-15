@@ -3076,6 +3076,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let lakota_4544 = super::lakota_pair::lakota_frame_4544_window();
     // Item 2460: and run861's blocks around the word 4859.
     let lakota_4859 = super::lakota_pair::lakota_frame_4859_window();
+    // Item 2554: and run866's blocks around the word 5135.
+    let lakota_5135 = super::lakota_pair::lakota_frame_5135_window();
     let seen = compared::stop();
     // **A window is one line** (parked 1959, the thirty-first pass): 1905
     // and 1868 each added a binding and a slot to a 49-tuple pattern, both
@@ -3144,6 +3146,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         lakota_3302,
         lakota_4544,
         lakota_4859,
+        lakota_5135,
     ];
     if windows.iter().any(Option::is_none) {
         eprintln!("skipping: the open words' captures are not all on disk");

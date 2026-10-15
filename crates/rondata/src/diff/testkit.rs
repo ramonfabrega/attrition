@@ -7039,6 +7039,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
     // with item 2491's President arm.
     ("run861_s_word_frame_is_widened_whole", 1553),
+    // And run866 (item 2554): the word 5135's window, 1673 reads.
+    ("run866_s_word_frame_is_widened_whole", 1673),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -9246,14 +9248,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 4859 → 5036** with `train_time`'s President arm, in the same window
     // (block 5037). **Item 2526 moved it 5036 → 5135** with `train_time`'s
     // Space Program arm, past run861's last block (5109): run861's test
-    // keeps 5036's value diff (block 5037), and 5135's widening is owed
-    // (parked 2554).
+    // keeps 5036's value diff (block 5037), and 5135 is widened on run866
+    // over 5129..5385 (block 5136, item 2554).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        None,
+        Some("run866_s_word_frame_is_widened_whole"),
         2554,
-        None,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_5135),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

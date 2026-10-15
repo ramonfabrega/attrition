@@ -367,3 +367,40 @@ fn run861_s_word_frame_is_widened_whole() {
     // part (`1/208` on 5033, `1/213` on 5055); the 106 keys from 4853
     // stand.
 }
+
+/// run866: the word 5135's window, blocks 5129..5385 at the long's detail (item 2554).
+pub(crate) const RUN866: &str = "gamelog-run866-eastindies-lakota-peace-window-5129-5386.txt";
+
+/// The window: block 5129 through 5385; the word 5135's own block is 5136.
+pub(crate) const WIDENING_LAKOTA_FRAME_5135: (i64, i64) = (5129, 5385);
+
+pub(crate) fn lakota_frame_5135_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run866",
+        &[(RUN866, WIDENING_LAKOTA_FRAME_5135.0)],
+        WIDENING_LAKOTA_FRAME_5135,
+        1,
+        &[5136],
+        true,
+    )
+}
+
+#[test]
+fn run866_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_5135_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "initial run866 baseline");
+}
