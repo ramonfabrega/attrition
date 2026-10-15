@@ -725,6 +725,7 @@ mod object_type_data_upgrade_level;
 mod object_type_out_draw;
 mod object_type_out_draw_template;
 mod object_type_restore;
+mod object_type_walk_rules_data;
 mod object_update_hits;
 mod object_update_los;
 mod object_valid_target;
