@@ -17309,6 +17309,14 @@ fn stage_walk() {
             }
         }
     }
+    if std::env::var_os("RON_STAGE_TARGET").is_some() {
+        let s = &built.sim;
+        for (bi, b) in s.buildings.iter().enumerate().filter(|(_, b)| b.alive) {
+            for sl in 0..b.queue.items.len() {
+                eprintln!("qtarget {}/{} slot={} ty={} counter={} target={}", b.owner, b.index, sl, b.queue.items[sl].ty, b.queue.items[sl].job_counter, s.queue_target(bi, sl));
+            }
+        }
+    }
     eprintln!(
         "staged: {} ran, {} unit(s), {} building(s); skipped {:?}",
         applied.ran, applied.units, applied.buildings, applied.skipped
