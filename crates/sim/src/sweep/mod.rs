@@ -849,6 +849,7 @@ mod trade_order_walk_data;
 mod trade_order_walk_data_vtordisp;
 mod tribe_get_name;
 mod tribe_set_pseudonym;
+mod tribe_walk_data;
 mod tribes_walk_data;
 mod turn_control_compute_next_turn_solo;
 mod turn_control_get_frame_timing;
