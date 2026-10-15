@@ -20681,12 +20681,68 @@ checksums and its closing block.
 **Diff-backed**: the gate on run849's block 2041 (three Aegis cruisers' orders) and the frames from 2040 to 3302 on
 run847's draw stream. **Reading only**: none beyond §220's `war_allowed`.
 
-## 222. Reserved for the next item on the AI track
+## 222. A silo with a missile inside holds its queue, and the peace pair's word moves 3302 → 3479 (2026-10-14, item 2412)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The draws on 3302** (`report.py rontrace-run847.log draws 3302`; ours `RON_DEBUG_SITES=3302-3302` on
+`lakota_pair_first_parting`). Both sides spend 386 `PathFinder::calc_road_cost` draws and two `Unit::do_guard`
+idles. Ours then spends `Guy::init_real+0x52` at index 388, a birth. Theirs goes straight to
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` and the two farm rolls. Theirs' next `init_real` is on 3314, and it
+is not this unit.
+
+**The birth** (`RON_DEBUG_BUILDS=3301-3302`, Loop 2319). Who=1's Missile Silo `1/2018` (`orig_type` 520) holds
+`316@72000` on 3301 and an empty queue on 3302. `TypeIndex` 316 is `ICBM`, an air unit. The silo's first ICBM
+was born on 2302 on both sides, and the draw stream agrees there. Ours queued the second on 2582 and ran its
+clock 100 a frame to 72,000.
+
+**The widening, run853** (blocks 3296..3552, run849's recipe). Theirs' `1/2018` holds the same entry, `316`, at
+**`job_counter` 0 on every block of the window**, with `queued` 1 and `inside_down` 50. `1/50` is the first ICBM
+(type 316, `inside_up` 2018). So the second missile was queued and paid on both sides. Theirs never ran its clock.
+
+**The rule** (`Build::do_queue@0061e410`, listing `61e4b4`..`61e510`; `docs/PRODUCTION.md`, "The two early
+returns"). After the library gate comes a second early return, ahead of `train_time` and the accelerator. It fires
+when all of these hold:
+
+- `is(0x208, 1)`: the building is a Missile Silo;
+- `inside_down >= 0`: something is inside it;
+- the leader's availability bit for the entry's type is set (`0xe40fa8 + who × 0x6eec`);
+- the entry is not `DISBAND` (`0x29a`).
+
+The decompiler prints the call as the type's vslot `+0x60`, the same slot as the library gate. The listing's
+`push 0x208; push 1` names it. `docs/PRODUCTION.md` read this gate from the start and left it unmodelled. So a
+silo builds no missile while it holds one. `has_nuke`'s refusal in `action_queue_up` (item 1019) stops a second
+queue entry only while the first missile is queued or in flight; once the first is inside, the AI queues the
+second, and this return holds it.
+
+**Built.** `Sim::advance_slot` returns `Pending` for a train entry (availability bit set) at a Missile Silo whose
+garrison is not empty. This is the same "anything inside" reading `launch_move` uses. Research entries and every
+other building are untouched. Test: `airbase::tests::a_silo_with_a_missile_inside_holds_its_queue_clock` (held;
+a research job runs; held again; an emptied silo runs). The mutation (`tools/mutate.py`, the gate's `researched`
+→ `false`) fails both `lakota_pair_first_parting` and `run853_s_word_frame_is_widened_whole`, exit 101.
+
+**Value diff and score.** With the return dropped, run853's widening parts 521 keys. On the window's first block,
+3296, `1/2018`'s `queue[0].job_counter` is ours 71,400 against theirs 0. On the word's block 3303, the ICBM `1/135`
+is ours alone, `1/2018`'s `queued` is 0/1, and who=1's `num_units`/`num_queued` for the type are 2/1 and 0/1, with
+`control` 115/114 and `active` 107/106. **With the return built, block 3303 holds no row and the widening stands
+at 169 keys.** Of these, 81 stand from 3296: the bucket, `SITE[n].reg` and group rows that run849 carried (§219,
+parked 2411). **The word moves 3302 → 3479**, count and sequence both, inside run853's window (block 3480). Ours
+spends 44 draws and theirs 46, parting at index 0. Ours spends `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`;
+theirs spends `Guy::set_anim+0x97a < do_cast`.
+
+**The next word, as run853 shows it.** Who=1's Citizen `1/6` (type 50, group 69) walks a path to (11928, 20376)
+at the shore. On 3479, theirs puts a `CASTORDER` (spell 650) over its `MOVEORDER`, kind 14. On 3480 the citizen is
+inside the Transport Freighter `1/140` (type 322), which the dump holds alone. Ours keeps kind 1 to (2712, 18840),
+and `1/6`'s `path[11]` parts on 3302 already: ours (11928, 19608), theirs (11928, 20376). Group 69 holds `[6]` in
+ours from 3302 and nothing in theirs. That is parked 2411's group (`[56, 57, 58]` on run849). The 3302 row is the
+first parted field on the unit the next word's draws name.
+
+**Not established.**
+- `is(0x208, 1)` is read here as the silo's ident. Its second argument (the lineage arm) does not matter for a
+  type with no upgrade line, and no capture holds another `is(0x208)` building.
+- `DISBAND` is not tested: this crate queues no such entry.
+- A silo holding a non-missile garrison: none can enter (`base_can_carry` refuses at a silo).
+
+**Diff-backed**: the return, on run853's `1/2018` (3296..3552) and on the draw stream from 3302 to 3479
+(run847). **Reading only**: the `DISBAND` arm.
 
 ## 223. Reserved for the next item on the AI track
 
