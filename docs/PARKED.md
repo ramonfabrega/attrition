@@ -5901,13 +5901,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DT — reserved
+## Parked by item 2615, 2026-10-15 — the sweep's ninetieth batch, one function and a jump-table shape
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2616) **A jump-table shape is `obj --jump IDX:N`** (`jump_expand`): the index argument drawn in 0..N-1, the arms' stores written in the port. `Setup::get_starting_citizens` 0x5aaf50 is its first use (four arms, `*this`/`*out` = (3,0) (4,0) (5,2) (10,5)). A jump function whose arms *call* (`Search::valid_filter` 0x67dbb0, a ~40-arm switch of vcalls, table walks and `0xc0ab84` object-table reads) needs the arms' shapes first; it is not a function the batch holds.
+
+(2617) **`WorldData::get_bottom` 0x6b3c10** is a loop through the global object table (`0xc0ab84 + 28*v`, a pointer to an array of record pointers, each record's i16s at +0x2c/+0x2e): the walk is data-dependent and `--chain` derefs its cell once where this table is the array itself. Needs an `--at` table shape whose rows point into a place block; filed for the Loop.
+
+(2618) **The rest of the shortest never-backed list is not packet-free on the shapes in hand**: `Game::clock_init` reads `timeGetTime` (a clock, nothing for the sim); `UnitData::is_corner` and `is_gathering` are vcall chains over `guys`/`units` global tables; `TurnControl::get_delta_percent` and `Group::action_hotkey` are a float return and a decompiler-garbled body (`unaff_EBP`/`unaff_ESI` — read the listing). Nine of ten not landed (2481).
 
 ## Parked by the next landing, slot DU — reserved
 
