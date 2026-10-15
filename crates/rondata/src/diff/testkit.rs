@@ -9273,7 +9273,10 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (block 5037). **Item 2526 moved it 5036 → 5135** with `train_time`'s
     // Space Program arm, past run861's last block (5109): run861's test
     // keeps 5036's value diff (block 5037), and 5135 is widened on run866
-    // over 5129..5385 (block 5136, item 2554).
+    // over 5129..5385 (block 5136, item 2554). **Item 2554 moved it 5135 →
+    // 5225** with `attack_dist`'s `is_plane`, and **item 2609 5225 → 5315**
+    // with the crash round's held slot, both in the same window (blocks
+    // 5226 and 5316).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
