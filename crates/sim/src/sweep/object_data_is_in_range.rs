@@ -1,4 +1,4 @@
-//! `ObjectData::is_in_range@006486b0` under the emulator against the port (item 2314; tools/sweep_gen.py, obj with windows).
+//! `ObjectData::is_in_range@0064e4a0` under the emulator against the port (item 2683; tools/sweep_gen.py, obj with windows).
 
 #[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {
@@ -16,8 +16,8 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ObjectData::is_in_range@006486b0`, run by `tools/emu/sweep_object_data_is_in_range.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 7 argument(s), the global cell 0x00cae5fc points at 256 random bytes; the global cell 0x00c061d0 points at 320 random bytes; argument 6 names 4 random bytes (null a third of the rows); vtable slot +0x8 (0 args) stubbed; vtable slot +0xbc (0 args) stubbed; callee 0x006488f0 (4 args) stubbed; vtable slot +0x12c (0 args) stubbed; vtable slot +0x18 (0 args) stubbed; vtable slot +0x130 (0 args) stubbed; vtable slot +0xb8 (2 args) stubbed; vtable slot +0x60 (2 args) stubbed; the word at `0xc0ab84+0x1c*a[1]` points at 8 random bytes less `0` (placed); the word at `p1+4*a[0]` points at 16 random bytes less `0` (placed); the word at `0xc0aec0+0x1c*a[1]` points at 8 random bytes less `0` (placed); the word at `p3+4*a[0]` points at 132 random bytes less `0` (placed); the word at `p4+0x18` points at 584 random bytes less `0` (placed); the word at `0xc0aec0+0x1c*m[9]` points at 8 random bytes less `0` (placed); the word at `p6+4*i16(m,0xa)` points at 32 random bytes less `0` (placed); the word at `p7+0x18` points at 584 random bytes less `0` (placed); the word at `m+0x18` points at 512 random bytes less `0` (placed); the word at `c1+0x138` points at 128 random bytes less `0` (placed); slot +0xbc laid as 0x0046ce30 or its stub, a flag after the answers; slot +0xb8 laid as 0x00653790 or its stub, a flag after the answers; stub 0 answered from [0, 1, 1] (90%); stub 1 answered from [0, 1, 1] (90%); stub 2 answered from [0, 54, 55, 90, 91, 102, 103, 138, 139, 186, 187, 198, 199, 246, 247, 282, 283, 330, 331, 378, 379, 390, 391, 438, 439, 534, 535, 570, 571, 582, 583, 630, 631, 726, 727, 774, 775, 1000] (90%); stub 4 answered from [0, 1] (90%); stub 6 answered from [0, 1] (90%); stub 7 answered from [0, 1] (90%); stub 4 answers 2 values in call order, printed after the answers; stub 3 answers 0..3 every row; stub 5 answers 0..4 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 6 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 7 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p2+0` as well as at `this`; the stubbed vtable laid at `p4+0` as well as at `this`; the stubbed vtable laid at `p9+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1500 rows (an arm few rows reach).
+/// `ObjectData::is_in_range@0064e4a0`, run by `tools/emu/sweep_object_data_is_in_range.py` under unicorn
+/// (tools/emu): 64 random bytes of object, 4 argument(s), callee 0x00651a80 (1 args) stubbed; callee 0x0046cff0 (0 args) stubbed; vtable slot +0x1c (0 args) stubbed; vtable slot +0x18 (0 args) stubbed; vtable slot +0x12c (0 args) stubbed; vtable slot +0x130 (0 args) stubbed; the word at `m+0x18` points at 576 random bytes less `0` (placed); the word at `p0+0` points at 8 random bytes less `0` (placed); the word at `p1+0` points at 8 random bytes less `0` (placed); the word at `p3+0` points at 48 random bytes less `0` (placed); the word at `p3+4` points at 48 random bytes less `0` (placed); the word at `p4+0` points at 48 random bytes less `0` (placed); the word at `p4+4` points at 48 random bytes less `0` (placed); the word at `p5+0x18` points at 4 random bytes less `0x244` (placed); the word at `p6+0x18` points at 4 random bytes less `0x244` (placed); the word at `p7+0x18` points at 4 random bytes less `0x244` (placed); the word at `p8+0x18` points at 4 random bytes less `0x244` (placed); stub 0 answered from [-1, 0, 5] (90%); stub 1 answered from [0, 3, 60, 100, 102, 103, 150, 300, 500] (90%); stub 3 answered from [0, 1] (90%); stub 4 answered from [0, 1, 2, 3] (90%); stub 5 answered from [0, 1, 2, 3] (90%); stub 2 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 5 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 2 rows 0x1c apart at `@0xc0aec0`, slices +0x0:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_object_data_is_in_range.py") else {
@@ -38,82 +38,53 @@ fn the_emulated_original_agrees_on_every_row() {
             .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
-        let mut p: Vec<Vec<u8>> = wins.split_off(2);
+        let mut p: Vec<Vec<u8>> = wins.split_off(0);
         let mut c: Vec<Vec<u8>> = wins;
         let want_eax: i64 = eax.trim().parse().expect("an integer");
         let mut log: Vec<String> = Vec::new();
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            // `a[0]` o, `a[1]` who, `a[2..4]` x, y, `a[5]` the margin flag,
-            // `a[6]` the out-word (`p[0]`, or 0). The stubs' answers from
-            // `a[7]`: the target's `+8` (is it a unit) 7, `is_on_map` 8,
-            // `attack_dist` 9, `min_range` 10, `max_range` 12, `is` 13 and the
-            // type's `+0x60` 14; `+0x18` (a unit?) answers the attacker
-            // `a[15]` then the target `a[16]`; `a[17]` lays `+0xbc` as
-            // `UnitData::is_on_map` (the target's `+0x82` bit 15), `a[18]`
-            // `+0xb8` as `ObjectData::is` (the type's `+0x60`). The target's
-            // slot is `p[2]` (`flags` `+8`), its type `p[5]`, the attacker's
-            // unit type `p[8]` (`+0x244` big radius), its own type `p[9]`
-            // (`+0x1fc`), the world `c[1]` (`+0x18` width), its cells `p[10]`.
-            let s = |i: usize| a[7 + i];
-            let (on_map_base, is_base) = (a[17] != 0, a[18] != 0);
-            let width = rd(&c[1], 0x18);
-            let mut out = rd(&p[0], 0);
-            let (mut l2, mut l6, mut l7) = ("-".to_string(), "-".to_string(), "-".to_string());
-            let (p4, p5, p8, p9, p10) = (
-                p[4].clone(),
-                p[5].clone(),
-                p[8].clone(),
-                p[9].clone(),
-                p[10].clone(),
-            );
-            let ok = crate::fight::in_range_steps(
-                p[2][8] & 1 != 0,
-                || s(0) != 0,
-                || {
-                    if on_map_base {
-                        u16::from_le_bytes([p4[0x82], p4[0x83]]) >> 15 != 0
-                    } else {
-                        s(1) != 0
+            {
+                let ty = &p[2];
+                i64::from('blk: {
+                    if rd(ty, 0x1e4) & 0x8000000 != 0 {
+                        log.push("s0:m+0x0,0".into());
+                        if a[4] < 0 {
+                            break 'blk true;
+                        }
                     }
-                },
-                crate::world::Pos::new(a[2], a[3]),
-                |at| {
-                    let cell = (at.y / 192) * width + at.x / 192;
-                    p10[2 * cell as usize] & 0x30 == 0x30
-                },
-                |centre| {
-                    l2 = format!("m+0x0,{},{},{},{}", a[0], a[1], centre.x, centre.y);
-                    s(2)
-                },
-                (a[6] != 0).then_some(&mut out),
-                rd(&p9, 0x1fc) != 0,
-                || {
-                    if is_base {
-                        l7 = "p9+0x0,132,0".into();
-                        s(7) != 0
+                    let dx = a[0].wrapping_sub(a[2]).wrapping_abs();
+                    log.push("s2:m+0x0".into());
+                    log.push(format!("s1:{dx}"));
+                    let dist = a[5];
+                    log.push("s3:m+0x0".into());
+                    let d = if a[7] != 0 {
+                        let owner = ((rd(m, 8) >> 8) & 0xff) as usize;
+                        let idx = i16::from_le_bytes([m[0xa], m[0xb]]) as usize;
+                        let val = rd(&p[9 + 2 * owner + idx], 0);
+                        if val < dist { dist - val } else { 0 }
                     } else {
-                        l6 = "m+0x0,132,0".into();
-                        s(6) != 0
-                    }
-                },
-                || s(3),
-                |of_target| {
-                    if of_target {
-                        (a[16] != 0, rd(&p5, 0x244))
+                        log.push("s2:m+0x0".into());
+                        if a[11] != 0 {
+                            let e = rd(ty, 0x238).wrapping_add(rd(ty, 0x234)).wrapping_mul(0x30);
+                            if dist > e { dist.wrapping_sub(e) } else { 0 }
+                        } else {
+                            dist
+                        }
+                    };
+                    if rd(ty, 0x1fc) == 0 {
+                        d <= 0x66
                     } else {
-                        (a[15] != 0, rd(&p8, 0x244))
+                        log.push("s4:m+0x0".into());
+                        if d < a[8].wrapping_mul(0xc0).wrapping_sub(6) {
+                            break 'blk false;
+                        }
+                        log.push("s5:m+0x0".into());
+                        d <= a[9].wrapping_mul(0xc0).wrapping_add(6)
                     }
-                },
-                || s(5),
-                a[5] != 0,
-            );
-            if a[6] != 0 {
-                wr(&mut p[0], 0, out);
+                })
             }
-            log.extend([l2, l6, l7]);
-            i64::from(ok)
         };
         assert_eq!(got, want_eax, "is_in_range — eax, row `{line}`");
         assert_eq!(
@@ -126,10 +97,10 @@ fn the_emulated_original_agrees_on_every_row() {
             assert_eq!(w, &want[1 + i], "is_in_range — window c[{i}], row `{line}`");
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "is_in_range — window p[{i}], row `{line}`");
+            assert_eq!(w, &want[1 + i], "is_in_range — window p[{i}], row `{line}`");
         }
         n += 1;
     }
     assert!(n >= 200, "only {n} rows");
-    eprintln!("ObjectData::is_in_range@006486b0: {n} rows agree");
+    eprintln!("ObjectData::is_in_range@0064e4a0: {n} rows agree");
 }
