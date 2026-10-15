@@ -5854,13 +5854,18 @@ Closes 2584 (`mix` token `rec`, `rec+K`: the record base the `--glob` cell holds
 global-cell string, a callee-hooked `fwd`; `Game::run_unit_editor` (0x5860a0) calls `close` and `clear` on a global singleton; `Setup::get_starting_citizens`
 (0x5aaf50) is a jump table. None fits a built shape without a build.
 
-## Parked by the next landing, slot DP — reserved
+## Parked by item 2593, 2026-10-15 — the eighty-eighth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Closes 2585 and 2589 (`mix --elems table:LO:HI:STEP | list:HEAD:NEXT` with an `each/` step, tokens `elem`, `elem+K`) and adds the `g`, `g+K` tokens.
+
+(2594) **Inlined `String` constructors** (`FarmsOut::get_name` 0x4352b0, `RoadsOut`, `RiversOut`, `FogMaster`, `Cliffs::get_parse_name`): the function stores eight
+constant fields (a vtable-like pointer at `[out]`, length 5, flags, the byte `[0xcc2311]` at `+0xb`) into the out buffer with no callee. No shape asserts a
+block of stores; a `mix --store` holds one. Candidate: an `obj` window check that prints the out buffer's bytes after.
+
+(2595) **`Doober::find_x_pos` 0x846480 / `find_y_pos` 0x8464d0**: pure arithmetic through the tables `move_x` 0xadcaf0 / `move_y` 0xadc400, the result stored through the first
+argument, `ret 0x14`. An `obj --at` with a port that reads `c[0]` and writes `p0`; not tried this batch.
+
+(2596) **`Balance::walk_rules_data` 0x582cc0** calls the walker 0x1ed * 0x1ed times: past any row's call list; needs a count-only shape.
 
 ## Parked by the next landing, slot DQ — reserved
 
