@@ -1939,7 +1939,12 @@ impl Sim {
                     if goal_e.flags & path_flag::FINAL == 0 {
                         return 0;
                     }
-                    break;
+                    // A final goal given up on is pushed as it stands —
+                    // `testb $1, [ebp-0x34]; jne 683082`, the plain push —
+                    // past the near test and the search, its tolerance
+                    // kept (`docs/AI.md` §231).
+                    self.units[u].path.push(goal_e);
+                    return self.units[u].path.len() as i32;
                 }
                 let ang = movement::find_angle(dx, dy);
                 // `0x18` here — `mov edi, 0x18` at `0x68318b`.
@@ -2538,6 +2543,37 @@ mod tests {
                 flags: 0,
             }),
             "the near goal alone, its tolerance zeroed"
+        );
+    }
+
+    /// **And a final goal the pull-back gives up on keeps its tolerance**
+    /// (`68322e`–`683232`, `docs/AI.md` §231): within `0x18` of the unit on
+    /// both axes, in a region not its own, the give-up jumps to the plain
+    /// push at `683082`, past the near test that would zero it.
+    #[test]
+    fn a_final_unit_goal_given_up_on_keeps_its_tolerance() {
+        let mut sim = flat_sim(8);
+        sim.world
+            .fill_region(Terrain::Sea, Cell::new(3, 0), Cell::new(7, 7));
+        let here = Pos::new(3 * 768 - 6, 1152);
+        let u = walker(&mut sim, here);
+        let to = Pos::new(3 * 768 + 4, 1152);
+        assert_ne!(
+            sim.world.tregion_alt(to.tile()),
+            sim.world.tregion_alt(here.tile()),
+            "the goal is across the shore"
+        );
+        let goal = PathData {
+            to,
+            tolerance: 0x180,
+            flags: path_flag::FINAL,
+        };
+        sim.units[u].path.push(goal);
+        assert_eq!(sim.find_upath(u, false), 1);
+        assert_eq!(
+            sim.units[u].path.last().copied(),
+            Some(goal),
+            "pushed as it stands"
         );
     }
 
