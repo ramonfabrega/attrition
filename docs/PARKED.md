@@ -3806,6 +3806,13 @@ in 2562).
 **2562** (fifty-first reach, filed at its merge): built `--gate-this OFF:MASK` and `--len-at`, tests failing first,
 and ten on them; ten of ten; `--gate-this` taking an optional value swallows a following positional, and a `stale`
 `ecx` on a `call:` step now blocks two functions (parked 2563, 2564; booked in 2567).
+**2567** (fifty-second reach, filed at its merge): built `stale` on any step, a test failing first, and ten on it;
+ten of ten; `mix --gate` runs gated steps on `== 0` only (parked 2568) and `--gate-this` still swallows a positional
+(2569); both booked in 2583.
+**2583** (fifty-third reach, filed at its merge): built `mix --gate-ne`, `--ret-arg` and `--gate-bare`, tests failing
+first; three new rows and five regenerated; `--regen` drops a flag the original generation did not have, so a regen
+with a new flag needs the files removed first; `Constants` and `Dock` want a record token and a store (parked 2584,
+2586; booked in 2588).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5779,13 +5786,19 @@ walks `(this-0x40+d, this-0x3f+d)`, `(this-8, this-4)`. Not built.
 (2565) **`CommandPackage::walk_data`'s length is drawn in the gate column** (2562): the short at `this+0x10` is half zero, a third
 ±1 and the rest uniform in a short; a length of 0x7fff past the written object's 0x100 bytes is walked only as an address.
 
-## Parked by the next landing, slot DK — reserved
+## Parked by item 2567, 2026-10-15 — the eighty-fifth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Closes 2563, 2564 and 2549 (`stale` on a `call:` step: a hooked callee and both callbacks leave the draw's `ecx`).
+
+(2568) **`Rivers::walk_data` (0x8890e0) gates on `[walker+4] != 0`** (2567): two direct calls (0x8878f0, 0x886020, `ecx` = this)
+run when the argument's word at +4 is non-zero, then `0x4a2f80` with `ecx` 0xc11c10 and `(walker, stale)`. `mix --gate`
+runs gated steps on `== 0` only; a `!=` gate is the shape. Listing read, not built.
+
+(2569) **`--gate-this` taking an optional value still swallows a following positional** (2567): not touched, the build did not
+reach the parser. Put it after the function.
+
+(2570) **The five `get_name` ports check calls, not `eax`** (2567): `mix` ignores the result, so the returned out-pointer
+(`[ebp+8]`) is held by the emulator's `-> r` column and not asserted. A `mix --ret-arg` would assert it.
 
 ## Parked by the next landing, slot DL — reserved
 
@@ -5802,21 +5815,32 @@ queued `type 104`, read `cost[1]` ours 155 against theirs 116 (`cost[0]` agrees 
 not 2553's Space Program arm. Before the word 5225, it names no draw. The first read is `get_cost`'s timber term for
 the type (`leader.py` 5182 against 5183 for who=1).
 
-## Parked by the next landing, slot DN — reserved
+## Parked by item 2583, 2026-10-15 — the eighty-sixth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Closes 2568 (`mix --gate-ne`), 2569 (a bare `--gate-this` is `--gate-bare` before the parse) and 2570 (`mix --ret-arg`).
 
-## Parked by the next landing, slot DO — reserved
+(2584) **`Constants::walk_data` (0x57f910) walks from the record the global cell holds, not from a word in it** (2583):
+`esi = *0xc061f0`; slot 0 `(esi, esi+0xd40)`, then slot 0 `(esi+0x804, esi+0x808)`. `mix --glob` writes a fresh record a
+row and prints only its `+0x10` word, so the arguments name no column. A `rec` token, or a printed record base, is the shape.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2585) **`Types::walk_data` (0x669780) loops 85 times** (2583): `for esi in 0x880..0x9d4 step 4`, `ecx = *(*(*0xc061b0+0x10)+esi)`,
+slot 0 `(ecx+0x1e2, ecx+0x1e3)`. A table of pointers read through a global; `obj` with windows, not `mix`.
+
+(2586) **`Dock::walk_data` (0x740c40) writes**: slot 0 `(this, this+6)`, `(this+8, this+0xa)`, `[walker+8]==0` then `(this+6, this+8)`,
+then `[walker+4]!=0` stores `-1` at `this+6` (`movw`). `mix` asserts calls, not stores; a `mix --store` is the shape. `TerrainList::walk_data`
+(0x84b9e0) is a linked-list loop (`[node+8]` next, slot 0 `(node+0x1c, node+0x1e)`).
+
+(2587) **A batch of only three new functions**: the five 2567 `get_name`s were already backed, so `--ret-arg` added assertions and no
+census row; the two new `get_name`s and `Rivers` are the +3. The shortest never-backed list has no more `mix` shapes until 2584/2586.
+
+## Parked by item 2588, 2026-10-15 — the eighty-seventh sweep batch
+
+Closes 2584 (`mix` token `rec`, `rec+K`: the record base the `--glob` cell holds, printed as the `g` column) and 2586 (`mix --store OFF:VAL:SIZE:WOFF`).
+
+(2589) **The next shortest never-backed shapes**: `Types::walk_data` (0x669780, a loop of 85 over a table read through a global, 2585) and
+`TerrainList::walk_data` (0x84b9e0, a linked list) are still `obj` with windows, not `mix`; `Map::set_file` (0x6a06a0) is two `String` operators on a
+global-cell string, a callee-hooked `fwd`; `Game::run_unit_editor` (0x5860a0) calls `close` and `clear` on a global singleton; `Setup::get_starting_citizens`
+(0x5aaf50) is a jump table. None fits a built shape without a build.
 
 ## Parked by the next landing, slot DP — reserved
 
