@@ -338,6 +338,7 @@ mod build_find_city;
 mod build_finished;
 mod build_order_get_type_vtordisp;
 mod build_queue_data_get_job_counter;
+mod build_queue_data_get_next_helicopter;
 mod build_queue_data_get_next_non_caravan;
 mod build_queue_data_get_queue;
 mod build_queue_set_job_counter;

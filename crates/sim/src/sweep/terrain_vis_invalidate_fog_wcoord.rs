@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -41,18 +46,33 @@ fn the_emulated_original_agrees_on_every_row() {
                 // The coord info at (*x, *y) (row width the world cell's word): unless its +0x70 is the terrain-vis last_moved_frame (this+0xfc) or -2 it is set to -1, else to -2.
                 let idx = (rd(&p[1], 0) * rd(&c[0], 0) + rd(&p[0], 0)) as usize;
                 let v = rd(&p[3 + idx], 0x70);
-                wr(&mut p[3 + idx], 0x70, if v != rd(m, 0xfc) && v != -2 { -1 } else { -2 });
+                wr(
+                    &mut p[3 + idx],
+                    0x70,
+                    if v != rd(m, 0xfc) && v != -2 { -1 } else { -2 },
+                );
                 0
             }
         };
         let _ = (got, want_eax);
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "invalidate_fog_wcoord — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "invalidate_fog_wcoord — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "invalidate_fog_wcoord — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "invalidate_fog_wcoord — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "invalidate_fog_wcoord — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[3 + i],
+                "invalidate_fog_wcoord — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
