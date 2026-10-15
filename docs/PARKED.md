@@ -3747,6 +3747,11 @@ filed at its merge). The export prints `in_ST0` and a bare `return` for a float 
 Candidate: `sweep_gen.py` reads the listing's last register write before `ret` (`llvm-objdump`) and names the
 return, or `callfn` refuses a float return it was not told. One reach.
 
+(2527) **`step4.py` names an arm in one run** (2491's "for the Loop" line, filed at its merge). The function list `step4-entered.txt` names the
+branch a value took. 2491's `train_time` showed `has_general`/`find_hero` beside the 16500 in 0.01 s, after an hour
+reading the tail's arms by hand. A brief row: "a value the original computes and ours does not: run it on a packet
+and read the entered list before reading the arms". One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -5640,17 +5645,7 @@ port does not re-derive it; no change owed.
 
 ## Parked by item 2491, 2026-10-15 — the President's train arm
 
-(2526) **The peace pair's word 5036: ours 164 draws, theirs 168, index 152** (2491; ours `Guy::set_anim+0x97a <
-Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`, a birth). It is inside run861 (block 5037, 378 keys). Theirs
-holds `1/209`, `1/210` and `1/211`, which ours does not. `1/2030`, `1/2032` and `1/2037` have `queued` ours 1
-against theirs 0. `1/2005`'s head `job_counter` is ours 17700 against theirs 16875; in theirs it ran to 17600 on
-5036 and dropped to 16875 on 5037. 2491's lead, not a mechanism: the President `1/161`'s reach of who=1's air
-fields on 5036, which `unitat.py` on run861 can say. Runs 866–867 are unused. For the queue: the next AI word.
-
-(2527) **For the Loop: `step4.py` names an arm in one run.** The function list `step4-entered.txt` names the
-branch a value took. 2491's `train_time` showed `has_general`/`find_hero` beside the 16500 in 0.01 s, after an hour
-reading the tail's arms by hand. A brief row: "a value the original computes and ours does not: run it on a packet
-and read the entered list before reading the arms". One reach.
+2526 is booked in the queue, at 2491's merge; 2527 is filed in the Loop section.
 
 ## Parked by item 2513, 2026-10-15 — the eighty-first sweep batch
 
