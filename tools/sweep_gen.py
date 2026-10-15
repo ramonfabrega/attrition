@@ -1600,7 +1600,7 @@ def main(argv):
     uc = h.m.uc
     slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
     vt = h.vtable(slots) if slots else None
-    names = [f"slot{{a:x}}" if k == "slot" else f"iat{{a:x}}" if k == "iat" else f"{{a:x}}" for k, a, _ in STUBS]
+    names = [f"slot{{a:x}}" if k == "slot" else f"iat{{a:x}}" if k == "iat" else f"run{{a:x}}" if k == "run" else f"{{a:x}}" for k, a, _ in STUBS]
     # `--stub iat:VA:N`: a stub whose address is laid in an import's IAT cell,
     # which the emulator resolves to nothing, so `call [VA]` lands on it
     # (item 2336: `timeGetTime`, parked 2327).
@@ -2000,9 +2000,14 @@ def _stub(spec):
         # An import called through its IAT cell (`call [VA]`): a stub's
         # address laid in the cell (item 2336, parked 2327).
         return ('iat', int(parts[1], 0), int(parts[2]))
+    if parts[0] == 'run' and len(parts) == 3:
+        # A callee run as the original's own code, not hooked (item 2731, parked
+        # 2701, 2712, 2720): its writes to `this` are the original's, and its own
+        # callees are hooked beside it by `--stub`.
+        return ('run', int(parts[1], 0), int(parts[2]))
     if len(parts) == 2:
         return ('call', int(parts[0], 0), int(parts[1]))
-    raise ValueError(f'a stub is slot:OFF:NARGS, iat:VA:NARGS or ADDR:NARGS, not {spec!r}')
+    raise ValueError(f'a stub is slot:OFF:NARGS, iat:VA:NARGS, run:ADDR:NARGS or ADDR:NARGS, not {spec!r}')
 
 
 def _place(spec):
@@ -2324,6 +2329,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            for idx, size in pptr]
         + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot'
            else f'the import cell 0x{a:08x} holds a stub ({n} args)' if k == 'iat'
+           else f'callee 0x{a:08x} ({n} args) run, not hooked' if k == 'run'
            else f'callee 0x{a:08x} ({n} args) stubbed' for k, a, n in pstubs]
         + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed'
            + (', null a third of the rows)' if k in pnull else ')') for k, (w, o, e, n) in enumerate(pplaces)]
@@ -2839,27 +2845,50 @@ def chain_expand(spec, own, cell_index, pbase):
             'argrange': [f'{pi}:0:{n - 1}', f'{ii}:0:{n - 1}']}
 
 
-def table_expand(spec, pbase):
+def table_expand(spec, pbase, row_byte=None, row_links=()):
     """`--table VA:STRIDE:ROWS:COLS:SIZE:XOFF:VOFF` (item 2621, parked 2617):
     `WorldData::get_bottom`'s walk -- the image's own table at VA, ROWS rows
     STRIDE apart, each row's first word pointing at an array of COLS record
     pointers, each a SIZE-byte record whose i16 at XOFF is the next column
     (drawn below its own, or -1/-2, so the walk ends) and whose i16 at VOFF is
-    the next row (drawn inside 0..ROWS-1). The row's array is place `p<pbase +
-    r*(1+COLS)>` and its records the COLS after it. Returns the flags it stands for."""
+    the next row (drawn inside 0..ROWS-1; `-` leaves it alone). The row's array is place `p<pbase +
+    r*(1+COLS)>` and its records the COLS after it. `row_byte` (`--row-byte OFF[:LOW,..]`, item 2719, parked
+    2713) is a record's own row in the byte at OFF: the word holding it drawn as row<<shift | LOW, LOW
+    default 0; each `row_links` entry (`--row-link OFF:SIZE:DIR[:T,..]`) is a `--link` over each row's
+    records. Returns the flags it stands for."""
     parts = spec.split(':')
     if len(parts) != 7:
         raise ValueError(f'--table {spec}: want VA:STRIDE:ROWS:COLS:SIZE:XOFF:VOFF')
-    va, stride, rows, cols, size, xoff, voff = (int(x, 0) for x in parts)
-    if rows < 1 or cols < 1 or max(xoff, voff) + 4 > size:
+    va, stride, rows, cols, size, xoff = (int(x, 0) for x in parts[:6])
+    voff = None if parts[6] == '-' else int(parts[6], 0)
+    if rows < 1 or cols < 1 or max(xoff, voff or 0) + 4 > size:
         raise ValueError(f'--table {spec}: ROWS, COLS >= 1 and SIZE past both fields')
+    rb = None
+    if row_byte is not None:
+        off, _, lows = row_byte.partition(':')
+        rb = (int(off, 0), [int(v, 0) for v in lows.split(',')] if lows else [0])
+        if rb[0] >= size or any(not 0 <= v < 1 << 8 * (rb[0] & 3) for v in rb[1]) or rows > 256:
+            raise ValueError(f'--row-byte {row_byte}: OFF inside SIZE, LOW below the byte, ROWS <= 256')
+    rl = []
+    for r_ in row_links:
+        o, sz, d, *t = r_.split(':')
+        if sz not in ('1', '2', '4') or d not in ('<', '>') or len(t) > 1 or int(o, 0) + int(sz) > size:
+            raise ValueError(f'--row-link is OFF:1|2|4:<|>[:T,T..] inside SIZE, not {r_!r}')
+        rl.append((int(o, 0), sz, d, t))
     place, link, wbias = [], [], []
     for r in range(rows):
         t = pbase + r * (1 + cols)
+        run = f'p{t + 1}..{t + cols}'
         place.append(f'{parts[0]}+{parts[1]}*{r}:0:{4 * cols}')
         place += [f'p{t}+{4 * c}:0:{parts[4]}' for c in range(cols)]
-        link.append(f'p{t + 1}..{t + cols}+{xoff:#x}:2:<:-1,-2')
-        wbias.append(f'p{t + 1}..{t + cols}+{voff:#x}:0..{rows - 1}')
+        link.append(f'{run}+{xoff:#x}:2:<:-1,-2')
+        for o, sz, d, tm in rl:
+            link.append(f'{run}+{o:#x}:{sz}:{d}' + (f':{tm[0]}' if tm else ''))
+        if voff is not None:
+            wbias.append(f'{run}+{voff:#x}:0..{rows - 1}')
+        if rb:
+            sh = 8 * (rb[0] & 3)
+            wbias.append(f'{run}+{rb[0] & ~3:#x}:' + ','.join(f'{(r << sh) | v:#x}' for v in rb[1]))
     return {'place': place, 'link': link, 'wbias': wbias}
 
 
@@ -3086,13 +3115,17 @@ def main(argv=None):
                     help='obj: WorldData::get_bottom\'s walk -- the image\'s table at VA, ROWS rows STRIDE apart, each '
                          'a pointer to COLS record pointers whose i16 at XOFF is the next column (ends the walk) and '
                          'at VOFF the next row (item 2621, parked 2617)')
+    ap.add_argument('--row-byte', metavar='OFF[:LOW,..]',
+                    help='obj, with --table: each record\'s own row in the byte at OFF (item 2719, parked 2713)')
+    ap.add_argument('--row-link', action='append', default=[], metavar='OFF:SIZE:DIR[:T,T..]',
+                    help='obj, with --table: a --link over each row\'s records (item 2719, parked 2713)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(split_gate_this(argv))
     if args.table:
         try:
             pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))
                                         for sp in args.sparse) + len(args.place)
-            x = table_expand(args.table, pb)
+            x = table_expand(args.table, pb, args.row_byte, args.row_link)
         except ValueError as e:
             print(f'sweep_gen.py: {e}', file=sys.stderr)
             return 2

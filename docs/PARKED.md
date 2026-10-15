@@ -3750,6 +3750,25 @@ line, filed at its merge): 2694 booked "a scout's explore search takes a differe
 the consumer of a score; draws 0..24 agreeing said the inputs were equal up to one, and the 195 in `danger` was the
 cause. Candidate: a brief row, "a parting at a fallback asks first which of its gate's inputs differs". One reach.
 
+(2732) **A shape the sweep parks three times running is an item, not a batch's tail** (2719's "for the Loop" line,
+filed at its merge): a callee run rather than hooked was parked by 2701, 2712 and 2720 while each batch's brief led
+with it behind another build; 2719 built the other and swept nothing. Answered once at this booking (2731 is the
+shape alone). Candidate: the commander's booking mints a shape parked by two batches as its own item. One reach.
+
+(2738) **A standing row on an object the parted orders target is walked back too** (2677's "for the Loop" line,
+filed at its merge): 5407's cause was two windows back in two standing rows on the capital (`city_flags[0x4]` on
+5206, `damage_frac` on 5161) that two widenings had listed and nobody walked — the block named the bombers, and only
+their target named the capital. Candidate: brief checklist row 2180 widened to the parted orders' targets. One reach.
+
+(2744) **`sweep_gen.py`'s `--sparse @VA` is the image's own table, a bare address a cell holding a pointer**, and
+`--help` does not say so (2714's "for the Loop" line, filed at its merge): 2714 wrote `@` for a cell and read the
+fault as a wild index. Candidate: the help names both forms, a test that a cell given as `@` refuses. One reach.
+
+(2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
+its merge): adding `normalize` as a fourth stub moved `equals_group`'s seq answers from `a[4]`, `a[5]` to `a[5]`,
+`a[6]`, and the port broke until renumbered by hand. Candidate: the generator names each stub's answers in the
+port it writes. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
@@ -5942,13 +5961,20 @@ theirs 15 — ours `1/67`'s `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs 
 
 (2676) **`Herds::start_herds` 0x741d10, `Group::equals_group`, `GroupData::get_num_cap_const`, `ObjectData::inside_bottom`, `UnitData::has_damage`** read the objects/units tables through `[0xc0ab84 + 28*who]`-style cells and need a built table of records; no unbacked row short of 800 bytes is both sim and a built shape.
 
-## Parked by the next landing, slot EC — reserved
+## Parked by item 2677, 2026-10-15 — a crash round strikes where it comes down
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2679) **`find_new_bomber_target`'s best starts at −1** (`Unit::find_new_bomber_target@005eb960`: `local_c = −1`,
+taken on `(int)local_c < v`, answered on `−1 < local_c`), so a candidate whose `compare_target / (d / 0xc0 + 1)` is
+negative is never the answer. Ours (`air.rs`, `find_new_bomber_target`) takes the first candidate whatever its value.
+No capture on disk weighs a negative value here: run867's only candidate, the capital, weighs 792120 to 2454463. The
+same `-1` start sits in its first arm (`param_3 ≥ 0`, a SEAM). Names no score; a one-line fix when one does.
+
+(2680) **The Sahara coverage pair's four windows each lost one key to item 2677** (run766, run767, run790, run817:
+80 → 79, 80 → 79, 117 → 116, 298 → 297), and which key is not measured. After the merge with the base, ten
+widenings in five other lobbies lost one key each the same way (run714, 716, 721, 754, 762, 763, 780, 844, 834,
+594; run716's first parting 3138 → 3139), re-pinned with the delta in each comment. The likeliest is a city at its ceiling's
+`damage_frac`, the row the clamp's kept fraction closes on run866. One `RON_FIRSTS=1` run of each against the base
+says. A record of what moved, not a score.
 
 ## Parked by item 2683, 2026-10-15 — the harvest sweep's ninety-sixth batch
 
@@ -6009,21 +6035,26 @@ stealth unit of a military role weighed by `calc_danger`; names no score, so par
 (2713) Loop: `--table` with ROWS > 1 gives each record a drawn next-row word at `VOFF`; `has_damage` needed a record's own row (`who`, its +9 byte) and the links within the row, so its two rows were written as `--place`/`--link`/`--wbias` by hand. A `--table`'s `--row-byte OFF` (the record's row at OFF, no next-row word) would generate it.
 
 
-## Parked by the next landing, slot EJ — reserved
+## Parked by item 2714, 2026-10-15 — the harvest sweep's hundredth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2715) Three of ten (fewer than ten is a landing, 2481): `ObjectData::is_jammed` 0x653660, `BuildTypeData::queue_here` 0x639d10, `Armies::send_navy` 0x6f2c90, each on built shapes (`obj` with `--sparse`, `--place`, `--seq`, `--record`). The rest of the `port` rows were already parked (2684, 2689, 2691) or need a shape; one line each, the shape lacked, for 2709's lane:
+`ObjectsData::find_town_at` 0x658190 / `find_city_at` 0x65b870 (a leaders row, a cities table through a cell and an objects table through an inline table, each object with a vtable slot compared to a base and an inner object's slot — `--vtat` lays one stubbed vtable, not one per element of a table; ~40 places by hand);
+`Armies::find_army` 0x6f34f0 (the 16-pointer table of records, as `find_useful_army`, 2684);
+`Object::poor_target` 0x64a270 (`find_angle`/`flanking` in `ecx`/`edx` plus five vtable slots on three objects and a float-free angle test);
+`Unit::do_idle` 0x60dcd0, `Build::process_ejection` 0x6201e0, `Unit::cavarch_fight` 0x5ff4b0 (too long for a built shape; each a walk of orders with many callees);
+`Build::verify_gather_tiles` 0x623570 (the gather-tile walk, parked 1000).
 
-## Parked by the next landing, slot EK — reserved
+(2716) `BuildTypeData::queue_here`'s `param_1 == DISBAND` (0x29a) arm is not drawn: `--argset` draws 10% wild words and `[table + 4*idx]` is read before the compare, so a wild index faults; the sweep draws indices 0..3 (`--argrange`). A `--argset` with no wild share (or `--tame` for an argument) would reach it.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2717) `ObjectData::is_jammed`: the `ally_i.min(7)` clamp is unreachable (at most seven `is_ally` calls, the leader's own row is skipped), so `min(6)` passes; an equivalent break, not a blind arm. `send_navy`'s `0x88` region stride is checked only through the stub's `ecx` printing as `p17+0x0` (the window pointer is placed `0x2200` low, so only idx 0x40 prints a name); idx 0x41 would print a raw address, which `--record` cannot name.
+
+(2718) `--record N` with two records: a stub called more than once in a `@S` split bucket joins its calls with `/` in one token (`is_jammed`, `queue_here`), while `--record-order` prints one token a call — worth one line in the generator's header.
+
+## Parked by item 2719, 2026-10-15 — the sweep's first build: a table record's row byte and row links
+
+(2720) **A callee that writes `this` run, not hooked (parked 2701, 2712) is still unbuilt.** `Group::equals_group`'s `normalize` rewrites `field_0xc` and the `+0x8cc` shorts before its loop; `--stub-write` writes one window and one value every call. The shape wants a callee run under the emulator (the original's own `normalize` mapped, its callees hooked) instead of a hooked answer; 2719 built the `--table` half only and swept no function.
+
+(2721) Slot ED's shapes (2684: `PathFinder::kill_lists` 0x687ae0, `Armies::find_useful_army` 0x6f2fe0, `Build::add_gatherer`/`remove_gatherer`) are unbuilt and unchecked against `tools/census.py --never`; the next builder lane starts there.
 
 ## Parked by item 2725, 2026-10-15 — is_seen's stealth arm built, seen3 unchecked
 
@@ -6033,13 +6064,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EM — reserved
+## Parked by item 2731, 2026-10-15 — the callee-run shape, built on `equals_group`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2733) **`Group::normalize`'s survivor arm for `field_0x4 >= 0` is undrawn.** `equals_group`'s sweep now runs `normalize` as the original's own code (`--stub run:0x711540:0`), with `find_role` and `find_leader` hooked (`find_leader` answers `< 0`, so `UnitData::speed` is never reached). Entries survive only when the object's flag bit is set and `field_0x4 < 0`; the `field_0x4 >= 0` arm calls the object's vtable slots `+0x18`/`+0x20` and the units table, which no draw builds. The `find_role` write to `+0x34` is hooked away (the window keeps its drawn word).
+
+(2734) **Slot ED's shapes (parked 2684, 2721) are unchecked and unbuilt**: `PathFinder::kill_lists` 0x687ae0, `Armies::find_useful_army` 0x6f2fe0, `Build::add_gatherer`/`remove_gatherer`. This landing built the callee-run shape only (the commander's correction: `equals_group` and `has_damage` were already backed by 2709, so the census did not move).
 
 ## Parked by the next landing, slot EN — reserved
 
@@ -6080,3 +6109,51 @@ words and edits nothing here; a refill lands when two remain.
 (2728) **A building's `seen3` write and the `0x800` / `0x1000` masks are not carried** (item 2725): `Object::init`'s flag
 `0x40` is for any object with objmask `Z`; this crate writes `seen3` for units only, and no unit mask here sets `0x800`
 (disguise) or `0x1000` (blown, `unit_is_blown`). Each can only change a stealth unit's answer; no capture reaches one.
+
+## Parked by the next landing, slot ER — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ER renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ES — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ES renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ET — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ET renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.

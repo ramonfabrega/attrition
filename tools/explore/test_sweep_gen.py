@@ -446,6 +446,24 @@ class Shapes(unittest.TestCase):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
                                        stubs=['0x402000:1', '0x403000:1'], stub_write=[bad])
 
+    def test_a_callee_may_be_run_not_hooked(self):
+        # Item 2731 (parked 2701, 2712, 2720): `Group::equals_group` calls
+        # `normalize`, which rewrites `this` before the loop reads it; a hooked
+        # `normalize` writes nothing. `--stub run:ADDR:NARGS` leaves the callee
+        # unhooked, so the original's own code runs, its callees hooked by the
+        # `--stub` lines beside it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2731, win=0x40, bias=[], own=0, ret='none',
+            stubs=['run:0x402000:0', '0x403000:0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("STUBS = [('run', 4202496, 0), ('call', 4206592, 0)]", script)
+        self.assertIn('run{a:x}', script)
+        self.assertIn('callee 0x00402000 (0 args) run, not hooked', test)
+        # only a `call` stub is handed to the Harness to hook
+        self.assertIn('if k == "call"', script)
+        with self.assertRaises(ValueError):
+            sweep_gen._stub('run:0x402000')
+
     def test_a_tame_register_draws_no_wild_rows(self):
         # Item 2346 (parked 2338): `add_type_bucket2` increments a byte of a
         # table at `ecx`, and `--ecx-int` drew a random word one row in ten,
@@ -1935,6 +1953,21 @@ class Shapes(unittest.TestCase):
         for bad in ('0xc0ab84:0x1c:0:3:0x34:0x2c:0x2e', '0xc0ab84:0x1c:2:3:0x34:0x2c', '0xc0ab84:0x1c:2:3:0x2e:0x2c:0x2e'):
             with self.assertRaises(ValueError):
                 sweep_gen.table_expand(bad, pbase=1)
+
+    def test_a_table_record_may_carry_its_row_in_a_byte_and_links_within_its_row(self):
+        # parked 2713 (item 2719): UnitData::has_damage's two rows were written by hand -- each record's byte at +9 is
+        # its row, its i16 at +0x8e a figure below its own index and at +0x90 above. `--table`'s VOFF `-` leaves the v
+        # word alone, `--row-byte OFF[:LOW,..]` draws the word holding OFF as row<<shift | LOW, `--row-link` is `--link`
+        # over each row's records.
+        x = sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_byte='9:0,1,1,3',
+                                   row_links=['0x90:2:>:-1'])
+        self.assertEqual(x['wbias'], ['p2..5+0x8:0x0,0x1,0x1,0x3', 'p7..10+0x8:0x100,0x101,0x101,0x103'])
+        self.assertEqual(x['link'], ['p2..5+0x8e:2:<:-1,-2', 'p2..5+0x90:2:>:-1',
+                                     'p7..10+0x8e:2:<:-1,-2', 'p7..10+0x90:2:>:-1'])
+        with self.assertRaises(ValueError):
+            sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_byte='0xa0')
+        with self.assertRaises(ValueError):
+            sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_links=['0x90:3:>'])
 
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.

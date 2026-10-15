@@ -46,6 +46,11 @@ pub const SITE_HELI_EXIT_Y: &str = "Unit::do_spec_anim+0x18f";
 /// target (`docs/ORDERS.md` §34.3). Chapter seventeen's word 805.
 pub const SITE_STRAFE_BOMB: &str = "Unit::do_strafe+0x9d0";
 
+/// **A crash round's splash**, in tiles: `Ammo::init_crash@0067b800`
+/// writes `+0x30 = 2` (`docs/AI.md` §230; run405's two crash rounds print
+/// `splash_area 2`).
+pub const CRASH_SPLASH_AREA: i32 = 2;
+
 /// `ObjectData::is(0x130)` — the Bomber line, which holds its
 /// `cruising_alt` at 0x640 and throws no redraw.
 pub(crate) const BOMBER: crate::tech::TypeId = 0x130;
@@ -3817,9 +3822,10 @@ impl Sim {
     /// [`Sim::hold_frames_tick`]), and it takes a slot in the ammo pool.
     /// [`Sim::crash_round`] is `init_crash` itself.
     ///
-    /// SEAM: the damage a crash deals where it comes down (its
-    /// `splash_area` is the pool slot's leftover) is not built; run404's two
-    /// land with no draw from the game's stream.
+    /// **It strikes where it comes down** (item 2677, `docs/AI.md` §230):
+    /// `init_crash` sets `splash_area` (`+0x30`) to 2 and clears flag
+    /// `0x10`, so `Ammo::inc_time`'s tail runs `Ammo::do_damage` on it —
+    /// the splash arm, no target, the dead plane as the shooter.
     pub(crate) fn crashes(&mut self, u: usize) -> bool {
         let Some(t) = self.units[u].ty else {
             return false;
@@ -3903,7 +3909,9 @@ impl Sim {
             total_time,
             accuracy: 0,
             angle,
-            splash_area: 0,
+            // `init_crash` writes `+0x30 = 2` (`docs/AI.md` §230): a crash
+            // is a two-tile splash where it comes down.
+            splash_area: CRASH_SPLASH_AREA,
             num_guys: 1,
             air: false,
             rolling: false,
@@ -4475,6 +4483,64 @@ mod flak_tests {
             // close's thirty.
             s.hold_dead_slot(b);
             assert_eq!(s.units[b].hold_frames, Sim::NUKE_SPREAD + 1 + total);
+        }
+    }
+
+    /// **A crash round strikes where it comes down** (item 2677,
+    /// `docs/AI.md` §230): `init_crash`'s `splash_area` 2 and its cleared
+    /// `0x10` send it through `Ammo::do_damage`'s splash arm when it lands,
+    /// and the splash strikes a building that stands — at its ceiling too,
+    /// with no hit points left (run866's capital `0/2000`, struck on 5205
+    /// by `1/114`'s crash). Made to fail by the crash arm closing its round
+    /// without `land`, and by the splash asking `active` of a building.
+    #[test]
+    fn a_crash_round_strikes_the_building_it_comes_down_on() {
+        for spent in [false, true] {
+            let mut s = sim();
+            let at = Pos::new(12000, 12000);
+            let t = building(
+                &mut s,
+                0,
+                at,
+                combat::Profile {
+                    x_size: 2,
+                    y_size: 2,
+                    ..combat::Profile::default()
+                },
+            );
+            if spent {
+                // At its ceiling: standing, and no hit points left.
+                s.buildings[t].health = 0;
+                s.buildings[t].damage = s.buildings[t].hits_now();
+            }
+            let before = (s.buildings[t].damage, s.buildings[t].hit_frame);
+            let b = unit(
+                &mut s,
+                1,
+                at,
+                combat::Profile {
+                    attack: 40,
+                    ..bomber()
+                },
+            );
+            let ty = s.units[b].ty.unwrap();
+            s.unit_types[ty].cols.cat = super::CAT_AIR;
+            s.unit_types[ty].moves = 60;
+            s.units[b].movement.body.pos = at;
+            s.units[b].airframe.z = 300;
+            assert!(s.crashes(b));
+            assert_eq!(s.projectiles[0].splash_area, super::CRASH_SPLASH_AREA);
+            let mut frame = 100;
+            while !s.projectiles.is_empty() && frame < 200 {
+                s.process_projectiles(frame);
+                frame += 1;
+            }
+            assert!(s.projectiles.is_empty(), "the round closes");
+            assert_ne!(
+                (s.buildings[t].damage, s.buildings[t].hit_frame),
+                before,
+                "struck where it came down (at its ceiling: {spent})"
+            );
         }
     }
 

@@ -286,6 +286,9 @@ fn run676_sahara_coverage_closing_state() {
     // `Wall::swap_team`'s `ever_seen`, and `1/95`'s push points follow the
     // territory Tikal's border bonus and its activation's recompute give.
     pin_eq!(e.compared, 252, "units compared");
+    // Item 2677: with the clamp keeping its fraction, Napata `1/2086` is
+    // captured at its ceiling holding 2; `swap_team` leaves `+0x3b` the new
+    // record's 0, and so does ours now (`docs/AI.md` §230).
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
@@ -1096,7 +1099,9 @@ fn run766_s_word_frame_is_widened_whole() {
     // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
     // from the window's first block (who=0, the human): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
-    pin_eq!(w.firsts.len(), 80, "initial run766 baseline");
+    // Item 2677: −1 with the city clamp's kept fraction and the crash
+    // round's strike (`docs/AI.md` §230).
+    pin_eq!(w.firsts.len(), 79, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1143,7 +1148,9 @@ fn run767_s_word_frame_is_widened_whole() {
     // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
     // from the window's first block (who=0, the human): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
-    pin_eq!(w.firsts.len(), 80, "initial run767 baseline");
+    // Item 2677: −1 with the city clamp's kept fraction and the crash
+    // round's strike (`docs/AI.md` §230).
+    pin_eq!(w.firsts.len(), 79, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
@@ -1211,7 +1218,9 @@ fn run790_s_word_frame_is_widened_whole() {
     // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
     // from the window's first block (who=0, the human): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
-    pin_eq!(w.firsts.len(), 117, "initial run790 baseline");
+    // Item 2677: −1 with the city clamp's kept fraction and the crash
+    // round's strike (`docs/AI.md` §230).
+    pin_eq!(w.firsts.len(), 116, "initial run790 baseline");
 }
 
 /// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
@@ -1278,5 +1287,7 @@ fn run817_s_word_frame_is_widened_whole() {
     // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
     // from the window's first block (who=0, the human): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
-    pin_eq!(w.firsts.len(), 298, "initial run817 baseline");
+    // Item 2677: −1 with the city clamp's kept fraction and the crash
+    // round's strike (`docs/AI.md` §230).
+    pin_eq!(w.firsts.len(), 297, "initial run817 baseline");
 }
