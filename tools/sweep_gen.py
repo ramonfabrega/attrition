@@ -568,7 +568,8 @@ MIX_SCRIPT = """#!/usr/bin/env -S uv run --script
 `__thiscall`, `ecx` = the object, one stack argument: the walker. The function makes
 {nsteps} step(s) in order — direct callees (hooked), the walker's callback (slot 0, two
 arguments) and its slot 4 (one argument{glob}){gate}.
-One row per input, `<this> <walker> <g> <gate> -> <result> | <ecx,args…>;…`.
+One row per input, `<this> <walker> <g> <gate> -> <result> | <ecx,args…>;…` (the gate column is
+the slot-4 callee's leftover `ecx` when a step names `stale`).
 \"\"\"
 import os
 import random
@@ -583,6 +584,7 @@ ENTRY = 0x{va:08x}
 CALLS = {calls}
 GLOBAL = {glob_cell}
 GATE = {gate_off}
+STALE = {stale}
 
 
 def main(argv):
@@ -594,6 +596,10 @@ def main(argv):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
         g = rng.randrange(0x1000, 0x7FFF0000) & ~3
         gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
+        if STALE:
+            # the `ecx` the slot-4 callee leaves (parked 1922, 2498), printed in the gate column
+            gv = rng.randrange(0x1000, 0x7FFF0000) & ~3
+            h.answers["walk4"] = (9, gv)
         walker = h.alloc(32)
         h.w32(walker, vt)
         if GATE is not None:
@@ -631,7 +637,8 @@ fn the_emulated_original_agrees_on_every_row() {{
         let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
         let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
         let (this, walker, g, gate) = (a[0], a[1], a[2], a[3]);
-        let _ = (this, g, gate);
+        let stale = gate; // the slot-4 callee's leftover `ecx` when a step names it
+        let _ = (this, g, gate, stale);
         let mut calls: Vec<Vec<i64>> = Vec::new();
 {steps}
         let want: String = calls
@@ -654,6 +661,8 @@ def _mix_expr(tok):
         return 'walker'
     if tok == 'this':
         return 'this'
+    if tok == 'stale':
+        return 'stale'  # the slot-4 callee's leftover ecx (parked 2498)
     if tok.startswith('this+'):
         return f'this + {int(tok[5:], 0):#x}'
     return str(int(tok, 0))
@@ -688,7 +697,8 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None):
                                glob=', from the global cell' if glob else '',
                                gate=f', the last gated on [walker+{gate:#x}] == 0' if gate is not None else '',
                                calls=repr(calls), glob_cell=hex(glob) if glob else 'None',
-                               gate_off=hex(gate) if gate is not None else 'None')
+                               gate_off=hex(gate) if gate is not None else 'None',
+                               stale=any('stale' in st.split(':', 1)[1] for st in steps))
     doc = f'{len(steps)} step(s) in order, `ecx` and arguments held to the spec.'
     test = MIX_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
                            steps='\n'.join(code))
