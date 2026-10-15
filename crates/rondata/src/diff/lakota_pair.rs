@@ -300,3 +300,50 @@ fn run855_s_word_frame_is_widened_whole() {
     // The first key past 4538 is group 80 on 4557; the human's `active`
     // parts on 4679 (ours 14, theirs 13), where `death:extra` begins.
 }
+
+/// run861: the word 4859's window, blocks 4853..5109 at the long's detail (item 2460).
+pub(crate) const RUN861: &str = "gamelog-run861-eastindies-lakota-peace-window-4853-5110.txt";
+
+/// The window: block 4853 through 5109; the word 4859's own block is 4860.
+pub(crate) const WIDENING_LAKOTA_FRAME_4859: (i64, i64) = (4853, 5109);
+
+pub(crate) fn lakota_frame_4859_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run861",
+        &[(RUN861, WIDENING_LAKOTA_FRAME_4859.0)],
+        WIDENING_LAKOTA_FRAME_4859,
+        1,
+        &[4860],
+        true,
+    )
+}
+
+#[test]
+fn run861_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_4859_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 1432, "initial run861 baseline");
+    // Item 2460: the word 4859's own block is 4860. Theirs spends a birth
+    // there (`Guy::init_real < Unit::init < Objects::init_unit`): `1/50`
+    // is unlinked on 4860 (the dump holds it alone), `1/2005`'s `queued`
+    // is ours 2 against theirs 1 and who=1's `num_units[255]` (`ABRAMDES`)
+    // ours 8 against 9. Ours' `1/50` shows on 4878. 106 keys stand from
+    // 4853: the human's `control` ours 14 against theirs 0 and its
+    // fourteen units' `death:extra`, who=1's food, timber and metal
+    // buckets, and `1/2005`'s `queue[0].cost[0..1]` ours 240 against
+    // theirs 224. On 4859 `1/168`, `1/172`, `1/177` hold `cavarch_who` 0
+    // in ours and −1 in theirs.
+}

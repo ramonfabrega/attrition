@@ -7010,6 +7010,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("lakota_pair_first_parting", 1080),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
+    // And run861 (item 2460): the word 4859's window, 1552 reads.
+    ("run861_s_word_frame_is_widened_whole", 1552),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -9181,13 +9183,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 3479** with `do_queue`'s silo return, in the same window (block
     // 3480). **Item 2423 moved it 3479 → 4544** with `calc_cost`'s no-rush
     // timer, past run853's last block (3552), and widened 4544 on run855
-    // over 4538..4794 (block 4545).
+    // over 4538..4794 (block 4545). **Item 2460 moved it 4544 → 4859**
+    // with the peace's end (`Game::do_frame:202`), past run855's last
+    // block (4794): run855's test keeps 4544's value diff, and 4859 is
+    // widened on run861 over 4853..5109 (block 4860).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        Some("run855_s_word_frame_is_widened_whole"),
-        2423,
-        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_4544),
+        Some("run861_s_word_frame_is_widened_whole"),
+        2460,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_4859),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -9510,7 +9515,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         length: 6_822,
         endpoint: None,
-        window: Some("lakota_frame_4544_window"),
+        window: Some("lakota_frame_4859_window"),
     },
     // **The successor pair** (DECISIONS 53 §2, 61 §6; item 1728): East
     // Indies, the Mongols at Difficulty 3 and All Technologies.
