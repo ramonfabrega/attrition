@@ -2246,22 +2246,28 @@ def fwd_gate_expand(spec, own):
 
 
 def cmd_gate_expand(spec, own):
-    """`--cmd-gate OFF:MASK:CMD:SIZE:FIELD,..[:C[:PRE]]` (item 2454, parked
-    2444): `issue_halt`'s shape -- `gamec`'s byte at OFF tested against MASK
-    (set: nothing runs), `check_accept_issue` and `add_group` (two stubs
+    """`--cmd-gate OFF:MASK:CMD:SIZE:FIELD,..[:C[:PRE[:SOUND]]]` (item 2454,
+    parked 2444): `issue_halt`'s shape -- `gamec`'s byte at OFF tested against
+    MASK (set: nothing runs), `check_accept_issue` and `add_group` (two stubs
     answered 0/1), the command built in a local of SIZE bytes (CMD first, then
     each FIELD: `aN` the argument as a word, `bN` its low byte, `kV` the
     constant word V), `add_command` handed it. The `sp-` token is
     `C + 8 + 4*own`, C the local's `ebp` depth (default SIZE rounded up to
     four); PRE, `aN>=0,..`, are arguments tested before the check (a
-    `siege_attack`). Returns the `obj` flags it stands for."""
+    `siege_attack`); SOUND, `VA:ARG`, is a `SoundGlobal::play` call (one
+    argument) made after the gate and before the check. An empty OFF is a
+    `CommandManager` issuer: no gate, argument 0 the group (a buffer), handed
+    to `add_group`. Returns the `obj` flags it stands for."""
     parts = spec.split(':')
-    if not 5 <= len(parts) <= 7:
-        raise ValueError(f'--cmd-gate {spec}: want OFF:MASK:CMD:SIZE:FIELD,..[:C[:PRE]]')
-    off, mask, cmd, size = (int(x, 0) for x in parts[:4])
+    if not 5 <= len(parts) <= 9:
+        raise ValueError(f'--cmd-gate {spec}: want OFF:MASK:CMD:SIZE:FIELD,..[:C[:PRE[:VA:ARG]]]')
+    gated = parts[0] != ''
+    off, mask = (int(parts[0], 0), int(parts[1], 0)) if gated else (0, 0)
+    cmd, size = int(parts[2], 0), int(parts[3], 0)
     fields = [f for f in parts[4].split(',') if f]
     depth = int(parts[5], 0) if len(parts) > 5 and parts[5] else (size + 3) // 4 * 4
     pre = [g for g in parts[6].split(',') if g] if len(parts) > 6 else []
+    sound = (int(parts[7], 0), int(parts[8], 0)) if len(parts) > 8 else None
     fmt, vals = f'{cmd:02x}', []
     for f in fields:
         if f[0] == 'a' and f[1:].isdigit() and int(f[1:]) < own:
@@ -2275,27 +2281,45 @@ def cmd_gate_expand(spec, own):
             vals.append('"%08x"' % int.from_bytes(int(f[1:], 0).to_bytes(4, 'little'), 'big'))
         else:
             raise ValueError(f'--cmd-gate {spec}: field {f!r} is aN, bN (N < --own) or kV')
-    pushes = lambda n, sp='': ' '.join(['log.push("-".into());'] * n)
-    cmp_ = {}
+    nst = 3 + (sound is not None)
+    pushes = lambda n: ' '.join(['log.push("-".into());'] * n)
+    cmp_ = []
     for g in pre:
         m = re.fullmatch(r'a(\d+)>=0', g)
         if not m or int(m.group(1)) >= own:
             raise ValueError(f'--cmd-gate {spec}: guard {g!r} is aN>=0')
-        cmp_[g] = f'a[{m.group(1)}] < 0'
+        cmp_.append(f'a[{m.group(1)}] < 0')
     sp = f'sp-{depth + 8 + 4 * own:#x}'
     fmtcall = f'format!("{fmt}"' + ''.join(f', {v}' for v in vals) + ')'
-    body = (f'log.push("15269728".into()); if a[{own}] == 0 {{ {pushes(3)} }} else {{ '
-            f'log.push("15269768,m+0x0".into()); if a[{own + 1}] == 0 {{ {pushes(2)} }} else {{ '
-            f'log.push("15269768,{sp},{size}".into()); log.push({fmtcall}); }} }}')
+    grp = '"15269768,m+0x0"' if gated else '"15269768,p0+0x0"'
+    # The emulator prints its record in stub order and the deref last, so the
+    # sound stub (index 3) stands before the arm's final push.
+    snd = f'log.push("m+0x0,{sound[1]}".into()); ' if sound else ''
+    dash = lambda n: ' '.join(['log.push("-".into());'] * n)
+    arm3 = f'{dash(2)} {snd}{dash(1)}'
+    arm2 = f'{dash(1)} {snd}{dash(1)}'
+    body = (f'log.push("15269728".into()); if a[{own}] == 0 {{ {arm3} }} else {{ '
+            f'log.push({grp}.into()); if a[{own + 1}] == 0 {{ {arm2} }} else {{ '
+            f'log.push("15269768,{sp},{size}".into()); {snd}log.push({fmtcall}); }} }}')
     if pre:
-        body = f'if {" || ".join(cmp_.values())} {{ {pushes(4)} }} else {{ {body} }}'
+        body = f'if {" || ".join(cmp_)} {{ {pushes(4)} }} else {{ {body} }}'
     le = ('let le = |v: i32| v.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect::<String>(); '
           if any(v.startswith('le(') for v in vals) else '')
-    port = f'{{ {le}if c[0][{off:#x}] & {mask:#x} != 0 {{ {pushes(4)} }} else {{ {body} }} 0 }}'
-    vs = sorted({0, mask, mask * 2, mask * 3, 0xff & ~mask})
-    return {'stub': ['0x940a70:0', '0x94bb60:1', '0x94bae0:2'], 'answers': ['0:0,1', '1:0,1'],
-            'record': ['0', '1', '2'], 'deref': [f'2:0:{size}'], 'cells': ['0xc061e8:0x900'],
-            'wbias': [f'c0+{off:#x}:' + ','.join(f'{v:#x}' if v else '0' for v in vs)], 'port': port}
+    x = {'stub': ['0x940a70:0', '0x94bb60:1', '0x94bae0:2'], 'answers': ['0:0,1', '1:0,1'],
+         'record': ['0', '1', '2'], 'deref': [f'2:0:{size}'], 'cells': [], 'wbias': [], 'ptrarg': []}
+    if sound:
+        x['stub'].append(f'{sound[0]:#x}:1')
+        x['record'].append('3')
+    if gated:
+        vs = sorted({0, mask, mask * 2, mask * 3, 0xff & ~mask})
+        x['cells'] = ['0xc061e8:0x900']
+        x['wbias'] = [f'c0+{off:#x}:' + ','.join(f'{v:#x}' if v else '0' for v in vs)]
+        port = f'{{ {le}if c[0][{off:#x}] & {mask:#x} != 0 {{ {pushes(nst + 1)} }} else {{ {body} }} 0 }}'
+    else:
+        x['ptrarg'] = ['0:0x20']
+        port = f'{{ {le}{body} 0 }}'
+    x['port'] = port
+    return x
 
 
 def main(argv=None):
@@ -2465,6 +2489,7 @@ def main(argv=None):
             return 2
         args.stub, args.cells, args.wbias, args.record = x['stub'], x['cells'], x['wbias'], x['record']
         args.answers, args.deref, args.port = x['answers'], x['deref'], x['port']
+        args.ptrarg = args.ptrarg or x['ptrarg']
         args.ret = args.ret or 'none'
         if args.win == 0x400:
             args.win = 0x20

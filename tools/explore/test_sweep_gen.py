@@ -1114,6 +1114,26 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.cmd_gate_expand('0x820:0x10:2', own=1)
 
+    def test_a_cmd_gate_without_a_gate_is_a_command_manager_issuer(self):
+        # Item 2454: `CommandManager::issue_*` is the same shape with no gate:
+        # argument 0 is the group (a buffer, handed to `add_group` by name)
+        # and a sound call may stand before the check.
+        u = sweep_gen.cmd_gate_expand('::0xe:5:a1', own=2)
+        self.assertEqual(u['cells'], [])
+        self.assertEqual(u['ptrarg'], ['0:0x20'])
+        self.assertTrue(u['port'].startswith('{ let le'))
+        self.assertIn('"15269768,p0+0x0"', u['port'])
+        self.assertIn('if a[2] == 0 {', u['port'])
+        self.assertNotIn('c[0]', u['port'])
+        s = sweep_gen.cmd_gate_expand('0x820:0x10:0x12:9:a0,k2::: 0x97f770:0x2b'.replace(' ', ''), own=1)
+        self.assertEqual(s['stub'][3], '0x97f770:1')
+        self.assertEqual(s['record'], ['0', '1', '2', '3'])
+        # The emulator prints in stub order and the deref last: the sound
+        # entry stands before each arm's final push.
+        self.assertIn('log.push("-".into()); log.push("-".into()); log.push("m+0x0,43".into()); log.push("-".into());', s['port'])
+        self.assertIn('log.push("m+0x0,43".into()); log.push(format!("12{}{}"', s['port'])
+        self.assertEqual(s['port'].count('log.push("-".into());'), 5 + 3 + 2)
+
     def test_a_vtordisp_thunk_moves_this_by_the_word_before_it(self):
         # Item 2362 (parked 2348, Loop 2003): a `vtordisp` thunk is `sub ecx,
         # [ecx-4]; jmp target`, and `fwd` drew `this` as an address nothing
