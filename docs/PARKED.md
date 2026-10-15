@@ -3861,6 +3861,10 @@ table-through-global `--at` shape is what `WorldData::get_bottom` wants (parked 
 **2621** (fifty-seventh reach, filed at its merge): built `obj --table`, a test failing first; three of ten; a
 per-call answered-record stub, one getter on two objects, is what `UnitData::is_gathering` wants (parked 2623;
 booked in 2633); the table users of the never-backed list are spent (2624).
+**2633** (fifty-eighth reach, filed at its merge): built `--answer-win` repeated, one window a call, tests failing
+first; five of ten; three draws were first written in the wrong domain, and a `--wbias-xor C:LO..HI` drawing the
+word whose xor with C lies in a range is the candidate; a `switch` shape and a masked `--deref` are what 2634 and
+2636 want (booked in 2644).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
