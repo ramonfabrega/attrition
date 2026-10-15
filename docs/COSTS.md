@@ -530,7 +530,7 @@ shape carries no information and the predicates do:
   `MILITARY_UNIT_DISCOUNT`, and that order is diff-backed since item 2357 (run852's Light Horse at 47 food where
   Monarchy first gives 46). ~~Socialism's is not (parked 2333).~~ Socialism's is built and diff-backed since item 2357
   (`docs/GOLDEN.md` §85: run852's Catapult at 60/60 where the discounted price is 81), its own truncation after
-  Monarchy's. Salmon's naval arm and Maize's ramp term are not built (parked 2358).
+  Monarchy's. ~~Salmon's naval arm and Maize's ramp term are not built (parked 2358).~~ Both are built from the listing (item 2389, `docs/GOLDEN.md` §86) and no capture backs either: no dump on disk holds the rare.
   Democracy's non-library term is built; see `docs/AI.md` §109 for the
   rule, run574's paid-price diff, and the remaining review debt.
 - **Being behind.** `MILITARY_UNIT_DISCOUNT` is 5% per **Military tech level**

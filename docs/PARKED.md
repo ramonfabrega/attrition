@@ -5252,13 +5252,16 @@ path is the top-scorer arm, gated on frame 45 × 900 (30 × 900 at difficulty 3 
 Every capture is team style 1 and reaches none of them while at peace. The coverage lobby is at war from frame 0
 and agrees on who=1's `aggression` once its target is met (run817, 4260).
 
-## Parked by the next landing, slot CG — reserved
+## Parked by item 2389, 2026-10-14 — Salmon's and Maize's arms, built from the listing
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2390) **Salmon's and Maize's price arms have no capture** (item 2389, `docs/GOLDEN.md` §86; names no score; 2358's
+sequel). Both are built (`Modifiers::salmon`, `Sim::salmon_cost_discount`; `maize` set by `price_of`) and tested for
+their arithmetic, and rest on the listing. No dump on disk holds a Salmon or Maize deposit or holder, and map 14 has
+neither. A staging needs a lobby (map style and seed) that places one of them for a player, a Merchant (or a fisherman)
+on it, then a sea unit queued (Salmon) or a ramped unit (Maize). Name the lobby from a map script or a start dump's
+`BEGIN GOOD` records before booking; this crate has no map generator to search seeds.
+
+(2391) **2111 and 2196 are still unstaged** (parked 2332; item 2389 took the rare arms instead).
 
 ## Parked by item 2395, 2026-10-14 — the sweep's seventy-first batch
 
