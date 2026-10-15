@@ -5792,3 +5792,67 @@ reach the parser. Put it after the function.
 
 (2570) **The five `get_name` ports check calls, not `eax`** (2567): `mix` ignores the result, so the returned out-pointer
 (`[ebp+8]`) is held by the emulator's `-> r` column and not asserted. A `mix --ret-arg` would assert it.
+
+## Parked by the next landing, slot DL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
