@@ -323,6 +323,7 @@ mod borders_get_who;
 mod borders_is_border_hidden;
 mod borders_out_no_border;
 mod build_add_attack_order;
+mod build_add_gatherer;
 mod build_all_gathering;
 mod build_check_gatherers;
 mod build_data_calc_gather;
