@@ -3809,6 +3809,10 @@ and ten on them; ten of ten; `--gate-this` taking an optional value swallows a f
 **2567** (fifty-second reach, filed at its merge): built `stale` on any step, a test failing first, and ten on it;
 ten of ten; `mix --gate` runs gated steps on `== 0` only (parked 2568) and `--gate-this` still swallows a positional
 (2569); both booked in 2583.
+**2583** (fifty-third reach, filed at its merge): built `mix --gate-ne`, `--ret-arg` and `--gate-bare`, tests failing
+first; three new rows and five regenerated; `--regen` drops a flag the original generation did not have, so a regen
+with a new flag needs the files removed first; `Constants` and `Dock` want a record token and a store (parked 2584,
+2586; booked in 2588).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
