@@ -5364,6 +5364,9 @@ either, so neither has a function's break behind it yet.
 `CommandManager::issue_*` as its first stack argument and never loads a `CommandManager`; the stub sees the
 `GroupOut` as `ecx` and again as the first argument. A `sweep_gen` `--fwd-gate` line (gate, N arguments forwarded)
 would write all seven forwarders of this batch from one flag; each was a hand-written `--port`.
+(2434) **A break-test that restores by `shutil.move` leaves cargo a stale mutated binary** (2421, for the Loop): the
+restored file kept its pre-mutation mtime, so the next `cargo test` ran the broken port and `issue_disband` failed
+the gate until `touch`ed. A break script writes the original back with a fresh mtime (or touches it).
 
 ## Parked by the next landing, slot CM — reserved
 
