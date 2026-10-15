@@ -1355,6 +1355,20 @@ class Shapes(unittest.TestCase):
         self.assertIn('VTORDISP = False', plain)
         self.assertNotIn('disp', ptest)
 
+    def test_a_fwd_order_token_names_the_callee_of_each_call(self):
+        # Item 2672 (parked 2666): `fwd` printed each call's `ecx` and
+        # arguments, not which callee, so five calls on one `this` passed
+        # with two of them swapped. `order=True` heads each call `sIDX:`,
+        # IDX the callee's place in `--call`, in the script and the test.
+        calls = ['0x401000:0:this:', '0x401010:0:this:']
+        sp, script, tp, test, mod = sweep_gen.generate_fwd('X::y@00401000', item=1, calls=calls, order=True)
+        compile(script, str(sp), 'exec')
+        self.assertIn('ORDER = True', script)
+        self.assertIn('format!("s{k}:', test)
+        _, plain, _, ptest, _ = sweep_gen.generate_fwd('X::y@00401000', item=1, calls=calls)
+        self.assertIn('ORDER = False', plain)
+        self.assertNotIn('format!("s{k}:', ptest)
+
     def test_a_free_function_is_a_name(self):
         # Item 2346: `add_type_bucket2@00669140` and `add_type_bucket` are
         # free functions (`types.cpp`), and the name refused them; the census
