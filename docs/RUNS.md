@@ -17084,7 +17084,7 @@ run868's recipe with `--end-frame 905 --log-window 895 903` and `--tracer-def RO
 a write of 25980 to entry 1 from `7c3a4b`, `do_queue` entered twice (the second its depth-one recursion), the entry at 26080; the
 second application poked in reaches 36000. The dump's own `job_counter 500000` named `run_cmd` case `0x4f`, not `0x51`.
 
-**run870b** (`tools/gamelog/golden/chapter75b.cmd`: chapter75's `select` on 849, `finish` on 850), `--end-frame 860 --log-window 845 856`,
+**run870b** (`chapter75.cmd` with `sed -e 's/^900 select/849 select/' -e 's/^901 finish/850 finish/'`, cut to the job tmp dir), `--end-frame 860 --log-window 845 856`,
 no packet, one take, pool lane 1, `success`, 861 frames, kept in `~/ron-golden/run870b/map-14/`: Special Forces 600 on 850, gone on 851,
 `queued 1`, `job_counter 500000`.
 
