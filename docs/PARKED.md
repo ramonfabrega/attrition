@@ -3765,6 +3765,19 @@ forwarder sets around its callee is unobserved (parked 2509; minted as 2513's fi
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
 `RON_STAGE_ALL=1`. Candidate: a dequeue prints `queue=[]` once, held by a test made to fail first. One reach. **The thirty-fifth pass**: one reach; stays — a worker's on its next dequeue; closes at the next pass unreached (DECISIONS 54).
 
+(2524) **The steer and the commander share one worktree, so a pass's long
+measures serialise the loop** (Ramon, at the thirty-fifth steer; Loop). The
+`steer` and `commander` rows live on `worktree-replan-pdb` and only one is
+live at a time by rule (DECISIONS 61), so the pass's hour-plus measures —
+the suite re-timed alone (about two hours), the battery, the archives'
+compression — hold the tranche's start, and a gate the pass runs pauses
+them. Candidate: a steer worktree of its own (`.claude/worktrees/steer`,
+cut from the integration tip at each pass, merged back by `--no-ff` like a
+lane), so a pass's measures overlap a tranche and its commit is a merge the
+commander takes at a booking; or the long measures moved to a third row
+that owns no tree. The next pass measures the hours a pass holds the loop
+before building either. One reach.
+
 (2506) **Two sweeps pin the emulator's stack residue in a port constant** (2495's "for the Loop" line, filed at
 its merge; parked 2488, 2497). `issue_cannon_time`'s port holds a `static` flag for a success arm's return address
 left on the stack between rows, and the treaty family's `Error::report` prints the zeroed stack's `0,0`: each port
