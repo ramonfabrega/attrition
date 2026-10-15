@@ -4518,6 +4518,9 @@ impl Sim {
                 // `Ammo::do_damage` — `init_crash` cleared flag `0x10` —
                 // and only then closes, as an ordinary round does below.
                 let p = self.projectiles[i];
+                if std::env::var_os("RON_PROBE_CRASH").is_some() {
+                    eprintln!("PROBE crashland f{frame} shooter {:?} owner {:?} at {:?} cur {} total {}", p.shooter, p.owner, p.landing, p.cur_time, p.total_time);
+                }
                 self.land(p, frame);
                 if let Some(k) = self.projectiles.iter().position(|q| q.slot == p.slot) {
                     self.projectiles.remove(k);
@@ -4769,6 +4772,9 @@ impl Sim {
                 }
             };
             let splash = target != Some(o);
+            if std::env::var_os("RON_PROBE_CRASH").is_some() && p.crash.is_some() {
+                eprintln!("PROBE crashhit f{frame} {o:?} count {count}");
+            }
             let angle = p.bearing();
             self.do_damage(p.shooter, o, angle, true, count, splash, false, frame);
         }
