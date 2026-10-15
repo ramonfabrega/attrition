@@ -16,13 +16,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 medium; the thirty-fifth opens on entry 71's last paragraph.*
 
 - **Words**: the successor pair closed at 5056 (2293); the peace pair (2320: East Indies, the Lakota, All
-  Technologies, `RUSH_RULES 10`, ends at 6822) at 3302 (2388: `release_mustering`'s pre-war gate), the open word. Chapters 65–68 and 71 closed. Census 894.
+  Technologies, `RUSH_RULES 10`, ends at 6822) at 3479 (2412: `do_queue`'s silo return), the open word. Chapters 65–68 and 71 closed. Census 894.
   Battery 576 / 6566 / 2974, unmoved a tenth tranche. No floor fell; the pass moved no score.
 - **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
   `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
-- **Lanes: three** (DECISIONS 71, amended: two kill rules tripped, the roster stands, the gap fixed — Loop 2415): 2412 (AI §222,
-  CM, runs 853–855), 2448 (GOLDEN §89, CP, run 859), 2454 (CQ) live. Next 2455, run 860, AI §223, GOLDEN §90, park CR.
-- **Fable backlog: 20 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449).
+- **Lanes: three** (DECISIONS 71, amended: two kill rules tripped, the roster stands, the gap fixed — Loop 2415): 2423 (AI §223,
+  CR, runs 854–856), 2448 (GOLDEN §89, CP, run 859), 2454 (CQ) live. Next 2460, run 860, AI §224, GOLDEN §90, park CS.
+- **Fable backlog: 21 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449, 2459).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -30,7 +30,7 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Peace pair: EastIndiesLakotaPeace w3302 of 6,822
+Peace pair: EastIndiesLakotaPeace w3479 of 6,822
 Census: simulation backed 936 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed
@@ -45,19 +45,19 @@ its merge; at twenty landings write the handoff and clear `steer` into the thirt
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2412 the AI word's (Opus), 2448 the rules track's and 2454
+2423 the AI word's (Opus), 2448 the rules track's and 2454
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2412. **The peace pair's word 3302: ours 392 draws, theirs 391, index
-    388** (2388; ours `Guy::init_real+0x52`, a birth; theirs
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271`). No dump on disk holds
-    3302 (run849 ends on 2235): the widening first, run849's recipe with
-    `--log-window 3296 3553 --end-frame 3560`, both directions;
-    `RON_DEBUG_BUILDS=3301-3302` names the queue a birth empties (Loop
-    2319). 3302 is inside the peace: 2321's other `war_allowed` readers
-    are the previous item's hypothesis. Runs 853–855. AI §222.
+2423. **The peace pair's word 3479: ours 44 draws, theirs 46, index
+    0** (2412; ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
+    `< do_cast`). Inside run853 (block 3480), widened whole, 169 keys.
+    who=1's Citizen `1/6` at the shore: theirs puts a `CASTORDER` (spell
+    650) over its move and boards Freighter `1/140`; ours keeps moving.
+    First parted field `path[11].to` on 3302 (11928, 19608 / 20376), with
+    group 69 holding `[6]` in ours only: the previous item's lead, its
+    mechanism unread. Runs 854–856. AI §223.
 
 2448. **Chapter seventy-two: the Senate's second government on a
     human** (DECISIONS 56 §3; 2436 closed seventy-one at 1120, The

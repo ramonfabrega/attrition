@@ -3741,6 +3741,12 @@ at once; the launcher's own `log:` line names the viadriver log to wait on. Cand
 `log:` line when handed a launcher log, or the frame's capture row names the file; a test made to fail first.
 One reach.
 
+(2459) **No tool prints a building's queue across frames** (2412's "for the Loop" line, filed at its merge).
+`tools/gamelog/unitat.py` names a unit's state; a building's queue (type, `job_counter`, `queued` per block)
+took a scratch script, and a queue clock that never moves — `1/2018`'s second ICBM at 71400 against 0 — is
+invisible to every other tool on disk. Candidate: `tools/gamelog/buildat.py <dump> <frames> <who>/<o>`, printed
+on change and cut at `queued` (Loop 2407), with a test made to fail first on run853's `1/2018`. One reach.
+
 (2442) **A break-test restored by `shutil.move` leaves cargo a stale mutated binary** (2421's parked 2434, for
 the Loop, filed at its merge; Loop 1629's sibling). The restored source kept its pre-mutation mtime, so the next
 `cargo test` ran the broken port and `issue_disband` failed the gate until touched. Candidate: the sweep's break
@@ -5396,16 +5402,6 @@ restored file kept its pre-mutation mtime, so the next `cargo test` ran the brok
 the gate until `touch`ed. A break script writes the original back with a fresh mtime (or touches it).
 
 ## Parked by item 2412, 2026-10-14 — the peace pair's word 3479, and run853's later rows
-
-(2423) **The peace pair's word 3479: ours 44 draws, theirs 46, index 0** (2412, `docs/AI.md` §222; ours
-`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a < do_cast`). It is inside run853's
-window (block 3480), and the widening is on file (`run853_s_word_frame_is_widened_whole`, 169 keys). Who=1's
-Citizen `1/6` (type 50, group 69) reaches the shore at (12111, 20376). On 3479, theirs puts a `CASTORDER`
-(spell 650) over its `MOVEORDER` (kind 14). On 3480 it is inside the Transport Freighter `1/140` (type 322).
-Ours keeps kind 1 to (2712, 18840). On that unit the first parted field is `path[11].to` on 3302, ours (11928,
-19608) against theirs (11928, 20376), on the same block where group 69 holds `[6]` in ours and nothing in
-theirs. The 3302 row is the frame's lead and its mechanism is not read. The previous item's hypothesis was the
-shore cast (spell 650's caller).
 
 (2424) **run853's later rows** (2412; names no word). Beyond 2423's unit, the 169 keys hold 81 that stand from
 3296 (§219's bucket and `SITE[n].reg` rows) and these later ones:
