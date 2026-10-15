@@ -3812,6 +3812,10 @@ word whose xor with C lies in a range is the candidate; a `switch` shape and a m
 first; six of ten; `--jump` already held `valid_filter`'s index and its 27 arms are the gap (parked 2664), and a
 `fwd` blind to its callees' order (2666) and a quarter-million-call walker (2667) want a callee-order token and a
 call-count record (booked in 2672).
+**2655** (sixtieth reach, filed at its merge): harvested nine on the built shapes, no generator change; a
+`--port-file` taking the port body from a file (shell quoting the one recurring cost) and `--answers` with `--seq`
+printing the `a[]` slot its values land in are the candidates; the shapes none holds are slot EA's (parked
+2668-2671, for 2672).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
