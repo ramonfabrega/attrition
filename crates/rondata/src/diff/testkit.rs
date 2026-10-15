@@ -6492,6 +6492,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_EIGHT: i64 = 1100;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SEVENTY_EIGHT: (i64, i64) = (600, 1101);
 
+/// **Chapter seventy-nine** (item 2649, `docs/GOLDEN.md` §98, run875): a
+/// Biplane's attack distance on a human.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_NINE: i64 = 938;
+
+/// `chapter_seventy_nine_s_word_frame_is_widened_whole`'s window: run875
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SEVENTY_NINE: (i64, i64) = (600, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -7020,6 +7028,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // inexact corners, in the walk and in the widening alike.
     ("chapter_seventy_eight_holds_to_the_golden_word", 8),
     ("chapter_seventy_eight_s_word_frame_is_widened_whole", 8),
+    // Item 2649: run875, the Biplane's strike on a Barracks reads one inexact
+    // corner, in the walk and in the widening alike.
+    ("chapter_seventy_nine_holds_to_the_golden_word", 1),
+    ("chapter_seventy_nine_s_word_frame_is_widened_whole", 1),
     // The coverage pair's run715 (item 1605): four reads in the replay's
     // diverged tail past the word 2969 — `coverage_pair_first_parting`,
     // which walks to the word, reads none.
@@ -8952,6 +8964,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seventy_eight_s_word_frame_is_widened_whole"),
         2627,
         Some(WIDENING_CHAPTER_SEVENTY_EIGHT),
+    ),
+    // Item 2649: run875, chapter seventy-nine, a Biplane's attack distance.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVENTY_NINE",
+        GOLDEN_WORD_CHAPTER_SEVENTY_NINE,
+        Some("chapter_seventy_nine_s_word_frame_is_widened_whole"),
+        2649,
+        Some(WIDENING_CHAPTER_SEVENTY_NINE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

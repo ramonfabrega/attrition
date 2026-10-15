@@ -12633,12 +12633,42 @@ without a base is not a walk (parked 2630); the Helicopter's range at an Attack 
 trainer path (the unit is `add`ed). **Census rows reached**: `ObjectData::attack_dist@006488f0`'s non-plane arm and
 `UnitData::is_plane@0046ce40` on a human; the count is the commander's pin.
 
-## 98. Reserved for the next item on the rules track
+## 98. Chapter seventy-nine: a plane's attack distance held on a human — opens at 938 on the fighter's strafe release, not on the arm
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2649 (Claude Sonnet 5.5, `--effort medium`). **Open at 938** (run875, `tools/gamelog/golden/chapter79.cmd`;
+`golden::chapter_seventy_nine_holds_to_the_golden_word`, `chapter_seventy_nine_s_word_frame_is_widened_whole`, 600..1501).
+
+**Could a plane be staged on a human? Yes.** `add airbase who=0` (it is `0/2007`: who=0's start holds `0/2000..2006`),
+`add biplane who=0` outside it, `@flight 0 2007 0 6` on 620 flies it home (inside by 768, `mana_burn` refilling), and
+`@launchpatrol 0 36480 15744 2007` on **830** (a plane still refuelling, `mana_burn != 0` until 808, is passed over by
+`Group::action_launch_patrol`'s no-shift arm, so 800 launched nothing) puts it on an `AirPatrolOrder` over a Barracks
+`1/2006` (190, 82); it finds the Barracks on ~927 and takes a `StrafeOrder` onto it. A human Citizen `0/7` (190, 86) is the
+sight; the walk printed `skipped {}` empty. The Airbase prerequisites need no age here: `add` takes none.
+
+**What the disk could not answer**: no capture holds a human's plane striking a building from a patrol; chapter forty-one's
+Biplane is who=1's and only patrols.
+
+**The arm is reached.** Mutation on the walk (`attack_dist_from`'s plane test made `false`): the walk's frames part from 928
+(an RNG-fed Wild Bird's heading moves), so the centre-to-centre arm is read on the patrol's find. **The word is not the arm.**
+
+**The word, 938**: ours 6 draws, theirs 8; the sequences part at draw 1, theirs `Object::take_damage+0xe1` twice where ours has
+`Farms::inc_time+0x1ae`. **Value diff beside it**: `1/2006 build:damage_frac` on 939, ours 0, theirs 6 (and `damage` on 955, ours 1,
+theirs 2). **Which side acted**: the original — its Biplane `0/6` (TypeIndex 287, domain air) releases two rounds on 935
+(`AMMO` `o 6`, `whom 1`, `ox 2006`, from (37377, 16525) z 1474, `cur_time 1`, `total_time 5`) and they land on 938. Ours releases
+none: `strafe_attack` (`orders.rs`) plays `ATTACK2` and reloads for a fighter line but its SEAM names "a non-bomber's
+`fire_ammo`" unbuilt. That is a hypothesis (the booked mechanism is the next item's, not this one's); the frame and delta are
+the booking.
+
+**Standing rows** (the first firsts, `WANT_CH79`): the starts' `form` rows; then 949 onward the tail past the word, 309 rows,
+pinned whole, to be re-measured as the word moves.
+
+**Ground guard**: one inexact corner read in the walk and in the widening (`GROUND_INEXACT`).
+
+**What is not established**: whether the centre-to-centre arm agrees on a human (the word is earlier; the arm's agreement is held
+only up to 938 — the patrol's find at 927 reads it with the draw stream agreeing); a second run as control (`--cmd-without 830`
+was not taken: one run was enough to place the word, and it would prove only that the patrol is what launches the plane);
+a Helicopter's launch from an Airbase. **Census rows reached**: `ObjectData::attack_dist@006488f0`'s plane arm and
+`UnitData::is_plane@0046ce40` on a human; the count is the commander's pin.
 
 ## 99. Reserved for the next item on the rules track
 
