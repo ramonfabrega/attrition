@@ -826,6 +826,7 @@ mod tcoord_data_walk_data;
 mod tech_type_backup;
 mod tech_type_restore;
 mod tech_type_set_disabled;
+mod tech_type_walk_rules_data;
 mod terrain_build_beach_data;
 mod terrain_convert_errant_sandy;
 mod terrain_list_walk_data;
