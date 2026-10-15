@@ -3,12 +3,13 @@
 /// `Unit::air_alt_speed@005ea360`, run by `tools/emu/sweep_unit_air_alt_speed.py` under unicorn: 0 unless the sign
 /// bit of `ecx` agrees with `xmm1 < 0`, else `(int)(xmm1 * 25 / 20)` in `f32` (test code), `cvttss2si`'s
 /// 0x80000000 for a NaN or an out-of-range value.
+#[allow(clippy::float_arithmetic)] // the sweep is test code: the original's own `f32`
 fn air_alt_speed(this: i32, speed: f32) -> i32 {
     if ((this as u32) >> 31 == 1) != (speed < 0.0) {
         return 0;
     }
     let v = (speed * 25.0) / 20.0;
-    if v.is_nan() || v >= 2_147_483_648.0 || v < -2_147_483_648.0 {
+    if v.is_nan() || !(-2_147_483_648.0..2_147_483_648.0).contains(&v) {
         i32::MIN
     } else {
         v as i32
