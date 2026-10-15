@@ -316,6 +316,7 @@ mod build_data_can_queue;
 mod build_data_can_queue_4d2030;
 mod build_data_check_capture_health;
 mod build_data_count_queue;
+mod build_data_find_in_queue;
 mod build_data_get_base_garrison_arrows;
 mod build_data_get_caster_stance;
 mod build_data_get_combat_stance;
