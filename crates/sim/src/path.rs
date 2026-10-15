@@ -1292,19 +1292,6 @@ impl Sim {
                         cost,
                     });
                 }
-                if std::env::var("RON_PROBE_ASTAR").ok().and_then(|v| v.parse::<i64>().ok())
-                    == Some(self.frame)
-                    && step == STEP_WORLD
-                    && (10000..14000).contains(&nx)
-                    && (18500..21500).contains(&ny)
-                {
-                    eprintln!(
-                        "ASTAR f{} u{} who{} cur({},{}) g{} t{} -> ({},{}) d{} cost{} emb{} h{} goal({},{}) avoid{}/{} closed{} open{:?}",
-                        self.frame, u, self.units[u].owner, cur.x, cur.y, cur.length, cur.timeout, nx, ny, d, cost, embarks,
-                        Self::estimate(nx - goal.x, ny - goal.y, step), goal.x, goal.y, avoid_land, avoid_sea,
-                        closed.contains_key(&metric), open_by_metric.get(&metric).map(|e| nodes[e.2 as usize].length)
-                    );
-                }
                 if cost == REFUSED {
                     k += dinc;
                     c += dinc;
