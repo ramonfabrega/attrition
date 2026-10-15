@@ -5365,13 +5365,24 @@ A pair is the AI word's to book (DECISIONS 53, 61); the profile key is untested.
 (item 2416; names no score): each needs a human counterpart, an alliance, or the AI left on. 2391 and 2332's
 "name the staging first" is answered here: there is none; close both against §87.
 
-## Parked by the next landing, slot CL — reserved
+## Parked by item 2421, 2026-10-14 — the sweep's seventy-second batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2431) **The `GroupOut::issue_*` left after 2421** (names no score; the sweep's next batch). The forwarders to
+`CommandManager::issue_*` are one line each (gate, then a stub of N+1 arguments with `ecx` first): `issue_stance`,
+`issue_form`, `issue_move_to`, `issue_siege_attack`, `issue_attack_ground`, `issue_garrison`, `issue_patrol`,
+`issue_spell`, `issue_unitmask`, `issue_buildmask`, `issue_city_gather`, `issue_gather_point`; `CommandManager::issue_camera`,
+`_buy`, `_sell`, `_set_transport`, `_disband` (0x941ad0) are next and read for their `mov byte`.
+(2432) **The two generator shapes 2404 named were built and none of the ten met them** (2421, Loop 2003):
+`--seq IDX:N` beside `--answer-range IDX:LO:HI` draws every answer in the range, and `--record-order` takes a
+`--record IDX@S` split (`s1:r2+0x4,..`); both have unit tests that failed first, and no sweep of this batch uses
+either, so neither has a function's break behind it yet.
+(2433) **A forwarder's stub `ecx` is the caller's, stale** (2421): `GroupOut::issue_*` passes `ecx` on to
+`CommandManager::issue_*` as its first stack argument and never loads a `CommandManager`; the stub sees the
+`GroupOut` as `ecx` and again as the first argument. A `sweep_gen` `--fwd-gate` line (gate, N arguments forwarded)
+would write all seven forwarders of this batch from one flag; each was a hand-written `--port`.
+(2434) **A break-test that restores by `shutil.move` leaves cargo a stale mutated binary** (2421, for the Loop): the
+restored file kept its pre-mutation mtime, so the next `cargo test` ran the broken port and `issue_disband` failed
+the gate until `touch`ed. A break script writes the original back with a fresh mtime (or touches it).
 
 ## Parked by the next landing, slot CM — reserved
 
