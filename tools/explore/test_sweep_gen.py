@@ -1767,6 +1767,20 @@ class Shapes(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sweep_gen.jump_expand(bad, own=2)
 
+    def test_a_table_is_rows_of_pointer_arrays_of_linked_records(self):
+        # parked 2617 (item 2621): WorldData::get_bottom walks `[0xc0ab84 + 28*v]` (an array of record pointers, indexed by
+        # the walk's x) to a record whose i16 at +0x2c is the next x and at +0x2e the next v. `--table
+        # VA:STRIDE:ROWS:COLS:SIZE:XOFF:VOFF` lays ROWS pointer arrays at the image's own table, COLS records each, the
+        # x link of each drawn below its own column (the walk ends) and the v word inside the rows.
+        x = sweep_gen.table_expand('0xc0ab84:0x1c:2:3:0x34:0x2c:0x2e', pbase=1)
+        self.assertEqual(x['place'], ['0xc0ab84+0x1c*0:0:12', 'p1+0:0:0x34', 'p1+4:0:0x34', 'p1+8:0:0x34',
+                                      '0xc0ab84+0x1c*1:0:12', 'p5+0:0:0x34', 'p5+4:0:0x34', 'p5+8:0:0x34'])
+        self.assertEqual(x['link'], ['p2..4+0x2c:2:<:-1,-2', 'p6..8+0x2c:2:<:-1,-2'])
+        self.assertEqual(x['wbias'], ['p2..4+0x2e:0..1', 'p6..8+0x2e:0..1'])
+        for bad in ('0xc0ab84:0x1c:0:3:0x34:0x2c:0x2e', '0xc0ab84:0x1c:2:3:0x34:0x2c', '0xc0ab84:0x1c:2:3:0x2e:0x2c:0x2e'):
+            with self.assertRaises(ValueError):
+                sweep_gen.table_expand(bad, pbase=1)
+
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
         self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', 'Foo::bar@00401000']),
