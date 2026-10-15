@@ -525,6 +525,7 @@ mod form_order_get_form_order;
 mod form_order_walk_data;
 mod form_order_walk_data_vtordisp;
 mod fort_walk_data;
+mod forts_find_fort;
 mod game_access_const_find_data_z;
 mod game_access_const_find_tcoord_z;
 mod game_access_const_get_scary_camera;
