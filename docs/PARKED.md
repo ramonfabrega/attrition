@@ -3774,6 +3774,21 @@ commander's at its merge): 2725's journal says a capture should first ask whethe
 key (`grep seen3` answered); the landing then built the arm and staged nothing, so chapter eighty is still unwalked and
 re-booked as 2755. Candidate: a chapter brief's row "the staging is the landing; a build without it parks". One reach.
 
+(2762) **A path entry that parts on one field lists the writers that push a caller's entry back first** (2737's
+"for the Loop" line, filed at its merge): `1/187`'s `path[34]` agreed on `to` and parted on `tolerance` alone, which
+named a writer that copies an entry (`..top`, a popped `goal_e`) rather than builds one; four commands found it.
+Candidate: a brief checklist row for a one-field path parting. One reach.
+
+(2763) **The rondata test binary is the box's CPU and memory hog** (Ramon, 2026-10-15, for the steer): measured on
+2725's booking gate (`replan-pdb`, `--scope 1c2bb098 --test-threads=8`), `rondata-4337e333078eb556` held **7,836 MB
+resident at 7 min 08 s**, one core at 100 % by then, beside two lanes' `rustc --crate-name sim` at ~950 MB each; the
+gate's slow rows were `coverage::every_key_the_dump_prints_is_read_or_pinned`,
+`coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned` and `third_pair_windows_check_groups_and_
+projectiles_on_both_sides` (each "running for over 60 seconds"). Four lanes' lane gates run the same binary name, so a
+hog is named by its cwd, not its name. Not measured: which test holds the 7.8 GB (a `sample` at its peak missed it).
+Candidate: one sampled whole gate at its RSS peak, then the dump reader's footprint (entry 56 §3 found half the
+suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four lanes and a booking gate live. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
