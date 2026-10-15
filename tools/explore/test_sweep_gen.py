@@ -1798,6 +1798,23 @@ class Shapes(unittest.TestCase):
         _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2688, gate=8, steps=steps[:1])
         self.assertIn('BIT_AT = None', script0)
 
+    def test_a_mix_may_loop_a_count_read_from_this_over_records(self):
+        # parked 2689: BuildQueue::walk_data closes/inits on [this] == 0 / != 0 when [walker+4] != 0,
+        # then walks the [this]-many 0x14-byte records at [this+4].
+        spec = 'BuildQueue::walk_data@006305f0'
+        steps = ['walk4:6000', 'walk:this:this+4', 'gated/zero/call:0x6306c0:0:this:', 'gated/nz/call:0x6307d0:1:this:count',
+                 'each/walk:elem:elem+0x12']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2698, glob=0xc06378, gate=4, gate_ne=True,
+                                                       elems='count:0:4:20', steps=steps)
+        compile(script, 'sweep_build_queue_walk_data.py', 'exec')
+        self.assertIn("ELEMS = ('count', 0x0, 0x4, 20)", script)
+        self.assertIn('let count = a[4];', test)
+        self.assertIn('let elems = &a[5..];', test)
+        self.assertIn('if gate != 0 && count == 0 {', test)
+        self.assertIn('if gate != 0 && count != 0 {', test)
+        self.assertIn('calls.push(vec![this, count]);', test)
+        self.assertIn('for &e in elems { calls.push(vec![walker, e, e + 0x12]); }', test)
+
     def test_a_mix_may_assert_the_result_is_the_stack_argument(self):
         # parked 2570: a get_name returns its out-pointer ([ebp+8]), eax == walker.
         spec = 'Surf::get_name@004a5dc0'
