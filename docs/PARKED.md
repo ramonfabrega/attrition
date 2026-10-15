@@ -3735,6 +3735,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
+(2449) **`waitrun.sh` on a launcher's redirected log exits 2** (2436's "for the Loop" line, filed at its merge;
+parked 656's sibling). A launcher log written with `>` holds no banner, so `tools/gamelog/waitrun.sh` on it exits 2
+at once; the launcher's own `log:` line names the viadriver log to wait on. Candidate: `waitrun.sh` follows the
+`log:` line when handed a launcher log, or the frame's capture row names the file; a test made to fail first.
+One reach.
+
 (2442) **A break-test restored by `shutil.move` leaves cargo a stale mutated binary** (2421's parked 2434, for
 the Loop, filed at its merge; Loop 1629's sibling). The restored source kept its pre-mutation mtime, so the next
 `cargo test` ran the broken port and `issue_disband` failed the gate until touched. Candidate: the sweep's break
@@ -5399,12 +5405,12 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2436, 2026-10-14 — chapter seventy-one: the Senate's patriot, and the AI arms no walk can hold
 
-**2437.** The Senate tail's `set_type` arm for a human (a patriot already born, a second government researched):
+(2437) **The Senate tail's second government on a human is unstaged** (item 2436, `docs/GOLDEN.md` §88). The Senate tail's `set_type` arm for a human (a patriot already born, a second government researched):
 chapter seventy-one's second `@queueup 0 625 1 2007` (Monarchy) at the staged Senate was skipped by the walk. Name why
 (the research's gate at a Senate under Despotism: an age, or `get_preq`) and stage it; it holds `senate_gov_hero`'s
 second arm on a human, diff-backed today only on Great Sahara's AI Senate (item 1416's Senator `1/80`). Names no score.
 
-**2438.** AI §216's Supercollider (and any wonder arm): `wonders_held` needs a city's wonder, an `add`ed building joins
+(2438) **A wonder arm needs `finish` applied** (item 2436, `docs/GOLDEN.md` §88). AI §216's Supercollider (and any wonder arm): `wonders_held` needs a city's wonder, an `add`ed building joins
 no city, and `finish`/`hurry` are unapplied verbs (GOLDEN §16). The cheapest reach is applying `finish` to a Citizen-built
 wonder in a founded city (`small_city`, chapter sixty-nine's verb) — interpreter work, not a capture. Names no score.
 
