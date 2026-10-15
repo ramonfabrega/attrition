@@ -3735,6 +3735,16 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
+(2415) **A landing that newly compares a field moves pins its lane gate never runs** (the commander's, at
+2384's booking gate; a kill rule tripped). 2384 added `aggression[0..8]` to `rondata::diff::leader`'s rows and
+re-pinned 39 widenings in six lobbies; its lane gate (`--lane --tests lakota_pair:: floors:: first_parting`)
+leaves the timed widenings to the booking gate (1567), so the 226 literal pins and 17 hand sites it did not reach
+(`second`, `third`, `third_pair`, `harness`, `sahara_toughest`, `golden`, `coverage_pair`, seven `leader.rs`
+residue lists and field totals) were red only at the booking — re-pinned by the commander in the second commit,
+and 2389's lane gate red on them meanwhile. Candidate: the lane gate adds every `diff::` module when the branch
+touches a `rondata::diff` row list (`leader.rs`'s rows, `UNMODELLED`), or the brief row says so; measured by
+whether a trip recurs. One reach.
+
 (2410) **A whole-`LEADERDATA` diff across a block is a reflex without a tool** (2384's "for the Loop" line, filed
 at its merge). Loop 2292's row — diff one leader's whole record across the word's block, unread fields included —
 named three unread fields and a write on the *other* leader's record in one command (`aggression`, `strong`,
@@ -5242,13 +5252,16 @@ path is the top-scorer arm, gated on frame 45 × 900 (30 × 900 at difficulty 3 
 Every capture is team style 1 and reaches none of them while at peace. The coverage lobby is at war from frame 0
 and agrees on who=1's `aggression` once its target is met (run817, 4260).
 
-## Parked by the next landing, slot CG — reserved
+## Parked by item 2389, 2026-10-14 — Salmon's and Maize's arms, built from the listing
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2390) **Salmon's and Maize's price arms have no capture** (item 2389, `docs/GOLDEN.md` §86; names no score; 2358's
+sequel). Both are built (`Modifiers::salmon`, `Sim::salmon_cost_discount`; `maize` set by `price_of`) and tested for
+their arithmetic, and rest on the listing. No dump on disk holds a Salmon or Maize deposit or holder, and map 14 has
+neither. A staging needs a lobby (map style and seed) that places one of them for a player, a Merchant (or a fisherman)
+on it, then a sea unit queued (Salmon) or a ramped unit (Maize). Name the lobby from a map script or a start dump's
+`BEGIN GOOD` records before booking; this crate has no map generator to search seeds.
+
+(2391) **2111 and 2196 are still unstaged** (parked 2332; item 2389 took the rare arms instead).
 
 ## Parked by item 2395, 2026-10-14 — the sweep's seventy-first batch
 

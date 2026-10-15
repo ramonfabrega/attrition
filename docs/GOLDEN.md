@@ -12176,12 +12176,38 @@ there, with who=0's timber and metal buckets. Now equal.
 
 Each fails its walk when taken out.
 
-## 86. Reserved for the next item on the rules track
+## 86. Chapter sixty-nine — Salmon's naval price and Maize's ramp term, built from the listing; no staging reaches either (item 2389)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Premise.** DECISIONS 56 §3: the arms the AI track built that no walk holds. Item 2357 left two on `TypeData::get_cost@00664090`'s
+unit train arm (parked 2358): `SALMON_NAVAL_COST` (`:673`–`677`) and `MAIZE_RAMPING_BONUS` (`:622`–`625`). 2111 and 2196
+(parked 2332) are still unstaged and this item did not take them.
+
+**Every reader of the constants** (Loop 2356). `maize_ramping_bonus` had one reader, `cost::charges`' ramp term, behind
+`Modifiers::maize`, which `Sim::price_of` never set. `SALMON_NAVAL_COST` had none: no tuning slot. The listing
+(`get_cost:622`–`625`) tests `leaders.list[who] +0x6da9 & 4`, else `+0x6dd1 & 4`, inside the ramp loop, after the ceiling
+clamp and before the term is summed: the same place `charges` applies it. Salmon (`:673`–`677`) is `+0x6da9 & 1`, else
+`+0x6dd1 & 1`, with the type's `+0x218 == 1` (the sea domain), after Socialism's arm, its own `(100 − x) × cost / 100`.
+`rules.xml` ships `SALMON_NAVAL_COST` at 20%. The rare bytes are `rare`'s byte 5 (bits 0 and 2), goods 46 and 48
+(`enums/TypeIndex.txt`, `BASE_RARE` 6).
+
+**Built.** `tuning::salmon_naval_cost` (slot `SALMON_NAVAL_COST`, 20); `cost::Modifiers::salmon`, after `socialism`;
+`Sim::salmon_cost_discount`; `economy::SALMON` and `MAIZE`; `price_of`'s train arm now sets `salmon` and `maize` (the
+research arm reads neither). Tests: `cost::tests::salmon_takes_its_fifth_after_socialism`,
+`tests::salmon_prices_a_sea_unit_and_maize_halves_the_ramp`.
+
+**What the disk could not answer, and why no capture was booked.**
+
+- Every dump in `Logs/` (856 files), scanned for a leader whose `rares_collected` slot 40 (Salmon) or 42 (Maize) is
+  non-zero: none. Every `BEGIN GOOD` record on disk, grepped for a Salmon or a Maize: none.
+- Map 14's rares on the golden start are Amber, Dye, Tobacco, Cotton, Wool, Gems, Citrus, Aluminum and Rubber (§54).
+  The console gains no rare, and a rare is held only by a Merchant (or fisherman) standing on a deposit. So a staging
+  needs a map or seed that places the deposit near a player, which is a new lobby, not a chapter on the golden start.
+  The lobby's map generator is the original's, and this crate does not carry it, so no seed can be named from here.
+- Run 856 was therefore not taken.
+
+**What is not established.** Both arms rest on the listing alone, with unit tests of the arithmetic. The Salmon holder's
+`rare_conquest` half (`+0x6dd1`) is Conquer the World's and is not modelled beyond the union `has_rare` keeps. Census
+rows these arms would reach (`get_cost`'s two rare arms) stay unbacked.
 
 ## 87. Reserved for the next item on the rules track
 

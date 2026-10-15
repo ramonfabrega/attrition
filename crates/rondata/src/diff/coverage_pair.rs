@@ -694,7 +694,7 @@ fn run669_s_word_frame_is_widened_whole() {
     // leader 0's `production_step` on 201 and a blank `SITE` slot's `reg`
     // on 376, nothing else: a busy builder's next build takes its own
     // approach.
-    pin_eq!(w.firsts.len(), 47, "initial run669 baseline");
+    pin_eq!(w.firsts.len(), 49, "initial run669 baseline");
     // **The move's value diff, block 183** (item 1530, `docs/AI.md` §143):
     // the Silo `1/2021` stood at (36480, 41088) in ours against (41088,
     // 37248) and agrees in every field now; the three buildings placed on
@@ -781,7 +781,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`). Item 1634 removes the false regeneration flags on
     // 1/2007 and 1/2016 at 658: 57 -> 55.
-    pin_eq!(w.firsts.len(), 52, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 54, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -915,7 +915,7 @@ fn run678_s_word_frame_is_widened_whole() {
     // **139** on the tree item 1558 landed (160 on item 1552's, 307 on item
     // 1546's, 1,378 on item 1544's); 98 stand from the window's first block
     // — `1/2006`'s capital bit no longer among them.
-    pin_eq!(w.firsts.len(), 66, "initial run678 baseline");
+    pin_eq!(w.firsts.len(), 68, "initial run678 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
     // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
     // in both — ours held the Farm (417, 2,520,000) — and the site
@@ -1029,7 +1029,7 @@ fn run679_s_word_frame_is_widened_whole() {
     // frame 1419, its 128-frame phase (1419 + 2037 = 27 × 128), with no
     // unit of leader 1's holding it as its action (`docs/AI.md` §162) —
     // and leader 1's `gather_stamp`, 1391 in ours against 1423 on 1424.
-    pin_eq!(w.firsts.len(), 74, "initial run679 baseline");
+    pin_eq!(w.firsts.len(), 76, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -1149,7 +1149,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 105, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 106, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1278,7 +1278,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
-    pin_eq!(w.firsts.len(), 105, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 106, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1398,7 +1398,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 109, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 110, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1538,7 +1538,7 @@ fn run715_s_word_frame_is_widened_whole() {
     // of 2933 and 2938 are missiles, and land on 2945 and 2950 along their
     // spline where the straight line put them on 2939 and 2942
     // (`docs/AI.md` §174). **147** on item 1625's tree merged with 1620's.
-    pin_eq!(w.firsts.len(), 113, "initial run715 baseline");
+    pin_eq!(w.firsts.len(), 114, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1624,7 +1624,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 153, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 154, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1807,7 +1807,7 @@ fn run754_s_word_frame_is_widened_whole() {
     // **4425**, past this window's last block (4094).
     // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
     // on the tree before item 1700 (411); measured on the merged tree: 204.
-    pin_eq!(w.firsts.len(), 176, "run754 keys that part (item 1669)");
+    pin_eq!(w.firsts.len(), 177, "run754 keys that part (item 1669)");
 }
 
 #[test]
@@ -1845,7 +1845,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        179,
+        180,
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");

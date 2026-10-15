@@ -4229,3 +4229,36 @@ fn reduced_path_counterexample_stops_at_a_combined_final_flag() {
     unit.discard_current_path_segment();
     assert_eq!(unit.path, vec![previous_segment]);
 }
+
+#[test]
+fn salmon_prices_a_sea_unit_and_maize_halves_the_ramp() {
+    // `TypeData::get_cost@00664090`'s two rare arms on a unit: Salmon
+    // (`:673`–`677`, `+0x6da9 & 1`) takes `SALMON_NAVAL_COST` off a sea
+    // unit's price (`+0x218 == 1`), a truncation of its own; Maize
+    // (`:622`–`625`, `+0x6da9 & 4`) takes `MAIZE_RAMPING_BONUS` off each
+    // ramp term. No capture on disk holds either rare, so the arms rest on
+    // the listing (item 2389, `docs/GOLDEN.md` §86).
+    let mut sim = skirmish(4);
+    let land = sim.add_unit_type(citizen_type());
+    let mut ship = citizen_type();
+    ship.combat.domain = attrition::Domain::Sea;
+    let sea = sim.add_unit_type(ship);
+    let salmon = 1 << (economy::SALMON - economy::BASE_RARE);
+    let maize = 1 << (economy::MAIZE - economy::BASE_RARE);
+
+    assert_eq!(sim.salmon_cost_discount(0, sea), 0, "no Salmon");
+    sim.ledgers[0].rare = salmon;
+    assert_eq!(sim.salmon_cost_discount(0, sea), 20);
+    assert_eq!(sim.salmon_cost_discount(0, land), 0, "a land unit");
+    assert_eq!(sim.salmon_cost_discount(1, sea), 0, "another player");
+
+    sim.muster[0].by_type[land] = 40;
+    sim.ledgers[0].rare = 0;
+    let plain = sim.price_of(0, land);
+    sim.ledgers[0].rare = maize;
+    let halved = sim.price_of(0, land);
+    sim.ledgers[0].rare = salmon;
+    assert_eq!(sim.price_of(0, land), plain, "Salmon leaves a land unit");
+    let f = economy::Resource::Food.index();
+    assert!(halved[f] < plain[f], "{halved:?} < {plain:?}");
+}
