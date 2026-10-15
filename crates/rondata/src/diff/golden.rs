@@ -15134,6 +15134,10 @@ fn chapter_eighty_holds_to_the_golden_word() {
         "chapter eighty: word {}, sequence {}, values {:?}",
         w.word, w.sequence, w.value
     );
+    // The draw stream agrees to the capture's end; the state word is
+    // `GOLDEN_WORD_CHAPTER_EIGHTY`, the widening's (`docs/GOLDEN.md` §102).
+    let _ = GOLDEN_WORD_CHAPTER_EIGHTY;
+    assert!(w.word >= 1204, "chapter eighty's draws part before 1204");
 }
 
 /// **run877 whole, both directions** (item 2755, `docs/GOLDEN.md` §102).

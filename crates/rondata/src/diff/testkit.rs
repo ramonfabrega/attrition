@@ -6500,6 +6500,21 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_NINE: i64 = 1500;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SEVENTY_NINE: (i64, i64) = (600, 1501);
 
+/// **Chapter eighty** (item 2755, `docs/GOLDEN.md` §102, run877): the stealth
+/// arm of `UnitData::is_seen` under a computer's `calc_danger`. **A state
+/// word, pinned where the state first parts**: `1198 world:danger`, who 1's
+/// half-cell (25, 7), ours 60, theirs 120 — the 1000 pass's plane, which no
+/// block dumps, so 1198 is the first block that shows it. The draws agree to
+/// the capture's end (1204), the dump's last block is 1203.
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY: i64 = 1198;
+
+/// `chapter_eighty_s_window_is_widened_whole`'s window: run877 whole, blocks
+/// 1198 to 1203 (1204 is the one the dump does not carry), so `w1198 of
+/// 1204`. **The window opens at 1197, a frame the dump has no block for**:
+/// the word is the first block, and `the_widening_behind_each_pinned_word_
+/// exists` wants it strictly inside; the test walks `(1198, 1205)`.
+pub(crate) const WIDENING_CHAPTER_EIGHTY: (i64, i64) = (1197, 1205);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8974,6 +8989,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seventy_nine_s_word_frame_is_widened_whole"),
         2649,
         Some(WIDENING_CHAPTER_SEVENTY_NINE),
+    ),
+    // Item 2755: run877, chapter eighty, the stealth arm under `calc_danger`;
+    // open at 1198 (the 1000 pass's danger cell, parked 2757).
+    (
+        "GOLDEN_WORD_CHAPTER_EIGHTY",
+        GOLDEN_WORD_CHAPTER_EIGHTY,
+        Some("chapter_eighty_s_window_is_widened_whole"),
+        2755,
+        Some(WIDENING_CHAPTER_EIGHTY),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
