@@ -5562,6 +5562,9 @@ impl Sim {
             self.refresh_victory_timers(who);
         }
 
+        // The peace's end, between the two (`Game::do_frame:202`).
+        self.end_the_peace();
+
         self.mark("strategy_all");
         // `Leaders::strategy_all` — the production AI, between the income
         // and the objects (`Game::do_frame` line 267; `docs/AI.md` §2.1).

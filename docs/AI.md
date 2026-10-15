@@ -20831,12 +20831,79 @@ After it, the market, herd, farm and three `think_bird` sites agree in count. `A
 the owner byte, on run854. **Reading only**: the tile arm, and the age and `rr < 9` clauses (this lobby's age is
 below 10 and `rr` is 10).
 
-## 224. Reserved for the next item on the AI track
+## 224. The peace's end declares war, and the peace pair's word moves 4544 → 4859 (2026-10-14, item 2460)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The draws on 4544.** Theirs spends 201 and ours 145 (`report.py rontrace-run847.log draws 4544`). They part at
+index 0: ours spends `Leader::diplomacy+0x1168`, the peace coin, and theirs goes straight to
+`GameDaemon::calc_market+0x54`. Ours' extra draw is who=1's view of who=0. It falls on the 512-frame phase
+(theirs drew from `Leader::diplomacy` on 3008, 3520 and 4032, `report.py … when Leader::diplomacy`). Theirs skips
+it on 4544 because the two are at war. On 4538, run855 has `diplos` 0 both ways in theirs and 1 in ours, and
+who=1's `dow[0]` is 0 in theirs: nobody paid for a declaration.
+
+**Who writes `diplos`.** `Leader::set_diplo@006ec6a0` writes both directions (`+0x74`), and nine functions call
+it. The declaration with no `dow` is not `Leader::diplomacy`'s own (team styles 0, 8 and 11 only, §220). It is not
+`Object::take_damage`'s or `action_respond`'s, which go through `action_declare`. It is `Game::do_frame@00591ef0`,
+lines 202–261. Between `Leaders::process_all` and `Leaders::strategy_all`, on the one frame where
+`frame == rush_rules[rr].+0x3c × 900` and `rr > 8` (4500 here), it plays the war warning. Then, for team styles
+other than 0, 8 and 11, each leader in play (`flags & 1`) zeroes its `update_leader_list` (`+0x1f4`). Unless it is
+neutral (team style 7, team 8), it calls `set_diplo(i, j, 0)` on every other leader in play it is neither
+`is_ally` nor `is_enemy` with. The outer walk starts at slot 0, the human. So `set_diplo(0, 1, 0)` writes both
+directions, and when slot 1's turn comes, `is_enemy` is already true. `set_diplo`'s `Armies::diplo_change(0)`
+processes armies only for a computer (`flags & 0xc ≠ 4`), so here it does nothing. No draw is spent: the stream
+agrees through 4543 in both.
+
+**Not carried before.** No code in `crates/sim` wrote `at_war` during a game. The matrix stood as the lobby left
+it.
+
+**Built.** `Sim::end_the_peace` (`crates/sim/src/diplomacy.rs`), called before `strategy_all` in the frame step:
+the rule's frame, the team-style gate, and the pair walk through `allied_both` and `not_at_war`. Team style 7's
+neutrals and a computer declarer's `diplo_change` are `SEAM`s. `update_leader_list` is the interface's. Test:
+`diplomacy::tests::the_peace_s_end_declares_war_both_ways_on_its_one_frame` (4499 and 4501 nothing; 4500 both
+ways; mutual allies keep their peace; a one-way ally does not; rule 8 and team style 0 declare nothing). Two
+mutations, through `tools/mutate.py`:
+- Dropping the call fails `lakota_pair_first_parting` and `run855_s_word_frame_is_widened_whole` (exit 101).
+- Dropping the reverse write fails run855 alone (exit 101). With who=0's slot at war, the AI still sees war (the
+  `not_at_war` idiom reads both ways), but `diplos[0]` parts.
+
+**Value diff and score.** On 4538, `leader:diplos` is 0 / 0 both ways on both sides; it was ours 1. run855 goes
+977 → 128. `diplos`, `wars` (4576), the ICBM `1/50`'s order and gone-ness (4538, 4542), `1/2018`'s queue clock and
+`1/0`'s 36-leg path all close. Of the 128, 83 stand from 4538:
+- 28 `form`;
+- ten `SITE[*].reg`;
+- 19 groups' `held` and their pools;
+- who=1's food, timber and metal buckets;
+- `1/6`'s damage, 7 against 2;
+- two `mirror`s.
+
+The first key past 4538 is group 80 on 4557. The human's `active` parts on 4679 (ours 14, theirs 13), where its
+units' `death:extra` begins (ours 1, theirs 0).
+
+**The word moves 4544 → 4859**, count and sequence both. Ours spends 14 draws and theirs 15, parting at index 6.
+Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`; theirs spends `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd`, a birth ours does not make. The walk reads 1080 heights at inexact corners
+(`GROUND_INEXACT`, 858 before).
+
+**The next word, 4859, widened on run861** (blocks 4853..5109, `run861_s_word_frame_is_widened_whole`, 1432 keys).
+The word's block is 4860. There `1/50` is unlinked (theirs' newborn; ours' `1/50` shows on 4878), `1/2005`'s
+`queued` is ours 2 against theirs 1, and who=1's `num_units[255]` (`ABRAMDES`) is ours 8 against 9. 106 keys stand
+from 4853, so the state parts before the window:
+- the human's `control` is ours 14 against theirs 0, and each of its fourteen units has `death:extra` ours 1
+  against 0;
+- `1/2005`'s `queue[0].cost[0..1]` is ours 240 against theirs 224;
+- who=1's food, timber and metal buckets differ.
+
+On 4859, `1/168`, `1/172` and `1/177` hold `cavarch_who` 0 in ours and −1 in theirs. run855 already shows the human
+parting inside its window: `active` ours 14 against theirs 13 on 4679. That is where the next item starts (parked
+2491).
+
+**Not established.**
+- A computer in slot 0: `diplo_change`'s `Army::process(army, 1)` is not carried, and no capture puts a computer
+  first.
+- Team style 7's neutral skip.
+- `update_leader_list`, which nothing in the simulation reads.
+
+**Diff-backed**: the arm, on run847's draw stream to 4859 and run855's `diplos` from 4538. **Reading only**: the
+team-style gates past style 1, and the order of the walk (no lobby yet has a pair where it matters).
 
 ## 225. Reserved for the next item on the AI track
 

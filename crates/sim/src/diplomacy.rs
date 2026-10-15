@@ -62,6 +62,49 @@ impl Sim {
             .max(0)
     }
 
+    /// The peace's end (`Game::do_frame@00591ef0:202–261`, between
+    /// `Leaders::process_all` and `Leaders::strategy_all`): on the one
+    /// frame a timed rule's minutes × 900 is reached, and outside team
+    /// styles 0, 8 and 11, every leader in play declares war on every
+    /// other in play it is neither allied with nor already at war with —
+    /// `Leader::set_diplo(i, j, 0)`, which writes both directions. Its
+    /// `Armies::diplo_change(i)` processes a computer declarer's armies;
+    /// the outer walk runs from slot 0, so in a pair whose slot 0 is the
+    /// human the declarer is the human and no army runs. `docs/AI.md` §224.
+    pub fn end_the_peace(&mut self) {
+        let rr = self.lobby.rush_rules;
+        if rr <= 8 || self.frame != i64::from(self.lobby.rush_minutes) * 900 {
+            return;
+        }
+        if matches!(self.lobby.team_style, 0 | 8 | 11) {
+            return;
+        }
+        // SEAM: team style 7's neutral leaders (`LeaderData::is_neutral`,
+        // a player on team 8) neither declare nor are declared on — the
+        // crate carries no lobby team, and every capture is style 1.
+        // SEAM: `Armies::diplo_change` for a computer declarer (a lobby
+        // whose slot 0 is a computer) — `Army::process(army, 1)`.
+        // `update_leader_list` (`+0x1f4`), zeroed for each leader, is the
+        // interface's.
+        let players = self.players.len().min(8);
+        for i in 0..players {
+            if self.defeated[i] {
+                continue;
+            }
+            for j in 0..players {
+                if j == i || self.defeated[j] {
+                    continue;
+                }
+                if !self.allied_both(i, j) && self.not_at_war(i, j) {
+                    self.at_war[i][j] = true;
+                    self.at_war[j][i] = true;
+                    self.allied[i][j] = false;
+                    self.allied[j][i] = false;
+                }
+            }
+        }
+    }
+
     /// `diplos[a][b]`: 0 war, 1 peace, 2 allied; a leader's own slot is 2.
     fn diplos(&self, a: usize, b: usize) -> i32 {
         if a == b || self.allied[a][b] {
@@ -556,6 +599,50 @@ mod tests {
         sim.diplomacy(1);
         assert_eq!(sim.ai[1].aggression[0], 1, "team style 1 still sets it");
         assert_eq!(sim.ai[1].strong[0], 0, "no human bonus below 3");
+    }
+
+    /// Run855's block 4538: `diplos` 0 both ways between who=0 and
+    /// who=1, written on 4500 and on no other frame; an ally keeps its
+    /// peace, a rule of 8 or below declares nothing, and team style 0
+    /// leaves the declaring to `Leader::diplomacy`.
+    #[test]
+    fn the_peace_s_end_declares_war_both_ways_on_its_one_frame() {
+        let mut sim = peace_pair();
+        for f in [4499, 4501] {
+            sim.frame = f;
+            sim.end_the_peace();
+            assert!(!sim.at_war[0][1] && !sim.at_war[1][0], "frame {f}");
+        }
+        sim.frame = 4500;
+        sim.end_the_peace();
+        assert!(sim.at_war[0][1] && sim.at_war[1][0]);
+        assert_eq!((sim.diplos(0, 1), sim.diplos(1, 0)), (0, 0));
+
+        let mut sim = peace_pair();
+        sim.allied[0][1] = true;
+        sim.allied[1][0] = true;
+        sim.frame = 4500;
+        sim.end_the_peace();
+        assert!(!sim.at_war[0][1] && !sim.at_war[1][0], "allies keep it");
+
+        let mut sim = peace_pair();
+        sim.allied[0][1] = true; // one way only: not `is_ally`
+        sim.frame = 4500;
+        sim.end_the_peace();
+        assert!(sim.at_war[0][1] && sim.at_war[1][0]);
+        assert_eq!(sim.diplos(1, 0), 0);
+
+        let mut sim = peace_pair();
+        sim.lobby.rush_rules = 8;
+        sim.frame = 4500;
+        sim.end_the_peace();
+        assert!(!sim.at_war[0][1], "an age rule ends no clock");
+
+        let mut sim = peace_pair();
+        sim.lobby.team_style = 0;
+        sim.frame = 4500;
+        sim.end_the_peace();
+        assert!(!sim.at_war[0][1], "style 0 declares in `diplomacy`");
     }
 
     /// The war gate: a timed rule's minutes × 900, or an age at the rule.
