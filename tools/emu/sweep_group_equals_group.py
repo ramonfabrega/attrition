@@ -3,12 +3,12 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_group_equals_group.py — `Group::equals_group@00708000` under unicorn (item 2709, tools/sweep_gen.py, obj with windows).
+"""sweep_group_equals_group.py — `Group::equals_group@00708000` under unicorn (item 2731, tools/sweep_gen.py, obj with windows).
 
     uv run tools/emu/sweep_group_equals_group.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 2272-byte object of random bytes (no bias), 1 stack argument(s);
-argument 0 names 2272 random bytes; vtable slot +0x4 (0 args) stubbed; callee 0x00711540 (0 args) stubbed; stub 0 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p0+0` as well as at `this`.
+argument 0 names 2272 random bytes; vtable slot +0x4 (0 args) stubbed; callee 0x00711540 (0 args) run, not hooked; callee 0x007081f0 (0 args) stubbed; callee 0x0070ccb0 (1 args) stubbed; the word at `0xc0ab84+m[0x4a]*0x1c` points at 16 random bytes less `0` (placed); the word at `p1+0` points at 16 random bytes less `0` (placed); the word at `p1+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 16 random bytes less `0` (placed); the word at `p1+12` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 3 answers -5..-1 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p0+0` as well as at `this`.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -32,10 +32,10 @@ CELLS = []
 AT = []
 PTRARGS = [(0, 2272)]
 PNULLS = []
-STUBS = [('slot', 4, 0), ('call', 7411008, 0)]
-PLACES = []
+STUBS = [('slot', 4, 0), ('run', 7411008, 0), ('call', 7373296, 0), ('call', 7392432, 1)]
+PLACES = [(None, '0xc0ab84+m[0x4a]*0x1c', '0', 16), ('p1', '0', '0', 16), ('p1', '4', '0', 16), ('p1', '8', '0', 16), ('p1', '12', '0', 16)]
 NULLS = []
-WBIAS = [('m', 4, ('set', [-1, 0, 1])), ('p0', 4, ('set', [-1, 0, 1])), ('m', 72, ('set', [0, 256, 65536, 65792])), ('p0', 72, ('set', [0, 0, 256, 65536, 65792])), ('m', 12, ('set', [0, 1, 2, 3, 5])), ('m', 2252, ('set', [0, 0, 0, 1])), ('m', 2256, ('set', [0, 0, 0, 1])), ('m', 2260, ('set', [0, 0, 0, 1])), ('p0', 2252, ('set', [0, 0, 0, 1])), ('p0', 2256, ('set', [0, 0, 0, 1])), ('p0', 2260, ('set', [0, 0, 0, 1]))]
+WBIAS = [('p2', 8, ('set', [0, 1, 1, 3])), ('p3', 8, ('set', [0, 1, 1, 3])), ('p4', 8, ('set', [0, 1, 1, 3])), ('p5', 8, ('set', [0, 1, 1, 3])), ('m', 4, ('set', [-1, -2])), ('p0', 4, ('set', [-1, -2])), ('m', 72, ('set', [0, 256, 65536, 65792])), ('p0', 72, ('set', [0, 0, 256, 65536, 65792])), ('m', 12, ('set', [0, 1, 2, 3, 5])), ('p0', 12, ('set', [0, 1, 2, 3, 5])), ('m', 2252, ('set', [0, 65535, 65536, 65539, 196607, -1, 131073, 196610])), ('m', 2256, ('set', [0, 65535, 65536, 65539, 196607, -1, 131073, 196610])), ('m', 2260, ('set', [0, 65535, 65536, 65539, 196607, -1, 131073, 196610])), ('p0', 2252, ('set', [0, 65535, 65536, 65539, 196607, -1, 131073, 196610])), ('p0', 2256, ('set', [0, 65535, 65536, 65539, 196607, -1, 131073, 196610])), ('p0', 2260, ('set', [0, 65535, 65536, 65539, 196607, -1, 131073, 196610]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -50,12 +50,12 @@ ANSWERWIN = []
 CDECL = False
 ARGEQ = []
 SEQ = [(0, 2, None)]
-ANSRANGE = []
+ANSRANGE = [(3, -5, -1)]
 CELLTHIS = []
 VTALSO = [('p0', 0)]
 SPARSE = []
 GTAB = []
-RECORD = [1]
+RECORD = [2]
 RECORDORDER = False
 RECORDEDX = False
 ROWSPLIT = {}
@@ -234,14 +234,14 @@ def shape(rng, name, buf):
 
 def main(argv):
     from hooks import Harness
-    rng = random.Random(2709)
+    rng = random.Random(2731)
     # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
     h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"})
     uc = h.m.uc
     slots = {off: (f"slot{off:x}", n, 0) for k, off, n in STUBS if k == "slot"}
     vt = h.vtable(slots) if slots else None
-    names = [f"slot{a:x}" if k == "slot" else f"iat{a:x}" if k == "iat" else f"{a:x}" for k, a, _ in STUBS]
+    names = [f"slot{a:x}" if k == "slot" else f"iat{a:x}" if k == "iat" else f"run{a:x}" if k == "run" else f"{a:x}" for k, a, _ in STUBS]
     # `--stub iat:VA:N`: a stub whose address is laid in an import's IAT cell,
     # which the emulator resolves to nothing, so `call [VA]` lands on it
     # (item 2336: `timeGetTime`, parked 2327).
@@ -569,4 +569,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Group::equals_group@00708000", "--item", "2709", "--own", "1", "--win", "0x8e0", "--ptrarg", "0:0x8e0", "--stub", "slot:4:0", "--stub", "0x711540:0", "--answers", "0:0,1", "--seq", "0:2", "--vtat-also", "p0+0", "--record", "1", "--wbias", "m+4:-1,0,1", "--wbias", "p0+4:-1,0,1", "--wbias", "m+0x48:0,0x100,0x10000,0x10100", "--wbias", "p0+0x48:0,0,0x100,0x10000,0x10100", "--wbias", "m+0xc:0,1,2,3,5", "--wbias", "m+0x8cc:0,0,0,1", "--wbias", "m+0x8d0:0,0,0,1", "--wbias", "m+0x8d4:0,0,0,1", "--wbias", "p0+0x8cc:0,0,0,1", "--wbias", "p0+0x8d0:0,0,0,1", "--wbias", "p0+0x8d4:0,0,0,1", "--port", "{\n    let _ = &c;\n    // normalize (stub 1) is hooked: it writes nothing here, so the count and shorts are as drawn.\n    let g = &p[0];\n    let mut calls: Vec<&str> = Vec::new();\n    let r = if m[0x4a] != g[0x4a] {\n        0\n    } else {\n        if rd(m, 4) != -1 {\n            calls.push(\"m+0x0\");\n        }\n        if rd(g, 4) != -1 {\n            calls.push(\"p0+0x0\");\n        }\n        if a[3] == a[4] && m[0x49] == g[0x49] {\n            let n = usize::try_from(rd(m, 0xc).max(0)).expect(\"a count\");\n            i64::from((0..n).all(|i| m[0x8cc + 2 * i..0x8ce + 2 * i] == g[0x8cc + 2 * i..0x8ce + 2 * i]))\n        } else {\n            0\n        }\n    };\n    log.push(if calls.is_empty() { \"-\".to_string() } else { calls.join(\"/\") });\n    r\n}"]
+# sweep_gen: ["obj", "Group::equals_group@00708000", "--item", "2731", "--own", "1", "--win", "0x8e0", "--ptrarg", "0:0x8e0", "--stub", "slot:4:0", "--stub", "run:0x711540:0", "--stub", "0x7081f0:0", "--stub", "0x70ccb0:1", "--answers", "0:0,1", "--seq", "0:2", "--answer-range", "3:-5:-1", "--vtat-also", "p0+0", "--record", "2", "--place", "0xc0ab84+m[0x4a]*0x1c:0:16", "--place", "p1+0:0:16", "--place", "p1+4:0:16", "--place", "p1+8:0:16", "--place", "p1+12:0:16", "--wbias", "p2..5+8:0,1,1,3", "--wbias", "m+4:-1,-2", "--wbias", "p0+4:-1,-2", "--wbias", "m+0x48:0,0x100,0x10000,0x10100", "--wbias", "p0+0x48:0,0,0x100,0x10000,0x10100", "--wbias", "m+0xc:0,1,2,3,5", "--wbias", "p0+0xc:0,1,2,3,5", "--wbias", "m+0x8cc:0,0xffff,0x10000,0x10003,0x2ffff,-1,0x20001,0x30002", "--wbias", "m+0x8d0:0,0xffff,0x10000,0x10003,0x2ffff,-1,0x20001,0x30002", "--wbias", "m+0x8d4:0,0xffff,0x10000,0x10003,0x2ffff,-1,0x20001,0x30002", "--wbias", "p0+0x8cc:0,0xffff,0x10000,0x10003,0x2ffff,-1,0x20001,0x30002", "--wbias", "p0+0x8d0:0,0xffff,0x10000,0x10003,0x2ffff,-1,0x20001,0x30002", "--wbias", "p0+0x8d4:0,0xffff,0x10000,0x10003,0x2ffff,-1,0x20001,0x30002", "--port", "{\n    let _ = &c;\n    // normalize (stub 1) is run, the original's own code: it drops the entries whose object is gone\n    // (a negative index, or its object's flag bit clear), shifting the rest down, then `find_role`\n    // (stub 2, hooked, writes nothing) and `find_leader` (stub 3, hooked, answers < 0), so the\n    // speed words end 0. Its `field_0x4 >= 0` arm (the objects' vtable slots) is never drawn.\n    let bits: Vec<bool> = (0..4).map(|s| p[2 + s][8] & 1 != 0).collect();\n    let norm = |w: &mut [u8]| {\n        let mut n = rd(w, 0xc);\n        let mut i = n - 1;\n        while i >= 0 {\n            let iu = usize::try_from(i).expect(\"an index\");\n            let s = i16::from_le_bytes([w[0x8cc + 2 * iu], w[0x8cd + 2 * iu]]);\n            if s < 0 || !bits[usize::try_from(s).expect(\"an object\") % 4] {\n                if i < n - 1 {\n                    let mut j = iu;\n                    loop {\n                        for base in [0x4c, 0x24c, 0x44c, 0x64c] {\n                            let v = rd(w, base + 4 * (j + 1));\n                            wr(w, base + 4 * j, v);\n                        }\n                        w[0x84c + j] = w[0x84c + j + 1];\n                        w[0x8cc + 2 * j] = w[0x8cc + 2 * j + 2];\n                        w[0x8cd + 2 * j] = w[0x8cd + 2 * j + 2];\n                        j += 1;\n                        if i32::try_from(j).expect(\"an index\") >= n - 1 {\n                            break;\n                        }\n                    }\n                }\n                n -= 1;\n                wr(w, 0xc, n);\n            }\n            i -= 1;\n        }\n        wr(w, 0x40, 0);\n        wr(w, 0x3c, 0);\n    };\n    let mut calls: Vec<&str> = Vec::new();\n    let r = if m[0x4a] != p[0][0x4a] {\n        0\n    } else {\n        if rd(m, 4) != -1 {\n            calls.push(\"m+0x0\");\n            norm(&mut *m);\n        }\n        if rd(&p[0], 4) != -1 {\n            calls.push(\"p0+0x0\");\n            norm(&mut p[0]);\n        }\n        let g = &p[0];\n        if a[5] == a[6] && m[0x49] == g[0x49] {\n            let n = usize::try_from(rd(m, 0xc).max(0)).expect(\"a count\");\n            i64::from((0..n).all(|i| {\n                m[0x8cc + 2 * i..0x8ce + 2 * i] == g[0x8cc + 2 * i..0x8ce + 2 * i]\n            }))\n        } else {\n            0\n        }\n    };\n    log.push(if calls.is_empty() {\n        \"-\".to_string()\n    } else {\n        calls.join(\"/\")\n    });\n    r\n}"]
