@@ -1959,7 +1959,15 @@ impl Sim {
         }
         let gg = g48(goal);
         let md = (hg.x - gg.x).abs() + (hg.y - gg.y).abs();
+        // **The near test zeroes the tolerance**, as the same-cell test
+        // above does: `cmp ecx, 1; jg` at `683273`, then `mov [ebp-0x3c],
+        // 0` — `PathData +0x8` of the entry at `ebp-0x44` — before the push
+        // at `683284`. The pull-back's own pushes keep it. East Indies'
+        // Flamethrower `1/187` (`docs/AI.md` §231) pulled a far waypoint
+        // back beside it on 5459 and kept its 384, so it popped the leg
+        // where it stood instead of walking it.
         if md < 2 {
+            goal_e.tolerance = 0;
             self.units[u].path.push(goal_e);
             return self.units[u].path.len() as i32;
         }
@@ -2504,6 +2512,33 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// **`find_upath`'s near test zeroes the waypoint's tolerance**
+    /// (`683273`–`68327d`, `docs/AI.md` §231): a goal one 48-cell from the
+    /// unit is pushed back alone, as the same-cell test pushes it, with
+    /// `tolerance` 0 — a leg's 384 kept would pop it where the unit stands.
+    #[test]
+    fn a_near_unit_goal_is_pushed_with_no_tolerance() {
+        let mut sim = flat_sim(20);
+        let here = Pos::new(0x18 + 0x30 * 10, 0x18 + 0x30 * 10);
+        let u = walker(&mut sim, here);
+        let to = Pos::new(here.x + 0x30, here.y);
+        sim.units[u].path.push(PathData {
+            to,
+            tolerance: 0x180,
+            flags: 0,
+        });
+        assert_eq!(sim.find_upath(u, false), 1);
+        assert_eq!(
+            sim.units[u].path.last().copied(),
+            Some(PathData {
+                to,
+                tolerance: 0,
+                flags: 0,
+            }),
+            "the near goal alone, its tolerance zeroed"
+        );
     }
 
     /// A large unit searches at its own stride and cannot jump a refused
