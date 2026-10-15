@@ -410,6 +410,7 @@ mod caster_walk_data;
 mod circle_render_on_field_change;
 mod city_calc_gather;
 mod city_compute_trade;
+mod city_could_queue;
 mod city_data_can_upgrade;
 mod city_data_count_buildings;
 mod city_data_depop_can_queue;
