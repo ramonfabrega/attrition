@@ -937,6 +937,7 @@ mod unit_data_get_order;
 mod unit_data_get_packer_stance;
 mod unit_data_get_stance_type;
 mod unit_data_get_worker_stance;
+mod unit_data_has_damage;
 mod unit_data_has_stance_type;
 mod unit_data_in_supply;
 mod unit_data_is_attacking;
