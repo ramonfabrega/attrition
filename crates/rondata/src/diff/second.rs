@@ -2708,7 +2708,9 @@ mod tests {
         assert_eq!(w.frames, 28);
         assert_eq!(w.theirs, 131);
         assert_eq!(w.ours, w.theirs, "all projectile lifetimes");
-        assert_eq!(w.fields, 2620, "twenty comparisons per paired record");
+        // Item 2609: twenty-two, once `rolling` and the crash's bank pair are
+        // compared on every round (`docs/AI.md` §228).
+        assert_eq!(w.fields, 2882, "twenty-two comparisons per paired record");
         assert!(
             w.firsts
                 .keys()
@@ -2799,7 +2801,7 @@ mod tests {
         pin_eq!(a.frames, 81, "run594 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1326, 1343, 26520),
+            (1326, 1343, 29172),
             "all live rounds and paired fields"
         );
         // 351 → 337 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
@@ -2895,7 +2897,7 @@ mod tests {
         pin_eq!(a.frames, 64, "run589 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1084, 1096, 21680),
+            (1084, 1096, 23848),
             "all live rounds and paired fields"
         );
         // 279 → 276 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
@@ -2980,7 +2982,7 @@ mod tests {
         pin_eq!(a.frames, 64, "run588 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (973, 978, 19460),
+            (973, 978, 21406),
             "all live rounds and paired fields"
         );
         pin_eq!(a.firsts.len(), 173, "run588 projectile baseline");

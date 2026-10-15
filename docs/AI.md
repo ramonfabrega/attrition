@@ -21110,12 +21110,104 @@ Ours spends one more `Guy::set_anim+0x97a < Guy::inc_time+0x271`; theirs goes on
 **Diff-backed**: the helicopter's edge-to-edge search (run866's block 5136, nine orders). **Reading only**: the arm's
 missile conjunct.
 
-## 228. Reserved for the next item on the AI track
+## 228. A shot-down aircraft's crash round holds its number, and the peace pair's word moves 5225 → 5315 (2026-10-15, item 2609)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The widening is on disk.** The word 5225 lies inside run866's window (5129..5385), so its block 5226 was compared
+whole by `diff::lakota_pair::run866_s_word_frame_is_widened_whole`. No capture was booked.
+
+**The draws on 5225** (run847's trace, `RON_DEBUG_SITES`). Ours spends 24 and theirs 23:
+- both spend the same five first (`1/124`'s `do_cast`, its `Guy::init_real`, three of `1/136`'s `move_step`);
+- then `Guy::inc_time`'s walk, 18 draws ours against 17;
+- then the bird `9/6`'s `Guy::set_anim+0x104b`.
+
+Theirs prints which loop of `Unit::inc_time@00610b40` each draw sits in: `+0x3e` is the figure loop and `+0x6e` the
+extras'. Read against our units in walk order, theirs is ours less one draw, at `1/120`.
+
+**The cast on 5226**, both directions, is a numbering:
+- `1/124`, an MLRS (`TypeIndex` 273, land), casts its transport, a TRANSPORTFREIGHTER (322). Its `inside` reads ours
+  120 against theirs 216.
+- `1/120` is "this crate holds it alone", and `1/216` "the dump holds it alone".
+- Block 5210 is the same event earlier: `1/194`'s transport is ours `1/114` against theirs `1/189`.
+
+So ours handed the newborn transport a recycled number, and the newborn in slot 120 rolled in `Guy::inc_time`'s walk
+ahead of `1/132`. Theirs took a fresh number past the mark, and its newborn sits at the walk's end.
+
+**Why theirs would not reuse 114 and 120.** Both were who=1's Jet Fighters (295), last printed on 5177 and 5191, and
+both `up −1`, so `find_free@0065ad60`'s captain term (`o_up`, `UnitData +0x8e` by the type record, `0065adde`) passes
+them. Its other test is `hold_frames` (`+0x32`) zero. The dump prints no dead slot, so the hold is not on disk.
+
+The holder is the crash:
+- `Objects::kill_guy` sends a plane to `Ammo::init_crash@0067b800` (COMBAT §81.3), whose round carries the plane's own
+  `who`/`o`.
+- `Ammo::inc_time@0067d380`'s first statement bumps a dead shooter's `hold_frames` every frame.
+- `Object::die`'s tail adds the round's remaining time over the close's thirty.
+
+Ours laid no round (§81.5), so the slot came free thirty frames after death.
+
+**`init_crash`, from the listing** (`67b909`–`67bb60`):
+1. **The fall**: `sqrtf((float)(−2z) / GRAV_Z)`, with `z` the figure's altitude.
+2. **The landing**: the object's point plus `moves × UNIT_MOVE_SPEED` along the figure's angle. `x` is `sin_table` of
+   the angle and `y` of the angle less a quarter turn, each times the fall, truncated. Then `WorldData::restrict`.
+3. **`ez`**: `find_data_z` at the landing.
+4. **`total_time`**: `sqrtf(dx² + dy²) / moves` from the **figure's** point, truncated, at least 1.
+5. Then the game's draw (`rolling = r % 7 − 3`), and `bank_dx`/`bank_dy` from two `Random::get(−30, 30)` on a local
+   `Random` seeded by `x + y + z`.
+
+Each frame short of `total_time`, the crash arm (`+0x50 == 1`):
+- drifts the landing by the bank pair and restricts it;
+- tests `(float)find_data_z` at the round's point on the line against `sz + GRAV_Z × 0.5 × t²`. These are
+  `arc_point` and `arc_z`, the rolling arm's own arithmetic.
+- Under the ground, it lands there with `total_time = cur + 1`, and **jumps back to the loop's head** (`67d726` →
+  `67d39a`), so `cur_time` and the hold are bumped once more.
+
+**Built**:
+- `Single::sqrtss`: `sqrtf`'s double root rounded to a single, which is one correct rounding.
+- `combat::Crash` on `Projectile`.
+- `Sim::crash_round` (`air.rs`), laid by `crashes`.
+- `Sim::crash_comes_down` and the crash arm in `process_projectiles`; the crash round's hold bump moves from
+  `hold_frames_tick` into its own step.
+- **A landing round keeps its pool slot through `do_damage`.** `inc_time` closes it only afterwards, so the crash it
+  causes takes the next free slot. Ours removed it first.
+- The harness compares the crash's `rolling` and bank pair.
+
+**Tests and mutations**:
+- `air::flak_tests::a_plane_shot_down_lays_the_crash_round_run405_prints` rebuilds run405's two Bombers from their own
+  figures and type `moves` 60. `0/6` lays at (22944, 18997) with `total_time` 18 and bank (23, 5). `0/7` lays at
+  (21881, 15894) with 17 and (0, 1). The hold is `31 + total`.
+- Three mutations through `tools/mutate.py`, each exit 101:
+  - no round laid: `lakota_pair_first_parting` fails, its word back at 5225;
+  - the landing round freed first: chapter 38's widening fails;
+  - `−z` for `−2z`: the unit test fails.
+
+**Value diff.**
+- **On 5226**, `1/124` reads `inside` 216 both sides and `1/216` stands both sides. Its one row is `form`, ours −1
+  against 0, the pair's standing `form` residue. 5210 and 5219 hold no row.
+- **run866 goes 3550 → 1340.** Still standing:
+  - `1/2014` and `1/2022`'s `cost[1]` on 5183, 155 against 116 (parked 2579);
+  - who=1's `num_units[255]` and `[261]` on 5201;
+  - `1/2005`'s `job_counter` on 5202, 17625 against 17250.
+- **Chapter 38 (run405)**: both crash rounds now agree field for field to their landing, `ex`/`ey` drifting and both
+  coming down short of `total_time` on theirs' frame. The Battery round the dump held alone on 1015 (the slot the
+  crash took) is gone. Left is each crash's `splash_area` (ours 0, theirs 2), the pool slot's leftover, which
+  `init_crash` never writes.
+- The height reads at inexact corners: the pair's walk 1653 → 1672, run866 1673 → 1678, chapter 38 44 → 51.
+- The held-out battery is 576 / 6566 / 2974, unmoved.
+
+**The word moves 5225 → 5315**, count and sequence both. Ours spends 30 draws and theirs 29, parting at index 0.
+Ours spends `Unit::do_move+0xe84`; theirs spends six `Guy::set_anim+0x97a < Guy::move+0x19f` (seed `83f66cfb`). The
+word lies inside run866's window, so block 5316 is widened. Its rows are all `1/11`:
+- on 5315, `order:move.dest` ours 1 against theirs 0, and `path:length` 52 against 51;
+- on 5316, `collide_o` ours −1 against theirs 221, and `heading` and `g.angle[0]`.
+
+**Not established.**
+- `GraphicPieces::get_gpiece_type(+0x8)`: a non-zero type skips the terrain test. It is read as zero. Both of
+  run405's crashes end short of `total_time`, which only the test does.
+- `Ammo::do_damage` for a crash that has come down (a SEAM). Neither run405 nor run866 shows a draw there.
+- A plane closed with `dtype` 0 never reaches `close_unit`'s crash, and that arm is not read.
+
+**Diff-backed**: the crash's `total_time`, landing, drift, bank, `ez` and early landing (run405, two rounds); the held
+slots (run866's 5210 and 5226 numbering). **Reading only**: the hold's arithmetic past death (the dump prints no dead
+slot), and the gpiece gate.
 
 ## 229. Reserved for the next item on the AI track
 
