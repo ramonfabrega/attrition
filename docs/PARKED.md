@@ -3745,6 +3745,11 @@ line, filed at its merge): 2660 booked "ours has no non-bomber release" from the
 `add_ammo` print killed it in five minutes — ours released, from the wrong point. Candidate: a brief row, "an absence
 a booking cites is a probe's, named", or the commander's booking names one. One reach.
 
+(2726) **A booking off a fallback's parting draw names the threshold's inputs, not the site** (2703's "for the Loop"
+line, filed at its merge): 2694 booked "a scout's explore search takes a different point" from `think_scout+0x941`,
+the consumer of a score; draws 0..24 agreeing said the inputs were equal up to one, and the 195 in `danger` was the
+cause. Candidate: a brief row, "a parting at a fallback asks first which of its gate's inputs differs". One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
