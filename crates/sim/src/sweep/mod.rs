@@ -31,6 +31,7 @@ mod build_type_get_good;
 mod city_get_empty_trade_routes;
 mod city_get_trade_routes;
 mod cosx;
+mod farms_add_animals;
 mod farms_grow;
 mod farms_snip;
 mod find_angle;
