@@ -5448,13 +5448,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CQ — reserved
+## Parked by item 2454, 2026-10-14 — the sweep's seventy-fourth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2455) **`--cmd-gate` is built** (2454; `OFF:MASK:CMD:SIZE:FIELD,..[:C[:PRE[:VA:ARG]]]`, an empty OFF for a
+`CommandManager` issuer). `issue_stance` and `issue_form` regenerate byte for byte (script and test). The first
+test failed first (`AttributeError`); the ungated and sound forms were written beside the code and passed on
+their first run, so their break is the ten sweeps' own (each fails on a pinned `ecx`). The emulator prints the
+record in stub order with the deref last (a sound stub, index 3, goes before each arm's final push), and a
+group buffer's `ecx` is `p0+0x0`, `this + 0x28` is `536870952`.
+(2456) **Left**: `GroupOut::issue_move_to`, `_attack_ground`, `_gather_point` are not the shape — an editor
+branch (`gamec` byte 1 `& 8`, `EditorGroups` calls on `select_groups`) and, for `attack_ground`, a world-map
+peace test before the command; `GroupOut::issue_set_transport` and `_disband` were 2421's. `issue_camera`'s
+`cvttss2si` is ported as an integer (sign, exponent, mantissa; indefinite `i32::MIN` at exponent >= 31), and its
+break is only visible once the draw holds an exponent of 23 or more (two `--wbias` lists carry `0x4b000000`).
+The census's next issuers: `CommandManager::issue_come_out`, `_resign`, `_gather`, `_unqueue` x2, `_form`,
+`_follow`, `_garrison`, `_queue_up`, `_patrol`; `--cmd-gate` takes the ungated ones with a 4-byte field list.
 
 ## Parked by the next landing, slot CR — reserved
 
