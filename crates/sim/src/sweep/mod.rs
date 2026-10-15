@@ -735,6 +735,7 @@ mod ocean_vars_get_name;
 mod oil_well_walk_data;
 mod order_list_get_data_type;
 mod order_list_get_new_data;
+mod path_finder_add_to_openlist;
 mod path_finder_building_danger;
 mod path_finder_calc_river_cost;
 mod path_finder_data_find_node_closed;
