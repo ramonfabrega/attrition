@@ -23,8 +23,8 @@ at 302 k, cleared and continued). The peace pair 5315 → 5407, chapter 79 opene
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every
   third landing and at the drain; a fresh worktree's whole release build is 40 s, so the gate's minutes are tests.
 - **Lanes: four live** (DECISIONS 73): 2677 (AI §230, EC, runs 867, 873), 2703 (GOLDEN §100, EH, run 876), 2714
-  (EJ), 2719 (EK). Next 2724, run 877 (Astra holds 900–909). Pools: GOLDEN §101–105, AI §231–234, park EL–EQ.
-- **Fable backlog: 8 Loop items** (1570, 1725, 2003, 2518, 2524, 2654, 2678, 2704).
+  (EJ), 2719 (EK). Next 2725, run 877 (Astra holds 900–909). Pools: GOLDEN §101–105, AI §231–234, park EL–EQ.
+- **Fable backlog: 9 Loop items** (1570, 1725, 2003, 2518, 2524, 2654, 2678, 2704, 2724).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
