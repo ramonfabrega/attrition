@@ -66,8 +66,15 @@ pub(crate) const LAKOTA: Pair = Pair {
     // 0 / 0 on 5037): ours 24 draws, theirs 32, index 4 — ours
     // `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
     // `Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a`.
-    count: 5135,
-    sequence: 5135,
+    // Item 2554: 5135 → 5225, `attack_dist`'s plane arm read as
+    // `is_plane` (`docs/AI.md` §227): who=1's Attack Helicopter `1/145`,
+    // its army's group leader on a `GROUP_ATTACK_TO`, measures the human's
+    // `0/2000` edge to edge on its fifteen-frame look and hands it to the
+    // group (`ATTACK` on `0/2000` for all nine members on 5136, both
+    // sides): ours 24 draws, theirs 23, index 22 — ours `Guy::set_anim+0x97a
+    // < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x104b`.
+    count: 5225,
+    sequence: 5225,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -402,5 +409,19 @@ fn run866_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "initial run866 baseline");
+    pin_eq!(w.firsts.len(), 3550, "initial run866 baseline");
+    // Item 2554: the word 5135's own block is 5136, widened at 5707 keys.
+    // Theirs gives who=1's naval army (group 72, nine members: the
+    // Missile Cruisers `1/20`, `1/21`, `1/25`, `1/26`, `1/34`, `1/36`,
+    // `1/42`, `1/49` and the Attack Helicopter `1/145`, its leader) an
+    // `ATTACK` on the human's `0/2000`, where ours kept the attack-move
+    // (`1/145` `order:kind` ours 21 against theirs 10, `1/21` `orders.len`
+    // ours 0 against 1). `1/145`'s fifteen-frame look found nothing in
+    // ours: `attack_dist` measured the helicopter centre to centre.
+    // 5707 → 3550 with `is_plane` built: on 5136 the nine read `ATTACK`
+    // both sides (`1/20` at (9442, 15614), `1/145` at (9158, 11227)), and
+    // 5136 and 5137 hold no row. 99 keys stand from 5129 (24 `form`, 17
+    // leader, among them the human's `control` 14 against 0, and `1/197`'s
+    // `air.mandatory`); the first past it is group 64 on 5141, and
+    // `0/2000`'s `damage_frac` parts on 5161 (ours 0, theirs 10).
 }
