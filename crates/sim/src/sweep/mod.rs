@@ -96,6 +96,7 @@ mod roads_out_fill_cache;
 mod roads_road_added;
 mod roads_road_cleared;
 mod signposts_head;
+mod signposts_next;
 mod spell_type_cast_unpack;
 mod spell_type_walk_rules_data;
 mod storm_get_name;
