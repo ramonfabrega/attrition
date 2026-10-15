@@ -1609,6 +1609,19 @@ class Shapes(unittest.TestCase):
         self.assertIn('GATE_THIS = False', script0)
         self.assertIn('if gate == 0 {', test0)
 
+    def test_a_mix_may_read_a_displacement_through_this_minus_k(self):
+        # parked 2536: GroupOrder::walk_data reads edx = [[this-0x1c]+4] and
+        # walks (this+edx-0x18, this+edx-0x17) then (this-0x18, this-4).
+        spec = 'GroupOrder::walk_data@00485580'
+        steps = ['walk:this-0x18+d:this-0x17+d', 'walk:this-0x18:this-4']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2547, vbase=0x1c, steps=steps)
+        compile(script, 'sweep_group_order_walk_data.py', 'exec')
+        self.assertIn('VBASE = 0x1c', script)
+        self.assertIn('this - 0x18 + g', test)
+        self.assertIn('this - 0x4', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2547, steps=['walk:this:this+2'])
+        self.assertIn('VBASE = None', script0)
+
 
 if __name__ == '__main__':
     unittest.main()
