@@ -5778,13 +5778,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DL — reserved
+## Parked by item 2572, 2026-10-15 — chapter seventy-six, the President's train arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2573) **A human's Republic raises every capped good's `resource_cap` by 800, not 50 %** (2572): run871 (`ch76`, Republic
+researched at a Senate on 1010, The Senator born 1011): who=0's `leader:resource_cap` for food, timber, wealth, metal and
+oil is ours 1120, theirs **1920 on 1013** and stays 1920 to the record's end (`grep -c "resource_cap 1920"` 6,522 rows). The
+tree's `republic` term (`economy.rs` ~915, `REPUBLIC_COMMERCE_BONUS` 50, diff-backed on East Indies' British AI on 15782 as
+×150/100) would give 1680. Candidate: the age (`age who=0 3` ran on 600, before the Republic) or the base, not the
+bonus; check `calc_resource_caps@006ce900` at age 3 with and without the Republic. Names no word (no draw reads the cap),
+so it parks; its five rows stand in `golden::WANT_CH76`.
 
 ## Parked by the next landing, slot DM — reserved
 
