@@ -5552,13 +5552,11 @@ treaty family (`_treaty`, `_declare`, `_accept`, `_reject`, `_clear_all`, `_clea
 `_chat`, `_quit`, `_player_speed`) — none listed for `mov byte` yet; `_flight`'s siblings at 0x941db0.. (cmd 0x23, 0x24,
 0x1d: no-argument one-byte commands) are a four-line shape no flag writes.
 
-## Parked by the next landing, slot CU — reserved
+## Parked by item 2474, 2026-10-14 — a wonder finished on a human
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2475) **`hurry` and a unit's `finish` are unapplied** (item 2474, `docs/GOLDEN.md` §90). `Console::hurry_action@007c3810`
+with `this == 0` adds the train time, not 10000, to a finished building's queue head; the unit arm adds 10000 to
+`+0x64`. Nothing booked names either. Names no score.
 
 ## Parked by item 2481, 2026-10-15 — the sweep's seventy-seventh batch: three, not ten
 

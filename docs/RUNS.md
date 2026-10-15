@@ -16975,3 +16975,20 @@ blocks, about fifteen minutes. Falsifiers held: The Despot born 1011 at 659; The
 **What it holds**: `golden::chapter_seventy_two_holds_to_the_golden_word` (**1770**, the trace's end, closed) and
 `chapter_seventy_two_s_word_frame_is_widened_whole` (600..1771, thirteen standing rows).
 
+## run860 — chapter seventy-three: a wonder finished on a human (2026-10-14, item 2474, `att-2474`)
+
+`docs/GOLDEN.md` §90, `tools/gamelog/golden/chapter73.cmd` (ten staged lines). **What the disk could not answer**: no
+golden capture has a human's Citizen-built wonder in a city, `finish` being unapplied until this item; AI §216's
+Supercollider arm was backed only by an AI's.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch73 \
+    --map 14 --end-frame 760 --log-window 600 760 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter73.cmd
+```
+
+One take, click-free pool lane 1, `success: true`, 168 s, 761 frames. **What it holds**:
+`golden::chapter_seventy_three_holds_to_the_golden_word` (**760**, the trace's end, closed) and
+`chapter_seventy_three_s_word_frame_is_widened_whole` (600..761, thirteen standing rows).

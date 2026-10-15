@@ -7522,3 +7522,28 @@ fn the_city_alarm_raids_light_attacks_heavy_and_spares_the_capital_s_stamps() {
         "a light hit on the capital raids"
     );
 }
+
+/// Item 2474 (`docs/GOLDEN.md` §90): the console's `finish` on a selected
+/// unfinished building (`Console::hurry_action@007c3810`, `this != 0`).
+/// `BuildData::is_active` clear → vslot `0x1a8`, `Build::activate(0, 1, 1)`;
+/// then `job_counter += 10000`, then `do_queue(0)`. A site a builder left
+/// unfinished is a finished building in the city, and a finished one is
+/// only paid the 10000.
+#[test]
+fn finish_activates_a_site_and_pays_the_counter() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 32)).unwrap();
+    assert!(!sim.buildings[b].active, "a placed site is unfinished");
+    let before = sim.buildings[b].job_counter;
+    sim.cheat_finish(b);
+    assert!(sim.buildings[b].active);
+    assert_eq!(sim.buildings[b].job_counter, before + 10_000);
+    sim.cheat_finish(b);
+    assert_eq!(
+        sim.buildings[b].job_counter,
+        before + 20_000,
+        "a finished building is only paid"
+    );
+}
