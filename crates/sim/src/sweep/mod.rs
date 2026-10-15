@@ -40,6 +40,7 @@ mod farms_walk_data;
 mod find_angle;
 mod flanking;
 mod follow_order_get_type;
+mod game_current_age;
 mod game_is_raining;
 mod game_war_allowed;
 mod garrisonorder_get_garrison_order;
