@@ -1037,10 +1037,10 @@ impl Sim {
         if let Obj::Building(b) = target {
             return self.build_is_seen(b, who);
         }
-        if let Obj::Unit(u) = target {
-            if self.unit_stealth_hides(u, who) {
-                return false;
-            }
+        if let Obj::Unit(u) = target
+            && self.unit_stealth_hides(u, who)
+        {
+            return false;
         }
         if self.world_sees(self.pos_of(target), who) {
             return true;
