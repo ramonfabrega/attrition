@@ -1689,6 +1689,31 @@ class Shapes(unittest.TestCase):
         _, _, _, test0, _ = sweep_gen.generate_mix(spec, item=2583, steps=steps)
         self.assertNotIn('assert_eq!(eax, walker', test0)
 
+    def test_a_mix_token_may_name_the_record_the_global_cell_holds(self):
+        # parked 2584: Constants::walk_data hands (rec, rec+0xd40) and (rec+0x804, rec+0x808), rec = *0xc061f0.
+        spec = 'Constants::walk_data@0057f910'
+        steps = ['walk:rec:rec+0xd40', 'walk:rec+0x804:rec+0x808']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2588, glob=0xc061f0, steps=steps)
+        compile(script, 'sweep_constants_walk_data.py', 'exec')
+        self.assertIn('REC = True', script)
+        self.assertIn('vec![walker, g, g + 0xd40]', test)
+        self.assertIn('vec![walker, g + 0x804, g + 0x808]', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2588, glob=0xc061f0, steps=['walk:this:this+2'])
+        self.assertIn('REC = False', script0)
+
+    def test_a_mix_may_assert_a_store(self):
+        # parked 2586: Dock::walk_data stores -1 (a word) at this+6 when [walker+8]==0 and [walker+4]!=0.
+        spec = 'Dock::walk_data@00740c40'
+        steps = ['walk:this:this+6', 'walk:this+8:this+0xa', 'gated/walk:this+6:this+8']
+        _, script, _, test, _ = sweep_gen.generate_mix(spec, item=2588, gate=8, store='6:0xffff:2:4', steps=steps)
+        compile(script, 'sweep_dock_walk_data.py', 'exec')
+        self.assertIn('STORE = (0x6, 0xffff, 2, 0x4)', script)
+        self.assertIn('after', test)
+        self.assertIn('0xffff', test)
+        _, script0, _, test0, _ = sweep_gen.generate_mix(spec, item=2588, gate=8, steps=steps)
+        self.assertIn('STORE = None', script0)
+        self.assertNotIn('after', test0)
+
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
         self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', 'Foo::bar@00401000']),
