@@ -60,13 +60,15 @@
 /// item 2395: 894 -> 904, the sweep's seventy-first batch, ten `issue_*` issuers left after 2379
 /// (`CommandManager` six, `GroupOut` four), re-pinned by the commander at booking;
 /// item 2400: 904 -> 916, the port-consumer sweep's eleven on `--record-edx`, `--ring` and `--ecx-answer`,
-/// `compute_trade` and `kill_group_move` regenerated without hand edits).
+/// `compute_trade` and `kill_group_move` regenerated without hand edits;
+/// item 2421: 916 -> 926, the sweep's seventy-second batch, ten `GroupOut::issue_*`, seven of them
+/// forwarders written as hand `--port`s).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 916;
+pub const SIMULATION_BACKED: usize = 926;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

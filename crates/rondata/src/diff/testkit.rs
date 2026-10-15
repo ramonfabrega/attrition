@@ -6427,6 +6427,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_EIGHT: i64 = 1360;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SIXTY_EIGHT: (i64, i64) = (600, 1361);
 
+/// **Chapter seventy-one** (item 2436, `docs/GOLDEN.md` §88, run858): a
+/// Senate for who=0 with the Generals' and Supply upgrades held, and
+/// Despotism researched there: The Despot's birth at 659 hits.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_ONE: i64 = 1120;
+
+/// `chapter_seventy_one_s_word_frame_is_widened_whole`'s window: run858
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SEVENTY_ONE: (i64, i64) = (600, 1121);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8788,6 +8797,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_sixty_eight_s_word_frame_is_widened_whole"),
         2357,
         Some(WIDENING_CHAPTER_SIXTY_EIGHT),
+    ),
+    // Item 2436: run858, chapter seventy-one, the Senate's patriot at 659
+    // hits. The widening is run858 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVENTY_ONE",
+        GOLDEN_WORD_CHAPTER_SEVENTY_ONE,
+        Some("chapter_seventy_one_s_word_frame_is_widened_whole"),
+        2436,
+        Some(WIDENING_CHAPTER_SEVENTY_ONE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

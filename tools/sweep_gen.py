@@ -1230,13 +1230,25 @@ def by_row(calls, base, stride, n, spans):
     return ["/".join(col) or "-" for col in cols]
 
 
-def in_order(calls, record, names, spans):
+def in_order(calls, record, names, spans, split=None):
     """`--record-order` (item 2341): the recorded stubs' calls as one token
     a call, in the order they were made, each headed by the callee's stub
     index (`s3:m+0x0`), so two argument-less callees on one `ecx` are
-    ordered (`add_think_order`, parked 2318); `-` when none was called."""
+    ordered (`add_think_order`, parked 2318); `-` when none was called.
+    `split` maps a stub index to its `--sparse` table `(base, stride, n)`
+    (`--record IDX@S`, item 2421): that stub's `ecx` is written `rK+OFF`,
+    K the table row, when it lies inside the table."""
     want = {{names[idx]: idx for idx in record}}
-    return [f"s{{want[n]}}:" + ",".join(token(v, spans) for v in [e] + list(a))
+    split = split or {{}}
+
+    def head(i, e):
+        if i in split:
+            base, stride, n = split[i]
+            k = ((e & 0xFFFFFFFF) - base) // stride
+            if 0 <= k < n:
+                return f"r{{k}}+{{(e & 0xFFFFFFFF) - base - k * stride:#x}}"
+        return token(e, spans)
+    return [f"s{{want[n]}}:" + ",".join([head(want[n], e)] + [token(v, spans) for v in a])
             for n, e, a in calls if n in want] or ["-"]
 
 
@@ -1287,12 +1299,14 @@ def wdraw(rng, vals):
     return rng.randint(lo, hi)
 
 
-def seq_values(rng, n, pick, terms, rand32):
+def seq_values(rng, n, pick, terms, rand32, span=None):
     """`--seq IDX:N[:T,T..]`'s answers a row: N drawn from the stub's
     `--answers` list (90%) or a random word, the last from the terminators
     T when given — answered past N, so a loop that runs while the stub
     answers inside a set ends (`Unit::repath`, item 2368, parked 2342)."""
-    vals = [rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng) for _ in range(n)]
+    # `span` (`--answer-range` beside `--seq`, item 2421): every answer in LO..HI.
+    vals = [rng.randint(*span) if span else rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng)
+            for _ in range(n)]
     if terms:
         vals[-1] = rng.choice(terms)
     return vals
@@ -1532,7 +1546,8 @@ def main(argv):
         # 2368) — printed after the answers (item 2217).
         seqs = []
         for idx, n, terms in SEQ:
-            vals = seq_values(rng, n, dict(ANSWERS).get(idx), terms, rand32)
+            vals = seq_values(rng, n, dict(ANSWERS).get(idx), terms, rand32,
+                              {{i: (lo, hi) for i, lo, hi in ANSRANGE}}.get(idx))
             seqs.append(vals)
             turn = [0]
 
@@ -1593,7 +1608,8 @@ def main(argv):
                                           for k, (a_, b) in enumerate(wins)]
             cols = []
             if RECORDORDER:
-                cols = in_order([(n_, e_, a_) for n_, e_, a_, _ in h.calls], RECORD, names, spans)
+                cols = in_order([(n_, e_, a_) for n_, e_, a_, _ in h.calls], RECORD, names, spans,
+                                {{i: tables[t] for i, t in ROWSPLIT.items()}})
             for idx in ([] if RECORDORDER else RECORD):
                 calls = [(ecx_, list(args_)) for name_, ecx_, args_, _ in h.calls if name_ == names[idx]]
                 if RECORDEDX:
@@ -1858,8 +1874,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         pderef.append((idx, k, n))
     if record_edx and (not precord or prowsplit or record_order):
         raise ValueError('--record-edx adds `edx` to the --record stubs\' calls; a row split or an order keeps its own columns')
-    if record_order and (not precord or prowsplit):
-        raise ValueError('--record-order orders the --record stubs\' calls; a row split keeps its own columns')
+    if record_order and not precord:
+        raise ValueError('--record-order orders the --record stubs\' calls')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
         raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
     peq = []
@@ -2209,6 +2225,26 @@ def insert_mod(text, line):
     return '\n'.join(lines) + '\n'
 
 
+def fwd_gate_expand(spec, own):
+    """`--fwd-gate OFF:MASK:VA[:T,T..]` (item 2443, parked 2433): a forwarder
+    that tests `gamec`'s byte at OFF against MASK (set: it does nothing), then
+    calls VA with the caller's stale `ecx` first, its `own` arguments in order
+    and the constant tail T.. last. Returns the `obj` flags it stands for."""
+    parts = spec.split(':')
+    if len(parts) not in (3, 4):
+        raise ValueError(f'--fwd-gate {spec}: want OFF:MASK:VA[:T,T..]')
+    off, mask, va = int(parts[0], 0), int(parts[1], 0), int(parts[2], 0)
+    tail = [t for t in parts[3].split(',') if t] if len(parts) == 4 else []
+    vals = sorted({0, mask, mask * 2, mask * 3, 0xff & ~mask})
+    args = [f'a[{i}]' for i in range(own)]
+    fmt = ','.join(['m+0x0', 'm+0x0'] + ['{}'] * own + tail)
+    call = f'log.push(format!("{fmt}"' + ''.join(f', {a}' for a in args) + '));'
+    port = (f'{{ if c[0][{off:#x}] & {mask:#x} != 0 {{ log.push("-".into()); }} else {{ {call} }} 0 }}')
+    return {'stub': [f'{va:#x}:{own + len(tail) + 1}'], 'cells': ['0xc061e8:0x900'],
+            'wbias': [f'c0+{off:#x}:' + ','.join(f'{v:#x}' if v else '0' for v in vals)],
+            'record': ['0'], 'port': port}
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2360,8 +2396,22 @@ def main(argv=None):
     ap.add_argument('--write-mod', action='store_true', help='insert the `mod` line into sweep/mod.rs in sorted order')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
                     '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
+    ap.add_argument('--fwd-gate', metavar='OFF:MASK:VA[:T,T..]',
+                    help='obj: a forwarder gated on a byte of gamec, then a call to VA with the caller\'s stale ecx, '
+                         '--own arguments and the tail T.. (GroupOut::issue_*; item 2443, parked 2433)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
+    if args.fwd_gate:
+        try:
+            x = fwd_gate_expand(args.fwd_gate, args.own)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        args.stub, args.cells, args.wbias, args.record = x['stub'], x['cells'], x['wbias'], x['record']
+        args.port = x['port']
+        args.ret = args.ret or 'none'
+        if args.win == 0x400:
+            args.win = 0x20
     if args.regen and args.write_mod:
         print('sweep_gen.py: --regen leaves mod.rs alone; drop --write-mod', file=sys.stderr)
         return 2

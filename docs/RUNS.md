@@ -16889,3 +16889,22 @@ SHA-256 `ad890c9ab468d68029ba12d065ec18d339bce009472d73f6890dbc52f6b78fba`.
 holds 521 keys. On 3296, who=1's Missile Silo `1/2018` has `queue[0].job_counter` ours 71400 against theirs 0 (an
 ICBM, 316). On the word's block 3303, the second ICBM `1/135` is ours alone. With the return built (item 2412,
 `docs/AI.md` §222) it holds 169 keys, block 3303 has no row, and the word 3479 (block 3480) is in the window.
+## run858 — chapter seventy-one: the Senate's patriot at 659 hits (2026-10-14, item 2436, `att-2436`)
+
+`docs/GOLDEN.md` §88, `tools/gamelog/golden/chapter71.cmd` (eleven staged lines). **What the disk could not answer**: no
+golden capture has a Senate finish a research job for who=0 under upgraded Generals and Supply; the patriot's hits arm
+(AI §213) was backed only by the successor pair's AI Senate.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch71 \
+    --map 14 --end-frame 1120 --log-window 600 1120 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter71.cmd
+```
+
+**One take**, click-free pool lane 2: `success: true`, `settings_restored`, 521 blocks (600..1120), about seven minutes.
+Kept in `~/ron-golden/ch71/map-14`; `rontrace.dll` SHA-256
+`3d909ec32bb77ab8d713fdfc21c65aa1d9d801834ebca2c9321e43a390f0ccd7`. Falsifiers held: The Despot born on 1011 at 659 hits.
+**What it holds**: `golden::chapter_seventy_one_holds_to_the_golden_word` (**1120**, the trace's end, closed) and
+`chapter_seventy_one_s_word_frame_is_widened_whole` (600..1121, thirteen standing rows).
