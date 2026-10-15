@@ -23,7 +23,7 @@ landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes (
   the drain. **When the peace pair closes, the AI word's successor is the battery's lowest lobby**
   (EastIndiesGermanTier3, 576 of 13519), a new held-out lobby minted beside it.
 - **Lanes: three live** (DECISIONS 72): 2554 (AI §227, DM, runs 866–867), 2572 (GOLDEN §95, DL, run 871), 2588
-  (DO). Next 2589, run 872 (Astra holds 900–909). Pools: GOLDEN §96–97, AI §228–230, park DP–DS.
+  (DO). Next 2593, run 872 (Astra holds 900–909). Pools: GOLDEN §96–97, AI §228–230, park DP–DS.
 - **Fable backlog: 21 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525, 2527, 2542, 2552, 2577, 2578).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
