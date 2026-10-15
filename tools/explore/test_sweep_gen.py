@@ -316,6 +316,26 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
                                    sparse=['0xc061e0:0x100:2:0xf0,0x20'])
 
+    def test_a_counted_pointer_array_behind_image_words_is_drawn_bounded(self):
+        # Parked 2699, 2702 (item 2709): `Herds::start_herds` reads a count at
+        # the image word 0xc0a244 and a pointer array at 0xc0a250, each
+        # element a record; `--at 0xc0a244:4` draws 32 random bits and the
+        # loop never ends. `--gtab CNT:LO..HI:PTR:SIZE` draws the count from
+        # the range, lays a head window (CNT..PTR+4) and an array window as
+        # `c` windows, and one `p` window of SIZE random bytes an element.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Herds::start_herds@00741d10', item=2709, win=0x20, bias=[], own=0,
+            gtab=['0xc0a244:-1..6:0xc0a250:0x40'], stubs=['0x7417f0:0'], record=['0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('GTAB = [(12624452, -1, 6, 12624464, 64)]', script)
+        self.assertIn('for cnt, lo, hi, ptr, esize in GTAB:', script)
+        self.assertIn('a counted array', script)
+        self.assertIn('let mut c: Vec<Vec<u8>> = wins;', test)
+        self.assertIn('wins.split_off(2)', test)
+        for bad in ('0xc0a244:-1..6:0xc0a240:0x40', '0xc0a244:6..-1:0xc0a250:0x40', '0xc0a244:0..6:0xc0a250:8'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0, gtab=[bad])
+
     def test_a_link_field_is_drawn_to_terminate(self):
         # Loop 2003's reach from item 2247 (item 2276): `curr_uber_size`
         # climbs `o_up` to the captain and walks `o_down`; `set_in_danger`,

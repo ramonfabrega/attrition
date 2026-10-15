@@ -3745,6 +3745,18 @@ line, filed at its merge): 2660 booked "ours has no non-bomber release" from the
 `add_ammo` print killed it in five minutes — ours released, from the wrong point. Candidate: a brief row, "an absence
 a booking cites is a probe's, named", or the commander's booking names one. One reach.
 
+(2726) **A booking off a fallback's parting draw names the threshold's inputs, not the site** (2703's "for the Loop"
+line, filed at its merge): 2694 booked "a scout's explore search takes a different point" from `think_scout+0x941`,
+the consumer of a score; draws 0..24 agreeing said the inputs were equal up to one, and the 195 in `danger` was the
+cause. Candidate: a brief row, "a parting at a fallback asks first which of its gate's inputs differs". One reach.
+
+(2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
+check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
+`agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
+of the integration tip), all dated 2026-10-14. The frame's row ("a sweep's `agent-*` worktrees go with its
+landing", the thirty-sixth pass) postdates them; nothing removed them. Candidate: the pass reads the two unmerged
+tips and the dirty files, then removes or keeps each; a guard that names a stale `agent-*` tree at a booking. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-sixth tranche's
 
 (2654) **A staged `@attack` on a target nothing of the player's can see is dropped as `skipped {}`** (2627's "for the
@@ -3837,6 +3849,9 @@ variable-length pointer array no `obj` flag draws, a bounded link chase and a ca
 **2683** (sixty-fourth reach, filed at its merge): harvested ten of ten on the built shapes, no generator change;
 `--regen` inherits the old script's flags when a line drops one, and `--at` with a `--place` at the global's own
 address writes memory but not the `cN` window (parked 2686, 2687); six shapes none holds are 2684's.
+**2709** (sixty-fifth reach, filed at its merge): built `--gtab CNT:LO..HI:PTR:SIZE`, a test failing first; three
+of ten (`inside_bottom`, `has_damage`, `equals_group`); the brief's `start_herds` was already 2655's (parked 2710);
+a `--table` record's own row byte and links within the row were written by hand (2713; booked in 2719).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5976,21 +5991,23 @@ words and edits nothing here; a refill lands when two remain.
 
 (2702) Loop: `mix --elems count:CNT:PTR:STRIDE` and the `zero/`/`nz/` prefixes (2698) hold a counted record loop; a `walker`-less shape with a count read from an image word is the next generator gap (2699).
 
-## Parked by the next landing, slot EH — reserved
+## Parked by item 2703, 2026-10-15 — chapter seventy-nine closes: a unit's danger is the live fog's
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2705) **`UnitData::is_seen`'s stealth arm is not carried** (item 2703, `Sim::danger_unit_is_seen`; `target_is_seen`'s
+SEAM names the same arm). `unit_masks & 0x800`, the type's `0x4000` / `0x40000` (with no order) and `unit_masks2 &
+0x8000` route a unit through `is_detected(viewer)` before the fog test, which can only refuse. No capture on disk has a
+stealth unit of a military role weighed by `calc_danger`; names no score, so parked.
 
-## Parked by the next landing, slot EI — reserved
+## Parked by item 2709, 2026-10-15 — the sweep's ninety-ninth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2710) **`Herds::start_herds` was already swept** (item 2655, `--at 0xc0a244:32` and places); the brief's example was stale. `--gtab CNT:LO..HI:PTR:SIZE` (2709) is the shape the count-behind-image-words family wants; no live row uses it yet — `GroupData::get_num_cap_const` 0x70f960 (`this->num` in `this`, elements `[0xc0ab84 + 0x1c*who]`-indexed, a vcall slot `0xe8` per element) is the next candidate.
+
+(2711) **`has_damage`'s stub arm answers 1..5 only**: a zero stub answer with a captain link of -1 indexes `table[-1]`, memory the port cannot model, so the `uVar1 == 0` up-walk is covered by the base (`is_captain`) arm alone. A `--link`-style draw of a stub answer that is zero only on a record with a non-negative `o_up` would reach it.
+
+(2712) **`Group::equals_group`'s `normalize` is hooked**, not run: the original rewrites `field_0xc` and the `+0x8cc` shorts before the loop; the row's count and shorts are the drawn ones. A callee that writes `this` before a loop (parked 2701) is still unbuilt as a shape (`--stub-write` writes one window, one value, every call; `normalize` is called on two windows).
+
+(2713) Loop: `--table` with ROWS > 1 gives each record a drawn next-row word at `VOFF`; `has_damage` needed a record's own row (`who`, its +9 byte) and the links within the row, so its two rows were written as `--place`/`--link`/`--wbias` by hand. A `--table`'s `--row-byte OFF` (the record's row at OFF, no next-row word) would generate it.
+
 
 ## Parked by item 2714, 2026-10-15 — the harvest sweep's hundredth batch
 
@@ -6027,6 +6044,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EQ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
