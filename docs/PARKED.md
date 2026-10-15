@@ -5512,13 +5512,26 @@ the other `CommandManager::issue_*` the census still lists (`issue_turn_data`, `
 `_trade`, `_spell`, `_build`, `_eject_all`, `_flight`, `_guard`, `_hotkey`, `_leader_option`, treaty family,
 `_buy`/`_sell` done, `_chat`, `_player_speed`); the group-first ones take `--cmd-gate` as is.
 
-## Parked by the next landing, slot CT — reserved
+## Parked by item 2469, 2026-10-15 — the sweep's seventy-sixth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2470) **`--cmd-obj` is built** (2469; parked 2466): `CMD:SIZE:FIELD,..[:C]`, fields `zOFF` (a byte widened to a
+dword), `sOFF` (a signed word widened), `wOFF` (a word's two bytes as they lie), `aN`, `kV`; argument 0 the object
+(`--ptrarg 0:0x40`), `check_accept_issue` answered 0/1, no group. `test_a_cmd_obj_reads_a_commands_fields_off_an_object_argument`
+failed first (no `cmd_obj_expand`). `issue_come_out`, both `issue_unqueue` regenerate from it: the emulator scripts differ
+from 2464's by the kept line alone, the Rust only by the local's name (`w` -> `w0xa`).
+(2471) **Seven group-first issuers on `--cmd-gate`, no new flag** (`_eject_all` 0x1a/17, `_siege_attack` 5/13,
+`_attack` 4/17, `_swarm_around` 6/17, `_flight` 0x1c/25, `_spell` 0x17/21, `_build` 0x19/25): every listing read for
+`movb` first — only the command byte is a byte store (the neighbouring `movb`s in the ranges are other functions,
+`issue_cancel`-family and the `0x23`/`0x24`/`0x1d` flight siblings). Field order is the local's offset order, not the
+argument order: `_flight` is `a1,a2,a4,a5,a6,a3`, `_spell` `a2,a3,a1,a4,a5`. `_siege_attack`, `_attack`,
+`_swarm_around` test `a1>=0,a2>=0` before the check (`PRE`). 220 rows each agree; each broken once on the command
+byte and failing.
+(2472) **Left** from 2467's list: `GroupOut::issue_move_to`, `_attack_ground`, `_gather_point` (2456's editor branch),
+`_launch_patrol`, `_trade`, `_guard`, `_leader_option`, `_hotkey`, `_rename_city`, `_chat_set`, `_cannon_time`, the
+treaty family (`_treaty`, `_declare`, `_accept`, `_reject`, `_clear_all`, `_clear_tributes`, `_tribute`,
+`_demand_tribute`, `_propose_attack`), and the console/network ones (`_turn_data`, `_check_sums`, `_console_cmd`,
+`_chat`, `_quit`, `_player_speed`) — none listed for `mov byte` yet; `_flight`'s siblings at 0x941db0.. (cmd 0x23, 0x24,
+0x1d: no-argument one-byte commands) are a four-line shape no flag writes.
 
 ## Parked by the next landing, slot CU — reserved
 
