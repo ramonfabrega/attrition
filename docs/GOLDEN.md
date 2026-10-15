@@ -12288,12 +12288,49 @@ yet offered at the Senate under this staging's government) was not chased. §216
 cheapest lobby is a map that starts a player with one, which this crate cannot name a seed for (parked 2437). The
 `army_admits` half of §213 has no console staging.
 
-## 89. Reserved for the next item on the rules track
+## 89. Chapter seventy-two: the Senate's second government on a human — Monarchy at the Gunpowder Age, and `calc_unit_stats` re-reads a captain's hits
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2448 (Claude Sonnet 5.5, `--effort medium`). **Closed at 1770 of 1,770** (run859,
+`tools/gamelog/golden/chapter72.cmd`; `golden::chapter_seventy_two_holds_to_the_golden_word`,
+`chapter_seventy_two_s_word_frame_is_widened_whole`, 600..1771, the thirteen standing rows of chapter sixty-eight
+alone). One sim fix moved: `Sim::calc_unit_stats` (below).
+
+**The gate (parked 2437), named.** Chapter seventy-one's second `@queueup 0 625 1 2007` was refused by
+`queue_tech_with`'s `type_avail`, not by a missing object: Monarchy is `AGE 3` with `PREQ1 Gunpowder Age` in
+`techrules.xml`, so a Senate under Despotism in the Ancient age offers it unavailable and `action_queue_research`
+answers 0 (the walk's "no named object is a live unit" is that 0). The console's `age who=0 3` lifts it and nothing
+else (TECH.md: a later start age grants no epochs). `queue_here` is satisfied (`WHERE Senate`); the price (25 g / 20 k)
+is covered by the staged `resource +5000`. Staged: ch71's lines whole, `1020 age who=0 3`, `1021 @queueup 0 625 1 2007`.
+
+**What run859 held.** Monarchy finishes on 1722 (700 job frames from 1021); `Build::finished`'s Senate tail takes
+`senate_gov_hero`'s `set_type` arm: The Despot `0/6` (TypeIndex 352) becomes **The Monarch** (354) in place, same slot,
+`guy` kind 354, 109 hits — the whole record agrees both directions, 1020..1770. (The arm's patriot is The Monarch, not
+a "King": the brief's name was a supposition, `enums/TypeIndex.txt` says `THEMONARCH`.)
+
+**The value diff that moved the word's neighbour.** The first take put the age on 1012 and parted on one row: The
+Despot's `hits`/`myhits`/`hits_left`, **ours 659, theirs 109 on 1013**. At age 3 the upgrade prerequisites
+(`get_general_upgrade`/`get_supply_upgrade` read `has_preq`, whose `get_preq` rescales by age) are unmet, so the
+original's hits are 109; this crate already answered 109 for an age set before the birth. The retake (age on 1020,
+after the birth) parted on the same three fields on the age's own frame: **1021, ours 659, theirs 109** — the original
+re-reads a hero's hits when `age` runs. `Leader::set_age@006d25a0` ends in `Leader::calc_unit_stats@006cf970`, which
+for each live captain (vslot `+0xe8`, `UnitData::is_captain`) calls `update_hits(0)` (`+0x15c`), then `update_speed`
+and `update_armor`; this crate's `calc_unit_stats` did los and speed only. **Built** (`rares.rs`): a captain's
+`max_health` is re-read through `unit_hits`, the damage kept. **Mutation**: dropping the block parts the widening on
+1021 (the three fields above).
+
+**What it moved elsewhere** (the whole `diff::` suite, before the gate): fewer keys part on fourteen pins, none more —
+`sahara_toughest` run663/664/668 (66→60, 62→56, 68→62), `second` run594 (110→101) and the third pair's seven record
+baselines (each −3): the hits of generals and other captains after `age`/`library`/epoch changes. No floor, word or
+frame moved.
+
+**Census rows reached.** `Build::finished`'s Senate tail on its `set_type` arm for a human, `Unit::set_type`'s
+patriot conversion, `Leader::set_age` on a human, `Leader::calc_unit_stats`'s `update_hits` call: all entered before by
+the pairs' AI Senates or the lobbies' ages; the count is the commander's pin.
+
+**What is not established.** The one-frame edge between a chat line's frame and the birth it races (first take: line
+1012, the original read the age before the Despot's birth, this crate's walk applies it after; parked 2450). The
+`update_armor` half of `calc_unit_stats` (no armor field here changes on the staged units). §216's wonder and §214's
+facing stay unstageable (§88's table).
 
 ## 90. Reserved for the next item on the rules track
 

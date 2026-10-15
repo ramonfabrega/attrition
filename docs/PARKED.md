@@ -5449,13 +5449,18 @@ stub), `CommandManager::issue_camera` (0x940a20: `cvttss2si` of two camera float
 needs the indefinite-integer rule, not Rust's saturating `as`), `GroupOut::issue_move_to`, `_attack_ground`,
 `_gather_point`, `CommandManager::issue_set_transport`, `_disband`.
 
-## Parked by the next landing, slot CP — reserved
+## Parked by item 2448, 2026-10-14 — the Senate's second government on a human
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2450) **A chat line's frame against the birth it races** (item 2448, `docs/GOLDEN.md` §89). run859's first take had
+`1012 age who=0 3`: the original read the age before The Despot's birth (109 hits on block 1013), where
+`Script::apply` runs a cheat on 1012 before the tick of 1012 and the birth is the tick of 1011 (659). Either the
+DLL's chat frame is one behind the trace's tick or the birth is a frame later there; the word closes on both, so no
+draw shows it. A staging that puts a cheat on the birth frame is ambiguous by one (`cmdsran.py` says "frame 1012
+line 12"). Names no score.
+
+(2451) **`calc_unit_stats`' `update_armor`** (item 2448). The listing runs `update_hits(0)`, `update_speed`,
+`update_armor` for each captain behind `+0xe8`; this crate now re-reads the hits and the speed and carries no armor
+cache to re-read. Names no score.
 
 ## Parked by item 2454, 2026-10-14 — the sweep's seventy-fourth batch
 
