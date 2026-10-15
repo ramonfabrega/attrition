@@ -1604,8 +1604,10 @@ def main(argv):
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
         log = ""
         if RECORD or DEREF:
+            # `this` past the window (`this + 0x28`, a member's address) is last,
+            # so it never shadows a window the heap laid after the object (item 2464).
             spans = [("m", this, WIN)] + [(f"c{{k}}" if k < nc else f"p{{k - nc}}", a_, len(b))
-                                          for k, (a_, b) in enumerate(wins)]
+                                          for k, (a_, b) in enumerate(wins)] + [("this", this, 0x1000)]
             cols = []
             if RECORDORDER:
                 cols = in_order([(n_, e_, a_) for n_, e_, a_, _ in h.calls], RECORD, names, spans,

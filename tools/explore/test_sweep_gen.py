@@ -1114,6 +1114,23 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.cmd_gate_expand('0x820:0x10:2', own=1)
 
+    def test_an_ecx_derived_from_this_prints_as_this_plus_its_offset(self):
+        # Item 2464 (parked 2455, Loop 2003): `this + 0x28` handed to a callee
+        # lies past the `m` window (WIN bytes) and printed as the absolute
+        # address (`536870952`), so a regenerated port needed a hand patch in
+        # its kept line. A `this+OFF` span follows the windows: inside the
+        # window the token stays `m+OFF`, past it `this+OFF`.
+        _, script, _, _, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2464, win=0x20, bias=[], own=0,
+            stubs=['0x402000:1'], record=['0'])
+        self.assertIn('+ [("this", this, 0x1000)]', script)
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
+        body = script[script.index('def token('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        spans = [('m', 0x2000_0000, 0x20), ('this', 0x2000_0000, 0x1000)]
+        self.assertEqual(ns['token'](0x2000_0010, spans), 'm+0x10')
+        self.assertEqual(ns['token'](0x2000_0028, spans), 'this+0x28')
+
     def test_a_cmd_gate_without_a_gate_is_a_command_manager_issuer(self):
         # Item 2454: `CommandManager::issue_*` is the same shape with no gate:
         # argument 0 is the group (a buffer, handed to `add_group` by name)
