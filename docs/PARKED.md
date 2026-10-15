@@ -5671,13 +5671,20 @@ needs another age (`age 2`/`4`: Explorer, not a Barracks type). Names no score.
 a scratch probe each time (two reaches here, one in 2500). A `RON_STAGE_COUNTERS` print at the walk's last frame is the
 third-reach tool. Names no score.
 
-## Parked by the next landing, slot DE — reserved
+## Parked by item 2537, 2026-10-15 — the eighty-second sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2538) **The decompile's `in_ST0` is not an x87 return** (2537). Every one of the five getters parked 2534 returns its
+float in `xmm0` (`movss`/`cvtdq2ps` then `ret`); the Ghidra export prints `float10 in_ST0` and a bare `return` for a
+float the listing leaves in `xmm0`. Built as `obj --ret xmm0` (`callfn.Machine.call(ret='xmm0')`), not `st0`; an `st0`
+return is unbuilt because no listing read so far needs it. Rule for a reader: a bare `return (float)in_ST0` is read from
+the listing, not taken as x87.
+
+(2539) **Only six of ten built** (2537): `GuyData::get_render_{x,y,z,pitch,bank}` and `Game::get_game_fps_average`; the
+shortest never-backed list after them is `walk_data` bodies and render/draw callers that want a record through a
+table or a pointed buffer (`Army::walk_data` is parked 2536). Not read for this batch. Fewer than ten is a landing (2481).
+
+(2540) **`--xmm IDX:RANGE` not built** (2535): nothing in this batch needed a float argument; `air_alt_speed` stays the
+hand script.
 
 ## Parked by the next landing, slot DF — reserved
 

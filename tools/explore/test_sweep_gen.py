@@ -405,7 +405,7 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, edx='1..2')
         hooks = (ROOT / 'tools/emu/hooks.py').read_text()
-        self.assertIn('def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0):', hooks)
+        self.assertIn('def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0, ret=\'eax\'):', hooks)
         self.assertIn('edx=edx', hooks)
 
     def test_a_stub_may_write_a_window_word(self):
@@ -926,6 +926,41 @@ class Shapes(unittest.TestCase):
         # The hook pops the return address alone for a `__cdecl` callee.
         src = (ROOT / 'tools/emu/hooks.py').read_text()
         self.assertIn('cdecl', src[src.index('def _on_code'):])
+
+    def test_an_obj_may_read_its_answer_from_xmm0(self):
+        # Item 2537 (parked 2534): the five render getters print `in_ST0` in
+        # the decompile, and their listings return the float in `xmm0`
+        # (`movss xmm0, ...; ret`), which `eax` never reads. `--ret xmm0`
+        # holds the low 32 bits of `xmm0` against the port's bits.
+        _, script, _, test, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2537, win=0x20, bias=[], own=0, ret='xmm0', port='0',
+            cells=['0xc061e8:0x10'])
+        self.assertIn("RET = 'xmm0'", script)
+        self.assertIn('ret=RET', script)
+        self.assertIn('assert_eq!(got, want_eax', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], ret='st1')
+
+    def test_machine_call_returns_xmm0_bits_on_request(self):
+        try:
+            import callfn
+            import unicorn  # noqa: F401
+        except ImportError:
+            self.skipTest('unicorn is not installed (uv run --with unicorn==2.1.4)')
+
+        class Img:
+            base, size = 0x400000, 0x1000
+            sections = [('.text', 0, 0x1000, b'\xf3\x0f\x10\x01\xc3')]  # movss xmm0, [ecx]; ret
+
+            def map_into(self, uc):
+                uc.mem_map(self.base, self.size)
+                uc.mem_write(self.base, self.sections[0][3])
+
+        m = callfn.Machine(Img())
+        m.uc.mem_map(0x10000, 0x1000)
+        m.uc.mem_write(0x10000, (0x3F800000).to_bytes(4, 'little'))
+        self.assertEqual(m.call(0x400000, ecx=0x10000, ret='xmm0'), 0x3F800000)
+        self.assertEqual(m.call(0x400000, ecx=0x10000), 0)  # eax, untouched by the getter: the default
 
     def test_an_obj_may_hold_only_the_low_byte_of_its_answer(self):
         # Item 2336 (parked 2327): `Game::is_game_ready` answers a `bool` by
