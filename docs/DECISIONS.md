@@ -83,6 +83,7 @@ is append-only and amended in place, as it always was.
 - 69 standing — The Opus medium trial is scored against three Sonnet tranches, the waiter names an uncleared lane, and eight Loop items become tools
 - 70 standing — The Opus medium trial's second tranche is scored, the roster goes to the steer, the census's pinned mode is mended, and seven Loop items become tools or rows
 - 71 standing — The Opus medium trial's third tranche is scored, the waiting breaks a fifth for the first time, the census pin becomes the commander's, and nine Loop items become tools or rows
+- 72 standing — The mixed roster's first tranche is scored, the kill rules' one route is closed in the lane gate, and fifteen Loop items become tools, rows or closes
 
 ## 1. Fidelity before divergence
 

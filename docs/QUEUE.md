@@ -12,16 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-15, **the thirty-fifth pass is done** (`docs/audit/2026-10-15-fable-pass-35.md`, DECISIONS 72): the
-thirty-fifth tranche scored — 22 landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes
-(Opus 5.5 medium on the AI word 8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80), both kill
-rules tripped by the lane gate's one route, now closed (2415, 2409 built). **The thirty-sixth tranche opens.***
+*2026-10-15, **the thirty-fifth pass is done** (`docs/audit/2026-10-15-fable-pass-35.md`, DECISIONS 72): 22
+landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes (Opus 5.5 medium on the AI word
+8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **The thirty-sixth tranche opens.***
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 4859 in five landings,
   the open word. Chapters 71–74 closed; 69 built (its Salmon/Maize lobby owed), 70 surveyed. Census 894 → 994.
   Battery 576 / 6566 / 2974, **unmoved an eleventh tranche** — Ramon's question at the steer (DECISIONS 72 §8).
-- **The lane gate widens itself** (2415): a branch touching sim outside `sweep/` or a `rondata::diff` row list
-  runs every timed test at its own gate (`--base worktree-replan-pdb`); no whole-suite run before it (2409).
+- **The lane gate widens itself** (2415, 2409): a branch touching sim outside `sweep/` or a `rondata::diff` row
+  list runs every timed test at its own gate (`--base worktree-replan-pdb`), and no suite run precedes the gate.
 - **Lanes: none live.** Roster DECISIONS 72's last paragraph (Ramon's word at the steer; the thirty-fifth's
   stands until given). Queued, not spawned: 2491 (AI §225, DB, runs 865–867), 2519 (GOLDEN §92, DD, run 868),
   2513 (DC). Next 2524, run 869. Pools: GOLDEN §92–97, AI §225–230, park DB–DG.
@@ -40,10 +39,9 @@ Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 cl
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-sixth tranche (commander, Opus): read this handoff, then spawn 2491 on the AI word's lane
-(`--model 'claude-opus-5-5[1m]' --effort medium`), 2519 on the rules track and 2513 on the sweep lane
-(`--model 'claude-sonnet-5-5[1m]' --effort medium`), one to a lane, briefs by `tools/brief.py`; merge, book,
-spawn, gate, push, reap; count landings from `git log <this pass's commit>..`, clear at the tenth, stop at
-twenty with the handoff written and clear `steer` into the thirty-sixth pass.**
+(`--model 'claude-opus-5-5[1m]' --effort medium`), 2519 on the rules track and 2513 on the sweep lane (`--model
+'claude-sonnet-5-5[1m]' --effort medium`), briefs by `tools/brief.py`; merge, book, spawn, gate, push, reap; count
+landings from `git log <this pass's commit>..`, clear at the tenth, stop at twenty and clear `steer` into the pass.**
 
 ## The queue
 
@@ -115,6 +113,5 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
 - **Grep for the derived quantity, the SHAPE and the GATE**: a term zero in every dump is
   zero-valued or switched off (117, 178); **a never-cleared field asserts a CHANGE, not a value** (`collide_frame`, run85).
 - **The gate is `python3 tools/release_gate.py <install> --test-threads 4`**,
-  to a file, never piped — a pipe launders the 137 — ending `Gate steps:`;
-  **a worker's takes `--lane --tests`** (the brief's, 1623) and quotes `Lane verdict:` (969);
-  **`--lane` runs every timed test on a branch that can move a `diff::` pin** (2415).
+  to a file, never piped — a pipe launders the 137 — ending `Gate steps:`; **a worker's takes `--lane --tests`**
+  (the brief's, 1623), quotes `Lane verdict:` (969), and runs every timed test on a branch that can move a pin (2415).
