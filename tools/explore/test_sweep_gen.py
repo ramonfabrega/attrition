@@ -1140,6 +1140,23 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.cmd_obj_expand('0x30:15:q9', own=1)
 
+    def test_a_cmd_byte_is_a_group_id_and_a_one_byte_command(self):
+        # Item 2481 (parked 2472, Loop 2003): `issue_recall`, `_scramble`,
+        # `_stop_spell` and `_alarm` take a group id (a plain integer, not a
+        # buffer), pass it through `add_group` and hand `add_command` a
+        # one-byte local; four hand `--port`s. `--cmd-byte CMD[:SIZE]`.
+        x = sweep_gen.cmd_byte_expand('0x23', own=1)
+        self.assertEqual(x['stub'], ['0x940a70:0', '0x94bb60:1', '0x94bae0:2'])
+        self.assertEqual(x['answers'], ['0:0,1', '1:0,1'])
+        self.assertEqual(x['record'], ['0', '1', '2'])
+        self.assertEqual(x['deref'], ['2:0:1'])
+        self.assertIn('log.push(format!("15269768,{}", a[0]));', x['port'])
+        self.assertIn('log.push("15269768,sp-0xd,1".into()); log.push("23".into());', x['port'])
+        self.assertIn('if a[1] == 0 {', x['port'])
+        self.assertIn('if a[2] == 0 {', x['port'])
+        with self.assertRaises(ValueError):
+            sweep_gen.cmd_byte_expand('', own=1)
+
     def test_an_ecx_derived_from_this_prints_as_this_plus_its_offset(self):
         # Item 2464 (parked 2455, Loop 2003): `this + 0x28` handed to a callee
         # lies past the `m` window (WIN bytes) and printed as the absolute
