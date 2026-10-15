@@ -3741,6 +3741,12 @@ Loop" line, filed at its merge). 2519 was reserved run 868 alone, found three re
 the next item and a whole lane session. Candidate: `brief.py --kind chapter` reserves two runs, the second for the
 control, or the frame names the control as the same item's work. One reach.
 
+(2552) **The sweep generator guesses a float's return register from the decompile** (2537's "for the Loop" line,
+filed at its merge). The export prints `in_ST0` and a bare `return` for a float the listing leaves in `xmm0` (parked
+2538): the queue booked an `st0` build on that print and the lane found the premise wrong only at the listing.
+Candidate: `sweep_gen.py` reads the listing's last register write before `ret` (`llvm-objdump`) and names the
+return, or `callfn` refuses a float return it was not told. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -3768,6 +3774,10 @@ forwarders on it; `issue_cannon_time` with no new token; ten of ten; a callee's 
 **2507** (forty-seventh reach, filed at its merge): built `mix`'s `stale` token, a test failing first, and the three
 `walk_data` on it; ten of ten; `--regen` without the window flags redraws a windowless sweep (Loop 2508); a flag a
 forwarder sets around its callee is unobserved (parked 2509; minted as 2513's first build).
+**2513** (forty-eighth reach, filed at its merge): built `--deref IDX:@VA:N`, a call-time cell read, a test failing
+first, and the three `find_*` regenerated on it (2509 closed); three of ten, seven parked 2534-2536.
+**2537** (forty-ninth reach, filed at its merge): built `obj --ret xmm0`, tests failing first, and six getters on it;
+the queue's `st0` premise was the decompile's misprint (parked 2538, Loop 2552); six of ten.
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5673,6 +5683,8 @@ third-reach tool. Names no score.
 
 ## Parked by item 2537, 2026-10-15 — the eighty-second sweep batch
 
+Its "for the Loop" line (the generator reads the return register off the listing) is Loop 2552, at 2537's merge.
+
 (2538) **The decompile's `in_ST0` is not an x87 return** (2537). Every one of the five getters parked 2534 returns its
 float in `xmm0` (`movss`/`cvtdq2ps` then `ret`); the Ghidra export prints `float10 in_ST0` and a bare `return` for a
 float the listing leaves in `xmm0`. Built as `obj --ret xmm0` (`callfn.Machine.call(ret='xmm0')`), not `st0`; an `st0`
@@ -5698,6 +5710,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot DG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DM renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

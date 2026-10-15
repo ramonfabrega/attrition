@@ -80,13 +80,15 @@
 /// item 2507: 984 -> 994, the sweep's eightieth batch, `mix`'s `stale` token and the three `walk_data` on it,
 /// `TurnControl`'s three issuers, two `PathFinder` forwarders and `MapFairness`'s two, ten of ten;
 /// item 2513: 994 -> 997, the sweep's eighty-first batch, `--deref`'s call-time cell read and the three `find_*`
-/// regenerated on it, `Border::build_border`, `find_global_render_z` and `air_alt_speed`, three of ten).
+/// regenerated on it, `Border::build_border`, `find_global_render_z` and `air_alt_speed`, three of ten;
+/// item 2537: 997 -> 1003, the sweep's eighty-second batch, `obj --ret xmm0` and `GuyData`'s five render getters
+/// and `get_game_fps_average` on it, six of ten).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 997;
+pub const SIMULATION_BACKED: usize = 1003;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
