@@ -2,15 +2,18 @@
 # on a human (item 2627, `docs/GOLDEN.md` §97;
 # `ObjectData::attack_dist@006488f0`, vslot `+0xc0` = `UnitData::is_plane`).
 #
-# THE STAGING (walked on run871's start, `RON_STAGE=ch76:chapter78:1000`, `RON_STAGE_ALL=1`):
-# a Barracks `1/2006` at (190, 82), chapter forty-one's, kept so
-# the target is `1/2007` — an `@attack` at `1/2006` was dropped, walked twice
-# — a Barracks `1/2007` at (212, 104), a legal point (chapter forty-one's
-# Airbase stood there), and a human Helicopter `0/6` at (190, 66)
-# ordered onto it. `add` takes no age. The Helicopter closes until its
+# THE STAGING (walked on run871's start, `RON_STAGE=ch76:chapter78:1000`,
+# `RON_STAGE_ALL=1`): a Barracks `1/2006` at (190, 82), chapter forty-one's,
+# kept so the target is `1/2007` (an `@attack` at `1/2006` was dropped, walked
+# twice); a Barracks `1/2007` at (212, 104), a legal point (chapter forty-one's
+# Airbase stood there); a human Helicopter `0/6` at (190, 66) ordered onto it;
+# and a human Citizen `0/7` at (212, 101) beside it, **which this crate needs
+# for sight**: with nothing of who=0's near the target the order is dropped
+# (walked with a Hoplite at (150, 66) and a Citizen at (212, 96): no order;
+# at (212, 101): taken). `add` takes no age. The Helicopter closes until its
 # edge-to-edge distance is within range; the centre-to-centre arm would stop
-# it nearer. (A Biplane control was walked and dropped: a plane with no base
-# burns fuel and wanders off its order.)
+# it nearer. (A Biplane control, first take, drew the walk apart at 736: it
+# engages citizens in the original and sits on the ground in ours.)
 #
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch78 \
 #       --map 14 --end-frame 1100 --log-window 600 1100 --timeout 3600 \
@@ -22,6 +25,5 @@
 606 add barracks who=1 190,82
 608 add barracks who=1 212,104
 610 add helicopter who=0 190,66
-612 add biplane who=0 212,88
+612 add citizen who=0 212,101
 630 @attack 0 2007 1 6
-630 @attack 0 2006 1 7
