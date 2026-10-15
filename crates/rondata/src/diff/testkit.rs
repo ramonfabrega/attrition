@@ -7176,9 +7176,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1700 put run762's: 456, as that window's own. Item 1719's run763
     // closing window: 514, as that window's own. Item 2055's run817 window,
     // once the formation's reverse is built: 1013, as run817's own walk.
+    // Item 2423's run855 window: 1122, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        1013,
+        1122,
     ),
 ];
 
