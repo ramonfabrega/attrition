@@ -3,12 +3,12 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_path_finder_find_road_restore.py — `PathFinder::find_road_restore@00685950` under unicorn (item 2507, tools/sweep_gen.py, obj with windows).
+"""sweep_path_finder_find_road_restore.py — `PathFinder::find_road_restore@00685950` under unicorn (item 2513, tools/sweep_gen.py, obj with windows).
 
     uv run tools/emu/sweep_path_finder_find_road_restore.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 1024-byte object of random bytes (no bias), 7 stack argument(s);
-4 random bytes at 0x00e85ec4; callee 0x00688a40 (7 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `.
+4 random bytes at 0x00e85ec4; callee 0x00688a40 (7 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 prints the 4 bytes at the cell 0x00e85ec4 when it is called, hex, after the record (`/` a call).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -64,7 +64,7 @@ CDECLSTUBS = []
 STUBWRITE = []
 ECXANSWER = []
 RING = []
-DEREF = []
+DEREF = [(0, ('@', 15228612), 4)]
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -175,6 +175,9 @@ def read_arg(inner, k, n, read, sink):
     `Command`, gone once the call returns — into `sink` as hex (`null` for a
     null argument), then answers as `inner` would."""
     def answer(ecx, args):
+        if isinstance(k, tuple):  # `@VA` (item 2513): an absolute cell, read as it stands now
+            sink.append(read(k[1], n).hex())
+            return inner(ecx, args) if callable(inner) else inner
         a = args[k] & 0xFFFFFFFF
         sink.append(read(a, n).hex() if a else "null")
         return inner(ecx, args) if callable(inner) else inner
@@ -222,7 +225,7 @@ def shape(rng, name, buf):
 
 def main(argv):
     from hooks import Harness
-    rng = random.Random(2507)
+    rng = random.Random(2513)
     # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
     h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"})
@@ -527,4 +530,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "PathFinder::find_road_restore@00685950", "--item", "2507", "--own", "7", "--at", "0xe85ec4:4", "--stub", "0x688a40:7", "--record", "0", "--port", "{ wr(&mut c[0], 0, 0); log.push(format!(\"m+0x0,{},{},{},{},{},{},{}\", a[0], a[1], a[2], a[3], a[4], a[5], a[6])); i64::from(a[7]) }"]
+# sweep_gen: ["obj", "PathFinder::find_road_restore@00685950", "--item", "2513", "--deref", "0:@0xe85ec4:4", "--port", "{ log.push(format!(\"m+0x0,{},{},{},{},{},{},{}\", a[0], a[1], a[2], a[3], a[4], a[5], a[6])); log.push(\"01000000\".into()); wr(&mut c[0], 0, 0); i64::from(a[7]) }", "--own", "7", "--at", "0xe85ec4:4", "--stub", "0x688a40:7", "--record", "0"]
