@@ -3801,6 +3801,11 @@ Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a sh
 help should say a stub that indexes a table wants `--answer-range` instead. Candidate: `--records
 BASE:STRIDE:N:OFF=VALS`, and the help line, each held by a test made to fail first. One reach.
 
+(2781) **A standing leader-count row on the player whose queue parts is grepped in the parked file first** (2761's
+"for the Loop" line, filed at its merge): 5499's cause, who=1's `num_units`/`control` standing from 5401, was a
+two-week-old parked gap (1092, 1328) that said "returns when a word's decision does"; the gate's inputs agreeing
+pointed at the target (Loop 2726 did the work). Candidate: a brief checklist row. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
