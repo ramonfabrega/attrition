@@ -20641,12 +20641,45 @@ unmet target, so the writer is not this function (parked 2385). No floor and no 
 `agendas` and the receiver's stamp on run849's block 1985. **Reading only**: the arms past the stamp, the coin
 sites other than `+0x1168`, and `war_allowed`'s age arm.
 
-## 221. Reserved for the next item on the AI track
+## 221. The pre-war gate holds the army at its muster, and the peace pair's word moves to 3302 (2026-10-14, item 2388)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The draws on 2040** (`report.py rontrace-run849.log draws 2040`; ours `RON_DEBUG_SITES=2040-2040` on
+`lakota_pair_first_parting`). Theirs opens with five `Unit::do_move+0xe84` draws: one under `do_explore_to`, four
+under `do_attack_to`. Then come one `Animal::do_idle`, nine birds' three each, `Guy::set_anim` and `Farms::inc_time`,
+35 on the game stream. Ours spends **two `Army::find_target+0x7df` scores first** and then the same 35. So the
+whole delta is the army's target search. Theirs' first `find_target` draw in the game is on 3570
+(`when Army::find_target`), and none of its draws come from `release_mustering`.
+
+**The value diff on block 2041** (run849; `unitat.py`). Theirs: who=1's `1/25` (`TypeIndex` 330, `AEGISCRUISER`,
+sea) holds one `ATTACKTOORDER` to (44424, 32904). `1/26` and `1/36`, also Aegis cruisers in group 72, hold no order.
+Ours gave all three moves out of the navy army's `find_target`. `1/25`'s went to (35112, 44088).
+
+**The rule** (`Army::release_mustering@006f87c0`, `docs/ARMY.md` §7's second line). After the muster-city test,
+`rush_rules != 0 && Game::war_allowed() == 0` returns 0. The army stays mustering. `war_allowed@00594670` is 2384's
+`Sim::war_allowed`: no rush rules, or `current_age ≥ rush_rules`, or rule ≥ 9 with the frame past the table's
+minutes × 900. This crate had the gate as a seam, "always allowed" (`army.rs`'s seam table). The navy army released
+the frame its standard count passed the thresholds, inside the five minutes' peace.
+
+**Built.** `Sim::release_mustering` now applies the gate, in the original's order, ahead of the `num_standard`
+tests. The seam row is gone. Test: `release_mustering_holds_the_army_through_the_peace` (held at 4499, released at
+4500). A mutation that drops the gate fails it (`tools/mutate.py`, exit 101).
+
+**Value diff and score.** run849's widening goes **1240 → 87** keys. Block 2041 holds no row: `1/25`'s
+`ATTACKTOORDER` (44424, 32904) and `1/26`'s and `1/36`'s empty stacks agree on both sides. The 87 are 74 standing
+on the window's first block 1978 (§219), plus 13 later (parked 2411). **The word moves 2040 → 3302**, count and
+sequence both: ours 392 draws, theirs 391, index 388. Ours spends `Guy::init_real+0x52`, a birth. Theirs spends
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. No dump on disk holds 3302: run849 ends on 2235, and run847 has only
+checksums and its closing block.
+
+**Not established.**
+- `leader_flags & 8`, the gate after this one (§18), is still a seam: never set.
+- `war_allowed`'s age arm (`current_age ≥ rush_rules`) is not reached by any capture. Rule 10's table row is past
+  every age.
+- Parked 2321's other readers of `war_allowed` stay unread. 3302 is inside the peace, so the next word may be one
+  of them.
+
+**Diff-backed**: the gate on run849's block 2041 (three Aegis cruisers' orders) and the frames from 2040 to 3302 on
+run847's draw stream. **Reading only**: none beyond §220's `war_allowed`.
 
 ## 222. Reserved for the next item on the AI track
 

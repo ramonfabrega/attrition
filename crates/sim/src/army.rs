@@ -35,7 +35,6 @@ use crate::{Player, Sim};
 /// | `find_target`'s forts | §12's second scan | never a fort target |
 /// | `pop_issues`, `wonderwin_timer`, `score`, `num_wonders`, `GLOBAL_GOVERNMENT_BONUS`, `weak[]`/`strong[]`, the tribute period | leader and city fields the sim does not keep | the multipliers they gate are ×1; a leader at peace is never a target |
 /// | `is(SUPPLYWAGON)` | the lineage test behind `num_standard` and the caps | `unit_flags2 & 0x40` without `0x20` — the supply-or-hero bit less the generals; a government patriot `FROM General` (The Despot) carries both and is not counted, as the lineage would not count it. The *joiner's* arm in the caps is `is_supply` alone (`army_admits`, §213 of `docs/AI.md`) |
-/// | `Game::war_allowed` under rush rules | §7's pre-war gate | always allowed |
 /// | `leader_flags & 8`, `leader_flags2 & 8` | the two stop bits (§18) | never set |
 /// | `Region::flags & 8` | `go_here`'s resource-region bit | bit 1 never set; `do_transporting` does not read it |
 /// | `use_spies` / `use_scouts` | the 128-frame spellcaster turn (§5); `use_generals` is built | no spy's or scout's turn |
@@ -1260,7 +1259,14 @@ impl Sim {
         if self.cities[c].owner != who || !self.cities[c].alive {
             return true;
         }
-        // `rush_rules && !Game::war_allowed()` — always allowed (seam).
+        // **The pre-war gate** (`006f87c0`, after the city test: `rush_rules
+        // && !Game::war_allowed()` returns 0). The peace pair's army 0 holds
+        // its five standard at the muster through the five minutes' peace;
+        // released, it spent `find_target`'s two scores on 2040 that the
+        // original never spent (item 2388, `docs/AI.md` §221).
+        if self.lobby.rush_rules != 0 && !self.war_allowed() {
+            return false;
+        }
         let n = a.num_standard;
         if n < 2 {
             return false;
@@ -4549,6 +4555,27 @@ mod tests {
             sim.release_mustering(1, s),
             "Military 1 releases at once, whatever the age"
         );
+    }
+
+    /// **The pre-war gate holds a ready army** (`006f87c0`; item 2388,
+    /// `docs/AI.md` §221): `RUSH_RULES 10`, five minutes' peace, keeps an
+    /// army that every threshold would release at the muster until frame
+    /// 4500, and lets it go on that frame.
+    #[test]
+    fn release_mustering_holds_the_army_through_the_peace() {
+        let (mut sim, c) = sim_with_city();
+        let s = sim.init_army(1, Some(c));
+        sim.muster[1].cap = 200;
+        sim.armies[1].list[s].num_standard = 6;
+        sim.ai[1].pers.rush = 1;
+        sim.tech[1].epoch[crate::tech::Line::Military.index()] = 1;
+        assert!(sim.release_mustering(1, s), "no rush rules: released");
+        sim.lobby.rush_rules = 10;
+        sim.lobby.rush_minutes = 5;
+        sim.frame = 4499;
+        assert!(!sim.release_mustering(1, s), "inside the peace: held");
+        sim.frame = 4500;
+        assert!(sim.release_mustering(1, s), "the peace over: released");
     }
 
     // ---- the ring search (§13) ----

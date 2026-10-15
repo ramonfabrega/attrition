@@ -4996,8 +4996,8 @@ The port assumes every member already points at the slot. The sweep holds the he
 
 (2321) **The peace pair's rush rules: `Game::war_allowed`'s time arm and its readers** (item 2320, `docs/AI.md` §218).
     `RUSH_RULES 10` forbids war until frame 4500 (`rush_rules` table minutes 5 × 900; `war_allowed@00594670`, the
-    `9 <= rush_rules` arm after `current_age@005946d0`). `crates/sim/src/army.rs`'s seam list models it as "always
-    allowed" in `release_mustering`, and the other readers — `Unit::process_attrition`, `PathFinder::calc_cost`,
+    `9 <= rush_rules` arm after `current_age@005946d0`). ~~`crates/sim/src/army.rs`'s seam list models it as "always
+    allowed" in `release_mustering`~~ (item 2388, `docs/AI.md` §221: built, the word 2040 → 3302), and the other readers — `Unit::process_attrition`, `PathFinder::calc_cost`,
     ~~`Leader::diplomacy`~~ (item 2384, `docs/AI.md` §220: modelled; team style 1 sends its message whether war is
     allowed or not), `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,
     `UnitTypeData::can_attack_ground`, `Nuke::do_damage`, `Game::do_frame`'s frame-4500 event — are not read. Names
@@ -5326,13 +5326,22 @@ lobby's `first_parting`.
   (`kill_garrison_order` spaced them 0x200; 2369's fourth gap, a second reach).
 - `Objects::add_ammo`'s `malloc` returning null is never reached (`--answer-win` always answers a window).
 
-## Parked by the next landing, slot CJ — reserved
+## Parked by item 2388, 2026-10-14 — the peace pair past the pre-war gate
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2411) **run849's thirteen later rows** (2388, `docs/AI.md` §221; names no word). With the pre-war gate built,
+run849's widening stands 87 keys: 74 on the window's first block 1978 (§219's bucket and control rows) and 13
+later. who=1's groups 69, 79 and 80 hold `[56, 57, 58]`, `[20]` and `[20]` in ours and nothing in theirs (1987,
+1988, 2108). The pools match those holds. `form` is −1 ours and 0 theirs on `1/60`, `1/62`, `1/63` and `1/68`
+(2058–2150). who=0's `other_team_terr` and `min_other_team_terr` read 797 ours and 575 theirs (2001). who=1's
+`SITE[7].reg` reads 65 ours and 0 theirs (2176). None is on a word's frame; the draw stream agrees through
+3301.
+
+(2412) **The peace pair's word 3302: the widening is owed** (2388; the word's frame). Ours spends 392 draws and
+theirs 391, at index 388: ours `Guy::init_real+0x52`, a birth; theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+No dump on disk holds 3302. run849 ends on 2235, and run847 holds checksums and its closing block. The capture is
+run849's recipe with `--log-window 3296 3553` and `--end-frame 3560`. `LAKOTA_PAIR_WORD`'s `WIDENINGS` row names
+this item until a test widens block 3303. 3302 is inside the peace, so parked 2321's other `war_allowed` readers
+are candidates. `RON_DEBUG_BUILDS=3301-3302` names the queue a birth empties (Loop 2319).
 
 ## Parked by the next landing, slot CK — reserved
 

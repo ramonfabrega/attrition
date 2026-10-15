@@ -34,8 +34,12 @@ pub(crate) const LAKOTA: Pair = Pair {
     // Item 2384: 1984 → 2040, `Leader::diplomacy`'s peace arm (`docs/AI.md`
     // §220): ours 37 draws, theirs 35, index 0 — ours
     // `Army::find_target+0x7df`, theirs `Unit::do_move+0xe84`.
-    count: 2040,
-    sequence: 2040,
+    // Item 2388: 2040 → 3302, `release_mustering`'s pre-war gate holds the
+    // navy army through the peace (`docs/AI.md` §221): ours 392 draws,
+    // theirs 391, index 388 — ours `Guy::init_real+0x52`, theirs
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+    count: 3302,
+    sequence: 3302,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -154,7 +158,7 @@ fn run849_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 1240, "initial run849 baseline");
+    pin_eq!(w.firsts.len(), 87, "initial run849 baseline");
     // Item 2351: 1242 keys part on blocks 1978..2235, the word's own block
     // being 1985 (frame 1984: ours 61 draws, theirs 62, index 28; ours
     // `Animal::think_bird+0x82`, theirs `6bdab8` in `Leader::diplomacy`).
@@ -170,4 +174,9 @@ fn run849_s_word_frame_is_widened_whole() {
     // 2040 (block 2041, in this window): 47 keys part there, who=1's
     // `1/25`, `1/26`, `1/36` given moves in ours (`1/25` to (35112, 44088)
     // against theirs' (44424, 32904); `1/26` and `1/36` none in theirs).
+    // Item 2388: 1240 → 87, `release_mustering`'s pre-war gate (`docs/AI.md`
+    // §221). Block 2041 holds no row: `1/25` (`AEGISCRUISER`) holds its one
+    // `ATTACKTOORDER` to (44424, 32904) both sides, `1/26` and `1/36` none.
+    // 74 stand on 1978 as before and 13 part later (parked 2411). The word
+    // is 3302, past this window.
 }
