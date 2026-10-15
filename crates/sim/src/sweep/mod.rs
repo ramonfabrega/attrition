@@ -79,6 +79,7 @@ mod objects_add_ammo;
 mod objects_data_find_good_at_tcoord;
 mod objects_find_collision;
 mod objects_find_free;
+mod path_finder_calc_road_cost;
 mod player_is_over;
 mod repair_order_get_type;
 mod resource_divvy_pool_add_late;
