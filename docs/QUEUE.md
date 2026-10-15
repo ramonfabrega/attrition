@@ -14,17 +14,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-15, **the thirty-fifth pass is done** (`docs/audit/2026-10-15-fable-pass-35.md`, DECISIONS 72): 22
 landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes (Opus 5.5 medium on the AI word
-8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 8 landings.***
+8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 9 landings.***
 
-- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 5036, the open word.
+- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 5135, the open word.
   Chapters 71–75 closed; 69 built, 70 surveyed. Census 894 → 1023. Battery 576 / 6566 / 2974, unmoved an eleventh tranche.
 - **Gates (DECISIONS 72)**: a lane's gate widens when its branch can move a pin (2415, no suite run before it,
   2409); the booking gate is `--scope <last whole gate's tip> --test-threads 8`, whole every third landing and at
   the drain. **When the peace pair closes, the AI word's successor is the battery's lowest lobby**
   (EastIndiesGermanTier3, 576 of 13519), a new held-out lobby minted beside it.
-- **Lanes: three live** (DECISIONS 72): 2526 (AI §226, DH, runs 866–867), 2572 (GOLDEN §95, DL, run 871), 2567
-  (DK). Next 2578, run 872 (Astra holds 900–909). Pools: GOLDEN §96–97, AI §227–230, park DM–DS.
-- **Fable backlog: 20 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525, 2527, 2542, 2552, 2577).
+- **Lanes: three live** (DECISIONS 72): 2554 (AI §227, DM, runs 866–867), 2572 (GOLDEN §95, DL, run 871), 2567
+  (DK). Next 2583, run 872 (Astra holds 900–909). Pools: GOLDEN §96–97, AI §228–230, park DN–DS.
+- **Fable backlog: 21 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525, 2527, 2542, 2552, 2577, 2578).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -32,7 +32,7 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Peace pair: EastIndiesLakotaPeace w5036 of 6,822
+Peace pair: EastIndiesLakotaPeace w5135 of 6,822
 Census: simulation backed 1023 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed
@@ -46,19 +46,18 @@ landings from `git log <this pass's commit>..`, clear at the tenth, stop at twen
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2526 the AI word's (Opus), 2572 the rules track's and 2567
+2554 the AI word's (Opus), 2572 the rules track's and 2567
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2526. **The peace pair's word 5036: ours 164 draws, theirs 168, index
-    152** (2491; ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-    theirs `Guy::init_real+0x52`, a birth). Inside run861 (block 5037,
-    378 keys): theirs holds `1/209`–`1/211`, ours not; `1/2030`,
-    `1/2032`, `1/2037` `queued` ours 1 against 0; `1/2005`'s head
-    `job_counter` ours 17700 against 16875 (theirs ran to 17600 on 5036
-    and dropped on 5037). 2491's lead — the President `1/161`'s reach
-    on 5036 — is a hypothesis. Runs 866–867. AI §226.
+2554. **The peace pair's word 5135: ours 24 draws, theirs 32, index
+    4** (2526; ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`,
+    theirs `Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a`,
+    eight in a row). Past run861's last block (5109): no East Indies
+    dump of the lobby holds it, so the word's widening is a capture — blocks
+    5129..5385 at the long's detail, 5136 the word's own; `WIDENINGS`
+    names this row until it lands. Runs 866–867. AI §227.
 
 2572. **Chapter seventy-six: the President's train arm held on a
     human** (DECISIONS 56 §3; 2543 closed seventy-five at 960, `finish`

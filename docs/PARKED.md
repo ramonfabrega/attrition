@@ -3762,6 +3762,12 @@ disk; a grep of the export for 500000 named `run_cmd` case 0x4f in a minute. The
 names, grepped in the dump" had it, but the value was another field's. Candidate: a frame row — "a value the dump
 prints that no reading produces is grepped in the export before the next reading". One reach.
 
+(2578) **A player's build queues walked frame by frame are a second-reach probe** (2526's "for the Loop" line,
+filed at its merge). `BUILDQUEUE`'s head `job_counter` across every trainer of one player named the Space Program's
+arm in one read; 2491 read the same counters by hand for the President's. Candidate: `tools/gamelog/queues.py <dump>
+<lo-hi> <who>`, with the dump's CRLF and the `BEGIN BUILDQUEUE` sub-block under each `BUILDDATA` handled. Two
+reaches; the third graduates it.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -5744,11 +5750,7 @@ so its next queued aircraft is priced at half in theirs and whole here. run861 h
 (no `cost` key parts past 4853), so no score names it yet; the first air `queue[*].cost` row past 5036 in the next
 widening does.
 
-(2554) **The peace pair's word 5135 owes its widening** (2526): ours 24 draws, theirs 32, index 4 — ours
-`Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs `Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a`
-(seed `f508e42b`), eight in a row. It is past run861's last block (5109), and no dump of this lobby holds 5135, so
-the capture is the next item's: blocks 5129..5385 at the long's detail, block 5136 the word's own. `WIDENINGS`
-names this row until a test widens it.
+2554 is booked in the queue, at 2526's merge; its "for the Loop" line is Loop 2578.
 
 ## Parked by item 2543, 2026-10-15 — chapter seventy-five's `finish` is case 0x4f
 
