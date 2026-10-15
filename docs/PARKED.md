@@ -3769,6 +3769,11 @@ its merge): adding `normalize` as a fourth stub moved `equals_group`'s seq answe
 `a[6]`, and the port broke until renumbered by hand. Candidate: the generator names each stub's answers in the
 port it writes. One reach.
 
+(2756) **A chapter booked to stage an arm builds it from the listing instead** (2725's "for the Loop" line, and the
+commander's at its merge): 2725's journal says a capture should first ask whether the arm's gating state is a dumped
+key (`grep seen3` answered); the landing then built the arm and staged nothing, so chapter eighty is still unwalked and
+re-booked as 2755. Candidate: a chapter brief's row "the staging is the landing; a build without it parks". One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
