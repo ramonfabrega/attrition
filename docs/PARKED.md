@@ -6006,13 +6006,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EK — reserved
+## Parked by item 2719, 2026-10-15 — the sweep's first build: a table record's row byte and row links
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2720) **A callee that writes `this` run, not hooked (parked 2701, 2712) is still unbuilt.** `Group::equals_group`'s `normalize` rewrites `field_0xc` and the `+0x8cc` shorts before its loop; `--stub-write` writes one window and one value every call. The shape wants a callee run under the emulator (the original's own `normalize` mapped, its callees hooked) instead of a hooked answer; 2719 built the `--table` half only and swept no function.
+
+(2721) Slot ED's shapes (2684: `PathFinder::kill_lists` 0x687ae0, `Armies::find_useful_army` 0x6f2fe0, `Build::add_gatherer`/`remove_gatherer`) are unbuilt and unchecked against `tools/census.py --never`; the next builder lane starts there.
 
 ## Parked by the next landing, slot EL — reserved
 

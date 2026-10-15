@@ -1936,6 +1936,21 @@ class Shapes(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sweep_gen.table_expand(bad, pbase=1)
 
+    def test_a_table_record_may_carry_its_row_in_a_byte_and_links_within_its_row(self):
+        # parked 2713 (item 2719): UnitData::has_damage's two rows were written by hand -- each record's byte at +9 is
+        # its row, its i16 at +0x8e a figure below its own index and at +0x90 above. `--table`'s VOFF `-` leaves the v
+        # word alone, `--row-byte OFF[:LOW,..]` draws the word holding OFF as row<<shift | LOW, `--row-link` is `--link`
+        # over each row's records.
+        x = sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_byte='9:0,1,1,3',
+                                   row_links=['0x90:2:>:-1'])
+        self.assertEqual(x['wbias'], ['p2..5+0x8:0x0,0x1,0x1,0x3', 'p7..10+0x8:0x100,0x101,0x101,0x103'])
+        self.assertEqual(x['link'], ['p2..5+0x8e:2:<:-1,-2', 'p2..5+0x90:2:>:-1',
+                                     'p7..10+0x8e:2:<:-1,-2', 'p7..10+0x90:2:>:-1'])
+        with self.assertRaises(ValueError):
+            sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_byte='0xa0')
+        with self.assertRaises(ValueError):
+            sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_links=['0x90:3:>'])
+
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
         self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', 'Foo::bar@00401000']),
