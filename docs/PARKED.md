@@ -5856,13 +5856,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DY — reserved
+## Parked by item 2644, 2026-10-15 — the sweep's ninety-third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2664) **`Search::valid_filter` 0x67dbb0 is 27 arms, not one case**: `--jump IDX:N` (item 2615) already draws the index, so no new shape is wanted; what is missing is the arms — 746 listing lines, 54 calls, 19 distinct callees, most of them vtable slots of the `[0xc0ab84 + 28*who]` object tables. Census backs the function on the first sweep that cites it, so one arm's sweep would back 26 unread; it lands as 27 modules at once or not at all. A batch of its own, `--name valid_filter_caseK` a module.
+
+(2665) **`UnitOut::issue_come_out`'s `Command` is 11 bytes, all written** (`0x31`, a widened byte, a sign-extended short, a word): 2636's "16 bytes, five written" was the decompile's locals, not the listing's `push $0xb`. `--deref IDX:K:N:W` (written-byte ranges, every other byte printed `00`) is built and tested anyway, for the first function whose local has a hole; this one needs no mask.
+
+(2666) **`--call` (the `fwd` shape) does not hold the callees' order**: swapping two addresses in `ObjectsOut::sort_objects`'s `CALLS` passes (the row prints each call's `ecx` and arguments, not which callee). A `fwd` whose callees take the same `this` is blind to order; a `--record-order`-like token (`sIDX:`) for `fwd` is the Loop's build.
+
+(2667) **`Balance::walk_rules_data` 0x582cc0 calls its walker's slot 0 237,169 times** (`0x1ed` by `0x1ed`, a pair of addresses `2` apart): the `walk` shape hands one pair, a row would be a quarter-million hooked calls; a `--rows 3` and a call-count-only record is the shape it wants. The rest of the shortest unbacked rows are render/UI (`RiverDoober`, `Nuke`, `WorldMap`, `TerrainMap`, `WallOut::make_options`, `Border::generate_morph_side`, the two `project`s, `get_float_z` in st0).
 
 ## Parked by the next landing, slot DZ — reserved
 
