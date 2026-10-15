@@ -478,6 +478,7 @@ mod tests {
             &loaded.wonder_wins,
             &loaded.starting_resources,
             &loaded.pop_wins,
+            &loaded.rush_minutes,
         );
         sim.sync_setup_from_lobby();
         // Block `n` is the state sim-frame `n` begins on (`docs/SYNC.md`

@@ -16,14 +16,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 medium; the thirty-fifth opens on entry 71's last paragraph.*
 
 - **Words**: the successor pair closed at 5056 (2293); the peace pair (2320: East Indies, the Lakota, All
-  Technologies, `RUSH_RULES 10`, ends at 6822) at 1984 (2351), the open word. Chapters 65–68 closed. Census 894.
+  Technologies, `RUSH_RULES 10`, ends at 6822) at 2040 (2384: `Leader::diplomacy`'s peace arm), the open word. Chapters 65–68 closed. Census 894.
   Battery 576 / 6566 / 2974, unmoved a tenth tranche. No floor fell; the pass moved no score.
 - **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
   `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
-- **Lanes: three** (Ramon, DECISIONS 71): 2384 on Opus 5.5 medium; 2389 and the sweep lane (2395, then 2400) on Sonnet
-  5.5 medium. Queued, not spawned: 2384 (AI §220, CF, runs 853–855), 2389 (GOLDEN §86, CG, run 856), 2395 (CH),
-  2400 (CI). Next 2410, run 857, AI §221, GOLDEN §87, park CJ.
-- **Fable backlog: 11 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407, 2408, 2409).
+- **Lanes: three** (Ramon, DECISIONS 71): 2384 on Opus 5.5 medium; 2389 and the sweep lane (2395 landed, then 2400)
+  on Sonnet 5.5 medium. Live: 2388 (AI §221, CJ, runs 853–855), 2389 (GOLDEN §86, CG, run 856), 2400 (CI).
+  Landed: 2395 (Census 894 → 904), 2384 (word 1984 → 2040). Next 2415, run 857, AI §222, GOLDEN §87, park CK.
+- **Fable backlog: 12 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407, 2408, 2409, 2410).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,8 +31,8 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Peace pair: EastIndiesLakotaPeace w1984 of 6,822
-Census: simulation backed 894 of 3611
+Peace pair: EastIndiesLakotaPeace w2040 of 6,822
+Census: simulation backed 904 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,18 +46,18 @@ its merge; at twenty landings write the handoff and clear `steer` into the thirt
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2384 the AI word's (Opus), 2389 the rules track's and 2395 then 2400
+2388 the AI word's (Opus), 2389 the rules track's and 2400
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2384. **The peace pair's word 1984: ours 61 draws, theirs 62, index
-    28** (2351; theirs `0x6bdab8` in `Leader::diplomacy`; widened whole
-    on run849, 1242 keys). The value diff on block 1985: who=1's
-    `leader:agendas[0]` 0 / 64. 1984 is before 4500, and `diplomacy`
-    reads `war_allowed`, whose time arm the crate models as always
-    allowed (parked 2321) — the previous item's hypothesis, not a build
-    order. Runs 853–855. AI §220.
+2388. **The peace pair's word 2040: ours 37 draws, theirs 35, index
+    0** (2384; ours `Army::find_target+0x7df`, theirs `Unit::do_move+0xe84`;
+    widened already on run849's block 2041, 47 keys). who=1's `1/25`,
+    `1/26` and `1/36` are given moves in ours that theirs gives elsewhere
+    or not at all. 2040 is inside the peace (war from 4500): parked 2321's
+    `release_mustering` reader, modelled as "war always allowed", is the
+    previous item's hypothesis, not a build order. Runs 853–855. AI §221.
 
 2389. **Chapter sixty-nine: the arms the AI track built that no walk
     holds** (DECISIONS 56 §3; 2357 closed sixty-eight at 1360, Socialism's
@@ -68,16 +68,9 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     Name the census rows first; run 856 only when no packet of the game
     is on disk. GOLDEN §86.
 
-2395. **The sweep's seventy-first batch: ten never-backed simulation
-    functions** (DECISIONS 63 (iv); the score `Census:` 884 of 3611):
-    2379's shape, merged by SHA; the command manager's issuers left
-    first (`issue_scramble`, …), one `obj --deref` line each, every listing's `mov byte`
-    read before its line (parked 2380); 2400's ten excluded by name;
-    skip operators (parked 1722). `--kind sweep`.
-
 2400. **The second sweep lane's next ten: never-backed functions with
     a port consumer** (DECISIONS 61; parked 1725; the score `Census:`
-    894 of 3611): 2368's shape, ordered by port readers; 2395's ten
+    904 of 3611): 2368's shape, ordered by port readers; 2395's ten
     excluded by name; a port mark that is a name collision is no
     consumer (Loop 2286); `--record` keeping `edx` and a circular list's
     shape (parked 2369, Loop 2003): build them first, tests made to fail

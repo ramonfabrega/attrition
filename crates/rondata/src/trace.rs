@@ -86,6 +86,12 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // and none on difficulty 2 (`docs/AI.md` §11).
     (0x006c_46e2, None, sim::ai_units::SITE_UNIT_BIAS),
     (0x006c_69d4, None, sim::ai_units::SITE_UPGRADE_BIAS),
+    // `Leader::diplomacy@006bc950` — the peace coin, the two city-race
+    // coins and the quiet coin (`docs/AI.md` §220).
+    (0x006b_dab8, None, sim::diplomacy::SITE_PEACE_COIN),
+    (0x006b_dc72, None, sim::diplomacy::SITE_RACE_COIN),
+    (0x006b_dcd8, None, sim::diplomacy::SITE_MINE_COIN),
+    (0x006b_e462, None, sim::diplomacy::SITE_QUIET_COIN),
     // `Leader::research_techs@006c6ba0` — the Senate arm's coin and the
     // survivor's scale; East Indies spends the second on 15378 (item 643).
     (0x006c_77af, None, sim::ai_research::SITE_GOV_COIN),

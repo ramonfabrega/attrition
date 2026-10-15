@@ -757,6 +757,22 @@ pub struct Leader {
     /// under its own cadence, so it lags the census by up to a recompute;
     /// `create_units`' merchant arm is its one reader (`docs/AI.md` §55).
     pub known_rares: i32,
+    /// The lobby's `GameInfo.player[i].flags` for this leader, kept from
+    /// `Leader::init`: `LeaderData::is_rusher@006d61f0` is bit 12 and
+    /// `is_boomer@006d6190` bit 13, read live by `Leader::diplomacy`
+    /// ([`crate::diplomacy`]). 0 for a leader `init_leader_ai` never saw.
+    pub player_flags: u32,
+    /// `aggression[8]`, `strong[8]`, `weak[8]` (`LeaderData +0x210`,
+    /// `+0x230`, `+0x250`), indexed by the other leader: what
+    /// `Leader::diplomacy@006bc950` concluded about it on its last visit
+    /// (`docs/AI.md` §220). Nothing else writes them.
+    pub aggression: [i32; 8],
+    pub strong: [i32; 8],
+    pub weak: [i32; 8],
+    /// `got_diplo_message` (`LeaderData +0x2f0`): the frame another
+    /// leader's diplomacy last sent *this* one a message — written on the
+    /// receiver, read by the sender as a 450-frame quiet window.
+    pub got_diplo_message: i64,
 }
 
 impl Default for Leader {
@@ -918,6 +934,11 @@ impl Leader {
             new_rares: Vec::new(),
             oil_patches: Vec::new(),
             known_rares: 0,
+            player_flags: 0,
+            aggression: [0; 8],
+            strong: [0; 8],
+            weak: [0; 8],
+            got_diplo_message: 0,
         }
     }
 
@@ -1086,6 +1107,10 @@ pub struct Lobby {
     pub tech_cost: i32,
     /// `RUSH_RULES`: 0 off; 8 forces `pers.raid = −1`.
     pub rush_rules: i32,
+    /// The `RUSH_RULES` row's `DATA`: the minutes of peace of a row past
+    /// 8 ("Peace for first 5 minutes" is row 10, 5), 0 for a row with
+    /// none. [`crate::Sim::war_allowed`] reads it × 900.
+    pub rush_minutes: i32,
     /// `ELIMINATION`: 1 is the capital countdown.
     pub elimination: i32,
     /// `VICTORY`: 0 standard, 3 score, 5 musical chairs, 6 wonder, 7
@@ -1130,6 +1155,7 @@ impl Default for Lobby {
             game_rules: 1,
             tech_cost: 3,
             rush_rules: 0,
+            rush_minutes: 0,
             elimination: 1,
             victory: 0,
             wonder_win_points: 8,

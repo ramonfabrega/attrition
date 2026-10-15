@@ -396,7 +396,10 @@ fn run677_s_word_frame_is_widened_whole() {
     // slots' `reg`, the city fields, the pools, `scouts`), and what the
     // build left is leader 1's `known_rares` on block 8 and leader 0's
     // `production_step` on 201, the control's too. **69.**
-    pin_eq!(w.firsts.len(), 45, "initial run677 baseline");
+    // Item 2384: +2, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (both leaders): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 47, "initial run677 baseline");
     // **The word's value diff, block 12** (item 1538): the Oil Well `1/2013`
     // (`TypeIndex` 421, `OILWELL`) stood at (34944, 10368) in ours — the
     // patch at cell (45, 13) — and at (44928, 8832) in theirs, cell (58, 11):
@@ -471,7 +474,10 @@ fn run680_s_word_frame_is_widened_whole() {
     // and 28 part later — pools 66, 67 and 68 and their groups' `held`, the
     // Persians' `SITE` table on 776, the two queues' prices and leader 1's
     // two buckets on 783, leader 0's `production_step` on 801.
-    pin_eq!(w.firsts.len(), 50, "initial run680 baseline");
+    // Item 2384: +2, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (both leaders): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 52, "initial run680 baseline");
     // **The word's value diff, block 721** (item 1549): the dump prints no
     // animation (`GUYS=2`'s `GUY` record is type, position and angle), so the
     // value on the word's frame is the draw record — frame 720, ours 25
@@ -555,10 +561,13 @@ fn run681_s_word_frame_is_widened_whole() {
     // both leaders' `SITE` `reg`, `form`, the city and pool fields, `scouts`,
     // the territory counts) and the rest part later. The 700 that went part
     // downstream of `1/35`'s stall on 1247 (not itemised row by row).
-    pin_eq!(w.firsts.len(), 51, "initial run681 baseline");
+    // Item 2384: +2, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (both leaders): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 53, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
-        44,
+        46,
         "the keys standing on the window's first block"
     );
     // **The word 1197's value diff, block 1198** (item 1555): the Persian
@@ -652,10 +661,13 @@ fn run683_s_word_frame_is_widened_whole() {
     // normalize puts its group's cap back to its leader's speed
     // (`docs/AI.md` §161); the merged tree's count is the union, measured:
     // **182**, 148 standing.
-    pin_eq!(w.firsts.len(), 53, "initial run683 baseline");
+    // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (who=0, the human): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 54, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        46,
+        47,
         "the keys standing on the window's first block"
     );
     // **The word 1582's value diff, block 1583** (items 1561 and 1565): the
@@ -795,10 +807,13 @@ fn run702_s_word_frame_is_widened_whole() {
     // **116** on the merged tree: 258 (259 with item 1608's `spell_time`
     // row) before item 1611's two builds — the founding capital's border
     // bonus took 142 — and 51 of them stand on block 1979 (95 before).
-    pin_eq!(w.firsts.len(), 81, "initial run702 baseline");
+    // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (who=0, the human): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 82, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
-        49,
+        50,
         "the keys standing on the window's first block"
     );
     // **The word 1985's value diff** (item 1581, on the tree that merged
@@ -964,10 +979,13 @@ fn run718_s_word_frame_is_widened_whole() {
     // 1/2018's `myhits` (8125 against 3900 on 3395's sibling window) and
     // 1/2055's `construct_hits` part in the already diverged tail: on the
     // merged tree with item 1697's arms, 68 -> 69.
-    pin_eq!(w.firsts.len(), 64, "initial run718 baseline");
+    // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (who=0, the human): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 65, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
-        59,
+        60,
         "the keys standing on the window's first block"
     );
     // **The word 2273's value diff** (item 1611, `docs/AI.md` §171). The
@@ -1075,7 +1093,10 @@ fn run766_s_word_frame_is_widened_whole() {
     // Item 1738: **93** keys with the Redoubt read as a training building
     // through its Fort (`docs/AI.md` §192): its divisor 7, so one key of
     // the 94 of item 1726 is gone.
-    pin_eq!(w.firsts.len(), 79, "initial run766 baseline");
+    // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (who=0, the human): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 80, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1119,7 +1140,10 @@ fn run767_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 79, "initial run767 baseline");
+    // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (who=0, the human): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 80, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
@@ -1184,7 +1208,10 @@ fn run790_s_word_frame_is_widened_whole() {
     // are gone. 3983's timber and metal buckets (73 short) and 3986's TOW
     // `queue[k].cost[0]` 178 against 160 now first there; the word moves 3985 → 4266,
     // past the window.
-    pin_eq!(w.firsts.len(), 116, "initial run790 baseline");
+    // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (who=0, the human): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 117, "initial run790 baseline");
 }
 
 /// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
@@ -1248,5 +1275,8 @@ fn run817_s_word_frame_is_widened_whole() {
     // The 264 standing rows from 4260 stay; the rest are the attrition and
     // shelter residue of group 66's members, and from 4285 a `path[k].to`
     // residue (`1/105`, `1/107`, `1/168`: ours 768 south of theirs).
-    pin_eq!(w.firsts.len(), 297, "initial run817 baseline");
+    // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
+    // from the window's first block (who=0, the human): compared since 2384;
+    // theirs' writer on an at-war slot is parked 2385.
+    pin_eq!(w.firsts.len(), 298, "initial run817 baseline");
 }
