@@ -20624,9 +20624,11 @@ keys part there. who=1's `1/25` is given a move to (35112, 44088) in ours and to
 `agendas & 0x40` yet, so the new word is not this arm's. The armies' release is the next item's hypothesis
 (parked 2321's `release_mustering` reader, filed as 2388).
 
-**Elsewhere.** The coverage lobby (GreatSaharaPersianAllTech, at war from frame 0) stands 1 or 2 more keys on each
-of ten windows. Theirs holds `aggression[i]` 1 on every at-war slot from frame 6, the human's and the unused slots
-2..7 too; ours holds 0 until diplomacy views a met target. `Leader::diplomacy` returns for a human and skips an
+**Elsewhere.** Every lobby at war from frame 0 stands 1 or 2 more keys on its widenings: 39 windows in all, ten
+`sahara_coverage`, five `coverage_pair`, nine Mongol, one Sahara Mongol, three third pair and eleven golden
+chapters, plus chapter eight's leader-key count (103 → 110). All are `aggression`: dropping that key from the
+comparison clears the eighteen non-golden ones. Theirs holds `aggression[i]` 1 on every at-war slot from the first
+block, the human's and the unused slots 2..7 too; ours holds 0 until diplomacy views a met target. `Leader::diplomacy` returns for a human and skips an
 unmet target, so the writer is not this function (parked 2385). No floor and no other lobby's word moved.
 
 **Not established.**

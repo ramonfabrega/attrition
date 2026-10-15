@@ -5217,7 +5217,8 @@ is 0 — the human's record, and the unused slots 2..7 — with `treaties` 0 and
 `LEADERDATA` does the same. `Leader::diplomacy` returns for a human and skips an unmet target, and its decompile
 writes `+0x210` only in place for the target it views. So the writer is elsewhere: an initializer, or the war's
 own setter. `Leader::set_diplo@006ec6a0` writes `diplos` both ways and not `+0x210` in the decompile; read its
-listing and `Leader::init@006e3930`'s before naming one. Ten `sahara_coverage` widenings stand +1 or +2 for it.
+listing and `Leader::init@006e3930`'s before naming one. 39 widenings in six lobbies stand +1 or +2 for it
+(`docs/AI.md` §220, "Elsewhere"); a model closes them all at once.
 
 (2386) **`Leader::diplomacy`'s score arm: `LeaderData::score` and the top scorer** (2384; names no score). The
 head counts leaders scoring above me (`local_64`) and the top scorer (`local_70`). Their one reader on the peace

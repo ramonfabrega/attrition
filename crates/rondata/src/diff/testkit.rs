@@ -6570,8 +6570,10 @@ pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 /// `wonder_mark` (`docs/AI.md` §75), and 99 since item 883 reads the tech
 /// counters `ages_get()`, `epochs_get()` and `discovered_get()`; 101
 /// since item 1209 compares `agendas[·]`, one a player; 103 since item
-/// 1487 compares `popwin_stamp` and `popwin_timer`.
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 103;
+/// 1487 compares `popwin_stamp` and `popwin_timer`; 110 since item 2384
+/// compares `aggression[·]`, `strong[·]` and `weak[·]`, one each a player,
+/// and `got_diplo_message`.
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 110;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, `gov` since item 706, and the three tech
 /// counters since item 883 (`docs/GOLDEN.md` §35).
