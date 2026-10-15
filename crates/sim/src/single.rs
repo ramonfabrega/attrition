@@ -211,6 +211,37 @@ impl Single {
         round(sign, q, e1 - e2 - 64, !exact)
     }
 
+    /// `sqrtf@0041e6f0`: `cvtss2sd`, the library's double `sqrt`, and
+    /// `cvtsd2ss`. The double root is correctly rounded to 53 bits and
+    /// then to 24, and 53 ≥ 2 × 24 + 2 makes that pair one correct rounding
+    /// of the true root — which is what this returns. A negative operand
+    /// cannot arise (the one caller roots a fall time and a squared
+    /// distance) and answers zero rather than a NaN.
+    pub fn sqrtss(self) -> Single {
+        let (m, e) = self.parts();
+        if m == 0 || self.negative() {
+            return Single::ZERO;
+        }
+        // An even exponent, and eighty more bits under the significand so
+        // the integer root carries the 24 of the answer, a guard and a
+        // sticky.
+        let (m, e) = if e % 2 != 0 {
+            (u128::from(m) << 1, e - 1)
+        } else {
+            (u128::from(m), e)
+        };
+        let n = m << 80;
+        let mut r = 1u128 << (128 - n.leading_zeros()).div_ceil(2);
+        loop {
+            let y = (r + n / r) / 2;
+            if y >= r {
+                break;
+            }
+            r = y;
+        }
+        round(false, r, (e - 80) / 2, r * r != n)
+    }
+
     /// The single a six-decimal print names, and whether it is the only one
     /// — how the height grid enters this arithmetic (`docs/COMBAT.md`
     /// §46.2).
@@ -348,6 +379,15 @@ mod tests {
     /// oracle written in this module's arithmetic would prove nothing.
     fn host(s: Single) -> f32 {
         f32::from_bits(s.0)
+    }
+
+    #[test]
+    fn the_square_root_agrees_with_the_host_bit_for_bit() {
+        for a in samples() {
+            let x = Single(a & !SIGN);
+            let want = f64::from(host(x)).sqrt() as f32;
+            assert_eq!(x.sqrtss().0, want.to_bits(), "sqrt {:#x}", x.0);
+        }
     }
 
     #[test]

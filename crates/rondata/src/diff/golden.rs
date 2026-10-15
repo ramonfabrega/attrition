@@ -10546,8 +10546,10 @@ struct ChapterThreeWidening {
 /// `Ammo::init_crash`, which gives a falling aircraft a random roll. Until
 /// this item the widenings compared this crate's bit 4 against the byte,
 /// and every rolling round read "ours 1 theirs 0" there: a row that named
-/// the wrong field, not a parting. This crate carries no roll byte and no
-/// crash round, so its side of `rolling` is the zero `init` writes.
+/// the wrong field, not a parting. A crash round carries its roll and its
+/// bank pair since item 2609 (`docs/AI.md` §228), printed in millionths as
+/// the dump's singles are; every other round's side is the zero `init`
+/// writes.
 /// An object's `(who, o)` as the dump prints it: a unit's owner and
 /// index, or a building's.
 pub(super) fn obj_ident(sim: &sim::Sim, o: sim::combat::Obj) -> (i64, i64) {
@@ -10596,14 +10598,17 @@ pub(super) fn ammo_value_rows(
 fn ammo_flag_rows(
     p: &sim::combat::Projectile,
     a: &super::ammo::Ammo,
-) -> [(&'static str, i64, i64); 4] {
+) -> [(&'static str, i64, i64); 6] {
+    let (roll, bank) = p.crash.map_or((0, (0, 0)), |c| (c.rolling, c.bank));
     [
         ("flags&4", if p.rolling { 4 } else { 0 }, a.flags & 4),
         ("flags&8", if p.missed { 8 } else { 0 }, a.flags & 8),
         // `Ammo::init`'s bit `0x10`, a `do_damage="0"` round (item 853,
         // `docs/ORDERS.md` §39.5).
         ("flags&16", if p.harmless { 16 } else { 0 }, a.flags & 16),
-        ("rolling", 0, a.rolling),
+        ("rolling", i64::from(roll), a.rolling),
+        ("bank_dx", i64::from(bank.0) * 1_000_000, a.bank_dx),
+        ("bank_dy", i64::from(bank.1) * 1_000_000, a.bank_dy),
     ]
 }
 
@@ -16361,8 +16366,10 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
 /// golden start (`form`, `g.gpiece`, the gather slots, the idle clocks);
 /// the Radar Air Defense's `constr_time` (30000 against 22556); the
 /// Battery's aim (743), its bits (801) and its node-1 round's launch point
-/// (784, `0/7`'s hit a frame late, parked 1125); the two crash rounds (1007, 1020: their fall, parked 1110);
-/// one Battery round the dump holds alone (1015); the Barracks' and the
+/// (784, `0/7`'s hit a frame late, parked 1125); the two crash rounds' `splash_area` (1007, 1020:
+/// the pool slot's leftover, which `Ammo::init_crash` never writes — item 2609 laid the rounds,
+/// and every other field of both agrees to their landing, `docs/AI.md` §228; the Battery round
+/// on 1015 the dump held alone was the slot the crash took); the Barracks' and the
 /// Radar's damage fractions on 1036; and the Battery's group id on 1277.
 /// Item 1131 took 455 → 36: every Bomber row, the Radar's target and the
 /// strikes' re-targets agree. Item 1200 took 36 → 30: the Battery's own
@@ -16370,32 +16377,15 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
 /// `block_radius` (`UnitType::init@0061ab50:753`), the splash's inner
 /// radius the loader had left at 0.
 const WANT_CH38: &[&str] = &[
-    "619 1/2007 build:constr_time",
-    "743 1/9 g.des_turret0[0]",
-    "743 1/9 g.turret0[0]",
-    "761 1/9 ammo[1]",
-    "784 0/7 damage_frac",
-    "784 0/7 damage_frame",
-    "784 0/7 hits:damage",
-    "784 0/7 hits:damage_frac",
-    "784 0/7 hits_left",
-    "784 1/9 ammo[0]",
-    "801 1/9 g.node_flags[0]",
-    "1007 0/6 ammo[1]",
-    "1015 1/9 ammo[2]",
-    "1020 0/7 ammo[2]",
+    "1007 0/6 ammo[1].splash_area",
+    "1020 0/7 ammo[2].splash_area",
     "1036 1/2006 build:damage",
     "1036 1/2006 build:damage_frac",
     "1036 1/2007 build:damage",
     "1036 1/2007 build:damage_frac",
-    // **The rounds' fields, compared from item 1257**, no draw from any:
-    // the Bombers' `accuracy` (0 here, `launch.rs`'s SEAM); the flak
-    // Battery `1/9`'s rounds leaving from its own square (754: `sx, sy,
-    // sz` ours `(21384, 17256, 30)` against `(21497, 17247, 214)`), a
-    // pivot piece with no `pivot::RELEASES` row; and the aim height at a
-    // flying Bomber on `1/9`'s and the Barracks `1/2007`'s rounds (`ez`
-    // ours 32 against 1660 on 754, 4 against 1618 on 798) with the arc
-    // from it.
+    "619 1/2007 build:constr_time",
+    "743 1/9 g.des_turret0[0]",
+    "743 1/9 g.turret0[0]",
     "754 1/9 ammo[0].angle",
     "754 1/9 ammo[0].ez",
     "754 1/9 ammo[0].sx",
@@ -16411,13 +16401,21 @@ const WANT_CH38: &[&str] = &[
     "756 1/9 ammo[1].sz",
     "756 1/9 ammo[1].total_time",
     "756 1/9 ammo[1].v1z",
+    "761 1/9 ammo[1]",
     "783 1/9 ammo[0].ex",
     "783 1/9 ammo[0].ey",
     "783 1/9 ammo[0].total_time",
+    "784 0/7 damage_frac",
+    "784 0/7 damage_frame",
+    "784 0/7 hits:damage",
+    "784 0/7 hits:damage_frac",
+    "784 0/7 hits_left",
+    "784 1/9 ammo[0]",
     "786 0/7 ammo[0].accuracy",
     "787 0/7 ammo[1].accuracy",
     "798 1/2007 ammo[6].ez",
     "798 1/2007 ammo[6].v1z",
+    "801 1/9 g.node_flags[0]",
     "806 0/7 ammo[6].accuracy",
     "808 1/2007 ammo[2].ez",
     "808 1/2007 ammo[2].v1z",

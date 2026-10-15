@@ -396,6 +396,7 @@ mod tests {
             ez: 0,
             v1z: crate::single::Single::ZERO,
             slot: 0,
+            crash: None,
         };
         // Through the round's own landing (`Sim::land`'s nuke arm): the
         // round's last frame lays the blast, and strikes nothing where it
@@ -550,6 +551,7 @@ mod tests {
             ez: 0,
             v1z: crate::single::Single::ZERO,
             slot: 0,
+            crash: None,
         });
         s.process_projectiles(3200);
         // Tile (120, 180) is fog cell (60, 90).

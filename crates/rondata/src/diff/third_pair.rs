@@ -1832,11 +1832,13 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         eprintln!(
             "{capture}: ammo counts {ammo_counts:?}, differences {ammo_differences:?}, unmodelled {ammo_unmodelled:?}"
         );
+        // Item 2609: twenty-two fields a record, once `rolling` and the
+        // crash's bank pair are compared on every round (`docs/AI.md` §228).
         if window == WIDENING_FRENCH_LAKES_CLOSING {
             assert_eq!(
                 ammo_counts,
-                (7, 7, 140),
-                "every lifetime and twenty comparisons per record"
+                (7, 7, 154),
+                "every lifetime and twenty-two comparisons per record"
             );
             assert_eq!(
                 ammo_differences,
@@ -1896,10 +1898,12 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // `1/115` stood (AI §138): more rounds pair and are compared, and
             // every row past the word is the same release-offset family
             // (`sx`/`sy`/`sz`/`v1z`/`angle` at launch, `ex`/`ey`, a frame of
-            // `total_time`) or a round's `presence` a frame early.
+            // `total_time`) or a round's `presence` a frame early. Item 2609:
+            // 1400 → 1540 compared, twenty-two fields a round with the crash's
+            // `rolling` and bank (`docs/AI.md` §228); the rows unmoved.
             assert_eq!(
                 (ammo_counts, ammo_differences.len() - before.len()),
-                ((70, 74, 1400), 442),
+                ((70, 74, 1540), 442),
                 "the rounds past the word"
             );
             assert_eq!(
@@ -1915,8 +1919,8 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // unmeasured Dragoon offset (piece 60162) as run657's `1/90`.
             assert_eq!(
                 ammo_counts,
-                (3, 3, 60),
-                "three lifetimes, twenty fields each"
+                (3, 3, 66),
+                "three lifetimes, twenty-two fields each"
             );
             let mut want = std::collections::BTreeSet::new();
             for n in 17243..=17245 {
@@ -1946,8 +1950,8 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // (an attack on Napata in the original, a move in ours).
             assert_eq!(
                 ammo_counts,
-                (4, 4, 80),
-                "four lifetimes, twenty fields each"
+                (4, 4, 88),
+                "four lifetimes, twenty-two fields each"
             );
             let mut want = std::collections::BTreeSet::new();
             for n in 17166..=17169 {

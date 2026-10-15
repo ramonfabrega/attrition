@@ -1131,8 +1131,9 @@ on disk. The French siege move and Versailles' arms are built by item
 
 (1110) **Chapter thirty-eight's rows beside its word** (COMBAT §81.5):
 the Battery's army move parting from 624 (`dest` ±2..4, then its path);
-the Radar Air Defense's `constr_time` 30000 against 22556 on 619; the
-crash's round (its landing, a float fall time); `is_flying_high` in
+the Radar Air Defense's `constr_time` 30000 against 22556 on 619; ~~the
+crash's round (its landing, a float fall time)~~ (laid by item 2609, AI
+§228); `is_flying_high` in
 `valid_target`'s ladder; five flak draws with no printed round; and
 `get_speed`'s sortie arm (`Object::do_launch`), which wants a reading
 before a chapter.
@@ -5915,13 +5916,16 @@ Closes 2594 (`obj --ret arg:N`: eax held to the out-pointer argument, the block 
 
 (2607) **`Setup::get_starting_citizens` 0x5aaf50** is a one-line indexed jump (`(&PTR_LAB_005aafac)[param_2]()`); needs a jump-table shape, not a function the batch's shapes hold. The rest of the shortest never-backed list (257+ bytes: `RiverDoober::add_for_render`, `Game::run_unit_editor`, `compute_vert_height`, `setup_terrain_terraforming`, `Map::set_file`, `Game::clock_init`) is UI, float or file I/O and each needs its own listing read: seven of ten landed (2481).
 
-## Parked by the next landing, slot DS — reserved
+## Parked by item 2609, 2026-10-15 — the crash round's landing
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2611) **A crash round's two unbuilt arms** (2609, AI §228; chapter 38's two `ammo[*].splash_area` rows):
+- `Ammo::do_damage` when it comes down. Run405 and run866 show no draw there, and its `splash_area` is the pool
+  slot's leftover (theirs 2, from the slot's last round), which `init_crash` never writes. So the pool slot's memory
+  is what would close the rows.
+- `GraphicPieces::get_gpiece_type(+0x8)`'s gate on the terrain test, read as zero; the crash's `+0x8` is the plane's
+  vslot `0x34`.
+
+Names no score until a word reaches a crash's landing.
 
 ## Parked by item 2615, 2026-10-15 — the sweep's ninetieth batch, one function and a jump-table shape
 
