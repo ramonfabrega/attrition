@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -40,10 +45,24 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            { let flag = if rd(&p[0], 4) != 0 { (a[0] as u32 >> 24) as u8 } else if rd(m, 0x18) != 0 || m[8] & 1 != 0 || m[0x32] | m[0x33] != 0 { 1 } else { 0 }; log.push("p0+0x0,sp-0x1,2147483392".into()); log.push(format!("{flag:02x}")); i64::from(flag) }
+            {
+                let flag = if rd(&p[0], 4) != 0 {
+                    (a[0] as u32 >> 24) as u8
+                } else if rd(m, 0x18) != 0 || m[8] & 1 != 0 || m[0x32] | m[0x33] != 0 {
+                    1
+                } else {
+                    0
+                };
+                log.push("p0+0x0,sp-0x1,2147483392".into());
+                log.push(format!("{flag:02x}"));
+                i64::from(flag)
+            }
         };
         assert_eq!(got, want_eax, "must_walk — eax, row `{line}`");
-        assert_eq!(log, want_log, "must_walk — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "must_walk — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "must_walk — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
