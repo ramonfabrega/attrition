@@ -426,6 +426,28 @@ pub struct Projectile {
     /// the order `Objects::inc_time@0065db70` steps the pool in
     /// (`docs/COMBAT.md` §46.4). [`crate::Sim::add_ammo`] assigns it.
     pub slot: u32,
+    /// What `Ammo::init_crash@0067b800` adds to a round: an aircraft shot
+    /// down falling, not a shot fired (`docs/COMBAT.md` §81.3, `docs/AI.md`
+    /// §228). `None` on every round `Ammo::init` lays.
+    pub crash: Option<Crash>,
+}
+
+/// **A falling aircraft's round** — the fields `Ammo::init_crash@0067b800`
+/// writes that `Ammo::init` does not (`docs/AI.md` §228).
+///
+/// The round's `who`/`o` are the plane's own, so `Ammo::inc_time`'s first
+/// statement holds the dead plane's object number for as long as it falls,
+/// as any round holds a dead shooter's.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Crash {
+    /// `+0x5c`/`+0x60`, `bank_dx`/`bank_dy`: two `Random::get(-30, 30)` on
+    /// a local `Random` seeded by the figure's `x + y + z`, added to the
+    /// landing point on every frame of the fall (`inc_time`'s `+0x50 == 1`
+    /// arm). Integers in the original's singles, printed `23.000000`.
+    pub bank: (i32, i32),
+    /// `+0x5`, `rolling`: `r % 7 − 3` of the crash's one draw from the
+    /// game's stream.
+    pub rolling: i32,
 }
 
 /// `GRAV_Z` at `0xcab378`: `0xc127cccd`, −10.4875 — written once, by

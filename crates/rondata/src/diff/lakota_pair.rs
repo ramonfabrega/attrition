@@ -73,8 +73,17 @@ pub(crate) const LAKOTA: Pair = Pair {
     // group (`ATTACK` on `0/2000` for all nine members on 5136, both
     // sides): ours 24 draws, theirs 23, index 22 — ours `Guy::set_anim+0x97a
     // < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x104b`.
-    count: 5225,
-    sequence: 5225,
+    // Item 2609: 5225 → 5315, a shot-down aircraft's crash round
+    // (`Ammo::init_crash`, `docs/AI.md` §228) holds its object number for
+    // its fall: who=1's Jet Fighters `1/114` (down on 5177) and `1/120`
+    // (5191) keep their slots, so the transports `Objects::find_free`
+    // hands out on 5209 and 5225 are `1/189` and `1/216` both sides, where
+    // ours had reused 114 and 120 (and `1/120`'s newborn figure rolled in
+    // `Guy::inc_time`'s walk ahead of `1/132`): ours 30 draws, theirs 29,
+    // index 0 — ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a <
+    // Guy::move+0x19f`.
+    count: 5315,
+    sequence: 5315,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -409,7 +418,7 @@ fn run866_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 3550, "initial run866 baseline");
+    pin_eq!(w.firsts.len(), 1340, "initial run866 baseline");
     // Item 2554: the word 5135's own block is 5136, widened at 5707 keys.
     // Theirs gives who=1's naval army (group 72, nine members: the
     // Missile Cruisers `1/20`, `1/21`, `1/25`, `1/26`, `1/34`, `1/36`,
@@ -424,4 +433,16 @@ fn run866_s_word_frame_is_widened_whole() {
     // leader, among them the human's `control` 14 against 0, and `1/197`'s
     // `air.mandatory`); the first past it is group 64 on 5141, and
     // `0/2000`'s `damage_frac` parts on 5161 (ours 0, theirs 10).
+    // Item 2609: the word 5225's own block is 5226, widened at 3550 keys.
+    // Theirs numbers the MLRS `1/124`'s transport `1/216` (`inside` ours
+    // 120 against theirs 216, `1/120` "this crate holds it alone"), and on
+    // 5210 `1/194`'s `1/189` where ours took 114: both numbers were Jet
+    // Fighters shot down on 5177 and 5191, whose crash rounds hold them in
+    // theirs. 3550 → 1340 with the crash round laid: on 5226 `1/124`
+    // reads `inside` 216 and `1/216` stands both sides (its one row is
+    // `form`, ours −1 against 0, the pair's standing `form` residue), and
+    // 5210 and 5219 hold no row. Still standing: `1/2014`/`1/2022`'s
+    // `cost[1]` on 5183 (155 against 116, parked 2579), who=1's
+    // `num_units[255]`, `[261]` on 5201 and `1/2005`'s `job_counter` on
+    // 5202 (17625 against 17250).
 }
