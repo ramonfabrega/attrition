@@ -177,6 +177,7 @@ mod wall_update_hits;
 mod wcoord_to_tcoord;
 mod world_data_get_whose;
 mod world_data_is_edge;
+mod world_data_was_seen;
 mod world_get_land;
 mod world_get_region;
 mod world_get_region2;
