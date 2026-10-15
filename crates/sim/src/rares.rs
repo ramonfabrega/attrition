@@ -543,6 +543,17 @@ impl Sim {
             }
             let Some(ty) = unit.ty else { continue };
             self.update_los(u);
+            // The listing's `+0xe8` test is `is_captain`, and behind it come
+            // `update_hits(0)` (`+0x15c`), `update_speed` and `update_armor`:
+            // a captain keeps its damage and takes the new pool — The
+            // Despot's 659 is 109 once `age` has rescaled the upgrade
+            // prerequisites (item 2448, `docs/GOLDEN.md` §89, run859).
+            if self.is_captain(u) {
+                let hits = self.unit_hits(who, ty);
+                let damage = self.units[u].max_health - self.units[u].health;
+                self.units[u].max_health = hits;
+                self.units[u].health = hits - damage;
+            }
             self.units[u].movement.speed = self.type_speed(who, ty);
         }
     }

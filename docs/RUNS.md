@@ -16908,3 +16908,24 @@ Kept in `~/ron-golden/ch71/map-14`; `rontrace.dll` SHA-256
 `3d909ec32bb77ab8d713fdfc21c65aa1d9d801834ebca2c9321e43a390f0ccd7`. Falsifiers held: The Despot born on 1011 at 659 hits.
 **What it holds**: `golden::chapter_seventy_one_holds_to_the_golden_word` (**1120**, the trace's end, closed) and
 `chapter_seventy_one_s_word_frame_is_widened_whole` (600..1121, thirteen standing rows).
+
+## run859 — chapter seventy-two: the Senate's second government on a human (2026-10-14, item 2448, `att-2448`)
+
+`docs/GOLDEN.md` §89, `tools/gamelog/golden/chapter72.cmd` (thirteen staged lines). **What the disk could not answer**:
+no golden capture has a human Senate finish a second government (Monarchy) over a born patriot; the arm was backed only by
+an AI Senate's.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch72 \
+    --map 14 --end-frame 1770 --log-window 600 1770 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter72.cmd
+```
+
+**Two takes**, click-free pool lane 1, both `success: true`: the first (age on 1012) is kept at `~/ron-golden/ch72-take1`
+and is the one-frame finding; the second (age on 1020, Monarchy queued on 1021) is `~/ron-golden/ch72/map-14`, 1,171
+blocks, about fifteen minutes. Falsifiers held: The Despot born 1011 at 659; The Monarch on 1722 at 109.
+**What it holds**: `golden::chapter_seventy_two_holds_to_the_golden_word` (**1770**, the trace's end, closed) and
+`chapter_seventy_two_s_word_frame_is_widened_whole` (600..1771, thirteen standing rows).
+
