@@ -3750,6 +3750,11 @@ line, filed at its merge): 2694 booked "a scout's explore search takes a differe
 the consumer of a score; draws 0..24 agreeing said the inputs were equal up to one, and the 195 in `danger` was the
 cause. Candidate: a brief row, "a parting at a fallback asks first which of its gate's inputs differs". One reach.
 
+(2732) **A shape the sweep parks three times running is an item, not a batch's tail** (2719's "for the Loop" line,
+filed at its merge): a callee run rather than hooked was parked by 2701, 2712 and 2720 while each batch's brief led
+with it behind another build; 2719 built the other and swept nothing. Answered once at this booking (2731 is the
+shape alone). Candidate: the commander's booking mints a shape parked by two batches as its own item. One reach.
+
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
 `agent-a0bec46101a67bd2c` and `agent-a408c627562788677` (item 2368's `e4d4aaa6` and `2a39678f`, neither an ancestor
