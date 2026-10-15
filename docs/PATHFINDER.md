@@ -752,7 +752,9 @@ with LIFO ties** and metric-keyed dedup; the world read through the layers
 the sim has (tile mask bits via `place.rs`, cell owner via `territory`,
 `tregion`, the `WData` records and the `seen2` fog plane via the `WORLD`
 dump), with named seams returning the open-ground answer for the layers it
-does not (rush rules: off) — each seam marked in the code with the §5 term
+does not (~~rush rules: off~~ — **the no-rush timer is built**, item 2423,
+`docs/AI.md` §223: the peace pair's lobby, `RUSH_RULES 10`, is the first
+capture to reach it) — each seam marked in the code with the §5 term
 it stubs. **Two of those seams closed 2026-09-02**: `danger` has a writer
 (`crate::danger`, `docs/DANGER.md`) and `diplos` is installed from the dump,
 so the danger term and the enemy-territory `+4` are both live.

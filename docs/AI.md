@@ -20746,12 +20746,90 @@ first parted field on the unit the next word's draws name.
 **Diff-backed**: the return, on run853's `1/2018` (3296..3552) and on the draw stream from 3302 to 3479
 (run847). **Reading only**: the `DISBAND` arm.
 
-## 223. Reserved for the next item on the AI track
+## 223. The no-rush timer prices another leader's cell, and the peace pair's word moves 3479 → 4544 (2026-10-14, item 2423)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The draws on 3479** (`report.py rontrace-run847.log draws 3479`; ours `RON_DEBUG_SITES=3479-3479` on
+`lakota_pair_first_parting`). Theirs spends 46: `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_cast+0xc89`
+at index 0, then `Guy::init_real+0x52 < Unit::init+0xb97` at index 1 (a birth), then the 44 ours spends, in
+ours' order. So ours lacks exactly the cast and the birth.
+
+**The unit.** `1/6` is who=1's Citizen (`TypeIndex` 50, land). From 3302 it walks a `MOVEORDER` to (2712, 18840)
+across water. In theirs, it casts spell 650 at the shore on 3479 and is inside the new Transport Freighter `1/140`
+(type 322) on 3480. Ours does the same, nine blocks later and 450 units north: the widening (run853) has ours'
+`1/140` at (12060, 19917) on 3488 against theirs' (11909, 20353). Both sides cast, so the cast is not the cause.
+The place is. `path[11]` is the leg flagged `4` (transport), and it is the first parted field on 3302: ours
+(11928, 19608), theirs (11928, 20376), one cell apart in y. Group 69's `[6]` on the same block is a standing
+shape (parked 2411, 2424). It parts with or without this build and is not on this chain.
+
+**The search, measured** (a probe in `astar_path`, reverted whole). `1/6` plans on tick 3301 with the world grid
+(`0x300`), goal (2688, 18816), both avoids 0. Cell (16, 26)'s node `(12672, 20352)` has `g` 168 and value 957;
+`(12672, 19584)` has `g` 176 and value 958. The first is expanded first and pushes both embark nodes:
+
+- `(11904, 20352)`, straight, cost 532 (32 + the 500 embark), `g` 700, `h` 730, value **1430**;
+- `(11904, 19584)`, diagonal, cost 540, `g` 708, `h` 722, value **1430**.
+
+The open list is LIFO on equal values: `Tree::ordered_insert@004796f0` sends an equal key left, and
+`first_open_node` takes the leftmost. Read again here; `docs/PATHFINDER.md` §2.1 had it right. So ours expands
+the newer node, `(11904, 19584)`, and `path[11]` is that cell. The heuristic is `astar_path`'s inline
+`vector_dist × 60 / step` (the decompile's lines 890–895; the out-of-line estimate has no caller). Its
+operands were not read in the listing here. The packet below accounts for the flip without them.
+
+**The term** (`PathFinder::calc_cost@00684e50`, the decompile's lines 411–420). After fleeing's triple, on the
+world-seen and tile branches, the original adds **500** when all of these hold:
+
+- the game's `rush_rules` is not 0;
+- `Game::current_age` is below it;
+- the `rr < 9` clause, or `frame < rush_rules[rr].+0x3c × 900`;
+- the cell's owner (`WData +0xf`) is ≥ 0;
+- `LeaderData::is_ally(who, owner)` is 0.
+
+`is_ally@006edb50` answers 1 for the leader itself, so a walker's own cell pays nothing. The first three clauses
+are `Sim::war_allowed` negated. `docs/PATHFINDER.md` §5 has had the row since the first reading (audit V6 settled
+its third clause); the crate left it a `SEAM` because no lobby on file set rush rules. This one does
+(`RUSH_RULES 10`, peace for the first five minutes, war allowed from frame 4500).
+
+**The packet, run854** (logger frame 3301, EMULATOR §8). Cell (15, 25) — `(11904, 19584)`'s — has owner **0** and
+flags `0x104`. Cell (15, 26) — `(11904, 20352)`'s — has owner −1. Who=0 is the human, not allied to who=1. So the
+original charges ours' node 1040, not 540. Its value is 1930, and theirs walks `(11904, 20352)`. The water cell
+is owned, and `is_ocean` gates only the ±4 territory terms, not this one.
+
+**Built.** `Sim::calc_cost` adds 500 when `war_allowed()` is false, `world.owner(to.cell())` is a player, and that
+player is not `is_ally` with the walker. It runs after fleeing, outside the clamp, on the tile and world-seen
+branches only. The team-style +5000 stays a `SEAM`. Test:
+`path::tests::the_no_rush_timer_charges_another_leader_s_cell_during_the_peace` (unowned, own, another's, one-way
+ally, two-way ally, frame 4500, no rush rules). The mutation (`tools/mutate.py`, `+= 500` → `+= 0`) fails
+`lakota_pair_first_parting` and `run853_s_word_frame_is_widened_whole`, exit 101.
+
+**Value diff and score.** On 3302, `1/6`'s `path[11].to` is (11928, 20376) on both sides; without the term it is
+ours (11928, 19608). run853's widening goes 169 → 100. Every `1/6` row (3441's `pos`, `heading`, `g.x[0]`, the
+move's `dest_y`; 3479's order kind 1/14, length, `orders_x/y`; 3480's `inside` −1/140, `path:length` 12/0) and
+every `1/140` row but its standing `form` (3480's unlinked, 3488's position, heading, path and tolerance, 3500's
+`dest`) close. So do who=0's swapped `off_x`/`off_y` on `0/3`, `0/5` (3515..3541) and the gaia `pos` rows on
+`8/0`, `8/1` (parked 2424). Of the 100, 81 stand from 3296. The rest are 2424's standing shapes: groups 69, 77, 80;
+`form` on the newborns; `dest_angle` on six units; `1/116`'s `mirror`. **The word moves 3479 → 4544**, count and
+sequence both. Ours spends 145 draws and theirs 201, parting at index 0. Ours spends `Leader::diplomacy+0x1168`;
+theirs spends `GameDaemon::calc_market+0x54`. The walk now reads 858 heights at corners not known to be the
+original's single (`GROUND_INEXACT`, `lakota_pair_first_parting`), where it read none to 3479.
+
+**The next word, 4544, widened on run855** (blocks 4538..4794, `run855_s_word_frame_is_widened_whole`, 977 keys).
+The word's block 4545 holds no row, because the state parts before the window. On 4538, who=0 and who=1 hold
+`diplos` 1 for each other in ours and 0 in theirs. The first ICBM `1/50`, inside the silo `1/2018` since 2302,
+holds one order in theirs and none in ours. `1/0` walks a 36-leg path to (15000, 11160) in theirs and idles in
+ours. `1/6` has 7 damage ours and 2 theirs. On 4542, theirs' `1/50` is gone, and the silo's clock runs (0 / 100).
+On 4576, `wars` is 0 ours and 1 theirs. The next item walks the diplomacy back from 4538 toward the peace's end at
+4500, and asks the dump nothing before 4538 (run853 ends at 3552). It is 44 frames after the peace ends. Ours' extra draw at index 0 is `Leader::diplomacy`.
+After it, the market, herd, farm and three `think_bird` sites agree in count. `Animal::think_bird+0x2aa` and
+`+0x2d3` do not: theirs spends 60 of each, ours 30. The `Guy::set_anim+0x97a` rolls are ours 48 against theirs 45.
+
+**Not established.**
+- The fog branch's reach: the decompile places the rush clause after both seen branches. The audit (V5) has the
+  fog branch skip it, and no node of this search was unseen.
+- The tile grid's arm is built from the same reading and is not on any capture's chain yet.
+- `rush_rules[rr].+0x3c` is read as `lobby.rush_minutes` (`Sim::war_allowed`, item 2384).
+
+**Diff-backed**: the term, on run847's draw stream from 3301 to 4544 and run853's `1/6` and `1/140` (3302..3552);
+the owner byte, on run854. **Reading only**: the tile arm, and the age and `rr < 9` clauses (this lobby's age is
+below 10 and `rr` is 10).
 
 ## 224. Reserved for the next item on the AI track
 
@@ -20761,6 +20839,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 225. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 226. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 227. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 228. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 229. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

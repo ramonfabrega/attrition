@@ -3757,6 +3757,12 @@ at once; the launcher's own `log:` line names the viadriver log to wait on. Cand
 `log:` line when handed a launcher log, or the frame's capture row names the file; a test made to fail first.
 One reach.
 
+(2461) **run854's packet has no footer** (2423's "for the Loop" line, filed at its merge): `golden_capture.sh`'s `RON_STATE_FRAME` packet ends
+where its header's ranges end. `tools/recomp/snapshot.py` raises on the missing 28 bytes, so every reader of
+it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell read here skipped the check by
+hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
+`frame_snapshot.py`'s restore, which this lane does not run.
+
 (2480) **A hand-written break script's pass check keys on a word a passing summary prints** (2469's "for the
 Loop" line, filed at its merge; Loop 2442's sibling). A break script that greps for `failed` matches cargo's `0
 failed` summary and reads a pass as the break; 2469 caught it on its first run. Candidate: the sweep's break helper
@@ -5496,13 +5502,10 @@ break is only visible once the draw holds an exponent of 23 or more (two `--wbia
 The census's next issuers: `CommandManager::issue_come_out`, `_resign`, `_gather`, `_unqueue` x2, `_form`,
 `_follow`, `_garrison`, `_queue_up`, `_patrol`; `--cmd-gate` takes the ungated ones with a 4-byte field list.
 
-## Parked by the next landing, slot CR — reserved
+## Parked by item 2423, 2026-10-14 — the peace pair's word 4544, and a packet with no footer
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Its two rows left at 2423's merge: 2460 is booked in the queue as the AI word's item, and 2461 is filed in
+the Loop section.
 
 ## Parked by item 2464, 2026-10-14 — the sweep's seventy-fifth batch
 
@@ -5618,6 +5621,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot CZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DD renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
