@@ -489,6 +489,8 @@ mod constants_walk_data;
 mod death_obj_data_blocking;
 mod death_obj_data_walk_data;
 mod dock_walk_data;
+mod doober_find_x_pos;
+mod doober_find_y_pos;
 mod doober_get_num;
 mod farms_data_get_farm_type;
 mod farms_data_get_wheat_status;
