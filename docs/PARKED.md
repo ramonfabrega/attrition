@@ -3792,6 +3792,12 @@ global object tables, a float return and a garbled body (parked 2617, 2618). Can
 sweep by shape family — every function one built shape holds, across lengths — rather than by length, or score the
 lane against the AI word's census rows. One reach.
 
+(2628) **A `&&` chain that opens with a BSD `sed -i` skips its commit and its launch** (2598's "for the Loop" line,
+filed at its merge). macOS `sed -i` takes `''`; 2598's chain began with `sed -i 's/…/'`, failed, and the commit and
+the capture launch behind it never ran, silently. `CLAUDE.md`'s convention already routes a multi-line patch through
+the python heredoc; candidate: the brief's frame names the one-line case too ("an edit in a chain is python or `sed
+-i ''`"). One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -5890,13 +5896,11 @@ argument, `ret 0x14`. An `obj --at` with a port that reads `c[0]` and writes `p0
 
 (2596) **`Balance::walk_rules_data` 0x582cc0** calls the walker 0x1ed * 0x1ed times: past any row's call list; needs a count-only shape.
 
-## Parked by the next landing, slot DQ — reserved
+## Parked by item 2598, 2026-10-15 — the Porcelain Tower's ship arm and its market tax
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2600) **`Leader::calc_gather@006ceee0` and `LeaderData::calc_rare@006e08d0` read `has_wonder(0x215)` too**: the rare
+term and the gather pass the Porcelain Tower touches are still the seam `docs/ECONOMY.md` names; no chapter holds a deposit
+under a human's Tower yet. Names no score; parks.
 
 ## Parked by item 2604, 2026-10-15 — the eighty-ninth sweep batch
 

@@ -2216,6 +2216,8 @@ mod tests {
         ("chapter75.cmd", &[]),
         // Chapter seventy-six: the President's train arm on a human (item 2572).
         ("chapter76.cmd", &[]),
+        // Chapter seventy-seven: the Porcelain Tower's ship arm on a human (item 2598).
+        ("chapter77.cmd", &[]),
         // Chapter seven's control, the same file less `0 !ai off` (item 578).
         ("chapter7_control.cmd", &[]),
         // Chapter seven-b: the same five for who=1, and its control (item 628).

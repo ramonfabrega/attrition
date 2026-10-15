@@ -533,6 +533,9 @@ pub struct Tuning {
     /// (`100%`; `docs/AI.md` §226).
     pub liberty_units: i32,
     pub porcelain_ships: i32,
+    /// Percent more wealth from a market's taxes under the Porcelain Tower
+    /// (`CityData::get_taxes@00737b50`; ships as `300% bonus wealth`).
+    pub porcelain_market: i32,
     pub space_air_speed: i32,
     /// Percent faster Nuclear Missile-line creation with the Uranium rare —
     /// `ObjectData::train_time@006508c0:79`–`85`. Ships as 10.
@@ -1199,6 +1202,7 @@ impl Tuning {
         liberty_missiles: 0,
         liberty_units: 0,
         porcelain_ships: 50,
+        porcelain_market: 300,
         space_air_speed: 100,
         uranium_nuke_speed: 10,
 
@@ -1413,7 +1417,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 385] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 386] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1764,6 +1768,7 @@ impl Tuning {
             ("LIBERTY_MISSILES", Slot::Value(T.liberty_missiles)),
             ("LIBERTY_UNITS", Slot::Value(T.liberty_units)),
             ("PORCELAIN_SHIPS", Slot::Value(T.porcelain_ships)),
+            ("PORCELAIN_MARKET", Slot::Value(T.porcelain_market)),
             ("SPACE_AIR_SPEED", Slot::Value(T.space_air_speed)),
             ("URANIUM_NUKE_SPEED", Slot::Value(T.uranium_nuke_speed)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
