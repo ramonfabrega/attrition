@@ -6996,6 +6996,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2229: 873 -> 877, the walk past 4637 to the word 4671.
     // Item 2259: 877 -> 923, the walk past 4671 to the word 4946.
     ("mongol_pair_first_parting", 923),
+    // The peace pair walked to its word (item 2423): 858 reads in the walk
+    // past 3479 to the word 4544, where it read none before.
+    ("lakota_pair_first_parting", 858),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.

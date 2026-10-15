@@ -42,8 +42,13 @@ pub(crate) const LAKOTA: Pair = Pair {
     // second ICBM while the first stands inside (`docs/AI.md` §222): ours
     // 44 draws, theirs 46, index 0 — ours `Guy::set_anim+0x97a <
     // Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a < do_cast`.
-    count: 3479,
-    sequence: 3479,
+    // Item 2423: 3479 → 4544, `calc_cost`'s no-rush timer (`docs/AI.md`
+    // §223): who=1's Citizen `1/6` plans its crossing on 3301 with the
+    // +500 on cell (15, 25), who=0's, so `path[11]` is (11928, 20376) and
+    // it casts at the shore on 3479: ours 145 draws, theirs 201, index 0 —
+    // ours `Leader::diplomacy+0x1168`, theirs `GameDaemon::calc_market+0x54`.
+    count: 4544,
+    sequence: 4544,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -219,7 +224,7 @@ fn run853_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 169, "initial run853 baseline");
+    pin_eq!(w.firsts.len(), 100, "initial run853 baseline");
     // Item 2412: the word 3302's own block is 3303. Without the silo
     // return, who=1's Missile Silo `1/2018` trains its second ICBM (316)
     // from 2582 and births it on 3302 (`Guy::init_real+0x52`, ours' extra
@@ -232,4 +237,8 @@ fn run853_s_word_frame_is_widened_whole() {
     // 14 to (12111, 20376)) and is inside the Transport Freighter `1/140`
     // on 3480; ours holds kind 1 to (2712, 18840). Group 69 holds `[6]`
     // in ours from 3302 and nothing in theirs (parked 2411's group).
+    // Item 2423: 169 → 100. With the no-rush timer built (`docs/AI.md`
+    // §223) `1/6`'s `path[11].to` is (11928, 20376) on 3302 on both sides
+    // (ours (11928, 19608) without it), and its 3441..3480 rows, the cast,
+    // the Freighter `1/140` and its rows all close.
 }

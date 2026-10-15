@@ -3025,6 +3025,41 @@ mod tests {
         assert_eq!(enemy, 36);
     }
 
+    /// §5's no-rush timer (item 2423, `docs/AI.md` §223): while the rush
+    /// rules forbid war, a cell another leader owns costs 500 more unless
+    /// the two are allies; one's own cell, an unowned one, and any cell once
+    /// the peace is over pay nothing.
+    #[test]
+    fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let m = Modes::default();
+        let from = Pos::new(0x180, 0x180);
+        let to = Pos::new(0x180 + 0x300, 0x180);
+        sim.lobby.rush_rules = 10;
+        sim.lobby.rush_minutes = 5;
+        sim.frame = 4499;
+        let cost = |sim: &Sim| sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 0).0;
+        assert_eq!(cost(&sim), 32, "unowned");
+        sim.world
+            .set_owner(to.cell(), Owner::Player(0), Owner::None);
+        assert_eq!(cost(&sim), 32, "its own leader's");
+        sim.world
+            .set_owner(to.cell(), Owner::Player(1), Owner::None);
+        assert_eq!(cost(&sim), 532, "another leader's, during the peace");
+        sim.allied[0][1] = true;
+        assert_eq!(cost(&sim), 532, "an ally one way only");
+        sim.allied[1][0] = true;
+        assert_eq!(cost(&sim), 32, "an ally both ways");
+        sim.allied[0][1] = false;
+        sim.allied[1][0] = false;
+        sim.frame = 4500;
+        assert_eq!(cost(&sim), 32, "the peace is over");
+        sim.frame = 0;
+        sim.lobby.rush_rules = 0;
+        assert_eq!(cost(&sim), 32, "no rush rules");
+    }
+
     /// §5's terrain term: `+20 × WData.blocked`, the `+100000` at 13, and
     /// an army's `+10000` at 5. None of it fires on a flat world, which is
     /// why it sat behind a seam for so long; all of it fires the moment a
