@@ -3750,6 +3750,10 @@ no-argument siblings are a four-line shape no flag writes (parked 2472; minted a
 line equal to it; three of ten landed, the other seven read and not the shape — an SEH and feedback-log arm, a
 global-record read, strings, floats (parked 2482; the arm minted as 2486's first build); four hand lines may
 regenerate from `--cmd-byte` when next touched (parked 2483).
+**2486** (forty-fifth reach, filed at its merge): built `--cmd-seh`, a test failing first, the treaty family's seven
+on it and two hand `--port`s, nine of ten; its "for the Loop" line: the arm holds `Error::report`'s two stale stack
+words as the zeroed emulator stack's `0,0`, an observation a stack seeded with a marker would make a test (parked
+2488).
 
 (2449) **`waitrun.sh` on a launcher's redirected log exits 2** (2436's "for the Loop" line, filed at its merge;
 parked 656's sibling). A launcher log written with `>` holds no banner, so `tools/gamelog/waitrun.sh` on it exits 2
