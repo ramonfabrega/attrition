@@ -5628,13 +5628,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DC — reserved
+## Parked by item 2513, 2026-10-15 — the eighty-first sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2534) **x87 returns and float-heavy render getters have no obj shape** (2513: `GuyData::get_render_bank`, `get_render_pitch`,
+`get_render_z`, `get_render_y`, `Game::get_game_fps_average`). The decompile prints `in_ST0` and a bare `return`: the
+listing returns a float in `st0`, which the `obj` shape's `eax` does not read, and `callfn` has no `st0` result. Not
+built; `Unit::air_alt_speed` (SSE) was done by a hand script, `tools/emu/sweep_unit_air_alt_speed.py`. Candidate: an
+`st0` return in `callfn.Machine.call` and an `--ret st0` in `obj`. One reach.
+
+(2535) **A hand-written float sweep is the Loop's next shape** (2513: `air_alt_speed`). `xmm1` in, `eax` out, the sign
+of `ecx` compared with `xmm1 < 0`: `sweep_gen.py` has no `--xmm IDX:VALS` argument, so the script was copied from
+`sweep_guy_set_pitch.py`. Candidate: `obj --xmm 1:RANGE` drawing bits into `xmm1` (`sweeplib.xmm_bits`). One reach.
+
+(2536) **`Army::walk_data` (0x6f9850) needs a mix gate on `[this]`** (2513). `mix`'s gate reads `[walker+OFF]`; this
+function walks `(this, this+2)` always and `(this+2, this+0x98)` only when the short at `this` is non-zero, after a
+`walk4` of `int_str_array+0xa78`. Not built; the order walk_datas (`GroupOrder`/`TargetOrder`/`AirOrder`) read
+`this[-1].whose+4` through memory and want a `--cell-win`-style mix. One reach.
+
+(2509, closed by 2513) `--deref IDX:@VA:N` reads an absolute cell when the stub is called: `find_wpath_army`,
+`find_road_restore` and `find_upath_restore` hold 1 at `0xe85eb0`, `0xe85ec4`, `0xe85ec4` while the callee runs.
 
 ## Parked by the next landing, slot DD — reserved
 
