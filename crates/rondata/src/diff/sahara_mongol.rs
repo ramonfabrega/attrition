@@ -240,5 +240,8 @@ fn run834_s_word_frame_is_widened_whole() {
     // `get_next_non_caravan` (`docs/AI.md` section 211).
     // Item 2384: 295 -> 296, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
-    pin_eq!(w.firsts.len(), 296, "run834 baseline");
+    // Item 2412: 296 -> 295, `do_queue`'s silo return (`docs/AI.md` §222):
+    // the Missile Silo `1/2010`'s `queue[0].job_counter`, ours 20700 theirs
+    // 0 on 2989, holds at 0 while a missile is inside.
+    pin_eq!(w.firsts.len(), 295, "run834 baseline");
 }

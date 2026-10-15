@@ -1065,6 +1065,92 @@ class Shapes(unittest.TestCase):
         self.assertEqual(sweeplib.xmm_bits(-2.5), 0xc0200000)
         self.assertEqual(sweeplib.xmm_bits(0x42280000, raw=True), 0x42280000)
 
+    def test_a_fwd_gate_writes_a_gate_and_forward_forwarder(self):
+        # Item 2443 (parked 2433, Loop 2003): `GroupOut::issue_*` tests a byte
+        # of `gamec`, then forwards its arguments to `CommandManager::issue_*`
+        # with the caller's stale `ecx` first. One flag writes what seven
+        # hand-written `--port`s of item 2421 wrote: the window, the cell, the
+        # byte's draw, the stub of N+1 arguments, the record and the port.
+        x = sweep_gen.fwd_gate_expand('0x820:0x10:0x9415e0', own=4)
+        self.assertEqual(x['stub'], ['0x9415e0:5'])
+        self.assertEqual(x['cells'], ['0xc061e8:0x900'])
+        self.assertEqual(x['wbias'], ['c0+0x820:0,0x10,0x20,0x30,0xef'])
+        self.assertEqual(x['record'], ['0'])
+        self.assertEqual(
+            x['port'],
+            '{ if c[0][0x820] & 0x10 != 0 { log.push("-".into()); } else { log.push(format!('
+            '"m+0x0,m+0x0,{},{},{},{}", a[0], a[1], a[2], a[3])); } 0 }')
+        # A constant tail (`hotkey`'s zero) is one more stub argument.
+        t = sweep_gen.fwd_gate_expand('0x820:0x10:0x941fd0:0', own=1)
+        self.assertEqual(t['stub'], ['0x941fd0:3'])
+        self.assertIn('"m+0x0,m+0x0,{},0", a[0]', t['port'])
+        with self.assertRaises(ValueError):
+            sweep_gen.fwd_gate_expand('0x820:0x10', own=1)
+
+    def test_a_cmd_gate_writes_issue_halts_shape(self):
+        # Item 2454 (parked 2444, Loop 2003): seven of 2443's ten were
+        # `issue_halt`'s shape -- a gamec byte gate, `check_accept_issue`,
+        # `add_group`, the command built in a local, `add_command` -- and
+        # were hand `--port`s. One flag writes the stubs, the answers, the
+        # records, the deref of the local and the port; the `sp-` token is
+        # `c + 8 + 4*own` with `c` the local's size rounded up to four.
+        x = sweep_gen.cmd_gate_expand('0x820:0x10:2:5:a0', own=1)
+        self.assertEqual(x['stub'], ['0x940a70:0', '0x94bb60:1', '0x94bae0:2'])
+        self.assertEqual(x['answers'], ['0:0,1', '1:0,1'])
+        self.assertEqual(x['record'], ['0', '1', '2'])
+        self.assertEqual(x['deref'], ['2:0:5'])
+        self.assertEqual(x['wbias'], ['c0+0x820:0,0x10,0x20,0x30,0xef'])
+        self.assertIn('log.push("15269768,sp-0x14,5".into()); log.push(format!("02{}", le(a[0])));', x['port'])
+        self.assertIn('if a[1] == 0 {', x['port'])
+        self.assertIn('if a[2] == 0 {', x['port'])
+        # A byte argument, a constant word and a guard before the check.
+        y = sweep_gen.cmd_gate_expand('0x820:0x10:0xa:10:a0,a1,b2', own=3)
+        self.assertIn('format!("0a{}{}{:02x}", le(a[0]), le(a[1]), a[2] as u8)', y['port'])
+        self.assertIn('sp-0x20,10', y['port'])
+        k = sweep_gen.cmd_gate_expand('0x820:0x10:0x21:9:a0,k1', own=2)
+        self.assertIn('format!("21{}{}", le(a[0]), "01000000")', k['port'])
+        g = sweep_gen.cmd_gate_expand('0x820:0x10:5:13:a0,a1,a2::a0>=0,a1>=0', own=3)
+        self.assertIn('if a[0] < 0 || a[1] < 0 {', g['port'])
+        with self.assertRaises(ValueError):
+            sweep_gen.cmd_gate_expand('0x820:0x10:2', own=1)
+
+    def test_an_ecx_derived_from_this_prints_as_this_plus_its_offset(self):
+        # Item 2464 (parked 2455, Loop 2003): `this + 0x28` handed to a callee
+        # lies past the `m` window (WIN bytes) and printed as the absolute
+        # address (`536870952`), so a regenerated port needed a hand patch in
+        # its kept line. A `this+OFF` span follows the windows: inside the
+        # window the token stays `m+OFF`, past it `this+OFF`.
+        _, script, _, _, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2464, win=0x20, bias=[], own=0,
+            stubs=['0x402000:1'], record=['0'])
+        self.assertIn('+ [("this", this, 0x1000)]', script)
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
+        body = script[script.index('def token('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        spans = [('m', 0x2000_0000, 0x20), ('this', 0x2000_0000, 0x1000)]
+        self.assertEqual(ns['token'](0x2000_0010, spans), 'm+0x10')
+        self.assertEqual(ns['token'](0x2000_0028, spans), 'this+0x28')
+
+    def test_a_cmd_gate_without_a_gate_is_a_command_manager_issuer(self):
+        # Item 2454: `CommandManager::issue_*` is the same shape with no gate:
+        # argument 0 is the group (a buffer, handed to `add_group` by name)
+        # and a sound call may stand before the check.
+        u = sweep_gen.cmd_gate_expand('::0xe:5:a1', own=2)
+        self.assertEqual(u['cells'], [])
+        self.assertEqual(u['ptrarg'], ['0:0x20'])
+        self.assertTrue(u['port'].startswith('{ let le'))
+        self.assertIn('"15269768,p0+0x0"', u['port'])
+        self.assertIn('if a[2] == 0 {', u['port'])
+        self.assertNotIn('c[0]', u['port'])
+        s = sweep_gen.cmd_gate_expand('0x820:0x10:0x12:9:a0,k2::: 0x97f770:0x2b'.replace(' ', ''), own=1)
+        self.assertEqual(s['stub'][3], '0x97f770:1')
+        self.assertEqual(s['record'], ['0', '1', '2', '3'])
+        # The emulator prints in stub order and the deref last: the sound
+        # entry stands before each arm's final push.
+        self.assertIn('log.push("-".into()); log.push("-".into()); log.push("m+0x0,43".into()); log.push("-".into());', s['port'])
+        self.assertIn('log.push("m+0x0,43".into()); log.push(format!("12{}{}"', s['port'])
+        self.assertEqual(s['port'].count('log.push("-".into());'), 5 + 3 + 2)
+
     def test_a_vtordisp_thunk_moves_this_by_the_word_before_it(self):
         # Item 2362 (parked 2348, Loop 2003): a `vtordisp` thunk is `sub ecx,
         # [ecx-4]; jmp target`, and `fwd` drew `this` as an address nothing

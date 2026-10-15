@@ -1402,6 +1402,58 @@ mod tests {
         assert!(!s.silo_takes(empty, bomber), "not a missile: refused");
     }
 
+    /// **A silo with a missile inside holds its queue's clock** (item 2412,
+    /// `Build::do_queue@0061e410`'s second early return): the peace pair's
+    /// `1/2018` keeps its second ICBM at `job_counter` 0 while the first
+    /// stands inside (run853, 3296..3552). The clock runs once the silo is
+    /// empty, and a missile not yet trained (its availability bit clear, a
+    /// research job) is not held.
+    #[test]
+    fn a_silo_with_a_missile_inside_holds_its_queue_clock() {
+        let (mut s, silo, m, _) = silo_with_a_v2();
+        let v2 = s.units[m].ty.unwrap();
+        s.buildings[silo].queue.capacity = 20;
+        s.muster[0].researched[v2] = true;
+        assert_eq!(s.buildings[silo].garrison, vec![m], "the V2 is inside");
+        s.buildings[silo].queue.items.push(crate::production::Item {
+            job_counter: 0,
+            ty: v2,
+            tech: None,
+            good: [-1; 3],
+            cost: [0; 3],
+        });
+        s.process_queues();
+        assert_eq!(s.buildings[silo].queue.items[0].job_counter, 0, "held");
+        s.muster[0].researched[v2] = false;
+        s.process_queues();
+        // The fixture's times are short: an entry that runs may finish
+        // and leave the queue in the one frame.
+        let ran = |s: &Sim| {
+            s.buildings[silo]
+                .queue
+                .items
+                .first()
+                .is_none_or(|i| i.job_counter > 0)
+        };
+        assert!(ran(&s), "a research job runs");
+        s.muster[0].researched[v2] = true;
+        s.buildings[silo].queue.items.clear();
+        s.buildings[silo].queue.items.push(crate::production::Item {
+            job_counter: 0,
+            ty: v2,
+            tech: None,
+            good: [-1; 3],
+            cost: [0; 3],
+        });
+        s.process_queues();
+        assert!(!ran(&s), "held again");
+        s.buildings[silo].garrison.retain(|&u| u != m);
+        s.units[m].inside = None;
+        assert!(s.buildings[silo].garrison.is_empty());
+        s.process_queues();
+        assert!(ran(&s), "an empty silo runs its clock");
+    }
+
     /// run371's silo `0/2009` with a V2 inside — `TO_HIT 300`, `ATTENUATE
     /// 3`, `RECHARGE 30` at the silo — and the Barracks `1/2006` it strikes.
     fn silo_with_a_v2() -> (Sim, usize, usize, usize) {
