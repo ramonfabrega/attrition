@@ -3746,6 +3746,8 @@ line prints both, held by a test made to fail first. One reach.
 Loop" line, filed at its merge). 2627's second take lost its `@attack` until a Citizen stood within sight of the
 Barracks — (212, 96) dropped, (212, 101) taken — and the walk said only `skipped {}`. Candidate: a staged line
 refused for sight says so in `staged:`, a test made to fail first. One reach. **The thirty-sixth pass**: one reach; stays — `group_action_attack` returns nothing to the walk and the sight refusal sits inside the sim's per-member issue, so the print needs a return the walk can name; a worker's on its next staging that loses a line (chapter seventy-nine's `@flight` is the same family); closes at the next pass unreached (DECISIONS 54).
+**2649** (a second reach, filed at its merge): a `@launchpatrol` on a refuelling plane took effect on no unit and
+`staged:` printed `skipped {}` empty (parked 2661); the same print, named for a line that reached no unit.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
