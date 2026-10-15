@@ -3733,6 +3733,14 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-15 — the thirty-fifth tranche's
+
+(2410) **A whole-`LEADERDATA` diff across a block is a reflex without a tool** (2384's "for the Loop" line, filed
+at its merge). Loop 2292's row — diff one leader's whole record across the word's block, unread fields included —
+named three unread fields and a write on the *other* leader's record in one command (`aggression`, `strong`,
+who=0's `got_diplo_message`). Candidate: `tools/leaderdiff.py <dump> <frame> <who>`, both leaders' records and
+both sides, with a test made to fail first on run849's block 1985. One reach.
+
 ## Loop, filed 2026-10-14 — the thirty-fourth tranche's
 
 (2408) **The box is a build bottleneck of the loop's own making** (the thirty-fourth steer, Ramon and the pass;
@@ -5233,12 +5241,6 @@ path is the top-scorer arm, gated on frame 45 × 900 (30 × 900 at difficulty 3 
   (`hire_stamp`/`hire_who`), and the Diplomacy records' `agree` (`+0x692c`).
 Every capture is team style 1 and reaches none of them while at peace. The coverage lobby is at war from frame 0
 and agrees on who=1's `aggression` once its target is met (run817, 4260).
-
-(2388) **The peace pair's word 2040: ours 37 draws, theirs 35, index 0** (2384; names the headline). Ours draws
-`Army::find_target+0x7df`, theirs `Unit::do_move+0xe84`. It is widened already: run849's block 2041 (47 keys),
-with who=1's `1/25`, `1/26` and `1/36` given moves in ours that theirs gives elsewhere or not at all. 2040 is
-inside the peace (war from 4500). Hypothesis: parked 2321's `release_mustering` reader, which the crate models
-as "war always allowed" — the previous item's hypothesis, not a build order. For the commander to book.
 
 ## Parked by the next landing, slot CG — reserved
 
