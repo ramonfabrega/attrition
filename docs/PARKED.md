@@ -5261,13 +5261,40 @@ score): `GroupOut::issue_*`'s port, with three `--record`s, printed four columns
 check-refused row; a lane learns the count from one failed run. A `sweep_gen` that wrote the dash count from the
 record list (or a closing line in the usage) would save the round trip.
 
-## Parked by the next landing, slot CI — reserved
+## Parked by item 2400, 2026-10-14 — the port-consumer sweep's third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2401) **Candidates dropped for want of a port computation** (2400, names no score): the census `port` mark counts a
+doc comment as a consumer, and six of the batch's candidates were read and dropped, none built:
+- `Farms::add_animals@008d92d0` is a 499-byte wrapper that loops the farms and calls the per-index
+  `@008d8f30`; no port iterates the farms (callers pass one building).
+- `Guy::update_gpiece@005d8530` multiplies track floats by `guy_scale` and truncates (`cvttss2si`); the port's
+  tracks come from `rondata::artdata::piece_tracks`. The Unit-level `Unit::update_gpiece@005e2920` against
+  `Sim::update_gpiece` is a different, unbooked function.
+- `ObjectData::is_jammed@00653660`: the port `Sim::is_jammed` (air.rs) is a constant `false`; no leader carries
+  `leader_flags & 0x40000`.
+- `Animal::think_bird@005d79e0` has SSE float arms (0x5d7d63, 0x5d8633) and the port covers the 0x192 arm only.
+- `Unit::go_inside@0061a2e0`: the port `Sim::go_inside` (garrison.rs) is a whole-Sim mutator that lacks the captain
+  climb, the plane gate, the >= 2 member gate and the recursive link; all of the original is side effects through
+  callees. Its scholar-seating tail (anim.rs:248) is a smaller function.
+- A `census.py` `port` mark that required a `fn` or a non-comment line citing the function would have hidden all six.
+
+(2402) **`Wall::update_hits` reads Market as a lineage test** (2400): the original asks `is(0x1b4, 0)`; `PortAsk`
+keeps the port's `ident == Market`. The sweep abstracts `is`, so no row sees a difference. Names no score.
+
+(2403) **`UnitData::invalid_loc`'s `forest_walker` is passed `false`** (2400; the `unit_masks2 & 0x4000` SEAM): the
+sweep draws it freely and holds the helper's arms to the original (00607e97, 00607efb, 00607f75), the sim never
+reaches them. `PathFinder::calc_road_cost` now prices an ambiguous owner byte (-2) as unowned and reads the alliance
+arm (00686441–00686477); `Objects::find_free` gained the `UnitData +0x8e` captain term (0065adde). Each passed every
+lobby's `first_parting`.
+
+(2404) **`sweep_gen` gaps this batch met** (2400, for the Loop; Loop 2003):
+- `--seq` cannot take a bounded range for an index-like answer (a `Random::get` stub, `Farms::add_animals`), and a
+  recorded stub cannot answer a different window per call (per-animal stamps).
+- `--record-order` cannot be combined with a `--record IDX@S` split (`calc_road_cost` logs in stub order).
+- A prior window is `p[3]`, not `p3`, in a `--place` expression; signed values only in `--answers`.
+- Adjacent `--at` windows print an address at the end of one as the previous one's `+size`
+  (`kill_garrison_order` spaced them 0x200; 2369's fourth gap, a second reach).
+- `Objects::add_ammo`'s `malloc` returning null is never reached (`--answer-win` always answers a window).
 
 ## Parked by the next landing, slot CJ — reserved
 
