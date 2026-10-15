@@ -360,6 +360,9 @@ pub struct City {
     /// Buildings in the city, for `BUILDING_TAXES`.
     pub buildings: i32,
     pub market: bool,
+    /// The owner holds the Porcelain Tower (`has_wonder(0x215)`), which
+    /// `CityData::get_taxes@00737b50` reads only under a market.
+    pub porcelain: bool,
     pub temple: bool,
     pub university: bool,
     pub library: bool,
@@ -666,7 +669,13 @@ pub fn city_rates(t: &Tuning, city: &City) -> [i32; RESOURCES] {
 pub fn taxes(t: &Tuning, city: &City) -> i32 {
     let mut n = t.village_taxes + city.buildings * t.building_taxes;
     if city.market {
-        n += t.market_taxes;
+        // The Porcelain Tower: `(PORCELAIN_MARKET + 100) * m / 100`.
+        let m = t.market_taxes;
+        n += if city.porcelain {
+            (t.porcelain_market + 100) * m / 100
+        } else {
+            m
+        };
     }
     if city.temple {
         n += t.temple_taxes;
