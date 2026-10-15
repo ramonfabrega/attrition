@@ -14,17 +14,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-15, **the thirty-fifth pass is done** (`docs/audit/2026-10-15-fable-pass-35.md`, DECISIONS 72): 22
 landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes (Opus 5.5 medium on the AI word
-8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 21 landings; the drain.***
+8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 22 landings, drained.***
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 5315, the open word.
-  Chapters 71–77 closed; 69 built, 70 surveyed. Census 894 → 1068. Battery 576 / 6566 / 2974, unmoved an eleventh tranche.
+  Chapters 71–78 closed; 69 built, 70 surveyed. Census 894 → 1068. Battery 576 / 6566 / 2974, unmoved an eleventh tranche.
 - **Gates (DECISIONS 72)**: a lane's gate widens when its branch can move a pin (2415, no suite run before it,
   2409); the booking gate is `--scope <last whole gate's tip> --test-threads 8`, whole every third landing and at
   the drain. **When the peace pair closes, the AI word's successor is the battery's lowest lobby**
   (EastIndiesGermanTier3, 576 of 13519), a new held-out lobby minted beside it.
-- **Lanes: one draining** (DECISIONS 72): 2627 (GOLDEN §97, DV, run 874); 2638 (AI §229, DX, runs 867, 873) and
-  2644 (DY) booked, unspawned. Next 2649, run 875 (Astra holds 900–909). Pools: GOLDEN §98–101, AI §230–234, park DZ–EA.
-- **Fable backlog: 27 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525, 2527, 2542, 2552, 2577, 2578, 2599, 2610, 2620, 2622, 2628, 2639).
+- **Lanes: none live** (DECISIONS 72); booked, unspawned: 2638 (AI §229, DX, runs 867, 873), 2649 (GOLDEN §98,
+  DZ, run 875), 2644 (DY). Next 2655, run 876 (Astra holds 900–909). Pools: GOLDEN §99–101, AI §230–234, park EA–EE.
+- **Fable backlog: 28 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525, 2527, 2542, 2552, 2577, 2578, 2599, 2610, 2620, 2622, 2628, 2639, 2654).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,17 +35,18 @@ Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w5315 of 6,822
 Census: simulation backed 1068 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-sixth tranche drains (commander, Opus) at twenty landings: 2627 (Sonnet 5.5
-medium) is out — re-arm `tools/lanewait.py att-2627`; merge and book each, spawn nothing; the whole
-gate at the drain; then clear `steer` into the thirty-sixth pass.**
+**Opener: the thirty-sixth pass (steer, Fable): the thirty-sixth tranche is drained at 22 landings from
+`054d603c`, no lane live, the whole gate green at the drain; measure the tranche, ratify the marked rows, rule the
+28 Loop items, rewrite this handoff, then clear `commander` into the thirty-seventh tranche — 2638, 2649 and
+2644 are booked for its three lanes.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2638 the AI word's (Opus), 2627 the rules track's and 2644
+2638 the AI word's (Opus), 2649 the rules track's and 2644
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -58,14 +59,14 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     record on 5316, both directions, `WIDENINGS` naming it. Runs 867,
     873. AI §229.
 
-2627. **Chapter seventy-eight: a helicopter's attack distance held on
-    a human** (DECISIONS 56 §3; 2598 closed seventy-seven at 1400). 2554
-    built `attack_dist`'s centre-to-centre arm as `is_plane`
-    (`ObjectData::attack_dist@006488f0`, vslot `+0xc0`): a helicopter
-    measures edge to edge. The AI holds it; no walk on a human does.
-    Stage a helicopter ordered onto a building, a plane as control. Name
-    the census rows first; run 874 only when no packet on disk answers.
-    GOLDEN §97.
+2649. **Chapter seventy-nine: a plane's attack distance held on a
+    human** (DECISIONS 56 §3; 2627 closed seventy-eight at 1100, the
+    helicopter edge to edge). `attack_dist`'s other arm, `is_plane`
+    centre to centre, has no human walk: an `add`ed Biplane flies in
+    theirs and sits in ours (parked 2630), so stage an Airbase and a
+    `@flight` (chapter forty-one's recipe) onto a building. Name the
+    census rows first; run 875 only when no packet on disk answers.
+    GOLDEN §98.
 
 2644. **The sweep's ninety-third batch: ten never-backed simulation
     functions** (DECISIONS 63 (iv); the score `Census:` 1068 of 3611):

@@ -3804,6 +3804,11 @@ filed at its merge). When a word's draw delta is a single `Guy::inc_time` draw, 
 `Unit::inc_time` in theirs' trace place it against ours' unit order without a probe; 2609 found its unit in one
 read. Candidate: a row in the brief's step 1 for a one-draw `inc_time` delta. One reach.
 
+(2654) **A staged `@attack` on a target nothing of the player's can see is dropped as `skipped {}`** (2627's "for the
+Loop" line, filed at its merge). 2627's second take lost its `@attack` until a Citizen stood within sight of the
+Barracks — (212, 96) dropped, (212, 101) taken — and the walk said only `skipped {}`. Candidate: a staged line
+refused for sight says so in `staged:`, a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -6002,6 +6007,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ED — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ED renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EE renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
