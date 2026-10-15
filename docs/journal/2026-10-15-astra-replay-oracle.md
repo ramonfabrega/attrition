@@ -74,3 +74,12 @@ playback completion cannot certify original-match fidelity.
 
 for the Loop: playback writes `gamelog_p.txt`; watching the solo filename
 misdiagnoses a successful run and can destroy its trace by automatic retry.
+
+## Gate registration correction
+
+Implementation commit `7f1097e9`'s first full gate exited 1 at offline tests:
+`test_every_explore_suite_is_run_or_named` found `test_replay_capture` absent
+from `tools/offline_tests.py`. `Gate steps: 1 of 6 ran (offline); not reached:
+clippy, fmt, survey, release, guard`. Log `/tmp/astra-replay-gate-20261015.log`.
+Correction: register that suite in `SUITES` (not `NOT_RUN`). No release results
+exist to reuse; the full required-fixture gate is rerun on the corrected commit.
