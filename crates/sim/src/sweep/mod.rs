@@ -775,6 +775,7 @@ mod roads_out_set_neighbor;
 mod roads_pieces_rot_byte;
 mod search_walk_data;
 mod setup_build_leader;
+mod setup_get_starting_citizens;
 mod setup_init_wild_life;
 mod signposts_cur_name;
 mod signposts_cur_x;
