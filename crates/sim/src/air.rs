@@ -4486,6 +4486,64 @@ mod flak_tests {
         }
     }
 
+    /// **A crash round strikes where it comes down** (item 2677,
+    /// `docs/AI.md` §230): `init_crash`'s `splash_area` 2 and its cleared
+    /// `0x10` send it through `Ammo::do_damage`'s splash arm when it lands,
+    /// and the splash strikes a building that stands — at its ceiling too,
+    /// with no hit points left (run866's capital `0/2000`, struck on 5205
+    /// by `1/114`'s crash). Made to fail by the crash arm closing its round
+    /// without `land`, and by the splash asking `active` of a building.
+    #[test]
+    fn a_crash_round_strikes_the_building_it_comes_down_on() {
+        for spent in [false, true] {
+            let mut s = sim();
+            let at = Pos::new(12000, 12000);
+            let t = building(
+                &mut s,
+                0,
+                at,
+                combat::Profile {
+                    x_size: 2,
+                    y_size: 2,
+                    ..combat::Profile::default()
+                },
+            );
+            if spent {
+                // At its ceiling: standing, and no hit points left.
+                s.buildings[t].health = 0;
+                s.buildings[t].damage = s.buildings[t].hits_now();
+            }
+            let before = (s.buildings[t].damage, s.buildings[t].hit_frame);
+            let b = unit(
+                &mut s,
+                1,
+                at,
+                combat::Profile {
+                    attack: 40,
+                    ..bomber()
+                },
+            );
+            let ty = s.units[b].ty.unwrap();
+            s.unit_types[ty].cols.cat = super::CAT_AIR;
+            s.unit_types[ty].moves = 60;
+            s.units[b].movement.body.pos = at;
+            s.units[b].airframe.z = 300;
+            assert!(s.crashes(b));
+            assert_eq!(s.projectiles[0].splash_area, super::CRASH_SPLASH_AREA);
+            let mut frame = 100;
+            while !s.projectiles.is_empty() && frame < 200 {
+                s.process_projectiles(frame);
+                frame += 1;
+            }
+            assert!(s.projectiles.is_empty(), "the round closes");
+            assert_ne!(
+                (s.buildings[t].damage, s.buildings[t].hit_frame),
+                before,
+                "struck where it came down (at its ceiling: {spent})"
+            );
+        }
+    }
+
     /// **A fired round at a plane carries the roll's miss** (item 1102):
     /// `Object::fire_ammo`'s round takes `Ammo::init`'s air arm, whose miss
     /// is the round's `0x10`, this crate's `harmless` — run404's Battery

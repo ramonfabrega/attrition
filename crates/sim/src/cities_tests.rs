@@ -7769,3 +7769,33 @@ fn finish_pays_the_entry_and_the_building_500000() {
         "500000 completes any entry in one pass, as a train time does the head"
     );
 }
+
+/// **A city at its ceiling keeps its fraction** (item 2677, `docs/AI.md`
+/// §230): `Object::take_damage@00652020`'s city arm sets `damage` to
+/// `hits(0)` and leaves `+0x3b` as the blow left it — run866's capital
+/// `0/2000` steps `damage_frac` 10, 15, 4, 9 … at 1560 of 1560 from 5161.
+/// Made to fail by zeroing the fraction at the clamp.
+#[test]
+fn a_city_at_its_ceiling_keeps_its_damage_fraction() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let foot_ty = sim.add_unit_type(hoplite_type(t.barracks));
+    let by = spawn(&mut sim, 1, foot_ty, tile_pos(36, 32));
+    sim.units[by].on_map = true;
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits_now();
+    bd.damage_frac = 10;
+    bd.sync_health();
+    for want in [15, 4, 9] {
+        sim.damage_building(
+            b,
+            combat::Sixteenths { whole: 46, frac: 5 },
+            Some(combat::Obj::Unit(by)),
+            5161,
+            false,
+        );
+        let bd = &sim.buildings[b];
+        assert_eq!((bd.damage, bd.damage_frac), (bd.hits_now(), want));
+    }
+}
