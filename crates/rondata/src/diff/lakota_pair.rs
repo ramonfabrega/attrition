@@ -47,8 +47,14 @@ pub(crate) const LAKOTA: Pair = Pair {
     // +500 on cell (15, 25), who=0's, so `path[11]` is (11928, 20376) and
     // it casts at the shore on 3479: ours 145 draws, theirs 201, index 0 —
     // ours `Leader::diplomacy+0x1168`, theirs `GameDaemon::calc_market+0x54`.
-    count: 4544,
-    sequence: 4544,
+    // Item 2460: 4544 → 4859, the peace's end (`Game::do_frame:202`,
+    // `docs/AI.md` §224): on 4500 every pair in play not allied goes to war
+    // both ways, so who=1's view of who=0 on 4544 skips the peace coin and
+    // run855's `diplos` agree (0 / 0 on 4538): ours 14 draws, theirs 15,
+    // index 6 — ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Guy::init_real+0x52` (a birth).
+    count: 4859,
+    sequence: 4859,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -277,7 +283,7 @@ fn run855_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 977, "initial run855 baseline");
+    pin_eq!(w.firsts.len(), 128, "initial run855 baseline");
     // Item 2423: the word 4544's own block is 4545, and it holds no row:
     // the state parts before the window opens. On 4538 `leader:diplos` is
     // ours 1 against theirs 0 both ways (`0/-1 diplos[1]`, `1/-1
@@ -287,4 +293,10 @@ fn run855_s_word_frame_is_widened_whole() {
     // ours against 2. On 4542 theirs' `1/50` is gone and `1/2018`'s
     // `queue[0].job_counter` runs (0 / 100); on 4576 `wars` is 0 / 1.
     // 102 keys stand from 4538, 28 of them `form`.
+    // Item 2460: 977 → 128 with the peace's end built. `diplos`, `wars`,
+    // `1/50`'s order and `1/0`'s path close; 83 keys stand from 4538 (28
+    // `form`, ten `SITE[*].reg`, 19 groups' `held` and their pools, who=1's
+    // food, timber and metal buckets, `1/6`'s damage and two `mirror`s).
+    // The first key past 4538 is group 80 on 4557; the human's `active`
+    // parts on 4679 (ours 14, theirs 13), where `death:extra` begins.
 }
