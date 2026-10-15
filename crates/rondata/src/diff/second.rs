@@ -3786,11 +3786,12 @@ mod tests {
         // re-pointed in place where the original's `find_new_target` adds it
         // fresh (parked 1073). The next rows are the leader's `peasants` and
         // `1/34`'s `form` on 4909 (no mechanism is named).
+        // Item 2761: `[(4841, 28), (4997, 5), (5001, 1)]` → `[(4841, 28), (4997, 1), (5001, 1)]` with `Unit::close`'s count (`docs/AI.md` §232).
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 1502: (4841, 72) → (4841, 59) on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            [(4841, 28), (4997, 5), (5001, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(4841, 28), (4997, 1), (5001, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first three ((4841, 102), \
              (4909, 2) until item 1330 took the births' `form`; (4841, 104), \
              (4853, 3), (4868, 2) until item 1099 added the re-search's order \
@@ -3827,10 +3828,11 @@ mod tests {
         // `bucket`, `leftover` and `gather_stamp` from 5001).
         // Item 1457: 93 → 91; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1461: 91 → 86; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 2761: 34 → 30 with `Unit::close`'s count (`docs/AI.md` §232).
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 1502: 79 → 66 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            34, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            30, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every key parted on run373"
         );
     }
@@ -3947,10 +3949,11 @@ mod tests {
             (None::<(i64, String)>, None::<(i64, String)>),
             "the value rows beneath the draws"
         );
+        // Item 2761: `[(5100, 29), (5147, 1), (5176, 2)]` → `[(5100, 25), (5147, 1), (5176, 2)]` with `Unit::close`'s count (`docs/AI.md` §232).
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1502: (5100, 57), (5149, 1) → (5100, 57), (5176, 2) on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            [(5100, 29), (5147, 1), (5176, 2)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(5100, 25), (5147, 1), (5176, 2)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first three ((5100, 79) \
              until item 1330 took the births' `form`; (5100, 92), \
              (5105, 2), (5128, 1) until item 1099; (5100, 90), (5147, 2) \
@@ -3962,10 +3965,11 @@ mod tests {
         // `income`, `resources`, `bucket`, `leftover`, `gather_stamp`).
         // Item 1457: 92 → 90; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1461: 90 → 84; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 2761: 33 → 29 with `Unit::close`'s count (`docs/AI.md` §232).
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 1502: 77 → 62 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            33, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            29, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every key parted on run396"
         );
     }
@@ -4034,11 +4038,12 @@ mod tests {
         // chains (`0/2001`..`0/2004`'s `gather_down`), and who=0's
         // `income`, `resources`, `bucket` and `leftover` agree with them.
         // Item 1457: 80 → 78; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        // Item 2761: `[(5925, 28)]` → `[(5925, 26)]` with `Unit::close`'s count (`docs/AI.md` §232).
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             // Item 1330: 96 → 79, the births' `form` (`docs/GROUPS.md` §24.3).
             // Item 1502: 71 → 53 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            [(5925, 28)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(5925, 26)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, and how many"
         );
         pin!(
@@ -4051,7 +4056,8 @@ mod tests {
         // item 1248 the dead citizens' chains and the economy (108 → 96).
         // Item 1457: 80 → 78; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1502: 71 → 53 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-        pin_eq!(w.firsts.len(), 28, "every key parted on run403"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 2761: 28 → 26 with `Unit::close`'s count (`docs/AI.md` §232).
+        pin_eq!(w.firsts.len(), 26, "every key parted on run403"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the

@@ -813,7 +813,8 @@ fn run702_s_word_frame_is_widened_whole() {
     // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
     // from the window's first block (who=0, the human): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
-    pin_eq!(w.firsts.len(), 82, "initial run702 baseline");
+    // Item 2761: 82 → 76 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 76, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         50,
@@ -985,10 +986,13 @@ fn run718_s_word_frame_is_widened_whole() {
     // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
     // from the window's first block (who=0, the human): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
-    pin_eq!(w.firsts.len(), 65, "initial run718 baseline");
+    // Item 2761: 65 → 61 with `Unit::close`'s count (`docs/AI.md` §232):
+    // the human's dead leave `control`, so its row on 2267 closes (0 both
+    // sides) with three more of the block's standing keys.
+    pin_eq!(w.firsts.len(), 61, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
-        60,
+        56,
         "the keys standing on the window's first block"
     );
     // **The word 2273's value diff** (item 1611, `docs/AI.md` §171). The
@@ -1021,7 +1025,7 @@ fn run718_s_word_frame_is_widened_whole() {
         w.firsts
             .get(&(0, -1, "leader:control".to_string()))
             .map(|(f, _)| *f),
-        Some(2267),
+        None,
         "the human's units are all dead in the original on the window's first block"
     );
     pin_eq!(
@@ -1101,7 +1105,8 @@ fn run766_s_word_frame_is_widened_whole() {
     // theirs' writer on an at-war slot is parked 2385.
     // Item 2677: −1 with the city clamp's kept fraction and the crash
     // round's strike (`docs/AI.md` §230).
-    pin_eq!(w.firsts.len(), 79, "initial run766 baseline");
+    // Item 2761: 79 → 75 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 75, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1150,7 +1155,8 @@ fn run767_s_word_frame_is_widened_whole() {
     // theirs' writer on an at-war slot is parked 2385.
     // Item 2677: −1 with the city clamp's kept fraction and the crash
     // round's strike (`docs/AI.md` §230).
-    pin_eq!(w.firsts.len(), 79, "initial run767 baseline");
+    // Item 2761: 79 → 75 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 75, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
@@ -1220,7 +1226,8 @@ fn run790_s_word_frame_is_widened_whole() {
     // theirs' writer on an at-war slot is parked 2385.
     // Item 2677: −1 with the city clamp's kept fraction and the crash
     // round's strike (`docs/AI.md` §230).
-    pin_eq!(w.firsts.len(), 116, "initial run790 baseline");
+    // Item 2761: 116 → 112 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 112, "initial run790 baseline");
 }
 
 /// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
@@ -1289,5 +1296,6 @@ fn run817_s_word_frame_is_widened_whole() {
     // theirs' writer on an at-war slot is parked 2385.
     // Item 2677: −1 with the city clamp's kept fraction and the crash
     // round's strike (`docs/AI.md` §230).
-    pin_eq!(w.firsts.len(), 297, "initial run817 baseline");
+    // Item 2761: 297 → 293 with `Unit::close`'s count (`docs/AI.md` §232).
+    pin_eq!(w.firsts.len(), 293, "initial run817 baseline");
 }

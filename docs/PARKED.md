@@ -566,10 +566,11 @@ follower's `has_general` report (M2).
 (1327) **`1/93`'s `path_recursion` 1 against 0 on run506's 11638**: a
 decoy born into a reused slot; no draw reads it.
 
-(1328) **`num_units` at a death**: this crate has no
+~~(1328) **`num_units` at a death**: this crate has no
 `track_unit_type(−1)` in `Unit::close`'s combat path (only missiles,
 V2s and the transport paths call it); the original's sits at `0060f3db`
-behind `(unit_masks & 1) == 0`. Not measured on a widening row.
+behind `(unit_masks & 1) == 0`. Not measured on a widening row.~~
+**Closed by item 2761** (`docs/AI.md` §232): `Sim::close_count`.
 
 ## Parked by item 1310, 2026-09-30 — chapter forty-seven
 
@@ -1057,13 +1058,14 @@ capture has two planes full on one call.
 
 ## Parked by item 1078, 2026-09-28 — the missile's other edges
 
-(1092) **The general death path never lowers `num_units`**: the
+~~(1092) **The general death path never lowers `num_units`**: the
 original's `Unit::close@0060ee50` calls `track_unit_type(·, −1)` at
 `0060f3db`, and this crate does so for a missile's death alone (1078),
 so a player's count only grows. The AI reads those counts; 1074 said
 its frame does not turn on one. Returns when a word's decision does.
 **Narrowed by 1228** (TRANSPORT §16): a boat's close takes its `−1` in
-the muster now; every other death still does not.
+the muster now; every other death still does not.~~ **Closed by item 2761** (`docs/AI.md` §232): the combat, attrition,
+pasture and flock deaths take `Unit::close`'s count, `Sim::close_count`.
 
 (1093) **Chapter thirty-six's no-score edges** (PRODUCTION "The
 missile's other arms (item 1078)"): `UnitData::is_busy` in the launch's
@@ -3792,12 +3794,18 @@ suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four l
 (2769) **A pointer array of N records is N `--place` flags, and a callee's arity is read by hand** (2749's "for the
 Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a shell loop of `--place`s, and
 `kill_tree`'s one stack argument (hidden by the decompile) faulted the first run at the stub page. Candidate: a
-`--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach.
+`--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach;
+a second from 2768's "for the Loop" line, filed at its merge: an object list's sixty flags a function (parked 2772).
 
 (2775) **A record array's bias is a `--place` per record, and `--answers` on a table-indexing stub draws wild words**
 (2743's "for the Loop" line, filed at its merge): parked 2747's record-array bias wants one flag, and `--answers`'
 help should say a stub that indexes a table wants `--answer-range` instead. Candidate: `--records
 BASE:STRIDE:N:OFF=VALS`, and the help line, each held by a test made to fail first. One reach.
+
+(2781) **A standing leader-count row on the player whose queue parts is grepped in the parked file first** (2761's
+"for the Loop" line, filed at its merge): 5499's cause, who=1's `num_units`/`control` standing from 5401, was a
+two-week-old parked gap (1092, 1328) that said "returns when a word's decision does"; the gate's inputs agreeing
+pointed at the target (Loop 2726 did the work). Candidate: a brief checklist row. One reach.
 
 (2724) **Three `agent-*` worktrees from the thirty-fifth tranche still stand** (2709's done line, the commander's
 check at its merge): `agent-a0651062ff871c606` (item 2400's tip `b4e0ac06`, merged, six dirty files),
@@ -6136,21 +6144,37 @@ words and edits nothing here; a refill lands when two remain.
 `0x40` is for any object with objmask `Z`; this crate writes `seen3` for units only, and no unit mask here sets `0x800`
 (disguise) or `0x1000` (blown, `unit_is_blown`). Each can only change a stealth unit's answer; no capture reaches one.
 
-## Parked by the next landing, slot ER — reserved
+## Parked by item 2761, 2026-10-15 — `Unit::close`'s count
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ER renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2764) **The count's unwalked arms** (`docs/AI.md` §232): a squad head
+over a live figure keeps the count (`0060f679`) — held by
+`a_squad_leaves_the_muster_with_its_last_figure` alone, its mutation
+fails no walk; `close`'s `pop == 0` arm (`is(0x134)`, `is_gov_hero`)
+and its call of `Leader::defeat` at `active` 0, after the count, are not built.
+No capture on disk names a frame either decides.
 
-## Parked by the next landing, slot ES — reserved
+## Parked by item 2768, 2026-10-15 — the group list's four, and what it leaves
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ES renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2770) **The group-list family's remaining never-backed functions** (names the census, `Census:` 1115 → 1119):
+`GroupData::has_air_units` 0x70b250 and `group_air` 0x70b160 walk a *second* list (`+0x28` short / `+0x3e` char
+through the objects table of the object's own index) with `ObjectData::can_carry` called directly — a
+`--stub ADDR:NARGS` plus a `--link`-style chain over the objects windows; `get_repeat_air` 0x70c0b0 calls
+`get_num_const` and `find_leader` and writes the image's `counts[2]`; `CityData::num_city_buildings` 0x737ae0 calls
+slot `+0x3c` twice an element and its loop ends on a short at `+0x74` of the answered record, so the answer windows
+(`--answer-win`, one a call) need `+0x74` forced to -1 on the last — `--wbias` on an answer window is the
+unbuilt piece. Each is a sweep of the shape the four below were built on.
+
+(2771) **Two of the four have an equivalent break, named rather than hidden**: `get_num_cap_const`'s walk runs
+`num-1..0`, but its result is `num - unflagged - zero answers among the flagged`, which no order changes (the
+`.rev()` removed: held nothing, correctly); `valid_target`'s early `return 1` is equivalent to a loop that keeps
+calling the stubs, since the sweep records no stub log (`--record` of stub 1 would make it observable, and would
+also hold the two arguments handed to slot `+0x138`, which the sweep draws but does not compare).
+
+(2772) **For the Loop**: `tools/sweep_gen.py` has the generator line of a sweep only in the `# sweep_gen:` footer
+of its script, and an eight-object group list is sixty-odd `--wbias` and `--place` flags written by a shell loop
+(`--ptrtab LOC:N:SIZE`, 2769, would be one flag; so would `--wbias m+OFF:LO..HI:COUNT` for a run of words).
+The stub answer layout (own arguments, one drawn answer a stub, then each `--seq` in stub order, `a[own + stubs +
+20*k + call]`) is read off the source here; the docstring does not say it.
 
 ## Parked by item 2774, 2026-10-15 — the harvest sweep's hundred-and-sixth batch
 
