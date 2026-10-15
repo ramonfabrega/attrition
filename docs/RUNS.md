@@ -16998,6 +16998,30 @@ SHA-256 `7b96aa6651e0563f89cf222a685102418e1d34988054a292990f301458e4fcf9`.
 `1/50` is unlinked (theirs' birth) and `1/2005`'s `queued` is ours 2 against theirs 1. 106 keys stand from 4853,
 among them the human's `control` (ours 14, theirs 0) and `1/2005`'s `queue[0].cost` (ours 240, theirs 224). The
 window is in the coverage driver's slice. Its walk reads 1552 heights at inexact corners.
+## run866 — the peace pair: the word 5135's widening, blocks 5129..5385 (2026-10-15, item 2554, `att-2554`)
+
+`docs/AI.md` §227. **Disk gap**: run861 ends at 5109, and run847 has checksums and the closing block only, so no
+dump of this lobby holds a record on 5135. This is run861's recipe with the window moved to the word, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run866`: `--map 18 --end-frame 5391 --timeout 5400
+--log-window 5129 5386 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 2 from the pool, on the first take: `success`, 5392 frames, 1695.9 s from launch to exit.
+- The dump holds 258 `BEGIN FRAME`s (5129..5385 and the closing block).
+- `rngcmp.py rontrace-run847.log rontrace-run866.log`: **5392 identical, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run866-eastindies-lakota-peace-window-5129-5386.txt`, 707,833,032 bytes,
+SHA-256 `702658043d48011583e9ccf3666d70c325b140d1b6884fdb01a9eec73edd8686`.
+
+Archive `rontrace-run866.log`, 213,195,648 bytes,
+SHA-256 `77e31e977e6d05f3c3226b1342ba9ddc5ae0a92008303264e5fe45c9a6feb4d9`.
+
+**What it holds**: `diff::lakota_pair::run866_s_word_frame_is_widened_whole`, 5707 keys as captured. On the word's
+block, 5136, who=1's naval army (group 72, eight Missile Cruisers and the Attack Helicopter `1/145`) takes an `ATTACK` on
+the human's `0/2000` in theirs and keeps its attack-move in ours. With item 2554's `is_plane` built, 3550 keys remain,
+99 of them standing from 5129. The window is in the coverage driver's slice, and its walk reads 1673 heights at inexact
+corners.
+
 ## run860 — chapter seventy-three: a wonder finished on a human (2026-10-14, item 2474, `att-2474`)
 
 `docs/GOLDEN.md` §90, `tools/gamelog/golden/chapter73.cmd` (ten staged lines). **What the disk could not answer**: no

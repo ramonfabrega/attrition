@@ -21031,12 +21031,84 @@ disk holds it. Its widening is the next item's capture (parked 2554).
 **Diff-backed**: the air arm, on run861's 5037 block (three births, four counters). **Reading only**: the arm's
 place after the government arms, and the land and sea branches.
 
-## 227. Reserved for the next item on the AI track
+## 227. A helicopter measures attack distance edge to edge, and the peace pair's word moves 5135 → 5225 (2026-10-15, item 2554)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The widening is a capture.** No dump of the lobby held 5135, since run861 ends at 5109. run866 is run861's
+recipe with the window moved to 5129..5385 (`docs/RUNS.md`). `diff::lakota_pair::run866_s_word_frame_is_widened_whole`
+compares every dumped record on 257 blocks. The word's own block is 5136.
+
+**The draws on 5135** (run847's trace, `RON_DEBUG_SITES`). Ours spends 24 and theirs 32, and the two lists agree
+except at one place. After index 3 (`Unit::do_air_physics+0xba`), theirs inserts eight `Unit::find_attack_pos+0xea9 <
+Group::action_attack+0x41a` (seeds `f508e42b` … `d9ff6c24`). That is one ring walk of eight candidates, made by one
+group order on its leader (COMBAT §17.1). The rest of both lists is the same 5 `do_move` and 15 `inc_time` draws.
+
+**The cast on 5136**, both directions. Every row on the block belongs to who=1's group 72, which is its naval army
+`1/2` (`RON_DEBUG_ARMIES`: status 18, target the human's `0/2000` at (6240, 7008)). It has nine members:
+- the Missile Cruisers (`TypeIndex` 330, sea) `1/20`, `1/21`, `1/25`, `1/26`, `1/34`, `1/36`, `1/42` and `1/49`;
+- the Attack Helicopter `1/145` (311, air, `unit_flags & 0x20`). Ours names it the group's own leader.
+
+In theirs all nine take an `ATTACK` on `0/2000` (`targetorder.ox 2000 whom 0`, `new_ord 1`), and in ours none does:
+- `1/145`'s `order:kind` is ours 21 (`GROUP_ATTACK_TO`) against theirs 10;
+- `1/20`'s `orders_x` is ours 1752 (the attack-move's goal) against theirs 9442 (where it stands);
+- `1/21`'s `orders.len` is ours 0 against theirs 1.
+
+So the actor is who=1's AI side, and the order is a group's. The human does nothing.
+
+**Which caller.** Of `Group::action_attack`'s callers, three are ruled out:
+- `Army::engagement`: its seed needs a member already on an `ATTACK` inside `0xc00` of the army's position. No
+  member qualifies; the cruisers are 9000 away.
+- `Group::finish_insert` and `Leader::action_attack`: neither fits a unit's process.
+
+The draws fall inside the unit loop, which fits `Object::find_nearby_target@00648da0:577`–`580`. A searcher on a
+`GROUP_ATTACK_TO` whose group `is_attacking_to` hands its find to the group, `QUEUE_FIRST`. `1/145` is the one
+`GROUP_ATTACK_TO` in the group, and `Unit::do_group_attack_to@005e74e0` looks once in fifteen frames: (5135 + 145) mod
+15 = 0. A probe (one commit, reverted whole) showed ours on that look:
+- the phase and the head pass;
+- `attack` is 200 and the squad head is a search;
+- the radius is 4608 and the flags are `0x20010`;
+- `find_melee_target` returns **None**.
+
+**The cause is `attack_dist`'s first arm.** `ObjectData::attack_dist@006488f0` measures centre to centre when the
+*attacker's* vslot `+0xc0` answers and its type's `+0x1e4 & 0x8000000` is clear. The vtable names that slot
+`UnitData::is_plane@0046ce40`: `domain == 2 && !(unit_flags & 0x20)`. A helicopter is not a plane (`uflags::HELICOPTER`'s
+own note), so it measures edge to edge, as a ground unit does. Ours read `Domain::Air` alone. From the helicopter to the
+city's centre, ours measures `vector_dist(2880, 4176)` = 5169 on the quarter-tile grid, past the radius 4608. Edge to
+edge, with the city's half footprint off each axis, the distance is inside the radius.
+
+**Built.** `Sim::attack_dist_from`'s plane is `is_plane` on a unit attacker and not a missile. It is one line, and it
+reaches every caller of `attack_dist` for a helicopter: range, the search, and the chase. Test:
+`group::tests::a_helicopter_measures_attack_distance_edge_to_edge` (a plane 960, a helicopter 960 − 2 × `0x18`). Two
+mutations, through `tools/mutate.py` (the old `Domain::Air` test restored), both exit 101:
+- the restored test fails the unit test;
+- the restored test fails `lakota_pair_first_parting`, whose word goes back to 5135.
+
+**Value diff and score.** On block 5136 the nine read `ATTACK` on `0/2000` both sides: `1/20` at (9442, 15614),
+`1/21` at (42504, 44760) and `1/145` at (9158, 11227), each `new_ord` set. Neither 5136 nor 5137 holds a row. run866
+goes **5707 → 3550**. 99 keys stand from 5129:
+- 24 `form`, 15 groups' `held` and their pools, 14 `death`, 13 `mirror`;
+- 17 leader rows, among them the human's `control` (ours 14, theirs 0);
+- `1/197`'s `air.mandatory`.
+
+Later rows:
+- group 64 on 5141;
+- `0/2000`'s `damage_frac` on 5161 (ours 0, theirs 10);
+- who=1's `num_units[245]` on 5178 (ours 7, theirs 6);
+- the Assault Infantry queues' `cost[1]` on 5183 (ours 155, theirs 116; parked 2579);
+- the Airbase `1/2005`'s `queue[1..].cost` on 5383 (ours 106 and 112, theirs 56 and 62): an air trainer, 2553's
+  candidate row.
+
+The long walk reads 1653 heights at inexact corners (it read 1575), and the window reads 1673.
+
+**The word moves 5135 → 5225**, count and sequence both. Ours spends 24 draws and theirs 23, parting at index 22.
+Ours spends one more `Guy::set_anim+0x97a < Guy::inc_time+0x271`; theirs goes on to `Guy::set_anim+0x104b` (seed
+`7ee3567f`). The word lies inside run866's window, so its widening is on file.
+
+**Not established.**
+- The `+0x1e4 & 0x8000000` conjunct is read as this crate's `mask::MISSILE`, unchanged. No helicopter is a missile.
+- Which member made theirs' look: the reading and the phase name `1/145`, and no probe ran inside theirs.
+
+**Diff-backed**: the helicopter's edge-to-edge search (run866's block 5136, nine orders). **Reading only**: the arm's
+missile conjunct.
 
 ## 228. Reserved for the next item on the AI track
 
