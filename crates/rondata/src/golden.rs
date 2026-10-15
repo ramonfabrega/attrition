@@ -2142,6 +2142,8 @@ mod tests {
         ("chapter7.cmd", &[]),
         // Chapter seventy-one: the Senate's patriot (item 2436, `docs/GOLDEN.md` §88).
         ("chapter71.cmd", &[]),
+        // Chapter seventy-two: the Senate's second government (item 2448, `docs/GOLDEN.md` §89).
+        ("chapter72.cmd", &[]),
         // Chapter seven's control, the same file less `0 !ai off` (item 578).
         ("chapter7_control.cmd", &[]),
         // Chapter seven-b: the same five for who=1, and its control (item 628).
