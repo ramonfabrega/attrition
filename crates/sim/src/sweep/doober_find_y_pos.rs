@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -37,9 +42,10 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            const MX: [i32; 25] = [0, -1, 0, 1, 1, 1, 0, -1, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2, 2, 2, -2];
-            const MY: [i32; 25] = [0, -1, -1, -1, 0, 1, 1, 1, 0, -2, -2, -2, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, 2, 2];
-let (a1, a2, a3, a4) = (a[1], a[2], a[3], a[4]);
+            const MY: [i32; 25] = [
+                0, -1, -1, -1, 0, 1, 1, 1, 0, -2, -2, -2, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, 2, 2,
+            ];
+            let (a1, a2, a3, a4) = (a[1], a[2], a[3], a[4]);
             let t = a1.wrapping_add(a2);
             let u = (t & 0x7f).wrapping_sub(0x3f);
             let k = (t.wrapping_add(a3) & 3).wrapping_mul(0x28);
@@ -50,7 +56,11 @@ let (a1, a2, a3, a4) = (a[1], a[2], a[3], a[4]);
             wr(&mut p[0], 0, r);
             0
         };
-        assert_eq!(want_eax, i64::from(a[0]), "find_y_pos — eax is the out-pointer, row `{line}`");
+        assert_eq!(
+            want_eax,
+            i64::from(a[0]),
+            "find_y_pos — eax is the out-pointer, row `{line}`"
+        );
         let _ = got;
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "find_y_pos — this's bytes, row `{line}`");
