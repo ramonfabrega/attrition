@@ -2143,12 +2143,8 @@ impl Sim {
                     // third pair parted at 14461 against 17379 (item 2400's
                     // booking gate; parked 2441). Every dead unit counts as a
                     // captain until `+0x8e`'s field is named.
-                    free[i as usize] &= find_free_reusable(
-                        u.alive(),
-                        i16::from(u.hold_frames != 0),
-                        true,
-                        true,
-                    );
+                    free[i as usize] &=
+                        find_free_reusable(u.alive(), i16::from(u.hold_frames != 0), true, true);
                 }
             }
         }
