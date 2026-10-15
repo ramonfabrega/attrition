@@ -115,13 +115,14 @@
 /// item 2714: 1107 -> 1110, the sweep's hundredth batch, three harvested on the built shapes, no generator change;
 /// item 2749: 1110 -> 1115, the sweep's hundred-and-fourth batch, slot ED's four and `verify_gather_tiles`,
 /// `--stub-write … dec`;
-/// item 2743: 1115 -> 1125, the sweep's hundred-and-third batch, ten harvested on the built shapes, no generator change).
+/// item 2743: 1115 -> 1125, the sweep's hundred-and-third batch, ten harvested on the built shapes, no generator change;
+/// item 2768: 1125 -> 1129, the sweep's hundred-and-fifth batch, four `GroupData` list sweeps).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1125;
+pub const SIMULATION_BACKED: usize = 1129;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

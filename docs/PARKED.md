@@ -3794,7 +3794,8 @@ suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four l
 (2769) **A pointer array of N records is N `--place` flags, and a callee's arity is read by hand** (2749's "for the
 Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a shell loop of `--place`s, and
 `kill_tree`'s one stack argument (hidden by the decompile) faulted the first run at the stub page. Candidate: a
-`--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach.
+`--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach;
+a second from 2768's "for the Loop" line, filed at its merge: an object list's sixty flags a function (parked 2772).
 
 (2775) **A record array's bias is a `--place` per record, and `--answers` on a table-indexing stub draws wild words**
 (2743's "for the Loop" line, filed at its merge): parked 2747's record-array bias wants one flag, and `--answers`'
