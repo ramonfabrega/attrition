@@ -21188,8 +21188,8 @@ Each frame short of `total_time`, the crash arm (`+0x50 == 1`):
   - `1/2005`'s `job_counter` on 5202, 17625 against 17250.
 - **Chapter 38 (run405)**: both crash rounds now agree field for field to their landing, `ex`/`ey` drifting and both
   coming down short of `total_time` on theirs' frame. The Battery round the dump held alone on 1015 (the slot the
-  crash took) is gone. Left is each crash's `splash_area` (ours 0, theirs 2), the pool slot's leftover, which
-  `init_crash` never writes.
+  crash took) is gone. Left is each crash's `splash_area` (ours 0, theirs 2), ~~the pool slot's leftover, which
+  `init_crash` never writes~~ — **`init_crash` writes it, 2** (§230, item 2677: both rows close).
 - The height reads at inexact corners: the pair's walk 1653 → 1672, run866 1673 → 1678, chapter 38 44 → 51.
 - The held-out battery is 576 / 6566 / 2974, unmoved.
 
@@ -21269,12 +21269,97 @@ index 0: ours `1/67`'s `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs `Guy:
 **Diff-backed**: the non-final refusal's pop, `dest` and unmoved position (run866, `1/11`, blocks 5315 and 5316).
 **Reading only**: the final-waypoint case.
 
-## 230. Reserved for the next item on the AI track
+## 230. A crash round strikes where it comes down, and the peace pair's word moves 5407 → 5476 (2026-10-15, item 2677)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The capture.** The word 5407 lay past run866's last block (5385), so no dump held it. run867 is run866's recipe
+moved to blocks 5401..5657 (`docs/RUNS.md` run867), identical to run847 on all 5664 frames. Its widening is
+`diff::lakota_pair::run867_s_word_frame_is_widened_whole`, and `WIDENINGS` names it.
+
+**The draws on 5407** (run847's trace; `RON_DEBUG_SITES` on ours). Each side spends 15.
+- Ours spends `1/67`'s swing first (`Guy::set_anim+0xf2f < Unit::set_anim+0x56`, `SITE_ATTACK_FIGHT`), then four
+  draws from `Guy::move`, the same four that open theirs.
+- Theirs spends one more in `Guy::inc_time`'s walk (three at `Unit::inc_time+0x3e`, two at `+0x6e`, against ours'
+  four). So `1/67` fights on 5407 in ours and only plays its animation in theirs.
+
+**The cast on 5408, both directions** (3418 keys). The rows that are not standing are all who=1's Strategic Bombers
+(`TypeIndex` 305, air), each on an `AIRPATROLORDER` round the human's capital `0/2000` at (6240, 7008).
+- In ours, each one's sixteen-frame search pushes a `STRAFEORDER` on the capital: `mandatory` 0, kept
+  (`order:kind` 16 against 17, `orders.len` 2 against 1). The bombers are `1/87` on 5402, `1/150` on 5403, `1/100`
+  on 5405, `1/67` and `1/195` on 5406, `1/50` on 5407 and `1/48` on 5409.
+- In theirs, only the thirty-two-frame look strikes it, with `mandatory` 1. `1/100`'s strike is popped the next
+  frame.
+- On 5408 `1/67` reads `recharging` ours 41 against 0: the swing.
+
+**Why theirs' search refuses the capital.** `Unit::find_new_bomber_target@005eb960` takes only what
+`Object::valid_target` passes. The capital reads `damage` ours 1559 against theirs 1560 of `myhits` 1560,
+`damage_frac` 0 against 4, and `city_flags[0x2]` 0 against 1. In theirs it is at its ceiling, so
+`check_capture_eligible` holds, and `valid_target` refuses it to a bomber. Ours had healed one point.
+
+**The walk back** (run866, probes reverted whole):
+1. Ours' heal ran because `city_flags 0x2`, the heal's veto, decayed. Theirs' did not: run866's standing
+   `city_flags[0x4]` row on 5206 (ours 0, theirs 1) is an attack mark that theirs took on 5205 and ours did not.
+2. Ours' last hit on the capital before 5225 is on 5172. No unit record parts on 5195..5215, and the dump prints no
+   `AMMO`, so the hitter is a round.
+3. Ours' crash rounds land on 5205 (`1/114`'s Jet Fighter, down on 5177 over the capital), 5208 and 5214. Those are
+   theirs' hits on 5205 and 5214 (its fraction 12 → 4).
+4. Ours' crash arm closed the round with `SEAM: the damage a crash deals where it has come down`.
+
+**`Ammo::init_crash@0067b800` and the landing.**
+- `init_crash` writes `+0x30` (`splash_area`) = 2 and clears flags `0x1c`. §228 had this as a pool-slot leftover;
+  the decompile's `field_0x30 = 2` says otherwise.
+- So `Ammo::inc_time`'s tail runs `Ammo::do_damage` on the round. With no target and a non-zero splash, that is the
+  splash arm, and the dead plane, whose slot the round holds, is the shooter.
+- **The splash arm's building branch asks nothing about hit points** (`do_damage@00678060`: the unit branch asks
+  vslots `+0x8` and `+0xbc`, the building branch only the domain and the distance). Ours' `land` filtered every
+  candidate by `active`, whose building test is `health > 0`, so a city at its ceiling was never struck.
+
+**Built.**
+- `air::CRASH_SPLASH_AREA` on the crash round.
+- The crash arm in `process_projectiles` runs `land` and then closes the slot, as an ordinary round does.
+- `land`'s candidates are `struck` rather than `active` (a building that stands, hit points or none; for a unit the
+  two are one test).
+- **The city clamp keeps the fraction.** `Object::take_damage`'s city arm sets `damage = hits(0)` and
+  `flags |= 0x10` and leaves `+0x3b`. Run866's capital steps 10, 15, 4, 9 … at 1560 from 5161.
+- **A capture starts the fraction at 0.** `Wall::swap_team@00640c00` copies `+0x24` and `+0x3a`, never `+0x3b`.
+  Once the clamp kept its fraction, run676's Napata `1/2086`, captured at its ceiling holding 2, printed 0. Ours
+  had copied it.
+
+**Tests and mutations** (`tools/mutate.py`, each exit 101):
+- `air::flak_tests::a_crash_round_strikes_the_building_it_comes_down_on` crashes a plane over an enemy building, at
+  full health and at its ceiling, and needs it struck. It fails without `land` in the crash arm, and fails on the
+  ceiling case with `active` back in the splash filter.
+- `cities_tests::a_city_at_its_ceiling_keeps_its_damage_fraction` steps 10 → 15 → 4 → 9 at the ceiling. It fails
+  with the clamp's zero restored.
+- Without `land` in the crash arm, `lakota_pair_first_parting` fails, its word back at 5407. Without the capture's
+  zero, run676's closing counts read `[0, 0, 0, 0, 1, 0, 0]`.
+
+**Value diff.**
+- **On 5408** no bomber holds a row. `1/67` reads `recharging` 0 both sides, and `0/2000` holds no row in the
+  window: on 5401 `damage` 1560, `damage_frac` 4 and `city_flags[0x2]` 1 both sides.
+- **run867 goes 3418 → 2430.** Left: 163 keys standing from 5401 (the bombers' `mirror` among them), the `form`
+  rows, and from 5460 `1/187`.
+- **run866 goes 180 → 178**: `0/2000`'s `damage_frac` on 5161 and `city_flags[0x4]` on 5206.
+- **Chapter 38 (run405)** loses six rows and gains none: both crash rounds' `splash_area` (1007, 1020), and
+  `1/2006`'s and `1/2007`'s `damage` and `damage_frac` on 1036. The crashes strike the Barracks and the Radar as
+  theirs do.
+- The Sahara coverage pair's windows run766, run767, run790 and run817 each lose one key. Which key is not
+  measured.
+- run867's walk reads 1699 heights at inexact corners. The held-out battery is 576 / 6566 / 2974, unmoved.
+
+**The word moves 5407 → 5476** (count and sequence). Ours spends 22 draws and theirs 21, parting at index 7: ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. It is inside
+run867's window (block 5477). The first state parting before it is who=1's `1/187` on 5460: `path[34].tolerance`
+ours 384 against 0, on the shore at (29208, 38280). Its move parts from 5461 (`path:length` 34 against 35, `dest`
+0 against 1). On 5477 it reads `collide_o` ours 177 against −1.
+
+**Not established.**
+- `find_new_bomber_target`'s best starts at −1 and takes only a value above it. Ours takes any first value, a
+  negative one too. No capture weighs a negative `compare_target` here: parked 2679.
+- The splash arm's `GraphicPieces::get_gpiece_type(+0x8) != 9` gate. Ours reads every round's piece as not 9.
+
+**Diff-backed**: the crash's strike (run866's 5206 and run867's capital; chapter 38's 1036); the clamp's kept
+fraction (run866 from 5161); the capture's zero (run676's closing). **Reading only**: the unit branch's
+`+0x8`/`+0xbc` tests, unchanged here.
 
 ## 231. Reserved for the next item on the AI track
 

@@ -5900,13 +5900,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EC — reserved
+## Parked by item 2677, 2026-10-15 — a crash round strikes where it comes down
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2679) **`find_new_bomber_target`'s best starts at −1** (`Unit::find_new_bomber_target@005eb960`: `local_c = −1`,
+taken on `(int)local_c < v`, answered on `−1 < local_c`), so a candidate whose `compare_target / (d / 0xc0 + 1)` is
+negative is never the answer. Ours (`air.rs`, `find_new_bomber_target`) takes the first candidate whatever its value.
+No capture on disk weighs a negative value here: run867's only candidate, the capital, weighs 792120 to 2454463. The
+same `-1` start sits in its first arm (`param_3 ≥ 0`, a SEAM). Names no score; a one-line fix when one does.
+
+(2680) **The Sahara coverage pair's four windows each lost one key to item 2677** (run766, run767, run790, run817:
+80 → 79, 80 → 79, 117 → 116, 298 → 297), and which key is not measured. The likeliest is a city at its ceiling's
+`damage_frac`, the row the clamp's kept fraction closes on run866. One `RON_FIRSTS=1` run of each against the base
+says. A record of what moved, not a score.
 
 ## Parked by the next landing, slot ED — reserved
 

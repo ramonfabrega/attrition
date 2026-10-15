@@ -16998,6 +16998,31 @@ SHA-256 `7b96aa6651e0563f89cf222a685102418e1d34988054a292990f301458e4fcf9`.
 `1/50` is unlinked (theirs' birth) and `1/2005`'s `queued` is ours 2 against theirs 1. 106 keys stand from 4853,
 among them the human's `control` (ours 14, theirs 0) and `1/2005`'s `queue[0].cost` (ours 240, theirs 224). The
 window is in the coverage driver's slice. Its walk reads 1552 heights at inexact corners.
+## run867 — the peace pair: the word 5407's widening, blocks 5401..5657 (2026-10-15, item 2677, `att-2677`)
+
+`docs/AI.md` §230. **Disk gap**: run866 ends at 5385, and run847 has checksums and the closing block only, so no
+dump of this lobby holds a record on 5407. This is run866's recipe with the window moved to the word, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run867`: `--map 18 --end-frame 5663 --timeout 6000
+--log-window 5401 5658 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 1 from the pool, on the first take: `success`, 5664 frames, 2565.5 s from launch to
+  exit.
+- The dump holds 258 `BEGIN FRAME`s (5401..5657 and the closing block).
+- `rngcmp.py rontrace-run847.log rontrace-run867.log`: **5664 identical, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run867-eastindies-lakota-peace-window-5401-5658.txt`, 705,000,188 bytes,
+SHA-256 `d73a8449861d624a28cb9fdaf2665ac228a2b17505bf842a2fbec7846204f854`.
+
+Archive `rontrace-run867.log`, 234,193,472 bytes,
+SHA-256 `8f9e9e1b1f6a0a27fc36b047a61b5ab55f0b10d244f9a93c288363a6e6f358d3`.
+
+**What it holds**: `diff::lakota_pair::run867_s_word_frame_is_widened_whole`, 3418 keys as captured. On the word's
+block, 5408, every who=1 Strategic Bomber patrolling round the human's capital `0/2000` holds a strike on it in
+ours (its search's, `mandatory` 0) that theirs does not, because theirs' capital is at its ceiling. With item 2677's
+crash strike built, 2430 keys remain, 163 of them standing from 5401. The window is in the coverage driver's slice,
+and its walk reads 1699 heights at inexact corners.
+
 ## run866 — the peace pair: the word 5135's widening, blocks 5129..5385 (2026-10-15, item 2554, `att-2554`)
 
 `docs/AI.md` §227. **Disk gap**: run861 ends at 5109, and run847 has checksums and the closing block only, so no
