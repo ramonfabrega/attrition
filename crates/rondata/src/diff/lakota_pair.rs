@@ -82,8 +82,16 @@ pub(crate) const LAKOTA: Pair = Pair {
     // `Guy::inc_time`'s walk ahead of `1/132`): ours 30 draws, theirs 29,
     // index 0 — ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a <
     // Guy::move+0x19f`.
-    count: 5315,
-    sequence: 5315,
+    // Item 2638: 5315 → 5407 (count 5412), `move_step`'s snap arm
+    // consumes its waypoint on a refused tile (`005fb44a` → `005fb48e`,
+    // `docs/AI.md` §229): who=1's Heavy Tank `1/11` pops its sidestep
+    // over the shore on 5314 where it stands (block 5315: `path` 51 and
+    // `dest` 0 both sides), where ours cleared the line and re-planned a
+    // frame later with `Unit::do_move+0xe84`'s grid draw. Ours 15 draws,
+    // theirs 15, index 0 — ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`,
+    // theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
+    count: 5412,
+    sequence: 5407,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -418,7 +426,7 @@ fn run866_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 1340, "initial run866 baseline");
+    pin_eq!(w.firsts.len(), 180, "initial run866 baseline");
     // Item 2554: the word 5135's own block is 5136, widened at 5707 keys.
     // Theirs gives who=1's naval army (group 72, nine members: the
     // Missile Cruisers `1/20`, `1/21`, `1/25`, `1/26`, `1/34`, `1/36`,

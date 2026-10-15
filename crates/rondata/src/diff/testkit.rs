@@ -7065,7 +7065,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2609: 1653 -> 1672, the crash rounds' ground reads (their
     // landing's `ez` and each frame's fall) and the walk past 5225 to the
     // word 5315.
-    ("lakota_pair_first_parting", 1672),
+    // Item 2638: 1672 -> 1678, the walk past 5315 to the word 5407.
+    ("lakota_pair_first_parting", 1678),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
