@@ -665,6 +665,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch74 = golden_dump("ch74");
     let ch75 = golden_dump("ch75");
     let ch76 = golden_dump("ch76");
+    let ch77 = golden_dump("ch77");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2446,6 +2447,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_SIX;
         let n = drive_capture(p, 1748, 1753, &mut paths);
         assert_eq!(n, 6, "chapter seventy-six carries the window's six blocks");
+        frames += n;
+    }
+    // **Chapter seventy-seven, on run872** (item 2598): 1102, the Galley
+    // queued under the Porcelain Tower.
+    if let Some(p) = &ch77 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_SEVEN;
+        let n = drive_capture(p, 1099, 1104, &mut paths);
+        assert_eq!(
+            n, 6,
+            "chapter seventy-seven carries the window's six blocks"
+        );
         frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first

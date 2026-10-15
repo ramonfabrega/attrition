@@ -1745,6 +1745,28 @@ class Shapes(unittest.TestCase):
         _, _, _, test, _ = sweep_gen.generate_mix(spec, item=2593, glob=0xc06378, steps=steps, ret_arg=True)
         self.assertIn('vec![walker, g + 0x163dc]', test)
 
+    def test_an_obj_may_answer_the_out_pointer_it_was_handed(self):
+        # parked 2594: the inlined `String` constructors (FarmsOut::get_name and four kin) store a block into the
+        # buffer at [esp+4] and answer that pointer: `--ret arg:0` holds eax to argument 0, and the buffer's bytes after are the block.
+        spec = 'FarmsOut::get_name@004352b0'
+        port = 'let o = &mut p[0]; wr(o, 0, 0xb2468c); o[8] = 5; 0'
+        _, script, _, test, _ = sweep_gen.generate_obj(spec, item=2604, win=0x20, bias=[], own=1, ret='arg:0',
+                                                        ptrargs=['0:0x14'], port=port)
+        compile(script, 'sweep_farms_out_get_name.py', 'exec')
+        self.assertIn('assert_eq!(want_eax, i64::from(a[0])', test)
+        self.assertNotIn('let _ = (got, want_eax);', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj(spec, item=2604, win=0x20, bias=[], own=1, ret='arg:1', ptrargs=['0:0x14'])
+
+    def test_a_jump_table_draws_its_index_inside_the_table(self):
+        # parked 2607: Setup::get_starting_citizens is `jmp *0x5aafac(,%eax,4)` over four arms; `--jump IDX:N`
+        # draws the index argument in 0..N-1 (a wild index jumps into the next table's bytes) and is an --own argument.
+        x = sweep_gen.jump_expand('1:4', own=2)
+        self.assertEqual(x['argrange'], ['1:0:3'])
+        for bad in ('1:0', '2:4', '1', '1:4:9'):
+            with self.assertRaises(ValueError):
+                sweep_gen.jump_expand(bad, own=2)
+
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
         self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', 'Foo::bar@00401000']),

@@ -6476,6 +6476,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_SIX: i64 = 2100;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SEVENTY_SIX: (i64, i64) = (600, 2101);
 
+/// **Chapter seventy-seven** (item 2598, `docs/GOLDEN.md` §96, run872): the
+/// Porcelain Tower's ship arm on a human.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_SEVEN: i64 = 1400;
+
+/// `chapter_seventy_seven_s_word_frame_is_widened_whole`'s window: run872
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SEVENTY_SEVEN: (i64, i64) = (600, 1401);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8914,6 +8922,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seventy_six_s_word_frame_is_widened_whole"),
         2572,
         Some(WIDENING_CHAPTER_SEVENTY_SIX),
+    ),
+    // Item 2598: run872, chapter seventy-seven, the Porcelain Tower's ship arm.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVENTY_SEVEN",
+        GOLDEN_WORD_CHAPTER_SEVENTY_SEVEN,
+        Some("chapter_seventy_seven_s_word_frame_is_widened_whole"),
+        2598,
+        Some(WIDENING_CHAPTER_SEVENTY_SEVEN),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
