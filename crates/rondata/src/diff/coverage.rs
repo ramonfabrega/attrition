@@ -2476,7 +2476,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter seventy-nine, on run875** (item 2649): the Biplane's strike.
     if let Some(p) = &ch79 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_NINE;
-        let n = drive_capture(p, 937, 942, &mut paths);
+        let n = drive_capture(p, 1392, 1397, &mut paths);
         assert_eq!(n, 6, "chapter seventy-nine carries the window's six blocks");
         frames += n;
     }
