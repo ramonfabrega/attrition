@@ -2478,8 +2478,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_NINE;
         let n = drive_capture(p, 937, 942, &mut paths);
         assert_eq!(
-            n, 1,
-            "chapter seventy-nine carries one detailed block in the window"
+            n, 6,
+            "chapter seventy-nine carries the window's six blocks"
         );
         frames += n;
     }
