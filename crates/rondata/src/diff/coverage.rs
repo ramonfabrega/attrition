@@ -667,6 +667,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch76 = golden_dump("ch76");
     let ch77 = golden_dump("ch77");
     let ch78 = golden_dump("ch78");
+    let ch79 = golden_dump("ch79");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2469,6 +2470,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 1,
             "chapter seventy-eight carries one detailed block in the window"
+        );
+        frames += n;
+    }
+    // **Chapter seventy-nine, on run875** (item 2649): the Biplane's strike.
+    if let Some(p) = &ch79 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTY_NINE;
+        let n = drive_capture(p, 937, 942, &mut paths);
+        assert_eq!(
+            n, 1,
+            "chapter seventy-nine carries one detailed block in the window"
         );
         frames += n;
     }
