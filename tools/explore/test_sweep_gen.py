@@ -751,7 +751,7 @@ class Shapes(unittest.TestCase):
             stubs=['0x402000:0', '0x403000:2'], deref=['1:0:2'], ret='none',
             port='{ log.push("3501".into()); 0 }')
         compile(script, str(sp), 'exec')
-        self.assertIn('DEREF = [(1, 0, 2)]', script)
+        self.assertIn('DEREF = [(1, 0, 2, None)]', script)
         self.assertIn('def read_arg(', script)
         self.assertIn('split_once(" # ")', test)
         self.assertIn('let mut log: Vec<String> = Vec::new();', test)
@@ -774,6 +774,30 @@ class Shapes(unittest.TestCase):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=2379, win=0x20, bias=[], own=0,
                                        stubs=['0x402000:2'], deref=bad)
 
+    def test_a_deref_may_hold_only_the_bytes_the_function_wrote(self):
+        # Item 2644 (parked 2636): `UnitOut::issue_come_out` hands `add_command`
+        # a 16-byte `Command` local of which five bytes are written; the rest
+        # is the emulator's stack residue. `--deref IDX:K:N:W` names the
+        # written byte ranges W (`0,1-4`); every other byte prints `00`.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2644, win=0x20, bias=[], own=0,
+            stubs=['0x402000:2'], deref=['0:0:4:0,2-3'], ret='none',
+            port='{ log.push("31003300".into()); 0 }')
+        compile(script, str(sp), 'exec')
+        self.assertIn('DEREF = [(0, 0, 4, (0, 2, 3))]', script)
+        self.assertIn('the 4 bytes its argument 0 points at (bytes 0, 2, 3 written, the rest 00)', test)
+        ns = {}
+        body = script[script.index('def read_arg('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        seen = []
+        ans = ns['read_arg'](7, 0, 4, lambda a, n: bytes([0x31, 0x99, 0x33, 0x44]), seen, (0, 2, 3))
+        self.assertEqual(ans(0, [0x1000]), 7)
+        self.assertEqual(seen, ['31003344'])
+        for bad in ('0:0:4:4', '0:0:4:2-1', '0:0:4:x'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2644, win=0x20, bias=[], own=0,
+                                       stubs=['0x402000:2'], deref=[bad])
+
     def test_a_stub_may_print_an_absolute_cell_read_at_call_time(self):
         # Item 2513 (parked 2509): `find_wpath_army`, `find_road_restore` and
         # `find_upath_restore` set `pathfinder+0x70`/`+0x84` to 1 around the
@@ -785,7 +809,7 @@ class Shapes(unittest.TestCase):
             stubs=['0x402000:1'], deref=['0:@0xe85eb0:4'], ret='none',
             port='{ log.push("01000000".into()); 0 }')
         compile(script, str(sp), 'exec')
-        self.assertIn("DEREF = [(0, ('@', 15228592), 4)]", script)
+        self.assertIn("DEREF = [(0, ('@', 15228592), 4, None)]", script)
         self.assertIn('prints the 4 bytes at the cell 0x00e85eb0 when it is called', test)
         ns = {}
         body = script[script.index('def read_arg('):]

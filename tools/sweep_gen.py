@@ -1426,17 +1426,24 @@ def win_write(inner, at, size, v, write):
     return answer
 
 
-def read_arg(inner, k, n, read, sink):
+def read_arg(inner, k, n, read, sink, written=None):
     """`--deref IDX:K:N` (item 2379, parked 2348): a stub that reads the N
     bytes its argument K points at when it is called — a caller's local
     `Command`, gone once the call returns — into `sink` as hex (`null` for a
-    null argument), then answers as `inner` would."""
+    null argument), then answers as `inner` would. `written` (item 2644,
+    parked 2636) lists the byte indices the function wrote: every other byte
+    of a local is stack residue and prints `00`."""
+    def hexed(b):
+        if written is not None:
+            b = bytes(c if i in written else 0 for i, c in enumerate(b))
+        return b.hex()
+
     def answer(ecx, args):
         if isinstance(k, tuple):  # `@VA` (item 2513): an absolute cell, read as it stands now
-            sink.append(read(k[1], n).hex())
+            sink.append(hexed(read(k[1], n)))
             return inner(ecx, args) if callable(inner) else inner
         a = args[k] & 0xFFFFFFFF
-        sink.append(read(a, n).hex() if a else "null")
+        sink.append(hexed(read(a, n)) if a else "null")
         return inner(ecx, args) if callable(inner) else inner
     return answer
 
@@ -1738,9 +1745,9 @@ def main(argv):
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write)
         derefs = [[] for _ in DEREF]
-        for (idx, k, n), sink in zip(DEREF, derefs):
+        for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
-                                             lambda a_, n_: bytes(uc.mem_read(a_, n_)), sink)
+                                             lambda a_, n_: bytes(uc.mem_read(a_, n_)), sink, wr)
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -2040,20 +2047,31 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--record IDX@S names a --sparse table S, by its order on the line (item 2309)')
     pderef = []
     for one in deref:
-        i_, k_, n_ = str(one).split(':')
+        i_, k_, n_, *w_ = str(one).split(':')
         idx, n = int(i_, 0), int(n_, 0)
+        wr = None
+        if w_:
+            # `IDX:K:N:W` (item 2644, parked 2636): W the written byte ranges, `0,1-4`.
+            got = set()
+            for part in w_[0].split(','):
+                lo, _, hi = part.partition('-')
+                lo, hi = int(lo, 0), int(hi or lo, 0)
+                if not 0 <= lo <= hi < n:
+                    raise ValueError(f'--deref {one}: written bytes `{part}` outside 0..{n - 1}')
+                got.update(range(lo, hi + 1))
+            wr = tuple(sorted(got))
         if not 0 <= idx < len(pstubs):
             raise ValueError('--deref IDX:K:N names one of the --stub callees, by its order on the line')
         if k_.startswith('@'):
             # `--deref IDX:@VA:N` (item 2513, parked 2509): an absolute cell, read at call time.
             if n < 1:
                 raise ValueError(f'--deref {one}: N >= 1')
-            pderef.append((idx, ('@', int(k_[1:], 0)), n))
+            pderef.append((idx, ('@', int(k_[1:], 0)), n, wr))
             continue
         k = int(k_, 0)
         if not 0 <= k < pstubs[idx][2] or n < 1:
             raise ValueError(f'--deref {one}: stub {idx} takes {pstubs[idx][2]} argument(s); K names one, N >= 1')
-        pderef.append((idx, k, n))
+        pderef.append((idx, k, n, wr))
     if record_edx and (not precord or prowsplit or record_order):
         raise ValueError('--record-edx adds `edx` to the --record stubs\' calls; a row split or an order keeps its own columns')
     if record_order and not precord:
@@ -2196,8 +2214,10 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            if record_order else [])
         + [(f'stub {idx} prints the {n} bytes at the cell 0x{k[1]:08x} when it is called, hex, after the record (`/` a call)'
             if isinstance(k, tuple) else
-            f'stub {idx} prints the {n} bytes its argument {k} points at, hex, after the record (`/` a call)')
-           for idx, k, n in pderef]
+            f'stub {idx} prints the {n} bytes its argument {k} points at'
+            + (f' (bytes {", ".join(map(str, wr))} written, the rest 00)' if wr is not None else '')
+            + ', hex, after the record (`/` a call)')
+           for idx, k, n, wr in pderef]
         + [f'stub {idx} writes a value in '
            + (f'{v[1]}..{v[2]}' if v[0] == 'range' else str(v[1]))
            + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
