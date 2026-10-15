@@ -9132,13 +9132,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
     // Lakota food term, widened on run849 over 1978..2235 (block 1985);
     // **2040** after item 2384's `Leader::diplomacy`, in the same window
-    // (block 2041).
+    // (block 2041). **Item 2388 moved it 2040 → 3302**, past run849's last
+    // block (2235), with `release_mustering`'s pre-war gate: run849's test
+    // keeps 2040's value diff (block 2041 holds no row), and the widening
+    // over 3302 is owed (parked 2412).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        Some("run849_s_word_frame_is_widened_whole"),
-        2384,
-        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_1984),
+        None,
+        2412,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
