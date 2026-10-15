@@ -90,8 +90,21 @@ pub(crate) const LAKOTA: Pair = Pair {
     // frame later with `Unit::do_move+0xe84`'s grid draw. Ours 15 draws,
     // theirs 15, index 0 — ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`,
     // theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
-    count: 5412,
-    sequence: 5407,
+    // Item 2677: 5407 → 5476, a crash round strikes where it comes down
+    // (`init_crash`'s `splash_area` 2, `Ammo::do_damage` before the close;
+    // `docs/AI.md` §230): the Jet Fighters' crashes land on the human's
+    // capital `0/2000`, at its ceiling, on 5205, 5208 and 5214, so its city
+    // stays attacked, its heal stays vetoed, and it holds `damage` 1560 of
+    // 1560 — capture-eligible, so `valid_target` refuses it to who=1's
+    // Strategic Bombers' sixteen-frame search and only the thirty-two-frame
+    // look strikes it (`mandatory` 1). Ours had healed it to 1559 and every
+    // bomber's search pushed a strike on it (`1/87`, `1/150`, `1/100`,
+    // `1/67`, `1/195`, `1/50`, `1/48` on 5401..5408), and `1/67`'s swing
+    // drew on 5407. Ours 22 draws, theirs 21, index 7 — ours
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+    count: 5476,
+    sequence: 5476,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -426,7 +439,7 @@ fn run866_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 180, "initial run866 baseline");
+    pin_eq!(w.firsts.len(), 178, "initial run866 baseline");
     // Item 2554: the word 5135's own block is 5136, widened at 5707 keys.
     // Theirs gives who=1's naval army (group 72, nine members: the
     // Missile Cruisers `1/20`, `1/21`, `1/25`, `1/26`, `1/34`, `1/36`,
@@ -468,6 +481,10 @@ fn run866_s_word_frame_is_widened_whole() {
     // Scholar inside `1/114`, ours 1431655765 against 0), group 69's held
     // `1/184` on 5327, `1/187`'s `path[2]` on 5378, who=1's `MAKE` values
     // on 5381, and its buckets and queue `cost` rows on 5383.
+    // Item 2677: 180 → 178 with the crash round's strike and the clamp's
+    // kept fraction: `0/2000`'s `damage_frac` on 5161 (ours 0 against
+    // theirs 10) and its `city_flags[0x4]` on 5206 (0 against 1, a crash
+    // landing on 5205) agree.
 }
 
 /// run867: the word 5407's window, blocks 5401..5657 at the long's detail (item 2677).
@@ -504,5 +521,22 @@ fn run867_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "initial run867 baseline");
+    pin_eq!(w.firsts.len(), 2430, "initial run867 baseline");
+    // Item 2677: the word 5407's own block is 5408, widened at 3418 keys.
+    // Every who=1 Strategic Bomber (`TypeIndex` 305, air) on its
+    // `AIRPATROLORDER` round the human's capital `0/2000` (6240, 7008)
+    // parts: in ours its sixteen-frame search pushes a `STRAFEORDER` on
+    // the capital (`mandatory` 0, kept), in theirs only the thirty-two-frame
+    // look does (`mandatory` 1, popped the next frame) — `1/87` on 5402,
+    // `1/150` 5403, `1/100` 5405, `1/67` and `1/195` 5406, `1/50` 5407,
+    // `1/48` 5409 (`order:kind` ours 16 against 17, `orders.len` 2 against
+    // 1); on 5408 `1/67` reads `recharging` ours 41 against 0, its swing.
+    // The capital reads `damage` ours 1559 against theirs 1560 of `myhits`
+    // 1560, `damage_frac` 0 against 4 and `city_flags[0x2]` 0 against 1:
+    // theirs is at its ceiling, capture-eligible, and refused by
+    // `valid_target`. 3418 → 2430 with the crash round's strike: no bomber
+    // and no `0/2000` row stands in the window. Left: the keys standing
+    // from 5401 (163, the bombers' `mirror` among them), the `form` rows,
+    // `1/187` on 5460 (`path[34].tolerance` ours 384 against 0, on the
+    // shore at (29208, 38280)) and its move from 5461, the new word's.
 }

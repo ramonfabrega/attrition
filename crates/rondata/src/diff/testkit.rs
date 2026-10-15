@@ -7258,10 +7258,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // run861 window: 1552, as that window's own; 1553 with item 2491's
     // President arm, as that window's own. Item 2554's run866 window: 1673,
     // as that window's own; 1678 with item 2609's crash round, as run866's
-    // own walk.
+    // own walk. Item 2677's run867 window: 1699, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        1678,
+        1699,
     ),
 ];
 
@@ -9319,7 +9319,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 5226 and 5316). **Item 2638 moved it 5315 → 5407** with `move_step`'s
     // snap-arm tile refusal, past run866's last block (5385): run866's test
     // keeps 5315's value diff (block 5316), and 5407 is widened on run867
-    // over 5401..5657 (block 5408, item 2677).
+    // over 5401..5657 (block 5408, item 2677). **Item 2677 moved it 5407 →
+    // 5476** with the crash round's strike, in the same window (block
+    // 5477).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
