@@ -3655,6 +3655,21 @@ impl Sim {
         }
         let ty = self.buildings[at].queue.items[slot].ty;
         let researched = self.muster[who as usize].researched[ty];
+        // **A silo with a missile inside holds its clock**
+        // (`Build::do_queue@0061e410`'s second early return, listing
+        // `61e4b4`..`61e510`; `docs/PRODUCTION.md`, "The two early
+        // returns"): `is(0x208, 1)`, `inside_down >= 0`, the entry's
+        // availability bit set and the entry not `DISBAND` (which this
+        // crate never queues) return before the accelerator is chosen. The
+        // peace pair's `1/2018` holds its second ICBM at `job_counter` 0
+        // from 2582 while the first, `1/50`, stands inside it (run853,
+        // `docs/AI.md` §222).
+        if researched
+            && self.building_ident(at) == build::Ident::MissileSilo
+            && !self.buildings[at].garrison.is_empty()
+        {
+            return Advanced::Pending;
+        }
         let target = self.queue_target(at, slot);
         let accel = production::accel(&self.tuning, production::Job::for_unit(researched), 1);
 

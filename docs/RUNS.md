@@ -16866,6 +16866,29 @@ SHA-256 `04d0cfb5193b30260c041572bb8d23fe284c65d079048548cb2f3d7eb20c2784`.
 **What it holds**: `diff::lakota_pair::run849_s_word_frame_is_widened_whole`, 1242 keys on blocks 1978..2235. On the
 word's block 1985: who=1's `leader:agendas[0]`, ours 0 / theirs 64 (`docs/AI.md` §219).
 
+## run853 — the peace pair: the word 3302's widening, blocks 3296..3552 (2026-10-14, item 2412, `att-2412`)
+
+**Disk gap**: run849 ends at 2235, and run847 has checksums and the closing block only. No dump of this lobby holds a
+record on 3302. The capture is run849's recipe with the window moved to the word,
+through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run853`: `--map 18 --end-frame 3560 --timeout 5400
+--log-window 3296 3553 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 1 from the pool, on the first take: `success`, 3561 frames, 1465.6 s launch to exit.
+- The dump has 257 `BEGIN FRAME`s 3296..3552 and a 3561 closing block. `seed_observed` is 12345, the players
+  Nubians (4) and Lakota (19).
+- `rngcmp.py rontrace-run847.log rontrace-run853.log`: **3561 in common, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run853-eastindies-lakota-peace-window-3296-3553.txt`, 560,677,108 bytes,
+SHA-256 `cd3a47d6d7d96fcf1050a0f04aa1c89b02b1b74fbd0d26c4779b7d5331d5cabc`.
+
+Archive `rontrace-run853.log`, 98,822,784 bytes,
+SHA-256 `ad890c9ab468d68029ba12d065ec18d339bce009472d73f6890dbc52f6b78fba`.
+
+**What it holds**: `diff::lakota_pair::run853_s_word_frame_is_widened_whole`. Without `do_queue`'s silo return it
+holds 521 keys. On 3296, who=1's Missile Silo `1/2018` has `queue[0].job_counter` ours 71400 against theirs 0 (an
+ICBM, 316). On the word's block 3303, the second ICBM `1/135` is ours alone. With the return built (item 2412,
+`docs/AI.md` §222) it holds 169 keys, block 3303 has no row, and the word 3479 (block 3480) is in the window.
 ## run858 — chapter seventy-one: the Senate's patriot at 659 hits (2026-10-14, item 2436, `att-2436`)
 
 `docs/GOLDEN.md` §88, `tools/gamelog/golden/chapter71.cmd` (eleven staged lines). **What the disk could not answer**: no

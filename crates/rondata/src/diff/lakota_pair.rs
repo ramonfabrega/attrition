@@ -38,8 +38,12 @@ pub(crate) const LAKOTA: Pair = Pair {
     // navy army through the peace (`docs/AI.md` §221): ours 392 draws,
     // theirs 391, index 388 — ours `Guy::init_real+0x52`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-    count: 3302,
-    sequence: 3302,
+    // Item 2412: 3302 → 3479, `do_queue`'s silo return holds `1/2018`'s
+    // second ICBM while the first stands inside (`docs/AI.md` §222): ours
+    // 44 draws, theirs 46, index 0 — ours `Guy::set_anim+0x97a <
+    // Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a < do_cast`.
+    count: 3479,
+    sequence: 3479,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -179,4 +183,53 @@ fn run849_s_word_frame_is_widened_whole() {
     // `ATTACKTOORDER` to (44424, 32904) both sides, `1/26` and `1/36` none.
     // 74 stand on 1978 as before and 13 part later (parked 2411). The word
     // is 3302, past this window.
+}
+
+/// run853: the word 3302's window, blocks 3296..3552 at the long's detail (item 2412).
+pub(crate) const RUN853: &str = "gamelog-run853-eastindies-lakota-peace-window-3296-3553.txt";
+
+/// The window: block 3296 through 3552; the word 3302's own block is 3303.
+pub(crate) const WIDENING_LAKOTA_FRAME_3302: (i64, i64) = (3296, 3552);
+
+pub(crate) fn lakota_frame_3302_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run853",
+        &[(RUN853, WIDENING_LAKOTA_FRAME_3302.0)],
+        WIDENING_LAKOTA_FRAME_3302,
+        1,
+        &[3303, 3480],
+        true,
+    )
+}
+
+#[test]
+fn run853_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_3302_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 169, "initial run853 baseline");
+    // Item 2412: the word 3302's own block is 3303. Without the silo
+    // return, who=1's Missile Silo `1/2018` trains its second ICBM (316)
+    // from 2582 and births it on 3302 (`Guy::init_real+0x52`, ours' extra
+    // draw at index 388); theirs holds the entry at `job_counter` 0 on
+    // every block 3296..3552 with the first ICBM `1/50` inside
+    // (`inside_down` 50). With the return built (`docs/AI.md` §222) block
+    // 3303 holds no row; 81 keys stand from 3296. The word is now 3479
+    // (block 3480): who=1's Citizen `1/6` (type 50, group 69) casts spell
+    // 650 at the shore in theirs (`CASTORDER` over its `MOVEORDER`, kind
+    // 14 to (12111, 20376)) and is inside the Transport Freighter `1/140`
+    // on 3480; ours holds kind 1 to (2712, 18840). Group 69 holds `[6]`
+    // in ours from 3302 and nothing in theirs (parked 2411's group).
 }

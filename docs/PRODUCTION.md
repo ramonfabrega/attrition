@@ -184,8 +184,9 @@ returns (unless the entry is `DISBAND`), which is the other half of the
 forwarding above. And a **missile silo** (`is(0x208, 1)`) whose `inside_down`
 is non-negative and whose entry is a unit type with the availability bit set
 returns without advancing — a silo with a missile already garrisoned does not
-build the next one. Neither is modelled; the second is recorded under what is
-not established.
+build the next one. ~~Neither is modelled; the second is recorded under what is
+not established.~~ The second is built (item 2412, `Sim::advance_slot`, `docs/AI.md`
+§222: run853's `1/2018` holds its second ICBM at 0 while the first is inside).
 
 **It picks an accelerator**, by what kind of thing the entry is:
 
@@ -1555,7 +1556,8 @@ silo that is `UnitTypeData::is_missile@0061d430` and not
 queue, and for a live missile of the player inside the silo or on a
 `STRAFE` homed at it. `queue_up`'s own aircraft-limit test only warns;
 `do_queue`'s silo return (the clock held while a missile is garrisoned,
-"The two early returns") is a second gate and still not modelled.
+"The two early returns") is a second gate, ~~and still not modelled~~ built by item 2412
+(`docs/AI.md` §222).
 
 **Built, and run371 backs it** (item 1019, `docs/GOLDEN.md` §44):
 `Sim::build_train`'s empty list for a Helicopter, `exit_at_airbase`'s two
@@ -2174,8 +2176,8 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   `get_next_non_caravan` / `get_next_helicopter` fallback that follows them,
   because the simulation has neither caravans nor aircraft~~ (built: the pad
   and `get_next_helicopter` by item 1905, `docs/AI.md` §198; the caravan
-  limit and `get_next_non_caravan` by item 2107, §211); the missile-silo
-  gate in `do_queue`; ~~the infinite-queue flag~~ (built, "The infinite
+  limit and `get_next_non_caravan` by item 2107, §211); ~~the missile-silo
+  gate in `do_queue`~~ (built by item 2412, `docs/AI.md` §222); ~~the infinite-queue flag~~ (built, "The infinite
   queue"); ~~the University's six-scholar
   rule~~ (implemented by item 1445, "The university admission limit"); the library quirk that removes an entry on a negative answer. Each is
   named where it belongs above and each is a small addition once the thing it

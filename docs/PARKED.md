@@ -5395,13 +5395,30 @@ would write all seven forwarders of this batch from one flag; each was a hand-wr
 restored file kept its pre-mutation mtime, so the next `cargo test` ran the broken port and `issue_disband` failed
 the gate until `touch`ed. A break script writes the original back with a fresh mtime (or touches it).
 
-## Parked by the next landing, slot CM — reserved
+## Parked by item 2412, 2026-10-14 — the peace pair's word 3479, and run853's later rows
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2423) **The peace pair's word 3479: ours 44 draws, theirs 46, index 0** (2412, `docs/AI.md` §222; ours
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a < do_cast`). It is inside run853's
+window (block 3480), and the widening is on file (`run853_s_word_frame_is_widened_whole`, 169 keys). Who=1's
+Citizen `1/6` (type 50, group 69) reaches the shore at (12111, 20376). On 3479, theirs puts a `CASTORDER`
+(spell 650) over its `MOVEORDER` (kind 14). On 3480 it is inside the Transport Freighter `1/140` (type 322).
+Ours keeps kind 1 to (2712, 18840). On that unit the first parted field is `path[11].to` on 3302, ours (11928,
+19608) against theirs (11928, 20376), on the same block where group 69 holds `[6]` in ours and nothing in
+theirs. The 3302 row is the frame's lead and its mechanism is not read. The previous item's hypothesis was the
+shore cast (spell 650's caller).
+
+(2424) **run853's later rows** (2412; names no word). Beyond 2423's unit, the 169 keys hold 81 that stand from
+3296 (§219's bucket and `SITE[n].reg` rows) and these later ones:
+- who=1's groups 77 and 80 hold `[34]` and `[113]` in ours and nothing in theirs (3327, 3338), the shape of
+  2411's groups 69, 79 and 80;
+- `form` is −1 ours against 0 theirs on each newborn `1/135`..`1/141` (2411's `form` rows);
+- `dest_angle` parts alone on `1/29`, `1/79`, `1/33`, `1/91`, `1/27` and `1/64` (3335–3407), and `1/116`'s
+  `mirror` is 0/1 (3387);
+- who=0's `0/3` (3515) and `0/5` (3530) take a move whose `off_x`/`off_y` are swapped: 696/312 ours against
+  312/696 theirs, and so is the point they move to; on 3526 and 3541 each holds kind 7 in ours against kind 1
+  over a second order in theirs;
+- gaia `8/0` and `8/1` part in `pos` by a few units (3486, 3514).
+None of these is on the word's frame.
 
 ## Parked by item 2436, 2026-10-14 — chapter seventy-one: the Senate's patriot, and the AI arms no walk can hold
 
