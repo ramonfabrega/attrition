@@ -2027,6 +2027,7 @@ impl Sim {
                 ez,
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
+                crash: None,
             });
             return;
         }
@@ -2170,6 +2171,7 @@ impl Sim {
             ez,
             v1z: combat::arc_v1z(sz, ez, total_time),
             slot: 0,
+            crash: None,
         });
     }
 
@@ -4435,6 +4437,7 @@ impl Sim {
                 ez,
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
+                crash: None,
             });
         }
         // `do_attack`'s tail after `fire_ammo` (`622b5b`..`622bd0`): the
@@ -4480,6 +4483,28 @@ impl Sim {
         while i < self.projectiles.len() {
             self.projectiles[i].cur_time += 1;
             let p = self.projectiles[i];
+            if p.crash.is_some() {
+                if p.cur_time < p.total_time {
+                    if !self.crash_comes_down(i) {
+                        i += 1;
+                        continue;
+                    }
+                    // The landing arm jumps back to the loop's head
+                    // (`67d726` → `67d39a`): `cur_time` and a dead
+                    // shooter's `hold_frames` are bumped a second time,
+                    // and `cur_time >= total_time` ends it.
+                    self.projectiles[i].cur_time += 1;
+                    if let Obj::Unit(s) = p.shooter
+                        && !self.active(p.shooter)
+                    {
+                        self.units[s].hold_frames += 1;
+                    }
+                }
+                // SEAM: `Ammo::do_damage` for a crash that has come down
+                // (`docs/AI.md` §228) is not built.
+                self.projectiles.remove(i);
+                continue;
+            }
             if p.cur_time < p.total_time {
                 i += 1;
                 continue;
@@ -4540,6 +4565,42 @@ impl Sim {
                 self.land(p, frame);
             }
         }
+    }
+
+    /// **`Ammo::inc_time@0067d380`'s crash arm** (`+0x50 == 1`,
+    /// `67d590`–`67d726`; `docs/AI.md` §228), on a frame short of
+    /// `total_time`: the landing drifts by the bank pair and is
+    /// `WorldData::restrict`ed, and then the round is tested against the
+    /// ground at its point on the line, `(float)find_data_z > arc` —
+    /// [`combat::arc_point`] and [`combat::arc_z`], the rolling arm's own
+    /// arithmetic. Under the ground it comes down there: the point is its
+    /// landing, `ez` the ground, `total_time` one past `cur_time`.
+    /// Returns whether it came down.
+    ///
+    /// SEAM: the arm returns before the test when
+    /// `GraphicPieces::get_gpiece_type(+0x8)` is non-zero; this crate loads
+    /// no graphic piece and reads it as zero. run405's two crashes end
+    /// short of their `total_time` (13 of 18, 12 of 17), which only the
+    /// test does.
+    fn crash_comes_down(&mut self, i: usize) -> bool {
+        let p = self.projectiles[i];
+        let Some(c) = p.crash else { return false };
+        let mut landing = p.landing;
+        if c.bank != (0, 0) {
+            landing = self.restrict_pos(Pos::new(landing.x + c.bank.0, landing.y + c.bank.1));
+            self.projectiles[i].landing = landing;
+        }
+        let at = combat::arc_point(p.launch, landing, p.cur_time, p.total_time);
+        let ground = self.ground_z(at);
+        let z = combat::arc_z(p.v1z, p.sz, p.cur_time);
+        if !crate::single::Single::from_i32(ground).gt(z) {
+            return false;
+        }
+        let q = &mut self.projectiles[i];
+        q.landing = at;
+        q.total_time = q.cur_time + 1;
+        q.ez = ground;
+        true
     }
 
     /// `Ammo::hit_target@00678f90` (§9.4): the shot's own target, still
@@ -5025,6 +5086,7 @@ mod tests {
             ez: 0,
             v1z: combat::arc_v1z(0, 0, 1),
             slot: 0,
+            crash: None,
         }
     }
 
@@ -7846,6 +7908,7 @@ mod tests {
             ez: 0,
             v1z: crate::single::Single::ZERO,
             slot: 0,
+            crash: None,
         };
         assert_eq!(sim.check_hit(&ammo), None);
         // The same arrow does find a player's unit standing there.
@@ -7903,6 +7966,7 @@ mod tests {
             ez: 78,
             v1z: crate::single::Single::ZERO,
             slot: 0,
+            crash: None,
         };
         assert_eq!(sim.check_hit(&ammo), Some(Obj::Building(b)));
         // The same round aimed at the Barracks, beside it.
@@ -7981,6 +8045,7 @@ mod tests {
             ez: 78,
             v1z: crate::single::Single::ZERO,
             slot: 0,
+            crash: None,
         };
         let mut tree = sim.tech_tree.clone();
         let shield = tree.types.len();
@@ -8136,6 +8201,7 @@ mod tests {
             ez,
             v1z: combat::arc_v1z(sz, ez, total),
             slot: 0,
+            crash: None,
         }
     }
 

@@ -10546,8 +10546,10 @@ struct ChapterThreeWidening {
 /// `Ammo::init_crash`, which gives a falling aircraft a random roll. Until
 /// this item the widenings compared this crate's bit 4 against the byte,
 /// and every rolling round read "ours 1 theirs 0" there: a row that named
-/// the wrong field, not a parting. This crate carries no roll byte and no
-/// crash round, so its side of `rolling` is the zero `init` writes.
+/// the wrong field, not a parting. A crash round carries its roll and its
+/// bank pair since item 2609 (`docs/AI.md` §228), printed in millionths as
+/// the dump's singles are; every other round's side is the zero `init`
+/// writes.
 /// An object's `(who, o)` as the dump prints it: a unit's owner and
 /// index, or a building's.
 pub(super) fn obj_ident(sim: &sim::Sim, o: sim::combat::Obj) -> (i64, i64) {
@@ -10596,14 +10598,17 @@ pub(super) fn ammo_value_rows(
 fn ammo_flag_rows(
     p: &sim::combat::Projectile,
     a: &super::ammo::Ammo,
-) -> [(&'static str, i64, i64); 4] {
+) -> [(&'static str, i64, i64); 6] {
+    let (roll, bank) = p.crash.map_or((0, (0, 0)), |c| (c.rolling, c.bank));
     [
         ("flags&4", if p.rolling { 4 } else { 0 }, a.flags & 4),
         ("flags&8", if p.missed { 8 } else { 0 }, a.flags & 8),
         // `Ammo::init`'s bit `0x10`, a `do_damage="0"` round (item 853,
         // `docs/ORDERS.md` §39.5).
         ("flags&16", if p.harmless { 16 } else { 0 }, a.flags & 16),
-        ("rolling", 0, a.rolling),
+        ("rolling", i64::from(roll), a.rolling),
+        ("bank_dx", i64::from(bank.0) * 1_000_000, a.bank_dx),
+        ("bank_dy", i64::from(bank.1) * 1_000_000, a.bank_dy),
     ]
 }
 
