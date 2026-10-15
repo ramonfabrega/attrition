@@ -12531,12 +12531,45 @@ unreached. The entry's counter is never read on a non-completing frame under `fi
 The packet's `hurry` writes 26080 where this crate's old walk wrote 26280: the 200 was the walk's second `do_queue` pass,
 which the original's `finish` no longer exposes — no test reads it.
 
-## 95. Reserved for the next item on the rules track
+## 95. Chapter seventy-six: the President's train arm held on a human — a Barracks' Hoplites train in 117 frames beside him and 226 without
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2572 (Claude Sonnet 5.5, `--effort medium`; run871, one take on click-free lane 1, 1,501 frames). **Closed at 2100 of
+2,100** (`word == hi − 1`, the widening's window 600..2101): `golden::chapter_seventy_six_holds_to_the_golden_word` pins 2100,
+`chapter_seventy_six_s_word_frame_is_widened_whole` holds the 13 standing rows of chapter sixty-eight and five new ones
+(below). **No sim code moved**: `train_time@006508c0:103–107`, built by item 2491 (AI §225) on the peace pair's AI Airbase, is
+now held on a human.
+
+**The first question — can the golden start field a President with the AI off? Yes.** `Build::finished`'s Senate tail trains the
+government's patriot (`senate_gov_hero`); Democracy (626) is the one that gives The President (`THEPRESIDENT`, TypeIndex 355, the
+type 0x163 `president_near_building` tests). A first staging queued Democracy directly and the walk refused it
+(`skipped {("@queueup", "no named object is a live unit...")}`): a second-tier government needs one of the first tier
+(`docs/TECH.md`, "Governments pair and tier"). So **Republic (624) first**, then Democracy: `age who=0 3` (600), resources (601),
+a Senate `0/2007` at (14, 74) (602), a Barracks `0/2008` at (22, 74) (604), Republic queued at 610 (400 frames; The Senator `0/9`
+born on 1011), Democracy queued at 1030 (700 frames; the Senator `set_type`s to The President on 1731), Hoplites (132) at the
+Barracks on **620** and on **1750**. The walk (`RON_STAGE=ch45:chapter76:2100`) is on this tree before the capture, and the
+control is in the same run.
+
+**What run871 held.** The whole record agrees both directions for all 1,500 blocks (1,767,936 record rows, 330,000 leader rows):
+the first batch (620 → born 847, **226 frames**, no President) and the second (1750 → born 1868, **117 frames**, The President `0/9`
+standing about 1,500 units from the Barracks) are the original's to the frame, with the births' draws. The `Faster(100)`
+tail is the whole difference (`226 / 2 = 113`, plus the queue's own frames). **Mutation**: the arm's `if` made `false`
+(`tools/mutate.py`): the word parts at **1868**, the second batch's birth (exit 101); restored.
+
+**What parts, and it is not the arm.** Five rows beside the 13 standing ones, all one field: **who=0's `resource_cap` for food,
+timber, wealth, metal and oil is ours 1120, theirs 1920 on 1013** — two frames after The Senator's birth (the Republic's
+finish) — and the original's stays at 1920 to the record's end. The Republic term of `calc_resource_caps`
+(`economy.rs`, `REPUBLIC_COMMERCE_BONUS` 50) is built and diff-backed on an AI's Republic, where it adds 50 %; here the step is
++800 on a base of 1120, which is no 50 % of it. Parked 2573 with its value diff; the cap is read by no draw, so no word moves
+and the five rows stand in `WANT_CH76`.
+
+**Census rows reached.** `ObjectData::train_time@006508c0`'s `has_general` block for a **human** trainer on a ground unit
+(diff-backed before only for a Strategic Bomber at an AI Airbase), `Leader::set_government`/`Build::finished`'s `set_type`
+arm into The President, and `HeroesData::find_hero@0073a1b0`'s building arm for a Barracks; the count is the commander's pin.
+
+**What is not established.** The reach's edge: the President stood well inside it (the radius is `get_radius × 0xc0` less the
+footprint, `docs/AI.md` §132); a walk that places him just beyond it needs a unit-move console verb. The President's own
+walk into and out of reach is the peace pair's (parked 2526). The arm's order against the national block (a second multiplier
+on a unit the President is near) is held for none of Hoplites' tail. The held-head and queue arms are unchanged.
 
 ## 96. Reserved for the next item on the rules track
 
@@ -12546,6 +12579,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 97. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 98. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 99. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 100. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 101. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

@@ -3768,6 +3768,12 @@ arm in one read; 2491 read the same counters by hand for the President's. Candid
 <lo-hi> <who>`, with the dump's CRLF and the `BEGIN BUILDQUEUE` sub-block under each `BUILDDATA` handled. Two
 reaches; the third graduates it.
 
+(2599) **`timeout 3600000` in a capture wait reads as a command, and macOS has none** (2572's "for the Loop" line,
+filed at its merge). `CLAUDE.md`'s "with a `timeout` past the capture's length (3600000)" means the Bash tool's
+argument; 2572 prefixed `waitrun.sh` with `timeout`, which is not installed here, so the wait exited at once and
+reported "completed" with run871 still capturing. Candidate: the clause names the tool argument ("the Bash tool's
+`timeout: 3600000`"), and `waitrun.sh` refuses to start under a non-existent wrapper. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
@@ -3813,6 +3819,9 @@ ten of ten; `mix --gate` runs gated steps on `== 0` only (parked 2568) and `--ga
 first; three new rows and five regenerated; `--regen` drops a flag the original generation did not have, so a regen
 with a new flag needs the files removed first; `Constants` and `Dock` want a record token and a store (parked 2584,
 2586; booked in 2588).
+**2588** (fifty-fourth reach, filed at its merge): built `mix` `rec` tokens and `mix --store`, tests failing first;
+ten of ten; a cdecl empty body needs a dummy `obj --cdecl --ptrarg 0:4`, since `void` has no `--cdecl`; `Types` and
+`TerrainList` want an `obj` table loop and a linked-list walk (parked 2585, 2589; booked in 2593).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5800,13 +5809,15 @@ reach the parser. Put it after the function.
 (2570) **The five `get_name` ports check calls, not `eax`** (2567): `mix` ignores the result, so the returned out-pointer
 (`[ebp+8]`) is held by the emulator's `-> r` column and not asserted. A `mix --ret-arg` would assert it.
 
-## Parked by the next landing, slot DL — reserved
+## Parked by item 2572, 2026-10-15 — chapter seventy-six, the President's train arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2573) **A human's Republic raises every capped good's `resource_cap` by 800, not 50 %** (2572): run871 (`ch76`, Republic
+researched at a Senate on 1010, The Senator born 1011): who=0's `leader:resource_cap` for food, timber, wealth, metal and
+oil is ours 1120, theirs **1920 on 1013** and stays 1920 to the record's end (`grep -c "resource_cap 1920"` 6,522 rows). The
+tree's `republic` term (`economy.rs` ~915, `REPUBLIC_COMMERCE_BONUS` 50, diff-backed on East Indies' British AI on 15782 as
+×150/100) would give 1680. Candidate: the age (`age who=0 3` ran on 600, before the Republic) or the base, not the
+bonus; check `calc_resource_caps@006ce900` at age 3 with and without the Republic. Names no word (no draw reads the cap),
+so it parks; its five rows stand in `golden::WANT_CH76`.
 
 ## Parked by item 2554, 2026-10-15 — the helicopter's edge-to-edge search
 

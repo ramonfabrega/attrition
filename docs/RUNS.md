@@ -17188,3 +17188,14 @@ STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10 --tracer-def
 `ObjectData::has_general`, `HeroesData::find_hero` and `HeroData::get_radius`: the President's arm, `33000 × 100 /
 200`. Read by `cities_tests::the_president_near_a_trainer_halves_a_trained_unit_s_time`'s premise and run861's
 4860 block; no test reads the packet. runs 866 and 867 unused.
+
+## run871 — chapter seventy-six: the President's train arm on a human (2026-10-15, item 2572, `att-2572`)
+
+`docs/GOLDEN.md` §95. **What the disk could not answer**: run865's packet held the arm on an AI Airbase only (one Strategic Bomber);
+no capture trains a unit beside a human's President, and none holds the same trainer's batch with and without him. The recipe
+is `tools/gamelog/golden/chapter76.cmd`'s header (`--map 14 --end-frame 2100 --log-window 600 2100`, the chapter-seventy-five
+`--detail` flags). Pool lane 1, `success`, `settings_restored`, 1,501 frames, kept in `~/ron-golden/ch76/map-14/`
+(`gamelog.txt` 430 MB). Minutes waited on another lane: none. **What it holds**: Hoplites at the Barracks `0/2008`, queued 620
+and born 847 (226 frames), queued 1750 and born 1868 (117 frames) with The President `0/9` (TypeIndex 355) born 1731 from
+Democracy — whole record agrees, 2100 of 2,100.
+
