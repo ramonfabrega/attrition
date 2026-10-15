@@ -5549,13 +5549,30 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CV — reserved
+## Parked by item 2481, 2026-10-15 — the sweep's seventy-seventh batch: three, not ten
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2482) **Only three `CommandManager` issuers are `--cmd-gate`'s shape; the rest of 2472's list is not** (names no
+score). Listings read for `movb`: `_launch_patrol` (0xb/25), `_trade` (0x11/21, `a1>=0,a2>=0`) and `_guard`
+(0x1f/13) are group-first with only the command byte a byte store — landed. `_treaty`, `_declare`, `_accept`,
+`_reject`, `_clear_all`, `_clear_tributes`, `_tribute` carry an SEH frame and a feedback-log arm on a failed
+check (String/MessageWin calls); `_rename_city` writes a name through a string copy; `_hotkey` writes floats
+(`movss`) on a branch of `a2`; `_leader_option` builds a `BitMask` and reads `console->who`; `_cannon_time`,
+`_player_speed`, `_chat_set` read `game->info.player[console->play]` / `leaders.list[who]` into the command.
+Each wants a window (`--cell-win`) and a log-arm stub the generator has no word for. One reach.
+
+(2483) **`--cmd-byte CMD[:SIZE]` built** (Loop 2003's forty-fourth reach; test made to fail first): `issue_recall`'s
+hand `--port` equals the generated one byte for byte (checked in a script, not regenerated: a `--regen` redraw
+also moves the emulator script's template). Four sweeps (`_recall`, `_scramble`, `_stop_spell`, `_alarm`) carry
+that hand line and may regenerate from it whenever one is next touched. One reach.
+
+(2484) **`PathFinder::find_wpath/find_tpath/find_upath/find_upath_restore` (0x688e10..)** are four forwarders
+through a three-level pointer chain (`objects` cell 0xc0618c -> `+0x14 + 0x1c*p2` -> `[p3*4]` -> words 0x10, 0x14
+xored with 0x63637) into an overloaded finder; the last two also write `pathfinder+128/132` from
+`repaths[p2]^2`. `--place` takes a static offset and the second level's is `0x1c*p2`; a `--place`-per-player
+table of four, or a `--chain` token, is the missing word. Names no score. One reach.
+
+(2485) **`GroupOut::issue_guard` / `issue_follow`** carry a `SoundGlobal::play`-shaped six-argument call
+(0x981f90) behind `gamec+0x821 & 8`, not `--cmd-gate`'s one-argument sound. Names no score.
 
 ## Parked by the next landing, slot CW — reserved
 
