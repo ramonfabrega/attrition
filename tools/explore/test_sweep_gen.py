@@ -1157,6 +1157,33 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.cmd_byte_expand('', own=1)
 
+    def test_a_cmd_seh_is_a_leader_checked_command_with_a_feedback_log_arm(self):
+        # Item 2486 (parked 2482, Loop 2003): `issue_treaty` and its six
+        # siblings build a command from the leader a `LeaderOut` names and
+        # argument 1, add it when both leaders' flag bytes are set, and
+        # else -- `ignore_always` clear -- run an SEH-framed feedback arm
+        # (two `String`s, `Error::report`, two closes). `--cmd-seh
+        # CMD:SIZE:FIELD,..:C:IGN:WIDE:NARROW:DW:DN`: the arm's stubs are
+        # recorded, the command bytes compared as `--cmd-gate` does.
+        x = sweep_gen.cmd_seh_expand('0x25:13:w,a1,a2:0x1c:0xee12d4:0xaf7008:0xaf7178:0x34:0x20', own=3)
+        self.assertEqual(x['stub'], ['0x940a70:0', '0x94bae0:2', '0xa1edd0:1', '0xa1d660:1', '0xa2e550:6', '0xa1cf40:0'])
+        self.assertEqual(x['answers'], ['0:0,1'])
+        self.assertEqual(x['answer_range'], ['4:0:0'])
+        self.assertEqual(x['record'], ['0', '1', '2', '3', '4', '5'])
+        self.assertEqual(x['deref'], ['1:0:13'])
+        self.assertEqual(x['ptrarg'], ['0:0x10'])
+        self.assertEqual(x['wbias'][0], 'p0+8:0..3')
+        self.assertEqual(x['sparse'], ['@0xe3a390:0x6eec:4:0,4'])
+        self.assertEqual(x['argrange'], ['1:0:3'])
+        self.assertIn('p1+0:1,1,1,3,0', x['wbias'])
+        self.assertIn('13161384,sp-0x34,sp-0x34,0,0,c0+0x8,1', x['port'])
+        self.assertIn('log.push("15269768,sp-0x30,13".into());', x['port'])
+        self.assertIn('sp-0x48,11497480', x['port'])
+        self.assertIn('sp-0x34,11497848', x['port'])
+        self.assertIn('format!("25{}{}{}", le(who), le(a[1]), le(a[2]))', x['port'])
+        with self.assertRaises(ValueError):
+            sweep_gen.cmd_seh_expand('0x25:13:q:0x1c:0xee12d4:0xaf7008:0xaf7178:0x34:0x20', own=3)
+
     def test_an_ecx_derived_from_this_prints_as_this_plus_its_offset(self):
         # Item 2464 (parked 2455, Loop 2003): `this + 0x28` handed to a callee
         # lies past the `m` window (WIN bytes) and printed as the absolute

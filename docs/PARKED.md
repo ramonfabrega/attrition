@@ -5578,13 +5578,25 @@ table of four, or a `--chain` token, is the missing word. Names no score. One re
 (2485) **`GroupOut::issue_guard` / `issue_follow`** carry a `SoundGlobal::play`-shaped six-argument call
 (0x981f90) behind `gamec+0x821 & 8`, not `--cmd-gate`'s one-argument sound. Names no score.
 
-## Parked by the next landing, slot CW — reserved
+## Parked by item 2486, 2026-10-15 — the SEH/log-arm word and the treaty family
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2487) **`CommandManager::issue_cannon_time@00941260` read and not built** (names no score). Its success arm is a
+two-byte command behind `gamec+0x820 & 4` and a leaders word, but both failed arms build a feedback message: a
+`String::operator=` on the global `msg` (0xa1eeb0), a by-value `String` copy on the stack (0xa1d590, `ecx` the
+moving `esp`) and a `MessageWin::add_feedback` (0x7e9ab0) handed twenty stale stack bytes, `-1` and `&RED`. Word it
+lacks: a feedback arm whose log call takes the `String` by value (`--cmd-seh`'s arm is two constructed locals and an
+`Error::report`). One reach.
+
+(2488) **`--cmd-seh CMD:SIZE:FIELD,..:C:IGN:WIDE:NARROW:DW:DN` built** (Loop 2003's forty-fifth reach; test made to
+fail first): the seven treaty-family issuers (`treaty`, `declare`, `accept`, `reject`, `clear_all`,
+`clear_tributes`, `tribute`) generated, each broken once on its command byte and the report record. Held by hand:
+`Error::report`'s two stale stack words print `0` (the emulator's zeroed stack), and the answer is held at 0 — a
+nonzero answer is the `int3` the port cannot model. One reach.
+
+(2489) **Two hand `--port`s on existing flags: `issue_chat_set` and `issue_player_speed`** (names no score): the
+console cell 0xc06210 (`who` at +0x298 / +0x2a0, `--wbias 0..3`) and the leaders table (`--sparse @0xe3a390`,
+a slice at stride 4) or the `gamec` row (`0x8c * who`, zeroed after the copy) behind it. No generator word; a
+`--cmd-console` shape would be a four-line expansion if a third reads the console's `who` into a command.
 
 ## Parked by the next landing, slot CX — reserved
 
