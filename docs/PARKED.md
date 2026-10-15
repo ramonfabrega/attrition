@@ -3770,6 +3770,12 @@ it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell
 hand. Either the stream's close is lost on the click-free lane's `!quit`, or the footer is written by
 `frame_snapshot.py`'s restore, which this lane does not run.
 
+(2512) **A window of frames' draws is one `report.py` call per frame** (2460's "for the Loop" line, filed at its
+merge). `tools/trace/report.py <log> draws <frame>` re-reads the whole 277 MB trace each call, about a minute, and
+a loop over 200 frames ran out the two-minute foreground limit. Candidate: a `draws <lo>-<hi> [site filter]` form
+reading the trace once, or `when` printing the site and the seed, with a test made to fail first on a two-frame
+window. One reach.
+
 (2506) **Two sweeps pin the emulator's stack residue in a port constant** (2495's "for the Loop" line, filed at
 its merge; parked 2488, 2497). `issue_cannon_time`'s port holds a `static` flag for a success arm's return address
 left on the stack between rows, and the treaty family's `Error::report` prints the zeroed stack's `0,0`: each port
@@ -5621,13 +5627,7 @@ a slice at stride 4) or the `gamec` row (`0x8c * who`, zeroed after the copy) be
 
 ## Parked by item 2460, 2026-10-15 — the peace pair's word 4859
 
-(2491) **The peace pair's word 4859: ours 14 draws, theirs 15, index 6** (2460; ours `Guy::set_anim+0x97a <
-Guy::inc_time+0x271`, theirs `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`, a birth), inside
-run861 (blocks 4853..5109, 1432 keys). On 4860, `1/50` is unlinked (theirs' newborn), `1/2005`'s `queued` is ours 2
-against 1, and `num_units[255]` (`ABRAMDES`) is ours 8 against 9. 106 keys stand from 4853: the human's `control` is
-ours 14 against theirs 0, and `1/2005`'s `queue[0].cost` is ours 240 against 224. run855 has the human's `active`
-part on 4679 (ours 14, theirs 13), where its units' `death:extra` begins. That is the first value parting on disk
-after the war. AI §224.
+Its row left at 2460's merge: 2491 is booked in the queue as the AI word's item.
 
 ## Parked by item 2495, 2026-10-15 — `--chain` and the by-value `String` arm
 

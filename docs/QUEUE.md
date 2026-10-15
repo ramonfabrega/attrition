@@ -12,17 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-15, **the thirty-fifth tranche, nineteen landings** since `dccda9f0`; three
-lanes on DECISIONS 71, amended mid-tranche by Ramon: two kill rules tripped, the roster stands, the gap is a brief row.*
+*2026-10-15, **the thirty-fifth tranche, twenty landings** since `dccda9f0`, **draining**: no lane is refilled; the
+live ones land and are booked, then `steer` is cleared into the thirty-fifth pass. Three lanes on DECISIONS 71.*
 
-- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 4544 in four landings
-  (2384 diplomacy's peace arm, 2388 the pre-war gate, 2412 the silo's queue, 2423 the no-rush timer), the open word. Chapters 71–73
+- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 4859 in five landings
+  (2384 diplomacy's peace arm, 2388 the pre-war gate, 2412 the silo's queue, 2423 the no-rush timer, 2460 the
+  peace's end), the open word. Chapters 71–73
   closed (2436 The Despot, 2448 The Monarch, 2474 a human's Supercollider); 69 and 70 built or surveyed, not closed. Census 894 → 984. Battery unmeasured since 576/6566/2974.
 - **Red booking gates, each fixed by a second commit**: 2384's 144 `aggression` pins (re-pinned); 2400's
   `find_free` captain term broke the third pair's floor 17379 → 14461 (bisected, the call reverted, parked 2441).
-- **Lanes: three** (DECISIONS 71, amended: two kill rules tripped, the roster stands, the gap fixed — Loop 2415): 2460 (AI §224,
-  CX, runs 861–863), 2500 (GOLDEN §91, CZ, run 864), 2507 (DA) live. Next 2512, run 865, AI §225, GOLDEN §92, park DB.
-- **Fable backlog: 26 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449, 2459, 2461, 2479, 2480, 2505, 2506).
+- **Lanes: three** (DECISIONS 71, amended: two kill rules tripped, the roster stands, the gap fixed — Loop 2415): 2500 (GOLDEN §91,
+  CZ, run 864), 2507 (DA) live, draining. Queued, not spawned: 2491 (AI §225, DB, runs 865–867). Next 2513, run
+  868, AI §226, GOLDEN §92, park DC.
+- **Fable backlog: 27 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405–2410, 2415, 2418, 2419, 2420, 2422, 2435, 2442, 2449, 2459, 2461, 2479, 2480, 2505, 2506, 2512).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -30,34 +32,32 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Peace pair: EastIndiesLakotaPeace w4544 of 6,822
+Peace pair: EastIndiesLakotaPeace w4859 of 6,822
 Census: simulation backed 984 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-fifth tranche (commander): read this file, spawn three lanes on DECISIONS 71's roster — 2384
-on `--model 'claude-opus-5-5[1m]' --effort medium`, 2389 and 2395 on `--model 'claude-sonnet-5-5[1m]' --effort
-medium`, 2400 after 2395 on the same lane — arm `tools/lanewait.py` on every live lane, and run the chain; re-pin
-`census::SIMULATION_BACKED` yourself in each sweep booking (Loop 2367); file every journal's "for the Loop" line at
-its merge; at twenty landings write the handoff and clear `steer` into the thirty-fifth pass.**
+**Opener: the thirty-fifth steering pass (Fable): measure the thirty-fifth tranche (`git log dccda9f0..`), ratify
+the marked rows, rule the Loop's items, score the roster lane by lane for Ramon, rewrite this file, and clear
+`commander` into the thirty-sixth tranche with the queue's opener.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2460 the AI word's (Opus), 2500 the rules track's and 2507
+2491 the AI word's (Opus), 2500 the rules track's and 2507
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2460. **The peace pair's word 4544: ours 145 draws, theirs 201, index
-    0** (2423; ours `Leader::diplomacy+0x1168`, theirs
-    `GameDaemon::calc_market+0x54`), 44 frames past the peace's end at
-    4500. Inside run855 (blocks 4538..4794, 977 keys; block 4545 empty).
-    On 4538 `leader:diplos` is ours 1 against theirs 0 both ways, and the
-    ICBM `1/50` holds an order in theirs only; the cause lies in
-    3552..4538, which no dump holds: `RON_DEBUG_LEADER` over 4499..4538
-    names the frame the `diplos` were written. Runs 861–863. AI §224.
+2491. **The peace pair's word 4859: ours 14 draws, theirs 15, index
+    6** (2460; ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    `Guy::init_real+0x52`, a birth: `1/50` from `1/2005`). Inside run861
+    (blocks 4853..5109, 1432 keys). On 4860 `1/2005`'s `queued` is ours
+    2 against 1; 106 keys stand from 4853 (the human's `control` 14 / 0,
+    `queue[0].cost` 240 / 224); run855's human `active` parts on 4679,
+    the first value parting on disk after the war — 2460's lead, not a
+    build order. Runs 865–867. AI §225.
 
 2500. **Chapter seventy-four: `hurry` and a unit's `finish` on a
     human** (DECISIONS 56 §3; 2474 closed seventy-three at 760, a
