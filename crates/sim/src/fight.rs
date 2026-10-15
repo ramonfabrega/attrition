@@ -4513,9 +4513,16 @@ impl Sim {
                         self.units[s].hold_frames += 1;
                     }
                 }
-                // SEAM: the damage a crash deals where it has come down
-                // (`docs/AI.md` §228) is not built.
-                self.projectiles.remove(i);
+                // **And it strikes there** (item 2677, `docs/AI.md` §230):
+                // `inc_time`'s tail restricts the point and runs
+                // `Ammo::do_damage` — `init_crash` cleared flag `0x10` —
+                // and only then closes, as an ordinary round does below.
+                let p = self.projectiles[i];
+                self.land(p, frame);
+                if let Some(k) = self.projectiles.iter().position(|q| q.slot == p.slot) {
+                    self.projectiles.remove(k);
+                }
+                i = self.projectiles.partition_point(|q| q.slot <= p.slot);
                 continue;
             }
             if p.cur_time < p.total_time {

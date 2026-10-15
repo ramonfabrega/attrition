@@ -46,6 +46,11 @@ pub const SITE_HELI_EXIT_Y: &str = "Unit::do_spec_anim+0x18f";
 /// target (`docs/ORDERS.md` §34.3). Chapter seventeen's word 805.
 pub const SITE_STRAFE_BOMB: &str = "Unit::do_strafe+0x9d0";
 
+/// **A crash round's splash**, in tiles: `Ammo::init_crash@0067b800`
+/// writes `+0x30 = 2` (`docs/AI.md` §230; run405's two crash rounds print
+/// `splash_area 2`).
+pub const CRASH_SPLASH_AREA: i32 = 2;
+
 /// `ObjectData::is(0x130)` — the Bomber line, which holds its
 /// `cruising_alt` at 0x640 and throws no redraw.
 pub(crate) const BOMBER: crate::tech::TypeId = 0x130;
@@ -3817,9 +3822,10 @@ impl Sim {
     /// [`Sim::hold_frames_tick`]), and it takes a slot in the ammo pool.
     /// [`Sim::crash_round`] is `init_crash` itself.
     ///
-    /// SEAM: the damage a crash deals where it comes down (its
-    /// `splash_area` is the pool slot's leftover) is not built; run404's two
-    /// land with no draw from the game's stream.
+    /// **It strikes where it comes down** (item 2677, `docs/AI.md` §230):
+    /// `init_crash` sets `splash_area` (`+0x30`) to 2 and clears flag
+    /// `0x10`, so `Ammo::inc_time`'s tail runs `Ammo::do_damage` on it —
+    /// the splash arm, no target, the dead plane as the shooter.
     pub(crate) fn crashes(&mut self, u: usize) -> bool {
         let Some(t) = self.units[u].ty else {
             return false;
@@ -3903,7 +3909,9 @@ impl Sim {
             total_time,
             accuracy: 0,
             angle,
-            splash_area: 0,
+            // `init_crash` writes `+0x30 = 2` (`docs/AI.md` §230): a crash
+            // is a two-tile splash where it comes down.
+            splash_area: CRASH_SPLASH_AREA,
             num_guys: 1,
             air: false,
             rolling: false,
