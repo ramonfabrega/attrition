@@ -845,10 +845,7 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
                                    stubs=['0x402000:0'], record_order=True)
-        with self.assertRaises(ValueError):
-            sweep_gen.generate_obj('Foo::bar@00401000', item=2341, win=0x20, bias=[], own=0,
-                                   sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1'],
-                                   record=['0@0'], record_order=True)
+        # (Item 2421: an order may now carry a row split; see the next test.)
 
     def test_a_stub_may_answer_through_its_pointer_argument(self):
         # Item 2325 (2309's Loop line, Loop 2003): `ObjectData::in_a_building`
@@ -1257,6 +1254,52 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
                                    stubs=['0x401100:0'], seq=['0:3:'])
+
+    def test_a_record_order_may_carry_a_row_split(self):
+        # Item 2421 (parked 2404, Loop 2003): `PathFinder::calc_road_cost`
+        # logs in stub order and walks a sparse table; `--record-order` with
+        # `--record IDX@S` writes each call of the split stub headed by its
+        # row (`s1:r2+0x4,..`), `ecx` outside the table as a plain token.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2421, win=0x20, bias=[], own=0,
+            sparse=['@0xe6e000:0x6eec:3:0,4'], stubs=['0x402000:1', '0x403000:0'],
+            record=['0@0', '1'], record_order=True, ret='none', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('RECORDORDER = True', script)
+        ns = {'STACK_BASE': 0x7FF0_0000, 'STACK_SIZE': 0x10_0000}
+        for fn in ('def token(', 'def in_order('):
+            body = script[script.index(fn):]
+            exec(body[:body.index('\n\n\ndef ')], ns)
+        spans = [('m', 0x1000, 0x20)]
+        names = ['a', 'b']
+        calls = [('a', 0x100 + 2 * 0x10 + 4, (5,)), ('b', 0x1000, ()), ('a', 0x77, (1,))]
+        self.assertEqual(ns['in_order'](calls, [0, 1], names, spans, {0: (0x100, 0x10, 3)}),
+                         ['s0:r2+0x4,5', 's1:m+0x0', 's0:119,1'])
+        # A split names a --sparse table that exists.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2421, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:1'], record=['0@0'], record_order=True)
+
+    def test_a_seq_may_draw_from_a_bounded_range(self):
+        # Item 2421 (parked 2404): `--seq` answers from a list or a random
+        # word, so an index-like answer (a `Random::get` stub) runs out of
+        # its table. `--answer-range IDX:LO:HI` beside `--seq IDX:N` bounds
+        # every one of the N answers.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2421, win=0x20, bias=[], own=0,
+            stubs=['0x401100:0'], seq=['0:5'], answer_range=['0:2:6'], port='0')
+        compile(script, str(sp), 'exec')
+        ns = {}
+        start = script.index('def seq_values')
+        exec(script[start:script.index('\n\n\n', start)], ns)
+        import random
+        rng = random.Random(3)
+        for _ in range(300):
+            vals = ns['seq_values'](rng, 5, None, None, lambda r: 999, (2, 6))
+            self.assertTrue(all(2 <= v <= 6 for v in vals), vals)
+        # Without a range the unbounded draw stays.
+        self.assertIn(999, [v for _ in range(50) for v in ns['seq_values'](rng, 5, None, None, lambda r: 999)])
+        self.assertIn('ANSRANGE = [(0, 2, 6)]', script)
 
     def test_an_obj_from_the_command_line_holds_its_answer(self):
         # Item 2090: `--ret` defaulted to fwd's `none` for every shape, so an

@@ -1230,13 +1230,25 @@ def by_row(calls, base, stride, n, spans):
     return ["/".join(col) or "-" for col in cols]
 
 
-def in_order(calls, record, names, spans):
+def in_order(calls, record, names, spans, split=None):
     """`--record-order` (item 2341): the recorded stubs' calls as one token
     a call, in the order they were made, each headed by the callee's stub
     index (`s3:m+0x0`), so two argument-less callees on one `ecx` are
-    ordered (`add_think_order`, parked 2318); `-` when none was called."""
+    ordered (`add_think_order`, parked 2318); `-` when none was called.
+    `split` maps a stub index to its `--sparse` table `(base, stride, n)`
+    (`--record IDX@S`, item 2421): that stub's `ecx` is written `rK+OFF`,
+    K the table row, when it lies inside the table."""
     want = {{names[idx]: idx for idx in record}}
-    return [f"s{{want[n]}}:" + ",".join(token(v, spans) for v in [e] + list(a))
+    split = split or {{}}
+
+    def head(i, e):
+        if i in split:
+            base, stride, n = split[i]
+            k = ((e & 0xFFFFFFFF) - base) // stride
+            if 0 <= k < n:
+                return f"r{{k}}+{{(e & 0xFFFFFFFF) - base - k * stride:#x}}"
+        return token(e, spans)
+    return [f"s{{want[n]}}:" + ",".join([head(want[n], e)] + [token(v, spans) for v in a])
             for n, e, a in calls if n in want] or ["-"]
 
 
@@ -1287,12 +1299,14 @@ def wdraw(rng, vals):
     return rng.randint(lo, hi)
 
 
-def seq_values(rng, n, pick, terms, rand32):
+def seq_values(rng, n, pick, terms, rand32, span=None):
     """`--seq IDX:N[:T,T..]`'s answers a row: N drawn from the stub's
     `--answers` list (90%) or a random word, the last from the terminators
     T when given — answered past N, so a loop that runs while the stub
     answers inside a set ends (`Unit::repath`, item 2368, parked 2342)."""
-    vals = [rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng) for _ in range(n)]
+    # `span` (`--answer-range` beside `--seq`, item 2421): every answer in LO..HI.
+    vals = [rng.randint(*span) if span else rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng)
+            for _ in range(n)]
     if terms:
         vals[-1] = rng.choice(terms)
     return vals
@@ -1532,7 +1546,8 @@ def main(argv):
         # 2368) — printed after the answers (item 2217).
         seqs = []
         for idx, n, terms in SEQ:
-            vals = seq_values(rng, n, dict(ANSWERS).get(idx), terms, rand32)
+            vals = seq_values(rng, n, dict(ANSWERS).get(idx), terms, rand32,
+                              {{i: (lo, hi) for i, lo, hi in ANSRANGE}}.get(idx))
             seqs.append(vals)
             turn = [0]
 
@@ -1593,7 +1608,8 @@ def main(argv):
                                           for k, (a_, b) in enumerate(wins)]
             cols = []
             if RECORDORDER:
-                cols = in_order([(n_, e_, a_) for n_, e_, a_, _ in h.calls], RECORD, names, spans)
+                cols = in_order([(n_, e_, a_) for n_, e_, a_, _ in h.calls], RECORD, names, spans,
+                                {{i: tables[t] for i, t in ROWSPLIT.items()}})
             for idx in ([] if RECORDORDER else RECORD):
                 calls = [(ecx_, list(args_)) for name_, ecx_, args_, _ in h.calls if name_ == names[idx]]
                 if RECORDEDX:
@@ -1858,8 +1874,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         pderef.append((idx, k, n))
     if record_edx and (not precord or prowsplit or record_order):
         raise ValueError('--record-edx adds `edx` to the --record stubs\' calls; a row split or an order keeps its own columns')
-    if record_order and (not precord or prowsplit):
-        raise ValueError('--record-order orders the --record stubs\' calls; a row split keeps its own columns')
+    if record_order and not precord:
+        raise ValueError('--record-order orders the --record stubs\' calls')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
         raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
     peq = []
