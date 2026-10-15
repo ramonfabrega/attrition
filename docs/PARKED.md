@@ -5617,13 +5617,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CY — reserved
+## Parked by item 2495, 2026-10-15 — `--chain` and the by-value `String` arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2496) **`--chain CELL:OFF:STRIDE:P:I:N:SIZE` built** (Loop 2003's forty-sixth reach; `test_a_chain_is_a_three_level_pointer_walk_through_a_global_cell` written first and failing): a global cell, a row word picked by argument P, a table word picked by argument I, a SIZE-byte record, expanded to a `--cell-win`, two `--place`s and two `--argrange`s. It lays its cell after the `--cell-win`s on the line and the table and record after the places, so a line that gives `--cell-win` or `--place` of its own counts them first. `PathFinder::find_wpath/_tpath/_upath/_upath_restore` generated from it, each broken once. Held by hand: `find_upath_restore` writes `pathfinder+0x84 = 1` before its call and `0` after, and no stub reads a global mid-call, so the `1` is unobserved (a port that drops it passes); a stub option that records a word of the image at the call would close it. One reach.
+
+(2497) **`issue_cannon_time` (0x941260) built** (parked 2487 closed) with `--cell-win`s, `--sparse @`, four recorded stubs and a `--deref`, no new token: the by-value `String` is a stub (`0xa1d590`, `ecx` the slot's depth `sp-0x38`) and `add_feedback` a seven-argument stub. Held by hand: the slot's five stale words print `0` until a success row has run, then word 4 prints `0x941345`, the success arm's `call` return address left on the stack the emulator keeps between rows; the port holds that in a `static` flag. It pins the harness's stack residue (as parked 2488 does `Error::report`'s), not the original's. A `--zero-stack` per row would make the port's constant an observation. One reach.
+
+(2498) **`Herds/Tribes/Lands::walk_data` stay skipped** (2481's journal: `Array::walk_data(…; walker, extraout_ECX)` takes the slot-4 callee's leftover `ecx`); `Tribes`'s listing shows `leal 4(%edi), %ecx` for the callee and `pushl %ecx` after the call, so a `mix` step that names the stale `ecx` is the word they lack. No score. One reach.
+
+(2499) **`Unit/Object/SubObject::must_walk` built by `obj`** (no new token): the walker's slot 0 is a stub (`--vtat p0+0`), its `ecx` the walker and its two arguments `sp-0x1` and the caller's frame top (2147483392), the byte it is handed read by `--deref 0:0:1`; on `input != 0` the byte is the high byte of the walker pointer argument (`movb` is skipped, `0xb(%ebp)` is the argument slot's own top byte), which the port reads from `a[0] >> 24`. Nothing parked: recorded so a reader who wonders why the flag is `0x20` knows it is the window's address.
 
 ## Parked by the next landing, slot CZ — reserved
 
