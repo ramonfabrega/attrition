@@ -648,7 +648,7 @@ def main(argv):
     vt = h.vtable({{0: ("walk", 2, 7), 4: ("walk4", 1, 9)}})
     for i in range(140):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
-        if GATE_THIS or GATE_AT is not None or BIT_AT is not None or LEN_AT is not None or STORE is not None or (ELEMS and ELEMS[0] == 'list'):
+        if GATE_THIS or GATE_AT is not None or BIT_AT is not None or LEN_AT is not None or STORE is not None or (ELEMS and ELEMS[0] in ('list', 'count')):
             this = h.alloc(0x100)  # a written object: the gate is the short at [this]
         g = rng.randrange(0x1000, 0x7FFF0000) & ~3
         if VBASE is not None:
@@ -711,6 +711,15 @@ def main(argv):
             for k, e in enumerate(elems):
                 h.w32(tbl + lo + k * stp, e)
             el = "".join(f" {{e}}" for e in elems)
+        elif ELEMS and ELEMS[0] == 'count':
+            # a count at this+CNT and a record array at [this+PTR], STRIDE bytes a record (parked 2689)
+            _, cnt, ptr, stp = ELEMS
+            count = rng.choice([0, 1, 2, 3, 5, -1])
+            base = h.alloc(max(count, 1) * stp + 0x10)
+            h.w32(this + cnt, count)
+            h.w32(this + ptr, base)
+            elems = [base + k * stp for k in range(max(count, 0))]
+            el = f" {{count}}" + "".join(f" {{e}}" for e in elems)
         elif ELEMS:
             # a linked list: the head at this+HEAD, each node's next at +NEXT, ended by null
             _, head, nxt = ELEMS
@@ -820,6 +829,8 @@ def _mix_expr(tok):
         return 'g'  # the word the global cell's record holds at +0x10
     if tok.startswith('g+'):
         return f'g + {int(tok[2:], 0):#x}'
+    if tok == 'count':
+        return 'count'  # the queue count read from `this` (parked 2689)
     if tok == 'elem':
         return 'e'  # the element of an `each/` step (parked 2585, 2589)
     if tok.startswith('elem+'):
@@ -846,16 +857,23 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
             ev = ('table', int(ep[1], 0), int(ep[2], 0), int(ep[3], 0))
         elif ep[0] == 'list' and len(ep) == 3:
             ev = ('list', int(ep[1], 0), int(ep[2], 0))
+        elif ep[0] == 'count' and len(ep) == 4:
+            ev = ('count', int(ep[1], 0), int(ep[2], 0), int(ep[3], 0))
         else:
-            raise ValueError(f'--elems is table:LO:HI:STEP or list:HEAD:NEXT, not {elems!r}')
+            raise ValueError(f'--elems is table:LO:HI:STEP, list:HEAD:NEXT or count:CNT:PTR:STRIDE, not {elems!r}')
     for st in steps:
         each = st.startswith('each/')
         st = st.removeprefix('each/')
         if each and ev is None:
             raise ValueError('an `each/` step needs --elems')
         conds = []
-        while st.startswith(('gated/', 'bit/')):
-            if st.startswith('bit/'):
+        while st.startswith(('gated/', 'bit/', 'zero/', 'nz/')):
+            if st.startswith(('zero/', 'nz/')):
+                if ev is None or ev[0] != 'count':
+                    raise ValueError('a `zero/` or `nz/` step needs --elems count:')
+                conds.append('count == 0' if st.startswith('zero/') else 'count != 0')
+                st = st.split('/', 1)[1]
+            elif st.startswith('bit/'):
                 if not bit_at:
                     raise ValueError('a `bit/` step needs --bit-at')
                 conds.append('bit != 0')
@@ -908,7 +926,11 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
                       f'        assert_eq!(after, want_after, "{short} — the store, row `{{line}}`");\n')
     elems_src = ''
     ecol = 4 + int(bool(stale_col)) + int(vbase2 is not None) + int(bool(bit_at))
-    if ev:
+    if ev and ev[0] == 'count':
+        elems_src = (f'        let count = a[{ecol}];\n        let _ = count;\n'
+                     f'        let elems = &a[{ecol + 1}..];\n'
+                     f'        assert_eq!(elems.len() as i64, count.max(0), "{short} — one element a counted record, row `{{line}}`");\n')
+    elif ev:
         elems_src = f'        let elems = &a[{ecol}..];\n'
         if ev[0] == 'table':
             elems_src += f'        assert_eq!(elems.len(), {(ev[2] - ev[1] + ev[3] - 1) // ev[3]}, "{short} — one element a table word, row `{{line}}`");\n'
