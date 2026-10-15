@@ -1540,25 +1540,34 @@ impl Sim {
             tikal: has(crate::tech::wonder::TIKAL),
             temple_level: self.temple_hp_level(bd.owner),
         };
-        let full = build::full_hits(
-            &self.tuning,
-            &self.build_types,
+        let ct = self.construct_time_of(b);
+        let bd = &self.buildings[b];
+        let mut q = build::PortAsk {
+            types: &self.build_types,
             ty,
-            bd.active,
+            active: bd.active,
             city_level,
             has_temple,
-            &m,
-        );
-        let ct = self.construct_time_of(b);
-        let bd = &mut self.buildings[b];
-        bd.hits = full;
-        bd.construct_hits = if bd.active {
-            full
-        } else {
-            build::site_hits(full, bd.job_counter, ct, self.build_types[ty].wonder)
+            m: &m,
+            construct_time: ct as u32,
+            ejects: false,
         };
+        let me = build::HitsSelf {
+            city_flag: build::is_city(&self.build_types, ty),
+            job_counter: bd.job_counter as u32,
+            taken: bd.damage,
+            // `+0x28` is not carried: a building ejects whenever it holds a
+            // garrison (`eject_pending` below).
+            slot28_nonneg: true,
+            param: 0,
+        };
+        let out = build::update_hits_steps(&build::HitsConsts::of(&self.tuning), &me, &mut q);
+        let ejects = q.ejects;
+        let bd = &mut self.buildings[b];
+        bd.hits = out.full;
+        bd.construct_hits = out.current;
         bd.sync_health();
-        if bd.construct_hits <= bd.damage && !bd.garrison.is_empty() {
+        if ejects && !bd.garrison.is_empty() {
             bd.eject_pending = true;
         }
     }

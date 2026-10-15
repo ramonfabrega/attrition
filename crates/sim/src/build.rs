@@ -617,6 +617,283 @@ pub struct HitsMods {
     pub temple_level: i32,
 }
 
+/// The constants `Wall::update_hits@0063f0d0` reads, by their `Constants`
+/// offsets: `+0x58c`, `+0x5fc`, `+0x154`, `+0x4f8`, `+0x4c8`, `+0x5cc`,
+/// `+0x4a0`, `+0xc48`, `+0xb08` and the temple table at `+0x158`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct HitsConsts {
+    pub maya: i32,
+    pub roman: i32,
+    pub upgrade: i32,
+    pub taj: i32,
+    pub red_fort: i32,
+    pub nubian: i32,
+    pub tikal: i32,
+    pub senate: i32,
+    /// `ctw_missionaries_bonus`, read only under the Conquer the World
+    /// semaphore, which this port does not carry (0 here).
+    pub ctw: i32,
+    pub temple: [i32; 5],
+}
+
+impl HitsConsts {
+    pub fn of(t: &Tuning) -> Self {
+        Self {
+            maya: t.maya_building_hp,
+            roman: t.roman_fort_hp,
+            upgrade: t.building_hp_upgrade,
+            taj: t.taj_building_hp,
+            red_fort: t.red_fort_fort_hps,
+            nubian: t.nubian_hit_points,
+            tikal: t.tikal_temple_hp,
+            senate: t.senate_hp_bonus,
+            ctw: 0,
+            temple: t.temple_upgrade_hp,
+        }
+    }
+}
+
+/// What `Wall::update_hits` asks of the world, one method a call it makes, in
+/// the order it makes them (`Wall::update_hits@0063f0d0`; item 2400's sweep
+/// holds the order, the arguments and the short circuits).
+pub(crate) trait HitsAsk {
+    /// `Object::update_hits(param)` — the type's hits.
+    fn base_hits(&mut self, param: i32) -> i32;
+    /// `LeaderData::has_tribe_bonus(n)`.
+    fn tribe(&mut self, n: i32) -> bool;
+    /// The type record's slot `+0xfc`: is a fort.
+    fn is_fort(&mut self) -> bool;
+    /// `is(id, 0)`: slot `+0xb8` of the object, or — it being the base
+    /// `ObjectData::is` — slot `+0x60` of the type record.
+    fn is_line(&mut self, id: i32) -> bool;
+    /// The object's slot `+0x2c`.
+    fn wonder_flag(&mut self) -> bool;
+    /// `LeaderData::get_building_hp_upgrade`.
+    fn hp_upgrade(&mut self) -> i32;
+    /// `LeaderData::has_wonder(id)`.
+    fn has_wonder(&mut self, id: i32) -> bool;
+    /// The object's slot `+0x20`.
+    fn slot20(&mut self) -> bool;
+    /// The object's slot `+0x4c`, `WallData::is_active` (`flags & 4`).
+    fn is_active(&mut self) -> bool;
+    /// The owning city's index (`+0x72` of the objects table's slot `+0xac`
+    /// answer) is not negative.
+    fn city_index_ok(&mut self) -> bool;
+    /// `CityData::get_level` of that city.
+    fn city_level(&mut self) -> i32;
+    /// That city's flag `+4 & 0x80`: a Temple.
+    fn city_has_temple(&mut self) -> bool;
+    /// `LeaderData::has_preq(TEMPLEHP4)`.
+    fn has_preq_temple4(&mut self) -> bool;
+    /// `LeaderData::get_temple_hp`.
+    fn temple_hp(&mut self) -> i32;
+    /// `game->semaphore.ptr[2] & 2`: the Conquer the World mode.
+    fn ctw_semaphore(&mut self) -> bool;
+    /// `LeaderData::has_conquest_bonus(0x20)`.
+    fn has_conquest_missionaries(&mut self) -> bool;
+    /// The object's slot `+0x18c` called with 0: `construct_time(0)`.
+    fn construct_time(&mut self) -> u32;
+    /// `ObjectData::can_carry(AIR)`.
+    fn can_carry_air(&mut self) -> bool;
+    /// `Object::eject_contents(1, -1, 0, 1)`.
+    fn eject_contents(&mut self);
+}
+
+/// `Wall::update_hits`'s own fields: `+8 & 0x20` (a city), `+0x48` the job
+/// counter (read unsigned), `+0x24` the damage taken, `+0x28 >= 0`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(crate) struct HitsSelf {
+    pub city_flag: bool,
+    pub job_counter: u32,
+    pub taken: i32,
+    pub slot28_nonneg: bool,
+    pub param: i32,
+}
+
+/// What `Wall::update_hits` wrote and answered: `+0x20`, `+0x54`, the answer.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(crate) struct HitsOut {
+    pub full: i32,
+    pub current: i32,
+    pub ret: i32,
+}
+
+/// `(k + 100) * h / 100` in the original's 32-bit signed arithmetic.
+const fn hits_pct(k: i32, h: i32) -> i32 {
+    k.wrapping_add(100).wrapping_mul(h) / 100
+}
+
+/// `Wall::update_hits@0063f0d0` through `+0x20`: the type's hits through the
+/// multipliers — `docs/CITIES.md` §3.4.
+pub(crate) fn full_hits_steps(c: &HitsConsts, me: &HitsSelf, q: &mut impl HitsAsk) -> i32 {
+    let mut h = q.base_hits(me.param);
+    if q.tribe(1) {
+        h = hits_pct(c.maya, h);
+    }
+    if q.tribe(6) && (q.is_fort() || q.is_line(0x1b7)) && !q.wonder_flag() {
+        h = hits_pct(c.roman, h);
+    }
+    let up = q.hp_upgrade();
+    h = c.upgrade.wrapping_mul(up).wrapping_add(100).wrapping_mul(h) / 100;
+    if q.has_wonder(0x21b) {
+        h = hits_pct(c.taj, h);
+    }
+    if q.has_wonder(0x216) && q.is_fort() && !q.wonder_flag() {
+        h = hits_pct(c.red_fort, h);
+    }
+    if q.is_line(0x1b4) && q.tribe(4) && c.nubian != 0 {
+        h = hits_pct(c.nubian, h);
+    }
+    if !me.city_flag {
+        // Not a city: the Senate's bonus, once it is built and standing in a
+        // city, and not a fort, tower or lookout.
+        if q.slot20()
+            && q.is_active()
+            && q.city_index_ok()
+            && !q.is_fort()
+            && !q.is_line(0x1b7)
+            && !q.is_line(0x209)
+        {
+            let level = q.city_level();
+            h = h.wrapping_add(c.senate.wrapping_mul(level.wrapping_sub(1)).wrapping_mul(h) / 100);
+        }
+    } else if q.is_active() && q.city_index_ok() && q.city_has_temple() {
+        let k = if q.has_preq_temple4() {
+            4
+        } else {
+            q.temple_hp()
+        };
+        let mut bonus = c.temple[(k.clamp(1, 5) - 1) as usize];
+        if q.has_wonder(0x214) {
+            bonus = c
+                .tikal
+                .wrapping_add(100)
+                .wrapping_mul(bonus)
+                .wrapping_add(99)
+                / 100;
+        }
+        h = hits_pct(bonus, h);
+        if q.ctw_semaphore() && q.has_conquest_missionaries() {
+            h = hits_pct(c.ctw, h);
+        }
+    }
+    h
+}
+
+/// The whole of `Wall::update_hits@0063f0d0`: [`full_hits_steps`], the site's
+/// growing figure ([`site_hits`], while not active), and the ejection of a
+/// garrison a hit has outgrown.
+pub(crate) fn update_hits_steps(c: &HitsConsts, me: &HitsSelf, q: &mut impl HitsAsk) -> HitsOut {
+    let full = full_hits_steps(c, me, q);
+    let mut cur = full;
+    if !q.is_active() {
+        let ct = q.construct_time();
+        if me.job_counter < ct {
+            cur = site_hits(full, me.job_counter as i32, ct as i32, q.wonder_flag());
+        }
+    }
+    if me.taken >= cur && me.slot28_nonneg && !q.can_carry_air() {
+        q.eject_contents();
+    }
+    HitsOut {
+        full,
+        current: cur,
+        ret: if me.param != 0 { full } else { cur },
+    }
+}
+
+/// [`HitsAsk`] on the port's records: the building type, the nation's
+/// layers as [`HitsMods`], and what the city says.
+pub(crate) struct PortAsk<'a> {
+    pub types: &'a [BuildType],
+    pub ty: usize,
+    pub active: bool,
+    pub city_level: i32,
+    pub has_temple: bool,
+    pub m: &'a HitsMods,
+    pub construct_time: u32,
+    /// Set by `eject_contents`.
+    pub ejects: bool,
+}
+
+impl HitsAsk for PortAsk<'_> {
+    fn base_hits(&mut self, _param: i32) -> i32 {
+        self.types[self.ty].hits
+    }
+    fn tribe(&mut self, n: i32) -> bool {
+        match n {
+            1 => self.m.maya,
+            6 => self.m.romans,
+            4 => self.m.nubians,
+            _ => false,
+        }
+    }
+    fn is_fort(&mut self) -> bool {
+        is_fort(self.types, self.ty)
+    }
+    fn is_line(&mut self, id: i32) -> bool {
+        match id {
+            // The Tower and the Lookout are read as lines, `is(0x1b7, 0)` and
+            // `is(0x209, 0)`: the Keep, the Stockade and the Bunker are
+            // Towers here (item 1275). The Market is read by its ident.
+            0x1b7 => is_tower(self.types, self.ty),
+            0x209 => is(self.types, self.ty, Ident::Lookout),
+            0x1b4 => self.types[self.ty].ident == Ident::Market,
+            _ => false,
+        }
+    }
+    fn wonder_flag(&mut self) -> bool {
+        self.types[self.ty].wonder
+    }
+    fn hp_upgrade(&mut self) -> i32 {
+        self.m.hp_upgrade.clamp(0, 3)
+    }
+    fn has_wonder(&mut self, id: i32) -> bool {
+        match id {
+            0x21b => self.m.taj_mahal,
+            0x216 => self.m.red_fort,
+            0x214 => self.m.tikal,
+            _ => false,
+        }
+    }
+    fn slot20(&mut self) -> bool {
+        true
+    }
+    fn is_active(&mut self) -> bool {
+        self.active
+    }
+    fn city_index_ok(&mut self) -> bool {
+        self.city_level > 0
+    }
+    fn city_level(&mut self) -> i32 {
+        self.city_level
+    }
+    fn city_has_temple(&mut self) -> bool {
+        self.has_temple && self.m.temple_level > 0
+    }
+    fn has_preq_temple4(&mut self) -> bool {
+        self.m.temple_level == 4
+    }
+    fn temple_hp(&mut self) -> i32 {
+        self.m.temple_level
+    }
+    fn ctw_semaphore(&mut self) -> bool {
+        false
+    }
+    fn has_conquest_missionaries(&mut self) -> bool {
+        false
+    }
+    fn construct_time(&mut self) -> u32 {
+        self.construct_time
+    }
+    fn can_carry_air(&mut self) -> bool {
+        false
+    }
+    fn eject_contents(&mut self) {
+        self.ejects = true;
+    }
+}
+
 /// `Wall::update_hits`'s full-health figure, `myhits`: the type's hits
 /// through the multipliers. `city_level` is the level of the city the
 /// building stands in (0 outside one); `has_temple` whether that city has a
@@ -630,69 +907,39 @@ pub fn full_hits(
     has_temple: bool,
     m: &HitsMods,
 ) -> i32 {
-    let b = &types[ty];
-    let mut h = b.hits;
-    if m.maya {
-        h = (t.maya_building_hp + 100) * h / 100;
-    }
-    // The Tower and the Lookout are read as lines, `is(0x1b7, 0)` and
-    // `is(0x209, 0)` (`Wall::update_hits@0063f0d0`): the Keep, the Stockade
-    // and the Bunker are Towers here (item 1275).
-    if m.romans && (is_fort(types, ty) || is_tower(types, ty)) && !b.wonder {
-        h = (t.roman_fort_hp + 100) * h / 100;
-    }
-    h = (t.building_hp_upgrade * m.hp_upgrade.clamp(0, 3) + 100) * h / 100;
-    if m.taj_mahal {
-        h = (t.taj_building_hp + 100) * h / 100;
-    }
-    if m.red_fort && is_fort(types, ty) && !b.wonder {
-        h = (t.red_fort_fort_hps + 100) * h / 100;
-    }
-    if b.ident == Ident::Market && m.nubians && t.nubian_hit_points != 0 {
-        h = (t.nubian_hit_points + 100) * h / 100;
-    }
-    if !is_city(types, ty) {
-        if active
-            && city_level > 0
-            && !is_fort(types, ty)
-            && !is_tower(types, ty)
-            && !is(types, ty, Ident::Lookout)
-        {
-            h += t.senate_hp_bonus * (city_level - 1) * h / 100;
-        }
-    } else if active && city_level > 0 && has_temple && m.temple_level > 0 {
-        let k = m.temple_level.clamp(1, 5) as usize;
-        let mut bonus = t.temple_upgrade_hp[k - 1];
-        if m.tikal {
-            bonus = ((t.tikal_temple_hp + 100) * bonus + 99) / 100;
-        }
-        h = (bonus + 100) * h / 100;
-    }
-    h
+    let mut q = PortAsk {
+        types,
+        ty,
+        active,
+        city_level,
+        has_temple,
+        m,
+        construct_time: 0,
+        ejects: false,
+    };
+    let me = HitsSelf {
+        city_flag: is_city(types, ty),
+        ..HitsSelf::default()
+    };
+    full_hits_steps(&HitsConsts::of(t), &me, &mut q)
 }
 
 /// The construction scaling of `update_hits`: a site's current full-health
 /// figure, `construct_hits`. Linear from ~0 to full; a wonder from half.
 pub const fn site_hits(full: i32, job_counter: i32, construct_time: i32, wonder: bool) -> i32 {
-    if job_counter >= construct_time {
+    // The original compares and shifts them unsigned (`jae`, `shr`).
+    let (jc, ct) = (job_counter as u32, construct_time as u32);
+    if jc >= ct {
         return full;
     }
-    let a = if (job_counter >> 5) < 1 {
-        1
-    } else {
-        job_counter >> 5
-    };
-    let b = if (construct_time >> 5) < 1 {
-        1
-    } else {
-        construct_time >> 5
-    };
+    let a = if (jc >> 5) < 1 { 1 } else { (jc >> 5) as i32 };
+    let b = if (ct >> 5) < 1 { 1 } else { (ct >> 5) as i32 };
     if !wonder {
-        let h = a * full / b;
+        let h = a.wrapping_mul(full) / b;
         if h < 1 { 1 } else { h }
     } else {
-        let grown = (full / 2) * a / b;
-        (full + 1) / 2 + if grown < 1 { 1 } else { grown }
+        let grown = (full / 2).wrapping_mul(a) / b;
+        full.wrapping_add(1) / 2 + if grown < 1 { 1 } else { grown }
     }
 }
 
