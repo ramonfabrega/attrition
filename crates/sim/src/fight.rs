@@ -2868,8 +2868,12 @@ impl Sim {
         if self.unit_types[ty].price.pop == 0 {
             return;
         }
+        // Gaia's animals carry population in some rows and hold no muster
+        // here: this crate keeps one per player slot.
         let who = u.owner;
-        self.track_unit_type(who, ty, -1);
+        if (who as usize) < self.muster.len() && (who as usize) < self.ai.len() {
+            self.track_unit_type(who, ty, -1);
+        }
     }
 
     /// **`Unit::close@0060ee50`'s squad relink** (`docs/COMBAT.md` §47.2),
