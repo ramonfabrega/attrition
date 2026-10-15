@@ -108,6 +108,7 @@ mod type_spell;
 mod type_tech;
 mod type_unit;
 mod type_wonder;
+mod unit_air_alt_speed;
 mod unit_can_transport;
 mod unit_control_cost;
 mod unit_data_hits;
