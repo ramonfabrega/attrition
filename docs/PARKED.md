@@ -5625,13 +5625,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CZ — reserved
+## Parked by item 2500, 2026-10-15 — `finish` on a human's Library queue
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2501) **A unit's `finish` (the Aircraft Carrier arm) is unbuilt and unstaged** (item 2500, `docs/GOLDEN.md` §91).
+`Console::hurry_action@007c3810`'s unit arm is `is(0x15f, 0)` (`AIRCRAFTCARRIER`, the type's line) with the unit's
+`short +0xa0 != 0`, then `+0x64 += 10000`. This crate holds no carrier production counter (`lib.rs` names the carrier
+arm unread) and a carrier needs a Harbor, water and an age past the golden start's map-14 reach in 3 lines. Names no score.
+
+(2502) **Parked 2475's wording was inverted.** The listing (`7c3a33`: `cmpl $0, this; movl $10000, %edx; cmovne
+train_time, %edx`) has the **console's** form (`this != 0`: `run_cmd` case `0x51`, `finish` and `hurry [n]`) add the
+head's *train time*, and only the keymap's (`exec_keymap` case `0x45`, `cheat_keys`, `this == 0`) add 10000; no
+interpreter command reaches the 10000 form. Built accordingly. Names no score.
+
+(2503) **The held-head arm** (`get_next_non_unit` when the head's counter already equals its train time) is built and
+unit-tested only through the research-behind-head path; no capture stages a population-capped head. Names no score.
 
 ## Parked by the next landing, slot DA — reserved
 

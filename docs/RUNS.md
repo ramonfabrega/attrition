@@ -16992,3 +16992,20 @@ zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch73
 One take, click-free pool lane 1, `success: true`, 168 s, 761 frames. **What it holds**:
 `golden::chapter_seventy_three_holds_to_the_golden_word` (**760**, the trace's end, closed) and
 `chapter_seventy_three_s_word_frame_is_widened_whole` (600..761, thirteen standing rows).
+
+## run864 — chapter seventy-four: `finish` on a human's Library queue (2026-10-14, item 2500, `att-2500`)
+
+`docs/GOLDEN.md` §91, `tools/gamelog/golden/chapter74.cmd` (six staged lines). **What the disk could not answer**: no
+capture had `Console::hurry_action`'s queue arm; run860's `finish` met a wonder, whose hold zeroes the research time.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch74 \
+    --map 14 --end-frame 760 --log-window 600 760 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter74.cmd
+```
+
+One take, click-free pool lane 1, `success: true`, 181 s, 761 frames. **What it holds**:
+`golden::chapter_seventy_four_holds_to_the_golden_word` (**760**, the trace's end, closed) and
+`chapter_seventy_four_s_word_frame_is_widened_whole` (600..761, thirteen standing rows).
