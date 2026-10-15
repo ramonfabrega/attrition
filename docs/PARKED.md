@@ -3830,6 +3830,10 @@ printing the `a[]` slot its values land in are the candidates; the shapes none h
 failing first; seven of ten; a lane's breaks run one by one at about a minute each when its tree is touched under
 them (`mutate.py` refuses a changed tree), so generator edits are batched before the breaks; `BuildQueue::walk_data`
 and the `[0xc0ab84 + 28*who]` record table are the next builds (parked 2689, 2676, 2690; booked in 2698).
+**2698** (sixty-third reach, filed at its merge): built `mix --elems count:` with `zero/`/`nz/` steps, a test
+failing first; one of ten, `BuildQueue::walk_data`; the record-table shape is an image count word and a
+variable-length pointer array no `obj` flag draws, a bounded link chase and a callee that writes `this` (parked
+2699-2702; booked in 2709).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
