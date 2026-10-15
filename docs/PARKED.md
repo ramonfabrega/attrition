@@ -3739,7 +3739,10 @@ for: it cost one run rather than an item.
 Loop" line, filed at its merge). 2519 was reserved run 868 alone, found three readings that one control capture
 (the chapter's script without its `finish`) would part, and parked it for want of a run number; the control became
 the next item and a whole lane session. Candidate: `brief.py --kind chapter` reserves two runs, the second for the
-control, or the frame names the control as the same item's work. One reach.
+control, or the frame names the control as the same item's work. **Second reach, 2530's "for the Loop" line,
+filed at its merge**: the control — the chapter's script less its `finish` line — has no recipe tool; the lane cut
+it with `grep -v` into its job tmp, and `docs/RUNS.md` records run869's command with a placeholder for the file. A
+`golden_capture.sh --without <frame>` would make the control one line and its record whole. Two reaches.
 
 (2552) **The sweep generator guesses a float's return register from the decompile** (2537's "for the Loop" line,
 filed at its merge). The export prints `in_ST0` and a bare `return` for a float the listing leaves in `xmm0` (parked
@@ -5699,21 +5702,24 @@ table or a pointed buffer (`Army::walk_data` is parked 2536). Not read for this 
 (2540) **`--xmm IDX:RANGE` not built** (2535): nothing in this batch needed a float argument; `air_alt_speed` stays the
 hand script.
 
-## Parked by the next landing, slot DF — reserved
+## Parked by item 2530, 2026-10-15 — chapter seventy-five's control: the amount is the open reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+2543 is booked in the queue, at 2530's merge. Its "for the Loop" line is Loop 2542's second reach.
 
-## Parked by the next landing, slot DG — reserved
+## Parked by item 2547, 2026-10-15 — the eighty-third sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2548) **`Player::walk_data` (0x6ee2d0) and `CommandPackage::walk_data` (0x94b740) want a gate that is not the short at `this`** (2547).
+`Player` gates on `testb $1,[this+0x30]` and `CommandPackage` walks `(this+0x12, this+0x12+sext([this+0x10]))`; `mix --gate-this`
+reads the short at `[this]` only. A `--gate-this OFF:MASK` and a length-from-memory step are the shape. One reach.
+
+(2549) **`CliffMiningData::walk_data` (0x8a6d70) hands its second callee a leftover `ecx`** (2547): `pushl %ecx` after the hooked
+`Array<WCoordData>::walk_data` (0x478990), the same stale-ecx as 2498 but on a `call:` step, which `stale` serves only for slot 4.
+`Constants::walk_data`, `Types::walk_data` (a table through `GameAccess::techtypes`) and `TerrainList::walk_data` (a linked
+list) need a record through a global cell: `obj --cell-win`. Not built.
+
+(2550) **Seven more order `walk_data`s share `--vbase`'s shape with a third walk** (2547): `GarrisonOrder` 0x484690, `GuardOrder`
+0x486550, `FollowOrder` 0x486b50 (its first walk is before the `d` read), `GatherOrder`, `TradeOrder`, `CastOrder`, `PatrolOrder`:
+listings not read. Ready for `mix --vbase` as `AttackOrder` (0x47f260) was.
 
 ## Parked by item 2526, 2026-10-15 — the Space Program's air arm
 
