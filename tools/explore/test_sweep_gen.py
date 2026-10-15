@@ -446,6 +446,24 @@ class Shapes(unittest.TestCase):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
                                        stubs=['0x402000:1', '0x403000:1'], stub_write=[bad])
 
+    def test_a_callee_may_be_run_not_hooked(self):
+        # Item 2731 (parked 2701, 2712, 2720): `Group::equals_group` calls
+        # `normalize`, which rewrites `this` before the loop reads it; a hooked
+        # `normalize` writes nothing. `--stub run:ADDR:NARGS` leaves the callee
+        # unhooked, so the original's own code runs, its callees hooked by the
+        # `--stub` lines beside it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2731, win=0x40, bias=[], own=0, ret='none',
+            stubs=['run:0x402000:0', '0x403000:0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("STUBS = [('run', 4202496, 0), ('call', 4206592, 0)]", script)
+        self.assertIn('run{a:x}', script)
+        self.assertIn('callee 0x00402000 (0 args) run, not hooked', test)
+        # only a `call` stub is handed to the Harness to hook
+        self.assertIn('if k == "call"', script)
+        with self.assertRaises(ValueError):
+            sweep_gen._stub('run:0x402000')
+
     def test_a_tame_register_draws_no_wild_rows(self):
         # Item 2346 (parked 2338): `add_type_bucket2` increments a byte of a
         # table at `ecx`, and `--ecx-int` drew a random word one row in ten,

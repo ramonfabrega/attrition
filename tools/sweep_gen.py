@@ -1600,7 +1600,7 @@ def main(argv):
     uc = h.m.uc
     slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
     vt = h.vtable(slots) if slots else None
-    names = [f"slot{{a:x}}" if k == "slot" else f"iat{{a:x}}" if k == "iat" else f"{{a:x}}" for k, a, _ in STUBS]
+    names = [f"slot{{a:x}}" if k == "slot" else f"iat{{a:x}}" if k == "iat" else f"run{{a:x}}" if k == "run" else f"{{a:x}}" for k, a, _ in STUBS]
     # `--stub iat:VA:N`: a stub whose address is laid in an import's IAT cell,
     # which the emulator resolves to nothing, so `call [VA]` lands on it
     # (item 2336: `timeGetTime`, parked 2327).
@@ -2000,9 +2000,14 @@ def _stub(spec):
         # An import called through its IAT cell (`call [VA]`): a stub's
         # address laid in the cell (item 2336, parked 2327).
         return ('iat', int(parts[1], 0), int(parts[2]))
+    if parts[0] == 'run' and len(parts) == 3:
+        # A callee run as the original's own code, not hooked (item 2731, parked
+        # 2701, 2712, 2720): its writes to `this` are the original's, and its own
+        # callees are hooked beside it by `--stub`.
+        return ('run', int(parts[1], 0), int(parts[2]))
     if len(parts) == 2:
         return ('call', int(parts[0], 0), int(parts[1]))
-    raise ValueError(f'a stub is slot:OFF:NARGS, iat:VA:NARGS or ADDR:NARGS, not {spec!r}')
+    raise ValueError(f'a stub is slot:OFF:NARGS, iat:VA:NARGS, run:ADDR:NARGS or ADDR:NARGS, not {spec!r}')
 
 
 def _place(spec):
@@ -2324,6 +2329,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            for idx, size in pptr]
         + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot'
            else f'the import cell 0x{a:08x} holds a stub ({n} args)' if k == 'iat'
+           else f'callee 0x{a:08x} ({n} args) run, not hooked' if k == 'run'
            else f'callee 0x{a:08x} ({n} args) stubbed' for k, a, n in pstubs]
         + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed'
            + (', null a third of the rows)' if k in pnull else ')') for k, (w, o, e, n) in enumerate(pplaces)]

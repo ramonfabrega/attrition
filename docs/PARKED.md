@@ -6059,13 +6059,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EM — reserved
+## Parked by item 2731, 2026-10-15 — the callee-run shape, built on `equals_group`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2733) **`Group::normalize`'s survivor arm for `field_0x4 >= 0` is undrawn.** `equals_group`'s sweep now runs `normalize` as the original's own code (`--stub run:0x711540:0`), with `find_role` and `find_leader` hooked (`find_leader` answers `< 0`, so `UnitData::speed` is never reached). Entries survive only when the object's flag bit is set and `field_0x4 < 0`; the `field_0x4 >= 0` arm calls the object's vtable slots `+0x18`/`+0x20` and the units table, which no draw builds. The `find_role` write to `+0x34` is hooked away (the window keeps its drawn word).
+
+(2734) **Slot ED's shapes (parked 2684, 2721) are unchecked and unbuilt**: `PathFinder::kill_lists` 0x687ae0, `Armies::find_useful_army` 0x6f2fe0, `Build::add_gatherer`/`remove_gatherer`. This landing built the callee-run shape only (the commander's correction: `equals_group` and `has_damage` were already backed by 2709, so the census did not move).
 
 ## Parked by the next landing, slot EN — reserved
 
