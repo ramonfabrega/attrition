@@ -835,6 +835,7 @@ mod terrain_map_river_point;
 mod terrain_map_start_river;
 mod terrain_out_get_name;
 mod terrain_vis_get_verts_per_bucket;
+mod terrain_vis_invalidate_fog_wcoord;
 mod terrain_vis_invalidate_wcoord;
 mod terrain_vis_set_base_source_pool;
 mod terrain_vis_set_extra_source_pool;
