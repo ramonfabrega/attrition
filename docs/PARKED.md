@@ -5645,13 +5645,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DA — reserved
+## Parked by item 2507, 2026-10-15 — the sweep's eightieth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2508) **`--regen` with no window flags redraws a windowless `obj`** (2507's "for the Loop" line; names no score).
+`sweep_gen.py obj … --regen --item N --port P` on `issue_toggle_pause` dropped the kept line's `--cell-win` and
+`--wbias`, so the regenerated test named `c` and `log` it no longer had; the sweep was deleted and generated again
+from the whole line. Candidate: `--regen` merges the kept line's flags under the new ones; a test made to fail first.
+One reach.
+
+(2509) **A pathfinder flag set around a callee is observed only after the call** (2507: `find_wpath_army`,
+`find_road_restore`). `pathfinder+0x70` / `+0x84` is 1 while the hooked callee runs and 0 on return; the sweep's
+`--at` window shows the after-state (0) and a stub logs `ecx` and arguments, never memory, so "set to 1 before
+the call" is not tested. Candidate: a stub's `--deref`-like read of an absolute cell at call time. One reach.
+
+(2510) **Unrecorded stubs log nothing, and the row prints `-` for an empty log** (2507: the `TurnControl::issue_speed_*`
+and `issue_toggle_pause` ports). A reader of a generated port cannot tell a gate-set row from a check-answered-0 row
+from the log alone; the stub answers are the first numbers of `a` (`a[1]` the check). Recorded here so the next
+port does not re-derive it; no change owed.
 
 ## Parked by the next landing, slot DB — reserved
 
