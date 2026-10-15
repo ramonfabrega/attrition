@@ -20969,12 +20969,67 @@ frame: first a target of 33750, then 16875. That is the next item's lead, not it
 **Diff-backed**: the arm's value, on run865's packet (16500) and on run861's 4860 block. **Reading only**: its
 place in the tail before the national arms. No capture has a second multiplier on a unit the President is near.
 
-## 226. Reserved for the next item on the AI track
+## 226. The Space Program halves an aircraft's time, and the peace pair's word moves 5036 → 5135 (2026-10-15, item 2526)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The draws on 5036.** Ours spends 164 and theirs 168, parting at index 152 (run847's trace). Theirs spends three
+`Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd` (seeds `422a2ef0`, `fcb6f58f`, `f28765a2`):
+three births. `births.py` on run861 names them on block 5037:
+- `1/209`, an ICBM (`TypeIndex` 316, air), at the Missile Silo `1/2030` (520);
+- `1/210` and `1/211`, Strategic Bombers (305, air), at the Airbases `1/2032` and `1/2037` (447).
+
+**Theirs' four air trainers all change on 5036.** Their head counters on block 5036, then 5037:
+
+| trainer | head | 5036 | 5037 | `queued` |
+|---|---|---|---|---|
+| `1/2030` | ICBM | 37900 | 0 | 1 → 0 |
+| `1/2032` | bomber | 33400 | 0 | 1 → 0 |
+| `1/2037` | bomber | 32600 | 0 | 1 → 0 |
+| `1/2005` | bomber | 17600 | 16875 | 1 → 1 |
+
+A whole bomber with nine owned is 33750 (§225's formula), so `1/2032` finishing at 33500 and `1/2037` at 32700 are
+below their targets. Who=1's `LEADERDATA` (`leader.py`, 5036 against 5037) shows why: `wonder_mark` goes 1 → 2,
+`num_buildings[128]` appears, and `num_queued[542]` (`SPACEPROGRAM`) leaves. The Space Program `1/2042` finishes on
+5036: `construct_hits` goes 25998 → 44200 and `ever_seen_completed` 0 → 2, at a `job_counter` of 631488 + 328
+against `840000 × 100 / 133`, the President's building clause (item 1503). **Ours finishes it on the same frame**:
+no `1/2042` key parts in run861.
+
+**The arm** is `train_time@006508c0:316`–`340`, after the government arms. By the type's domain (`UnitTypeData
++0x218`), `has_wonder` decides one percentage:
+- land (0): the Statue of Liberty, `LIBERTY_UNITS` (ships as 0 %);
+- sea (1): the Porcelain Tower, `PORCELAIN_SHIPS` (50 %);
+- air (2): the Space Program, `SPACE_AIR_SPEED` (100 %).
+
+Each gives `t × 100 / (k + 100)`. Halved, the three heads are past their targets and finish. `1/2005`'s halved target is
+16875. Its counter, 17600, is clamped to that by the advance's `min(counter + accel, target)` (`production::advance`), and
+its handover is refused, on both sides; which refusal (population or the Airbase's pad) is not read here. From 5037 its target is `(27000 + 11 × 750) / 2` = 17625 with eleven owned, where it holds from 5045.
+
+**Built.** `Tuning::liberty_units`, `porcelain_ships` and `space_air_speed` (`ron_slots` 382 → 385);
+`tech::wonder::PORCELAIN_TOWER`. In `Sim::train_tail`, after the Socialism arm, the domain's wonder pushes
+`Faster(k)` when held ([`Sim::wonders_held`]). It replaces that SEAM's first half. The Kremlin's and
+`INSTANT_UNIT_BONUS`'s return stays a SEAM. Test: `cities_tests::a_held_space_program_halves_an_aircraft_s_time` (an
+aircraft halves; a land unit and a ship keep their time). Two mutations, through `tools/mutate.py` (the arm's `if` made
+`false`), both exit 101:
+- the arm dropped fails the test;
+- the arm dropped fails `lakota_pair_first_parting`, whose word goes back to 5036.
+
+**Value diff and score.** On block 5037 `1/2030`, `1/2032` and `1/2037` read `queued` 0 / 0, and `1/209`–`1/211`
+are born on both sides. Who=1's `num_units[255]` is 11 / 11, `num_queued[255]` 1 / 1, and `active` and `control`
+agree. `1/2005`'s head `job_counter` is 16875 / 16875; it was ours 17700 against 16875. run861 goes **378 → 126**.
+Past 5037 only two `form` rows part (`1/208` on 5033, `1/213` on 5055); the 106 keys from 4853 stand. The walk reads
+1575 heights at inexact corners (1441 before).
+
+**The word moves 5036 → 5135**, count and sequence both. Ours spends 24 draws and theirs 32, parting at index 4.
+Ours spends `Guy::set_anim+0x97a < Unit::do_move+0x11cf`; theirs spends `Unit::find_attack_pos+0xea9 <
+Group::action_attack+0x41a` (seed `f508e42b`), eight in a row. It is past run861's last block (5109), so no dump on
+disk holds it. Its widening is the next item's capture.
+
+**Not established.**
+- The land and sea arms: no capture holds a land unit under a Statue of Liberty with a non-zero `LIBERTY_UNITS`, or a
+  ship under the Porcelain Tower. They are read, built in the same switch, and checked only by the unit test.
+- `get_cost`'s Space Program price arm, `SPACE_AIR_COST`, and its two domain siblings (parked 2553).
+
+**Diff-backed**: the air arm, on run861's 5037 block (three births, four counters). **Reading only**: the arm's
+place after the government arms, and the land and sea branches.
 
 ## 227. Reserved for the next item on the AI track
 

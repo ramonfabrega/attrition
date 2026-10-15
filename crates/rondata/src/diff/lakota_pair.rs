@@ -363,7 +363,7 @@ fn run861_s_word_frame_is_widened_whole() {
     // block 5037 `1/2030`, `1/2032` and `1/2037` read `queued` 0 / 0,
     // `1/209`–`1/211` are born both sides, who=1's `num_units[255]` is
     // 11 / 11 and `1/2005`'s head `job_counter` 16875 / 16875 (clamped to
-    // the halved target, its pad full). Past 5037 only two `form` rows
+    // the halved target, its handover refused). Past 5037 only two `form` rows
     // part (`1/208` on 5033, `1/213` on 5055); the 106 keys from 4853
     // stand.
 }

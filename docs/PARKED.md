@@ -5715,13 +5715,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DH — reserved
+## Parked by item 2526, 2026-10-15 — the Space Program's air arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2553) **`get_cost`'s domain arms are not built** (2526): `TypeData::get_cost@00664090:357`–`377`, by `+0x218`
+— the Angkor Wat on a ship (`ANGKOR_SHIPS`), Aluminum (`+0x6dab & 1` or the conquest twin, `ALUMINUM_AIR_COST`) and
+the Space Program (`SPACE_AIR_COST`, 50 %) on an aircraft. The peace pair's who=1 holds the Space Program from 5036,
+so its next queued aircraft is priced at half in theirs and whole here. run861 holds no air entry queued after 5036
+(no `cost` key parts past 4853), so no score names it yet; the first air `queue[*].cost` row past 5036 in the next
+widening does.
 
 ## Parked by the next landing, slot DI — reserved
 
