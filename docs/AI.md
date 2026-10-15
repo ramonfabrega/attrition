@@ -20811,7 +20811,13 @@ sequence both. Ours spends 145 draws and theirs 201, parting at index 0. Ours sp
 theirs spends `GameDaemon::calc_market+0x54`. The walk now reads 858 heights at corners not known to be the
 original's single (`GROUND_INEXACT`, `lakota_pair_first_parting`), where it read none to 3479.
 
-**The next word, 4544.** It is 44 frames after the peace ends. Ours' extra draw at index 0 is `Leader::diplomacy`.
+**The next word, 4544, widened on run855** (blocks 4538..4794, `run855_s_word_frame_is_widened_whole`, 977 keys).
+The word's block 4545 holds no row, because the state parts before the window. On 4538, who=0 and who=1 hold
+`diplos` 1 for each other in ours and 0 in theirs. The first ICBM `1/50`, inside the silo `1/2018` since 2302,
+holds one order in theirs and none in ours. `1/0` walks a 36-leg path to (15000, 11160) in theirs and idles in
+ours. `1/6` has 7 damage ours and 2 theirs. On 4542, theirs' `1/50` is gone, and the silo's clock runs (0 / 100).
+On 4576, `wars` is 0 ours and 1 theirs. The next item walks the diplomacy back from 4538 toward the peace's end at
+4500, and asks the dump nothing before 4538 (run853 ends at 3552). It is 44 frames after the peace ends. Ours' extra draw at index 0 is `Leader::diplomacy`.
 After it, the market, herd, farm and three `think_bird` sites agree in count. `Animal::think_bird+0x2aa` and
 `+0x2d3` do not: theirs spends 60 of each, ours 30. The `Guy::set_anim+0x97a` rolls are ours 48 against theirs 45.
 

@@ -5462,7 +5462,10 @@ words and edits nothing here; a refill lands when two remain.
 `Leader::diplomacy+0x1168`, theirs `GameDaemon::calc_market+0x54`). It is 44 frames after the peace ends at 4500.
 Ours spends one extra `Leader::diplomacy` draw first. Of the rest, `Animal::think_bird+0x2aa` and `+0x2d3` are
 theirs 60 each against ours 30, and the `Guy::set_anim+0x97a` rolls are ours 48 against theirs 45. The widening
-is run855 (blocks 4538..4794); its first parted fields are in §223.
+is run855 (blocks 4538..4794, 977 keys). Block 4545 holds no row. On 4538 `leader:diplos` is ours 1 against
+theirs 0 both ways, and the ICBM `1/50` holds an order in theirs only. On 4542 theirs' `1/50` is gone. The cause
+is between 3552 and 4538, which no dump holds: `RON_DEBUG_LEADER` over 4499..4538 on ours names the frame the
+`diplos` were written.
 (2461) **run854's packet has no footer** (2423, for the Loop): `golden_capture.sh`'s `RON_STATE_FRAME` packet ends
 where its header's ranges end. `tools/recomp/snapshot.py` raises on the missing 28 bytes, so every reader of
 it (`unitaddr.py`, `step4.py`) refuses a packet whose ranges are whole. The cell read here skipped the check by
