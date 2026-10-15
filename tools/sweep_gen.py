@@ -587,6 +587,8 @@ CALLS = {calls}
 GLOBAL = {glob_cell}
 GATE = {gate_off}
 GATE_THIS = {gate_this}
+GATE_AT = {gate_at}
+LEN_AT = {len_at}
 VBASE = {vbase}
 STALE = {stale}
 
@@ -598,7 +600,7 @@ def main(argv):
     vt = h.vtable({{0: ("walk", 2, 7), 4: ("walk4", 1, 9)}})
     for i in range(140):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
-        if GATE_THIS:
+        if GATE_THIS or GATE_AT is not None or LEN_AT is not None:
             this = h.alloc(0x100)  # a written object: the gate is the short at [this]
         g = rng.randrange(0x1000, 0x7FFF0000) & ~3
         if VBASE is not None:
@@ -617,7 +619,18 @@ def main(argv):
         h.w32(walker, vt)
         if GATE is not None:
             h.w32(walker + GATE, gv)
-        if GATE_THIS:
+        if GATE_AT is not None:
+            # a bit at another offset: the gate column is the masked byte (0 on even rows)
+            off, mask = GATE_AT
+            v = rng.randrange(256)
+            v = v & ~mask & 0xFF if i % 2 == 0 else v | mask
+            h.w8(this + off, v)
+            gv = v & mask
+        elif LEN_AT is not None:
+            # a walk length read from memory: the sign-extended short, the gate column
+            gv = 0 if i % 3 == 0 else rng.choice([-1, 1, rng.randint(-0x8000, 0x7FFF)]) or 1
+            h.w16(this + LEN_AT, gv)
+        elif GATE_THIS:
             gv = gv & 0xFFFF if i % 4 != 3 else 0
             h.w16(this, gv - 0x10000 if gv & 0x8000 else gv)
         if GLOBAL is not None:
@@ -684,12 +697,15 @@ def _mix_expr(tok):
         body, disp = (tok[4:-2], ' + g') if tok.endswith('+d') else (tok[4:], '')
         k = int(body, 0)
         return f'this {"-" if k < 0 else "+"} {abs(k):#x}{disp}'
+    if tok.startswith('this+') and tok.endswith('+len'):
+        # `this+0x12+len`: the sign-extended short read from memory (the gate column)
+        return f'this + {int(tok[5:-4], 0):#x} + gate'
     if tok.startswith('this+'):
         return f'this + {int(tok[5:], 0):#x}'
     return str(int(tok, 0))
 
 
-def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vbase=None):
+def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vbase=None, len_at=None):
     """`steps`: `call:ADDR:NARGS:ECX:ARGS`, `walk:A0:A1` (the walker's slot 0),
     `walk4:OFF` (its slot 4, handed `**glob + 0x10` pointer's word + OFF),
     each optionally prefixed `gated/` — run only when `[walker+gate] == 0`."""
@@ -713,14 +729,17 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
         else:
             raise ValueError(f'a step is call:, walk: or walk4:, not `{st}`')
         push = f'calls.push(vec![{vec}]);'
-        cond = 'gate != 0' if gate_this else 'gate == 0'
+        cond = 'gate != 0' if (gate_this or len_at is not None) else 'gate == 0'
         code.append(('        if ' + cond + ' { ' + push + ' }') if gated else ('        ' + push))
     script = MIX_SCRIPT.format(snake=sn, name=name, va=va, item=item, nsteps=len(steps),
                                glob=', from the global cell' if glob else '',
                                gate=f', the last gated on [walker+{gate:#x}] == 0' if gate is not None else '',
                                calls=repr(calls), glob_cell=hex(glob) if glob else 'None',
                                gate_off=hex(gate) if gate is not None else 'None',
-                               gate_this=bool(gate_this),
+                               gate_this=bool(gate_this) or len_at is not None,
+                               gate_at=(f'({int(gate_this.split(":")[0], 0):#x}, {int(gate_this.split(":")[1], 0):#x})'
+                                        if isinstance(gate_this, str) else 'None'),
+                               len_at=hex(len_at) if len_at is not None else 'None',
                                vbase=hex(vbase) if vbase is not None else 'None',
                                stale=any('stale' in st.split(':', 1)[1] for st in steps))
     doc = f'{len(steps)} step(s) in order, `ecx` and arguments held to the spec.'
@@ -2574,7 +2593,8 @@ def main(argv=None):
     ap.add_argument('--step', action='append', default=[], help='mix: call:ADDR:NARGS:ECX:ARGS | walk:A0:A1 | walk4:OFF, in order; `gated/` prefix')
     ap.add_argument('--glob', type=lambda s: int(s, 0), help='mix: the global cell (the walk4 argument is *(*cell+0x10)+OFF)')
     ap.add_argument('--vbase', type=lambda s: int(s, 0), help='mix: `this` is a written record, [this-VBASE] points at one whose +4 is the displacement `d` (the g column)')
-    ap.add_argument('--gate-this', action='store_true', help='mix: gated steps run when the short at [this] != 0 (`this` is a written object)')
+    ap.add_argument('--gate-this', nargs='?', const=True, default=False, metavar='OFF:MASK', help='mix: gated steps run when the short at [this] != 0 (`this` is a written object), or with OFF:MASK when the byte at this+OFF has MASK set')
+    ap.add_argument('--len-at', type=lambda s: int(s, 0), help='mix: a walk length is the sign-extended short at this+LEN_AT, read as `this+K+len`; gated steps run when it is non-zero')
     ap.add_argument('--gate', type=lambda s: int(s, 0), help='mix: gated steps run when [walker+GATE] == 0')
     ap.add_argument('--own', type=int, default=0, help='fwd, obj: stack arguments the function itself takes')
     ap.add_argument('--argset', action='append', default=[], help='obj: IDX:V,V,.. — argument IDX drawn from the list (90%%)')
@@ -2797,7 +2817,7 @@ def main(argv=None):
         elif args.shape == 'mix':
             sp, script, tp, test, mod = generate_mix(args.function, item=args.item, steps=args.step,
                                                     glob=args.glob, gate=args.gate,
-                                                    gate_this=args.gate_this, vbase=args.vbase)
+                                                    gate_this=args.gate_this, vbase=args.vbase, len_at=args.len_at)
         elif args.shape == 'obj':
             sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
                                                     own=args.own, ret=args.ret or 'eax', port=args.port,

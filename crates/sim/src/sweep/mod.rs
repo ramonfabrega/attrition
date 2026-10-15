@@ -1002,3 +1002,5 @@ mod follow_order_walk_data;
 mod gather_order_walk_data;
 mod trade_order_walk_data;
 mod cast_order_walk_data;
+mod player_walk_data;
+mod command_package_walk_data;

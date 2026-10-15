@@ -1622,6 +1622,32 @@ class Shapes(unittest.TestCase):
         _, script0, _, _, _ = sweep_gen.generate_mix(spec, item=2547, steps=['walk:this:this+2'])
         self.assertIn('VBASE = None', script0)
 
+    def test_a_mix_may_gate_on_a_bit_at_another_offset(self):
+        # parked 2548: Player::walk_data walks (this, this+0x39) and calls 0xa1b2d0 only
+        # when `testb $1,[this+0x30]`; the gate column is the masked byte.
+        spec = 'Player::walk_data@006ee2d0'
+        steps = ['walk4:0x17a48', 'walk:this+0x30:this+0x32', 'gated/walk:this:this+0x39']
+        _, script, _, test, _ = sweep_gen.generate_mix(
+            spec, item=2562, glob=0xc06378, gate_this='0x30:1', steps=steps)
+        compile(script, 'sweep_player_walk_data.py', 'exec')
+        self.assertIn('GATE_AT = (0x30, 0x1)', script)
+        self.assertIn('if gate != 0 {', test)
+        _, script0, _, _, _ = sweep_gen.generate_mix(
+            spec, item=2562, glob=0xc06378, gate_this=True, steps=steps)
+        self.assertIn('GATE_AT = None', script0)
+
+    def test_a_mix_may_read_a_walk_length_from_memory(self):
+        # parked 2548: CommandPackage::walk_data walks (this+0x12, this+0x12+sext([this+0x10]))
+        # when that short is non-zero; the gate column is the sign-extended short.
+        spec = 'CommandPackage::walk_data@0094b740'
+        steps = ['walk4:0x30ac', 'walk:this:this+0x12', 'gated/walk:this+0x12:this+0x12+len']
+        _, script, _, test, _ = sweep_gen.generate_mix(
+            spec, item=2562, glob=0xc06378, gate_this=True, len_at=0x10, steps=steps)
+        compile(script, 'sweep_command_package_walk_data.py', 'exec')
+        self.assertIn('LEN_AT = 0x10', script)
+        self.assertIn('this + 0x12 + gate', test)
+        self.assertIn('if gate != 0 {', test)
+
 
 if __name__ == '__main__':
     unittest.main()
