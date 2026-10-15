@@ -92,13 +92,15 @@
 /// item 2583: 1033 -> 1036, the sweep's eighty-sixth batch, `mix --gate-ne`, `--ret-arg` and `--gate-bare`, and
 /// `Rivers::walk_data` and two `get_name`s on them, three new and five regenerated;
 /// item 2588: 1036 -> 1046, the sweep's eighty-seventh batch, `mix` `rec` and `--store`, `Constants` and `Dock`
-/// `walk_data` on them, five empty-body voids and three `obj`s, ten of ten).
+/// `walk_data` on them, five empty-body voids and three `obj`s, ten of ten;
+/// item 2593: 1046 -> 1052, the sweep's eighty-eighth batch, `mix --elems` and the `g` tokens, `Types` and
+/// `TerrainList` `walk_data` on them and four more, six new).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1046;
+pub const SIMULATION_BACKED: usize = 1052;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

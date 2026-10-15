@@ -3822,6 +3822,10 @@ with a new flag needs the files removed first; `Constants` and `Dock` want a rec
 **2588** (fifty-fourth reach, filed at its merge): built `mix` `rec` tokens and `mix --store`, tests failing first;
 ten of ten; a cdecl empty body needs a dummy `obj --cdecl --ptrarg 0:4`, since `void` has no `--cdecl`; `Types` and
 `TerrainList` want an `obj` table loop and a linked-list walk (parked 2585, 2589; booked in 2593).
+**2593** (fifty-fifth reach, filed at its merge): built `mix --elems` (a table read through a global, a linked list)
+with an `each/` step and the `g` tokens, tests failing first; six of six, the rest of the shortest list UI or unbuilt
+shapes; the inlined `String` constructor, eight constant stores and no callee, is five `get_name`s no shape holds
+(parked 2594; booked in 2604).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
@@ -5887,6 +5891,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot DS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DW renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
