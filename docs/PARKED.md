@@ -3802,6 +3802,10 @@ booked in 2633); the table users of the never-backed list are spent (2624).
 first; five of ten; three draws were first written in the wrong domain, and a `--wbias-xor C:LO..HI` drawing the
 word whose xor with C lies in a range is the candidate; a `switch` shape and a masked `--deref` are what 2634 and
 2636 want (booked in 2644).
+**2644** (fifty-ninth reach, filed at its merge): built `--deref IDX:K:N:W`, a written-byte mask, a test failing
+first; six of ten; `--jump` already held `valid_filter`'s index and its 27 arms are the gap (parked 2664), and a
+`fwd` blind to its callees' order (2666) and a quarter-million-call walker (2667) want a callee-order token and a
+call-count record (booked in 2672).
 
 (2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
 `stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
