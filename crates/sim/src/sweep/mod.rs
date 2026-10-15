@@ -720,6 +720,7 @@ mod object_data_is_in_range;
 mod object_data_is_in_range_margin;
 mod object_data_is_in_range_this;
 mod object_data_is_infiltrated;
+mod object_data_is_jammed;
 mod object_data_is_siege;
 mod object_data_is_visible_wonder;
 mod object_data_isnt;
