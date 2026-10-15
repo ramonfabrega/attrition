@@ -17032,3 +17032,59 @@ zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch74
 One take, click-free pool lane 1, `success: true`, 181 s, 761 frames. **What it holds**:
 `golden::chapter_seventy_four_holds_to_the_golden_word` (**760**, the trace's end, closed) and
 `chapter_seventy_four_s_word_frame_is_widened_whole` (600..761, thirteen standing rows).
+
+
+## run900 — external recorded-game playback preflight (2026-10-15, Astra)
+
+Reserved by `docs/lab/2026-10-15-astra-brief.md` (900–909); no queue item.
+**Disk gap:** no external match had a paired native-playback trace/gamelog.
+Source: HeavenGames file 2170, `game/external-recgames/seifer008 - Toughest AI 4 v 1.rcx`,
+SHA-256 `df7830d7b6c77e1318a1ef5b7725ae2f0b0c8db5957bed85db0479b506f72649`.
+The recording reader finds 21,884 packages, frames 0..21044, 25,779 commands,
+zero embedded sync commands, and a matching 493×493 combat table.
+
+**Opening:** `~/ron-data/lab-captures/2026-10-15-run900-playback-opening/map-7`.
+Click-free pool lane 1, 37 trace frames 0..36, exit 0, success and restoration
+true (5 files), 15.38 s launch to exit. Native playback prints `gamelog_p.txt`;
+`GAMEINFO` map 7, seed 340513920 rather than the staged ini's 12345. Player
+slots map to leaders 3/0/1/2/4, tribes 15/7/8/2/17; only leader 3 is human.
+Recipe: `golden_capture.sh <fresh-output> --recording <source> --end-frame 36
+--timeout 180 --stall-seconds 60 --log-window 0 2 --callwin 1 0
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2
+--detail misc:CHECKSUM=2 --detail endgame:UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2`,
+through `viadriver.sh` with a fresh build TMPDIR, then `waitrun.sh`.
+
+The first full-length attempt at
+`~/ron-data/lab-captures/2026-10-15-run900-playback-full/map-7` reached trace
+frame 21044 but stalled with a DXVK allocation error. Runner SIGTERM cleanup
+restored five files; receipt success is false. `end:MISC` alone also emitted
+no per-frame value blocks. It is not a completed paired oracle. Corrected
+sibling `run900-playback-full-values/map-7` was stopped at trace frame 284
+(210 seconds) for impractical logging cost; all five settings were restored.
+A further sibling `run900-playback-full-leaders/map-7` records leaders each
+frame and the wider object categories at endgame. It completed in one take:
+21,045 contiguous trace frames 0..21044, closing frame 21045, exit 0, success
+true, five settings restored, 1581.84 s launch-to-exit. Quit is scheduled at
+21044, the last recorded frame; automatic EOF shutdown is not established.
+The complete leader dump covers frames 1..21044, seven leaders per frame
+(147,308 records). All 21,045 RNG states match the first long attempt;
+all 1,981 leader records over the wide attempt's complete frames 1..283 match,
+including flags. This is native/native agreement, not a sim floor.
+
+Full recipe, through the same viadriver/build-TMPDIR flow:
+`--recording <source> --end-frame 21044 --timeout 3600 --stall-seconds 120
+--log-window 0 21045 --callwin 1 0 --detail end:LEADERS=2
+--detail misc:CHECKSUM=2 --detail endgame:UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2`.
+Durable hashes, receipts, comparison output and full gate audit:
+`~/ron-data/lab-experiments/2026-10-15-astra-replay-oracle/`.
+No whole-world per-frame comparison is claimed.
+
+The seed-control sibling (`run900-playback-seed-control/map-7`) requested
+ini seed 54321: native seed stayed 340513920, exit 0, 37 frames, five settings
+restored. Against the opening, all 37 shared RNG words and the whole complete
+frame-1 dump block agree (no exclusions). These are native/native checks;
+no sim score has been measured.
+Exploratory siblings `run900-playback-probe` and `run900-playback-probe-b`
+are failed runner attempts, not scored fixtures; the latter mixed two launches
+because the solo filename triggered a false retry. RECGAME §7 and
+`docs/journal/2026-10-15-astra-replay-oracle.md` carry limitations/reproduction.

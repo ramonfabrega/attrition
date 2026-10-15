@@ -32,7 +32,7 @@ echo "output:  $OUT"
 args=()
 for a in "$@"; do
   case "$prev" in
-    --cmd-file)
+    --cmd-file|--recording)
       case "$a" in
         /*) ;;
         *) [ -f "$W/$a" ] && a="$W/$a" ;;

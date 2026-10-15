@@ -9,23 +9,23 @@ from pathlib import Path
 import struct
 
 
-def receipt(data, end_frame, exit_code, allow_early_end=False):
+def receipt(data, end_frame, exit_code, allow_early_end=False, playback=False):
     if len(data) < 32 or len(data) % 32:
         raise ValueError('missing or truncated trace')
-    return receipt_records(struct.iter_unpack('<8I', data), end_frame, exit_code, allow_early_end)
+    return receipt_records(struct.iter_unpack('<8I', data), end_frame, exit_code, allow_early_end, playback)
 
 
-def receipt_file(path, end_frame, exit_code, allow_early_end=False):
+def receipt_file(path, end_frame, exit_code, allow_early_end=False, playback=False):
     def records():
         with path.open('rb') as stream:
             while chunk := stream.read(65536):
                 if len(chunk) % 32:
                     raise ValueError('truncated trace')
                 yield from struct.iter_unpack('<8I', chunk)
-    return receipt_records(records(), end_frame, exit_code, allow_early_end)
+    return receipt_records(records(), end_frame, exit_code, allow_early_end, playback)
 
 
-def receipt_records(records, end_frame, exit_code, allow_early_end=False):
+def receipt_records(records, end_frame, exit_code, allow_early_end=False, playback=False):
     if not 0 <= end_frame <= 24000:
         raise ValueError('invalid endpoint')
     rows = iter(records)
@@ -52,13 +52,16 @@ def receipt_records(records, end_frame, exit_code, allow_early_end=False):
         raise ValueError(f'process failed: {exit_code}')
     if any(r[1] in (174, 176, 177) for r in events):
         raise ValueError('driver refused or native fault recorded')
-    if [r[1] for r in events] != [175, 170, 171, 172, 173, 170]:
+    expected = [175, 170, 170] if playback else [175, 170, 171, 172, 173, 170]
+    if [r[1] for r in events] != expected:
         raise ValueError('incomplete, repeated, or reordered lifecycle')
-    if events[0][2] != 1 or [(r[2], r[3]) for r in events if r[1] == 170] != [(1, 1), (21, 2)]:
+    first = 13 if playback else 1
+    if events[0][2] != 1 or [(r[2], r[3]) for r in events if r[1] == 170] != [(first, 1), (21, 2)]:
         raise ValueError('unexpected install/menu result')
-    setup, start, returned = events[2:5]
-    if not setup[2] or setup[3] != 0 or start[2] != setup[2] or returned[2] != setup[2]:
-        raise ValueError('setup instance/mode mismatch')
+    if not playback:
+        setup, start, returned = events[2:5]
+        if not setup[2] or setup[3] != 0 or start[2] != setup[2] or returned[2] != setup[2]:
+            raise ValueError('setup instance/mode mismatch')
     # A lobby that ends itself before the endpoint (run676 at 4340 of
     # 24000) is a whole lifecycle short of frames; with `--allow-early-end`
     # the receipt says so instead of refusing (parked 1551, 1529).

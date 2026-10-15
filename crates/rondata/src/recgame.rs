@@ -456,6 +456,28 @@ mod tests {
         // exactly what the uploader promised.
         assert_eq!(rec.options[7], 5);
 
+        // Replay-oracle preflight (2026-10-15): this external SP recording
+        // has no embedded sync commands. A successful playback therefore
+        // cannot be certified against recording checksums that do not exist.
+        let commands: Vec<_> = rec
+            .packages
+            .iter()
+            .flat_map(|p| crate::commands::decode(&p.data).unwrap())
+            .collect();
+        assert_eq!(commands.len(), 25_779);
+        assert_eq!(
+            commands
+                .iter()
+                .filter(|c| matches!(
+                    c,
+                    crate::commands::Command::CheckRandom { .. }
+                        | crate::commands::Command::CheckSums { .. }
+                        | crate::commands::Command::NextCheckSum { .. }
+                ))
+                .count(),
+            0
+        );
+
         // The landmark put the embedded rules where the walkers say they
         // are: tribes end where packages begin, balance is the 493x493
         // table, constants the 0xd44 before it.
