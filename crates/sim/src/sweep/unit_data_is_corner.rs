@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `UnitData::is_corner@0060a040`, run by `tools/emu/sweep_unit_data_is_corner.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 3 argument(s), vtable slot +0x8 (0 args) stubbed; vtable slot +0xbc (0 args) stubbed; callee 0x005de270 (2 args) stubbed; the word at `m+0xf4` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1, 1, 1, 1] (90%); stub 1 answered from [0, 1, 1, 1, 1] (90%); stub 2 answers 4 values in call order, the last from [0], printed after the answers; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// (tools/emu): 256 random bytes of object, 3 argument(s), vtable slot +0x8 (0 args) stubbed; vtable slot +0xbc (0 args) stubbed; callee 0x005de270 (2 args) stubbed; the word at `m+0xf4` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1, 1, 1, 1] (90%); stub 1 answered from [0, 1, 1, 1, 1] (90%); stub 2 answered from [0, 0, 0, 5] (90%); stub 2 answers 4 values in call order, the last from [0], printed after the answers; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_unit_data_is_corner.py") else {

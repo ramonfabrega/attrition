@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_unit_data_is_corner.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 256-byte object of random bytes (no bias), 3 stack argument(s);
-vtable slot +0x8 (0 args) stubbed; vtable slot +0xbc (0 args) stubbed; callee 0x005de270 (2 args) stubbed; the word at `m+0xf4` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1, 1, 1, 1] (90%); stub 1 answered from [0, 1, 1, 1, 1] (90%); stub 2 answers 4 values in call order, the last from [0], printed after the answers; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `.
+vtable slot +0x8 (0 args) stubbed; vtable slot +0xbc (0 args) stubbed; callee 0x005de270 (2 args) stubbed; the word at `m+0xf4` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1, 1, 1, 1] (90%); stub 1 answered from [0, 1, 1, 1, 1] (90%); stub 2 answered from [0, 0, 0, 5] (90%); stub 2 answers 4 values in call order, the last from [0], printed after the answers; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -35,7 +35,7 @@ PNULLS = []
 STUBS = [('slot', 8, 0), ('slot', 188, 0), ('call', 6152816, 2)]
 PLACES = [('m', '0xf4', '0', 16)]
 NULLS = []
-WBIAS = [('m', 180, ('set', [0, 256, 512, 768, 1024, 32768, 65280])), ('p0', None, ('set', [0, 1048576, 2097152]))]
+WBIAS = [('m', 180, ('set', [0, 256, 512, 768, 1024, 32768, 65280, 768, 1024])), ('p0', None, ('set', [0, 1048576, 2097152]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -43,7 +43,7 @@ ECXINT = None
 EDX = None
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = 0.1
-ANSWERS = [(0, [0, 1, 1, 1, 1]), (1, [0, 1, 1, 1, 1])]
+ANSWERS = [(0, [0, 1, 1, 1, 1]), (1, [0, 1, 1, 1, 1]), (2, [0, 0, 0, 5])]
 VTAT = None
 VTATHALF = []
 ANSWERWIN = []
@@ -531,4 +531,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "UnitData::is_corner@0060a040", "--port", "let _ = (&c, &a[5]);\nlet (s0, s1, seq) = (a[3], a[4], &a[6..10]);\nlet mut r = 0;\nlet mut cl: Vec<String> = Vec::new();\nif s0 != 0 && s1 != 0 {\n    let n = i32::from(m[0xb5] as i8).max(0) as usize;\n    let mut k = 0;\n    for i in 0..n {\n        let g = rd(&p[0], 4 * i);\n        if g == 0 {\n            continue;\n        }\n        let ans = seq[k.min(3)];\n        k += 1;\n        cl.push(format!(\"{g},{},{}\", a[0], a[1]));\n        if ans != 0 {\n            r = ans;\n            break;\n        }\n    }\n}\nlog.push(if cl.is_empty() { \"-\".into() } else { cl.join(\"/\") });\ni64::from(r)", "--item", "2621", "--own", "3", "--win", "0x100", "--stub", "slot:8:0", "--stub", "slot:0xbc:0", "--stub", "0x5de270:2", "--answers", "0:0,1,1,1,1", "--answers", "1:0,1,1,1,1", "--seq", "2:4:0", "--record", "2", "--place", "m+0xf4:0:16", "--wbias", "m+0xb4:0,0x100,0x200,0x300,0x400,0x8000,0xff00", "--wbias", "p0+*:0,0x100000,0x200000"]
+# sweep_gen: ["obj", "UnitData::is_corner@0060a040", "--item", "2621", "--own", "3", "--win", "0x100", "--stub", "slot:8:0", "--stub", "slot:0xbc:0", "--stub", "0x5de270:2", "--answers", "0:0,1,1,1,1", "--answers", "1:0,1,1,1,1", "--answers", "2:0,0,0,5", "--seq", "2:4:0", "--record", "2", "--place", "m+0xf4:0:16", "--wbias", "m+0xb4:0,0x100,0x200,0x300,0x400,0x8000,0xff00,0x300,0x400", "--wbias", "p0+*:0,0x100000,0x200000", "--port", "let _ = (&c, &a[5]);\nlet (s0, s1, seq) = (a[3], a[4], &a[6..10]);\nlet mut r = 0;\nlet mut cl: Vec<String> = Vec::new();\nif s0 != 0 && s1 != 0 {\n    let n = i32::from(m[0xb5] as i8).max(0) as usize;\n    let mut k = 0;\n    for i in 0..n {\n        let g = rd(&p[0], 4 * i);\n        if g == 0 {\n            continue;\n        }\n        let ans = seq[k.min(3)];\n        k += 1;\n        cl.push(format!(\"{g},{},{}\", a[0], a[1]));\n        if ans != 0 {\n            r = ans;\n            break;\n        }\n    }\n}\nlog.push(if cl.is_empty() { \"-\".into() } else { cl.join(\"/\") });\ni64::from(r)"]
