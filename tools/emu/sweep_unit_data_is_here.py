@@ -35,7 +35,7 @@ PNULLS = []
 STUBS = []
 PLACES = [('m', '0x18', '0', 592)]
 NULLS = []
-WBIAS = [('m', 16, ('range', 393216, 393471)), ('m', 20, ('range', 393216, 393471)), ('p0', 0, ('range', 0, 14)), ('p1', 0, ('range', 0, 14)), ('p2', 584, ('range', 0, 7))]
+WBIAS = [('m', 16, ('range', 407040, 407295)), ('m', 20, ('range', 407040, 407295)), ('p0', 0, ('range', 0, 10)), ('p1', 0, ('range', 0, 10)), ('p2', 584, ('range', 0, 7))]
 FILLS = [('c0', 'i//3')]
 ARGRANGE = []
 SLOTBASE = []
@@ -544,4 +544,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "UnitData::is_here@0060a0c0", "--item", "2633", "--own", "2", "--win", "0x20", "--cell-win", "0xcae5fc:4096", "--fill", "c0:i//3", "--ptrarg", "0:4", "--ptrarg", "1:4", "--place", "m+0x18:0:0x250", "--wbias", "m+0x10:0x60000..0x600ff", "--wbias", "m+0x14:0x60000..0x600ff", "--wbias", "p0+0:0..14", "--wbias", "p1+0:0..14", "--wbias", "p2+0x248:0..7", "--port", "let t = rd(&p[2], 0x248); let d = |v: i32| rd(&c[0], (((v ^ 0x63637) >> 4) as usize) * 4); if t == 0 { 0 } else if t < (rd(&p[0], 0) - d(rd(m, 0x10))).wrapping_abs() { 0 } else { i64::from((rd(&p[1], 0) - d(rd(m, 0x14))).wrapping_abs() <= t) }"]
+# sweep_gen: ["obj", "UnitData::is_here@0060a0c0", "--item", "2633", "--own", "2", "--win", "0x20", "--cell-win", "0xcae5fc:4096", "--fill", "c0:i//3", "--ptrarg", "0:4", "--ptrarg", "1:4", "--place", "m+0x18:0:0x250", "--wbias", "m+0x10:0x63600..0x636ff", "--wbias", "m+0x14:0x63600..0x636ff", "--wbias", "p0+0:0..10", "--wbias", "p1+0:0..10", "--wbias", "p2+0x248:0..7", "--port", "let t = rd(&p[2], 0x248); let d = |v: i32| rd(&c[0], (((v ^ 0x63637) >> 4) as usize) * 4); if t == 0 { 0 } else if t < (rd(&p[0], 0) - d(rd(m, 0x10))).wrapping_abs() { 0 } else { i64::from((rd(&p[1], 0) - d(rd(m, 0x14))).wrapping_abs() <= t) }"]
