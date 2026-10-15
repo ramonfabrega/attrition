@@ -291,6 +291,172 @@ pub(crate) fn wcoord_verdict(r: i32, p: Pos, goal: Pos) -> bool {
     r == loc::VALID || (r == loc::HAZARD && p.cell() == goal.cell())
 }
 
+/// What `UnitData::invalid_loc@00607c30` reads of the unit, the tile and the
+/// caller's flags (item 2400's sweep holds [`invalid_loc_steps`] to it).
+pub(crate) struct InvalidLocIn {
+    pub x: i32,
+    pub y: i32,
+    /// The world's width and height in tiles (`world+0x18`, `+0x1c`).
+    pub width: i32,
+    pub height: i32,
+    /// The unit's leader (`this+9`).
+    pub owner: i32,
+    /// `leaders[owner].flags & 4`.
+    pub human: bool,
+    /// The path's last node carries the transport flag (`flags & 4`).
+    pub path_top_transport: bool,
+    /// The type's domain word (`type+0x218`): 0 land, 1 sea, 2 air.
+    pub domain: i32,
+    /// `type+0x1e8 != 0`.
+    pub attack_nonzero: bool,
+    /// `unit_masks2 & 0x4000`.
+    pub forest_walker: bool,
+    /// `unit_masks & 0x800000`.
+    pub auto_transport: bool,
+    pub ignore_buildings: bool,
+    pub fog_relax: bool,
+    pub enemy_builds_only: bool,
+    pub transport_a: bool,
+    pub transport_b: bool,
+}
+
+/// The callees and table reads of `invalid_loc`, each asked only when the
+/// original asks it.
+pub(crate) trait InvalidLocEnv {
+    /// `WorldData::was_seen(fx, fy, owner)`.
+    fn was_seen(&mut self, fx: i32, fy: i32) -> bool;
+    /// The tile word at `(x, y)` (`world+0x138`).
+    fn tile_mask(&mut self) -> u16;
+    /// The cell word at `(x >> 2, y >> 2)` (`world+0x134`, stride `0x1c`).
+    fn cell_flags(&mut self) -> u16;
+    /// The tile word under the unit's own position.
+    fn own_mask(&mut self) -> u16;
+    /// `WorldData::is_cliff_at`.
+    fn is_cliff(&mut self) -> bool;
+    /// `UnitData::can_transport@0046f960`.
+    fn can_transport(&mut self) -> bool;
+    /// `is(AIRCRAFTCARRIER, 1)`.
+    fn is_carrier(&mut self) -> bool;
+    /// `WorldData::is_built_at`.
+    fn is_built(&mut self) -> bool;
+    /// `find_any_building_at`'s `find_who` (`objects+0x200`).
+    fn building_who(&mut self) -> i32;
+}
+
+/// `UnitData::invalid_loc@00607c30` (the sim's [`Sim::invalid_loc`] is the
+/// caller; the sweep is `sweep::unit_data_invalid_loc`).
+pub(crate) fn invalid_loc_steps<E: InvalidLocEnv>(i: &InvalidLocIn, env: &mut E) -> i32 {
+    // A transport-flagged path top relaxes the water test (`00607c49`).
+    let ta = i.transport_a || i.path_top_transport;
+    if i.x < 0 || i.y < 0 || i.x >= i.width || i.y >= i.height {
+        return loc::OFF_MAP;
+    }
+    if i.fog_relax && i.human {
+        let (fx, fy) = ((i.x >> 2) * 2, (i.y >> 2) * 2);
+        let seen = [(0, 0), (0, 1), (1, 0), (1, 1)]
+            .iter()
+            .any(|&(dx, dy)| env.was_seen(fx + dx, fy + dy));
+        if !seen {
+            return loc::VALID;
+        }
+    }
+    let fw = i.forest_walker;
+    let relax = ta || i.transport_b;
+    match i.domain {
+        1 => {
+            let m = env.tile_mask();
+            if m & 0x30 == 0x20 {
+                // The ocean side's hazard arm: a warship (`+0x1e8`, or a
+                // carrier) over a `0x2400` tile (`00607df5`..`00607e57`).
+                if (i.attack_nonzero || env.is_carrier()) && env.tile_mask() & 0x2400 != 0 {
+                    return loc::HAZARD;
+                }
+            } else {
+                if !relax || !env.can_transport() {
+                    return loc::TERRAIN;
+                }
+                if env.cell_flags() & SEA_REFUSES != 0 {
+                    return loc::TERRAIN;
+                }
+            }
+        }
+        0 => {
+            let cf = env.cell_flags();
+            if cf & SEA_REFUSES != 0 && (cf & 0x20 == 0 || !fw) && i.ignore_buildings && ta {
+                return loc::TERRAIN;
+            }
+            let m = env.tile_mask();
+            let surface = m & 0x30;
+            if (surface == 0x30 || m & 3 == 2 || env.is_cliff()) && (surface != 0x30 || !fw) {
+                return loc::TERRAIN;
+            }
+            if (!relax || !i.auto_transport) && surface == 0x20 {
+                return loc::TERRAIN;
+            }
+        }
+        2 => return loc::VALID,
+        _ => {}
+    }
+    // The building check (`00607f50`..`00608017`).
+    if !i.ignore_buildings {
+        let m = env.tile_mask();
+        if m & 0x4000 != 0 && (m & 0x30 != 0x30 || !fw) && env.own_mask() & 0x4000 == 0 {
+            if i.attack_nonzero && i.enemy_builds_only && env.is_built() {
+                return if env.building_who() == i.owner {
+                    loc::BUILDING
+                } else {
+                    loc::VALID
+                };
+            }
+            return loc::BUILDING;
+        }
+    }
+    loc::VALID
+}
+
+struct SimLocEnv<'a> {
+    sim: &'a Sim,
+    u: usize,
+    t: Pos,
+}
+
+impl InvalidLocEnv for SimLocEnv<'_> {
+    fn was_seen(&mut self, fx: i32, fy: i32) -> bool {
+        self.sim.was_seen_fog(fx, fy, self.sim.units[self.u].owner)
+    }
+    fn tile_mask(&mut self) -> u16 {
+        self.sim.world.tile_mask(self.t)
+    }
+    fn cell_flags(&mut self) -> u16 {
+        self.sim
+            .world
+            .cell_data(crate::world::World::cell_of_tile(self.t))
+            .flags
+    }
+    fn own_mask(&mut self) -> u16 {
+        self.sim.world.tile_mask(self.sim.units[self.u].pos.tile())
+    }
+    fn is_cliff(&mut self) -> bool {
+        self.sim.world.tile_mask(self.t) & tile::OBJECT == tile::OBJECT_CLIFF
+    }
+    fn can_transport(&mut self) -> bool {
+        self.sim.unit_can_transport(self.u)
+    }
+    fn is_carrier(&mut self) -> bool {
+        self.sim.units[self.u]
+            .ty
+            .is_some_and(|ty| self.sim.is_aircraft_carrier(ty))
+    }
+    fn is_built(&mut self) -> bool {
+        crate::world::is_built_at(self.sim.world.tile_mask(self.t))
+    }
+    fn building_who(&mut self) -> i32 {
+        self.sim
+            .find_any_building_at(self.t, self.sim.units[self.u].owner)
+            .map_or(-1, |b| i32::from(self.sim.buildings[b].owner))
+    }
+}
+
 impl Sim {
     /// `UnitData::invalid_loc(t, ignore_buildings, fog_relax,
     /// enemy_builds_only, transport_a, transport_b)` — the world's refusal
@@ -331,142 +497,40 @@ impl Sim {
         transport_a: bool,
         transport_b: bool,
     ) -> i32 {
-        // A transport-flagged path top relaxes the water test.
-        let transport_a = transport_a
-            || self.units[u]
+        let unit = &self.units[u];
+        let inp = InvalidLocIn {
+            x: t.x,
+            y: t.y,
+            width: self.world.width() * TILES_PER_CELL,
+            height: self.world.height() * TILES_PER_CELL,
+            owner: i32::from(unit.owner),
+            human: self
+                .nation
+                .get(unit.owner as usize)
+                .is_some_and(|n| n.human),
+            path_top_transport: unit
                 .path
                 .last()
-                .is_some_and(|p| p.flags & path_flag::TRANSPORT != 0);
-        if !self.world.tile_in_bounds(t) {
-            return loc::OFF_MAP;
-        }
-        let owner = self.units[u].owner;
-        if fog_relax && self.nation.get(owner as usize).is_some_and(|n| n.human) {
-            let (fx, fy) = (
-                t.x.div_euclid(TILES_PER_CELL) * 2,
-                t.y.div_euclid(TILES_PER_CELL) * 2,
-            );
-            let seen = [(0, 0), (0, 1), (1, 0), (1, 1)]
-                .iter()
-                .any(|&(dx, dy)| self.was_seen_fog(fx + dx, fy + dy, owner));
-            if !seen {
-                return loc::VALID;
-            }
-        }
-        let mask = self.world.tile_mask(t);
-        let surface = mask & tile::SURFACE;
-        let forest_walker = false; // SEAM: `unit_masks2 & 0x4000` (Iroquois).
-        // ~~SEAM, deliberate: kept out of the water test until the boarding
-        // path exists.~~ It exists (`docs/TRANSPORT.md` §6), and this is the
-        // original's own predicate: the **raw bit**, not `can_transport` —
-        // `invalid_loc@00607c30`'s land arm reads `unit_masks & 0x800000`
-        // and neither the veto nor the type flag.
-        let transport_forced = self.units[u].auto_transport;
-        let ocean = surface == tile::SURFACE_OCEAN;
-        match self.unit_domain_of(u) {
-            // Air takes anything (`param_4 == 2` → `return 0`), and takes
-            // it before the building test too.
-            crate::attrition::Domain::Air => return loc::VALID,
-            // Land: forest, mountain, cliff, then water. The original
-            // tests the three together and only forest reaches the walker
-            // exemption: `if (surface == 0x30 || (mask & 3) == 2 ||
-            // is_cliff_at(t)) { if (surface != 0x30) return 2; if
-            // (!forest_walker) return 2; }`.
-            crate::attrition::Domain::Land => {
-                // **The cell first** (`00607e6f`–`00607ead`, item 776): a
-                // cell flagged mountain, forest or `0x40`
-                // (`WData.flags & 0x70`) refuses when the caller passes
-                // both `param_3` and `param_6` — `valid_wcoord`'s probe, so
-                // the world search walks round a forest *cell* where the
-                // tile test would only refuse its forest *tiles* — unless
-                // it is forest and the unit a forest-walker.
-                let cf = self
-                    .world
-                    .cell_data(crate::world::World::cell_of_tile(t))
-                    .flags;
-                if cf & SEA_REFUSES != 0
-                    && (cf & crate::world::cell::FOREST == 0 || !forest_walker)
-                    && ignore_buildings
-                    && transport_a
-                {
-                    return loc::TERRAIN;
-                }
-                if (surface == tile::SURFACE_FOREST && !forest_walker)
-                    || mask & tile::OBJECT == tile::OBJECT_MOUNTAIN
-                    || mask & tile::OBJECT == tile::OBJECT_CLIFF
-                {
-                    return loc::TERRAIN;
-                }
-                if ocean && !((transport_a || transport_b) && transport_forced) {
-                    return loc::TERRAIN;
-                }
-            }
-            // Sea, and it is the land arm's mirror: dry land refuses a boat
-            // unless the caller asked for the shore *and* the boat
-            // `can_transport` — the predicate here is the whole one, not
-            // the raw bit — *and* the cell is not mountain, forest or
-            // `0x40`. That is the **disembark**, and it is what walks a
-            // barge onto the tile `set_new_location` then converts (§6).
-            //
-            // The ocean side's hazard arm: a warship — `type +0x1e8`, the
-            // `attack`, or `is(AIRCRAFTCARRIER, 1)` — on a `0x2400` tile is
-            // 3, before any flag is read. A dock's margin is `BAD_PATH`
-            // (`docs/ORDERS.md` §25), so this is what keeps a dock's own
-            // warships off the water beside it.
-            crate::attrition::Domain::Sea => {
-                if ocean && mask & crate::orders::WARSHIP_REFUSES != 0 && self.is_warship(u) {
-                    return loc::HAZARD;
-                }
-                if !ocean {
-                    if !(transport_a || transport_b) || !self.unit_can_transport(u) {
-                        return loc::TERRAIN;
-                    }
-                    let c = crate::world::Cell::new(
-                        t.x.div_euclid(crate::world::TILES_PER_CELL),
-                        t.y.div_euclid(crate::world::TILES_PER_CELL),
-                    );
-                    if self.world.cell_data(c).flags & SEA_REFUSES != 0 {
-                        return loc::TERRAIN;
-                    }
-                }
-            }
-        }
-        // The building check: a blocked tile refuses, unless the unit is
-        // itself standing on one (it may leave), or the caller asked to
-        // ignore buildings.
-        if !ignore_buildings
-            && mask & tile::BLOCKED != 0
-            && !(surface == tile::SURFACE_FOREST && forest_walker)
-            && self.world.tile_mask(self.units[u].pos.tile()) & tile::BLOCKED == 0
-        {
-            // **`enemy_builds_only`: an armed unit passes a building that
-            // is not its owner's** (`00607fb6`..`0060800a`, item 1209). With
-            // the caller's `param_5`, a type whose base attack (`+0x1e8`)
-            // is non-zero, over a tile `is_built_at`, asks
-            // `find_any_building_at(t, who)` and refuses (4) only when the
-            // building found is its own: another player's, and a tile
-            // where nothing is found (`find_who` −1), are valid. The tile
-            // grid passes it (`valid_tcoord`), so an armed walker's near
-            // plan may cross another player's footprint at `calc_cost`'s
-            // 4000 a tile, and those nodes carry `astar_path`'s building
-            // flag into `resolve_block` ([`Sim::resolve_block`]). A
-            // Citizen is armed here: its `attack` is 40.
-            if enemy_builds_only
-                && self.profile(crate::combat::Obj::Unit(u)).attack != 0
-                && crate::world::is_built_at(mask)
-            {
-                let found = self
-                    .find_any_building_at(t, owner)
-                    .map(|b| self.buildings[b].owner);
-                return if found == Some(owner) {
-                    loc::BUILDING
-                } else {
-                    loc::VALID
-                };
-            }
-            return loc::BUILDING;
-        }
-        loc::VALID
+                .is_some_and(|p| p.flags & path_flag::TRANSPORT != 0),
+            domain: match self.unit_domain_of(u) {
+                crate::attrition::Domain::Land => 0,
+                crate::attrition::Domain::Sea => 1,
+                crate::attrition::Domain::Air => 2,
+            },
+            attack_nonzero: self.profile(crate::combat::Obj::Unit(u)).attack != 0,
+            // SEAM: `unit_masks2 & 0x4000` (Iroquois) is not carried.
+            forest_walker: false,
+            // The raw bit `unit_masks & 0x800000`, neither the veto nor the
+            // type flag (`00607f19`).
+            auto_transport: unit.auto_transport,
+            ignore_buildings,
+            fog_relax,
+            enemy_builds_only,
+            transport_a,
+            transport_b,
+        };
+        let mut env = SimLocEnv { sim: self, u, t };
+        invalid_loc_steps(&inp, &mut env)
     }
 
     /// `toff` — the offset `astar_path` carries into the world probe (§6)

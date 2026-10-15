@@ -1191,33 +1191,9 @@ impl Sim {
     /// tail, which re-seats the unit on its own position~~: built by item
     /// 1608.
     pub(crate) fn cast_unpack(&mut self, u: usize) {
-        if !self.units[u].alive() || !self.units[u].on_map {
-            return;
-        }
-        if self.is_merchant(u) {
-            let t = self.units[u].pos.tile();
-            if !self.good_merchant_spot(u, t) {
-                return;
-            }
-            let corner = Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE);
-            self.set_new_location(u, corner, true);
-            self.merchant_footprint(u, true);
-            let who = self.units[u].owner;
-            self.economy_changed(who);
-        }
-        self.units[u].combat.packed = false;
-        // `cast_unpack@006709c0`'s `update_los` (vtable `+0x160`): the
-        // clamp lifts here and nowhere earlier (`docs/VISION.md` §2).
-        self.update_los(u);
-        self.update_seen(u, false);
-        self.update_gpiece(u);
-        // The tail's `set_new_location(own x, own y, 1, 1)` (`:60`–`:63`),
-        // as `cast_pack`'s: the snap puts every tracked crew figure on its
-        // offset. The coverage pair's Advanced Machine Gun `1/74` unpacks
-        // on 2893 and its second figure stands on guy 0's point on block
-        // 2894 (`docs/AI.md` §170).
-        let at = self.units[u].pos;
-        self.set_new_location(u, at, true);
+        let tree = self.unit_tree(u);
+        let usable = self.units[u].alive() && self.units[u].on_map;
+        cast_unpack_steps(&mut SimUnpack { sim: self, u }, usable, tree);
     }
 
     /// `SpellType::cast_pack(o, who)@00670be0` — `cast_unpack`'s mirror,
@@ -1964,6 +1940,102 @@ impl Sim {
 /// a unit type id `0x32..=0x19d` whose domain (`+0x218`) is land.
 pub(crate) fn cargo_type(type_index: i32, land: bool) -> bool {
     (0x32..=0x19d).contains(&type_index) && land
+}
+
+/// What `cast_unpack_steps` asks of the unit it unpacks, one method a call
+/// of `SpellType::cast_unpack@006709c0` (item 2400).
+pub(crate) trait UnpackSteps {
+    /// The unit's position (the object's `+0x10`/`+0x14`), read afresh.
+    fn pos(&self) -> (i32, i32);
+    /// `UnitData::good_merchant_spot@006068a0` at a tile.
+    fn good_merchant_spot(&mut self, tx: i32, ty: i32) -> bool;
+    /// `Unit::set_new_location@005f8d20(x, y, 1, 1)`.
+    fn set_new_location(&mut self, x: i32, y: i32);
+    /// `World::set_blocked_at@006b4900(tile, 1)`.
+    fn set_blocked(&mut self, tx: i32, ty: i32);
+    /// `recalc_builds = 1` and the leader's `0x2000000`.
+    fn merchant_deployed(&mut self);
+    /// `unit_masks &= !0x80000`.
+    fn clear_packed(&mut self);
+    /// Vtable `+0x160`.
+    fn update_los(&mut self);
+    /// Vtable `+0x174` with `0`.
+    fn update_seen(&mut self);
+    /// `Unit::update_gpiece@005e2920`.
+    fn update_gpiece(&mut self);
+}
+
+/// **`SpellType::cast_unpack@006709c0`'s steps** (item 2400): nothing
+/// happens unless the object is alive (vslot `+8`) and on the map (vslot
+/// `+0xbc`). A merchant (`TypeIndex` `0x3d`, `0x3e` or `0x190`) takes the
+/// tile under it (`div_3_table[pos >> 6]` each way); the cast returns at
+/// `good_merchant_spot` saying no, before the bit; else it snaps to the
+/// tile's corner (`tile * 0xc0`), blocks `(x, y)`, `(x-1, y)`, `(x, y-1)`,
+/// `(x-1, y-1)` in that order, and raises the leader's flag. Then, for
+/// everything: the bit is cleared, `update_los`, `update_seen(0)`,
+/// `update_gpiece`, and `set_new_location` on the (re-read) position.
+pub(crate) fn cast_unpack_steps<C: UnpackSteps>(cx: &mut C, usable: bool, tree: Option<TypeId>) {
+    if !usable {
+        return;
+    }
+    if tree.is_some_and(|t| crate::ai_census::ty::MERCHANTS.contains(&t)) {
+        let (x, y) = cx.pos();
+        let t = Pos::new(x, y).tile();
+        if !cx.good_merchant_spot(t.x, t.y) {
+            return;
+        }
+        cx.set_new_location(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE);
+        cx.set_blocked(t.x, t.y);
+        cx.set_blocked(t.x - 1, t.y);
+        cx.set_blocked(t.x, t.y - 1);
+        cx.set_blocked(t.x - 1, t.y - 1);
+        cx.merchant_deployed();
+    }
+    cx.clear_packed();
+    cx.update_los();
+    cx.update_seen();
+    cx.update_gpiece();
+    let (x, y) = cx.pos();
+    cx.set_new_location(x, y);
+}
+
+/// [`cast_unpack_steps`] on a live unit.
+struct SimUnpack<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+}
+
+impl UnpackSteps for SimUnpack<'_> {
+    fn pos(&self) -> (i32, i32) {
+        let p = self.sim.units[self.u].pos;
+        (p.x, p.y)
+    }
+    fn good_merchant_spot(&mut self, tx: i32, ty: i32) -> bool {
+        self.sim.good_merchant_spot(self.u, Pos::new(tx, ty))
+    }
+    fn set_new_location(&mut self, x: i32, y: i32) {
+        self.sim.set_new_location(self.u, Pos::new(x, y), true);
+    }
+    fn set_blocked(&mut self, tx: i32, ty: i32) {
+        self.sim.set_blocked_at(Pos::new(tx, ty), true);
+    }
+    fn merchant_deployed(&mut self) {
+        let who = self.sim.units[self.u].owner;
+        self.sim.economy_changed(who);
+    }
+    fn clear_packed(&mut self) {
+        self.sim.units[self.u].combat.packed = false;
+    }
+    fn update_los(&mut self) {
+        // The clamp lifts here and nowhere earlier (`docs/VISION.md` §2).
+        self.sim.update_los(self.u);
+    }
+    fn update_seen(&mut self) {
+        self.sim.update_seen(self.u, false);
+    }
+    fn update_gpiece(&mut self) {
+        self.sim.update_gpiece(self.u);
+    }
 }
 
 #[cfg(test)]

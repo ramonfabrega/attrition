@@ -1022,6 +1022,34 @@ impl Unit {
     }
 }
 
+/// `Objects::find_free@0065ad60`'s reuse test on one number (`docs/COMBAT.md` §59.2): the
+/// object is dead (`flags & 1` clear), its `hold_frames` (`+0x32`) is zero, and it is either no
+/// unit (vslot `+0x18` answers 0) or a captain (`UnitData +0x8e` negative).
+pub(crate) fn find_free_reusable(alive: bool, hold: i16, is_unit: bool, captain: bool) -> bool {
+    !alive && hold == 0 && (!is_unit || captain)
+}
+
+/// `Objects::find_free@0065ad60` with `param_5 < 0`: the first number of `[base, *mark)` that
+/// `reusable` accepts, tested in order; failing that `*mark` itself, which moves up one, unless
+/// it has reached `limit` (then -1).
+pub(crate) fn find_free_steps(
+    base: i32,
+    limit: i32,
+    mark: &mut i32,
+    mut reusable: impl FnMut(i32) -> bool,
+) -> i32 {
+    for i in base..*mark {
+        if reusable(i) {
+            return i;
+        }
+    }
+    if limit <= *mark {
+        return -1;
+    }
+    *mark += 1;
+    *mark - 1
+}
+
 /// A headless world with players and units, enough to run attrition end to
 /// end and no more.
 ///
@@ -2094,36 +2122,40 @@ impl Sim {
         } else {
             self.marks[w].unit
         };
-        let mut taken = vec![false; (mark - base).max(0) as usize];
+        // A number nothing carries is free; one an object holds is not.
+        let mut free = vec![true; (mark - base).max(0) as usize];
         if base == BUILD_BASE {
             for b in &self.buildings {
                 let i = b.index - base;
                 if b.owner == who && (base..mark).contains(&b.index) {
-                    taken[i as usize] |= b.alive || !b.garrison.is_empty();
+                    // A building keeps no hold count here: a garrison stands in for it.
+                    free[i as usize] &=
+                        find_free_reusable(b.alive, i16::from(!b.garrison.is_empty()), false, true);
                 }
             }
         } else {
-            // `(flags & 1) == 0 && hold_frames == 0`: a dead number is free
-            // only once nothing holds it (`docs/COMBAT.md` §59).
             for u in &self.units {
                 let i = u.index - base;
                 if u.owner == who && (base..mark).contains(&u.index) {
-                    taken[i as usize] |= u.alive() || u.hold_frames != 0;
+                    free[i as usize] &= find_free_reusable(
+                        u.alive(),
+                        i16::from(u.hold_frames != 0),
+                        true,
+                        u.o_up.is_none(),
+                    );
                 }
             }
         }
-        if let Some(i) = taken.iter().position(|&t| !t) {
-            return Some(base + i as i16);
-        }
-        if mark >= limit {
-            return None;
-        }
+        let mut m = i32::from(mark);
+        let got = find_free_steps(i32::from(base), i32::from(limit), &mut m, |i| {
+            free[(i - i32::from(base)) as usize]
+        });
         if base == BUILD_BASE {
-            self.marks[w].build += 1;
+            self.marks[w].build = m as i16;
         } else {
-            self.marks[w].unit += 1;
+            self.marks[w].unit = m as i16;
         }
-        Some(mark)
+        (got >= 0).then_some(got as i16)
     }
 
     /// The live unit of `who` numbered `o`, if any — the object a script or

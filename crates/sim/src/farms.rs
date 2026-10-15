@@ -137,6 +137,112 @@ pub const SITE_ANIMAL_X: &str = "Farms::add_animals+0x182";
 pub const SITE_PIG_Y: &str = "Farms::add_animals+0xc9";
 pub const SITE_PIG_X: &str = "Farms::add_animals+0x117";
 
+/// One animal `Farms::add_animals@008d8f30` hands `Objects::init_unit` as
+/// `(9, type, x, y, -1, -1, -1)`, with the stamps it then writes through
+/// the new object's slot `+0xb4`: `+0x150` the farm's index, `+0x152` its
+/// player, `+0x154` the animal's place in the five.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct AnimalSpawn {
+    pub ty: crate::tech::TypeId,
+    pub x: i32,
+    pub y: i32,
+    pub index: i32,
+    pub player: i32,
+    pub slot: u8,
+}
+
+/// What `add_animals_steps` asks of the world it runs in.
+pub(crate) trait AnimalHost {
+    /// `Random::get(game_random, 0, 0xffff)`, spent at `site`.
+    fn draw(&mut self, site: &'static str) -> i32;
+    /// `Objects::init_unit` and the three stamps; `false` ends the loop
+    /// (the host has no unit to give).
+    fn init_unit(&mut self, a: &AnimalSpawn) -> bool;
+}
+
+/// `Farms::add_animals@008d8f30`'s loop. `pasture` is the farm row's
+/// `+0xbd == 1` and `active` the building's `flags & 4` (the vtable test
+/// the original makes of the object it finds); `pos` is the building's
+/// plain position (the original stores it xored with `0x63637`). Per
+/// animal, in order: the coin (`& 0x80000001 == 0`, even, is the chicken),
+/// the `y` draw, the `x` draw — each `% 0x180` less `0xc0` from the
+/// building, `y` first — and `init_unit`.
+pub(crate) fn add_animals_steps<H: AnimalHost>(
+    host: &mut H,
+    pasture: bool,
+    active: bool,
+    pos: (i32, i32),
+    player: i32,
+    index: i32,
+) {
+    if !pasture || !active {
+        return;
+    }
+    for slot in 0..FARM_ANIMALS {
+        let chicken = host.draw(SITE_ANIMAL_COIN) & (i32::MIN | 1) == 0;
+        let (y_site, x_site) = if chicken {
+            (SITE_ANIMAL_Y, SITE_ANIMAL_X)
+        } else {
+            (SITE_PIG_Y, SITE_PIG_X)
+        };
+        let ry = host.draw(y_site);
+        let rx = host.draw(x_site);
+        let at = |base: i32, r: i32| {
+            base.wrapping_sub(ANIMAL_SPREAD / 2)
+                .wrapping_add(r % ANIMAL_SPREAD)
+        };
+        let spawn = AnimalSpawn {
+            ty: if chicken { FARMCHICKEN } else { FARMPIG },
+            x: at(pos.0, rx),
+            y: at(pos.1, ry),
+            index,
+            player,
+            slot,
+        };
+        if !host.init_unit(&spawn) {
+            return;
+        }
+    }
+}
+
+/// [`add_animals_steps`]' host in a running [`Sim`]: the stream is the
+/// sim's own, and `init_unit` builds the unit and spends its guy's draw.
+struct PastureHost<'a> {
+    sim: &'a mut Sim,
+    b: usize,
+    chicken: Option<usize>,
+    pig: Option<usize>,
+    any: usize,
+    out: Vec<usize>,
+}
+
+impl AnimalHost for PastureHost<'_> {
+    fn draw(&mut self, site: &'static str) -> i32 {
+        self.sim.mark(site);
+        self.sim.rng.roll()
+    }
+
+    fn init_unit(&mut self, a: &AnimalSpawn) -> bool {
+        let ty = if a.ty == FARMCHICKEN {
+            self.chicken
+        } else {
+            self.pig
+        }
+        .unwrap_or(self.any);
+        let at = crate::orders::snapped(crate::Pos::new(a.x, a.y));
+        match self
+            .sim
+            .spawn_pasture_animal(self.b, a.slot, ty, at, true, true)
+        {
+            Some(u) => {
+                self.out.push(u);
+                true
+            }
+            None => false,
+        }
+    }
+}
+
 impl Farm {
     /// `Farms::grow(farm, dy, dx)@008d91c0`: the farmer's add — the
     /// original takes `dy` then `dx` and writes `[dx][dy]`, so `cell` here
@@ -464,30 +570,24 @@ impl Sim {
             return Vec::new();
         };
         let pos = self.buildings[b].pos;
+        let Some(seeds) = borrowed else {
+            // The drawing path is the original's loop, whole
+            // ([`add_animals_steps`]); the sim is only its host.
+            let owner = self.buildings[b].owner as i32;
+            let mut host = PastureHost {
+                sim: self,
+                b,
+                chicken,
+                pig,
+                any,
+                out: Vec::with_capacity(FARM_ANIMALS as usize),
+            };
+            add_animals_steps(&mut host, true, true, (pos.x, pos.y), owner, b as i32);
+            return host.out;
+        };
         let mut out = Vec::with_capacity(FARM_ANIMALS as usize);
         for slot in 0..FARM_ANIMALS {
-            // The three draws, in the original's order. `(rnd & 1) == 0` is
-            // the chicken — the decompile's `& 0x80000001` is the signed
-            // test on a value `Random::get(0, 0xffff)` never makes
-            // negative — and each offset is `rnd % 0x180 - 0xc0`, a whole
-            // tile either way, the `y` before the `x`.
-            let seed = match borrowed {
-                Some(seeds) => seeds.get(slot as usize).copied(),
-                None => {
-                    self.mark(SITE_ANIMAL_COIN);
-                    let chicken = self.rng.roll() & 1 == 0;
-                    let (y, x) = if chicken {
-                        (SITE_ANIMAL_Y, SITE_ANIMAL_X)
-                    } else {
-                        (SITE_PIG_Y, SITE_PIG_X)
-                    };
-                    self.mark(y);
-                    let dy = self.rng.roll() % ANIMAL_SPREAD - ANIMAL_SPREAD / 2;
-                    self.mark(x);
-                    let dx = self.rng.roll() % ANIMAL_SPREAD - ANIMAL_SPREAD / 2;
-                    Some(AnimalSeed { chicken, dy, dx })
-                }
-            };
+            let seed = seeds.get(slot as usize).copied();
             let ty = match seed {
                 Some(s) if s.chicken => chicken.unwrap_or(any),
                 Some(_) => pig.unwrap_or(any),
@@ -512,49 +612,68 @@ impl Sim {
                 Some(s) => crate::orders::snapped(crate::Pos::new(pos.x + s.dx, pos.y + s.dy)),
                 None => pos,
             };
-            let Some(index) = self.find_free(9, crate::UNIT_BASE, crate::BUILD_BASE) else {
+            let Some(u) = self.spawn_pasture_animal(b, slot, ty, at, seed.is_some(), false) else {
                 break;
             };
-            let hits = self.unit_types[ty].hits.max(1);
-            let mut unit = crate::Unit::new(9, index, at, hits);
-            unit.kind = self.unit_types[ty].kind;
-            unit.ty = Some(ty);
-            // `Objects::init_unit`'s own two, without which the `MOVE_TO`
-            // `think_farm_animal` hands out is an order the animal can
-            // never step: it stands still and its arrival — two
-            // `Animal::do_idle` draws — never comes.
-            unit.movement.speed = self.type_speed(9, ty);
-            unit.movement.turning = self.turning_for(ty);
-            // `TypeIndex` `FARMPIG`/`FARMCHICKEN`. Without it the gaia
-            // table cannot be keyed and every animation length reads
-            // `anim::UNKNOWN`, so the clock steps and never wraps — three
-            // of run39's six missing `Guy::inc_time` wraps on frame 29.
-            // A pasture the trace does not name keeps the −1, because
-            // which of the two species it is, is exactly what the coin
-            // said and nothing else records.
-            if seed.is_some() {
-                unit.type_index = self.unit_types[ty].type_index;
-            }
-            // `Unit::init@00612100:282–309` (`crate::stance`); a pasture
-            // animal is not a worker type and takes the `default:` 0.
-            unit.stance = self.init_stance(9, ty);
-            // `Unit::init`'s formation byte: not a civilian, so 0.
-            unit.form = crate::init_form(self.unit_types[ty].type_index);
-            unit.farm_animal = Some(FarmAnimal { build: b, slot });
-            let u = self.add_unit(unit);
-            match borrowed {
-                // The guy exists so the idle roll has something to set. Its
-                // piece stays −1 — no dump prints an owner-9 object, so the
-                // piece pool cannot name one — and the gaia table is keyed
-                // by the type instead.
-                Some(_) => self.units[u].guys = vec![crate::anim::Guy::fresh(-1)],
-                // On the drawing path the guy is `Unit::init`'s, and its
-                // variant roll is the fourth of the animal's four draws.
-                None => self.init_guys(u, Some(ty)),
-            }
             out.push(u);
         }
         out
+    }
+
+    /// The tail of one `Objects::init_unit` of a pasture animal, and
+    /// `Farms::add_animals`' stamp of the farm and the slot: the unit of
+    /// owner 9 at `at`. `typed` gives it the table's `type_index`; `drawn`
+    /// says its guy is `Unit::init`'s own, whose variant roll is the
+    /// fourth draw of the animal.
+    fn spawn_pasture_animal(
+        &mut self,
+        b: usize,
+        slot: u8,
+        ty: usize,
+        at: crate::Pos,
+        typed: bool,
+        drawn: bool,
+    ) -> Option<usize> {
+        let index = self.find_free(9, crate::UNIT_BASE, crate::BUILD_BASE)?;
+        let hits = self.unit_types[ty].hits.max(1);
+        let mut unit = crate::Unit::new(9, index, at, hits);
+        unit.kind = self.unit_types[ty].kind;
+        unit.ty = Some(ty);
+        // `Objects::init_unit`'s own two, without which the `MOVE_TO`
+        // `think_farm_animal` hands out is an order the animal can
+        // never step: it stands still and its arrival — two
+        // `Animal::do_idle` draws — never comes.
+        unit.movement.speed = self.type_speed(9, ty);
+        unit.movement.turning = self.turning_for(ty);
+        // `TypeIndex` `FARMPIG`/`FARMCHICKEN`. Without it the gaia
+        // table cannot be keyed and every animation length reads
+        // `anim::UNKNOWN`, so the clock steps and never wraps — three
+        // of run39's six missing `Guy::inc_time` wraps on frame 29.
+        // A pasture the trace does not name keeps the −1, because
+        // which of the two species it is, is exactly what the coin
+        // said and nothing else records.
+        if typed {
+            unit.type_index = self.unit_types[ty].type_index;
+        }
+        // `Unit::init@00612100:282–309` (`crate::stance`); a pasture
+        // animal is not a worker type and takes the `default:` 0.
+        unit.stance = self.init_stance(9, ty);
+        // `Unit::init`'s formation byte: not a civilian, so 0.
+        unit.form = crate::init_form(self.unit_types[ty].type_index);
+        unit.farm_animal = Some(FarmAnimal { build: b, slot });
+        let u = self.add_unit(unit);
+        if drawn {
+            // On the drawing path the guy is `Unit::init`'s, and its
+            // variant roll is the fourth of the animal's four draws.
+            self.init_guys(u, Some(ty));
+        } else {
+            // The guy exists so the idle roll has something to set. Its
+            // piece stays −1 — no dump prints an owner-9 object, so the
+            // piece pool cannot name one — and the gaia table is keyed
+            // by the type instead.
+            self.units[u].guys = vec![crate::anim::Guy::fresh(-1)];
+        }
+        Some(u)
     }
 
     /// `Animal::think_farm_animal@005d7700`: a pasture's animal, which is

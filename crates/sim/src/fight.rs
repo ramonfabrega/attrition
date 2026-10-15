@@ -83,6 +83,22 @@ pub const SITE_FIGHT_RESEARCH: &str = "Unit::fight+0x9b0";
 /// it on every unrecharged `fight`, and an odd draw drops the attack.
 pub const SITE_FIGHT_GUARD_ROLL: &str = "Unit::fight+0x824";
 
+/// `Objects::add_ammo@00658b10`'s scan, `0x658b36`–`0x658b56`: from slot 0 the
+/// first whose `flags & 3` is clear, else the pool's size — over the slots in
+/// use, in ascending order, the first number not among them (the sweep
+/// `sweep::objects_add_ammo` holds it to the original's pool).
+pub(crate) fn lowest_free_slot(live: &[u32]) -> u32 {
+    let mut slot = 0;
+    for &q in live {
+        if q == slot {
+            slot += 1;
+        } else {
+            break;
+        }
+    }
+    slot
+}
+
 /// `Ammo::init@0067bbf0+0xcd9` — the landing scatter's **x** draw, the
 /// first of the two a shot spends (`docs/COMBAT.md` §9.1, §9.5).
 ///
@@ -1787,14 +1803,8 @@ impl Sim {
     /// slots 1 and 2, and the first to come down on 683 takes `1/8` while
     /// the second finds it dead and rolls on.
     pub(crate) fn add_ammo(&mut self, mut p: combat::Projectile) {
-        let mut slot = 0;
-        for q in &self.projectiles {
-            if q.slot == slot {
-                slot += 1;
-            } else {
-                break;
-            }
-        }
+        let live: Vec<u32> = self.projectiles.iter().map(|q| q.slot).collect();
+        let slot = lowest_free_slot(&live);
         p.slot = slot;
         let at = self.projectiles.partition_point(|q| q.slot < slot);
         self.projectiles.insert(at, p);

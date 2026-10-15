@@ -979,6 +979,38 @@ pub(crate) fn kill_group_move_steps<C, K: Copy>(
     }
 }
 
+/// `Unit::kill_garrison_order@005e2bd0` once it has its captain, in the
+/// original's own call order (item 2400's sweep,
+/// `crate::sweep::unit_kill_garrison_order`): at each link `get_action`
+/// (`608450`) and its order's type (vslot `+0x10`) against `GARRISON`
+/// (`0x1a`) gate `repath` (`5e29b0`) and `kill_current_order(0)`
+/// (`5e2cb0`) (`5e2c09`-`5e2c2b`); then `o_down` (`+0x90`, signed) below
+/// zero ends the walk (`5e2c3a`), as does a next object whose `+8` bit 0 is
+/// clear (`5e2c60`); else the walk moves to it. The original has no bound
+/// (a cycle of live links never ends); `limit` is the port's own, and the
+/// sweep's chains are acyclic.
+pub(crate) fn kill_garrison_order_steps<C, K: Copy>(
+    cx: &mut C,
+    captain: K,
+    limit: usize,
+    mut is_garrison: impl FnMut(&mut C, K) -> bool,
+    mut repath: impl FnMut(&mut C, K),
+    mut kill_current: impl FnMut(&mut C, K),
+    mut down: impl FnMut(&mut C, K) -> Option<K>,
+) {
+    let mut v = captain;
+    for _ in 0..limit {
+        if is_garrison(cx, v) {
+            repath(cx, v);
+            kill_current(cx, v);
+        }
+        match down(cx, v) {
+            Some(next) => v = next,
+            None => return,
+        }
+    }
+}
+
 /// What `Unit::do_move` reports back to `work`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Did {
@@ -7057,19 +7089,6 @@ impl Sim {
         )
     }
 
-    /// A unit the `0x2400` tiles refuse: sea domain, and an `attack`
-    /// (`ObjectTypeData +0x1e8`) or strictly `is(AIRCRAFTCARRIER)` — the
-    /// test `find_nearby_spot@0061de70` and `UnitData::invalid_loc@
-    /// 00607c30` both make (`docs/ORDERS.md` §25).
-    pub(crate) fn is_warship(&self, u: usize) -> bool {
-        let p = self.profile(Obj::Unit(u));
-        matches!(p.domain, crate::attrition::Domain::Sea)
-            && (p.attack != 0
-                || self.units[u]
-                    .ty
-                    .is_some_and(|t| self.is_aircraft_carrier(t)))
-    }
-
     /// `is(AIRCRAFTCARRIER, 1)` on a unit type — strict, so the type
     /// itself or its graft, never a lineage by `from`. A type the tree
     /// does not carry answers no.
@@ -8059,21 +8078,27 @@ impl Sim {
     /// killed, once. The walk stops at the first link that is not active.
     /// run208's squad goes in on 761 through `0/7`, and `0/8` and `0/9`
     /// go in with their walks and their GARRISONs gone too.
+    ///
+    /// The walk is [`kill_garrison_order_steps`] (item 2400), which the sweep
+    /// `sweep::unit_kill_garrison_order` holds to the original.
     fn kill_garrison_order(&mut self, u: usize) {
-        let mut v = self.captain_of(u);
-        for _ in 0..self.units.len() {
-            if self
-                .action_of(v)
-                .is_some_and(|a| matches!(self.units[v].orders[a].body, Body::Garrison { .. }))
-            {
-                self.repath(v);
-                self.kill_current_order(v);
-            }
-            match self.units[v].o_down {
-                Some(next) if self.units[next].alive() => v = next,
-                _ => return,
-            }
-        }
+        let captain = self.captain_of(u);
+        let limit = self.units.len();
+        kill_garrison_order_steps(
+            self,
+            captain,
+            limit,
+            |s, v| {
+                s.action_of(v)
+                    .is_some_and(|a| matches!(s.units[v].orders[a].body, Body::Garrison { .. }))
+            },
+            |s, v| s.repath(v),
+            |s, v| s.kill_current_order(v),
+            |s, v| match s.units[v].o_down {
+                Some(next) if s.units[next].alive() => Some(next),
+                _ => None,
+            },
+        );
     }
 
     /// `Unit::find_garrison_build`: the city's nearest active building with

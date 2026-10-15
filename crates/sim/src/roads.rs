@@ -625,7 +625,9 @@ impl Sim {
     /// `PathFinder::calc_road_cost@00686300`, read off the listing rather
     /// than the decompiler. Returns the cost and the node's `z_val`; the
     /// draw is the first thing it does, so a frame's draw count is exactly
-    /// its count of nodes costed.
+    /// its count of nodes costed. The arithmetic is [`road_cost_steps`]
+    /// (`sweep::path_finder_calc_road_cost` holds it to the original); this
+    /// reads the world and answers its callees.
     fn calc_road_cost(
         &mut self,
         p: Pos,
@@ -637,96 +639,50 @@ impl Sim {
     ) -> (i32, i32) {
         let t = p.tile();
         self.mark(SITE_COST);
-        // `Random::get(0, 0xffff) % 0x14` — the jitter that makes two roads
-        // between the same two buildings different roads. `removable` is the
-        // original's second accumulator: the part a road step gives back.
-        let jitter = self.rng.roll() % 0x14;
-        let mut removable = jitter;
-        let mut total = jitter + weight::BASE;
-        let m = self.world.tile_mask(t);
-        let mut z_val = 0;
-
-        if m & tile::SURFACE == tile::SURFACE_OCEAN {
-            // Reachable only for a caravan whose `can_transport` admitted
-            // the tile. `avoid_sea` is "both endpoints in one region", and
-            // it is what run64's ocean nodes price at 155 + jitter.
-            //
-            // **Without it, only the step off land pays** (`00686300`, the
-            // `pathfinder +0x8c == 0` arm): `+0xa8` is added when the
-            // **parent's** tile is not ocean, so a crossing between two
-            // regions pays the surcharge once, at the shore, and every sea
-            // tile after it costs the base and the jitter (run413's packet,
-            // `docs/CARAVAN.md` §11).
-            if avoid_sea {
-                total += weight::SEA_AVOIDED;
-            } else if self.world.tile_mask(from.tile()) & tile::SURFACE != tile::SURFACE_OCEAN {
-                total += weight::SEA_ENTER;
-            }
-        } else {
-            let c = Cell::new(t.x.div_euclid(4), t.y.div_euclid(4));
-            let friendly = match self.world.owner(c) {
-                Owner::None => {
-                    total += weight::UNOWNED;
-                    false
+        // `Random::get(0, 0xffff)` — the jitter that makes two roads
+        // between the same two buildings different roads.
+        let roll = self.rng.roll();
+        let c = Cell::new(t.x.div_euclid(4), t.y.div_euclid(4));
+        let owner = match self.world.owner(c) {
+            Owner::None => -1,
+            // The original writes `-2` here and every consumer treats a
+            // negative byte as unowned (`00686438`, `js`).
+            Owner::Ambiguous => -2,
+            Owner::Player(o) => i32::from(o),
+        };
+        let this = &*self;
+        let alliance = |a: Player, b: Player| if this.allied_with(a, b) { 2 } else { 0 };
+        road_cost_steps(
+            &SHIPPED_WEIGHTS,
+            avoid_sea,
+            !dir.is_multiple_of(2),
+            RoadTile {
+                at: (t.x, t.y),
+                mask: this.world.tile_mask(t),
+                parent_mask: this.world.tile_mask(from.tile()),
+                cell_flags: this.world.cell_data(c).flags,
+                owner,
+                parent_z,
+            },
+            (i32::from(who.0), i32::from(who.1)),
+            || roll,
+            // `leaders.list[owner]`'s `who`, its `diplos[who.0]` and the
+            // `leadersc` row's `diplos[owner]`: `2` is an alliance.
+            |o| {
+                let o = Player::try_from(o).expect("an owned cell");
+                Leader {
+                    who: i32::from(o),
+                    fwd: alliance(o, who.0),
+                    back: alliance(who.0, o),
                 }
-                // SEAM: the alliance arm — a cell of an ally at peace with
-                // both ends — is unread; no capture has an ally.
-                Owner::Player(o) if o == who.0 => true,
-                _ => {
-                    total += weight::FOREIGN;
-                    false
-                }
-            };
-            if m & (tile::BAD_PATH | tile::BLOCKED) == tile::BAD_PATH
-                && m & tile::SURFACE != tile::SURFACE_ROAD
-            {
-                total += weight::GROUND;
-            }
-            let d = self.world.cell_data(c);
-            if d.flags & cell::ROCK != 0 {
-                total += weight::ROUGH * 2;
-                removable += weight::ROUGH * 2;
-            }
-            if m & tile::RIVER != 0 {
-                total += weight::ROUGH;
-                removable += weight::ROUGH;
-            }
-            z_val = self.world.tile_z(t).max(0);
-            let climb = (z_val - parent_z.abs()).abs().min(weight::CLIMB);
-            total += climb * 3;
-            removable += climb * 3;
-
-            let on_road = m & tile::SURFACE == tile::SURFACE_ROAD;
-            let ground = if friendly {
-                weight::GROUND >> 3
-            } else {
-                weight::GROUND * 4
-            };
-            if on_road {
-                // The road bonus, and the sign that carries "I am on the
-                // road" to the next node.
-                if parent_z < 0 {
-                    total -= removable;
-                    if friendly {
-                        total /= 2;
-                    }
-                } else {
-                    total += ground;
-                }
-                z_val = -z_val;
-            } else {
-                total += ground;
-            }
-        }
-
-        if !self.road_was_seen(t, who.0) {
-            total *= 2;
-        }
-        if !dir.is_multiple_of(2) {
-            // SEAM: a diagonal, which only a caravan's road expands.
-            total = total * 7 / 5;
-        }
-        (total, z_val)
+            },
+            |a, b| {
+                let player = |x: i32| Player::try_from(x).unwrap_or(Player::MAX);
+                this.is_ally(player(a), player(b))
+            },
+            || this.world.tile_z(t),
+            |_, _| this.road_was_seen(t, who.0),
+        )
     }
 
     /// `WorldData::was_seen@006b53f0` at the tile's fog cell — the one
@@ -740,6 +696,172 @@ impl Sim {
     fn road_was_seen(&self, t: Pos, who: Player) -> bool {
         self.was_seen_fog(t.x >> 1, t.y >> 1, who)
     }
+}
+
+/// The weights `PathFinder+0xa0..` the cost function reads, in the order it
+/// reads them; [`weight`] holds the shipped values.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct RoadWeights {
+    /// `+0xa0`.
+    pub base: i32,
+    /// `+0xa4`.
+    pub sea_avoided: i32,
+    /// `+0xa8`.
+    pub sea_enter: i32,
+    /// `+0xac`.
+    pub foreign: i32,
+    /// `+0xb0`.
+    pub unowned: i32,
+    /// `+0xb4`.
+    pub ground: i32,
+    /// `+0xb8`.
+    pub rough: i32,
+    /// `+0xbc`.
+    pub climb: i32,
+}
+
+/// [`weight`] as the struct the arithmetic takes.
+pub(crate) const SHIPPED_WEIGHTS: RoadWeights = RoadWeights {
+    base: weight::BASE,
+    sea_avoided: weight::SEA_AVOIDED,
+    sea_enter: weight::SEA_ENTER,
+    foreign: weight::FOREIGN,
+    unowned: weight::UNOWNED,
+    ground: weight::GROUND,
+    rough: weight::ROUGH,
+    climb: weight::CLIMB,
+};
+
+/// What the cost function reads of the node's tile.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct RoadTile {
+    /// The tile's coordinates.
+    pub at: (i32, i32),
+    /// Its mask word.
+    pub mask: u16,
+    /// Its parent's mask word.
+    pub parent_mask: u16,
+    /// The cell record's first word (`& 8` is rock).
+    pub cell_flags: u16,
+    /// The cell record's byte `+0xf`, signed: the owner, negative for none.
+    pub owner: i32,
+    /// The parent node's `z_val` (a short; the sign carries "on the road").
+    pub parent_z: i32,
+}
+
+/// `leaders.list[owner]` and the `leadersc` row, as `00686300` reads them.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct Leader {
+    /// `+0x8`, the leader's own player.
+    pub who: i32,
+    /// `diplos[param_2]` of the owner.
+    pub fwd: i32,
+    /// `leadersc.list[param_2].diplos[owner.who]`.
+    pub back: i32,
+}
+
+/// `PathFinder::calc_road_cost@00686300`'s arithmetic, its callees handed
+/// in: `roll` is `Random::get(0, 0xffff)`, the first thing it does;
+/// `leader` reads the owner's records and `is_ally` is
+/// `LeaderData::is_ally@006edb50` (owner, `who.1`); `tile_z` is
+/// `find_tcoord_z`'s answer for a land tile and `seen` is
+/// `WorldData::was_seen` at the half-tile — each called only where the
+/// original calls it. Returns the cost and the node's new `z_val`.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn road_cost_steps(
+    w: &RoadWeights,
+    avoid_sea: bool,
+    diagonal: bool,
+    t: RoadTile,
+    who: (i32, i32),
+    roll: impl FnOnce() -> i32,
+    leader: impl FnOnce(i32) -> Leader,
+    is_ally: impl FnOnce(i32, i32) -> bool,
+    tile_z: impl FnOnce() -> i32,
+    seen: impl FnOnce(i32, i32) -> bool,
+) -> (i32, i32) {
+    let jitter = roll() % 0x14;
+    let mut removable = jitter;
+    let mut total = jitter + w.base;
+    let m = t.mask;
+    let surface = m & tile::SURFACE;
+    let mut z_val = 0;
+
+    if surface == tile::SURFACE_OCEAN {
+        // `avoid_sea` is `pathfinder +0x8c`: with it every ocean tile pays
+        // `+0xa4`; without it only the step off land pays `+0xa8`, when
+        // the **parent's** tile is not ocean (`00686392`).
+        if avoid_sea {
+            total += w.sea_avoided;
+        } else if t.parent_mask & tile::SURFACE != tile::SURFACE_OCEAN {
+            total += w.sea_enter;
+        }
+    } else {
+        // Friendly: the owner is the searcher or its ally both ways, and
+        // an ally of `who.1` (`0068643a`..`00686477`).
+        let mut friendly = false;
+        if t.owner < 0 {
+            total += w.unowned;
+        } else {
+            let l = leader(t.owner);
+            if (who.0 == l.who || (l.fwd == 2 && l.back == 2)) && is_ally(t.owner, who.1) {
+                friendly = true;
+            } else {
+                total += w.foreign;
+            }
+        }
+        if m & (tile::BAD_PATH | tile::BLOCKED) == tile::BAD_PATH && surface != tile::SURFACE_ROAD {
+            total += w.ground;
+        }
+        if t.cell_flags & cell::ROCK != 0 {
+            total += w.rough * 2;
+            removable += w.rough * 2;
+        }
+        if m & tile::RIVER != 0 {
+            total += w.rough;
+            removable += w.rough;
+        }
+        // The height is a short, floored at zero.
+        let z = i32::from(tile_z() as i16).max(0);
+        z_val = z;
+        let climb = (z - i32::from(t.parent_z as i16).abs()).abs().min(w.climb);
+        total += climb * 3;
+        removable += climb * 3;
+
+        let on_road = surface == tile::SURFACE_ROAD;
+        let parent_below = (t.parent_z as i16) < 0;
+        // `ground >> 3`, rounded toward zero (`cdq; and 7; add; sar 3`).
+        let eighth = (w.ground + ((w.ground >> 31) & 7)) >> 3;
+        if !friendly {
+            if on_road {
+                if parent_below {
+                    total -= removable;
+                } else {
+                    total += w.ground * 4;
+                }
+                z_val = -z;
+            } else {
+                total += w.ground * 4;
+            }
+        } else if on_road {
+            if parent_below {
+                total = (total - removable) / 2;
+            } else {
+                total += eighth;
+            }
+            z_val = -z;
+        } else {
+            total += eighth;
+        }
+    }
+
+    if !seen(t.at.0 >> 1, t.at.1 >> 1) {
+        total *= 2;
+    }
+    if diagonal {
+        total = total * 7 / 5;
+    }
+    (total, z_val)
 }
 
 /// `BuildTypeData::connects_to_roads@006398c0`: a gatherer, or a type that

@@ -635,6 +635,90 @@ class Shapes(unittest.TestCase):
         self.assertEqual(ns['token'](0xFFFFFFFF, spans), '-1')
         self.assertEqual(ns['token'](0, spans), '0')
 
+    def test_a_record_may_keep_edx_beside_ecx(self):
+        # Item 2400 (parked 2369): `City::compute_trade` hands `trade_value`
+        # the near end's leader in `edx`, and `--record` kept `ecx` and the
+        # arguments only, so a break that hands over the far end's leader
+        # was compared by no row. `--record-edx` prints `ecx,edx,arg..`.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2400, win=0x20, bias=[], own=0,
+            stubs=['0x402000:1'], record=['0'], record_edx=True, ret='none',
+            port='{ log.push("-".into()); 0 }')
+        compile(script, str(sp), 'exec')
+        self.assertIn('RECORDEDX = True', script)
+        self.assertIn('h.edxs', script)
+        self.assertIn('h.edxs.clear()', script)  # a row's calls are its own
+        self.assertIn('`ecx`, `edx` and arguments', test)
+        # Without the flag the row is as before.
+        _, script2, _, test2, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2400, win=0x20, bias=[], own=0,
+            stubs=['0x402000:1'], record=['0'], ret='none', port='0')
+        self.assertIn('RECORDEDX = False', script2)
+        self.assertNotIn('`edx` and arguments', test2)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2400, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:1'], record_edx=True)
+        hooks = open(sweep_gen.EMU / 'hooks.py').read()
+        self.assertIn('self.edxs.append(', hooks)
+
+    def test_a_circular_list_and_a_slot_answered_from_its_own_ecx(self):
+        # Item 2400 (parked 2369): `Unit::kill_group_move` walks a circular
+        # doubly linked list of orders and asks each order's slots, and both
+        # were hand edits of its script. `--ring` lays each node's `prev` as
+        # its predecessor on the `next` walk from the head; `--ecx-answer`
+        # makes a slot answer from the word at its own `ecx`.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2400, win=0x20, bias=[], own=0, ret='none',
+            stubs=['slot:0x14:0', 'slot:0x94:0'], ecx_answer=['0:8', '1:0x18:0x14'],
+            ring=['m+0xdc:0..3:4:0:0xe90000:0x10'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ECXANSWER = [(0, 8, None), (1, 24, 20)]", script)
+        self.assertIn("RING = [('m', 220, 0, 3, 4, 0, 15269888, 16)]", script)
+        self.assertIn('answers from its own `ecx`', test)
+        self.assertIn('a circular list in `c0..c3`', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0, stubs=['slot:0x14:0'],
+                                   ecx_answer=['1:8'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0, ring=['m+0:3..1:4:0:0:16'])
+        # The ring repair, run on four nodes whose `next` chain wraps the
+        # head: every `prev` is the predecessor, the head's the last node.
+        body = script[script.index('        for hwin, hoff, lo_, hi_, noff, poff, base_, stride_ in RING:'):]
+        body = body[:body.index('        for a_, b in wins:')]
+        import random, textwrap
+        for seed in range(30):
+            mem = bytearray(0x100)
+            c = [bytearray(16) for _ in range(4)]
+            nxt = {0: 2, 2: 1, 1: 3, 3: 0}
+            for k, v in nxt.items():
+                c[k][4:8] = (0xe90000 + 0x10 * v).to_bytes(4, 'little')
+            mem[0xdc:0xe0] = (0xe90000).to_bytes(4, 'little')
+            ns = {'RING': [('m', 0xdc, 0, 3, 4, 0, 0xe90000, 16)], 'mem': mem, 'c': c, 'p': [],
+                  'rng': random.Random(seed), 'i32': lambda w, o: int.from_bytes(w[o:o + 4], 'little', signed=True)}
+            exec(textwrap.dedent(body), ns)
+            prev = {k: (int.from_bytes(c[k][0:4], 'little') - 0xe90000) // 16 for k in range(4)}
+            if prev == {0: 3, 2: 0, 1: 2, 3: 1}:
+                continue
+            # An early stop: one later node's prev is the head.
+            self.assertEqual(sum(v == 0 for v in prev.values()), 2, prev)
+            break
+        else:
+            self.fail('no seed drew the early stop')
+
+    def test_an_iat_stub_may_be_cdecl(self):
+        # Item 2400 (`Objects::add_ammo`): `malloc` is `call [VA]; add esp, 4`,
+        # an `iat` stub whose caller pops its argument; `--stub-cdecl` took
+        # direct callees only.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2400, win=0x20, bias=[], own=0, ret='none',
+            stubs=['iat:0xac54f0:1'], stub_cdecl=['0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('CDECLSTUBS = [0]', script)
+        self.assertIn('h.hooked[sa][:3] + (True,)', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2400, win=0x20, bias=[], own=0,
+                                   stubs=['slot:0x10:0'], stub_cdecl=['0'])
+
     def test_a_stub_may_print_the_bytes_an_argument_points_at(self):
         # Item 2379 (parked 2348): `CommandManager::issue_speed_up` and its
         # siblings hand `add_command` the address of a local `Command` whose
@@ -866,9 +950,8 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[],
                                    stubs=['iat:0xac5460'])
-        with self.assertRaises(ValueError):
-            sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[],
-                                   stubs=['iat:0xac5460:0'], stub_cdecl=['0'])
+        # (Item 2400 lifted the refusal of `--stub-cdecl` on an `iat` stub:
+        # `malloc` is `call [VA]; add esp, 4`; see test_an_iat_stub_may_be_cdecl.)
 
     def test_a_recorded_local_is_named_by_its_depth(self):
         # Item 2336: `MiscAccess::coord_vis@00583aa0` hands its callees the
