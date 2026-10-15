@@ -269,6 +269,9 @@ OWN = {own}
 # A `vtordisp` thunk (`sub ecx, [ecx-4]; jmp target`, item 2362) reads the word
 # before `this`: `this` is laid in the heap with a drawn displacement there.
 VTORDISP = {vtordisp}
+# `--record-order` (item 2672, parked 2666): each call's token is headed `sK:`, K the
+# callee's place in CALLS, so two callees on one `this` are ordered.
+ORDER = {order}
 DISPS = (0, 4, 8, 0x10, 0x1c, 0x58, 0x60, 0x100, -4, -0x60)
 
 
@@ -297,7 +300,9 @@ def main(argv):
         r = h.call(ENTRY, (p0, p1, p2)[:OWN], ecx=this)
         esp = h.m.uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
-        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        idx = {{f"{{a:x}}": k for k, (a, _, _, _) in enumerate(CALLS)}}
+        seen = ";".join((f"s{{idx[nm]}}:" if ORDER else "") + ",".join(str(x) for x in (ecx, *args))
+                        for nm, ecx, args, _ in h.calls)
         print(f"{{this}} {{p0}} {{ans}} {{p1}} {{p2}}{{tail}} -> {{r}} | {{seen}}")
     return 0
 
@@ -325,7 +330,12 @@ fn the_emulated_original_agrees_on_every_row() {{
 {disp}        let calls: Vec<Vec<i64>> = {calls};
         let want: String = calls
             .iter()
-            .map(|c| c.iter().map(i64::to_string).collect::<Vec<_>>().join(","))
+            .enumerate()
+            .map(|(k, c)| {{
+                let _ = k;
+                let t = c.iter().map(i64::to_string).collect::<Vec<_>>().join(",");
+                {wrap}
+            }})
             .collect::<Vec<_>>()
             .join(";");
         assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
@@ -428,7 +438,7 @@ def _fwd_expr(tok):
     return str(int(tok, 0))
 
 
-def generate_fwd(spec, *, item, calls, own=0, ret='none'):
+def generate_fwd(spec, *, item, calls, own=0, ret='none', order=False):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = snake(name)
@@ -453,12 +463,15 @@ def generate_fwd(spec, *, item, calls, own=0, ret='none'):
     script = (SCRIPT_HEAD.format(snake=sn, name=name, va=va, item=item,
                                  what=f'the object; calls {len(calls)} direct callee(s) and returns {ret}')
               + ROWS['const'].split('def rows')[0]
-              + FWD_TAIL.format(calls=repr(cs), own=own, item=item, vtordisp=vtordisp)).replace('\n\n\n\ndef main', '\n\n\ndef main')
+              + FWD_TAIL.format(calls=repr(cs), own=own, item=item, vtordisp=vtordisp, order=order)).replace('\n\n\n\ndef main', '\n\n\ndef main')
     doc = (f'{len(calls)} hooked callee(s), `ecx` and arguments held to the spec, `eax` {ret}.')
     if vtordisp:
         doc += (' `this` is laid in the heap with a drawn displacement at `this-4` (the row\'s sixth'
                 ' figure), and the callee\'s `ecx` is `this` less it.')
+    if order:
+        doc += ' Each call is headed `sK:`, K its callee\'s place in the spec, so the order is held.'
     test = FWD_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
+                           wrap='format!("s{k}:{t}")' if order else 't',
                            disp='        let disp = a[5];\n' if vtordisp else '',
                            calls='vec![' + ', '.join(exprs) + ']', ret=retcode)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
@@ -487,23 +500,33 @@ from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 
 ENTRY = 0x{va:08x}
+ROWS = {rows}
+# `--count-only` (item 2672, parked 2667): a walker called a quarter-million times
+# is one record, `<count> <first> <last> <sum a0> <sum a1>` (sums mod 2**32).
+COUNT_ONLY = {count_only}
 
 
 def main(argv):
     from hooks import Harness
     h = Harness(argv[1], {{}})
     rng = random.Random({item})
-    for _ in range(140):
+    for _ in range(ROWS):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
         ans = rng.randint(-0x80000000, 0x7FFFFFFF)
         vt = h.vtable({{0: ("walk", 2, ans & 0xFFFFFFFF)}})
         walker = h.alloc(16)
         h.w32(walker, vt)
         h.calls.clear()
-        r = h.call(ENTRY, (walker,), ecx=this)
+        r = h.call(ENTRY, (walker,), ecx=this, max_insns=200_000_000 if COUNT_ONLY else 200_000)
         esp = h.m.uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
-        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        if COUNT_ONLY:
+            fmt = lambda c: ",".join(str(x) for x in (c[1], *c[2]))
+            seen = " ".join([str(len(h.calls)), fmt(h.calls[0]), fmt(h.calls[-1]),
+                             str(sum(c[2][0] & 0xFFFFFFFF for c in h.calls) & 0xFFFFFFFF),
+                             str(sum(c[2][1] & 0xFFFFFFFF for c in h.calls) & 0xFFFFFFFF)])
+        else:
+            seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
         print(f"{{this}} {{walker}} -> {{r}} | {{seen}}")
     return 0
 
@@ -529,11 +552,11 @@ fn the_emulated_original_agrees_on_every_row() {{
         let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
         let (this, walker) = (a[0], a[1]);
         let _ = this;
-        let want = format!("{{walker}},{{}},{{}}", {e0}, {e1});
+{want}
         assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
         n += 1;
     }}
-    assert!(n >= 100, "only {{n}} rows");
+    assert!(n >= {least}, "only {{n}} rows");
     eprintln!("{name}@{va:08x}: {{n}} rows agree");
 }}
 '''
@@ -548,13 +571,32 @@ def _walk_expr(tok):
     return f'{int(tok, 0):#x}'  # an absolute address: PathFinder::walk_data hands two globals (item 1916)
 
 
-def generate_walk(spec, *, item, a0, a1):
+WALK_WANT = '''        let want = format!("{{walker}},{{}},{{}}", {e0}, {e1});'''
+WALK_WANT_COUNT = '''        let pairs: Vec<(i64, i64)> = {port}.collect();
+        let fmt = |p: &(i64, i64)| format!("{{walker}},{{}},{{}}", p.0, p.1);
+        let sum = |f: fn(&(i64, i64)) -> i64| pairs.iter().map(|p| f(p) as u32 as u64).sum::<u64>() as u32;
+        let want = format!(
+            "{{}} {{}} {{}} {{}} {{}}",
+            pairs.len(),
+            fmt(&pairs[0]),
+            fmt(pairs.last().unwrap()),
+            sum(|p| p.0),
+            sum(|p| p.1)
+        );'''
+
+
+def generate_walk(spec, *, item, a0, a1, count_only=False, rows=None, port=None):
     name, va = parse(spec)
     sn = snake(name)
     short = name.rsplit('::', 1)[-1]
-    script = WALK_SCRIPT.format(snake=sn, name=name, va=va, item=item, a0=a0, a1=a1)
+    if count_only and not port:
+        raise ValueError('--count-only wants --port, an iterator of the walker\'s `(a0, a1)` pairs (`walker`, `this` in scope)')
+    rows = rows if rows is not None else (3 if count_only else 140)
+    script = WALK_SCRIPT.format(snake=sn, name=name, va=va, item=item, a0=a0, a1=a1, rows=rows, count_only=count_only)
+    want = (WALK_WANT_COUNT.format(port=port) if count_only
+            else WALK_WANT.format(e0=_walk_expr(a0), e1=_walk_expr(a1)))
     test = WALK_TEST.format(snake=sn, name=name, va=va, item=item, short=short, a0=a0, a1=a1,
-                            e0=_walk_expr(a0), e1=_walk_expr(a1))
+                            want=want, least=rows if count_only else 100)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -2778,6 +2820,7 @@ def main(argv=None):
                     help='obj: a vtable slot of this, or a direct callee, answered per row (the answer printed after the arguments)')
     ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
     ap.add_argument('--a0', default='this', help='walk: the first callback argument, `this` or `this+0xNN`')
+    ap.add_argument('--count-only', action='store_true', help='walk: the walker is called a quarter-million times; one record a row (count, first, last, sums), --port an iterator of its (a0, a1) pairs, --rows N rows (default 3) (item 2672, parked 2667)')
     ap.add_argument('--a1', default='this', help='walk: the second callback argument')
     ap.add_argument('--step', action='append', default=[], help='mix: call:ADDR:NARGS:ECX:ARGS | walk:A0:A1 | walk4:OFF, in order; `gated/` prefix')
     ap.add_argument('--glob', type=lambda s: int(s, 0), help='mix: the global cell (the walk4 argument is *(*cell+0x10)+OFF)')
@@ -2877,7 +2920,7 @@ def main(argv=None):
                          'item 2281); `@S` splits them by the row of --sparse table S their `ecx` lies in, a '
                          'token a row and one for the rest (a walk of the leaders table; item 2309)')
     ap.add_argument('--record-order', action='store_true',
-                    help='obj: the --record stubs\' calls one token a call, in the order they were made, each '
+                    help='obj, fwd (each --call, `sK:` its place): the --record stubs\' calls one token a call, in the order they were made, each '
                          'headed `sIDX:` — two argument-less callees on one `ecx` ordered (item 2341, parked 2318)')
     ap.add_argument('--record-edx', action='store_true',
                     help='obj: the --record stubs\' calls carry `edx` after `ecx` (`ecx,edx,arg..`) — a hand-off '
@@ -3032,7 +3075,9 @@ def main(argv=None):
         return 2
     try:
         if args.shape == 'walk':
-            sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1)
+            sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1,
+                                                      count_only=args.count_only,
+                                                      rows=args.rows if args.rows != 220 else None, port=args.port)
         elif args.shape == 'mix':
             sp, script, tp, test, mod = generate_mix(args.function, item=args.item, steps=args.step,
                                                     glob=args.glob, gate=args.gate,
@@ -3073,7 +3118,8 @@ def main(argv=None):
                                                        win=args.win if args.win != 0x400 else 0x200, port=args.port)
         elif args.shape == 'fwd':
             sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
-                                                     own=args.own, ret=args.ret or 'none')
+                                                     own=args.own, ret=args.ret or 'none',
+                                                     order=args.record_order)
         else:
             sp, script, tp, test, mod = generate(args.shape, args.function, item=args.item,
                                                  port=args.port, off=args.off, via=args.via,

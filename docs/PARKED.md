@@ -5898,13 +5898,15 @@ words and edits nothing here; a refill lands when two remain.
 
 (2671) **`BuildData::find_in_queue`'s else arm is not drawn**: with the queue shorter than the queued byte (`i >= [this+0x88]`) the function indexes the types list at -1, a word before the array; the sweep holds the count at 3..4 and the byte at 0..3, so the arm is a port literal with no row. `Units::make_valid` is swept for leader 1 only (`--argrange 0:1:1`: the callback's vtable at one table row), so the `0x1c` row stride is held by one row's address.
 
-## Parked by the next landing, slot EB — reserved
+## Parked by item 2672, 2026-10-15 — the sweep's ninety-fifth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2673) **`stale` and `g` are one value in a `mix` row**: the generated test defines `let stale = g`, so a break that swaps `stale` for `g` in `ObjectType::walk_rules_data`'s second `SimpleArray::walk_data` step passes (the one break of six that did). The real leftover `ecx` after a hooked callee is the callee's own, unknown; the sweep holds the emulator's residue (Loop 2506). A `mix` whose `stale` is a column of its own (drawn apart from `g`) would hold it.
+
+(2674) **Two-vbase `walk_data` forwarders are unbuilt**: `GroupMoveOrder`, `StrafeOrder`, `GroupAttackOrder`, `AirPatrolOrder`, `GroupPatrolOrder`, `AirAttackGroundOrder::walk_data` read a displacement from two different `this[-1]` records (`--vbase` holds one); with `SimpleArray<Coord>::walk_data` steps for the patrol pair. A second `--vbase`/`d2` column is the shape.
+
+(2675) **`City::walk_data` 0x489220** has two gates (`[this+4] & 1`, then `[walker+8] == 0`), `mix` holds one; **`TurnControl::walk_data` 0x956c50** chases `GameAccess::turn_control` and writes `flags = 2` on input; **`Mountains::walk_data` 0x89d320** adds `*(mountains+4)+8` to its four array bases; **`Game::clock_init` 0x588530** calls `timeGetTime` through the IAT cell `0xac5460`, which `--stub` (a direct callee) cannot hook. Each wants a window the generator does not write.
+
+(2676) **`Herds::start_herds` 0x741d10, `Group::equals_group`, `GroupData::get_num_cap_const`, `ObjectData::inside_bottom`, `UnitData::has_damage`** read the objects/units tables through `[0xc0ab84 + 28*who]`-style cells and need a built table of records; no unbacked row short of 800 bytes is both sim and a built shape.
 
 ## Parked by the next landing, slot EC — reserved
 
