@@ -2440,6 +2440,28 @@ def cmd_seh_expand(spec, own):
             'sparse': ['@0xe3a390:0x6eec:4:0,4'], 'argrange': ['1:0:3'], 'port': port}
 
 
+def chain_expand(spec, own, cell_index, pbase):
+    """`--chain CELL:OFF:STRIDE:P:I:N:SIZE` (item 2495, parked 2484):
+    `PathFinder::find_wpath`'s three-level walk -- the global cell CELL
+    points at a record whose word at OFF + STRIDE * a[P] points at a table
+    of N words, whose word at 4 * a[I] points at a SIZE-byte record. The
+    cell's window (`c<cell_index>`) is laid wide enough for N rows, the table
+    and the record are two places (`p<pbase>`, then the next), and both
+    arguments are drawn inside 0..N-1. Returns the flags it stands for."""
+    parts = spec.split(':')
+    if len(parts) != 7:
+        raise ValueError(f'--chain {spec}: want CELL:OFF:STRIDE:P:I:N:SIZE')
+    cell, off, stride = int(parts[0], 0), int(parts[1], 0), int(parts[2], 0)
+    pi, ii, n, size = int(parts[3], 0), int(parts[4], 0), int(parts[5], 0), int(parts[6], 0)
+    if not (0 <= pi < own and 0 <= ii < own and pi != ii) or n < 1:
+        raise ValueError(f'--chain {spec}: P and I name two of the --own arguments, N >= 1')
+    wide = (off + stride * n + 4 + 0xf) & ~0xf
+    return {'cells': [f'{cell:#x}:{wide:#x}'],
+            'place': [f'c{cell_index}+{off:#x}+{stride:#x}*a[{pi}]:0:{4 * n}',
+                      f'p{pbase}+4*a[{ii}]:0:{size:#x}'],
+            'argrange': [f'{pi}:0:{n - 1}', f'{ii}:0:{n - 1}']}
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2607,8 +2629,22 @@ def main(argv=None):
                     help='obj: issue_treaty\'s shape -- a LeaderOut and a leader checked against the image\'s '
                          'leaders table, check_accept_issue, add_command, else an SEH-framed feedback-log arm '
                          '(two Strings, Error::report, two closes) (item 2486, parked 2482)')
+    ap.add_argument('--chain', metavar='CELL:OFF:STRIDE:P:I:N:SIZE',
+                    help='obj: PathFinder::find_wpath\'s three-level walk -- a global cell, a row word picked by '
+                         'argument P, a table word picked by argument I, a SIZE-byte record (item 2495, parked 2484)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
+    if args.chain:
+        try:
+            pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))
+                                        for sp in args.sparse) + len(args.place)
+            x = chain_expand(args.chain, args.own, len(args.cells), pb)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        args.cells = args.cells + x['cells']
+        args.place = args.place + x['place']
+        args.argrange = args.argrange + x['argrange']
     if args.cmd_seh:
         try:
             x = cmd_seh_expand(args.cmd_seh, args.own)

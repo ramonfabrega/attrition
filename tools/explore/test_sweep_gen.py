@@ -1184,6 +1184,22 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.cmd_seh_expand('0x25:13:q:0x1c:0xee12d4:0xaf7008:0xaf7178:0x34:0x20', own=3)
 
+    def test_a_chain_is_a_three_level_pointer_walk_through_a_global_cell(self):
+        # Item 2495 (parked 2484, Loop 2003): `PathFinder::find_wpath` and its
+        # three siblings read `[[[objects + 0x14 + 0x1c*p2] + 4*p3] + 0x10]`.
+        # `--chain CELL:OFF:STRIDE:P:I:N:SIZE`: the cell's window laid wide
+        # enough for N rows, the row word (argument P picks the row) a place
+        # at a table of N words, the table word (argument I picks it) a place
+        # at a SIZE-byte record, and both arguments drawn inside 0..N-1.
+        x = sweep_gen.chain_expand('0xc0618c:0x14:0x1c:1:2:4:0x18', own=3, cell_index=0, pbase=0)
+        self.assertEqual(x['cells'], ['0xc0618c:0x90'])
+        self.assertEqual(x['place'], ['c0+0x14+0x1c*a[1]:0:16', 'p0+4*a[2]:0:0x18'])
+        self.assertEqual(x['argrange'], ['1:0:3', '2:0:3'])
+        y = sweep_gen.chain_expand('0xc0618c:0x14:0x1c:1:2:4:0x18', own=3, cell_index=1, pbase=2)
+        self.assertEqual(y['place'], ['c1+0x14+0x1c*a[1]:0:16', 'p2+4*a[2]:0:0x18'])
+        with self.assertRaises(ValueError):
+            sweep_gen.chain_expand('0xc0618c:0x14:0x1c:1:5:4:0x18', own=3, cell_index=0, pbase=0)
+
     def test_an_ecx_derived_from_this_prints_as_this_plus_its_offset(self):
         # Item 2464 (parked 2455, Loop 2003): `this + 0x28` handed to a callee
         # lies past the `m` window (WIN bytes) and printed as the absolute
