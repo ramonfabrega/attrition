@@ -1022,10 +1022,10 @@ impl Sim {
     /// carried, and nor are the two always-true leader arms above it~~ —
     /// all three carried since item 1558 ([`Sim::world_is_seen_fog`]).
     ///
-    /// SEAM: `is_seen`'s stealth arm above the fog test — `unit_masks`
-    /// `0x800`/`0x1000`, `unit_masks2 0x8000`, the type's
-    /// `0x4000`/`0x40000` and `is_detected` — is not carried. It can only
-    /// *refuse* further.
+    /// The stealth arm above the fog test is [`Sim::unit_stealth_hides`]
+    /// (item 2725, `docs/GOLDEN.md` §101); `unit_masks` `0x800` (not
+    /// modelled, nothing sets it here) and `0x1000` (blown; likewise) are
+    /// the arm's two bits this crate does not carry.
     pub(crate) fn target_is_seen(&self, attacker: Obj, target: Obj) -> bool {
         if !self.world.has_fog() {
             return true;
@@ -1037,12 +1037,46 @@ impl Sim {
         if let Obj::Building(b) = target {
             return self.build_is_seen(b, who);
         }
+        if let Obj::Unit(u) = target
+            && self.unit_stealth_hides(u, who)
+        {
+            return false;
+        }
         if self.world_sees(self.pos_of(target), who) {
             return true;
         }
         // `return (visible >> who) & 1` — the fallback, and the whole of
         // item 457.
         self.visible_of(target) & Self::who_bit(who) != 0
+    }
+
+    /// `UnitData::is_seen@00607a60`'s stealth arm, for `param_2 == 0`:
+    /// answers whether it **refuses** (`return 0`) before the fog test.
+    ///
+    /// ```text
+    /// if (unit_masks & 0x800) || (type flags & 0x4000) || (unit_masks2 & 0x8000)
+    ///    || ((type flags & 0x40000) && get_order() == 0):
+    ///     if !(unit_masks & 0x1000) && !is_detected(who):   return 0
+    /// ```
+    ///
+    /// `UnitData::is_detected@0060a630`: the owner always, else
+    /// `ally_mask(who) & seen3[pos / 0x180]`, the inner disc of a `DETECT`
+    /// object ([`crate::world::World::seen3`]). The viewer is never the
+    /// owner's own side here — `who == owner` is detected.
+    pub(crate) fn unit_stealth_hides(&self, u: usize, who: crate::Player) -> bool {
+        let un = &self.units[u];
+        let Some(t) = un.ty else {
+            return false;
+        };
+        let cols = self.unit_types[t].cols;
+        let stealthy = cols.flag(crate::ai_load::uflags::CLOAKED)
+            || un.unit_masks2 & 0x8000 != 0
+            || (cols.flag(crate::ai_load::uflags::STEALTH) && self.is_idle(u));
+        if !stealthy || who == un.owner || who >= 8 {
+            return false;
+        }
+        let fog = crate::vision::UNITS_PER_FOG;
+        self.world.seen3(un.pos.x / fog, un.pos.y / fog) & self.seen_ally_mask(who) == 0
     }
 
     /// **`BuildData::is_seen@0062e1a0`**, a building target's vslot

@@ -12741,12 +12741,31 @@ left, and the `visible` byte; made to fail with the ever-seen read back.
 (parked 2705). Whether any other unit-pass contributor in the corpus flips on the live read is what the gate's floors
 say; none moved.
 
-## 101. Reserved for the next item on the rules track
+## 101. `UnitData::is_seen`'s stealth arm and the `seen3` plane — built, no walk holds it
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2725 (Claude Sonnet 5.5, `--effort medium`), the disk only, no capture (run 877 unused). **What the listing says**
+(`is_seen@00607a60`, `is_detected@0060a630`, read): with `param_2 == 0`, a unit whose `unit_masks & 0x800`, or whose type
+carries `0x4000` (`FLAGS o`, "cloaked": the Spy, Fouché, the Submarines), or `unit_masks2 & 0x8000`, or whose type carries
+`0x40000` (`FLAGS s`, "stealth, cloaked when not moving": the Explorer, the Commando and Special Forces lines, the Takohs,
+Akweks and Okwari, Guerilla Fighters) **and has no order**, answers 0 to a viewer that is not its owner unless
+`unit_masks & 0x1000` (blown) or `is_detected(viewer)`: the viewer's ally mask (`LeaderData +0x6929`) `&` `WorldData::seen3`
+at the unit's half-cell. The fog test follows only on a pass. `seen3` (`World +0x164`) is written by `World::set_seen`'s
+`param_4`, which `Object::update_seen@00651b80` passes for the whole written range of an object whose `ObjectData` flag
+`0x40` is set — `Object::init@00647750` sets it for a type with objmask `Z` (`DETECT`, `combat::mask::DETECT`): the Scouts,
+Explorers, Commandos, Special Forces, ships, helicopters. It is cleared with `seen` (`update_all_seen`).
+
+**Built**: `World::fog_detect`/`set_seen3`/`seen3` (cleared by `clear_seen`), `write_sweep`'s `detect` argument (units only),
+`uflags::CLOAKED`/`STEALTH`, `Sim::unit_stealth_hides`, read by `danger_unit_is_seen` (a who=1 scout's `calc_danger`) and
+`target_is_seen` (every fog-gated target search); the SEAMs on both are struck. **Test**:
+`danger::tests::a_stealth_unit_is_hidden_until_a_detector_s_disc_covers_it` — an idle `s` unit and an `o` unit hidden through
+a lit cell, the owner and the plain control not, seen once a `DETECT` unit's `update_seen` covers the cell, hidden again
+after `clear_seen`.
+
+**What is not established**: no capture stages a stealth unit under `calc_danger`, so the arm is listing-backed, not
+diff-backed. The dump's WORLD block prints `seen3[scan]` (run875: 63 cells of bit 1, 63 of bit 2) and `rondata` parses
+no such key, so the plane's value is unchecked — a quiet field (parked 2727). Not carried: `unit_masks & 0x800` and
+`0x1000` (nothing here sets either), a **building** with a `DETECT` objmask writing `seen3`, and `seen3`'s ring-pass cutoff
+above radius 31 (unreachable). `get_order() == 0` is taken as an empty order list (`is_idle`).
 
 ## 102. Reserved for the next item on the rules track
 
