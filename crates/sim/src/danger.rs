@@ -172,12 +172,6 @@ impl crate::Sim {
     /// `seen` is the object's own `is_seen(viewer)`, which only the enemy
     /// arm reads.
     fn do_danger(&mut self, seen: bool, owner: Player, viewer: Player, idx: i32, value: i32) {
-        if std::env::var("RON_PROBE_2703").is_ok()
-            && viewer == 1
-            && idx == 12 * self.world.reg_xs() + 24
-        {
-            eprintln!("PROBE2703 danger f{} owner {} viewer {} value {} seen {} diplo {}", self.frame, owner, viewer, value, seen, self.diplo(owner, viewer));
-        }
         if viewer == owner {
             self.world.add_danger(viewer, idx, -value);
             return;
