@@ -2202,6 +2202,8 @@ mod tests {
         ("chapter72.cmd", &[]),
         // Chapter seventy-three: a wonder finished on a human (item 2474, `docs/GOLDEN.md` §90).
         ("chapter73.cmd", &[]),
+        // Chapter seventy-four: `finish` on a Library queue (item 2500).
+        ("chapter74.cmd", &[]),
         // Chapter seven's control, the same file less `0 !ai off` (item 578).
         ("chapter7_control.cmd", &[]),
         // Chapter seven-b: the same five for who=1, and its control (item 628).

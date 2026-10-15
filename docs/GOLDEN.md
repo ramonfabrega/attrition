@@ -12400,7 +12400,7 @@ production counter here, and a carrier is beyond map 14's three-line staging (a 
 held-head path is unit-tested only, parked 2503), `Build::do_queue@0061e410` on a research head; the count is the
 commander's pin.
 
-**What is not established.** The held head (parked 2503), the unit arm (parked 2501), the `0x1b3` library redirect from
+**What is not established.** The held head (parked 2503), the unit arm (parked 2501), the library type test's redirect from
 a non-first library (the code redirects; no capture has two libraries). The battery (576 / 6566 / 2974) is on the gate's
 tail below.
 
