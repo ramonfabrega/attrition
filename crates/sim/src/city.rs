@@ -3137,7 +3137,10 @@ impl Sim {
         bd.constr_time = old.constr_time;
         bd.construct_hits = old.construct_hits;
         bd.damage = old.damage;
-        bd.damage_frac = old.damage_frac;
+        // Not `damage_frac`: `swap_team` copies `+0x24` and `+0x3a` and
+        // leaves `+0x3b` the new record's 0 (`docs/AI.md` §230; run676's
+        // Napata `1/2086`, captured at its ceiling with a fraction of 2,
+        // prints 0).
         bd.founder = old.founder;
         bd.recharging = old.recharging;
         bd.clock = old.clock;

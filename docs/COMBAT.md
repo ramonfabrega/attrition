@@ -13378,8 +13378,9 @@ down with no draw from the game's stream.
   `sin_table` drift), `rolling`, `check_hit` when it comes down. No draw
   from the game's stream follows it on run404.~~ **Laid by item 2609**
   (`docs/AI.md` §228): its fall, landing, drift, bank and early landing,
-  diff-backed on run405's two crashes. Its `do_damage` when it comes down
-  is still a SEAM.
+  diff-backed on run405's two crashes. ~~Its `do_damage` when it comes down
+  is still a SEAM.~~ **Built by item 2677** (`docs/AI.md` §230): a
+  two-tile splash, diff-backed on run405's 1036 and run866's capital.
 - **`is_flying_high` in `valid_target`'s ladder**: this crate still reads
   every plane as high there (§61). run404's Infantry never weighed a low
   Bomber; run405 enters both functions on 730, from a search whose

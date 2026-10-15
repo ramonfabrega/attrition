@@ -16503,14 +16503,12 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
 /// strikes' re-targets agree. Item 1200 took 36 → 30: the Battery's own
 /// wounds from 940 agree once a unit type's `guy_radius` is its
 /// `block_radius` (`UnitType::init@0061ab50:753`), the splash's inner
-/// radius the loader had left at 0.
+/// radius the loader had left at 0. Item 2677 took six more: `init_crash`
+/// does write `splash_area` (`+0x30 = 2`), and the two crash rounds strike
+/// where they come down (`docs/AI.md` §230), so both rounds' `splash_area`
+/// and the Barracks' and the Radar's `damage` and `damage_frac` on 1036
+/// agree.
 const WANT_CH38: &[&str] = &[
-    "1007 0/6 ammo[1].splash_area",
-    "1020 0/7 ammo[2].splash_area",
-    "1036 1/2006 build:damage",
-    "1036 1/2006 build:damage_frac",
-    "1036 1/2007 build:damage",
-    "1036 1/2007 build:damage_frac",
     "619 1/2007 build:constr_time",
     "743 1/9 g.des_turret0[0]",
     "743 1/9 g.turret0[0]",

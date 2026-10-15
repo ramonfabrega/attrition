@@ -7087,6 +7087,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // And run866 (item 2554): the word 5135's window, 1673 reads; 1678
     // with item 2609's crash rounds reading the ground.
     ("run866_s_word_frame_is_widened_whole", 1678),
+    // And run867 (item 2677): the word 5407's window, 1699 reads.
+    ("run867_s_word_frame_is_widened_whole", 1699),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -7268,10 +7270,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // run861 window: 1552, as that window's own; 1553 with item 2491's
     // President arm, as that window's own. Item 2554's run866 window: 1673,
     // as that window's own; 1678 with item 2609's crash round, as run866's
-    // own walk.
+    // own walk. Item 2677's run867 window: 1699, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        1678,
+        1699,
     ),
 ];
 
@@ -9336,14 +9338,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // with the crash round's held slot, both in the same window (blocks
     // 5226 and 5316). **Item 2638 moved it 5315 → 5407** with `move_step`'s
     // snap-arm tile refusal, past run866's last block (5385): run866's test
-    // keeps 5315's value diff (block 5316), and 5407's widening is owed by
-    // parked 2656.
+    // keeps 5315's value diff (block 5316), and 5407 is widened on run867
+    // over 5401..5657 (block 5408, item 2677). **Item 2677 moved it 5407 →
+    // 5476** with the crash round's strike, in the same window (block
+    // 5477).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        None,
+        Some("run867_s_word_frame_is_widened_whole"),
         2656,
-        None,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_5407),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
