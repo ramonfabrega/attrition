@@ -20770,9 +20770,9 @@ shape (parked 2411, 2424). It parts with or without this build and is not on thi
 
 The open list is LIFO on equal values: `Tree::ordered_insert@004796f0` sends an equal key left, and
 `first_open_node` takes the leftmost. Read again here; `docs/PATHFINDER.md` §2.1 had it right. So ours expands
-the newer node, `(11904, 19584)`, and `path[11]` is that cell. `get_estimate@00688310`'s listing confirms
-`vector_dist(|Δx|, |Δy|) × 60 / step` with the node's own coordinates (`688313`..`68832f`), so the heuristic is
-not where the two sides part.
+the newer node, `(11904, 19584)`, and `path[11]` is that cell. The heuristic is `astar_path`'s inline
+`vector_dist × 60 / step` (the decompile's lines 890–895; the out-of-line estimate has no caller). Its
+operands were not read in the listing here. The packet below accounts for the flip without them.
 
 **The term** (`PathFinder::calc_cost@00684e50`, the decompile's lines 411–420). After fleeing's triple, on the
 world-seen and tile branches, the original adds **500** when all of these hold:
