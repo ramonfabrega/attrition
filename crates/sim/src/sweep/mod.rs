@@ -954,6 +954,7 @@ mod unit_must_walk;
 mod unit_on_duty;
 mod unit_order_is_move_attack;
 mod unit_order_walk_data;
+mod unit_out_issue_come_out;
 mod unit_out_issue_unqueue;
 mod unit_repath;
 mod unit_set_ai_control;
