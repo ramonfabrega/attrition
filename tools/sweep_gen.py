@@ -1967,8 +1967,13 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         retcode = f'        assert_eq!(got & 0xff, want_eax & 0xff, "{short} — al, row `{{line}}`");'
     elif ret in ('eax', 'xmm0'):
         retcode = f'        assert_eq!(got, want_eax, "{short} — eax, row `{{line}}`");'
+    elif ret.startswith('arg:') and ret[4:].isdigit() and int(ret[4:]) < own:
+        # An out-pointer returned (the inlined `String` constructors, parked 2594, item 2604):
+        # eax is argument N, whatever the buffer's address; the stores are the windows' bytes after.
+        retcode = (f'        assert_eq!(want_eax, i64::from(a[{int(ret[4:])}]), "{short} — eax is the out-pointer, row `{{line}}`");\n'
+                   '        let _ = got;')
     else:
-        raise ValueError(f'obj --ret is eax, xmm0, al or none, not {ret!r}')
+        raise ValueError(f'obj --ret is eax, xmm0, al, none or arg:N (N a stack argument), not {ret!r}')
     pcells = [_window(c, 0x400) for c in cells]
     pat = [_window(t, None) for t in at]
     if any(size is None for _, size in pat):
