@@ -14,17 +14,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-15, **the thirty-fifth pass is done** (`docs/audit/2026-10-15-fable-pass-35.md`, DECISIONS 72): 22
 landings in 6 h 17, 4.18 USD and 33.6 minutes waiting a landing on three lanes (Opus 5.5 medium on the AI word
-8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 14 landings.***
+8.33, Sonnet 5.5 medium on the rules track 3.27 and the sweep 2.80). **Thirty-sixth tranche: 15 landings.***
 
-- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 5135, the open word.
+- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 1984 → 5225, the open word.
   Chapters 71–76 closed; 69 built, 70 surveyed. Census 894 → 1052. Battery 576 / 6566 / 2974, unmoved an eleventh tranche.
 - **Gates (DECISIONS 72)**: a lane's gate widens when its branch can move a pin (2415, no suite run before it,
   2409); the booking gate is `--scope <last whole gate's tip> --test-threads 8`, whole every third landing and at
   the drain. **When the peace pair closes, the AI word's successor is the battery's lowest lobby**
   (EastIndiesGermanTier3, 576 of 13519), a new held-out lobby minted beside it.
-- **Lanes: three live** (DECISIONS 72): 2554 (AI §227, DM, runs 866–867), 2598 (GOLDEN §96, DQ, run 872), 2604
-  (DR). Next 2609, run 873 (Astra holds 900–909). Pools: GOLDEN §97–101, AI §228–230, park DS–DW.
-- **Fable backlog: 22 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525, 2527, 2542, 2552, 2577, 2578, 2599).
+- **Lanes: three live** (DECISIONS 72): 2609 (AI §228, DS, runs 867, 873), 2598 (GOLDEN §96, DQ, run 872), 2604
+  (DR). Next 2615, run 874 (Astra holds 900–909). Pools: GOLDEN §97–101, AI §229–234, park DT–DW.
+- **Fable backlog: 23 Loop items** (1570, 1725, 2003, 2405, 2406, 2408, 2410, 2418, 2422, 2435, 2459, 2505, 2506, 2518, 2524, 2525, 2527, 2542, 2552, 2577, 2578, 2599, 2610).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -32,32 +32,32 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Peace pair: EastIndiesLakotaPeace w5135 of 6,822
+Peace pair: EastIndiesLakotaPeace w5225 of 6,822
 Census: simulation backed 1052 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-sixth tranche continues (commander, Opus), cleared at its tenth landing: lanes live are
-2554 (Opus 5.5 medium), 2598 and 2604 (Sonnet 5.5 medium) — re-arm `tools/lanewait.py att-2554 att-2598
-att-2604` first; merge, book, spawn, gate, push, reap; the last whole gate ran on `b24b3a60`; count landings from
+2609 (Opus 5.5 medium), 2598 and 2604 (Sonnet 5.5 medium) — re-arm `tools/lanewait.py att-2609 att-2598
+att-2604` first; merge, book, spawn, gate, push, reap; the last whole gate ran on the 2554 booking; count landings from
 `git log 054d603c..`, stop at twenty and clear `steer` into the pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2554 the AI word's (Opus), 2598 the rules track's and 2604
+2609 the AI word's (Opus), 2598 the rules track's and 2604
 the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2554. **The peace pair's word 5135: ours 24 draws, theirs 32, index
-    4** (2526; ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`,
-    theirs `Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a`,
-    eight in a row). Past run861's last block (5109): no East Indies
-    dump of the lobby holds it, so the word's widening is a capture — blocks
-    5129..5385 at the long's detail, 5136 the word's own; `WIDENINGS`
-    names this row until it lands. Runs 866–867. AI §227.
+2609. **The peace pair's word 5225: ours 24 draws, theirs 23, index
+    22** (2554; ours one more `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+    theirs `Guy::set_anim+0x104b`). Inside run866's window (5129..5386),
+    so the word's widening is block 5226 on disk — every record, both
+    directions, the `WIDENINGS` row naming it. Past it on run866: 2579's
+    `cost[1]` on 5183 and 2553's air `queue[*].cost` on 5383 (`1/2005`,
+    ours 106/112, theirs 56/62). Runs 867, 873. AI §228.
 
 2598. **Chapter seventy-seven: the Porcelain Tower's ship arm held on
     a human** (DECISIONS 56 §3; 2572 closed seventy-six at 2100,

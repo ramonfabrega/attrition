@@ -3774,6 +3774,11 @@ argument; 2572 prefixed `waitrun.sh` with `timeout`, which is not installed here
 reported "completed" with run871 still capturing. Candidate: the clause names the tool argument ("the Bash tool's
 `timeout: 3600000`"), and `waitrun.sh` refuses to start under a non-existent wrapper. One reach.
 
+(2610) **`RON_DEBUG_ARMIES` names a group order's army in one run** (2554's "for the Loop" line, filed at its
+merge). The dump prints no army record; 2554's word was one group order's ring walk (`Group::action_attack`), and
+the probe named the army, its target and its leader in one run. Candidate: the brief's step 2 names it beside
+`RON_STACKS` when a word's draws sit under a `Group::` caller. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
 Loop 2003's reaches from here on are filed below its own row (its section is at the size ceiling, 16 kB):
