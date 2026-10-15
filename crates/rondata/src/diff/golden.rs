@@ -14914,6 +14914,215 @@ fn chapter_seventy_eight_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch78: what parts under the word moved");
 }
 
+/// **Chapter seventy-nine** (item 2649, `docs/GOLDEN.md` §98, run875): a
+/// Biplane flown from an Airbase, patrolling and then striking a Barracks.
+#[test]
+fn chapter_seventy_nine_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch79", "chapter79", 79, 7, 1500) else {
+        return;
+    };
+    eprintln!(
+        "chapter seventy-nine: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    pin_eq!(
+        w.word,
+        GOLDEN_WORD_CHAPTER_SEVENTY_NINE,
+        "chapter seventy-nine's golden word moved; re-pin it here and say so in docs/GOLDEN.md §98"
+    );
+}
+
+/// **run875 whole, both directions** (item 2649, `docs/GOLDEN.md` §98).
+#[test]
+fn chapter_seventy_nine_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch79",
+        "chapter79",
+        WIDENING_CHAPTER_SEVENTY_NINE,
+        1393,
+        0,
+        (1392, 1397),
+        false,
+        92,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch79 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch79: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH79.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch79: what parts under the word moved");
+}
+
+const WANT_CH79: &[&str] = &[
+    "1394 1/0 order:move.x",
+    "1394 1/0 order:move.y",
+    "1394 1/0 orders_x",
+    "1394 1/0 orders_y",
+    "1394 1/0 path:length",
+    "1394 1/0 path[0].to",
+    "1394 1/0 path[1].to",
+    "1405 0/0 g.cur_anim[0]",
+    "1405 0/0 g.cur_anim[1]",
+    "1405 0/0 g.end_time[0]",
+    "1418 1/0 angle:Facing",
+    "1418 1/0 angle:Heading",
+    "1418 1/0 g.angle[0]",
+    "1418 1/0 g.des_angle[0]",
+    "1418 1/0 g.des_angle[1]",
+    "1418 1/0 heading",
+    "1418 1/0 order:move.dest_x",
+    "1418 1/0 order:move.dest_y",
+    "1418 1/0 tolerance",
+    "1438 1/0 g.angle[1]",
+    "1438 1/0 g.des_x[1]",
+    "1438 1/0 g.x[1]",
+    "1440 1/0 g.des_y[1]",
+    "1440 1/0 g.y[1]",
+    "1449 1/0 g.des_y[0]",
+    "1449 1/0 g.y[0]",
+    "1449 1/0 order:move.dest",
+    "1449 1/0 pos",
+    "1450 1/0 g.avg_speed[1]",
+    "1450 1/0 g.des_x[0]",
+    "1450 1/0 g.last_speed[1]",
+    "1450 1/0 g.x[0]",
+    "1452 1/0 g.last_speed[0]",
+    "1454 0/3 order:move.off_x",
+    "1454 0/3 order:move.off_y",
+    "1454 0/3 order:move.x",
+    "1454 0/3 order:move.y",
+    "1454 0/3 orders_x",
+    "1454 0/3 orders_y",
+    "1455 0/3 dest_angle",
+    "1455 0/3 g.angle[0]",
+    "1455 0/3 g.avg_speed[0]",
+    "1455 0/3 g.cur_anim[0]",
+    "1455 0/3 g.cur_time[0]",
+    "1455 0/3 g.des_angle[0]",
+    "1455 0/3 g.des_x[0]",
+    "1455 0/3 g.des_y[0]",
+    "1455 0/3 g.end_time[0]",
+    "1455 0/3 g.last_speed[0]",
+    "1455 0/3 g.last_time[0]",
+    "1455 0/3 g.stopped[0]",
+    "1455 0/3 g.x[0]",
+    "1455 0/3 g.y[0]",
+    "1455 0/3 heading",
+    "1455 0/3 mirror",
+    "1455 0/3 order:kind",
+    "1455 0/3 order:length",
+    "1455 0/3 orders.len",
+    "1455 0/3 path:length",
+    "1455 0/3 pos",
+    "1456 0/3 order:flags",
+    "1456 0/3 order:move.dest",
+    "1458 0/3 order:move.angle",
+    "1458 1/0 g.avg_speed[0]",
+    "1458 1/0 order:length",
+    "1458 1/0 orders.len",
+    "1459 0/3 order:move.dest_x",
+    "1459 0/3 order:move.dest_y",
+    "1459 0/3 path[0].to",
+    "1459 0/4 dest_angle",
+    "1459 0/4 order:move.angle",
+    "1459 0/4 order:move.off_x",
+    "1459 0/4 order:move.off_y",
+    "1459 0/4 order:move.x",
+    "1459 0/4 order:move.y",
+    "1459 0/4 orders_x",
+    "1459 0/4 orders_y",
+    "1459 1/0 dest_angle",
+    "1459 1/0 g.cur_time[0]",
+    "1459 1/0 g.cur_time[1]",
+    "1459 1/0 g.last_time[0]",
+    "1459 1/0 g.last_time[1]",
+    "1459 1/0 idle",
+    "1459 1/0 order:move.angle",
+    "1459 1/0 order:move.facing",
+    "1460 0/4 g.angle[0]",
+    "1460 0/4 g.des_angle[0]",
+    "1460 0/4 g.des_x[0]",
+    "1460 0/4 g.des_y[0]",
+    "1460 0/4 g.last_speed[0]",
+    "1460 0/4 g.x[0]",
+    "1460 0/4 g.y[0]",
+    "1460 0/4 heading",
+    "1460 0/4 order:move.dest_x",
+    "1460 0/4 order:move.dest_y",
+    "1460 0/4 path[0].to",
+    "1460 0/4 pos",
+    "1460 1/0 g.cur_anim[1]",
+    "1460 1/0 mirror",
+    "1463 0/4 g.avg_speed[0]",
+    "1466 0/0 g.cur_time[0]",
+    "1466 0/0 g.cur_time[1]",
+    "1466 0/0 g.last_time[0]",
+    "1473 1/4 dest_angle",
+    "1473 1/4 order:move.angle",
+    "1473 1/4 order:move.off_x",
+    "1473 1/4 order:move.off_y",
+    "1473 1/4 order:move.x",
+    "1473 1/4 order:move.y",
+    "1473 1/4 orders_x",
+    "1473 1/4 orders_y",
+    "1474 1/4 collide_o",
+    "1474 1/4 collide_who",
+    "1474 1/4 g.angle[0]",
+    "1474 1/4 g.avg_speed[0]",
+    "1474 1/4 g.cur_anim[0]",
+    "1474 1/4 g.cur_time[0]",
+    "1474 1/4 g.des_angle[0]",
+    "1474 1/4 g.des_x[0]",
+    "1474 1/4 g.des_y[0]",
+    "1474 1/4 g.end_time[0]",
+    "1474 1/4 g.last_speed[0]",
+    "1474 1/4 g.last_time[0]",
+    "1474 1/4 g.stopped[0]",
+    "1474 1/4 g.x[0]",
+    "1474 1/4 g.y[0]",
+    "1474 1/4 heading",
+    "1474 1/4 mirror",
+    "1474 1/4 order:kind",
+    "1474 1/4 order:length",
+    "1474 1/4 orders.len",
+    "1474 1/4 path:length",
+    "1474 1/4 pos",
+    "1475 1/4 order:flags",
+    "1475 1/4 order:move.dest",
+    "1476 1/4 order:move.dest_x",
+    "1476 1/4 order:move.dest_y",
+    "1476 1/4 path[0].to",
+    "1482 0/4 order:kind",
+    "1482 0/4 order:length",
+    "1482 0/4 orders.len",
+    "1482 0/4 path:length",
+    "1483 0/4 g.cur_time[0]",
+    "1483 0/4 g.last_time[0]",
+    "1484 0/4 g.cur_anim[0]",
+    "1484 0/4 g.end_time[0]",
+    "1484 0/4 g.stopped[0]",
+    "600 0/0 form",
+    "600 0/1 form",
+    "600 0/2 form",
+    "600 0/3 form",
+    "600 0/4 form",
+    "600 0/5 form",
+    "600 1/1 form",
+    "600 1/2 form",
+    "600 1/3 form",
+    "600 1/4 form",
+    "600 1/5 form",
+];
+
 const WANT_CH78: &[&str] = &[
     "600 0/0 form",
     "600 0/1 form",

@@ -269,6 +269,9 @@ OWN = {own}
 # A `vtordisp` thunk (`sub ecx, [ecx-4]; jmp target`, item 2362) reads the word
 # before `this`: `this` is laid in the heap with a drawn displacement there.
 VTORDISP = {vtordisp}
+# `--record-order` (item 2672, parked 2666): each call's token is headed `sK:`, K the
+# callee's place in CALLS, so two callees on one `this` are ordered.
+ORDER = {order}
 DISPS = (0, 4, 8, 0x10, 0x1c, 0x58, 0x60, 0x100, -4, -0x60)
 
 
@@ -297,7 +300,9 @@ def main(argv):
         r = h.call(ENTRY, (p0, p1, p2)[:OWN], ecx=this)
         esp = h.m.uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
-        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        idx = {{f"{{a:x}}": k for k, (a, _, _, _) in enumerate(CALLS)}}
+        seen = ";".join((f"s{{idx[nm]}}:" if ORDER else "") + ",".join(str(x) for x in (ecx, *args))
+                        for nm, ecx, args, _ in h.calls)
         print(f"{{this}} {{p0}} {{ans}} {{p1}} {{p2}}{{tail}} -> {{r}} | {{seen}}")
     return 0
 
@@ -325,7 +330,12 @@ fn the_emulated_original_agrees_on_every_row() {{
 {disp}        let calls: Vec<Vec<i64>> = {calls};
         let want: String = calls
             .iter()
-            .map(|c| c.iter().map(i64::to_string).collect::<Vec<_>>().join(","))
+            .enumerate()
+            .map(|(k, c)| {{
+                let _ = k;
+                let t = c.iter().map(i64::to_string).collect::<Vec<_>>().join(",");
+                {wrap}
+            }})
             .collect::<Vec<_>>()
             .join(";");
         assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
@@ -428,7 +438,7 @@ def _fwd_expr(tok):
     return str(int(tok, 0))
 
 
-def generate_fwd(spec, *, item, calls, own=0, ret='none'):
+def generate_fwd(spec, *, item, calls, own=0, ret='none', order=False):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = snake(name)
@@ -453,12 +463,15 @@ def generate_fwd(spec, *, item, calls, own=0, ret='none'):
     script = (SCRIPT_HEAD.format(snake=sn, name=name, va=va, item=item,
                                  what=f'the object; calls {len(calls)} direct callee(s) and returns {ret}')
               + ROWS['const'].split('def rows')[0]
-              + FWD_TAIL.format(calls=repr(cs), own=own, item=item, vtordisp=vtordisp)).replace('\n\n\n\ndef main', '\n\n\ndef main')
+              + FWD_TAIL.format(calls=repr(cs), own=own, item=item, vtordisp=vtordisp, order=order)).replace('\n\n\n\ndef main', '\n\n\ndef main')
     doc = (f'{len(calls)} hooked callee(s), `ecx` and arguments held to the spec, `eax` {ret}.')
     if vtordisp:
         doc += (' `this` is laid in the heap with a drawn displacement at `this-4` (the row\'s sixth'
                 ' figure), and the callee\'s `ecx` is `this` less it.')
+    if order:
+        doc += ' Each call is headed `sK:`, K its callee\'s place in the spec, so the order is held.'
     test = FWD_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
+                           wrap='format!("s{k}:{t}")' if order else 't',
                            disp='        let disp = a[5];\n' if vtordisp else '',
                            calls='vec![' + ', '.join(exprs) + ']', ret=retcode)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
@@ -487,23 +500,33 @@ from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 
 ENTRY = 0x{va:08x}
+ROWS = {rows}
+# `--count-only` (item 2672, parked 2667): a walker called a quarter-million times
+# is one record, `<count> <first> <last> <sum a0> <sum a1>` (sums mod 2**32).
+COUNT_ONLY = {count_only}
 
 
 def main(argv):
     from hooks import Harness
     h = Harness(argv[1], {{}})
     rng = random.Random({item})
-    for _ in range(140):
+    for _ in range(ROWS):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
         ans = rng.randint(-0x80000000, 0x7FFFFFFF)
         vt = h.vtable({{0: ("walk", 2, ans & 0xFFFFFFFF)}})
         walker = h.alloc(16)
         h.w32(walker, vt)
         h.calls.clear()
-        r = h.call(ENTRY, (walker,), ecx=this)
+        r = h.call(ENTRY, (walker,), ecx=this, max_insns=200_000_000 if COUNT_ONLY else 200_000)
         esp = h.m.uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
-        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        if COUNT_ONLY:
+            fmt = lambda c: ",".join(str(x) for x in (c[1], *c[2]))
+            seen = " ".join([str(len(h.calls)), fmt(h.calls[0]), fmt(h.calls[-1]),
+                             str(sum(c[2][0] & 0xFFFFFFFF for c in h.calls) & 0xFFFFFFFF),
+                             str(sum(c[2][1] & 0xFFFFFFFF for c in h.calls) & 0xFFFFFFFF)])
+        else:
+            seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
         print(f"{{this}} {{walker}} -> {{r}} | {{seen}}")
     return 0
 
@@ -529,11 +552,11 @@ fn the_emulated_original_agrees_on_every_row() {{
         let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
         let (this, walker) = (a[0], a[1]);
         let _ = this;
-        let want = format!("{{walker}},{{}},{{}}", {e0}, {e1});
+{want}
         assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
         n += 1;
     }}
-    assert!(n >= 100, "only {{n}} rows");
+    assert!(n >= {least}, "only {{n}} rows");
     eprintln!("{name}@{va:08x}: {{n}} rows agree");
 }}
 '''
@@ -548,13 +571,32 @@ def _walk_expr(tok):
     return f'{int(tok, 0):#x}'  # an absolute address: PathFinder::walk_data hands two globals (item 1916)
 
 
-def generate_walk(spec, *, item, a0, a1):
+WALK_WANT = '''        let want = format!("{{walker}},{{}},{{}}", {e0}, {e1});'''
+WALK_WANT_COUNT = '''        let pairs: Vec<(i64, i64)> = {port}.collect();
+        let fmt = |p: &(i64, i64)| format!("{{walker}},{{}},{{}}", p.0, p.1);
+        let sum = |f: fn(&(i64, i64)) -> i64| pairs.iter().map(|p| f(p) as u32 as u64).sum::<u64>() as u32;
+        let want = format!(
+            "{{}} {{}} {{}} {{}} {{}}",
+            pairs.len(),
+            fmt(&pairs[0]),
+            fmt(pairs.last().unwrap()),
+            sum(|p| p.0),
+            sum(|p| p.1)
+        );'''
+
+
+def generate_walk(spec, *, item, a0, a1, count_only=False, rows=None, port=None):
     name, va = parse(spec)
     sn = snake(name)
     short = name.rsplit('::', 1)[-1]
-    script = WALK_SCRIPT.format(snake=sn, name=name, va=va, item=item, a0=a0, a1=a1)
+    if count_only and not port:
+        raise ValueError('--count-only wants --port, an iterator of the walker\'s `(a0, a1)` pairs (`walker`, `this` in scope)')
+    rows = rows if rows is not None else (3 if count_only else 140)
+    script = WALK_SCRIPT.format(snake=sn, name=name, va=va, item=item, a0=a0, a1=a1, rows=rows, count_only=count_only)
+    want = (WALK_WANT_COUNT.format(port=port) if count_only
+            else WALK_WANT.format(e0=_walk_expr(a0), e1=_walk_expr(a1)))
     test = WALK_TEST.format(snake=sn, name=name, va=va, item=item, short=short, a0=a0, a1=a1,
-                            e0=_walk_expr(a0), e1=_walk_expr(a1))
+                            want=want, least=rows if count_only else 100)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -591,6 +633,9 @@ GATE_AT = {gate_at}
 LEN_AT = {len_at}
 VBASE = {vbase}
 STALE = {stale}
+STALE_COL = {stale_col}
+VBASE2 = {vbase2}
+BIT_AT = {bit_at}
 REC = {rec}
 STORE = {store}
 ELEMS = {elems}
@@ -603,7 +648,7 @@ def main(argv):
     vt = h.vtable({{0: ("walk", 2, 7), 4: ("walk4", 1, 9)}})
     for i in range(140):
         this = rng.randrange(0x1000, 0x7FFF0000) & ~3
-        if GATE_THIS or GATE_AT is not None or LEN_AT is not None or STORE is not None or (ELEMS and ELEMS[0] == 'list'):
+        if GATE_THIS or GATE_AT is not None or BIT_AT is not None or LEN_AT is not None or STORE is not None or (ELEMS and ELEMS[0] == 'list'):
             this = h.alloc(0x100)  # a written object: the gate is the short at [this]
         g = rng.randrange(0x1000, 0x7FFF0000) & ~3
         if VBASE is not None:
@@ -613,11 +658,20 @@ def main(argv):
             vb = h.alloc(0x20)
             h.w32(vb + 4, g)
             h.w32(this - VBASE, vb)
+        d2 = 0
+        if VBASE2 is not None:
+            # a second displacement record at [this-VBASE2], its +4 the `d2` column (parked 2668, 2674)
+            d2 = rng.randint(-0x100, 0x1000)
+            vb2 = h.alloc(0x20)
+            h.w32(vb2 + 4, d2)
+            h.w32(this - VBASE2, vb2)
         gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
         if STALE:
             # the `ecx` a callback or a direct callee leaves (parked 1922, 2498, 2563), printed in the gate column
             sv = g  # a walker word is the gate: the leftover is the `g` column, the gate column stays the gate
-            if GATE is None:
+            if STALE_COL:
+                sv = rng.randrange(0x1000, 0x7FFF0000) & ~3  # its own column (parked 2673), printed after the gate
+            elif GATE is None:
                 gv = sv = rng.randrange(0x1000, 0x7FFF0000) & ~3
             h.answers["walk"] = (7, sv)
             h.answers["walk4"] = (9, sv)
@@ -665,12 +719,21 @@ def main(argv):
                 h.w32(e + nxt, elems[k + 1] if k + 1 < len(elems) else 0)
             h.w32(this + head, elems[0] if elems else 0)
             el = "".join(f" {{e}}" for e in elems)
-        sw = ""
+        sw = f" {{sv}}" if STALE and STALE_COL else ""
+        if VBASE2 is not None:
+            sw += f" {{d2}}"
+        if BIT_AT is not None:
+            # a second gate: a bit of `this`, its masked byte the last extra column (parked 2669, 2675)
+            boff, bmask = BIT_AT
+            bv = rng.randrange(256)
+            bv = bv & ~bmask & 0xFF if i % 3 == 0 else bv | bmask
+            h.w8(this + boff, bv)
+            sw += f" {{bv & bmask}}"
         if STORE is not None:
             off, val, size, woff = STORE
             w = 0 if i % 3 == 0 else rng.randint(1, 0x7FFFFFFF)
             h.w32(walker + woff, w)
-            sw = f" {{w}}"
+            sw += f" {{w}}"
             h.m.uc.mem_write(this, bytes(rng.randrange(256) for _ in range(0x100)))
             pre = bytes(h.m.uc.mem_read(this, 0x100))
         h.calls.clear()
@@ -712,7 +775,7 @@ fn the_emulated_original_agrees_on_every_row() {{
 {store_w}{store_split}{elems_src}        let _ = eax;
         let stale = {stale_src}; // the slot-4 callee's leftover `ecx` when a step names it
         let _ = (this, g, gate, stale);
-        let mut calls: Vec<Vec<i64>> = Vec::new();
+{d2_src}        let mut calls: Vec<Vec<i64>> = Vec::new();
 {steps}
         let want: String = calls
             .iter()
@@ -738,6 +801,9 @@ def _mix_expr(tok):
         return 'stale'  # the slot-4 callee's leftover ecx (parked 2498)
     if tok == 'stale|this':
         return 'if gate != 0 { g } else { this }'  # a gated callee's leftover, else the entry ecx (parked 2568)
+    if tok.startswith('this') and tok.endswith('+d2'):
+        k = int(tok[4:-3], 0)  # the second vbase displacement (parked 2668, 2674)
+        return f'this {"-" if k < 0 else "+"} {abs(k):#x} + d2'
     if tok.startswith('this') and ('-' in tok or tok.endswith('+d')):
         # `this-0x18+d`: an offset, and the vbase displacement `d` (the `g` column)
         body, disp = (tok[4:-2], ' + g') if tok.endswith('+d') else (tok[4:], '')
@@ -764,7 +830,7 @@ def _mix_expr(tok):
 
 
 def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vbase=None, len_at=None,
-                 gate_ne=False, ret_arg=False, store=None, elems=None):
+                 gate_ne=False, ret_arg=False, store=None, elems=None, stale_col=False, vbase2=None, bit_at=None):
     """`steps`: `call:ADDR:NARGS:ECX:ARGS`, `walk:A0:A1` (the walker's slot 0),
     `walk4:OFF` (its slot 4, handed `**glob + 0x10` pointer's word + OFF),
     each optionally prefixed `gated/` — run only when `[walker+gate] == 0`."""
@@ -787,8 +853,17 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
         st = st.removeprefix('each/')
         if each and ev is None:
             raise ValueError('an `each/` step needs --elems')
-        gated = st.startswith('gated/')
-        st = st.removeprefix('gated/')
+        conds = []
+        while st.startswith(('gated/', 'bit/')):
+            if st.startswith('bit/'):
+                if not bit_at:
+                    raise ValueError('a `bit/` step needs --bit-at')
+                conds.append('bit != 0')
+                st = st.removeprefix('bit/')
+            else:
+                conds.append('gate != 0' if (gate_this or gate_ne or len_at is not None) else 'gate == 0')
+                st = st.removeprefix('gated/')
+        gated = bool(conds)
         kind, rest = st.split(':', 1)
         if kind == 'call':
             addr, nargs, ecx, args = rest.split(':', 3)
@@ -804,7 +879,7 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
         push = f'calls.push(vec![{vec}]);'
         if each:
             push = f'for &e in elems {{ {push} }}'
-        cond = 'gate != 0' if (gate_this or gate_ne or len_at is not None) else 'gate == 0'
+        cond = ' && '.join(conds)
         code.append(('        if ' + cond + ' { ' + push + ' }') if gated else ('        ' + push))
     script = MIX_SCRIPT.format(snake=sn, name=name, va=va, item=item, nsteps=len(steps),
                                glob=', from the global cell' if glob else '',
@@ -817,6 +892,9 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
                                len_at=hex(len_at) if len_at is not None else 'None',
                                vbase=hex(vbase) if vbase is not None else 'None',
                                stale=any('stale' in st.split(':', 1)[1] for st in steps),
+                               stale_col=bool(stale_col),
+                               vbase2=hex(vbase2) if vbase2 is not None else 'None',
+                               bit_at=(f'({int(bit_at.split(":")[0], 0):#x}, {int(bit_at.split(":")[1], 0):#x})' if bit_at else 'None'),
                                rec=any('rec' in st.split(':', 1)[1] for st in steps),
                                elems=('(' + ', '.join(repr(x) if isinstance(x, str) else (f'{x:#x}' if i < len(ev) - 1 or ev[0] == 'list' else str(x)) for i, x in enumerate(ev)) + ')') if ev else 'None',
                                store=(f'({int(sv[0], 0):#x}, {int(sv[1], 0):#x}, {int(sv[2], 0)}, {int(sv[3], 0):#x})'
@@ -829,8 +907,9 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
         storecheck = (f'        let want_after = if {cond} && w != 0 {{ {int(sv[1], 0) & mask:#x} }} else {{ before }};\n'
                       f'        assert_eq!(after, want_after, "{short} — the store, row `{{line}}`");\n')
     elems_src = ''
+    ecol = 4 + int(bool(stale_col)) + int(vbase2 is not None) + int(bool(bit_at))
     if ev:
-        elems_src = '        let elems = &a[4..];\n'
+        elems_src = f'        let elems = &a[{ecol}..];\n'
         if ev[0] == 'table':
             elems_src += f'        assert_eq!(elems.len(), {(ev[2] - ev[1] + ev[3] - 1) // ev[3]}, "{short} — one element a table word, row `{{line}}`");\n'
     test = MIX_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, elems_src=elems_src,
@@ -838,9 +917,11 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
                                         '        let (after, before) = tail.split_once(\' \').expect("`<after> <before>`");\n'
                                         '        let rd = |h: &str| (0..h.len() / 2).rev().fold(0i64, |acc, k| acc << 8 | i64::from_str_radix(&h[2 * k..2 * k + 2], 16).expect("hex"));\n'
                                         '        let (after, before) = (rd(after), rd(before));\n') if sv else '',
-                           store_w='        let w = a[4];\n' if sv else '',
+                           store_w=f'        let w = a[{ecol}];\n' if sv else '',
+                           d2_src=(f'        let d2 = a[{4 + int(bool(stale_col))}];\n        let _ = d2;\n' if vbase2 is not None else '')
+                           + (f'        let bit = a[{4 + int(bool(stale_col)) + int(vbase2 is not None)}];\n        let _ = bit;\n' if bit_at else ''),
                            storecheck=storecheck,
-                           steps='\n'.join(code), stale_src='g' if gate is not None else 'gate',
+                           steps='\n'.join(code), stale_src='a[4]' if stale_col else 'g' if gate is not None else 'gate',
                            retcheck='        assert_eq!(eax, walker, "{short} — the result is the out-pointer, row `{line}`");\n'.replace('{short}', short) if ret_arg else '')
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
@@ -2778,6 +2859,7 @@ def main(argv=None):
                     help='obj: a vtable slot of this, or a direct callee, answered per row (the answer printed after the arguments)')
     ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
     ap.add_argument('--a0', default='this', help='walk: the first callback argument, `this` or `this+0xNN`')
+    ap.add_argument('--count-only', action='store_true', help='walk: the walker is called a quarter-million times; one record a row (count, first, last, sums), --port an iterator of its (a0, a1) pairs, --rows N rows (default 3) (item 2672, parked 2667)')
     ap.add_argument('--a1', default='this', help='walk: the second callback argument')
     ap.add_argument('--step', action='append', default=[], help='mix: call:ADDR:NARGS:ECX:ARGS | walk:A0:A1 | walk4:OFF, in order; `gated/` prefix')
     ap.add_argument('--glob', type=lambda s: int(s, 0), help='mix: the global cell (the walk4 argument is *(*cell+0x10)+OFF)')
@@ -2789,6 +2871,9 @@ def main(argv=None):
     ap.add_argument('--gate-ne', action='store_true', help='mix: with --gate, gated steps run when [walker+GATE] != 0')
     ap.add_argument('--store', help='mix: OFF:VAL:SIZE:WOFF — the function stores VAL (SIZE bytes) at this+OFF when the gated steps run and [walker+WOFF] != 0; asserted, and nothing else written')
     ap.add_argument('--elems', help='mix: table:LO:HI:STEP (the pointer words of *(*cell+0x10), a table read through --glob) or list:HEAD:NEXT (a linked list from [this+HEAD] by [node+NEXT]); an `each/` step runs once an element, tokens `elem`, `elem+K` (parked 2585, 2589)')
+    ap.add_argument('--vbase2', type=lambda s: int(s, 0), help='mix: a second displacement record at [this-VBASE2], its +4 the `d2` column (tokens `this-K+d2`)')
+    ap.add_argument('--bit-at', metavar='OFF:MASK', help='mix: a second gate, the masked byte [this+OFF] & MASK, the last extra column; steps prefixed `bit/` run when it is nonzero')
+    ap.add_argument('--stale-col', action='store_true', help='mix: the `stale` leftover ecx is a drawn column of its own after the gate (parked 2673), not the g column')
     ap.add_argument('--ret-arg', action='store_true', help='mix: assert the result (eax) is the stack argument, an out-pointer returned')
     ap.add_argument('--own', type=int, default=0, help='fwd, obj: stack arguments the function itself takes')
     ap.add_argument('--argset', action='append', default=[], help='obj: IDX:V,V,.. — argument IDX drawn from the list (90%%)')
@@ -2877,7 +2962,7 @@ def main(argv=None):
                          'item 2281); `@S` splits them by the row of --sparse table S their `ecx` lies in, a '
                          'token a row and one for the rest (a walk of the leaders table; item 2309)')
     ap.add_argument('--record-order', action='store_true',
-                    help='obj: the --record stubs\' calls one token a call, in the order they were made, each '
+                    help='obj, fwd (each --call, `sK:` its place): the --record stubs\' calls one token a call, in the order they were made, each '
                          'headed `sIDX:` — two argument-less callees on one `ecx` ordered (item 2341, parked 2318)')
     ap.add_argument('--record-edx', action='store_true',
                     help='obj: the --record stubs\' calls carry `edx` after `ecx` (`ecx,edx,arg..`) — a hand-off '
@@ -3032,12 +3117,15 @@ def main(argv=None):
         return 2
     try:
         if args.shape == 'walk':
-            sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1)
+            sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1,
+                                                      count_only=args.count_only,
+                                                      rows=args.rows if args.rows != 220 else None, port=args.port)
         elif args.shape == 'mix':
             sp, script, tp, test, mod = generate_mix(args.function, item=args.item, steps=args.step,
                                                     glob=args.glob, gate=args.gate,
                                                     gate_this=args.gate_this or args.gate_bare, vbase=args.vbase, len_at=args.len_at,
-                                                    gate_ne=args.gate_ne, ret_arg=args.ret_arg, store=args.store, elems=args.elems)
+                                                    gate_ne=args.gate_ne, ret_arg=args.ret_arg, store=args.store, elems=args.elems,
+                                                    stale_col=args.stale_col, vbase2=args.vbase2, bit_at=args.bit_at)
         elif args.shape == 'obj':
             sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
                                                     own=args.own, ret=args.ret or 'eax', port=args.port,
@@ -3073,7 +3161,8 @@ def main(argv=None):
                                                        win=args.win if args.win != 0x400 else 0x200, port=args.port)
         elif args.shape == 'fwd':
             sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
-                                                     own=args.own, ret=args.ret or 'none')
+                                                     own=args.own, ret=args.ret or 'none',
+                                                     order=args.record_order)
         else:
             sp, script, tp, test, mod = generate(args.shape, args.function, item=args.item,
                                                  port=args.port, off=args.off, via=args.via,

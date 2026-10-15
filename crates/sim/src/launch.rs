@@ -907,6 +907,31 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             dz: 39,
         },
     ),
+    // **Piece 589, the same two guns on the human Biplane's graph** (item
+    // 2693, `docs/GOLDEN.md` §99): run875's rounds leave from the plane's
+    // own `GUY` point plus the 237 rows' vector, node for node — the
+    // figure at (37463, 16578), angle −590,544,896, its node 0 at
+    // (37377, 16525) and node 1 at (37392, 16506), 39 over the figure.
+    (
+        589,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: -13_010,
+            fwd: 101_270,
+            dz: 39,
+        },
+    ),
+    (
+        589,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: 11_340,
+            fwd: 101_230,
+            dz: 39,
+        },
+    ),
 ];
 
 /// The bay a piece releases from, or `None` when none is measured: a
@@ -1735,6 +1760,20 @@ mod tests {
     /// `(block, guy x, guy y, guy angle, node, sx, sy)` — the `GUY` record
     /// and the `AMMO` record on the round's first block. Made to fail with
     /// the rows out of `GUNS`: the rounds leave from the figure.
+    #[test]
+    fn run875_biplane_rounds_leave_from_the_589_guns() {
+        for &(x, y, a, node, sx, sy) in &[
+            (37463, 16578, -590_544_896, 0, 37377, 16525),
+            (37463, 16578, -590_544_896, 1, 37392, 16506),
+            (37379, 16508, -590_020_608, 0, 37293, 16455),
+            (37379, 16508, -590_020_608, 1, 37308, 16436),
+        ] {
+            let got = launch_point(Pos::new(x, y), Angle(a), 589, crate::anim::ATTACK2, 1, node);
+            assert_eq!((got.x, got.y), (sx, sy), "node {node} at {x}");
+            assert_eq!(release_dz(589, crate::anim::ATTACK2, 1, node), Some(39));
+        }
+    }
+
     #[test]
     fn run437_biplane_rounds_leave_from_its_nose_guns() {
         const M: &[(i32, i32, i32, i32, i8, i32, i32)] = &[

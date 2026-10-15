@@ -12633,19 +12633,78 @@ without a base is not a walk (parked 2630); the Helicopter's range at an Attack 
 trainer path (the unit is `add`ed). **Census rows reached**: `ObjectData::attack_dist@006488f0`'s non-plane arm and
 `UnitData::is_plane@0046ce40` on a human; the count is the commander's pin.
 
-## 98. Reserved for the next item on the rules track
+## 98. Chapter seventy-nine: a plane's attack distance held on a human — opens at 938 on the fighter's strafe release, not on the arm
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2649 (Claude Sonnet 5.5, `--effort medium`). **Open at 938** (run875, `tools/gamelog/golden/chapter79.cmd`;
+`golden::chapter_seventy_nine_holds_to_the_golden_word`, `chapter_seventy_nine_s_word_frame_is_widened_whole`, 600..1501).
 
-## 99. Reserved for the next item on the rules track
+**Could a plane be staged on a human? Yes.** `add airbase who=0` (it is `0/2007`: who=0's start holds `0/2000..2006`),
+`add biplane who=0` outside it, `@flight 0 2007 0 6` on 620 flies it home (inside by 768, `mana_burn` refilling), and
+`@launchpatrol 0 36480 15744 2007` on **830** (a plane still refuelling, `mana_burn != 0` until 808, is passed over by
+`Group::action_launch_patrol`'s no-shift arm, so 800 launched nothing) puts it on an `AirPatrolOrder` over a Barracks
+`1/2006` (190, 82); it finds the Barracks on ~927 and takes a `StrafeOrder` onto it. A human Citizen `0/7` (190, 86) is the
+sight; the walk printed `skipped {}` empty. The Airbase prerequisites need no age here: `add` takes none.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What the disk could not answer**: no capture holds a human's plane striking a building from a patrol; chapter forty-one's
+Biplane is who=1's and only patrols.
+
+**The arm is reached.** Mutation on the walk (`attack_dist_from`'s plane test made `false`): the walk's frames part from 928
+(an RNG-fed Wild Bird's heading moves), so the centre-to-centre arm is read on the patrol's find. **The word is not the arm.**
+
+**The word, 938**: ours 6 draws, theirs 8; the sequences part at draw 1, theirs `Object::take_damage+0xe1` twice where ours has
+`Farms::inc_time+0x1ae`. **Value diff beside it**: `1/2006 build:damage_frac` on 939, ours 0, theirs 6 (and `damage` on 955, ours 1,
+theirs 2). **Which side acted**: the original — its Biplane `0/6` (TypeIndex 287, domain air) releases two rounds on 935
+(`AMMO` `o 6`, `whom 1`, `ox 2006`, from (37377, 16525) z 1474, `cur_time 1`, `total_time 5`) and they land on 938. Ours releases
+none: `strafe_attack` (`orders.rs`) plays `ATTACK2` and reloads for a fighter line but its SEAM names "a non-bomber's
+`fire_ammo`" unbuilt. That is a hypothesis (the booked mechanism is the next item's, not this one's); the frame and delta are
+the booking.
+
+**Standing rows** (the first firsts, `WANT_CH79`): the starts' `form` rows; then 949 onward the tail past the word, 309 rows,
+pinned whole, to be re-measured as the word moves.
+
+**Ground guard**: one inexact corner read in the walk and in the widening (`GROUND_INEXACT`).
+
+**What is not established**: whether the centre-to-centre arm agrees on a human (the word is earlier; the arm's agreement is held
+only up to 938 — the patrol's find at 927 reads it with the draw stream agreeing); a second run as control (`--cmd-without 830`
+was not taken: one run was enough to place the word, and it would prove only that the patrol is what launches the plane);
+a Helicopter's launch from an Airbase. **Census rows reached**: `ObjectData::attack_dist@006488f0`'s plane arm and
+`UnitData::is_plane@0046ce40` on a human; the count is the commander's pin.
+
+## 99. Chapter seventy-nine: the human Biplane's guns are piece 589 — word 938 → 1393, a scout's explore
+
+Item 2693 (Claude Sonnet 5.5, `--effort medium`), run875's disk, no capture. **The hypothesis was wrong.** §98 booked the
+word as "ours releases none" and `strafe_attack`'s SEAM as the cause. Ours released all four rounds: a probe on
+`add_ammo` printed them on this crate's 934 and 936 (the dump's 935 and 937), at the original's own landing points
+(`ex, ey` (36746, 15910) and (36683, 15983) for the first pair, both sides), with `Ammo`'s `target` the Barracks. What
+differed was **where the round leaves from**: theirs `sx, sy` (37377, 16525) and (37392, 16506), `sz` 1474; ours the
+figure's own (37463, 16578), `sz` 1435 — so `total_time` 6 against 5 and a landing a frame late, which is the two
+`take_damage+0xe1` draws on 938 that ours spent on `Farms::inc_time` instead.
+
+**The cause**: `launch::GUNS`' Biplane rows are keyed by the graph piece, and piece 237 (run437's who=1 Biplane) is
+not the one the human's carries: its `GUY` record's `gpiece` is **589** (probe on `guy_release_events`; `art.releases`
+holds its `CHAR_ATTACK2` events at 1, 3, 7, … ×2 nodes, so the events fired and the table had no row). Rows 589 / `ATTACK2`
+nodes 0 and 1 take 237's `Bay` vectors unchanged, and `launch::tests::run875_biplane_rounds_leave_from_the_589_guns`
+reproduces the dump's four launch points to the unit (figure (37463, 16578) angle −590,544,896 → (37377, 16525) and
+(37392, 16506); figure (37379, 16508) → (37293, 16455) and (37308, 16436)), 39 over the figure. **The first row's
+numbers are 237's, found to agree; they were not re-measured by a sweep**, so a third Biplane graph, or the same piece
+at another facing outside this run's 0.2° of heading, would be unproved.
+
+`strafe_attack`'s SEAM (a non-bomber's `fire_ammo`) is **not** the word: the Biplane strafes (`w`), so `do_strafe`
+plays `CHAR_ATTACK2` and the release events do the firing (`docs/ORDERS.md` §34.3, §39.1); the SEAM text names an arm no
+shipped plane reaches. Killed by the draw stream, not argued.
+
+**The word moves to 1393** (`GOLDEN_WORD_CHAPTER_SEVENTY_NINE`, the widening's `(1392, 1397)`, the coverage driver's slice):
+ours 100 draws, theirs 28; the sequences part at draw 25, ours `Unit::think_scout+0x941`, `+0xaba` ×2… where theirs
+`Farms::inc_time+0x1ae`. **Value diff beside it**: who=1's scout `1/0`, 1394: `order:move` `x/y` ours (38136, 19704), theirs
+(37368, 18936); `path:length` ours 2, theirs 3; `path[0].to` ours (38112, 19680), theirs (37344, 18912); `orders_x/y`
+the same pair. A scout's explore search takes a different point, and spends 72 more draws doing it. Not this item's.
+
+**The tail**: 158 standing rows (309 before), pinned whole in `WANT_CH79`, the first at 1394 (the scout's move
+and path); nothing before the word parts, including the Biplane's strike and the Barracks' damage that parted at 939.
+
+**What is not established**: the scout's explore on 1393 (parked 2694); the Biplane's strike past 940 (its
+rounds land and the Barracks takes damage in step now, the dump agreeing through 1392); any other age's Biplane graph.
+**Census**: no new row.
 
 ## 100. Reserved for the next item on the rules track
 
@@ -12655,6 +12714,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 101. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 102. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 103. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 104. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 105. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number
