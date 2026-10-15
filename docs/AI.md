@@ -20883,6 +20883,19 @@ Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`; theirs spends `Guy::ini
 Objects::init_unit+0xbd`, a birth ours does not make. The walk reads 1080 heights at inexact corners
 (`GROUND_INEXACT`, 858 before).
 
+**The next word, 4859, widened on run861** (blocks 4853..5109, `run861_s_word_frame_is_widened_whole`, 1432 keys).
+The word's block is 4860. There `1/50` is unlinked (theirs' newborn; ours' `1/50` shows on 4878), `1/2005`'s
+`queued` is ours 2 against theirs 1, and who=1's `num_units[255]` (`ABRAMDES`) is ours 8 against 9. 106 keys stand
+from 4853, so the state parts before the window:
+- the human's `control` is ours 14 against theirs 0, and each of its fourteen units has `death:extra` ours 1
+  against 0;
+- `1/2005`'s `queue[0].cost[0..1]` is ours 240 against theirs 224;
+- who=1's food, timber and metal buckets differ.
+
+On 4859, `1/168`, `1/172` and `1/177` hold `cavarch_who` 0 in ours and −1 in theirs. run855 already shows the human
+parting inside its window: `active` ours 14 against theirs 13 on 4679. That is where the next item starts (parked
+2491).
+
 **Not established.**
 - A computer in slot 0: `diplo_change`'s `Army::process(army, 1)` is not carried, and no capture puts a computer
   first.

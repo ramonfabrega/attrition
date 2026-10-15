@@ -5589,13 +5589,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CX — reserved
+## Parked by item 2460, 2026-10-15 — the peace pair's word 4859
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2491) **The peace pair's word 4859: ours 14 draws, theirs 15, index 6** (2460; ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, theirs `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`, a birth), inside
+run861 (blocks 4853..5109, 1432 keys). On 4860, `1/50` is unlinked (theirs' newborn), `1/2005`'s `queued` is ours 2
+against 1, and `num_units[255]` (`ABRAMDES`) is ours 8 against 9. 106 keys stand from 4853: the human's `control` is
+ours 14 against theirs 0, and `1/2005`'s `queue[0].cost` is ours 240 against 224. run855 has the human's `active`
+part on 4679 (ours 14, theirs 13), where its units' `death:extra` begins. That is the first value parting on disk
+after the war. AI §224.
 
 ## Parked by the next landing, slot CY — reserved
 
