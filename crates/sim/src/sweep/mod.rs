@@ -751,6 +751,7 @@ mod resource_divvy_pool_add_water;
 mod resource_divvy_pool_refresh_early;
 mod resource_divvy_pool_refresh_late;
 mod resource_divvy_pool_refresh_water;
+mod rivers_walk_data;
 mod roads_out_set_neighbor;
 mod roads_pieces_rot_byte;
 mod search_walk_data;

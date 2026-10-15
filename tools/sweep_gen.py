@@ -613,11 +613,13 @@ def main(argv):
         gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
         if STALE:
             # the `ecx` a callback or a direct callee leaves (parked 1922, 2498, 2563), printed in the gate column
-            gv = rng.randrange(0x1000, 0x7FFF0000) & ~3
-            h.answers["walk"] = (7, gv)
-            h.answers["walk4"] = (9, gv)
+            sv = g  # a walker word is the gate: the leftover is the `g` column, the gate column stays the gate
+            if GATE is None:
+                gv = sv = rng.randrange(0x1000, 0x7FFF0000) & ~3
+            h.answers["walk"] = (7, sv)
+            h.answers["walk4"] = (9, sv)
             for a, _, _, _ in CALLS:
-                h.answers[f"{{a:x}}"] = (0, gv)
+                h.answers[f"{{a:x}}"] = (0, sv)
         walker = h.alloc(32)
         h.w32(walker, vt)
         if GATE is not None:
@@ -671,7 +673,7 @@ fn the_emulated_original_agrees_on_every_row() {{
         let eax: i64 = eax.trim().parse().expect("an integer");
         let (this, walker, g, gate) = (a[0], a[1], a[2], a[3]);
         let _ = eax;
-        let stale = gate; // the slot-4 callee's leftover `ecx` when a step names it
+        let stale = {stale_src}; // the slot-4 callee's leftover `ecx` when a step names it
         let _ = (this, g, gate, stale);
         let mut calls: Vec<Vec<i64>> = Vec::new();
 {steps}
@@ -697,6 +699,8 @@ def _mix_expr(tok):
         return 'this'
     if tok == 'stale':
         return 'stale'  # the slot-4 callee's leftover ecx (parked 2498)
+    if tok == 'stale|this':
+        return 'if gate != 0 { g } else { this }'  # a gated callee's leftover, else the entry ecx (parked 2568)
     if tok.startswith('this') and ('-' in tok or tok.endswith('+d')):
         # `this-0x18+d`: an offset, and the vbase displacement `d` (the `g` column)
         body, disp = (tok[4:-2], ' + g') if tok.endswith('+d') else (tok[4:], '')
@@ -750,7 +754,7 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None, gate_this=False, vb
                                stale=any('stale' in st.split(':', 1)[1] for st in steps))
     doc = f'{len(steps)} step(s) in order, `ecx` and arguments held to the spec.'
     test = MIX_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
-                           steps='\n'.join(code),
+                           steps='\n'.join(code), stale_src='g' if gate is not None else 'gate',
                            retcheck='        assert_eq!(eax, walker, "{short} — the result is the out-pointer, row `{line}`");\n'.replace('{short}', short) if ret_arg else '')
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 

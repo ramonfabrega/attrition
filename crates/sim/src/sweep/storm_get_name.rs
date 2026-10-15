@@ -1,4 +1,4 @@
-//! `Storm::get_name@00499c10` under the emulator against the port (item 2567; tools/sweep_gen.py, mix).
+//! `Storm::get_name@00499c10` under the emulator against the port (item 2583; tools/sweep_gen.py, mix).
 
 /// `Storm::get_name@00499c10`, run by `tools/emu/sweep_storm_get_name.py` under unicorn
 /// (tools/emu) with every callee and the walker's callbacks hooked: 1 step(s) in order, `ecx` and arguments held to the spec.
@@ -17,8 +17,10 @@ fn the_emulated_original_agrees_on_every_row() {
             .split_whitespace()
             .map(|s| s.parse().expect("an integer"))
             .collect();
-        let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let (eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let eax: i64 = eax.trim().parse().expect("an integer");
         let (this, walker, g, gate) = (a[0], a[1], a[2], a[3]);
+        let _ = eax;
         let stale = gate; // the slot-4 callee's leftover `ecx` when a step names it
         let _ = (this, g, gate, stale);
         let mut calls: Vec<Vec<i64>> = Vec::new();
@@ -29,6 +31,10 @@ fn the_emulated_original_agrees_on_every_row() {
             .collect::<Vec<_>>()
             .join(";");
         assert_eq!(seen.trim(), want, "get_name — calls, row `{line}`");
+        assert_eq!(
+            eax, walker,
+            "get_name — the result is the out-pointer, row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 100, "only {n} rows");
