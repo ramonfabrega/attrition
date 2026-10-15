@@ -295,6 +295,59 @@ pub fn spiral(r: i32) -> Vec<(i32, i32)> {
     out
 }
 
+/// `Objects::find_collision@0065b1b0`'s two decisions, over what they read:
+/// with its fifth argument **clear** and a **land** caller (type `+0x218 ==
+/// 0`) the answer is `CollCheck::collide_here`'s, returned as it stands
+/// (`65b1c3`/`65b1e2`); otherwise a caller whose `coll_size` (type
+/// `+0x248`) is zero answers 0 (`65b239`), and anything else answers the
+/// nine-cell chain walk ([`chain_hit_steps`]).
+pub(crate) fn find_collision_steps(
+    forced: bool,
+    land: bool,
+    mine: i32,
+    probe: impl FnOnce() -> i32,
+    walk: impl FnOnce() -> bool,
+) -> i32 {
+    if !forced && land {
+        return probe();
+    }
+    if mine == 0 {
+        return 0;
+    }
+    i32::from(walk())
+}
+
+/// The walk in `Objects::find_collision@0065b1b0` (`65b290`-`65b42d`), over
+/// closures: for each of the nine world cells around the query, in the
+/// shipped `move_x`/`move_y` order (`(0,0)` then the ring, [`spiral`]`(1)`),
+/// walk the cell's chain from its head (`head(dx, dy)`, `None` for a cell
+/// outside the world or an empty one) by `next`; `other(o)` is `None` for
+/// an object the walk passes over (the caller itself, `who >= 8`, one that
+/// is not alive and on the map, or has no block) and otherwise its
+/// `coll_size` and unit cell. A hit is Chebyshev `<= mine + r` on both axes
+/// (`65b3db`, `65b3fe`).
+pub(crate) fn chain_hit_steps<O: Copy>(
+    c: (i32, i32),
+    mine: i32,
+    mut head: impl FnMut(i32, i32) -> Option<O>,
+    mut next: impl FnMut(O) -> Option<O>,
+    mut other: impl FnMut(O) -> Option<(i32, (i32, i32))>,
+) -> bool {
+    for (dx, dy) in spiral(1) {
+        let mut cur = head(dx, dy);
+        while let Some(o) = cur {
+            cur = next(o);
+            let Some((r, q)) = other(o) else {
+                continue;
+            };
+            if (c.0 - q.0).abs() <= mine + r && (c.1 - q.1).abs() <= mine + r {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// `CollBlock`, flattened: one bit per unit cell over the whole map.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CollGrid {
@@ -1869,10 +1922,13 @@ impl Sim {
     /// object chains instead and compare *current* positions in unit
     /// cells, Chebyshev, against the sum of the two `coll_size`s.
     pub(crate) fn find_collision(&self, u: usize, at: Pos) -> bool {
-        if self.units[u].kind.domain == crate::attrition::Domain::Land {
-            return self.collide_here(u, ucell(at), false).is_some();
-        }
-        self.chain_hit(u, at, |s, o| ucell(s.units[o].pos))
+        find_collision_steps(
+            false,
+            self.units[u].kind.domain == crate::attrition::Domain::Land,
+            self.coll_size(u),
+            || i32::from(self.collide_here(u, ucell(at), false).is_some()),
+            || self.chain_hit(u, at, |s, o| ucell(s.units[o].pos)),
+        ) != 0
     }
 
     /// `Objects::find_collision(x, y, o, who, 1)@0065b1b0` — the same
@@ -1884,7 +1940,13 @@ impl Sim {
     /// asks it at the chaser's own spot before it ends a chase
     /// (`5f7f9d` on a building, `5f7f11` on a unit).
     pub fn find_collision_forced(&self, u: usize, at: Pos) -> bool {
-        self.chain_hit(u, at, |s, o| ucell(s.units[o].pos))
+        find_collision_steps(
+            true,
+            false,
+            self.coll_size(u),
+            || 0,
+            || self.chain_hit(u, at, |s, o| ucell(s.units[o].pos)),
+        ) != 0
     }
 
     /// `ObjectsData::find_unit_with_radius(x, y, ·, -1, r_coll, ·,
@@ -2059,31 +2121,29 @@ impl Sim {
             return false;
         }
         let c = ucell(at);
-        for (dx, dy) in spiral(1) {
-            let p = Pos::new(at.x + dx * UNITS_PER_CELL, at.y + dy * UNITS_PER_CELL);
-            let Some(s) = self.chain_slot(p) else {
-                continue;
-            };
-            let mut next = self.chain_heads[s];
-            while let Some(o) = next {
-                next = self.units[o].down;
+        chain_hit_steps(
+            (c.x, c.y),
+            mine,
+            |dx, dy| {
+                let p = Pos::new(at.x + dx * UNITS_PER_CELL, at.y + dy * UNITS_PER_CELL);
+                self.chain_slot(p).and_then(|s| self.chain_heads[s])
+            },
+            |o| self.units[o].down,
+            |o| {
                 if Some(o) == me || self.units[o].owner >= 8 {
-                    continue;
+                    return None;
                 }
                 if !self.units[o].alive() || !self.units[o].on_map {
-                    continue;
+                    return None;
                 }
                 let r = self.coll_size(o);
                 if r == 0 {
-                    continue;
+                    return None;
                 }
                 let q = of(self, o);
-                if (c.x - q.x).abs() <= mine + r && (c.y - q.y).abs() <= mine + r {
-                    return true;
-                }
-            }
-        }
-        false
+                Some((r, (q.x, q.y)))
+            },
+        )
     }
 
     // ------------------------------------------------------------------
