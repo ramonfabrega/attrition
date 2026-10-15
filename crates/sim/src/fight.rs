@@ -2786,10 +2786,13 @@ impl Sim {
         bd.damage += lost;
         let hits = bd.hits_now();
         if city && bd.active {
-            // The clamp: a city never dies from damage.
+            // The clamp: a city never dies from damage. **It keeps the
+            // fraction** (`Object::take_damage@00652020`, the `flags & 0x20`
+            // arm: `damage = hits`, `flags |= 0x10`, and `+0x3b` untouched;
+            // `docs/AI.md` §230): run866's capital at its ceiling steps
+            // `damage_frac` 10, 15, 4, 9 … from 5161.
             if bd.damage >= hits {
                 bd.damage = hits;
-                bd.damage_frac = 0;
                 if !bd.garrison.is_empty() {
                     bd.eject_pending = true;
                 }
@@ -4712,7 +4715,7 @@ impl Sim {
             // The round's own target is struck while it stands, hit points
             // or none (`struck`): a second siege shot lands on a city the
             // first has taken to its ceiling (item 1528).
-            .filter(|&o| self.active(o) || (target == Some(o) && self.struck(o)))
+            .filter(|&o| self.struck(o))
             .filter(|&o| {
                 let c = self.pos_of(o).cell();
                 (c.x - landing_cell.x).abs() <= k && (c.y - landing_cell.y).abs() <= k
