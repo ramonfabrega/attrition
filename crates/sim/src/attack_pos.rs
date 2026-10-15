@@ -57,6 +57,62 @@ struct Arm {
     at: Pos,
 }
 
+/// The walk of `Unit::find_open_slots@00600e30`, free of the world: `mine`
+/// and `theirs` are the two `coll_size`s, `hoplites` the asker's
+/// `is(HOPLITES)`, `c` the target's unit cell, `dims` the world's size in
+/// cells. `open(at, tile)` is the three predicates after the bounds
+/// (`invalid_loc` with `param_3` clear, `find_collision`,
+/// `find_ordered_collision`, in that order and short-circuited); `at` is
+/// the candidate's quarter-tile centre, `tile` its tile.
+pub(crate) fn find_open_slots_steps(
+    mine: i32,
+    theirs: i32,
+    hoplites: bool,
+    c: Pos,
+    dims: (i32, i32),
+    mut open: impl FnMut(Pos, Pos) -> bool,
+) -> Vec<Pos> {
+    /// `orthog_x@00add250[1..=4]` and `orthog_y@00add210[1..=4]`, the
+    /// four sides in the order the walk takes them.
+    const DIRS: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+    let step = mine * 2 + 1;
+    let spread = if hoplites { 4 } else { 1 };
+    let r = mine + theirs + spread;
+    let (cx, cy) = (c.x, c.y);
+    let (mut x, mut y) = (cx - r, cy + r);
+    let (w, h) = (dims.0 * UCELLS_PER_CELL, dims.1 * UCELLS_PER_CELL);
+    let mut side = 0usize;
+    let mut out = Vec::new();
+    loop {
+        if x >= 0 && y >= 0 && x < w && y < h {
+            let at = Pos::new(
+                x * UNITS_PER_UCELL + UNITS_PER_UCELL / 2,
+                y * UNITS_PER_UCELL + UNITS_PER_UCELL / 2,
+            );
+            let tl = Pos::new(x / UCELLS_PER_UTILE, y / UCELLS_PER_UTILE);
+            if open(at, tl) {
+                out.push(at);
+            }
+        }
+        x += DIRS[side].0 * step;
+        y += DIRS[side].1 * step;
+        let over_x = (x - cx).abs() > r;
+        if over_x {
+            x = if x > cx { cx + r } else { cx - r };
+        } else if (y - cy).abs() > r {
+            y = if y > cy { cy + r } else { cy - r };
+        } else {
+            continue;
+        }
+        side += 1;
+        if side >= DIRS.len() {
+            return out;
+        }
+        x += DIRS[side].0 * step;
+        y += DIRS[side].1 * step;
+    }
+}
+
 impl crate::Sim {
     /// `Unit::find_attack_pos(this, o, who, param_3, &x, &y, from, 1)`.
     ///
@@ -317,54 +373,17 @@ impl crate::Sim {
     /// function is deterministic, which is why a melee chase costs the
     /// frame nothing.
     fn find_open_slots(&mut self, u: usize, t: usize) -> Vec<Pos> {
-        /// `orthog_x@00add250[1..=4]` and `orthog_y@00add210[1..=4]`, the
-        /// four sides in the order the walk takes them.
-        const DIRS: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
         let me = Obj::Unit(u);
         let mine = self.coll_size(u);
-        let step = mine * 2 + 1;
-        let spread = if self.profile(me).hoplites { 4 } else { 1 };
-        let r = mine + self.coll_size(t) + spread;
+        let hoplites = self.profile(me).hoplites;
+        let theirs = self.coll_size(t);
         let c = crate::collide::ucell(self.units[t].pos);
-        let (cx, cy) = (c.x, c.y);
-        let (mut x, mut y) = (cx - r, cy + r);
-        let (w, h) = (
-            self.world.width() * UCELLS_PER_CELL,
-            self.world.height() * UCELLS_PER_CELL,
-        );
-        let mut side = 0usize;
-        let mut out = Vec::new();
-        loop {
-            if x >= 0 && y >= 0 && x < w && y < h {
-                let at = Pos::new(
-                    x * UNITS_PER_UCELL + UNITS_PER_UCELL / 2,
-                    y * UNITS_PER_UCELL + UNITS_PER_UCELL / 2,
-                );
-                let tl = Pos::new(x / UCELLS_PER_UTILE, y / UCELLS_PER_UTILE);
-                if self.invalid_loc(u, tl, false, false, false, false, true) == 0
-                    && !self.find_collision(u, at)
-                    && !self.find_ordered_collision(u, at)
-                {
-                    out.push(at);
-                }
-            }
-            x += DIRS[side].0 * step;
-            y += DIRS[side].1 * step;
-            let over_x = (x - cx).abs() > r;
-            if over_x {
-                x = if x > cx { cx + r } else { cx - r };
-            } else if (y - cy).abs() > r {
-                y = if y > cy { cy + r } else { cy - r };
-            } else {
-                continue;
-            }
-            side += 1;
-            if side >= DIRS.len() {
-                return out;
-            }
-            x += DIRS[side].0 * step;
-            y += DIRS[side].1 * step;
-        }
+        let dims = (self.world.width(), self.world.height());
+        find_open_slots_steps(mine, theirs, hoplites, c, dims, |at, tl| {
+            self.invalid_loc(u, tl, false, false, false, false, true) == 0
+                && !self.find_collision(u, at)
+                && !self.find_ordered_collision(u, at)
+        })
     }
 
     /// §17.2 and §17.4: the ring around a building's footprint.
