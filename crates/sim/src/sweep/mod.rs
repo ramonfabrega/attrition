@@ -20,6 +20,7 @@ mod attack_order_get_type;
 mod attacktoorder_get_attack_to_order;
 mod build_order_get_type;
 mod build_queue_get_size;
+mod build_queue_walk_data;
 mod build_type_corner_tile;
 mod build_type_data_is_city;
 mod build_type_data_is_dock;
