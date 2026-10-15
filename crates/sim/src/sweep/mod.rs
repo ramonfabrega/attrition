@@ -110,6 +110,7 @@ mod unit_can_transport;
 mod unit_control_cost;
 mod unit_data_hits;
 mod unit_data_support_cost;
+mod unit_find_open_slots;
 mod unit_get_speed;
 mod unit_has_repeat_air;
 mod unit_is_blown;
