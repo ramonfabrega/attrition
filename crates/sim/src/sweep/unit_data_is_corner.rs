@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -41,31 +46,38 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             let _ = (&c, &a[5]);
-let (s0, s1, seq) = (a[3], a[4], &a[6..10]);
-let mut r = 0;
-let mut cl: Vec<String> = Vec::new();
-if s0 != 0 && s1 != 0 {
-    let n = i32::from(m[0xb5] as i8).max(0) as usize;
-    let mut k = 0;
-    for i in 0..n {
-        let g = rd(&p[0], 4 * i);
-        if g == 0 {
-            continue;
-        }
-        let ans = seq[k.min(3)];
-        k += 1;
-        cl.push(format!("{g},{},{}", a[0], a[1]));
-        if ans != 0 {
-            r = ans;
-            break;
-        }
-    }
-}
-log.push(if cl.is_empty() { "-".into() } else { cl.join("/") });
-i64::from(r)
+            let (s0, s1, seq) = (a[3], a[4], &a[6..10]);
+            let mut r = 0;
+            let mut cl: Vec<String> = Vec::new();
+            if s0 != 0 && s1 != 0 {
+                let n = i32::from(m[0xb5] as i8).max(0) as usize;
+                let mut k = 0;
+                for i in 0..n {
+                    let g = rd(&p[0], 4 * i);
+                    if g == 0 {
+                        continue;
+                    }
+                    let ans = seq[k.min(3)];
+                    k += 1;
+                    cl.push(format!("{g},{},{}", a[0], a[1]));
+                    if ans != 0 {
+                        r = ans;
+                        break;
+                    }
+                }
+            }
+            log.push(if cl.is_empty() {
+                "-".into()
+            } else {
+                cl.join("/")
+            });
+            i64::from(r)
         };
         assert_eq!(got, want_eax, "is_corner — eax, row `{line}`");
-        assert_eq!(log, want_log, "is_corner — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "is_corner — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "is_corner — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

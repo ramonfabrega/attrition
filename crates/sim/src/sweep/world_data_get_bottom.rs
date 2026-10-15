@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,19 +43,21 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             let _ = (&a, &c);
-let r16 = |w: &[u8], o: usize| i32::from(i16::from_le_bytes([w[o], w[o + 1]]));
-let mut x = rd(m, 0);
-let mut v = rd(&p[0], 0);
-if x >= 0 {
-    while x >= 0 {
-        let rec = &p[2 + 5 * usize::try_from(v).expect("a row") + usize::try_from(x).expect("a column")];
-        v = r16(rec, 0x2e);
-        x = r16(rec, 0x2c);
-        wr(&mut p[0], 0, v);
-        wr(m, 0, x);
-    }
-}
-i64::from(rd(m, 0) < -1)
+            let r16 = |w: &[u8], o: usize| i32::from(i16::from_le_bytes([w[o], w[o + 1]]));
+            let mut x = rd(m, 0);
+            let mut v = rd(&p[0], 0);
+            if x >= 0 {
+                while x >= 0 {
+                    let rec = &p[2
+                        + 5 * usize::try_from(v).expect("a row")
+                        + usize::try_from(x).expect("a column")];
+                    v = r16(rec, 0x2e);
+                    x = r16(rec, 0x2c);
+                    wr(&mut p[0], 0, v);
+                    wr(m, 0, x);
+                }
+            }
+            i64::from(rd(m, 0) < -1)
         };
         assert_eq!(got, want_eax, "get_bottom — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
