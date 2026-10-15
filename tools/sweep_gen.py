@@ -571,7 +571,7 @@ MIX_SCRIPT = """#!/usr/bin/env -S uv run --script
 {nsteps} step(s) in order — direct callees (hooked), the walker's callback (slot 0, two
 arguments) and its slot 4 (one argument{glob}){gate}.
 One row per input, `<this> <walker> <g> <gate> -> <result> | <ecx,args…>;…` (the gate column is
-the slot-4 callee's leftover `ecx` when a step names `stale`).
+the leftover `ecx` of the step before when a step names `stale`).
 \"\"\"
 import os
 import random
@@ -612,9 +612,12 @@ def main(argv):
             h.w32(this - VBASE, vb)
         gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
         if STALE:
-            # the `ecx` the slot-4 callee leaves (parked 1922, 2498), printed in the gate column
+            # the `ecx` a callback or a direct callee leaves (parked 1922, 2498, 2563), printed in the gate column
             gv = rng.randrange(0x1000, 0x7FFF0000) & ~3
+            h.answers["walk"] = (7, gv)
             h.answers["walk4"] = (9, gv)
+            for a, _, _, _ in CALLS:
+                h.answers[f"{{a:x}}"] = (0, gv)
         walker = h.alloc(32)
         h.w32(walker, vt)
         if GATE is not None:
