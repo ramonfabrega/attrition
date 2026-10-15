@@ -6494,7 +6494,7 @@ pub(crate) const WIDENING_CHAPTER_SEVENTY_EIGHT: (i64, i64) = (600, 1101);
 
 /// **Chapter seventy-nine** (item 2649, `docs/GOLDEN.md` §98, run875): a
 /// Biplane's attack distance on a human.
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_NINE: i64 = 1393;
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTY_NINE: i64 = 1500;
 
 /// `chapter_seventy_nine_s_word_frame_is_widened_whole`'s window: run875
 /// whole.

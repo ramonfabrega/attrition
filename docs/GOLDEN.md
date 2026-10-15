@@ -12706,12 +12706,40 @@ and path); nothing before the word parts, including the Biplane's strike and the
 rounds land and the Barracks takes damage in step now, the dump agreeing through 1392); any other age's Biplane graph.
 **Census**: no new row.
 
-## 100. Reserved for the next item on the rules track
+## 100. Chapter seventy-nine closes: a unit's danger is seen by the live fog — word 1393 → 1500, the trace's end
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2703 (Claude Sonnet 5.5, `--effort medium`), run875's disk, no capture. **The word was not a scout's explore.**
+§99 booked "who=1's scout `1/0` takes a different point"; the draw stream said otherwise at draw 25. Both sides spend
+the same 24 draws (the ring walk's `+0x436` / `+0x458` / `+0x64c`, seeds equal to the value), so the candidate cells and
+their jitters agree; ours then runs `think_scout`'s **region fallback** (`+0x941`, `+0xaba` ×72, `199 < best`) where
+theirs leaves with a winner. A probe on `scout_cell` (one commit, reverted whole; `RON_PROBE_2703`) printed the
+candidates: the winner is cell (48, 24), ring 7, score **232** (own cell, `danger` 195) — over 199 by 33. Theirs went to
+that very cell (`path[0].to` (37344, 18912) is its centre), so its score is at most 199 and its `danger` at most 162.
+
+**The cause**: a second probe on `do_danger` (same shape) showed the half-cell's one contribution, on the rebuild at
+frame 1200: owner 0, viewer 1, value **195**, `seen` true, at war — the human Biplane `0/6`, a military unit, over
+(24, 12). `UnitData::is_seen@00607a60(viewer, 0)` (listing read) is not the building's: past the stealth arm it asks
+`WorldData::is_seen` at the unit's **current** half-cell (`seen`, the live plane), and only on a miss returns
+`(visible >> viewer) & 1` — `ObjectData::visible`, set by attacking the viewer. `Sim::danger_unit_is_seen` read
+`was_seen_fog`, the ever-seen bit, which a building takes (`BuildData::is_seen`'s own chain) and a unit does not:
+the Biplane had flown over ground leader 1 once lit and left it, so ours counted it whole where the original halves it
+(195 → 97, score 134, no fallback). The SEAM comment on the function said as much and named no capture; this is the
+capture. Now `world_sees(pos, viewer) || visible bit`, the pair `target_is_seen` already uses for a unit target.
+
+**The word moves to 1500**, the last frame of the trace (`word == hi − 1`, `GOLDEN_WORD_CHAPTER_SEVENTY_NINE`, the
+widening's `(1499, 1504)`, the coverage driver's slice, two blocks): chapter seventy-nine is **closed**. The widening
+is run875 whole (900 blocks [600, 1501)): the only rows that part are chapter seventy-eight's own eleven standing
+`form` rows at the window's first block, pinned whole in `WANT_CH79` (11, 158 before); nothing after 600 parts, the
+scout's move and path, the Biplane's strike and the Barracks' damage included. **Value diff beside it**: `1/0`'s
+`order:move` (38136, 19704) → (37368, 18936), `path:length` 2 → 3 on 1394, now agreeing.
+
+**Test**: `danger::tests::a_unit_is_seen_by_the_live_fog_and_not_the_ever_seen_bit` — never lit, lit now, lit once and
+left, and the `visible` byte; made to fail with the ever-seen read back.
+
+**What is not established**: `is_seen`'s stealth arm (`unit_masks` `0x800`/`0x1000`, `unit_masks2 0x8000`, the type's
+`0x4000`/`0x40000`, `is_detected`) is still not carried — it can only refuse further, and no capture reaches it
+(parked 2705). Whether any other unit-pass contributor in the corpus flips on the live read is what the gate's floors
+say; none moved.
 
 ## 101. Reserved for the next item on the rules track
 

@@ -5960,13 +5960,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EH — reserved
+## Parked by item 2703, 2026-10-15 — chapter seventy-nine closes: a unit's danger is the live fog's
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2705) **`UnitData::is_seen`'s stealth arm is not carried** (item 2703, `Sim::danger_unit_is_seen`; `target_is_seen`'s
+SEAM names the same arm). `unit_masks & 0x800`, the type's `0x4000` / `0x40000` (with no order) and `unit_masks2 &
+0x8000` route a unit through `is_detected(viewer)` before the fog test, which can only refuse. No capture on disk has a
+stealth unit of a military role weighed by `calc_danger`; names no score, so parked.
 
 ## Parked by the next landing, slot EI — reserved
 
