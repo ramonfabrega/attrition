@@ -401,6 +401,7 @@ mod build_type_restore;
 mod build_type_set_domain;
 mod build_type_walk_rules_data;
 mod build_update_max_gatherers;
+mod build_verify_gather_tiles;
 mod caravan_data_has_city;
 mod caravan_distance;
 mod caravan_distance_wcoord;
