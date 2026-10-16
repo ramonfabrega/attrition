@@ -29,6 +29,18 @@ class RuntimePolicy(unittest.TestCase):
         with self.assertRaises(ValueError):
             runtime.child_environment({'RON_TEST_ALLOCATOR': 'typo'}, platform='darwin')
 
+    def test_auto_is_workload_scoped_and_dispatchers_preserve_choice(self):
+        for name in ('diff::third_pair::authored', 'diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned'):
+            self.assertEqual(runtime.child_environment({}, platform='darwin', test_name=name)['MallocLargeCache'], '0')
+        for name in ('authored', 'diff::coverage::every_key_the_dump_prints_is_read_or_pinned'):
+            self.assertNotIn('MallocLargeCache', runtime.child_environment({}, platform='darwin', test_name=name))
+            self.assertEqual(runtime.child_environment({'RON_TEST_ALLOCATOR': 'bounded'}, platform='darwin', test_name=name)['MallocLargeCache'], '0')
+            self.assertEqual(runtime.child_environment({'MallocLargeCache': '1'}, platform='darwin', test_name=name)['MallocLargeCache'], '1')
+        dispatch = runtime.child_environment({}, platform='darwin', dispatcher=True)
+        self.assertNotIn('MallocLargeCache', dispatch)
+        self.assertNotIn('MallocLargeCache', runtime.child_environment(dispatch, platform='darwin', test_name='authored'))
+        self.assertEqual(runtime.child_environment(dispatch, platform='darwin', test_name='diff::third_pair::authored')['MallocLargeCache'], '0')
+
     def test_isolated_child_receives_and_reports_effective_policy(self):
         with tempfile.TemporaryDirectory() as d, patch.dict(os.environ, {}, clear=True), patch.object(runtime.sys, 'platform', 'darwin'):
             root = Path(d)
@@ -38,7 +50,7 @@ class RuntimePolicy(unittest.TestCase):
             child.returncode = 0
             child.__enter__.return_value = child
             with patch.object(runner.subprocess, 'Popen', return_value=child) as spawn, patch.object(runner, 'binary_stamp', return_value=(1,)), patch.object(runner, 'read_result', return_value=(1, (1.0, 0.0), 123)):
-                result = runner.run_one(root / 'binary', 'authored', 0, root, root / 'resources', 128, lambda: False)
+                result = runner.run_one(root / 'binary', 'diff::third_pair::authored', 0, root, root / 'resources', 128, lambda: False)
             self.assertTrue(result['success'])
             self.assertEqual(spawn.call_args.kwargs['env']['MallocLargeCache'], '0')
             self.assertEqual(result['allocator']['MallocLargeCache'], '0')
@@ -61,3 +73,19 @@ class RuntimePolicy(unittest.TestCase):
             self.assertEqual(len(calls), 6)
             self.assertEqual(json.loads((report / 'gate-policy.json').read_text())['test_allocator']['MallocLargeCache'], '0')
             self.assertNotIn('MallocLargeCache', os.environ)
+
+    def test_isolated_gate_does_not_force_policy_on_unrelated_tests(self):
+        import json
+        with tempfile.TemporaryDirectory() as d, patch.dict(os.environ, {}, clear=True), patch.object(runtime.sys, 'platform', 'darwin'):
+            root = Path(d)
+            (root / 'Data').mkdir()
+            (root / 'Data/rules.xml').write_text('authored')
+            def run(command, **kwargs):
+                self.assertNotIn('MallocLargeCache', kwargs['env'])
+                if '--release' in command:
+                    (Path(kwargs['env']['RON_FIXTURE_AUDIT_DIR']) / '123.tsv').write_text('1\t66697874757265\t74657374\n')
+                    Path(kwargs['log']).write_text('     Running unittests src/lib.rs (target/release/deps/rondata-authored)\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n')
+            report = gate.gate(root, report_dir=root / 'report', isolated=True, run=run)
+            policy = json.loads((report / 'gate-policy.json').read_text())['test_allocator']
+            self.assertEqual(policy['requested'], 'auto')
+            self.assertIsNone(policy['MallocLargeCache'])

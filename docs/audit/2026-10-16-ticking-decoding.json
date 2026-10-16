@@ -263,5 +263,153 @@
     "wall": 241.68,
     "cpu": 241.39,
     "rss_bytes": 921403392
+  },
+  "full_isolated_initial": {
+    "original": {
+      "complete": true,
+      "success": true,
+      "passed": 887,
+      "failed": 0,
+      "ignored": 6,
+      "elapsed": 170.557680583006,
+      "cpu": 1227.88,
+      "exit": 0,
+      "wrapper_wall": 171.08,
+      "wrapper_cpu": 1311.3700000000001,
+      "peak_tree_mib": 8223,
+      "fixture_requests": 3276,
+      "missing": 0
+    },
+    "candidate": {
+      "complete": true,
+      "success": true,
+      "passed": 890,
+      "failed": 0,
+      "ignored": 6,
+      "elapsed": 174.50456345800194,
+      "cpu": 1253.99,
+      "exit": 0,
+      "wrapper_wall": 175.76,
+      "wrapper_cpu": 1340.23,
+      "peak_tree_mib": 7992,
+      "fixture_requests": 3276,
+      "missing": 0
+    }
+  },
+  "full_isolated_candidate_system": {
+    "complete": true,
+    "success": true,
+    "passed": 890,
+    "failed": 0,
+    "ignored": 6,
+    "elapsed": 167.49962133300141,
+    "cpu": 1201.01,
+    "wrapper_wall": 168.4,
+    "wrapper_cpu": 1284.6,
+    "peak_tree_mib": 7658,
+    "exit": 0,
+    "fixture_requests": 3276,
+    "missing": 0,
+    "exact_gate_fixture_multiset": true
+  },
+  "full_isolated_candidate_auto": {
+    "complete": true,
+    "success": true,
+    "passed": 890,
+    "failed": 0,
+    "ignored": 6,
+    "elapsed": 166.11821600000258,
+    "cpu": 1198.29,
+    "wrapper_wall": 168.17,
+    "wrapper_cpu": 1281.47,
+    "peak_tree_mib": 8608,
+    "exit": 0,
+    "fixture_requests": 3276,
+    "missing": 0,
+    "exact_gate_fixture_multiset": true
+  },
+  "first_release_gate": {
+    "implementation_commit": "33379f68667d942508e41991a3ee102c60ffde74",
+    "exit": 0,
+    "steps_ran": 6,
+    "fixed_passed": 13,
+    "rondata_passed": 890,
+    "rondata_ignored": 6,
+    "sim_passed": 2586,
+    "doc_tests_passed": 3,
+    "fixture_requests": 3276,
+    "unique_fixtures": 419,
+    "missing_fixtures": 0,
+    "exact_previous_fixture_multiset": true,
+    "wall": 481.21,
+    "cpu": 1625.32,
+    "sampled_tree_peak_mib": 8553,
+    "rondata_seconds": 360.3,
+    "policy": "all bounded; first full pass over new codec fingerprints"
+  },
+  "selected_policy": "auto: bounded combined processes; bounded parsed-field coverage and third-pair isolated tests; system other isolated tests",
+  "selected_contention_four_suites": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 41.15218137498596,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 41.27,
+      "cpu": 295.48,
+      "peak_tree_mib": 13199
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 41.048126834008144,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 42.43,
+      "cpu": 277.94,
+      "peak_tree_mib": 11221
+    }
+  },
+  "selected_contention_six_suites": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 56.11030216599465,
+      "fixture_requests": 2748,
+      "missing": 0,
+      "wrapper_wall": 57.39,
+      "cpu": 453.93999999999994,
+      "peak_tree_mib": 14864
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 51.007904124999186,
+      "fixture_requests": 2748,
+      "missing": 0,
+      "wrapper_wall": 52.59,
+      "cpu": 422.54999999999995,
+      "peak_tree_mib": 11937
+    }
   }
 }

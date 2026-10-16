@@ -78,21 +78,31 @@ No simulation state, draw, comparison, verdict or field coverage is skipped.
 
 ## Test-process allocator policy
 
-On macOS, release-gate and isolated-runner children default to
-`MallocLargeCache=0`. Native heap/VM measurements found roughly 60 MiB of live
+On macOS, `RON_TEST_ALLOCATOR=auto` is the default. Combined-process test
+children use `MallocLargeCache=0`; isolated children use it only for parsed-field
+coverage and the third-pair test group, where repeated walks showed substantial
+retention. Other isolated tests retain the system allocator policy. The isolated
+gate dispatcher leaves this choice to each child rather than forcing a setting
+onto every test. Native heap/VM measurements found roughly 60 MiB of live
 malloc data while freed large allocations accounted for gigabytes of footprint.
 This child-local policy releases those allocations sooner; it changes no host
 configuration or simulation semantics. Explicit `MallocLargeCache` values are
-preserved. `RON_TEST_ALLOCATOR=system` opts out; other operating systems receive
-no allocator setting. Unknown modes fail rather than silently selecting a policy.
+preserved. `RON_TEST_ALLOCATOR=bounded` forces reclamation for all children;
+`RON_TEST_ALLOCATOR=system` opts out. Other operating systems receive no setting. Unknown modes fail rather than silently selecting a policy.
 The gate manifest and each isolated result record the effective setting.
 Direct cargo/binary invocations must set the variable themselves to reproduce it.
 
 The same original coverage binary drops from 2.25–2.37 GB peak RSS to 0.856 GB
 with this policy, without an observed CPU penalty. With both binaries bounded,
 container reuse and visibility reordering reduce coverage CPU about 11–13%.
-The initial candidate with the system allocator increased RSS; it is not a
-memory improvement without the measured policy. See the
+The initial coverage candidate with the system allocator increased RSS; it is
+not a coverage-memory improvement without the measured policy. Applying bounded
+reclamation to every isolated test added about 4% CPU versus the same candidate
+with the system policy. The scoped automatic policy avoids that broad cost.
+One complete warm rondata comparison saves about 2% CPU/time; its aggregate peak
+memory varies upward 5%, so do not extrapolate the contention memory saving to
+one complete suite. New or renamed isolated tests use the system policy until
+measurements justify inclusion; ordinary resource caps still apply. See the
 [ticking/decoding journal](journal/2026-10-16-ticking-decoding.md) for differential
 checks, contention results and landing validation. Independent review remains owed.
 

@@ -186,3 +186,78 @@ checks pass (four codec, two visibility); all59 runner tests, clippy, formatting
 and the development guard pass. A final guard covers these documentation updates.
 The implementation commit precedes the complete four-thread required-fixture
 gate; its actual verdict will be recorded separately.
+
+## First complete gate and the full-workload policy correction
+
+Implementation `33379f68667d942508e41991a3ee102c60ffde74` passed the full gate
+(exit0, six of six phases; `gate.log`, report directory `gate/`): fixed13,
+rondata890 plus6 ignored, sim2586, doc tests3. All3,276 requests for419 fixtures
+are present and the exact request multiset matches the preceding full gate.
+Pins, scored words, value divergences and coverage floors do not move.
+The first full pass over new codec fingerprints takes481.21 wall/1,625.32 CPU
+seconds, sampled tree peak8,553 MiB; rondata360.30 seconds. Against the previous
+gate's433.29/1,422.75/9,910, memory falls14% but time/CPU rise11%/14%.
+This is a real recorded result, not a suite speedup. Cache creation confounds
+comparison with the previous already-populated generation.
+
+To distinguish that cost from steady-state overhead, `full-isolated.py` runs
+complete manifests through the production eight-worker runner with warm cache
+generations. All requests match the gate exactly; no tests or checks are removed.
+The original has887 passing tests; the candidate has890 (three new authored
+codec checks); both retain the same6 ignored tests.
+
+| Complete warm rondata | Runner elapsed s | Test CPU s | Wrapper CPU s | Peak tree MiB |
+|---|---:|---:|---:|---:|
+| Original, system policy | 170.558 | 1227.88 | 1311.37 | 8223 |
+| Candidate, all bounded | 174.505 | 1253.99 | 1340.23 | 7992 |
+| Candidate, system policy | 167.500 | 1201.01 | 1284.60 | 7658 |
+| Candidate, scoped automatic | 166.118 | 1198.29 | 1281.47 | 8608 |
+
+Applying bounded reclamation everywhere costs about4% CPU versus the same
+candidate's system policy. Per-test evidence identifies the useful exception:
+parsed-field coverage falls from2,210 to786 MiB; the48 third-pair tests average
+589→433 MiB. Their combined CPU is nearly flat across allocator modes (coverage
+34.58→33.58; third-pair74.54→75.85). Other tests often save little memory and
+pay reclamation overhead. Thus the initial broad isolated default is superseded.
+
+`auto` now selects bounded reclamation for that coverage test and the third-pair
+group only. Other isolated tests keep system behavior. Combined-process test
+children still use bounded reclamation because they contain those walks.
+The isolated gate dispatcher preserves the per-child choice. Explicit allocator
+values always win; `bounded`/`system` modes provide reproducible forced controls.
+This is deterministic workload selection, not a result cache, skipped test,
+weaker limit or online timing heuristic. Unknown/renamed tests use system policy;
+future additions require measurement.61 focused tooling tests pass, including
+actual isolated dispatch and forced overrides (`tool-tests-auto.log`).
+
+The selected complete warm run saves2.4% test CPU and2.6% elapsed against the
+original, while sampled aggregate memory is4.7% higher. Scheduling and allocator
+residency vary; no full-suite memory improvement is established by that run.
+The strong memory result is specifically competing repeated walks.10× remains
+unmet. The full required-fixture gate will be repeated on the final committed
+policy; the earlier passing gate remains identified separately.
+
+## Selected automatic policy: fresh contention comparison
+
+The final defaults are measured with fresh original/system versus candidate/auto
+runs, same eight tests, same limits and warm inputs. `auto-four/` and `auto-six/`
+retain every invocation, result, allocation policy and fixture receipt.
+
+| Competing suites | Elapsed s, before → after | CPU s | Peak tree MiB |
+|---|---:|---:|---:|
+| Four | 41.152 → 41.048 | 295.48 → 277.94 | 13199 → 11221 |
+| Six | 56.110 → 51.008 | 453.94 → 422.55 | 14864 → 11937 |
+
+Four: elapsed flat, CPU−5.9%, memory−15.0%. Six: elapsed−9.1%, CPU−6.9%,
+memory−19.7%. All32/48 tests pass; exact1,832/2,748 fixture requests match,
+zero missing. These are contention samples, not four/six entire suites. The
+selected default balances CPU and memory; forcing `bounded` can reclaim more
+memory for these repeated walks but was measurably more expensive over the
+complete isolated suite. No claim of10×, unchanged peak memory in every schedule,
+or a general allocator optimum is made. Independent review remains owed.
+
+The final policy does not change Rust simulation/comparison code from33379f68.
+It changes only per-child allocator selection and its tests/documentation.
+Nevertheless, the required full gate is repeated on the final committed tree;
+that also measures an already-populated fingerprint generation. Its verdict is
+pending here and must be recorded after actual completion.

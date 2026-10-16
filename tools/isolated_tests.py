@@ -77,7 +77,7 @@ def run_one(binary, name, number, output, directory, memory, cancelled):
     log = output / 'tests' / f'{number:04d}.log'
     start = time.monotonic()
     stamp = binary_stamp(binary)
-    env = child_environment()
+    env = child_environment(test_name=name)
     with log.open('x') as sink:
         limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB)
         command = wrapper(directory, memory, limit=limit) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']

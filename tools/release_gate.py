@@ -314,7 +314,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         report_dir.mkdir(parents=True, exist_ok=False)
     audit_dir = report_dir / 'fixture-requests'
     audit_dir.mkdir()
-    env = child_environment()
+    env = child_environment(dispatcher=isolated)
     env.pop('RON_FIXTURE_AUDIT_DIR', None)
     env.pop('RON_TEST_MEMCAP_GIB', None)
     env['RUST_TEST_THREADS'] = '2'
