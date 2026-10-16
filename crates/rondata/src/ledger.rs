@@ -105,6 +105,10 @@ const DIFF_FILES: [&str; 19] = [
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/harness/prefix.rs",
+        "scoped replay state and installation reuse; all oracle comparisons remain in harness.rs",
+    ),
+    (
         "diff/battery.rs",
         "the held-out battery's walks: it compares no field itself, and its measure is the draw stream's first parting (DECISIONS 61 §6)",
     ),

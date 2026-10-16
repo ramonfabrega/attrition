@@ -136,3 +136,49 @@ check, both prefix unit tests, recorder differential test, `tools/guard.sh
 --built`, and `git diff --check` all exited 0. Guard retains the pre-existing
 queue-ledger note about item 7. The implementation is ready for its committed
 full required-fixture gate; that verdict is not yet claimed.
+
+## Complete release run and isolated paperwork correction
+
+Implementation commit: `d32ce9e0`. Required four-thread gate command:
+`python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14
+--test-threads 4 --require-fixtures --report-dir
+/tmp/attrition-replay-batch-20261016-01/gate-report`, wrapped in
+`/usr/bin/time -l`; stdout `release-gate.log`, stderr `release-gate.time`.
+The committed tree remained frozen during execution.
+
+Actual verdict: exit 1. Offline, clippy, fmt, survey and the complete release
+suite ran; guard was not reached. Fixed 13 passed; rondata 870 passed and one
+failed; sim 2,585 passed; rondata doc-tests 3 passed. The sole failure was
+`ledger::tests::every_differ_module_is_on_the_ledger`: the newly added
+`diff/harness/prefix.rs` was on neither module classification list. The exact
+correction adds it to `NOT_A_DIFFER`, with its reason: it only holds replay state
+and loaded installation data; all oracle comparisons remain in harness.rs.
+No simulation, parser, comparison or test coverage logic changes in this fix.
+
+Rondata elapsed 396.15 s at four threads versus the previous 483.13 s: 18.0%
+lower, 1.22×. This is a single complete-run comparison, not a 10× suite result.
+Sim elapsed 40.57 s. Peak tree RSS 9,879 MiB (largest process 9,846 MiB), under
+the 20 GiB cap but above the previous 9,446 MiB; no suite-memory win established.
+Fixture audit: 3,276 requests, 419 distinct fixtures, zero missing. Gate wrapper
+elapsed 476.10 s, user 1,598.45 s, system 130.81 s; its hardware instruction
+counter is the wrapper's and must not be reported as whole-suite instructions.
+
+Use AGENTS.md's permitted combined validation for this isolated bookkeeping
+failure: rerun affected ledger tests, guards, clippy and formatting; recheck
+fixture availability. Preserve the original failed verdict. Combined validation
+is pending until those exits are recorded; do not call the original gate green.
+
+Combined validation completed: all three `ledger::tests` passed (exit 0,
+`ledger-followup.log`); clippy, formatting, `tools/guard.sh --built` and
+`git diff --check` each completed successfully in a `set -e` command (exit 0;
+`*-followup-confirmed.log`). Guard retains only its pre-existing item 7 note.
+`combined-fixture-recheck.json` records all 419 distinct fixture paths checked
+again, zero missing. The original full gate remains exit 1; this landing uses
+its completed simulation/replay results plus the corrected ledger validation.
+All value/word scores and pins are unchanged. Independent review remains owed.
+
+For the Loop: paused; `d32ce9e0` reduces rondata 483.13 → 396.15 s, coverage
+155.02 → 73.55 s, run53 trace 47.13 → 2.69 s; full gate exit 1 for module ledger
+only, corrected by combined validation above. Suite peak RSS did not improve.
+Next bounded experiment: source-keyed parsed oracle records, with cold/warm
+measurements and whole-record differential checks; 10× remains unachieved.
