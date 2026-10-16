@@ -212,6 +212,12 @@ text before stepping frames. The per-frame indexed comparisons are unchanged;
 the former path parsed and retained whole sibling logs even though it used
 them only to borrow setup fields.
 
+The merchant-slot oracle has a different read shape: it needs `FULL DUMP`
+siblings beside each `FRAME`, so it reads `read_frame_and_siblings()` by frame
+position and inspects the same `LEADERDATA` multiset. Its replay source's
+initial state comes from `read_replay_setup()` as well; no full capture needs
+to remain resident during the 24,000-frame replay.
+
 **What the laziness costs is a second pass.** Every whole-log product —
 `frame_states`, `frame_seeds`, `anim_lengths`, the height grid, and the four
 walks `initial` used to make separately — now goes through `scan_children`,

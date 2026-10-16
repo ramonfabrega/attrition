@@ -868,19 +868,24 @@ mod tests {
         for f in FILES {
             let Some(path) = dump(f) else { continue };
             files += 1;
-            let text = crate::capture::read(&path);
-            let log = Log::parse(&text);
-            for (n, b) in log.frames() {
-                let b = b.kid("FULL DUMP").unwrap_or(b);
-                let Some(l) = b.kids("LEADERDATA").find(|l| l.int("who") == Some(1)) else {
-                    continue;
-                };
-                let t = theirs(&l);
-                if !t.contains_key("MAKE[0].t") {
-                    continue;
+            let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+            let frame_count = source.frames().len();
+            for i in 0..frame_count {
+                let text = source.read_frame_and_siblings(i).unwrap();
+                let log = Log::parse(&text);
+                for (n, b) in log.frames() {
+                    let b = b.kid("FULL DUMP").unwrap_or(b);
+                    let Some(l) = b.kids("LEADERDATA").find(|l| l.int("who") == Some(1)) else {
+                        continue;
+                    };
+                    let t = theirs(&l);
+                    if !t.contains_key("MAKE[0].t") {
+                        continue;
+                    }
+                    want.entry(n).or_insert_with(|| merchants(&t));
                 }
-                want.entry(n).or_insert_with(|| merchants(&t));
             }
+            source.validate().unwrap();
         }
         if files == 0 {
             eprintln!("skipping: no Great Lakes leader capture (set RON_GAMELOG_DIR)");
@@ -890,9 +895,10 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let state = dump("gamelog-run53-greatlakes-24k-trace.txt").expect("run53");
         let mut built = with_sibling_initials(|refs| {
-            let text = crate::capture::read(&state);
+            let mut source = crate::capture::indexed::IndexedCapture::open(&state).unwrap();
+            let text = source.read_replay_setup().unwrap();
             let log = Log::parse(&text);
-            let mut init = log.initial().unwrap();
+            let mut init = log.replay_initial().unwrap();
             borrow_from_siblings(&mut init, refs);
             build_sim(&loaded, &init, Tuning::RON)
         });
@@ -927,6 +933,17 @@ mod tests {
             MERCHANT_PARTS,
             "blocks whose Merchant slots part"
         );
+        assert_eq!(
+            files,
+            FILES.len(),
+            "all named merchant captures are present"
+        );
+        assert_eq!(blocks, 1_305, "every make-list block was retained");
+        assert_eq!(
+            rows_theirs, 1_173,
+            "every original Merchant slot was retained"
+        );
+        assert_eq!(agree, blocks, "all merchant-slot multisets agree");
     }
 
     /// The blocks [`the_merchant_slots_are_the_original_s_own`] still

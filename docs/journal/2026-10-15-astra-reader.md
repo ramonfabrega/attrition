@@ -246,3 +246,21 @@ and `docs/audit/2026-10-15-astra-reader-suite-memory-after-coverage-setup.txt`.
 The largest current isolated RSS is now the merchant-slot comparison at 4,673
 MiB; its nine full-capture parses are the next measured memory target. The
 other formerly largest shutdown and unit setup tests no longer lead the list.
+
+### Merchant-slot oracle memory follow-up — 2026-10-15
+
+The next sweep leader was `diff::leader::tests::the_merchant_slots_are_the_original_s_own`
+at 4,673 MiB peak RSS and 6.13 s. It parsed nine whole captures only to read
+frame-level `LEADERDATA` merchant slots, and parsed a separate 24,000-frame
+capture only for replay setup. It now reads each indexed frame with its
+following siblings (the source of `FULL DUMP` records), and obtains the replay
+initial from bounded indexed setup text. Every named file and frame remains
+in scope; exact coverage floors assert nine files, 1,305 make-list blocks,
+1,173 original Merchant rows, and all block multisets agree. The focused test
+passes.
+
+Two direct release measurements were 6.60 s / 591 MiB and 5.81 s / 543 MiB.
+Against the completed suite sweep's 6.13 s / 4,673 MiB baseline, the time
+variation straddles baseline and does not establish a CPU win; peak RSS is
+87–88% lower. See `docs/audit/2026-10-15-astra-merchant-indexed.txt`.
+Implementation checkpoint and the required full-gate verdict remain pending.

@@ -1,0 +1,24 @@
+# Indexed reads for the merchant-slot oracle, 2026-10-15.
+# Baseline row from the completed serialized suite sweep; after values from
+# direct /usr/bin/time -l runs of the same release test binary and install.
+
+diff::leader::tests::the_merchant_slots_are_the_original_s_own
+  baseline: 6.13 s; 4,673 MiB maximum RSS (suite sweep at tree 9ea2f4bf)
+  indexed:  6.60 s / 5.81 s; 591 / 543 MiB maximum RSS
+  delta:    timing varies around baseline; 87.4% / 88.4% less peak RSS
+
+# The test reads the same nine files, frame records, FULL DUMP siblings,
+# replay inputs, Merchant multisets, and 0-parting assertion. It additionally
+# asserts all nine files, 1,305 make-list blocks, and 1,173 Merchant rows.
+# The isolated memory reduction is large and repeatable. One timing sample
+# was slightly slower and one slightly faster than baseline; no CPU win is
+# claimed. Instructions are reported for the after runs only because the
+# suite timing baseline did not collect them.
+#
+# Reproduction (run separately, with the local install):
+# /usr/bin/time -l env RON_INSTALL=<install> <rondata-test-binary> \
+#   --exact diff::leader::tests::the_merchant_slots_are_the_original_s_own \
+#   --test-threads 1
+# Baseline: docs/audit/2026-10-15-astra-reader-suite-memory-after-coverage-setup.txt
+# Indexed logs: /tmp/attrition-merchant-indexed.{out,time}
+#               /tmp/attrition-merchant-indexed-repeat.{out,time}
