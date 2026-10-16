@@ -246,3 +246,44 @@ all87 Golden source entries in fresh processes, with confirmed disk hits.
 Source observations remain outside git. See the shared-runner journal for cold,
 warm, CPU, RSS and final gate evidence; local setup speedups are not a10× suite
 claim. Independent review remains owed.
+
+
+## Third-pair window replay
+
+The group/projectile test visits the same 24 windows in source-pair/ascending
+frame order and keeps one movable Built between nonoverlapping windows. It
+rebuilds on source identity/horizon changes or overlap. The locally loaded
+install and RON tuning remain fixed for the test; no process-global replay is
+retained. Source keys include canonical path, length, mtime and optional-trace
+presence. Keys are checked again after each window. This is the existing
+finalized-fixture metadata boundary, not protection against metadata-preserving
+edits. Missing fixtures retain the previous audit/skip behavior.
+
+A pair is built with observations through its largest requested window end.
+Correction inputs are consumed by exact current frame in Built::tick; no future
+correction is applied early. The seed-qualified sibling merge needs special
+care: this claim is differentially established for every current window, not
+assumed for arbitrary captures. The disabled path retains original window order,
+per-window observation cutoffs and fresh-from-zero replay. The same setup/lobby/
+seed identity assertions run whenever a Built is constructed; immutable identical
+setup is not rechecked by rebuilding it for every window. All frame/group-dumper,
+ammo-field, key, count, presence, difference and unmodelled-field assertions are
+unchanged. Every source/trace fixture request is still recorded per window.
+
+`RON_DISABLE_THIRD_PAIR_REUSE=1` selects that reference path. Global
+`RON_DISABLE_PREFIX_REUSE` and the existing debug/trace diagnostic environment
+switches also disable reuse. `RON_PROFILE_THIRD_PAIR=1` prints setup/tick/window
+times and resumed frames. `RON_VERIFY_THIRD_PAIR_REUSE=1` additionally rebuilds
+each window with its original cutoff and ticks from zero. At every compared
+frame it checks exact seed/clock input prefixes and the complete Built Debug
+value representation, including full Sim, maps, notes, RNG history and correction
+state. Future input arrays are temporarily moved out and restored; no state hash
+or selected-field projection is used. Existing Debug semantics (including
+nonsemantic order-head identity normalization) apply. This audit intentionally
+costs extra CPU/memory and is not the normal execution mode.
+
+Focused tests reject incompatible identities, horizon changes and overlap;
+mutation killers cover RNG state, draw history, object maps, notes, seed order,
+clock omission and site history. Performance and final gate verdict are recorded
+in `docs/journal/2026-10-16-third-pair-replay.md`. Independent review remains owed;
+no simulation behavior, fidelity pin or value floor is intentionally changed.

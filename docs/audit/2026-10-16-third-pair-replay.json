@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "base_commit": "679ffe1b28fc2cd24f83b0212bf2eaa27c1fb55e",
+  "evidence_root": "/tmp/attrition-third-pair-20261016-01",
+  "windows": 24,
+  "compared_frames": 360,
+  "fresh_ticks": 256890,
+  "reused_ticks": 23016,
+  "fixture_requests_each": 96,
+  "exact_fixture_multisets_equal": true,
+  "complete_projectile_summaries_equal": true,
+  "audit": "Full Built Debug value representation at every compared frame; exact seed/clock prefixes; independent fresh-from-zero per-window reconstruction.",
+  "modes": {
+    "off1": {
+      "exit": 0,
+      "wall": 40.59,
+      "cpu": 38.29,
+      "rss_bytes": 4569399296,
+      "test_wall": 38.41
+    },
+    "on1": {
+      "exit": 0,
+      "wall": 6.11,
+      "cpu": 4.97,
+      "rss_bytes": 790822912,
+      "test_wall": 5.02
+    },
+    "off2": {
+      "exit": 0,
+      "wall": 36.57,
+      "cpu": 36.65,
+      "rss_bytes": 3618799616,
+      "test_wall": 36.51
+    },
+    "on2": {
+      "exit": 0,
+      "wall": 6.1,
+      "cpu": 4.99,
+      "rss_bytes": 818642944,
+      "test_wall": 4.97
+    },
+    "audit-final": {
+      "exit": 0,
+      "wall": 58.89,
+      "cpu": 57.93,
+      "rss_bytes": 3001860096,
+      "test_wall": 57.71
+    }
+  },
+  "limitations": [
+    "Single host, two alternating warm repeats; wrapper includes monitor overhead.",
+    "Only this test improved; 10x full suite target unmet.",
+    "Debug compares value representations, retaining existing normalization of nonsemantic order-head IDs.",
+    "Independent review remains owed."
+  ]
+}

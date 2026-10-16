@@ -8,6 +8,7 @@
 use super::testkit::*;
 use super::*;
 use crate::testenv::dump;
+mod replay;
 
 const EAST_START: &str = "gamelog-run595-islands-french-toughest-start.txt";
 const EAST_LONG: (&str, &str) = (
@@ -1587,7 +1588,7 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         return;
     };
     let loaded = crate::load::load(&inst).unwrap();
-    for (start, base, capture, window) in [
+    let mut windows = [
         (
             EAST_START,
             EAST_LONG,
@@ -1732,81 +1733,65 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             "gamelog-run609-lakes-french-toughest-closing-window.txt",
             WIDENING_FRENCH_LAKES_CLOSING,
         ),
-    ] {
-        let (Some(start), Some(base_path), Some(path)) = (dump(start), dump(base.0), dump(capture))
+    ];
+    let reuse = replay::enabled();
+    let verify = std::env::var_os("RON_VERIFY_THIRD_PAIR_REUSE").is_some();
+    if reuse {
+        windows.sort_by_key(|(start, base, _, window)| (*start, *base, window.0, window.1));
+    }
+    let mut cached = None;
+    let mut avoided = 0;
+    for &(source_start, base, capture, window) in &windows {
+        let (Some(start), Some(base_path), Some(path)) =
+            (dump(source_start), dump(base.0), dump(capture))
         else {
             continue;
         };
-        let mut start_source = crate::capture::indexed::IndexedCapture::open(&start).unwrap();
-        let start_text = start_source.read_replay_setup().unwrap();
-        let start_log = Log::parse(&start_text);
-        let mut sibling = start_log.initial().unwrap();
-        let (seeds, animations, guys) = start_source
-            .with_replay_initial(|observed| {
-                (
-                    observed.frame_seeds.clone(),
-                    observed.anim_lengths.clone(),
-                    observed.frame_guys.clone(),
-                )
-            })
-            .unwrap();
-        sibling.frame_seeds = seeds;
-        sibling.anim_lengths = animations;
-        sibling.frame_guys = guys;
-        // This widening stops at block `window.1`, after sim frames
-        // `0..window.1`; later sibling observations cannot affect it.
-        sibling.frame_seeds.retain(|(frame, _)| *frame < window.1);
-        sibling.frame_guys.retain(|(frame, _)| *frame < window.1);
-
-        let mut base_source = crate::capture::indexed::IndexedCapture::open(base_path).unwrap();
-        let base_text = base_source.read_replay_setup().unwrap();
-        let base_log = Log::parse(&base_text);
-        let mut init = base_log.initial().unwrap();
-        let (seeds, animations, guys) = base_source
-            .with_replay_initial(|observed| {
-                (
-                    observed.frame_seeds.clone(),
-                    observed.anim_lengths.clone(),
-                    observed.frame_guys.clone(),
-                )
-            })
-            .unwrap();
-        init.frame_seeds = seeds;
-        init.anim_lengths = animations;
-        init.frame_guys = guys;
-        assert!(
-            same_start(&init, &sibling),
-            "all starting building identities and positions"
-        );
-        assert_eq!(init.game_info, sibling.game_info, "the same lobby");
-        assert_eq!(
-            init.checksums.last().unwrap().seed,
-            sibling.checksums.last().unwrap().seed
-        );
-        borrow_from_siblings(&mut init, &[&sibling]);
-        init.frame_seeds.retain(|(frame, _)| *frame < window.1);
-        init.frame_guys.retain(|(frame, _)| *frame < window.1);
-        if let Some(t) = trace(base.1) {
-            borrow_pasture(&mut init, &t);
-        }
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
-        drop(sibling);
-        drop(init);
-        drop(base_log);
-        drop(base_text);
-        drop(start_log);
-        drop(start_text);
-        drop(base_source);
-        drop(start_source);
+        let profile_start = std::time::Instant::now();
+        let trace_path = dump(base.1);
+        let horizon = if reuse {
+            windows
+                .iter()
+                .filter(|(s, b, _, _)| *s == source_start && *b == base)
+                .map(|(_, _, _, w)| w.1)
+                .max()
+                .unwrap()
+        } else {
+            window.1
+        };
+        let key = replay::Key::new(&start, &base_path, trace_path.as_deref(), horizon);
+        let resumed = cached
+            .take()
+            .and_then(|(old, built): (replay::Key, Built)| {
+                (reuse && replay::compatible(&old, built.sim.frame, &key, window.0))
+                    .then_some(built)
+            });
+        let mut built = resumed.unwrap_or_else(|| {
+            replay::build(&loaded, &start, &base_path, trace_path.as_deref(), horizon)
+        });
+        let resumed_at = built.sim.frame;
+        avoided += resumed_at;
+        let mut fresh = verify
+            .then(|| replay::build(&loaded, &start, &base_path, trace_path.as_deref(), window.1));
+        let setup_elapsed = profile_start.elapsed();
+        let mut tick_elapsed = std::time::Duration::ZERO;
         let mut ix = crate::capture::indexed::IndexedCapture::open(path).unwrap();
         let mut compared = 0;
         let mut ammo_counts = (0, 0, 0);
         let mut ammo_differences = std::collections::BTreeSet::new();
         let mut ammo_unmodelled = std::collections::BTreeSet::new();
-        for n in 1..=window.1 {
+        for n in resumed_at + 1..=window.1 {
+            let tick_start = std::time::Instant::now();
             built.tick();
+            tick_elapsed += tick_start.elapsed();
             if n < window.0 {
                 continue;
+            }
+            if let Some(fresh) = &mut fresh {
+                while fresh.sim.frame < n {
+                    fresh.tick();
+                }
+                replay::assert_same(&mut built, fresh, window.1);
             }
             let at = ix
                 .frames()
@@ -1870,6 +1855,12 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                 }
             }
             compared += 1;
+        }
+        if std::env::var_os("RON_PROFILE_THIRD_PAIR").is_some() {
+            eprintln!(
+                "third-pair profile {capture}: resumed={resumed_at} setup={setup_elapsed:?} ticks={tick_elapsed:?} total={:?}",
+                profile_start.elapsed()
+            );
         }
         assert_eq!(compared, window.1 - window.0 + 1);
         eprintln!(
@@ -2022,7 +2013,16 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                 "both pools empty on earlier windows"
             );
         }
+        assert_eq!(
+            key,
+            replay::Key::new(&start, &base_path, trace_path.as_deref(), horizon),
+            "replay inputs changed during window"
+        );
+        if reuse {
+            cached = Some((key, built));
+        }
     }
+    eprintln!("third-pair replay: {avoided} repeated ticks avoided; verify={verify}");
 }
 
 thread_local!(static PREV: std::cell::RefCell<Option<String>> = const { std::cell::RefCell::new(None) });

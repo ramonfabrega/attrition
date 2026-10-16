@@ -48,7 +48,9 @@ User-directed branch `codex/astra-windowed-reader`; commander remains paused.
 Shared isolation and persistent setup observations validated on `575bad00`: both
 complete required-fixture gates passed; full wall456→286s with isolation, CPU
 1529→1541s, sampled tree10473→9030MiB. Adoption requires `--isolated` in each
-cooperating worktree. Next measured candidate: third-pair repeated from-zero replay.
+cooperating worktree. Third-pair reuse passes full-state differential checks: CPU37–38→5s,
+RSS3.4–4.3→0.74–0.76GiB; full gate pending;
+see [journal](journal/2026-10-16-third-pair-replay.md).
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.
 
