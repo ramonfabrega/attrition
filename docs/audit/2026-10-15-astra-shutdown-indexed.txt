@@ -1,0 +1,21 @@
+# Bounded-reader validation of two high-RSS shutdown tests, 2026-10-15.
+# Same release test binary, install, one test per process, same machine.
+# /usr/bin/time -l; times in seconds and RSS in bytes.
+# Baseline tree: f4496cc7. Indexed-reader working tree: shutdown follow-up.
+
+diff::shutdown::tests::east_indies_closing_dumps_are_the_original_s
+  baseline: 15.41 s; 4,888,231,936 B maximum RSS; 372,157,737,980 instructions
+  indexed:   9.73 s;   993,017,856 B maximum RSS; 224,993,728,852 instructions
+  delta:    -36.9%;                 -79.7%;                 -39.5%
+
+diff::shutdown::tests::great_lakes_closing_dumps_are_the_original_s
+  baseline:  8.03 s; 4,238,639,104 B maximum RSS; 181,505,913,340 instructions
+  indexed:   5.24 s; 1,017,233,408 B maximum RSS; 117,491,108,688 instructions
+  delta:    -34.7%;                 -76.0%;                 -35.3%
+
+# Reproduction (run separately for each test, with the local install):
+# /usr/bin/time -l env RON_INSTALL=<install> <rondata-test-binary> \
+#   --exact <test-name> --test-threads 1
+# The binary is built with `cargo test --release -p rondata --no-run`.
+# Baseline logs: /tmp/attrition-{east,great}-shutdown-baseline-elevated.{out,err}
+# Indexed logs:  /tmp/attrition-{east,great}-shutdown-indexed.{out,err}

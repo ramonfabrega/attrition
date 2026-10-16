@@ -118,10 +118,40 @@ the tree and 12,510 MiB in the largest process, below 20 GiB. Gate log:
 verdict is recorded in a follow-up commit. The profile is retained at
 `/tmp/attrition-coverage-profile-elevated.sample.txt`.
 
+### Shutdown-test memory follow-up — 2026-10-15
+
+The previous RSS sweep's two largest tests were the East Indies and Great
+Lakes shutdown-oracle comparisons. On the current baseline tree, each called
+`Log::parse` on each whole capture to obtain both setup observations and the
+trailing shutdown dump, peaking at 4,888,231,936 B and 4,238,639,104 B RSS.
+Those tests only need setup/replay observations and the final frame's tail.
+
+Both now open `IndexedCapture`, read the shutdown tail separately, and build
+their simulation setup through `with_replay_initial`. Great Lakes obtains its
+map siblings through `with_sibling_initials`; East Indies streams run38's
+replay observations as well as its setup. The first attempt that read only
+run38's setup omitted its frame seeds and clocks and failed on run55's closing
+state. The helper was corrected to include the indexed observations; all nine
+East Indies and all five Great Lakes rows then retained their exact compared,
+unlinked, torn, and off counts.
+
+One-test process measurements (`/usr/bin/time -l`, same release test binary and
+install) are recorded in
+`docs/audit/2026-10-15-astra-shutdown-indexed.txt`. East Indies fell from 15.41
+to 9.73 s, 4,888,231,936 to 993,017,856 B RSS (79.7% lower), and 372.2B to
+225.0B retired instructions (39.5% lower). Great Lakes fell from 8.03 to 5.24
+s, 4,238,639,104 to 1,017,233,408 B RSS (76.0% lower), and 181.5B to 117.5B
+instructions (35.3% lower). These are single-run measurements, but the memory
+reduction is large and the original value assertions remain intact. Focused
+release tests passed for both tests. Full required-fixture gate validation is
+pending on the committed implementation checkpoint.
+
 ### For the Loop
 
-Persisting offsets removes repeated whole-capture scans between test processes;
-the warm key-reader test fell about 76%, but the parser still reads and parses
-the requested windows each time. A parsed per-lobby store remains the next
-untested edge from the steering brief. Do not infer a robust memory win from a
-single high-RSS comparison.
+The windowed index now reduces the two biggest observed one-test RSS peaks by
+76–80% while also reducing their CPU time by about a third. The next memory
+targets in the saved sweep are `unit::tests::every_dumped_unit_has_crew_size_plus_one_figures`
+and `unit::tests::the_walk_gives_every_dumped_guy_its_own_piece`, each about
+4.2 GiB alone on the earlier tree. Measure those before choosing whether they
+can use the same bounded replay path. The parsed per-lobby store remains
+deferred until a profile shows text parsing is a material CPU cost.

@@ -113,7 +113,7 @@ pub fn compare_shutdown(built: &mut Built, fin: &Frame, players: usize) -> Shutd
 mod tests {
     use super::*;
 
-    use crate::diff::testkit::{sibling_texts, trace};
+    use crate::diff::testkit::{trace, with_sibling_initials};
     use crate::gamelog::Log;
     use crate::testenv::{dump, install};
 
@@ -146,6 +146,16 @@ mod tests {
     /// One capture in a map's closing-dump table: name, the frame, the
     /// units compared, and the dump's own torn units.
     type Want = (&'static str, i64, usize, &'static [(i64, i64)]);
+
+    /// The East Indies setup sibling, parsed only through its indexed start.
+    fn with_east_indies_start<R>(use_initials: impl FnOnce(&[&Initial<'_>]) -> R) -> R {
+        let path = dump("gamelog-run38-islands-start.txt")
+            .expect("run38 start dump (fixture audit requires it)");
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        source
+            .with_replay_initial(|initial| use_initials(&[&initial]))
+            .unwrap()
+    }
 
     const CENSUS: &[Row] = &[
         ("fuzz-424242-early", Err("nested")),
@@ -593,51 +603,54 @@ mod tests {
             ("run73-greatlakes-caravanstart", 5_591, 30, &[]),
         ];
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut ran = 0usize;
-        for (name, frame, compared, torn) in want {
-            let run = name.split('-').next().unwrap();
-            let (Some(path), Some(tr)) = (
-                dump(&format!("gamelog-{name}.txt")),
-                trace(&format!("rontrace-{run}.log")),
-            ) else {
-                eprintln!("skipping {name}: set RON_GAMELOG_DIR");
-                continue;
-            };
-            ran += 1;
-            let text = crate::capture::read(&path);
-            let log = Log::parse(&text);
-            let fin = log.final_state().expect("the census says it has one");
-            assert_eq!(fin.n, *frame, "{name}'s closing dump");
-            let mut init = log.initial().expect("a capture carries its start block");
-            borrow_from_siblings(&mut init, &refs);
-            borrow_pasture(&mut init, &tr);
-            let mut built = build_sim(&loaded, &init, Tuning::RON);
-            for _ in 0..fin.n - 1 {
-                built.tick();
+        with_sibling_initials(|refs| {
+            let mut ran = 0usize;
+            for (name, frame, compared, torn) in want {
+                let run = name.split('-').next().unwrap();
+                let (Some(path), Some(tr)) = (
+                    dump(&format!("gamelog-{name}.txt")),
+                    trace(&format!("rontrace-{run}.log")),
+                ) else {
+                    eprintln!("skipping {name}: set RON_GAMELOG_DIR");
+                    continue;
+                };
+                ran += 1;
+                let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+                let tail = source.read_shutdown().expect("read shutdown tail");
+                let log = Log::parse(&tail);
+                let fin = log.final_state().expect("the census says it has one");
+                assert_eq!(fin.n, *frame, "{name}'s closing dump");
+                let r = source
+                    .with_replay_initial(|init| {
+                        let mut init = init;
+                        borrow_from_siblings(&mut init, refs);
+                        borrow_pasture(&mut init, &tr);
+                        let mut built = build_sim(&loaded, &init, Tuning::RON);
+                        for _ in 0..fin.n - 1 {
+                            built.tick();
+                        }
+                        compare_shutdown(&mut built, &fin, 8)
+                    })
+                    .unwrap();
+                eprintln!(
+                    "{name} {}: {} compared, {} unlinked, torn {:?}, off {:?}",
+                    r.frame,
+                    r.compared,
+                    r.unlinked.len(),
+                    r.torn,
+                    r.off
+                );
+                assert_eq!(
+                    (r.compared, r.unlinked.len(), r.torn.as_slice(), r.off.len()),
+                    (*compared, 0, *torn, 0),
+                    "{name}'s closing dump, every unit of it"
+                );
             }
-            let r = compare_shutdown(&mut built, &fin, 8);
-            eprintln!(
-                "{name} {}: {} compared, {} unlinked, torn {:?}, off {:?}",
-                r.frame,
-                r.compared,
-                r.unlinked.len(),
-                r.torn,
-                r.off
+            assert!(
+                ran == 5 || ran == 0,
+                "{ran} of Great Lakes' five closing dumps ran"
             );
-            assert_eq!(
-                (r.compared, r.unlinked.len(), r.torn.as_slice(), r.off.len()),
-                (*compared, 0, *torn, 0),
-                "{name}'s closing dump, every unit of it"
-            );
-        }
-        assert!(
-            ran == 5 || ran == 0,
-            "{ran} of Great Lakes' five closing dumps ran"
-        );
+        });
     }
 
     /// **East Indies' closing dumps, diffed whole** — nine of them, from
@@ -674,7 +687,7 @@ mod tests {
             ("run65-islands-caravanturn", 6_221, 25, &[]),
             ("run81-islands-merchantunpack", 6_816, 27, &[]),
         ];
-        let (Some(sib), Some(_)) = (
+        let (Some(_), Some(_)) = (
             dump("gamelog-run38-islands-start.txt"),
             dump("gamelog-run81-islands-merchantunpack.txt"),
         ) else {
@@ -682,51 +695,54 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let sib_text = crate::capture::read(&sib);
-        let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
-        let refs: Vec<&Initial> = vec![&sib_init];
-        let mut ran = 0usize;
-        for (name, frame, compared, torn) in want {
-            let run = name.split('-').next().unwrap();
-            let (Some(path), Some(tr)) = (
-                dump(&format!("gamelog-{name}.txt")),
-                trace(&format!("rontrace-{run}.log")),
-            ) else {
-                eprintln!("skipping {name}: set RON_GAMELOG_DIR");
-                continue;
-            };
-            ran += 1;
-            let text = crate::capture::read(&path);
-            let log = Log::parse(&text);
-            let fin = log.final_state().expect("the census says it has one");
-            assert_eq!(fin.n, *frame, "{name}'s closing dump");
-            let mut init = log.initial().expect("a capture carries its start block");
-            borrow_from_siblings(&mut init, &refs);
-            borrow_pasture(&mut init, &tr);
-            let mut built = build_sim(&loaded, &init, Tuning::RON);
-            for _ in 0..fin.n - 1 {
-                built.tick();
+        with_east_indies_start(|refs| {
+            let mut ran = 0usize;
+            for (name, frame, compared, torn) in want {
+                let run = name.split('-').next().unwrap();
+                let (Some(path), Some(tr)) = (
+                    dump(&format!("gamelog-{name}.txt")),
+                    trace(&format!("rontrace-{run}.log")),
+                ) else {
+                    eprintln!("skipping {name}: set RON_GAMELOG_DIR");
+                    continue;
+                };
+                ran += 1;
+                let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+                let tail = source.read_shutdown().expect("read shutdown tail");
+                let log = Log::parse(&tail);
+                let fin = log.final_state().expect("the census says it has one");
+                assert_eq!(fin.n, *frame, "{name}'s closing dump");
+                let r = source
+                    .with_replay_initial(|init| {
+                        let mut init = init;
+                        borrow_from_siblings(&mut init, refs);
+                        borrow_pasture(&mut init, &tr);
+                        let mut built = build_sim(&loaded, &init, Tuning::RON);
+                        for _ in 0..fin.n - 1 {
+                            built.tick();
+                        }
+                        compare_shutdown(&mut built, &fin, 8)
+                    })
+                    .unwrap();
+                eprintln!(
+                    "{name} {}: {} compared, {} unlinked, torn {:?}, off {:?}",
+                    r.frame,
+                    r.compared,
+                    r.unlinked.len(),
+                    r.torn,
+                    r.off
+                );
+                assert_eq!(
+                    (r.compared, r.unlinked.len(), r.torn.as_slice(), r.off.len()),
+                    (*compared, 0, *torn, 0),
+                    "{name}'s closing dump, every unit of it"
+                );
             }
-            let r = compare_shutdown(&mut built, &fin, 8);
-            eprintln!(
-                "{name} {}: {} compared, {} unlinked, torn {:?}, off {:?}",
-                r.frame,
-                r.compared,
-                r.unlinked.len(),
-                r.torn,
-                r.off
+            assert!(
+                ran == want.len() || ran == 0,
+                "{ran} of East Indies' {} closing dumps ran",
+                want.len()
             );
-            assert_eq!(
-                (r.compared, r.unlinked.len(), r.torn.as_slice(), r.off.len()),
-                (*compared, 0, *torn, 0),
-                "{name}'s closing dump, every unit of it"
-            );
-        }
-        assert!(
-            ran == want.len() || ran == 0,
-            "{ran} of East Indies' {} closing dumps ran",
-            want.len()
-        );
+        });
     }
 }
