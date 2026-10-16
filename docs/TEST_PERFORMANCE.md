@@ -63,10 +63,41 @@ increased coverage time and retired instructions. It was removed; the original
 linear field lookup remains. The journal retains measurements and the experiment
 patch location so this hypothesis need not be repeated without new evidence.
 
+## Parsed oracle windows
+
+The generic widening harness can read immutable decoded observations beside each
+canonical source, in `.ron-oracle-v1`. The original text remains authoritative.
+`RON_ORACLE_CACHE_DIR` redirects entries to an external experiment directory;
+`RON_DISABLE_ORACLE_CACHE=1` forces the original parser. Entries contain original
+derived data and must stay outside git. Other walkers remain on their existing
+readers. This source-keyed implementation does not merge captures by lobby.
+
+Every entry identifies the held source path/size/mtime, frame position and byte
+range, and a parser/schema fingerprint. Duplicate frame labels remain distinct.
+The payload contains the complete owned Frame, pool groups and normalized
+original leader rows; no simulation state or comparison verdict. Exhaustive
+schemas make omitted new owned fields a compile error. Entries are bounded,
+compressed with the existing safe LZ4 dependency, checksummed and strictly
+decoded; invalid entries fall back to source parsing. Publication never replaces
+an existing file. Old generations are retained; there is no automatic pruning.
+The source must remain finalized, as required by the offset reader.
+
+`RON_VERIFY_ORACLE=1` checks warm records against fresh whole-record parsing and
+compares complete reports, checkpoints and compared-field sets against uncached
+walks. Raw-key instrumentation always bypasses the store. Ordinary warm runs
+must separately pass, with hit/miss/write counts proving actual cache use.
+Cold creation and warm operation are separate measurements. Scratch buffers
+are bounded and reused within a widening; one record buffer is rewritten on each frame, with a retained-capacity limit.
+
+See `journal/2026-10-16-parsed-oracle.md` for experiment results and validation.
+The complete warm record/report audit passes. Warm coverage improves time/CPU
+but still peaks above its cache-off memory baseline after allocation fixes.
+The full-suite resource measurement is pending; no 10× result is established.
+
 ## Evidence and limitations
 
 See `journal/2026-10-16-suite-replay-batch.md` for measurements, executable audits
 and validation state. No claim of 10× is established yet. Scope compatibility is
 also reviewed directly in code; independent review remains owed. Future shared
-replays must distinguish different corrections, interventions and tuning. A
-persistent parsed oracle store remains a separate, unimplemented opportunity.
+replays must distinguish different corrections, interventions and tuning. The
+parsed store is initially limited to generic widening windows.

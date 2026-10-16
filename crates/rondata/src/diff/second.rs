@@ -239,8 +239,25 @@ pub(crate) fn widen_records(
     n: i64,
     here: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
 ) -> usize {
+    widen_records_from_groups(
+        built,
+        frame,
+        &crate::gamelog::groups(block),
+        players,
+        n,
+        here,
+    )
+}
+
+pub(crate) fn widen_records_from_groups(
+    built: &Built,
+    frame: &Frame,
+    pool: &[crate::gamelog::GroupDump],
+    players: usize,
+    n: i64,
+    here: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+) -> usize {
     let mut rows = 0usize;
-    let pool = crate::gamelog::groups(block);
     for who in 0..players as i64 {
         let Ok(w) = sim::Player::try_from(who) else {
             continue;

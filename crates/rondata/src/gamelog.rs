@@ -428,6 +428,10 @@ pub(crate) mod reads {
 
     /// Starts recording on this thread; a recording already open is
     /// dropped.
+    pub(crate) fn active() -> bool {
+        ON.with(|r| r.borrow().is_some())
+    }
+
     pub(crate) fn start() {
         ON.with(|r| *r.borrow_mut() = Some(Reads::new()));
     }

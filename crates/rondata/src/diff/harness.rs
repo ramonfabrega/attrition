@@ -11190,7 +11190,19 @@ pub(crate) mod tests {
                 prefix,
             )
         };
-        let result = if std::env::var_os("RON_VERIFY_PREFIX_REUSE").is_some() {
+        let result = if std::env::var_os("RON_VERIFY_ORACLE").is_some() {
+            let (actual, notes) = compared::recorded(|| walk(true, true));
+            let (fresh, fresh_notes) = compared::recorded(|| walk(false, false));
+            assert_eq!(
+                actual, fresh,
+                "{name}: oracle changed the complete report/checkpoints"
+            );
+            assert_eq!(notes, fresh_notes, "{name}: oracle changed compared fields");
+            eprintln!(
+                "{name}: oracle matches complete fresh report, checkpoints and compared fields"
+            );
+            actual?
+        } else if std::env::var_os("RON_VERIFY_PREFIX_REUSE").is_some() {
             let (actual, notes) = compared::recorded(|| walk(true, true));
             let (fresh, fresh_notes) = compared::recorded(|| walk(true, false));
             assert_eq!(
@@ -11239,6 +11251,7 @@ pub(crate) mod tests {
         reuse: bool,
         prefix: bool,
     ) -> Option<(Widened, Vec<Widened>)> {
+        let mut oracle_store = crate::diff::oracle::Store::new(reuse);
         let profiling = std::env::var_os("RON_PROFILE_REPLAY").is_some();
         let started = std::time::Instant::now();
         let mut tick_time = std::time::Duration::ZERO;
@@ -11357,13 +11370,23 @@ pub(crate) mod tests {
             };
             // Decode once, then keep the same tree for leader/group records.
             // The second read/parse below exists only for the migration audit.
-            let reused_text = reuse.then(|| ix.read_frame(at).unwrap());
+            let cached = oracle_store.enabled().then(|| oracle_store.read(ix, at));
+            let reused_text = (reuse && cached.is_none()).then(|| ix.read_frame(at).unwrap());
             let reused_log = reused_text.as_deref().map(Log::parse_eager);
-            let frame = if let Some(log) = &reused_log {
-                crate::capture::indexed::IndexedCapture::frame_from_log(log, ix.frames()[at].number)
-                    .unwrap()
+            let fresh_frame;
+            let frame = if let Some(value) = &cached {
+                &value.frame
             } else {
-                ix.frame_state(at).unwrap()
+                fresh_frame = if let Some(log) = &reused_log {
+                    crate::capture::indexed::IndexedCapture::frame_from_log(
+                        log,
+                        ix.frames()[at].number,
+                    )
+                    .unwrap()
+                } else {
+                    ix.frame_state(at).unwrap()
+                };
+                &fresh_frame
             };
             blocks += 1;
             debug_watch(&built, n);
@@ -11371,24 +11394,36 @@ pub(crate) mod tests {
             debug_leader(&built, n);
             debug_ammo(&built, n);
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
-            let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);
+            let (fr, rows) = widen_block(&built, frame, players, n, &mut here);
             compared += rows;
             housed += fr.inside_housed;
             let legacy_text = (!reuse).then(|| ix.read_frame(at).unwrap());
             let legacy_log = legacy_text.as_deref().map(Log::parse);
-            let flog = reused_log.as_ref().or(legacy_log.as_ref()).unwrap();
-            // **The group record and the attack order's row** (item 1061),
-            // on the windows that ask for them: `second::widen_records`.
-            if records && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n) {
-                compared += crate::diff::second::widen_records(
-                    &built, &frame, block, players, n, &mut here,
+            let flog = reused_log.as_ref().or(legacy_log.as_ref());
+            let fresh_groups;
+            let groups = if let Some(value) = &cached {
+                &value.groups
+            } else {
+                fresh_groups = if records || n >= pools {
+                    flog.unwrap()
+                        .frames()
+                        .into_iter()
+                        .find(|(k, _)| *k == n)
+                        .map(|(_, block)| crate::gamelog::groups(block))
+                        .unwrap_or_default()
+                } else {
+                    Vec::new()
+                };
+                &fresh_groups
+            };
+            if records {
+                compared += crate::diff::second::widen_records_from_groups(
+                    &built, frame, groups, players, n, &mut here,
                 );
             }
-            if n >= pools
-                && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n)
-            {
-                let theirs: BTreeMap<i64, Vec<i64>> = crate::gamelog::groups(block)
-                    .into_iter()
+            if n >= pools {
+                let theirs: BTreeMap<i64, Vec<i64>> = groups
+                    .iter()
                     .filter(|g| g.who == 1 && !g.members.is_empty())
                     .map(|g| (g.id - 64, g.members.iter().map(|m| m.o).collect()))
                     .collect();
@@ -11413,10 +11448,19 @@ pub(crate) mod tests {
                 }
             }
             for who in 0..2usize {
-                let Some(block) = flog.leader_block(n, who as i64) else {
-                    continue;
+                let fresh_leader;
+                let t = if let Some(value) = &cached {
+                    let Some(t) = &value.leaders[who] else {
+                        continue;
+                    };
+                    t
+                } else {
+                    let Some(block) = flog.unwrap().leader_block(n, who as i64) else {
+                        continue;
+                    };
+                    fresh_leader = crate::diff::leader::theirs(&block);
+                    &fresh_leader
                 };
-                let t = crate::diff::leader::theirs(&block);
                 let mine = crate::diff::leader::rows(&loaded, &built, who);
                 if who == 1 && std::env::var("RON_SITE_SET").is_ok() {
                     let m: BTreeMap<String, i64> = mine.iter().cloned().collect();
@@ -11461,7 +11505,7 @@ pub(crate) mod tests {
                 }
             }
             if gaia {
-                compared += widen_gaia(&built, &frame, players, n, &mut here, &mut missing);
+                compared += widen_gaia(&built, frame, players, n, &mut here, &mut missing);
             }
             for &(w, o) in &row_walk {
                 let now: Vec<String> = here
@@ -11583,6 +11627,12 @@ pub(crate) mod tests {
         }
         for (n, rows) in &standing {
             eprintln!("  near {n}: {} rows", rows.len());
+        }
+        if oracle_store.hits + oracle_store.misses > 0 {
+            eprintln!(
+                "oracle {name}: hits={} misses={} writes={}",
+                oracle_store.hits, oracle_store.misses, oracle_store.writes
+            );
         }
         if profiling {
             eprintln!(

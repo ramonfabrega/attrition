@@ -105,6 +105,14 @@ const DIFF_FILES: [&str; 19] = [
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/oracle.rs",
+        "decoded original observations; all simulation comparisons remain in harness.rs",
+    ),
+    (
+        "diff/oracle/codec.rs",
+        "exhaustive owned-observation codec and corruption checks, not simulation comparison",
+    ),
+    (
         "diff/harness/prefix.rs",
         "scoped replay state and installation reuse; all oracle comparisons remain in harness.rs",
     ),

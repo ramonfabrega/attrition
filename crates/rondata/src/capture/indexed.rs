@@ -528,6 +528,12 @@ impl IndexedCapture {
         self.check_metadata(self.file.metadata()?)
     }
 
+    /// Identity of the held finalized source, including after a path replacement.
+    #[cfg(test)]
+    pub(crate) fn oracle_identity(&self) -> (&Path, u64, SystemTime) {
+        (&self.path, self.stored_length, self.modified)
+    }
+
     pub fn frames(&self) -> &[FrameRange] {
         &self.frames
     }

@@ -47,6 +47,8 @@ mod lakota_pair;
 mod leader;
 #[cfg(test)]
 mod mongol_pair;
+#[cfg(test)]
+mod oracle;
 mod order;
 mod report;
 #[cfg(test)]
