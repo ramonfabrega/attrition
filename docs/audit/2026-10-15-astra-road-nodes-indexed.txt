@@ -1,0 +1,19 @@
+# Indexed setup/frame reads for the run72 road-node oracle, 2026-10-15.
+# Baseline is the serialized release-suite sweep at 9ea2f4bf. After is a
+# focused release test with the full install and fixture directory set.
+
+diff::world::tests::run72_s_road_nodes_are_where_great_lakes_word_parts
+  baseline: 4.21 s; 3,401 MiB maximum RSS
+  indexed:  2.69 s;   602 MiB maximum RSS (631,422,976 bytes)
+  delta:    -36.1% time; -2,799 MiB / -82.3% maximum RSS
+  indexed instructions retired: 58,153,916,278
+
+# The baseline timing/RSS is a suite-sweep sample and the after timing is one
+# focused run; report as a promising reduction, not a repeated CPU estimate.
+# Exact setup observations are retained. The indexed target is frame 4803 plus
+# siblings, differentially compared to whole-file WORLD fields and height
+# rows. The oracle still checks every road node (277), full world, mesh, and
+# all 32 mask differences. The simulator still runs 4,803 ticks.
+# Focused commands (set RON_INSTALL and RON_GAMELOG_DIR):
+# cargo test -p rondata --release -- diff::world::tests::run72_s_road_nodes_are_where_great_lakes_word_parts --exact --nocapture
+# cargo test -p rondata --release -- diff::testkit::indexed_market_road_frame_preserves_world_fields_and_heights --exact --nocapture

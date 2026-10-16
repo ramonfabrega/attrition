@@ -181,12 +181,12 @@ fn indexed_market_road_frame_preserves_world_fields_and_heights() {
     let index = source
         .frames()
         .iter()
-        .position(|f| f.number == 4_804)
+        .position(|f| f.number == 4_803)
         .unwrap();
-    let slice = source.read_frame(index).unwrap();
+    let slice = source.read_frame_and_siblings(index).unwrap();
     let bounded = Log::parse(&slice);
     let world_fields = |log: &Log<'_>| {
-        let (_, frame) = log.frames().into_iter().find(|(n, _)| *n == 4_804).unwrap();
+        let (_, frame) = log.frames().into_iter().find(|(n, _)| *n == 4_803).unwrap();
         frame
             .kid("FULL DUMP")
             .unwrap_or(frame)
@@ -199,9 +199,9 @@ fn indexed_market_road_frame_preserves_world_fields_and_heights() {
     let expected = world_fields(&whole);
     assert!(!expected.is_empty());
     assert_eq!(world_fields(&bounded), expected);
-    let heights = whole.frame_heights(4_804);
+    let heights = whole.frame_heights(4_803);
     assert!(heights.len() > 1_000);
-    assert_eq!(bounded.frame_heights(4_804), heights);
+    assert_eq!(bounded.frame_heights(4_803), heights);
 }
 
 #[test]

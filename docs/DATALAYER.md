@@ -217,6 +217,10 @@ The third-pair oracle reads indexed setup and replay observations, discards
 observations after the window's last frame, and keeps all group/projectile
 comparisons.
 
+The run72 road oracle uses indexed setup and frame 4803 reads; its 277 road
+nodes, whole-world comparison, mesh checks, and 32 mask differences remain
+asserted (2026-10-15).
+
 **What the laziness costs is a second pass.** Every whole-log product —
 `frame_states`, `frame_seeds`, `anim_lengths`, the height grid, and the four
 walks `initial` used to make separately — now goes through `scan_children`,

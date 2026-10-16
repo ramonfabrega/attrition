@@ -156,6 +156,25 @@ level; the per-test RSS reductions above are the more direct evidence. Gate
 log: `/tmp/attrition-shutdown-indexed-release-gate.log`. The follow-up commit
 records this verdict.
 
+### Run72 road-node oracle memory follow-up — 2026-10-15
+
+The next suite-sweep outlier was `diff::world::tests::run72_s_road_nodes_are_where_great_lakes_word_parts`
+(3,401 MiB, 4.21 s). It held the complete run71 capture and four whole sibling
+captures for setup, then the entire run72 capture to compare frame 4803. It now
+uses indexed replay setup with the same frame observations, scoped indexed
+sibling initials, and only run72 frame 4803 with its sibling blocks. A new
+differential assertion compares that exact indexed frame's WORLD fields and
+height grid to eager whole-file parsing. All 4,803 ticks, 277 road nodes, full
+world and mesh checks, and 32 mask differences remain in the test. Both the
+road test and frame-equivalence test pass with fixtures enabled.
+
+The focused release run measured 2.69 s and 602 MiB RSS (631,422,976 bytes),
+versus the suite sweep's 4.21 s / 3,401 MiB: -2,799 MiB (-82.3%) and -36.1%
+time. Since those are one sweep sample versus one focused run, treat the time
+drop as promising rather than a stable CPU estimate. Indexed instructions:
+58,153,916,278. Evidence: `docs/audit/2026-10-15-astra-road-nodes-indexed.txt`.
+The implementation checkpoint and required gate are pending.
+
 ### For the Loop
 
 The windowed index now reduces the two biggest observed one-test RSS peaks by

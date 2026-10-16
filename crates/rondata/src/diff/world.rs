@@ -1485,29 +1485,26 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let texts = sibling_texts();
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        if let Some(tr) = trace("rontrace-run71.log") {
-            borrow_pasture(&mut init, &tr);
-        }
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
-        // Sim-frame 4803 is the 4,804th tick, so this stops at the end of
-        // 4802 — the world the search is about to read, and the state
-        // run72's `FRAME 4803` block prints.
-        for _ in 0..4_803 {
-            built.tick();
-        }
-
-        // **The world the search reads, whole** — the height grid first,
-        // because a mid-game building re-terraforms it and this is the
-        // first search on a grid this crate wrote rather than borrowed.
-        let text72 = crate::capture::read(&r72);
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let setup = source.read_replay_setup().unwrap();
+        let setup_log = Log::parse(&setup);
+        let setup_init = setup_log.initial().unwrap();
+        let (seeds, animations, guys) = source
+            .with_replay_initial(|observed| {
+                (
+                    observed.frame_seeds.clone(),
+                    observed.anim_lengths.clone(),
+                    observed.frame_guys.clone(),
+                )
+            })
+            .unwrap();
+        let mut r72_source = crate::capture::indexed::IndexedCapture::open(&r72).unwrap();
+        let r72_index = r72_source
+            .frames()
+            .iter()
+            .position(|frame| frame.number == 4_803)
+            .expect("run72 dumped frame 4803");
+        let text72 = r72_source.read_frame_and_siblings(r72_index).unwrap();
         let l72 = Log::parse(&text72);
         let block = l72
             .frames()
@@ -1520,13 +1517,38 @@ mod tests {
             .unwrap_or(block)
             .kid("WORLD")
             .expect("a WORLD block");
-        let mut notes = Vec::new();
         let heights = l72.frame_heights(4_803);
+        let mut notes = Vec::new();
         assert!(
             heights.len() > 1_000,
             "run72's block carries the height grid"
         );
         let (theirs_world, _) = world_from(&w.fields().to_vec(), &heights, &mut notes);
+        drop(l72);
+        drop(text72);
+
+        let mut built = with_sibling_initials(|refs| {
+            let mut init = setup_init;
+            init.frame_seeds = seeds;
+            init.anim_lengths = animations;
+            init.frame_guys = guys;
+            borrow_from_siblings(&mut init, refs);
+            if let Some(tr) = trace("rontrace-run71.log") {
+                borrow_pasture(&mut init, &tr);
+            }
+            let mut built = build_sim(&loaded, &init, Tuning::RON);
+            drop(init);
+            // Sim-frame 4803 is the 4,804th tick, so this stops at the end
+            // of 4802 — the world the search is about to read.
+            for _ in 0..4_803 {
+                built.tick();
+            }
+            built
+        });
+
+        // **The world the search reads, whole** — the height grid first,
+        // because a mid-game building re-terraforms it and this is the
+        // first search on a grid this crate wrote rather than borrowed.
         let (xs, ys) = (theirs_world.width(), theirs_world.height());
         let mut z_off = Vec::new();
         let mut mask_off = Vec::new();
