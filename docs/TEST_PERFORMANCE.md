@@ -92,7 +92,9 @@ are bounded and reused within a widening; one record buffer is rewritten on each
 See `journal/2026-10-16-parsed-oracle.md` for experiment results and validation.
 The complete warm record/report audit passes. Warm coverage improves time/CPU
 but still peaks above its cache-off memory baseline after allocation fixes.
-The full-suite resource measurement is pending; no 10× result is established.
+The required four-thread gate passed: rondata 396.15 → 383.16 s, sampled tree
+RSS 9,879 → 10,025 MiB. This is a small observed time gain and no memory win;
+no 10× result is established. A fresh full profile is the next decision point.
 
 ## Evidence and limitations
 

@@ -153,3 +153,35 @@ For the Loop: paused; source-keyed parsed observations now replace repeated
 parsing in generic widenings, preserving all reports/field sets over 62 audited
 windows. Coverage 75.94 s off → 40.94–43.36 s warm; cold population 86.71 s.
 No score, value, word or pin movement. Full required-fixture gate pending.
+
+## Required full gate — implementation 43147071
+
+Frozen committed tree; command `python3 tools/release_gate.py
+/Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures
+--report-dir /tmp/attrition-replay-batch-20261016-01/oracle-gate-report`, wrapped
+with `/usr/bin/time -l`, logging to `oracle-release-gate.log/.time`.
+
+Actual exit 0. All six steps ran: offline, clippy, fmt, survey, release, guard.
+Fixed 13 passed; rondata 874 passed, zero failed, six ignored (one new explicit
+benchmark); sim 2,585 passed; rondata doc-tests three passed. Fixture audit:
+3,276 requests, 419 distinct fixtures, zero missing. The existing queue item 7
+note remains. No simulation/comparison floors, values, words or pins changed.
+
+Rondata: 383.16 s versus 396.15 s in the preceding batch, a 3.3% observed
+reduction (1.03×), not a replicated suite speedup estimate. Sim: 41.12 s.
+Peak sampled tree 10,025 MiB / largest process 9,992 MiB, versus 9,879 MiB tree
+previously: no suite-memory improvement. Wrapper: 492.28 s real, 1,568.08 user,
+146.46 system; its hardware counters describe the Python wrapper, not the suite.
+Do not directly compare this total with the preceding failed wrapper run, which
+never reached guard. The release-suite timing above is the comparable phase.
+
+Decision: retain the audited source-keyed store as the foundation for parsed
+observations, but do not call it the 10× solution. Its currently migrated generic
+windows are a small share of the remaining suite cost. The two warm coverage
+runs are 40.94–43.36 s; this local win did not translate to a large suite win.
+Independent review is still owed. The next item is a fresh CPU/elapsed/RSS profile
+of every rondata test, choosing further changes from current evidence rather
+than extrapolating the old profile or repeatedly tuning this codec.
+
+For the Loop: 43147071 full required-fixture gate exit 0; rondata 396.15 →
+383.16 s, tree RSS 9,879 → 10,025 MiB; all scores unchanged; paused loop untouched.
