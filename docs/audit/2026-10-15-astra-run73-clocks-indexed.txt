@@ -1,0 +1,17 @@
+# Indexed capture reads for the run73 per-frame clock oracle, 2026-10-15.
+# Baseline is the serialized release-suite sweep at 9ea2f4bf. After is a
+# focused release run with the owned install and fixture corpus set.
+
+diff::harness::tests::run73_s_window_clocks_are_the_original_s
+  baseline: 2.95 s; 2,412 MiB maximum RSS
+  indexed:  2.12 s;   645 MiB maximum RSS (676,249,600 bytes)
+  delta:    -28.1% time; -1,767 MiB / -73.3% maximum RSS
+  indexed instructions retired: 51,996,874,896
+
+# The run53 setup still seeds the same simulation and borrows the same pasture
+# trace and sibling initial data. The run73 clock window remains the oracle;
+# 8,115 fields, including 45 caravan rows, agree. No window observations are
+# installed into the simulation before comparison. The baseline is a sweep
+# sample and the after is one focused run.
+# Reproduction (set RON_INSTALL and RON_GAMELOG_DIR):
+# cargo test -p rondata --release -- diff::harness::tests::run73_s_window_clocks_are_the_original_s --exact --nocapture

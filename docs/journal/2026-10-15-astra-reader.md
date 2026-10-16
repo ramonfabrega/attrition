@@ -375,3 +375,20 @@ Four-thread memory peak was 8,372 MiB across the tree and 8,339 MiB in the
 largest process, under the 20 GiB cap. Gate log:
 `/tmp/attrition-run73-road-indexed-release-gate.log`. The follow-up commit
 records this verdict.
+
+### Run73 clock-window memory follow-up — 2026-10-15
+
+The next RSS leader was `diff::harness::tests::run73_s_window_clocks_are_the_original_s`
+(2,412 MiB, 2.95 s). It fully parsed run53 and all siblings for replay setup,
+then run73 to extract the clock window. It now uses indexed replay setup and
+owned observations, indexed sibling initials, and the same run73 frame-guy
+window from the indexed replay reader. It still compares 8,115 clock/movement
+fields, including 45 caravan rows; the fixture-backed test passes with no
+mismatches.
+
+The focused run measured 2.12 s / 645 MiB (676,249,600 bytes), versus the
+suite sweep's 2.95 s / 2,412 MiB: -1,767 MiB (-73.3%) RSS and -28.1% time.
+This is one sweep sample versus one focused run. Indexed instructions:
+51,996,874,896. Evidence:
+`docs/audit/2026-10-15-astra-run73-clocks-indexed.txt`. The implementation
+checkpoint and required gate are pending.

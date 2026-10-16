@@ -19597,21 +19597,23 @@ pub(crate) mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        borrow_pasture(&mut init, &trace);
-
-        let text73 = crate::capture::read(&r73);
-        let theirs = Log::parse(&text73)
-            .initial()
-            .expect("run73 carries a start block")
-            .frame_guys;
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let setup = source.read_replay_setup().unwrap();
+        let setup_log = Log::parse(&setup);
+        let setup_init = setup_log.initial().unwrap();
+        let (seeds, animations, guys) = source
+            .with_replay_initial(|observed| {
+                (
+                    observed.frame_seeds.clone(),
+                    observed.anim_lengths.clone(),
+                    observed.frame_guys.clone(),
+                )
+            })
+            .unwrap();
+        let mut r73_source = crate::capture::indexed::IndexedCapture::open(&r73).unwrap();
+        let theirs = r73_source
+            .with_replay_initial(|initial| initial.frame_guys.clone())
+            .unwrap();
         let window: Vec<i64> = theirs.iter().map(|(n, _)| *n).collect();
         assert!(
             window.first().is_some_and(|&n| n <= 5_565)
@@ -19620,127 +19622,139 @@ pub(crate) mod tests {
             "run73's `DUMP_ALL` window, as sim-frames: {window:?}"
         );
         let last = *window.last().unwrap();
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
-        // The window's own clocks are never installed: this is the check.
-        built.frame_guys.clear();
-        let mut compared = 0usize;
-        let mut crew_rows = 0usize;
-        let mut caravan_rows = 0usize;
-        let mut unmatched = 0usize;
-        let mut wrong: Vec<String> = Vec::new();
-        for f in 0..=last {
-            built.tick();
-            let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
-                continue;
-            };
-            for state in units {
-                // Gaia's animals are re-seated from the dump every traced
-                // frame (`Sim::reseat_animal`), so their clocks are not
-                // this crate's prediction; the players' are.
-                if !(0..8).contains(&state.who) {
-                    continue;
-                }
-                let Some(u) = (0..built.sim.units.len()).find(|&i| {
-                    let x = &built.sim.units[i];
-                    x.alive() && i64::from(x.owner) == state.who && i64::from(x.index) == state.o
-                }) else {
-                    unmatched += 1;
+        with_sibling_initials(|refs| {
+            let mut init = setup_init;
+            init.frame_seeds = seeds;
+            init.anim_lengths = animations;
+            init.frame_guys = guys;
+            init.frame_seeds.retain(|(frame, _)| *frame <= last);
+            init.frame_guys.retain(|(frame, _)| *frame <= last);
+            borrow_from_siblings(&mut init, refs);
+            borrow_pasture(&mut init, &trace);
+            let mut built = build_sim(&loaded, &init, Tuning::RON);
+            // The window's own clocks are never installed: this is the check.
+            built.frame_guys.clear();
+            let mut compared = 0usize;
+            let mut crew_rows = 0usize;
+            let mut caravan_rows = 0usize;
+            let mut unmatched = 0usize;
+            let mut wrong: Vec<String> = Vec::new();
+            for f in 0..=last {
+                built.tick();
+                let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
                     continue;
                 };
-                for (n, g) in state.guys.iter().enumerate() {
-                    if !g.has_clock() {
+                for state in units {
+                    // Gaia's animals are re-seated from the dump every traced
+                    // frame (`Sim::reseat_animal`), so their clocks are not
+                    // this crate's prediction; the players' are.
+                    if !(0..8).contains(&state.who) {
                         continue;
                     }
-                    let Some(ours) = built.sim.units[u].guys.get(n) else {
+                    let Some(u) = (0..built.sim.units.len()).find(|&i| {
+                        let x = &built.sim.units[i];
+                        x.alive()
+                            && i64::from(x.owner) == state.who
+                            && i64::from(x.index) == state.o
+                    }) else {
+                        unmatched += 1;
                         continue;
                     };
-                    if n >= sim::anim::SQUAD_SIZE {
-                        crew_rows += 1;
-                    }
-                    if (state.who, state.o) == (1, 23) {
-                        caravan_rows += 1;
-                    }
-                    // **The whole of what this crate models of the
-                    // record**, not the clock alone: `des`, `des_angle`
-                    // and the speed pair were parsed and compared
-                    // nowhere until item 210, and they are the arrival
-                    // draw's own inputs — `Guy::move` draws on `cur_anim
-                    // == 8 && stopped` once `angle` reaches `des_angle`,
-                    // and whether the slot lands on 8 rather than 9 is
-                    // `avg_speed`'s doing (`docs/ANIM.md` §4.3).
-                    let (body, facing, des, des_angle) = match ours.follow {
-                        Some(b) => (b.body, b.facing, b.des, b.des_angle),
-                        None => (
-                            built.sim.units[u].movement.body,
-                            built.sim.units[u].movement.facing,
-                            built.sim.units[u].pos,
-                            // **A trackless crew guy's `des_angle` is guy
-                            // 0's `angle`, not its heading** — the crew
-                            // loop of `Guy::set_angle` hands it the angle
-                            // just turned to, so it is settled on every
-                            // frame and never owed a turn of its own. The
-                            // dump says it outright: run64's `1/18` guy 0
-                            // reads `angle 1145324629, des_angle
-                            // 560594944` on the frame it starts turning,
-                            // and its two crew figures read `1145324629`
-                            // for both. That is what
-                            // [`sim::Sim::guys_follow`]'s `settled ||
-                            // g >= SQUAD_SIZE` already models.
-                            if n >= sim::anim::SQUAD_SIZE {
-                                built.sim.units[u].movement.facing
-                            } else {
-                                built.sim.units[u].movement.heading
-                            },
-                        ),
-                    };
-                    let rows: [(&str, i64, Option<i64>); 15] = [
-                        ("x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
-                        ("y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
-                        ("angle", i64::from(facing.0), g.angle),
-                        ("cur_anim", i64::from(ours.anim), g.cur_anim),
-                        ("cur_time", i64::from(ours.cur_time), g.cur_time),
-                        ("end_time", i64::from(ours.end_time), g.end_time),
-                        ("last_time", i64::from(ours.last_time), g.last_time),
-                        ("gpiece", i64::from(ours.gpiece), g.gpiece),
-                        ("stopped", i64::from(ours.stopped), g.stopped),
-                        ("des_x", i64::from(des.x), g.des.map(|p| p.x)),
-                        ("des_y", i64::from(des.y), g.des.map(|p| p.y)),
-                        ("des_angle", i64::from(des_angle.0), g.des_angle),
-                        ("last_speed", i64::from(body.last_speed), g.last_speed),
-                        ("avg_speed", i64::from(body.avg_speed), g.avg_speed),
-                        ("guy_num", i64::try_from(n).unwrap(), g.guy_num),
-                    ];
-                    for (name, ours, theirs) in rows {
-                        let Some(theirs) = theirs else { continue };
-                        compared += 1;
-                        if ours == theirs {
+                    for (n, g) in state.guys.iter().enumerate() {
+                        if !g.has_clock() {
                             continue;
                         }
-                        let row = format!(
-                            "frame {f}: {}/{} guy {n} {name} ours {ours} theirs {theirs}",
-                            state.who, state.o
-                        );
-                        if wrong.len() < 12 {
-                            wrong.push(row);
+                        let Some(ours) = built.sim.units[u].guys.get(n) else {
+                            continue;
+                        };
+                        if n >= sim::anim::SQUAD_SIZE {
+                            crew_rows += 1;
+                        }
+                        if (state.who, state.o) == (1, 23) {
+                            caravan_rows += 1;
+                        }
+                        // **The whole of what this crate models of the
+                        // record**, not the clock alone: `des`, `des_angle`
+                        // and the speed pair were parsed and compared
+                        // nowhere until item 210, and they are the arrival
+                        // draw's own inputs — `Guy::move` draws on `cur_anim
+                        // == 8 && stopped` once `angle` reaches `des_angle`,
+                        // and whether the slot lands on 8 rather than 9 is
+                        // `avg_speed`'s doing (`docs/ANIM.md` §4.3).
+                        let (body, facing, des, des_angle) = match ours.follow {
+                            Some(b) => (b.body, b.facing, b.des, b.des_angle),
+                            None => (
+                                built.sim.units[u].movement.body,
+                                built.sim.units[u].movement.facing,
+                                built.sim.units[u].pos,
+                                // **A trackless crew guy's `des_angle` is guy
+                                // 0's `angle`, not its heading** — the crew
+                                // loop of `Guy::set_angle` hands it the angle
+                                // just turned to, so it is settled on every
+                                // frame and never owed a turn of its own. The
+                                // dump says it outright: run64's `1/18` guy 0
+                                // reads `angle 1145324629, des_angle
+                                // 560594944` on the frame it starts turning,
+                                // and its two crew figures read `1145324629`
+                                // for both. That is what
+                                // [`sim::Sim::guys_follow`]'s `settled ||
+                                // g >= SQUAD_SIZE` already models.
+                                if n >= sim::anim::SQUAD_SIZE {
+                                    built.sim.units[u].movement.facing
+                                } else {
+                                    built.sim.units[u].movement.heading
+                                },
+                            ),
+                        };
+                        let rows: [(&str, i64, Option<i64>); 15] = [
+                            ("x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                            ("y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
+                            ("angle", i64::from(facing.0), g.angle),
+                            ("cur_anim", i64::from(ours.anim), g.cur_anim),
+                            ("cur_time", i64::from(ours.cur_time), g.cur_time),
+                            ("end_time", i64::from(ours.end_time), g.end_time),
+                            ("last_time", i64::from(ours.last_time), g.last_time),
+                            ("gpiece", i64::from(ours.gpiece), g.gpiece),
+                            ("stopped", i64::from(ours.stopped), g.stopped),
+                            ("des_x", i64::from(des.x), g.des.map(|p| p.x)),
+                            ("des_y", i64::from(des.y), g.des.map(|p| p.y)),
+                            ("des_angle", i64::from(des_angle.0), g.des_angle),
+                            ("last_speed", i64::from(body.last_speed), g.last_speed),
+                            ("avg_speed", i64::from(body.avg_speed), g.avg_speed),
+                            ("guy_num", i64::try_from(n).unwrap(), g.guy_num),
+                        ];
+                        for (name, ours, theirs) in rows {
+                            let Some(theirs) = theirs else { continue };
+                            compared += 1;
+                            if ours == theirs {
+                                continue;
+                            }
+                            let row = format!(
+                                "frame {f}: {}/{} guy {n} {name} ours {ours} theirs {theirs}",
+                                state.who, state.o
+                            );
+                            if wrong.len() < 12 {
+                                wrong.push(row);
+                            }
                         }
                     }
                 }
             }
-        }
-        eprintln!(
-            "run73 clocks: {compared} fields over {crew_rows} crew rows and \
+            eprintln!(
+                "run73 clocks: {compared} fields over {crew_rows} crew rows and \
              {caravan_rows} of the caravan's, {unmatched} of the dump's units \
              this crate has no unit for"
-        );
-        for w in &wrong {
-            eprintln!("  {w}");
-        }
-        assert!(
-            compared >= 2_000 && caravan_rows >= 24,
-            "the window's own rows: {compared} fields, {caravan_rows} of them the \
+            );
+            for w in &wrong {
+                eprintln!("  {w}");
+            }
+            assert!(
+                compared >= 2_000 && caravan_rows >= 24,
+                "the window's own rows: {compared} fields, {caravan_rows} of them the \
              caravan's — a capture with neither is the wrong file"
-        );
-        assert!(wrong.is_empty(), "run73's clocks parted: {wrong:?}");
+            );
+            assert!(wrong.is_empty(), "run73's clocks parted: {wrong:?}");
+        });
     }
 
     /// **run74 — the Merchant that turns** (2026-09-04, item 207).
