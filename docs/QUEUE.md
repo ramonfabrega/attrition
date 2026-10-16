@@ -68,8 +68,11 @@ reads retain all2,208 bodies and cut wall30.10→2.13s/CPU27.47→2.08s; RSS+5.3
 Complete required-fixture gate passed on `980efbd5`:271.25s/1509.62CPU/8169MiB
 sampled tree; all tests and3276 fixture requests preserved. Warm guard27.98→4.29s.
 See [workflow journal](journal/2026-10-16-validation-workflow.md).
-Next: observe admission wait versus execution; then measure build/replay duplication
-before splitting crates or caching any revision's verdict.
+Build follow-up: incremental release compilation with256 partitions cuts measured
+small sim-edit rebuild44–47→19s and CPU277–289→108–109s; full gate pending.
+See [build journal](journal/2026-10-16-build-invalidation.md).
+Next: observe admission wait versus execution; measure remaining invalidation
+before splitting crates. Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.

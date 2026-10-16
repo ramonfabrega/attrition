@@ -14,3 +14,7 @@ unsafe_code = "forbid"
 [profile.release]
 # Determinism: identical codegen assumptions across builds.
 overflow-checks = true
+# Reuse compiler work after local edits; never reuse test verdicts.
+# Measured build/runtime tradeoffs: docs/journal/2026-10-16-build-invalidation.md.
+incremental = true
+codegen-units = 256

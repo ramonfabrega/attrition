@@ -1,8 +1,9 @@
-"""Allocator policy and actual runner plumbing, using authored/mocked children."""
+"""Build/allocator policy and runner plumbing, using authored/mocked children."""
 import os
 from pathlib import Path
 import sys
 import tempfile
+import tomllib
 import unittest
 from unittest.mock import patch, MagicMock
 
@@ -13,6 +14,15 @@ import release_gate as gate
 
 
 class RuntimePolicy(unittest.TestCase):
+    def test_release_build_reuses_compilation_without_relaxing_checks(self):
+        manifest = Path(__file__).resolve().parents[2] / 'Cargo.toml'
+        profile = tomllib.loads(manifest.read_text())['profile']['release']
+        self.assertIs(profile.get('incremental'), True)
+        self.assertEqual(profile.get('codegen-units'), 256)
+        self.assertIs(profile.get('overflow-checks'), True)
+        self.assertEqual(profile.get('opt-level', 3), 3)
+        self.assertEqual(profile.get('panic', 'unwind'), 'unwind')
+
     def test_darwin_default_is_child_local_and_preserves_overrides(self):
         original = {'RON_INSTALL': '/authored'}
         env = runtime.child_environment(original, platform='darwin')

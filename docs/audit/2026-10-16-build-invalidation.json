@@ -1,0 +1,2266 @@
+{
+  "starting_tip": "1156437a95884064e9222b3d29e9760ae546bdfa",
+  "evidence_root": "/tmp/attrition-build-cost-20261016-01",
+  "toolchain": "rustc 1.97.1 (8bab26f4f), aarch64-apple-darwin, LLVM 22.1.6",
+  "source_probes_restored": true,
+  "builds": [
+    {
+      "mode": "baseline",
+      "label": "warm",
+      "wall": 0.25,
+      "cpu": 0.11,
+      "tree_mib": 0,
+      "rebuilt": []
+    },
+    {
+      "mode": "baseline",
+      "label": "noop",
+      "wall": 0.1,
+      "cpu": 0.09,
+      "tree_mib": 22,
+      "rebuilt": []
+    },
+    {
+      "mode": "baseline",
+      "label": "test",
+      "wall": 24.72,
+      "cpu": 103.46,
+      "tree_mib": 2094,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "baseline",
+      "label": "harness",
+      "wall": 25.15,
+      "cpu": 138.6,
+      "tree_mib": 2104,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "baseline",
+      "label": "sim",
+      "wall": 43.98,
+      "cpu": 276.56,
+      "tree_mib": 4288,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental",
+      "label": "warm",
+      "wall": 47.66,
+      "cpu": 298.62,
+      "tree_mib": 3532,
+      "rebuilt": [
+        {
+          "name": "cfg_if",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "fixed",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "adler2",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "build-script-build",
+          "kind": [
+            "custom-build"
+          ],
+          "test": false
+        },
+        {
+          "name": "simd_adler32",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "lz4_flex",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "fixed",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "memchr",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "crc32fast",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "miniz_oxide",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "flate2",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "roxmltree",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental",
+      "label": "noop",
+      "wall": 0.11,
+      "cpu": 0.11,
+      "tree_mib": 13,
+      "rebuilt": []
+    },
+    {
+      "mode": "incremental",
+      "label": "test",
+      "wall": 17.95,
+      "cpu": 78.02,
+      "tree_mib": 1972,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental",
+      "label": "harness",
+      "wall": 19.5,
+      "cpu": 107.12,
+      "tree_mib": 2144,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental",
+      "label": "sim",
+      "wall": 19.12,
+      "cpu": 109.95,
+      "tree_mib": 2787,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental256",
+      "label": "warm",
+      "wall": 49.71,
+      "cpu": 331.94,
+      "tree_mib": 3269,
+      "rebuilt": [
+        {
+          "name": "cfg_if",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "fixed",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "adler2",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "build-script-build",
+          "kind": [
+            "custom-build"
+          ],
+          "test": false
+        },
+        {
+          "name": "simd_adler32",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "lz4_flex",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "fixed",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "memchr",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "miniz_oxide",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "crc32fast",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "flate2",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "roxmltree",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental256",
+      "label": "noop",
+      "wall": 0.13,
+      "cpu": 0.11,
+      "tree_mib": 8,
+      "rebuilt": []
+    },
+    {
+      "mode": "incremental256",
+      "label": "test",
+      "wall": 16.47,
+      "cpu": 19.59,
+      "tree_mib": 1245,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental256",
+      "label": "harness",
+      "wall": 18.84,
+      "cpu": 89.98,
+      "tree_mib": 1701,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental256",
+      "label": "sim",
+      "wall": 19.25,
+      "cpu": 108.49,
+      "tree_mib": 2344,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "baseline-repeat",
+      "label": "warm",
+      "wall": 48.69,
+      "cpu": 286.74,
+      "tree_mib": 3664,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "baseline-repeat",
+      "label": "noop",
+      "wall": 0.13,
+      "cpu": 0.11,
+      "tree_mib": 7,
+      "rebuilt": []
+    },
+    {
+      "mode": "baseline-repeat",
+      "label": "test",
+      "wall": 25.75,
+      "cpu": 107.89,
+      "tree_mib": 2150,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "baseline-repeat",
+      "label": "harness",
+      "wall": 27.36,
+      "cpu": 146.58,
+      "tree_mib": 2149,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "baseline-repeat",
+      "label": "sim",
+      "wall": 46.87,
+      "cpu": 289.04,
+      "tree_mib": 4013,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental256-repeat",
+      "label": "warm",
+      "wall": 36.06,
+      "cpu": 190.09,
+      "tree_mib": 2353,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental256-repeat",
+      "label": "noop",
+      "wall": 0.11,
+      "cpu": 0.09,
+      "tree_mib": 18,
+      "rebuilt": []
+    },
+    {
+      "mode": "incremental256-repeat",
+      "label": "test",
+      "wall": 16.84,
+      "cpu": 20.0,
+      "tree_mib": 1271,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental256-repeat",
+      "label": "harness",
+      "wall": 18.83,
+      "cpu": 89.87,
+      "tree_mib": 1616,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    },
+    {
+      "mode": "incremental256-repeat",
+      "label": "sim",
+      "wall": 18.61,
+      "cpu": 108.8,
+      "tree_mib": 2586,
+      "rebuilt": [
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "bin"
+          ],
+          "test": true
+        },
+        {
+          "name": "rondata",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        },
+        {
+          "name": "command_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "replay_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "shutdown_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "path_capsule_worker",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "debug_view",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "frame_memory",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_cost",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "indexed_profile",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "trace_acceptance",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "turn_angles_oracle_check",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "capture_archive",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "correction_audit",
+          "kind": [
+            "example"
+          ],
+          "test": false
+        },
+        {
+          "name": "sim",
+          "kind": [
+            "lib"
+          ],
+          "test": true
+        }
+      ]
+    }
+  ],
+  "runtime_eight_test_sample": {
+    "baseline": {
+      "complete": true,
+      "success": true,
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 888,
+      "elapsed": 35.390408125007525,
+      "cpu": 65.14
+    },
+    "incremental": {
+      "complete": true,
+      "success": true,
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 888,
+      "elapsed": 32.35361083300086,
+      "cpu": 60.480000000000004
+    },
+    "incremental256": {
+      "complete": true,
+      "success": true,
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 888,
+      "elapsed": 32.47018791700248,
+      "cpu": 60.01
+    }
+  },
+  "sample_fixture_multisets_equal": true,
+  "sample_fixture_requests_each": 458,
+  "gate": "pending",
+  "review": "independent Fable review owed",
+  "precommit_validation": {
+    "offline_tests": 492,
+    "offline_skipped": 3,
+    "offline_exit": 0,
+    "policy_tests": 7,
+    "policy_exit": 0,
+    "guard_exit": 0
+  }
+}

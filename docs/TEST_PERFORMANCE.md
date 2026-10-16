@@ -428,3 +428,17 @@ manifest match the reference. The earlier combined gate took427.11s/1438.50CPU/
 8089MiB: wall improves with the default executor, while CPU and memory do not.
 This is not a new replay speedup or a 10× full-suite result. Warm standalone guard
 execution is27.98→4.29s. See the workflow journal for attribution and review limits.
+
+## Incremental release builds
+
+The release profile now uses incremental compilation and256 code-generation
+units, retaining optimization level3 and overflow checks. Two small-edit samples
+reduce test-only rebuild wall25–26→16–17s/CPU103–108→20s, and sim-edit rebuild
+wall44–47→19s/CPU277–289→108–109s. Build memory also falls in those samples.
+This adds roughly1.7GiB of local compiler cache in the measured target; fresh
+worktrees pay the initial build. No test verdicts or mutable replays are cached,
+and no cross-worktree cache hit is assumed. Larger edits may invalidate more work.
+The8-test runtime screen retains all458 fixture requests and shows no regression;
+full-gate validation is pending. See [build journal](journal/2026-10-16-build-invalidation.md)
+and [audit](audit/2026-10-16-build-invalidation.json). Reference compiler settings:
+`CARGO_INCREMENTAL=0 CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16`.
