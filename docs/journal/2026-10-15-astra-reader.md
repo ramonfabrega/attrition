@@ -457,4 +457,10 @@ The focused run measured 1.78 s / 527 MiB (553,140,224 bytes), versus the
 suite sweep's 3.04 s / 2,284 MiB: -1,757 MiB (-76.9%) RSS and -41.4% time.
 Indexed instructions: 36,998,081,251. Evidence:
 `docs/audit/2026-10-15-astra-run33-scout482-indexed.txt`. The implementation
-checkpoint and required gate are pending.
+checkpoint: `e1e107f6`. The required gate passed all 6 steps on the unchanged
+committed tree: 13 fixed tests, 866 rondata tests, 2,585 sim tests, and 3
+rondata doc-tests. Fixture audit: 3,187 requests, 0 missing. Four-thread
+memory peak was 9,199 MiB across the tree and 9,167 MiB in the largest process,
+under the 20 GiB cap. Gate log:
+`/tmp/attrition-run33-scout482-indexed-release-gate.log`. The follow-up commit
+records this verdict.
