@@ -478,4 +478,10 @@ The focused run measured 2.37 s / 523 MiB (548,618,240 bytes), versus the
 suite sweep's 3.05 s / 2,275 MiB: -1,752 MiB (-77.0%) RSS and -22.3% time.
 Indexed instructions: 55,187,177,601. Evidence:
 `docs/audit/2026-10-15-astra-run33-herd-streamed.txt`. The implementation
-checkpoint and required gate are pending.
+checkpoint: `71daaa41`. The required release gate passed all 6 steps on the
+unchanged committed tree: 13 fixed tests, 866 rondata tests, 2,585 sim tests,
+and 3 rondata doc-tests. Fixture audit: 3,187 requests, 0 missing.
+Four-thread memory peak was 9,446 MiB across the tree and 9,413 MiB in the
+largest process, under the 20 GiB cap. Gate log:
+`/tmp/attrition-run33-herd-streamed-release-gate.log`. The follow-up commit
+records this verdict.
