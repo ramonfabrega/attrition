@@ -4133,21 +4133,29 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let setup = source.read_replay_setup().unwrap();
+        let setup_log = Log::parse(&setup);
+        let setup_init = setup_log.initial().unwrap();
+        let (seeds, animations) = source
+            .with_replay_initial(|observed| {
+                (observed.frame_seeds.clone(), observed.anim_lengths.clone())
+            })
+            .unwrap();
+        let mut built = with_sibling_initials(|refs| {
+            let mut init = setup_init;
+            init.frame_seeds = seeds;
+            init.anim_lengths = animations;
+            borrow_from_siblings(&mut init, refs);
+            build_sim(&loaded, &init, Tuning::RON)
+        });
         let mut walk: Vec<(i64, i32, i32)> = Vec::new();
         let (mut agree, mut seen) = (0usize, 0usize);
         let mut first_bad: Option<String> = None;
         let mut first_bad_frame: i64 = i64::MAX;
         let mut last = 0i64;
-        for f in log.frame_states() {
+        for f in source.frame_states() {
+            let f = f.unwrap();
             while last < f.n {
                 built.tick();
                 last += 1;

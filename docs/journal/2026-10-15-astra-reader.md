@@ -464,3 +464,18 @@ memory peak was 9,199 MiB across the tree and 9,167 MiB in the largest process,
 under the 20 GiB cap. Gate log:
 `/tmp/attrition-run33-scout482-indexed-release-gate.log`. The follow-up commit
 records this verdict.
+
+### Run33 Gaia herd streaming follow-up — 2026-10-15
+
+The next RSS leader compared all frames from run33 while retaining every
+decoded state. It now builds from indexed replay setup (retaining frame seeds
+and animation lengths) and consumes `IndexedCapture::frame_states()` one
+frame at a time. The simulation still reaches every printed frame, checks the
+full 74,040 animal-frame positions, preserves the exact 980–990 walk, and
+retains the no-divergence floor. The focused fixture-backed test passes.
+
+The focused run measured 2.37 s / 523 MiB (548,618,240 bytes), versus the
+suite sweep's 3.05 s / 2,275 MiB: -1,752 MiB (-77.0%) RSS and -22.3% time.
+Indexed instructions: 55,187,177,601. Evidence:
+`docs/audit/2026-10-15-astra-run33-herd-streamed.txt`. The implementation
+checkpoint and required gate are pending.

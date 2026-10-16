@@ -1,0 +1,17 @@
+# Streamed frame-state comparison for run33's Gaia herd, 2026-10-15.
+# Baseline is the serialized suite sweep at 9ea2f4bf; after is one focused
+# release run with the owned install and fixture corpus set.
+
+diff::world::tests::run33_s_herd_centre_jitters_about_its_home_cell
+  baseline: 3.05 s; 2,275 MiB maximum RSS
+  indexed:  2.37 s;   523 MiB maximum RSS (548,618,240 bytes)
+  delta:    -22.3% time; -1,752 MiB / -77.0% maximum RSS
+  indexed instructions retired: 55,187,177,601
+
+# The simulation still advances through every printed frame and compares all
+# 74,040 Gaia animal-frame positions, including the exact frames 980–990 walk
+# and full-capture equality floor. Frame states are decoded one at a time;
+# replay setup retains seeds and animation lengths, not the entire animal
+# observation series. Baseline is a sweep sample and after one focused run.
+# Reproduction (set RON_INSTALL and RON_GAMELOG_DIR):
+# cargo test -p rondata --release -- diff::world::tests::run33_s_herd_centre_jitters_about_its_home_cell --exact --nocapture
