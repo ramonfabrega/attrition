@@ -143,8 +143,18 @@ to 9.73 s, 4,888,231,936 to 993,017,856 B RSS (79.7% lower), and 372.2B to
 s, 4,238,639,104 to 1,017,233,408 B RSS (76.0% lower), and 181.5B to 117.5B
 instructions (35.3% lower). These are single-run measurements, but the memory
 reduction is large and the original value assertions remain intact. Focused
-release tests passed for both tests. Full required-fixture gate validation is
-pending on the committed implementation checkpoint.
+release tests passed for both tests.
+
+All six focused rows passed. The implementation checkpoint is `e6d98bd1`.
+The required gate on that committed tree passed all 6 steps: 13 fixed tests,
+866 rondata tests, 2,585 sim tests, and 3 rondata doc-tests; fixture audit
+3,187 requests, 0 missing. The rondata release run finished in 496.11 s.
+Peak memory was 11,056 MiB across the tree and 11,022 MiB in its largest
+process, below the 20 GiB cap. The previous full gate on `f36f1393` peaked at
+12,543 MiB across the tree, so this run observed 1,487 MiB less at suite
+level; the per-test RSS reductions above are the more direct evidence. Gate
+log: `/tmp/attrition-shutdown-indexed-release-gate.log`. The follow-up commit
+records this verdict.
 
 ### For the Loop
 
