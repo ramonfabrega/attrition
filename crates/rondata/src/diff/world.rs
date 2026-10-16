@@ -2782,27 +2782,26 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        borrow_pasture(&mut init, &trace);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
-        // Sim-frame 5566 is the 5,567th tick, so this stops at the end of
-        // 5565 — the world the search is about to read, and the state
-        // run73's `FRAME 5566` block prints.
-        for _ in 0..5_566 {
-            built.tick();
-        }
-
-        // **The world the search reads, whole**, on the map's first
-        // `DUMP_ALL` window: 921,600 heights, every cell owner, every tile
-        // mask.
-        let text73 = crate::capture::read(&r73);
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let setup = source.read_replay_setup().unwrap();
+        let setup_log = Log::parse(&setup);
+        let setup_init = setup_log.initial().unwrap();
+        let (seeds, animations, guys) = source
+            .with_replay_initial(|observed| {
+                (
+                    observed.frame_seeds.clone(),
+                    observed.anim_lengths.clone(),
+                    observed.frame_guys.clone(),
+                )
+            })
+            .unwrap();
+        let mut r73_source = crate::capture::indexed::IndexedCapture::open(&r73).unwrap();
+        let r73_index = r73_source
+            .frames()
+            .iter()
+            .position(|frame| frame.number == 5_566)
+            .expect("run73 dumped frame 5566");
+        let text73 = r73_source.read_frame_and_siblings(r73_index).unwrap();
         let l73 = Log::parse(&text73);
         let block = l73
             .frames()
@@ -2822,6 +2821,31 @@ mod tests {
             "run73's block carries the height grid"
         );
         let (theirs_world, _) = world_from(&w.fields().to_vec(), &heights, &mut notes);
+        drop(l73);
+        drop(text73);
+
+        let mut built = with_sibling_initials(|refs| {
+            let mut init = setup_init;
+            init.frame_seeds = seeds;
+            init.anim_lengths = animations;
+            init.frame_guys = guys;
+            init.frame_seeds.retain(|(frame, _)| *frame < 5_566);
+            init.frame_guys.retain(|(frame, _)| *frame < 5_566);
+            borrow_from_siblings(&mut init, refs);
+            borrow_pasture(&mut init, &trace);
+            let mut built = build_sim(&loaded, &init, Tuning::RON);
+            drop(init);
+            // Sim-frame 5566 is the 5,567th tick, so this stops at the end
+            // of 5565 — the world the search is about to read.
+            for _ in 0..5_566 {
+                built.tick();
+            }
+            built
+        });
+
+        // **The world the search reads, whole**, on the map's first
+        // `DUMP_ALL` window: 921,600 heights, every cell owner, every tile
+        // mask.
         let (xs, ys) = (theirs_world.width(), theirs_world.height());
         let mut z_off = Vec::new();
         let mut mask_off = Vec::new();

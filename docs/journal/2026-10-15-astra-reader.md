@@ -352,3 +352,20 @@ steps on the unchanged committed tree: 13 fixed tests, 866 rondata tests,
 in the largest process, under the 20 GiB cap. Gate log:
 `/tmp/attrition-third-pair-indexed-release-gate.log`. The follow-up commit
 records this verdict.
+
+### Run73 caravan-road oracle memory follow-up — 2026-10-15
+
+The next RSS outlier was `diff::world::tests::run73_s_caravan_road_is_the_original_s_node_for_node`
+(2,428 MiB, 2.40 s). It parsed run53's full 24k setup capture, every sibling
+whole, and run73's full target capture to compare frame 5566. It now reads
+indexed setup and replay observations, scopes sibling initials, trims future
+observations after frame 5565, and reads only frame 5566 with siblings. The
+same 5,566 ticks, whole world and mesh, 45 mask differences, and all eight
+road-node windows remain checked. The fixture-backed focused test passes.
+
+The focused release run was 1.41 s / 612 MiB (641,744,896 bytes), versus the
+suite sweep's 2.40 s / 2,428 MiB: -1,816 MiB (-74.8%) RSS and -41.3% time.
+Treat the timing as one sweep sample versus one focused run. Indexed
+instructions: 34,169,696,259. Evidence:
+`docs/audit/2026-10-15-astra-run73-road-indexed.txt`. The implementation
+checkpoint and required gate are pending.

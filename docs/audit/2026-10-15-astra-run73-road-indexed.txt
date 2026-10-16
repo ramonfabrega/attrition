@@ -1,0 +1,18 @@
+# Indexed setup/frame reads for the run73 caravan road oracle, 2026-10-15.
+# Baseline is the serialized release-suite sweep at 9ea2f4bf. After is a
+# focused release run with the owned install and fixture corpus set.
+
+diff::world::tests::run73_s_caravan_road_is_the_original_s_node_for_node
+  baseline: 2.40 s; 2,428 MiB maximum RSS
+  indexed:  1.41 s;   612 MiB maximum RSS (641,744,896 bytes)
+  delta:    -41.3% time; -1,816 MiB / -74.8% maximum RSS
+  indexed instructions retired: 34,169,696,259
+
+# It still simulates 5,566 ticks from run53's original setup, borrows the same
+# sibling data and pasture trace, compares the whole run73 world/mesh at frame
+# 5566, and checks all eight road-node windows. The original 45 non-surface
+# mask differences remain. Target memory is now bounded by setup observations
+# and one target frame plus its siblings, rather than both whole captures.
+# The baseline is a suite-sweep sample, the after is one focused run.
+# Reproduction (set RON_INSTALL and RON_GAMELOG_DIR):
+# cargo test -p rondata --release -- diff::world::tests::run73_s_caravan_road_is_the_original_s_node_for_node --exact --nocapture
