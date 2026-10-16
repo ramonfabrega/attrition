@@ -213,6 +213,9 @@ The merchant-slot oracle reads one frame and its `FULL DUMP` siblings at a
 time, then replays from indexed setup. Its `LEADERDATA` multiset check is
 unchanged.
 
+The shutdown-lag check reads the indexed closing tail and only run71 frames
+4810 and 4811; the `0/3` one-tick finding is unchanged.
+
 The third-pair oracle reads indexed setup and replay observations, discards
 observations after the window's last frame, and keeps all group/projectile
 comparisons.

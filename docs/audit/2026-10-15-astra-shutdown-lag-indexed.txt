@@ -1,0 +1,18 @@
+# Indexed reads for the one-tick shutdown-lag check, 2026-10-15.
+# Baseline is the serialized release-suite sweep at 9ea2f4bf. After is a
+# focused release run with the owned install and fixture corpus set.
+
+diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit
+  baseline: 2.84 s; 2,555 MiB maximum RSS
+  indexed:  0.04 s;    66.4 MiB maximum RSS (69,664,768 bytes)
+  delta:    -98.6% time; -2,488.6 MiB / -97.4% maximum RSS
+  indexed instructions retired: 931,867,254
+
+# The original asserted that run72's closing dump is frame 4811, disagrees
+# with run71's ordinary frame 4811 only at unit 0/3, and that unit agrees at
+# frame 4810. The same comparisons remain. The closing tail uses
+# read_shutdown(); the long capture reads only frames 4810 and 4811 plus their
+# siblings. Reader shape checks are also covered by indexed-capture tests.
+# The baseline is a suite-sweep sample, the after is one focused run.
+# Reproduction (set RON_INSTALL and RON_GAMELOG_DIR):
+# cargo test -p rondata --release -- diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit --exact --nocapture

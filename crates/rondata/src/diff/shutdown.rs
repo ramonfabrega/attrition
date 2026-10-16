@@ -539,16 +539,22 @@ mod tests {
             eprintln!("skipping: no run71/run72 capture (set RON_GAMELOG_DIR)");
             return;
         };
-        let at = crate::capture::read(&a);
-        let bt = crate::capture::read(&b);
-        let closing = Log::parse(&at).final_state().expect("run72 quit");
-        let long = Log::parse(&bt);
-        let ordinary = long.frame_states();
+        let mut closing_source = crate::capture::indexed::IndexedCapture::open(&a).unwrap();
+        let closing_text = closing_source.read_shutdown().unwrap();
+        let closing = Log::parse(&closing_text).final_state().expect("run72 quit");
+        let mut long_source = crate::capture::indexed::IndexedCapture::open(&b).unwrap();
         assert_eq!(closing.n, 4_811, "run72's closing dump");
-        let differ = |n: i64| -> Vec<(i64, i64)> {
-            let st = ordinary
+        let mut differ = |n: i64| -> Vec<(i64, i64)> {
+            let index = long_source
+                .frames()
                 .iter()
-                .find(|s| s.n == n && !s.units.is_empty())
+                .position(|f| f.number == n)
+                .unwrap_or_else(|| panic!("run71 has no frame {n}"));
+            let text = long_source.read_frame_and_siblings(index).unwrap();
+            let st = Log::parse(&text)
+                .frame_states()
+                .into_iter()
+                .find(|s| !s.units.is_empty())
                 .unwrap_or_else(|| panic!("run71 has no ordinary block at {n}"));
             closing
                 .units

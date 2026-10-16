@@ -181,6 +181,23 @@ in the largest process, under the 20 GiB cap and 1,369 MiB below the preceding
 gate. Gate log: `/tmp/attrition-road-nodes-indexed-release-gate.log`. The
 follow-up commit records this verdict.
 
+### Shutdown-lag comparison memory follow-up — 2026-10-15
+
+The next measured RSS outlier was `diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit`
+(2,555 MiB, 2.84 s). It loaded run72 and run71 whole, then retained all run71
+frame states to establish whether unit `0/3`'s shutdown position belongs to
+frame 4811 or its preceding frame. It now reads the indexed shutdown tail and
+only ordinary frames 4810 and 4811 with their siblings. Its frame number, sole
+position difference at 4811, and agreement at 4810 remain asserted; the
+fixture-backed focused test passes.
+
+The focused release measurement was 0.04 s / 66.4 MiB (69,664,768 bytes),
+versus 2.84 s / 2,555 MiB in the suite sweep: 2,488.6 MiB (97.4%) lower RSS
+and 98.6% lower time. This is one sweep sample against one focused run.
+Indexed instructions: 931,867,254. Evidence:
+`docs/audit/2026-10-15-astra-shutdown-lag-indexed.txt`. The implementation
+checkpoint and required gate are pending.
+
 ### For the Loop
 
 The windowed index now reduces the two biggest observed one-test RSS peaks by
