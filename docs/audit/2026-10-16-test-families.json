@@ -268,7 +268,25 @@
     "skips": 3,
     "exit": 0
   },
-  "gate": "pending",
+  "gate": {
+    "commit": "69e343a3",
+    "exit": 0,
+    "phases": 6,
+    "wall_seconds": 262.15,
+    "cpu_seconds": 1443.5,
+    "sampled_tree_mib": 8360,
+    "offline_tests": 498,
+    "offline_skips": 3,
+    "sim_total_passed": 2586,
+    "rondata_passed": 890,
+    "rondata_ignored": 6,
+    "fixed_passed": 13,
+    "doctests_passed": 3,
+    "fixture_requests": 3276,
+    "unique_fixtures": 419,
+    "missing_fixtures": 0,
+    "equivalence_receipt": "gate-equivalence.json"
+  },
   "independent_review": "owed",
   "precommit": {
     "guard_exit": 0,

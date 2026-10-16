@@ -455,7 +455,9 @@ in the library, preserving2586 total. Shared oracle/install helpers are unchange
 The sweep generator routes new independent tests; normal guards reject missing,
 duplicate or incorrectly mounted registrations. A sweep edit measured21.95→2.21–2.78s,
 CPU103.49→2.76–2.83s, sampled build peak1971→212–268MiB. This is8–10× for that
-rebuild, not a full-suite10×. Full-gate validation is pending.
+rebuild, not a full-suite10×. Complete required-fixture gate passes on `69e343a3`:
+262.15s/1443.50CPU/8360MiB sampled tree. All tests and3276 fixture requests are
+preserved; full-suite execution is roughly flat.
 
 Use `zsh tools/check.sh test -p sim --release FILTER` for cross-target selection,
 or add `--test sweep_u_z` for a known partition. `--lib` no longer includes these

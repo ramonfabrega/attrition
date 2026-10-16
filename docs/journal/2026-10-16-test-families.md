@@ -123,3 +123,40 @@ before either generated output is created. The complete guard passed before
 that additional case (`guard.log`); final guard receipt is `guard-final.log`, exit0 (4.23s admitted execution).
 Formatting/diff checks pass;16 local documentation links resolve and audit JSON
 parses. The full committed-tree gate remains pending.
+
+## Frozen committed-tree gate
+
+Implementation `69e343a3` was committed before the complete run; the tree stayed
+unchanged until its actual exit:
+
+```sh
+/usr/bin/time -l zsh tools/memcap.sh 40 python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures --report-dir /tmp/attrition-test-families-20261016-01/gate
+```
+
+Exit0 (`gate.exit`), all six phases pass (`gate.log`). Offline498 tests pass with
+3 unchanged skips. Sim1850 + extracted partitions207/224/159/146 all pass with
+0 filtered/ignored:2586 total. Rondata890 passes with6 unchanged ignored and0
+filtered; fixed13 and doctests3 pass. The fresh Cargo executable manifest's
+sim-name union equals the saved baseline exactly, with0 duplicate names. Ordered
+rondata names/ignored list match the previous gate. Exact3276 fixture requests
+(419 unique,0 missing) match the previous gate; `gate-equivalence.json` retains
+the executable discovery and equivalence receipt. Every original check remains.
+
+Whole gate:262.15s wall/1443.50 CPU seconds/8360MiB sampled tree peak, versus
+266.23s/1463.74CPU/9028MiB in the preceding gate. Rondata164.91s/1170.41CPU versus
+166.57s/1177.66CPU. Execution is roughly flat; these individual runs do not
+establish a general runtime or memory improvement. The five sim targets together
+took44.24s of reported test wall versus the previous41.27s single target; target
+boundaries can add scheduling tails. That cost is retained, not hidden by running
+fewer tests. The repeated sweep-build result is the claimed benefit, not a
+full-suite10×. Pins, scores and compared values do not move.
+
+Keep this extraction: it establishes a useful test compilation boundary without
+public-API widening, assertion changes or fixture changes. Fable review is owed;
+no commander restart or merge performed. The verdict follow-up is bookkeeping
+only, validated by paperwork/format/link/JSON checks rather than another complete
+game-data run. Further splits need their own dependency and runtime measurements.
+
+Verdict follow-up checks passed: complete guard exit0 (`guard-verdict.log`,4.17s),
+formatting/diff checks,16 local links and audit JSON parsing. No second full gate
+is claimed for this bookkeeping-only follow-up.
