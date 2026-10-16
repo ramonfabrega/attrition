@@ -196,7 +196,13 @@ versus 2.84 s / 2,555 MiB in the suite sweep: 2,488.6 MiB (97.4%) lower RSS
 and 98.6% lower time. This is one sweep sample against one focused run.
 Indexed instructions: 931,867,254. Evidence:
 `docs/audit/2026-10-15-astra-shutdown-lag-indexed.txt`. The implementation
-checkpoint and required gate are pending.
+checkpoint is `2dbf795e`. The required gate passed all 6 steps on the unchanged
+committed tree: 13 fixed tests, 866 rondata tests, 2,585 sim tests, and 3
+rondata doc-tests. Fixture audit: 3,187 requests, 0 missing. Four-thread
+memory peak was 9,196 MiB across the tree and 9,164 MiB in the largest process,
+under the 20 GiB cap. Gate log:
+`/tmp/attrition-shutdown-lag-indexed-release-gate.log`. The follow-up commit
+records this verdict.
 
 ### For the Loop
 
