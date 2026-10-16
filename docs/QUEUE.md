@@ -55,8 +55,10 @@ Third-pair four-suite sample: CPU-32%, memory-36%, wall unchanged; see its
 full-frame audits and exact fixture/output comparisons pass. Four-suite sample:
 wall-16%, CPU-15%, memory-6%; six suites wall-18%, CPU-14%, memory flat.
 Full required-fixture gate passed on `f08d0c08`; full-gate speedup unproven.
-Next: ticking/decoding now dominate. See
-[coverage journal](journal/2026-10-16-coverage-walk.md).
+Ticking/decoder follow-up: coverage CPU−11–13%; child-local macOS reclamation
+cuts warm four/six-suite sample memory38%/40%, CPU flat/−5%, elapsed flat.
+Checks preserved; full gate pending. See [ticking journal](journal/2026-10-16-ticking-decoding.md).
+Next: measured live unit/radius scans; independent review remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.
 

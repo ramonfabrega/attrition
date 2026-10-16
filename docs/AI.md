@@ -16238,6 +16238,14 @@ while the wonder stands and keeps it after the wonder falls, until `fix_tech_fla
 arms (`0x800`, Fouché, `0x2000`'s owned ground; `docs/VISION.md` §9.4) are not built here; `was_seen` is. Whether any other reader of
 `was_seen` on this lobby (the goody search, the roads) parts: none does on any block run669 holds.
 
+**Implementation follow-up (2026-10-16).** The live fog-bit arm is a sufficient
+true condition and now precedes wonder/unit scans; the original function remains
+the fallback and differential reference. This changes predicate order only, with
+no state retained across calls. Mutation-matrix checks compare both functions;
+see the [ticking journal](journal/2026-10-16-ticking-decoding.md) for full-fixture
+validation and outstanding independent review. No new original-game claim or
+change to the uncertainty above is implied.
+
 ## 142. A city at its ceiling charges the shooter's army, and Toughest reaches its end (2026-10-06, item 1528)
 
 **What was established, how, how confident.** Item 1524 left Great Sahara at Toughest at **frame 15378, ours 14 draws against 51, parting at

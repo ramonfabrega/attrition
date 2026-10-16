@@ -21,6 +21,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 from resource_budget import DEFAULT, MEMORY_MIB, QUANTUM_MIB
+from test_runtime import child_environment, allocator_policy
 
 PROFILE = ROOT / 'docs/audit/2026-10-16-isolated-profile.json'
 ONE = re.compile(r'^test result: ok\. 1 passed; 0 failed; 0 ignored; 0 measured; \d+ filtered out;', re.M)
@@ -76,10 +77,11 @@ def run_one(binary, name, number, output, directory, memory, cancelled):
     log = output / 'tests' / f'{number:04d}.log'
     start = time.monotonic()
     stamp = binary_stamp(binary)
+    env = child_environment()
     with log.open('x') as sink:
         limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB)
         command = wrapper(directory, memory, limit=limit) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
-        with subprocess.Popen(command, stdout=sink, stderr=subprocess.STDOUT) as child:
+        with subprocess.Popen(command, stdout=sink, stderr=subprocess.STDOUT, env=env) as child:
             while child.poll() is None:
                 if cancelled():
                     child.terminate()  # Supervisor terminates and reaps its process group.
@@ -92,7 +94,7 @@ def run_one(binary, name, number, output, directory, memory, cancelled):
                and binary_stamp(binary) == stamp)
     return dict(name=name, success=success, exit=child.returncode, elapsed=time.monotonic()-start,
                 user=clock[0] if clock else None, system=clock[1] if clock else None,
-                rss_bytes=rss, reservation_mib=memory, log=str(log))
+                rss_bytes=rss, reservation_mib=memory, log=str(log), allocator=allocator_policy(env))
 
 
 def isolated(binary, output, directory, slots=8):
@@ -164,7 +166,8 @@ def target_budget(target, test_threads):
 
 def release(output, directory, slots, test_threads):
     output.mkdir(parents=True, exist_ok=False)
-    env = dict(os.environ, CARGO_BUILD_JOBS='8')
+    env = child_environment()
+    env['CARGO_BUILD_JOBS'] = '8'
     revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     (output / 'revision.txt').write_text(revision + '\n')
     build = subprocess.run(wrapper(directory, MEMORY_MIB, 8) +

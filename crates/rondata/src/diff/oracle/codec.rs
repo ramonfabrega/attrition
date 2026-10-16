@@ -320,11 +320,13 @@ mod tests {
         extra.push(0);
         assert!(decode(&extra).is_err());
         let mut input = Decoder {
+            reuse_containers: true,
             bytes: &[2],
             allocation: LIMIT,
         };
         assert!(Option::<i64>::get(&mut input).is_err());
         let mut input = Decoder {
+            reuse_containers: true,
             bytes: &[255; 4],
             allocation: LIMIT,
         };
@@ -336,11 +338,13 @@ mod tests {
             1i64.put(&mut out).unwrap();
         }
         let mut input = Decoder {
+            reuse_containers: true,
             bytes: &out.0,
             allocation: LIMIT,
         };
         assert!(<BTreeMap<String, i64> as Wire>::get(&mut input).is_err());
         let mut input = Decoder {
+            reuse_containers: true,
             bytes: &bytes,
             allocation: 0,
         };

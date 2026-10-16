@@ -42,6 +42,8 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'tools'))
+from test_runtime import child_environment, allocator_policy
 
 RUNNING = re.compile(r'^\s*Running (?:unittests )?\S+ \((\S+)\)$')
 DOC_TESTS = re.compile(r'^\s*Doc-tests (\S+)$')
@@ -312,7 +314,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         report_dir.mkdir(parents=True, exist_ok=False)
     audit_dir = report_dir / 'fixture-requests'
     audit_dir.mkdir()
-    env = os.environ.copy()
+    env = child_environment()
     env.pop('RON_FIXTURE_AUDIT_DIR', None)
     env.pop('RON_TEST_MEMCAP_GIB', None)
     env['RUST_TEST_THREADS'] = '2'
@@ -322,6 +324,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         env['RON_GATE_RESOURCE_POLICY'] = '1'
         env['CARGO_BUILD_JOBS'] = '8'
     policy = {'schema': 1, 'release_test_threads': test_threads,
+              'test_allocator': allocator_policy(env),
               'memory_cap_gib': 32 if isolated else memory_cap_gib(test_threads)}
     if isolated:
         policy['isolated'] = {'slots': 8, 'global_cpu_slots': 16, 'global_reserved_mib': 32768}

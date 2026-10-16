@@ -38,6 +38,7 @@ SUITES = (
     'test_release_gate',
     'test_memcap',
     'test_isolated_tests',
+    'test_runtime_policy',
     'test_lab_demo',
     'test_branch_experiment',
     'test_captures_union',

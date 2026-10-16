@@ -1,0 +1,267 @@
+{
+  "starting_tip": "dabd6a0477753237505a039d8db990d0b5f309d3",
+  "evidence_root": "/tmp/attrition-tick-decode-20261016-01",
+  "scope": "ticking and decoded container allocation; macOS child allocator policy",
+  "independent_review": "owed",
+  "release_gate": "pending",
+  "complete_diagnostic_lines_equal": 14748,
+  "fixture_requests_per_warm_walk": 338,
+  "missing_fixtures": 0,
+  "measurements": {
+    "original1": {
+      "wall": 36.57,
+      "cpu": 34.730000000000004,
+      "rss_bytes": 2247639040,
+      "stages": {
+        "total": 33.281436212,
+        "setup": 4.224454919,
+        "ticks": 13.888998593,
+        "decode": 7.743702226,
+        "values": 4.535265261,
+        "groups": 0.444462805,
+        "leaders_gaia": 1.95260826
+      }
+    },
+    "decode-off": {
+      "wall": 36.57,
+      "cpu": 33.61,
+      "rss_bytes": 2143895552,
+      "stages": {
+        "total": 32.418391452,
+        "setup": 4.218458914,
+        "ticks": 13.247552704,
+        "decode": 7.539112975,
+        "values": 4.515914729,
+        "groups": 0.45223540100000004,
+        "leaders_gaia": 1.9113381710000001
+      }
+    },
+    "on1": {
+      "wall": 32.51,
+      "cpu": 30.3,
+      "rss_bytes": 3261972480,
+      "stages": {
+        "total": 28.038525002,
+        "setup": 4.150967959,
+        "ticks": 13.270261067,
+        "decode": 3.201728148,
+        "values": 4.56033098,
+        "groups": 0.455892898,
+        "leaders_gaia": 1.910625845
+      }
+    },
+    "original2": {
+      "wall": 38.6,
+      "cpu": 35.75,
+      "rss_bytes": 2368667648,
+      "stages": {
+        "total": 35.644269835,
+        "setup": 4.305712212,
+        "ticks": 14.307449590000001,
+        "decode": 9.242358758,
+        "values": 4.741932001,
+        "groups": 0.465971066,
+        "leaders_gaia": 2.045145251
+      }
+    },
+    "on2": {
+      "wall": 34.55,
+      "cpu": 31.47,
+      "rss_bytes": 2768748544,
+      "stages": {
+        "total": 31.509939333000002,
+        "setup": 4.258899422,
+        "ticks": 13.514594842,
+        "decode": 5.96937484,
+        "values": 4.744224171,
+        "groups": 0.473031767,
+        "leaders_gaia": 1.993714202
+      }
+    }
+  },
+  "allocator-measurements": {
+    "original-nocache1": {
+      "wall": 36.56,
+      "cpu": 34.66,
+      "rss_bytes": 856276992,
+      "stages": {
+        "total": 33.015675168,
+        "setup": 4.191065459,
+        "ticks": 13.8874467,
+        "decode": 7.275714099,
+        "values": 4.646840174,
+        "groups": 0.45427842,
+        "leaders_gaia": 2.016379105
+      }
+    },
+    "candidate-nocache1": {
+      "wall": 34.55,
+      "cpu": 30.67,
+      "rss_bytes": 855277568,
+      "stages": {
+        "total": 30.089743711,
+        "setup": 4.207689543,
+        "ticks": 13.147283087,
+        "decode": 5.372082371,
+        "values": 4.527417809,
+        "groups": 0.454576934,
+        "leaders_gaia": 1.9294708200000001
+      }
+    },
+    "candidate-space1": {
+      "wall": 32.52,
+      "cpu": 31.28,
+      "rss_bytes": 772046848,
+      "stages": {
+        "total": 28.464095038,
+        "setup": 4.280543666,
+        "ticks": 13.455533918,
+        "decode": 2.75690059,
+        "values": 5.055793393,
+        "groups": 0.462746742,
+        "leaders_gaia": 1.993731278
+      }
+    },
+    "candidate-nocache2": {
+      "wall": 30.47,
+      "cpu": 30.31,
+      "rss_bytes": 850706432,
+      "stages": {
+        "total": 27.609426421000002,
+        "setup": 4.203280252,
+        "ticks": 13.124492539,
+        "decode": 2.796770083,
+        "values": 4.592219819,
+        "groups": 0.461136905,
+        "leaders_gaia": 1.946207391
+      }
+    },
+    "original-nocache2": {
+      "wall": 36.58,
+      "cpu": 34.559999999999995,
+      "rss_bytes": 856522752,
+      "stages": {
+        "total": 33.379965294,
+        "setup": 4.227958919,
+        "ticks": 13.98540877,
+        "decode": 7.945005224,
+        "values": 4.368962348,
+        "groups": 0.433656414,
+        "leaders_gaia": 1.968458083
+      }
+    }
+  },
+  "contention_four_suites_first_use": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 45.902024791997974,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 47.88,
+      "cpu": 300.93,
+      "peak_tree_mib": 16038
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 38.9646842499933,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 39.39,
+      "cpu": 316.09000000000003,
+      "peak_tree_mib": 10619
+    }
+  },
+  "contention_six_suites": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 47.641680583008565,
+      "fixture_requests": 2748,
+      "missing": 0,
+      "wrapper_wall": 48.18,
+      "cpu": 442.13,
+      "peak_tree_mib": 17936
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 48.37960374999966,
+      "fixture_requests": 2748,
+      "missing": 0,
+      "wrapper_wall": 49.68,
+      "cpu": 419.07,
+      "peak_tree_mib": 10767
+    }
+  },
+  "contention_four_suites_warm": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 38.98047433300235,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 40.15,
+      "cpu": 288.75,
+      "peak_tree_mib": 11772
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 39.37902587499411,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 41.2,
+      "cpu": 288.26,
+      "peak_tree_mib": 7330
+    }
+  },
+  "binaries": {
+    "baseline": {
+      "path": "/tmp/attrition-tick-decode-20261016-01/baseline-rondata",
+      "sha256": "960c7447d76fcf48e7fb588c93031d48631836b9b03d7730bf4331a93f63b5cc"
+    },
+    "candidate": {
+      "path": "target/release/deps/rondata-4337e333078eb556",
+      "sha256": "87bfd306c3d2ef280e3cea4a4628a576a015c0c09e4af1d590afa0cef5befaad"
+    }
+  },
+  "oracle_audit": {
+    "exit": 0,
+    "complete_window_comparisons": 62,
+    "fixture_requests": 586,
+    "missing_fixtures": 0,
+    "wall": 241.68,
+    "cpu": 241.39,
+    "rss_bytes": 921403392
+  }
+}

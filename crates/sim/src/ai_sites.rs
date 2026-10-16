@@ -183,6 +183,20 @@ impl Sim {
     /// (`(fy >> 1) * xs + (fx >> 1)` at `006b5460`), not the half-cell, so
     /// it is the same answer for all four samples of a cell.
     pub(crate) fn was_seen_fog(&self, fx: i32, fy: i32, who: Player) -> bool {
+        // Every remaining arm is also an early true return. A present seen
+        // bit already proves the final OR, without scanning live wonders and
+        // units. Nothing is retained across calls or mutations.
+        if who < 8
+            && let Some(ai) = self.ai.get(who as usize)
+            && let Some(bits) = self.world.seen2(fx, fy)
+            && u32::from(bits) & (ai.census.ally_mask | (1 << who)) != 0
+        {
+            return true;
+        }
+        self.was_seen_fog_reference(fx, fy, who)
+    }
+
+    fn was_seen_fog_reference(&self, fx: i32, fy: i32, who: Player) -> bool {
         if self.lobby.reveal_map > 1 || who > 7 || self.sees_every_cell(who) {
             return true;
         }
@@ -1525,6 +1539,36 @@ mod tests {
             !fouche.was_seen_fog(fx, fy, 1),
             "a transport galleon sees nothing"
         );
+    }
+
+    #[test]
+    fn seen_shortcut_matches_reference_after_live_mutations() {
+        let (mut sim, kit) = kit(8, 8, 2);
+        let u = spawn(&mut sim, 1, kit.citizen_unit, Pos::new(0x180, 0x180));
+        for fog in [0, 1, 2, 3, 255] {
+            assert!(sim.world.set_fog(vec![fog; 8 * 8 * 4]));
+            for reveal in 0..=3 {
+                sim.lobby.reveal_map = reveal;
+                for ally in [0, 1, 2, 3] {
+                    sim.ai[0].census.ally_mask = ally;
+                    sim.ai[1].census.ally_mask = ally;
+                    for kind in [0x141, FOUCHE] {
+                        sim.units[u].type_index = kind;
+                        for who in [0, 1, 8, 255] {
+                            for fy in -2..18 {
+                                for fx in -2..18 {
+                                    assert_eq!(
+                                        sim.was_seen_fog(fx, fy, who),
+                                        sim.was_seen_fog_reference(fx, fy, who),
+                                        "fog {fog}, reveal {reveal}, ally {ally}, kind {kind}, who {who}, {fx}/{fy}"
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------------

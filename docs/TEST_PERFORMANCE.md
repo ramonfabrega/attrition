@@ -64,6 +64,38 @@ validation status. Warm coverage CPU falls21–25%; four/six-suite samples save
 is flat in the six-suite sample; no consistent memory-reduction claim.
 Independent review of these optimizations remains owed.
 
+## Decoded containers and visibility ticking
+
+Owned decoding reuses optional heap values, arrays and tuples. Stable ordered
+map keys are checked byte for byte before retaining their String buffers and
+tree nodes; every value is decoded anew. Changed or reordered schemas use the
+original decoder, including duplicate-key rejection. Input, allocation and
+retained-capacity bounds are unchanged. `RON_DISABLE_DECODE_REUSE=1` selects
+original nested-container decoding. The complete oracle audit remains available.
+The visibility predicate checks a sufficient live fog bit before scanning live
+wonders and units, with the unchanged function as fallback and test reference.
+No simulation state, draw, comparison, verdict or field coverage is skipped.
+
+## Test-process allocator policy
+
+On macOS, release-gate and isolated-runner children default to
+`MallocLargeCache=0`. Native heap/VM measurements found roughly 60 MiB of live
+malloc data while freed large allocations accounted for gigabytes of footprint.
+This child-local policy releases those allocations sooner; it changes no host
+configuration or simulation semantics. Explicit `MallocLargeCache` values are
+preserved. `RON_TEST_ALLOCATOR=system` opts out; other operating systems receive
+no allocator setting. Unknown modes fail rather than silently selecting a policy.
+The gate manifest and each isolated result record the effective setting.
+Direct cargo/binary invocations must set the variable themselves to reproduce it.
+
+The same original coverage binary drops from 2.25–2.37 GB peak RSS to 0.856 GB
+with this policy, without an observed CPU penalty. With both binaries bounded,
+container reuse and visibility reordering reduce coverage CPU about 11–13%.
+The initial candidate with the system allocator increased RSS; it is not a
+memory improvement without the measured policy. See the
+[ticking/decoding journal](journal/2026-10-16-ticking-decoding.md) for differential
+checks, contention results and landing validation. Independent review remains owed.
+
 ## Trace frame lookup
 
 A parsed trace records whether draw frame numbers are nondecreasing. For that
