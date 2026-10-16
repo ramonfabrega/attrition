@@ -59,7 +59,11 @@ Ticking/decoder follow-up: coverage CPU−11–13%; scoped macOS reclamation cut
 four/six-suite sample memory15%/20%, CPU6%/7%; six-suite elapsed−9% (four flat).
 Complete warm isolated CPU−2%; peak memory variable. Full gate passed on
 `3b7e6846`: time/CPU roughly flat, peak memory−18%. See [ticking journal](journal/2026-10-16-ticking-decoding.md).
-Next: measured live unit/radius scans; independent review remains owed.
+Live-unit/radius candidates rejected: full isolated165.18→165.57s and
+CPU1190.57→1191.85s; all890 tests pass, exact3276 fixture requests unchanged.
+No production change or new speedup claimed; see [radius journal](journal/2026-10-16-radius-scans.md).
+Next: profile repeated setup/replay across Golden/harness (about560 CPU seconds).
+Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.
 

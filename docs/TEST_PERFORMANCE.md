@@ -366,3 +366,16 @@ registration omission; the four-line correction and all affected checks passed
 under the documented combined-validation rule. The original gate exit remains1.
 See `docs/audit/2026-10-16-third-pair-replay.json` and the journal for the exact
 validation scope; this is not a10× full-suite claim.
+
+## Repeated live-unit/radius scans: measured and rejected
+
+The scoped compact-body and bounded-candidate experiments preserved full
+replay diagnostics and fixture multisets, but complete isolated suite time/CPU
+were flat:165.18→165.57 seconds,1,190.57→1,191.85 CPU seconds. Four/six-suite
+samples saved only1.1%/1.6% CPU, with elapsed flat. The simpler axis-only control
+also failed to improve coverage CPU. Production simulation and tests remain
+unchanged. The negative result and a reproducible candidate patch are retained
+in the [radius journal](journal/2026-10-16-radius-scans.md). No memory or10×
+improvement is claimed. Next: profile repeated setup/replay across Golden and
+harness tests, which together consume about560 of1,191 isolated CPU seconds;
+module totals alone do not identify their internal bottleneck.

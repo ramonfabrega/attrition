@@ -1,0 +1,306 @@
+{
+  "starting_tip": "cb19d62ed98fe4dd9669d3692b7d62ea453fd8df",
+  "evidence_root": "/tmp/attrition-radius-scans-20261016-01",
+  "scope": "scoped repeated radius queries during placement sweeps",
+  "independent_review": "owed",
+  "release_gate": {
+    "status": "not repeated: documentation/evidence-only landing; full baseline and rejected candidate isolated suites both passed; prior release gate remains cb19d62 documentation of 3b7e6846"
+  },
+  "score_and_value_changes": false,
+  "tenfold_achieved": false,
+  "complete_diagnostic_lines_equal": 14748,
+  "fixture_requests_per_walk": 338,
+  "missing_fixtures": 0,
+  "compact_only": {
+    "original1": {
+      "wall": 34.54,
+      "cpu": 30.57,
+      "rss_bytes": 844759040,
+      "stages": {
+        "total": 29.98642108,
+        "setup": 4.687687628,
+        "ticks": 12.967486401,
+        "decode": 5.130251472,
+        "values": 4.443479154,
+        "groups": 0.442207049,
+        "leaders_gaia": 1.8844438110000001
+      }
+    },
+    "on1": {
+      "wall": 32.5,
+      "cpu": 30.689999999999998,
+      "rss_bytes": 854704128,
+      "stages": {
+        "total": 28.681267496,
+        "setup": 4.340043457,
+        "ticks": 13.259334372,
+        "decode": 3.662143608,
+        "values": 4.564282004,
+        "groups": 0.44623092400000003,
+        "leaders_gaia": 1.9511826620000001
+      }
+    },
+    "original2": {
+      "wall": 34.55,
+      "cpu": 31.459999999999997,
+      "rss_bytes": 849575936,
+      "stages": {
+        "total": 30.755209459,
+        "setup": 4.2838015380000005,
+        "ticks": 13.542833522,
+        "decode": 5.163152297,
+        "values": 4.762386693,
+        "groups": 0.476597669,
+        "leaders_gaia": 2.0565071010000002
+      }
+    },
+    "on2": {
+      "wall": 30.46,
+      "cpu": 29.34,
+      "rss_bytes": 845692928,
+      "stages": {
+        "total": 27.405675793,
+        "setup": 4.186172625,
+        "ticks": 12.545989736,
+        "decode": 3.615462427,
+        "values": 4.361054383,
+        "groups": 0.43433263,
+        "leaders_gaia": 1.848842431
+      }
+    }
+  },
+  "bounded": {
+    "original3": {
+      "wall": 36.58,
+      "cpu": 32.2,
+      "rss_bytes": 847577088,
+      "stages": {
+        "total": 32.344531122,
+        "setup": 4.877682704,
+        "ticks": 13.522754796000001,
+        "decode": 6.163127344,
+        "values": 4.744752312,
+        "groups": 0.478048688,
+        "leaders_gaia": 2.069255809
+      }
+    },
+    "bounded1": {
+      "wall": 30.44,
+      "cpu": 28.85,
+      "rss_bytes": 845004800,
+      "stages": {
+        "total": 26.664068715,
+        "setup": 4.374684206,
+        "ticks": 12.285276719,
+        "decode": 2.8559757340000003,
+        "values": 4.385494163,
+        "groups": 0.441496059,
+        "leaders_gaia": 1.8759352150000002
+      }
+    },
+    "original4": {
+      "wall": 30.45,
+      "cpu": 29.06,
+      "rss_bytes": 851476480,
+      "stages": {
+        "total": 26.501951755,
+        "setup": 4.033375294,
+        "ticks": 12.733444367,
+        "decode": 2.658511482,
+        "values": 4.37452924,
+        "groups": 0.442133016,
+        "leaders_gaia": 1.834794718
+      }
+    },
+    "bounded2": {
+      "wall": 28.43,
+      "cpu": 28.509999999999998,
+      "rss_bytes": 849379328,
+      "stages": {
+        "total": 26.05669646,
+        "setup": 4.09449896,
+        "ticks": 12.22257974,
+        "decode": 2.631262166,
+        "values": 4.381955654,
+        "groups": 0.437241208,
+        "leaders_gaia": 1.8683181020000001
+      }
+    }
+  },
+  "binaries": {
+    "baseline": {
+      "path": "/tmp/attrition-radius-scans-20261016-01/baseline-rondata",
+      "sha256": "87bfd306c3d2ef280e3cea4a4628a576a015c0c09e4af1d590afa0cef5befaad"
+    },
+    "bounded": {
+      "path": "/tmp/attrition-radius-scans-20261016-01/bounded-rondata",
+      "sha256": "687b4cfcd5985b6091e9bf5b46155dbf53f7d61a133089ce4f4ad5a549648367"
+    }
+  },
+  "contention_four": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 37.95769762498094,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 40.01,
+      "cpu": 275.84000000000003,
+      "peak_tree_mib": 11590
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 38.60244070799672,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 39.77,
+      "cpu": 272.75,
+      "peak_tree_mib": 10245
+    }
+  },
+  "contention_six": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 48.78758779200143,
+      "fixture_requests": 2748,
+      "missing": 0,
+      "wrapper_wall": 48.9,
+      "cpu": 422.46000000000004,
+      "peak_tree_mib": 11220
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 48.41620166701614,
+      "fixture_requests": 2748,
+      "missing": 0,
+      "wrapper_wall": 49.29,
+      "cpu": 415.64,
+      "peak_tree_mib": 10856
+    }
+  },
+  "bounded_full_isolated": {
+    "original": {
+      "complete": true,
+      "success": true,
+      "passed": 890,
+      "failed": 0,
+      "ignored": 6,
+      "elapsed": 165.17588245798834,
+      "cpu": 1190.57,
+      "exit": 0,
+      "wrapper_wall": 166.59,
+      "wrapper_cpu": 1271.67,
+      "peak_tree_mib": 8500,
+      "fixture_requests": 3276,
+      "missing": 0
+    },
+    "candidate": {
+      "complete": true,
+      "success": true,
+      "passed": 890,
+      "failed": 0,
+      "ignored": 6,
+      "elapsed": 165.5677743749984,
+      "cpu": 1191.85,
+      "exit": 0,
+      "wrapper_wall": 166.03,
+      "wrapper_cpu": 1273.49,
+      "peak_tree_mib": 8229,
+      "fixture_requests": 3276,
+      "missing": 0
+    }
+  },
+  "bounded_selection": "rejected: complete suite time/CPU flat",
+  "axis_control": {
+    "original5": {
+      "wall": 34.54,
+      "cpu": 31.580000000000002,
+      "rss_bytes": 850378752,
+      "stages": {
+        "total": 30.407733628,
+        "setup": 4.456415085,
+        "ticks": 13.764448819,
+        "decode": 4.743469574000001,
+        "values": 4.571861818,
+        "groups": 0.455110319,
+        "leaders_gaia": 1.949518203
+      }
+    },
+    "axis1": {
+      "wall": 34.52,
+      "cpu": 31.740000000000002,
+      "rss_bytes": 850870272,
+      "stages": {
+        "total": 29.871637128,
+        "setup": 4.4136335870000005,
+        "ticks": 13.81943107,
+        "decode": 3.900335675,
+        "values": 4.738842915,
+        "groups": 0.470755974,
+        "leaders_gaia": 2.044035799
+      }
+    },
+    "bounded-control": {
+      "wall": 32.49,
+      "cpu": 29.42,
+      "rss_bytes": 819871744,
+      "stages": {
+        "total": 28.359629166,
+        "setup": 4.136578373,
+        "ticks": 12.623696348,
+        "decode": 4.445792733,
+        "values": 4.388396711,
+        "groups": 0.436475493,
+        "leaders_gaia": 1.903677614
+      }
+    },
+    "axis2": {
+      "wall": 34.56,
+      "cpu": 32.199999999999996,
+      "rss_bytes": 850608128,
+      "stages": {
+        "total": 30.938070207,
+        "setup": 4.441303958,
+        "ticks": 14.022296623,
+        "decode": 4.621511477,
+        "values": 4.771666711,
+        "groups": 0.483984744,
+        "leaders_gaia": 2.094562031
+      }
+    }
+  },
+  "selection": "reject all candidates; production code and tests unchanged",
+  "paperwork_validation": {
+    "guard_exit": 0,
+    "format_check_exit": 0,
+    "diff_check_exit": 0,
+    "local_links_and_json": "valid",
+    "rejected_patch_apply_check_exit": 0,
+    "production_source_and_tests": "identical to starting tip",
+    "log": "/tmp/attrition-radius-scans-20261016-01/final-guard.log"
+  },
+  "rejected_patch": "docs/audit/2026-10-16-radius-scans-rejected.patch"
+}

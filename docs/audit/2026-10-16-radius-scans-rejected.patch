@@ -1,0 +1,442 @@
+--- a/crates/sim/src/collide.rs
++++ b/crates/sim/src/collide.rs
+@@ -38,6 +38,171 @@
+     }
+ }
+ use crate::{Player, Sim};
++
++// A placement sweep only borrows Sim. Its third and later radius queries
++// can walk compact bodies instead of repeatedly touching the large Unit records.
++// Nothing survives the sweep, so moves, deaths, owners, types and orders are
++// always observed afresh by the next sweep. The first two queries allocate nothing.
++pub(crate) struct RadiusScan<'a> {
++    sim: &'a Sim,
++    positions: Option<(Option<usize>, i32, Vec<RadiusBody>)>,
++    ordered: Option<(Player, Option<usize>, i32, Vec<RadiusBody>)>,
++    bounds: Option<(Pos, Pos)>,
++    position_calls: u8,
++    ordered_calls: u8,
++}
++struct RadiusBody {
++    at: Pos,
++    radius: i32,
++}
++
++// vector_dist is at least the larger absolute component in this nonoverflowing
++// range. Outside it retain its original arithmetic, including its unusual large
++// coordinate behavior. The exact distance still decides every surviving body.
++fn radius_may_reach(bounds: Option<(Pos, Pos)>, body: &RadiusBody, radius: i32) -> bool {
++    let Some((low, high)) = bounds else {
++        return true;
++    };
++    let Some(sum) = body.radius.checked_add(radius) else {
++        return true;
++    };
++    if sum < 0 {
++        return true;
++    }
++    let axis = |value: i32, lo: i32, hi: i32| {
++        let left = i64::from(lo) - i64::from(value);
++        let right = i64::from(hi) - i64::from(value);
++        (left.abs().max(right.abs()), left.max(0).max(-right))
++    };
++    let (xmax, xmin) = axis(body.at.x, low.x, high.x);
++    let (ymax, ymin) = axis(body.at.y, low.y, high.y);
++    // Do not elide the original arithmetic outside the proven distance range.
++    if xmax.max(ymax) > i64::from(i32::MAX / 2) {
++        return true;
++    }
++    xmin.max(ymin) <= i64::from(sum)
++}
++
++fn radius_contains(at: Pos, body: Pos, radius: i32) -> bool {
++    let dx = at.x - body.x;
++    let dy = at.y - body.y;
++    let hi = dx.unsigned_abs().max(dy.unsigned_abs());
++    if hi <= (i32::MAX / 2) as u32 && radius >= 0 && hi > radius as u32 {
++        return false;
++    }
++    vector_dist(dx, dy) <= radius
++}
++
++impl<'a> RadiusScan<'a> {
++    pub(crate) fn new(sim: &'a Sim, centre: Pos, extent: i32) -> Self {
++        let bounds = (|| {
++            let extent = extent.checked_abs()?;
++            Some((
++                Pos::new(centre.x.checked_sub(extent)?, centre.y.checked_sub(extent)?),
++                Pos::new(centre.x.checked_add(extent)?, centre.y.checked_add(extent)?),
++            ))
++        })();
++        Self {
++            sim,
++            bounds,
++            positions: None,
++            ordered: None,
++            position_calls: 0,
++            ordered_calls: 0,
++        }
++    }
++    fn outside_bounds(&self, at: Pos) -> bool {
++        self.bounds
++            .is_some_and(|(lo, hi)| at.x < lo.x || at.x > hi.x || at.y < lo.y || at.y > hi.y)
++    }
++    pub(crate) fn position(&mut self, radius: i32, at: Pos, exempt: Option<usize>) -> bool {
++        if self.outside_bounds(at) {
++            return self.sim.find_unit_with_radius(radius, at, exempt);
++        }
++        if self.position_calls < 2 {
++            self.position_calls += 1;
++            return self.sim.find_unit_with_radius(radius, at, exempt);
++        }
++        if self
++            .positions
++            .as_ref()
++            .is_none_or(|(key, r, _)| *key != exempt || *r != radius)
++        {
++            let bodies = self
++                .sim
++                .units
++                .iter()
++                .enumerate()
++                .filter(|(unit, u)| Some(*unit) != exempt && u.owner < 8 && u.alive() && u.on_map)
++                .map(|(unit, u)| RadiusBody {
++                    at: u.pos,
++                    radius: self.sim.profile(Obj::Unit(unit)).big_radius,
++                })
++                .filter(|body| radius_may_reach(self.bounds, body, radius))
++                .collect();
++            self.positions = Some((exempt, radius, bodies));
++        }
++        self.positions
++            .as_ref()
++            .unwrap()
++            .2
++            .iter()
++            .any(|b| radius_contains(at, b.at, b.radius + radius))
++    }
++    pub(crate) fn ordered(
++        &mut self,
++        radius: i32,
++        at: Pos,
++        owner: Player,
++        exempt: Option<usize>,
++    ) -> bool {
++        if self.outside_bounds(at) {
++            return self
++                .sim
++                .find_unit_ordered_with_radius(radius, at, owner, exempt);
++        }
++        if self.ordered_calls < 2 {
++            self.ordered_calls += 1;
++            return self
++                .sim
++                .find_unit_ordered_with_radius(radius, at, owner, exempt);
++        }
++        if self
++            .ordered
++            .as_ref()
++            .is_none_or(|(who, key, r, _)| *who != owner || *key != exempt || *r != radius)
++        {
++            let bodies = self
++                .sim
++                .units
++                .iter()
++                .enumerate()
++                .filter(|(unit, u)| {
++                    Some(*unit) != exempt
++                        && u.owner == owner
++                        && u.alive()
++                        && self
++                            .sim
++                            .current_order(*unit)
++                            .is_some_and(|od| index::is_move_family(od.index()))
++                })
++                .map(|(unit, u)| RadiusBody {
++                    at: u.orders_pos,
++                    radius: self.sim.profile(Obj::Unit(unit)).big_radius,
++                })
++                .filter(|body| radius_may_reach(self.bounds, body, radius))
++                .collect();
++            self.ordered = Some((owner, exempt, radius, bodies));
++        }
++        // Unlike position queries, orders include off-map units and any owner.
++        self.ordered
++            .as_ref()
++            .unwrap()
++            .3
++            .iter()
++            .any(|b| radius_contains(at, b.at, b.radius + radius))
++    }
++}
+ 
+ /// What `CollCheck::fill_slots@006820e0` leaves a probe able to read
+ /// (`docs/COLLISION.md` §4.2): the world cells of the probe's 2×2 slots
+@@ -2661,6 +2826,208 @@
+     }
+ 
+     #[test]
++    fn radius_axis_rejection_matches_exact_distance_at_boundaries() {
++        let values = [
++            -1_500_000_000,
++            -60_001,
++            -60_000,
++            -59_999,
++            -193,
++            -1,
++            0,
++            1,
++            47,
++            48,
++            49,
++            192,
++            59_999,
++            60_000,
++            60_001,
++            1_500_000_000,
++        ];
++        for dx in values {
++            for dy in values {
++                let d = vector_dist(dx, dy);
++                for r in [
++                    -1,
++                    0,
++                    1,
++                    48,
++                    192,
++                    d.saturating_sub(1),
++                    d,
++                    d.saturating_add(1),
++                    i32::MAX,
++                ] {
++                    assert_eq!(
++                        radius_contains(Pos::new(dx, dy), Pos::new(0, 0), r),
++                        d <= r,
++                        "{dx}/{dy} radius {r}"
++                    );
++                }
++            }
++        }
++        for dx in -256..=256 {
++            for dy in -256..=256 {
++                let d = vector_dist(dx, dy);
++                for r in [d - 1, d, d + 1] {
++                    assert_eq!(radius_contains(Pos::new(dx, dy), Pos::new(0, 0), r), d <= r);
++                }
++            }
++        }
++    }
++
++    #[test]
++    fn scoped_radius_queries_match_live_scans_after_mutations() {
++        let (mut sim, _, _) = pair(Pos::new(3000, 3000), Pos::new(3100, 3100));
++        for i in 2..32 {
++            let mut u = Unit::new(
++                (i % 2) as u8,
++                i as i16,
++                Pos::new(3000 + i * 23, 3000 - i * 19),
++                40,
++            );
++            u.ty = (i % 3 != 0).then_some(0);
++            sim.add_unit(u);
++        }
++        for i in 0..sim.units.len() {
++            sim.order_move(i, Pos::new(3200 + i as i32 * 11, 3000));
++            if i % 3 == 0 {
++                sim.units[i].orders.clear();
++            } else if i % 3 == 1 {
++                sim.units[i].orders.front_mut().unwrap().body = Body::Think;
++            }
++        }
++        let walking = *sim.units[2].orders.front().unwrap();
++        for phase in 0..5 {
++            for (i, u) in sim.units.iter_mut().enumerate() {
++                u.owner = ((i + phase) % 10) as u8;
++                u.on_map = (i + phase) % 3 != 0;
++                u.health = if (i + phase) % 5 == 0 { 0 } else { 40 };
++                u.pos.x += phase as i32 * 17;
++                u.orders_pos.y -= phase as i32 * 31;
++                u.orders.clear();
++                if (i + phase) % 3 != 0 {
++                    let mut order = walking;
++                    if (i + phase) % 3 == 1 {
++                        order.body = Body::Think;
++                    }
++                    u.orders.push_back(order);
++                }
++                if phase == 3 {
++                    u.ty = None;
++                }
++                if phase == 4 {
++                    u.ty = Some(0);
++                }
++            }
++            sim.unit_types[0].combat.big_radius = [0, 48, 192, -1, 400][phase];
++            let mut scan = RadiusScan::new(&sim, Pos::new(3000, 3000), 400);
++            for exempt in [None, Some(0), Some(7), Some(31), Some(999)] {
++                for owner in [0, 1, 7, 8, 9, 255] {
++                    for r in [-1, 0, 1, 47, 48, 193, 480] {
++                        for x in (2600..3800).step_by(47) {
++                            let at = Pos::new(x, 3100);
++                            assert_eq!(
++                                scan.position(r, at, exempt),
++                                sim.find_unit_with_radius(r, at, exempt)
++                            );
++                            assert_eq!(
++                                scan.ordered(r, at, owner, exempt),
++                                sim.find_unit_ordered_with_radius(r, at, owner, exempt)
++                            );
++                        }
++                    }
++                }
++            }
++            assert!(scan.positions.is_some());
++            assert!(scan.ordered.is_some());
++        }
++    }
++
++    #[test]
++    fn radius_bounds_reject_only_bodies_that_cannot_reach_any_query() {
++        for (lo, hi) in [
++            (Pos::new(-20, -10), Pos::new(30, 40)),
++            (
++                Pos::new(1_500_000_000, 1_500_000_000),
++                Pos::new(1_500_000_010, 1_500_000_010),
++            ),
++        ] {
++            for x in [-40, 0, 30, 50, 60_000, 1_500_000_000] {
++                for y in [-40, 0, 40, 60, 60_000, 1_500_000_000] {
++                    for r in [-1, 0, 1, 20, 100, i32::MAX] {
++                        let body = RadiusBody {
++                            at: Pos::new(x, y),
++                            radius: 0,
++                        };
++                        if !radius_may_reach(Some((lo, hi)), &body, r) {
++                            for qx in lo.x..=hi.x {
++                                for qy in lo.y..=hi.y {
++                                    assert!(!radius_contains(Pos::new(qx, qy), body.at, r));
++                                }
++                            }
++                        }
++                    }
++                }
++            }
++        }
++        let body = RadiusBody {
++            at: Pos::new(1000, 1000),
++            radius: i32::MAX,
++        };
++        assert!(radius_may_reach(
++            Some((Pos::new(0, 0), Pos::new(1, 1))),
++            &body,
++            1
++        ));
++        assert!(radius_may_reach(None, &body, 0));
++    }
++
++    #[test]
++    fn radius_bounds_fallback_and_radius_key_preserve_live_answers() {
++        let (sim, _, _) = pair(Pos::new(3000, 3000), Pos::new(9000, 9000));
++        let mut scan = RadiusScan::new(&sim, Pos::new(5000, 5000), 100);
++        for _ in 0..3 {
++            assert!(!scan.position(0, Pos::new(5000, 5000), None));
++        }
++        assert!(scan.positions.as_ref().unwrap().2.is_empty());
++        // A larger radius must rebuild the empty candidate set.
++        assert_eq!(
++            scan.position(5000, Pos::new(5000, 5000), None),
++            sim.find_unit_with_radius(5000, Pos::new(5000, 5000), None)
++        );
++        assert!(!scan.positions.as_ref().unwrap().2.is_empty());
++        // Even an excluded body is found by an out-of-bounds query.
++        assert!(scan.position(0, Pos::new(9000, 9000), None));
++        assert!(
++            RadiusScan::new(&sim, Pos::new(i32::MAX, 0), 100)
++                .bounds
++                .is_none()
++        );
++        assert!(
++            RadiusScan::new(&sim, Pos::new(0, 0), i32::MIN)
++                .bounds
++                .is_none()
++        );
++    }
++
++    #[test]
++    fn first_two_radius_queries_allocate_no_snapshot() {
++        let (sim, _, _) = pair(Pos::new(3000, 3000), Pos::new(3100, 3100));
++        let mut scan = RadiusScan::new(&sim, Pos::new(3000, 3000), 400);
++        for _ in 0..2 {
++            scan.position(48, Pos::new(3000, 3000), None);
++            scan.ordered(48, Pos::new(3000, 3000), 0, None);
++            assert!(scan.positions.is_none() && scan.ordered.is_none());
++        }
++        scan.position(48, Pos::new(3000, 3000), None);
++        let ptr = scan.positions.as_ref().unwrap().2.as_ptr();
++        scan.position(48, Pos::new(3300, 3000), None);
++        assert_eq!(ptr, scan.positions.as_ref().unwrap().2.as_ptr());
++    }
++
++    #[test]
+     fn a_reused_figure_clears_its_old_body_with_the_new_radius() {
+         for radius in [48, 144] {
+             let (mut sim, old, _) = pair(Pos::new(3000, 3000), Pos::new(9000, 9000));
+--- a/crates/sim/src/orders.rs
++++ b/crates/sim/src/orders.rs
+@@ -7195,6 +7195,13 @@
+                 };
+                 ty.is_some_and(|t| self.is_aircraft_carrier(t))
+             });
++        // Bounds are a performance hint only: a query outside them uses the
++        // original scan. This avoids relying on trigonometric rounding bounds.
++        let extent = min
++            .checked_abs()
++            .and_then(|a| max.checked_abs().and_then(|b| a.max(b).checked_add(SNAP)))
++            .unwrap_or(i32::MAX);
++        let mut radius_scan = crate::collide::RadiusScan::new(self, centre, extent);
+         let mut r = min;
+         loop {
+             let ks: &[i32] = if r == 0 { &[0] } else { &BEARINGS };
+@@ -7280,14 +7287,11 @@
+                                 Seeker::Unit(u) | Seeker::TypeFor(_, u) => Some(u),
+                                 Seeker::Type(_) => None,
+                             };
+-                            self.find_unit_with_radius(uber_r, c, exempt)
++                            radius_scan.position(uber_r, c, exempt)
+                                 || match who {
+-                                    Seeker::Unit(u) => self.find_unit_ordered_with_radius(
+-                                        uber_r,
+-                                        c,
+-                                        self.units[u].owner,
+-                                        exempt,
+-                                    ),
++                                    Seeker::Unit(u) => {
++                                        radius_scan.ordered(uber_r, c, self.units[u].owner, exempt)
++                                    }
+                                     Seeker::Type(_) | Seeker::TypeFor(..) => false,
+                                 }
+                         }
+@@ -7299,20 +7303,13 @@
+                             };
+                             // The seeker counts (item 955): no exemption
+                             // on the position query under `FILTER_ALL`.
+-                            self.find_unit_with_radius(r, c, None)
+-                                || self.find_unit_ordered_with_radius(
+-                                    r,
+-                                    c,
+-                                    self.units[u].owner,
+-                                    Some(u),
+-                                )
++                            radius_scan.position(r, c, None)
++                                || radius_scan.ordered(r, c, self.units[u].owner, Some(u))
+                         }
+                         (false, Seeker::Unit(u) | Seeker::TypeFor(_, u)) => {
+                             self.find_collision(u, c) || self.find_ordered_collision(u, c)
+                         }
+-                        (false, Seeker::Type(_)) => {
+-                            self.find_unit_with_radius(p.block_radius, c, None)
+-                        }
++                        (false, Seeker::Type(_)) => radius_scan.position(p.block_radius, c, None),
+                     };
+                 if hit {
+                     continue;
