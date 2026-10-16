@@ -368,4 +368,10 @@ suite sweep's 2.40 s / 2,428 MiB: -1,816 MiB (-74.8%) RSS and -41.3% time.
 Treat the timing as one sweep sample versus one focused run. Indexed
 instructions: 34,169,696,259. Evidence:
 `docs/audit/2026-10-15-astra-run73-road-indexed.txt`. The implementation
-checkpoint and required gate are pending.
+checkpoint: `e045f818`. The required release gate passed all 6 steps on the
+unchanged committed tree: 13 fixed tests, 866 rondata tests, 2,585 sim tests,
+and 3 rondata doc-tests. Fixture audit: 3,187 requests, 0 missing.
+Four-thread memory peak was 8,372 MiB across the tree and 8,339 MiB in the
+largest process, under the 20 GiB cap. Gate log:
+`/tmp/attrition-run73-road-indexed-release-gate.log`. The follow-up commit
+records this verdict.
