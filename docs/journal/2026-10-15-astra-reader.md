@@ -264,3 +264,17 @@ Against the completed suite sweep's 6.13 s / 4,673 MiB baseline, the time
 variation straddles baseline and does not establish a CPU win; peak RSS is
 87–88% lower. See `docs/audit/2026-10-15-astra-merchant-indexed.txt`.
 Implementation checkpoint and the required full-gate verdict remain pending.
+
+Implementation checkpoint: `4f2aaded`. The required gate passed all 6 steps
+on that unchanged committed tree: 13 fixed tests, 866 rondata tests, 2,585
+sim tests, and 3 rondata doc-tests. Fixture audit: 3,187 requests, 0 missing.
+The four-thread memory cap observed 9,039 MiB across the tree and 9,007 MiB
+in the largest process, 902 MiB below the preceding 9,941 MiB observation
+and under the 20 GiB cap. Gate log:
+`/tmp/attrition-merchant-indexed-release-gate.log`. The follow-up commit
+records this verdict.
+
+The refreshed per-test memory sweep's next isolated outlier is
+`diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides`
+(3,531 MiB, 40.75 s). Inspect its retained data and establish a current
+focused baseline before selecting the next change.
