@@ -1,0 +1,3510 @@
+{
+  "tree": "2d61d180529c0b57a40362f40622f94b83b628d8",
+  "source": "/tmp/attrition-replay-batch-20261016-01/isolated-experiment-8/measurements.jsonl",
+  "tests": {
+    "artdata::tests::a_chunk_whose_keys_do_not_fill_it_is_refused": {
+      "elapsed": 0.004668833003961481,
+      "rss_bytes": 3293184
+    },
+    "artdata::tests::a_non_looping_animation_drops_its_last_key": {
+      "elapsed": 0.004566999996313825,
+      "rss_bytes": 3260416
+    },
+    "artdata::tests::a_pivot_restriction_binds_by_graph_whatever_its_case": {
+      "elapsed": 0.021434374997625127,
+      "rss_bytes": 33013760
+    },
+    "artdata::tests::a_release_frame_is_starttime_over_sixty_seven": {
+      "elapsed": 0.00450924999313429,
+      "rss_bytes": 3244032
+    },
+    "artdata::tests::a_release_keeps_its_node_and_its_ammo_s_damage": {
+      "elapsed": 0.026146207994315773,
+      "rss_bytes": 35946496
+    },
+    "artdata::tests::a_two_key_node_reads_its_times_and_rounds_to_frames": {
+      "elapsed": 0.004376374999992549,
+      "rss_bytes": 3293184
+    },
+    "artdata::tests::a_unit_graphic_s_name_gives_its_piece": {
+      "elapsed": 0.004592958008288406,
+      "rss_bytes": 3358720
+    },
+    "artdata::tests::the_frame_count_rounds_half_up": {
+      "elapsed": 0.004520208996837027,
+      "rss_bytes": 3260416
+    },
+    "blind::tests::a_citation_is_a_name_an_at_and_an_address": {
+      "elapsed": 0.004416625000885688,
+      "rss_bytes": 3342336
+    },
+    "blind::tests::a_trace_enters_its_hits_and_its_hooks": {
+      "elapsed": 0.004584292008075863,
+      "rss_bytes": 3407872
+    },
+    "blind::tests::every_unreferenced_row_is_unreferenced_in_the_image": {
+      "elapsed": 0.2341966669919202,
+      "rss_bytes": 13385728
+    },
+    "blind::tests::the_blind_list_is_the_pinned_residue": {
+      "elapsed": 0.11618437498691492,
+      "rss_bytes": 224444416
+    },
+    "blind::tests::the_issuer_guard_reads_through_the_coverage_jmp": {
+      "elapsed": 0.36631800000031944,
+      "rss_bytes": 41943040
+    },
+    "blind::tests::the_pointed_at_rows_are_never_called": {
+      "elapsed": 0.039764749992173165,
+      "rss_bytes": 13352960
+    },
+    "blind::tests::the_residue_is_on_the_blind_list": {
+      "elapsed": 0.00471375000779517,
+      "rss_bytes": 3276800
+    },
+    "blind::tests::what_only_the_dll_enters_is_off_the_list_and_unreferenced": {
+      "elapsed": 0.07842987499316223,
+      "rss_bytes": 13336576
+    },
+    "capture::archive::tests::byte_roundtrip_seeks_and_chunk_boundaries": {
+      "elapsed": 0.21063958399463445,
+      "rss_bytes": 60784640
+    },
+    "capture::archive::tests::excessive_expansion_is_bounded_and_wrong_logical_length_is_rejected": {
+      "elapsed": 0.03526820799743291,
+      "rss_bytes": 20791296
+    },
+    "capture::archive::tests::indexed_raw_and_archive_preserve_duplicates_setup_and_siblings": {
+      "elapsed": 0.0756591249955818,
+      "rss_bytes": 40075264
+    },
+    "capture::archive::tests::lz4_payload_crc_is_checked_even_with_valid_metadata": {
+      "elapsed": 0.017251749988645315,
+      "rss_bytes": 3670016
+    },
+    "capture::archive::tests::publication_never_overwrites_and_interrupted_partial_is_preserved": {
+      "elapsed": 0.024883459002012387,
+      "rss_bytes": 12156928
+    },
+    "capture::archive::tests::truncation_corruption_and_trailing_bytes_fail_closed": {
+      "elapsed": 0.048616000000038184,
+      "rss_bytes": 25313280
+    },
+    "capture::indexed::observations::tests::budget_rejects_oversize_evicts_oldest_and_replaces_paths": {
+      "elapsed": 0.004704874998424202,
+      "rss_bytes": 3604480
+    },
+    "capture::indexed::observations::tests::cached_copies_preserve_order_and_do_not_share_mutation": {
+      "elapsed": 0.004535083993687294,
+      "rss_bytes": 3424256
+    },
+    "capture::indexed::tests::a_corrupted_persisted_offset_is_refused": {
+      "elapsed": 0.05075258300348651,
+      "rss_bytes": 3735552
+    },
+    "capture::indexed::tests::ambiguous_tail_is_rejected_instead_of_silently_losing_a_frame": {
+      "elapsed": 0.05146625000634231,
+      "rss_bytes": 3702784
+    },
+    "capture::indexed::tests::changed_source_refuses_setup_scan": {
+      "elapsed": 0.04749737499514595,
+      "rss_bytes": 7471104
+    },
+    "capture::indexed::tests::duplicate_labels_and_full_dump_siblings_keep_their_pairing": {
+      "elapsed": 0.06365658300637733,
+      "rss_bytes": 6684672
+    },
+    "capture::indexed::tests::eof_is_a_valid_boundary_but_a_changed_file_is_not": {
+      "elapsed": 0.03369212499819696,
+      "rss_bytes": 6586368
+    },
+    "capture::indexed::tests::missing_game_and_invalid_utf8_are_errors": {
+      "elapsed": 0.05139216600218788,
+      "rss_bytes": 3653632
+    },
+    "capture::indexed::tests::reopening_shares_offsets_and_a_changed_length_invalidates_them": {
+      "elapsed": 0.04609020799398422,
+      "rss_bytes": 4030464
+    },
+    "capture::indexed::tests::replay_setup_preserves_late_lookups_fields_and_roots": {
+      "elapsed": 0.11962466599652544,
+      "rss_bytes": 14385152
+    },
+    "capture::indexed::tests::reused_frame_tree_still_requires_one_matching_frame": {
+      "elapsed": 0.004736250004498288,
+      "rss_bytes": 5259264
+    },
+    "capture::indexed::tests::setup_ranges_skip_frame_bodies_and_survive_cached_reopen": {
+      "elapsed": 0.05137633399863262,
+      "rss_bytes": 4046848
+    },
+    "capture::indexed::tests::shutdown_keeps_trailing_flags_but_not_setup_records": {
+      "elapsed": 0.042057709011714906,
+      "rss_bytes": 7077888
+    },
+    "capture::indexed::tests::streamed_records_equal_full_parse_with_siblings_and_duplicate_frames": {
+      "elapsed": 0.04364966599678155,
+      "rss_bytes": 9797632
+    },
+    "capture::indexed::tests::the_cache_is_bounded_by_bytes_not_by_entries": {
+      "elapsed": 1.1090281670039985,
+      "rss_bytes": 4423680
+    },
+    "capture::tests::a_held_text_is_shared_and_a_rewritten_one_is_not": {
+      "elapsed": 0.004962667007930577,
+      "rss_bytes": 3424256
+    },
+    "census::tests::a_measured_field_is_read_whole": {
+      "elapsed": 0.00437541700375732,
+      "rss_bytes": 3342336
+    },
+    "census::tests::the_census_s_simulation_share_is_pinned": {
+      "elapsed": 0.6473181670007762,
+      "rss_bytes": 86999040
+    },
+    "commands::tests::a_group_and_a_move_decode": {
+      "elapsed": 0.0046356249949894845,
+      "rss_bytes": 3358720
+    },
+    "commands::tests::a_truncated_or_unknown_payload_is_refused": {
+      "elapsed": 0.004704459002823569,
+      "rss_bytes": 3407872
+    },
+    "commands::tests::chat_carries_its_terminator": {
+      "elapsed": 0.004587292001815513,
+      "rss_bytes": 3325952
+    },
+    "commands::tests::the_empty_group_is_the_same_selection": {
+      "elapsed": 0.00543787500646431,
+      "rss_bytes": 3358720
+    },
+    "commands::tests::the_mp_obfuscation_reverses": {
+      "elapsed": 0.004597207996994257,
+      "rss_bytes": 3325952
+    },
+    "commands::tests::the_sample_s_every_payload_decodes": {
+      "elapsed": 0.009820334002142772,
+      "rss_bytes": 7782400
+    },
+    "debug_view::fields::tests::order_exclusions_and_source_errors_keep_their_meaning": {
+      "elapsed": 0.00437262500054203,
+      "rss_bytes": 3506176
+    },
+    "debug_view::fields::tests::values_and_coverage_are_not_lost_in_presentation": {
+      "elapsed": 0.004008499992778525,
+      "rss_bytes": 3522560
+    },
+    "debug_view::tests::changed_replay_is_refused_before_writing": {
+      "elapsed": 0.004718124997452833,
+      "rss_bytes": 3522560
+    },
+    "debug_view::tests::gaia_state_is_visible_without_entering_player_comparator_scope": {
+      "elapsed": 0.004865084003540687,
+      "rss_bytes": 4341760
+    },
+    "debug_view::tests::json_string_cannot_close_the_embedded_data_script": {
+      "elapsed": 0.004309416995965876,
+      "rss_bytes": 3342336
+    },
+    "debug_view::tests::passing_check_does_not_replay_or_write": {
+      "elapsed": 0.004557625012239441,
+      "rss_bytes": 3293184
+    },
+    "debug_view::tests::resumed_window_keeps_the_global_cursor_and_refuses_a_late_start": {
+      "elapsed": 0.004280708002625033,
+      "rss_bytes": 3293184
+    },
+    "debug_view::tests::selected_failure_exports_actual_replay_context": {
+      "elapsed": 0.5566812920005759,
+      "rss_bytes": 153796608
+    },
+    "diff::ammo::ammo_prefix_skip_preserves_headers_nesting_and_field_widths": {
+      "elapsed": 0.004505625009187497,
+      "rss_bytes": 3391488
+    },
+    "diff::ammo::tests::run100_and_run109_agree_on_where_the_bow_hand_is_off_the_ground": {
+      "elapsed": 0.035417958002653904,
+      "rss_bytes": 9289728
+    },
+    "diff::ammo::tests::run109_s_ammo_floats_are_the_trajectory_this_crate_does_not_fly": {
+      "elapsed": 0.020150209005805664,
+      "rss_bytes": 4440064
+    },
+    "diff::ammo::tests::run109_s_ammo_index_is_the_lowest_free_slot_in_the_pool": {
+      "elapsed": 0.019804499999736436,
+      "rss_bytes": 4505600
+    },
+    "diff::ammo::tests::run109_s_ammo_record_is_twenty_seven_fields_on_every_block": {
+      "elapsed": 0.01894079199701082,
+      "rss_bytes": 5046272
+    },
+    "diff::ammo::tests::run109_s_ammo_record_pins_the_thirteen_fields_nothing_here_models": {
+      "elapsed": 0.019941417005611584,
+      "rss_bytes": 4505600
+    },
+    "diff::ammo::tests::run109_s_v1z_is_arc_v1z_to_the_last_digit": {
+      "elapsed": 0.0199856249964796,
+      "rss_bytes": 4489216
+    },
+    "diff::ammo::tests::run109_says_every_ammo_field_this_crate_models_is_the_original_s": {
+      "elapsed": 1.9865762080007698,
+      "rss_bytes": 1449590784
+    },
+    "diff::ammo::tests::the_walk_survives_a_sibling_and_a_nested_spline": {
+      "elapsed": 0.004692499991506338,
+      "rss_bytes": 3571712
+    },
+    "diff::army::tests::run20_s_first_army_is_the_census_s_init_army_whole": {
+      "elapsed": 0.6785004999983357,
+      "rss_bytes": 489193472
+    },
+    "diff::army::tests::run22_s_muster_cells_are_the_ring_search_s_on_block_3579_s_own_map": {
+      "elapsed": 0.6922238749975804,
+      "rss_bytes": 451805184
+    },
+    "diff::army::tests::run22_s_two_armies_are_init_s_records_with_the_ring_search_s_muster_cells": {
+      "elapsed": 0.1420800829946529,
+      "rss_bytes": 315539456
+    },
+    "diff::army::tests::run25_s_emergency_search_finds_no_cell_at_norwich_and_the_navy_re_finds_46_58": {
+      "elapsed": 0.7011396669986425,
+      "rss_bytes": 449396736
+    },
+    "diff::army::tests::run26_s_navy_targets_its_own_attacked_capital_with_three_draws": {
+      "elapsed": 0.6941590839996934,
+      "rss_bytes": 450625536
+    },
+    "diff::army::tests::run27_s_defending_search_finds_no_cell_at_norwich_again": {
+      "elapsed": 0.6891295419918606,
+      "rss_bytes": 449085440
+    },
+    "diff::army::tests::run29_s_engagement_bumps_order_num_by_one_and_writes_no_form": {
+      "elapsed": 0.19928170899220277,
+      "rss_bytes": 372326400
+    },
+    "diff::army::tests::run29_s_engagement_seeds_its_attack_from_the_first_member_of_the_group_s_list": {
+      "elapsed": 0.9393403330032015,
+      "rss_bytes": 478298112
+    },
+    "diff::army::tests::run29_s_group_pool_is_five_hundred_and_twelve_whole_groupdata_records": {
+      "elapsed": 0.3812537500052713,
+      "rss_bytes": 394690560
+    },
+    "diff::army::tests::run29_s_halted_group_kept_its_members_formation_bytes": {
+      "elapsed": 1.1613452919991687,
+      "rss_bytes": 466059264
+    },
+    "diff::army::tests::run29_s_move_orders_match_the_field_table_row_for_row": {
+      "elapsed": 0.23318916599964723,
+      "rss_bytes": 398589952
+    },
+    "diff::army::tests::run29_s_mustering_army_is_released_with_no_forming_bit_and_the_tail_s_point": {
+      "elapsed": 0.9268715840007644,
+      "rss_bytes": 471465984
+    },
+    "diff::army::tests::run29_s_navy_group_is_a_line_of_four_rotated_at_forty_eight_units_a_step": {
+      "elapsed": 0.19730849999177735,
+      "rss_bytes": 373325824
+    },
+    "diff::army::tests::run29_s_navy_group_s_curr_is_the_leader_s_heading_applied_to_the_slot_table": {
+      "elapsed": 0.2092648329999065,
+      "rss_bytes": 375701504
+    },
+    "diff::army::tests::run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing": {
+      "elapsed": 0.4877737920032814,
+      "rss_bytes": 450871296
+    },
+    "diff::army::tests::run29_s_priority_bit_says_allocated_rather_than_hotkey": {
+      "elapsed": 0.1972730830020737,
+      "rss_bytes": 371277824
+    },
+    "diff::army::tests::run31_s_anchor_marches_to_a_point_its_own_offset_says_is_the_click": {
+      "elapsed": 0.4326150830020197,
+      "rss_bytes": 384057344
+    },
+    "diff::army::tests::run31_s_curr_is_the_leader_s_heading_through_the_y_flip": {
+      "elapsed": 0.4948476250137901,
+      "rss_bytes": 383844352
+    },
+    "diff::army::tests::run31_s_group_order_names_a_leader_the_first_member_rule_would_miss": {
+      "elapsed": 0.6810390829923563,
+      "rss_bytes": 419479552
+    },
+    "diff::army::tests::run31_s_human_group_move_is_thirty_six_figures_of_two_categories": {
+      "elapsed": 0.4405983339966042,
+      "rss_bytes": 383500288
+    },
+    "diff::army::tests::run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns": {
+      "elapsed": 0.6944562499993481,
+      "rss_bytes": 420544512
+    },
+    "diff::army::tests::run31_s_three_mirrors_come_out_of_facing_s_three_writers": {
+      "elapsed": 0.9055272499972489,
+      "rss_bytes": 459997184
+    },
+    "diff::army::tests::run93_says_great_lakes_7930_releases_and_takes_its_target_in_one_tick": {
+      "elapsed": 2.1973784580040956,
+      "rss_bytes": 1712078848
+    },
+    "diff::battery::battery_captures_are_complete_and_say_their_lobby": {
+      "elapsed": 0.5923000000038883,
+      "rss_bytes": 346603520
+    },
+    "diff::build::tests::a_british_barracks_pays_one_bowmen_as_three_chained_units": {
+      "elapsed": 0.29466979099379387,
+      "rss_bytes": 76283904
+    },
+    "diff::build::tests::east_indies_10582_mine_sites_measure_to_the_nearest_solid_cell": {
+      "elapsed": 0.5155312080023577,
+      "rss_bytes": 380305408
+    },
+    "diff::build::tests::find_gather_tiles_rederives_run39_s_camp_lists": {
+      "elapsed": 1.2133487919927575,
+      "rss_bytes": 791511040
+    },
+    "diff::build::tests::great_lakes_first_mine_lists_its_mountain_range": {
+      "elapsed": 2.895530708003207,
+      "rss_bytes": 1592901632
+    },
+    "diff::build::tests::run100_says_great_lakes_9451_is_two_arrows_on_one_farm": {
+      "elapsed": 2.060863167003845,
+      "rss_bytes": 1434288128
+    },
+    "diff::build::tests::run109_says_great_lakes_s_launches_land_where_the_bow_hand_aims": {
+      "elapsed": 1.9678664589882828,
+      "rss_bytes": 1433501696
+    },
+    "diff::build::tests::run10_s_opening_trains_the_original_s_citizens_on_its_frames": {
+      "elapsed": 2.6463842500088504,
+      "rss_bytes": 1639137280
+    },
+    "diff::build::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched": {
+      "elapsed": 1.713446166992071,
+      "rss_bytes": 1310638080
+    },
+    "diff::build::tests::run20_s_islands_sites_walk_the_coastal_ring_from_the_original_cell": {
+      "elapsed": 0.6301753750012722,
+      "rss_bytes": 422658048
+    },
+    "diff::build::tests::run22_s_first_dock_registers_in_the_sea_and_grants_the_level": {
+      "elapsed": 0.6268830839981092,
+      "rss_bytes": 387317760
+    },
+    "diff::build::tests::run33_s_mining_lists_are_the_gather_record": {
+      "elapsed": 2.719539708006778,
+      "rss_bytes": 1651113984
+    },
+    "diff::build::tests::run39_s_build_queues_are_the_original_s_clock": {
+      "elapsed": 2.5418193749937927,
+      "rss_bytes": 804814848
+    },
+    "diff::build::tests::run39_s_mining_lists_are_the_gather_record": {
+      "elapsed": 2.516383834008593,
+      "rss_bytes": 808501248
+    },
+    "diff::build::tests::run40_and_run41_s_sites_and_territory_are_the_original_s": {
+      "elapsed": 1.849271791987121,
+      "rss_bytes": 1470480384
+    },
+    "diff::build::tests::run56_s_buildings_stand_where_the_original_s_do": {
+      "elapsed": 3.8565029590099584,
+      "rss_bytes": 1120550912
+    },
+    "diff::build::tests::run56_s_mining_lists_reach_past_the_word": {
+      "elapsed": 3.8507745419919956,
+      "rss_bytes": 1120894976
+    },
+    "diff::build::tests::run56_s_new_camp_is_this_crate_s_own_shuffle": {
+      "elapsed": 1.7881488340062788,
+      "rss_bytes": 1115258880
+    },
+    "diff::build::tests::run63_s_window_is_where_the_ai_s_colony_site_appears": {
+      "elapsed": 2.902054666003096,
+      "rss_bytes": 1121943552
+    },
+    "diff::build::tests::run76_and_run79_date_the_tobacco_rare_on_the_tower_s_clock": {
+      "elapsed": 2.5615830829920014,
+      "rss_bytes": 1653964800
+    },
+    "diff::build::tests::run7_s_first_script_call_fills_the_queues_the_dump_shows": {
+      "elapsed": 1.8904830410028808,
+      "rss_bytes": 1626030080
+    },
+    "diff::build::tests::run80_s_gem_widens_the_ai_s_border_by_forty_three_cells": {
+      "elapsed": 0.4386074169888161,
+      "rss_bytes": 199393280
+    },
+    "diff::build::tests::run9_s_camps_get_the_original_s_gatherer_counts": {
+      "elapsed": 0.35703391599236056,
+      "rss_bytes": 122994688
+    },
+    "diff::build::tests::the_placed_templates_tile_the_map_s_mountains": {
+      "elapsed": 0.8278352079942124,
+      "rss_bytes": 579190784
+    },
+    "diff::build::tests::the_templates_give_the_packet_s_solid_cells": {
+      "elapsed": 0.17337070799840149,
+      "rss_bytes": 259457024
+    },
+    "diff::city::tests::great_lakes_goods_record_and_its_trade_routes_are_the_original_s": {
+      "elapsed": 2.8742557499936083,
+      "rss_bytes": 2307555328
+    },
+    "diff::city::tests::run40_s_census_prices_the_ai_s_second_city_at_sixty": {
+      "elapsed": 1.6921971249976195,
+      "rss_bytes": 1447165952
+    },
+    "diff::city::tests::run42_s_nine_hundred_frames_are_the_census_before_the_word": {
+      "elapsed": 1.1774893750116462,
+      "rss_bytes": 919912448
+    },
+    "diff::city::tests::run55_s_frame_1477_prices_are_the_originals": {
+      "elapsed": 1.2954952089930885,
+      "rss_bytes": 816447488
+    },
+    "diff::city::tests::run59_s_census_is_where_the_ai_s_timber_goes": {
+      "elapsed": 2.069728916991153,
+      "rss_bytes": 1076183040
+    },
+    "diff::city::tests::run60_s_whole_curve_is_where_the_ai_s_timber_parts": {
+      "elapsed": 1.5080580419889884,
+      "rss_bytes": 415023104
+    },
+    "diff::city::tests::run64_s_frame_6167_prices_are_the_originals": {
+      "elapsed": 0.853135666999151,
+      "rss_bytes": 399900672
+    },
+    "diff::city::tests::run8_s_frame_2_income_is_the_city_and_nothing_the_citizens_have_reached": {
+      "elapsed": 0.3751649159967201,
+      "rss_bytes": 151175168
+    },
+    "diff::compared::tests::interned_pairs_match_the_original_string_set_and_nested_recording": {
+      "elapsed": 0.0053884999942965806,
+      "rss_bytes": 3637248
+    },
+    "diff::corrections::tests::clock_writes_distinguish_insert_noop_and_overwrite": {
+      "elapsed": 0.004467042002943344,
+      "rss_bytes": 3948544
+    },
+    "diff::corrections::tests::reseat_identity_history_reports_truncation": {
+      "elapsed": 0.004244124997057952,
+      "rss_bytes": 3244032
+    },
+    "diff::coverage::every_key_the_dump_prints_is_read_or_pinned": {
+      "elapsed": 36.63621733299806,
+      "rss_bytes": 114327552
+    },
+    "diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned": {
+      "elapsed": 47.07998354198935,
+      "rss_bytes": 2009333760
+    },
+    "diff::coverage::the_recorder_tells_one_object_block_from_another": {
+      "elapsed": 0.005005833998438902,
+      "rss_bytes": 6668288
+    },
+    "diff::coverage_pair::coverage_pair_captures_say_their_lobby": {
+      "elapsed": 0.21578370800125413,
+      "rss_bytes": 279265280
+    },
+    "diff::coverage_pair::coverage_pair_first_parting": {
+      "elapsed": 2.166388707992155,
+      "rss_bytes": 712425472
+    },
+    "diff::coverage_pair::coverage_pair_is_no_other_lobby": {
+      "elapsed": 0.004593000005115755,
+      "rss_bytes": 3244032
+    },
+    "diff::coverage_pair::coverage_pair_start_owns_every_age": {
+      "elapsed": 0.4561117919947719,
+      "rss_bytes": 295469056
+    },
+    "diff::coverage_pair::coverage_pair_start_pays_its_lobby": {
+      "elapsed": 0.44856166699901223,
+      "rss_bytes": 297123840
+    },
+    "diff::coverage_pair::run651_s_word_frame_is_widened_whole": {
+      "elapsed": 0.7848096670059022,
+      "rss_bytes": 858505216
+    },
+    "diff::coverage_pair::run652_coverage_pair_closing_state": {
+      "elapsed": 2.160516917007044,
+      "rss_bytes": 713736192
+    },
+    "diff::coverage_pair::run656_s_word_frame_is_widened_whole": {
+      "elapsed": 0.8296763749967795,
+      "rss_bytes": 849412096
+    },
+    "diff::coverage_pair::run660_s_word_frame_is_widened_whole": {
+      "elapsed": 0.7997747500048717,
+      "rss_bytes": 852672512
+    },
+    "diff::coverage_pair::run669_s_word_frame_is_widened_whole": {
+      "elapsed": 1.0302050419995794,
+      "rss_bytes": 851001344
+    },
+    "diff::coverage_pair::run672_s_word_frame_is_widened_whole": {
+      "elapsed": 1.0583012499992037,
+      "rss_bytes": 851836928
+    },
+    "diff::coverage_pair::run678_s_word_frame_is_widened_whole": {
+      "elapsed": 1.1509241669991752,
+      "rss_bytes": 858423296
+    },
+    "diff::coverage_pair::run679_s_word_frame_is_widened_whole": {
+      "elapsed": 1.1984837500058347,
+      "rss_bytes": 855080960
+    },
+    "diff::coverage_pair::run710_s_word_frame_is_widened_whole": {
+      "elapsed": 1.2214527079922846,
+      "rss_bytes": 856276992
+    },
+    "diff::coverage_pair::run711_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3909507909993408,
+      "rss_bytes": 857653248
+    },
+    "diff::coverage_pair::run714_s_word_frame_is_widened_whole": {
+      "elapsed": 1.4888102089898894,
+      "rss_bytes": 861814784
+    },
+    "diff::coverage_pair::run715_s_word_frame_is_widened_whole": {
+      "elapsed": 1.8354299159982475,
+      "rss_bytes": 876593152
+    },
+    "diff::coverage_pair::run716_s_word_frame_is_widened_whole": {
+      "elapsed": 1.9589161670010071,
+      "rss_bytes": 866926592
+    },
+    "diff::coverage_pair::run717_s_missiles_fly_their_spline_s_count": {
+      "elapsed": 0.057930708993808366,
+      "rss_bytes": 10272768
+    },
+    "diff::coverage_pair::run721_s_word_frame_is_widened_whole": {
+      "elapsed": 2.1168665000004694,
+      "rss_bytes": 869613568
+    },
+    "diff::coverage_pair::run754_s_word_frame_is_widened_whole": {
+      "elapsed": 2.2913665419910103,
+      "rss_bytes": 876740608
+    },
+    "diff::coverage_pair::run762_s_word_frame_is_widened_whole": {
+      "elapsed": 2.684901667002123,
+      "rss_bytes": 904822784
+    },
+    "diff::coverage_pair::run763_s_closing_frame_is_widened_whole": {
+      "elapsed": 2.289629708000575,
+      "rss_bytes": 883228672
+    },
+    "diff::endpoint::tests::east_indies_endpoint_is_pinned": {
+      "elapsed": 2.2497862500022165,
+      "rss_bytes": 400080896
+    },
+    "diff::endpoint::tests::great_lakes_endpoint_is_pinned": {
+      "elapsed": 2.8142570000054548,
+      "rss_bytes": 1459044352
+    },
+    "diff::endpoint::tests::great_lakes_scholars_sit_on_their_universities": {
+      "elapsed": 2.8249630000063917,
+      "rss_bytes": 1486651392
+    },
+    "diff::endpoint::tests::great_sahara_endpoint_is_pinned": {
+      "elapsed": 1.5229782920068828,
+      "rss_bytes": 376946688
+    },
+    "diff::endpoint::tests::the_east_indies_ladder_is_pinned": {
+      "elapsed": 3.1068587499903515,
+      "rss_bytes": 417398784
+    },
+    "diff::endpoint::tests::the_endpoint_captures_are_four_families": {
+      "elapsed": 0.32259091699961573,
+      "rss_bytes": 319471616
+    },
+    "diff::endpoint::tests::the_handoff_s_endpoint_is_the_pinned_counts": {
+      "elapsed": 0.004947333000018261,
+      "rss_bytes": 3391488
+    },
+    "diff::endpoint::tests::the_ladder_s_borrowed_setup_is_the_endpoint_s": {
+      "elapsed": 2.2935947079968173,
+      "rss_bytes": 468910080
+    },
+    "diff::endpoint::tests::the_setup_lists_are_the_suite_s": {
+      "elapsed": 0.00491991700255312,
+      "rss_bytes": 3244032
+    },
+    "diff::floors::tests::a_closed_ai_word_names_its_endpoint_and_an_open_one_its_window": {
+      "elapsed": 0.012880166003014892,
+      "rss_bytes": 12107776
+    },
+    "diff::floors::tests::a_golden_widening_s_window_reaches_its_trace_s_end": {
+      "elapsed": 0.013080707998597063,
+      "rss_bytes": 4669440
+    },
+    "diff::floors::tests::a_widening_s_test_holds_its_pins_under_the_guard": {
+      "elapsed": 0.09295012499205768,
+      "rss_bytes": 5668864
+    },
+    "diff::floors::tests::a_window_cut_at_its_word_is_short": {
+      "elapsed": 0.0048324160015909,
+      "rss_bytes": 3407872
+    },
+    "diff::floors::tests::an_ai_line_is_read_against_its_rows": {
+      "elapsed": 0.004442582998308353,
+      "rss_bytes": 3506176
+    },
+    "diff::floors::tests::every_pinned_golden_word_is_on_the_line_s_list": {
+      "elapsed": 0.004897459002677351,
+      "rss_bytes": 4161536
+    },
+    "diff::floors::tests::the_compared_pin_walks_every_open_ai_word": {
+      "elapsed": 0.004879999993136153,
+      "rss_bytes": 3604480
+    },
+    "diff::floors::tests::the_default_map_is_the_lower_open_word": {
+      "elapsed": 0.004512458006502129,
+      "rss_bytes": 3276800
+    },
+    "diff::floors::tests::the_gate_has_a_bounded_test_width": {
+      "elapsed": 0.00439579100930132,
+      "rss_bytes": 3342336
+    },
+    "diff::floors::tests::the_golden_line_guard_reads_the_restage_and_seven_b": {
+      "elapsed": 0.00425187501241453,
+      "rss_bytes": 3489792
+    },
+    "diff::floors::tests::the_handoff_s_census_is_the_pinned_share": {
+      "elapsed": 0.004439041993464343,
+      "rss_bytes": 3358720
+    },
+    "diff::floors::tests::the_handoff_s_coverage_pair_is_the_pinned_word": {
+      "elapsed": 0.004837374988710508,
+      "rss_bytes": 3489792
+    },
+    "diff::floors::tests::the_handoff_s_default_map_is_the_lower_word": {
+      "elapsed": 0.004269958008080721,
+      "rss_bytes": 3391488
+    },
+    "diff::floors::tests::the_handoff_s_golden_line_is_the_pinned_word": {
+      "elapsed": 0.004491540996241383,
+      "rss_bytes": 3424256
+    },
+    "diff::floors::tests::the_handoff_s_peace_pair_is_the_pinned_word": {
+      "elapsed": 0.004442791992914863,
+      "rss_bytes": 3489792
+    },
+    "diff::floors::tests::the_handoff_s_scoreboard_is_the_floors": {
+      "elapsed": 0.00440662499750033,
+      "rss_bytes": 3407872
+    },
+    "diff::floors::tests::the_handoff_s_second_pair_is_the_pinned_words": {
+      "elapsed": 0.004274749997421168,
+      "rss_bytes": 3489792
+    },
+    "diff::floors::tests::the_handoff_s_successor_pair_is_the_pinned_word": {
+      "elapsed": 0.004380832993774675,
+      "rss_bytes": 3506176
+    },
+    "diff::floors::tests::the_handoff_s_third_map_is_the_pinned_word": {
+      "elapsed": 0.00479395900038071,
+      "rss_bytes": 3489792
+    },
+    "diff::floors::tests::the_handoff_s_third_pair_is_the_pinned_words": {
+      "elapsed": 0.004453874993487261,
+      "rss_bytes": 3522560
+    },
+    "diff::floors::tests::the_widening_behind_each_pinned_word_exists": {
+      "elapsed": 0.025395541000762023,
+      "rss_bytes": 12206080
+    },
+    "diff::floors::tests::wider_test_width_requires_a_bounded_monitor_contract": {
+      "elapsed": 0.00429633300518617,
+      "rss_bytes": 3293184
+    },
+    "diff::golden::a_turning_catapult_s_crew_mirror_and_never_walk": {
+      "elapsed": 0.8553979999996955,
+      "rss_bytes": 12517376
+    },
+    "diff::golden::an_issuer_line_for_another_seat_is_refused_as_the_dll_refuses_it": {
+      "elapsed": 2.010210249994998,
+      "rss_bytes": 812974080
+    },
+    "diff::golden::chapter_eight_holds_to_the_golden_word": {
+      "elapsed": 1.4005650829931255,
+      "rss_bytes": 715145216
+    },
+    "diff::golden::chapter_eight_s_word_frame_is_widened_whole": {
+      "elapsed": 1.7993953330005752,
+      "rss_bytes": 587104256
+    },
+    "diff::golden::chapter_eighteen_holds_to_the_golden_word": {
+      "elapsed": 2.033214916009456,
+      "rss_bytes": 754040832
+    },
+    "diff::golden::chapter_eighteen_s_word_frame_is_widened_whole": {
+      "elapsed": 4.3002461249998305,
+      "rss_bytes": 753860608
+    },
+    "diff::golden::chapter_eighty_holds_to_the_golden_word": {
+      "elapsed": 1.3946567499951925,
+      "rss_bytes": 724811776
+    },
+    "diff::golden::chapter_eighty_s_window_is_widened_whole": {
+      "elapsed": 1.647212458003196,
+      "rss_bytes": 600391680
+    },
+    "diff::golden::chapter_eighty_staging_reaches_the_stealth_arm": {
+      "elapsed": 2.404272667001351,
+      "rss_bytes": 891469824
+    },
+    "diff::golden::chapter_eleven_holds_to_the_golden_word": {
+      "elapsed": 1.4817119579965947,
+      "rss_bytes": 585351168
+    },
+    "diff::golden::chapter_eleven_s_word_frame_is_widened_whole": {
+      "elapsed": 2.210920040990459,
+      "rss_bytes": 601145344
+    },
+    "diff::golden::chapter_fifteen_holds_to_the_golden_word": {
+      "elapsed": 1.8770341250055935,
+      "rss_bytes": 734593024
+    },
+    "diff::golden::chapter_fifteen_s_word_frame_is_widened_whole": {
+      "elapsed": 3.6332033750077244,
+      "rss_bytes": 734543872
+    },
+    "diff::golden::chapter_fifty_five_holds_to_the_golden_word": {
+      "elapsed": 1.6852003749954747,
+      "rss_bytes": 663486464
+    },
+    "diff::golden::chapter_fifty_five_s_word_frame_is_widened_whole": {
+      "elapsed": 2.81721199999447,
+      "rss_bytes": 662700032
+    },
+    "diff::golden::chapter_fifty_holds_to_the_golden_word": {
+      "elapsed": 1.7512182079954073,
+      "rss_bytes": 684179456
+    },
+    "diff::golden::chapter_fifty_nine_holds_to_the_golden_word": {
+      "elapsed": 1.4534719579969533,
+      "rss_bytes": 605077504
+    },
+    "diff::golden::chapter_fifty_nine_s_word_frame_is_widened_whole": {
+      "elapsed": 1.8928251250035828,
+      "rss_bytes": 620068864
+    },
+    "diff::golden::chapter_fifty_one_holds_to_the_golden_word": {
+      "elapsed": 1.7399465839989716,
+      "rss_bytes": 685146112
+    },
+    "diff::golden::chapter_fifty_one_s_word_frame_is_widened_whole": {
+      "elapsed": 3.2136276249948423,
+      "rss_bytes": 677298176
+    },
+    "diff::golden::chapter_fifty_s_word_frame_is_widened_whole": {
+      "elapsed": 3.247105582995573,
+      "rss_bytes": 705789952
+    },
+    "diff::golden::chapter_fifty_seven_holds_to_the_golden_word": {
+      "elapsed": 1.5968299999949522,
+      "rss_bytes": 662585344
+    },
+    "diff::golden::chapter_fifty_seven_s_word_frame_is_widened_whole": {
+      "elapsed": 2.4004214169981424,
+      "rss_bytes": 677183488
+    },
+    "diff::golden::chapter_fifty_six_holds_to_the_golden_word": {
+      "elapsed": 1.6714910419977969,
+      "rss_bytes": 647593984
+    },
+    "diff::golden::chapter_fifty_six_s_word_frame_is_widened_whole": {
+      "elapsed": 2.8292418330092914,
+      "rss_bytes": 656769024
+    },
+    "diff::golden::chapter_fifty_three_holds_to_the_golden_word": {
+      "elapsed": 1.8755458330124384,
+      "rss_bytes": 727711744
+    },
+    "diff::golden::chapter_fifty_three_s_word_frame_is_widened_whole": {
+      "elapsed": 3.6647136669926113,
+      "rss_bytes": 747683840
+    },
+    "diff::golden::chapter_fifty_two_s_fog_plane_agrees_through_the_first_round": {
+      "elapsed": 1.7639357500011101,
+      "rss_bytes": 589365248
+    },
+    "diff::golden::chapter_five_holds_to_the_golden_word": {
+      "elapsed": 1.3861470840056427,
+      "rss_bytes": 561823744
+    },
+    "diff::golden::chapter_five_s_word_frame_is_widened_whole": {
+      "elapsed": 2.003555791990948,
+      "rss_bytes": 1486651392
+    },
+    "diff::golden::chapter_forty_eight_holds_to_the_golden_word": {
+      "elapsed": 2.353722874991945,
+      "rss_bytes": 824213504
+    },
+    "diff::golden::chapter_forty_eight_s_word_frame_is_widened_whole": {
+      "elapsed": 5.788791833008872,
+      "rss_bytes": 836550656
+    },
+    "diff::golden::chapter_forty_five_holds_to_the_golden_word": {
+      "elapsed": 2.0038959579978837,
+      "rss_bytes": 793657344
+    },
+    "diff::golden::chapter_forty_five_s_word_frame_is_widened_whole": {
+      "elapsed": 3.85437429198646,
+      "rss_bytes": 790740992
+    },
+    "diff::golden::chapter_forty_four_holds_to_the_golden_word": {
+      "elapsed": 1.9050166659872048,
+      "rss_bytes": 756121600
+    },
+    "diff::golden::chapter_forty_four_s_word_frame_is_widened_whole": {
+      "elapsed": 3.5543432499980554,
+      "rss_bytes": 764592128
+    },
+    "diff::golden::chapter_forty_holds_to_the_golden_word": {
+      "elapsed": 1.8020187920046737,
+      "rss_bytes": 713048064
+    },
+    "diff::golden::chapter_forty_nine_holds_to_the_golden_word": {
+      "elapsed": 2.075118000007933,
+      "rss_bytes": 887095296
+    },
+    "diff::golden::chapter_forty_nine_s_word_frame_is_widened_whole": {
+      "elapsed": 4.6185382080002455,
+      "rss_bytes": 882819072
+    },
+    "diff::golden::chapter_forty_one_holds_to_the_golden_word": {
+      "elapsed": 2.1344375829939963,
+      "rss_bytes": 830472192
+    },
+    "diff::golden::chapter_forty_one_s_word_frame_is_widened_whole": {
+      "elapsed": 4.4020604160032235,
+      "rss_bytes": 818970624
+    },
+    "diff::golden::chapter_forty_s_word_frame_is_widened_whole": {
+      "elapsed": 3.262143375002779,
+      "rss_bytes": 708870144
+    },
+    "diff::golden::chapter_forty_seven_holds_to_the_golden_word": {
+      "elapsed": 2.0610878329898696,
+      "rss_bytes": 910065664
+    },
+    "diff::golden::chapter_forty_seven_s_word_frame_is_widened_whole": {
+      "elapsed": 4.419950083000003,
+      "rss_bytes": 913506304
+    },
+    "diff::golden::chapter_forty_six_holds_to_the_golden_word": {
+      "elapsed": 2.724091625001165,
+      "rss_bytes": 922959872
+    },
+    "diff::golden::chapter_forty_six_s_word_frame_is_widened_whole": {
+      "elapsed": 7.196370707999449,
+      "rss_bytes": 930889728
+    },
+    "diff::golden::chapter_forty_three_holds_to_the_golden_word": {
+      "elapsed": 2.7065367080067517,
+      "rss_bytes": 918388736
+    },
+    "diff::golden::chapter_forty_three_s_word_frame_is_widened_whole": {
+      "elapsed": 7.07161816599546,
+      "rss_bytes": 926826496
+    },
+    "diff::golden::chapter_forty_two_holds_to_the_golden_word": {
+      "elapsed": 1.733199499998591,
+      "rss_bytes": 710410240
+    },
+    "diff::golden::chapter_forty_two_s_word_frame_is_widened_whole": {
+      "elapsed": 2.860216582994326,
+      "rss_bytes": 701923328
+    },
+    "diff::golden::chapter_four_holds_to_the_golden_word": {
+      "elapsed": 1.5160732499934966,
+      "rss_bytes": 581500928
+    },
+    "diff::golden::chapter_four_s_border_is_widened_cell_for_cell": {
+      "elapsed": 4.262920791996294,
+      "rss_bytes": 576192512
+    },
+    "diff::golden::chapter_four_s_two_captures_are_one_game": {
+      "elapsed": 0.03758645898778923,
+      "rss_bytes": 44204032
+    },
+    "diff::golden::chapter_four_s_word_frame_is_widened_whole": {
+      "elapsed": 2.4127940839971416,
+      "rss_bytes": 598081536
+    },
+    "diff::golden::chapter_fourteen_holds_to_the_golden_word": {
+      "elapsed": 1.4562083339988021,
+      "rss_bytes": 585318400
+    },
+    "diff::golden::chapter_fourteen_s_word_frame_is_widened_whole": {
+      "elapsed": 2.186500708994572,
+      "rss_bytes": 600621056
+    },
+    "diff::golden::chapter_nine_holds_to_the_golden_word": {
+      "elapsed": 1.435737624997273,
+      "rss_bytes": 586858496
+    },
+    "diff::golden::chapter_nine_s_word_frame_is_widened_whole": {
+      "elapsed": 1.9465793330018641,
+      "rss_bytes": 596000768
+    },
+    "diff::golden::chapter_nineteen_holds_to_the_golden_word": {
+      "elapsed": 1.7186050409945892,
+      "rss_bytes": 682196992
+    },
+    "diff::golden::chapter_nineteen_s_word_frame_is_widened_whole": {
+      "elapsed": 2.9966628330003005,
+      "rss_bytes": 686735360
+    },
+    "diff::golden::chapter_one_holds_to_the_golden_word": {
+      "elapsed": 1.4014995000034105,
+      "rss_bytes": 595181568
+    },
+    "diff::golden::chapter_one_s_captain_picks_the_one_it_can_reach": {
+      "elapsed": 1.7394814169965684,
+      "rss_bytes": 1491501056
+    },
+    "diff::golden::chapter_one_s_captains_reach_each_other_and_nobody_else": {
+      "elapsed": 1.7136097500042524,
+      "rss_bytes": 1499054080
+    },
+    "diff::golden::chapter_one_s_hit_is_answered_by_the_victim_s_captain": {
+      "elapsed": 1.7083525420021033,
+      "rss_bytes": 1490337792
+    },
+    "diff::golden::chapter_one_s_squad_is_handed_its_captain_s_target": {
+      "elapsed": 1.6903734999941662,
+      "rss_bytes": 1503543296
+    },
+    "diff::golden::chapter_one_s_two_squads_are_seated_where_the_dump_says": {
+      "elapsed": 1.7075459999905434,
+      "rss_bytes": 1488879616
+    },
+    "diff::golden::chapter_one_s_word_frame_is_widened_whole": {
+      "elapsed": 2.0252389580127783,
+      "rss_bytes": 1495465984
+    },
+    "diff::golden::chapter_seven_b_holds_to_the_golden_word": {
+      "elapsed": 1.4644204580108635,
+      "rss_bytes": 591183872
+    },
+    "diff::golden::chapter_seven_b_s_civilians_act_alike_with_the_ai_off_and_on": {
+      "elapsed": 0.5708711250044871,
+      "rss_bytes": 11485184
+    },
+    "diff::golden::chapter_seven_b_s_control_holds_to_the_golden_word": {
+      "elapsed": 1.4806325420067878,
+      "rss_bytes": 581877760
+    },
+    "diff::golden::chapter_seven_b_s_control_scout_search_is_priced_as_the_original": {
+      "elapsed": 1.8596167079958832,
+      "rss_bytes": 1606762496
+    },
+    "diff::golden::chapter_seven_b_s_pair_is_one_game_until_the_gate": {
+      "elapsed": 0.031077374995220453,
+      "rss_bytes": 47759360
+    },
+    "diff::golden::chapter_seven_b_s_word_frame_is_widened_whole": {
+      "elapsed": 3.749431292002555,
+      "rss_bytes": 643858432
+    },
+    "diff::golden::chapter_seven_holds_to_the_golden_word": {
+      "elapsed": 1.4732578339899192,
+      "rss_bytes": 593526784
+    },
+    "diff::golden::chapter_seven_s_civilians_act_alike_with_the_ai_off_and_on": {
+      "elapsed": 0.5612394170020707,
+      "rss_bytes": 12124160
+    },
+    "diff::golden::chapter_seven_s_control_holds_to_the_golden_word": {
+      "elapsed": 1.4860649999900488,
+      "rss_bytes": 602357760
+    },
+    "diff::golden::chapter_seven_s_pair_is_one_game_until_the_gate": {
+      "elapsed": 0.0316751249920344,
+      "rss_bytes": 48005120
+    },
+    "diff::golden::chapter_seven_s_word_frame_is_widened_whole": {
+      "elapsed": 3.7987695839983644,
+      "rss_bytes": 643645440
+    },
+    "diff::golden::chapter_seventeen_holds_to_the_golden_word": {
+      "elapsed": 1.9823349580110516,
+      "rss_bytes": 752254976
+    },
+    "diff::golden::chapter_seventeen_s_word_frame_is_widened_whole": {
+      "elapsed": 4.0609240000048885,
+      "rss_bytes": 746913792
+    },
+    "diff::golden::chapter_seventy_eight_holds_to_the_golden_word": {
+      "elapsed": 1.7183418329950655,
+      "rss_bytes": 702726144
+    },
+    "diff::golden::chapter_seventy_eight_s_word_frame_is_widened_whole": {
+      "elapsed": 2.525835417007329,
+      "rss_bytes": 675381248
+    },
+    "diff::golden::chapter_seventy_five_holds_to_the_golden_word": {
+      "elapsed": 1.6453627910086652,
+      "rss_bytes": 702644224
+    },
+    "diff::golden::chapter_seventy_five_s_word_frame_is_widened_whole": {
+      "elapsed": 2.499836000002688,
+      "rss_bytes": 697745408
+    },
+    "diff::golden::chapter_seventy_four_holds_to_the_golden_word": {
+      "elapsed": 1.4601590829988709,
+      "rss_bytes": 598818816
+    },
+    "diff::golden::chapter_seventy_four_s_word_frame_is_widened_whole": {
+      "elapsed": 1.6997691249998752,
+      "rss_bytes": 611729408
+    },
+    "diff::golden::chapter_seventy_nine_holds_to_the_golden_word": {
+      "elapsed": 1.9117968329956057,
+      "rss_bytes": 760725504
+    },
+    "diff::golden::chapter_seventy_nine_s_word_frame_is_widened_whole": {
+      "elapsed": 3.5358030000061262,
+      "rss_bytes": 754319360
+    },
+    "diff::golden::chapter_seventy_one_holds_to_the_golden_word": {
+      "elapsed": 1.7593020420026733,
+      "rss_bytes": 700022784
+    },
+    "diff::golden::chapter_seventy_one_s_word_frame_is_widened_whole": {
+      "elapsed": 2.588797082993551,
+      "rss_bytes": 689176576
+    },
+    "diff::golden::chapter_seventy_seven_holds_to_the_golden_word": {
+      "elapsed": 1.8809760000003735,
+      "rss_bytes": 732577792
+    },
+    "diff::golden::chapter_seventy_seven_s_word_frame_is_widened_whole": {
+      "elapsed": 3.2975693750049686,
+      "rss_bytes": 740704256
+    },
+    "diff::golden::chapter_seventy_six_holds_to_the_golden_word": {
+      "elapsed": 2.3502588749979623,
+      "rss_bytes": 895516672
+    },
+    "diff::golden::chapter_seventy_six_s_word_frame_is_widened_whole": {
+      "elapsed": 5.174554291996174,
+      "rss_bytes": 880115712
+    },
+    "diff::golden::chapter_seventy_three_holds_to_the_golden_word": {
+      "elapsed": 1.4369496250001248,
+      "rss_bytes": 625098752
+    },
+    "diff::golden::chapter_seventy_three_s_word_frame_is_widened_whole": {
+      "elapsed": 1.7271034169971244,
+      "rss_bytes": 625377280
+    },
+    "diff::golden::chapter_seventy_two_holds_to_the_golden_word": {
+      "elapsed": 2.1103210840083193,
+      "rss_bytes": 812449792
+    },
+    "diff::golden::chapter_seventy_two_s_word_frame_is_widened_whole": {
+      "elapsed": 4.190384749992518,
+      "rss_bytes": 825376768
+    },
+    "diff::golden::chapter_six_b_holds_to_the_golden_word": {
+      "elapsed": 1.4885565409931587,
+      "rss_bytes": 572686336
+    },
+    "diff::golden::chapter_six_b_s_word_frame_is_widened_whole": {
+      "elapsed": 2.3051977919967612,
+      "rss_bytes": 596639744
+    },
+    "diff::golden::chapter_six_holds_to_the_golden_word": {
+      "elapsed": 1.3803081249934621,
+      "rss_bytes": 590823424
+    },
+    "diff::golden::chapter_six_s_word_frame_is_widened_whole": {
+      "elapsed": 1.673672582997824,
+      "rss_bytes": 596180992
+    },
+    "diff::golden::chapter_sixteen_holds_to_the_golden_word": {
+      "elapsed": 1.857541916993796,
+      "rss_bytes": 705003520
+    },
+    "diff::golden::chapter_sixteen_s_word_frame_is_widened_whole": {
+      "elapsed": 3.56559958300204,
+      "rss_bytes": 725811200
+    },
+    "diff::golden::chapter_sixty_eight_holds_to_the_golden_word": {
+      "elapsed": 1.867190707998816,
+      "rss_bytes": 751239168
+    },
+    "diff::golden::chapter_sixty_eight_s_word_frame_is_widened_whole": {
+      "elapsed": 3.3629668339999625,
+      "rss_bytes": 742637568
+    },
+    "diff::golden::chapter_sixty_five_holds_to_the_golden_word": {
+      "elapsed": 1.6672358330106363,
+      "rss_bytes": 677576704
+    },
+    "diff::golden::chapter_sixty_five_s_word_frame_is_widened_whole": {
+      "elapsed": 2.5873297910002293,
+      "rss_bytes": 694288384
+    },
+    "diff::golden::chapter_sixty_four_holds_to_the_golden_word": {
+      "elapsed": 1.5913692920003086,
+      "rss_bytes": 629997568
+    },
+    "diff::golden::chapter_sixty_four_s_word_frame_is_widened_whole": {
+      "elapsed": 2.165060249986709,
+      "rss_bytes": 767197184
+    },
+    "diff::golden::chapter_sixty_one_holds_to_the_golden_word": {
+      "elapsed": 1.6933093749976251,
+      "rss_bytes": 669138944
+    },
+    "diff::golden::chapter_sixty_one_s_word_frame_is_widened_whole": {
+      "elapsed": 2.8451889580028364,
+      "rss_bytes": 661323776
+    },
+    "diff::golden::chapter_sixty_s_fog_plane": {
+      "elapsed": 2.0626521249942016,
+      "rss_bytes": 593756160
+    },
+    "diff::golden::chapter_sixty_seven_holds_to_the_golden_word": {
+      "elapsed": 1.843939667000086,
+      "rss_bytes": 744554496
+    },
+    "diff::golden::chapter_sixty_seven_s_word_frame_is_widened_whole": {
+      "elapsed": 3.190569291007705,
+      "rss_bytes": 732512256
+    },
+    "diff::golden::chapter_sixty_three_holds_to_the_golden_word": {
+      "elapsed": 1.4722976250050124,
+      "rss_bytes": 610664448
+    },
+    "diff::golden::chapter_sixty_three_s_word_frame_is_widened_whole": {
+      "elapsed": 1.9132394159969408,
+      "rss_bytes": 623591424
+    },
+    "diff::golden::chapter_sixty_two_holds_to_the_golden_word": {
+      "elapsed": 1.7306874579953728,
+      "rss_bytes": 674742272
+    },
+    "diff::golden::chapter_sixty_two_s_word_frame_is_widened_whole": {
+      "elapsed": 2.9354034999996657,
+      "rss_bytes": 683442176
+    },
+    "diff::golden::chapter_ten_holds_to_the_golden_word": {
+      "elapsed": 1.4495030409889296,
+      "rss_bytes": 589398016
+    },
+    "diff::golden::chapter_ten_s_word_frame_is_widened_whole": {
+      "elapsed": 2.173543916986091,
+      "rss_bytes": 602832896
+    },
+    "diff::golden::chapter_thirteen_holds_to_the_golden_word": {
+      "elapsed": 1.4242476249928586,
+      "rss_bytes": 591396864
+    },
+    "diff::golden::chapter_thirteen_s_word_frame_is_widened_whole": {
+      "elapsed": 1.8955627499963157,
+      "rss_bytes": 595984384
+    },
+    "diff::golden::chapter_thirty_eight_holds_to_the_golden_word": {
+      "elapsed": 2.1639403750014026,
+      "rss_bytes": 819970048
+    },
+    "diff::golden::chapter_thirty_eight_s_battery_is_short_of_its_aim_on_the_word_s_block": {
+      "elapsed": 2.092676709013176,
+      "rss_bytes": 828555264
+    },
+    "diff::golden::chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase": {
+      "elapsed": 2.957249333994696,
+      "rss_bytes": 824147968
+    },
+    "diff::golden::chapter_thirty_eight_s_word_frame_is_widened_whole": {
+      "elapsed": 4.327094624997699,
+      "rss_bytes": 824197120
+    },
+    "diff::golden::chapter_thirty_five_holds_to_the_golden_word": {
+      "elapsed": 3.5668121250055265,
+      "rss_bytes": 1151516672
+    },
+    "diff::golden::chapter_thirty_five_s_v2_blast_is_compared_field_for_field": {
+      "elapsed": 3.539872708002804,
+      "rss_bytes": 1152958464
+    },
+    "diff::golden::chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field": {
+      "elapsed": 3.6364505829988047,
+      "rss_bytes": 1176600576
+    },
+    "diff::golden::chapter_thirty_five_s_word_frame_is_widened_whole": {
+      "elapsed": 11.04240629200649,
+      "rss_bytes": 1167704064
+    },
+    "diff::golden::chapter_thirty_four_holds_to_the_golden_word": {
+      "elapsed": 3.22170058300253,
+      "rss_bytes": 1052082176
+    },
+    "diff::golden::chapter_thirty_four_s_word_frame_is_widened_whole": {
+      "elapsed": 9.137565917000757,
+      "rss_bytes": 1068597248
+    },
+    "diff::golden::chapter_thirty_holds_to_the_golden_word": {
+      "elapsed": 2.074193959007971,
+      "rss_bytes": 783826944
+    },
+    "diff::golden::chapter_thirty_nine_holds_to_the_golden_word": {
+      "elapsed": 1.785836625000229,
+      "rss_bytes": 717078528
+    },
+    "diff::golden::chapter_thirty_nine_s_word_frame_is_widened_whole": {
+      "elapsed": 3.2022561250050785,
+      "rss_bytes": 716963840
+    },
+    "diff::golden::chapter_thirty_one_holds_to_the_golden_word": {
+      "elapsed": 2.0428938340046443,
+      "rss_bytes": 775127040
+    },
+    "diff::golden::chapter_thirty_one_s_word_frame_is_widened_whole": {
+      "elapsed": 4.328587458003312,
+      "rss_bytes": 770654208
+    },
+    "diff::golden::chapter_thirty_s_word_frame_is_widened_whole": {
+      "elapsed": 4.513739333007834,
+      "rss_bytes": 785842176
+    },
+    "diff::golden::chapter_thirty_seven_holds_to_the_golden_word": {
+      "elapsed": 3.671713167001144,
+      "rss_bytes": 1179516928
+    },
+    "diff::golden::chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field": {
+      "elapsed": 4.041481957989163,
+      "rss_bytes": 1184579584
+    },
+    "diff::golden::chapter_thirty_seven_s_word_frame_is_widened_whole": {
+      "elapsed": 11.387318584005698,
+      "rss_bytes": 1153875968
+    },
+    "diff::golden::chapter_thirty_six_holds_to_the_golden_word": {
+      "elapsed": 3.728054749997682,
+      "rss_bytes": 1211957248
+    },
+    "diff::golden::chapter_thirty_six_s_word_frame_is_widened_whole": {
+      "elapsed": 11.812966666999273,
+      "rss_bytes": 1187479552
+    },
+    "diff::golden::chapter_thirty_three_holds_to_the_golden_word": {
+      "elapsed": 3.1106691249879077,
+      "rss_bytes": 1037090816
+    },
+    "diff::golden::chapter_thirty_three_s_word_frame_is_widened_whole": {
+      "elapsed": 8.754657750003389,
+      "rss_bytes": 1016315904
+    },
+    "diff::golden::chapter_thirty_two_holds_to_the_golden_word": {
+      "elapsed": 2.7770851660025073,
+      "rss_bytes": 925499392
+    },
+    "diff::golden::chapter_thirty_two_s_word_frame_is_widened_whole": {
+      "elapsed": 7.357364833005704,
+      "rss_bytes": 950747136
+    },
+    "diff::golden::chapter_three_holds_to_the_golden_word": {
+      "elapsed": 1.3914064999989932,
+      "rss_bytes": 581763072
+    },
+    "diff::golden::chapter_three_s_arena_a_hoplites_take_the_dump_s_numbers": {
+      "elapsed": 1.3897388750046957,
+      "rss_bytes": 574078976
+    },
+    "diff::golden::chapter_three_s_catapult_after_its_reload": {
+      "elapsed": 1.4201446670049336,
+      "rss_bytes": 586317824
+    },
+    "diff::golden::chapter_three_s_catapult_fires_on_the_ground": {
+      "elapsed": 1.440880708003533,
+      "rss_bytes": 586989568
+    },
+    "diff::golden::chapter_three_s_catapult_unpacks_on_the_dump_s_frame": {
+      "elapsed": 1.944535791000817,
+      "rss_bytes": 620380160
+    },
+    "diff::golden::chapter_three_s_crew_mirror_the_turn": {
+      "elapsed": 1.3983118330070283,
+      "rss_bytes": 578371584
+    },
+    "diff::golden::chapter_three_s_falsifiers_are_the_dump_s": {
+      "elapsed": 0.17693512501136865,
+      "rss_bytes": 11550720
+    },
+    "diff::golden::chapter_three_s_restage_holds_to_its_word": {
+      "elapsed": 1.4655993329943158,
+      "rss_bytes": 595017728
+    },
+    "diff::golden::chapter_three_s_restage_is_widened_whole": {
+      "elapsed": 1.7961027499986812,
+      "rss_bytes": 595853312
+    },
+    "diff::golden::chapter_three_s_restage_numbers_its_objects": {
+      "elapsed": 1.6729258330015,
+      "rss_bytes": 584925184
+    },
+    "diff::golden::chapter_three_s_unpacked_catapult_sees_its_hoplites": {
+      "elapsed": 1.4280313749914058,
+      "rss_bytes": 578306048
+    },
+    "diff::golden::chapter_three_s_word_frame_is_widened_whole": {
+      "elapsed": 1.678182999996352,
+      "rss_bytes": 599752704
+    },
+    "diff::golden::chapter_twelve_holds_to_the_golden_word": {
+      "elapsed": 1.4578059170016786,
+      "rss_bytes": 574472192
+    },
+    "diff::golden::chapter_twelve_s_word_frame_is_widened_whole": {
+      "elapsed": 2.0338489590067184,
+      "rss_bytes": 586104832
+    },
+    "diff::golden::chapter_twenty_eight_holds_to_the_golden_word": {
+      "elapsed": 2.220611667013145,
+      "rss_bytes": 819429376
+    },
+    "diff::golden::chapter_twenty_eight_s_word_frame_is_widened_whole": {
+      "elapsed": 5.044995415999438,
+      "rss_bytes": 823099392
+    },
+    "diff::golden::chapter_twenty_five_holds_to_the_golden_word": {
+      "elapsed": 2.0629125000123167,
+      "rss_bytes": 769425408
+    },
+    "diff::golden::chapter_twenty_five_s_word_frame_is_widened_whole": {
+      "elapsed": 4.409147124999436,
+      "rss_bytes": 777863168
+    },
+    "diff::golden::chapter_twenty_four_holds_to_the_golden_word": {
+      "elapsed": 2.1714061249949737,
+      "rss_bytes": 803094528
+    },
+    "diff::golden::chapter_twenty_four_s_word_frame_is_widened_whole": {
+      "elapsed": 4.80564466699434,
+      "rss_bytes": 790446080
+    },
+    "diff::golden::chapter_twenty_holds_to_the_golden_word": {
+      "elapsed": 1.9046473340131342,
+      "rss_bytes": 738705408
+    },
+    "diff::golden::chapter_twenty_nine_holds_to_the_golden_word": {
+      "elapsed": 2.5266548750078073,
+      "rss_bytes": 894599168
+    },
+    "diff::golden::chapter_twenty_nine_s_word_frame_is_widened_whole": {
+      "elapsed": 6.400317874999018,
+      "rss_bytes": 869466112
+    },
+    "diff::golden::chapter_twenty_one_holds_to_the_golden_word": {
+      "elapsed": 1.9429099169938127,
+      "rss_bytes": 744374272
+    },
+    "diff::golden::chapter_twenty_one_s_word_frame_is_widened_whole": {
+      "elapsed": 3.9273165420017904,
+      "rss_bytes": 741916672
+    },
+    "diff::golden::chapter_twenty_s_word_frame_is_widened_whole": {
+      "elapsed": 3.7452485419926234,
+      "rss_bytes": 730939392
+    },
+    "diff::golden::chapter_twenty_seven_holds_to_the_golden_word": {
+      "elapsed": 2.160501499995007,
+      "rss_bytes": 814399488
+    },
+    "diff::golden::chapter_twenty_seven_s_word_frame_is_widened_whole": {
+      "elapsed": 4.798794916001498,
+      "rss_bytes": 814710784
+    },
+    "diff::golden::chapter_twenty_six_holds_to_the_golden_word": {
+      "elapsed": 2.068813500009128,
+      "rss_bytes": 767295488
+    },
+    "diff::golden::chapter_twenty_six_s_word_frame_is_widened_whole": {
+      "elapsed": 4.463258415999007,
+      "rss_bytes": 783384576
+    },
+    "diff::golden::chapter_twenty_three_holds_to_the_golden_word": {
+      "elapsed": 2.42545437499939,
+      "rss_bytes": 830685184
+    },
+    "diff::golden::chapter_twenty_three_s_word_frame_is_widened_whole": {
+      "elapsed": 5.61845275000087,
+      "rss_bytes": 837140480
+    },
+    "diff::golden::chapter_twenty_two_holds_to_the_golden_word": {
+      "elapsed": 2.061959458005731,
+      "rss_bytes": 748027904
+    },
+    "diff::golden::chapter_twenty_two_s_word_frame_is_widened_whole": {
+      "elapsed": 4.45920358299918,
+      "rss_bytes": 781369344
+    },
+    "diff::golden::chapter_two_holds_to_the_golden_word": {
+      "elapsed": 1.387689582988969,
+      "rss_bytes": 595099648
+    },
+    "diff::golden::chapter_two_s_first_attack_orders_are_the_dump_s": {
+      "elapsed": 1.702209416005644,
+      "rss_bytes": 1479278592
+    },
+    "diff::golden::chapter_two_s_frozen_frames_are_the_dump_s_on_every_unit_frame": {
+      "elapsed": 1.7997087920084596,
+      "rss_bytes": 1481342976
+    },
+    "diff::golden::chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame": {
+      "elapsed": 1.8021965000079945,
+      "rss_bytes": 1491632128
+    },
+    "diff::golden::chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached": {
+      "elapsed": 0.04755200000363402,
+      "rss_bytes": 49184768
+    },
+    "diff::golden::chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame": {
+      "elapsed": 10.800404082998284,
+      "rss_bytes": 1496104960
+    },
+    "diff::golden::chapter_two_s_squads_stand_where_the_dump_stands_them": {
+      "elapsed": 1.6992342919984367,
+      "rss_bytes": 1488044032
+    },
+    "diff::golden::chapter_two_s_v1z_is_arc_v1z_to_the_last_digit": {
+      "elapsed": 0.02121037500910461,
+      "rss_bytes": 3899392
+    },
+    "diff::golden::chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame": {
+      "elapsed": 1.7974233330023708,
+      "rss_bytes": 1480097792
+    },
+    "diff::golden::chapter_two_s_word_frame_is_widened_whole": {
+      "elapsed": 1.9901445830037119,
+      "rss_bytes": 1494384640
+    },
+    "diff::golden::every_object_s_z_is_the_ground_it_stands_on": {
+      "elapsed": 1.9331200830056332,
+      "rss_bytes": 1480409088
+    },
+    "diff::golden::every_rolled_shot_comes_down_where_the_original_s_does": {
+      "elapsed": 1.7149909590079915,
+      "rss_bytes": 1479229440
+    },
+    "diff::golden::near_projection_preserves_the_raw_reader_s_lexical_rules": {
+      "elapsed": 0.004302582994569093,
+      "rss_bytes": 3489792
+    },
+    "diff::golden::refusing_the_borrowed_frame_stream_does_not_move_great_lakes_word": {
+      "elapsed": 4.165618000013637,
+      "rss_bytes": 1471184896
+    },
+    "diff::golden::run223_s_air_orders_are_read_whole": {
+      "elapsed": 0.006823625008109957,
+      "rss_bytes": 7995392
+    },
+    "diff::golden::run235_s_bombs_are_the_original_s_record_for_record": {
+      "elapsed": 1.8209045000112383,
+      "rss_bytes": 681082880
+    },
+    "diff::golden::run245_s_cast_is_the_original_s_field_for_field": {
+      "elapsed": 3.143209374989965,
+      "rss_bytes": 661061632
+    },
+    "diff::golden::run249_s_transport_is_the_original_s_unit_for_unit": {
+      "elapsed": 2.4706189169955906,
+      "rss_bytes": 730251264
+    },
+    "diff::golden::run255_s_repair_is_the_original_s_unit_for_unit": {
+      "elapsed": 2.5256895420025103,
+      "rss_bytes": 731856896
+    },
+    "diff::golden::run265_s_launch_is_the_original_s_field_for_field": {
+      "elapsed": 4.802709916009917,
+      "rss_bytes": 777175040
+    },
+    "diff::golden::run265_s_rounds_are_the_original_s_record_for_record": {
+      "elapsed": 2.1548640000110026,
+      "rss_bytes": 774373376
+    },
+    "diff::golden::run422_s_casts_are_the_original_s_field_for_field": {
+      "elapsed": 3.357658624998294,
+      "rss_bytes": 694927360
+    },
+    "diff::golden::run430_s_casts_are_the_original_s_field_for_field": {
+      "elapsed": 3.484445209003752,
+      "rss_bytes": 696188928
+    },
+    "diff::golden::run436_s_other_seat_s_commands_are_dropped_at_the_pump": {
+      "elapsed": 2.0162416249950184,
+      "rss_bytes": 813023232
+    },
+    "diff::golden::run875_start_seen3_plane_is_compared_cell_for_cell": {
+      "elapsed": 2.4766569579951465,
+      "rss_bytes": 992608256
+    },
+    "diff::golden::stage_walk": {
+      "elapsed": 0.004490749997785315,
+      "rss_bytes": 3276800
+    },
+    "diff::golden::the_golden_record_s_setup_is_run11_s": {
+      "elapsed": 1.8122482080070768,
+      "rss_bytes": 1497677824
+    },
+    "diff::golden::the_ground_order_s_life_is_the_dump_s": {
+      "elapsed": 0.36385633300233167,
+      "rss_bytes": 12500992
+    },
+    "diff::golden::the_missile_offset_is_the_install_s": {
+      "elapsed": 0.0053951669979142025,
+      "rss_bytes": 3538944
+    },
+    "diff::harness::checkpoint::tests::recorded_checkpoint_preserves_cursor_selection_and_existing_report": {
+      "elapsed": 2.5699387499917066,
+      "rss_bytes": 866811904
+    },
+    "diff::harness::checkpoint::tests::run69_checkpoint_repeats_complete_suffix_and_report": {
+      "elapsed": 2.9538745419995394,
+      "rss_bytes": 627261440
+    },
+    "diff::harness::checkpoint::tests::run69_intervention_effects_are_visible_beyond_player_comparisons": {
+      "elapsed": 5.6245428749971325,
+      "rss_bytes": 606666752
+    },
+    "diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture": {
+      "elapsed": 14.8645285829989,
+      "rss_bytes": 631734272
+    },
+    "diff::harness::prefix::tests::dropping_a_batch_discards_its_state_even_on_unwind": {
+      "elapsed": 0.004507958001340739,
+      "rss_bytes": 4177920
+    },
+    "diff::harness::prefix::tests::prefixes_require_identical_inputs_and_an_uncompared_future_block": {
+      "elapsed": 0.004889207993983291,
+      "rss_bytes": 3948544
+    },
+    "diff::harness::tests::a_dumped_building_links_to_the_live_holder_of_its_number": {
+      "elapsed": 0.004688541986979544,
+      "rss_bytes": 4014080
+    },
+    "diff::harness::tests::east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held": {
+      "elapsed": 2.341183041993645,
+      "rss_bytes": 1023311872
+    },
+    "diff::harness::tests::east_indies_pool_numbering_takes_who_1_s_building_groups": {
+      "elapsed": 0.7885267079982441,
+      "rss_bytes": 900907008
+    },
+    "diff::harness::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps": {
+      "elapsed": 0.9824788330006413,
+      "rss_bytes": 506691584
+    },
+    "diff::harness::tests::great_lakes_6994_issues_the_second_squad_s_walk_to_the_army": {
+      "elapsed": 2.0158064580027713,
+      "rss_bytes": 1579335680
+    },
+    "diff::harness::tests::great_lakes_8186_plans_the_chase_and_8187_delays_the_blocked_one": {
+      "elapsed": 1.8827493749995483,
+      "rss_bytes": 1410777088
+    },
+    "diff::harness::tests::great_lakes_8186_plans_the_probe_s_route_the_original_s_way": {
+      "elapsed": 1.8853978749975795,
+      "rss_bytes": 1411530752
+    },
+    "diff::harness::tests::great_lakes_8186_sends_the_probe_s_six_where_the_original_does": {
+      "elapsed": 1.8680166250123875,
+      "rss_bytes": 1404469248
+    },
+    "diff::harness::tests::great_lakes_8186_snaps_the_probe_s_walkers_onto_their_cell_centres": {
+      "elapsed": 1.856128749990603,
+      "rss_bytes": 1396506624
+    },
+    "diff::harness::tests::great_lakes_8442_musters_the_army_where_the_original_does": {
+      "elapsed": 1.8737165420025121,
+      "rss_bytes": 1409187840
+    },
+    "diff::harness::tests::great_lakes_9134_is_the_snap_arm_s_blocked_stand": {
+      "elapsed": 1.9912421670014737,
+      "rss_bytes": 1448476672
+    },
+    "diff::harness::tests::great_lakes_run163_through_run226_are_widened_whole": {
+      "elapsed": 8.971764208006789,
+      "rss_bytes": 617365504
+    },
+    "diff::harness::tests::great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none": {
+      "elapsed": 0.03606562499771826,
+      "rss_bytes": 57999360
+    },
+    "diff::harness::tests::indexed_replay_preserves_reports_with_sibling_corrections": {
+      "elapsed": 1.4086897500092164,
+      "rss_bytes": 830078976
+    },
+    "diff::harness::tests::observing_a_replay_preserves_the_complete_report": {
+      "elapsed": 0.684419083991088,
+      "rss_bytes": 179011584
+    },
+    "diff::harness::tests::run100_s_citizen_waits_twelve_idle_frames_for_the_same_job": {
+      "elapsed": 2.2370687079965137,
+      "rss_bytes": 1459863552
+    },
+    "diff::harness::tests::run100_s_scholar_job_runs_to_the_word": {
+      "elapsed": 0.16085037500306498,
+      "rss_bytes": 12107776
+    },
+    "diff::harness::tests::run100_s_word_block_is_every_record_the_dump_carries": {
+      "elapsed": 4.236187874994357,
+      "rss_bytes": 1458864128
+    },
+    "diff::harness::tests::run100_s_word_frame_is_the_original_s": {
+      "elapsed": 4.7384870829992,
+      "rss_bytes": 1479016448
+    },
+    "diff::harness::tests::run116_s_sweep_is_the_original_s": {
+      "elapsed": 2.0025660000101198,
+      "rss_bytes": 1483964416
+    },
+    "diff::harness::tests::run123_s_word_frame_is_widened_whole": {
+      "elapsed": 6.465846874998533,
+      "rss_bytes": 1602879488
+    },
+    "diff::harness::tests::run125_s_word_frame_is_widened_whole": {
+      "elapsed": 4.272818625002401,
+      "rss_bytes": 1460600832
+    },
+    "diff::harness::tests::run12_s_end_of_frame_words_are_read": {
+      "elapsed": 0.4563224579906091,
+      "rss_bytes": 388481024
+    },
+    "diff::harness::tests::run130_s_word_frame_is_widened_whole": {
+      "elapsed": 4.526897457995801,
+      "rss_bytes": 1462321152
+    },
+    "diff::harness::tests::run130_s_word_is_1_64_s_lag": {
+      "elapsed": 2.120070167002268,
+      "rss_bytes": 1457274880
+    },
+    "diff::harness::tests::run134_s_pool_list_is_the_original_s": {
+      "elapsed": 2.435200125008123,
+      "rss_bytes": 1450344448
+    },
+    "diff::harness::tests::run135_s_word_frame_is_widened_whole": {
+      "elapsed": 4.935666000004858,
+      "rss_bytes": 1477246976
+    },
+    "diff::harness::tests::run136_s_word_frame_is_widened_whole": {
+      "elapsed": 5.619920665994869,
+      "rss_bytes": 1457422336
+    },
+    "diff::harness::tests::run136_s_word_is_one_cell_of_1_62_s_search": {
+      "elapsed": 2.1334773750131717,
+      "rss_bytes": 1455063040
+    },
+    "diff::harness::tests::run139_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3194261249882402,
+      "rss_bytes": 394608640
+    },
+    "diff::harness::tests::run143_s_word_frame_is_widened_whole": {
+      "elapsed": 3.9432195000117645,
+      "rss_bytes": 394412032
+    },
+    "diff::harness::tests::run149_s_word_frame_is_widened_whole": {
+      "elapsed": 2.2975772920035524,
+      "rss_bytes": 388939776
+    },
+    "diff::harness::tests::run14_s_frames_match_the_trace_draw_for_draw": {
+      "elapsed": 2.299264332992607,
+      "rss_bytes": 1977384960
+    },
+    "diff::harness::tests::run152_s_word_frame_is_widened_whole": {
+      "elapsed": 2.451083332998678,
+      "rss_bytes": 386727936
+    },
+    "diff::harness::tests::run155_s_word_frame_is_widened_whole": {
+      "elapsed": 3.123237791005522,
+      "rss_bytes": 393052160
+    },
+    "diff::harness::tests::run159_s_word_frame_is_widened_whole": {
+      "elapsed": 6.225275999997393,
+      "rss_bytes": 390381568
+    },
+    "diff::harness::tests::run166_s_word_frame_is_widened_whole": {
+      "elapsed": 2.300126874994021,
+      "rss_bytes": 389677056
+    },
+    "diff::harness::tests::run221_s_word_frame_is_widened_whole": {
+      "elapsed": 4.530140290997224,
+      "rss_bytes": 396427264
+    },
+    "diff::harness::tests::run227_s_word_frame_is_widened_whole": {
+      "elapsed": 7.81915204100369,
+      "rss_bytes": 395231232
+    },
+    "diff::harness::tests::run233_s_word_frame_is_widened_whole": {
+      "elapsed": 6.203986499996972,
+      "rss_bytes": 392773632
+    },
+    "diff::harness::tests::run243_s_word_frame_is_widened_whole": {
+      "elapsed": 2.7556058329937514,
+      "rss_bytes": 634716160
+    },
+    "diff::harness::tests::run251_s_word_frame_is_widened_whole": {
+      "elapsed": 3.952057208996848,
+      "rss_bytes": 397574144
+    },
+    "diff::harness::tests::run253_s_word_frame_is_widened_whole": {
+      "elapsed": 4.042345208988991,
+      "rss_bytes": 395558912
+    },
+    "diff::harness::tests::run257_s_word_frame_is_widened_whole": {
+      "elapsed": 4.110573415993713,
+      "rss_bytes": 399622144
+    },
+    "diff::harness::tests::run261_s_gap_is_widened_whole": {
+      "elapsed": 4.051989333005622,
+      "rss_bytes": 394280960
+    },
+    "diff::harness::tests::run269_s_word_frame_is_widened_whole": {
+      "elapsed": 4.180385292012943,
+      "rss_bytes": 395739136
+    },
+    "diff::harness::tests::run277_s_word_frame_is_widened_whole": {
+      "elapsed": 4.238840207995963,
+      "rss_bytes": 398262272
+    },
+    "diff::harness::tests::run289_s_word_frame_is_widened_whole": {
+      "elapsed": 4.353581040995778,
+      "rss_bytes": 397836288
+    },
+    "diff::harness::tests::run294_s_departure_is_widened_whole": {
+      "elapsed": 2.4711351250007283,
+      "rss_bytes": 633356288
+    },
+    "diff::harness::tests::run299_s_word_frame_is_widened_whole": {
+      "elapsed": 4.577106833996368,
+      "rss_bytes": 399441920
+    },
+    "diff::harness::tests::run33_s_long_trace_says_where_the_word_parts": {
+      "elapsed": 2.368114416996832,
+      "rss_bytes": 1967177728
+    },
+    "diff::harness::tests::run39_s_islands_game_is_the_second_map_s_score": {
+      "elapsed": 2.529055833001621,
+      "rss_bytes": 809156608
+    },
+    "diff::harness::tests::run39_s_long_trace_says_where_the_second_map_s_word_parts": {
+      "elapsed": 2.0353956670005573,
+      "rss_bytes": 1436090368
+    },
+    "diff::harness::tests::run53_s_24000_frames_put_the_ceiling_where_run33_did": {
+      "elapsed": 3.018427792005241,
+      "rss_bytes": 1480081408
+    },
+    "diff::harness::tests::run53_s_8186_is_find_target_s_probe_and_its_ring_walks": {
+      "elapsed": 0.07931029199971817,
+      "rss_bytes": 105103360
+    },
+    "diff::harness::tests::run54_s_24000_frames_are_where_the_second_map_s_word_now_parts": {
+      "elapsed": 2.352829041003133,
+      "rss_bytes": 401391616
+    },
+    "diff::harness::tests::run57_s_four_thousand_frames_stand_where_the_original_s_do": {
+      "elapsed": 5.034704958990915,
+      "rss_bytes": 1394556928
+    },
+    "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do": {
+      "elapsed": 6.510228917002678,
+      "rss_bytes": 1737015296
+    },
+    "diff::harness::tests::run64_s_window_clocks_are_the_original_s": {
+      "elapsed": 1.4486499579943484,
+      "rss_bytes": 983613440
+    },
+    "diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do": {
+      "elapsed": 3.588803624996217,
+      "rss_bytes": 1867333632
+    },
+    "diff::harness::tests::run71_s_five_thousand_frames_reach_past_the_word": {
+      "elapsed": 4.819890332990326,
+      "rss_bytes": 1428471808
+    },
+    "diff::harness::tests::run73_s_window_clocks_are_the_original_s": {
+      "elapsed": 2.4136770000040997,
+      "rss_bytes": 713474048
+    },
+    "diff::harness::tests::run74_s_window_is_where_great_lakes_merchant_turns": {
+      "elapsed": 1.8133385840046685,
+      "rss_bytes": 1438334976
+    },
+    "diff::harness::tests::run75_s_window_is_the_scout_s_walk_down_the_river": {
+      "elapsed": 2.0708165830001235,
+      "rss_bytes": 1492647936
+    },
+    "diff::harness::tests::run76_s_window_is_the_ai_squad_s_march": {
+      "elapsed": 2.3648124590108637,
+      "rss_bytes": 1608744960
+    },
+    "diff::harness::tests::run78_s_old_word_keeps_its_value_diff": {
+      "elapsed": 2.005153000005521,
+      "rss_bytes": 392314880
+    },
+    "diff::harness::tests::run79_s_window_is_the_half_step_s_second_sample": {
+      "elapsed": 0.27427929200348444,
+      "rss_bytes": 245481472
+    },
+    "diff::harness::tests::run80_s_word_frame_is_widened_whole": {
+      "elapsed": 2.5803131669963477,
+      "rss_bytes": 657145856
+    },
+    "diff::harness::tests::run82_s_leader_record_is_the_original_s_wealth": {
+      "elapsed": 1.0546788750070846,
+      "rss_bytes": 383844352
+    },
+    "diff::harness::tests::run82_s_window_is_the_east_indies_ride_s_run_up": {
+      "elapsed": 1.9114535830012755,
+      "rss_bytes": 552501248
+    },
+    "diff::harness::tests::run83_s_window_is_the_last_great_lakes_hole": {
+      "elapsed": 1.8763903750077588,
+      "rss_bytes": 1442906112
+    },
+    "diff::harness::tests::run84_says_great_lakes_6994_belongs_to_the_second_squad": {
+      "elapsed": 0.20753337499627378,
+      "rss_bytes": 202588160
+    },
+    "diff::harness::tests::run85_s_window_is_the_east_indies_word_frame": {
+      "elapsed": 1.2052601670002332,
+      "rss_bytes": 484098048
+    },
+    "diff::harness::tests::run86_s_window_is_the_transport_ride": {
+      "elapsed": 2.83179370801372,
+      "rss_bytes": 1095073792
+    },
+    "diff::harness::tests::run88_s_window_is_east_indies_word_frame": {
+      "elapsed": 2.211269292005454,
+      "rss_bytes": 868859904
+    },
+    "diff::harness::tests::run90_s_window_is_east_indies_shuffle": {
+      "elapsed": 1.3654925410082797,
+      "rss_bytes": 531054592
+    },
+    "diff::harness::tests::run94_s_window_clocks_are_the_original_s": {
+      "elapsed": 2.2268036659952486,
+      "rss_bytes": 1697071104
+    },
+    "diff::harness::tests::run96_s_word_frame_is_widened_whole": {
+      "elapsed": 2.5496679169882555,
+      "rss_bytes": 404471808
+    },
+    "diff::harness::tests::run97_s_build_queues_are_the_original_s": {
+      "elapsed": 3.69308725000883,
+      "rss_bytes": 1464123392
+    },
+    "diff::harness::tests::run97_s_window_clocks_are_the_original_s": {
+      "elapsed": 3.174678708004649,
+      "rss_bytes": 1195196416
+    },
+    "diff::harness::tests::run97_s_window_orders_are_the_original_s": {
+      "elapsed": 3.6742649170046207,
+      "rss_bytes": 1466859520
+    },
+    "diff::harness::tests::run98_s_window_clocks_are_the_original_s": {
+      "elapsed": 2.3567795420094626,
+      "rss_bytes": 1366196224
+    },
+    "diff::harness::tests::run99_s_word_frame_is_widened_whole": {
+      "elapsed": 7.773824250005418,
+      "rss_bytes": 389234688
+    },
+    "diff::harness::tests::the_original_s_own_run_is_still_matched_frame_for_frame": {
+      "elapsed": 2.3267147919978015,
+      "rss_bytes": 1585840128
+    },
+    "diff::lakota_pair::lakota_pair_first_parting": {
+      "elapsed": 2.1809350830008043,
+      "rss_bytes": 747536384
+    },
+    "diff::lakota_pair::run848_s_word_frame_is_widened_whole": {
+      "elapsed": 1.140095915994607,
+      "rss_bytes": 892059648
+    },
+    "diff::lakota_pair::run849_s_word_frame_is_widened_whole": {
+      "elapsed": 1.2844478339975467,
+      "rss_bytes": 893059072
+    },
+    "diff::lakota_pair::run853_s_word_frame_is_widened_whole": {
+      "elapsed": 1.6557444170030067,
+      "rss_bytes": 896466944
+    },
+    "diff::lakota_pair::run855_s_word_frame_is_widened_whole": {
+      "elapsed": 2.14873070800968,
+      "rss_bytes": 928612352
+    },
+    "diff::lakota_pair::run861_s_word_frame_is_widened_whole": {
+      "elapsed": 2.411584250003216,
+      "rss_bytes": 916471808
+    },
+    "diff::lakota_pair::run866_s_word_frame_is_widened_whole": {
+      "elapsed": 2.509256916004233,
+      "rss_bytes": 919404544
+    },
+    "diff::lakota_pair::run867_s_word_frame_is_widened_whole": {
+      "elapsed": 2.6887404580047587,
+      "rss_bytes": 923910144
+    },
+    "diff::leader::tests::run107_s_window_is_the_leader_record_at_the_word": {
+      "elapsed": 1.7322593330027303,
+      "rss_bytes": 565673984
+    },
+    "diff::leader::tests::run111_s_block_9381_list_is_make_me_s_from_four_offers": {
+      "elapsed": 0.030777583990129642,
+      "rss_bytes": 63537152
+    },
+    "diff::leader::tests::run111_s_universities_hold_the_scholars_this_crate_counts": {
+      "elapsed": 1.7536663750070147,
+      "rss_bytes": 595673088
+    },
+    "diff::leader::tests::run111_s_window_is_the_make_list_at_the_purchase": {
+      "elapsed": 1.7142691250046482,
+      "rss_bytes": 573259776
+    },
+    "diff::leader::tests::run114_s_offers_are_the_original_s_own": {
+      "elapsed": 1.6505165420094272,
+      "rss_bytes": 598294528
+    },
+    "diff::leader::tests::run115_s_window_is_the_met_bit_s_own_frame": {
+      "elapsed": 1.9841022079926915,
+      "rss_bytes": 826490880
+    },
+    "diff::leader::tests::run117_s_window_is_the_leader_record_across_two_rotations": {
+      "elapsed": 2.359881166004925,
+      "rss_bytes": 704020480
+    },
+    "diff::leader::tests::run19_s_window_is_the_leader_record_at_the_scholar": {
+      "elapsed": 1.6330908340023598,
+      "rss_bytes": 582877184
+    },
+    "diff::leader::tests::run84_s_window_is_the_original_s_whole_leader_record": {
+      "elapsed": 1.7850595000054454,
+      "rss_bytes": 733331456
+    },
+    "diff::leader::tests::run91_s_window_is_the_leader_s_ledger_at_the_word": {
+      "elapsed": 1.8400359580118675,
+      "rss_bytes": 754991104
+    },
+    "diff::leader::tests::the_merchant_slots_are_the_original_s_own": {
+      "elapsed": 6.230444875007379,
+      "rss_bytes": 587153408
+    },
+    "diff::mongol_pair::mongol_pair_first_parting": {
+      "elapsed": 2.138831125004799,
+      "rss_bytes": 550092800
+    },
+    "diff::mongol_pair::run775_mongol_pair_closing_state": {
+      "elapsed": 2.052241415993194,
+      "rss_bytes": 547405824
+    },
+    "diff::mongol_pair::run776_s_word_frame_is_widened_whole": {
+      "elapsed": 0.7157776660023956,
+      "rss_bytes": 669548544
+    },
+    "diff::mongol_pair::run779_s_word_frame_is_widened_whole": {
+      "elapsed": 1.0965670830046292,
+      "rss_bytes": 666763264
+    },
+    "diff::mongol_pair::run780_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3892072500020731,
+      "rss_bytes": 676462592
+    },
+    "diff::mongol_pair::run788_s_word_frame_is_widened_whole": {
+      "elapsed": 1.6318764580064453,
+      "rss_bytes": 678903808
+    },
+    "diff::mongol_pair::run799_s_word_frame_is_widened_whole": {
+      "elapsed": 1.790810541002429,
+      "rss_bytes": 688095232
+    },
+    "diff::mongol_pair::run809_s_word_frame_is_widened_whole": {
+      "elapsed": 2.0315686669928255,
+      "rss_bytes": 681852928
+    },
+    "diff::mongol_pair::run820_s_word_frame_is_widened_whole": {
+      "elapsed": 2.255834916999447,
+      "rss_bytes": 683573248
+    },
+    "diff::mongol_pair::run838_s_word_frame_is_widened_whole": {
+      "elapsed": 2.444506999992882,
+      "rss_bytes": 697139200
+    },
+    "diff::mongol_pair::run844_s_closing_frame_is_widened_whole": {
+      "elapsed": 2.2815494170063175,
+      "rss_bytes": 701120512
+    },
+    "diff::oracle::codec::tests::whole_record_roundtrip_and_invalid_inputs": {
+      "elapsed": 0.00472141700447537,
+      "rss_bytes": 3768320
+    },
+    "diff::oracle::entry_rejects_corruption_staleness_and_wrong_frame_identity": {
+      "elapsed": 0.004823916999157518,
+      "rss_bytes": 3522560
+    },
+    "diff::oracle::store_preserves_duplicate_frames_source_versions_and_existing_entries": {
+      "elapsed": 0.022956834000069648,
+      "rss_bytes": 9371648
+    },
+    "diff::order::tests::a_blocked_animal_drops_its_walk_where_it_stands": {
+      "elapsed": 2.4247569169965573,
+      "rss_bytes": 2134392832
+    },
+    "diff::order::tests::a_path_stack_s_rows_are_compared_whole": {
+      "elapsed": 3.8209577499947045,
+      "rss_bytes": 1602699264
+    },
+    "diff::order::tests::an_animal_more_than_0x180_from_its_order_hurries_by_three_halves": {
+      "elapsed": 2.4333896659954917,
+      "rss_bytes": 2127904768
+    },
+    "diff::order::tests::each_field_of_an_order_is_reported_on_its_own": {
+      "elapsed": 0.27314929199928883,
+      "rss_bytes": 54919168
+    },
+    "diff::order::tests::run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot": {
+      "elapsed": 0.7864612080011284,
+      "rss_bytes": 436600832
+    },
+    "diff::order::tests::run20_s_world_chain_sits_on_the_move_orders_own_offset": {
+      "elapsed": 0.7921511250024196,
+      "rss_bytes": 435814400
+    },
+    "diff::order::tests::run39_s_woodcutters_reroll_on_the_chop_branch_not_the_arrival_s": {
+      "elapsed": 2.559464874997502,
+      "rss_bytes": 1671692288
+    },
+    "diff::order::tests::the_path_stack_is_compared_bottom_first": {
+      "elapsed": 0.27585904201259837,
+      "rss_bytes": 55508992
+    },
+    "diff::order::tests::the_recorded_order_stream_drives_the_units_it_names": {
+      "elapsed": 2.1159447920072125,
+      "rss_bytes": 761692160
+    },
+    "diff::order::tests::two_order_lists_that_agree_are_walked_front_first_and_report_nothing": {
+      "elapsed": 0.27512945799389854,
+      "rss_bytes": 54542336
+    },
+    "diff::report::closing_fields_tests::a_closing_state_with_a_building_row_parted_names_it": {
+      "elapsed": 0.004407499989611097,
+      "rss_bytes": 3407872
+    },
+    "diff::sahara_coverage::run676_sahara_coverage_closing_state": {
+      "elapsed": 1.9154804999998305,
+      "rss_bytes": 628817920
+    },
+    "diff::sahara_coverage::run677_s_word_frame_is_widened_whole": {
+      "elapsed": 0.8982279159972677,
+      "rss_bytes": 699219968
+    },
+    "diff::sahara_coverage::run680_s_word_frame_is_widened_whole": {
+      "elapsed": 0.9379425830120454,
+      "rss_bytes": 698400768
+    },
+    "diff::sahara_coverage::run681_s_word_frame_is_widened_whole": {
+      "elapsed": 1.0321658330067294,
+      "rss_bytes": 703528960
+    },
+    "diff::sahara_coverage::run683_s_road_searches_hold_node_for_node": {
+      "elapsed": 1.1041414999926928,
+      "rss_bytes": 840286208
+    },
+    "diff::sahara_coverage::run683_s_word_frame_is_widened_whole": {
+      "elapsed": 1.1772055000037653,
+      "rss_bytes": 715948032
+    },
+    "diff::sahara_coverage::run702_s_word_frame_is_widened_whole": {
+      "elapsed": 1.2477567080059089,
+      "rss_bytes": 712540160
+    },
+    "diff::sahara_coverage::run718_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3308285419916501,
+      "rss_bytes": 714932224
+    },
+    "diff::sahara_coverage::run766_s_word_frame_is_widened_whole": {
+      "elapsed": 1.4887097909959266,
+      "rss_bytes": 712704000
+    },
+    "diff::sahara_coverage::run767_s_word_frame_is_widened_whole": {
+      "elapsed": 1.6301654580020113,
+      "rss_bytes": 716734464
+    },
+    "diff::sahara_coverage::run790_s_word_frame_is_widened_whole": {
+      "elapsed": 2.2125704580103047,
+      "rss_bytes": 742113280
+    },
+    "diff::sahara_coverage::run817_s_word_frame_is_widened_whole": {
+      "elapsed": 2.2060040829965146,
+      "rss_bytes": 730103808
+    },
+    "diff::sahara_coverage::sahara_coverage_captures_say_their_lobby": {
+      "elapsed": 0.26108670901157893,
+      "rss_bytes": 274743296
+    },
+    "diff::sahara_coverage::sahara_coverage_first_parting": {
+      "elapsed": 1.9147421660018153,
+      "rss_bytes": 598687744
+    },
+    "diff::sahara_coverage::sahara_coverage_is_no_other_lobby": {
+      "elapsed": 0.0044304999901214615,
+      "rss_bytes": 3244032
+    },
+    "diff::sahara_mongol::run831_sahara_mongol_closing_state": {
+      "elapsed": 1.1873980829986976,
+      "rss_bytes": 566460416
+    },
+    "diff::sahara_mongol::run834_s_word_frame_is_widened_whole": {
+      "elapsed": 1.5769466659985483,
+      "rss_bytes": 558825472
+    },
+    "diff::sahara_mongol::sahara_mongol_captures_say_their_lobby": {
+      "elapsed": 0.20342795900069177,
+      "rss_bytes": 269352960
+    },
+    "diff::sahara_mongol::sahara_mongol_first_parting": {
+      "elapsed": 1.2080111670074984,
+      "rss_bytes": 564379648
+    },
+    "diff::sahara_mongol::sahara_mongol_is_no_other_lobby": {
+      "elapsed": 0.004891916993074119,
+      "rss_bytes": 3244032
+    },
+    "diff::sahara_toughest::tests::run469_is_great_sahara_at_toughest_and_nothing_else_moved": {
+      "elapsed": 0.7777696669945726,
+      "rss_bytes": 796852224
+    },
+    "diff::sahara_toughest::tests::run469_s_score_holds": {
+      "elapsed": 1.2336086249997607,
+      "rss_bytes": 495157248
+    },
+    "diff::sahara_toughest::tests::run469_s_trace_holds_to_its_end": {
+      "elapsed": 1.000448332997621,
+      "rss_bytes": 625360896
+    },
+    "diff::sahara_toughest::tests::run470_great_sahara_at_toughest_closing_state": {
+      "elapsed": 1.5969778339931509,
+      "rss_bytes": 372523008
+    },
+    "diff::sahara_toughest::tests::run470_is_great_sahara_at_toughest_and_its_word_holds": {
+      "elapsed": 1.649828959009028,
+      "rss_bytes": 367869952
+    },
+    "diff::sahara_toughest::tests::run471_s_word_frame_is_widened_whole": {
+      "elapsed": 0.8773853750026319,
+      "rss_bytes": 370606080
+    },
+    "diff::sahara_toughest::tests::run476_s_word_frame_is_widened_whole": {
+      "elapsed": 0.8999947500124108,
+      "rss_bytes": 365051904
+    },
+    "diff::sahara_toughest::tests::run482_s_goods_are_widened_whole": {
+      "elapsed": 2.5338957499916432,
+      "rss_bytes": 367001600
+    },
+    "diff::sahara_toughest::tests::run483_s_road_searches_hold_node_for_node_to_7070": {
+      "elapsed": 2.35288066699286,
+      "rss_bytes": 440860672
+    },
+    "diff::sahara_toughest::tests::run483_s_word_frame_is_widened_whole": {
+      "elapsed": 0.9812031670007855,
+      "rss_bytes": 368508928
+    },
+    "diff::sahara_toughest::tests::run488_s_word_frame_is_widened_whole": {
+      "elapsed": 1.0659292499913136,
+      "rss_bytes": 372080640
+    },
+    "diff::sahara_toughest::tests::run491_s_word_frame_is_widened_whole": {
+      "elapsed": 1.061927792005008,
+      "rss_bytes": 371703808
+    },
+    "diff::sahara_toughest::tests::run495_s_goods_are_widened_whole": {
+      "elapsed": 1.0475136250024661,
+      "rss_bytes": 367853568
+    },
+    "diff::sahara_toughest::tests::run500_s_word_frame_is_widened_whole": {
+      "elapsed": 1.139685832997202,
+      "rss_bytes": 382255104
+    },
+    "diff::sahara_toughest::tests::run511_s_word_frame_is_widened_whole": {
+      "elapsed": 1.1806835409952328,
+      "rss_bytes": 375603200
+    },
+    "diff::sahara_toughest::tests::run517_s_gap_is_widened_whole": {
+      "elapsed": 1.2049112910026452,
+      "rss_bytes": 375537664
+    },
+    "diff::sahara_toughest::tests::run529_s_word_frame_is_widened_whole": {
+      "elapsed": 1.2162910000042757,
+      "rss_bytes": 375046144
+    },
+    "diff::sahara_toughest::tests::run547_s_word_frame_is_widened_whole": {
+      "elapsed": 1.2563253340049414,
+      "rss_bytes": 383893504
+    },
+    "diff::sahara_toughest::tests::run562_s_word_frame_is_widened_whole": {
+      "elapsed": 1.349388500006171,
+      "rss_bytes": 385794048
+    },
+    "diff::sahara_toughest::tests::run571_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3698749169998337,
+      "rss_bytes": 376946688
+    },
+    "diff::sahara_toughest::tests::run574_s_word_frame_is_widened_whole": {
+      "elapsed": 1.426048916997388,
+      "rss_bytes": 390135808
+    },
+    "diff::sahara_toughest::tests::run584_s_word_frame_is_widened_whole": {
+      "elapsed": 1.5130530830065254,
+      "rss_bytes": 379895808
+    },
+    "diff::sahara_toughest::tests::run640_s_word_frame_is_widened_whole": {
+      "elapsed": 1.214499292007531,
+      "rss_bytes": 380108800
+    },
+    "diff::sahara_toughest::tests::run653_s_word_frame_is_widened_whole": {
+      "elapsed": 1.4206266249966575,
+      "rss_bytes": 397393920
+    },
+    "diff::sahara_toughest::tests::run659_s_word_frame_is_widened_whole": {
+      "elapsed": 1.4207851249957457,
+      "rss_bytes": 379224064
+    },
+    "diff::sahara_toughest::tests::run663_s_word_frame_is_widened_whole": {
+      "elapsed": 1.5490266249980778,
+      "rss_bytes": 378814464
+    },
+    "diff::sahara_toughest::tests::run664_s_word_frame_is_widened_whole": {
+      "elapsed": 1.5704898749972926,
+      "rss_bytes": 394510336
+    },
+    "diff::sahara_toughest::tests::run666_s_decoy_rounds_strike_nothing": {
+      "elapsed": 0.22224133400595747,
+      "rss_bytes": 183369728
+    },
+    "diff::sahara_toughest::tests::run668_s_word_frame_is_widened_whole": {
+      "elapsed": 1.9417689590045484,
+      "rss_bytes": 382533632
+    },
+    "diff::second::tests::run346_is_east_indies_at_toughest_and_its_word_holds": {
+      "elapsed": 3.0488714579987573,
+      "rss_bytes": 431570944
+    },
+    "diff::second::tests::run347_is_great_lakes_at_toughest_and_its_word_holds": {
+      "elapsed": 1.8170352080051089,
+      "rss_bytes": 1404223488
+    },
+    "diff::second::tests::run349_s_word_frame_is_widened_whole": {
+      "elapsed": 2.4365931670035934,
+      "rss_bytes": 399540224
+    },
+    "diff::second::tests::run350_s_word_frame_is_widened_whole": {
+      "elapsed": 1.511058750009397,
+      "rss_bytes": 591691776
+    },
+    "diff::second::tests::run352_s_word_frame_is_widened_whole": {
+      "elapsed": 2.6263860000035493,
+      "rss_bytes": 400506880
+    },
+    "diff::second::tests::run355_s_word_frame_is_widened_whole": {
+      "elapsed": 1.6716572500008624,
+      "rss_bytes": 584187904
+    },
+    "diff::second::tests::run356_s_word_frame_is_widened_whole": {
+      "elapsed": 1.7201397080061724,
+      "rss_bytes": 573571072
+    },
+    "diff::second::tests::run357_s_word_frame_is_widened_whole": {
+      "elapsed": 3.0683949159865733,
+      "rss_bytes": 406044672
+    },
+    "diff::second::tests::run373_s_word_frame_is_widened_whole": {
+      "elapsed": 1.720461749995593,
+      "rss_bytes": 606502912
+    },
+    "diff::second::tests::run396_s_word_frame_is_widened_whole": {
+      "elapsed": 1.728304958989611,
+      "rss_bytes": 594362368
+    },
+    "diff::second::tests::run403_s_word_frame_is_widened_whole": {
+      "elapsed": 1.5509731249912875,
+      "rss_bytes": 596312064
+    },
+    "diff::second::tests::run413_s_and_run415_s_fog_grids_are_ours": {
+      "elapsed": 3.061063374989317,
+      "rss_bytes": 428867584
+    },
+    "diff::second::tests::run414_s_word_frame_is_widened_whole": {
+      "elapsed": 3.14620033299434,
+      "rss_bytes": 408911872
+    },
+    "diff::second::tests::run419_s_word_frame_is_widened_whole": {
+      "elapsed": 3.1872241250093793,
+      "rss_bytes": 407044096
+    },
+    "diff::second::tests::run420_s_word_frame_is_widened_whole": {
+      "elapsed": 3.238418916997034,
+      "rss_bytes": 414040064
+    },
+    "diff::second::tests::run421_s_gap_is_walked_whole": {
+      "elapsed": 1.3377926249959273,
+      "rss_bytes": 411320320
+    },
+    "diff::second::tests::run425_s_word_frame_is_widened_whole": {
+      "elapsed": 3.3847592919919407,
+      "rss_bytes": 416890880
+    },
+    "diff::second::tests::run439_s_word_frame_is_widened_whole": {
+      "elapsed": 3.605154292003135,
+      "rss_bytes": 411893760
+    },
+    "diff::second::tests::run445_s_word_frame_is_widened_whole": {
+      "elapsed": 3.7417761250108015,
+      "rss_bytes": 429539328
+    },
+    "diff::second::tests::run462_s_word_frame_is_widened_whole": {
+      "elapsed": 3.934418375007226,
+      "rss_bytes": 429244416
+    },
+    "diff::second::tests::run480_s_word_frame_is_widened_whole": {
+      "elapsed": 4.049913333001314,
+      "rss_bytes": 416071680
+    },
+    "diff::second::tests::run490_s_word_frame_is_widened_whole": {
+      "elapsed": 4.119884375002584,
+      "rss_bytes": 420233216
+    },
+    "diff::second::tests::run506_s_word_frame_is_widened_whole": {
+      "elapsed": 4.288840708002681,
+      "rss_bytes": 417480704
+    },
+    "diff::second::tests::run508_s_word_frame_is_widened_whole": {
+      "elapsed": 4.416356082991115,
+      "rss_bytes": 422739968
+    },
+    "diff::second::tests::run523_s_word_frame_is_widened_whole": {
+      "elapsed": 4.5938926249946235,
+      "rss_bytes": 428785664
+    },
+    "diff::second::tests::run535_s_word_frame_is_widened_whole": {
+      "elapsed": 4.648947459005285,
+      "rss_bytes": 431718400
+    },
+    "diff::second::tests::run544_s_word_frame_is_widened_whole": {
+      "elapsed": 5.397727124989615,
+      "rss_bytes": 428933120
+    },
+    "diff::second::tests::run572_s_word_frame_is_widened_whole": {
+      "elapsed": 5.548785542006954,
+      "rss_bytes": 436289536
+    },
+    "diff::second::tests::run579_s_word_frame_is_widened_whole": {
+      "elapsed": 5.806052625004668,
+      "rss_bytes": 427360256
+    },
+    "diff::second::tests::run583_s_word_frame_is_widened_whole": {
+      "elapsed": 5.941292791991145,
+      "rss_bytes": 427556864
+    },
+    "diff::second::tests::run585_s_word_frame_is_widened_whole": {
+      "elapsed": 6.059704625004088,
+      "rss_bytes": 447315968
+    },
+    "diff::second::tests::run587_s_projectiles_are_compared_whole": {
+      "elapsed": 3.1651831669878447,
+      "rss_bytes": 429604864
+    },
+    "diff::second::tests::run588_s_word_frame_is_widened_whole": {
+      "elapsed": 6.935664042001008,
+      "rss_bytes": 475578368
+    },
+    "diff::second::tests::run589_s_word_frame_is_widened_whole": {
+      "elapsed": 6.963721374995657,
+      "rss_bytes": 471728128
+    },
+    "diff::second::tests::run594_s_word_frame_is_widened_whole": {
+      "elapsed": 7.306964707997395,
+      "rss_bytes": 489635840
+    },
+    "diff::setup::tests::a_leader_s_opening_units_are_its_own_nation_s": {
+      "elapsed": 0.29812725000374485,
+      "rss_bytes": 78086144
+    },
+    "diff::setup::tests::a_sibling_s_frame_words_are_borrowed_only_from_the_same_lobby": {
+      "elapsed": 0.004628166992915794,
+      "rss_bytes": 3440640
+    },
+    "diff::setup::tests::init_stance_is_the_original_s_on_both_maps_first_blocks": {
+      "elapsed": 1.8569414590019733,
+      "rss_bytes": 1134379008
+    },
+    "diff::setup::tests::player_count_is_the_highest_player_slot_plus_one": {
+      "elapsed": 0.004498750000493601,
+      "rss_bytes": 3358720
+    },
+    "diff::setup::tests::run11_s_checksum_trace_pins_the_setup_stream": {
+      "elapsed": 0.3442505830025766,
+      "rss_bytes": 117850112
+    },
+    "diff::setup::tests::run18b_and_run19_s_make_list_windows_replay_slot_for_slot": {
+      "elapsed": 0.8327968329977011,
+      "rss_bytes": 686538752
+    },
+    "diff::setup::tests::run9_s_frame_1_leader_record_is_the_census_after_the_sweep": {
+      "elapsed": 1.6110490830033086,
+      "rss_bytes": 1449574400
+    },
+    "diff::setup::tests::the_install_s_gaia_lengths_match_the_dump_s": {
+      "elapsed": 0.5821237909985939,
+      "rss_bytes": 403341312
+    },
+    "diff::setup::tests::the_producers_are_not_reached_until_the_ai_script_ends": {
+      "elapsed": 0.23154045900446363,
+      "rss_bytes": 485588992
+    },
+    "diff::setup::tests::the_simulation_is_built_from_the_dump_and_idle_units_hold": {
+      "elapsed": 0.2823502079991158,
+      "rss_bytes": 55181312
+    },
+    "diff::shutdown::tests::a_closing_dump_and_its_own_block_are_one_state": {
+      "elapsed": 0.17611991599551402,
+      "rss_bytes": 170115072
+    },
+    "diff::shutdown::tests::east_indies_closing_dumps_are_the_original_s": {
+      "elapsed": 10.150527624995448,
+      "rss_bytes": 1048608768
+    },
+    "diff::shutdown::tests::great_lakes_closing_dumps_are_the_original_s": {
+      "elapsed": 5.39180229199701,
+      "rss_bytes": 1029996544
+    },
+    "diff::shutdown::tests::the_census_is_the_corpus": {
+      "elapsed": 1.6519794589985395,
+      "rss_bytes": 274563072
+    },
+    "diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit": {
+      "elapsed": 0.04715774999931455,
+      "rss_bytes": 72892416
+    },
+    "diff::slots::no_dumped_record_is_linked_by_its_number_alone": {
+      "elapsed": 0.011285374988801777,
+      "rss_bytes": 5685248
+    },
+    "diff::slots::the_scanner_knows_a_live_lookup_from_a_lookup_by_number": {
+      "elapsed": 0.004421625009854324,
+      "rss_bytes": 3375104
+    },
+    "diff::testkit::indexed_market_road_frame_preserves_world_fields_and_heights": {
+      "elapsed": 0.28447491700353567,
+      "rss_bytes": 614301696
+    },
+    "diff::testkit::indexed_road_setups_preserve_every_initial_field_except_audit_bodies": {
+      "elapsed": 4.612277833002736,
+      "rss_bytes": 2037284864
+    },
+    "diff::testkit::indexed_siblings_preserve_every_initial_field_except_audit_bodies": {
+      "elapsed": 2.421429249996436,
+      "rss_bytes": 1593851904
+    },
+    "diff::testkit::pins::a_test_that_holds_several_pins_reports_every_one_that_moved": {
+      "elapsed": 0.004583290996379219,
+      "rss_bytes": 3670016
+    },
+    "diff::third::tests::run382_s_desert_game_is_the_third_map_s_score": {
+      "elapsed": 1.5166082500072662,
+      "rss_bytes": 605765632
+    },
+    "diff::third::tests::run382_s_trace_says_where_the_third_map_s_word_parts": {
+      "elapsed": 0.9677961249981308,
+      "rss_bytes": 611827712
+    },
+    "diff::third::tests::run382_s_word_frame_is_widened_whole": {
+      "elapsed": 0.5412119999964489,
+      "rss_bytes": 348749824
+    },
+    "diff::third::tests::run383_s_long_trace_says_where_the_third_map_s_word_parts": {
+      "elapsed": 1.5831982090021484,
+      "rss_bytes": 370458624
+    },
+    "diff::third::tests::run416_s_word_frame_is_widened_whole": {
+      "elapsed": 1.1381235000008019,
+      "rss_bytes": 370163712
+    },
+    "diff::third::tests::run417_s_word_frame_is_widened_whole": {
+      "elapsed": 1.1664946250093635,
+      "rss_bytes": 379764736
+    },
+    "diff::third::tests::run418_s_word_frame_is_widened_whole": {
+      "elapsed": 1.290289041993674,
+      "rss_bytes": 376094720
+    },
+    "diff::third::tests::run426_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3419049590011127,
+      "rss_bytes": 376963072
+    },
+    "diff::third::tests::run428_s_word_frame_is_widened_whole": {
+      "elapsed": 1.396612583004753,
+      "rss_bytes": 372948992
+    },
+    "diff::third::tests::run442_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3829054590023588,
+      "rss_bytes": 373800960
+    },
+    "diff::third::tests::run449_s_word_frame_is_widened_whole": {
+      "elapsed": 1.462592665993725,
+      "rss_bytes": 379600896
+    },
+    "diff::third::tests::run457_s_gap_is_widened_whole": {
+      "elapsed": 1.6641202080063522,
+      "rss_bytes": 386727936
+    },
+    "diff::third::tests::run458_s_word_frame_is_widened_whole": {
+      "elapsed": 1.7911505840020254,
+      "rss_bytes": 385007616
+    },
+    "diff::third_pair::french_east_indies_buys_its_fifth_city_at_a_third_off": {
+      "elapsed": 1.5393578749935841,
+      "rss_bytes": 841924608
+    },
+    "diff::third_pair::french_east_indies_gulls_fly_where_the_original_s_do": {
+      "elapsed": 1.5867682919924846,
+      "rss_bytes": 878444544
+    },
+    "diff::third_pair::run596_is_refused_as_a_complete_pair_capture": {
+      "elapsed": 0.019505125004798174,
+      "rss_bytes": 36896768
+    },
+    "diff::third_pair::run598_french_great_lakes_closing_state": {
+      "elapsed": 0.780998374990304,
+      "rss_bytes": 388759552
+    },
+    "diff::third_pair::run598_french_great_lakes_word": {
+      "elapsed": 0.8279627500014612,
+      "rss_bytes": 389857280
+    },
+    "diff::third_pair::run600_french_east_indies_closing_state": {
+      "elapsed": 3.51867408399994,
+      "rss_bytes": 715046912
+    },
+    "diff::third_pair::run600_french_east_indies_word": {
+      "elapsed": 3.661360666999826,
+      "rss_bytes": 740147200
+    },
+    "diff::third_pair::run601_s_word_frame_is_widened_whole": {
+      "elapsed": 0.5835163750016363,
+      "rss_bytes": 367689728
+    },
+    "diff::third_pair::run602_s_word_frame_is_widened_whole": {
+      "elapsed": 0.8084210410015658,
+      "rss_bytes": 803569664
+    },
+    "diff::third_pair::run603_s_word_frame_is_widened_whole": {
+      "elapsed": 1.2488147499971092,
+      "rss_bytes": 820969472
+    },
+    "diff::third_pair::run609_s_closing_frame_is_widened_whole": {
+      "elapsed": 0.7376247500069439,
+      "rss_bytes": 378634240
+    },
+    "diff::third_pair::run610_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3427536670060363,
+      "rss_bytes": 813563904
+    },
+    "diff::third_pair::run611_s_contact_window_is_widened_whole": {
+      "elapsed": 1.346400333000929,
+      "rss_bytes": 831045632
+    },
+    "diff::third_pair::run612_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3693720839946764,
+      "rss_bytes": 818937856
+    },
+    "diff::third_pair::run613_dates_first_contact_on_block_7946": {
+      "elapsed": 0.09458570800779853,
+      "rss_bytes": 17629184
+    },
+    "diff::third_pair::run613_s_contact_frame_is_widened_whole": {
+      "elapsed": 1.293796999991173,
+      "rss_bytes": 819445760
+    },
+    "diff::third_pair::run614_s_builder_window_is_widened_whole": {
+      "elapsed": 1.3467142919980688,
+      "rss_bytes": 834125824
+    },
+    "diff::third_pair::run615_s_birth_window_is_widened_whole": {
+      "elapsed": 1.3480052500090096,
+      "rss_bytes": 818413568
+    },
+    "diff::third_pair::run616_s_word_frame_is_widened_whole": {
+      "elapsed": 1.3962805420014774,
+      "rss_bytes": 825442304
+    },
+    "diff::third_pair::run617_s_word_frame_is_widened_whole": {
+      "elapsed": 1.4369472909893375,
+      "rss_bytes": 827015168
+    },
+    "diff::third_pair::run618_s_boarding_window_is_widened_whole": {
+      "elapsed": 1.399967208999442,
+      "rss_bytes": 816267264
+    },
+    "diff::third_pair::run620_s_ship_window_is_widened_whole": {
+      "elapsed": 1.1773481669952162,
+      "rss_bytes": 811630592
+    },
+    "diff::third_pair::run622_s_word_frame_is_widened_whole": {
+      "elapsed": 1.5138898750010412,
+      "rss_bytes": 819789824
+    },
+    "diff::third_pair::run623_s_word_frame_is_widened_whole": {
+      "elapsed": 1.5206829579983605,
+      "rss_bytes": 831242240
+    },
+    "diff::third_pair::run624_s_word_frame_is_widened_whole": {
+      "elapsed": 1.5636289999965811,
+      "rss_bytes": 820232192
+    },
+    "diff::third_pair::run625_s_hoplite_frame_is_widened_whole": {
+      "elapsed": 1.562507458991604,
+      "rss_bytes": 820772864
+    },
+    "diff::third_pair::run627_s_food_frame_is_widened_whole": {
+      "elapsed": 1.2773437080031727,
+      "rss_bytes": 813694976
+    },
+    "diff::third_pair::run629_s_word_frame_is_widened_whole": {
+      "elapsed": 1.6470297909982037,
+      "rss_bytes": 825065472
+    },
+    "diff::third_pair::run630_s_muster_window_is_widened_whole": {
+      "elapsed": 1.697948874993017,
+      "rss_bytes": 822788096
+    },
+    "diff::third_pair::run631_s_word_frame_is_widened_whole": {
+      "elapsed": 1.7973221659922274,
+      "rss_bytes": 847872000
+    },
+    "diff::third_pair::run634_s_word_frame_is_widened_whole": {
+      "elapsed": 2.0668461250024848,
+      "rss_bytes": 828686336
+    },
+    "diff::third_pair::run635_s_word_frame_is_widened_whole": {
+      "elapsed": 2.120863125004689,
+      "rss_bytes": 836173824
+    },
+    "diff::third_pair::run636_s_word_frame_is_widened_whole": {
+      "elapsed": 2.364078500002506,
+      "rss_bytes": 833437696
+    },
+    "diff::third_pair::run639_s_word_frame_is_widened_whole": {
+      "elapsed": 2.6201057089929236,
+      "rss_bytes": 850264064
+    },
+    "diff::third_pair::run642_s_word_frame_is_widened_whole": {
+      "elapsed": 2.6982995409925934,
+      "rss_bytes": 848723968
+    },
+    "diff::third_pair::run649_s_decision_frame_is_widened_whole": {
+      "elapsed": 2.652244958007941,
+      "rss_bytes": 842743808
+    },
+    "diff::third_pair::run655_s_word_frame_is_widened_whole": {
+      "elapsed": 3.420345834005275,
+      "rss_bytes": 851738624
+    },
+    "diff::third_pair::run657_s_word_frame_is_widened_whole": {
+      "elapsed": 3.4771540419897065,
+      "rss_bytes": 841728000
+    },
+    "diff::third_pair::run658_dates_the_gap_before_17171": {
+      "elapsed": 3.683207374997437,
+      "rss_bytes": 843169792
+    },
+    "diff::third_pair::run661_s_word_frame_is_widened_whole": {
+      "elapsed": 3.4824555840023095,
+      "rss_bytes": 842399744
+    },
+    "diff::third_pair::run662_s_word_frame_is_widened_whole": {
+      "elapsed": 3.5949268330004998,
+      "rss_bytes": 841678848
+    },
+    "diff::third_pair::run667_s_closing_frame_is_widened_whole": {
+      "elapsed": 3.5041391670092707,
+      "rss_bytes": 841646080
+    },
+    "diff::third_pair::third_pair_openings_have_the_original_figures_and_personality": {
+      "elapsed": 1.240482332999818,
+      "rss_bytes": 894926848
+    },
+    "diff::third_pair::third_pair_starts_change_the_ai_nation_in_the_same_lobby": {
+      "elapsed": 0.3573529590066755,
+      "rss_bytes": 291143680
+    },
+    "diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides": {
+      "elapsed": 39.57820529201126,
+      "rss_bytes": 4159799296
+    },
+    "diff::unit::tests::every_dumped_unit_has_crew_size_plus_one_figures": {
+      "elapsed": 1.0134550420043524,
+      "rss_bytes": 335314944
+    },
+    "diff::unit::tests::run56_s_collision_block_agrees_past_the_scored_length": {
+      "elapsed": 3.858266791998176,
+      "rss_bytes": 1119617024
+    },
+    "diff::unit::tests::run56_s_figures_stand_where_the_original_s_do": {
+      "elapsed": 2.941515583996079,
+      "rss_bytes": 2150088704
+    },
+    "diff::unit::tests::run65_s_window_is_the_original_s_unit_for_unit": {
+      "elapsed": 2.214969166991068,
+      "rss_bytes": 1614462976
+    },
+    "diff::unit::tests::run66_s_window_is_the_original_s_unit_for_unit": {
+      "elapsed": 1.1203737089963397,
+      "rss_bytes": 609665024
+    },
+    "diff::unit::tests::run67_s_window_is_every_figure_s_whole_record": {
+      "elapsed": 0.9505448330019135,
+      "rss_bytes": 456294400
+    },
+    "diff::unit::tests::run68_s_window_is_every_unit_s_whole_record_to_the_word": {
+      "elapsed": 1.068066749998252,
+      "rss_bytes": 533004288
+    },
+    "diff::unit::tests::run79_s_window_is_every_unit_s_whole_record": {
+      "elapsed": 2.1702357079921057,
+      "rss_bytes": 1495547904
+    },
+    "diff::unit::tests::run87_s_window_is_great_lakes_word_frame": {
+      "elapsed": 2.6670084170036716,
+      "rss_bytes": 1726332928
+    },
+    "diff::unit::tests::run89_s_window_is_great_lakes_word_frame": {
+      "elapsed": 3.3886948750005104,
+      "rss_bytes": 1824571392
+    },
+    "diff::unit::tests::run89_says_great_lakes_7675_is_the_word_s_own_block": {
+      "elapsed": 0.3142906249995576,
+      "rss_bytes": 237584384
+    },
+    "diff::unit::tests::run92_says_great_lakes_7674_takes_get_loc_s_second_arm": {
+      "elapsed": 0.04429925000295043,
+      "rss_bytes": 53149696
+    },
+    "diff::unit::tests::run94_s_window_is_great_lakes_scout_repath": {
+      "elapsed": 2.7989571670041187,
+      "rss_bytes": 1649180672
+    },
+    "diff::unit::tests::the_frozen_frame_s_figures_do_not_step_their_clocks": {
+      "elapsed": 1.3889490000001388,
+      "rss_bytes": 104972288
+    },
+    "diff::unit::tests::the_install_s_crew_tracks_are_the_scout_dog_s": {
+      "elapsed": 0.2519437089940766,
+      "rss_bytes": 49692672
+    },
+    "diff::unit::tests::the_install_s_piece_lengths_match_the_dumps": {
+      "elapsed": 3.877551040990511,
+      "rss_bytes": 1741111296
+    },
+    "diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture": {
+      "elapsed": 10.539250417001313,
+      "rss_bytes": 138264576
+    },
+    "diff::unit::tests::the_walk_gives_every_dumped_guy_its_own_piece": {
+      "elapsed": 1.0453552499966463,
+      "rss_bytes": 322125824
+    },
+    "diff::world::tests::a_bird_s_landing_frames_are_the_trace_s_own": {
+      "elapsed": 1.3100208749965532,
+      "rss_bytes": 805715968
+    },
+    "diff::world::tests::a_far_wander_sweeps_from_the_literal_bearing": {
+      "elapsed": 2.549401416006731,
+      "rss_bytes": 1669267456
+    },
+    "diff::world::tests::a_goody_box_draws_once_for_each_good_its_finder_can_gather": {
+      "elapsed": 1.2612722919875523,
+      "rss_bytes": 804241408
+    },
+    "diff::world::tests::a_pasture_herder_walks_only_on_its_own_256_frame_phase": {
+      "elapsed": 2.496691791995545,
+      "rss_bytes": 1670135808
+    },
+    "diff::world::tests::a_scout_re_aims_its_walk_at_a_goody_box_it_has_seen": {
+      "elapsed": 1.2718321669963188,
+      "rss_bytes": 807682048
+    },
+    "diff::world::tests::a_scout_with_no_city_near_scans_its_whole_region": {
+      "elapsed": 2.487059084000066,
+      "rss_bytes": 1669840896
+    },
+    "diff::world::tests::every_footprint_takes_the_blocked_bits_the_original_s_map_shows": {
+      "elapsed": 1.1777547499950742,
+      "rss_bytes": 757612544
+    },
+    "diff::world::tests::run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell": {
+      "elapsed": 2.55273195799964,
+      "rss_bytes": 2019606528
+    },
+    "diff::world::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames": {
+      "elapsed": 2.392070583999157,
+      "rss_bytes": 1924743168
+    },
+    "diff::world::tests::run13_s_world_at_frame_95_is_the_original_s_cell_for_cell": {
+      "elapsed": 2.176247124996735,
+      "rss_bytes": 1668546560
+    },
+    "diff::world::tests::run14_s_road_rings_change_no_tile_the_original_does_not": {
+      "elapsed": 1.6843538329994772,
+      "rss_bytes": 592527360
+    },
+    "diff::world::tests::run189_s_world_has_the_original_s_roads_at_14529": {
+      "elapsed": 2.2278461670066463,
+      "rss_bytes": 1436450816
+    },
+    "diff::world::tests::run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings": {
+      "elapsed": 0.6121253750025062,
+      "rss_bytes": 429850624
+    },
+    "diff::world::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair": {
+      "elapsed": 0.7994550420116866,
+      "rss_bytes": 440877056
+    },
+    "diff::world::tests::run20_s_pasture_grows_nothing_and_its_five_animals_draw_six": {
+      "elapsed": 0.9928389589913422,
+      "rss_bytes": 458194944
+    },
+    "diff::world::tests::run240_s_every_priced_step_is_the_original_s": {
+      "elapsed": 2.4551891249866458,
+      "rss_bytes": 1585872896
+    },
+    "diff::world::tests::run240_s_tick_8186_prices_the_walk_home_as_a_citizen_s": {
+      "elapsed": 1.9386029999877792,
+      "rss_bytes": 1558708224
+    },
+    "diff::world::tests::run240_s_world_at_17087_is_the_original_s": {
+      "elapsed": 2.5383201250078855,
+      "rss_bytes": 1631666176
+    },
+    "diff::world::tests::run248_s_world_at_17146_is_the_original_s": {
+      "elapsed": 1.6591384169878438,
+      "rss_bytes": 583335936
+    },
+    "diff::world::tests::run32_s_scheduled_replans_cost_the_original_s_nodes": {
+      "elapsed": 0.7170546669949545,
+      "rss_bytes": 584368128
+    },
+    "diff::world::tests::run32_s_two_fresh_roads_are_the_original_s_tile_for_tile": {
+      "elapsed": 1.1055146669968963,
+      "rss_bytes": 1517846528
+    },
+    "diff::world::tests::run33_s_herd_centre_jitters_about_its_home_cell": {
+      "elapsed": 2.571110167002189,
+      "rss_bytes": 583106560
+    },
+    "diff::world::tests::run33_s_scout_re_targets_at_361_on_the_original_s_cell": {
+      "elapsed": 1.7347430420049932,
+      "rss_bytes": 595689472
+    },
+    "diff::world::tests::run33_s_scout_re_targets_at_482_on_the_original_s_ring": {
+      "elapsed": 1.7391082079993794,
+      "rss_bytes": 611352576
+    },
+    "diff::world::tests::run39_s_bird_lands_on_576_and_spends_the_search_s_sixty": {
+      "elapsed": 1.2272683749906719,
+      "rss_bytes": 808288256
+    },
+    "diff::world::tests::run39_s_sixth_farm_lights_the_cells_its_scout_then_paths_around": {
+      "elapsed": 2.4589604590000818,
+      "rss_bytes": 1669169152
+    },
+    "diff::world::tests::run61_s_birds_fly_where_the_original_s_do": {
+      "elapsed": 0.05153154200525023,
+      "rss_bytes": 62259200
+    },
+    "diff::world::tests::run64_s_caravan_road_is_the_original_s_node_for_node": {
+      "elapsed": 1.1017213330051163,
+      "rss_bytes": 1021018112
+    },
+    "diff::world::tests::run64_s_danger_map_is_the_original_s": {
+      "elapsed": 1.239812208004878,
+      "rss_bytes": 1156988928
+    },
+    "diff::world::tests::run72_s_road_nodes_are_where_great_lakes_word_parts": {
+      "elapsed": 2.7433377920096973,
+      "rss_bytes": 621264896
+    },
+    "diff::world::tests::run72_s_world_after_the_market_s_road_is_the_original_s": {
+      "elapsed": 2.6638828330032993,
+      "rss_bytes": 604946432
+    },
+    "diff::world::tests::run73_s_caravan_road_is_the_original_s_node_for_node": {
+      "elapsed": 1.5710798329964746,
+      "rss_bytes": 631242752
+    },
+    "diff::world::tests::run93_s_block_7932_is_this_crate_s_world_cell_for_cell": {
+      "elapsed": 1.8825640420109266,
+      "rss_bytes": 1524285440
+    },
+    "diff::world::tests::run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it": {
+      "elapsed": 1.899116041007801,
+      "rss_bytes": 1543127040
+    },
+    "diff::world::tests::run9_s_world_dump_puts_the_ai_s_farm_on_the_original_s_tile": {
+      "elapsed": 0.5376346670091152,
+      "rss_bytes": 129712128
+    },
+    "diff::world::tests::the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well": {
+      "elapsed": 0.5131225420045666,
+      "rss_bytes": 315834368
+    },
+    "dump::tests::dump_lookup_is_by_lowercased_tag": {
+      "elapsed": 0.004421541001647711,
+      "rss_bytes": 3325952
+    },
+    "dump::tests::rules_are_told_apart_where_the_numbers_allow": {
+      "elapsed": 0.004357041994808242,
+      "rss_bytes": 3440640
+    },
+    "dump::tests::tuning_drift_agrees_with_ron_on_a_consistent_dump": {
+      "elapsed": 0.004757916001835838,
+      "rss_bytes": 3817472
+    },
+    "gamelog::tests::a_group_move_order_carries_both_bases_and_names_its_leader": {
+      "elapsed": 0.004742249991977587,
+      "rss_bytes": 8323072
+    },
+    "gamelog::tests::a_key_is_found_by_its_bytes": {
+      "elapsed": 0.004604083995218389,
+      "rss_bytes": 6209536
+    },
+    "gamelog::tests::a_units_3_record_is_read_whole_orders_included": {
+      "elapsed": 0.004964834006386809,
+      "rss_bytes": 8355840
+    },
+    "gamelog::tests::an_attack_ground_order_is_read_whole": {
+      "elapsed": 0.00473487499402836,
+      "rss_bytes": 6438912
+    },
+    "gamelog::tests::an_empty_text_is_an_empty_log": {
+      "elapsed": 0.004695499999797903,
+      "rss_bytes": 3358720
+    },
+    "gamelog::tests::blocks_nest_by_indent_and_close_on_dedent": {
+      "elapsed": 0.0048245420039165765,
+      "rss_bytes": 6242304
+    },
+    "gamelog::tests::build_masks_is_the_wall_s_field": {
+      "elapsed": 0.004921583997202106,
+      "rss_bytes": 8257536
+    },
+    "gamelog::tests::checksum_records_are_read_from_the_preamble": {
+      "elapsed": 0.004724624988739379,
+      "rss_bytes": 6176768
+    },
+    "gamelog::tests::constants_group_array_entries_under_one_name": {
+      "elapsed": 0.005608999999822117,
+      "rss_bytes": 9814016
+    },
+    "gamelog::tests::fields_attach_to_the_innermost_open_block_whatever_their_indent": {
+      "elapsed": 0.005085584009066224,
+      "rss_bytes": 6225920
+    },
+    "gamelog::tests::frame_visitor_matches_direct_blocks_and_limits_by_record": {
+      "elapsed": 0.005433166996226646,
+      "rss_bytes": 11304960
+    },
+    "gamelog::tests::frames_are_typed_and_per_frame_guys_are_empty": {
+      "elapsed": 0.004899125007796101,
+      "rss_bytes": 9388032
+    },
+    "gamelog::tests::initial_dump_seed_fills_only_an_absent_preamble": {
+      "elapsed": 0.005444125010399148,
+      "rss_bytes": 14254080
+    },
+    "gamelog::tests::initial_state_is_typed": {
+      "elapsed": 0.00506383299943991,
+      "rss_bytes": 9601024
+    },
+    "gamelog::tests::labels_without_values_are_kept_as_empty_fields": {
+      "elapsed": 0.004455707996385172,
+      "rss_bytes": 6242304
+    },
+    "gamelog::tests::micro_reads_printed_floats_exactly": {
+      "elapsed": 0.004510707993176766,
+      "rss_bytes": 3375104
+    },
+    "gamelog::tests::preamble_and_roots": {
+      "elapsed": 0.004516957997111604,
+      "rss_bytes": 6209536
+    },
+    "gamelog::tests::replay_initial_preserves_every_correction_input": {
+      "elapsed": 1.2264317499939352,
+      "rss_bytes": 737837056
+    },
+    "gamelog::tests::selected_clock_rows_match_complete_records": {
+      "elapsed": 0.0049776250089053065,
+      "rss_bytes": 6914048
+    },
+    "gamelog::tests::terrain_heights_ride_on_the_unbuilt_forts_block": {
+      "elapsed": 0.004926916008116677,
+      "rss_bytes": 9306112
+    },
+    "gamelog::tests::the_arena_s_widths_are_what_item_235_bought": {
+      "elapsed": 0.0047076249902602285,
+      "rss_bytes": 3440640
+    },
+    "gamelog::tests::the_lazy_tree_is_the_eager_tree": {
+      "elapsed": 0.18530841699976008,
+      "rss_bytes": 181927936
+    },
+    "gamelog::tests::the_lines_are_cut_as_they_always_were": {
+      "elapsed": 0.23795591699308716,
+      "rss_bytes": 689078272
+    },
+    "gamelog::tests::the_shutdown_dump_is_a_frame_the_frame_walk_cannot_reach": {
+      "elapsed": 0.005360666997148655,
+      "rss_bytes": 12419072
+    },
+    "gamelog::tests::the_unit_s_hit_points_are_the_object_block_s": {
+      "elapsed": 0.0048165420012082905,
+      "rss_bytes": 8323072
+    },
+    "gamelog::tests::world_cells_split_the_flat_run_at_each_flags_line": {
+      "elapsed": 0.004674833005992696,
+      "rss_bytes": 6307840
+    },
+    "golden::tests::a_bare_coordinate_is_a_tile_centre": {
+      "elapsed": 0.004845999996177852,
+      "rss_bytes": 3375104
+    },
+    "golden::tests::a_build_line_is_the_dll_s_build": {
+      "elapsed": 0.004719124990515411,
+      "rss_bytes": 3506176
+    },
+    "golden::tests::a_buildmask_line_is_the_dll_s_repeat_button": {
+      "elapsed": 0.004481791009311564,
+      "rss_bytes": 3473408
+    },
+    "golden::tests::a_gatherpoint_line_is_the_dll_s_rally_point": {
+      "elapsed": 0.004515666994848289,
+      "rss_bytes": 3489792
+    },
+    "golden::tests::a_line_on_the_wrong_half_of_the_switch_is_refused": {
+      "elapsed": 0.005369749997043982,
+      "rss_bytes": 3358720
+    },
+    "golden::tests::a_queueup_line_is_the_dll_s_unit_button": {
+      "elapsed": 0.005717708001611754,
+      "rss_bytes": 3489792
+    },
+    "golden::tests::a_repair_line_is_the_dll_s_swarm": {
+      "elapsed": 0.004536624997854233,
+      "rss_bytes": 3506176
+    },
+    "golden::tests::a_resource_line_is_bucket_set": {
+      "elapsed": 0.004620666994014755,
+      "rss_bytes": 3457024
+    },
+    "golden::tests::a_set_transport_line_is_the_dll_s_toggle": {
+      "elapsed": 0.005317292001564056,
+      "rss_bytes": 3489792
+    },
+    "golden::tests::a_spell_line_is_the_dll_s_spell": {
+      "elapsed": 0.004645292006898671,
+      "rss_bytes": 3489792
+    },
+    "golden::tests::an_alarm_line_and_a_gather_line_are_the_dll_s": {
+      "elapsed": 0.005302249992382713,
+      "rss_bytes": 3489792
+    },
+    "golden::tests::an_issuer_line_is_the_dll_s_move": {
+      "elapsed": 0.004707291998784058,
+      "rss_bytes": 3538944
+    },
+    "golden::tests::an_issuer_line_naming_a_missing_object_is_refused_whole": {
+      "elapsed": 0.004504791999352165,
+      "rss_bytes": 4243456
+    },
+    "golden::tests::an_unqueue_line_is_the_dll_s_cancel": {
+      "elapsed": 0.0047843329957686365,
+      "rss_bytes": 3489792
+    },
+    "golden::tests::bird_is_the_chat_half_s_argumentless_spawn": {
+      "elapsed": 0.004759584000566974,
+      "rss_bytes": 3440640
+    },
+    "golden::tests::chapter_one_parses_into_the_cheat_set": {
+      "elapsed": 0.004492250009207055,
+      "rss_bytes": 3489792
+    },
+    "golden::tests::every_chapter_stages_what_it_says_it_stages": {
+      "elapsed": 0.0071092080033849925,
+      "rss_bytes": 4259840
+    },
+    "golden::tests::no_chapter_script_writes_a_frame_below_its_predecessor": {
+      "elapsed": 0.006417208991479129,
+      "rss_bytes": 3555328
+    },
+    "golden::tests::the_launch_lines_are_an_airbase_s_right_click": {
+      "elapsed": 0.0042070409981533885,
+      "rss_bytes": 3489792
+    },
+    "golden::tests::the_script_format_is_frame_then_line_with_clamped_frames": {
+      "elapsed": 0.0045405840064631775,
+      "rss_bytes": 3358720
+    },
+    "golden::tests::the_staging_reader_refuses_a_frame_below_its_predecessor": {
+      "elapsed": 0.00467187499452848,
+      "rss_bytes": 3440640
+    },
+    "ledger::tests::a_comparison_gated_on_both_sides_says_which_side_is_quiet": {
+      "elapsed": 0.0078101249964674935,
+      "rss_bytes": 8126464
+    },
+    "ledger::tests::every_differ_module_is_on_the_ledger": {
+      "elapsed": 0.005039499999838881,
+      "rss_bytes": 3604480
+    },
+    "ledger::tests::the_widening_ledger_counts_what_nothing_compares": {
+      "elapsed": 0.025713499999255873,
+      "rss_bytes": 20332544
+    },
+    "load::tests::a_french_player_is_handed_the_carpentry_line": {
+      "elapsed": 0.23614362500666175,
+      "rss_bytes": 49790976
+    },
+    "load::tests::a_hero_masked_wonder_is_nobody_s_to": {
+      "elapsed": 0.23997704101202544,
+      "rss_bytes": 50544640
+    },
+    "load::tests::a_name_group_takes_the_first_record_s_columns": {
+      "elapsed": 0.004492417006986216,
+      "rss_bytes": 3309568
+    },
+    "load::tests::a_sim_can_be_built_from_the_load": {
+      "elapsed": 0.26922250000643544,
+      "rss_bytes": 51085312
+    },
+    "load::tests::every_building_type_takes_its_graphic_s_blocking_template": {
+      "elapsed": 0.24313379199884366,
+      "rss_bytes": 49627136
+    },
+    "load::tests::every_nation_s_graft_table_is_run3_s": {
+      "elapsed": 0.2642715840047458,
+      "rss_bytes": 202129408
+    },
+    "load::tests::graphic_masks_are_keyed_by_the_graph": {
+      "elapsed": 0.0044847499957541,
+      "rss_bytes": 3391488
+    },
+    "load::tests::lineage_walks_from_and_graft": {
+      "elapsed": 0.00471000000834465,
+      "rss_bytes": 3260416
+    },
+    "load::tests::masks_txt_reads_the_first_grid_of_each_section": {
+      "elapsed": 0.005423583002993837,
+      "rss_bytes": 3440640
+    },
+    "load::tests::ranges_without_a_dash_are_min_equals_max": {
+      "elapsed": 0.004802166004083119,
+      "rss_bytes": 3309568
+    },
+    "load::tests::run17_s_hits_are_the_formula_s": {
+      "elapsed": 0.2408257499919273,
+      "rss_bytes": 49856512
+    },
+    "load::tests::tech_kinds_by_position": {
+      "elapsed": 0.004629249990102835,
+      "rss_bytes": 3260416
+    },
+    "load::tests::the_buildings_load_their_lineages_and_flags": {
+      "elapsed": 0.2411487500066869,
+      "rss_bytes": 49610752
+    },
+    "load::tests::the_citizen_loads_as_the_harness_transcribed_it": {
+      "elapsed": 0.24477545800618827,
+      "rss_bytes": 49725440
+    },
+    "load::tests::the_combat_table_is_not_uniform_and_a_known_pair_holds": {
+      "elapsed": 0.24160687500261702,
+      "rss_bytes": 49070080
+    },
+    "load::tests::the_kinds_carry_the_program_s_ages_and_lineages": {
+      "elapsed": 0.23891962500056252,
+      "rss_bytes": 50184192
+    },
+    "load::tests::the_nation_free_upgrade_blocks_name_the_units_they_hand_out": {
+      "elapsed": 0.24052004198892973,
+      "rss_bytes": 50135040
+    },
+    "load::tests::the_radar_air_defense_winds_up_on_its_unit_s_packet": {
+      "elapsed": 0.25125083299644757,
+      "rss_bytes": 50053120
+    },
+    "load::tests::the_shipped_tables_load_without_a_warning": {
+      "elapsed": 0.23872112498793285,
+      "rss_bytes": 50724864
+    },
+    "load::tests::the_tree_files_ages_epochs_and_governments": {
+      "elapsed": 0.240144290990429,
+      "rss_bytes": 50642944
+    },
+    "load::tests::tribe_mask_bits_are_lsb_first": {
+      "elapsed": 0.004669874993851408,
+      "rss_bytes": 3309568
+    },
+    "load::tests::type_index_round_trips_through_the_layout": {
+      "elapsed": 0.004438834002939984,
+      "rss_bytes": 3424256
+    },
+    "load::tests::unit_flags_fold_letters_and_digits": {
+      "elapsed": 0.004244208001182415,
+      "rss_bytes": 3293184
+    },
+    "mountains::tests::a_cell_is_solid_on_sixteen_of_its_twenty_five_samples": {
+      "elapsed": 0.005758333005360328,
+      "rss_bytes": 3309568
+    },
+    "mountains::tests::a_run_length_image_decodes_top_row_first": {
+      "elapsed": 0.0043384160089772195,
+      "rss_bytes": 3325952
+    },
+    "mountains::tests::a_short_or_foreign_image_is_refused": {
+      "elapsed": 0.004698459000792354,
+      "rss_bytes": 3293184
+    },
+    "mountains::tests::a_tile_needs_all_four_corners": {
+      "elapsed": 0.004842959009693004,
+      "rss_bytes": 3342336
+    },
+    "mountains::tests::a_top_left_raw_image_is_not_flipped": {
+      "elapsed": 0.004532292005023919,
+      "rss_bytes": 3293184
+    },
+    "pe::tests::the_move_table_is_the_executable_s_own": {
+      "elapsed": 0.013320166995981708,
+      "rss_bytes": 13352960
+    },
+    "recgame::tests::a_truncated_stream_is_refused": {
+      "elapsed": 0.004644792003091425,
+      "rss_bytes": 3424256
+    },
+    "recgame::tests::garbage_is_refused_with_an_offset": {
+      "elapsed": 0.004615584010025486,
+      "rss_bytes": 3457024
+    },
+    "recgame::tests::package_validation_requires_exact_eof": {
+      "elapsed": 0.004610499992850237,
+      "rss_bytes": 3276800
+    },
+    "recgame::tests::the_embedded_combat_table_is_the_composed_one": {
+      "elapsed": 0.24826029199175537,
+      "rss_bytes": 54378496
+    },
+    "recgame::tests::the_heavengames_sample_parses_end_to_end": {
+      "elapsed": 0.009228124996297993,
+      "rss_bytes": 10682368
+    },
+    "scalar::tests::a_bare_unit_word_means_no_upkeep": {
+      "elapsed": 0.00456008299079258,
+      "rss_bytes": 3309568
+    },
+    "scalar::tests::bad_resource_letter_is_an_error_not_a_zero": {
+      "elapsed": 0.004630208000889979,
+      "rss_bytes": 3342336
+    },
+    "scalar::tests::every_resource_letter_round_trips": {
+      "elapsed": 0.004847500007599592,
+      "rss_bytes": 3260416
+    },
+    "scalar::tests::free_and_absent_costs": {
+      "elapsed": 0.004546750002191402,
+      "rss_bytes": 3375104
+    },
+    "scalar::tests::negative_values_parse": {
+      "elapsed": 0.004541959002381191,
+      "rss_bytes": 3325952
+    },
+    "scalar::tests::non_numeric_is_rejected": {
+      "elapsed": 0.004831875005038455,
+      "rss_bytes": 3325952
+    },
+    "scalar::tests::percent_and_multiplier": {
+      "elapsed": 0.004121499994653277,
+      "rss_bytes": 3325952
+    },
+    "scalar::tests::percent_converts_to_its_face_value": {
+      "elapsed": 0.00425520799763035,
+      "rss_bytes": 3325952
+    },
+    "scalar::tests::plain_integer_with_commentary": {
+      "elapsed": 0.004508250000071712,
+      "rss_bytes": 3325952
+    },
+    "scalar::tests::ranges": {
+      "elapsed": 0.005533125004149042,
+      "rss_bytes": 3325952
+    },
+    "scalar::tests::rationals_keep_their_terms": {
+      "elapsed": 0.004366749999462627,
+      "rss_bytes": 3342336
+    },
+    "scalar::tests::rationals_reach_fx_without_a_float_existing": {
+      "elapsed": 0.004566000003251247,
+      "rss_bytes": 3342336
+    },
+    "scalar::tests::scaled_fx_agrees_with_to_fx_at_unit_count": {
+      "elapsed": 0.004473875000257976,
+      "rss_bytes": 3293184
+    },
+    "scalar::tests::scaling_a_truncated_unit_is_not_the_same_as_scaling_the_ratio": {
+      "elapsed": 0.00465016599628143,
+      "rss_bytes": 3325952
+    },
+    "scalar::tests::single_resource_cost": {
+      "elapsed": 0.0048102500004461035,
+      "rss_bytes": 3342336
+    },
+    "scalar::tests::slash_in_a_cost_means_and_not_divided_by": {
+      "elapsed": 0.004703459009760991,
+      "rss_bytes": 3358720
+    },
+    "scalar::tests::trailing_support_is_ignored": {
+      "elapsed": 0.004419208999024704,
+      "rss_bytes": 3358720
+    },
+    "table::tests::duplicate_record_tags_are_reported": {
+      "elapsed": 0.004288374999305233,
+      "rss_bytes": 3440640
+    },
+    "table::tests::entry_attributes_come_out_in_order": {
+      "elapsed": 0.005085582990432158,
+      "rss_bytes": 3473408
+    },
+    "table::tests::fixed_width_padding_is_stripped": {
+      "elapsed": 0.004585834001773037,
+      "rss_bytes": 3457024
+    },
+    "table::tests::order_is_preserved_and_is_the_identity": {
+      "elapsed": 0.004540916997939348,
+      "rss_bytes": 3440640
+    },
+    "table::tests::scalar_text_finds_the_payload_in_either_shape": {
+      "elapsed": 0.004886374998022802,
+      "rss_bytes": 3457024
+    },
+    "testenv::a_debug_run_that_reaches_a_kept_dump_refuses": {
+      "elapsed": 0.004337042002589442,
+      "rss_bytes": 3260416
+    },
+    "testenv::fixture_audit::audit_rows_escape_names_and_record_both_outcomes": {
+      "elapsed": 0.004628041002433747,
+      "rss_bytes": 3407872
+    },
+    "testenv::fixture_audit::audit_write_errors_are_not_successes": {
+      "elapsed": 0.004665208005462773,
+      "rss_bytes": 3407872
+    },
+    "tests::tribe_mask_handles_all_and_none": {
+      "elapsed": 0.004386000000522472,
+      "rss_bytes": 3309568
+    },
+    "tests::tribe_mask_is_msb_first": {
+      "elapsed": 0.004323416011175141,
+      "rss_bytes": 3325952
+    },
+    "trace::site_rows::every_site_label_the_simulation_marks_has_a_row": {
+      "elapsed": 0.03543837499455549,
+      "rss_bytes": 4521984
+    },
+    "trace::tests::a_relocated_run_normalises_to_the_export_s_addresses": {
+      "elapsed": 0.00451858299493324,
+      "rss_bytes": 3358720
+    },
+    "trace::tests::a_setup_draw_s_outcome_is_recovered_from_the_seed_it_carries": {
+      "elapsed": 0.004832207996514626,
+      "rss_bytes": 3440640
+    },
+    "trace::tests::a_trace_parses_and_keeps_only_the_sync_stream": {
+      "elapsed": 0.004250583006069064,
+      "rss_bytes": 3391488
+    },
+    "trace::tests::complete_trace_frame_lookup_matches_a_single_pass_partition": {
+      "elapsed": 0.49041199999919627,
+      "rss_bytes": 610844672
+    },
+    "trace::tests::every_site_s_address_is_the_function_its_label_names": {
+      "elapsed": 0.009878209006274119,
+      "rss_bytes": 17039360
+    },
+    "trace::tests::finalized_file_reader_propagates_validation_errors": {
+      "elapsed": 0.004810832993825898,
+      "rss_bytes": 3358720
+    },
+    "trace::tests::finalized_frames_require_a_consecutive_single_run": {
+      "elapsed": 0.0048357920022681355,
+      "rss_bytes": 3391488
+    },
+    "trace::tests::finalized_traces_reject_partial_unknown_and_lossy_records": {
+      "elapsed": 0.004601291002472863,
+      "rss_bytes": 3440640
+    },
+    "trace::tests::first_entry_is_the_earliest_arming_of_a_relocated_hit": {
+      "elapsed": 0.004406041000038385,
+      "rss_bytes": 3358720
+    },
+    "trace::tests::frame_bounds_preserve_sync_filter_duplicates_gaps_and_unordered_traces": {
+      "elapsed": 0.004433082998730242,
+      "rss_bytes": 3391488
+    },
+    "trace::tests::run_in_isolates_a_function_and_site_fold_reads_it_as_runs": {
+      "elapsed": 0.004561416993965395,
+      "rss_bytes": 3424256
+    },
+    "trace::tests::something_that_is_not_a_trace_is_refused": {
+      "elapsed": 0.00476791599066928,
+      "rss_bytes": 3309568
+    },
+    "typesdump::tests::reads_types_and_the_table_from_a_small_dump": {
+      "elapsed": 0.0252184999990277,
+      "rss_bytes": 14155776
+    },
+    "typesdump::tests::run3_s_type_dump_is_the_program_s_on_every_check": {
+      "elapsed": 0.5285352079954464,
+      "rss_bytes": 51019776
+    },
+    "writers::a_field_the_sim_writes_is_read_by_something": {
+      "elapsed": 1.1099001249967841,
+      "rss_bytes": 51445760
+    },
+    "writers::a_one_line_literal_s_fields_are_read": {
+      "elapsed": 0.004508208003244363,
+      "rss_bytes": 3358720
+    },
+    "writers::compared_fields_have_writers": {
+      "elapsed": 0.12663795800472144,
+      "rss_bytes": 20185088
+    },
+    "writers::every_exemption_still_names_a_field": {
+      "elapsed": 0.04782704100944102,
+      "rss_bytes": 19595264
+    },
+    "writers::every_no_reader_row_still_names_a_field": {
+      "elapsed": 0.04807483300101012,
+      "rss_bytes": 19546112
+    },
+    "writers::the_scanner_follows_the_harness_into_a_directory": {
+      "elapsed": 0.005248125002253801,
+      "rss_bytes": 3555328
+    }
+  }
+}

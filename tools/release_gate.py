@@ -55,6 +55,9 @@ def run_logged(command, *, cwd, env, check, log=None):
     stands between the command and its exit status: a `| tee` launders
     `memcap.sh`'s 137 into a 0, and the release command's exit code is the
     gate's verdict."""
+    if env.get('RON_GATE_RESOURCE_POLICY') == '1' and '--release' not in command:
+        command = [sys.executable, str(ROOT / 'tools/resource_budget.py'),
+                   '--cpu', '8', '--memory-mib', '16384', '--'] + command
     if log is None:
         return subprocess.run(command, cwd=cwd, env=env, check=check)
     with open(log, 'wb') as sink, subprocess.Popen(
@@ -257,7 +260,7 @@ def memory_cap_gib(test_threads):
 
 
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
-         lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None):
+         lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=False):
     # Parked 1713: two lanes `pkill -f release_gate.py`'d every gate on the
     # box to stop their own; a gate names its pid first so it can be killed
     # by it.
@@ -267,6 +270,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         raise ValueError(f'test threads must be one of {WIDTHS}')
     if scope is not None and lane:
         raise ValueError('--scope is the booking gate\'s; a lane gate has --tests and --base')
+    if isolated and (lane or scope is not None):
+        raise ValueError('--isolated currently requires a complete, unscoped gate')
     tests = list(tests or [])
     if item is not None and not lane:
         raise ValueError('--item is a lane gate\'s: the booking gate reads the queue, not a journal')
@@ -302,7 +307,13 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     env.pop('RON_TEST_MEMCAP_GIB', None)
     env['RUST_TEST_THREADS'] = '2'
     env['RON_INSTALL'] = str(install)
+    env.pop('RON_GATE_RESOURCE_POLICY', None)
+    if isolated:
+        env['RON_GATE_RESOURCE_POLICY'] = '1'
+        env['CARGO_BUILD_JOBS'] = '8'
     policy = {'schema': 1, 'release_test_threads': test_threads, 'memory_cap_gib': memory_cap_gib(test_threads)}
+    if isolated:
+        policy['isolated'] = {'slots': 8, 'global_cpu_slots': 8, 'global_reserved_mib': 16384}
     if scope is not None:
         # The thirty-fifth steer (Ramon's word): a booking gate scoped to the
         # merges since the last whole one runs the timed tests only when one
@@ -340,6 +351,9 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         # tranche).
         ['zsh', 'tools/guard.sh', '--built'],
     ]
+    if isolated:
+        commands[4] = [sys.executable, 'tools/isolated_tests.py', '--release',
+                       '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)]
     if scope is not None:
         print((f"Booking gate scoped to {scope}: " +
                (f"every timed test — a merge touches {len(widened)} path(s) that can move the pins ({widened[0]}"
@@ -512,6 +526,8 @@ def main():
     parser.add_argument('--test-threads', type=int, choices=WIDTHS, default=2,
                         help='release width: 2-4 under the 20 GiB monitor (a lane\'s), 6 or 8 under 40 GiB '
                              '(the booking gate\'s, which runs alone); default: 2')
+    parser.add_argument('--isolated', action='store_true',
+                        help='isolate rondata tests and share host resource admission across worktrees')
     parser.add_argument('--lane', action='store_true',
                         help="a worker's gate: the suite without the slow timed tests, plus --tests; "
                              "red only on the commander's lines goes on to guard and exits 0")
@@ -533,7 +549,7 @@ def main():
         refuse_stale_agent_worktrees(stale_agent_worktrees_now(), lane=args.lane)
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
              test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
-             base=args.base, scope=args.scope)
+             base=args.base, scope=args.scope, isolated=args.isolated)
     except ValueError as exc:
         parser.error(str(exc))
 

@@ -152,3 +152,35 @@ Unknown-test memory estimates need a conservative policy; measured estimates
 are hints, not a substitute for the enforced cap. See the journal and
 `docs/audit/2026-10-16-isolated-runner.json` for the complete measured limits.
 Never compare historical serial totals with parallel wall time to claim10×.
+
+## Shared isolated runner (validation pending)
+
+`release_gate.py INSTALL --test-threads 4 --require-fixtures --isolated`
+selects the production candidate. The ordinary gate remains available and is
+still the landing default until the candidate's complete validation is recorded.
+Cargo discovers every workspace release test executable; all non-rondata
+executables and all workspace doctests still run. Each nonignored rondata library
+test runs in a fresh process with exact-name selection and one test thread.
+A successful zero-test execution cannot pass. Manifests, individual logs,
+measurements and failures are retained in a fresh report directory. Assertions,
+fixture auditing, survey, offline checks, clippy, formatting and guards remain.
+Scoped/lane gates currently reject this option instead of silently changing scope.
+
+Every cooperating worktree shares `~/Library/Caches/attrition/resources-v1`:
+eight CPU slots and 16 GiB reserved RSS, with admission serialized by flock.
+All non-test gate phases and builds reserve the whole budget. Known tests reserve
+1.5 times measured RSS rounded to 128 MiB (minimum 128 MiB); unknown tests reserve
+all memory. Estimates affect scheduling only, never inclusion. Each supervisor
+samples its tree every 0.2 seconds and kills its owned workload on reservation
+overrun or execution timeout (30 minutes, excluding admission wait). This is a
+sampled ceiling: brief overshoot is possible. CPU slots bound known test workers,
+not OS CPU consumption or arbitrary descendants. Unmodified gates and unrelated
+processes do not participate. Rollout to other worktrees is required to control
+the user's simultaneous suites; this branch cannot throttle unmodified scripts.
+
+Token files are never removed. Inherited kernel locks retain reservations while
+an orphaned workload runs; normal cancellation terminates owned processes and
+reaps the direct child. No stale-PID deletion protocol or shared capture lock is
+used. Admission is opportunistic, with no strict fairness guarantee. A malformed
+manifest, absent counters, nonzero child exit or incomplete result set fails.
+No result or comparison verdict is reused. Independent review remains owed.

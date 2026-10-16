@@ -37,6 +37,7 @@ SUITES = (
     'test_queueledger',
     'test_release_gate',
     'test_memcap',
+    'test_isolated_tests',
     'test_lab_demo',
     'test_branch_experiment',
     'test_captures_union',

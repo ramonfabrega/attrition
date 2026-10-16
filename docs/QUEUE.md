@@ -42,6 +42,13 @@ the AI word (Opus 5.5 `--effort medium`), 2785 on the rules track and 2782 on th
 medium`; 2783 is its next); the whole gate green at the pass; count landings from that commit, stop at twenty, and clear
 `steer` into the thirty-eighth pass with the handoff written.**
 
+## Sequential performance work
+
+User-directed branch `codex/astra-windowed-reader`; commander remains paused.
+Shared isolated-runner validation pending, then persistent setup observations.
+Pins/scoreboard unchanged; 10× remains unmet. See
+[journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.
+
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
