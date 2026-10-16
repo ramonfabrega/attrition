@@ -49,7 +49,7 @@ class Admission(unittest.TestCase):
                     budget.Lease(d, cpu, memory)
 
     def test_sample_failure_refuses_launch(self):
-        with tempfile.TemporaryDirectory() as d, patch.object(budget, 'tree_rss', side_effect=RuntimeError('denied')), patch.object(budget.subprocess, 'Popen') as spawn:
+        with tempfile.TemporaryDirectory() as d, patch.object(budget.subprocess, 'check_output', side_effect=RuntimeError('denied')), patch.object(budget.subprocess, 'Popen') as spawn:
             with self.assertRaises(RuntimeError):
                 budget.supervise(['never'], directory=d)
             spawn.assert_not_called()

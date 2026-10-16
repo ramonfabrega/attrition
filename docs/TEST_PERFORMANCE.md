@@ -171,7 +171,7 @@ eight CPU slots and 16 GiB reserved RSS, with admission serialized by flock.
 All non-test gate phases and builds reserve the whole budget. Known tests reserve
 1.5 times measured RSS rounded to 128 MiB (minimum 128 MiB); unknown tests reserve
 all memory. Estimates affect scheduling only, never inclusion. Each supervisor
-samples its tree every 0.2 seconds and kills its owned workload on reservation
+samples its tree every two seconds and kills its owned workload on reservation
 overrun or execution timeout (30 minutes, excluding admission wait). This is a
 sampled ceiling: brief overshoot is possible. CPU slots bound known test workers,
 not OS CPU consumption or arbitrary descendants. Unmodified gates and unrelated

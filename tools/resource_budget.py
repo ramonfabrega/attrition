@@ -85,9 +85,10 @@ def stop_group(child):
     # macOS may deny killpg even for a session created by this process. Select
     # only our child's new process group, then signal its individual members,
     # as the established memcap does. Never signal by executable name.
-    rows = subprocess.check_output(['ps', '-axo', 'pid=,pgid='], text=True)
-    members = [int(pid) for pid, group in (line.split() for line in rows.splitlines())
-               if int(group) == child.pid]
+    found = subprocess.run(['pgrep', '-g', str(child.pid)], capture_output=True, text=True)
+    if found.returncode not in (0, 1):
+        raise RuntimeError('cannot enumerate owned process group')
+    members = [int(pid) for pid in found.stdout.split()]
     for pid in members:
         try:
             os.kill(pid, signal.SIGKILL)
@@ -106,7 +107,9 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, timeo
         cancelled = True
     previous = {s: signal.signal(s, cancel) for s in (signal.SIGINT, signal.SIGTERM)}
     try:
-        tree_rss(os.getpid())  # Refuse to start if the monitor cannot work.
+        probe = subprocess.check_output(['ps', '-o', 'rss=', '-p', str(os.getpid())], text=True)
+        if int(probe.strip()) <= 0:
+            raise RuntimeError('RSS sampler unavailable')
         while not lease.try_acquire():
             if cancelled:
                 return 130
@@ -116,6 +119,10 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, timeo
         env = dict(os.environ, RON_TEST_MEMCAP_GIB=str(math.ceil(memory_mib / 1024)))
         child = subprocess.Popen(command, start_new_session=True, pass_fds=lease.fds, env=env)
         start = time.monotonic()
+        try:
+            child.wait(timeout=0.02)
+        except subprocess.TimeoutExpired:
+            pass
         while child.poll() is None:
             if cancelled:
                 return 130
@@ -128,7 +135,7 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, timeo
                 print(f'resource budget: execution timeout {timeout}s', file=sys.stderr)
                 return 124
             try:
-                child.wait(timeout=0.2)
+                child.wait(timeout=min(2.0, max(0.01, timeout - (time.monotonic() - start))))
             except subprocess.TimeoutExpired:
                 pass
         return child.returncode if child.returncode >= 0 else 128 - child.returncode
