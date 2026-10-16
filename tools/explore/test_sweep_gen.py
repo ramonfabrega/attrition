@@ -1991,5 +1991,100 @@ class Shapes(unittest.TestCase):
                          ['mix', 'F@1', '--gate-bare'])
 
 
+
+
+class FamilyRegistrations(unittest.TestCase):
+    def test_new_independent_sweeps_route_to_stable_partitions(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for family in sweep_gen.SWEEP_FAMILIES:
+                (root / f'standalone_{family}.rs').write_text(sweep_gen.REGISTRY_MARKER)
+            (root / 'mod.rs').write_text('mod existing;\n')
+            with patch.object(sweep_gen, 'SWEEP', root):
+                for name, family in [('apple', 'a_f'), ('group', 'g_o'), ('path', 'p_t'), ('world', 'u_z')]:
+                    self.assertEqual(sweep_gen.sweep_registry(f'mod {name};', 'let got = 1;'), root / f'standalone_{family}.rs')
+                self.assertEqual(sweep_gen.sweep_registry('mod private;', 'crate::internal()'), root / 'mod.rs')
+                self.assertEqual(sweep_gen.sweep_registry('mod existing;', 'let got = 1;'), root / 'mod.rs')
+
+    def test_generator_writes_new_partition_registration_and_keeps_regeneration_owner(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'mod.rs').write_text('')
+            for family in sweep_gen.SWEEP_FAMILIES:
+                (root / f'standalone_{family}.rs').write_text(sweep_gen.REGISTRY_MARKER)
+            with patch.object(sweep_gen, 'SWEEP', root), patch.object(sweep_gen, 'EMU', root):
+                command = ['const', 'World::probe@00401000', '--item', '1', '--port', '7']
+                self.assertEqual(sweep_gen.main(command + ['--write-mod']), 0)
+                registry = root / 'standalone_u_z.rs'
+                registered = registry.read_text()
+                self.assertIn('mod world_probe;', registered)
+                self.assertEqual((root / 'mod.rs').read_text(), '')
+                self.assertEqual(sweep_gen.main(command + ['--regen']), 0)
+                self.assertEqual(registry.read_text(), registered)
+
+    def test_generator_refuses_bad_registry_before_creating_files(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'mod.rs').write_text('')
+            for family in sweep_gen.SWEEP_FAMILIES:
+                (root / f'standalone_{family}.rs').write_text(sweep_gen.REGISTRY_MARKER)
+            (root / 'standalone_u_z.rs').write_text(sweep_gen.REGISTRY_MARKER + 'unexpected_content();\n')
+            with patch.object(sweep_gen, 'SWEEP', root), patch.object(sweep_gen, 'EMU', root):
+                self.assertEqual(sweep_gen.main(['const', 'World::probe@00401000', '--item', '1', '--write-mod']), 2)
+                self.assertFalse((root / 'world_probe.rs').exists())
+                self.assertFalse((root / 'sweep_world_probe.py').exists())
+
+    def test_registry_insertion_preserves_header_and_rejects_loss(self):
+        header = '// helper declarations stay intact\n' + sweep_gen.REGISTRY_MARKER
+        text = sweep_gen.insert_standalone(header, 'mod z;')
+        text = sweep_gen.insert_standalone(text, 'mod a;')
+        self.assertTrue(text.startswith(header))
+        self.assertLess(text.index('mod a;'), text.index('mod z;'))
+        with self.assertRaises(ValueError):
+            sweep_gen.insert_standalone(text, 'mod a;')
+        with self.assertRaises(ValueError):
+            sweep_gen.insert_standalone(text + 'fn unexpected() {}\n', 'mod b;')
+
+    def test_each_real_sweep_is_registered_once_and_targets_are_mounted(self):
+        sweep_gen.validate_sweep_registrations(ROOT / 'crates/sim')
+
+    def test_missing_duplicate_and_wrong_partition_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            folder = root / 'src/sweep'
+            folder.mkdir(parents=True)
+            (root / 'tests').mkdir()
+            (folder / 'mod.rs').write_text('mod private;\n')
+            (folder / 'private.rs').write_text('crate::private();')
+            (folder / 'apple.rs').write_text('#[test] fn check() {}')
+            for family in sweep_gen.SWEEP_FAMILIES:
+                (folder / f'standalone_{family}.rs').write_text(sweep_gen.REGISTRY_MARKER)
+                (root / 'tests' / f'sweep_{family}.rs').write_text(f'#[path = "../src/sweep/standalone_{family}.rs"]\nmod sweep;\n')
+            with self.assertRaises(ValueError):
+                sweep_gen.validate_sweep_registrations(root)
+            path = folder / 'standalone_a_f.rs'
+            path.write_text(sweep_gen.insert_standalone(path.read_text(), 'mod apple;'))
+            sweep_gen.validate_sweep_registrations(root)
+            manifest = root / 'Cargo.toml'
+            manifest.write_text('[package]\nautotests = false\n')
+            with self.assertRaises(ValueError):
+                sweep_gen.validate_sweep_registrations(root)
+            manifest.write_text('[[test]]\nname = "sweep_a_f"\ntest = false\n')
+            with self.assertRaises(ValueError):
+                sweep_gen.validate_sweep_registrations(root)
+            manifest.write_text('')
+            (folder / 'mod.rs').write_text('mod private;\nmod apple;\n')
+            with self.assertRaises(ValueError):
+                sweep_gen.validate_sweep_registrations(root)
+            (folder / 'mod.rs').write_text('mod private;\n')
+            (folder / 'standalone_u_z.rs').write_text(path.read_text())
+            path.write_text(sweep_gen.REGISTRY_MARKER)
+            with self.assertRaises(ValueError):
+                sweep_gen.validate_sweep_registrations(root)
+
+
 if __name__ == '__main__':
     unittest.main()

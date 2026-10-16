@@ -73,8 +73,11 @@ small sim-edit rebuild44–47→19s and CPU277–289→108–109s. Full gate pas
 `b8494d23`:266.23s/1463.74CPU/9028MiB; exact tests/fixtures unchanged. Runtime
 tree peak rises10.5% versus prior run; no suite-memory reduction claimed.
 See [build journal](journal/2026-10-16-build-invalidation.md).
-Next: observe admission wait versus execution; measure remaining invalidation
-before splitting crates. Each revision keeps its own test verdict.
+Test-family follow-up:736 independent sweeps move into four Cargo targets;
+2586 total sim names preserved exactly. Sweep edit21.95→2.21–2.78s/CPU103.49→2.76–2.83s;
+full gate pending. See [family journal](journal/2026-10-16-test-families.md).
+Next: observe admission wait versus execution; assess further independent test
+boundaries. Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.

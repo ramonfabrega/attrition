@@ -172,6 +172,8 @@ def isolated(binary, output, directory, slots=8, skips=()):
 
 
 def target_budget(target, test_threads):
+    if target['kind'] == ['test'] and target['name'] in ('sweep_a_f', 'sweep_g_o', 'sweep_p_t', 'sweep_u_z'):
+        return min(test_threads, 8), 4096
     if target['kind'] == ['lib'] and target['name'] in ('fixed', 'sim'):
         return min(test_threads, 8), 512 if target['name'] == 'fixed' else 4096
     return 8, MEMORY_MIB

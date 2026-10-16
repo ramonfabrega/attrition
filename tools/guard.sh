@@ -28,7 +28,7 @@ fi
 # release binary the suite just built, in seconds, instead of a debug build.
 PROFILE=()
 if [ "$1" = "--built" ]; then PROFILE=(--release); shift; fi
-(cd tools/explore && python3 -m unittest -q test_brief test_queueledger)
+(cd tools/explore && python3 -m unittest -q test_brief test_queueledger test_sweep_gen.FamilyRegistrations)
 if [ -n "$RON_LANE" ]; then
   cargo test -q "${PROFILE[@]}" -p sim docs_guard -- --skip an_item_number_is_minted_once_and_in_its_file_s_form
 else

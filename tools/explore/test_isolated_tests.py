@@ -157,6 +157,8 @@ class Manifest(unittest.TestCase):
         self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'sim'}, 4), (4, 4096))
         self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'fixed'}, 8), (8, 512))
         self.assertEqual(runner.target_budget({'kind': ['test'], 'name': 'new'}, 4), (8, 32768))
+        for family in ('a_f', 'g_o', 'p_t', 'u_z'):
+            self.assertEqual(runner.target_budget({'kind': ['test'], 'name': f'sweep_{family}'}, 4), (4, 4096))
 
     def test_discovery_is_strict(self):
         for text in ['a: test\na: test\n', 'unexpected\n', 'bench: benchmark\n']:

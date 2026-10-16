@@ -122,9 +122,11 @@ function N stack arguments of its own, which the port reads as `p[..]`
 (1966's `has_stance_type` compares the slot's answer with its `p0`).
 
 Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
-the `mod <snake>;` line for `sweep/mod.rs` is printed, or inserted with
-`--write-mod` at its sorted place in the file's last `mod` run (item 2379); `--regen` redraws a generated sweep in place (both files
-rewritten, `mod.rs` left alone), so a starved draw is one line. The script
+the registration is printed, or inserted with `--write-mod`. New tests without
+`crate::` references join one of four standalone alphabetical partitions; tests
+using crate internals stay in `sweep/mod.rs`. Existing registrations stay owned
+by their current target. `--regen` redraws a generated sweep in place (both files
+rewritten, registrations left alone), so a starved draw is one line. The script
 keeps the line that drew it (`# sweep_gen: [...]`, its last line), so
 `--regen tools/emu/sweep_<snake>.py` — or `--regen <snake>` — redraws it
 with no line at hand (item 2325, parked 2311); a whole line given with
@@ -2603,6 +2605,103 @@ def kept_port(old, new, todo):
     return new[:at] + old[i:j] + new[at + len(todo):]
 
 
+SWEEP_FAMILIES = ('a_f', 'g_o', 'p_t', 'u_z')
+REGISTRY_MARKER = '// Registered standalone sweeps.\n'
+REGISTRATION = re.compile(r'#\[path = "([a-z][a-z0-9_]*)\.rs"\]\nmod \1;\n')
+
+
+def sweep_family(name):
+    return 'a_f' if name[0] <= 'f' else 'g_o' if name[0] <= 'o' else 'p_t' if name[0] <= 't' else 'u_z'
+
+
+def standalone_names(text):
+    if text.count(REGISTRY_MARKER) != 1:
+        raise ValueError('standalone registry needs one registration marker')
+    body = text.split(REGISTRY_MARKER)[1]
+    names = REGISTRATION.findall(body)
+    if REGISTRATION.sub('', body).strip() or len(set(names)) != len(names):
+        raise ValueError('unexpected or duplicate standalone registration; refusing to discard content')
+    return names
+
+
+def registration(line):
+    match = re.fullmatch(r'mod ([a-z][a-z0-9_]*);', line)
+    if not match:
+        raise ValueError(f'invalid module registration: {line!r}')
+    name = match[1]
+    return f'#[path = "{name}.rs"]\n{line}\n'
+
+
+def insert_standalone(text, line):
+    names = standalone_names(text)
+    registration(line)  # Validate before extracting its name.
+    name = line[4:-1]
+    if name in names:
+        raise ValueError(f'duplicate standalone module: {name}')
+    header = text.split(REGISTRY_MARKER)[0] + REGISTRY_MARKER
+    return header + ''.join(registration(f'mod {n};') for n in sorted([*names, name]))
+
+
+def sweep_registry(line, test):
+    """Keep existing ownership; route new independent tests to a small target.
+
+    Conservative textual classification: even crate references in comments keep
+    a new test in the library. Compilation remains the authority on privacy.
+    """
+    registration(line)
+    main = SWEEP / 'mod.rs'
+    name = line[4:-1]
+    owners = [main] if main.exists() and line in main.read_text().splitlines() else []
+    for family in SWEEP_FAMILIES:
+        path = SWEEP / f'standalone_{family}.rs'
+        if path.exists() and name in standalone_names(path.read_text()):
+            owners.append(path)
+    if len(owners) > 1:
+        raise ValueError(f'module registered in multiple targets: {name}')
+    if owners:
+        return owners[0]
+    candidate = SWEEP / f'standalone_{sweep_family(name)}.rs'
+    return candidate if candidate.exists() and 'crate::' not in test else main
+
+
+def validate_sweep_registrations(crate):
+    """Every validly named sweep source has exactly one live Cargo registration."""
+    from collections import Counter
+    import tomllib
+    crate = Path(crate)
+    folder = crate / 'src/sweep'
+    manifest = crate / 'Cargo.toml'
+    if manifest.exists():
+        config = tomllib.loads(manifest.read_text())
+        if config.get('package', {}).get('autotests') is False:
+            raise ValueError('automatic sweep test targets are disabled')
+        if any(t.get('name') in {f'sweep_{f}' for f in SWEEP_FAMILIES} for t in config.get('test', [])):
+            raise ValueError('sweep partitions require unmodified automatic Cargo test targets')
+    main = re.findall(r'^mod ([a-z][a-z0-9_]*);$', (folder / 'mod.rs').read_text(), re.M)
+    names = [name for name in main if name != 'support']
+    for family in SWEEP_FAMILIES:
+        path = folder / f'standalone_{family}.rs'
+        selected = standalone_names(path.read_text())
+        for name in selected:
+            if sweep_family(name) != family:
+                raise ValueError(f'{name} is in the wrong partition: {family}')
+            if 'crate::' in (folder / f'{name}.rs').read_text():
+                raise ValueError(f'{name} now references crate internals; move its registration to mod.rs')
+        entry = crate / 'tests' / f'sweep_{family}.rs'
+        mount = f'#[path = "../src/sweep/standalone_{family}.rs"]\nmod sweep;'
+        if mount not in entry.read_text():
+            raise ValueError(f'partition is not mounted by {entry}')
+        names += selected
+    excluded = {'mod', 'support', *(f'standalone_{f}' for f in SWEEP_FAMILIES)}
+    sources = {p.stem for p in folder.glob('*.rs')
+               if re.fullmatch('[a-z][a-z0-9_]*', p.stem) and p.stem not in excluded}
+    counts = Counter(names)
+    if set(counts) != sources or any(n != 1 for n in counts.values()):
+        raise ValueError(f'sweep registration mismatch: missing={sorted(sources-set(counts))}, '
+                         f'unknown={sorted(set(counts)-sources)}, '
+                         f'duplicates={sorted(k for k,v in counts.items() if v != 1)}')
+
+
 def insert_mod(text, line):
     """`text` with `line` (`mod name;`) placed in its last run of `mod` lines
     at the name's sorted place, or appended where the file has none (item
@@ -3097,7 +3196,7 @@ def main(argv=None):
     ap.add_argument('--stub-cdecl', action='append', default=[], metavar='IDX',
                     help='obj: --stub IDX (a direct callee) is `__cdecl`: its arguments are read and the caller '
                          'pops them (`memcpy`, an import the emulator cannot enter; item 2325)')
-    ap.add_argument('--write-mod', action='store_true', help='insert the `mod` line into sweep/mod.rs in sorted order')
+    ap.add_argument('--write-mod', action='store_true', help='register in the existing or selected sweep target in sorted order')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
                     '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
     ap.add_argument('--fwd-gate', metavar='OFF:MASK:VA[:T,T..]',
@@ -3278,7 +3377,13 @@ def main(argv=None):
     # after the lane's job directory is gone (item 2325, parked 2311).
     script = script.rstrip('\n') + '\n\n' + KEPT + json.dumps([a for a in argv if a not in NOT_KEPT]) + '\n'
     if args.dry_run:
-        print(f'# {sp}\n{script}\n# {tp}\n{test}\n# sweep/mod.rs\n{mod}')
+        try:
+            mp = sweep_registry(mod, test)
+            registered = mod if mp.name == 'mod.rs' else registration(mod).rstrip()
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        print(f'# {sp}\n{script}\n# {tp}\n{test}\n# {mp}\n{registered}')
         return 0
     if args.regen and args.port is None and tp.exists():
         # The test's hand-written port is kept between the generated halves
@@ -3295,14 +3400,23 @@ def main(argv=None):
                                            else 'exists; a sweep is generated once (--regen redraws it)'),
                   file=sys.stderr)
             return 2
+    try:
+        mp = sweep_registry(mod, test)
+        registered = mod if mp.name == 'mod.rs' else registration(mod).rstrip()
+        updated = None
+        if args.write_mod:
+            text = mp.read_text() if mp.exists() else ''
+            updated = insert_mod(text, mod) if mp.name == 'mod.rs' else insert_standalone(text, mod)
+    except ValueError as e:
+        print(f'sweep_gen.py: {e}', file=sys.stderr)
+        return 2
     sp.write_text(script)
     sp.chmod(0o755)
     tp.write_text(test)
     if args.write_mod:
-        mp = SWEEP / 'mod.rs'
-        mp.write_text(insert_mod(mp.read_text() if mp.exists() else '', mod))
-    print(f'{shown(sp)}\n{shown(tp)}\n{mod}'
-          + ('' if args.write_mod or args.regen else '  (add to crates/sim/src/sweep/mod.rs)'))
+        mp.write_text(updated)
+    print(f'{shown(sp)}\n{shown(tp)}\n{registered}'
+          + ('' if args.write_mod or args.regen else f'  (add to {shown(mp)})'))
     return 0
 
 

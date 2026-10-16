@@ -445,3 +445,21 @@ so no full-suite memory reduction is claimed. Exact tests and3276 fixture reques
 are retained. See [build journal](journal/2026-10-16-build-invalidation.md)
 and [audit](audit/2026-10-16-build-invalidation.json). Reference compiler settings:
 `CARGO_INCREMENTAL=0 CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16`.
+
+## Sweep test partitions
+
+Independent sweep tests now compile in four alphabetical integration targets:
+`sweep_a_f`, `sweep_g_o`, `sweep_p_t`, `sweep_u_z`. All736 extracted tests retain
+their exact names, original bodies and source paths;1850 other sim tests remain
+in the library, preserving2586 total. Shared oracle/install helpers are unchanged.
+The sweep generator routes new independent tests; normal guards reject missing,
+duplicate or incorrectly mounted registrations. A sweep edit measured21.95→2.21–2.78s,
+CPU103.49→2.76–2.83s, sampled build peak1971→212–268MiB. This is8–10× for that
+rebuild, not a full-suite10×. Full-gate validation is pending.
+
+Use `zsh tools/check.sh test -p sim --release FILTER` for cross-target selection,
+or add `--test sweep_u_z` for a known partition. `--lib` no longer includes these
+sweeps and is not a complete sim suite. The release gate still discovers/runs
+all targets and applies the same exact filters. See the
+[family journal](journal/2026-10-16-test-families.md) and
+[audit](audit/2026-10-16-test-families.json) for evidence and limitations.

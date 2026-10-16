@@ -151,6 +151,7 @@ class SharedEntryPoints(unittest.TestCase):
                 'raise SystemExit(subprocess.run(sys.argv[sys.argv.index("--")+1:]).returncode)\n')
             for name in ['test_brief', 'test_queueledger']:
                 (tools/'explore'/f'{name}.py').write_text('import unittest\nclass Authored(unittest.TestCase):\n def test_ok(self): self.assertTrue(True)\n')
+            (tools/'explore'/'test_sweep_gen.py').write_text('import unittest\nclass FamilyRegistrations(unittest.TestCase):\n def test_ok(self): self.assertTrue(True)\n')
             (tools/'queueledger.py').write_text('')
             cargo = root/'bin/cargo'
             cargo.write_text('#!/bin/sh\nprintf "%s|%s|%s|%s\\n" "$*" "$CARGO_BUILD_JOBS" "$RUST_TEST_THREADS" "$RON_LANE" >> cargo-calls\n')

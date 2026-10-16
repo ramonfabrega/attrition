@@ -1,0 +1,282 @@
+{
+  "starting_tip": "a9d6b67d87517c650a82376bbc81905a06e1fbe0",
+  "evidence_root": "/tmp/attrition-test-families-20261016-01",
+  "unchanged_original_sweep_bodies": 1046,
+  "body_hashes": "sweep-body-hashes.json",
+  "original_sim_tests": 2586,
+  "new_sim_tests": {
+    "lib": 1850,
+    "sweep_a_f": 207,
+    "sweep_g_o": 224,
+    "sweep_p_t": 159,
+    "sweep_u_z": 146
+  },
+  "manifest_union_equal": true,
+  "duplicate_tests": 0,
+  "measurements": {
+    "baseline-edit": {
+      "wall_seconds": 21.95,
+      "cpu_seconds": 103.49,
+      "sampled_tree_mib": 1971,
+      "max_rss_bytes": 2168848384,
+      "rebuilt": [
+        [
+          "sim",
+          [
+            "lib"
+          ],
+          true
+        ]
+      ]
+    },
+    "split-edit": {
+      "wall_seconds": 9.69,
+      "cpu_seconds": 42.08,
+      "sampled_tree_mib": 728,
+      "max_rss_bytes": 842989568,
+      "rebuilt": [
+        [
+          "sweep_standalone",
+          [
+            "test"
+          ],
+          true
+        ]
+      ]
+    },
+    "partition-edit": {
+      "wall_seconds": 2.21,
+      "cpu_seconds": 2.76,
+      "sampled_tree_mib": 212,
+      "max_rss_bytes": 269959168,
+      "rebuilt": [
+        [
+          "sweep_u_z",
+          [
+            "test"
+          ],
+          true
+        ]
+      ]
+    },
+    "partition-edit-repeat": {
+      "wall_seconds": 2.78,
+      "cpu_seconds": 2.83,
+      "sampled_tree_mib": 268,
+      "max_rss_bytes": 271958016,
+      "rebuilt": [
+        [
+          "sweep_u_z",
+          [
+            "test"
+          ],
+          true
+        ]
+      ]
+    },
+    "partition-new-test": {
+      "wall_seconds": 0.6,
+      "cpu_seconds": 1.06,
+      "sampled_tree_mib": 19,
+      "max_rss_bytes": 234258432,
+      "rebuilt": [
+        [
+          "sweep_u_z",
+          [
+            "test"
+          ],
+          true
+        ]
+      ]
+    },
+    "partition-sim-edit": {
+      "wall_seconds": 17.87,
+      "cpu_seconds": 76.52,
+      "sampled_tree_mib": 1945,
+      "max_rss_bytes": 1399209984,
+      "rebuilt": [
+        [
+          "rondata",
+          [
+            "lib"
+          ],
+          false
+        ],
+        [
+          "sim",
+          [
+            "lib"
+          ],
+          false
+        ],
+        [
+          "turn_oracle_check",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "turn_angles_oracle_check",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "path_capsule_check",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "rondata",
+          [
+            "bin"
+          ],
+          true
+        ],
+        [
+          "shutdown_memory",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "trace_acceptance",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "command_oracle_check",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "frame_memory",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "debug_view",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "correction_audit",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "sweep_u_z",
+          [
+            "test"
+          ],
+          true
+        ],
+        [
+          "capture_archive",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "capture_cost",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "path_capsule_worker",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "sweep_g_o",
+          [
+            "test"
+          ],
+          true
+        ],
+        [
+          "replay_memory",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "indexed_profile",
+          [
+            "example"
+          ],
+          false
+        ],
+        [
+          "sweep_a_f",
+          [
+            "test"
+          ],
+          true
+        ],
+        [
+          "sweep_p_t",
+          [
+            "test"
+          ],
+          true
+        ],
+        [
+          "sim",
+          [
+            "lib"
+          ],
+          true
+        ],
+        [
+          "rondata",
+          [
+            "lib"
+          ],
+          true
+        ]
+      ]
+    }
+  },
+  "fault_test": {
+    "wrong_oracle_exit": 101,
+    "restored_exit": 0
+  },
+  "offline": {
+    "tests": 497,
+    "skips": 3,
+    "exit": 0
+  },
+  "gate": "pending",
+  "independent_review": "owed",
+  "precommit": {
+    "guard_exit": 0,
+    "guard_seconds": 4.2311,
+    "focused_tooling_tests": 122,
+    "focused_tooling_skips": 1,
+    "format_exit": 0,
+    "diff_check_exit": 0,
+    "local_links": 16
+  }
+}
