@@ -439,6 +439,9 @@ This adds roughly1.7GiB of local compiler cache in the measured target; fresh
 worktrees pay the initial build. No test verdicts or mutable replays are cached,
 and no cross-worktree cache hit is assumed. Larger edits may invalidate more work.
 The8-test runtime screen retains all458 fixture requests and shows no regression;
-full-gate validation is pending. See [build journal](journal/2026-10-16-build-invalidation.md)
+the full required-fixture gate passes on `b8494d23`. Whole gate266.23s/1463.74CPU/
+9028MiB versus prior271.25s/1509.62CPU/8169MiB: runtime tree peak increases10.5%,
+so no full-suite memory reduction is claimed. Exact tests and3276 fixture requests
+are retained. See [build journal](journal/2026-10-16-build-invalidation.md)
 and [audit](audit/2026-10-16-build-invalidation.json). Reference compiler settings:
 `CARGO_INCREMENTAL=0 CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16`.

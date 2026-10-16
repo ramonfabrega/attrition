@@ -69,7 +69,9 @@ Complete required-fixture gate passed on `980efbd5`:271.25s/1509.62CPU/8169MiB
 sampled tree; all tests and3276 fixture requests preserved. Warm guard27.98→4.29s.
 See [workflow journal](journal/2026-10-16-validation-workflow.md).
 Build follow-up: incremental release compilation with256 partitions cuts measured
-small sim-edit rebuild44–47→19s and CPU277–289→108–109s; full gate pending.
+small sim-edit rebuild44–47→19s and CPU277–289→108–109s. Full gate passes on
+`b8494d23`:266.23s/1463.74CPU/9028MiB; exact tests/fixtures unchanged. Runtime
+tree peak rises10.5% versus prior run; no suite-memory reduction claimed.
 See [build journal](journal/2026-10-16-build-invalidation.md).
 Next: observe admission wait versus execution; measure remaining invalidation
 before splitting crates. Each revision keeps its own test verdict.

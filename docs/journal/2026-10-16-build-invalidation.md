@@ -110,3 +110,41 @@ Pre-commit checks:492 offline tests pass,3 unchanged skips (`offline.log`),
 `guard.sh --built` passes (`guard.log`, exit0). Shell/tool behavior is unchanged.
 Formatting, audit JSON parsing, local documentation links and `git diff --check`
 pass. Full required-fixture gate remains pending the implementation commit.
+
+## Frozen committed-tree verdict
+
+Implementation `b8494d23` was committed before this complete run; no files changed
+while it ran:
+
+```sh
+/usr/bin/time -l zsh tools/memcap.sh 40 python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures --report-dir /tmp/attrition-build-cost-20261016-01/gate
+```
+
+Actual exit0 (`gate.exit`), all six phases pass (`gate.log`). Fixed13,sim2586,
+rondata890 and doctests3 pass;6 unchanged ignored,0 filtered. Fixture audit:
+3276 requests,419 unique,0 missing. `gate-equivalence.json` verifies exact fixture
+multisets, per-target results and ordered rondata discovery/ignored names against
+`/tmp/attrition-validation-flow-20261016-01/gate`. No score/value movement.
+
+Whole gate:266.23s wall/1463.74 CPU seconds/9028MiB sampled tree peak. Previous
+profile's gate:271.25s/1509.62CPU/8169MiB. Rondata alone:166.57s/1177.66CPU versus
+171.40s/1224.52CPU. These single full runs show slightly lower execution cost,
+not a proven general speedup. Tree peak rises10.5%; do not claim a full-suite
+memory reduction. Across the same890 individual tests, the sum of per-test peaks
+is397864.86→398803.02MiB (+0.24%) and largest single peak2160.16→2122.77MiB. The
+sum is not concurrent memory. Different overlap/scheduling may explain the tree
+peak, but that explanation is not proven by this run. Shared32GiB admission and
+existing measured child caps remain enforced. Further runtime memory measurement
+is open; repeatable build-memory savings do not erase this result.
+
+Decision: retain the profile for its repeated build savings (about2.4× faster
+small simulation rebuilds, about5.3× less test-edit build CPU), with the runtime
+memory qualification explicit. The source edits were only experimental probes;
+no simulation/comparison Rust change lands. No cold-build or cross-worktree
+cache hit is claimed. Full-suite10× remains unmet. This is a review checkpoint,
+not completion of all performance work. Fable remains paused and independent
+review is owed. The final verdict commit changes documentation only and receives
+paperwork/format/link/JSON checks, not a second complete release run.
+
+Verdict follow-up checks: complete paperwork guard exit0 (`guard-verdict.log`),
+formatting and diff checks exit0;13 local links resolve and audit JSON parses.
