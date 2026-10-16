@@ -145,6 +145,7 @@ pub fn shared_now() -> usize {
 }
 
 pub mod indexed;
+pub(crate) mod owned_codec;
 
 #[cfg(test)]
 mod tests {

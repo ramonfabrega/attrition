@@ -1,4 +1,5 @@
 //! Bounded reuse of owned replay observations, never capture text or sim state.
+pub(super) mod persistent;
 use crate::gamelog::{FrameGuys, FrameUnit, Guy, Initial};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -7,11 +8,19 @@ use std::time::SystemTime;
 const BUDGET: usize = 8 * 1024 * 1024;
 const MAX_ENTRIES: usize = 32;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub(super) struct Observations {
-    seeds: Vec<(i64, u32)>,
-    animations: Vec<(i64, i64, i64)>,
-    guys: FrameGuys,
+    pub(super) seeds: Vec<(i64, u32)>,
+    pub(super) animations: Vec<(i64, i64, i64)>,
+    pub(super) guys: FrameGuys,
+}
+
+pub(super) fn enabled() -> bool {
+    #[cfg(test)]
+    if crate::gamelog::reads::active() {
+        return false;
+    }
+    true
 }
 
 fn payload_bytes(

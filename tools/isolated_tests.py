@@ -6,6 +6,7 @@ No verdicts are cached. Test logs, discovery manifests and measurements survive
 failures. Resource admission is shared with other cooperating worktrees.
 """
 import argparse
+import hashlib
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 import json
 import math
@@ -19,7 +20,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
-from resource_budget import DEFAULT, MEMORY_MIB
+from resource_budget import DEFAULT, MEMORY_MIB, QUANTUM_MIB
 
 PROFILE = ROOT / 'docs/audit/2026-10-16-isolated-profile.json'
 ONE = re.compile(r'^test result: ok\. 1 passed; 0 failed; 0 ignored; 0 measured; \d+ filtered out;', re.M)
@@ -37,22 +38,47 @@ def discover(binary, ignored=False):
     return names
 
 
+def binary_stamp(binary):
+    stat = Path(binary).stat()
+    return (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns)
+
+
 def reservation(name, profile):
     row = profile.get(name)
     # Unknown tests run alone with the entire host memory reservation.
-    return MEMORY_MIB if row is None else min(MEMORY_MIB, max(128, math.ceil(row['rss_bytes'] * 1.5 / 2**27) * 128))
+    return MEMORY_MIB if row is None else min(MEMORY_MIB, max(QUANTUM_MIB,
+        math.ceil(row['rss_bytes'] / (QUANTUM_MIB * 2**20)) * QUANTUM_MIB))
 
 
-def wrapper(directory, memory, cpu=1):
+def wrapper(directory, memory, cpu=1, limit=None):
     return [sys.executable, str(ROOT / 'tools/resource_budget.py'), '--directory', str(directory),
-            '--cpu', str(cpu), '--memory-mib', str(memory), '--']
+            '--cpu', str(cpu), '--memory-mib', str(memory)] + (
+            ['--limit-mib', str(limit)] if limit is not None else []) + ['--']
+
+
+def read_result(log):
+    """Bound memory even when a failing whole-record assertion prints huge rows."""
+    passed = 0
+    clock = rss = None
+    with log.open() as stream:
+        while part := stream.readline(65536):
+            passed += len(ONE.findall(part))
+            found = re.search(r'([\d.]+) real\s+([\d.]+) user\s+([\d.]+) sys', part)
+            if found:
+                clock = (float(found[2]), float(found[3]))
+            found = re.search(r'(\d+)\s+maximum resident set size', part)
+            if found:
+                rss = int(found[1])
+    return passed, clock, rss
 
 
 def run_one(binary, name, number, output, directory, memory, cancelled):
     log = output / 'tests' / f'{number:04d}.log'
     start = time.monotonic()
+    stamp = binary_stamp(binary)
     with log.open('x') as sink:
-        command = wrapper(directory, memory) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
+        limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB)
+        command = wrapper(directory, memory, limit=limit) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
         with subprocess.Popen(command, stdout=sink, stderr=subprocess.STDOUT) as child:
             while child.poll() is None:
                 if cancelled():
@@ -61,25 +87,28 @@ def run_one(binary, name, number, output, directory, memory, cancelled):
                     child.wait(timeout=0.2)
                 except subprocess.TimeoutExpired:
                     pass
-    text = log.read_text()
-    clock = re.search(r'([\d.]+) real\s+([\d.]+) user\s+([\d.]+) sys', text)
-    rss = re.search(r'(\d+)\s+maximum resident set size', text)
-    success = child.returncode == 0 and len(ONE.findall(text)) == 1 and bool(clock and rss)
+    passed, clock, rss = read_result(log)
+    success = (child.returncode == 0 and passed == 1 and clock is not None and rss is not None
+               and binary_stamp(binary) == stamp)
     return dict(name=name, success=success, exit=child.returncode, elapsed=time.monotonic()-start,
-                user=float(clock[2]) if clock else None, system=float(clock[3]) if clock else None,
-                rss_bytes=int(rss[1]) if rss else None, reservation_mib=memory, log=str(log))
+                user=clock[0] if clock else None, system=clock[1] if clock else None,
+                rss_bytes=rss, reservation_mib=memory, log=str(log))
 
 
 def isolated(binary, output, directory, slots=8):
     output.mkdir(parents=True, exist_ok=False)
     (output / 'tests').mkdir()
+    stamp = binary_stamp(binary)
     all_tests, ignored = discover(binary), discover(binary, True)
     if not all_tests or not set(ignored) <= set(all_tests):
         raise ValueError('invalid or empty test manifest')
     names = [n for n in all_tests if n not in set(ignored)]
+    if not names:
+        raise ValueError('no nonignored tests discovered')
     profile = json.loads(PROFILE.read_text())['tests']
     pending = sorted(enumerate(names), key=lambda p: -profile.get(p[1], {}).get('elapsed', 0))
-    (output / 'manifest.json').write_text(json.dumps(dict(binary=str(binary), tests=names, ignored=ignored), indent=2)+'\n')
+    (output / 'manifest.json').write_text(json.dumps(dict(binary=str(binary), binary_stamp=stamp, tests=names, ignored=ignored,
+        install=os.environ.get('RON_INSTALL'), slots=slots, resource_directory=str(directory)), indent=2)+'\n')
     cancelled = False
     def cancel(_sig, _frame):
         nonlocal cancelled
@@ -107,7 +136,8 @@ def isolated(binary, output, directory, slots=8):
     finally:
         for sig, handler in previous.items():
             signal.signal(sig, handler)
-    complete = len(rows) == len(names) and {r['name'] for r in rows} == set(names)
+    complete = (len(rows) == len(names) and {r['name'] for r in rows} == set(names)
+                and binary_stamp(binary) == stamp)
     passed = sum(r['success'] for r in rows)
     success = complete and passed == len(names) and not cancelled
     summary = dict(complete=complete, success=success, passed=passed, failed=len(rows)-passed,
@@ -116,12 +146,27 @@ def isolated(binary, output, directory, slots=8):
     (output / 'summary.json').write_text(json.dumps(summary, indent=2)+'\n')
     print(f"test result: {'ok' if success else 'FAILED'}. {passed} passed; {len(rows)-passed} failed; "
           f"{len(ignored)} ignored; 0 measured; 0 filtered out; finished in {summary['elapsed']:.2f}s", flush=True)
-    return 0 if success else (130 if cancelled else 101)
+    if cancelled:
+        return 130
+    if not complete:
+        return 125
+    for row in rows:
+        if not row['success'] and row['exit'] != 101:
+            return row['exit'] or 125
+    return 0 if success else 101
+
+
+def target_budget(target, test_threads):
+    if target['kind'] == ['lib'] and target['name'] in ('fixed', 'sim'):
+        return min(test_threads, 8), 512 if target['name'] == 'fixed' else 4096
+    return 8, MEMORY_MIB
 
 
 def release(output, directory, slots, test_threads):
     output.mkdir(parents=True, exist_ok=False)
     env = dict(os.environ, CARGO_BUILD_JOBS='8')
+    revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    (output / 'revision.txt').write_text(revision + '\n')
     build = subprocess.run(wrapper(directory, MEMORY_MIB, 8) +
                            ['cargo', 'test', '--workspace', '--release', '--no-run', '--message-format=json'],
                            cwd=ROOT, env=env, capture_output=True, text=True)
@@ -138,14 +183,25 @@ def release(output, directory, slots, test_threads):
     if not targets or len({p for p, _ in targets}) != len(targets):
         raise ValueError('empty or duplicate Cargo executable manifest')
     (output / 'targets.json').write_text(json.dumps(targets, indent=2)+'\n')
+    digests = {}
+    for executable, _ in targets:
+        with open(executable, 'rb') as stream:
+            digests[executable] = hashlib.file_digest(stream, 'sha256').hexdigest()
+    (output / 'binary-sha256.json').write_text(json.dumps(digests, indent=2)+'\n')
+    stamps = {executable: binary_stamp(executable) for executable, _ in targets}
     exits = []
     for executable, target in targets:
+        if binary_stamp(executable) != stamps[executable]:
+            raise ValueError('test executable changed after Cargo discovery')
         print(f"     Running unittests {target['src_path']} ({executable})", flush=True)
         if target['name'] == 'rondata' and 'lib' in target['kind']:
             rc = isolated(Path(executable), output / 'rondata', directory, slots)
         else:
-            rc = subprocess.run(wrapper(directory, MEMORY_MIB, 8) +
+            cpu, memory = target_budget(target, test_threads)
+            rc = subprocess.run(wrapper(directory, memory, cpu) +
                                 [executable, f'--test-threads={test_threads}'], cwd=ROOT, env=env).returncode
+        if binary_stamp(executable) != stamps[executable]:
+            rc = 125
         exits.append(rc)
         if rc in (130, -signal.SIGINT, -signal.SIGTERM):
             return 130

@@ -49,6 +49,15 @@ RESULT = re.compile(r'^test result: (ok|FAILED)\. (\d+) passed; (\d+) failed;')
 FAILED_TEST = re.compile(r'^test (\S+) \.\.\. FAILED$')
 
 
+def phase_budget(command):
+    """Small already-built checks can coexist; possible compilations drain slots."""
+    if any(str(a).endswith('offline_tests.py') for a in command) or 'fmt' in command:
+        return 2, 1024
+    if any(str(a).endswith('guard.sh') for a in command):
+        return 2, 4096
+    return 8, 32768
+
+
 def run_logged(command, *, cwd, env, check, log=None):
     """`subprocess.run`, or — with `log` — the same command with its output
     copied line by line to that file as well as to stdout. No shell pipe
@@ -56,8 +65,9 @@ def run_logged(command, *, cwd, env, check, log=None):
     `memcap.sh`'s 137 into a 0, and the release command's exit code is the
     gate's verdict."""
     if env.get('RON_GATE_RESOURCE_POLICY') == '1' and '--release' not in command:
+        cpu, memory = phase_budget(command)
         command = [sys.executable, str(ROOT / 'tools/resource_budget.py'),
-                   '--cpu', '8', '--memory-mib', '16384', '--'] + command
+                   '--cpu', str(cpu), '--memory-mib', str(memory), '--'] + command
     if log is None:
         return subprocess.run(command, cwd=cwd, env=env, check=check)
     with open(log, 'wb') as sink, subprocess.Popen(
@@ -311,9 +321,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     if isolated:
         env['RON_GATE_RESOURCE_POLICY'] = '1'
         env['CARGO_BUILD_JOBS'] = '8'
-    policy = {'schema': 1, 'release_test_threads': test_threads, 'memory_cap_gib': memory_cap_gib(test_threads)}
+    policy = {'schema': 1, 'release_test_threads': test_threads,
+              'memory_cap_gib': 32 if isolated else memory_cap_gib(test_threads)}
     if isolated:
-        policy['isolated'] = {'slots': 8, 'global_cpu_slots': 8, 'global_reserved_mib': 16384}
+        policy['isolated'] = {'slots': 8, 'global_cpu_slots': 16, 'global_reserved_mib': 32768}
     if scope is not None:
         # The thirty-fifth steer (Ramon's word): a booking gate scoped to the
         # merges since the last whole one runs the timed tests only when one

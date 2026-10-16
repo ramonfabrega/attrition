@@ -63,3 +63,145 @@ the small in-process cache. Empty run56 still rescans on every fresh process.
 Logs `setup-{ch36,run12,run56}-before.log` in the evidence root. Persistent
 entries must stream bounded chunks so large clock sequences do not require a
 second whole encoded/decoded allocation or a clone of every observation.
+
+## Tuned runner and final hardening
+
+On22655a63, all876 rondata tests passed again,6 ignored, exact3276 fixture rows
+unchanged.212.26s test scheduling; wrapper212.34s,1498.41user+148.39sys=1646.80CPU,
+versus1565.99CPU inside test processes. Thus81CPU seconds of runner/monitor
+cost remain; do not report a CPU-work reduction from isolation. Sampled tree
+9015MiB, largest3856MiB. Evidence `tuned-rondata*`, `tuned-fixtures/`.
+
+Additional hardening bounds assertion-log parsing, records build revision and
+binary SHA256, rejects changed executables, tests cancellation/lease release,
+and lets small gate phases and fixed/sim targets share capacity. Compilation and
+unknown targets still reserve the whole host budget.13 focused runner tests and
+36 gate tests are expected in the final validation; earlier counts are retained
+above rather than rewritten. Final full gates remain owed on the committed tree.
+
+## Persistent setup implementation and paired evidence
+
+Shared the existing safe bounded wire primitives and exhaustive Guy/Pos schemas
+with production capture code; Oracle keeps its own schema and wrappers. Added
+source-keyed, immutable, streaming observations with per-chunk and aggregate
+bounds, checksum, explicit flush and atomic no-replace publication. Owned
+observations move into Initial; encoding borrows rows and never clones the
+entire clock history. Raw-key recording bypasses both caches. Disk-disable
+retains the old small memory cache, so paired comparisons do not inflate the
+baseline by also disabling previous reuse. No sim, word, score, value or pin
+changes. Paused commander unchanged; independent review owed.
+
+Initial synthetic checks:20 indexed tests,1 whole-oracle codec test, clippy/fmt
+passed. Corruption at every byte, every truncation, wrong source identity,
+empty streams, duplicate/order preservation, invalid lengths, flush failures,
+immutable publication and raw-key bypass are exercised. Existing index tests
+retain actual changed-source validation. Evidence `observations-focused.log`,
+`oracle-codec-focused.log`, `observations-clippy.log`.
+
+Same-binary, separate-process setup measurements (`setup-comparison.json`):
+chapter36 warm0.07s/0.06CPU/156.6MiB versus cache-off2.00–2.42s/1.99–2.20CPU/
+475.7MiB; run12 warm0.05s/0.04CPU/125.1MiB versus0.21s/0.20CPU/315.8MiB;
+run56 warm0.01s/0.01CPU/~37MiB versus0.91–0.92s/0.91CPU/36.8–39.9MiB.
+Cold writes cost roughly the original parse; no universal memory improvement
+is claimed for empty observations. The3 derived entries occupy13,731,230bytes
+outside git. All3 full Initial comparisons passed (clear only original bodies).
+
+Complete chapter36 replay, same final candidate binary and scratch cache:
+cache-off10.35–11.29wall/10.34–10.56CPU/1122.7–1125.4MiB; cold10.51wall/
+10.49CPU/1117.2MiB; warm7.61–7.62wall/7.60–7.61CPU/758.5–758.8MiB.
+Five confirmed setup hits per warm run. Complete setup audit passed; ordinary
+comparison run after the audit also passed. About1.36× CPU and32% lower RSS
+for this complete replay, distinct from its~30× setup microbenchmark.
+
+All211 Golden-module tests then passed with fresh-observation and original
+whole-reader setup audits (192.23s,804 fixture requests,0 missing). Source logs
+record87 successful publications,49 hits and10 unsuccessful publication
+attempts under concurrent creation. Every corresponding source subsequently
+had a valid entry: all87 sources were reopened in separate processes, each
+required a hit and complete equality to both fresh indexed and original whole
+Initial (only original frame_bodies cleared). All87 passed. The first audit's
+publication failures are consistent with competing immutable publishers, not
+silently dropped comparisons; their exact I/O error was not logged.
+Evidence `golden-setup-audit*`, `golden-source-audit*`, and source manifests.
+
+Generic whole-oracle/replay/field-set audit and final gates are pending.
+
+## Complete generic audit
+
+Cold coverage created9879 oracle records in the new fingerprint generation:
+89.73wall/87.96CPU/1629MiB. Warm audit checked all9879 whole records against
+fresh parsing, all62 complete replay reports/checkpoints/field sets against
+fresh replay, and fresh setup observations:247.08wall/246.01CPU/1917MiB.
+586 fixture requests,0 missing. Ordinary coverage afterward passed with9879
+hits/0 misses,41.54wall/41.12CPU/2260MiB;338 requests,0 missing. This remains
+within the previous40.94–43.36s range: no meaningful coverage speedup or memory
+win is established. Raw-key coverage passed at32.82wall/32.55CPU/116MiB,
+144 requests,0 missing, no observation/oracle cache hits. Evidence
+`coverage-results.json`, `coverage-comparison.json`, `coverage-*.log`.
+
+## Host throughput policy
+
+The initial8-slot/16-GiB policy above was a single-suite measurement. For the
+user's4–6 simultaneous suites, final candidate admission uses16 CPU slots on
+this16-core host and32GiB combined reserved RSS, while each suite keeps8 workers.
+All workloads regain the established nice+10 priority. Unknown tests reserve
+all memory and run alone. Allocation uses256MiB tokens, bounding descriptor
+counts even for a full-budget lease. A create-new immutable policy file prevents
+differently configured cooperating worktrees from silently sharing one pool.
+`resource_budget.py --status` checks live kernel locks and reports supervisor/
+child PID metadata; it never infers liveness from a stale file or kills by name.
+The intended shared configuration is in
+`~/Library/Caches/attrition/resources-v1/policy.json`; no capture locks changed.
+
+Four simultaneous suite samples (eight named tests each, including coverage,
+third-pair, Golden, city/world/build and a scalar test) are being compared under
+this policy. Warmup runs all eight first; both modes preserve their exact test
+and fixture multisets. This is a contention sample, not a full-suite result.
+The scratch `contention.py` and all per-suite outputs are retained. Final full
+gates and the measured contention verdict remain pending.
+
+The first contention attempt used per-job headroom for both admission and the
+hard limit: conventional54.997s vs isolated79.178s, both1832 fixture rows and
+all32 selected tests passing. Sampled RSS16086 vs13641MiB; CPU486.34 vs461.37s.
+This was an unacceptable throughput regression: an expensive test waited behind
+pessimistic reservations while actual memory was low. The initial scratch
+sample also submitted listed order rather than production's longest-first;
+that detail is retained, not silently treated as identical dispatch.
+
+Final candidate separates measured-RSS admission from1.5× per-job hard ceilings,
+and additionally samples the union of kernel-held workload roots/groups against
+the32GiB host limit. Metadata publication/status are serialized; unreadable live
+ownership fails closed. Group accounting includes orphaned group members and
+deduplicates overlapping roots. A breach terminates only the supervisor's own
+workload. The revised sample uses production's longest-first submission order.
+First corrected repeat:54.002s/483.27CPU/18300MiB, same1832 fixture rows. Thus
+throughput is restored, with higher observed RSS than this particular conventional
+sample; no universal multi-suite memory win is claimed. Repeat measurements are
+pending. The baseline includes the new observation cache too, so it isolates
+scheduling rather than crediting the cache's CPU savings a second time.
+
+## Pre-landing validation and contention verdict
+
+Second conventional sample52.629s/483.39CPU/19452MiB; second corrected isolated
+sample57.833s/472.49CPU/17906MiB. Across repeats, conventional52.63–55.00s and
+16086–19452MiB versus corrected isolation54.00–57.83s and17906–18300MiB.
+All32 selected executions passed in every sample; all1832 fixture-request rows
+match exactly,0 missing. No aggregate throughput or memory improvement is
+established by this sample; the large reservation-induced regression is removed.
+The shared ceilings bound competing suites and prevent independent width
+choices from oversubscribing the pool. CPU differences are small and noisy.
+Committed summary: `docs/audit/2026-10-16-contention.json`.
+
+Final focused tooling:19 runner tests and36 gate tests pass, formatting and
+diff checks pass. Kills/timeouts/missing counters retain infrastructure exit
+categories instead of becoming an ordinary test assertion exit. Full gates
+below remain required before this batch is declared complete.
+
+The97 production observation entries seen by these audits occupy265415701bytes;
+the footprint manifest is retained in the evidence root. New oracle generation:
+9879 entries; older generations and all cited scratch evidence remain intact.
+No original corpus was relocated or deleted. No pins or scoreboard values moved.
+
+Implementation landing: pending committed-tree ordinary and isolated gates.
+For the Loop: commander paused; source-keyed setup persistence and shared
+isolation implemented, complete final gates pending;10× still unmet.

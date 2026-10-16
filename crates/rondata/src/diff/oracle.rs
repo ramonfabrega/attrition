@@ -152,6 +152,7 @@ fn schema() -> u64 {
                 include_str!("leader.rs"),
                 include_str!("oracle.rs"),
                 include_str!("oracle/codec.rs"),
+                include_str!("../capture/owned_codec.rs"),
                 include_str!("../capture/indexed.rs"),
                 include_str!("../capture/source.rs"),
                 include_str!("../capture/archive.rs")

@@ -153,11 +153,12 @@ are hints, not a substitute for the enforced cap. See the journal and
 `docs/audit/2026-10-16-isolated-runner.json` for the complete measured limits.
 Never compare historical serial totals with parallel wall time to claim10×.
 
-## Shared isolated runner (validation pending)
+## Shared isolated runner
 
 `release_gate.py INSTALL --test-threads 4 --require-fixtures --isolated`
-selects the production candidate. The ordinary gate remains available and is
-still the landing default until the candidate's complete validation is recorded.
+selects process isolation with shared host admission. The ordinary in-process
+gate remains the default. The complete initial isolated gate and subsequent
+monitor correction measurements are recorded in the shared-runner journal.
 Cargo discovers every workspace release test executable; all non-rondata
 executables and all workspace doctests still run. Each nonignored rondata library
 test runs in a fresh process with exact-name selection and one test thread.
@@ -167,20 +168,74 @@ fixture auditing, survey, offline checks, clippy, formatting and guards remain.
 Scoped/lane gates currently reject this option instead of silently changing scope.
 
 Every cooperating worktree shares `~/Library/Caches/attrition/resources-v1`:
-eight CPU slots and 16 GiB reserved RSS, with admission serialized by flock.
-All non-test gate phases and builds reserve the whole budget. Known tests reserve
-1.5 times measured RSS rounded to 128 MiB (minimum 128 MiB); unknown tests reserve
-all memory. Estimates affect scheduling only, never inclusion. Each supervisor
-samples its tree every two seconds and kills its owned workload on reservation
-overrun or execution timeout (30 minutes, excluding admission wait). This is a
-sampled ceiling: brief overshoot is possible. CPU slots bound known test workers,
+sixteen CPU slots and 32 GiB reserved RSS, with admission serialized by flock.
+Each suite uses at most eight isolated workers. An immutable policy file rejects
+worktrees configured with different limits. Workloads run at nice+10, preserving
+the existing monitor's preference for interactive/capture work.
+Builds, clippy, survey and unknown executables reserve eight CPU slots and all
+32 GiB, draining concurrent workloads. Offline checks and formatting reserve two slots/1 GiB; built guards two slots/4 GiB.
+Fixed and sim binaries reserve their requested thread width and 512 MiB/4 GiB
+respectively, allowing smaller checks from different suites to coexist. Known
+tests reserve measured RSS rounded to 256 MiB (minimum 256 MiB), with a separate
+per-test ceiling of 1.5 times that reservation, capped by the host budget.
+Unknown tests reserve all memory. Estimates affect scheduling only, never
+inclusion. Each supervisor
+samples its tree and the union of all active workload trees/groups every two
+seconds, counting each process once. It stops its owned workload on a per-test
+or aggregate host ceiling breach, unavailable monitoring, or execution timeout
+(30 minutes, excluding admission wait). This is a sampled ceiling: brief overshoot is possible. CPU slots bound known test workers,
 not OS CPU consumption or arbitrary descendants. Unmodified gates and unrelated
 processes do not participate. Rollout to other worktrees is required to control
 the user's simultaneous suites; this branch cannot throttle unmodified scripts.
 
-Token files are never removed. Inherited kernel locks retain reservations while
+`python3 tools/resource_budget.py --status` reports kernel-held slots and owner
+metadata; stale metadata alone never establishes ownership. Token files are
+never removed. Inherited kernel locks retain reservations while
 an orphaned workload runs; normal cancellation terminates owned processes and
 reaps the direct child. No stale-PID deletion protocol or shared capture lock is
 used. Admission is opportunistic, with no strict fairness guarantee. A malformed
-manifest, absent counters, nonzero child exit or incomplete result set fails.
+manifest, absent counters, nonzero child exit, changed executable or incomplete
+result set fails. Build revision and executable SHA256 digests are retained;
+assertion logs are read in bounded chunks.
 No result or comparison verdict is reused. Independent review remains owed.
+
+
+## Persistent setup observations
+
+Indexed setup can load the complete source-derived seed sequence, animation
+lengths and FrameGuys from `.ron-observations-v1` beside the canonical source.
+`RON_SETUP_OBSERVATIONS_DIR` redirects entries; `RON_DISABLE_SETUP_OBSERVATIONS=1`
+disables disk reuse while preserving the previous small in-process cache.
+Raw-key recording bypasses both observation caches. No comparison verdict,
+simulation state, lobby merge or borrowed observation stream is persisted.
+
+The key binds canonical path, logical/stored lengths, held-source mtime and a
+fingerprint of parser, codec, index, observation logic and physical/archive I/O.
+Finalized-source validation runs before and after use. This retains the existing
+metadata boundary; it does not authenticate a source or defeat adversarial edits
+that preserve all metadata. Corrupt/stale/incompatible entries fall back to the
+original frame/sibling walk. Existing entries are never overwritten or pruned.
+
+The stream contains seeds, animation rows and each ordered clock frame as
+separate bounded LZ4 chunks. Duplicate frames and every FrameUnit/Guy field
+survive; exhaustive record patterns make added fields a compilation error.
+Writing borrows each row, with no whole-sequence clone or encoded buffer.
+Reading moves owned observations into Initial. Bounds:32 MiB decoded per chunk,
+64 MiB decoder allocation per chunk,100,000 clock frames,512 MiB entry bytes
+and512 MiB accumulated observation heap (plus one bounded decoding chunk).
+The checksum covers identity, lengths, chunk order and payload; it detects
+accidental corruption, not hostile forgeries. Publication explicitly flushes a
+create-new temporary file then links it without replacing an existing entry.
+Only that invocation's temporary file is removed. Optional write failures leave
+source parsing authoritative. The prior8 MiB/32-entry in-process bound is unchanged.
+
+The safe owned-record codec is shared with the parsed oracle. Its source now
+participates in both fingerprints; existing oracle generations are retained,
+and the move creates a new generation rather than trusting old schema keys.
+`RON_VERIFY_SETUP_OBSERVATIONS=1` compares the entire Initial with independently
+rebuilt fresh observations. `RON_PROFILE_SETUP_OBSERVATIONS=1` reports disk
+hits/misses/publication. Whole original-reader comparisons additionally cover
+all87 Golden source entries in fresh processes, with confirmed disk hits.
+Source observations remain outside git. See the shared-runner journal for cold,
+warm, CPU, RSS and final gate evidence; local setup speedups are not a10× suite
+claim. Independent review remains owed.

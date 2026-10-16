@@ -45,7 +45,7 @@ medium`; 2783 is its next); the whole gate green at the pass; count landings fro
 ## Sequential performance work
 
 User-directed branch `codex/astra-windowed-reader`; commander remains paused.
-Shared isolated-runner validation pending, then persistent setup observations.
+Shared isolation and persistent setup observations implemented; final gates pending.
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.
 

@@ -602,16 +602,61 @@ impl IndexedCapture {
         let mut init = log
             .replay_initial()
             .ok_or_else(|| invalid("no initial state"))?;
-        if let Some(cached) = observations::get(&self.path, self.length, self.modified) {
+        let enabled = observations::enabled();
+        let persistent_enabled =
+            enabled && std::env::var_os("RON_DISABLE_SETUP_OBSERVATIONS").is_none();
+        let cached = if enabled {
+            observations::get(&self.path, self.length, self.modified)
+        } else {
+            None
+        };
+        if let Some(cached) = cached {
             cached.apply(&mut init);
         } else {
+            let cached = if persistent_enabled {
+                observations::persistent::load(
+                    &self.path,
+                    self.length,
+                    self.stored_length,
+                    self.modified,
+                )
+            } else {
+                None
+            };
+            if let Some(cached) = cached {
+                init.frame_seeds = cached.seeds;
+                init.anim_lengths = cached.animations;
+                init.frame_guys = cached.guys;
+            } else {
+                for i in 0..self.frames.len() {
+                    let chunk = self.read_frame_and_siblings(i)?;
+                    crate::gamelog::Log::parse_eager(&chunk).append_observations(&mut init, false);
+                }
+                self.validate()?;
+                if persistent_enabled {
+                    observations::persistent::save(
+                        &self.path,
+                        self.length,
+                        self.stored_length,
+                        self.modified,
+                        &init,
+                    );
+                }
+            }
+            if enabled {
+                observations::insert(&self.path, self.length, self.modified, &init);
+            }
+        }
+        if std::env::var_os("RON_VERIFY_SETUP_OBSERVATIONS").is_some() {
+            let mut expected = log.replay_initial().unwrap();
             for i in 0..self.frames.len() {
                 let chunk = self.read_frame_and_siblings(i)?;
-                // The bounded chunk is immediately traversed in full.
-                crate::gamelog::Log::parse_eager(&chunk).append_observations(&mut init, false);
+                crate::gamelog::Log::parse_eager(&chunk).append_observations(&mut expected, false);
             }
-            self.validate()?;
-            observations::insert(&self.path, self.length, self.modified, &init);
+            assert_eq!(
+                init, expected,
+                "persistent setup differs from fresh observations"
+            );
         }
         self.validate()?;
         Ok(use_initial(init))

@@ -1,0 +1,86 @@
+{
+  "scope": "Four concurrent suites, eight explicit tests each; not a full-suite benchmark",
+  "source": "/tmp/attrition-shared-runner-20261016-01",
+  "modes": [
+    {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 54.997413500008406,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "mode": "legacy1",
+      "cpu": 486.34,
+      "wrapper_elapsed": 56.63,
+      "peak_mib": 16086,
+      "fixture_multiset_matches": true
+    },
+    {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 79.17753258300945,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "mode": "isolated1",
+      "cpu": 461.37,
+      "wrapper_elapsed": 81.27,
+      "peak_mib": 13641,
+      "fixture_multiset_matches": true
+    },
+    {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 54.00210358299955,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "mode": "isolated2",
+      "cpu": 483.27,
+      "wrapper_elapsed": 55.14,
+      "peak_mib": 18300,
+      "fixture_multiset_matches": true
+    },
+    {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 52.62883824999153,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "mode": "legacy2",
+      "cpu": 483.39000000000004,
+      "wrapper_elapsed": 54.23,
+      "peak_mib": 19452,
+      "fixture_multiset_matches": true
+    },
+    {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 57.83315683300316,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "mode": "isolated3",
+      "cpu": 472.49,
+      "wrapper_elapsed": 59.18,
+      "peak_mib": 17906,
+      "fixture_multiset_matches": true
+    }
+  ]
+}

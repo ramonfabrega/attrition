@@ -71,6 +71,34 @@ def release_ran(kwargs, log=RELEASE_LOG, present=True):
     Path(kwargs['log']).write_text(log)
 
 
+class IsolatedGate(unittest.TestCase):
+    def test_all_six_phases_and_fixture_reporting_survive_isolation(self):
+        with tempfile.TemporaryDirectory() as d:
+            install = Path(d)/'install'
+            (install/'Data').mkdir(parents=True)
+            (install/'Data/rules.xml').write_text('authored fixture')
+            calls = []
+            def run(command, **kwargs):
+                calls.append(command)
+                self.assertEqual(kwargs['env']['RON_GATE_RESOURCE_POLICY'], '1')
+                if '--release' in command:
+                    release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
+            report = gate.gate(install, report_dir=Path(d)/'report', require_fixtures=True,
+                               test_threads=4, isolated=True, run=run)
+            self.assertEqual(len(calls), 6)
+            self.assertIn('tools/isolated_tests.py', calls[4])
+            self.assertEqual(json.loads((report/'fixture-coverage.json').read_text())['missing_fixtures'], 0)
+            self.assertEqual(json.loads((report/'gate-policy.json').read_text())['memory_cap_gib'], 32)
+
+    def test_small_checks_share_capacity_and_scoped_gate_cannot_silently_widen(self):
+        self.assertEqual(gate.phase_budget(['python3', 'tools/offline_tests.py']), (2, 1024))
+        self.assertEqual(gate.phase_budget(['cargo', 'fmt', '--check']), (2, 1024))
+        self.assertEqual(gate.phase_budget(['cargo', 'clippy']), (8, 32768))
+        self.assertEqual(gate.phase_budget(['zsh', 'tools/guard.sh', '--built']), (2, 4096))
+        with self.assertRaises(ValueError):
+            gate.gate('/unused', isolated=True, scope='HEAD')
+
+
 class StaleAgentWorktrees(unittest.TestCase):
     # Loop 2724: three `agent-*` subagent worktrees of the thirty-fifth
     # tranche stood a day under the main checkout, two with unmerged tips,
