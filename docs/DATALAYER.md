@@ -194,6 +194,17 @@ something, so it cannot pass by doing nothing. It was made to fail twice: by
 dropping the parent's share of the trailing fields, and by ending a span at
 its last child.
 
+The frame and setup byte ranges also persist beside the source as a
+versioned `.ronidx-v1-*` sidecar. Its name includes the source's stored byte
+length and modification timestamp; its payload repeats that metadata and
+checksums all ranges. A mismatch or corrupt range is refused, while a changed
+source naturally gets a new sidecar and leaves the old one untouched. Writes
+use a temporary file followed by rename. The sidecar holds offsets only: it
+does not retain capture text or parsed records. In-process offsets remain
+shared in the bounded cache. The index allows gaps between frame spans because
+sibling records such as `FULL DUMP` can occur between `FRAME` blocks, while
+still rejecting overlapping or out-of-order ranges.
+
 **What the laziness costs is a second pass.** Every whole-log product —
 `frame_states`, `frame_seeds`, `anim_lengths`, the height grid, and the four
 walks `initial` used to make separately — now goes through `scan_children`,

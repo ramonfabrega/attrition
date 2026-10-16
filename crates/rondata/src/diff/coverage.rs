@@ -2997,228 +2997,105 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     use super::compared;
     compared::start();
-    let walked = super::second::east_indies_closing_window();
-    // **Every open word's window** (parked 1067 and 1080, the nineteenth
-    // pass; `floors::the_compared_pin_walks_every_open_ai_word` holds the
-    // list to `AI_WORDS`): the third map's, run416's blocks around its word
-    // at run414's detail since item 1133 (run382's blocks 1..259 before), is
-    // walked under the same recorder, and a field is compared when a site on
-    // either window compared it.
-    // Item 1206 closed the third map at its trace's end, 24000, so its
-    // row names its endpoint and no window; item 1221 opened the same map
-    // at Toughest (DECISIONS 56 §1), whose word's blocks on run471 are
-    // walked here beside East Indies'.
-    // Item 1528 closed Toughest at its trace's end, 15432: run668's blocks
-    // around the word 15378 stay walked, as French East Indies' do.
-    let toughest = super::sahara_toughest::great_sahara_toughest_15378_window();
-    // Item 1519 closed French East Indies at its trace's end, 17379: run662,
-    // the word 17318's window, stays walked, and run667's last running
-    // blocks and closing state are walked beside it.
-    let french_east = super::third_pair::french_east_indies_17318_window();
-    let french_closing = super::third_pair::french_east_indies_closing_window();
-    let french_lakes = super::third_pair::french_great_lakes_closing_window();
-    // Item 1445: retain run603's cast orders after moving the open window.
-    // Their comparisons still run; a quiet successor must not erase coverage.
-    let french_scholars = super::third_pair::french_east_indies_scholar_window();
-    // Item 1446: and run610's, where the word stood before this one.
-    let french_8182 = super::third_pair::french_east_indies_8182_window();
-    // Item 1449: and run612's, where it stood before run616.
-    let french_8236 = super::third_pair::french_east_indies_8236_window();
-    // Item 1451: and run616's, where it stood before run617.
-    let french_8385 = super::third_pair::french_east_indies_8385_window();
-    // Item 1452: and run617's, where it stood before run622.
-    let french_8840 = super::third_pair::french_east_indies_8840_window();
-    // Item 1453: and run622's, where it stood before run623.
-    let french_9655 = super::third_pair::french_east_indies_9655_window();
-    // Item 1454: and run623's, where it stood before run624.
-    let french_9777 = super::third_pair::french_east_indies_9777_window();
-    // Item 1455: and run624's, where it stood before run629.
-    let french_10131 = super::third_pair::french_east_indies_10131_window();
-    // Item 1458: and run629's, where it stood before run631.
-    let french_10802 = super::third_pair::french_east_indies_10802_window();
-    // Item 1460: and run631's, where it stood before run634.
-    let french_11582 = super::third_pair::french_east_indies_11582_window();
-    // Item 1461: and run634's, where it stood before run635.
-    let french_12794 = super::third_pair::french_east_indies_12794_window();
-    // Item 1470: and run635's, where it stood before run636.
-    let french_12952 = super::third_pair::french_east_indies_12952_window();
-    // Item 1476: and run636's, where it stood before run639.
-    let french_14090 = super::third_pair::french_east_indies_14090_window();
-    // Item 1481: and run639's, where it stood before run642.
-    let french_14786 = super::third_pair::french_east_indies_14786_window();
-    // Item 1487: and run642's, where it stood before run655.
-    let french_15344 = super::third_pair::french_east_indies_15344_window();
-    // Item 1500: and run655's, where it stood before run657.
-    let french_16857 = super::third_pair::french_east_indies_16857_window();
-    // Item 1508: and run657's, where it stood before run661.
-    let french_17171 = super::third_pair::french_east_indies_17171_window();
-    // Item 1514: and run661's, where it stood before run662.
-    let french_17244 = super::third_pair::french_east_indies_17244_window();
-    // Item 1511: the coverage pair, the newest pair's open word; item
-    // 1532: and run669's, where it stood before run672; item 1544: and
-    // run672's, where it stood before run678; item 1552: and run678's,
-    // where it stood before run679; item 1563: and run679's, where it
-    // stood before run710.
-    let coverage_185 = super::coverage_pair::coverage_frame_185_window();
-    let coverage_583 = super::coverage_pair::coverage_frame_583_window();
-    let coverage_982 = super::coverage_pair::coverage_frame_982_window();
-    let coverage_1277 = super::coverage_pair::coverage_frame_1277_window();
-    // Item 1591: and run710's, where it stood before run711.
-    let coverage_1532 = super::coverage_pair::coverage_frame_1532_window();
-    // Item 1598: and run711's, where it stood before run714.
-    let coverage_1960 = super::coverage_pair::coverage_frame_1960_window();
-    // Item 1605: and run714's, where it stood before run715.
-    let coverage_2288 = super::coverage_pair::coverage_frame_2288_window();
-    // Item 1614: and run715's, where it stood before run716.
-    let coverage_2868 = super::coverage_pair::coverage_frame_2868_window();
-    // Item 1625: and run716's, where it stood before run721.
-    let coverage_3142 = super::coverage_pair::coverage_frame_3142_window();
-    // Item 1668: and run721's, where it stood before run754.
-    let coverage_3395 = super::coverage_pair::coverage_frame_3395_window();
-    // Item 1700: and run754's, where it stood before run762.
-    let coverage_3963 = super::coverage_pair::coverage_frame_3963_window();
-    let coverage = super::coverage_pair::coverage_frame_4582_window();
-    // Item 1719 closed the pair at its trace's end, 4730: run763's last
-    // blocks and closing state are walked beside it.
-    let coverage_closing = super::coverage_pair::coverage_closing_window();
-    // Item 1549: the third map in the coverage lobby, run677's blocks around
-    // the word 12 and run680's around the word 720.
-    let sahara_12 = super::sahara_coverage::sahara_coverage_frame_12_window();
-    let sahara_720 = super::sahara_coverage::sahara_coverage_frame_720_window();
-    // Item 1555: and run681's blocks around the word 1197 and the word 1250.
-    let sahara_1197 = super::sahara_coverage::sahara_coverage_frame_1250_window();
-    // Item 1561: and run683's blocks around the word 1582.
-    let sahara_1582 = super::sahara_coverage::sahara_coverage_frame_1582_window();
-    // Item 1581: and run702's blocks around the word 1985.
-    let sahara_1985 = super::sahara_coverage::sahara_coverage_frame_1985_window();
-    // Item 1611: and run718's blocks around the word 2273.
-    let sahara_2273 = super::sahara_coverage::sahara_coverage_frame_2273_window();
-    // Item 1697: and run766's blocks around the word 2640.
-    let sahara_2640 = super::sahara_coverage::sahara_coverage_frame_2640_window();
-    // Items 1716, 1726: and run767's blocks around the words 2934 and 3182.
-    let sahara_2934 = super::sahara_coverage::sahara_coverage_frame_3183_window();
-    // Item 1905: and run790's blocks around the word 3767.
-    let sahara_3767 = super::sahara_coverage::sahara_coverage_frame_3767_window();
-    // Item 2055: and run817's blocks around the word 4266, to the game's
-    // closing block 4341 — the word closed at 4340 on it.
-    let sahara_4266 = super::sahara_coverage::sahara_coverage_frame_4266_window();
-    // Item 1728: the successor pair's word 11, run776's blocks 1..33.
-    let mongol_11 = super::mongol_pair::mongol_frame_11_window();
-    // Item 1744: and run779's blocks around the word 1354.
-    let mongol_1354 = super::mongol_pair::mongol_frame_1354_window();
-    // Item 1768: and run780's blocks around the word 2207.
-    let mongol_2207 = super::mongol_pair::mongol_frame_2207_window();
-    // Item 1868: and run788's blocks around the word 2838.
-    let mongol_2838 = super::mongol_pair::mongol_frame_2838_window();
-    // Item 1948: and run799's blocks around the word 3131.
-    let mongol_3131 = super::mongol_pair::mongol_frame_3131_window();
-    // Item 2001: and run809's blocks around the word 3632.
-    let mongol_3632 = super::mongol_pair::mongol_frame_3632_window();
-    // Item 2088: and run820's blocks around the word 4238.
-    let mongol_4238 = super::mongol_pair::mongol_frame_4238_window();
-    // Item 2193: and run838's blocks around the word 4603.
-    let mongol_4603 = super::mongol_pair::mongol_frame_4603_window();
-    // Item 2293: and run844's last blocks, 4940..5057, to the closing block.
-    let mongol_closing = super::mongol_pair::mongol_closing_window();
-    // Item 2107: Great Sahara in the successor pair's lobby, run834's
-    // blocks around the word 2995 to the game's closing block 3269.
-    let sahara_mongol_2995 = super::sahara_mongol::sahara_mongol_frame_2995_window();
-    // Item 2320: the peace pair, the newest pair's open word, run848's
-    // blocks around the word 1384.
-    let lakota_1384 = super::lakota_pair::lakota_frame_1384_window();
-    // Item 2351: and run849's blocks around the word 1984.
-    let lakota_1984 = super::lakota_pair::lakota_frame_1984_window();
-    // Item 2412: and run853's blocks around the word 3302.
-    let lakota_3302 = super::lakota_pair::lakota_frame_3302_window();
-    // Item 2423: and run855's blocks around the word 4544.
-    let lakota_4544 = super::lakota_pair::lakota_frame_4544_window();
-    // Item 2460: and run861's blocks around the word 4859.
-    let lakota_4859 = super::lakota_pair::lakota_frame_4859_window();
-    // Item 2554: and run866's blocks around the word 5135.
-    let lakota_5135 = super::lakota_pair::lakota_frame_5135_window();
-    // Item 2677: and run867's blocks around the word 5407.
-    let lakota_5407 = super::lakota_pair::lakota_frame_5407_window();
+    // Run the exact same windows one at a time. Each result owns detailed
+    // divergence maps that this instrument-coverage assertion does not read;
+    // retaining all of them until the pin walk needlessly raised the peak RSS.
+    let windows: &[fn() -> Option<super::harness::tests::Widened>] = &[
+        || super::second::east_indies_closing_window(),
+        || super::sahara_toughest::great_sahara_toughest_15378_window(),
+        || super::third_pair::french_east_indies_17318_window(),
+        || super::third_pair::french_east_indies_closing_window(),
+        || super::third_pair::french_great_lakes_closing_window(),
+        || super::third_pair::french_east_indies_scholar_window(),
+        || super::third_pair::french_east_indies_8182_window(),
+        || super::third_pair::french_east_indies_8236_window(),
+        || super::third_pair::french_east_indies_8385_window(),
+        || super::third_pair::french_east_indies_8840_window(),
+        || super::third_pair::french_east_indies_9655_window(),
+        || super::third_pair::french_east_indies_9777_window(),
+        || super::third_pair::french_east_indies_10131_window(),
+        || super::third_pair::french_east_indies_10802_window(),
+        || super::third_pair::french_east_indies_11582_window(),
+        || super::third_pair::french_east_indies_12794_window(),
+        || super::third_pair::french_east_indies_12952_window(),
+        || super::third_pair::french_east_indies_14090_window(),
+        || super::third_pair::french_east_indies_14786_window(),
+        || super::third_pair::french_east_indies_15344_window(),
+        || super::third_pair::french_east_indies_16857_window(),
+        || super::third_pair::french_east_indies_17171_window(),
+        || super::third_pair::french_east_indies_17244_window(),
+        || super::coverage_pair::coverage_frame_185_window(),
+        || super::coverage_pair::coverage_frame_583_window(),
+        || super::coverage_pair::coverage_frame_982_window(),
+        || super::coverage_pair::coverage_frame_1277_window(),
+        || super::coverage_pair::coverage_frame_1532_window(),
+        || super::coverage_pair::coverage_frame_1960_window(),
+        || super::coverage_pair::coverage_frame_2288_window(),
+        || super::coverage_pair::coverage_frame_2868_window(),
+        || super::coverage_pair::coverage_frame_3142_window(),
+        || super::coverage_pair::coverage_frame_3395_window(),
+        || super::coverage_pair::coverage_frame_3963_window(),
+        || super::coverage_pair::coverage_frame_4582_window(),
+        || super::coverage_pair::coverage_closing_window(),
+        || super::sahara_coverage::sahara_coverage_frame_12_window(),
+        || super::sahara_coverage::sahara_coverage_frame_720_window(),
+        || super::sahara_coverage::sahara_coverage_frame_1250_window(),
+        || super::sahara_coverage::sahara_coverage_frame_1582_window(),
+        || super::sahara_coverage::sahara_coverage_frame_1985_window(),
+        || super::sahara_coverage::sahara_coverage_frame_2273_window(),
+        || super::sahara_coverage::sahara_coverage_frame_2640_window(),
+        || super::sahara_coverage::sahara_coverage_frame_3183_window(),
+        || super::sahara_coverage::sahara_coverage_frame_3767_window(),
+        || super::sahara_coverage::sahara_coverage_frame_4266_window(),
+        || super::mongol_pair::mongol_frame_11_window(),
+        || super::mongol_pair::mongol_frame_1354_window(),
+        || super::mongol_pair::mongol_frame_2207_window(),
+        || super::mongol_pair::mongol_frame_2838_window(),
+        || super::mongol_pair::mongol_frame_3131_window(),
+        || super::mongol_pair::mongol_frame_3632_window(),
+        || super::mongol_pair::mongol_frame_4238_window(),
+        || super::mongol_pair::mongol_frame_4603_window(),
+        || super::mongol_pair::mongol_closing_window(),
+        || super::sahara_mongol::sahara_mongol_frame_2995_window(),
+        || super::lakota_pair::lakota_frame_1384_window(),
+        || super::lakota_pair::lakota_frame_1984_window(),
+        || super::lakota_pair::lakota_frame_3302_window(),
+        || super::lakota_pair::lakota_frame_4544_window(),
+        || super::lakota_pair::lakota_frame_4859_window(),
+        || super::lakota_pair::lakota_frame_5135_window(),
+        || super::lakota_pair::lakota_frame_5407_window(),
+    ];
+    let mut missing = false;
+    let mut closing_blocks = 0;
+    let mut total_blocks = 0;
+    for (index, window) in windows.iter().enumerate() {
+        if let Some(w) = window() {
+            if index == 0 {
+                closing_blocks = w.blocks;
+            }
+            total_blocks += w.blocks;
+        } else {
+            missing = true;
+        }
+    }
     let seen = compared::stop();
     // **A window is one line** (parked 1959, the thirty-first pass): 1905
     // and 1868 each added a binding and a slot to a 49-tuple pattern, both
     // merged clean, and the destructuring came out one `Some(_)` short — a
     // compile red no lane gate could see (`a0bcf9f9`). The windows are
     // walked as a slice now; a new one is pushed here and nowhere else.
-    let windows = [
-        walked,
-        toughest,
-        french_east,
-        french_closing,
-        french_lakes,
-        french_scholars,
-        french_8182,
-        french_8236,
-        french_8385,
-        french_8840,
-        french_9655,
-        french_9777,
-        french_10131,
-        french_10802,
-        french_11582,
-        french_12794,
-        french_12952,
-        french_14090,
-        french_14786,
-        french_15344,
-        french_16857,
-        french_17171,
-        french_17244,
-        coverage_185,
-        coverage_583,
-        coverage_982,
-        coverage_1277,
-        coverage_1532,
-        coverage_1960,
-        coverage_2288,
-        coverage_2868,
-        coverage_3142,
-        coverage_3395,
-        coverage_3963,
-        coverage,
-        coverage_closing,
-        sahara_12,
-        sahara_720,
-        sahara_1197,
-        sahara_1582,
-        sahara_1985,
-        sahara_2273,
-        sahara_2640,
-        sahara_2934,
-        sahara_3767,
-        sahara_4266,
-        mongol_11,
-        mongol_1354,
-        mongol_2207,
-        mongol_2838,
-        mongol_3131,
-        mongol_3632,
-        mongol_4238,
-        mongol_4603,
-        mongol_closing,
-        sahara_mongol_2995,
-        lakota_1384,
-        lakota_1984,
-        lakota_3302,
-        lakota_4544,
-        lakota_4859,
-        lakota_5135,
-        lakota_5407,
-    ];
-    if windows.iter().any(Option::is_none) {
+
+    if missing {
         eprintln!("skipping: the open words' captures are not all on disk");
         return;
     }
-    let w = windows[0].as_ref().expect("every window is on disk");
-    assert!(w.blocks >= 4, "the closing window is {} blocks", w.blocks);
+    assert!(
+        closing_blocks >= 4,
+        "the closing window is {closing_blocks} blocks"
+    );
     assert!(
         !seen.is_empty(),
-        "the instrument registered nothing on {} blocks",
-        w.blocks
+        "the instrument registered nothing on {total_blocks} blocks"
     );
     let recs = crate::ledger::records(include_str!("../gamelog.rs"));
     let mut wrong: Vec<String> = Vec::new();
@@ -3270,7 +3147,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     assert!(
         wrong.is_empty(),
         "the compared pin, over {} blocks and {} registrations:\n  {}",
-        w.blocks,
+        total_blocks,
         seen.len(),
         wrong.join("\n  ")
     );

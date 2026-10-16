@@ -15,6 +15,10 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::SystemTime;
 
+const DISK_INDEX_MAGIC: &[u8; 8] = b"RONIDX\0\x01";
+const MAX_DISK_INDEX_BYTES: u64 = 64 * 1024 * 1024;
+type DiskIndex = (Vec<FrameRange>, Vec<(u64, u64)>);
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FrameRange {
     pub number: i64,
@@ -133,6 +137,221 @@ fn index_stat(kind: &str, seconds: f64, path: &Path, bytes: usize) {
     }
 }
 
+fn cache_index(cache: &Mutex<Vec<Cached>>, capture: &IndexedCapture) {
+    let entry = Cached {
+        path: capture.path.clone(),
+        length: capture.stored_length,
+        modified: capture.modified,
+        frames: Arc::clone(&capture.frames),
+        setup: Arc::clone(&capture.setup),
+    };
+    if entry.bytes() <= CACHE_BYTES
+        && let Ok(mut entries) = cache.lock()
+    {
+        entries.retain(|e| e.path != entry.path);
+        entries.push(entry);
+        while cache_bytes(&entries) > CACHE_BYTES {
+            entries.remove(0);
+        }
+    }
+}
+
+fn modified_parts(modified: SystemTime) -> io::Result<(u64, u32)> {
+    let since_epoch = modified
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .map_err(|_| invalid("capture modification time predates the Unix epoch"))?;
+    Ok((since_epoch.as_secs(), since_epoch.subsec_nanos()))
+}
+
+/// The metadata is part of the name so refreshing a dump leaves its previous
+/// index intact. The payload repeats the metadata and checksums every offset.
+fn disk_index_path(path: &Path, stored_length: u64, modified: SystemTime) -> io::Result<PathBuf> {
+    let (seconds, nanos) = modified_parts(modified)?;
+    let mut name = path.file_name().unwrap_or_default().to_os_string();
+    name.push(format!(".ronidx-v1-{stored_length}-{seconds}-{nanos}"));
+    Ok(path.with_file_name(name))
+}
+
+fn checksum(bytes: &[u8]) -> u64 {
+    // FNV-1a is used for accidental corruption detection, not authenticity.
+    bytes.iter().fold(0xcbf29ce484222325, |hash, byte| {
+        (hash ^ u64::from(*byte)).wrapping_mul(0x100000001b3)
+    })
+}
+
+fn push_u64(bytes: &mut Vec<u8>, value: u64) {
+    bytes.extend_from_slice(&value.to_le_bytes());
+}
+
+fn read_u64(bytes: &[u8], at: &mut usize) -> io::Result<u64> {
+    let end = at
+        .checked_add(8)
+        .ok_or_else(|| invalid("index length overflow"))?;
+    let value = bytes
+        .get(*at..end)
+        .ok_or_else(|| invalid("truncated frame index"))?;
+    *at = end;
+    Ok(u64::from_le_bytes(
+        value.try_into().expect("eight-byte slice"),
+    ))
+}
+
+fn read_disk_index(
+    path: &Path,
+    logical_length: u64,
+    stored_length: u64,
+    modified: SystemTime,
+) -> io::Result<DiskIndex> {
+    let file_length = std::fs::metadata(path)?.len();
+    if file_length > MAX_DISK_INDEX_BYTES {
+        return Err(invalid("frame index exceeds the 64 MiB safety limit"));
+    }
+    let bytes = std::fs::read(path)?;
+    if bytes.len() < 60 || bytes.get(..8) != Some(DISK_INDEX_MAGIC) {
+        return Err(invalid("invalid frame index header"));
+    }
+    let data_end = bytes.len() - 8;
+    let stored_checksum =
+        u64::from_le_bytes(bytes[data_end..].try_into().expect("eight-byte checksum"));
+    if checksum(&bytes[..data_end]) != stored_checksum {
+        return Err(invalid("frame index checksum mismatch"));
+    }
+    let (expected_seconds, expected_nanos) = modified_parts(modified)?;
+    let mut at = 8;
+    let indexed_logical_length = read_u64(&bytes[..data_end], &mut at)?;
+    let indexed_stored_length = read_u64(&bytes[..data_end], &mut at)?;
+    let seconds = read_u64(&bytes[..data_end], &mut at)?;
+    let nanos = u32::from_le_bytes(
+        bytes
+            .get(at..at + 4)
+            .ok_or_else(|| invalid("truncated frame index timestamp"))?
+            .try_into()
+            .expect("four-byte timestamp"),
+    );
+    at += 4;
+    let frame_count = usize::try_from(read_u64(&bytes[..data_end], &mut at)?)
+        .map_err(|_| invalid("frame count does not fit memory"))?;
+    let setup_count = usize::try_from(read_u64(&bytes[..data_end], &mut at)?)
+        .map_err(|_| invalid("setup range count does not fit memory"))?;
+    let expected_end = at
+        .checked_add(
+            frame_count
+                .checked_mul(24)
+                .ok_or_else(|| invalid("frame count overflow"))?,
+        )
+        .and_then(|n| n.checked_add(setup_count.checked_mul(16)?))
+        .ok_or_else(|| invalid("frame index length overflow"))?;
+    if expected_end != data_end {
+        return Err(invalid("frame index length does not match its counts"));
+    }
+    if indexed_logical_length != logical_length
+        || indexed_stored_length != stored_length
+        || seconds != expected_seconds
+        || nanos != expected_nanos
+    {
+        return Err(invalid("stale frame index metadata"));
+    }
+
+    let mut frames = Vec::with_capacity(frame_count);
+    let mut previous_end = None;
+    for _ in 0..frame_count {
+        let number = read_u64(&bytes[..data_end], &mut at)? as i64;
+        let offset = read_u64(&bytes[..data_end], &mut at)?;
+        let length = read_u64(&bytes[..data_end], &mut at)?;
+        let end = offset
+            .checked_add(length)
+            .filter(|end| *end <= logical_length)
+            .ok_or_else(|| invalid("frame index range is outside the capture"))?;
+        if length == 0 || previous_end.is_some_and(|prior| prior > offset) {
+            return Err(invalid("frame index ranges overlap or are out of order"));
+        }
+        previous_end = Some(end);
+        frames.push(FrameRange {
+            number,
+            offset,
+            length,
+        });
+    }
+    let mut setup = Vec::with_capacity(setup_count);
+    let mut previous_end = None;
+    for _ in 0..setup_count {
+        let offset = read_u64(&bytes[..data_end], &mut at)?;
+        let length = read_u64(&bytes[..data_end], &mut at)?;
+        let end = offset
+            .checked_add(length)
+            .filter(|end| *end <= logical_length)
+            .ok_or_else(|| invalid("setup index range is outside the capture"))?;
+        if length == 0 || previous_end.is_some_and(|prior| prior > offset) {
+            return Err(invalid("setup index ranges overlap or are empty"));
+        }
+        previous_end = Some(end);
+        setup.push((offset, length));
+    }
+    Ok((frames, setup))
+}
+
+fn write_disk_index(path: &Path, capture: &IndexedCapture) -> io::Result<()> {
+    if path.exists() {
+        read_disk_index(
+            path,
+            capture.length,
+            capture.stored_length,
+            capture.modified,
+        )?;
+        return Ok(());
+    }
+    let (seconds, nanos) = modified_parts(capture.modified)?;
+    let mut bytes = Vec::with_capacity(60 + capture.frames.len() * 24 + capture.setup.len() * 16);
+    bytes.extend_from_slice(DISK_INDEX_MAGIC);
+    push_u64(&mut bytes, capture.length);
+    push_u64(&mut bytes, capture.stored_length);
+    push_u64(&mut bytes, seconds);
+    bytes.extend_from_slice(&nanos.to_le_bytes());
+    push_u64(&mut bytes, capture.frames.len() as u64);
+    push_u64(&mut bytes, capture.setup.len() as u64);
+    for frame in capture.frames.iter() {
+        push_u64(&mut bytes, frame.number as u64);
+        push_u64(&mut bytes, frame.offset);
+        push_u64(&mut bytes, frame.length);
+    }
+    for &(offset, length) in capture.setup.iter() {
+        push_u64(&mut bytes, offset);
+        push_u64(&mut bytes, length);
+    }
+    let digest = checksum(&bytes);
+    push_u64(&mut bytes, digest);
+
+    static NEXT_TEMP: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let temp = path.with_extension(format!(
+        "ronidx-tmp-{}-{}",
+        std::process::id(),
+        NEXT_TEMP.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+    ));
+    let result = (|| {
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temp)?;
+        use std::io::Write;
+        file.write_all(&bytes)?;
+        file.sync_all()?;
+        if path.exists() {
+            read_disk_index(
+                path,
+                capture.length,
+                capture.stored_length,
+                capture.modified,
+            )?;
+            return Ok(());
+        }
+        std::fs::rename(&temp, path)
+    })();
+    if temp.exists() {
+        let _ = std::fs::remove_file(&temp);
+    }
+    result
+}
+
 fn invalid(message: &str) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, message)
 }
@@ -186,6 +405,25 @@ impl IndexedCapture {
                 frames: Arc::clone(&entry.frames),
                 setup: Arc::clone(&entry.setup),
             });
+        }
+        let disk_index = disk_index_path(&path, meta.len(), modified)?;
+        if disk_index.exists() {
+            let (frames, setup) = read_disk_index(&disk_index, length, meta.len(), modified)?;
+            let capture = Self {
+                file,
+                path: path.clone(),
+                length,
+                stored_length: meta.len(),
+                modified,
+                frames: frames.into(),
+                setup: setup.into(),
+            };
+            capture.check_metadata(capture.file.metadata()?)?;
+            let bytes = std::mem::size_of_val(capture.frames.as_ref())
+                + std::mem::size_of_val(capture.setup.as_ref());
+            index_stat("disk", 0.0, &path, bytes);
+            cache_index(cache, &capture);
+            return Ok(capture);
         }
         let built = std::time::Instant::now();
         let mut reader = BufReader::with_capacity(256 * 1024, file);
@@ -270,25 +508,11 @@ impl IndexedCapture {
             setup: setup.ranges.into(),
         };
         capture.check_metadata(capture.file.metadata()?)?;
+        let _ = write_disk_index(&disk_index, &capture);
         let bytes = std::mem::size_of_val(capture.frames.as_ref())
             + std::mem::size_of_val(capture.setup.as_ref());
         index_stat("build", built.elapsed().as_secs_f64(), &path, bytes);
-        let entry = Cached {
-            path,
-            length: capture.stored_length,
-            modified,
-            frames: Arc::clone(&capture.frames),
-            setup: Arc::clone(&capture.setup),
-        };
-        if entry.bytes() <= CACHE_BYTES
-            && let Ok(mut entries) = cache.lock()
-        {
-            entries.retain(|e| e.path != entry.path);
-            entries.push(entry);
-            while cache_bytes(&entries) > CACHE_BYTES {
-                entries.remove(0);
-            }
-        }
+        cache_index(cache, &capture);
         Ok(capture)
     }
 
@@ -463,6 +687,24 @@ mod tests {
     }
     impl Drop for Input {
         fn drop(&mut self) {
+            let Some(parent) = self.0.parent() else {
+                return;
+            };
+            let Some(file_name) = self.0.file_name().and_then(|n| n.to_str()) else {
+                return;
+            };
+            let sidecar_prefix = format!("{file_name}.ronidx-v1-");
+            if let Ok(entries) = std::fs::read_dir(parent) {
+                for entry in entries.flatten() {
+                    if entry
+                        .file_name()
+                        .to_str()
+                        .is_some_and(|name| name.starts_with(&sidecar_prefix))
+                    {
+                        let _ = std::fs::remove_file(entry.path());
+                    }
+                }
+            }
             let _ = std::fs::remove_file(&self.0);
         }
     }
@@ -607,6 +849,15 @@ mod tests {
             "BEGIN GAME\n BEGIN FRAME 2\n BEGIN FULL DUMP\n  value 1\n BEGIN FRAME 2\n  value 2\n";
         let input = Input::new(text);
         let mut source = IndexedCapture::open(&input.0).unwrap();
+        let index_path = disk_index_path(&input.0, source.stored_length, source.modified).unwrap();
+        let (persisted, _) = read_disk_index(
+            &index_path,
+            source.length,
+            source.stored_length,
+            source.modified,
+        )
+        .unwrap();
+        assert_eq!(persisted, source.frames());
         for (index, count) in [(0, 1), (1, 0)] {
             let slice = source.read_frame_and_siblings(index).unwrap();
             let log = crate::gamelog::Log::parse(&slice);
@@ -654,12 +905,42 @@ mod tests {
     fn reopening_shares_offsets_and_a_changed_length_invalidates_them() {
         let input = Input::new("BEGIN GAME\n BEGIN FRAME 1\n");
         let first = IndexedCapture::open(&input.0).unwrap();
+        let old_index = disk_index_path(&input.0, first.stored_length, first.modified).unwrap();
+        assert!(old_index.is_file(), "the first scan persists its offsets");
         let second = IndexedCapture::open(&input.0).unwrap();
         assert!(Arc::ptr_eq(&first.frames, &second.frames));
         std::fs::write(&input.0, "BEGIN GAME\n BEGIN FRAME 12345\n").unwrap();
         let third = IndexedCapture::open(&input.0).unwrap();
         assert_eq!(third.frames[0].number, 12345);
         assert!(!Arc::ptr_eq(&first.frames, &third.frames));
+        let new_index = disk_index_path(&input.0, third.stored_length, third.modified).unwrap();
+        assert!(
+            new_index.is_file(),
+            "changed source metadata gets a fresh index"
+        );
+        assert!(old_index.is_file(), "the stale sidecar is preserved");
+    }
+
+    #[test]
+    fn a_corrupted_persisted_offset_is_refused() {
+        let input = Input::new("BEGIN GAME\n BEGIN FRAME 17\n  value 1\n");
+        let capture = IndexedCapture::open(&input.0).unwrap();
+        let path = disk_index_path(&input.0, capture.stored_length, capture.modified).unwrap();
+        let mut bytes = std::fs::read(&path).unwrap();
+        // Header is 52 bytes; the first frame's offset follows its number.
+        bytes[60] ^= 1;
+        std::fs::write(&path, bytes).unwrap();
+        assert!(
+            read_disk_index(
+                &path,
+                capture.length,
+                capture.stored_length,
+                capture.modified
+            )
+            .unwrap_err()
+            .to_string()
+            .contains("checksum mismatch")
+        );
     }
 
     #[test]
