@@ -54,7 +54,8 @@ Third-pair four-suite sample: CPU-32%, memory-36%, wall unchanged; see its
 [journal](journal/2026-10-16-third-pair-replay.md). Coverage walk now saves21–25% CPU;
 full-frame audits and exact fixture/output comparisons pass. Four-suite sample:
 wall-16%, CPU-15%, memory-6%; six suites wall-18%, CPU-14%, memory flat.
-Release gate pending. Next: ticking/decoding now dominate. See
+Full required-fixture gate passed on `f08d0c08`; full-gate speedup unproven.
+Next: ticking/decoding now dominate. See
 [coverage journal](journal/2026-10-16-coverage-walk.md).
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.

@@ -110,3 +110,32 @@ The remaining measured coverage costs are ticking (~14s), decoding (~6s), setup
 (~4s) and values (~5s). Further gains need new measurements there; the original
 reader profile no longer describes the current bottleneck. No10× whole-suite
 claim. Source-based review remains provisional until the later independent steer.
+
+## Full release verdict
+
+Implementation committed as `f08d0c08e7ef746f59ba749255fa151139de402b`; clean tree
+frozen for the gate. Command:
+
+```sh
+python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures --report-dir /tmp/attrition-coverage-walk-20261016-01/gate
+```
+
+Wrapped by `/usr/bin/time -l zsh tools/memcap.sh 40`; `full-gate.log` and
+`full-gate.exit` retain the actual exit0. All6 steps ran and passed (offline,
+clippy, fmt, survey, release, guard). Fixed13, rondata887 plus6 existing ignored,
+sim2585, doc-tests3 pass. Exact3276 fixture-request rows match the preceding full
+run in `/tmp/attrition-third-pair-20261016-01/release-gate`;419 unique fixtures,
+zero missing. Neither coverage test is skipped, and audit flags are absent.
+
+Whole gate433.29wall /1422.75CPU seconds; sampled tree9910MiB; rondata301.92s.
+The preceding run was400.66wall /1410.96CPU /10071MiB, rondata308.53s, with its
+subsequently corrected paperwork failure. These separate full-gate observations
+do **not** establish a whole-suite improvement (wall increased8%, CPU about1%).
+The controlled same-binary coverage and contention results remain the evidence
+for this optimization. Do not extrapolate the sample's gain to the full suite.
+No fidelity score, draw, comparison value or pin moved. Independent review owed.
+
+This verdict-only follow-up changes documentation/measurement bookkeeping;
+validate it with diff checks and paperwork guards, without repeating the game-data
+gate. Next measured targets: coverage ticking and decoded-record allocation,
+plus a controlled full-suite contention baseline before any10× suite claim.

@@ -45,7 +45,28 @@
     }
   },
   "complete_diagnostic_lines_equal": 14748,
-  "release_gate": "pending",
+  "release_gate": {
+    "implementation_commit": "f08d0c08e7ef746f59ba749255fa151139de402b",
+    "command": "python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures",
+    "report_dir": "/tmp/attrition-coverage-walk-20261016-01/gate",
+    "exit": 0,
+    "steps_ran": 6,
+    "steps_total": 6,
+    "fixed_passed": 13,
+    "rondata_passed": 887,
+    "rondata_ignored": 6,
+    "sim_passed": 2585,
+    "doc_tests_passed": 3,
+    "fixture_requests": 3276,
+    "unique_fixtures": 419,
+    "missing_fixtures": 0,
+    "fixture_multiset_equal_to_previous_full_run": true,
+    "wall": 433.29,
+    "cpu": 1422.75,
+    "sampled_tree_peak_mib": 9910,
+    "rondata_seconds": 301.92,
+    "whole_suite_speedup_established": false
+  },
   "independent_review": "owed",
   "contention_four_suites": {
     "isolated-off": {
