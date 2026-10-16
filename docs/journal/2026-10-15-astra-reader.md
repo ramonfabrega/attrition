@@ -105,8 +105,17 @@ The focused coverage test passed after the change in 167.63 s. A quiet direct
 baseline took 175.07 s, an observed 7.44 s (4.2%) reduction. The previous
 suite sweep recorded 172.38 s, and a profiled baseline took 184.40 s; this
 spread means the focused result suggests a modest win but does not establish
-a stable suite-wide improvement. Full required-fixture release-gate validation remains
-pending at this checkpoint. The profile is retained at
+a stable suite-wide improvement. The implementation checkpoint is
+`f36f1393`. Its first full-gate attempt exited in offline validation because
+sandbox restrictions prevented `ps` execution and macOS LaunchServices could
+not open fixture apps; the gate did not reach the release suite. No source or
+fixture test was weakened. The required gate was rerun with host permissions
+on the unchanged committed tree and passed: all 6 steps, 13 fixed tests, 866
+rondata tests, 2,585 sim tests, and 3 rondata doc-tests; fixture audit 3,186
+requests, 0 missing. The four-thread memory cap observed 12,543 MiB across
+the tree and 12,510 MiB in the largest process, below 20 GiB. Gate log:
+`/tmp/attrition-region-cache-release-gate-elevated.log`. The final gate
+verdict is recorded in a follow-up commit. The profile is retained at
 `/tmp/attrition-coverage-profile-elevated.sample.txt`.
 
 ### For the Loop
