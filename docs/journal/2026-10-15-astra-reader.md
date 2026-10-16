@@ -414,4 +414,10 @@ The focused run measured 3.11 s / 1,114 MiB (1,169,113,088 bytes), versus
 was 0.16 s slower, so this is a memory win, not a CPU claim. Indexed
 instructions: 69,016,505,938. Evidence:
 `docs/audit/2026-10-15-astra-run97-clocks-indexed.txt`. The implementation
-checkpoint and required gate are pending.
+checkpoint: `97596eeb`. The required release gate passed all 6 steps on the
+unchanged committed tree: 13 fixed tests, 866 rondata tests, 2,585 sim tests,
+and 3 rondata doc-tests. Fixture audit: 3,187 requests, 0 missing.
+Four-thread memory peak was 8,617 MiB across the tree and 8,585 MiB in the
+largest process, under the 20 GiB cap. Gate log:
+`/tmp/attrition-run97-clocks-indexed-release-gate.log`. The follow-up commit
+records this verdict.
