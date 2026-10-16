@@ -7,6 +7,7 @@ use super::*;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::diff::testkit::replay_initial;
     use crate::gamelog::Block;
     use crate::testenv::{dump, install};
     use sim::army::Army;
@@ -122,7 +123,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let init = log.initial().unwrap();
+        let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let frames = log.frames();
         // Block 4 is the quit's own: a `FRAME 4` header with no dump.
@@ -173,9 +174,9 @@ mod tests {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
+        let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &refs);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let frames = log.frames();
@@ -469,7 +470,7 @@ mod tests {
             !region_map.is_empty(),
             "{frame}: the WORLD block carries no cells"
         );
-        let init = log.initial().expect("the start-of-game block");
+        let init = replay_initial(log).expect("the start-of-game block");
         let players = player_count(&init).max(1);
         let mut sim = loaded.sim(Tuning::RON, world, players);
         sim.lobby = lobby_of(

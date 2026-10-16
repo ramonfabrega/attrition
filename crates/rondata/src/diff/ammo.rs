@@ -141,6 +141,30 @@ fn micro(s: &str) -> Option<i64> {
 /// exercised by any capture on this disk**. The count assertion is what
 /// would catch it: a record that lost or gained a field is not 27 long.
 pub(crate) fn blocks(body: &str) -> Vec<(Ammo, usize)> {
+    if std::env::var_os("RON_DISABLE_GOLDEN_READERS").is_some() {
+        return blocks_walk(body);
+    }
+    // Before the first possible header the original state machine has no
+    // pending record. Skip only complete lines before that marker, retaining
+    // its indentation and every later line (including nested/sibling blocks).
+    let out = match body.find("BEGIN AMMO") {
+        None => Vec::new(),
+        Some(at) => {
+            let start = body[..at].rfind('\n').map_or(0, |n| n + 1);
+            blocks_walk(&body[start..])
+        }
+    };
+    if std::env::var_os("RON_VERIFY_GOLDEN_READERS").is_some() {
+        assert_eq!(
+            out,
+            blocks_walk(body),
+            "complete ammo records/widths changed"
+        );
+    }
+    out
+}
+
+fn blocks_walk(body: &str) -> Vec<(Ammo, usize)> {
     let indent = |l: &str| l.len() - l.trim_start().len();
     let mut out: Vec<(Ammo, usize)> = Vec::new();
     // The pending record: the named fields it has, the *total* count of
@@ -1009,5 +1033,19 @@ pub(crate) mod tests {
             vec![(11, 6), (11, 22), (12, 4), (12, 22), (13, 10), (13, 24)],
             "all six of the Longbowman's release events: {ev:?}"
         );
+    }
+}
+
+#[test]
+fn ammo_prefix_skip_preserves_headers_nesting_and_field_widths() {
+    for text in [
+        "",
+        "BEGIN UNITDATA\n who 1\n near_o 2\n",
+        "unrelated BEGIN AMMO text\n BEGIN AMMO\n  who 1\n  o 2\n",
+        "BEGIN AMMO\n who 1\n o 2\n BEGIN SplineData\n  who 9\n flags 3\nBEGIN AMMO\n who 2\n o 3\n",
+        "prefix\r\n\tBEGIN AMMO  \r\n\t who 1\r\n\t o 2\r\nBEGIN UNITDATA\n who 8\n",
+        "BEGIN AMMOX\n who 1\nBEGIN AMMO\n who invalid\n unknown 1\n v1z 1.000001\n",
+    ] {
+        assert_eq!(blocks(text), blocks_walk(text), "{text:?}");
     }
 }

@@ -78,9 +78,9 @@ mod tests {
         // took (`docs/SYNC.md` §5).
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
+        let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &refs);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         assert!(built.sim.scripts.is_some(), "the scripts compiled");
@@ -209,7 +209,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let init = log.initial().unwrap();
+        let init = replay_initial(&log).unwrap();
         // Self-sufficient: the setup trace, the heights and the frame words
         // are the run's own, or the assertion below would be on the sim's
         // own luck rather than the original's.
@@ -478,7 +478,7 @@ mod tests {
         let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         assert!(
@@ -568,7 +568,7 @@ mod tests {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         assert_eq!(
             inits[2].frame_seeds.first(),
             Some(&(94, 0x5f8f_3d9d)),
@@ -687,7 +687,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let init = log.initial().unwrap();
+        let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         assert_eq!(built.sim.lobby.map_style, 18, "East Indies");
 
@@ -853,7 +853,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let init = log.initial().unwrap();
+        let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let sim = &mut built.sim;
         assert!(sim.nation[1].british, "run53's AI is tribe 11");
@@ -988,7 +988,7 @@ mod tests {
         let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         let frames = report.frames.len();
@@ -1061,7 +1061,7 @@ mod tests {
         // (`Built::region_map` is the translation, and this record is
         // keyed by slot rather than by region).
         let mut built = {
-            let mut init = log.initial().unwrap();
+            let mut init = replay_initial(&log).unwrap();
             borrow_from_siblings(&mut init, &refs);
             borrow_pasture(&mut init, &tr);
             build_sim(&loaded, &init, Tuning::RON)
@@ -1199,7 +1199,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
         let mut ran = 0;
         for (file, lo, hi, fields, floor) in [
@@ -1219,7 +1219,7 @@ mod tests {
             ran += 1;
             let text = crate::capture::read(&path);
             let log = Log::parse(&text);
-            let mut init = log.initial().unwrap();
+            let mut init = replay_initial(&log).unwrap();
             borrow_from_siblings(&mut init, &refs);
             let mut built = build_sim(&loaded, &init, Tuning::RON);
             let mut compared = 0usize;
@@ -1364,7 +1364,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let init = log.initial().unwrap();
+        let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
 
         // The window's own `CITY` records. They do not move inside it, and
@@ -1558,7 +1558,7 @@ mod tests {
         let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
 
@@ -1625,7 +1625,7 @@ mod tests {
         let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         let (compared, wrong, first) = gather_verdict("run39", &report);
@@ -1708,9 +1708,9 @@ mod tests {
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
+        let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -1812,8 +1812,8 @@ mod tests {
         let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
-        let mut init = log.initial().unwrap();
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
+        let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
         let built = build_sim(&loaded, &init, Tuning::RON);
@@ -1910,7 +1910,7 @@ mod tests {
         );
         let text = crate::capture::read(&sib);
         let log = Log::parse(&text);
-        let init = log.initial().expect("run38 is a start dump");
+        let init = replay_initial(&log).expect("run38 is a start dump");
         assert_eq!(init.mountains.len(), 18, "East Indies' placed mountains");
         assert_eq!(packet.len(), 18, "the packet's placed mountains");
         let mut cells = 0;
@@ -1948,7 +1948,7 @@ mod tests {
             };
             let text = crate::capture::read(&path);
             let log = Log::parse(&text);
-            let init = log.initial().expect("a start dump");
+            let init = replay_initial(&log).expect("a start dump");
             let built = build_sim(&loaded, &init, Tuning::RON);
             let sim = &built.sim;
             assert_eq!(sim.mountains.len(), ranges, "{name}: placed ranges");
@@ -2008,9 +2008,9 @@ mod tests {
         let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
-        let mut init = log.initial().unwrap();
+        let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &refs);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let camps: Vec<usize> = (0..built.sim.buildings.len())
@@ -2083,7 +2083,7 @@ mod tests {
         let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         assert!(
@@ -2183,8 +2183,8 @@ mod tests {
         let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
-        let mut init = log.initial().unwrap();
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
+        let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
         // The original's own record for the camp, from the first frame that
@@ -2277,7 +2277,7 @@ mod tests {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         let (compared, wrong, first) = gather_verdict("run33", &report);
@@ -2336,7 +2336,7 @@ mod tests {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, None).unwrap();
         assert_eq!(report.frames.len(), 1772);
@@ -3675,7 +3675,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        let built = build_sim(&loaded, &replay_initial(&log).unwrap(), Tuning::RON);
         let sim = &built.sim;
         let mut got: Vec<(sim::Player, usize, i32)> = Vec::new();
         for b in 0..sim.buildings.len() {
@@ -3831,9 +3831,9 @@ mod tests {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
+        let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &refs);
         if let Some(t) = trace("rontrace-run53.log") {
             borrow_pasture(&mut init, &t);
@@ -3968,9 +3968,9 @@ mod tests {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
+        let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &refs);
         if let Some(t) = trace("rontrace-run53.log") {
             borrow_pasture(&mut init, &t);
@@ -4104,7 +4104,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
         let report = run_traced(&loaded, &l79, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         let clock: Vec<&BuildDivergence> = report

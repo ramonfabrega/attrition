@@ -1268,7 +1268,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let init = log.initial().unwrap();
+        let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         built.tick();
         built.tick();
@@ -1466,7 +1466,7 @@ mod tests {
         // of these is a row the old comparison could not see.
         let sib_text = crate::capture::read(&sib);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         let rows: Vec<&OrderDivergence> = report
@@ -1526,7 +1526,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let init = log.initial().unwrap();
+        let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         built.tick();
 
@@ -2215,9 +2215,9 @@ mod tests {
         let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let sib_init = replay_initial(&sib_log).expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
-        let mut init = log.initial().unwrap();
+        let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let frames = log.frame_states();

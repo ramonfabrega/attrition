@@ -103,3 +103,34 @@ and validation state. No claim of 10× is established yet. Scope compatibility i
 also reviewed directly in code; independent review remains owed. Future shared
 replays must distinguish different corrections, interventions and tuning. The
 parsed store is initially limited to generic widening windows.
+
+## Raw auxiliary reader projections
+
+Golden's raw `near` reader retains only its four output keys. It keeps the
+previous raw lexical semantics (including first valid duplicate field, nested
+lines, incomplete-record omission and last duplicate unit). It does not replace
+this reader with a differently scoped tree walk. Ammo parsing starts at the
+complete line containing the first possible literal `BEGIN AMMO`; the unchanged
+state machine handles that line and every later line. A false substring marker
+is harmless. No marker means the old state machine could never open a record.
+Record widths, nesting, ordering, values and comparison sites remain unchanged.
+
+`RON_VERIFY_GOLDEN_READERS=1` independently compares every complete near map
+and every ordered ammo record/width vector with the old readers.
+`RON_DISABLE_GOLDEN_READERS=1` selects the originals for paired measurements.
+These readers are stateless; there is no new cache or fixture substitution.
+
+## Setup-only consumers
+
+World, order, build, city, leader and army tests use `testkit::replay_initial`
+where setup does not consume frame_bodies. This calls the existing replay
+reader, retaining every seeding, animation, object, map and sibling-borrowing
+input. Explicit figure-position audits and full-reader reference assertions
+continue to call `Log::initial`. Source text lifetimes are unchanged in this
+migration: it eliminates unused body decoding/retention, not every whole read.
+
+`RON_VERIFY_REPLAY_SETUP=1` compares the entire optional Initial against the
+original reader after clearing only reference frame_bodies. It also compares
+absence rather than silently accepting missing setup. `RON_DISABLE_REPLAY_SETUP=1`
+selects the original full reader for controlled measurements. Neither mode
+changes simulation stepping, comparisons, assertions or fixture selection.

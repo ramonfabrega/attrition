@@ -2711,6 +2711,50 @@ fn chapter_one_s_word_frame_is_widened_whole() {
 /// on `(who, o)`. No parser carries the pair (`ch2_dump_near` reads it the
 /// same way from a whole file).
 fn raw_near(block: &str) -> std::collections::BTreeMap<(i64, i64), (i64, i64)> {
+    if std::env::var_os("RON_DISABLE_GOLDEN_READERS").is_some() {
+        return raw_near_legacy(block);
+    }
+    let mut out = std::collections::BTreeMap::new();
+    let mut cur: Option<[Option<i64>; 4]> = None;
+    let flush = |cur: &mut Option<[Option<i64>; 4]>,
+                 out: &mut std::collections::BTreeMap<(i64, i64), (i64, i64)>| {
+        if let Some([Some(who), Some(o), Some(no), Some(nw)]) = cur.take() {
+            out.insert((who, o), (no, nw));
+        }
+    };
+    // Preserve the raw reader's lexical boundary and first valid value rule,
+    // including its treatment of nested fields. Only these four keys escape.
+    for line in block.lines() {
+        let s = line.trim();
+        if s == "BEGIN UNITDATA" {
+            flush(&mut cur, &mut out);
+            cur = Some([None; 4]);
+            continue;
+        }
+        let Some(r) = cur.as_mut() else { continue };
+        let Some((k, v)) = s.rsplit_once(' ') else {
+            continue;
+        };
+        let at = match k {
+            "who" => 0,
+            "o" => 1,
+            "near_o" => 2,
+            "near_who" => 3,
+            _ => continue,
+        };
+        if r[at].is_none() {
+            r[at] = v.parse().ok();
+        }
+    }
+    flush(&mut cur, &mut out);
+    if std::env::var_os("RON_VERIFY_GOLDEN_READERS").is_some() {
+        assert_eq!(out, raw_near_legacy(block), "complete near map changed");
+    }
+    out
+}
+
+// Independent pre-optimization reader retained for the explicit migration audit.
+fn raw_near_legacy(block: &str) -> std::collections::BTreeMap<(i64, i64), (i64, i64)> {
     let mut out = std::collections::BTreeMap::new();
     let mut cur: Option<std::collections::BTreeMap<&str, i64>> = None;
     let flush = |cur: &mut Option<std::collections::BTreeMap<&str, i64>>,
@@ -2741,6 +2785,22 @@ fn raw_near(block: &str) -> std::collections::BTreeMap<(i64, i64), (i64, i64)> {
     }
     flush(&mut cur, &mut out);
     out
+}
+
+#[test]
+fn near_projection_preserves_the_raw_reader_s_lexical_rules() {
+    let cases = [
+        "",
+        "who 1\no 2\nnear_o 3\nnear_who 4\n",
+        "BEGIN UNITDATA\nwho bad\nwho 1\nwho 9\no 2\nnear_o -3\nnear_who 4\n",
+        "BEGIN UNITDATA\nwho 1\no 2\n BEGIN GUY\n  near_o 3\n  near_who 4\n",
+        "BEGIN UNITDATA\nwho 1\no 2\nnear_o 3\nnear_who 4\nBEGIN UNITDATA\nwho 1\no 2\nnear_o 5\nnear_who 6\n",
+        "BEGIN UNITDATA\nwho 1\no 2\nnear_o 3\nBEGIN UNITDATA\nwho 2\no 4\nnear_who 1\n",
+        "\tBEGIN UNITDATA\r\n who  1\r\n who 1\r\n o 2\r\n near_o 9223372036854775808\n near_o -1\n near_who\t2\n near_who 2 \n",
+    ];
+    for text in cases {
+        assert_eq!(raw_near(text), raw_near_legacy(text), "{text:?}");
+    }
 }
 
 /// **Great Lakes' word does not rest on the borrowed frame stream.** Five

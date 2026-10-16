@@ -5,6 +5,26 @@ use crate::gamelog::{CityDump, Guy, LeaderDump, UnitDump};
 
 use crate::testenv::dump;
 
+/// Setup-only reader: all replay inputs are retained; per-frame position
+/// bodies belong to explicit audits, which must continue to call Log::initial.
+pub(crate) fn replay_initial<'a>(log: &'a Log<'a>) -> Option<Initial<'a>> {
+    if std::env::var_os("RON_DISABLE_REPLAY_SETUP").is_some() {
+        return log.initial();
+    }
+    let actual = log.replay_initial();
+    if std::env::var_os("RON_VERIFY_REPLAY_SETUP").is_some() {
+        let mut expected = log.initial();
+        if let Some(init) = expected.as_mut() {
+            init.frame_bodies.clear();
+        }
+        assert_eq!(
+            actual, expected,
+            "replay setup changed a retained Initial field"
+        );
+    }
+    actual
+}
+
 pub(crate) fn initial() -> Initial<'static> {
     Initial {
         world: vec![("xs", "60"), ("ys", "60"), ("seed", "7236")],

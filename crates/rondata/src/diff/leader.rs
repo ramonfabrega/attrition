@@ -781,7 +781,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
 mod tests {
     use super::{rows, theirs};
     use crate::diff::setup::{Built, borrow_from_siblings, build_sim};
-    use crate::diff::testkit::with_sibling_initials;
+    use crate::diff::testkit::{replay_initial, with_sibling_initials};
     use crate::gamelog::Log;
     use crate::testenv::{dump, install};
     use sim::Tuning;
@@ -803,7 +803,7 @@ mod tests {
         let mut built = with_sibling_initials(|refs| {
             let text = crate::capture::read(&state);
             let log = Log::parse(&text);
-            let mut init = log.initial().unwrap();
+            let mut init = replay_initial(&log).unwrap();
             borrow_from_siblings(&mut init, refs);
             build_sim(&loaded, &init, Tuning::RON)
         });
