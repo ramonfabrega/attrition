@@ -296,3 +296,11 @@ The focused release measurement fell from 40.75 s / 3,531 MiB to 39.43 s /
 the small time change as modest, not a stable CPU claim. Evidence:
 `docs/audit/2026-10-15-astra-third-pair-indexed.txt`. Implementation
 checkpoint and required full-gate verdict remain pending.
+
+Implementation checkpoint: `577b757e`. The required release gate passed all 6
+steps on the unchanged committed tree: 13 fixed tests, 866 rondata tests,
+2,585 sim tests, and 3 rondata doc-tests. Fixture audit: 3,187 requests,
+0 missing. Four-thread memory peak was 9,977 MiB across the tree and 9,944 MiB
+in the largest process, under the 20 GiB cap. Gate log:
+`/tmp/attrition-third-pair-indexed-release-gate.log`. The follow-up commit
+records this verdict.
