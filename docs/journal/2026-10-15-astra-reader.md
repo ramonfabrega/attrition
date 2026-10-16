@@ -80,6 +80,35 @@ tests, and 3 rondata doc-tests passed. Required-fixture audit: 3,186 requests,
 tree, 11,470 MiB in its largest process, under the 20 GiB cap. The committed
 gate verdict is recorded separately after this journal update.
 
+### CPU profile follow-up — 2026-10-15
+
+The brief's next proposal, a persistent parsed-record store, did not match the
+active bottleneck. A 20-second `/usr/bin/sample` of the release
+`every_parsed_field_is_compared_by_the_instrument_or_pinned` test recorded
+1,808 thread samples. `gamelog::fill` appeared in 13 top-of-stack samples;
+repeated region-grid work was much hotter: the `land_size` cell-count fold
+appeared in 165, and `World::region_size` in 133. The process footprint during
+the sample was 1.2 GiB, peaking at 1.3 GiB; this is a sampled point, not a
+whole-run memory measurement.
+
+The parsed store is therefore deferred: this profile gives no evidence that
+text parsing is a material share of this test's CPU. The exploration instead
+caches exact per-region cell counts in `sim::world::World`, updated only when
+`set_region` changes membership, and makes territory victory use that count.
+This crosses the brief's sim boundary deliberately to address the measured
+CPU hotspot. Region IDs, terrain, counts, and all simulation comparisons stay
+the same. A differential unit test compares the maintained counts against a
+full scan after assignments, reassignment, repeated assignment, and an
+unassigned cell is assigned.
+
+The focused coverage test passed after the change in 167.63 s. A quiet direct
+baseline took 175.07 s, an observed 7.44 s (4.2%) reduction. The previous
+suite sweep recorded 172.38 s, and a profiled baseline took 184.40 s; this
+spread means the focused result suggests a modest win but does not establish
+a stable suite-wide improvement. Full required-fixture release-gate validation remains
+pending at this checkpoint. The profile is retained at
+`/tmp/attrition-coverage-profile-elevated.sample.txt`.
+
 ### For the Loop
 
 Persisting offsets removes repeated whole-capture scans between test processes;

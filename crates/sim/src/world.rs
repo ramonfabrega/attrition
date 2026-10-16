@@ -252,6 +252,10 @@ pub struct World {
     /// regions because it stores the set in a `BitMask<64>`; we do not.
     region: Vec<Option<u16>>,
     regions: Vec<Terrain>,
+    /// Cell counts by region, maintained with `region`. Several per-frame
+    /// readers ask `Region.size`; scanning the full grid for each query made
+    /// territory victory and AI region decisions proportional to map area.
+    region_sizes: Vec<i32>,
     /// `Region +0x8 flags`, by region — the map generator's own word
     /// (`Map::region_flags`). Bit `8` is the **resource-region** flag, and
     /// it is the whole of `Region::go_here`'s first arm
@@ -796,6 +800,7 @@ impl World {
             who2: vec![Owner::None; n],
             region: vec![None; n],
             regions: Vec::new(),
+            region_sizes: Vec::new(),
             region_flags: Vec::new(),
             scouted: Vec::new(),
             tiles: vec![0; n * (TILES_PER_CELL as usize) * (TILES_PER_CELL as usize)],
@@ -1651,6 +1656,7 @@ impl World {
     /// Declares a region and returns its index.
     pub fn add_region(&mut self, terrain: Terrain) -> u16 {
         self.regions.push(terrain);
+        self.region_sizes.push(0);
         u16::try_from(self.regions.len() - 1).expect("too many regions")
     }
 
@@ -1661,7 +1667,14 @@ impl World {
             "no such region: {region}"
         );
         if let Some(i) = self.index(c) {
-            self.region[i] = Some(region);
+            let previous = self.region[i];
+            if previous != Some(region) {
+                if let Some(previous) = previous {
+                    self.region_sizes[previous as usize] -= 1;
+                }
+                self.region[i] = Some(region);
+                self.region_sizes[region as usize] += 1;
+            }
         }
     }
 
@@ -1926,7 +1939,7 @@ impl World {
 
     /// How many cells a region has — `Region.size`.
     pub fn region_size(&self, region: u16) -> i32 {
-        self.region.iter().filter(|r| **r == Some(region)).count() as i32
+        self.region_sizes.get(region as usize).copied().unwrap_or(0)
     }
 
     /// `Region.coords[start], [start + stride], …` — the region's cell list
@@ -1979,6 +1992,34 @@ mod tests {
     #[test]
     fn largest_gather_is_one_for_every_good() {
         assert_eq!((0..6).map(largest_gather).collect::<Vec<_>>(), [1; 6]);
+    }
+
+    #[test]
+    fn cached_region_sizes_match_membership_after_reassignment() {
+        let mut world = World::new(5, 2);
+        let land = world.add_region(Terrain::Land);
+        let sea = world.add_region(Terrain::Sea);
+        let other = world.add_region(Terrain::Land);
+        for (cell, region) in [
+            (Cell::new(0, 0), land),
+            (Cell::new(1, 0), land),
+            (Cell::new(2, 0), sea),
+            (Cell::new(3, 0), other),
+        ] {
+            world.set_region(cell, region);
+        }
+        world.set_region(Cell::new(0, 0), sea);
+        world.set_region(Cell::new(0, 0), sea);
+        world.set_region(Cell::new(4, 1), other);
+
+        for region in [land, sea, other, u16::MAX] {
+            let scanned = world
+                .region
+                .iter()
+                .filter(|member| **member == Some(region))
+                .count() as i32;
+            assert_eq!(world.region_size(region), scanned, "region {region}");
+        }
     }
 
     #[test]

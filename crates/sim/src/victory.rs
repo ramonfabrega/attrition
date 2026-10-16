@@ -102,7 +102,7 @@ impl Sim {
         self.world
             .regions()
             .filter(|&(r, t)| (1..0x40).contains(&r) && t == crate::world::Terrain::Land)
-            .map(|(r, _)| self.world.cells_in(r).count() as i32)
+            .map(|(r, _)| self.world.region_size(r))
             .sum()
     }
 }
