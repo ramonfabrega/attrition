@@ -205,18 +205,17 @@ shared in the bounded cache. The index allows gaps between frame spans because
 sibling records such as `FULL DUMP` can occur between `FRAME` blocks, while
 still rejecting overlapping or out-of-order ranges.
 
-The widening test harness uses `read_replay_setup()` for its primary capture
-and scoped indexed replay initials for named siblings. It retains the setup
-observations needed to construct the same simulation, then releases capture
-text before stepping frames. The per-frame indexed comparisons are unchanged;
-the former path parsed and retained whole sibling logs even though it used
-them only to borrow setup fields.
+The widening harness reads primary and named-sibling setup through indexed
+APIs, retains required observations, and drops capture text before stepping.
+Its per-frame comparisons are unchanged.
 
-The merchant-slot oracle has a different read shape: it needs `FULL DUMP`
-siblings beside each `FRAME`, so it reads `read_frame_and_siblings()` by frame
-position and inspects the same `LEADERDATA` multiset. Its replay source's
-initial state comes from `read_replay_setup()` as well; no full capture needs
-to remain resident during the 24,000-frame replay.
+The merchant-slot oracle reads one frame and its `FULL DUMP` siblings at a
+time, then replays from indexed setup. Its `LEADERDATA` multiset check is
+unchanged.
+
+The third-pair oracle reads indexed setup and replay observations, discards
+observations after the window's last frame, and keeps all group/projectile
+comparisons.
 
 **What the laziness costs is a second pass.** Every whole-log product —
 `frame_states`, `frame_seeds`, `anim_lengths`, the height grid, and the four

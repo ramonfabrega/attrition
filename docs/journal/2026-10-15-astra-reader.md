@@ -278,3 +278,21 @@ The refreshed per-test memory sweep's next isolated outlier is
 `diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides`
 (3,531 MiB, 40.75 s). Inspect its retained data and establish a current
 focused baseline before selecting the next change.
+
+### Third-pair oracle memory follow-up — 2026-10-15
+
+The third-pair group/projectile test was the next RSS outlier at 3,531 MiB and
+40.75 s. It needs setup initials from the map-start and long captures, plus
+their per-frame seed/animation clocks, but had loaded both captures whole and
+kept all observations even though each window stops earlier. It now reads
+bounded indexed setup text, obtains owned seed/animation/clock observations
+through the indexed replay reader, trims observations after the current
+window's final replayed frame, then constructs the sim. All 21 windows remain;
+the group presence checks, every ammo field, 0-missing group rows, and exact
+projectile value-difference sets remain unchanged. The focused test passes.
+
+The focused release measurement fell from 40.75 s / 3,531 MiB to 39.43 s /
+3,083 MiB (3.2% faster in one run and 448 MiB / 12.7% lower peak RSS). Treat
+the small time change as modest, not a stable CPU claim. Evidence:
+`docs/audit/2026-10-15-astra-third-pair-indexed.txt`. Implementation
+checkpoint and required full-gate verdict remain pending.

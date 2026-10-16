@@ -1,0 +1,22 @@
+# Indexed setup reads for the third-pair group/projectile oracle, 2026-10-15.
+# Baseline from the completed serialized suite sweep at tree 9ea2f4bf; after
+# from a direct /usr/bin/time -l run of the same release binary and install.
+
+diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides
+  baseline: 40.75 s; 3,531 MiB maximum RSS
+  indexed:  39.43 s; 3,083 MiB maximum RSS
+  delta:    -3.2% time; -448 MiB / -12.7% maximum RSS
+
+# The exact test still walks all 21 named windows, compares the same group
+# and projectile records, requires every group dumper, and retains the exact
+# launch-geometry value differences. Setup text and owned replay observations
+# are read through the indexed reader; future seed/clock observations past the
+# current window are discarded before build_sim. The single timing sample is
+# modest; the measurable target is lower RSS.
+#
+# Reproduction (run separately, with the local install):
+# /usr/bin/time -l env RON_INSTALL=<install> <rondata-test-binary> \
+#   --exact diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides \
+#   --test-threads 1
+# Baseline: docs/audit/2026-10-15-astra-reader-suite-memory-after-coverage-setup.txt
+# Indexed logs: /tmp/attrition-third-pair-filtered.{out,time}

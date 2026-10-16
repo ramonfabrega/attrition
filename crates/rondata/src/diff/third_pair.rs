@@ -1737,11 +1737,43 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         else {
             continue;
         };
-        let (start_text, base_text) =
-            (crate::capture::read(start), crate::capture::read(base_path));
-        let (start_log, base_log) = (Log::parse(&start_text), Log::parse(&base_text));
-        let sibling = start_log.initial().unwrap();
+        let mut start_source = crate::capture::indexed::IndexedCapture::open(&start).unwrap();
+        let start_text = start_source.read_replay_setup().unwrap();
+        let start_log = Log::parse(&start_text);
+        let mut sibling = start_log.initial().unwrap();
+        let (seeds, animations, guys) = start_source
+            .with_replay_initial(|observed| {
+                (
+                    observed.frame_seeds.clone(),
+                    observed.anim_lengths.clone(),
+                    observed.frame_guys.clone(),
+                )
+            })
+            .unwrap();
+        sibling.frame_seeds = seeds;
+        sibling.anim_lengths = animations;
+        sibling.frame_guys = guys;
+        // This widening stops at block `window.1`, after sim frames
+        // `0..window.1`; later sibling observations cannot affect it.
+        sibling.frame_seeds.retain(|(frame, _)| *frame < window.1);
+        sibling.frame_guys.retain(|(frame, _)| *frame < window.1);
+
+        let mut base_source = crate::capture::indexed::IndexedCapture::open(base_path).unwrap();
+        let base_text = base_source.read_replay_setup().unwrap();
+        let base_log = Log::parse(&base_text);
         let mut init = base_log.initial().unwrap();
+        let (seeds, animations, guys) = base_source
+            .with_replay_initial(|observed| {
+                (
+                    observed.frame_seeds.clone(),
+                    observed.anim_lengths.clone(),
+                    observed.frame_guys.clone(),
+                )
+            })
+            .unwrap();
+        init.frame_seeds = seeds;
+        init.anim_lengths = animations;
+        init.frame_guys = guys;
         assert!(
             same_start(&init, &sibling),
             "all starting building identities and positions"
@@ -1752,10 +1784,20 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             sibling.checksums.last().unwrap().seed
         );
         borrow_from_siblings(&mut init, &[&sibling]);
+        init.frame_seeds.retain(|(frame, _)| *frame < window.1);
+        init.frame_guys.retain(|(frame, _)| *frame < window.1);
         if let Some(t) = trace(base.1) {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
+        drop(sibling);
+        drop(init);
+        drop(base_log);
+        drop(base_text);
+        drop(start_log);
+        drop(start_text);
+        drop(base_source);
+        drop(start_source);
         let mut ix = crate::capture::indexed::IndexedCapture::open(path).unwrap();
         let mut compared = 0;
         let mut ammo_counts = (0, 0, 0);
