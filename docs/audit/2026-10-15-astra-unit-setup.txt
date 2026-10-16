@@ -1,0 +1,21 @@
+# Bounded setup parsing of two unit oracle tests, 2026-10-15.
+# Same release test binary, install, one test per process, same machine.
+# /usr/bin/time -l; times in seconds and RSS in bytes.
+# Baseline tree: 3bff8545. Indexed-setup working tree: unit follow-up.
+
+diff::unit::tests::every_dumped_unit_has_crew_size_plus_one_figures
+  baseline:  8.61 s; 4,476,321,792 B maximum RSS; 194,595,009,746 instructions
+  indexed:   0.95 s;   327,352,320 B maximum RSS;  22,832,335,733 instructions
+  delta:    -89.0%;                 -92.7%;                 -88.3%
+
+diff::unit::tests::the_walk_gives_every_dumped_guy_its_own_piece
+  baseline:  7.74 s; 4,407,672,832 B maximum RSS; 190,870,964,385 instructions
+  indexed:   0.96 s;   368,181,248 B maximum RSS;  22,844,195,901 instructions
+  delta:    -87.6%;                 -91.6%;                 -88.0%
+
+# Reproduction (run separately for each test, with the local install):
+# /usr/bin/time -l env RON_INSTALL=<install> <rondata-test-binary> \
+#   --exact <test-name> --test-threads 1
+# The binary is built with `cargo test --release -p rondata --no-run`.
+# Baseline logs: /tmp/attrition-unit-{count,gpiece}-baseline.{out,err}
+# Indexed logs:  /tmp/attrition-unit-{count,gpiece}-indexed.{out,err}

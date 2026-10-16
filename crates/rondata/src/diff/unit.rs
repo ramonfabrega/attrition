@@ -193,6 +193,23 @@ mod tests {
 
     use crate::testenv::{dump, install};
 
+    /// Run an opening-state assertion against the indexed setup slice alone.
+    /// These checks inspect no per-frame observations, so scanning the rest
+    /// of each capture would add memory and work without adding evidence.
+    fn with_replay_setup<R>(
+        path: &str,
+        use_initial: impl FnOnce(crate::gamelog::Initial<'_>) -> R,
+    ) -> Option<R> {
+        let mut source =
+            crate::capture::indexed::IndexedCapture::open(path).expect("index unit-test capture");
+        let text = source
+            .read_replay_setup()
+            .expect("read unit-test replay setup");
+        let log = Log::parse(&text);
+        let init = log.replay_initial()?;
+        Some(use_initial(init))
+    }
+
     /// **The guy stack's *length*, against every dump that names one.**
     ///
     /// `Unit::init@00612100:471`-`508` sizes a unit's figures to
@@ -234,41 +251,43 @@ mod tests {
             "gamelog-run58-islands-5k2.txt",
         ] {
             let Some(path) = dump(name) else { continue };
-            let text = crate::capture::read(&path);
-            let log = Log::parse(&text);
-            let Some(init) = log.initial() else { continue };
-            let built = build_sim(&loaded, &init, Tuning::RON);
-            for u in &init.units {
-                // A `GUY` block is what states the count; a dump below
-                // `DUMP_ALL` prints none and its units arrive empty.
-                if u.guys.is_empty() {
-                    continue;
+            let Some(()) = with_replay_setup(&path, |init| {
+                let built = build_sim(&loaded, &init, Tuning::RON);
+                for u in &init.units {
+                    // A `GUY` block is what states the count; a dump below
+                    // `DUMP_ALL` prints none and its units arrive empty.
+                    if u.guys.is_empty() {
+                        continue;
+                    }
+                    // Gaia's animals are not `Unit::init`'s: `Gaia::spawn_*`
+                    // builds them, and their crew is the herd's own business
+                    // (`docs/ANIM.md` section 7).
+                    if !(0..8).contains(&u.who) {
+                        continue;
+                    }
+                    let Some(link) = built.units.iter().find(|l| l.who == u.who && l.o == u.o)
+                    else {
+                        continue;
+                    };
+                    let Some(ty) = link.kind else { continue };
+                    let crew = built.sim.unit_types[ty].combat.crew_size;
+                    let ours = usize::try_from(crew + sim::anim::SQUAD_SIZE as i32).unwrap_or(0);
+                    rows += 1;
+                    *counts.entry(u.guys.len()).or_default() += 1;
+                    assert_eq!(
+                        ours,
+                        u.guys.len(),
+                        "{name}: unit {}/{} (type {:?}) has {} figures in the \
+                         dump; CREW_SIZE {crew} + SQUAD_SIZE says {ours}",
+                        u.who,
+                        u.o,
+                        u.guys.first().and_then(|g| g.kind),
+                        u.guys.len(),
+                    );
                 }
-                // Gaia's animals are not `Unit::init`'s: `Gaia::spawn_*`
-                // builds them, and their crew is the herd's own business
-                // (`docs/ANIM.md` section 7).
-                if !(0..8).contains(&u.who) {
-                    continue;
-                }
-                let Some(link) = built.units.iter().find(|l| l.who == u.who && l.o == u.o) else {
-                    continue;
-                };
-                let Some(ty) = link.kind else { continue };
-                let crew = built.sim.unit_types[ty].combat.crew_size;
-                let ours = usize::try_from(crew + sim::anim::SQUAD_SIZE as i32).unwrap_or(0);
-                rows += 1;
-                *counts.entry(u.guys.len()).or_default() += 1;
-                assert_eq!(
-                    ours,
-                    u.guys.len(),
-                    "{name}: unit {}/{} (type {:?}) has {} figures in the \
-                     dump; CREW_SIZE {crew} + SQUAD_SIZE says {ours}",
-                    u.who,
-                    u.o,
-                    u.guys.first().and_then(|g| g.kind),
-                    u.guys.len(),
-                );
-            }
+            }) else {
+                continue;
+            };
         }
         eprintln!("guy-count walk: {rows} units, lengths {counts:?}");
         // The floor is the walk's own: a run with no multi-figure unit in
@@ -422,37 +441,39 @@ mod tests {
             "gamelog-run58-islands-5k2.txt",
         ] {
             let Some(path) = dump(name) else { continue };
-            let text = crate::capture::read(&path);
-            let log = Log::parse(&text);
-            let Some(init) = log.initial() else { continue };
-            let built = build_sim(&loaded, &init, Tuning::RON);
-            for u in &init.units {
-                // Gaia's pieces come off `first_bird_piece`, a runtime
-                // pointer no file states — the dump stays their source.
-                if !(0..8).contains(&u.who) {
-                    continue;
+            let Some(()) = with_replay_setup(&path, |init| {
+                let built = build_sim(&loaded, &init, Tuning::RON);
+                for u in &init.units {
+                    // Gaia's pieces come off `first_bird_piece`, a runtime
+                    // pointer no file states — the dump stays their source.
+                    if !(0..8).contains(&u.who) {
+                        continue;
+                    }
+                    let Some(link) = built.units.iter().find(|l| l.who == u.who && l.o == u.o)
+                    else {
+                        continue;
+                    };
+                    let Some(ty) = link.kind else { continue };
+                    let packed = built.sim.units[link.unit].combat.packed;
+                    for (n, g) in u.guys.iter().enumerate() {
+                        let Some(theirs) = g.gpiece else { continue };
+                        rows += 1;
+                        pieces.insert(theirs);
+                        assert_eq!(
+                            built
+                                .sim
+                                .unit_gpiece(u.who as u8, ty, u.o as i16, n as u8, packed),
+                            Some(theirs as i32),
+                            "{name}: unit {}/{} guy {n} (type {:?}, packed {packed})",
+                            u.who,
+                            u.o,
+                            g.kind
+                        );
+                    }
                 }
-                let Some(link) = built.units.iter().find(|l| l.who == u.who && l.o == u.o) else {
-                    continue;
-                };
-                let Some(ty) = link.kind else { continue };
-                let packed = built.sim.units[link.unit].combat.packed;
-                for (n, g) in u.guys.iter().enumerate() {
-                    let Some(theirs) = g.gpiece else { continue };
-                    rows += 1;
-                    pieces.insert(theirs);
-                    assert_eq!(
-                        built
-                            .sim
-                            .unit_gpiece(u.who as u8, ty, u.o as i16, n as u8, packed),
-                        Some(theirs as i32),
-                        "{name}: unit {}/{} guy {n} (type {:?}, packed {packed})",
-                        u.who,
-                        u.o,
-                        g.kind
-                    );
-                }
-            }
+            }) else {
+                continue;
+            };
         }
         eprintln!(
             "gpiece walk: {rows} guys over {} distinct pieces",

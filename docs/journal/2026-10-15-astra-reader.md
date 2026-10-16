@@ -160,8 +160,36 @@ records this verdict.
 
 The windowed index now reduces the two biggest observed one-test RSS peaks by
 76–80% while also reducing their CPU time by about a third. The next memory
-targets in the saved sweep are `unit::tests::every_dumped_unit_has_crew_size_plus_one_figures`
-and `unit::tests::the_walk_gives_every_dumped_guy_its_own_piece`, each about
-4.2 GiB alone on the earlier tree. Measure those before choosing whether they
-can use the same bounded replay path. The parsed per-lobby store remains
-deferred until a profile shows text parsing is a material CPU cost.
+target was two unit tests that only inspect their captures' opening units.
+
+### Unit-test memory follow-up — 2026-10-15
+
+The tests `every_dumped_unit_has_crew_size_plus_one_figures` and
+`the_walk_gives_every_dumped_guy_its_own_piece` each read ten full captures,
+then use only the opening unit list. They now parse `IndexedCapture`'s replay
+setup slice and call `replay_initial`, without indexing or parsing frame
+observations that these assertions do not inspect. Errors opening or reading a
+fixture still fail; absent fixtures and absent initial states retain their
+existing handling. All named captures and per-unit assertions remain.
+
+Focused release tests passed with 120 units checked (100 single-figure, 20
+two-figure) and 126 figures checked across 12 distinct graphic pieces. The
+before/after timings, RSS, instruction counts, and reproduction logs are in
+`docs/audit/2026-10-15-astra-unit-setup.txt`. Crew-size checks fell from 8.61
+to 0.95 s, 4,476,321,792 to 327,352,320 B RSS (92.7% lower), and 194.6B to
+22.8B retired instructions (88.3% lower). Graphic-piece checks fell from 7.74
+to 0.96 s, 4,407,672,832 to 368,181,248 B RSS (91.6% lower), and 190.9B to
+22.8B instructions (88.0% lower). Full required-fixture gate validation is
+pending on the committed implementation checkpoint.
+
+### For the Loop
+
+Four high-RSS tests now use indexed reads. The full gate following the first
+pair recorded 11,056 MiB peak across the tree, 1,487 MiB below the previous
+gate's 12,543 MiB observation. After this landing, profile
+`diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned`
+again: it remains the longest single rondata test (167.63 s in the recent
+focused run) and used 2.5 GiB in the earlier per-test sweep. The region-count
+cache was a modest initial win; measure the new hotspot before choosing the
+next change. The parsed per-lobby store remains deferred until the profile
+shows text parsing is a material CPU cost.
