@@ -225,3 +225,12 @@ larger than this isolated test. Then refresh the suite timing report and
 profile the remaining CPU hotspot only if the long coverage test remains a
 material wall-clock cost. Keep the parsed per-lobby store deferred unless a
 fresh profile shows text parsing or repeated record comparison dominates.
+
+Implementation checkpoint: `560bf09b`. The required gate passed all 6 steps
+on that unchanged committed tree: 13 fixed tests, 866 rondata tests, 2,585
+sim tests, and 3 rondata doc-tests. Fixture audit: 3,187 requests, 0 missing.
+The four-thread memory cap observed 9,941 MiB across the tree and 9,907 MiB in
+the largest process, 563 MiB below the previous 10,504 MiB observation and
+under the 20 GiB cap. Gate log:
+`/tmp/attrition-coverage-setup-release-gate.log`. The follow-up commit records
+this verdict.
