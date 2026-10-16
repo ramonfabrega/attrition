@@ -1,0 +1,114 @@
+{
+  "starting_tip": "02325d9eeac7da1915f2a4659f0b327355235ef4",
+  "evidence_root": "/tmp/attrition-coverage-walk-20261016-01",
+  "scope": "62-window parsed-field coverage walk, warm caches; no simulation or pin changes",
+  "baseline": {
+    "wall": 44.69,
+    "cpu": 42.44,
+    "rss_bytes": 2269937664
+  },
+  "same_binary_trials": {
+    "rows-off1": {
+      "wall": 48.76,
+      "cpu": 44.589999999999996,
+      "rss_bytes": 1974059008,
+      "fixture_requests": 338,
+      "missing": 0
+    },
+    "rows-on1": {
+      "wall": 34.57,
+      "cpu": 33.95,
+      "rss_bytes": 2063908864,
+      "fixture_requests": 338,
+      "missing": 0
+    },
+    "rows-off2": {
+      "wall": 44.69,
+      "cpu": 42.949999999999996,
+      "rss_bytes": 1984086016,
+      "fixture_requests": 338,
+      "missing": 0
+    },
+    "rows-on2": {
+      "wall": 34.53,
+      "cpu": 33.42,
+      "rss_bytes": 1593163776,
+      "fixture_requests": 338,
+      "missing": 0
+    },
+    "rows-audit": {
+      "wall": 56.84,
+      "cpu": 56.73,
+      "rss_bytes": 2205696000,
+      "fixture_requests": 338,
+      "missing": 0
+    }
+  },
+  "complete_diagnostic_lines_equal": 14748,
+  "release_gate": "pending",
+  "independent_review": "owed",
+  "contention_four_suites": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 53.40834975001053,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 55.46,
+      "cpu": 341.49,
+      "peak_tree_mib": 14031
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 44.66114650000236,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 45.03,
+      "cpu": 291.33,
+      "peak_tree_mib": 13195
+    }
+  },
+  "contention_six_suites": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 60.16605195800366,
+      "fixture_requests": 2748,
+      "missing": 0,
+      "wrapper_wall": 61.39,
+      "cpu": 507.9,
+      "peak_tree_mib": 15302
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 49.524723875001655,
+      "fixture_requests": 2748,
+      "missing": 0,
+      "wrapper_wall": 50.47,
+      "cpu": 438.95000000000005,
+      "peak_tree_mib": 15331
+    }
+  }
+}

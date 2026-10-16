@@ -1688,6 +1688,35 @@ pub(crate) fn widen_block(
     n: i64,
     firsts: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
 ) -> (FrameResult, usize) {
+    let eager = std::env::var_os("RON_DISABLE_LAZY_ROW_LABELS").is_some();
+    if std::env::var_os("RON_VERIFY_ROW_LABELS").is_some() {
+        let mut reference_firsts = firsts.clone();
+        let (actual, fields) =
+            compared::recorded(|| widen_block_rows(built, frame, players, n, firsts, eager));
+        let (reference, reference_fields) = compared::recorded(|| {
+            widen_block_rows(built, frame, players, n, &mut reference_firsts, true)
+        });
+        assert_eq!(actual, reference, "whole frame result and row count");
+        assert_eq!(
+            *firsts, reference_firsts,
+            "all divergence labels and values"
+        );
+        assert_eq!(fields, reference_fields, "all registered fields");
+        actual
+    } else {
+        widen_block_rows(built, frame, players, n, firsts, eager)
+    }
+}
+
+#[cfg(test)]
+fn widen_block_rows(
+    built: &Built,
+    frame: &Frame,
+    players: usize,
+    n: i64,
+    firsts: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+    eager: bool,
+) -> (FrameResult, usize) {
     let r = compare(built, frame, players);
     let mut compared = 0usize;
     {
@@ -1901,7 +1930,7 @@ pub(crate) fn widen_block(
             continue;
         };
         let un = &built.sim.units[u];
-        let mut rows: Vec<(String, i64, Option<i64>)> = vec![
+        let mut rows: Vec<(RowLabel, i64, Option<i64>)> = vec![
             (
                 "heading".into(),
                 i64::from(un.movement.heading.0),
@@ -2133,7 +2162,7 @@ pub(crate) fn widen_block(
                 ("g.last_speed", i64::from(body.last_speed), g.last_speed),
                 ("g.avg_speed", i64::from(body.avg_speed), g.avg_speed),
             ] {
-                rows.push((format!("{name}[{k}]"), ours, theirs));
+                rows.push((RowLabel(name, Some(k)), ours, theirs));
             }
             // **A plane's attitude and altitude** (item 759,
             // `docs/ORDERS.md` §33): guy 0's bank and pitch by their
@@ -2153,32 +2182,103 @@ pub(crate) fn widen_block(
                         g.last_pitch,
                     ),
                 ] {
-                    rows.push((format!("{name}[{k}]"), ours, theirs));
+                    rows.push((RowLabel(name, Some(k)), ours, theirs));
                 }
                 if un.kind.domain == sim::attrition::Domain::Air {
-                    rows.push((format!("g.z[{k}]"), i64::from(af.z), g.pos.map(|p| p.z)));
                     rows.push((
-                        format!("g.last_z[{k}]"),
+                        RowLabel("g.z", Some(k)),
+                        i64::from(af.z),
+                        g.pos.map(|p| p.z),
+                    ));
+                    rows.push((
+                        RowLabel("g.last_z", Some(k)),
                         i64::from(af.last_z),
                         g.last_pos.map(|p| p.z),
                     ));
                 }
             }
         }
-        for (name, ours, theirs) in rows {
+        // Reference mode retains the original eager allocation of every label.
+        let mut eager_names: Vec<_> = if eager {
+            rows.iter().map(|(name, _, _)| name.render()).collect()
+        } else {
+            Vec::new()
+        };
+        for (index, (name, ours, theirs)) in rows.into_iter().enumerate() {
             let Some(theirs) = theirs else { continue };
             compared += 1;
-            if let Some((record, field)) = widened_field(&name) {
+            if let Some((record, field)) =
+                widened_field(if eager { &eager_names[index] } else { name.0 })
+            {
                 compared::note(record, &[field]);
             }
             if ours != theirs {
                 firsts
-                    .entry((them.who, them.o, name))
+                    .entry((
+                        them.who,
+                        them.o,
+                        if eager {
+                            std::mem::take(&mut eager_names[index])
+                        } else {
+                            name.render()
+                        },
+                    ))
                     .or_insert((n, format!("ours {ours} theirs {theirs}")));
             }
         }
     }
     (r, compared)
+}
+
+#[cfg(test)]
+#[derive(Clone, Copy)]
+struct RowLabel(&'static str, Option<usize>);
+#[cfg(test)]
+impl From<&'static str> for RowLabel {
+    fn from(name: &'static str) -> Self {
+        Self(name, None)
+    }
+}
+#[cfg(test)]
+impl RowLabel {
+    fn render(self) -> String {
+        match self.1 {
+            Some(index) => format!("{}[{index}]", self.0),
+            None => self.0.to_owned(),
+        }
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn deferred_row_labels_preserve_names_and_field_registration() {
+    let source = include_str!("harness.rs");
+    let mapping = source
+        .rsplit("fn widened_field(label:")
+        .next()
+        .unwrap()
+        .split("\n}")
+        .next()
+        .unwrap();
+    let mut names = std::collections::BTreeSet::new();
+    for (index, text) in mapping.split('"').enumerate() {
+        if index % 2 == 1 {
+            names.insert(text);
+        }
+    }
+    names.insert("unknown-row");
+    assert!(names.len() > 50);
+    for name in names {
+        for index in [None, Some(0), Some(1), Some(usize::MAX)] {
+            let label = RowLabel(name, index);
+            let original = match index {
+                Some(k) => format!("{name}[{k}]"),
+                None => name.to_string(),
+            };
+            assert_eq!(label.render(), original);
+            assert_eq!(widened_field(label.0), widened_field(&original));
+        }
+    }
 }
 
 /// The parser's `Record.field` behind one of [`widen_block`]'s row labels
@@ -11255,6 +11355,7 @@ pub(crate) mod tests {
         let profiling = std::env::var_os("RON_PROFILE_REPLAY").is_some();
         let started = std::time::Instant::now();
         let mut tick_time = std::time::Duration::ZERO;
+        let mut stages = [std::time::Duration::ZERO; 4];
         assert!(checkpoints.windows(2).all(|w| w[0].0 < w[1].0));
         assert!(checkpoints.iter().all(|(tail, points)| {
             (window.0..=window.1).contains(tail) && points.iter().all(|p| near.contains(p))
@@ -11370,6 +11471,7 @@ pub(crate) mod tests {
             };
             // Decode once, then keep the same tree for leader/group records.
             // The second read/parse below exists only for the migration audit.
+            let stage = profiling.then(std::time::Instant::now);
             let cached = oracle_store.enabled().then(|| oracle_store.read(ix, at));
             let reused_text = (reuse && cached.is_none()).then(|| ix.read_frame(at).unwrap());
             let reused_log = reused_text.as_deref().map(Log::parse_eager);
@@ -11388,6 +11490,10 @@ pub(crate) mod tests {
                 };
                 &fresh_frame
             };
+            if let Some(t) = stage {
+                stages[0] += t.elapsed();
+            }
+            let stage = profiling.then(std::time::Instant::now);
             blocks += 1;
             debug_watch(&built, n);
             debug_armies(&built, n);
@@ -11397,6 +11503,10 @@ pub(crate) mod tests {
             let (fr, rows) = widen_block(&built, frame, players, n, &mut here);
             compared += rows;
             housed += fr.inside_housed;
+            if let Some(t) = stage {
+                stages[1] += t.elapsed();
+            }
+            let stage = profiling.then(std::time::Instant::now);
             let legacy_text = (!reuse).then(|| ix.read_frame(at).unwrap());
             let legacy_log = legacy_text.as_deref().map(Log::parse);
             let flog = reused_log.as_ref().or(legacy_log.as_ref());
@@ -11447,6 +11557,10 @@ pub(crate) mod tests {
                     }
                 }
             }
+            if let Some(t) = stage {
+                stages[2] += t.elapsed();
+            }
+            let stage = profiling.then(std::time::Instant::now);
             for who in 0..2usize {
                 let fresh_leader;
                 let t = if let Some(value) = &cached {
@@ -11506,6 +11620,9 @@ pub(crate) mod tests {
             }
             if gaia {
                 compared += widen_gaia(&built, frame, players, n, &mut here, &mut missing);
+            }
+            if let Some(t) = stage {
+                stages[3] += t.elapsed();
             }
             for &(w, o) in &row_walk {
                 let now: Vec<String> = here
@@ -11636,8 +11753,12 @@ pub(crate) mod tests {
         }
         if profiling {
             eprintln!(
-                "replay profile {name}: prefix={prefix} start={resumed_at} tail={tail} blocks={blocks} total={:?} setup={setup_time:?} ticks={tick_time:?}",
-                started.elapsed()
+                "replay profile {name}: prefix={prefix} start={resumed_at} tail={tail} blocks={blocks} total={:?} setup={setup_time:?} ticks={tick_time:?} decode={:?} values={:?} groups={:?} leaders_gaia={:?}",
+                started.elapsed(),
+                stages[0],
+                stages[1],
+                stages[2],
+                stages[3]
             );
         }
         if let Some(key) = prefix_key {

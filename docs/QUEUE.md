@@ -50,8 +50,12 @@ complete required-fixture gates passed; full wall456→286s with isolation, CPU
 1529→1541s, sampled tree10473→9030MiB. Adoption requires `--isolated` in each
 cooperating worktree. Third-pair reuse passes full-state differential checks: CPU37–38→5s,
 RSS3.4–4.3→0.74–0.76GiB; combined validation complete (ledger correction).
-Four-suite sample: CPU-32%, memory-36%, wall unchanged; coverage walk is next;
-see [journal](journal/2026-10-16-third-pair-replay.md).
+Third-pair four-suite sample: CPU-32%, memory-36%, wall unchanged; see its
+[journal](journal/2026-10-16-third-pair-replay.md). Coverage walk now saves21–25% CPU;
+full-frame audits and exact fixture/output comparisons pass. Four-suite sample:
+wall-16%, CPU-15%, memory-6%; six suites wall-18%, CPU-14%, memory flat.
+Release gate pending. Next: ticking/decoding now dominate. See
+[coverage journal](journal/2026-10-16-coverage-walk.md).
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.
 

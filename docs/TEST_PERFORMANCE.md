@@ -44,6 +44,26 @@ preserves the public sorted label set. A differential unit test compares with
 the previous string-set algorithm, including duplicates, disabled recording and
 nested audit recording. This is allocation reduction, not sampled coverage.
 
+Static pairs now use pointer-and-length identities in an internal HashSet.
+Only immutable static schema strings qualify. Final labels are still canonical
+by text, so equal strings at different addresses cannot alter coverage results.
+`RON_DISABLE_FAST_COMPARE_NOTES` selects the old pair tree;
+`RON_VERIFY_COMPARE_NOTES` checks both complete sets. No sampled registration,
+persisted pointer identity, fixture value, or verdict enters this recorder.
+
+Direct widening rows retain a static label base and optional figure index;
+they allocate the diagnostic string when values differ. All values and presence
+guards still run. `RON_DISABLE_LAZY_ROW_LABELS` provides eager reference labels;
+`RON_VERIFY_ROW_LABELS` compares complete per-frame results, row counts,
+divergence maps and registered fields against that mode. The ordinary required
+fixture gate must also pass without either audit. Stage profiling now separates
+decoding, values, groups and leaders/gaia from setup and ticking.
+See [coverage journal](journal/2026-10-16-coverage-walk.md) for measurements and
+validation status. Warm coverage CPU falls21–25%; four/six-suite samples save
+15%/14% CPU and16%/18% elapsed. Memory falls6% in the four-suite sample and
+is flat in the six-suite sample; no consistent memory-reduction claim.
+Independent review of these optimizations remains owed.
+
 ## Trace frame lookup
 
 A parsed trace records whether draw frame numbers are nondecreasing. For that

@@ -103,21 +103,86 @@ mod world;
 /// pays one thread-local check per site.
 pub(crate) mod compared {
     use std::cell::RefCell;
-    use std::collections::BTreeSet;
+    use std::collections::{BTreeSet, HashSet};
+    use std::hash::{Hash, Hasher};
 
-    type Fields = BTreeSet<(&'static str, &'static str)>;
+    // Addresses are only internal identities of immutable, static schema strings.
+    // Different allocations with equal text may occupy separate entries; labels()
+    // normalizes them by value. Include lengths so shared-prefix slices stay distinct.
+    #[derive(Clone, Copy)]
+    struct Field(&'static str, &'static str);
+    impl PartialEq for Field {
+        fn eq(&self, other: &Self) -> bool {
+            std::ptr::eq(self.0, other.0) && std::ptr::eq(self.1, other.1)
+        }
+    }
+    impl Eq for Field {}
+    impl Hash for Field {
+        fn hash<H: Hasher>(&self, state: &mut H) {
+            self.0.as_ptr().hash(state);
+            self.0.len().hash(state);
+            self.1.as_ptr().hash(state);
+            self.1.len().hash(state);
+        }
+    }
+    struct Fields {
+        fast: HashSet<Field>,
+        tree: BTreeSet<(&'static str, &'static str)>,
+        legacy: bool,
+        verify: bool,
+    }
+    impl Default for Fields {
+        fn default() -> Self {
+            Self {
+                fast: HashSet::new(),
+                tree: BTreeSet::new(),
+                legacy: std::env::var_os("RON_DISABLE_FAST_COMPARE_NOTES").is_some(),
+                verify: std::env::var_os("RON_VERIFY_COMPARE_NOTES").is_some(),
+            }
+        }
+    }
+    impl Fields {
+        fn insert(&mut self, pair: (&'static str, &'static str)) {
+            if !self.legacy {
+                self.fast.insert(Field(pair.0, pair.1));
+            }
+            if self.legacy || self.verify {
+                self.tree.insert(pair);
+            }
+        }
+        #[cfg(test)]
+        fn iter(&self) -> impl Iterator<Item = (&'static str, &'static str)> {
+            self.fast
+                .iter()
+                .map(|p| (p.0, p.1))
+                .chain(self.tree.iter().copied())
+        }
+    }
     thread_local! {
         static ON: RefCell<Option<Fields>> = const { RefCell::new(None) };
     }
 
     #[cfg(test)]
     pub(crate) fn start() {
-        ON.with(|r| *r.borrow_mut() = Some(BTreeSet::new()));
+        ON.with(|r| *r.borrow_mut() = Some(Fields::default()));
     }
 
     /// Allocate the public field labels once per unique field, at the boundary.
     #[cfg(test)]
     fn labels(fields: &Fields) -> BTreeSet<String> {
+        if fields.verify && !fields.legacy {
+            let fast: BTreeSet<_> = fields
+                .fast
+                .iter()
+                .map(|p| format!("{}.{}", p.0, p.1))
+                .collect();
+            let tree: BTreeSet<_> = fields
+                .tree
+                .iter()
+                .map(|(r, f)| format!("{r}.{f}"))
+                .collect();
+            assert_eq!(fast, tree, "complete comparison registration sets differ");
+        }
         fields
             .iter()
             .map(|(record, field)| format!("{record}.{field}"))
@@ -132,12 +197,14 @@ pub(crate) mod compared {
     /// Audit a walk independently, then merge its notes into the outer recorder.
     #[cfg(test)]
     pub(crate) fn recorded<R>(walk: impl FnOnce() -> R) -> (R, BTreeSet<String>) {
-        let outer = ON.with(|r| r.replace(Some(BTreeSet::new())));
+        let outer = ON.with(|r| r.replace(Some(Fields::default())));
         let result = walk();
         let notes = ON.with(|r| r.borrow_mut().take().unwrap_or_default());
         ON.with(|r| {
             *r.borrow_mut() = outer.map(|mut seen| {
-                seen.extend(notes.iter().copied());
+                for pair in notes.iter() {
+                    seen.insert(pair);
+                }
                 seen
             });
         });
@@ -159,6 +226,52 @@ pub(crate) mod compared {
     #[cfg(test)]
     mod tests {
         use super::*;
+        #[test]
+        fn static_identity_preserves_equal_text_and_distinct_prefix_slices() {
+            static A: [u8; 8] = *b"UnitDump";
+            static B: [u8; 8] = *b"UnitDump";
+            let a = std::str::from_utf8(&A).unwrap();
+            let b = std::str::from_utf8(&B).unwrap();
+            let mut fields = Fields {
+                verify: true,
+                legacy: false,
+                ..Fields::default()
+            };
+            for record in [a, b, "UnitDump", &"UnitDumpExtra"[..8]] {
+                for field in ["angle", &"angle"[..1], "pos", "angle"] {
+                    fields.insert((record, field));
+                }
+            }
+            assert_eq!(
+                labels(&fields),
+                BTreeSet::from([
+                    "UnitDump.angle".into(),
+                    "UnitDump.a".into(),
+                    "UnitDump.pos".into()
+                ])
+            );
+            let mut legacy = Fields {
+                legacy: true,
+                verify: false,
+                ..Fields::default()
+            };
+            for pair in fields.iter() {
+                legacy.insert(pair);
+            }
+            assert_eq!(labels(&fields), labels(&legacy));
+        }
+        #[test]
+        #[should_panic(expected = "complete comparison registration sets differ")]
+        fn recorder_audit_rejects_a_missing_registration() {
+            let mut fields = Fields {
+                verify: true,
+                legacy: false,
+                ..Fields::default()
+            };
+            fields.insert(("Guy", "pos"));
+            fields.fast.clear();
+            let _ = labels(&fields);
+        }
         #[test]
         fn interned_pairs_match_the_original_string_set_and_nested_recording() {
             let rows = [
