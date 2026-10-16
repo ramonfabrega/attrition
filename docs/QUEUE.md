@@ -47,8 +47,8 @@ medium`; 2783 is its next); the whole gate green at the pass; count landings fro
 User-directed branch `codex/astra-windowed-reader`; commander remains paused.
 Shared isolation and persistent setup observations validated on `575bad00`: both
 complete required-fixture gates passed; full wall456→286s with isolation, CPU
-1529→1541s, sampled tree10473→9030MiB. Adoption requires `--isolated` in each
-cooperating worktree. Third-pair reuse passes full-state differential checks: CPU37–38→5s,
+1529→1541s, sampled tree10473→9030MiB. The workflow follow-up makes isolation the default in each
+updated cooperating worktree. Third-pair reuse passes full-state differential checks: CPU37–38→5s,
 RSS3.4–4.3→0.74–0.76GiB; combined validation complete (ledger correction).
 Third-pair four-suite sample: CPU-32%, memory-36%, wall unchanged; see its
 [journal](journal/2026-10-16-third-pair-replay.md). Coverage walk now saves21–25% CPU;
@@ -62,7 +62,13 @@ Complete warm isolated CPU−2%; peak memory variable. Full gate passed on
 Live-unit/radius candidates rejected: full isolated165.18→165.57s and
 CPU1190.57→1191.85s; all890 tests pass, exact3276 fixture requests unchanged.
 No production change or new speedup claimed; see [radius journal](journal/2026-10-16-radius-scans.md).
-Next: profile repeated setup/replay across Golden/harness (about560 CPU seconds).
+Workflow follow-up: all gate modes default to isolated execution with unchanged
+selection; standalone guards/Cargo wrapper join shared admission. Ledger history
+reads retain all2,208 bodies and cut wall30.10→2.13s/CPU27.47→2.08s; RSS+5.3MiB.
+Complete gate validation pending.
+See [workflow journal](journal/2026-10-16-validation-workflow.md).
+Next: observe admission wait versus execution; then measure build/replay duplication
+before splitting crates or caching any revision's verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Run all Cargo release test targets, isolating each rondata library test.
 
-Every discovered nonignored test runs exactly once, including unknown tests.
+Every selected nonignored test runs exactly once, including unknown tests.
+Only the gate's explicit exact-name exclusions are applied.
 No verdicts are cached. Test logs, discovery manifests and measurements survive
 failures. Resource admission is shared with other cooperating worktrees.
 """
@@ -73,6 +74,14 @@ def read_result(log):
     return passed, clock, rss
 
 
+def resource_timing(log):
+    with log.open() as stream:
+        for part in iter(lambda: stream.readline(65536), ''):
+            if part.startswith('resource budget timing: '):
+                return json.loads(part.removeprefix('resource budget timing: '))
+    return None
+
+
 def run_one(binary, name, number, output, directory, memory, cancelled):
     log = output / 'tests' / f'{number:04d}.log'
     start = time.monotonic()
@@ -94,22 +103,26 @@ def run_one(binary, name, number, output, directory, memory, cancelled):
                and binary_stamp(binary) == stamp)
     return dict(name=name, success=success, exit=child.returncode, elapsed=time.monotonic()-start,
                 user=clock[0] if clock else None, system=clock[1] if clock else None,
-                rss_bytes=rss, reservation_mib=memory, log=str(log), allocator=allocator_policy(env))
+                rss_bytes=rss, reservation_mib=memory, log=str(log), allocator=allocator_policy(env),
+                resource_timing=resource_timing(log))
 
 
-def isolated(binary, output, directory, slots=8):
+def isolated(binary, output, directory, slots=8, skips=()):
     output.mkdir(parents=True, exist_ok=False)
     (output / 'tests').mkdir()
     stamp = binary_stamp(binary)
     all_tests, ignored = discover(binary), discover(binary, True)
     if not all_tests or not set(ignored) <= set(all_tests):
         raise ValueError('invalid or empty test manifest')
-    names = [n for n in all_tests if n not in set(ignored)]
-    if not names:
+    excluded = set(skips)
+    skipped = [n for n in all_tests if n in excluded]
+    ignored = [n for n in ignored if n not in excluded]
+    names = [n for n in all_tests if n not in set(ignored) and n not in excluded]
+    if not names and not skipped:
         raise ValueError('no nonignored tests discovered')
     profile = json.loads(PROFILE.read_text())['tests']
     pending = sorted(enumerate(names), key=lambda p: -profile.get(p[1], {}).get('elapsed', 0))
-    (output / 'manifest.json').write_text(json.dumps(dict(binary=str(binary), binary_stamp=stamp, tests=names, ignored=ignored,
+    (output / 'manifest.json').write_text(json.dumps(dict(binary=str(binary), binary_stamp=stamp, tests=names, ignored=ignored, skipped=skipped, requested_skips=list(skips),
         install=os.environ.get('RON_INSTALL'), slots=slots, resource_directory=str(directory)), indent=2)+'\n')
     cancelled = False
     def cancel(_sig, _frame):
@@ -143,11 +156,11 @@ def isolated(binary, output, directory, slots=8):
     passed = sum(r['success'] for r in rows)
     success = complete and passed == len(names) and not cancelled
     summary = dict(complete=complete, success=success, passed=passed, failed=len(rows)-passed,
-                   ignored=len(ignored), elapsed=time.monotonic()-start,
+                   ignored=len(ignored), filtered=len(skipped), elapsed=time.monotonic()-start,
                    cpu=sum(r['user']+r['system'] for r in rows if r['user'] is not None and r['system'] is not None))
     (output / 'summary.json').write_text(json.dumps(summary, indent=2)+'\n')
     print(f"test result: {'ok' if success else 'FAILED'}. {passed} passed; {len(rows)-passed} failed; "
-          f"{len(ignored)} ignored; 0 measured; 0 filtered out; finished in {summary['elapsed']:.2f}s", flush=True)
+          f"{len(ignored)} ignored; 0 measured; {len(skipped)} filtered out; finished in {summary['elapsed']:.2f}s", flush=True)
     if cancelled:
         return 130
     if not complete:
@@ -164,7 +177,8 @@ def target_budget(target, test_threads):
     return 8, MEMORY_MIB
 
 
-def release(output, directory, slots, test_threads):
+def release(output, directory, slots, test_threads, skips=()):
+    selection = (['--exact'] + [arg for name in skips for arg in ('--skip', name)]) if skips else []
     output.mkdir(parents=True, exist_ok=False)
     env = child_environment()
     env['CARGO_BUILD_JOBS'] = '8'
@@ -198,11 +212,11 @@ def release(output, directory, slots, test_threads):
             raise ValueError('test executable changed after Cargo discovery')
         print(f"     Running unittests {target['src_path']} ({executable})", flush=True)
         if target['name'] == 'rondata' and 'lib' in target['kind']:
-            rc = isolated(Path(executable), output / 'rondata', directory, slots)
+            rc = isolated(Path(executable), output / 'rondata', directory, slots, skips=skips)
         else:
             cpu, memory = target_budget(target, test_threads)
             rc = subprocess.run(wrapper(directory, memory, cpu) +
-                                [executable, f'--test-threads={test_threads}'], cwd=ROOT, env=env).returncode
+                                [executable, f'--test-threads={test_threads}', *selection], cwd=ROOT, env=env).returncode
         if binary_stamp(executable) != stamps[executable]:
             rc = 125
         exits.append(rc)
@@ -211,7 +225,7 @@ def release(output, directory, slots, test_threads):
     # --no-run does not discover doctests. Keep Cargo responsible for them.
     exits.append(subprocess.run(wrapper(directory, MEMORY_MIB, 8) +
                  ['cargo', 'test', '--workspace', '--release', '--doc', '--no-fail-fast', '--',
-                  f'--test-threads={test_threads}'], cwd=ROOT, env=env).returncode)
+                  f'--test-threads={test_threads}', *selection], cwd=ROOT, env=env).returncode)
     (output / 'exit-codes.json').write_text(json.dumps(exits)+'\n')
     return next((rc for rc in exits if rc), 0)
 
@@ -223,8 +237,9 @@ def main():
     parser.add_argument('--resource-directory', type=Path, default=DEFAULT)
     parser.add_argument('--slots', type=int, choices=range(1, 9), default=8)
     parser.add_argument('--test-threads', type=int, default=4)
+    parser.add_argument('--skip', action='append', default=[], help='exact libtest names excluded by the gate selection')
     args = parser.parse_args()
-    return release(args.output.resolve(), args.resource_directory, args.slots, args.test_threads)
+    return release(args.output.resolve(), args.resource_directory, args.slots, args.test_threads, args.skip)
 
 
 if __name__ == '__main__':

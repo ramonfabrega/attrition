@@ -15,6 +15,15 @@
 # green here and red at the booking gate's first step.
 set -e
 cd "$(dirname "$0")/.."
+# Standalone guards join the same budget as gates. Gate admission supplies the
+# child-local marker to avoid acquiring a second lease while holding the first.
+# This is a cooperative marker, not a security boundary.
+export CARGO_BUILD_JOBS=8
+export RUST_TEST_THREADS=2
+if [ "$RON_GUARD_ADMITTED" != "1" ]; then
+  exec python3 tools/resource_budget.py --cpu 8 --memory-mib 32768 -- \
+    env RON_GUARD_ADMITTED=1 zsh tools/guard.sh "$@"
+fi
 # `--built` (the gate's step 6, the thirty-fifth steer): the guards on the
 # release binary the suite just built, in seconds, instead of a debug build.
 PROFILE=()

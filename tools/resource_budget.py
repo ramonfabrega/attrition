@@ -197,6 +197,8 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit
     child = None
     cancelled = False
     peak = combined_peak = 0
+    requested = time.monotonic()
+    admitted = None
     def cancel(_sig, _frame):
         nonlocal cancelled
         cancelled = True
@@ -215,6 +217,7 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit
             time.sleep(0.2)
         if cancelled:
             return 130
+        admitted = time.monotonic()
         env = dict(os.environ, RON_TEST_MEMCAP_GIB=str(math.ceil(limit_mib / 1024)))
         child = subprocess.Popen(['/usr/bin/nice', '-n', '10', *command],
                                  start_new_session=True, pass_fds=lease.fds, env=env)
@@ -256,6 +259,11 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit
             lease.close()
             for sig, handler in previous.items():
                 signal.signal(sig, handler)
+            finished = time.monotonic()
+            timing = dict(wait_seconds=(admitted if admitted is not None else finished) - requested,
+                          run_seconds=finished - admitted if admitted is not None else 0,
+                          admitted=admitted is not None, cpu_slots=cpu, reservation_mib=memory_mib)
+            print('resource budget timing: ' + json.dumps(timing), file=sys.stderr)
             print(f'resource budget: sampled peak {peak // 1024} MiB; combined peak {combined_peak // 1024} MiB', file=sys.stderr)
 
 

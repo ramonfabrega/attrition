@@ -224,9 +224,9 @@ Never compare historical serial totals with parallel wall time to claim10×.
 
 ## Shared isolated runner
 
-`release_gate.py INSTALL --test-threads 4 --require-fixtures --isolated`
-selects process isolation with shared host admission. The ordinary in-process
-gate remains the default. The complete initial isolated gate and subsequent
+`release_gate.py INSTALL --test-threads 4 --require-fixtures`
+defaults to process isolation with shared host admission. `--combined` selects
+the reference in-process runner under the same host budget. The complete initial isolated gate and subsequent
 monitor correction measurements are recorded in the shared-runner journal.
 Final same-commit gates on `575bad00` passed all six phases and identical fixture
 request multisets: ordinary455.87s/1529.20CPU versus isolated285.65s/1540.76CPU.
@@ -241,7 +241,9 @@ test runs in a fresh process with exact-name selection and one test thread.
 A successful zero-test execution cannot pass. Manifests, individual logs,
 measurements and failures are retained in a fresh report directory. Assertions,
 fixture auditing, survey, offline checks, clippy, formatting and guards remain.
-Scoped/lane gates currently reject this option instead of silently changing scope.
+Scoped/lane gates pass their unchanged exact skip list to this runner. New tests
+still run; manifests record selected, ignored and filtered names. `--combined`
+retains the original combined execution and identical selection.
 
 Every cooperating worktree shares `~/Library/Caches/attrition/resources-v1`:
 sixteen CPU slots and 32 GiB reserved RSS, with admission serialized by flock.
@@ -249,7 +251,7 @@ Each suite uses at most eight isolated workers. An immutable policy file rejects
 worktrees configured with different limits. Workloads run at nice+10, preserving
 the existing monitor's preference for interactive/capture work.
 Builds, clippy, survey and unknown executables reserve eight CPU slots and all
-32 GiB, draining concurrent workloads. Offline checks and formatting reserve two slots/1 GiB; built guards two slots/4 GiB.
+32 GiB, draining concurrent workloads. Offline checks and formatting reserve two slots/1 GiB; guards reserve eight slots/32 GiB because they can rebuild after source edits.
 Fixed and sim binaries reserve their requested thread width and 512 MiB/4 GiB
 respectively, allowing smaller checks from different suites to coexist. Known
 tests reserve measured RSS rounded to 256 MiB (minimum 256 MiB), with a separate
@@ -379,3 +381,42 @@ in the [radius journal](journal/2026-10-16-radius-scans.md). No memory or10×
 improvement is claimed. Next: profile repeated setup/replay across Golden and
 harness tests, which together consume about560 of1,191 isolated CPU seconds;
 module totals alone do not identify their internal bottleneck.
+
+## Validation entry points and different revisions
+
+All release-gate modes now use shared admission for every phase. Complete,
+worker and scoped gates default to isolated test execution. `--combined` keeps
+an executable reference; its wide-run ceiling is now32 GiB under the shared
+budget rather than the historical40 GiB. Gate selection, widening, missing
+fixture rejection and lane failure classification are unchanged. Compiler jobs
+are capped at8. Standalone `tools/guard.sh` joins the same budget; a gate marks
+its already-admitted guard child to prevent double acquisition.
+
+Use `zsh tools/check.sh test -p sim FILTER` (or `build`, `check`, `clippy`, `run`)
+for standalone Cargo work. It preserves Cargo arguments, sets2 default test
+threads and8 compiler jobs, and reserves8 CPU slots/32 GiB. Raw `cargo`, native
+test binaries and old worktrees still bypass cooperation; this is not a kernel
+CPU quota or interception of arbitrary commands. Do not wrap a gate/guard/isolated
+dispatcher in another whole-budget reservation. No cache of test verdicts or
+shared target directory is introduced. Different revisions run their own binaries.
+
+Every gate phase now retains a log. Supervisors print a JSON timing receipt
+separating shared-admission wait from admitted execution (including launch and
+cleanup). Isolated per-test rows retain that receipt alongside CPU/RSS. Neither
+wait time nor execution wall time is CPU time. The existing fixed policy and
+opportunistic admission remain; fairness and short-guard priority are not promised.
+Conservative compilation reservations can increase waiting. Measure the queue
+before changing budgets or adding priorities. See the
+[workflow journal](journal/2026-10-16-validation-workflow.md) for adoption limits,
+crate-boundary findings and the required-fixture gate verdict.
+
+### Queue history reads
+
+The ledger guard reads every historical QUEUE/PARKED body through one streaming
+`git cat-file --batch` child per file, with a child-local 16 MiB delta cache.
+History order and all accounting checks remain unchanged; no verdicts are cached.
+On the measured 2,208-body history this reduces wall30.10→2.13s and CPU27.47→2.08s,
+with peak RSS50.03→55.38MiB. An exhaustive body comparison against the original
+reader and authored deletion failures are recorded in the
+[workflow journal](journal/2026-10-16-validation-workflow.md). This is a guard
+component improvement, not a measured 10× complete gate.

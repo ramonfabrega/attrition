@@ -54,6 +54,7 @@ Run from anywhere; `tools/guard.sh` runs it between edits.
 """
 
 import re
+import io
 import subprocess
 import sys
 from pathlib import Path
@@ -82,6 +83,45 @@ def git(*args):
     return subprocess.run(
         ["git", *args], cwd=ROOT, capture_output=True, text=True, check=True
     ).stdout
+
+
+def historical_blobs(refs):
+    """Stream the same blobs as git show, in request order, one body at a time.
+
+    No history/verdict cache: each invocation reads its own revision graph.
+    Exchange one request/response at a time so neither pipe can fill while the
+    other side is blocked. Preserve text-mode universal newline decoding.
+    """
+    refs = list(refs)
+    if not refs:
+        return
+    if any(not ref or any(c in ref for c in '\n\r\0') for ref in refs):
+        raise RuntimeError('invalid historical blob reference')
+    # Keep the long-lived Git child's delta cache bounded too; no config file changes.
+    command = ['git', '-c', 'core.deltaBaseCacheLimit=16m', 'cat-file', '--batch']
+    with subprocess.Popen(command, cwd=ROOT, stdin=subprocess.PIPE, stdout=subprocess.PIPE) as child:
+        try:
+            for ref in refs:
+                child.stdin.write(ref.encode() + b'\n')
+                child.stdin.flush()
+                header = child.stdout.readline(4096)
+                fields = header.rstrip(b'\n').split()
+                if (not header.endswith(b'\n') or len(fields) != 3 or fields[1] != b'blob'
+                        or not fields[2].isdigit()):
+                    raise RuntimeError(f'cannot read historical blob: {ref}: {header!r}')
+                size = int(fields[2])
+                body = child.stdout.read(size)
+                if len(body) != size or child.stdout.read(1) != b'\n':
+                    raise RuntimeError(f'truncated historical blob: {ref}')
+                with io.TextIOWrapper(io.BytesIO(body)) as text:
+                    yield text.read()
+            child.stdin.close()
+            if child.wait() != 0:
+                raise subprocess.CalledProcessError(child.returncode, command)
+        finally:
+            if child.poll() is None:
+                child.kill()
+                child.wait()
 
 
 def parens(text):
@@ -159,8 +199,8 @@ def main():
     live = set()
     referenced = set()
     for queue in [q for q in QUEUES if (ROOT / q).exists()]:
-        for rev in reversed(git("log", "--format=%H", "--", queue).split()):
-            text = git("show", "%s:%s" % (rev, queue))
+        revisions = list(reversed(git("log", "--format=%H", "--", queue).split()))
+        for rev, text in zip(revisions, historical_blobs(f'{rev}:{queue}' for rev in revisions), strict=True):
             for n in booked(text):
                 ever.setdefault(n, rev)
             # The paren form is too loose to say a number LEFT — the older

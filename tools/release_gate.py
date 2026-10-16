@@ -56,7 +56,7 @@ def phase_budget(command):
     if any(str(a).endswith('offline_tests.py') for a in command) or 'fmt' in command:
         return 2, 1024
     if any(str(a).endswith('guard.sh') for a in command):
-        return 2, 4096
+        return 8, 32768  # --built can still rebuild after a source edit.
     return 8, 32768
 
 
@@ -66,7 +66,11 @@ def run_logged(command, *, cwd, env, check, log=None):
     stands between the command and its exit status: a `| tee` launders
     `memcap.sh`'s 137 into a 0, and the release command's exit code is the
     gate's verdict."""
-    if env.get('RON_GATE_RESOURCE_POLICY') == '1' and '--release' not in command:
+    dispatcher = any(str(a).endswith('tools/isolated_tests.py') for a in command)
+    if env.get('RON_GATE_RESOURCE_POLICY') == '1' and not dispatcher:
+        env = env.copy()
+        if any(str(a).endswith('guard.sh') for a in command):
+            env['RON_GUARD_ADMITTED'] = '1'
         cpu, memory = phase_budget(command)
         command = [sys.executable, str(ROOT / 'tools/resource_budget.py'),
                    '--cpu', str(cpu), '--memory-mib', str(memory), '--'] + command
@@ -272,7 +276,7 @@ def memory_cap_gib(test_threads):
 
 
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
-         lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=False):
+         lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=None):
     # Parked 1713: two lanes `pkill -f release_gate.py`'d every gate on the
     # box to stop their own; a gate names its pid first so it can be killed
     # by it.
@@ -282,8 +286,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         raise ValueError(f'test threads must be one of {WIDTHS}')
     if scope is not None and lane:
         raise ValueError('--scope is the booking gate\'s; a lane gate has --tests and --base')
-    if isolated and (lane or scope is not None):
-        raise ValueError('--isolated currently requires a complete, unscoped gate')
+    if isolated is None:
+        isolated = True
     tests = list(tests or [])
     if item is not None and not lane:
         raise ValueError('--item is a lane gate\'s: the booking gate reads the queue, not a journal')
@@ -319,13 +323,14 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     env.pop('RON_TEST_MEMCAP_GIB', None)
     env['RUST_TEST_THREADS'] = '2'
     env['RON_INSTALL'] = str(install)
-    env.pop('RON_GATE_RESOURCE_POLICY', None)
-    if isolated:
-        env['RON_GATE_RESOURCE_POLICY'] = '1'
-        env['CARGO_BUILD_JOBS'] = '8'
+    env.pop('RON_GUARD_ADMITTED', None)
+    env['RON_GATE_RESOURCE_POLICY'] = '1'
+    env['CARGO_BUILD_JOBS'] = '8'
     policy = {'schema': 1, 'release_test_threads': test_threads,
               'test_allocator': allocator_policy(env),
-              'memory_cap_gib': 32 if isolated else memory_cap_gib(test_threads)}
+              'memory_cap_gib': 32 if isolated else min(32, memory_cap_gib(test_threads)),
+              'shared_admission': {'global_cpu_slots': 16, 'global_reserved_mib': 32768,
+                                   'cargo_build_jobs': 8, 'all_phases': True}}
     if isolated:
         policy['isolated'] = {'slots': 8, 'global_cpu_slots': 16, 'global_reserved_mib': 32768}
     if scope is not None:
@@ -356,7 +361,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],
         ['cargo', 'fmt', '--check'],
         ['cargo', 'run', '-p', 'rondata', '--', str(install)],
-        ['zsh', 'tools/memcap.sh', str(memory_cap_gib(test_threads)), 'cargo', 'test', '--release',
+        ['zsh', 'tools/memcap.sh', str(min(32, memory_cap_gib(test_threads))), 'cargo', 'test', '--release',
          '--no-fail-fast', '--', f'--test-threads={test_threads}']
         + (['--exact'] + [arg for name in skips for arg in ('--skip', name)] if (lane or scope is not None) else []),
         # The guards ran in the release suite already; the reflex script
@@ -367,7 +372,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     ]
     if isolated:
         commands[4] = [sys.executable, 'tools/isolated_tests.py', '--release',
-                       '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)]
+                       '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)] + [arg for name in skips for arg in ('--skip', name)]
     if scope is not None:
         print((f"Booking gate scoped to {scope}: " +
                (f"every timed test — a merge touches {len(widened)} path(s) that can move the pins ({widened[0]}"
@@ -438,7 +443,7 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
             child_env['RON_FIXTURE_AUDIT_DIR'] = str(audit_dir)
         if lane and step_name(command) == 'guard':
             child_env['RON_LANE'] = '1'
-        extra = {'log': str(report_dir / 'release-tests.log')} if is_release else {}
+        extra = {'log': str(report_dir / ('release-tests.log' if is_release else step_name(command) + '.log'))}
         try:
             reached.append(command)
             run(command, cwd=ROOT, env=child_env, check=True, **extra)
@@ -538,10 +543,13 @@ def main():
     parser.add_argument('--report-dir', type=Path, help='fresh output directory; defaults to a retained temporary directory')
     parser.add_argument('--require-fixtures', action='store_true', help='fail if any observed fixture request was missing')
     parser.add_argument('--test-threads', type=int, choices=WIDTHS, default=2,
-                        help='release width: 2-4 under the 20 GiB monitor (a lane\'s), 6 or 8 under 40 GiB '
-                             '(the booking gate\'s, which runs alone); default: 2')
-    parser.add_argument('--isolated', action='store_true',
-                        help='isolate rondata tests and share host resource admission across worktrees')
+                        help='release width: 2-4 under 20 GiB in combined mode, 6/8 under 32 GiB; '
+                             'isolated rondata tests each use one thread; default: 2')
+    execution = parser.add_mutually_exclusive_group()
+    execution.add_argument('--isolated', action='store_true', default=None,
+                           help='isolate rondata tests (default for all gate modes)')
+    execution.add_argument('--combined', action='store_false', dest='isolated',
+                           help='reference combined runner; still shares host resource admission')
     parser.add_argument('--lane', action='store_true',
                         help="a worker's gate: the suite without the slow timed tests, plus --tests; "
                              "red only on the commander's lines goes on to guard and exits 0")

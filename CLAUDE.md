@@ -702,6 +702,12 @@ and makes the eventual diff mechanical rather than a translation exercise.
   are authored once and invoked thereafter; one-off hypothesis probes
   stay scratch scripts, because a wrong abstraction costs more than the
   typing it saves.
+- **Standalone Cargo checks join host admission:** use `zsh tools/check.sh
+  test …` in place of `cargo test …` (also `build`, `check`, `clippy`, `run`).
+  `tools/guard.sh` and all release-gate modes already join it; do not wrap those
+  again. Full/scoped/lane selection rules stay as specified below; the default
+  gate executor is isolated, with `--combined` as the reference. See
+  `docs/TEST_PERFORMANCE.md` for the cooperative budget and adoption limits.
 - **`tools/guard.sh [filter …]` is the reflex between edits** — the
   paperwork guards plus the current item's tests, debug, seconds. The
   full `--release` diff suite remains the gate: before a commit and

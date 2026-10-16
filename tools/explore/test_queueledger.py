@@ -9,6 +9,11 @@ ledger exists to catch. These fail on that tree.
 from pathlib import Path
 import importlib.util
 import unittest
+import subprocess
+import tempfile
+from unittest.mock import patch
+import contextlib
+import io
 
 TOOLS = Path(__file__).resolve().parent.parent
 SPEC = importlib.util.spec_from_file_location('queueledger', TOOLS / 'queueledger.py')
@@ -47,6 +52,58 @@ class FourDigitItems(unittest.TestCase):
     def test_no_pattern_is_three_digits_wide(self):
         source = (TOOLS / 'queueledger.py').read_text()
         self.assertFalse('{1,3}' in source.split('"""', 2)[2], 'a pattern spells its own width')
+
+
+class HistoricalBlobs(unittest.TestCase):
+    def test_batch_preserves_show_bytes_order_and_repeated_requests(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            subprocess.run(['git', 'init', '-q', d], check=True)
+            refs = []
+            # Long body, blank body and multibyte text exercise exact byte lengths.
+            for data in [b'\n1061. **first**\n', b'', ('é\r\n' * 20000).encode()]:
+                result = subprocess.run(['git', 'hash-object', '-w', '--stdin'], cwd=root,
+                                        input=data, check=True, capture_output=True)
+                refs.append(result.stdout.decode().strip())
+            refs = refs[::-1] + refs[:1]
+            with patch.object(queueledger, 'ROOT', root):
+                expected = [queueledger.git('show', ref) for ref in refs]
+                self.assertEqual(list(queueledger.historical_blobs(refs)), expected)
+                self.assertEqual(list(queueledger.historical_blobs([])), [])
+                with self.assertRaises(RuntimeError):
+                    list(queueledger.historical_blobs(['0' * 40]))
+                with self.assertRaises(RuntimeError):
+                    list(queueledger.historical_blobs(['HEAD\nHEAD']))
+
+    def test_silent_deletion_still_fails_against_both_readers(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root/'docs/journal').mkdir(parents=True)
+            (root/'docs/audit').mkdir()
+            subprocess.run(['git', 'init', '-q', d], check=True)
+            queue = root/'docs/QUEUE.md'
+            queue.write_text('\n1061. **must be accounted for**\n')
+            subprocess.run(['git', 'add', '.'], cwd=root, check=True)
+            subprocess.run(['git', '-c', 'user.name=Authored', '-c', 'user.email=authored@example.invalid',
+                            'commit', '-qm', 'authored'], cwd=root, check=True)
+            queue.write_text('')
+            journal = root/'docs/JOURNAL.md'; journal.write_text('')
+            ledger = root/'docs/audit/queue-ledger.md'; ledger.write_text('')
+            with patch.multiple(queueledger, ROOT=root, JOURNAL=journal, JOURNAL_DIR=root/'docs/journal', LEDGER=ledger):
+                def result():
+                    output = io.StringIO()
+                    with contextlib.redirect_stdout(output): code = queueledger.main()
+                    return code, output.getvalue()
+                failed = result()
+                self.assertEqual(failed[0], 1)
+                self.assertIn('1061', failed[1])
+                with patch.object(queueledger, 'historical_blobs', side_effect=lambda refs: (queueledger.git('show', ref) for ref in refs)):
+                    self.assertEqual(result(), failed)
+                journal.write_text('item 1061: accounted for\n')
+                passed = result()
+                self.assertEqual(passed[0], 0)
+                with patch.object(queueledger, 'historical_blobs', side_effect=lambda refs: (queueledger.git('show', ref) for ref in refs)):
+                    self.assertEqual(result(), passed)
 
 
 if __name__ == '__main__':

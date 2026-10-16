@@ -1,0 +1,48 @@
+{
+  "starting_tip": "614bd7a98dd282cf6135e2ca3dc650ca58dd51c4",
+  "evidence_root": "/tmp/attrition-validation-flow-20261016-01",
+  "scope": "shared validation entry points and batched queue-history reads",
+  "independent_review": "owed",
+  "gate": "pending",
+  "ledger": {
+    "baseline": {
+      "wall": 30.1,
+      "cpu": 27.47,
+      "rss_bytes": 52461568
+    },
+    "batched": {
+      "wall": 2.12,
+      "cpu": 1.97,
+      "rss_bytes": 125878272
+    },
+    "bounded": {
+      "wall": 2.13,
+      "cpu": 2.08,
+      "rss_bytes": 58064896
+    },
+    "output_identical": true,
+    "historical_body_audit": {
+      "exit": 0,
+      "bodies": 2208,
+      "equal": true,
+      "receipt": "ledger-body-audit.json"
+    }
+  },
+  "validation": {
+    "offline": {
+      "exit": 0,
+      "tests": 491,
+      "skipped": 3
+    },
+    "guard": {
+      "exit": 0,
+      "before_run_seconds": 27.97796,
+      "after_run_seconds": 4.2949,
+      "after_sampled_mib": 79
+    },
+    "real_selection_audit": "real-selection-audit.json",
+    "fmt": 0,
+    "shell_syntax": 0,
+    "diff_check": 0
+  }
+}

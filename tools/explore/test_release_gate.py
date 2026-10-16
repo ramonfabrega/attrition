@@ -2,6 +2,7 @@
 """The gate refuses absent installs and never launches a child without RON_INSTALL."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -94,9 +95,105 @@ class IsolatedGate(unittest.TestCase):
         self.assertEqual(gate.phase_budget(['python3', 'tools/offline_tests.py']), (2, 1024))
         self.assertEqual(gate.phase_budget(['cargo', 'fmt', '--check']), (2, 1024))
         self.assertEqual(gate.phase_budget(['cargo', 'clippy']), (8, 32768))
-        self.assertEqual(gate.phase_budget(['zsh', 'tools/guard.sh', '--built']), (2, 4096))
-        with self.assertRaises(ValueError):
-            gate.gate('/unused', isolated=True, scope='HEAD')
+        self.assertEqual(gate.phase_budget(['zsh', 'tools/guard.sh', '--built']), (8, 32768))
+        # Selection and mode are checked separately from the admission wrapper.
+
+
+class SharedEntryPoints(unittest.TestCase):
+    def test_default_complete_is_isolated_but_scoped_and_lane_keep_selection(self):
+        for options, isolated in [({}, True), ({'isolated': False}, False),
+                                  ({'scope': 'HEAD'}, True), ({'lane': True, 'tests': WORD}, True)]:
+            with self.subTest(options=options), tempfile.TemporaryDirectory() as d:
+                install = Path(d)/'install'
+                (install/'Data').mkdir(parents=True)
+                (install/'Data/rules.xml').touch()
+                calls = []
+                def run(command, **kwargs):
+                    calls.append(command)
+                    self.assertEqual(kwargs['env']['RON_GATE_RESOURCE_POLICY'], '1')
+                    self.assertEqual(kwargs['env']['CARGO_BUILD_JOBS'], '8')
+                    if '--release' in command:
+                        release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
+                with patch.object(gate, 'branch_paths', return_value=[]):
+                    gate.gate(install, report_dir=Path(d)/'report', run=run, **options)
+                self.assertEqual('tools/isolated_tests.py' in calls[4], isolated)
+                self.assertEqual(len(calls), 6)
+
+    def test_isolated_and_combined_receive_identical_exact_exclusions(self):
+        for options in [{}, {'scope': 'HEAD'}, {'lane': True, 'tests': WORD}]:
+            commands = []
+            for isolated in [False, True]:
+                with tempfile.TemporaryDirectory() as d:
+                    install = Path(d)
+                    (install/'Data').mkdir()
+                    (install/'Data/rules.xml').touch()
+                    def run(command, **kwargs):
+                        if '--release' in command:
+                            commands.append(command)
+                            release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
+                    with patch.object(gate, 'branch_paths', return_value=[]):
+                        gate.gate(install, report_dir=install/'report', run=run, isolated=isolated, **options)
+            selections = [[c[i+1] for i, arg in enumerate(c) if arg == '--skip'] for c in commands]
+            self.assertEqual(selections[0], selections[1])
+            self.assertTrue(bool(selections[1]) == bool(options))
+
+    def test_standalone_guard_enters_once_and_preserves_filters_and_lane(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            tools = root/'tools'
+            (tools/'explore').mkdir(parents=True)
+            (root/'bin').mkdir()
+            (tools/'guard.sh').write_text((gate.ROOT/'tools/guard.sh').read_text())
+            # A recording admission shim avoids process monitoring in this authored test.
+            (tools/'resource_budget.py').write_text(
+                'import sys,subprocess,json\nfrom pathlib import Path\n'
+                'with Path("admissions").open("a") as f: f.write(json.dumps(sys.argv[1:])+"\\n")\n'
+                'raise SystemExit(subprocess.run(sys.argv[sys.argv.index("--")+1:]).returncode)\n')
+            for name in ['test_brief', 'test_queueledger']:
+                (tools/'explore'/f'{name}.py').write_text('import unittest\nclass Authored(unittest.TestCase):\n def test_ok(self): self.assertTrue(True)\n')
+            (tools/'queueledger.py').write_text('')
+            cargo = root/'bin/cargo'
+            cargo.write_text('#!/bin/sh\nprintf "%s|%s|%s|%s\\n" "$*" "$CARGO_BUILD_JOBS" "$RUST_TEST_THREADS" "$RON_LANE" >> cargo-calls\n')
+            cargo.chmod(0o700)
+            for lane in ['', '1']:
+                env = dict(os.environ, PATH=str(root/'bin')+os.pathsep+os.environ['PATH'], RON_LANE=lane)
+                env.pop('RON_GUARD_ADMITTED', None)
+                done = subprocess.run(['zsh', str(tools/'guard.sh'), '--built', 'authored_filter'],
+                                      env=env, capture_output=True, text=True, timeout=10)
+                self.assertEqual(done.returncode, 0, done.stderr)
+            self.assertEqual(len((root/'admissions').read_text().splitlines()), 2)
+            calls = (root/'cargo-calls').read_text().splitlines()
+            self.assertEqual(sum('authored_filter' in line for line in calls), 2)
+            self.assertEqual(sum('the_handoff' in line for line in calls), 1)
+            self.assertTrue(all('|8|2|' in line for line in calls))
+            (tools/'check.sh').write_text((gate.ROOT/'tools/check.sh').read_text())
+            env.pop('RON_GUARD_ADMITTED', None)
+            done = subprocess.run(['zsh', str(tools/'check.sh'), 'test', '-p', 'sim', 'authored_filter'],
+                                  env=env, capture_output=True, text=True, timeout=10)
+            self.assertEqual(done.returncode, 0, done.stderr)
+            self.assertEqual(len((root/'admissions').read_text().splitlines()), 3)
+            self.assertIn('test --jobs 8 -p sim authored_filter|8|2|', (root/'cargo-calls').read_text())
+            done = subprocess.run(['zsh', str(tools/'check.sh'), 'invalid'],
+                                  env=env, capture_output=True, text=True, timeout=10)
+            self.assertEqual(done.returncode, 2)
+            self.assertEqual(len((root/'admissions').read_text().splitlines()), 3)
+            cargo.write_text('#!/bin/sh\nexit 7\n')
+            done = subprocess.run(['zsh', str(tools/'check.sh'), 'test'], env=env,
+                                  capture_output=True, text=True, timeout=10)
+            self.assertEqual(done.returncode, 7)
+
+    def test_combined_release_is_admitted_and_isolated_dispatcher_is_not_double_admitted(self):
+        env = {'RON_GATE_RESOURCE_POLICY': '1'}
+        for command, admitted in [(['cargo', 'test', '--release'], True),
+                                  ([sys.executable, 'tools/isolated_tests.py', '--release'], False),
+                                  (['zsh', 'tools/guard.sh', '--built'], True)]:
+            with self.subTest(command=command), patch.object(gate.subprocess, 'run') as run:
+                gate.run_logged(command, cwd='.', env=env, check=True)
+                actual = run.call_args.args[0]
+                self.assertEqual(any(str(v).endswith('resource_budget.py') for v in actual), admitted)
+                if 'tools/guard.sh' in command:
+                    self.assertEqual(run.call_args.kwargs['env']['RON_GUARD_ADMITTED'], '1')
+        self.assertNotIn('RON_GUARD_ADMITTED', env)
 
 
 class StaleAgentWorktrees(unittest.TestCase):
@@ -208,16 +305,16 @@ class GateTests(unittest.TestCase):
                     self.assertNotIn('RON_TEST_MEMCAP_GIB', kwargs['env'])
                     if '--release' in command:
                         # The thirty-fifth steer: 20 GiB for a lane's width, 40 for the booking gate's.
-                        self.assertEqual(command[:3], ['zsh','tools/memcap.sh','20' if width <= 4 else '40'])
+                        self.assertEqual(command[:3], ['zsh','tools/memcap.sh','20' if width <= 4 else '32'])
                         self.assertEqual(command[-2:], ['--', f'--test-threads={width}'])
                         self.assertNotIn('--skip', command)
                         release_ran(kwargs)
                 with patch.dict('os.environ', RUST_TEST_THREADS='16', RON_TEST_MEMCAP_GIB='999'):
-                    gate.gate(path, report_dir=path/'report', test_threads=width, run=run)
+                    gate.gate(path, report_dir=path/'report', test_threads=width, run=run, isolated=False)
                 self.assertEqual(len(calls), 6)
                 policy=json.loads((path/'report/gate-policy.json').read_text())
                 self.assertEqual(policy['release_test_threads'], width)
-                self.assertEqual(policy['memory_cap_gib'], 20 if width <= 4 else 40)
+                self.assertEqual(policy['memory_cap_gib'], 20 if width <= 4 else 32)
 
     def test_unmeasured_width_never_runs(self):
         for width in (0, 1, 5, 7, 16, '4', 4.0, True):
@@ -318,7 +415,7 @@ class GateTests(unittest.TestCase):
                     self.assertIn('--no-fail-fast', command)
                     self.assertLess(command.index('--no-fail-fast'), command.index('--'))
                     release_ran(kwargs)
-            gate.gate(path, report_dir=path/'report', run=run)
+            gate.gate(path, report_dir=path/'report', run=run, isolated=False)
             self.assertIn('--no-fail-fast', calls[4])
 
     def test_release_without_a_test_result_is_unobserved(self):
@@ -468,6 +565,7 @@ class GateTests(unittest.TestCase):
                '0.02\tdiff::floors::tests::the_gate_has_a_bounded_test_width\n')
 
     def release_command(self, touched=(), **kw):
+        kw.setdefault('isolated', False)  # Retain reference-runner selection assertions.
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls=[]

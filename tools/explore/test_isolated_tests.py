@@ -109,9 +109,16 @@ class Admission(unittest.TestCase):
                      '--cpu', '4', '--memory-mib', '128', '--', sys.executable, '-c', code],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
             events = []
+            timings = []
             for process in processes:
                 out, err = process.communicate(timeout=15)
                 self.assertEqual(process.returncode, 0, err)
+                receipt = next(line for line in err.splitlines() if line.startswith('resource budget timing: '))
+                timing = json.loads(receipt.removeprefix('resource budget timing: '))
+                self.assertTrue(timing['admitted'])
+                self.assertGreaterEqual(timing['wait_seconds'], 0)
+                self.assertGreater(timing['run_seconds'], 0)
+                timings.append(timing)
                 begin, end = map(float, out.splitlines())
                 events.extend([(begin, 1), (end, -1)])
             active = peak = 0
@@ -121,6 +128,7 @@ class Admission(unittest.TestCase):
             self.assertLessEqual(peak, 4)
             self.assertGreater(peak, 1)
             self.assertEqual(active, 0)
+            self.assertEqual(len(timings), 6)
 
     def test_cancellation_reaps_workload_and_releases_shared_tokens(self):
         with tempfile.TemporaryDirectory() as d:
@@ -156,6 +164,15 @@ class Manifest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     runner.discover('fake')
 
+    def test_timing_receipt_is_separate_from_test_cpu(self):
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d)/'log'
+            receipt = dict(wait_seconds=2.5, run_seconds=1.2, admitted=True)
+            log.write_text('resource budget timing: ' + json.dumps(receipt) + '\n')
+            self.assertEqual(runner.resource_timing(log), receipt)
+            log.write_text('old log without receipt\n')
+            self.assertIsNone(runner.resource_timing(log))
+
     def test_unknown_test_gets_whole_memory_budget(self):
         self.assertEqual(runner.reservation('new', {}), 32768)
         self.assertEqual(runner.reservation('small', {'small': {'rss_bytes': 1}}), 256)
@@ -180,6 +197,21 @@ class Manifest(unittest.TestCase):
                 row = dict(name='only', success=False, exit=code, user=0, system=0)
                 with patch.object(runner, 'binary_stamp', return_value=(0,)), patch.object(runner, 'discover', side_effect=[['only'], []]), patch.object(runner, 'run_one', return_value=row):
                     self.assertEqual(runner.isolated('fake', Path(d)/'out', Path(d), 1), code or 125)
+
+    def test_exact_skips_preserve_new_tests_and_do_not_skip_prefix_matches(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d)/'out'
+            seen = []
+            def run(binary, name, *args):
+                seen.append(name)
+                return dict(name=name, success=True, exit=0, user=1, system=0)
+            with patch.object(runner, 'binary_stamp', return_value=(0,)), patch.object(runner, 'discover', side_effect=[['slow', 'slow_new', 'new', 'ignored'], ['ignored']]), patch.object(runner, 'run_one', side_effect=run):
+                self.assertEqual(runner.isolated('fake', out, Path(d), 2, skips=['slow', 'absent']), 0)
+            self.assertCountEqual(seen, ['slow_new', 'new'])
+            manifest = json.loads((out/'manifest.json').read_text())
+            self.assertEqual(manifest['skipped'], ['slow'])
+            self.assertEqual(manifest['ignored'], ['ignored'])
+            self.assertEqual(json.loads((out/'summary.json').read_text())['filtered'], 1)
 
     def test_every_test_once_and_no_fail_fast(self):
         with tempfile.TemporaryDirectory() as d:
