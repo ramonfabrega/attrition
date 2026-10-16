@@ -57,8 +57,8 @@ wall-16%, CPU-15%, memory-6%; six suites wall-18%, CPU-14%, memory flat.
 Full required-fixture gate passed on `f08d0c08`; full-gate speedup unproven.
 Ticking/decoder follow-up: coverage CPU−11–13%; scoped macOS reclamation cuts
 four/six-suite sample memory15%/20%, CPU6%/7%; six-suite elapsed−9% (four flat).
-Complete warm isolated CPU−2%; peak memory variable. First full gate passed;
-final policy gate pending. See [ticking journal](journal/2026-10-16-ticking-decoding.md).
+Complete warm isolated CPU−2%; peak memory variable. Full gate passed on
+`3b7e6846`: time/CPU roughly flat, peak memory−18%. See [ticking journal](journal/2026-10-16-ticking-decoding.md).
 Next: measured live unit/radius scans; independent review remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.

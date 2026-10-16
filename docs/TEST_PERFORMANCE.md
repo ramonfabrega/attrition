@@ -106,6 +106,13 @@ measurements justify inclusion; ordinary resource caps still apply. See the
 [ticking/decoding journal](journal/2026-10-16-ticking-decoding.md) for differential
 checks, contention results and landing validation. Independent review remains owed.
 
+The final required-fixture gate passes on `3b7e6846`: 427.11 seconds,
+1,438.50 CPU seconds, 8,089 MiB sampled tree peak. Compared with the preceding
+recorded gate, time/CPU are roughly flat and peak memory is 18% lower. The selected
+four/six-suite contention samples save 6%/7% CPU and 15%/20% memory; six-suite
+elapsed falls 9%, four-suite elapsed is flat. All fixture request multisets match.
+These observations preserve the unmet 10× target and outstanding independent review.
+
 ## Trace frame lookup
 
 A parsed trace records whether draw frame numbers are nondecreasing. For that

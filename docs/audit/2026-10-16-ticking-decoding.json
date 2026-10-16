@@ -3,7 +3,28 @@
   "evidence_root": "/tmp/attrition-tick-decode-20261016-01",
   "scope": "ticking and decoded container allocation; macOS child allocator policy",
   "independent_review": "owed",
-  "release_gate": "pending",
+  "release_gate": {
+    "implementation_commit": "3b7e6846f3c251a33712322d4c2d167bcddfb71f",
+    "command": "python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures",
+    "report_dir": "/tmp/attrition-tick-decode-20261016-01/gate-final",
+    "exit": 0,
+    "steps_ran": 6,
+    "steps_total": 6,
+    "fixed_passed": 13,
+    "rondata_passed": 890,
+    "rondata_ignored": 6,
+    "sim_passed": 2586,
+    "doc_tests_passed": 3,
+    "fixture_requests": 3276,
+    "unique_fixtures": 419,
+    "missing_fixtures": 0,
+    "exact_previous_fixture_multiset": true,
+    "wall": 427.11,
+    "cpu": 1438.5,
+    "sampled_tree_peak_mib": 8089,
+    "rondata_seconds": 313.32,
+    "tenfold_achieved": false
+  },
   "complete_diagnostic_lines_equal": 14748,
   "fixture_requests_per_warm_walk": 338,
   "missing_fixtures": 0,
@@ -411,5 +432,10 @@
       "cpu": 422.54999999999995,
       "peak_tree_mib": 11937
     }
+  },
+  "auto_policy_receipts": {
+    "bounded_tests": 49,
+    "system_tests": 841,
+    "all_expected_choices_match": true
   }
 }

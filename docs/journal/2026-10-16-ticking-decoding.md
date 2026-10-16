@@ -261,3 +261,43 @@ It changes only per-child allocator selection and its tests/documentation.
 Nevertheless, the required full gate is repeated on the final committed tree;
 that also measures an already-populated fingerprint generation. Its verdict is
 pending here and must be recorded after actual completion.
+
+## Final landing verdict
+
+Final implementation **`3b7e6846f3c251a33712322d4c2d167bcddfb71f`** passes the complete required-fixture gate,
+exit0, all six phases: offline tooling, clippy, formatting, install survey,
+release suites and final guards. Exact command:
+
+```sh
+/usr/bin/time -l zsh tools/memcap.sh 40 python3 tools/release_gate.py \
+  /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures \
+  --report-dir /tmp/attrition-tick-decode-20261016-01/gate-final
+```
+
+`gate-final.log` and `gate-final.exit` retain actual completion. Fixed13,
+rondata890 passing plus6 unchanged ignored, sim2586 and3 doc tests all pass.
+All3,276 requested fixtures are present (419 unique), and the exact request
+multiset matches both the first gate and the preceding branch's full gate.
+The tree stayed frozen during each full gate. No pins, scored words, expected
+value divergences, comparison fields or required fixtures moved.
+
+Final gate427.11 wall/1,438.50 CPU seconds, sampled tree peak8,089 MiB;
+rondata313.32 seconds. Previous branch:433.29/1,422.75/9,910; time is roughly
+flat (−1.4%), CPU slightly higher (+1.1%), peak memory18.4% lower. These are
+observed gate runs, not a controlled claim of general speedup. The earlier
+cold-generation481.21/1,625.32/8,553 result remains in the record.
+
+The selected isolated contention sample saves CPU6%/7% and peak memory15%/20%
+for four/six competing suites; elapsed is flat/−9%. The complete warm isolated
+rondata suite saves about2% CPU/time, with variable aggregate memory (+5% in
+that one selected run). All890 effective policy receipts match the intended
+49 bounded /841 system choices. Independent review remains owed.10× remains
+unmet; neither an individual-test gain nor contention sample is a full-suite10×.
+
+Next measured candidate: live unit/radius scans during ticking. Before a broad
+rewrite, profile whole-suite setup/parsing and ticking shares: the complete
+isolated evidence shows gains in one coverage test are diluted across hundreds
+of other tests. Do not return to frame-input indexing without new evidence.
+The commander remains paused; these commits are on the user-directed branch,
+not merged into the commander's checkout. A documentation-only verdict commit
+follows the passing gate, with diff and paperwork guards checked separately.
