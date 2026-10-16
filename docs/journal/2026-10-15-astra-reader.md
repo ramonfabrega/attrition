@@ -421,3 +421,19 @@ Four-thread memory peak was 8,617 MiB across the tree and 8,585 MiB in the
 largest process, under the 20 GiB cap. Gate log:
 `/tmp/attrition-run97-clocks-indexed-release-gate.log`. The follow-up commit
 records this verdict.
+
+### Run33 scout retarget memory follow-up — 2026-10-15
+
+The next remaining sweep leader was `diff::world::tests::run33_s_scout_re_targets_at_361_on_the_original_s_cell`
+(2,295 MiB, 3.04 s). It loaded run33 and all sibling captures whole for a
+363-tick replay, and parsed all frames to inspect one order destination. It
+now reads indexed replay setup and observations, scopes sibling initials,
+trims observations past frame 362, and reads only run33 frame 362 for the
+destination. Its exact frame-361 trace sequence, 27 draw marks, and frame-362
+destination assertions all pass.
+
+The focused run measured 1.52 s / 537 MiB (563,003,392 bytes), versus the
+suite sweep's 3.04 s / 2,295 MiB: -1,758 MiB (-76.6%) RSS and -50.0% time.
+Indexed instructions: 36,630,868,350. Evidence:
+`docs/audit/2026-10-15-astra-run33-scout-indexed.txt`. The implementation
+checkpoint and required gate are pending.
