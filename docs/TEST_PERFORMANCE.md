@@ -420,3 +420,11 @@ with peak RSS50.03→55.38MiB. An exhaustive body comparison against the origina
 reader and authored deletion failures are recorded in the
 [workflow journal](journal/2026-10-16-validation-workflow.md). This is a guard
 component improvement, not a measured 10× complete gate.
+
+The default full required-fixture gate passed on `980efbd5`:271.25s wall,
+1509.62 CPU seconds,8169MiB sampled tree peak; fixed13/rondata890/sim2586/doctests3
+pass,6 unchanged ignored. Exact3276 fixture requests and ordered rondata test
+manifest match the reference. The earlier combined gate took427.11s/1438.50CPU/
+8089MiB: wall improves with the default executor, while CPU and memory do not.
+This is not a new replay speedup or a 10× full-suite result. Warm standalone guard
+execution is27.98→4.29s. See the workflow journal for attribution and review limits.

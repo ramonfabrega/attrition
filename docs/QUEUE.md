@@ -65,7 +65,8 @@ No production change or new speedup claimed; see [radius journal](journal/2026-1
 Workflow follow-up: all gate modes default to isolated execution with unchanged
 selection; standalone guards/Cargo wrapper join shared admission. Ledger history
 reads retain all2,208 bodies and cut wall30.10→2.13s/CPU27.47→2.08s; RSS+5.3MiB.
-Complete gate validation pending.
+Complete required-fixture gate passed on `980efbd5`:271.25s/1509.62CPU/8169MiB
+sampled tree; all tests and3276 fixture requests preserved. Warm guard27.98→4.29s.
 See [workflow journal](journal/2026-10-16-validation-workflow.md).
 Next: observe admission wait versus execution; then measure build/replay duplication
 before splitting crates or caching any revision's verdict.

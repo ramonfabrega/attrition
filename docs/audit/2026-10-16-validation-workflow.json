@@ -3,7 +3,23 @@
   "evidence_root": "/tmp/attrition-validation-flow-20261016-01",
   "scope": "shared validation entry points and batched queue-history reads",
   "independent_review": "owed",
-  "gate": "pending",
+  "gate": {
+    "commit": "980efbd51ef71e9ed81f2bead05adf33f26f90b5",
+    "exit": 0,
+    "phases": 6,
+    "wall_seconds": 271.25,
+    "cpu_seconds": 1509.62,
+    "sampled_tree_mib": 8169,
+    "rondata_passed": 890,
+    "ignored": 6,
+    "fixed_passed": 13,
+    "sim_passed": 2586,
+    "doctests_passed": 3,
+    "fixture_requests": 3276,
+    "unique_fixtures": 419,
+    "missing_fixtures": 0,
+    "equivalence_receipt": "gate-equivalence.json"
+  },
   "ledger": {
     "baseline": {
       "wall": 30.1,

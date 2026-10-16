@@ -145,3 +145,42 @@ This discovery check executes no simulation and does not replace the full gate.
 Implementation is ready for its commit; the complete required-fixture gate will
 run on that frozen commit, followed by a recorded verdict. No full-gate pass is
 claimed at this checkpoint.
+
+## Committed-tree gate and result
+
+Implementation commit `980efbd51ef71e9ed81f2bead05adf33f26f90b5` was frozen during:
+
+```sh
+/usr/bin/time -l zsh tools/memcap.sh 40 python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures --report-dir /tmp/attrition-validation-flow-20261016-01/gate
+```
+
+Exit0; all six phases passed. `gate.log` and `gate.exit` retain the actual verdict.
+Policy confirms default isolation and shared admission for all phases. Whole gate:
+271.25s wall,1509.62 CPU seconds,8169MiB sampled process-tree peak. Rondata:
+890 passed,6 unchanged ignored,0 filtered,171.40s wall/1224.52 test CPU seconds.
+Fixed13,sim2586 and rondata doctests3 pass. Fixture audit:3276 requests,419 unique,
+0 missing. `gate-equivalence.json` verifies the exact fixture-request multiset and
+per-target result counts against the prior complete gate, and ordered rondata
+manifest/ignored list against the previous isolated baseline. All890 children
+have admitted timing receipts: summed wait7.66s,maximum wait0.84s. Summed waits
+are concurrent process durations, not gate wall time; this is an uncontended run.
+
+The prior complete *combined* gate on `3b7e6846` took427.11s/1438.50 CPU seconds/
+8089MiB peak. The new default takes36.5% less wall time but4.9% more CPU and1.0%
+more sampled peak memory in these runs. This comparison includes executor choice
+and warm-run variation; it does not establish a new simulation speedup. Compared
+with the prior rondata-only isolated baseline165.18s/1190.57 CPU seconds, this
+run is3.8% slower/2.9% more CPU. No replay gain is claimed. The guard improvement
+is measured independently above; full-suite10× remains unmet. No score/value
+movement, source change, pin change or comparison reduction.
+
+Next: adopt the tools in active worktrees after review, observe admission wait
+versus execution, then measure compile invalidation for representative edits.
+Different revisions retain separate binaries and verdicts. Crate extraction or
+incremental compilation remains a measured follow-up, not an assumed cure.
+This verdict update changes bookkeeping only; final paperwork/format/link checks
+are recorded in the follow-up commit. Independent Fable review remains owed.
+
+Bookkeeping follow-up: `guard-verdict.log` exit0, all paperwork guards pass;
+10 local links resolve, audit JSON parses, formatting and diff checks pass.
+This documentation-only follow-up does not claim a second full gate.
