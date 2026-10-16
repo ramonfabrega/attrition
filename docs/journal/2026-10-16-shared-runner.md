@@ -205,3 +205,67 @@ No original corpus was relocated or deleted. No pins or scoreboard values moved.
 Implementation landing: pending committed-tree ordinary and isolated gates.
 For the Loop: commander paused; source-keyed setup persistence and shared
 isolation implemented, complete final gates pending;10× still unmet.
+
+
+## Final committed-tree gates and handoff
+
+Implementation `575bad0062fdc320712c55e704ecf422746a581d` remained frozen for
+both complete required-fixture gates. Ordinary command:
+`python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures --report-dir /tmp/attrition-shared-runner-20261016-01/final-ordinary-gate`.
+Isolated command adds `--isolated` and uses `final-isolated-gate` as report dir.
+Both wrapped in `/usr/bin/time -l`; corresponding `.log`/`.time` are retained.
+The isolated scratch `final-gate-monitor.py` adds a read-only one-second process
+tree sampler, no additional nice or memory wrapper, records actual exit0 in
+`final-isolated-gate-result.json`, and retained all samples. Ordinary completed
+all six phases without exception; release completion, guards and time output
+are retained. Both full gates passed, without skipped fixture evidence.
+
+| Measure | Ordinary | Isolated |
+| --- | ---: | ---: |
+| Full gate wall seconds |455.87|285.65|
+| User + system CPU seconds |1529.20|1540.76|
+| Rondata wall seconds |342.02|176.80|
+| Sampled tree peak MiB |10473|9029.5|
+
+Isolation reduces full wall37.3% (1.60×), with CPU+0.8% and sampled peak-13.8%.
+Ordinary RSS sampling covers its release subtree; isolated sampling covers the
+whole gate. CPU excludes the external read-only sampler. Ordinary width4 versus
+isolated width8 means latency improvement partly comes from concurrency. This
+is one warm pair, not a confidence interval or aggregate four-suite speed claim.
+Compared with the previous ordinary gate482.19s/1663.59CPU, the new ordinary gate
+uses8.1% less CPU; cache persistence and five added focused tests are part of
+that change. It does not establish10×. No pins, scores, or value floors moved.
+
+Both modes: fixed13, rondata881 plus6ignored, sim2585, rondata doctests3 passed.
+Exact passed-test row multisets match (3479 named unit rows; three doctests are
+separate). Exact fixture TSV multisets match:3276 requests,419 distinct,0missing.
+All six gate phases ran. Shared-resource status was empty after completion.
+The19 runner and36 gate focused tests also passed before implementation landing.
+Whole Original/Initial, fresh indexed, raw-key and complete widened comparisons
+from the earlier sections remain the differential evidence for persistence.
+Committed aggregate: `docs/audit/2026-10-16-shared-runner-final.json`.
+
+Production entry point is the opt-in full gate `--isolated`; all participating
+worktrees must adopt it to share admission. This branch does not throttle old
+runners and has not been merged into the commander's checkout. Four-suite
+sample results do not establish aggregate speed or memory gains. Independent
+review remains owed; executable equivalence is evidence, not an independent
+review. Commander remains paused. No shared capture configuration changed.
+
+Next measured item: `third_pair_windows_check_groups_and_projectiles_on_both_sides`
+uses40.55CPU seconds and3974MiB individually in this full isolated run. Its
+same-base windows repeatedly rebuild and tick from zero. Before reusing a Built,
+measure setup/tick/compare components and prove per-window seed/clock cutoffs
+cannot affect earlier state. Group only identical input/tuning windows; retain
+fresh-from-zero differential mode, whole group/projectile records, comparison
+widths/field sets, draws/checkpoints and fixture accounting. Code-reading
+hypothesis only, no implementation or improvement claimed. Detailed scratch
+note: `/tmp/attrition-shared-runner-20261016-01/next-bottleneck.md`.
+
+For the Loop: both requested items implemented and full gates passed on575bad00;
+10× remains unmet. This follow-up changes only validation evidence/bookkeeping;
+it receives diff and paperwork checks, not another full game-data gate.
+
+Follow-up paperwork: `zsh tools/guard.sh` exit0; diff check, document links and
+audit JSON validation passed. Guard log: `final-bookkeeping-guard.log` in the
+evidence root. Only these documentary changes follow the validated implementation.

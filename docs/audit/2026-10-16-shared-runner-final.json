@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "revision": "575bad0062fdc320712c55e704ecf422746a581d",
+  "evidence_root": "/tmp/attrition-shared-runner-20261016-01",
+  "ordinary": {
+    "wall_seconds": 455.87,
+    "user_seconds": 1385.99,
+    "system_seconds": 143.21,
+    "rondata_wall_seconds": 342.02,
+    "sampled_release_tree_peak_mib": 10473
+  },
+  "isolated": {
+    "exit_code": 0,
+    "wall_seconds": 285.65,
+    "user_seconds": 1369.28,
+    "system_seconds": 171.48,
+    "rondata_wall_seconds": 176.79971704099444,
+    "rondata_test_cpu_seconds": 1282.75,
+    "sampled_gate_tree_peak_mib": 9029.5
+  },
+  "validation": {
+    "phases_each": 6,
+    "fixed_passed": 13,
+    "rondata_passed": 881,
+    "rondata_ignored": 6,
+    "sim_passed": 2585,
+    "rondata_doctests_passed": 3,
+    "same_passed_test_row_multiset": true,
+    "fixture_requests_each": 3276,
+    "distinct_fixtures_each": 419,
+    "missing_each": 0,
+    "same_fixture_request_multiset": true
+  },
+  "limitations": [
+    "Single warm full-gate pair; no confidence interval.",
+    "Ordinary tree sampler covers release phase; isolated read-only sampler covers entire gate.",
+    "Ordinary rondata width4 versus isolated width8; wall gain partly concurrency.",
+    "Full CPU includes children and runner overhead; isolated outer RSS sampler CPU excluded.",
+    "Four-suite contention sample did not establish aggregate throughput or memory improvement.",
+    "Cooperating runners only; independent review remains owed."
+  ],
+  "top_isolated_cpu": [
+    {
+      "name": "diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned",
+      "cpu_seconds": 48.0,
+      "rss_bytes": 1915666432
+    },
+    {
+      "name": "diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides",
+      "cpu_seconds": 40.55,
+      "rss_bytes": 4166795264
+    },
+    {
+      "name": "diff::coverage::every_key_the_dump_prints_is_read_or_pinned",
+      "cpu_seconds": 38.02,
+      "rss_bytes": 136085504
+    },
+    {
+      "name": "diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture",
+      "cpu_seconds": 14.14,
+      "rss_bytes": 459276288
+    },
+    {
+      "name": "diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture",
+      "cpu_seconds": 11.86,
+      "rss_bytes": 132431872
+    },
+    {
+      "name": "diff::golden::chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame",
+      "cpu_seconds": 11.47,
+      "rss_bytes": 1491206144
+    },
+    {
+      "name": "diff::golden::chapter_thirty_six_s_word_frame_is_widened_whole",
+      "cpu_seconds": 9.5,
+      "rss_bytes": 805158912
+    },
+    {
+      "name": "diff::golden::chapter_thirty_seven_s_word_frame_is_widened_whole",
+      "cpu_seconds": 9.04,
+      "rss_bytes": 782909440
+    },
+    {
+      "name": "diff::golden::chapter_thirty_five_s_word_frame_is_widened_whole",
+      "cpu_seconds": 8.85,
+      "rss_bytes": 772931584
+    },
+    {
+      "name": "diff::harness::tests::run227_s_word_frame_is_widened_whole",
+      "cpu_seconds": 8.12,
+      "rss_bytes": 396001280
+    },
+    {
+      "name": "diff::harness::tests::run99_s_word_frame_is_widened_whole",
+      "cpu_seconds": 8.07,
+      "rss_bytes": 390512640
+    },
+    {
+      "name": "diff::harness::tests::great_lakes_run163_through_run226_are_widened_whole",
+      "cpu_seconds": 7.96,
+      "rss_bytes": 480395264
+    }
+  ]
+}

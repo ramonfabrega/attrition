@@ -159,6 +159,13 @@ Never compare historical serial totals with parallel wall time to claim10×.
 selects process isolation with shared host admission. The ordinary in-process
 gate remains the default. The complete initial isolated gate and subsequent
 monitor correction measurements are recorded in the shared-runner journal.
+Final same-commit gates on `575bad00` passed all six phases and identical fixture
+request multisets: ordinary455.87s/1529.20CPU versus isolated285.65s/1540.76CPU.
+Sampled tree peaks10473MiB (ordinary release) and9029.5MiB (whole isolated gate).
+This is1.60× full-gate latency, with roughly unchanged CPU; rondata itself
+342.02→176.80s uses four versus eight workers. The four-suite contention sample
+established no aggregate throughput improvement. See
+`docs/audit/2026-10-16-shared-runner-final.json` for scope and limitations.
 Cargo discovers every workspace release test executable; all non-rondata
 executables and all workspace doctests still run. Each nonignored rondata library
 test runs in a fresh process with exact-name selection and one test thread.

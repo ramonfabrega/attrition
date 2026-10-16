@@ -45,7 +45,10 @@ medium`; 2783 is its next); the whole gate green at the pass; count landings fro
 ## Sequential performance work
 
 User-directed branch `codex/astra-windowed-reader`; commander remains paused.
-Shared isolation and persistent setup observations implemented; final gates pending.
+Shared isolation and persistent setup observations validated on `575bad00`: both
+complete required-fixture gates passed; full wall456→286s with isolation, CPU
+1529→1541s, sampled tree10473→9030MiB. Adoption requires `--isolated` in each
+cooperating worktree. Next measured candidate: third-pair repeated from-zero replay.
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.
 
