@@ -1,0 +1,21 @@
+# Bounded setup reads in the parsed-field coverage test, 2026-10-15.
+# Same release test binary, install, one test per process, same machine.
+# /usr/bin/time -l; times in seconds and RSS/instructions in bytes/counts.
+# Baseline and indexed-setup runs each passed the unchanged 63-window test.
+
+diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
+  baseline:  160.23 s; 2,646,608,488 B maximum RSS; 3,721,335,878,078 instructions
+  indexed:   158.86 s; 1,339,361,032 B maximum RSS; 3,593,963,055,938 instructions
+  delta:      -0.9%;                 -49.4%;                    -3.4%
+
+# The entire full-capture and sibling-log parse was replaced by indexed
+# replay-setup reads. All named captures, sibling borrowing, trace input,
+# windows, and compared-field coverage remain. Timing movement is small;
+# the measured result is a clear peak-RSS reduction.
+#
+# Reproduction (run separately, with the local install):
+# /usr/bin/time -l env RON_INSTALL=<install> <rondata-test-binary> \
+#   --exact diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned \
+#   --test-threads 1
+# Baseline logs: /tmp/attrition-coverage-sibling-baseline.{out,time}
+# Indexed logs:  /tmp/attrition-coverage-sibling-after.{out,time}

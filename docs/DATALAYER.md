@@ -205,6 +205,13 @@ shared in the bounded cache. The index allows gaps between frame spans because
 sibling records such as `FULL DUMP` can occur between `FRAME` blocks, while
 still rejecting overlapping or out-of-order ranges.
 
+The widening test harness uses `read_replay_setup()` for its primary capture
+and scoped indexed replay initials for named siblings. It retains the setup
+observations needed to construct the same simulation, then releases capture
+text before stepping frames. The per-frame indexed comparisons are unchanged;
+the former path parsed and retained whole sibling logs even though it used
+them only to borrow setup fields.
+
 **What the laziness costs is a second pass.** Every whole-log product —
 `frame_states`, `frame_seeds`, `anim_lengths`, the height grid, and the four
 walks `initial` used to make separately — now goes through `scan_children`,

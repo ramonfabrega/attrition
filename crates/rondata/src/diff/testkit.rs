@@ -140,6 +140,15 @@ pub(crate) fn sibling_texts() -> Vec<crate::capture::Text> {
 /// Retain bounded setup text plus owned observations, not whole sibling files.
 /// Each scoped initial lives until the innermost callback returns.
 pub(crate) fn with_sibling_initials<R>(use_initials: impl FnOnce(&[&Initial<'_>]) -> R) -> R {
+    with_named_sibling_initials(SIBLING_DUMPS, use_initials)
+}
+
+/// Retain bounded setup text plus owned observations from named sibling
+/// captures. Each scoped initial lives until the innermost callback returns.
+pub(crate) fn with_named_sibling_initials<R>(
+    names: &[&str],
+    use_initials: impl FnOnce(&[&Initial<'_>]) -> R,
+) -> R {
     fn visit<R>(
         paths: &[String],
         inits: &[&Initial<'_>],
@@ -157,7 +166,7 @@ pub(crate) fn with_sibling_initials<R>(use_initials: impl FnOnce(&[&Initial<'_>]
             })
             .unwrap()
     }
-    let paths: Vec<String> = SIBLING_DUMPS.iter().filter_map(|n| dump(n)).collect();
+    let paths: Vec<String> = names.iter().filter_map(|n| dump(n)).collect();
     visit(&paths, &[], use_initials)
 }
 

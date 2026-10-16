@@ -11241,22 +11241,17 @@ pub(crate) mod tests {
             .collect();
         let (first_block, tail) = window;
         let loaded = crate::load::load(&inst).unwrap();
-        let texts: Vec<crate::capture::Text> = siblings
-            .iter()
-            .filter_map(|n| dump(n))
-            .map(crate::capture::read)
-            .collect();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        if let Some(t) = trace(base_trace) {
-            borrow_pasture(&mut init, &t);
-        }
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut built = crate::diff::testkit::with_named_sibling_initials(siblings, |refs| {
+            let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+            let text = source.read_replay_setup().unwrap();
+            let log = Log::parse(&text);
+            let mut init = log.replay_initial().unwrap();
+            borrow_from_siblings(&mut init, refs);
+            if let Some(t) = trace(base_trace) {
+                borrow_pasture(&mut init, &t);
+            }
+            build_sim(&loaded, &init, Tuning::RON)
+        });
         let players = built.sim.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();

@@ -194,10 +194,34 @@ this verdict.
 
 Four high-RSS tests now use indexed reads. The full gate following the first
 pair recorded 11,056 MiB peak across the tree, 1,487 MiB below the previous
-gate's 12,543 MiB observation. After this landing, profile
-`diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned`
-again: it remains the longest single rondata test (167.63 s in the recent
-focused run) and used 2.5 GiB in the earlier per-test sweep. The region-count
-cache was a modest initial win; measure the new hotspot before choosing the
-next change. The parsed per-lobby store remains deferred until the profile
-shows text parsing is a material CPU cost.
+gate's 12,543 MiB observation.
+
+### Coverage setup memory follow-up — 2026-10-15
+
+The post-reader profile completed: the coverage test passed in 169.67 s and
+the sampled process footprint was 2.0 GiB. The sample shifted toward
+`Built::tick`/`Sim::tick` during sibling widening walks; no repeat of the old
+region-count fold stood out. Before touching simulation behavior, inspection
+found a larger direct memory opportunity: `widen_walk` read and parsed the
+whole primary capture and every named sibling only to get their initial
+states, keeping all text and parsed logs resident throughout replay.
+
+The harness now gets the primary initial through `IndexedCapture::read_replay_setup`
+and named sibling initials through the same scoped indexed path used elsewhere.
+All named inputs, sibling borrowing, pasture trace, 63 coverage windows, and
+per-frame comparisons are unchanged. The exact coverage test passed. A
+one-process release measurement fell from 160.23 to 158.86 s, peak RSS from
+2,646,608,488 to 1,339,361,032 B (49.4% lower), and retired instructions from
+3,721,335,878,078 to 3,593,963,055,938 (3.4% lower). Treat the small timing
+change as noise; the large RSS reduction is the supported outcome. Evidence
+and reproduction are in `docs/audit/2026-10-15-astra-coverage-setup.txt`.
+
+### For the Loop
+
+Run the required-fixture release gate on this committed tree and compare its
+four-thread peak RSS with the previous 10,504 MiB observation. The indexed
+setup helper is shared by other widening tests, so the aggregate effect may be
+larger than this isolated test. Then refresh the suite timing report and
+profile the remaining CPU hotspot only if the long coverage test remains a
+material wall-clock cost. Keep the parsed per-lobby store deferred unless a
+fresh profile shows text parsing or repeated record comparison dominates.
