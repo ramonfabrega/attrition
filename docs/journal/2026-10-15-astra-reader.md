@@ -234,3 +234,15 @@ the largest process, 563 MiB below the previous 10,504 MiB observation and
 under the 20 GiB cap. Gate log:
 `/tmp/attrition-coverage-setup-release-gate.log`. The follow-up commit records
 this verdict.
+
+The serialized per-test suite timing and RSS sweep then completed all 866
+rondata release tests with no failures. Total CPU time was 2,012 s over 34 min
+wall, versus the earlier 2,111 s report (99 s / 4.7% lower across the recent
+branch changes; this is not attributed to the coverage change alone). The
+coverage test measured 166.83 s and 1,877 MiB, versus 172.38 s and 2,532 MiB
+in the prior sweep. The refreshed reports are
+`docs/audit/2026-10-15-astra-reader-suite-timings-after-coverage-setup.txt`
+and `docs/audit/2026-10-15-astra-reader-suite-memory-after-coverage-setup.txt`.
+The largest current isolated RSS is now the merchant-slot comparison at 4,673
+MiB; its nine full-capture parses are the next measured memory target. The
+other formerly largest shutdown and unit setup tests no longer lead the list.
