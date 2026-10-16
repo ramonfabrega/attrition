@@ -179,8 +179,16 @@ before/after timings, RSS, instruction counts, and reproduction logs are in
 to 0.95 s, 4,476,321,792 to 327,352,320 B RSS (92.7% lower), and 194.6B to
 22.8B retired instructions (88.3% lower). Graphic-piece checks fell from 7.74
 to 0.96 s, 4,407,672,832 to 368,181,248 B RSS (91.6% lower), and 190.9B to
-22.8B instructions (88.0% lower). Full required-fixture gate validation is
-pending on the committed implementation checkpoint.
+22.8B instructions (88.0% lower). The required gate on implementation
+checkpoint `6f85166a` passed all 6 steps: 13 fixed tests, 866 rondata tests,
+2,585 sim tests, and 3 rondata doc-tests; fixture audit 3,187 requests, 0
+missing. Peak memory was 10,504 MiB across the tree and 10,470 MiB in the
+largest process, below the 20 GiB cap. The preceding gate on `e6d98bd1`
+observed 11,056 MiB across the tree, so this run was 552 MiB lower. This is an
+aggregate observation; the single-test RSS measurements above isolate the
+changed readers. Gate log:
+`/tmp/attrition-unit-setup-release-gate.log`. The follow-up commit records
+this verdict.
 
 ### For the Loop
 
