@@ -1,0 +1,37 @@
+{
+  "tree": "2d61d180529c0b57a40362f40622f94b83b628d8",
+  "ordinary_four_thread_rondata_seconds": 375.88,
+  "ordinary_full_release_sampled_tree_peak_mib": 10562,
+  "ordinary_full_gate_exit": 0,
+  "isolated_four_slots": {
+    "valid": true,
+    "tests": 876,
+    "ignored": 6,
+    "wall": 392.16507245899993,
+    "cpu": 1543.76,
+    "fixture_requests": 3276,
+    "distinct_fixtures": 419,
+    "missing": [],
+    "max_estimated_active_bytes": 6426869760,
+    "peak_individual_bytes": 3527442432,
+    "instructions": 33410862645804
+  },
+  "isolated_four_slots_sampled_tree_peak_mib": 5659,
+  "isolated_eight_slots": {
+    "valid": true,
+    "tests": 876,
+    "ignored": 6,
+    "wall": 236.86790983300307,
+    "cpu": 1553.73,
+    "fixture_requests": 3276,
+    "distinct_fixtures": 419,
+    "missing": [],
+    "max_estimated_active_bytes": 6442287104,
+    "peak_individual_bytes": 4159799296,
+    "instructions": 33259829836536
+  },
+  "isolated_eight_slots_sampled_tree_peak_mib": 6211,
+  "fixture_request_multisets_equal": true,
+  "test_manifests_equal": true,
+  "scope": "Isolated runs cover rondata library tests only; ordinary full gate also ran fixed, sim, doctests, offline, lint, format, survey and guard. Scheduling estimates6GiB, enforced process-tree cap8GiB; no default gate change."
+}

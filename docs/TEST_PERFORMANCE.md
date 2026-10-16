@@ -134,3 +134,21 @@ original reader after clearing only reference frame_bodies. It also compares
 absence rather than silently accepting missing setup. `RON_DISABLE_REPLAY_SETUP=1`
 selects the original full reader for controlled measurements. Neither mode
 changes simulation stepping, comparisons, assertions or fixture selection.
+
+## Process isolation experiment
+
+On2d61d180, the ordinary four-thread rondata suite took375.88 s; the full
+release process tree peaked at 10562 MiB. Running every nonignored rondata test
+in a fresh process with at most eight slots, a 6 GiB estimated-RSS scheduling
+budget and an 8 GiB enforced cap took236.87 s and 6211 MiB. All 876 tests passed;
+test/ignored manifests and every fixture-request row matched the ordinary run.
+Four-slot isolation took392.17 s and 5659 MiB. CPU seconds were essentially equal
+between isolated runs; concurrency reduces latency, not underlying CPU work.
+
+The prototype is retained in the journal's evidence directory. It is not the
+default gate, and covers rondata library tests only. A production runner needs
+failure/manifest/resource-policy tests and must retain all other gate phases.
+Unknown-test memory estimates need a conservative policy; measured estimates
+are hints, not a substitute for the enforced cap. See the journal and
+`docs/audit/2026-10-16-isolated-runner.json` for the complete measured limits.
+Never compare historical serial totals with parallel wall time to claim10×.
