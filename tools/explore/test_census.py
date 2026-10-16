@@ -220,7 +220,10 @@ class PinnedTraces(unittest.TestCase):
     def test_the_pdb_default_resolves_the_main_checkout_from_a_worktree(self):
         # Parked 1792: `../game` is absent under `.claude/worktrees/`, so
         # every lane passed `--pdb <main checkout>/game/sbl/rise.pdb` by hand.
-        path = census.default_pdb(str(ROOT / 'tools'))
+        # The release gate exports RON_INSTALL for every child; this test is
+        # specifically about the fallback, so hold an empty value for it.
+        with patch.dict(os.environ, {'RON_INSTALL': ''}):
+            path = census.default_pdb(str(ROOT / 'tools'))
         self.assertTrue(path.endswith(os.path.join('game', 'sbl', 'rise.pdb')), path)
         self.assertNotIn('.claude/worktrees', path.replace(str(ROOT), '') if '.claude/worktrees' in str(ROOT) else '')
         with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ):
