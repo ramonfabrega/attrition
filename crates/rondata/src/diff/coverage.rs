@@ -2996,6 +2996,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 #[test]
 fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     use super::compared;
+    let _prefix_batch = super::harness::prefix::Scope::enter();
     compared::start();
     // Run the exact same windows one at a time. Each result owns detailed
     // divergence maps that this instrument-coverage assertion does not read;
@@ -3003,9 +3004,6 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let windows: &[fn() -> Option<super::harness::tests::Widened>] = &[
         || super::second::east_indies_closing_window(),
         || super::sahara_toughest::great_sahara_toughest_15378_window(),
-        || super::third_pair::french_east_indies_17318_window(),
-        || super::third_pair::french_east_indies_closing_window(),
-        || super::third_pair::french_great_lakes_closing_window(),
         || super::third_pair::french_east_indies_scholar_window(),
         || super::third_pair::french_east_indies_8182_window(),
         || super::third_pair::french_east_indies_8236_window(),
@@ -3024,6 +3022,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::third_pair::french_east_indies_16857_window(),
         || super::third_pair::french_east_indies_17171_window(),
         || super::third_pair::french_east_indies_17244_window(),
+        || super::third_pair::french_east_indies_17318_window(),
+        || super::third_pair::french_east_indies_closing_window(),
+        || super::third_pair::french_great_lakes_closing_window(),
         || super::coverage_pair::coverage_frame_185_window(),
         || super::coverage_pair::coverage_frame_583_window(),
         || super::coverage_pair::coverage_frame_982_window(),

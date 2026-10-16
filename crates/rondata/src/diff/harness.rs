@@ -1,6 +1,8 @@
 //! The harness itself: one frame compared, a whole log run, and the traced runs.
 
 mod checkpoint;
+#[cfg(test)]
+pub(crate) mod prefix;
 pub use checkpoint::ReplaySession;
 
 use super::*;
@@ -11172,7 +11174,7 @@ pub(crate) mod tests {
         records: bool,
         checkpoints: &[(i64, &[i64])],
     ) -> Option<(Widened, Vec<Widened>)> {
-        let walk = |reuse| {
+        let walk = |reuse, prefix| {
             widen_walk(
                 siblings,
                 gaia,
@@ -11185,15 +11187,33 @@ pub(crate) mod tests {
                 records,
                 checkpoints,
                 reuse,
+                prefix,
             )
         };
-        let result = walk(true)?;
+        let result = if std::env::var_os("RON_VERIFY_PREFIX_REUSE").is_some() {
+            let (actual, notes) = compared::recorded(|| walk(true, true));
+            let (fresh, fresh_notes) = compared::recorded(|| walk(true, false));
+            assert_eq!(
+                actual, fresh,
+                "{name}: prefix reuse changed the complete report"
+            );
+            assert_eq!(
+                notes, fresh_notes,
+                "{name}: prefix reuse changed compared fields"
+            );
+            eprintln!(
+                "{name}: prefix reuse matches complete fresh report, checkpoints and compared fields"
+            );
+            actual?
+        } else {
+            walk(true, true)?
+        };
         // Explicit migration audit only: normal gates must exercise the reused
         // reader alone, so legacy reads cannot fill gaps in coverage recording.
         if std::env::var_os("RON_VERIFY_FRAME_REUSE").is_some() {
             assert_eq!(
                 result,
-                walk(false).expect("legacy audit needs the same fixtures"),
+                walk(false, false).expect("legacy audit needs the same fixtures"),
                 "{name}: reused and legacy frame reads differ"
             );
             eprintln!("{name}: frame reuse matches the complete legacy report and checkpoints");
@@ -11217,7 +11237,11 @@ pub(crate) mod tests {
         records: bool,
         checkpoints: &[(i64, &[i64])],
         reuse: bool,
+        prefix: bool,
     ) -> Option<(Widened, Vec<Widened>)> {
+        let profiling = std::env::var_os("RON_PROFILE_REPLAY").is_some();
+        let started = std::time::Instant::now();
+        let mut tick_time = std::time::Duration::ZERO;
         assert!(checkpoints.windows(2).all(|w| w[0].0 < w[1].0));
         assert!(checkpoints.iter().all(|(tail, points)| {
             (window.0..=window.1).contains(tail) && points.iter().all(|p| near.contains(p))
@@ -11240,18 +11264,35 @@ pub(crate) mod tests {
             .map(|p| crate::capture::indexed::IndexedCapture::open(p).unwrap())
             .collect();
         let (first_block, tail) = window;
-        let loaded = crate::load::load(&inst).unwrap();
-        let mut built = crate::diff::testkit::with_named_sibling_initials(siblings, |refs| {
-            let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
-            let text = source.read_replay_setup().unwrap();
-            let log = Log::parse(&text);
-            let mut init = log.replay_initial().unwrap();
-            borrow_from_siblings(&mut init, refs);
-            if let Some(t) = trace(base_trace) {
-                borrow_pasture(&mut init, &t);
-            }
-            build_sim(&loaded, &init, Tuning::RON)
+        let prefix = prefix && super::prefix::enabled();
+        let loaded = if prefix {
+            super::prefix::loaded(&inst)
+        } else {
+            std::sync::Arc::new(crate::load::load(&inst).unwrap())
+        };
+        let prefix_key = prefix.then(|| {
+            let mut names = vec![base, base_trace];
+            names.extend_from_slice(siblings);
+            super::prefix::Key::new(inst.root(), &names)
         });
+        let resumed = prefix_key
+            .as_ref()
+            .and_then(|key| super::prefix::take(key, first_block));
+        let mut built = resumed.unwrap_or_else(|| {
+            crate::diff::testkit::with_named_sibling_initials(siblings, |refs| {
+                let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+                let text = source.read_replay_setup().unwrap();
+                let log = Log::parse(&text);
+                let mut init = log.replay_initial().unwrap();
+                borrow_from_siblings(&mut init, refs);
+                if let Some(t) = trace(base_trace) {
+                    borrow_pasture(&mut init, &t);
+                }
+                build_sim(&loaded, &init, Tuning::RON)
+            })
+        });
+        let resumed_at = built.sim.frame;
+        let setup_time = started.elapsed();
         let players = built.sim.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
@@ -11285,13 +11326,17 @@ pub(crate) mod tests {
         // Frame `f` writes block `f + 1`, so the window's last block is
         // frame `tail - 1`'s. `0..=tail` read block `tail + 1` too, which no
         // chain held until run211 followed run202 (item 722).
-        for f in 0..tail {
+        for f in built.sim.frame..tail {
             if let Some((sf, w, o)) = sweep
                 && sf == f
             {
                 built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
             }
+            let tick_started = profiling.then(std::time::Instant::now);
             built.tick();
+            if let Some(t) = tick_started {
+                tick_time += t.elapsed();
+            }
             if let Some((sf, _, _)) = sweep
                 && sf == f
                 && let Some(w) = built.sim.sweep_watch.take()
@@ -11538,6 +11583,15 @@ pub(crate) mod tests {
         }
         for (n, rows) in &standing {
             eprintln!("  near {n}: {} rows", rows.len());
+        }
+        if profiling {
+            eprintln!(
+                "replay profile {name}: prefix={prefix} start={resumed_at} tail={tail} blocks={blocks} total={:?} setup={setup_time:?} ticks={tick_time:?}",
+                started.elapsed()
+            );
+        }
+        if let Some(key) = prefix_key {
+            super::prefix::put(key, built);
         }
         Some((
             Widened {

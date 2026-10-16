@@ -103,34 +103,93 @@ pub(crate) mod compared {
     use std::cell::RefCell;
     use std::collections::BTreeSet;
 
+    type Fields = BTreeSet<(&'static str, &'static str)>;
     thread_local! {
-        static ON: RefCell<Option<BTreeSet<String>>> = const { RefCell::new(None) };
+        static ON: RefCell<Option<Fields>> = const { RefCell::new(None) };
     }
 
-    /// Starts recording on this thread; a recording already open is
-    /// dropped.
     #[cfg(test)]
     pub(crate) fn start() {
         ON.with(|r| *r.borrow_mut() = Some(BTreeSet::new()));
     }
 
-    /// Stops recording and hands back every `Record.field` noted since
-    /// [`start`].
+    /// Allocate the public field labels once per unique field, at the boundary.
     #[cfg(test)]
-    pub(crate) fn stop() -> BTreeSet<String> {
-        ON.with(|r| r.borrow_mut().take().unwrap_or_default())
+    fn labels(fields: &Fields) -> BTreeSet<String> {
+        fields
+            .iter()
+            .map(|(record, field)| format!("{record}.{field}"))
+            .collect()
     }
 
-    /// Notes that `record`'s `fields` were compared with both sides
-    /// present. Nothing happens when no recording is open.
-    pub(crate) fn note(record: &str, fields: &[&str]) {
+    #[cfg(test)]
+    pub(crate) fn stop() -> BTreeSet<String> {
+        ON.with(|r| labels(&r.borrow_mut().take().unwrap_or_default()))
+    }
+
+    /// Audit a walk independently, then merge its notes into the outer recorder.
+    #[cfg(test)]
+    pub(crate) fn recorded<R>(walk: impl FnOnce() -> R) -> (R, BTreeSet<String>) {
+        let outer = ON.with(|r| r.replace(Some(BTreeSet::new())));
+        let result = walk();
+        let notes = ON.with(|r| r.borrow_mut().take().unwrap_or_default());
+        ON.with(|r| {
+            *r.borrow_mut() = outer.map(|mut seen| {
+                seen.extend(notes.iter().copied());
+                seen
+            });
+        });
+        (result, labels(&notes))
+    }
+
+    /// Records are static schema names; no fixture text is retained.
+    /// Both sides must still be present before callers note a comparison.
+    pub(crate) fn note(record: &'static str, fields: &[&'static str]) {
         ON.with(|r| {
             if let Some(s) = r.borrow_mut().as_mut() {
-                for f in fields {
-                    s.insert(format!("{record}.{f}"));
+                for &field in fields {
+                    s.insert((record, field));
                 }
             }
         });
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        #[test]
+        fn interned_pairs_match_the_original_string_set_and_nested_recording() {
+            let rows = [
+                ("Guy", &["angle", "pos", "angle"][..]),
+                ("UnitDump", &["pos", "who"][..]),
+                ("Guy", &[][..]),
+            ];
+            let mut legacy = BTreeSet::new();
+            start();
+            for _ in 0..10 {
+                for (record, fields) in rows {
+                    note(record, fields);
+                    for field in fields {
+                        legacy.insert(format!("{record}.{field}"));
+                    }
+                }
+            }
+            assert_eq!(stop(), legacy);
+            note("Ignored", &["off"]);
+            assert!(stop().is_empty());
+            start();
+            note("Outer", &["field"]);
+            let (value, inner) = recorded(|| {
+                note("Inner", &["field"]);
+                42
+            });
+            assert_eq!(value, 42);
+            assert_eq!(inner, BTreeSet::from(["Inner.field".into()]));
+            assert_eq!(
+                stop(),
+                BTreeSet::from(["Outer.field".into(), "Inner.field".into()])
+            );
+        }
     }
 }
 

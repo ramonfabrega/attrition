@@ -2279,7 +2279,7 @@ mod tests {
                 continue;
             }
             let mut spent: Vec<(u32, i32)> = tr
-                .draws
+                .draws()
                 .iter()
                 .filter(|d| {
                     d.sync()

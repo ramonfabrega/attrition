@@ -817,7 +817,9 @@ pub struct Trace {
     /// The image base the run reported.
     pub base: u32,
     /// Every draw, in file order.
-    pub draws: Vec<Draw>,
+    draws: Vec<Draw>,
+    // Draws are immutable after parsing, so this ordering fact cannot go stale.
+    draw_frames_ordered: bool,
     /// Each `FRAME` record: the sim-frame and `game_random`'s word at its
     /// `do_frame` entry — the same pairing `gamelog::Log::frame_seeds`
     /// gives from a `DUMP_ALL` dump, from the other side.
@@ -907,6 +909,7 @@ impl Trace {
         let mut t = Trace {
             base,
             draws: Vec::new(),
+            draw_frames_ordered: true,
             frames: Vec::new(),
             calls: Vec::new(),
             hits: Vec::new(),
@@ -979,6 +982,10 @@ impl Trace {
             }
             off += 32;
         }
+        t.draw_frames_ordered = t
+            .draws
+            .windows(2)
+            .all(|pair| pair[0].frame <= pair[1].frame);
         Some(t)
     }
 
@@ -1203,10 +1210,25 @@ impl Trace {
         out
     }
 
+    /// Every draw in file order. Immutable so frame-lookup ordering stays valid.
+    pub fn draws(&self) -> &[Draw] {
+        &self.draws
+    }
+
     /// The sync-stream draws of one sim-frame, in the order they were
     /// taken. `-1` is the setup path.
     pub fn frame_draws(&self, frame: i64) -> Vec<Draw> {
-        self.draws
+        // A chronological trace needs two binary bounds, not a scan of every
+        // draw for every simulated frame. Diagnostic, out-of-order traces
+        // preserve their original file-order filter.
+        let draws = if self.draw_frames_ordered {
+            let lo = self.draws.partition_point(|draw| draw.frame < frame);
+            let hi = lo + self.draws[lo..].partition_point(|draw| draw.frame == frame);
+            &self.draws[lo..hi]
+        } else {
+            &self.draws
+        };
+        draws
             .iter()
             .filter(|d| d.frame == frame && d.sync())
             .copied()
@@ -1388,6 +1410,71 @@ mod tests {
     }
 
     const GAME_RANDOM: u32 = IMAGE_BASE + RVA_GAME_RANDOM;
+
+    #[test]
+    fn frame_bounds_preserve_sync_filter_duplicates_gaps_and_unordered_traces() {
+        for frames in [vec![-1, -1, 0, 2, 2, 5], vec![5, -1, 2, 0, 2, -1]] {
+            let mut records = vec![[MAGIC, 1, IMAGE_BASE, 0, 0, 0, 0, 0]];
+            for (i, &frame) in frames.iter().enumerate() {
+                records.push([
+                    3,
+                    0x005f_6446,
+                    if i % 3 == 0 { 0 } else { GAME_RANDOM },
+                    i as u32,
+                    0,
+                    0,
+                    0,
+                    frame as u32,
+                ]);
+            }
+            let trace = Trace::parse(&bytes(&records)).unwrap();
+            assert_eq!(
+                trace.draw_frames_ordered,
+                frames.windows(2).all(|p| p[0] <= p[1])
+            );
+            for frame in -2..=6 {
+                let expected: Vec<_> = trace
+                    .draws()
+                    .iter()
+                    .filter(|draw| draw.frame == frame && draw.sync())
+                    .copied()
+                    .collect();
+                assert_eq!(trace.frame_draws(frame), expected);
+            }
+        }
+    }
+
+    #[test]
+    fn complete_trace_frame_lookup_matches_a_single_pass_partition() {
+        for name in [
+            "rontrace-run53.log",
+            "rontrace-run54.log",
+            "rontrace-run600.log",
+        ] {
+            let Some(path) = crate::testenv::dump(name) else {
+                continue;
+            };
+            let trace = Trace::read(Path::new(&path)).unwrap().unwrap();
+            let mut expected: std::collections::BTreeMap<i64, Vec<Draw>> = Default::default();
+            for &draw in trace.draws() {
+                expected.entry(draw.frame).or_default();
+                if draw.sync() {
+                    expected.get_mut(&draw.frame).unwrap().push(draw);
+                }
+            }
+            for (&frame, draws) in &expected {
+                assert_eq!(&trace.frame_draws(frame), draws, "{name} frame {frame}");
+            }
+            assert!(trace.frame_draws(i64::MIN).is_empty());
+            assert!(trace.frame_draws(i64::MAX).is_empty());
+            eprintln!(
+                "{name}: all {} draws / {} frame groups agree; chronological={}",
+                trace.draws().len(),
+                expected.len(),
+                trace.draw_frames_ordered
+            );
+        }
+    }
 
     #[test]
     fn a_trace_parses_and_keeps_only_the_sync_stream() {

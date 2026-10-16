@@ -148,17 +148,17 @@ fn trace_report(path: &str) -> usize {
             return 1;
         }
     };
-    let sync = t.draws.iter().filter(|d| d.sync()).count();
+    let sync = t.draws().iter().filter(|d| d.sync()).count();
     println!(
         "  base {:#010x}, {} draws of which {sync} on game_random, {} frames",
         t.base,
-        t.draws.len(),
+        t.draws().len(),
         t.frames.len()
     );
     // The sim-frames only. The setup path is the map generator and is tens
     // of thousands of draws; `report.py … sites setup` is where that is
     // read, and it is not what a frame's fold is for.
-    let setup = t.draws.iter().filter(|d| d.frame < 0 && d.sync()).count();
+    let setup = t.draws().iter().filter(|d| d.frame < 0 && d.sync()).count();
     if setup > 0 {
         println!("  setup: {setup} draws, not folded (the map generator)");
     }

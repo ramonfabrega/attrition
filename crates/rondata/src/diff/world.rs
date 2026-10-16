@@ -855,11 +855,11 @@ mod tests {
         let draws = tr.run_in(100, COST, COST + 1);
         assert_eq!(draws.len(), 2913, "frame 100's road draws");
         let sound = tr
-            .draws
+            .draws()
             .iter()
             .position(|d| d.frame == 100 && !d.sync())
             .expect("Wall::activate's sound draw");
-        let first = tr.draws[..sound]
+        let first = tr.draws()[..sound]
             .iter()
             .filter(|d| d.frame == 100 && d.sync() && d.site == COST)
             .count();
