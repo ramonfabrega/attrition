@@ -398,3 +398,20 @@ memory peak was 8,617 MiB across the tree and 8,585 MiB in the largest process,
 under the 20 GiB cap. Gate log:
 `/tmp/attrition-run73-clocks-indexed-release-gate.log`. The follow-up commit
 records this verdict.
+
+### Run97 clock-window memory follow-up — 2026-10-15
+
+The next stale sweep leader was `diff::harness::tests::run97_s_window_clocks_are_the_original_s`
+(2,404 MiB, 2.95 s). It parsed the full run53 setup, all siblings, and all of
+run97 to compare its long `DUMP_ALL` clock window. It now reads indexed run53
+setup and observations, scopes sibling initials, and extracts run97's clock
+observations with the indexed replay reader. All 1,320 frames below the word
+remain compared: 313,588 clock fields, 276,628 point/goal fields, zero
+walk-slot seam, and the standing-trio floor. The focused test passes.
+
+The focused run measured 3.11 s / 1,114 MiB (1,169,113,088 bytes), versus
+2.95 s / 2,404 MiB from the sweep: -1,290 MiB (-53.6%) RSS. One timing sample
+was 0.16 s slower, so this is a memory win, not a CPU claim. Indexed
+instructions: 69,016,505,938. Evidence:
+`docs/audit/2026-10-15-astra-run97-clocks-indexed.txt`. The implementation
+checkpoint and required gate are pending.

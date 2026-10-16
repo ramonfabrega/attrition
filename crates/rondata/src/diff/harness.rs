@@ -14468,23 +14468,23 @@ pub(crate) mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        borrow_pasture(&mut init, &trace);
-
-        let theirs = {
-            let text97 = crate::capture::read(&r97);
-            Log::parse(&text97)
-                .initial()
-                .expect("run97 carries a start block")
-                .frame_guys
-        };
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let setup = source.read_replay_setup().unwrap();
+        let setup_log = Log::parse(&setup);
+        let setup_init = setup_log.initial().unwrap();
+        let (seeds, animations, guys) = source
+            .with_replay_initial(|observed| {
+                (
+                    observed.frame_seeds.clone(),
+                    observed.anim_lengths.clone(),
+                    observed.frame_guys.clone(),
+                )
+            })
+            .unwrap();
+        let mut r97_source = crate::capture::indexed::IndexedCapture::open(&r97).unwrap();
+        let theirs = r97_source
+            .with_replay_initial(|initial| initial.frame_guys.clone())
+            .unwrap();
         let window: Vec<i64> = theirs.iter().map(|(n, _)| *n).collect();
         assert!(
             window.first() == Some(&8_029)
@@ -14496,272 +14496,284 @@ pub(crate) mod tests {
             window.len()
         );
         let last = *window.last().unwrap();
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.frame_guys.clear();
-        let mut compared = 0usize;
-        let mut above = 0usize;
-        let mut unmatched = 0usize;
-        let mut walk = 0usize;
-        // The walk-slot rows themselves, not only their count — item 352
-        // closed the band at zero, so anything here is a handful and worth
-        // naming rather than summing.
-        let mut walkw: Vec<String> = Vec::new();
-        let mut wrong: Vec<String> = Vec::new();
-        let mut posw: Vec<String> = Vec::new();
-        let mut body_bad = 0usize;
-        let mut body_all = 0usize;
-        let mut body_trio = 0usize;
-        let mut frames_below = 0usize;
-        let mut posfirst: std::collections::BTreeMap<(i64, i64), i64> = Default::default();
-        for f in 0..=last {
-            built.tick();
-            let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
-                continue;
-            };
-            if f < LONG_WORD_GREAT_LAKES {
-                frames_below += 1;
-            }
-            for state in units {
-                if !(0..8).contains(&state.who) {
-                    continue;
-                }
-                let Some(u) = (0..built.sim.units.len()).find(|&i| {
-                    let x = &built.sim.units[i];
-                    x.alive() && i64::from(x.owner) == state.who && i64::from(x.index) == state.o
-                }) else {
-                    unmatched += 1;
+        with_sibling_initials(|refs| {
+            let mut init = setup_init;
+            init.frame_seeds = seeds;
+            init.anim_lengths = animations;
+            init.frame_guys = guys;
+            init.frame_seeds.retain(|(frame, _)| *frame <= last);
+            init.frame_guys.retain(|(frame, _)| *frame <= last);
+            borrow_from_siblings(&mut init, refs);
+            borrow_pasture(&mut init, &trace);
+            let mut built = build_sim(&loaded, &init, Tuning::RON);
+            built.frame_guys.clear();
+            let mut compared = 0usize;
+            let mut above = 0usize;
+            let mut unmatched = 0usize;
+            let mut walk = 0usize;
+            // The walk-slot rows themselves, not only their count — item 352
+            // closed the band at zero, so anything here is a handful and worth
+            // naming rather than summing.
+            let mut walkw: Vec<String> = Vec::new();
+            let mut wrong: Vec<String> = Vec::new();
+            let mut posw: Vec<String> = Vec::new();
+            let mut body_bad = 0usize;
+            let mut body_all = 0usize;
+            let mut body_trio = 0usize;
+            let mut frames_below = 0usize;
+            let mut posfirst: std::collections::BTreeMap<(i64, i64), i64> = Default::default();
+            for f in 0..=last {
+                built.tick();
+                let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
                     continue;
                 };
-                // **The rest of the record** (item 350). The clocks
-                // below are four fields of a `GUY` block; the `UNITDATA`
-                // that carries them prints the unit's own point and the
-                // goal of its leading move order beside them, and for a
-                // month neither was compared on this capture. The first
-                // run of this widening found sixteen units off position
-                // from 8442 and named the cause in twenty minutes
-                // (`docs/ARMY.md` §3.4).
-                {
-                    let un = &built.sim.units[u];
-                    let ourgoal = un.orders.front().and_then(|o| match &o.body {
-                        sim::orders::Body::Move(m) => Some((m.dest.x, m.dest.y)),
-                        _ => None,
-                    });
-                    // `-1` for "no leading move order" on both sides:
-                    // whether a unit *has* a goal is half the comparison,
-                    // and a `None`/`Some` mismatch is a divergence.
-                    let rows: [(&str, i64, i64); 4] = [
-                        ("x", i64::from(un.pos.x), state.pos.x),
-                        ("y", i64::from(un.pos.y), state.pos.y),
-                        (
-                            "goal_x",
-                            ourgoal.map_or(-1, |(x, _)| i64::from(x)),
-                            state.goal.map_or(-1, |g| g.x),
-                        ),
-                        (
-                            "goal_y",
-                            ourgoal.map_or(-1, |(_, y)| i64::from(y)),
-                            state.goal.map_or(-1, |g| g.y),
-                        ),
-                    ];
-                    for (name, o, t) in rows {
-                        if f >= LONG_WORD_GREAT_LAKES {
-                            continue;
-                        }
-                        body_all += 1;
-                        if o == t {
-                            continue;
-                        }
-                        // The **standing trio**, older than any window
-                        // on this map and already excused: `1/24`, `1/25`
-                        // and `1/26` stand a constant **(24, 24)** off
-                        // their cell, from before this capture opens
-                        // (`docs/ORACLE.md`, run76/run83's rows). They
-                        // never move and never draw, so they are counted
-                        // apart rather than mixed into the live residue.
-                        if state.who == 1 && (24..=26).contains(&state.o) {
-                            body_trio += 1;
-                        } else {
-                            body_bad += 1;
-                        }
-                        posfirst.entry((state.who, state.o)).or_insert(f);
-                        if posw.len() < 40 {
-                            posw.push(format!(
-                                "frame {f}: {}/{} {name} ours {o} theirs {t}",
-                                state.who, state.o
-                            ));
-                        }
-                    }
+                if f < LONG_WORD_GREAT_LAKES {
+                    frames_below += 1;
                 }
-                for (n, g) in state.guys.iter().enumerate() {
-                    if !g.has_clock() {
+                for state in units {
+                    if !(0..8).contains(&state.who) {
                         continue;
                     }
-                    let Some(ours) = built.sim.units[u].guys.get(n) else {
+                    let Some(u) = (0..built.sim.units.len()).find(|&i| {
+                        let x = &built.sim.units[i];
+                        x.alive()
+                            && i64::from(x.owner) == state.who
+                            && i64::from(x.index) == state.o
+                    }) else {
+                        unmatched += 1;
                         continue;
                     };
-                    // The known seam, and the only one left below the
-                    // word: a guy on the **walk category** whose slot
-                    // this crate resolves to a different one of `SLOG` /
-                    // `WALK` / `JOG` (`docs/ANIM.md` §4.3's speed test).
-                    // Three slots of one category cost no draw, which is
-                    // why the stream runs 139 frames past the first of
-                    // them. Counted and floored rather than listed; a
-                    // disagreement anywhere else is a failure.
-                    let walking = i64::from(sim::anim::category(ours.anim)) == 8
-                        || g.cur_anim.map(|a| sim::anim::category(a as i8)) == Some(8);
-                    let rows: [(&str, i64, Option<i64>); 4] = [
-                        ("cur_anim", i64::from(ours.anim), g.cur_anim),
-                        ("cur_time", i64::from(ours.cur_time), g.cur_time),
-                        ("end_time", i64::from(ours.end_time), g.end_time),
-                        ("last_time", i64::from(ours.last_time), g.last_time),
-                    ];
-                    for (name, o, t) in rows {
-                        let Some(t) = t else { continue };
-                        if f >= LONG_WORD_GREAT_LAKES {
-                            above += 1;
+                    // **The rest of the record** (item 350). The clocks
+                    // below are four fields of a `GUY` block; the `UNITDATA`
+                    // that carries them prints the unit's own point and the
+                    // goal of its leading move order beside them, and for a
+                    // month neither was compared on this capture. The first
+                    // run of this widening found sixteen units off position
+                    // from 8442 and named the cause in twenty minutes
+                    // (`docs/ARMY.md` §3.4).
+                    {
+                        let un = &built.sim.units[u];
+                        let ourgoal = un.orders.front().and_then(|o| match &o.body {
+                            sim::orders::Body::Move(m) => Some((m.dest.x, m.dest.y)),
+                            _ => None,
+                        });
+                        // `-1` for "no leading move order" on both sides:
+                        // whether a unit *has* a goal is half the comparison,
+                        // and a `None`/`Some` mismatch is a divergence.
+                        let rows: [(&str, i64, i64); 4] = [
+                            ("x", i64::from(un.pos.x), state.pos.x),
+                            ("y", i64::from(un.pos.y), state.pos.y),
+                            (
+                                "goal_x",
+                                ourgoal.map_or(-1, |(x, _)| i64::from(x)),
+                                state.goal.map_or(-1, |g| g.x),
+                            ),
+                            (
+                                "goal_y",
+                                ourgoal.map_or(-1, |(_, y)| i64::from(y)),
+                                state.goal.map_or(-1, |g| g.y),
+                            ),
+                        ];
+                        for (name, o, t) in rows {
+                            if f >= LONG_WORD_GREAT_LAKES {
+                                continue;
+                            }
+                            body_all += 1;
+                            if o == t {
+                                continue;
+                            }
+                            // The **standing trio**, older than any window
+                            // on this map and already excused: `1/24`, `1/25`
+                            // and `1/26` stand a constant **(24, 24)** off
+                            // their cell, from before this capture opens
+                            // (`docs/ORACLE.md`, run76/run83's rows). They
+                            // never move and never draw, so they are counted
+                            // apart rather than mixed into the live residue.
+                            if state.who == 1 && (24..=26).contains(&state.o) {
+                                body_trio += 1;
+                            } else {
+                                body_bad += 1;
+                            }
+                            posfirst.entry((state.who, state.o)).or_insert(f);
+                            if posw.len() < 40 {
+                                posw.push(format!(
+                                    "frame {f}: {}/{} {name} ours {o} theirs {t}",
+                                    state.who, state.o
+                                ));
+                            }
+                        }
+                    }
+                    for (n, g) in state.guys.iter().enumerate() {
+                        if !g.has_clock() {
                             continue;
                         }
-                        compared += 1;
-                        if o == t {
+                        let Some(ours) = built.sim.units[u].guys.get(n) else {
                             continue;
-                        }
-                        if walking {
-                            walk += 1;
-                            if walkw.len() < 20 {
-                                walkw.push(format!(
+                        };
+                        // The known seam, and the only one left below the
+                        // word: a guy on the **walk category** whose slot
+                        // this crate resolves to a different one of `SLOG` /
+                        // `WALK` / `JOG` (`docs/ANIM.md` §4.3's speed test).
+                        // Three slots of one category cost no draw, which is
+                        // why the stream runs 139 frames past the first of
+                        // them. Counted and floored rather than listed; a
+                        // disagreement anywhere else is a failure.
+                        let walking = i64::from(sim::anim::category(ours.anim)) == 8
+                            || g.cur_anim.map(|a| sim::anim::category(a as i8)) == Some(8);
+                        let rows: [(&str, i64, Option<i64>); 4] = [
+                            ("cur_anim", i64::from(ours.anim), g.cur_anim),
+                            ("cur_time", i64::from(ours.cur_time), g.cur_time),
+                            ("end_time", i64::from(ours.end_time), g.end_time),
+                            ("last_time", i64::from(ours.last_time), g.last_time),
+                        ];
+                        for (name, o, t) in rows {
+                            let Some(t) = t else { continue };
+                            if f >= LONG_WORD_GREAT_LAKES {
+                                above += 1;
+                                continue;
+                            }
+                            compared += 1;
+                            if o == t {
+                                continue;
+                            }
+                            if walking {
+                                walk += 1;
+                                if walkw.len() < 20 {
+                                    walkw.push(format!(
+                                        "frame {f}: {}/{} guy {n} {name} ours {o} theirs {t}",
+                                        state.who, state.o
+                                    ));
+                                }
+                                continue;
+                            }
+                            if wrong.len() < 20 {
+                                wrong.push(format!(
                                     "frame {f}: {}/{} guy {n} {name} ours {o} theirs {t}",
                                     state.who, state.o
                                 ));
                             }
-                            continue;
-                        }
-                        if wrong.len() < 20 {
-                            wrong.push(format!(
-                                "frame {f}: {}/{} guy {n} {name} ours {o} theirs {t}",
-                                state.who, state.o
-                            ));
                         }
                     }
                 }
             }
-        }
-        eprintln!(
-            "run97 clocks: {compared} fields below the word, {walk} of them the \
+            eprintln!(
+                "run97 clocks: {compared} fields below the word, {walk} of them the \
              walk-slot seam, {above} above (printed, not pinned), {unmatched} \
              unmatched"
-        );
-        for w in &wrong {
-            eprintln!("  {w}");
-        }
-        for w in &walkw {
-            eprintln!("  WALK {w}");
-        }
-        eprintln!(
-            "run97 bodies: {body_bad} of {body_all} point-and-goal fields below the word wrong ({body_trio} more on the standing trio over {frames_below} frames), on {} unit(s) — {posfirst:?}",
-            posfirst.len()
-        );
-        for w in &posw {
-            eprintln!("  BODY {w}");
-        }
-        assert!(
-            compared >= 120_000,
-            "run97's own clock rows are missing — the wrong file: {compared} below"
-        );
-        assert!(
-            wrong.is_empty(),
-            "run97's clocks parted outside the walk-slot seam: {wrong:?}"
-        );
-        // **The walk-slot band is closed** (item 352). It was on player
-        // 1's army from run97 block 8443 to the word, and it cost the
-        // same ~33.3 fields a frame while it was fifteen units' — 4,615
-        // over the 139 frames `[8443, 8582)` on item 346 and 5,853 over
-        // the 176 of `[8443, 8619)` on item 348, 33.5 apiece. Item 350
-        // took it to 1,747 over the 185 frames `[8443, 8628)`, 9.4
-        // apiece, by taking the probe's six out of the army
-        // (`docs/ARMY.md` §3.4); item 352 took it to **zero** by putting
-        // the army's muster on the original's own cell (§13's two
-        // predicates — the `<= 4` spacing test and `mask_me`'s `0x4000`).
-        // Measured on 352's own window, `[8443, 8663)`, the base is
-        // **2,898, 13.2 a frame** — which is the division this comment
-        // keeps asking for, run against itself: 1,747 and 2,898 are the
-        // same simulation through two window widths.
-        //
-        // So this is an **equality** now, not a floor: item 347 read the
-        // band as a free `walk_variant` choice costing no draw, and the
-        // truth was that the nine were walking somewhere else. There is
-        // no remaining seam for a walking guy's slot to differ in below
-        // the word, and a successor that reopens one should say so here
-        // rather than raise a ceiling.
-        //
-        // **Item 385 says so.** Moving the word 9182 → 9415 brought 233
-        // frames that had never been compared under it, and two of them
-        // carry a row: `1/35`'s guy 0 on 9338 and 9339, `cur_anim` 8
-        // against 7 — one slot of the walk category, the seam this band
-        // was always about and not a new one. The band over item 352's
-        // own `[8443, 9182)` is still **empty**, which is what the
-        // assertion below says by naming the two rows rather than
-        // counting them: a count would have hidden which frames they are
-        // on, and the frames are the whole point.
-        //
-        // **Item 539 closed those two**: `1/35`'s walk now keeps the
-        // original's step, because the soft flag that halved it came from
-        // the fast path's stride over an empty world cell
-        // (`docs/COLLISION.md` §4.2). The band is empty over the whole
-        // window below the word again.
-        assert_eq!(
-            walkw,
-            Vec::<String>::new(),
-            "run97's walk-slot band is not the empty set item 539 left it, \
+            );
+            for w in &wrong {
+                eprintln!("  {w}");
+            }
+            for w in &walkw {
+                eprintln!("  WALK {w}");
+            }
+            eprintln!(
+                "run97 bodies: {body_bad} of {body_all} point-and-goal fields below the word wrong ({body_trio} more on the standing trio over {frames_below} frames), on {} unit(s) — {posfirst:?}",
+                posfirst.len()
+            );
+            for w in &posw {
+                eprintln!("  BODY {w}");
+            }
+            assert!(
+                compared >= 120_000,
+                "run97's own clock rows are missing — the wrong file: {compared} below"
+            );
+            assert!(
+                wrong.is_empty(),
+                "run97's clocks parted outside the walk-slot seam: {wrong:?}"
+            );
+            // **The walk-slot band is closed** (item 352). It was on player
+            // 1's army from run97 block 8443 to the word, and it cost the
+            // same ~33.3 fields a frame while it was fifteen units' — 4,615
+            // over the 139 frames `[8443, 8582)` on item 346 and 5,853 over
+            // the 176 of `[8443, 8619)` on item 348, 33.5 apiece. Item 350
+            // took it to 1,747 over the 185 frames `[8443, 8628)`, 9.4
+            // apiece, by taking the probe's six out of the army
+            // (`docs/ARMY.md` §3.4); item 352 took it to **zero** by putting
+            // the army's muster on the original's own cell (§13's two
+            // predicates — the `<= 4` spacing test and `mask_me`'s `0x4000`).
+            // Measured on 352's own window, `[8443, 8663)`, the base is
+            // **2,898, 13.2 a frame** — which is the division this comment
+            // keeps asking for, run against itself: 1,747 and 2,898 are the
+            // same simulation through two window widths.
+            //
+            // So this is an **equality** now, not a floor: item 347 read the
+            // band as a free `walk_variant` choice costing no draw, and the
+            // truth was that the nine were walking somewhere else. There is
+            // no remaining seam for a walking guy's slot to differ in below
+            // the word, and a successor that reopens one should say so here
+            // rather than raise a ceiling.
+            //
+            // **Item 385 says so.** Moving the word 9182 → 9415 brought 233
+            // frames that had never been compared under it, and two of them
+            // carry a row: `1/35`'s guy 0 on 9338 and 9339, `cur_anim` 8
+            // against 7 — one slot of the walk category, the seam this band
+            // was always about and not a new one. The band over item 352's
+            // own `[8443, 9182)` is still **empty**, which is what the
+            // assertion below says by naming the two rows rather than
+            // counting them: a count would have hidden which frames they are
+            // on, and the frames are the whole point.
+            //
+            // **Item 539 closed those two**: `1/35`'s walk now keeps the
+            // original's step, because the soft flag that halved it came from
+            // the fast path's stride over an empty world cell
+            // (`docs/COLLISION.md` §4.2). The band is empty over the whole
+            // window below the word again.
+            assert_eq!(
+                walkw,
+                Vec::<String>::new(),
+                "run97's walk-slot band is not the empty set item 539 left it, \
              over the {} frames below the word",
-            LONG_WORD_GREAT_LAKES - 8_443
-        );
-        assert!(
-            walkw.iter().all(|w| !w.starts_with("frame 91")
-                && !w.starts_with("frame 90")
-                && !w.starts_with("frame 8")),
-            "the walk-slot band reopened *below* 9182, which item 352 closed \
+                LONG_WORD_GREAT_LAKES - 8_443
+            );
+            assert!(
+                walkw.iter().all(|w| !w.starts_with("frame 91")
+                    && !w.starts_with("frame 90")
+                    && !w.starts_with("frame 8")),
+                "the walk-slot band reopened *below* 9182, which item 352 closed \
              at zero: {walkw:?}"
-        );
-        // **The rest of the record, floored** (item 350). Three families,
-        // and only the second is anyone's current item:
-        //
-        // - the **standing trio** `1/24`/`1/25`/`1/26`, a constant
-        //   (24, 24) older than every window on this map and already
-        //   excused — counted apart, and exactly `3 × 2 × frames`, which
-        //   is what the equality below says rather than a literal that a
-        //   wider window breaks;
-        // - ~~**`1/31`–`1/39` from 8442**~~ — **closed by item 352**: the
-        //   frame is an `Army::find_target`, both sides spend its two
-        //   `+0x7df` score draws, and the army's muster is the original's
-        //   cell (58, 29) from `docs/ARMY.md` §13's two corrected
-        //   predicates. All nine stand on the original's own
-        //   `x_internal`/`y_internal` and hold its own path goal on 8442;
-        // - **`1/27`/`1/28`/`1/29`/`1/41` from 8579**, and `1/33` from
-        //   8584, the late drift on the long walk southwest — what the
-        //   601 below is, together with `1/24`–`1/26`'s goal rows;
-        // - and **`1/35` from 9329** — item 385's own two fields, on
-        //   frames the word had always covered until it moved 9182 →
-        //   9415. Below 9182 the count is still 6. Its neighbour is the
-        //   walk-slot pair on 9338–9339 above: one unit, one late walk,
-        //   and the only thing this item changed about it is that it is
-        //   now compared.
-        assert!(
-            body_all >= 121_224,
-            "run97's own bodies are missing — the wrong file: {body_all} fields"
-        );
-        // **Closed on item 629**: the trio are Great Lakes' Merchants,
-        // and the (24, 24) was their seat — `cast_unpack`'s merchant arm
-        // puts each on its tile corner (`docs/MERCHANT.md` §3.2). Their
-        // two fields agree on every frame below the word.
-        assert_eq!(
-            body_trio, 0,
-            "the standing trio is off again over {frames_below} frames: {body_trio}"
-        );
-        assert!(
-            body_bad <= 8,
-            "run97's point-and-goal residue grew: {body_bad} of {body_all} \
+            );
+            // **The rest of the record, floored** (item 350). Three families,
+            // and only the second is anyone's current item:
+            //
+            // - the **standing trio** `1/24`/`1/25`/`1/26`, a constant
+            //   (24, 24) older than every window on this map and already
+            //   excused — counted apart, and exactly `3 × 2 × frames`, which
+            //   is what the equality below says rather than a literal that a
+            //   wider window breaks;
+            // - ~~**`1/31`–`1/39` from 8442**~~ — **closed by item 352**: the
+            //   frame is an `Army::find_target`, both sides spend its two
+            //   `+0x7df` score draws, and the army's muster is the original's
+            //   cell (58, 29) from `docs/ARMY.md` §13's two corrected
+            //   predicates. All nine stand on the original's own
+            //   `x_internal`/`y_internal` and hold its own path goal on 8442;
+            // - **`1/27`/`1/28`/`1/29`/`1/41` from 8579**, and `1/33` from
+            //   8584, the late drift on the long walk southwest — what the
+            //   601 below is, together with `1/24`–`1/26`'s goal rows;
+            // - and **`1/35` from 9329** — item 385's own two fields, on
+            //   frames the word had always covered until it moved 9182 →
+            //   9415. Below 9182 the count is still 6. Its neighbour is the
+            //   walk-slot pair on 9338–9339 above: one unit, one late walk,
+            //   and the only thing this item changed about it is that it is
+            //   now compared.
+            assert!(
+                body_all >= 121_224,
+                "run97's own bodies are missing — the wrong file: {body_all} fields"
+            );
+            // **Closed on item 629**: the trio are Great Lakes' Merchants,
+            // and the (24, 24) was their seat — `cast_unpack`'s merchant arm
+            // puts each on its tile corner (`docs/MERCHANT.md` §3.2). Their
+            // two fields agree on every frame below the word.
+            assert_eq!(
+                body_trio, 0,
+                "the standing trio is off again over {frames_below} frames: {body_trio}"
+            );
+            assert!(
+                body_bad <= 8,
+                "run97's point-and-goal residue grew: {body_bad} of {body_all} \
              fields below the word, the floor is 8 — {posfirst:?}"
-        );
+            );
+        });
     }
 
     /// **run98's animation clocks, and the seated scholar's own** — East
