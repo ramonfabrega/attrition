@@ -3166,19 +3166,35 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
-        for _ in 0..484 {
-            built.tick();
-        }
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let setup = source.read_replay_setup().unwrap();
+        let setup_log = Log::parse(&setup);
+        let setup_init = setup_log.initial().unwrap();
+        let (seeds, animations, guys) = source
+            .with_replay_initial(|observed| {
+                (
+                    observed.frame_seeds.clone(),
+                    observed.anim_lengths.clone(),
+                    observed.frame_guys.clone(),
+                )
+            })
+            .unwrap();
+        let built = with_sibling_initials(|refs| {
+            let mut init = setup_init;
+            init.frame_seeds = seeds;
+            init.anim_lengths = animations;
+            init.frame_guys = guys;
+            init.frame_seeds.retain(|(frame, _)| *frame < 484);
+            init.frame_guys.retain(|(frame, _)| *frame < 484);
+            borrow_from_siblings(&mut init, refs);
+            let mut built = build_sim(&loaded, &init, Tuning::RON);
+            built.sim.trace_phases = true;
+            drop(init);
+            for _ in 0..484 {
+                built.tick();
+            }
+            built
+        });
 
         use sim::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
         let theirs: Vec<String> = trace
@@ -3221,7 +3237,13 @@ mod tests {
 
         // And the target, against the dump's own — cell `(52, 28)`, which
         // both sides pick and which the extra draw does not move.
-        let frames = log.frame_states();
+        let frame_index = source
+            .frames()
+            .iter()
+            .position(|frame| frame.number == 483)
+            .expect("run33 dumped frame 483");
+        let frame_text = source.read_frame_and_siblings(frame_index).unwrap();
+        let frames = Log::parse(&frame_text).frame_states();
         let dest = frames
             .iter()
             .find(|f| f.n == 483)

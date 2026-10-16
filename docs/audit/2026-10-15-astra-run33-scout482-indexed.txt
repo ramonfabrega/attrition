@@ -1,0 +1,16 @@
+# Indexed replay setup/frame reads for run33's frame-482 scout retarget, 2026-10-15.
+# Baseline is the serialized suite sweep at 9ea2f4bf; after is one focused
+# release run with the owned install and fixture corpus set.
+
+diff::world::tests::run33_s_scout_re_targets_at_482_on_the_original_s_ring
+  baseline: 3.04 s; 2,284 MiB maximum RSS
+  indexed:  1.78 s;   527 MiB maximum RSS (553,140,224 bytes)
+  delta:    -41.4% time; -1,757 MiB / -76.9% maximum RSS
+  indexed instructions retired: 36,998,081,251
+
+# The replay still borrows the same sibling data, traces through 484 ticks,
+# compares the exact frame-482 draw sequence and visibility assertion, and
+# reads the frame-483 order destination from the capture. Baseline is a suite
+# sweep sample and the after is one focused run.
+# Reproduction (set RON_INSTALL and RON_GAMELOG_DIR):
+# cargo test -p rondata --release -- diff::world::tests::run33_s_scout_re_targets_at_482_on_the_original_s_ring --exact --nocapture

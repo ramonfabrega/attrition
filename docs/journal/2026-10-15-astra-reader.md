@@ -443,3 +443,18 @@ memory peak was 9,218 MiB across the tree and 9,186 MiB in the largest process,
 under the 20 GiB cap. Gate log:
 `/tmp/attrition-run33-scout-indexed-release-gate.log`. The follow-up commit
 records this verdict.
+
+### Run33 frame-482 scout retarget memory follow-up — 2026-10-15
+
+The adjacent frame-482 scout test had the same whole-capture setup and four
+sibling parses, plus a full run33 parse to read frame 483's order target. It
+now uses indexed setup and bounded replay observations, scoped sibling
+initials, and reads only frame 483 with its siblings. The same 484 ticks, exact
+frame-482 draw sequence and visibility check, and frame-483 destination still
+pass.
+
+The focused run measured 1.78 s / 527 MiB (553,140,224 bytes), versus the
+suite sweep's 3.04 s / 2,284 MiB: -1,757 MiB (-76.9%) RSS and -41.4% time.
+Indexed instructions: 36,998,081,251. Evidence:
+`docs/audit/2026-10-15-astra-run33-scout482-indexed.txt`. The implementation
+checkpoint and required gate are pending.
