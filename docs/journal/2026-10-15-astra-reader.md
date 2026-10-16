@@ -59,12 +59,26 @@ completed; its other game/capture cases passed.
 
 ### Validation and landing
 
-Focused `capture::indexed::tests`: 13 passed before the full sweep. The source
-guard follow-up passed after the sweep. Full release gate and its verdict
-follow-up commit are pending at the time this journal entry is first committed.
-The required gate is run against the committed tree with the local fixture
-corpus and `--test-threads 4 --require-fixtures`; the tree stays frozen during
-that run.
+Focused `capture::indexed::tests`: 13 passed. The corrected source guard
+passed (1/1); `cargo clippy --all-targets -- -D warnings`, `cargo fmt --all`,
+`tools/guard.sh --built`, and `git diff --check` passed. The guard reports an
+existing note that queue item 7 is ledgered and live again.
+
+Implementation checkpoint: `2c433994`. The first required gate attempt exited
+1 at `offline_tests.py`, before clippy, formatting, survey, release, or guard.
+Its only actual failure was
+`test_the_pdb_default_resolves_the_main_checkout_from_a_worktree`: the gate
+sets `RON_INSTALL`, while the test intended to exercise the fallback before
+clearing it. The isolated test setup now sets an empty `RON_INSTALL` for that
+fallback assertion (`723c899d`). The exact test passed 1/1; the gate's offline
+suite passed on retry.
+
+Full gate on `723c899d` exited 0: all 6 steps ran (offline, clippy, fmt,
+survey, release, guard); 13 fixed tests, 866 rondata release tests, 2,584 sim
+tests, and 3 rondata doc-tests passed. Required-fixture audit: 3,186 requests,
+0 missing. The four-thread memory cap observed 11,503 MiB peak across the
+tree, 11,470 MiB in its largest process, under the 20 GiB cap. The committed
+gate verdict is recorded separately after this journal update.
 
 ### For the Loop
 
