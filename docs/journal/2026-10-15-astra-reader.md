@@ -173,7 +173,13 @@ versus the suite sweep's 4.21 s / 3,401 MiB: -2,799 MiB (-82.3%) and -36.1%
 time. Since those are one sweep sample versus one focused run, treat the time
 drop as promising rather than a stable CPU estimate. Indexed instructions:
 58,153,916,278. Evidence: `docs/audit/2026-10-15-astra-road-nodes-indexed.txt`.
-The implementation checkpoint and required gate are pending.
+Implementation checkpoint: `6ae54d03`. The required release gate passed all 6
+steps on the unchanged committed tree: 13 fixed tests, 866 rondata tests,
+2,585 sim tests, and 3 rondata doc-tests. Fixture audit: 3,187 requests,
+0 missing. Four-thread memory peak was 8,608 MiB across the tree and 8,575 MiB
+in the largest process, under the 20 GiB cap and 1,369 MiB below the preceding
+gate. Gate log: `/tmp/attrition-road-nodes-indexed-release-gate.log`. The
+follow-up commit records this verdict.
 
 ### For the Loop
 
