@@ -49,7 +49,8 @@ Shared isolation and persistent setup observations validated on `575bad00`: both
 complete required-fixture gates passed; full wall456→286s with isolation, CPU
 1529→1541s, sampled tree10473→9030MiB. Adoption requires `--isolated` in each
 cooperating worktree. Third-pair reuse passes full-state differential checks: CPU37–38→5s,
-RSS3.4–4.3→0.74–0.76GiB; full gate pending;
+RSS3.4–4.3→0.74–0.76GiB; combined validation complete (ledger correction).
+Four-suite sample: CPU-32%, memory-36%, wall unchanged; coverage walk is next;
 see [journal](journal/2026-10-16-third-pair-replay.md).
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.

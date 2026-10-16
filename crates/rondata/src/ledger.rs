@@ -105,6 +105,10 @@ const DIFF_FILES: [&str; 19] = [
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/third_pair/replay.rs",
+        "window replay setup/reuse and fresh-state audit; original-record comparisons remain in third_pair.rs",
+    ),
+    (
         "diff/oracle.rs",
         "decoded original observations; all simulation comparisons remain in harness.rs",
     ),

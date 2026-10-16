@@ -52,5 +52,51 @@
     "Only this test improved; 10x full suite target unmet.",
     "Debug compares value representations, retaining existing normalization of nonsemantic order-head IDs.",
     "Independent review remains owed."
-  ]
+  ],
+  "implementation_commit": "4627c92c",
+  "four_suite_sample": {
+    "isolated-off": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 52.44435920800606,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 53.33,
+      "cpu": 481.34000000000003,
+      "peak_tree_mib": 18503
+    },
+    "isolated-on": {
+      "exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed": 52.305391875008354,
+      "fixture_requests": 1832,
+      "missing": 0,
+      "wrapper_wall": 53.84,
+      "cpu": 326.81,
+      "peak_tree_mib": 11896
+    }
+  },
+  "validation": {
+    "full_gate_exit": 1,
+    "full_gate_phases_completed": 5,
+    "failed_test": "ledger::tests::every_differ_module_is_on_the_ledger",
+    "correction": "Register helper in NOT_A_DIFFER; no simulation/comparison logic changed",
+    "combined_validation": true,
+    "ledger_tests_passed": 3,
+    "correction_guard_exit": 0,
+    "correction_clippy_exit": 0,
+    "formatting_exit": 0,
+    "full_fixture_requests": 3276,
+    "full_distinct_fixtures": 419,
+    "full_missing_fixtures": 0,
+    "full_fixture_multiset_unchanged": true
+  }
 }

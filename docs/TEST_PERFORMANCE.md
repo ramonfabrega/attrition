@@ -287,3 +287,13 @@ mutation killers cover RNG state, draw history, object maps, notes, seed order,
 clock omission and site history. Performance and final gate verdict are recorded
 in `docs/journal/2026-10-16-third-pair-replay.md`. Independent review remains owed;
 no simulation behavior, fidelity pin or value floor is intentionally changed.
+
+Measured third-pair result:24 windows/360 compared frames,256890→23016 ticks;
+36.65–38.29→4.97–4.99CPU seconds and3.37–4.26→0.74–0.76GiB peak RSS in two
+alternating warm repeats. A four-suite/eight-test sample falls481.34→326.81CPU
+seconds and18503→11896MiB sampled tree RSS, while elapsed remains52.4→52.3s.
+Coverage is its remaining critical path. Full release ran with one helper-ledger
+registration omission; the four-line correction and all affected checks passed
+under the documented combined-validation rule. The original gate exit remains1.
+See `docs/audit/2026-10-16-third-pair-replay.json` and the journal for the exact
+validation scope; this is not a10× full-suite claim.
