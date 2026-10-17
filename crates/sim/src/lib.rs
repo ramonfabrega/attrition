@@ -60,6 +60,7 @@ pub mod border_pass;
 pub mod build;
 pub mod calc_gather;
 pub mod caravan;
+pub mod bribe;
 pub mod cast;
 pub mod cavarch;
 pub mod city;
