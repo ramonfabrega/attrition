@@ -303,7 +303,7 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(1200):
+    for i in range(2400):
         h.brk = base  # the bump heap is reused a row; 1200 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
