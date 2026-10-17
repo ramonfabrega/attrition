@@ -896,6 +896,18 @@ impl Sim {
                             self.site_was_seen(47, 24, who), self.world.owner(here), self.world.second(here),
                             self.site_is_ocean(here), self.world.cell_data(here).val,
                             town.map(|t| self.site_clear(who, t, 47, 24)), self.site_danger(who, 47, 24));
+                        if let Some(t) = town {
+                            for tt in self.footprint(t, self.tile_corner(t, Pos::new(47 * UNITS_PER_CELL, 24 * UNITS_PER_CELL))) {
+                                let cell = crate::World::cell_of_tile(tt);
+                                eprintln!("    fp tile ({},{}) cell ({},{}) flags {:#x} seen {} -> {:?}", tt.x, tt.y, cell.x, cell.y,
+                                    self.world.cell_data(cell).flags, self.was_seen_fog(tt.x >> 1, tt.y >> 1, who),
+                                    self.blocked_tcoord(Some(who), t, tt, None));
+                            }
+                        }
+                        for fy in 40..60 {
+                            let row: String = (80..111).map(|fx| self.world.seen2(fx, fy).unwrap_or(9).to_string()).collect();
+                            eprintln!("    fog {fy} {row}");
+                        }
                     }
                 }
 
