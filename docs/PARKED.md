@@ -3755,6 +3755,10 @@ Loop" line, filed at its merge): sparse windows come first, so a `--wbias p0+*` 
 byte and the run looked healthy until a break survived (parked 2890); two reruns. Candidate: the generated doc comment lists
 the windows in order (`p0..p3 sparse, p4 place`), a test made to fail first. One reach.
 
+(2896) **`unitat.py` re-scans the whole dump per unit** (2881's "for the Loop" line, filed at its merge): about 6 s a unit on
+run880's 1.2 GB dump, over 100 s for a cast of eighteen. Candidate: `--units a,b,c` reads the dump once, a test that counts
+the reads made to fail first. One reach.
+
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
 Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872).
@@ -6607,7 +6611,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2881, 2026-10-17 — chapter eighty-seven: the chase's re-target
 
-(2881, first) **Parked 2868 is answered**: `check_target_path`'s cast arm (`Unit::work`'s sixteen-frame review), carried as
+(2894) **Parked 2868 is answered**: `check_target_path`'s cast arm (`Unit::work`'s sixteen-frame review), carried as
 `check_cast_target_path`; `WANT_CH85` 31 → 12. No score names the rest: the invalid/unseen-target arm (`repath` + kill) and a
 building target have no capture; parked 2879 (a target outside the caster's sight) is unchanged and wants a Spy sent to range on a
 target that stays outside its owner's fog, and the review's `is_seen` gate is the arm to watch there.
@@ -6648,6 +6652,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GE renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

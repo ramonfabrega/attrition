@@ -12,18 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-ninth tranche (commander, Opus): 3 landings from `31eb3a05`** (2876 ch86 closed, 2863 `--answer-by`, 2877 nine); four
-lanes live; the thirty-eighth pass's record is `docs/audit/2026-10-17-fable-pass-38.md`; last whole gate `a65a2a59` (the pass).*
+*2026-10-17, **the thirty-ninth tranche (commander, Opus): 4 landings from `31eb3a05`** (2876 ch86 closed, 2863 `--answer-by`, 2877 nine, 2881 the re-target); four
+lanes live; the thirty-eighth pass's record is `docs/audit/2026-10-17-fable-pass-38.md`; last whole gate `2b6eed51`.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 6821 (2780, 2779, 2808, 2825,
   2845), one frame before the game's end — **2864 runs 883 through the closing 6823 and scores the closing state** (55);
   when it closes, the AI word's successor is its lowest lobby (72). Chapters 80–86 closed or built (86 by 2876, run884,
-  to 1300), 87 is 2881. Census 1238 of 3611 (2863, 2877; the pass subtracted nine through stubbed callees); `port` 156; `--unbacked`
-  hides 235 `ui` bodies (Loop 2819), lists six bare citations. Battery 576 / 6566 / 2974.
-- **Lanes: four, live** (DECISIONS 75, 76; the roster is Ramon's, 71): 2864 the AI word's (Opus 5.5 medium), 2881 the
+  to 1300); 87's re-target built (2881, `WANT_CH85` 31 → 12), its sight arm is 2895. Census 1238 of 3611 (2863,
+  2877; the pass subtracted nine through stubbed callees); `port` 156; `--unbacked` hides 235 `ui` bodies (Loop 2819),
+  lists six bare citations. Battery 576 / 6566 / 2974.
+- **Lanes: four, live** (DECISIONS 75, 76; the roster is Ramon's, 71): 2864 the AI word's (Opus 5.5 medium), 2895 the
   rules track's, 2887 and 2893 the sweep lanes' (Sonnet 5.5 medium); the fifth lane 61 §5 would add is Ramon's (76).
-  Next 2894, run 886 (Astra 900–909). Pools: GOLDEN §111–113, AI §239–243, park FY–GA free (FR, FV, FW, FX live).
-- **Fable backlog: 8 Loop items** (1570, 1725, 2003, 2654, 2809, 2882, 2886, 2892).
+  Next 2897, run 886 (Astra 900–909). Pools: GOLDEN §112–117, AI §239–243, park FZ–GE free (FR, FW, FX, FY live).
+- **Fable backlog: 9 Loop items** (1570, 1725, 2003, 2654, 2809, 2882, 2886, 2892, 2896).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -45,7 +46,7 @@ twenty with the handoff written, the whole gate green, the lanes drained, and `c
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2864 the AI word's (Opus), 2881 the rules track's, 2887 and 2893 the
+2864 the AI word's (Opus), 2895 the rules track's, 2887 and 2893 the
 two sweep lanes' (Sonnet) — lower map first — East Indies (Lakota), the
 peace pair's only map. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
@@ -58,14 +59,14 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     state scored (DECISIONS 55); then every record on 6821, both
     directions, `WIDENINGS` naming it. Unstarted: booked at the drain. AI §238.
 
-2881. **Chapter eighty-seven: a Spy sent to range on a walking target**
-    (DECISIONS 56 §3; 2876 closed chapter 86 on run884 to 1300, the
-    stationary control bribed with no sight refusal, parked 2879): the
-    chase's re-target — run880 frame 1178, `order:move.dest_x/y` ours
-    23256/19128, theirs 23304/19032 (parked 2868; `do_cast_targeted`'s
-    out-of-range arm, a hypothesis) — and a target outside the caster's
-    owner's sight (2879); census rows first, run 885 only when no packet
-    answers. Unstarted. GOLDEN §110.
+2895. **Chapter eighty-seven's second arm: a Bribe on a target outside
+    the caster's owner's sight** (DECISIONS 56 §3; 2881 built
+    `check_cast_target_path` from run880's dump, `WANT_CH85` 31 → 12, no
+    capture, parked 2894): stage a Spy sent to range on a target that
+    stays in its owner's fog (parked 2879), the review's `is_seen` gate
+    the arm to watch; census rows first, run 885 only when no packet
+    answers; a staged line reaching no unit builds Loop 2654's print.
+    Unstarted. GOLDEN §111.
 
 2887. **The sweep's hundred-and-twenty-first batch: the `void` shape's
     gaps, then what they hold** (DECISIONS 63 (iv); the score `Census:`
