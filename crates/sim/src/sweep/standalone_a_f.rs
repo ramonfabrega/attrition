@@ -570,6 +570,10 @@ mod command_package_process_disband;
 mod command_package_process_eject_all;
 #[path = "command_package_process_form.rs"]
 mod command_package_process_form;
+#[path = "command_package_process_garrison.rs"]
+mod command_package_process_garrison;
+#[path = "command_package_process_gather_point.rs"]
+mod command_package_process_gather_point;
 #[path = "command_package_process_halt.rs"]
 mod command_package_process_halt;
 #[path = "command_package_process_marwan.rs"]
@@ -586,6 +590,8 @@ mod command_package_process_queue_up;
 mod command_package_process_recall;
 #[path = "command_package_process_reject.rs"]
 mod command_package_process_reject;
+#[path = "command_package_process_repair.rs"]
+mod command_package_process_repair;
 #[path = "command_package_process_resign.rs"]
 mod command_package_process_resign;
 #[path = "command_package_process_scramble.rs"]
