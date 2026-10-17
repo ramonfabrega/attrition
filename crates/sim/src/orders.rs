@@ -9278,6 +9278,7 @@ impl Sim {
                 ap.has(crate::combat::mask::VEHICLE), ap.has(crate::combat::mask::WAR_MACHINE),
                 self.order_type(u), self.units[u].combat.mandatory
             );
+            eprintln!("PROBE_VALID whole {} on_map {}", self.clone().valid_target(me, target), self.units[u].on_map);
         }
         if !self.valid_target(me, target) {
             // `find_new_target`: the order dropped, then
