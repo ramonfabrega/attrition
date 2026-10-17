@@ -21,8 +21,8 @@ waiting a landing** against 3.92 / 27.0 — a fifth broken, so **the fourth lane
   / 2974; **when the peace pair closes, the AI word's successor is its lowest lobby** (DECISIONS 72).
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every third landing
   and at the drain; a whole gate refuses a stale `agent-*` worktree (Loop 2724). The sweep's per-function check runs in debug (2787).
-- **Lanes: three, none live** (DECISIONS 74) — booked, unspawned: 2780 (AI §233, EU, run 873), 2785 (GOLDEN §103, EX, run 878),
-  2782 then 2783 on the one sweep lane (EV, EW). Next 2788, run 879 (Astra 900–909). Pools: GOLDEN §104–109, AI §234–239, park EY–FC.
+- **Lanes: four, none live** (DECISIONS 75: the lane entry 74 took goes back for the trial) — booked, unspawned: 2780 (AI §233,
+  EU, run 873), 2785 (GOLDEN §103, EX, run 878), 2782 (EV) and 2783 (EW) on the two sweep lanes. Next 2788, run 879 (Astra 900–909). Pools: GOLDEN §104–109, AI §234–239, park EY–FC.
 - **Fable backlog: 9 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -37,92 +37,21 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: ch80 w1198 of 1204 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-eighth tranche (commander, Opus): three lanes from the thirty-seventh pass's commit — 2780 on
-the AI word (Opus 5.5 `--effort medium`), 2785 on the rules track and 2782 on the one sweep lane (Sonnet 5.5 `--effort
-medium`; 2783 is its next); the whole gate green at the pass; count landings from that commit, stop at twenty, and clear
-`steer` into the thirty-eighth pass with the handoff written.**
+**Opener: the thirty-eighth tranche (commander, Opus): four lanes from the trial's gate commit (DECISIONS 75) — 2780 on
+the AI word (Opus 5.5 `--effort medium`), 2785 on the rules track, 2782 and 2783 on the two sweep lanes (Sonnet 5.5
+`--effort medium`); the whole gate green at the trial's commit; count landings from that commit, stop at twenty, and clear
+`steer` into the thirty-eighth pass with the handoff written and every gate's `Admission wait:` line in it.**
 
-## Sequential performance work
+## Astra's branch, on trial for the thirty-eighth tranche
 
-User-directed branch `codex/astra-windowed-reader`; commander remains paused.
-Shared isolation and persistent setup observations validated on `575bad00`: both
-complete required-fixture gates passed; full wall456→286s with isolation, CPU
-1529→1541s, sampled tree10473→9030MiB. The workflow follow-up makes isolation the default in each
-updated cooperating worktree. Third-pair reuse passes full-state differential checks: CPU37–38→5s,
-RSS3.4–4.3→0.74–0.76GiB; combined validation complete (ledger correction).
-Third-pair four-suite sample: CPU-32%, memory-36%, wall unchanged; see its
-[journal](journal/2026-10-16-third-pair-replay.md). Coverage walk now saves21–25% CPU;
-full-frame audits and exact fixture/output comparisons pass. Four-suite sample:
-wall-16%, CPU-15%, memory-6%; six suites wall-18%, CPU-14%, memory flat.
-Full required-fixture gate passed on `f08d0c08`; full-gate speedup unproven.
-Ticking/decoder follow-up: coverage CPU−11–13%; scoped macOS reclamation cuts
-four/six-suite sample memory15%/20%, CPU6%/7%; six-suite elapsed−9% (four flat).
-Complete warm isolated CPU−2%; peak memory variable. Full gate passed on
-`3b7e6846`: time/CPU roughly flat, peak memory−18%. See [ticking journal](journal/2026-10-16-ticking-decoding.md).
-Live-unit/radius candidates rejected: full isolated165.18→165.57s and
-CPU1190.57→1191.85s; all890 tests pass, exact3276 fixture requests unchanged.
-No production change or new speedup claimed; see [radius journal](journal/2026-10-16-radius-scans.md).
-Workflow follow-up: all gate modes default to isolated execution with unchanged
-selection; standalone guards/Cargo wrapper join shared admission. Ledger history
-reads retain all2,208 bodies and cut wall30.10→2.13s/CPU27.47→2.08s; RSS+5.3MiB.
-Complete required-fixture gate passed on `980efbd5`:271.25s/1509.62CPU/8169MiB
-sampled tree; all tests and3276 fixture requests preserved. Warm guard27.98→4.29s.
-See [workflow journal](journal/2026-10-16-validation-workflow.md).
-Build follow-up: incremental release compilation with256 partitions cuts measured
-small sim-edit rebuild44–47→19s and CPU277–289→108–109s. Full gate passes on
-`b8494d23`:266.23s/1463.74CPU/9028MiB; exact tests/fixtures unchanged. Runtime
-tree peak rises10.5% versus prior run; no suite-memory reduction claimed.
-See [build journal](journal/2026-10-16-build-invalidation.md).
-Test-family follow-up:736 independent sweeps move into four Cargo targets;
-2586 total sim names preserved exactly. Sweep edit21.95→2.21–2.78s/CPU103.49→2.76–2.83s;
-full required-fixture gate passed on `69e343a3`:262.15s/1443.50CPU/8360MiB,
-all checks and3276 fixture requests retained. See [family journal](journal/2026-10-16-test-families.md).
-Public-API follow-up:196 more unchanged sweeps use the existing four partitions;
-corner-tile edit14.37→2.47s/CPU16.59→14.00s/build memory1071→400–404MiB.
-Full gate passed on `f4e683b6`:255.00s/1396.42CPU/8369MiB;2586 sim tests and
-3276 fixture requests preserved. See [journal](journal/2026-10-16-public-sweeps.md).
-Golden replay follow-up:211 unchanged bodies split into ten chapter modules with
-original test-name wrappers. Case rebuilds2.4–3.4× faster, CPU74–85% lower;
-shared-helper CPU flat. Combined validation: source guards corrected on `a30a36bd`
-after full run on `e8404b99`; all original checks/3276 fixture requests retained,
-one guard added. See [journal](journal/2026-10-16-replay-boundary.md).
-Harness follow-up:85 exact bodies in nine groups; measured case rebuild19.52→15.30s,
-CPU52.64→20.95s, sampled tree1566→1209MiB. Full required-fixture gate passes on
-`5491fe87`:271.28s/1472.54CPU/8864MiB; exact3276 requests retained. No whole-suite
-gain. See [journal](journal/2026-10-16-harness-boundary.md). Next: profile repeated
-golden/harness replay work (47% of rondata CPU); finer harness groups plateau.
-Golden/harness observation follow-up: indexed near spans and bounded East Indies
-setup/decoded observations; all45 affected tests pass complete differential audits.
-Local warm examples10.60→0.59s and7.63→1.95s; two fail-first guards added.
-Full required-fixture gate passes on `55793bfc`; exact3276 requests retained.
-Warm rondata161.22→145.58s, CPU1158.05→1037.78 (about10% lower). Whole-suite10×
-remains unmet. Next: complete golden civilian observations (283.12CPU family). See
-[journal](journal/2026-10-16-golden-replay.md).
-Golden civilian follow-up: complete auxiliary observations cached with distinct
-ammunition modes; all72 complete-report differential tests pass. Warm chapter36
-8.89→1.72s, CPU8.22→1.67; warm memory flat and first-use cost higher. Full gate
-passes on `571c0298`;897 rondata, exact3276 requests retained. Warm full suite
-145.58→134.05s, CPU1037.78→934.29; sampled memory8186→8541MiB (no improvement).
-Next: whole-capture city/unit/animal consumers at2030–2122MiB per test. See
-[journal](journal/2026-10-16-golden-civilian.md).
-Whole-capture follow-up: bounded setup and rolling observations retain all checks.
-Four local tests fall from~2GiB each to22–398MiB; four competing copies of that
-subset use28853→1265MiB sampled tree, CPU50.26→41.64s. Two boundary guards catch
-intentional faults. Full required-fixture gate passes on `d68ee904`;899 rondata,
-exact3276 requests retained. Warm suite134.05→132.21s, CPU934.29→924.28s,
-sampled tree8541→7184MiB. Next: world/harness consumers near1.9GiB; see
-[journal](journal/2026-10-17-whole-capture.md).
-World/harness follow-up: five consumers fall1790–1924→394–436MiB locally;
-four competing copies of the subset use26769→1840MiB sampled memory and
-CPU58.88→25.35s. Complete observation/report audits agree; deliberate faults fail.
-Full required-fixture gate passes on `7deda699`:900 rondata, exact3276 requests.
-Warm suite132.21→132.86s, CPU924.28→923.69; sampled tree7184→7813MiB (no full-suite
-memory win). Next: remaining unit/window consumers at1.6–1.7GiB; see
-[journal](journal/2026-10-17-world-harness.md).
-Each revision keeps its own test verdict.
-Independent review of earlier landed optimizations remains owed.
-Pins/scoreboard unchanged; 10× remains unmet. See
-[journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.
+PR #10 (`codex/astra-windowed-reader`, 72 commits) fast-forwarded on 2026-10-17 after the steer's review (DECISIONS 75;
+the branch's own ledger moved to `journal/2026-10-17-pr10-adoption.md`, its design is `TEST_PERFORMANCE.md`). Kept whole:
+the windowed capture reads, the three on-disk caches beside the captures, the test-body and sweep splits, the isolated
+rondata runner. Adapted: the host budget is 32 slots / 96 GiB, the reflex guard reserves 4 GiB, an unknown test 8 GiB,
+the whole gate runs the caches' verifiers, and `touch ~/Library/Caches/attrition/admission-off` turns admission off for
+every worktree at once. **The trial's two numbers**, read at the thirty-eighth pass: waiting a landing (`tools/tranche.py`)
+against 36.5 on four lanes, and the gates' `Admission wait:` line — a rise with the admission wait near zero is the box's
+cost and the fourth lane goes again; a rise with it high is the admission's and the marker is the answer.
 
 ## The queue
 

@@ -95,7 +95,9 @@ class IsolatedGate(unittest.TestCase):
         self.assertEqual(gate.phase_budget(['python3', 'tools/offline_tests.py']), (2, 1024))
         self.assertEqual(gate.phase_budget(['cargo', 'fmt', '--check']), (2, 1024))
         self.assertEqual(gate.phase_budget(['cargo', 'clippy']), (8, 32768))
-        self.assertEqual(gate.phase_budget(['zsh', 'tools/guard.sh', '--built']), (8, 32768))
+        self.assertEqual(gate.phase_budget(['zsh', 'tools/guard.sh', '--built']), (2, 4096))
+        self.assertEqual(gate.phase_limit(['zsh', 'tools/guard.sh', '--built']), 16384)
+        self.assertIsNone(gate.phase_limit(['cargo', 'clippy']))
         # Selection and mode are checked separately from the admission wrapper.
 
 

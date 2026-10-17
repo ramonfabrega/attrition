@@ -86,6 +86,7 @@ is append-only and amended in place, as it always was.
 - 72 standing — The mixed roster's first tranche is scored, the kill rules' one route is closed in the lane gate, and fifteen Loop items become tools, rows or closes
 - 73 standing — The mixed roster's second tranche is scored, the fourth lane is added under entry 61 §5, the build cache is measured moot, and twenty-two Loop items become tools, rows or closes
 - 74 standing — The mixed roster's third tranche is scored, the fourth lane goes by entry 61 §5, the sweep's cycle is measured as the box's cost, and twenty-two Loop items become tools, rows or closes
+- 75 standing — Astra's test-suite branch is fast-forwarded whole, adapted at four points, and tried for one tranche with a kill switch and two numbers
 
 ## 1. Fidelity before divergence
 
@@ -5901,3 +5902,68 @@ backlog against nine and whether 2518, 2750, 2769 or 2775 reached; the
 timings file's stale count against 3; whether the stale `agent-*`
 trees are gone; and whether every journal's Loop line is in the parked
 file at the handoff.
+
+## 75. Astra's test-suite branch is fast-forwarded whole, adapted at four points, and tried for one tranche with a kill switch and two numbers
+
+*2026-10-17, the steer (Fable), on Ramon's word: "give it a go for a tranche" — and his question, whether it reverses.*
+
+**What was decided.** PR #10, `codex/astra-windowed-reader` (72 commits,
+Codex "Astra", based on the thirty-seventh pass's tip), is taken as a
+fast-forward, not cherry-picked and not rewritten: its two halves are
+woven through the same four files, and the half worth keeping is the
+larger. **Kept whole**: windowed capture reads and bounded setup (the
+worst consumers from ~2 GiB to a few hundred MiB a test; warm rondata
+342 → 130–180 s), the three on-disk caches beside the captures (frame
+offsets, setup observations, decoded oracle frames), the golden and
+harness case-body split, the four sweep integration targets, the
+isolated rondata runner that caches no verdict, the incremental release
+profile, three small sim changes (a maintained per-region cell count, a
+fog early-return that is a subset of its reference, kept beside it and
+mutation-tested). The steer's gate on the tip was green: 2586 sim, 900
+rondata, 13 fixed, 3 doctests, no pin moved. **Adapted, in the steer's
+commit**: (i) the host budget goes from 16 slots / 32 GiB — one heavy
+phase at a time on a 16-core, 128 GiB box, never measured under two
+gates — to 32 slots / 96 GiB, so three heavy phases coexist as the
+memcap regime before it allowed, and the policy directory is
+`resources-v2`; (ii) the reflex `tools/guard.sh` reserves 2 slots / 4
+GiB (3 GiB measured) under a 16 GiB ceiling instead of the whole host, because a lane's
+reflex waited behind every gate on the box; (iii) a test the committed
+profile does not know reserves 8 GiB under 32 GiB, the old lane
+memcap, instead of the whole host — every test a tranche adds is
+unknown; (iv) the whole gate (every third landing and the drain, entry
+72) runs with `RON_VERIFY_ORACLE` and `RON_VERIFY_SETUP_OBSERVATIONS`,
+because the caches' schema is a hand-listed `include_str!` hash — read
+complete on this day, guarded by nothing — and a parser moved to a file
+off the list would leave the floors compared against a stale decode.
+
+**The kill switch.** `touch ~/Library/Caches/attrition/admission-off`
+(or `RON_NO_ADMISSION=1` for one process) skips admission in every
+worktree at once and keeps the RSS ceilings and the timeout; the gate's
+`admission.json` and its `Admission wait:` line say whether it was on.
+The caches each have their `RON_DISABLE_*`. Nothing in the kept half
+needs reverting to reverse the trial, which is what makes it one.
+
+**The trial's two numbers, read at the thirty-eighth pass.** The lane
+entry 74 took goes back — four lanes, the fourth the second sweep lane
+— because entry 74 named the box's cost as the cause and this branch
+is the cost halved. (1) `tools/tranche.py`'s waiting minutes a landing
+against 36.5 (four lanes, entry 74) and 27.0 (three, entry 73). (2) The
+sum of every gate's `Admission wait:` over the tranche. A rise in (1)
+with (2) near zero is the box's cost and the fourth lane goes again by
+entry 61 §5; a rise in (1) with (2) high is the admission's and the
+marker is the answer, the lane kept. Both low: the branch earned the
+lane and the admission stays. Neither the roster's models nor its
+efforts move (entry 71).
+
+**What is not established.** The admission under four lanes and a
+commander's gate at once; the verifiers' cost on a whole gate; whether
+the per-test profile drifts as tests are added (an unknown test is
+scheduled, never excluded). The caches' schema hash as a guard is
+parked for the pass: a hash of the whole rondata source would keep
+every warm-tree gain and close the class.
+
+**Where things are.** The branch's own landing ledger, 82 lines the
+queue carried, is `docs/journal/2026-10-17-pr10-adoption.md` with the
+steer's review; the design is `docs/TEST_PERFORMANCE.md`, its last
+section the trial's terms; the clause in `CLAUDE.md`'s conventions is
+the pass's to keep or strike with the numbers.

@@ -593,3 +593,21 @@ sampled peak7184→7813MiB (no full-suite memory win). Nearby original-binary co
 133.53s/930.32CPU/7384MiB. Whole-suite10× remains unmet. See
 [journal](journal/2026-10-17-world-harness.md) and
 [audit](audit/2026-10-17-world-harness.json). Independent review remains owed.
+
+## Trial terms (2026-10-17, DECISIONS 75)
+
+The branch above is on trial for the thirty-eighth tranche, adapted at four
+points: the host budget is 32 CPU slots and 96 GiB in `resources-v2` (three
+heavy phases coexist; the budget bites on a fourth); `tools/guard.sh` reserves
+2 slots / 4 GiB (3 GiB measured) under a 16 GiB ceiling; a test the committed profile does not
+know reserves 8 GiB under a 32 GiB ceiling; the whole gate sets
+`RON_VERIFY_ORACLE=1` and `RON_VERIFY_SETUP_OBSERVATIONS=1`. Every gate ends
+with an `Admission wait:` line and writes `admission.json` to its report — the
+seconds its leases waited, summed over the receipts its logs carry. The kill
+switch is `touch ~/Library/Caches/attrition/admission-off` (every worktree at
+once) or `RON_NO_ADMISSION=1` (one process): admission is skipped, the
+ceilings and the timeout stay, and the receipt says `"admission": "off"`.
+The caches' schema is a hand-listed `include_str!` hash, complete on this day
+and guarded by nothing; the verifiers on the whole gate are the check until a
+whole-tree hash replaces the list. Cache files beside the captures are never
+pruned; about 1.3 GB stood under `~/ron-golden` at adoption.

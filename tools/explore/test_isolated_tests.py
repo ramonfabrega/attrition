@@ -17,7 +17,7 @@ import resource_budget as budget
 class Admission(unittest.TestCase):
     def test_atomic_capacity_and_release(self):
         with tempfile.TemporaryDirectory() as d:
-            first = budget.Lease(d, 15, 32000)
+            first = budget.Lease(d, budget.CPU - 1, budget.MEMORY_MIB - 768)
             other = budget.Lease(d, 2, 128)
             memory = budget.Lease(d, 1, 1024)
             self.assertTrue(first.try_acquire())
@@ -32,7 +32,7 @@ class Admission(unittest.TestCase):
 
     def test_inherited_locks_keep_orphan_reservation(self):
         with tempfile.TemporaryDirectory() as d:
-            lease = budget.Lease(d, 16, 32768)
+            lease = budget.Lease(d, budget.CPU, budget.MEMORY_MIB)
             self.assertTrue(lease.try_acquire())
             with subprocess.Popen([sys.executable, '-c', 'import sys; sys.stdin.read()'],
                                   stdin=subprocess.PIPE, pass_fds=lease.fds) as child:
@@ -66,7 +66,7 @@ class Admission(unittest.TestCase):
 
     def test_invalid_budget(self):
         with tempfile.TemporaryDirectory() as d:
-            for cpu, memory in [(0, 1), (17, 1), (1, 0), (1, 32769)]:
+            for cpu, memory in [(0, 1), (budget.CPU + 1, 1), (1, 0), (1, budget.MEMORY_MIB + 1)]:
                 with self.assertRaises(ValueError):
                     budget.Lease(d, cpu, memory)
 
@@ -106,7 +106,7 @@ class Admission(unittest.TestCase):
             for _ in range(6):
                 processes.append(subprocess.Popen(
                     [sys.executable, str(Path(budget.__file__)), '--directory', d,
-                     '--cpu', '4', '--memory-mib', '128', '--', sys.executable, '-c', code],
+                     '--cpu', str(budget.CPU // 4), '--memory-mib', '128', '--', sys.executable, '-c', code],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
             events = []
             timings = []
@@ -129,6 +129,22 @@ class Admission(unittest.TestCase):
             self.assertGreater(peak, 1)
             self.assertEqual(active, 0)
             self.assertEqual(len(timings), 6)
+
+    def test_the_kill_switch_admits_under_a_full_host_and_says_so(self):
+        # DECISIONS 75: RON_NO_ADMISSION (or the marker file) skips the lease and
+        # keeps the ceilings, so a tranche is reversed by one touch, never a revert.
+        with tempfile.TemporaryDirectory() as d:
+            held = budget.Lease(d, budget.CPU, budget.MEMORY_MIB)
+            self.assertTrue(held.try_acquire())
+            env = dict(os.environ, RON_NO_ADMISSION='1')
+            done = subprocess.run([sys.executable, str(Path(budget.__file__)), '--directory', d, '--cpu', '1',
+                                   '--memory-mib', '128', '--', sys.executable, '-c', 'pass'],
+                                  capture_output=True, text=True, timeout=15, env=env)
+            held.close()
+            self.assertEqual(done.returncode, 0, done.stderr)
+            receipt = next(line for line in done.stderr.splitlines() if line.startswith('resource budget timing: '))
+            self.assertEqual(json.loads(receipt.removeprefix('resource budget timing: '))['admission'], 'off')
+            self.assertIn('admission off', done.stderr)
 
     def test_cancellation_reaps_workload_and_releases_shared_tokens(self):
         with tempfile.TemporaryDirectory() as d:
@@ -175,8 +191,10 @@ class Manifest(unittest.TestCase):
             log.write_text('old log without receipt\n')
             self.assertIsNone(runner.resource_timing(log))
 
-    def test_unknown_test_gets_whole_memory_budget(self):
-        self.assertEqual(runner.reservation('new', {}), 32768)
+    def test_unknown_test_gets_the_old_lane_budget_not_the_host(self):
+        self.assertEqual(runner.reservation('new', {}), 8192)
+        self.assertEqual((runner.UNKNOWN_MIB, runner.UNKNOWN_LIMIT_MIB), (8192, 32768))
+        self.assertLess(runner.UNKNOWN_LIMIT_MIB, budget.MEMORY_MIB)
         self.assertEqual(runner.reservation('small', {'small': {'rss_bytes': 1}}), 256)
 
     def test_large_failure_log_is_read_with_bounded_memory(self):

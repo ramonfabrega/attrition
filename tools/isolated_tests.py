@@ -45,10 +45,16 @@ def binary_stamp(binary):
     return (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns)
 
 
+UNKNOWN_MIB = 8192
+UNKNOWN_LIMIT_MIB = 32768
+
+
 def reservation(name, profile):
     row = profile.get(name)
-    # Unknown tests run alone with the entire host memory reservation.
-    return MEMORY_MIB if row is None else min(MEMORY_MIB, max(QUANTUM_MIB,
+    # A test the profile does not know reserves 8 GiB and runs under a 32 GiB
+    # ceiling — the old lane memcap, not the whole host: every test a tranche
+    # adds is unknown until the profile is refreshed (DECISIONS 75).
+    return UNKNOWN_MIB if row is None else min(MEMORY_MIB, max(QUANTUM_MIB,
         math.ceil(row['rss_bytes'] / (QUANTUM_MIB * 2**20)) * QUANTUM_MIB))
 
 
@@ -82,13 +88,13 @@ def resource_timing(log):
     return None
 
 
-def run_one(binary, name, number, output, directory, memory, cancelled):
+def run_one(binary, name, number, output, directory, memory, cancelled, known=True):
     log = output / 'tests' / f'{number:04d}.log'
     start = time.monotonic()
     stamp = binary_stamp(binary)
     env = child_environment(test_name=name)
     with log.open('x') as sink:
-        limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB)
+        limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB) if known else UNKNOWN_LIMIT_MIB
         command = wrapper(directory, memory, limit=limit) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
         with subprocess.Popen(command, stdout=sink, stderr=subprocess.STDOUT, env=env) as child:
             while child.poll() is None:
@@ -138,7 +144,7 @@ def isolated(binary, output, directory, slots=8, skips=()):
                 while pending and not cancelled and len(active) < slots:
                     i, name = pending.pop(0)
                     future = pool.submit(run_one, binary, name, i, output, directory,
-                                         reservation(name, profile), lambda: cancelled)
+                                         reservation(name, profile), lambda: cancelled, name in profile)
                     active[future] = name
                 done, _ = wait(active, return_when=FIRST_COMPLETED, timeout=0.5)
                 for future in done:
@@ -176,7 +182,7 @@ def target_budget(target, test_threads):
         return min(test_threads, 8), 4096
     if target['kind'] == ['lib'] and target['name'] in ('fixed', 'sim'):
         return min(test_threads, 8), 512 if target['name'] == 'fixed' else 4096
-    return 8, MEMORY_MIB
+    return 8, 32768
 
 
 def release(output, directory, slots, test_threads, skips=()):
@@ -186,7 +192,7 @@ def release(output, directory, slots, test_threads, skips=()):
     env['CARGO_BUILD_JOBS'] = '8'
     revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     (output / 'revision.txt').write_text(revision + '\n')
-    build = subprocess.run(wrapper(directory, MEMORY_MIB, 8) +
+    build = subprocess.run(wrapper(directory, 32768, 8) +
                            ['cargo', 'test', '--workspace', '--release', '--no-run', '--message-format=json'],
                            cwd=ROOT, env=env, capture_output=True, text=True)
     (output / 'build.jsonl').write_text(build.stdout)
@@ -225,7 +231,7 @@ def release(output, directory, slots, test_threads, skips=()):
         if rc in (130, -signal.SIGINT, -signal.SIGTERM):
             return 130
     # --no-run does not discover doctests. Keep Cargo responsible for them.
-    exits.append(subprocess.run(wrapper(directory, MEMORY_MIB, 8) +
+    exits.append(subprocess.run(wrapper(directory, 32768, 8) +
                  ['cargo', 'test', '--workspace', '--release', '--doc', '--no-fail-fast', '--',
                   f'--test-threads={test_threads}', *selection], cwd=ROOT, env=env).returncode)
     (output / 'exit-codes.json').write_text(json.dumps(exits)+'\n')

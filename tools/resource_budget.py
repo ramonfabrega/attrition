@@ -3,8 +3,12 @@
 
 Locks are never unlinked: kernel ownership, inherited by the workload, survives
 an abruptly killed supervisor. All cooperating worktrees use the same directory.
-The fixed v1 policy is sixteen CPU slots and 32 GiB reserved RSS. This is not an
-OS limit on unrelated applications; sampling can overshoot between observations.
+The fixed v2 policy is thirty-two CPU slots and 96 GiB reserved RSS on the 128 GiB,
+16-core box: three heavy phases coexist, as the memcap regime before it allowed, and
+the budget bites only on a fourth (DECISIONS 75). This is not an OS limit on unrelated
+applications; sampling can overshoot between observations. `RON_NO_ADMISSION=1`, or
+the marker file `~/Library/Caches/attrition/admission-off`, skips admission everywhere
+at once while keeping the RSS ceilings and the timeout: the trial's kill switch.
 """
 import argparse
 import fcntl
@@ -17,10 +21,16 @@ import subprocess
 import sys
 import time
 
-CPU = 16
-MEMORY_MIB = 32768
+CPU = 32
+MEMORY_MIB = 98304
 QUANTUM_MIB = 256
-DEFAULT = Path.home() / 'Library/Caches/attrition/resources-v1'
+DEFAULT = Path.home() / 'Library/Caches/attrition/resources-v2'
+OFF_MARKER = Path.home() / 'Library/Caches/attrition/admission-off'
+
+
+def admission_off():
+    """The kill switch: one marker file for every worktree, or the env for one process."""
+    return os.environ.get('RON_NO_ADMISSION') == '1' or OFF_MARKER.exists()
 
 
 def check_policy(directory):
@@ -199,6 +209,7 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit
     peak = combined_peak = 0
     requested = time.monotonic()
     admitted = None
+    off = False
     def cancel(_sig, _frame):
         nonlocal cancelled
         cancelled = True
@@ -207,8 +218,12 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit
         probe = subprocess.check_output(['ps', '-o', 'rss=', '-p', str(os.getpid())], text=True)
         if int(probe.strip()) <= 0:
             raise RuntimeError('RSS sampler unavailable')
+        off = admission_off()
+        if off:
+            print('resource budget: admission off (RON_NO_ADMISSION or the admission-off marker); '
+                  'RSS ceilings and the timeout still apply', file=sys.stderr)
         waiting = False
-        while not lease.try_acquire():
+        while not off and not lease.try_acquire():
             if not waiting:
                 print(f'resource budget: supervisor {os.getpid()} waiting for shared admission', file=sys.stderr)
                 waiting = True
@@ -262,7 +277,8 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit
             finished = time.monotonic()
             timing = dict(wait_seconds=(admitted if admitted is not None else finished) - requested,
                           run_seconds=finished - admitted if admitted is not None else 0,
-                          admitted=admitted is not None, cpu_slots=cpu, reservation_mib=memory_mib)
+                          admitted=admitted is not None, cpu_slots=cpu, reservation_mib=memory_mib,
+                          admission='off' if off else 'on')
             print('resource budget timing: ' + json.dumps(timing), file=sys.stderr)
             print(f'resource budget: sampled peak {peak // 1024} MiB; combined peak {combined_peak // 1024} MiB', file=sys.stderr)
 

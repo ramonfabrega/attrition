@@ -44,6 +44,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 from test_runtime import child_environment, allocator_policy
+from resource_budget import CPU as HOST_CPU_SLOTS, MEMORY_MIB as HOST_MEMORY_MIB, OFF_MARKER
 
 RUNNING = re.compile(r'^\s*Running (?:unittests )?\S+ \((\S+)\)$')
 DOC_TESTS = re.compile(r'^\s*Doc-tests (\S+)$')
@@ -56,8 +57,16 @@ def phase_budget(command):
     if any(str(a).endswith('offline_tests.py') for a in command) or 'fmt' in command:
         return 2, 1024
     if any(str(a).endswith('guard.sh') for a in command):
-        return 8, 32768  # --built can still rebuild after a source edit.
+        return 2, 4096  # the reflex's reservation (3 GiB measured); its rebuild ceiling is phase_limit's
     return 8, 32768
+
+
+def phase_limit(command):
+    """The sampled RSS ceiling where it is not the reservation: the guard's
+    debug rebuild after an edit (DECISIONS 75)."""
+    if any(str(a).endswith('guard.sh') for a in command):
+        return 16384
+    return None
 
 
 def run_logged(command, *, cwd, env, check, log=None):
@@ -72,8 +81,10 @@ def run_logged(command, *, cwd, env, check, log=None):
         if any(str(a).endswith('guard.sh') for a in command):
             env['RON_GUARD_ADMITTED'] = '1'
         cpu, memory = phase_budget(command)
+        limit = phase_limit(command)
         command = [sys.executable, str(ROOT / 'tools/resource_budget.py'),
-                   '--cpu', str(cpu), '--memory-mib', str(memory), '--'] + command
+                   '--cpu', str(cpu), '--memory-mib', str(memory)] + \
+            (['--limit-mib', str(limit)] if limit is not None else []) + ['--'] + command
     if log is None:
         return subprocess.run(command, cwd=cwd, env=env, check=check)
     with open(log, 'wb') as sink, subprocess.Popen(
@@ -326,13 +337,23 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     env.pop('RON_GUARD_ADMITTED', None)
     env['RON_GATE_RESOURCE_POLICY'] = '1'
     env['CARGO_BUILD_JOBS'] = '8'
+    # The whole gate — every third landing and the drain (DECISIONS 72) — runs
+    # the on-disk caches' verifiers: each cached oracle frame and setup record
+    # is compared with a fresh parse, so a schema hash that missed a parser's
+    # file is caught on that schedule and not by a wrong floor (DECISIONS 75).
+    whole = scope is None and not lane
+    if whole:
+        env['RON_VERIFY_ORACLE'] = '1'
+        env['RON_VERIFY_SETUP_OBSERVATIONS'] = '1'
     policy = {'schema': 1, 'release_test_threads': test_threads,
               'test_allocator': allocator_policy(env),
+              'verify_caches': whole,
               'memory_cap_gib': 32 if isolated else min(32, memory_cap_gib(test_threads)),
-              'shared_admission': {'global_cpu_slots': 16, 'global_reserved_mib': 32768,
-                                   'cargo_build_jobs': 8, 'all_phases': True}}
+              'shared_admission': {'global_cpu_slots': HOST_CPU_SLOTS, 'global_reserved_mib': HOST_MEMORY_MIB,
+                                   'cargo_build_jobs': 8, 'all_phases': True,
+                                   'off_marker': str(OFF_MARKER), 'off': OFF_MARKER.exists()}}
     if isolated:
-        policy['isolated'] = {'slots': 8, 'global_cpu_slots': 16, 'global_reserved_mib': 32768}
+        policy['isolated'] = {'slots': 8, 'global_cpu_slots': HOST_CPU_SLOTS, 'global_reserved_mib': HOST_MEMORY_MIB}
     if scope is not None:
         # The thirty-fifth steer (Ramon's word): a booking gate scoped to the
         # merges since the last whole one runs the timed tests only when one
@@ -395,7 +416,34 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                    require_fixtures=require_fixtures, reached=reached, lane=lane, word=tests)
     finally:
         print(steps_line(commands, reached), flush=True)
+        print(admission_line(admission_summary(report_dir)), flush=True)
     return report_dir
+
+
+def admission_summary(report_dir):
+    """The trial's second number (DECISIONS 75): the seconds this gate's
+    leases spent waiting for host admission, summed over every `resource
+    budget timing:` receipt the report's logs carry — the isolated runner's
+    per-test logs and the steps' own — written to `admission.json`."""
+    waits = []
+    for log in sorted(Path(report_dir).rglob('*.log')):
+        with open(log, errors='replace') as stream:
+            for line in stream:
+                if line.startswith('resource budget timing: '):
+                    try:
+                        waits.append(float(json.loads(line.split(': ', 1)[1])['wait_seconds']))
+                    except (ValueError, KeyError, TypeError):
+                        pass
+    summary = {'schema': 1, 'leases': len(waits), 'wait_seconds': round(sum(waits), 1),
+               'longest_wait_seconds': round(max(waits), 1) if waits else 0.0,
+               'admission_off': OFF_MARKER.exists()}
+    (Path(report_dir) / 'admission.json').write_text(json.dumps(summary, indent=2) + '\n')
+    return summary
+
+
+def admission_line(summary):
+    return (f"Admission wait: {summary['wait_seconds']} s over {summary['leases']} leases, "
+            f"longest {summary['longest_wait_seconds']} s" + (' (admission off)' if summary['admission_off'] else ''))
 
 
 def step_name(command):

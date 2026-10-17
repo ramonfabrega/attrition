@@ -702,12 +702,15 @@ and makes the eventual diff mechanical rather than a translation exercise.
   are authored once and invoked thereafter; one-off hypothesis probes
   stay scratch scripts, because a wrong abstraction costs more than the
   typing it saves.
-- **Standalone Cargo checks join host admission:** use `zsh tools/check.sh
-  test …` in place of `cargo test …` (also `build`, `check`, `clippy`, `run`).
-  `tools/guard.sh` and all release-gate modes already join it; do not wrap those
-  again. Full/scoped/lane selection rules stay as specified below; the default
-  gate executor is isolated, with `--combined` as the reference. See
-  `docs/TEST_PERFORMANCE.md` for the cooperative budget and adoption limits.
+- **Host admission is on trial for the thirty-eighth tranche**
+  (`docs/DECISIONS.md` entry 75): `tools/guard.sh` and every gate mode
+  reserve from one host budget (`tools/resource_budget.py`), each gate's
+  last lines carry an `Admission wait:` receipt, and `touch
+  ~/Library/Caches/attrition/admission-off` turns admission off for every
+  worktree at once — the pass reads the two numbers and keeps or drops
+  it. A standalone `cargo test …` joins the budget as `zsh tools/check.sh
+  test …`; nothing wraps `guard.sh` or a gate again. The design and its
+  limits are `docs/TEST_PERFORMANCE.md`.
 - **`tools/guard.sh [filter …]` is the reflex between edits** — the
   paperwork guards plus the current item's tests, debug, seconds. The
   full `--release` diff suite remains the gate: before a commit and
