@@ -440,6 +440,8 @@ mod command_manager_issue_guard;
 mod command_manager_issue_halt;
 #[path = "command_manager_issue_hotkey.rs"]
 mod command_manager_issue_hotkey;
+#[path = "command_manager_issue_rename_city.rs"]
+mod command_manager_issue_rename_city;
 #[path = "command_manager_issue_launch_patrol.rs"]
 mod command_manager_issue_launch_patrol;
 #[path = "command_manager_issue_move_to.rs"]
