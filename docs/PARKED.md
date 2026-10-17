@@ -6884,13 +6884,23 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
 - (2988) **A stray tracked file stands in `crates/sim/src/sweep/`**, named `command_manager_issue_treaty declare
   clear_tributes clear_all accept reject tribute.rs` (spaces in the name): an earlier batch's shell glitch. Not compiled; delete it. **Deleted in 2959's booking commit** (it came from 2486's `008b9961`).
 
-## Parked by the next landing, slot GR — reserved
+## Parked by item 2966, 2026-10-17 — the hundred-and-thirty-first sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2966, first) **`Unit::update_local_seen@0060e410` is no built shape's**: it loops `circle_radius[type]` times
+  (a table at `0xcbe330` the image builds at boot, zeros under the emulator) over `circle_x`/`circle_y` byte tables
+  (`0xcb7e90`, `0xcbb0e0`, also boot-built) and the `div_3_table` cell `0xcae5fc`. `--at` draws the radius table as
+  random 32-bit words, which sizes a loop of 2^31; a shape needs a bounded image-table draw (`--at VA:SIZE:LO..HI`).
+  Names the census (+1) once the shape is there.
+- (2966, second) **`--wbias` on a window under four bytes corrupts what follows it**: a 2-byte `--sparse` slice with a
+  `--wbias` faulted a read at a random address (`was_seen_wcoord`'s `+0x59e4` short); the batch widened the slice to four
+  bytes. A Loop item: `sweep_gen.py` refuse or clip a `--wbias` wider than its window.
+- (2966, third) **`--record-edx` refuses `--record-order`**, so two stubs on one function (`find_supply`'s
+  `get_radius` and `vector_dist`) are recorded in two columns and their interleaving is unheld; the leftover `edx` the
+  first one sees (the previous measure's) is in the port instead.
+- (2966, fourth) **`UnitData::is_busy`'s type-table index is unexercised**: every type record in the `--ptrtab :vt` table
+  carries the one stubbed vtable, so a wrong index (`+0x20`) reads another record answering the same; and
+  `Unit::modify_group_order` reads `[this+0xd4]` after its loop whether or not `[this+0xdc]` is set, so its
+  null-tail row is undrawable (a stale `d4`). Both held by their ports' comments, not by a row.
 
 ## Parked by the next landing, slot GS — reserved
 
