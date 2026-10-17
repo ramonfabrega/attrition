@@ -474,7 +474,7 @@ impl crate::Sim {
                 && !self.find_ordered_collision(u, c);
             if std::env::var("RON_PROBE_RING").is_ok() {
                 eprintln!(
-                    "PROBE ring f{} o{} arm {} side {} step {} c {:?} tl {:?} inv {} blk {} coll {} ord {} stand {} from {:?} t {:?} start {}",
+                    "PROBE ring f{} o{} arm {} side {} step {} c {:?} tl {:?} inv {} blk {} coll {} ord {} stand {} from {:?} t {:?} start {} mask {:#x} cf {:#x} at {}",
                     self.frame,
                     self.units[u].index,
                     arm,
@@ -489,7 +489,10 @@ impl crate::Sim {
                     stand,
                     from,
                     t,
-                    start
+                    start,
+                    self.world.tile_mask(tl),
+                    self.world.cell_data(crate::world::World::cell_of_tile(tl)).flags,
+                    self.units[u].auto_transport
                 );
             }
             if clear {
