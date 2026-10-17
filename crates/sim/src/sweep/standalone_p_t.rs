@@ -310,6 +310,8 @@ mod terrain_oil_lose_tech;
 mod terrain_oil_remove_rocky_patch;
 #[path = "terrain_out_get_name.rs"]
 mod terrain_out_get_name;
+#[path = "terrain_refresh_good_z.rs"]
+mod terrain_refresh_good_z;
 #[path = "terrain_vis_get_verts_per_bucket.rs"]
 mod terrain_vis_get_verts_per_bucket;
 #[path = "terrain_vis_invalidate_fog_wcoord.rs"]

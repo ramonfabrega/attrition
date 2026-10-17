@@ -60,6 +60,8 @@ mod armies_find_useful_army;
 mod armies_leader_defeated;
 #[path = "armies_num_armies.rs"]
 mod armies_num_armies;
+#[path = "armies_process_all.rs"]
+mod armies_process_all;
 #[path = "armies_send_navy.rs"]
 mod armies_send_navy;
 #[path = "armies_update_city.rs"]
@@ -126,6 +128,8 @@ mod borders_get_who;
 mod borders_is_border_hidden;
 #[path = "borders_out_no_border.rs"]
 mod borders_out_no_border;
+#[path = "borders_process_all.rs"]
+mod borders_process_all;
 #[path = "borders_save_last_who.rs"]
 mod borders_save_last_who;
 #[path = "build_add_attack_order.rs"]
@@ -328,6 +332,8 @@ mod cast_order_walk_data_vtordisp;
 mod caster_walk_data;
 #[path = "categories_find_data.rs"]
 mod categories_find_data;
+#[path = "categories_find_key.rs"]
+mod categories_find_key;
 #[path = "circle_render_get_name.rs"]
 mod circle_render_get_name;
 #[path = "circle_render_on_field_change.rs"]
@@ -714,6 +720,8 @@ mod farms_data_get_wheat_status;
 mod farms_grow;
 #[path = "farms_out_get_name.rs"]
 mod farms_out_get_name;
+#[path = "farms_remove.rs"]
+mod farms_remove;
 #[path = "farms_snip.rs"]
 mod farms_snip;
 #[path = "farms_walk_data.rs"]
