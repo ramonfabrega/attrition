@@ -6418,13 +6418,23 @@ Booked as the queue's 2832 at the merge: **the cloaked Spy's Bribe staging**: a 
 (2833) **`swap_team`'s `inside_down` chain and the `unit_masks` bits** this crate keeps as fields are seams (GOLDEN §107).
 Names no score.
 
-## Parked by the next landing, slot FJ — reserved
+## Parked by item 2825, 2026-10-17 — a bomber near its President reaches two tiles further
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+To be booked as the queue's next AI word: **the peace pair's word 6808 is owed a widening and a capture** (`docs/AI.md` §236).
+Ours spends 63 draws on 6808 and theirs 61, parting at index 43 (count and sequence both): ours `Unit::find_attack_pos+0xea9
+< Unit::fight+0x115e`, theirs `Unit::do_move+0xe84`. run881 ends at 6701, and no dump of this lobby holds 6808, so the disk
+cannot answer it. The capture is run881's recipe with the window at 6802..6822, the game's last frame (`--end-frame` 6822
+and `--allow-early-end` if the lobby ends itself). `LAKOTA_PAIR_WORD`'s `WIDENINGS` row names item 2825 as the one that owes
+it; the commander writes this row's number there. Inside run881 the earliest rows past the standing keys are `1/44`'s
+`attrition` on 6453 (ours 6, theirs 0) and `sheltered` on 6455, the kind run879's `1/164` showed on 6045 — the item before's
+candidate, not a cause.
+
+(2825, second) **`max_range`'s CEO term is diff-backed on one arm only** (`UnitData::max_range@0060fe90`; `Sim::ceo_unit_range`):
+the siege exemption (the type's vslot `+0x10c`, read as `is_siege_unit`), the unit itself a `0x165` hero, and the count at
+`+0x59c8` (read as `num_units` of the `0x165` type; a queued one untested) rest on the reading. A capture whose `0x165` hero
+stands near a siege engine or a ranged hero, or a frame where who=1's President is queued and not yet born, would test each.
+The SEAMed arms below it — `TURK_SIEGE_RANGE`, the Liberty (`0x219`) and Eiffel (`0x21c`) wonders, Napoleon (`0x167`),
+Ptolemy (`0x16a`), the rum naval range and the obsidian archers — reach no lobby on file.
 
 ## Parked by item 2831, 2026-10-17 — `Map::stamp`, and why the batch is one
 

@@ -17295,3 +17295,27 @@ with `UNITS=3` (`~/ron-golden/ch80early/`, not wired), found the fight at 611–
 `settings_restored`, 1,003 frames, kept in `~/ron-golden/ch80w/map-14/`; block 1002 is not in the dump. Minutes waited on another
 lane: none. **What it holds**: who 1's `danger` cell 235 = 120 on 998–1001, `0/7` `unit_masks` `0x11000`, `0/6` 0; ours agrees
 on the plane after item 2785 — the whole record, eleven standing `form` rows.
+
+## run881 — the peace pair: the word 6452's widening, blocks 6446..6701 (2026-10-17, item 2825, `att-2825`)
+
+`docs/AI.md` §236. **What the disk could not answer**: run879 ends at 6232, and run847 has checksums and the closing block only,
+so no dump of this lobby held a record on 6452. This is run879's recipe with the window moved to the word, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run881`: `--map 18 --end-frame 6707 --timeout 7200 --log-window 6446
+6702 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0 --profile STARTING_TECHNOLOGY=8
+--profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 1 from the pool: `success`, `settings_restored`, 6708 frames, 2048 s from launch to exit. The first
+  take exited 41, and the runner retook it 4.1 s later.
+- The dump holds 257 `BEGIN FRAME`s (6446..6701 and the closing block 6708).
+- `rngcmp.py rontrace-run847.log rontrace-run881.log`: **6708 identical, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run881-eastindies-lakota-peace-window-6446-6702.txt`, 680,965,961 bytes,
+SHA-256 `cfc858c8a4d7e0189dac4e661ff997834245d2f1c31c37879b524bd201fdd4b1`.
+
+Archive `rontrace-run881.log`, 279,955,232 bytes,
+SHA-256 `67daf3da6329980cb167bf9a08b6b0e3ecf36401f3e85cc6562d35ac4f3e2914`.
+
+**What it holds**: `diff::lakota_pair::run881_s_word_frame_is_widened_whole`, 2138 keys as captured. On the word's block 6453
+who=1's Strategic Bomber `1/137` reads `recharging` ours 0 against theirs 41: theirs bombed the human's `0/2000` on 6452 at
+`attack_dist` 918. With item 2825's CEO range term, 252 keys remain. The window is in the coverage driver's slice, and its walk
+reads 2335 heights at inexact corners.

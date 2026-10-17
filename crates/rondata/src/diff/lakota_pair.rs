@@ -156,8 +156,18 @@ pub(crate) const LAKOTA: Pair = Pair {
     // Now 22 draws each on 6452, index 0 — ours `Guy::set_anim+0x97a <
     // Unit::do_idle+0x7d` (`1/193`), theirs `Guy::set_anim+0xf2f <
     // Unit::set_anim+0x56`.
-    count: 6455,
-    sequence: 6452,
+    // Item 2825: 6452 → 6808, `UnitData::max_range`'s CEO term
+    // (`0060fe90`; `docs/AI.md` §236): who=1's Strategic Bomber `1/137`
+    // (`TypeIndex` 305, air) strikes the human's `0/2000` from (6950,
+    // 7589), `attack_dist` 918 — past three tiles' 582 — and theirs
+    // releases on 6452 (`do_strafe+0x9d0`, `recharging` 41 on 6453)
+    // because its owner's `0x165` hero `1/161` (type 357) stands 2371
+    // off, inside its radius, and lends it `THECEO_UNIT_RANGE`, two tiles
+    // (966); ours flew on and wrapped its walk. Now ours 63 draws, theirs
+    // 61, index 43 — ours `Unit::find_attack_pos+0xea9 < Unit::fight+0x115e`,
+    // theirs `Unit::do_move+0xe84`.
+    count: 6808,
+    sequence: 6808,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -699,4 +709,56 @@ fn run879_s_word_frame_is_widened_whole() {
     // standing `form`. Left: the standing keys from 5976, and from 6045
     // `1/164`'s `attrition` (ours 6, theirs 0) and then its `hits`.
     pin_eq!(w.firsts.len(), 191, "initial run879 baseline");
+}
+
+/// run881: the word 6452's window, blocks 6446..6701 at the long's detail (item 2825).
+pub(crate) const RUN881: &str = "gamelog-run881-eastindies-lakota-peace-window-6446-6702.txt";
+
+/// The window: block 6446 through 6701; the word 6452's own block is 6453.
+pub(crate) const WIDENING_LAKOTA_FRAME_6452: (i64, i64) = (6446, 6701);
+
+pub(crate) fn lakota_frame_6452_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run881",
+        &[(RUN881, WIDENING_LAKOTA_FRAME_6452.0)],
+        WIDENING_LAKOTA_FRAME_6452,
+        1,
+        &[6453],
+        true,
+    )
+}
+
+#[test]
+fn run881_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_6452_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 2825: the word 6452's own block is 6453, widened at 2138 keys.
+    // On it `1/137`, who=1's Strategic Bomber (`TypeIndex` 305), reads
+    // `recharging` ours 0 against theirs 41: theirs bombed `0/2000` on
+    // 6452 at `attack_dist` 918, ours flew on, and from 6470 the five
+    // bombers of its flight (`1/137`, `1/205`, `1/290`, `1/293`, `1/304`)
+    // read `order:kind` ours 16 (`STRAFE`) against 17 (`AIRPATROL`).
+    // Standing from 6446: `1/137`/`1/293` `mandatory` (ours 0, theirs 1),
+    // the flight's `mirror`, the held pools, who=1's buckets, the human's
+    // `SITE`. Walked back: `pos`, heading and `recharging` agree through
+    // 6452, and `in_range` was the gate (a reach of 582 from three
+    // tiles). 2138 → 252 with `max_range`'s CEO term: `recharging` 41 /
+    // 41 on 6453 and no order row from 6470. Left: the standing keys from
+    // 6446, the `attrition`/`sheltered` rows from 6453 (`1/44` ours 6,
+    // theirs 0, as run879's `1/164` on 6045), the `form` and
+    // `dest_angle` rows.
+    pin_eq!(w.firsts.len(), 252, "initial run881 baseline");
 }

@@ -361,7 +361,63 @@ impl Sim {
         if p.max_range == 0 {
             return 0;
         }
-        p.max_range + self.mods_of(self.owner_of(o) as usize).range + self.british_building_range(o)
+        p.max_range
+            + self.mods_of(self.owner_of(o) as usize).range
+            + self.british_building_range(o)
+            + self.ceo_unit_range(o)
+    }
+
+    /// **`UnitData::max_range@0060fe90`'s first block** (`docs/AI.md`
+    /// §236): a unit whose type is not `is_siege` (the type's vslot
+    /// `+0x10c`), whose leader counts a `0x165` (`+0x56fe + 0x165 × 2`,
+    /// the per-type count at `+0x59c8`), and which `has_general(0, 0x165)`
+    /// — it is the `0x165` hero itself, or `HeroesData::find_hero@0073a1b0`
+    /// finds one of its owner's, active and on the map, within the hero's
+    /// `get_radius × 0xc0` (`vector_dist(|dx|, |dy|)`, less a building's
+    /// footprint, 0 for a unit) — adds `THECEO_UNIT_RANGE`, two tiles.
+    /// run881's Strategic Bomber `1/137` bombs `0/2000` on 6452 at
+    /// `attack_dist` 918, past three tiles' 582 and inside five's 966, with
+    /// who=1's `1/161` (type 357) 2371 off.
+    ///
+    /// SEAM: the siege arm below it (`TURK_SIEGE_RANGE`, the Liberty and
+    /// Eiffel wonders, Napoleon), Ptolemy's general, the rum naval range
+    /// and the obsidian archers are not carried; `is(0x165)` is taken as
+    /// the type itself, as the patriot tests of the radius are.
+    fn ceo_unit_range(&self, o: Obj) -> i32 {
+        const CEO: i32 = 0x165;
+        let Obj::Unit(u) = o else {
+            return 0;
+        };
+        if self.is_siege_unit(u) {
+            return 0;
+        }
+        let who = self.units[u].owner;
+        let counted = self
+            .unit_types
+            .iter()
+            .position(|t| t.type_index == CEO)
+            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .is_some_and(|&n| n != 0);
+        if !counted {
+            return 0;
+        }
+        let at = self.units[u].pos;
+        let near = self.units[u].type_index == CEO && self.is_hero_unit(u)
+            || (0..self.units.len()).any(|h| {
+                let x = &self.units[h];
+                x.owner == who
+                    && x.type_index == CEO
+                    && x.alive()
+                    && x.on_map
+                    && self.is_hero_unit(h)
+                    && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
+                        <= self.hero_radius(h) * 0xc0
+            });
+        if near {
+            self.tuning.theceo_unit_range
+        } else {
+            0
+        }
     }
 
     /// **`BuildTypeData::get_building_range@00639990`'s first block**
@@ -5134,6 +5190,54 @@ mod tests {
         assert_eq!(sim.mods_of(9).armor, 0);
         assert_eq!(sim.mods_of(9).range, 0);
         assert_eq!(sim.mods_of(1), sim.mods[1]);
+    }
+
+    /// **`max_range`'s CEO term** (`UnitData::max_range@0060fe90`, item
+    /// 2825, `docs/AI.md` §236): a ranged unit within its owner's `0x165`
+    /// hero's radius (here 10 tiles, 1920) reaches two tiles further; one
+    /// a tile outside it, a siege type, another player's hero, and a hero
+    /// the leader does not count do not. run881's Strategic Bomber
+    /// `1/137` bombs on 6452 at `attack_dist` 918 with who=1's `1/161`
+    /// 2371 off. Made to fail with the term dropped and with the siege
+    /// test dropped.
+    #[test]
+    fn a_unit_near_its_owner_s_ceo_reaches_two_tiles_further() {
+        use crate::ai_load::uflags2;
+        use crate::{Unit, UnitType};
+        let mut s = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let mut shooter = UnitType::default();
+        shooter.combat.max_range = 3;
+        let shooter = s.add_unit_type(shooter);
+        let mut ceo = UnitType {
+            type_index: 0x165,
+            ..UnitType::default()
+        };
+        ceo.cols.unit_flags2 = uflags2::GENERAL;
+        let ceo = s.add_unit_type(ceo);
+        let place = |s: &mut Sim, who: u8, ty: usize, x: i32| {
+            let mut u = Unit::new(who, 0, Pos::new(x, 9000), 50);
+            u.ty = Some(ty);
+            u.type_index = s.unit_types[ty].type_index;
+            u.on_map = true;
+            s.add_unit(u)
+        };
+        let bomber = place(&mut s, 1, shooter, 9000);
+        let range = |s: &Sim| s.max_range_of(Obj::Unit(bomber));
+        assert_eq!(range(&s), 3, "no hero");
+        let hero = place(&mut s, 1, ceo, 9000 + 1920);
+        assert_eq!(range(&s), 3, "a hero the leader does not count");
+        s.muster[1].by_type[ceo] = 1;
+        assert_eq!(s.hero_radius(hero), 10, "6 × 3 / 2 + 1");
+        assert_eq!(range(&s), 5, "inside the radius");
+        s.units[hero].pos.x += 1;
+        assert_eq!(range(&s), 3, "one past it");
+        s.units[hero].pos.x -= 1;
+        s.units[hero].owner = 0;
+        s.muster[0].by_type[ceo] = 1;
+        assert_eq!(range(&s), 3, "another player's hero");
+        s.units[hero].owner = 1;
+        s.unit_types[shooter].combat.siege = true;
+        assert_eq!(range(&s), 3, "a siege type");
     }
 
     use super::*;

@@ -182,6 +182,10 @@ pub struct Tuning {
     pub mil_patriot_radius_bonus: i32,
     /// Added to it for an economic patriot.
     pub econ_patriot_radius_bonus: i32,
+    /// `THECEO_UNIT_RANGE`, written `2 tile bonus`: the tiles a non-siege
+    /// unit near its owner's `0x165` hero adds to its reach
+    /// (`UnitData::max_range@0060fe90`, `docs/AI.md` §236).
+    pub theceo_unit_range: i32,
     /// `FORCED_MARCH_SPEED`, written `42m`: the speed, in `MOVES` points,
     /// a Forced March lifts every unit near a marching hero to
     /// (`UnitData::speed@0060aae0`, `0060add1`–`0060ae10`).
@@ -1083,6 +1087,7 @@ impl Tuning {
         kutosov_radius: 300,
         mil_patriot_radius_bonus: 3,
         econ_patriot_radius_bonus: 1,
+        theceo_unit_range: 2,
         forced_march_speed: 42,
         alexander_forced_march_speed: 384,
         supply_heal_rate: 0,
@@ -1427,7 +1432,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 388] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 389] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1518,6 +1523,7 @@ impl Tuning {
                 "ECON_PATRIOT_RADIUS_BONUS",
                 Slot::Value(T.econ_patriot_radius_bonus),
             ),
+            ("THECEO_UNIT_RANGE", Slot::Value(T.theceo_unit_range)),
             ("FORCED_MARCH_SPEED", Slot::Value(T.forced_march_speed)),
             (
                 "ALEXANDER_FORCED_MARCH_SPEED",

@@ -21750,12 +21750,73 @@ in the window, and it is the next item's to read.
 **Diff-backed**: the attack arm's live-target walk (run879 on 5976, to the unit, with its 408 offset). **Reading only**: the
 nine-cell eject test, the no-army and dead-target arms.
 
-## 236. Reserved for the next item on the AI track
+## 236. A bomber near its President reaches two tiles further, and the peace pair's word moves 6452 → 6808 (2026-10-17, item 2825)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The word, 6452** (§235's booking): 22 draws each, index 0. No dump held it, so run881 is run879's recipe at `--log-window
+6446 6702`, `--end-frame 6707` (`docs/RUNS.md`): 256 blocks, `rngcmp` 6708 of 6708 against run847.
+
+**The draws on 6452** (`report.py rontrace-run847.log draws 6452`; `RON_DEBUG_SITES=6452-6452`):
+- theirs: index 0 is `Guy::set_anim+0xf2f < Unit::set_anim+0x56 < Unit::do_strafe+0x9d0`, a bomb's `CHAR_ATTACK2` (seed
+  `88332033`); then four `Unit::do_idle+0x7d` rolls, fourteen `Guy::inc_time` wraps and three gaia `+0x104b` rolls;
+- ours: the same four idle rolls (`1/193` and `1/203`, two each), **fifteen** wraps, the same three gaia rolls.
+
+One release in theirs against one extra wrap in ours. The idle units the booking named agree; `1/193` was the first draw after
+the missing one, not a cause.
+
+**The widening, both directions** (`run881_s_word_frame_is_widened_whole`, `RON_FIRSTS=1`, 2138 keys). On the word's block
+6453 the row is **`1/137`'s `recharging`, ours 0 against theirs 41**. `1/137` is who=1's Strategic Bomber (`TypeIndex` 305,
+air), on a `STRAFEORDER` at `0/2000`, the human's capital at (6240, 7008), over an `AIRPATROLORDER`. From 6470 its flight
+(`1/137`, `1/205`, `1/290`, `1/293`, `1/304`) reads `order:kind` ours 16 against theirs 17: theirs' strikes were over. Its
+standing rows from 6446 are `mandatory` (ours 0, theirs 1) and `mirror`; `pos`, heading and `recharging` agree on every
+block through 6452.
+
+**Which gate refused.** A one-commit probe of `strafe_attack` (reverted whole) on our walk: on 6452 `1/137` stands at (6950,
+7589), off the nose by `0x20000`, the capital's health 13, not returning, and **`is_in_range` false**: `attack_dist` 918 against
+a reach of `3 × 0xc0 + 6` = 582. The earlier releases of the same type agree with that reach: `1/197` on 5144 at 562, `1/211`
+on 5643 at 498, and theirs' releases match ours' in-range frames one for one until 6452. The distance is the original's too:
+`attack_dist@006488f0`'s plane arm (listing `648b7f`) is `vector_dist` of the two cells, and `vector_dist@0046cff0` is `max +
+min² / 2max`, 672 + 576² / 1344 = 918. So theirs' reach was larger. Two readings died on the way: the capital's health
+(`is_in_range_struck`; it is 13, not 0) and `is_plane` (the type's `0x2b4 & 0x20` is the helicopter bit).
+
+**The term.** `UnitData::max_range@0060fe90`'s first block, for a type that is not `is_siege` (the type's vslot `+0x10c`): when
+the leader's `+0x59c8` is non-zero — the per-type count at `+0x56fe`, indexed `0x165` — and `ObjectData::has_general@00646b00(0,
+0x165)` answers, add `THECEO_UNIT_RANGE` ("2 tile bonus"). `has_general` answers when the unit is itself a `0x165` hero, or
+when `HeroesData::find_hero@0073a1b0` finds one of the owner's heroes, active and on the map, answering `is(0x165)`, within
+`HeroData::get_radius × 0xc0` of the unit (`vector_dist`, less a building's footprint). who=1's **`1/161`** is type 357,
+`0x165` (§225's President), at (7965, 9718) on 6452: 2371 from the bomber, inside its radius. The reach is `5 × 0xc0 + 6` =
+966, and 918 is inside it. On 6451 the bomber was at 1021, outside, so the release falls on 6452 exactly.
+
+**Built** (`crates/sim/src/fight.rs`): `Sim::ceo_unit_range`, added in `max_range_of` for a unit: not `is_siege_unit`, the
+owner's `muster.by_type` of the `0x165` type non-zero, and the unit itself a `0x165` hero or an alive, on-map `0x165` hero of
+its owner within `hero_radius × 0xc0`. `Tuning::theceo_unit_range` (2), checked against `rules.xml`'s
+`THECEO_UNIT_RANGE`. SEAMs: the siege arm below it (`TURK_SIEGE_RANGE`, the Liberty and Eiffel wonders, Napoleon), Ptolemy's
+general, the rum naval range and the obsidian archers; `is(0x165)` is taken as the type itself, as `hero_radius` takes the
+patriot tests.
+
+**Tests and mutations** (`tools/mutate.py`):
+- `fight::tests::a_unit_near_its_owner_s_ceo_reaches_two_tiles_further`: no hero, an uncounted hero, inside the radius (5),
+  one unit past it, another player's hero, a siege type.
+- The term answering 0: `lakota_pair_first_parting` exits 101 and the word goes back to 6452.
+- The siege test dropped: the test exits 101 on "a siege type".
+
+**Value diff.** On 6453 `1/137` reads `recharging` 41 against 41, and from 6470 no order row stands on its flight. **run881
+goes 2138 → 252.** What is left: the keys standing from 6446 (the held pools, who=1's buckets, the human's `SITE`, the flight's
+`mandatory`/`mirror`), the `attrition`/`sheltered` rows from 6453 (`1/44`, ours 6 against 0, the kind run879's `1/164` showed on
+6045), and the `form` and `dest_angle` rows.
+
+**The word moves 6452 → 6808** (count and sequence), past run881's last block (6701), fourteen frames from the game's end
+(6822). On 6808 ours spends 63 draws and theirs 61, parting at index 43: ours `Unit::find_attack_pos+0xea9 <
+Unit::fight+0x115e`, theirs `Unit::do_move+0xe84`. No dump holds 6808; its widening is owed a capture. The other four lobbies'
+`first_parting` are unmoved.
+
+**Not established.**
+- What `+0x59c8` counts exactly: read as `num_units` by type, which the per-type array at `+0x56fe` indexed by `TypeIndex`
+  suggests (`num_units` itself is at `+0x5762`, 50 entries on). A `0x165` queued and not yet born is not tested.
+- The type's vslot `+0x10c` is taken as this crate's `is_siege_unit`, the predicate `collide.rs` reads for it.
+- `get_radius` for `1/161` is [`Sim::hero_radius`]'s, unchanged; 2371 is inside it on our numbers, not measured on theirs.
+
+**Diff-backed**: the term on a bomber at 918 with the President 2371 off (run881's 6453, `1/137`'s `recharging`). **Reading
+only**: the siege exemption, the self-hero arm, the count's identity, and the SEAMed arms.
 
 ## 237. Reserved for the next item on the AI track
 
