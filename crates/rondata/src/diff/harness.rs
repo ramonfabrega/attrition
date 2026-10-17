@@ -1623,6 +1623,32 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
+    if std::env::var("RON_PROBE_OIL").is_ok() {
+        let oil = sim::economy::Resource::Oil.index();
+        for (w, h) in built.sim.holdings.iter().enumerate() {
+            let sites: Vec<String> = h
+                .cities
+                .iter()
+                .enumerate()
+                .flat_map(|(c, city)| {
+                    city.sites
+                        .iter()
+                        .filter(|s| s.resource.index() == oil)
+                        .map(move |s| format!("c{c} lv{} g{} enh{}", s.level, s.gatherers, city.enhancer_amount(oil as i32, 100)))
+                })
+                .collect();
+            let out: Vec<String> = h
+                .outside
+                .iter()
+                .filter(|s| s.resource.index() == oil)
+                .map(|s| format!("lv{} g{}", s.level, s.gatherers))
+                .collect();
+            eprintln!(
+                "  PROBE f{frame} w{w} oil refineries {} wonders {:#x} rares {} sites {:?} outside {:?} rate {}",
+                h.refineries, h.wonders, h.rares[oil], sites, out, built.sim.ledgers[w].rate[oil]
+            );
+        }
+    }
     for w in 0..built.sim.players.len() {
         if built.sim.nation[w].human || built.sim.defeated[w] {
             continue;
