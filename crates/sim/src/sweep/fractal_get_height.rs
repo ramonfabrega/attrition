@@ -72,7 +72,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
                 k as i32
             } else if rd(m, 0x20) & 2 != 0 {
-                h * 100 >> 8
+                (h * 100) >> 8
             } else {
                 h
             };
