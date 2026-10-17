@@ -682,6 +682,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch90 = golden_dump("ch90");
     let ch91 = golden_dump("ch91");
     let ch92 = golden_dump("ch92");
+    let ch93 = golden_dump("ch93");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2587,6 +2588,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 7,
             "chapter ninety-two carries seven blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter ninety-three, on run913** (item 3018): two Supply Wagons
+    // blown up by Sabotage; the window takes the second death and its neighbours.
+    if let Some(p) = &ch93 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINETY_THREE;
+        let n = drive_capture(p, 851, 857, &mut paths);
+        assert_eq!(
+            n, 7,
+            "chapter ninety-three carries seven blocks in the window"
         );
         frames += n;
     }

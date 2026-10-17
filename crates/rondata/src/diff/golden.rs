@@ -5724,6 +5724,34 @@ const WANT_CH92: &[&str] = &[
     "605 1/5 form",
 ];
 
+/// **Chapter ninety-three** (item 3018, `docs/GOLDEN.md` §117, run913):
+/// Sabotage on a vehicle, the boom.
+#[test]
+fn chapter_ninety_three_holds_to_the_golden_word() {
+    cases_80_89::chapter_ninety_three_holds_to_the_golden_word();
+}
+
+/// **run913 whole, both directions** (item 3018, `docs/GOLDEN.md` §117).
+#[test]
+fn chapter_ninety_three_s_window_is_widened_whole() {
+    cases_80_89::chapter_ninety_three_s_window_is_widened_whole();
+}
+
+/// What parts in run913's window, blocks 605–1200.
+const WANT_CH93: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
 /// What parts in run890's window, blocks 1100–1500.
 const WANT_CH89: &[&str] = &[
     "1100 0/0 form",
