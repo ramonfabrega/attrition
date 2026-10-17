@@ -279,9 +279,11 @@ impl Sim {
     /// the Informer on what `who` has infiltrated: 0
     /// ```
     ///
+    /// Bribe on an enemy unit is [`Sim::bribe_valid_unit`] (item 2812).
+    ///
     /// SEAM: the unit mask arms (`0x100`/`0x200` against objmask
     /// `0x200000`), which none of the Spy's crafts carries; and the whole
-    /// of Bribe's, Counterintelligence's, Pilfer's and Sabotage's own
+    /// of Counterintelligence's, Pilfer's and Sabotage's own
     /// arms, which **refuse** here rather than be guessed — run246's packet
     /// has the first two refuse the staged Barracks.
     pub(crate) fn spell_valid_target(&self, s: i32, who: Player, t: Obj) -> bool {
@@ -311,9 +313,67 @@ impl Sim {
         }
         match s {
             spell::INFORMER => self.infiltrated_of(t) & Self::who_bit(who) == 0,
-            spell::BRIBE | spell::COUNTERINTEL | 0x276 | 0x280 | 0x281 => false,
+            spell::BRIBE => match t {
+                Obj::Unit(v) => self.bribe_valid_unit(who, v),
+                Obj::Building(_) => false,
+            },
+            spell::COUNTERINTEL | 0x276 | 0x280 | 0x281 => false,
             _ => true,
         }
+    }
+
+    /// `SpellTypeData::is_valid_target@006763c0`'s Bribe arm (`0x275`,
+    /// `006767d0`ff.) for an enemy's unit — the one target the craft's
+    /// flags (`fcbhm`, no `c`) let through, a building being refused ahead
+    /// of it:
+    ///
+    /// ```text
+    /// has_general(v, 0, 0x165) >= 0         -> 0   (a CEO's reach)
+    /// is_gov_hero(v), v's owner == who      -> 0
+    /// an ally                               -> teams_locked && !(v's leader & 2)
+    /// an enemy: is(SPY), not (attack || hero), is_caravan, is_worker,
+    ///           is_supply, is_merchant, domain != 0           -> 0
+    /// ```
+    ///
+    /// SEAM: the ally arm (`Game::teams_locked`, which no lobby here locks)
+    /// refuses; and `has_general` is the owner's active, on-map `0x165`
+    /// hero within [`Sim::hero_radius`] × 0xc0, or the unit itself.
+    pub(crate) fn bribe_valid_unit(&self, who: Player, v: usize) -> bool {
+        let unit = &self.units[v];
+        if unit.type_index == 0x165
+            || (0..self.units.len()).any(|h| {
+                let x = &self.units[h];
+                x.owner == unit.owner
+                    && x.type_index == 0x165
+                    && x.alive()
+                    && x.on_map
+                    && crate::world::vector_dist(
+                        (x.pos.x - unit.pos.x).abs(),
+                        (x.pos.y - unit.pos.y).abs(),
+                    ) <= self.hero_radius(h) * 0xc0
+            })
+        {
+            return false;
+        }
+        if crate::type_index::is_gov_hero_type(unit.type_index)
+            || unit.owner == who
+            || !self.is_enemy(who, unit.owner)
+        {
+            return false;
+        }
+        let armed = self.attack_of(Obj::Unit(v)) != 0;
+        let caravan = unit.ty.is_some_and(|t| {
+            self.unit_types[t]
+                .cols
+                .flag2(crate::ai_load::uflags2::CARAVAN)
+        });
+        !(self.unit_is_spy(v)
+            || !(armed || self.is_hero_unit(v))
+            || caravan
+            || self.is_worker(v)
+            || self.is_supply_unit(v)
+            || self.is_merchant(v)
+            || self.unit_domain_of(v) != crate::attrition::Domain::Land)
     }
 
     /// `SpellTypeData::get_range@00676a80(spell, who, o, whom)`: the row's
@@ -1260,6 +1320,42 @@ mod tests {
         assert_eq!(bits(&s, filler), (false, false));
         s.units[filler].orders.clear();
         assert!(s.unit_is_cloaked(filler), "idle, it is");
+    }
+
+    /// **Bribe's target arm** (`SpellTypeData::is_valid_target@006763c0`,
+    /// item 2812): an enemy's armed, land, non-spy, non-worker unit; a
+    /// building, an unarmed unit, a Spy, a worker, an ally and a peace
+    /// partner are refused. Made to fail with the war test and with the
+    /// armed test dropped.
+    #[test]
+    fn bribe_takes_only_an_enemy_s_armed_land_unit() {
+        use crate::combat::Obj;
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        s.spells[usize::try_from(spell::BRIBE - spell::FIRST).unwrap()].flags = 0x2 | 0x20 | 0x80;
+        let target = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[filler].ty;
+            u
+        });
+        s.units[target].owner = 0;
+        let t = Obj::Unit(target);
+        s.units[spy].owner = 1;
+        assert!(!s.spell_valid_target(spell::BRIBE, 1, t), "at peace");
+        s.declare_war(0, 1);
+        assert!(!s.spell_valid_target(spell::BRIBE, 1, t), "unarmed");
+        let ty = s.units[target].ty.unwrap();
+        s.unit_types[ty].combat.attack = 5;
+        assert!(
+            s.spell_valid_target(spell::BRIBE, 1, t),
+            "an enemy's soldier"
+        );
+        assert!(
+            !s.spell_valid_target(spell::BRIBE, 1, Obj::Unit(spy)),
+            "its own"
+        );
     }
 
     /// What one frame of each parity takes back from a `mana_burn` of 100.

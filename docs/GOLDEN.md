@@ -12889,12 +12889,30 @@ both sites. **Test**: `cast::tests::a_cloaked_caster_of_a_craft_without_l_is_blo
 rests on the pushed `0x3a` being the Spy line's `TypeIndex` (it is the one `unit_is_spy` uses). A staged Spy's Bribe would
 back site two once Bribe's validity is built (`spellcaster.rs`'s seam) — a capture for that item, not this.
 
-## 106. Reserved for the next item on the rules track
+## 106. Chapter eighty-three — Bribe's target arm carried; the conversion and the staging parked (reading alone)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Booked** (item 2812): carry a cloaked Spy's Sabotage or Bribe cast, stage it in a who=1 scout's sight, compare `unit_masks`.
+
+**Which craft.** Sabotage (`fcm`, `FROM Commando`) is cast by a type that is not `CLOAKED`, so neither blow site of §105 can write
+for it; only the Spy's Bribe (`fcbhm`, `MANA 1000`, `JOB_TIME 150`) reaches site two (the Spy is exempt from site one). Bribe is
+the item; Sabotage stays refused.
+
+**Read from `SpellTypeData::is_valid_target@006763c0`** (the listing, end to end), the Bribe arm for an enemy's unit — the craft has
+no `c`, so a building is refused ahead of it: `has_general(v, 0, 0x165) >= 0` refuses (a CEO's reach); a government hero
+(`is_gov_hero`, `0x160..=0x165`) refuses; a unit of `who`'s own refuses; an ally refuses unless `Game::teams_locked` and the
+target's leader has not bit 2; an enemy's unit refuses when it is a Spy, neither armed (`UnitData::attack`) nor a hero, a caravan, a
+worker, a supply wagon, a merchant, or not of the land domain (`type +0x218`).
+
+**Built**: `Sim::bribe_valid_unit` (`cast.rs`), called from `spell_valid_target`; test
+`cast::tests::bribe_takes_only_an_enemy_s_armed_land_unit`, failing with the armed test dropped. With it a Spy's Bribe on an enemy
+soldier passes validation, reaches `do_cast_targeted`'s range, face and animation arm, and §105's site two on the job-time frame.
+
+**Not established, no diff backs any of it**: (1) `SpellType::cast_bribe@00672d00`'s unit arm — a leader counter at `+0x8f4` bumped
+and `Unit::swap_team@006118d0` (vslot `+0x94`, 286 lines, not read here) — is **not carried**: `cast_on` still ignores Bribe, so the
+target stays with its owner. (2) The ally arm, `teams_locked`, and `has_general`'s leader count (`+0x56fe`) are the hero scan of
+`near_marching_hero`'s shape. (3) The territory refusal, Bribe's one-tile range on a hero, supply wagon or building, and the spy
+upgrade ranges (`get_range`'s SEAM). **No staging was run and no capture taken**: a staged Bribe would diff the target's swap, which
+(1) leaves unbuilt, so the staging is the next chapter after `Unit::swap_team`. Census rows: none moved.
 
 ## 107. Reserved for the next item on the rules track
 
