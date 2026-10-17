@@ -9277,6 +9277,90 @@ mod tests {
         }
     }
 
+    /// A computer's packed siege engine of `army`, idle at (0x1200,
+    /// 0x1200), and a foe `distance` east of it as the army's target.
+    fn idle_packed_engine(distance: i32, in_army: bool) -> (Sim, usize, usize) {
+        let (mut sim, foe_ty) = at_war();
+        sim.nation[0].human = false;
+        sim.lobby.difficulty = 5;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 40,
+                max_range: 4,
+                packs: true,
+                siege: true,
+                combat_role: true,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(0x1200, 0x1200);
+        let me = put(&mut sim, 0, ty, at);
+        sim.units[me].combat.packed = true;
+        let foe = put(&mut sim, 1, foe_ty, Pos::new(at.x + distance + 48, at.y));
+        if in_army {
+            let army = sim.init_army(0, None);
+            sim.army_add_unit(0, army, me);
+            sim.armies[0].list[army].target = Some(Obj::Unit(foe));
+        }
+        (sim, me, foe)
+    }
+
+    /// **The idle think takes the army's target first** (item 2864,
+    /// `docs/AI.md` §238): `think_attack`'s `find_melee_target` reaches
+    /// `find_nearby_target@00648da0:198`'s shortcut, so a packed computer
+    /// siege engine of an army with a target is given it `QUEUE_FIRST`
+    /// and **mandatory** — the peace pair's MLRS `1/124` on 6820. Out of
+    /// an army the same engine searches, and a packed computer engine must
+    /// reach what it takes, so at this distance it takes nothing.
+    #[test]
+    fn an_idle_packed_engine_takes_its_army_target_mandatory() {
+        for in_army in [true, false] {
+            let limit = at_war().0.tuning.unit_respond_range * 0x180;
+            let (mut sim, me, foe) = idle_packed_engine(limit - 48, in_army);
+            sim.units[me].idle = 1;
+            sim.think(me, 1);
+            let attacking = sim.order_type(me) == crate::orders::index::ATTACK
+                && sim.units[me].combat.target == Some(Obj::Unit(foe));
+            assert_eq!(
+                attacking && sim.units[me].combat.mandatory,
+                in_army,
+                "in_army {in_army}: {:?}",
+                sim.units[me].orders
+            );
+        }
+    }
+
+    /// **A mandatory attack chases where a found one re-searches**
+    /// (`Unit::fight@005fd4d0:1051`, `5fe108`/`5fe135`; item 2864): a
+    /// packer's out-of-range attack carrying `mandatory` (`fight`'s third
+    /// argument) skips `find_new_target` and the STAND_GROUND gate and
+    /// walks to `find_attack_pos`'s spot — the MLRS `1/124` on 6821, whose
+    /// ring is theirs' six draws. Without the bit the packer's attack is
+    /// killed and re-found, and a packer (stance 2, off duty) stands.
+    #[test]
+    fn a_mandatory_packer_chases_without_a_re_search() {
+        use crate::orders::{QueuePos, index};
+        for mandatory in [true, false] {
+            let (mut sim, me, foe) = idle_packed_engine(0x1800, false);
+            sim.units[me].combat.stance = combat::Stance::StandGround;
+            sim.add_attack_order(me, Obj::Unit(foe), QueuePos::New, mandatory, false);
+            sim.work(me, 15);
+            let kinds: Vec<u8> = sim.units[me].orders.iter().map(|o| o.index()).collect();
+            if mandatory {
+                assert_eq!(kinds, [index::MOVE_TO, index::ATTACK], "the chase stands above it");
+                assert!(sim.units[me].combat.mandatory);
+            } else {
+                assert!(
+                    !kinds.contains(&index::MOVE_TO),
+                    "a found attack re-searches and stands: {kinds:?}"
+                );
+            }
+        }
+    }
+
     /// run190's guard, in miniature: a player's chariot-ranged unit on its
     /// post (3480, 12264) guarding a standing wagon, with an attack on an
     /// enemy stacked above its `GUARD`.
