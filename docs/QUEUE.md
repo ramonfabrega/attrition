@@ -12,9 +12,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-ninth tranche (commander, Opus): 5 landings from `31eb3a05`** (2876 ch86 closed, 2863
-`--answer-by`, 2877 nine, 2881 the re-target, 2887 the `void` shape); four lanes live; the thirty-eighth pass's record
-is `docs/audit/2026-10-17-fable-pass-38.md`; last whole gate `2b6eed51`.*
+*2026-10-17, **the thirty-ninth tranche (commander, Opus): 5 landings from `31eb3a05`** (2876, 2863, 2877, 2881,
+2887); four lanes live; the pass's record `docs/audit/2026-10-17-fable-pass-38.md`; last whole gate `2b6eed51`.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 6821 (2780, 2779, 2808, 2825,
   2845), one frame before the game's end — **2864 runs 883 through the closing 6823 and scores the closing state** (55);
