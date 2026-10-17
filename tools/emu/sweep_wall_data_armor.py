@@ -36,7 +36,7 @@ STUBS = [('call', 6585776, 0), ('slot', 24, 0), ('slot', 196, 0), ('slot', 184, 
 PLACES = [('m', '0x18', '0', 576)]
 NULLS = []
 NULLFORCE = {}
-WBIAS = [('m', 8, ('set', [0, 4, 256, 260, 65536, 65540, 65792, 65796])), ('p1', 0, ('set', [0, 0, 1])), ('p3', 0, ('set', [0, 0, 1]))]
+WBIAS = [('m', 8, ('set', [0, 4, 256, 260, 65536, 65540, 65792, 65796])), ('p1', 0, ('set', [0, 0, 1, 256])), ('p3', 0, ('set', [0, 0, 1, 256]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = [(184, 6633360), (76, 4662096)]
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "WallData::armor@0063fa60", "--item", "3024", "--win", "0x20", "--own", "0", "--stub", "0x647db0:0", "--stub", "slot:0x18:0", "--stub", "slot:0xc4:0", "--stub", "slot:0xb8:2", "--stub", "slot:0x20:0", "--stub", "slot:0x60:2", "--stub", "slot:0x4c:0", "--stub", "0x73a1b0:6", "--answers", "1:0,1,1", "--answers", "2:0,1,1", "--answers", "3:0,1", "--answers", "4:0,1", "--answers", "5:0,1", "--answers", "6:0,1", "--record", "7", "--vtat-keep", "0xb8:0x653790", "--vtat-keep", "0x4c:0x472350", "--sparse", "0xc061e0:0x6eec:2:8,4/0x59c0,2", "--cell-win", "0xc061e4:0xc80", "--place", "m+0x18:0:0x240", "--vtat-also", "p4+0", "--wbias", "m+8:0,4,0x100,0x104,0x10000,0x10004,0x10100,0x10104", "--wbias", "p1+0:0,0,1", "--wbias", "p3+0:0,0,1", "--rows", "500"]
+# sweep_gen: ["obj", "WallData::armor@0063fa60", "--item", "3024", "--win", "0x20", "--own", "0", "--stub", "0x647db0:0", "--stub", "slot:0x18:0", "--stub", "slot:0xc4:0", "--stub", "slot:0xb8:2", "--stub", "slot:0x20:0", "--stub", "slot:0x60:2", "--stub", "slot:0x4c:0", "--stub", "0x73a1b0:6", "--answers", "1:0,1,1", "--answers", "2:0,1,1", "--answers", "3:0,1", "--answers", "4:0,1", "--answers", "5:0,1", "--answers", "6:0,1", "--record", "7", "--vtat-keep", "0xb8:0x653790", "--vtat-keep", "0x4c:0x472350", "--sparse", "0xc061e0:0x6eec:2:8,4/0x59c0,2", "--cell-win", "0xc061e4:0xc80", "--place", "m+0x18:0:0x240", "--vtat-also", "p4+0", "--wbias", "m+8:0,4,0x100,0x104,0x10000,0x10004,0x10100,0x10104", "--wbias", "p1+0:0,0,1,0x100", "--wbias", "p3+0:0,0,1,0x100", "--rows", "500"]
