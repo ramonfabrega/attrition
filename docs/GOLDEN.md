@@ -12965,12 +12965,28 @@ out of a scout's sight being refused is **unproven** (parked 2832, third); (2) t
 `unit_masks 8` agrees by value, the others are not distinguished by this staging); (3) the control Spy's re-target on 1178 and the Scout's
 first disc on 1103 (parked 2832, first and second).
 
-## 109. Reserved for the next item on the rules track
+## 109. Chapter eighty-six — the cloaked Spy's Bribe, the control that reaches range (run884)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Booked** (item 2876): chapter eighty-five's control never reached range (its target walked off after the blown first Spy, parked
+2868, 2870). **Staging** (`tools/gamelog/golden/chapter86.cmd`, walked by `stage_walk` on run871's start, `RON_STAGE=ch76:chapter86:1300`):
+the control alone — a who=0 Spy `0/6` (added 608) and a who=1 Hoplite `1/6` two tiles off (added 1100), no Scout, no sighted pair, so no
+Spy is blown and nothing of who=1's is sent after a cast; `@spell 0 629 6 1 23600 19200 6` on 1112. The 1178 re-target (2868) is
+sidestepped by construction: the target never moves. **Disk could not answer**: no dump held a Bribe on a target that stays. Run884
+(`docs/RUNS.md`): `--end-frame 1300`, the `end:` set trimmed to `UNITS=3,DEATHS=1,LEADERS=2` (the `start:` set stays whole — `UNITS=3` alone
+at the start stands the sim up at 101/120 draws, run880), 105 s at 19.5 frames a second, dump through block 1299.
+
+**What the original does**: `CASTORDER spell=629 paid=1` on 1114, the Spy at the target's side; no chase, no `MOVEORDER`; on **1212**
+(block 1213) the cast completes: `1/6`..`1/8` closed, `0/7`..`0/9` stand at the old positions under who 0 (`idle 1`), the Spy's order
+list empties. **A target that nothing of who=1's sees is bribed**: there is no refusal for sight in the unit arm for a target the caster's
+own owner sees.
+
+**Diff**: ours agrees on every block of 1100–1299 — the only rows are the standing 1100 `form` and `build:extra` rows (`WANT_CH86`).
+The word is the capture's end, 1300, `ch86` closed. No code changed: chapter eighty-five's `heading = facing` fix already holds the swap.
+
+**Diff-backed now**: the conversion on a stationary target, with no Scout; the cast's timing (1114 → 1212) on a second, unrelated staging.
+**Not established**: (1) a refusal for sight (the target outside the *caster's* owner's sight) — needs a staging that sends the Spy to
+range (parked 2879); (2) the chase's re-target on a moving target (parked 2868, untouched); (3) `unit_masks` bits kept as
+separate fields.
 
 ## 110. Reserved for the next item on the rules track
 

@@ -611,13 +611,33 @@ class Shapes(unittest.TestCase):
             'Foo::bar@00401000', item=2797, win=8, bias=[], places=['m+0:0:16', 'p0+0:0:8', 'p1+4:0:8'],
             alias=['p2+0:p1+0x10'], port='0')
         compile(script, str(sp), 'exec')
-        self.assertIn("ALIAS = [('p2', 0, 'p1', 16)]", script)
-        self.assertLess(script.index('for win, off, tgt, plus in ALIAS:'), script.index('for a_, b in wins:'))
+        self.assertIn("ALIAS = [('p2', 0, 'p1', 16, False)]", script)
+        self.assertLess(script.index('for win, off, tgt, plus, always in ALIAS:'), script.index('for a_, b in wins:'))
         self.assertIn('the word at `p2+0` laid as the address of `p1+0x10` half the rows', test)
         for bad in (['p2+0'], ['p2+0:q1'], ['p2:p1']):
             with self.assertRaises(ValueError):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=2797, win=8, bias=[], places=['m+0:0:16'],
                                        alias=bad, port='0')
+
+    def test_an_alias_may_hold_every_row_and_a_stub_may_answer_by_its_ecx(self):
+        # Item 2863 (parked 2861): `--alias WIN+OFF:TARGET!` every row; `--answer-by IDX:OBJ0:DAT0:N:LINKOFF` answers
+        # the data window of the object the stub's `ecx` is, its links laid before the windows are written;
+        # `--vtat-image WIN+OFF:VA` copies the stub slots into the image's vtable at VA.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2863, win=8, bias=[], stubs=['slot:0x3c:0'],
+            places=['m+0:0:16', 'p0+0:0:8', 'p1+4:0:8', 'm+4:0:8'],
+            alias=['p2+0:p1!'], answer_by=['0:1:3:1:0x2'], vtat_image=['p1+0:0xb42174'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ALIAS = [('p2', 0, 'p1', 0, True)]", script)
+        self.assertIn('ANSWERBY = [(0, 1, 3, 1, 2)]', script)
+        self.assertIn("VTIMAGE = [('p1', 0, %d)]" % 0xb42174, script)
+        self.assertLess(script.index('for idx, ofirst, dfirst, nobj, loff in ANSWERBY:'), script.index('for a_, b in wins:'))
+        self.assertIn('laid as the address of `p1` every row', test)
+        self.assertIn('stub 0 answers `p3+j`, the data of the object its `ecx` is in `p1+j`', test)
+        for kw in ({'answer_by': ['0:1:3']}, {'answer_by': ['5:1:3:1:2']}, {'vtat_image': ['p1+0']}):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2863, win=8, bias=[], stubs=['slot:0x3c:0'],
+                                       places=['m+0:0:16'], port='0', **kw)
 
     def test_edx_may_name_a_window(self):
         # Item 2801 (parked 2791): `MiscAccess::world_to_screen` is entered with a pointer in `edx` (the decompiler's

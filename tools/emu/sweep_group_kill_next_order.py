@@ -3,12 +3,12 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_group_kill_next_order.py — `Group::kill_next_order@00713d90` under unicorn (item 2877, tools/sweep_gen.py, obj with windows).
+"""sweep_group_kill_next_order.py — `Group::kill_next_order@00713d90` under unicorn (item 2863, tools/sweep_gen.py, obj with windows).
 
     uv run tools/emu/sweep_group_kill_next_order.py <install>/riseofnations.exe
 
-`__thiscall`, `ecx` = a 2272-byte object of random bytes (no bias), 0 stack argument(s);
-callee 0x00711540 (0 args) stubbed; vtable slot +0x8 (0 args) stubbed; vtable slot +0xbc (0 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; the word at `0xc0618c` points at 256 random bytes less `0` (placed); the word at `p0+0x14+0x1c*m[0x4a]` points at 32 random bytes less `0` (placed); the word at `p1+0` points at 16 random bytes less `0` (placed); the word at `p1+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 16 random bytes less `0` (placed); the word at `p1+12` points at 16 random bytes less `0` (placed); the word at `p1+16` points at 16 random bytes less `0` (placed); the word at `p1+20` points at 16 random bytes less `0` (placed); the word at `p1+24` points at 16 random bytes less `0` (placed); the word at `p1+28` points at 16 random bytes less `0` (placed); the word at `0xc0aec0+0x1c*m[0x4a]` points at 32 random bytes less `0` (placed); stub 1 answered from [0, 1, 1] (90%); stub 2 answered from [0, 1, 1] (90%); stub 1 answers 8 values in call order, printed after the answers; stub 2 answers 8 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p2+0` as well as at `this`; the stubbed vtable laid at `p3+0` as well as at `this`; the stubbed vtable laid at `p4+0` as well as at `this`; the stubbed vtable laid at `p5+0` as well as at `this`; the stubbed vtable laid at `p6+0` as well as at `this`; the stubbed vtable laid at `p7+0` as well as at `this`; the stubbed vtable laid at `p8+0` as well as at `this`; the stubbed vtable laid at `p9+0` as well as at `this`.
+`__thiscall`, `ecx` = a 2304-byte object of random bytes (no bias), 0 stack argument(s);
+the global cell 0x00c0618c points at 64 random bytes; callee 0x00711540 (0 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; vtable slot +0x8 (0 args) stubbed; vtable slot +0xbc (0 args) stubbed; the word at `c0+0x14` points at 24 random bytes less `0` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); the word at `p0+4` points at 16 random bytes less `0` (placed); the word at `p0+8` points at 16 random bytes less `0` (placed); the word at `p0+12` points at 16 random bytes less `0` (placed); the word at `p0+16` points at 16 random bytes less `0` (placed); the word at `p0+20` points at 16 random bytes less `0` (placed); the word at `0xc0aec0` points at 24 random bytes less `0` (placed); the word at `p7+0` points at 16 random bytes less `0` (placed); the word at `p7+4` points at 16 random bytes less `0` (placed); the word at `p7+8` points at 16 random bytes less `0` (placed); the word at `p7+12` points at 16 random bytes less `0` (placed); the word at `p7+16` points at 16 random bytes less `0` (placed); the word at `p7+20` points at 16 random bytes less `0` (placed); stub 2 answered from [1, 1, 1, 0] (90%); stub 3 answered from [1, 1, 1, 0] (90%); stub 2 answers 6 values in call order, printed after the answers; stub 3 answers 6 values in call order, printed after the answers; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p1+0` as well as at `this`; the stubbed vtable laid at `p2+0` as well as at `this`; the stubbed vtable laid at `p3+0` as well as at `this`; the stubbed vtable laid at `p4+0` as well as at `this`; the stubbed vtable laid at `p5+0` as well as at `this`; the stubbed vtable laid at `p6+0` as well as at `this`.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -23,19 +23,19 @@ from sweeplib import link_value  # noqa: E402
 from sweeplib import draw_reg, xmm_bits  # noqa: E402
 
 ENTRY = 0x00713d90
-WIN = 2272
+WIN = 2304
 OWN = 0
 BIAS = []
 ARGSET = []
 ARGFROM = []
-CELLS = []
+CELLS = [(12607884, 64)]
 AT = []
 PTRARGS = []
 PNULLS = []
-STUBS = [('call', 7411008, 0), ('slot', 8, 0), ('slot', 188, 0), ('call', 6171824, 1)]
-PLACES = [(None, '0xc0618c', '0', 256), ('p0', '0x14+0x1c*m[0x4a]', '0', 32), ('p1', '0', '0', 16), ('p1', '4', '0', 16), ('p1', '8', '0', 16), ('p1', '12', '0', 16), ('p1', '16', '0', 16), ('p1', '20', '0', 16), ('p1', '24', '0', 16), ('p1', '28', '0', 16), (None, '0xc0aec0+0x1c*m[0x4a]', '0', 32)]
+STUBS = [('call', 7411008, 0), ('call', 6171824, 1), ('slot', 8, 0), ('slot', 188, 0)]
+PLACES = [('c0', '0x14', '0', 24), ('p0', '0', '0', 16), ('p0', '4', '0', 16), ('p0', '8', '0', 16), ('p0', '12', '0', 16), ('p0', '16', '0', 16), ('p0', '20', '0', 16), (None, '0xc0aec0', '0', 24), ('p7', '0', '0', 16), ('p7', '4', '0', 16), ('p7', '8', '0', 16), ('p7', '12', '0', 16), ('p7', '16', '0', 16), ('p7', '20', '0', 16)]
 NULLS = []
-WBIAS = [('m', 12, ('range', 0, 8)), ('m', 72, ('set', [0, 65536, 131072])), ('m', 2252, ('set', [0, 65538, 458755, 327684, 393217, 131079, 196613])), ('m', 2256, ('set', [0, 65538, 458755, 327684, 393217, 131079, 196613])), ('m', 2260, ('set', [0, 65538, 458755, 327684, 393217, 131079, 196613])), ('m', 2264, ('set', [0, 65538, 458755, 327684, 393217, 131079, 196613]))]
+WBIAS = [('m', 12, ('set', [0, 1, 2, 3, 4, 6])), ('m', 72, ('set', [0, 1, 65535])), ('m', 2252, ('set', [0, 1, 2, 65536, 65538, 131073, 196612, 262147, 327680, 131075])), ('m', 2256, ('set', [0, 1, 65539, 131077, 327684, 196610])), ('m', 2260, ('set', [0, 1, 65541, 262146, 196609]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -45,20 +45,22 @@ EDXWIN = None
 XMM = []
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = 0.1
-ANSWERS = [(1, [0, 1, 1]), (2, [0, 1, 1])]
+ANSWERS = [(2, [1, 1, 1, 0]), (3, [1, 1, 1, 0])]
 VTAT = None
 VTATHALF = []
+VTIMAGE = []
 ALIAS = []
+ANSWERBY = []
 ANSWERWIN = []
 CDECL = False
 ARGEQ = []
-SEQ = [(1, 8, None), (2, 8, None)]
+SEQ = [(2, 6, None), (3, 6, None)]
 ANSRANGE = []
 CELLTHIS = []
-VTALSO = [('p2', 0), ('p3', 0), ('p4', 0), ('p5', 0), ('p6', 0), ('p7', 0), ('p8', 0), ('p9', 0)]
+VTALSO = [('p1', 0), ('p2', 0), ('p3', 0), ('p4', 0), ('p5', 0), ('p6', 0)]
 SPARSE = []
 GTAB = []
-RECORD = [0, 3]
+RECORD = [1]
 RECORDORDER = False
 RECORDEDX = False
 ROWSPLIT = {}
@@ -254,7 +256,7 @@ def shape(rng, name, buf):
 
 def main(argv):
     from hooks import Harness
-    rng = random.Random(2877)
+    rng = random.Random(2863)
     # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
     h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"})
@@ -271,6 +273,11 @@ def main(argv):
         if i in CDECLSTUBS:
             h.hooked[sa] = h.hooked[sa][:3] + (True,)
     stubbed = {off: h.r32(vt + off) & 0xFFFFFFFF for off, _ in SLOTBASE}
+    # `--vtat-image WIN+OFF:VA` (item 2863): the stub slots copied into the image's own vtable at VA,
+    # so a record whose vtable word is compared with VA (`Build::vftable`) still answers its slots.
+    for va_ in sorted({va for _, _, va in VTIMAGE}):
+        for off in slots:
+            uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
     for i in range(220):
         h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
@@ -417,6 +424,11 @@ def main(argv):
             shape(rng, f"p{len(p) - 1}", b)
             answers[idx] = buf
             callwins.setdefault(idx, []).append(buf)
+        for idx, ofirst, dfirst, nobj, loff in ANSWERBY:
+            for j in range(nobj):
+                tail = list(range(j + 1, nobj))
+                link = (j + 1 if rng.random() < 0.7 else rng.choice(tail)) if tail and rng.random() < 0.9 else -1
+                p[dfirst + j][loff:loff + 2] = (link & 0xFFFF).to_bytes(2, "little")
         if VTAT is not None:
             # The stubbed vtable laid in a window: a slot of an object the
             # function reaches through a table, not of `this` (item 2170).
@@ -428,6 +440,10 @@ def main(argv):
             # a record the function reaches whose slots it asks too (item 2217).
             w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
             w[off:off + 4] = vt.to_bytes(4, "little")
+        for win, off, va_ in VTIMAGE:
+            # The image's vtable at VA (stubbed above) laid half the rows, the stubbed vtable otherwise.
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = (va_ if rng.random() < 0.5 else vt).to_bytes(4, "little")
         for win, off in VTATHALF:
             # The stubbed vtable laid half the rows at a record the function
             # compares with a class's vtable, the other half left as drawn
@@ -503,6 +519,21 @@ def main(argv):
                     turn[0] += 1
                     return v
                 h.answers[names[idx]] = answer
+        for idx, ofirst, dfirst, nobj, loff in ANSWERBY:
+            # `--answer-by IDX:OBJ0:DAT0:N:LINKOFF` (item 2863, parked 2861): stub IDX answers
+            # the address of `p<DAT0+j>` to the `ecx` that lies in `p<OBJ0+j>` — an object's
+            # data record, the same one each ask — and each data record's short at LINKOFF
+            # names a later object or is -1, so a walk down the links ends (the links
+            # are laid with the windows, before they are written to memory).
+            spans_ = [(wins[nc + ofirst + j][0], len(wins[nc + ofirst + j][1]), wins[nc + dfirst + j][0])
+                      for j in range(nobj)]
+
+            def by_ecx(ecx, args, spans_=spans_):
+                for a_, n_, d_ in spans_:
+                    if a_ <= (ecx & 0xFFFFFFFF) < a_ + n_:
+                        return d_
+                return 0
+            h.answers[names[idx]] = by_ecx
         # A callee called more than once a row answers each call in turn:
         # N values drawn a row (from its `--answers` list when it has one),
         # the last repeated past N — from the terminators when given (item
@@ -610,4 +641,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Group::kill_next_order@00713d90", "--item", "2877", "--own", "0", "--win", "2272", "--stub", "0x711540:0", "--stub", "slot:8:0", "--stub", "slot:0xbc:0", "--stub", "0x5e2cb0:1", "--answers", "1:0,1,1", "--answers", "2:0,1,1", "--seq", "1:8", "--seq", "2:8", "--place", "0xc0618c:0:256", "--place", "p0+0x14+0x1c*m[0x4a]:0:32", "--place", "p1+0:0:16", "--place", "p1+4:0:16", "--place", "p1+8:0:16", "--place", "p1+12:0:16", "--place", "p1+16:0:16", "--place", "p1+20:0:16", "--place", "p1+24:0:16", "--place", "p1+28:0:16", "--place", "0xc0aec0+0x1c*m[0x4a]:0:32", "--wbias", "m+12:0..8", "--wbias", "m+72:0,65536,131072", "--wbias", "m+2252:0,65538,458755,327684,393217,131079,196613", "--wbias", "m+2256:0,65538,458755,327684,393217,131079,196613", "--wbias", "m+2260:0,65538,458755,327684,393217,131079,196613", "--wbias", "m+2264:0,65538,458755,327684,393217,131079,196613", "--ret", "none", "--record", "0", "--record", "3", "--vtat-also", "p2+0", "--vtat-also", "p3+0", "--vtat-also", "p4+0", "--vtat-also", "p5+0", "--vtat-also", "p6+0", "--vtat-also", "p7+0", "--vtat-also", "p8+0", "--vtat-also", "p9+0"]
+# sweep_gen: ["obj", "Group::kill_next_order@00713d90", "--item", "2863", "--win", "0x900", "--own", "0", "--ret", "none", "--stub", "0x711540:0", "--stub", "0x5e2cb0:1", "--stub", "slot:0x8:0", "--stub", "slot:0xbc:0", "--record", "1", "--seq", "2:6", "--seq", "3:6", "--answers", "2:1,1,1,0", "--answers", "3:1,1,1,0", "--cell-win", "0xc0618c:0x40", "--ptrtab", "c0+0x14:6:0x10:vt", "--ptrtab", "0xc0aec0:6:0x10", "--wbias", "m+0xc:0,1,2,3,4,6", "--wbias", "m+0x48:0,1,0xffff", "--wbias", "m+0x8cc:0,1,2,0x10000,0x10002,0x20001,0x30004,0x40003,0x50000,0x20003", "--wbias", "m+0x8d0:0,1,0x10003,0x20005,0x50004,0x30002", "--wbias", "m+0x8d4:0,1,0x10005,0x40002,0x30001", "--port", "{\n                // The first `count` (`m+0xc`) shorts from `m+0x8cc` index the objects (`p[1 + i]`) and the units\n                // (`p[8 + i]`) of the group's `who` (0 here); an object that answers slot +0x8 and then slot +0xbc\n                // (`a[4..10]`, `a[10..16]` in call order) has its unit's current order killed (`Unit::kill_current_order`\n                // handed 0).\n                let (mut n1, mut n2) = (0usize, 0usize);\n                for i in 0..rd(m, 0xc).max(0) as usize {\n                    let k = i16::from_le_bytes([m[0x8cc + 2 * i], m[0x8cd + 2 * i]]) as usize;\n                    let first = a[4 + n1.min(5)] != 0;\n                    n1 += 1;\n                    if first {\n                        let second = a[10 + n2.min(5)] != 0;\n                        n2 += 1;\n                        if second {\n                            log.push(format!(\"p{}+0x0,0\", 8 + k));\n                        }\n                    }\n                }\n                0\n            }"]

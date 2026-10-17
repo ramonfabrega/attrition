@@ -675,6 +675,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch79 = golden_dump("ch79");
     let ch80 = golden_dump("ch80");
     let ch85 = golden_dump("ch85");
+    let ch86 = golden_dump("ch86");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2506,6 +2507,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 7,
             "chapter eighty-five carries seven blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter eighty-six, on run884** (item 2876): the control's swap.
+    if let Some(p) = &ch86 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_EIGHTY_SIX;
+        let n = drive_capture(p, 1210, 1216, &mut paths);
+        assert_eq!(
+            n, 7,
+            "chapter eighty-six carries seven blocks in the window"
         );
         frames += n;
     }

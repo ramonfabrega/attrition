@@ -3736,6 +3736,20 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-17 — the thirty-ninth tranche's
+
+(2882) **A golden take whose `pace:` line projects past `--timeout` runs on to the hour** (2876's "for the Loop" line, filed
+at its merge): the runner's `pace:` line (Loop 2874) made trimming run884's `end:` set obvious up front, but a lane that does
+not read it still loses the hour, as run880 did. Candidate: `golden_capture.sh` refuses, or stops early with a receipt, a take
+whose first `pace:` projects past `--timeout`, a test made to fail first. One reach.
+
+(2886) **A whole-line `--regen` brings back a port the `.rs` edited and the `--port-file` did not** (2863's "for the Loop"
+line, filed at its merge): `--regen` with a whole line and `--port-file` rewrites the port from the file, and a bare `--regen
+<name>` keeps the line's old port string, so an edit made only in the `.rs` returns at the next whole-line regen (once, in
+2863); and `Harness`'s unmapped-read hook answers zeros, so a vtable read through a mis-placed pointer shows as a call to 0,
+not a fault at the read. Candidate: a regen that would overwrite a port differing from its `--port-file` refuses, naming
+both; an unmapped read under a sweep faults with its address. One reach.
+
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
 Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872).
@@ -6522,21 +6536,30 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FS — reserved
+## Parked by item 2876, 2026-10-17 — chapter eighty-six: the Bribe's control that reaches range
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2878) **The 1178 re-target (parked 2868) is untouched.** The stationary control never chases (the target stays), so the
+`do_cast_targeted` out-of-range re-target interval was not reached; ours and the original agree on all 200 blocks of run884. The
+hypothesis stays what 2868 wrote it: any targeted craft on a moving target. No score names it (no word is open on it); it parks.
+(2879) **The sight gate is still unproven in its original meaning.** Run884 shows a Bribe on a target nothing of who=1's
+sees, and no Scout and no blown Spy in the game, is *not* refused: it completes on 1212 exactly as the sighted pair did. So the
+sighted/unsighted pair does not differ in the conversion; a refusal for sight, if it exists, is a different arm (the target not
+seen by the *caster's* owner), which wants a target outside the Spy's own vision and a chase to range. Needs a staging that
+walks the Spy to it; parked, names no score.
+(2880) **Loop 2654's print was not built**: every staged line reached its unit (`chapter 86 staged: 6 line(s) ran, 4 unit(s)`).
 
-## Parked by the next landing, slot FT — reserved
+## Parked by item 2863, 2026-10-17 — the hundred-and-nineteenth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2883) **The shape that was asked for is not the one that holds.** `--answer-win` with `--seq` (parked 2861) answers the n-th ask, and a walk asks one
+object's slot several times an iteration; the shape is a stub that answers by `ecx` (`--answer-by`, built), a chain that ends by links laid only forward.
+A walk that is not forward (a cycle the original breaks by a visited flag) is not reachable with it.
+
+(2884) **Starved arms, named.** `is_disbanding` and `get_building` return 0 / -1 in 144 and 170 of 220 rows before the head bias (about 60%
+after); `(*n).min(4)` is equivalent on all five (five asks, six values). `Group::kill_next_order` fixes `who` at 0, so the objects table's other rows
+(`0xc0ab84 + who·0x1c`) are read by no row; a `who` drawn needs the place expression to follow it (it does in `is_disbanding`, which draws 0..3).
+
+(2885) **Not built.** `Unit::update_patrol_order`'s `field_0xdc == 0` arm and `replace_form_id`'s `m+0xdc == 0` arm with `m+0xd8 != 0` are reached
+by `--place-null` only on the first place; the second is held by forcing `m+0xcc` to 0, so a null-list walk over a live `cc` (which crashes the original) is out.
 
 ## Parked by item 2877, 2026-10-17 — the sweep's hundred-and-twentieth batch
 
@@ -6571,3 +6594,56 @@ ten per cent it replaces with a random word — a table index wants `--answer-ra
 consecutive on-map members, one row in thousands); `UnitData::is_seen` `^ 0x63637` to `^ 0x63636` and `& 31` to `& 15` survive
 (coordinates are drawn at `>> 7` granularity and the player is 0..3: equivalent over the draw).
 
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.

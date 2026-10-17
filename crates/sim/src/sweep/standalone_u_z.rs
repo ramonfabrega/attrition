@@ -174,6 +174,8 @@ mod unit_order_walk_data;
 mod unit_out_issue_come_out;
 #[path = "unit_out_issue_unqueue.rs"]
 mod unit_out_issue_unqueue;
+#[path = "unit_replace_form_id.rs"]
+mod unit_replace_form_id;
 #[path = "unit_set_ai_control.rs"]
 mod unit_set_ai_control;
 #[path = "unit_set_angle.rs"]
@@ -238,6 +240,8 @@ mod unit_type_walk_rules_data;
 mod unit_update_gpiece;
 #[path = "unit_update_order.rs"]
 mod unit_update_order;
+#[path = "unit_update_patrol_order.rs"]
+mod unit_update_patrol_order;
 #[path = "units_make_valid.rs"]
 mod units_make_valid;
 #[path = "valid_filter_case0.rs"]
