@@ -17397,3 +17397,26 @@ the chapter-eighty-five `start:` set); the staging was walked first (`RON_STAGE=
 runner's `pace:` line 19.5 frames a second; kept in `~/ron-golden/ch86/map-14/`, trace 1,301 frames, dump through block 1299. No
 minutes waited on another lane. **What it holds**: the Spy `0/6` casts from 1114; on **1212** `1/6`..`1/8` close and `0/7`..`0/9`
 stand under who 0. Ours agrees on all of it.
+
+## run886 — the battery word: East Indies, Germans at difficulty 3, the word 576's widening, blocks 570..826 (2026-10-17, item 2904, `att-2904`)
+
+`docs/AI.md` §239. **What the disk could not answer**: run643 is `cover=0` with its setup and closing blocks only (block 1 and
+13520), and run646's start ends at 36, so no dump of this lobby held a record on 576. run881's windowed recipe on the lobby,
+through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run886`: `--map 18 --end-frame 832 --timeout 7200
+--log-window 570 827 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 12 --cover cover=0 --profile
+DIFFICULTY=3`.
+- Pool lane 1: `success`, `settings_restored`, 833 frames, `map_style 18`, seed 12345, players `(0,4,7),(1,12,1)`; 1144 s from
+  launch to exit (launched 10:35:34, exited 10:54:38).
+- The dump holds 258 `BEGIN FRAME`s (570..826 and the closing block 833).
+- `rngcmp.py rontrace-run643.log rontrace-run886.log`: **833 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run886-eastindies-german-diff3-window-570-827.txt`, 439,102,314 bytes,
+SHA-256 `b8b4f6ac3739eb8d88a8c1efcd696bcb1a303ea5ab3f0c5c436aced652fa3749`.
+
+Archive `rontrace-run886.log`, 11,318,944 bytes,
+SHA-256 `123e8b1af5078fde8cbb3cd651230ead2c54d57e70dac62be600c9541f9697dd`.
+
+**What it holds**: `diff::german_word::run886_s_word_frame_is_widened_whole`, 262 keys over 257 blocks. On the word's block 577
+theirs holds who=1's Village `1/2007` (type 414, a foundation at (34656, 36192)) and ours none, with the Citizen `1/2`'s
+`BUILDORDER` on it. The window is in the coverage driver's slice, and its walk reads no inexact corner.
