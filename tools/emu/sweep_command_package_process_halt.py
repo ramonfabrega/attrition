@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_command_package_process_halt.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 32-byte object of random bytes (+0xc in [-1, 0, 3, 7]), 1 stack argument(s);
-the global cell 0x00c061ec points at 1536 random bytes; the global cell 0x00c06378 points at 32 random bytes; 4 random bytes at 0x00e85f20; the import cell 0x00ac543c holds a stub (2 args); callee 0x00463820 (5 args) stubbed; callee 0x00a3ab00 (10 args) stubbed; callee 0x0070d0c0 (1 args) stubbed; stub 0 answered from [0, 4194304] (90%); stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments.
+the global cell 0x00c061ec points at 1536 random bytes; the global cell 0x00c06378 points at 32 random bytes; 4 random bytes at 0x00e85f20; 8 random bytes at 0x00eb13a8; the import cell 0x00ac543c holds a stub (2 args); callee 0x00463820 (5 args) stubbed; callee 0x00a3ab00 (10 args) stubbed; callee 0x0070d0c0 (1 args) stubbed; stub 0 answered from [0, 4194304] (90%); stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -29,14 +29,14 @@ BIAS = [(12, [-1, 0, 3, 7])]
 ARGSET = []
 ARGFROM = []
 CELLS = [(12607980, 1536), (12608376, 32)]
-AT = [(15228704, 4)]
+AT = [(15228704, 4), (15405992, 8)]
 PTRARGS = []
 PNULLS = []
 STUBS = [('iat', 11293756, 2), ('call', 4601888, 5), ('call', 10726144, 10), ('call', 7393472, 1)]
 PLACES = []
 NULLS = []
 NULLFORCE = {}
-WBIAS = []
+WBIAS = [('c3', 4, ('set', [-5, -1, 0, 1, 2, 9]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -70,6 +70,8 @@ LINKHI = []
 OUTARG = []
 CDECLSTUBS = [0]
 STUBWRITE = []
+STUBCOPY = []
+STACKCLEAN = 0
 ECXANSWER = []
 ECXOUT = []
 RING = []
@@ -104,7 +106,8 @@ def u8(w, off):
 
 def token(v, spans):
     """A recorded value: a pointer into a window by the window's name and
-    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), anything
+    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), a word of the
+    caller's frame by its height (`sp+0xc`), anything
     else as a signed word (item 2281)."""
     v &= 0xFFFFFFFF
     for name, at, size in spans:
@@ -115,6 +118,10 @@ def token(v, spans):
     top = STACK_BASE + STACK_SIZE - 0x100
     if top - 0x1000 <= v < top:
         return f"sp-{top - v:#x}"
+    # A word at or above it, the caller's own frame (`ebp+0xc` past the function's arguments;
+    # item 2921, parked 2918): its height over `esp`, not the harness's stack constant.
+    if top <= v < top + 0x100:
+        return f"sp+{v - top:#x}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
@@ -192,6 +199,20 @@ def win_write(inner, at, size, v, write, read=None):
         else:
             write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
         return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
+def copy_answer(inner, read, write, cap):
+    """`--stub-copy IDX` (item 2921, parked 2906): a stubbed `__cdecl` callee
+    that does what `memcpy` does — argument 2's bytes from argument 1 to
+    argument 0, at most `cap` — and answers the destination. The thunk the
+    original calls is an import (`jmp [0xac5428]`), which the emulator
+    resolves to nothing, so a plain stub copied nothing."""
+    def answer(ecx, args):
+        dst, src, n = (a & 0xFFFFFFFF for a in args[:3])
+        if n:
+            write(dst, read(src, min(n, cap)))
+        return dst
     return answer
 
 
@@ -579,6 +600,9 @@ def main(argv):
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write,
                                                       lambda a_, n_: bytes(uc.mem_read(a_, n_)))
+        for idx in STUBCOPY:
+            h.answers[names[idx]] = copy_answer(h.answers[names[idx]], lambda a_, n_: bytes(uc.mem_read(a_, n_)),
+                                                uc.mem_write, 0x1000)
         derefs = [[] for _ in DEREF]
         for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
@@ -605,6 +629,10 @@ def main(argv):
         # `--xmm` (item 2807): xmm N the float V/4 for an integer V in the range, V on the row.
         xmmv = [rng.randint(spec[1], spec[2]) if spec[0] == "range" else rng.choice(spec[1]) for _, spec in XMM]
         xmm = {n: xmm_bits(v / 4) for (n, _), v in zip(XMM, xmmv)}
+        # `--clean-stack N` (item 2921, parked 2906): the stack under the call zeroed, so a byte of a
+        # caller's local the function did not write reads 00 and not an earlier row's.
+        if STACKCLEAN:
+            uc.mem_write(STACK_BASE + STACK_SIZE - 0x100 - STACKCLEAN, bytes(STACKCLEAN))
         h.calls.clear()
         h.edxs.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
@@ -655,4 +683,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "2921", "obj", "CommandPackage::process_halt@00949140", "--win", "32", "--own", "1", "--cell-win", "0xc061ec:0x600", "--cell-win", "0xc06378:0x20", "--at", "0xe85f20:4", "--stub", "iat:0xac543c:2", "--stub", "0x463820:5", "--stub", "0xa3ab00:10", "--stub", "0x70d0c0:1", "--stub-cdecl", "0", "--answers", "0:0,0x400000", "--bias", "0xc:-1,0,3,7", "--record", "3", "--port", "todo!()"]
+# sweep_gen: ["--item", "2921", "obj", "CommandPackage::process_halt@00949140", "--win", "32", "--own", "1", "--cell-win", "0xc061ec:0x600", "--cell-win", "0xc06378:0x20", "--at", "0xe85f20:4", "--stub", "iat:0xac543c:2", "--stub", "0x463820:5", "--stub", "0xa3ab00:10", "--stub", "0x70d0c0:1", "--stub-cdecl", "0", "--answers", "0:0,0x400000", "--bias", "0xc:-1,0,3,7", "--record", "3", "--at", "0xeb13a8:8", "--wbias", "c3+4:-5,-1,0,1,2,9", "--port", "{\n            // The log, then `Group::action_halt(&groups[this->group], 0)` when `this->group >= 0`;\n            // its `ecx` is the group's slot (0x9d4 each) past the table's base word at 0xe85f20.\n            let g = rd(m, 0xc);\n            if g >= 0 {\n                log.push(format!(\"{},0\", g.wrapping_mul(0x9d4).wrapping_add(rd(&c[2], 0))));\n            } else {\n                log.push(\"-\".into());\n            }\n            if rd(&c[3], 4) < 0 {\n                wr(&mut c[3], 4, 1);\n            }\n            1\n}"]
