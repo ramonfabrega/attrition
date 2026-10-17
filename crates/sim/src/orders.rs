@@ -1960,21 +1960,6 @@ impl Sim {
         // `ObjectData +0x3d`; only `Object::find_nearby_target` does, on
         // the winner it returns (`docs/COMBAT.md` §33). Bumping here
         // counted a squad's mirror copies as separate attackers.
-        if let Ok(v) = std::env::var("RON_PROBE_ATK") {
-            let unit = &self.units[u];
-            if v == format!("{}/{}", unit.owner, unit.index) {
-                eprintln!(
-                    "PROBE_ATK f{} {}/{} mandatory {} action {} pos {:?}\n{}",
-                    self.frame,
-                    unit.owner,
-                    unit.index,
-                    mandatory,
-                    action,
-                    pos,
-                    std::backtrace::Backtrace::force_capture()
-                );
-            }
-        }
         let unit = &mut self.units[u];
         unit.combat.target = Some(target);
         unit.combat.mandatory = mandatory;
