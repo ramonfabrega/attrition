@@ -41,7 +41,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
         let mut c: Vec<Vec<u8>> = wins;
         let want_eax: i64 = eax.trim().parse().expect("an integer");
-        let mut log: Vec<String> = Vec::new();
+        let log: Vec<String>;
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
@@ -49,7 +49,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // in the order they are asked; the first nonzero names the kind (3, 0, 1, 2); none left
             // the error report, skipped here by the `ignore_always` byte at `c0+1`, and -1.
             let kinds = [3, 0, 1, 2];
-            let mut calls = vec!["-"; 4];
+            let mut calls = ["-"; 4];
             let mut got = -1;
             if a[0] != 0 {
                 for (i, k) in kinds.iter().enumerate() {

@@ -41,7 +41,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let mut p: Vec<Vec<u8>> = wins.split_off(3);
         let mut c: Vec<Vec<u8>> = wins;
         let want_eax: i64 = eax.trim().parse().expect("an integer");
-        let mut log: Vec<String> = Vec::new();
+        let log: Vec<String>;
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
