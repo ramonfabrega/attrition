@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `Map::is_near_ocean@0068b0a0`, run by `tools/emu/sweep_map_is_near_ocean.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 4 argument(s), `p` windows in order: p0..p1 pointed argument(s), p2 the place; the global cell 0x00c06188 points at 1024 random bytes; 260 random bytes at 0x00cbe330; 1024 random bytes at 0x00cb7e90; 1024 random bytes at 0x00cbb0e0; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `c0+0x134` points at 2048 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1500 rows (an arm few rows reach).
+/// (tools/emu): 8 random bytes of object, 4 argument(s), `p` windows in order: p0..p1 pointed argument(s), p2 the place; the global cell 0x00c06188 points at 1024 random bytes; 260 random bytes at 0x00cbe330; 1024 random bytes at 0x00cb7e90; 1024 random bytes at 0x00cbb0e0; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `c0+0x134` points at 4096 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1500 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_map_is_near_ocean.py") else {
@@ -25,15 +25,10 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line
-            .split_once(" -> ")
-            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args
-            .split_whitespace()
-            .map(|s| s.parse().expect("an integer"))
-            .collect();
+        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -74,18 +69,10 @@ fn the_emulated_original_agrees_on_every_row() {
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "is_near_ocean — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + i],
-                "is_near_ocean — window c[{i}], row `{line}`"
-            );
+            assert_eq!(w, &want[1 + i], "is_near_ocean — window c[{i}], row `{line}`");
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[5 + i],
-                "is_near_ocean — window p[{i}], row `{line}`"
-            );
+            assert_eq!(w, &want[5 + i], "is_near_ocean — window p[{i}], row `{line}`");
         }
         n += 1;
     }

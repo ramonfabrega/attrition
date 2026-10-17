@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `Doober::remove_cover_doober@00846a30`, run by `tools/emu/sweep_doober_remove_cover_doober.py` under unicorn
-/// (tools/emu): 512 random bytes of object, 5 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the word at `m+0x148` points at 64 random bytes less `0` (placed); the word at `m+0x164` points at 64 random bytes less `0` (placed); the word at `m+0x180` points at 64 random bytes less `0` (placed); the word at `m+0x19c` points at 64 random bytes less `0` (placed); the word at `m+0x1b8` points at 64 random bytes less `0` (placed); the word at `m+0x1d4` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
+/// (tools/emu): 512 random bytes of object, 5 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the word at `m+0x148` points at 64 random bytes less `0` (placed); the word at `m+0x164` points at 128 random bytes less `0` (placed); the word at `m+0x180` points at 64 random bytes less `0` (placed); the word at `m+0x19c` points at 64 random bytes less `0` (placed); the word at `m+0x1b8` points at 64 random bytes less `0` (placed); the word at `m+0x1d4` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_doober_remove_cover_doober.py") else {
@@ -25,15 +25,10 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line
-            .split_once(" -> ")
-            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args
-            .split_whitespace()
-            .map(|s| s.parse().expect("an integer"))
-            .collect();
+        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -89,23 +84,12 @@ fn the_emulated_original_agrees_on_every_row() {
         };
         assert_eq!(got, want_eax, "remove_cover_doober — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(
-            m, want[0],
-            "remove_cover_doober — this's bytes, row `{line}`"
-        );
+        assert_eq!(m, want[0], "remove_cover_doober — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + i],
-                "remove_cover_doober — window c[{i}], row `{line}`"
-            );
+            assert_eq!(w, &want[1 + i], "remove_cover_doober — window c[{i}], row `{line}`");
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + i],
-                "remove_cover_doober — window p[{i}], row `{line}`"
-            );
+            assert_eq!(w, &want[1 + i], "remove_cover_doober — window p[{i}], row `{line}`");
         }
         n += 1;
     }

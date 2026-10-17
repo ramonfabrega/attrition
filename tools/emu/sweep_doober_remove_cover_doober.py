@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_doober_remove_cover_doober.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 512-byte object of random bytes (no bias), 5 stack argument(s);
-`p` windows in order: p0..p5 the place(s), in flag order; the word at `m+0x148` points at 64 random bytes less `0` (placed); the word at `m+0x164` points at 64 random bytes less `0` (placed); the word at `m+0x180` points at 64 random bytes less `0` (placed); the word at `m+0x19c` points at 64 random bytes less `0` (placed); the word at `m+0x1b8` points at 64 random bytes less `0` (placed); the word at `m+0x1d4` points at 64 random bytes less `0` (placed).
+`p` windows in order: p0..p5 the place(s), in flag order; the word at `m+0x148` points at 64 random bytes less `0` (placed); the word at `m+0x164` points at 128 random bytes less `0` (placed); the word at `m+0x180` points at 64 random bytes less `0` (placed); the word at `m+0x19c` points at 64 random bytes less `0` (placed); the word at `m+0x1b8` points at 64 random bytes less `0` (placed); the word at `m+0x1d4` points at 64 random bytes less `0` (placed).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -33,10 +33,10 @@ AT = []
 PTRARGS = []
 PNULLS = []
 STUBS = []
-PLACES = [('m', '0x148', '0', 64), ('m', '0x164', '0', 64), ('m', '0x180', '0', 64), ('m', '0x19c', '0', 64), ('m', '0x1b8', '0', 64), ('m', '0x1d4', '0', 64)]
+PLACES = [('m', '0x148', '0', 64), ('m', '0x164', '0', 128), ('m', '0x180', '0', 64), ('m', '0x19c', '0', 64), ('m', '0x1b8', '0', 64), ('m', '0x1d4', '0', 64)]
 NULLS = []
 NULLFORCE = {}
-WBIAS = [('m', 316, ('range', 1, 6)), ('m', 344, ('range', 1, 6)), ('m', 372, ('range', 1, 6)), ('m', 400, ('range', 1, 6)), ('m', 428, ('range', 1, 6)), ('m', 456, ('range', 1, 6)), ('p0', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p1', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p2', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p3', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p4', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p5', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1]))]
+WBIAS = [('m', 316, ('range', 1, 6)), ('m', 344, ('range', 7, 9)), ('m', 372, ('range', 7, 9)), ('m', 400, ('range', 7, 9)), ('m', 428, ('range', 7, 9)), ('m', 456, ('range', 7, 9)), ('p0', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p1', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p2', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p3', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p4', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1])), ('p5', None, ('set', [0, 0, 0, 0, 0, 0, 0, 1]))]
 FILLS = []
 ARGRANGE = [(0, 0, 2), (1, 0, 2), (2, 0, 2), (3, 0, 2), (4, 0, 2)]
 SLOTBASE = []
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Doober::remove_cover_doober@00846a30", "--item", "3008", "--win", "0x200", "--own", "5", "--rows", "800", "--argrange", "0:0:2", "--argrange", "1:0:2", "--argrange", "2:0:2", "--argrange", "3:0:2", "--argrange", "4:0:2", "--wbias", "m+0x13c:1..6", "--wbias", "m+0x158:1..6", "--wbias", "m+0x174:1..6", "--wbias", "m+0x190:1..6", "--wbias", "m+0x1ac:1..6", "--wbias", "m+0x1c8:1..6", "--place", "m+0x148:0:0x40", "--place", "m+0x164:0:0x40", "--place", "m+0x180:0:0x40", "--place", "m+0x19c:0:0x40", "--place", "m+0x1b8:0:0x40", "--place", "m+0x1d4:0:0x40", "--wbias", "p0+*:0,0,0,0,0,0,0,1", "--wbias", "p1+*:0,0,0,0,0,0,0,1", "--wbias", "p2+*:0,0,0,0,0,0,0,1", "--wbias", "p3+*:0,0,0,0,0,0,0,1", "--wbias", "p4+*:0,0,0,0,0,0,0,1", "--wbias", "p5+*:0,0,0,0,0,0,0,1"]
+# sweep_gen: ["obj", "Doober::remove_cover_doober@00846a30", "--item", "3008", "--win", "0x200", "--own", "5", "--rows", "800", "--argrange", "0:0:2", "--argrange", "1:0:2", "--argrange", "2:0:2", "--argrange", "3:0:2", "--argrange", "4:0:2", "--wbias", "m+0x13c:1..6", "--wbias", "m+0x158:7..9", "--wbias", "m+0x174:7..9", "--wbias", "m+0x190:7..9", "--wbias", "m+0x1ac:7..9", "--wbias", "m+0x1c8:7..9", "--place", "m+0x148:0:0x40", "--place", "m+0x164:0:0x80", "--place", "m+0x180:0:0x40", "--place", "m+0x19c:0:0x40", "--place", "m+0x1b8:0:0x40", "--place", "m+0x1d4:0:0x40", "--wbias", "p0+*:0,0,0,0,0,0,0,1", "--wbias", "p1+*:0,0,0,0,0,0,0,1", "--wbias", "p2+*:0,0,0,0,0,0,0,1", "--wbias", "p3+*:0,0,0,0,0,0,0,1", "--wbias", "p4+*:0,0,0,0,0,0,0,1", "--wbias", "p5+*:0,0,0,0,0,0,0,1"]
