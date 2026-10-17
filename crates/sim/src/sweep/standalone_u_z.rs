@@ -134,6 +134,8 @@ mod unit_do_form_change;
 mod unit_do_gather;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
+#[path = "unit_find_nearby_spot.rs"]
+mod unit_find_nearby_spot;
 #[path = "unit_get_speed.rs"]
 mod unit_get_speed;
 #[path = "unit_go_to_city.rs"]
