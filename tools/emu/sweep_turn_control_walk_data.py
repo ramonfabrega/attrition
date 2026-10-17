@@ -35,7 +35,7 @@ PNULLS = []
 STUBS = [('slot', 0, 2), ('slot', 4, 1)]
 PLACES = []
 NULLS = []
-WBIAS = [('p0', 4, ('set', [0, 1])), ('c1', 8, ('set', [0, 4, 16, 64]))]
+WBIAS = [('p0', 4, ('set', [0, 1, -1])), ('c1', 8, ('set', [0, 4, 16, 64]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -576,4 +576,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "2783", "obj", "TurnControl::walk_data@00956c50", "--ret", "none", "--own", "1", "--win", "0x10", "--cell-win", "0xc06378:0x20", "--cell-win", "0xc06180:0x200", "--ptrarg", "0:0x10", "--vtat", "p0+0", "--stub", "slot:0:2", "--stub", "slot:4:1", "--wbias", "p0+4:0,1", "--wbias", "c1+8:0,4,0x10,0x40", "--record", "0", "--record", "1", "--port", "todo!()"]
+# sweep_gen: ["--item", "2783", "obj", "TurnControl::walk_data@00956c50", "--ret", "none", "--own", "1", "--win", "0x10", "--cell-win", "0xc06378:0x20", "--cell-win", "0xc06180:0x200", "--ptrarg", "0:0x10", "--vtat", "p0+0", "--stub", "slot:0:2", "--stub", "slot:4:1", "--wbias", "p0+4:0,1,-1", "--wbias", "c1+8:0,4,0x10,0x40", "--record", "0", "--record", "1", "--port", "todo!()"]
