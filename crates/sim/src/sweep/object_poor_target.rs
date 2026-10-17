@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -68,9 +73,16 @@ fn the_emulated_original_agrees_on_every_row() {
                     break 'run 0;
                 }
                 t3.push(format!("p{u}+0x0,{ux},{uy},0"));
-                let (b9, sh) = (m[9] as usize, i32::from(i16::from_le_bytes([m[10], m[11]])) as usize);
+                let (b9, sh) = (
+                    m[9] as usize,
+                    i32::from(i16::from_le_bytes([m[10], m[11]])) as usize,
+                );
                 let ou = 7 + 3 * b9 + sh;
-                t3.push(format!("p{ou}+0x0,{},{},0", rd(&p[ou], 0x10) ^ k, rd(&p[ou], 0x14) ^ k));
+                t3.push(format!(
+                    "p{ou}+0x0,{},{},0",
+                    rd(&p[ou], 0x10) ^ k,
+                    rd(&p[ou], 0x14) ^ k
+                ));
                 if a[12] <= a[13] {
                     break 'run 0;
                 }
@@ -95,12 +107,19 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
             };
             for t in [t1, t2, t3, t4, t5] {
-                log.push(if t.is_empty() { "-".to_string() } else { t.join("/") });
+                log.push(if t.is_empty() {
+                    "-".to_string()
+                } else {
+                    t.join("/")
+                });
             }
             res
         };
         assert_eq!(got, want_eax, "poor_target — eax, row `{line}`");
-        assert_eq!(log, want_log, "poor_target — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "poor_target — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "poor_target — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
