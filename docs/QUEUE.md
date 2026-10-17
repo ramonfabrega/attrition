@@ -12,18 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-eighth tranche (commander, Opus): 18 landings from `a4ff472f`**, every booking gate green
-after its second commit at most (one: the Golden line, Loop 2799); last whole gate `6de0fd63`, last gate `3b2ffc6e`; two `DEEP`
+*2026-10-17, **the thirty-eighth tranche (commander, Opus): 19 landings from `a4ff472f`**, every booking gate green
+after its second commit at most (one: the Golden line, Loop 2799); last whole gate `1def6b08`, last gate `1def6b08`; two `DEEP`
 lanes cleared (2779, 2801), no kill rule. 2793 waited 1h50 on a subagent that ended its turn (Loop 2820), told to land without it.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 5982 → 5985 → 6452 → 6808 (2780: the scout's fog read takes the Space Program; 2779: Capitalism's oil; 2808: a soldier's boat sails to its army's target; 2825: a bomber near its President reaches two tiles further), the open word.
-  Chapter 80 closed (1204, run878: a fight blows a stealth unit), 81 compared the blown bits (2798), 82 built `do_cast`'s blow from the listing (2804), 83 carried Bribe's target arm (2812), 84 built its conversion (2823); 69 built, 70 surveyed. Census 1068 → 1208, `port` 171 → 156. Battery 576 / 6566
+  Chapter 80 closed (1204, run878: a fight blows a stealth unit), 81 compared the blown bits (2798), 82 built `do_cast`'s blow from the listing (2804), 83 carried Bribe's target arm (2812), 84 built its conversion (2823); 69 built, 70 surveyed. Census 1068 → 1211, `port` 171 → 156. Battery 576 / 6566
   / 2974; **when the peace pair closes, the AI word's successor is its lowest lobby** (DECISIONS 72).
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every third landing
   and at the drain; a whole gate refuses a stale `agent-*` worktree (Loop 2724). The sweep's per-function check runs in debug (2787).
 - **Lanes: four, live from `a4ff472f`** (DECISIONS 75: the lane entry 74 took goes back for the trial): 2845 (AI §237,
-  FO, run 882), 2832 (GOLDEN §108, FL, run 880), 2852 (FP) and 2793 (EY) on the two sweep lanes; 2783, 2780, 2782, 2785, 2797, 2798, 2801, 2779, 2804, 2807, 2812, 2808, 2818, 2823, 2831, 2837, 2825, 2844 landed. Next 2853, run 883 (Astra 900–909). Pools: GOLDEN §109–113, AI §238–243, park FQ–FU.
-- **Fable backlog: 20 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792, 2796, 2799, 2809, 2819, 2820, 2824, 2827, 2843, 2847).
+  FO, run 882), 2832 (GOLDEN §108, FL, run 880), 2852 (FP) and 2857 (FQ) on the two sweep lanes; 2783, 2780, 2782, 2785, 2797, 2798, 2801, 2779, 2804, 2807, 2812, 2808, 2818, 2823, 2831, 2837, 2825, 2844, 2793 landed. Next 2858, run 883 (Astra 900–909). Pools: GOLDEN §109–113, AI §238–243, park FR–FU.
+- **Fable backlog: 21 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792, 2796, 2799, 2809, 2819, 2820, 2824, 2827, 2843, 2847, 2856).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -32,7 +32,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6808 of 6,822
-Census: simulation backed 1208 of 3611
+Census: simulation backed 1211 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -62,7 +62,7 @@ four, on the branch's tip), 4080 fixture requests and none missing, admission wa
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2845 the AI word's (Opus), 2832 the rules track's, 2852 and 2793 the
+2845 the AI word's (Opus), 2832 the rules track's, 2852 and 2857 the
 two sweep lanes' (Sonnet) — lower map first — East Indies (Lakota), the
 peace pair's only map. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
@@ -91,14 +91,14 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     made to fail first where a row wants one, each checked against
     `census.py --never`. `--kind sweep`.
 
-2793. **The sweep's hundred-and-ninth batch: ten never-backed simulation
-    functions a built shape already holds** (DECISIONS 63 (iv), 73; the
-    score `Census:` 1151 of 3611): 2783's harvest (ten of ten), off
-    `tools/census.py --unbacked`, the `port`-marked rows first, each
-    generated by `sweep_gen.py` as it stands — no generator change; a
-    function no built shape holds parks under slot EY for 2782's lane.
-    The two sweep lanes share `census.rs`'s pin, the commander's at
-    each booking (Loop 2367). `--kind sweep`.
+2857. **The sweep's hundred-and-eighteenth batch: `num_city_buildings`
+    landed, then ten never-backed simulation functions a built shape
+    holds** (DECISIONS 63 (iv), 73; the score `Census:` 1211 of 3611):
+    cherry-pick 185c06da and read its two unread breaks (parked 2853),
+    then harvest off the base's `census.py --unbacked` re-read at each
+    `ccc update` (2854, Loop 2856), each generated by `sweep_gen.py` as it
+    stands; a function no built shape holds parks under slot FQ for the
+    shape lane. The two sweep lanes share `census.rs`'s pin. `--kind sweep`.
 
 ## How to maintain this file
 

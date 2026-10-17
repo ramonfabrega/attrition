@@ -3796,6 +3796,11 @@ came from theirs' index-0 caller — a draw ours never makes; the unit ours name
 missing draw. A second row: a reach difference with the distance agreeing is `max_range@0060fe90`'s terms, grepped against
 `tuning.rs` before a gate is read. Candidate: two brief-checklist rows beside Loop 2827's. One reach.
 
+(2856) **A sweep lane picks its batch at spawn and sweeps it for an hour** (2793's "for the Loop" line, filed at its merge): six
+of its nine built rows were on the base by its `ccc update` (2837, 2844, 2801), and `mutate.py` refuses a dirty tree (untracked
+new files count, exit 2), which three subagents each found the slow way. Candidate: the sweep frame's brief re-reads `census.py
+--unbacked` on the base at every `ccc update` before a fan-out, and `mutate.py` names the untracked file it refused on. One reach.
+
 (2843) **The census counts a sweep only when its test's doc comment spells `Class::method@addr` in full** (2837's "for the
 Loop" line, filed at its merge): a three-forms-in-one test that named `is_seen_wcoord@…` bare scored two of three until the
 full names were spelled. Candidate: `census.py --unbacked` says "cited bare" for an address a test file names without its
@@ -6253,13 +6258,13 @@ Nine of the ten chosen rows were built by subagents; by the time the lane update
 `Game::clock_init`) and 2801 a sixth (`MiscAccess::world_to_screen`'s second form is `world_to_screen_b`); those six were dropped, the base's
 kept. Three landed: `GatherPointList::get_new_data`, `Type::restore`, `TimeSync::update`, 220 rows each.
 
-- **`CityData::num_city_buildings` unswept, built but not landed**: its subagent's sweep (commit 185c06da, in the object store only) passed
+(2853) **`CityData::num_city_buildings` unswept, built but not landed**: its subagent's sweep (commit 185c06da, in the object store only) passed
   220 rows with six breaks held, then its worktree was removed mid-run; two breaks were never read (`n += 1` for `+= 2`, and `4 * who`
   for `3 * who`, which hung — an infinite loop in the port, a detection but not an assertion). A fresh lane cherry-picks 185c06da, reads
   the two breaks, and lands it (a vcall chain through `objects` indexed by `who`; `--link` per who).
-- **A harvest read against the base first**: ten rows picked off `census.py --unbacked` at 2280648b were five-sixths already swept at
+(2854) **A harvest read against the base first**: ten rows picked off `census.py --unbacked` at 2280648b were five-sixths already swept at
   the merge; a lane picks from the base's `--unbacked` at its `ccc update`, not at its spawn.
-- **`Game::clock_init`'s port (dropped) hard-coded the harness's pointee address** for eax; a sweep of a function that leaves a pointer in
+(2855) **`Game::clock_init`'s port (dropped) hard-coded the harness's pointee address** for eax; a sweep of a function that leaves a pointer in
   eax should compare it relative to the window, not as an absolute.
 
 ## Parked by item 2779, 2026-10-17 — Capitalism pays its oil after the refineries
