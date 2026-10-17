@@ -6554,6 +6554,20 @@ pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY: i64 = 1204;
 /// exists` wants it strictly inside; the test walks `(1198, 1205)`.
 pub(crate) const WIDENING_CHAPTER_EIGHTY: (i64, i64) = (1197, 1205);
 
+/// **Chapter eighty-five** (item 2832, `docs/GOLDEN.md` §108, run880): a
+/// cloaked Spy's Bribe, cast on a Hoplite squad in a who=1 Scout's sight,
+/// and on a second out of it. The cast completes on 1212 (`CASTORDER` gone,
+/// the squad `1/6`..`1/8` closed, `0/8`..`0/10` born with the same `idle`
+/// as the original). **The word is the capture's end, 1219**: the first
+/// take parted on 1213 (the swapped figures' `dest_angle`, [`crate::bribe`]),
+/// and the take was cut at 1219 by the lane's hour (the dump's last block is
+/// 1218).
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY_FIVE: i64 = 1219;
+
+/// `chapter_eighty_five_s_window_is_widened_whole`'s window: run880, blocks
+/// 1100 to 1218.
+pub(crate) const WIDENING_CHAPTER_EIGHTY_FIVE: (i64, i64) = (1099, 1220);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9050,6 +9064,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_eighty_s_window_is_widened_whole"),
         2755,
         Some(WIDENING_CHAPTER_EIGHTY),
+    ),
+    // Item 2832: run880, chapter eighty-five, the cloaked Spy's Bribe; closed
+    // at the capture's end.
+    (
+        "GOLDEN_WORD_CHAPTER_EIGHTY_FIVE",
+        GOLDEN_WORD_CHAPTER_EIGHTY_FIVE,
+        Some("chapter_eighty_five_s_window_is_widened_whole"),
+        2832,
+        Some(WIDENING_CHAPTER_EIGHTY_FIVE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

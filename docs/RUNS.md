@@ -17347,3 +17347,15 @@ RON_STATE_FRAME=6808 --tracer-def RON_STATE_PLAN=<item 597's plan.h>`, pool lane
 who=1's Rocket Artillery `1/63` carries the same `MOVEORDER` (6648, 12408) on both sides; the draw delta is its ring, 15
 candidates against 11. With item 2845's held-clear bit, 248 keys remain. The window is in the coverage driver's slice, and its
 walk reads 2341 heights at inexact corners.
+## run880 — chapter eighty-five: the cloaked Spy's Bribe (2026-10-17, item 2832, `att-2832`)
+
+`docs/GOLDEN.md` §108. **What the disk could not answer**: no capture holds a Spy's Bribe (the `CASTORDER` 629 on a unit, the
+squad swap, `0/8`..`0/10` born under the caster's owner). Recipe `tools/gamelog/golden/chapter85.cmd` (`--map 14 --end-frame 1260
+--log-window 1100 1260`, the chapter-eighty `--detail` flags); the staging was walked first (`RON_STAGE=ch76:chapter85:1300`).
+A first take at `UNITS=3` alone ran to 1260 but its start carried too little to stand the sim up (frame-0 draws 101/120), so
+it is dead. This one: pool lane 1, 1.2 GB, **ran out the lane's hour at frame 1219** (`TimeoutExpired`, settings restored, no
+receipt); kept in `~/ron-golden/ch85/map-14/`, trace 1,219 frames, dump through block 1218. Minutes waited on another lane: ~35
+(run881's capture held the lock). **What it holds**: the Spy `0/6` pays 1000 mana and casts from 1114; on **1212** the squad
+`1/6`..`1/8` is gone and `0/8`..`0/10` stand at its positions under who 0 with `idle 1`; the control Spy `0/7` chases a
+Hoplite that walks away and never casts. Ours agrees from 1100 to the take's end after one fix (the figures' `dest_angle`).
+

@@ -12936,12 +12936,34 @@ none for a Land unit Bribe admits; (2) the `unit_masks` bits this crate keeps as
 messages and sounds; (4) `cast_bribe`'s building and city arms and the territory refusal (parked 2822); (5) the cloaked Spy's
 Bribe in a scout's sight, `unit_masks` and the owner across the cast — **no staging was run and no capture taken**.
 
-## 108. Reserved for the next item on the rules track
+## 108. Chapter eighty-five — the cloaked Spy's Bribe staged; the conversion backed by a diff (run880)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Booked** (item 2832): stage a cloaked Spy bribing in a who=1 scout's sight, one out of sight as control; compare `unit_masks` and
+the owner across the cast (§106's site two). **Staging** (`tools/gamelog/golden/chapter85.cmd`, walked by `stage_walk` on run871's
+start, `RON_STAGE=ch76:chapter85:1300`): both sides in the Medieval age; two Spies added at 606/608, **a Spy's `mana_burn` starts at 500
+and falls one a frame, and Bribe costs the whole 1000, so the cast waits for burn 0 (about 500 frames after the birth)** — the targets
+and the Scout go in at 1100–1102 and the `@spell 0 629` lines at 1112. Run880 (`docs/RUNS.md`): the take stopped at 1219 (the lane's
+hour), dump through 1218.
+
+**What the original does**, from the dump: `CASTORDER spell=629 paid=1` on 1114 (mana to 1000, `mana_burn` 1000); the target squad
+`1/6`..`1/8` attacks the Spy on 1115 (it is blown, §105 site two); on **1212** (trace; block 1213) the cast completes, `1/6` is closed,
+and `0/8`, `0/9`, `0/10` stand at the old figures' positions under who 0 — the captain `0/9`, `up` chain unchanged, `idle 1`, `unit_masks 8`
+for the member, `dest_angle` equal to `angle`. The Spy takes `do_idle` on the next frame. The control Spy `0/7` has the same `CASTORDER`
+from 1114; its target walks away and the Spy's chase begins on 1172.
+
+**The value diff** (run880, blocks 1213–1218): the first parting was the draws of 1213 (ours 13, theirs 10): the three swapped figures rolled
+an idle on 1213 where the original rolls none. The figure's state said why — ours left `heading` at `Unit::init`'s while `facing` took the old
+figure's, so `Guy::move` found the angle unsettled, asked the walk (`anim` 7) and rolled the stand again the next frame. The original's
+dump has `dest_angle` equal to `angle` on every swapped figure (`0/8` −2147483648 both, `0/9` −2121596928 both). **Built**: `bribe.rs`'s
+`copy_figure` sets `heading = facing`; `cast::tests::bribe_swaps_a_unit_s_team_and_closes_the_old_one` now asserts it (made to fail
+with the line dropped). The word moved 1213 → 1219 (the capture's end): the draws, the whole squad record and the owner agree on every
+block of 1100–1218 but the three families `WANT_CH85` names.
+
+**Diff-backed now**: the conversion's timing (cast 1114 → swap 1212 on both), the new squad's owner, positions, health, `idle`, `o_up`/`o_down`
+chain, the old squad's closing, the Spy's mana. **Not established**: (1) the sight gate — the control never reached range, so a target
+out of a scout's sight being refused is **unproven** (parked 2832, third); (2) the `unit_masks` bits kept as separate fields (the member's
+`unit_masks 8` agrees by value, the others are not distinguished by this staging); (3) the control Spy's re-target on 1178 and the Scout's
+first disc on 1103 (parked 2832, first and second).
 
 ## 109. Reserved for the next item on the rules track
 
