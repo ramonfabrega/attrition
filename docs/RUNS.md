@@ -17415,6 +17415,13 @@ Ours agrees on every block but the standing 1100 rows.
 `~/ron-golden/ch88/map-14/`, 1,501 frames. No minutes waited on another lane. **What it holds**: `0/6` bribes the Hoplite on 1250; `0/7`'s cast is
 killed at its next review, 1258. Ours agrees on every block but the standing 1100 rows.
 
+## run892 — chapter ninety: the Informer's three kills (2026-10-17, item 2949, `att-2949`)
+
+`docs/GOLDEN.md` §114. **What the disk could not answer**: no dump held an Informer on a unit, a second Spy walking to an infiltrated building, or a cast on a
+stealth-hidden Spy (parked 2947, 2929). Recipe `tools/gamelog/golden/chapter90.cmd` (`--map 14 --end-frame 1200 --log-window 605 1200`, chapter 87's `end:`/`start:`
+sets with `BUILDS=7`). Pool lane 1, 689 s total (launched 12:19:24, exited 12:30:39), kept in `~/ron-golden/ch90/map-14/`, 1,201 frames, seed 12345.
+No minutes waited on another lane. **What it holds**: Spy B's order list emptied on 810 mid-approach after A infiltrated the Barracks on 794; Spy D's on
+665 (stealth); Spy C's on 842 (unseen at range). Ours agrees on every block bar the 11 standing `form` rows.
 ## run890 — chapter eighty-nine: a Bribe's range-arrival on a far target (2026-10-17, item 2930, `att-2930`)
 
 `docs/GOLDEN.md` §113. **What the disk could not answer**: no dump held a cast arriving at range from far off (run885's Spy never arrived, parked 2928).

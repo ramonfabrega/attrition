@@ -13082,12 +13082,35 @@ this staging, nor by any Bribe — a Spy's sight covers Bribe's range. Coverage 
 **Not established**: the kill itself at range arrival on an unseen target (held by the listing's call, not by a diff); it needs a caster whose
 range exceeds its sight, or a target hidden by stealth (§101).
 
-## 114. Reserved for the next item on the rules track
+## 114. Chapter ninety — the Informer's three kills: a building lost mid-approach, an unseen target at range, a stealth-hidden one (run892)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** §113's parked 2947 and 2929: `check_cast_target_path`'s kill on a target gone invalid, and `do_cast`'s `is_seen` kill at range
+arrival, neither with a diff. **Which caster reaches them** (`craftrules.xml` against `unitrules.xml`'s `LOS`): Bribe 6 tiles against the Spy's 8, so no
+Bribe ever does; Counterintelligence 10 (Scout, LOS 4) targets a friend, which its owner always sees; the Sniper (12, Commando 8) and Blow Tread are
+refused by this crate's `spell_valid_target`. **The Informer** (`fbcml`, 10 tiles on a unit, 5 on a building) against the Spy's 8 does: on a unit it arrives
+beyond its sight. `SpellTypeData::is_valid_target@006763c0`'s Informer arm asks only the target's `+0xdc` (`infiltrated`, as `infiltrated_of`), and a
+unit passes its `flags & 2` test. **Disk could not answer**: no dump holds an Informer on a unit, an infiltrated building a second Spy is walking to, or a
+cloaked target; run245 (§27) is one Spy at one building.
+
+**Staging** (`tools/gamelog/golden/chapter90.cmd`, 14 lines, `RON_STAGE=ch76:chapter90:1200`, walked before the capture; `add` coordinates snap to
+land, so a unit's distance is read off the walk, not the numbers): arm 1 — Spy A `0/6` and Spy B `0/7` both sent to infiltrate the who=1 Barracks `1/2006`;
+arm 2 — Spy C `0/8` at the who=1 Hoplite `1/6` (a squad of three), 5,500 units off; arm 3 — Spy D `0/9` at the who=1 Spy `1/9`, idle. **The first walk's
+targets were wrong twice**: a Hoplite 22 add-units out was across a detour the Spy never finished in 580 frames, and a Hoplite squad that is infiltrated
+marches (`AttackTo` 764), so the staging was moved to the near side of the water and the casts split. **Not a prediction for fog** (Loop 2948): the capture
+decided, and the walk's three kills are the original's.
+
+**What the original does** (run892, 1,201 frames, 689 s): A arrives 754, infiltrates 794; **B, still walking, loses its order on 810** (`CASTORDER` and
+`MOVEORDER` gone at once, `idle` 1); D reaches its spot at 664 and loses the order on 665 with `spell_time` 0 — the stealth-hidden target; C arrives
+2,120 units from the Hoplite, sight 1,536, and loses the order on 842. Ours agrees on every block of 605–1199 bar the 11 standing `form` rows (`WANT_CH90`);
+the word is the capture's end, **1200**, `ch90` closed. **No sim change.**
+
+**What the diff backs, by mutation** (each on a clean tree through `tools/mutate.py`): the invalid-target kill in `check_cast_target_path` removed parts on
+**810** (`0/7 order:length` ours 2 theirs 0, then position); the range-arrival `is_seen` kill in `do_cast_targeted` removed parts on **665** (`0/9
+order:length` 1 against 0, `spell_time` 1 against 0) and on **842** (`0/8`); `unit_stealth_hides` made false parts on **648** (`0/9`, the cast no longer
+waits for the unseen order — the Spy takes its spot and a different order list). Coverage window 838–844.
+
+**Not established**: Counterintelligence on a unit its owner cannot see (it refuses here, §27 sees none); `unit_masks` `0x800`/`0x1000` as a hiding source;
+that an Informer on a *moving* unit re-paths (`is_moving` arm, §112, still unwatched at arrival).
 
 ## 115. Reserved for the next item on the rules track
 
