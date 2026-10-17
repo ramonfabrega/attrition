@@ -256,6 +256,8 @@ mod group_dbg_jump_to_waypoint;
 mod group_equals_group;
 #[path = "group_find_role.rs"]
 mod group_find_role;
+#[path = "group_get_num.rs"]
+mod group_get_num;
 #[path = "group_get_speed.rs"]
 mod group_get_speed;
 #[path = "group_kill_group_order.rs"]
