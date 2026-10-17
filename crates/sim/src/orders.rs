@@ -1537,11 +1537,7 @@ impl Sim {
 
     /// `Unit::kill_current_order(0)` (§3.2): the per-kind teardown, then the
     /// pop, the path segment, `update_action`.
-    #[track_caller]
     pub fn kill_current_order(&mut self, u: usize) {
-        if std::env::var("RON_PROBE_KILL").is_ok_and(|v| v == u.to_string()) {
-            eprintln!("PROBE kill site f{} {}", self.frame, std::panic::Location::caller());
-        }
         self.kill_order(u, false);
     }
 
@@ -1558,13 +1554,6 @@ impl Sim {
     /// `param_1 == 0`); the gather arm's `remove_gatherer` is gated on
     /// nothing but the building (§3.2, `docs/GOLDEN.md` §52).
     fn kill_order(&mut self, u: usize, closing: bool) {
-        if std::env::var("RON_PROBE_KILL").is_ok_and(|v| v == u.to_string()) {
-            eprintln!(
-                "PROBE kill f{} u{u}: {}",
-                self.frame,
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         let Some(order) = self.units[u].orders.front().copied() else {
             return;
         };
