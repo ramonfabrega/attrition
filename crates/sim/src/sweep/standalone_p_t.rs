@@ -162,6 +162,8 @@ mod special_anim_order_walk_data;
 mod special_data_get_radius;
 #[path = "special_walk_data.rs"]
 mod special_walk_data;
+#[path = "specials_data_find_special.rs"]
+mod specials_data_find_special;
 #[path = "spell_type_cast_blow_tread.rs"]
 mod spell_type_cast_blow_tread;
 #[path = "spell_type_cast_depopulate.rs"]
