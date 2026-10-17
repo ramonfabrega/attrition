@@ -677,6 +677,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch85 = golden_dump("ch85");
     let ch86 = golden_dump("ch86");
     let ch87 = golden_dump("ch87");
+    let ch88 = golden_dump("ch88");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2529,6 +2530,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 7,
             "chapter eighty-seven carries seven blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter eighty-eight, on run889** (item 2915): the Hoplite converted on
+    // 1250 and the second Spy's cast killed at its review, 1258.
+    if let Some(p) = &ch88 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_EIGHTY_EIGHT;
+        let n = drive_capture(p, 1254, 1260, &mut paths);
+        assert_eq!(
+            n, 7,
+            "chapter eighty-eight carries seven blocks in the window"
         );
         frames += n;
     }

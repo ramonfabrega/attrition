@@ -5608,6 +5608,47 @@ const WANT_CH87: &[&str] = &[
     "1100 1/5 form",
 ];
 
+/// **Chapter eighty-eight** (item 2915, `docs/GOLDEN.md` §112, run889): a Bribe whose
+/// target turns invalid on the approach.
+#[test]
+fn chapter_eighty_eight_holds_to_the_golden_word() {
+    cases_80_89::chapter_eighty_eight_holds_to_the_golden_word();
+}
+
+/// **run889 whole, both directions** (item 2915, `docs/GOLDEN.md` §112).
+#[test]
+fn chapter_eighty_eight_s_window_is_widened_whole() {
+    cases_80_89::chapter_eighty_eight_s_window_is_widened_whole();
+}
+
+/// What parts in run889's window, blocks 1100–1500.
+const WANT_CH88: &[&str] = &[
+    "1100 0/0 form",
+    "1100 0/1 form",
+    "1100 0/2 form",
+    "1100 0/2000 build:extra",
+    "1100 0/2001 build:extra",
+    "1100 0/2002 build:extra",
+    "1100 0/2003 build:extra",
+    "1100 0/2004 build:extra",
+    "1100 0/2005 build:extra",
+    "1100 0/2006 build:extra",
+    "1100 0/3 form",
+    "1100 0/4 form",
+    "1100 0/5 form",
+    "1100 1/1 form",
+    "1100 1/2 form",
+    "1100 1/2000 build:extra",
+    "1100 1/2001 build:extra",
+    "1100 1/2002 build:extra",
+    "1100 1/2003 build:extra",
+    "1100 1/2004 build:extra",
+    "1100 1/2005 build:extra",
+    "1100 1/3 form",
+    "1100 1/4 form",
+    "1100 1/5 form",
+];
+
 /// What parts in run884's window, blocks 1100–1299.
 ///
 /// Only the standing rows of 1100 (`form`, the extra buildings this crate holds alone), the same as chapter eighty-five's. **Nothing

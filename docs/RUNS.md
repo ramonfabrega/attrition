@@ -17407,3 +17407,10 @@ line 5.2 frames a second at a minute in (the `UNITS=3` end set over a longer win
 dump through block 1499. No minutes waited on another lane. **What it holds**: the Spy `0/6` casts from 1114 and walks a winding path toward a
 Hoplite `1/6` 22 tiles off; the Hoplite stands until 1283, then walks; the Spy has not reached range by 1499 and the cast does not complete.
 Ours agrees on every block but the standing 1100 rows.
+
+## run889 — chapter eighty-eight: a Bribe whose target converts under a second Spy's walk (2026-10-17, item 2915, `att-2915`)
+
+`docs/GOLDEN.md` §112. **What the disk could not answer**: no dump held a seen cast target turning invalid on the approach (parked 2894, 2912). Recipe
+`tools/gamelog/golden/chapter88.cmd` (`--map 14 --end-frame 1500 --log-window 1100 1500`, chapter 87's `end:`/`start:` sets). Pool lane 1, 275 s, kept in
+`~/ron-golden/ch88/map-14/`, 1,501 frames. No minutes waited on another lane. **What it holds**: `0/6` bribes the Hoplite on 1250; `0/7`'s cast is
+killed at its next review, 1258. Ours agrees on every block but the standing 1100 rows.
