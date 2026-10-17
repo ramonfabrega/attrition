@@ -94,8 +94,12 @@ mod resource_divvy_pool_refresh_water;
 mod reversing;
 #[path = "river_doober_add_doob_for_render.rs"]
 mod river_doober_add_doob_for_render;
+#[path = "river_doober_add_for_render.rs"]
+mod river_doober_add_for_render;
 #[path = "river_doobers_add_doobers_for_render.rs"]
 mod river_doobers_add_doobers_for_render;
+#[path = "river_section_out_compute_vert_height.rs"]
+mod river_section_out_compute_vert_height;
 #[path = "rivers_out_get_name.rs"]
 mod rivers_out_get_name;
 #[path = "rivers_walk_data.rs"]
@@ -238,6 +242,8 @@ mod terrain_build_beach_data;
 mod terrain_convert_errant_sandy;
 #[path = "terrain_list_walk_data.rs"]
 mod terrain_list_walk_data;
+#[path = "terrain_map_cancel_button_enable.rs"]
+mod terrain_map_cancel_button_enable;
 #[path = "terrain_map_get_terrain_type.rs"]
 mod terrain_map_get_terrain_type;
 #[path = "terrain_map_on_left_up.rs"]

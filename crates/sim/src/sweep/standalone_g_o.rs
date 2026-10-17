@@ -104,6 +104,8 @@ mod game_is_victory_timer;
 mod game_on_find_leaderboard;
 #[path = "game_popwin_timer.rs"]
 mod game_popwin_timer;
+#[path = "game_run_unit_editor.rs"]
+mod game_run_unit_editor;
 #[path = "game_teams_locked.rs"]
 mod game_teams_locked;
 #[path = "game_unload_net_lib.rs"]
@@ -130,6 +132,8 @@ mod gather_order_walk_data_vtordisp;
 mod gather_point_is_inside;
 #[path = "gather_point_walk_data.rs"]
 mod gather_point_walk_data;
+#[path = "get_float_z.rs"]
+mod get_float_z;
 #[path = "get_type_count.rs"]
 mod get_type_count;
 #[path = "get_type_count2.rs"]
@@ -444,12 +448,16 @@ mod move_order_walk_data_vtordisp;
 mod moveorder_is_fleeing;
 #[path = "nuke_been_damaged_before.rs"]
 mod nuke_been_damaged_before;
+#[path = "nuke_draw_ctw.rs"]
+mod nuke_draw_ctw;
 #[path = "nuke_get_name.rs"]
 mod nuke_get_name;
 #[path = "nuke_on_field_change.rs"]
 mod nuke_on_field_change;
 #[path = "nuke_out_num_current_nukes.rs"]
 mod nuke_out_num_current_nukes;
+#[path = "nuke_out_setup_terrain_terraforming.rs"]
+mod nuke_out_setup_terrain_terraforming;
 #[path = "nuke_out_update.rs"]
 mod nuke_out_update;
 #[path = "object_assault_benefit.rs"]
