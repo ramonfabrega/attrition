@@ -12,9 +12,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-15, **the thirty-seventh pass (steer, Fable) after the thirty-seventh tranche: 23 landings from `23e2df12`** (DECISIONS
-74), four lanes (Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rules track and two sweeps): 4.22 USD and **36.5 minutes
-waiting a landing** against 3.92 / 27.0 — a fifth broken, so **the fourth lane goes** (entry 61 §5); every gate green, no kill rule, one `DEEP`.*
+*2026-10-17, **the thirty-eighth tranche at its seam (commander, Opus): 10 landings from `a4ff472f`**, every booking gate green
+after its second commit at most (one: the Golden line, Loop 2799); last whole gate `05718f24`, last gate `6d760eba`; two `DEEP`
+lanes cleared (2779, 2801), no kill rule. 2793 waited 1h50 on a subagent that ended its turn (Loop 2820), told to land without it.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 5982 → 5985 (2780: the scout's fog read takes the Space Program; 2779: Capitalism's oil), the open word.
   Chapter 80 closed (1204, run878: a fight blows a stealth unit), 81 compared the blown bits (2798), 82 built `do_cast`'s blow from the listing (2804); 69 built, 70 surveyed. Census 1068 → 1181, `port` 171 → 156. Battery 576 / 6566
@@ -22,8 +22,8 @@ waiting a landing** against 3.92 / 27.0 — a fifth broken, so **the fourth lane
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every third landing
   and at the drain; a whole gate refuses a stale `agent-*` worktree (Loop 2724). The sweep's per-function check runs in debug (2787).
 - **Lanes: four, live from `a4ff472f`** (DECISIONS 75: the lane entry 74 took goes back for the trial): 2808 (AI §235,
-  FF), 2812 (GOLDEN §106, FG, run 880), 2818 (FH) and 2793 (EY) on the two sweep lanes; 2783, 2780, 2782, 2785, 2797, 2798, 2801, 2779, 2804, 2807 landed. Next 2820, run 881 (Astra 900–909). Pools: GOLDEN §107–109, AI §236–239, park FI–FO.
-- **Fable backlog: 15 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792, 2796, 2799, 2809, 2819).
+  FF), 2812 (GOLDEN §106, FG, run 880), 2818 (FH) and 2793 (EY) on the two sweep lanes; 2783, 2780, 2782, 2785, 2797, 2798, 2801, 2779, 2804, 2807 landed. Next 2821, run 881 (Astra 900–909). Pools: GOLDEN §107–109, AI §236–239, park FI–FO.
+- **Fable backlog: 16 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792, 2796, 2799, 2809, 2819, 2820).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -52,6 +52,10 @@ the whole gate runs the caches' verifiers, and `touch ~/Library/Caches/attrition
 every worktree at once. **The trial's two numbers**, read at the thirty-eighth pass: waiting a landing (`tools/tranche.py`)
 against 36.5 on four lanes, and the gates' `Admission wait:` line — a rise with the admission wait near zero is the box's
 cost and the fourth lane goes again; a rise with it high is the admission's and the marker is the answer.
+**The tranche's admission ledger** (ten landings): lane gates 2.1–12.5 s each over 380–919 leases, longest 1.2 s
+(2785's first gate 74 s, one 65 s lease); booking gates 41.0 s (`2280648b`, longest 32.6), 18.9 (whole), 3.5, 2.3, 10.4
+(whole), 2.1, 7.0, 10.6 (whole), 2.8; the one admission failure was the probe race `a8883529` fixed (exit 125, Loop
+2788); the marker was not used.
 Whole gate green on `946393a4`: 6 of 6, 422 s at eight threads, rondata 900 in 275 s with the verifiers on (128 s without, at
 four, on the branch's tip), 4080 fixture requests and none missing, admission wait 3.9 s over 917 leases.
 

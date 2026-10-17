@@ -3778,6 +3778,13 @@ and the next-shortest unshaped rows (parked 2817) are more of the same; two batc
 `Census:` rises (1169 → 1181) on functions the finish line does not need. Yours: whether `census.py`'s layer rules move
 these files out of `simulation`, and whether the two sweep lanes stay two (the roster is Ramon's). One reach.
 
+(2820) **A lane waiting on a subagent that ended its turn is invisible to `lanewait.py`** (the commander, 2026-10-17):
+2793 fanned its batch to ten subagents (`agent-*` worktrees), and the `num_city_buildings` one ended its turn at 03:25 with
+"the harness will re-invoke me when the background job exits" — a subagent is not re-invoked that way — so the lane sat
+1h50 "waiting on the agent", its row `working`, no `STALLED` exit (a running subagent counts as running). Candidate: the
+waiter reads a lane's subagent transcripts and exits `STALLED` on one quiet past the threshold with `end_turn`; and the
+frame's brief says a subagent never ends its turn on a background wait. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 (2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
