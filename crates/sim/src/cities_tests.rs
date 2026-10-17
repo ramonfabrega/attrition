@@ -530,6 +530,55 @@ fn blocked_tcoord_s_tile_arms_follow_the_listing() {
     assert_eq!(verdict, Blocked::Seen, "not replaced by the location test");
 }
 
+/// **`blocked_site`'s unseen tally** (`blocked_site@00636a50`, item 2956,
+/// `docs/AI.md` §241): a footprint more than half of whose tiles `was_seen`
+/// denies `who` is refused `0x24` — the Town's 7×7 at 25 unseen tiles and
+/// not at 24 — with no tally for no `who`, and none for the Dock's lineage.
+#[test]
+fn a_footprint_more_than_half_unseen_is_refused_seen() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.lobby.reveal_map = 1;
+    let pos = tile_pos(32, 32);
+    let corner = sim.tile_corner(t.town, pos);
+    let tiles = sim.footprint(t.town, corner);
+    assert_eq!(tiles.len(), 49);
+    let mut halves: Vec<(i32, i32)> = tiles.iter().map(|p| (p.x >> 1, p.y >> 1)).collect();
+    halves.dedup();
+    halves.sort_unstable();
+    halves.dedup();
+    let (mut refused, mut taken) = (false, false);
+    for k in 0..=halves.len() {
+        assert!(sim.world.set_fog(vec![0; 16 * 16 * 4]));
+        for &(fx, fy) in &halves[..k] {
+            assert!(sim.world.set_seen2_only(fx, fy, 1));
+        }
+        let unseen = tiles
+            .iter()
+            .filter(|p| !sim.was_seen_fog(p.x >> 1, p.y >> 1, 0))
+            .count();
+        let verdict = sim.blocked_site(Some(0), t.town, pos, None);
+        assert_eq!(
+            verdict == Blocked::Seen,
+            unseen > 24,
+            "{unseen} of 49 unseen: {verdict:?}"
+        );
+        refused |= verdict == Blocked::Seen;
+        taken |= verdict != Blocked::Seen && unseen > 0;
+        assert_ne!(
+            sim.blocked_site(None, t.town, pos, None),
+            Blocked::Seen,
+            "no who, no tally"
+        );
+    }
+    assert!(refused && taken, "both sides of the half");
+    // The Dock's lineage is exempt: whatever it is refused on dry, unseen
+    // land, it is not `0x24`.
+    assert!(sim.world.set_fog(vec![0; 16 * 16 * 4]));
+    let dock = sim.add_build_type(bt(Ident::Dock, None, "gb", 4, 4, 150, 400, 0));
+    assert_ne!(sim.blocked_site(Some(0), dock, pos, None), Blocked::Seen);
+}
+
 /// **`was_seen`'s allied-owner arm tests forts as well as cities** (group 12;
 /// A8 row 38, `WorldData::was_seen@006b53f0`: `reg_cities[region]` **or**
 /// `reg_forts[region]`), and a cell with no region is not ruins (row 40).
