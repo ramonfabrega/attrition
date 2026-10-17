@@ -86,6 +86,8 @@ mod balance_return_modifier;
 mod balance_walk_rules_data;
 #[path = "border_build_border.rs"]
 mod border_build_border;
+#[path = "border_generate_morph_side.rs"]
+mod border_generate_morph_side;
 #[path = "border_nodes_find.rs"]
 mod border_nodes_find;
 #[path = "border_spline_get_name.rs"]
