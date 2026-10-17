@@ -1218,12 +1218,13 @@ mod tests {
         use crate::ai_load::{UnitCols, uflags};
         use crate::orders::{SpellType, spell};
         let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-        s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
         let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
         s.spells[at(spell::BRIBE)].flags = 0;
         s.spells[at(spell::INFORMER)].flags = super::craft::KEEP_CLOAK;
         s.spells[at(0x281)].flags = 0;
-        let mut cloak = |s: &mut Sim, u: usize, flags: u32| {
+        let cloak = |s: &mut Sim, u: usize, flags: u32| {
             let t = s.units[u].ty.unwrap();
             s.unit_types[t].cols = UnitCols {
                 unit_flags: flags,
