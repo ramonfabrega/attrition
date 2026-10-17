@@ -17414,6 +17414,13 @@ Ours agrees on every block but the standing 1100 rows.
 `tools/gamelog/golden/chapter88.cmd` (`--map 14 --end-frame 1500 --log-window 1100 1500`, chapter 87's `end:`/`start:` sets). Pool lane 1, 275 s, kept in
 `~/ron-golden/ch88/map-14/`, 1,501 frames. No minutes waited on another lane. **What it holds**: `0/6` bribes the Hoplite on 1250; `0/7`'s cast is
 killed at its next review, 1258. Ours agrees on every block but the standing 1100 rows.
+
+## run890 — chapter eighty-nine: a Bribe's range-arrival on a far target (2026-10-17, item 2930, `att-2930`)
+
+`docs/GOLDEN.md` §113. **What the disk could not answer**: no dump held a cast arriving at range from far off (run885's Spy never arrived, parked 2928).
+Recipe `tools/gamelog/golden/chapter89.cmd` (`--map 14 --end-frame 1500 --log-window 1100 1500`, chapter 87's `end:`/`start:` sets). Pool lane 1, 155 s, kept in
+`~/ron-golden/ch89/map-14/`, 1,501 frames. No minutes waited on another lane. **What it holds**: the Spy arrives ~1141 and the Hoplite converts to `0/7` on
+1241. Ours agrees on every block but the standing 1100 rows.
 ## run886 — the battery word: East Indies, Germans at difficulty 3, the word 576's widening, blocks 570..826 (2026-10-17, item 2904, `att-2904`)
 
 `docs/AI.md` §239. **What the disk could not answer**: run643 is `cover=0` with its setup and closing blocks only (block 1 and

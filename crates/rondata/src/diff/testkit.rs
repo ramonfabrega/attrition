@@ -6597,6 +6597,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY_EIGHT: i64 = 1500;
 /// 1100 to 1499.
 pub(crate) const WIDENING_CHAPTER_EIGHTY_EIGHT: (i64, i64) = (1099, 1501);
 
+/// **Chapter eighty-nine** (item 2930, `docs/GOLDEN.md` §113, run890): a Bribe
+/// whose target is outside the caster's owner's sight on arrival at range.
+/// **The word is the capture's end, 1500**.
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY_NINE: i64 = 1500;
+
+/// `chapter_eighty_nine_s_window_is_widened_whole`'s window: run890, blocks
+/// 1100 to 1499.
+pub(crate) const WIDENING_CHAPTER_EIGHTY_NINE: (i64, i64) = (1099, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9133,6 +9142,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_eighty_eight_s_window_is_widened_whole"),
         2915,
         Some(WIDENING_CHAPTER_EIGHTY_EIGHT),
+    ),
+    // Item 2930: run890, chapter eighty-nine, a cast arriving at range on a
+    // target outside the caster's owner's sight; closed at the capture's end.
+    (
+        "GOLDEN_WORD_CHAPTER_EIGHTY_NINE",
+        GOLDEN_WORD_CHAPTER_EIGHTY_NINE,
+        Some("chapter_eighty_nine_s_window_is_widened_whole"),
+        2930,
+        Some(WIDENING_CHAPTER_EIGHTY_NINE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

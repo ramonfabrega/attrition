@@ -678,6 +678,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch86 = golden_dump("ch86");
     let ch87 = golden_dump("ch87");
     let ch88 = golden_dump("ch88");
+    let ch89 = golden_dump("ch89");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2541,6 +2542,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 7,
             "chapter eighty-eight carries seven blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter eighty-nine, on run890** (item 2930): the Spy's Bribe completes
+    // on a target it sees at range; the Hoplite converts on 1241.
+    if let Some(p) = &ch89 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_EIGHTY_NINE;
+        let n = drive_capture(p, 1238, 1244, &mut paths);
+        assert_eq!(
+            n, 7,
+            "chapter eighty-nine carries seven blocks in the window"
         );
         frames += n;
     }

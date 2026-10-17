@@ -13036,8 +13036,7 @@ every sixteen frames. The original does not: the target stays in who=0's fog, so
 arm §110 left (3).
 
 **Not established**: (1) the unseen-target arm's *death* (`repath` + `kill_current_order` for an invalid target) — only the `is_seen` early
-return is reached, never an invalid seen target; (2) a building target; (3) the cast's completion on an unseen target (the Spy did not reach range
-in 400 frames, so whether range-arrival itself asks `is_seen` is untested).
+return is reached, never an invalid seen target; (2) a building target; (3) ~~the cast's completion on an unseen target~~ — answered in §113: the Spy sees the target at range, the arm is the listing's.
 
 ## 112. Chapter eighty-eight — a cast whose target turns invalid on the approach (run889)
 
@@ -13062,12 +13061,26 @@ theirs 1 — and later (1406) on who=1's side. Coverage window 1254–1260.
 **Not established**: the cast's *completion* on an unseen target (§111 (3)); a building target that goes invalid mid-approach (killed
 buildings: the same `is_valid_target` branch, but no capture drives it).
 
-## 113. Reserved for the next item on the rules track
+## 113. Chapter eighty-nine — a Bribe's range-arrival on a target the caster's owner may not see (run890)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** §111 (3), parked 2928: whether a cast's range-arrival asks `is_seen`. **Disk could not answer**: run885's Spy, 22 tiles off, never
+reached range in 400 frames; no other dump held a cast arriving at a far target.
+
+**The listing first.** `Unit::do_cast@005ebfe0`'s in-range block (`005ec546`..`005ec5ae`) calls the target's vslot `+0x48` (`UnitData::is_seen`)
+with `(caster's owner, 0)` and takes `LAB_005ece9f` (the kill) on a zero; then `visible |= 1 << whom` and the `World::is_seen` / `update_local_seen`
+(`+0x164`) pair. That is `cast.rs`'s `target_is_seen` at range arrival, as built.
+
+**Staging** (`tools/gamelog/golden/chapter89.cmd`, `RON_STAGE=ch76:chapter89:1500`, 6 staged lines): chapter 87's staging with the Hoplite 14 tiles off
+(`add hoplite who=1 134,100`). **What the original does** (run890): the Spy walks to the ring at 1,008 units, arrives on ~1141, casts, and the
+Hoplite converts on 1241 (it is `0/7`). Ours agrees on every block of 1100–1499 but the standing 24 rows (`WANT_CH89`). Word 1500, `ch89` closed.
+**No sim change.**
+
+**What the diff backs, by mutation.** Always killing at arrival parts on **1142** (`0/6 orders.len` ours 0 theirs 1, then `spell_time`): the cast
+runs. Never killing (the `is_seen` early return removed) **fails nothing**: the Spy sees the Hoplite at range, so the unseen arm is not reached by
+this staging, nor by any Bribe — a Spy's sight covers Bribe's range. Coverage window 1238–1244.
+
+**Not established**: the kill itself at range arrival on an unseen target (held by the listing's call, not by a diff); it needs a caster whose
+range exceeds its sight, or a target hidden by stealth (§101).
 
 ## 114. Reserved for the next item on the rules track
 
