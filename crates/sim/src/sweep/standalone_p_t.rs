@@ -336,6 +336,8 @@ mod turn_control_issue_speed_set;
 mod turn_control_issue_speed_up;
 #[path = "turn_control_issue_toggle_pause.rs"]
 mod turn_control_issue_toggle_pause;
+#[path = "turn_control_set_new_target_time.rs"]
+mod turn_control_set_new_target_time;
 #[path = "turn_control_set_pause.rs"]
 mod turn_control_set_pause;
 #[path = "turn_control_speed_down.rs"]
