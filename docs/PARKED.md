@@ -3738,6 +3738,14 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3022) **`sweep_gen.py --regen` with a bad flag set leaves the old files and exits 0** (3004's "for the Loop" line, filed
+at its merge). Candidate: a regen that cannot write exits non-zero and names the flag, a test made to fail first. One reach.
+
+(3023) **A booking gate was killed mid-run with exit 144 and no verdict** (the fortieth tranche's eighth booking gate,
+`f9a46406`, 16:53, its log ending on a passing `rondata` test; the re-run was green, 6 of 6): five lanes were live, and
+the gate's banner warns against `pkill -f` on a name every lane shares. Candidate: the gate traps the signal and prints
+who sent it (`siginfo` pid where the platform gives one) in its last line, a test made to fail first. One reach.
+
 (3012) **A sibling's port block is copied by hand with three constants re-measured, ten times a batch** (2990's "for the
 Loop" line and parked 3011, filed at its merge; the fifth reach of the shape). Candidate: `sweep_gen.py --port-from
 SIBLING` copies the block and reports the constants that differ, a test made to fail first. One reach.
@@ -6969,13 +6977,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GV — reserved
+## Parked by item 3004, 2026-10-17 — the second harvest batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3019) **`Unit::update_armor` needs a climb that ends**: the loop calls slot `+0xa8` on the object table's
+  record until a captain is reached, and `sweep_gen.py obj` can answer a stub with one window, which makes the climb
+  its own parent (an unbounded loop unless every row's second `+0xe8` answer is 1). A `--climb` shape (a chain of
+  windows, each `+0x8e` naming the next, terminated) would take it and the other `is_captain` climbs. Names no score
+  beyond the census.
+- (3020) **`AmmoData::walk_data`, `Game::walk_data` and `TurnControl::end_cannon_time`
+  read and not taken**: the first reads a stack byte of its own argument slot that the real walker writes on input (the
+  walker stub cannot; `--stub-write` writes through a pointer argument, not the caller's slot), the second calls
+  `timeGetTime`, the third pushes a dozen-argument `MessageWin::add_message` with uninitialised stack temporaries.
+- (3021) **Three breaks of the batch pass and are not draw faults worth a flag**: `count_farms`' `(k - 1).min(5)`
+  needs a six-member live chain (the `--link` draw above each figure's own index rarely walks all six), and
+  `get_abbrev_parsed`' `ty < 0x32` is equivalent (`SILK` and `GEMS`, the only types the arm tests, are both below it).
+  The third, `lookup_absolute_name`'s two boundary breaks, passed on `--argrange 1:-4:0x180` and held on
+  `1:0x15e:0x171`: a range wide enough to hold four boundaries one value each is too wide for 220 rows.
 
 ## Parked by item 3008, 2026-10-17 — the second harvest batch (ten world and table bodies)
 
@@ -7012,13 +7029,26 @@ orders agree at equality); `lo < 60000` → `lo < 59999` survives 6000 rows, the
 (no ring in 64 holds non-land) is never drawn, the nearest non-land cell always inside 31 rings. `Doober::remove_cover_doober`:
 `n > 0` is a guard no drawn row crosses (the count is drawn 1..6).
 
-## Parked by the next landing, slot GX — reserved
+## Parked by item 3014, 2026-10-17 — ten more `process_*` bodies swept, Census 1349 → 1359
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3025) **Still unswept after this batch**: `CommandPackage::process_rename_city` (virtual slot 0xac on a unit
+  record placed through the objects table, so a `--vtat-also` on all twelve unit windows; the slot's answer is a pointer
+  the function indexes by a signed short at +0x72 into the per-player `cities` array at `0xc09970 + who*0x1c`; a
+  `String::operator=` whose `ecx` after the return is the next callee's argument, `find_group` and `update_name`), and
+  2964's `find_city`, `find_city_at`, `poor_target`, `Tribes::find`, `Unit::update_local_seen` (a bounded image-table
+  draw, `--at VA:SIZE:LO..HI`), `Wall::swap_team`, `Signposts::add`. None read this batch. **Booked as 3030 at the merge.**
+- (3026) **`--record-edx` prefixes `ecx,edx` to every recorded call**, so a logger of five references prints ten
+  arguments after its `ecx`; the generated docstring does not say so and `process_hotkey`'s first run looked as if the
+  logger's arity were off by one. One line in the docstring when the flag is set.
+- (3027) **`--answers IDX` with `--seq IDX:N:T` prints one plain answer then N values**, the last drawn from
+  the terminators (`process_sell`'s `do_sell`: `a[9]` the plain answer, `a[10..15]` the sequence); the usage text says "N
+  values" and the row has N+1 after the plain one. `process_sell` reads `a[10 + min(k, 4)]`.
+- (3028) **`--place-null K:WIN+OFF=V` is the only way a port tells a null placed pointer from a live one**:
+  `process_console_cmd` marks it with the word 12345678 at the start of the buffer (`p1+0`); a port of a function that
+  reads that word would have to take another marker.
+- (3029) **`process_speed_set`'s timings table (`0xafc4a4`) is read as the file's static bytes under the emulator**
+  (values like 5242957, 67, 1 that no booted game holds); the sweep draws it as a window instead, so it pins the
+  indexing and the call, not the table (the table is the sim's own `TurnControl::timings`, not swept here).
 
 ## Parked by the next landing, slot GY — reserved
 

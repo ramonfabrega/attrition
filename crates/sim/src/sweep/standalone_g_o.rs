@@ -68,6 +68,8 @@ mod game_get_patch_version;
 mod game_get_time_limit;
 #[path = "game_info_default_setting.rs"]
 mod game_info_default_setting;
+#[path = "game_info_get_map_size_name.rs"]
+mod game_info_get_map_size_name;
 #[path = "game_info_load_from_playback.rs"]
 mod game_info_load_from_playback;
 #[path = "game_is_cooperative.rs"]
@@ -114,6 +116,8 @@ mod game_run_unit_editor;
 mod game_teams_locked;
 #[path = "game_unload_net_lib.rs"]
 mod game_unload_net_lib;
+#[path = "game_walk_rules_data.rs"]
+mod game_walk_rules_data;
 #[path = "game_war_allowed.rs"]
 mod game_war_allowed;
 #[path = "game_wonder_timer.rs"]
@@ -330,6 +334,8 @@ mod group_report_speed;
 mod group_set_ordered;
 #[path = "group_toggle.rs"]
 mod group_toggle;
+#[path = "group_walk_data.rs"]
+mod group_walk_data;
 #[path = "groupmoveorder_is_fleeing.rs"]
 mod groupmoveorder_is_fleeing;
 #[path = "groupmoveorder_is_pathed.rs"]
@@ -458,6 +464,8 @@ mod misc_access_coord_vis_4;
 mod misc_access_find_global_render_z;
 #[path = "mountain_range_validate_tcoord.rs"]
 mod mountain_range_validate_tcoord;
+#[path = "mountains_data_total_gather_size.rs"]
+mod mountains_data_total_gather_size;
 #[path = "mountains_out_mnt_locs.rs"]
 mod mountains_out_mnt_locs;
 #[path = "mountains_out_mnt_ranges.rs"]
@@ -466,6 +474,8 @@ mod mountains_out_mnt_ranges;
 mod mountains_out_mnt_types;
 #[path = "mountains_tileset_texture_load.rs"]
 mod mountains_tileset_texture_load;
+#[path = "mountains_walk_data.rs"]
+mod mountains_walk_data;
 #[path = "move_order_get_move_order_vtordisp.rs"]
 mod move_order_get_move_order_vtordisp;
 #[path = "move_order_is_fleeing_vtordisp.rs"]
