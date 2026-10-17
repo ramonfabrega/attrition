@@ -6246,13 +6246,20 @@ have no reader; `do_cast@005ebfe0:695,715` writes `0x11000` too and this crate's
 
 Struck: (2757) closed by item 2785 (the blown bit); (2758) left with it — the added Scout's path and 1203 `seen3` rows agree.
 
-## Parked by the next landing, slot EY — reserved
+## Parked by item 2793, 2026-10-17 — the hundred-and-ninth sweep batch: three of ten new
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nine of the ten chosen rows were built by subagents; by the time the lane updated, 2837 and 2844 had swept five of them on the base
+(`Border::generate_morph_side`, `TerrainMap::cancel_button_enable`, `RiverDoober::add_for_render`, `TurnControl::get_delta_percent`,
+`Game::clock_init`) and 2801 a sixth (`MiscAccess::world_to_screen@00583a00` is `world_to_screen_b`); those six were dropped, the base's
+kept. Three landed: `GatherPointList::get_new_data`, `Type::restore`, `TimeSync::update`, 220 rows each.
+
+- **`CityData::num_city_buildings@00737ae0` unswept**: its subagent committed a sweep but hung on a `mutate.py` run and left a stray break
+  (`4 * who` for `3 * who`); the committed test reported "0 tests" under the shared target dir (the stale-binary trap, 1629) and was not
+  re-verified, so the branch (185c06da) was dropped. A vcall chain through `objects` indexed by `who`; needs a fresh batch.
+- **A harvest read against the base first**: ten rows picked off `census.py --unbacked` at 2280648b were five-sixths already swept at
+  the merge; a lane picks from the base's `--unbacked` at its `ccc update`, not at its spawn.
+- **`Game::clock_init`'s port (dropped) hard-coded the harness's pointee address** for eax; a sweep of a function that leaves a pointer in
+  eax should compare it relative to the window, not as an absolute.
 
 ## Parked by item 2779, 2026-10-17 — Capitalism pays its oil after the refineries
 
