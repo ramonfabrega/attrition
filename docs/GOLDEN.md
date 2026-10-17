@@ -12803,40 +12803,138 @@ weighed whole only once the Scout's disc covers it (`0/7` at the 1200 pass); the
 a building's `seen3` write (parked 2728); the 1000 pass. Confidence: the hide/detect predicate is diff-backed on `s`
 (`0/6`, `0/7`@1200), the first reading it rested on is not wrong; the original's weighing at 1000 says something unread.
 
-## 103. Reserved for the next item on the rules track
+## 103. Chapter eighty closes: a fight blows a stealth unit — `unit_masks & 0x1000` — word 1198 → 1204, the trace's end
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2785 (Claude Sonnet 5.5, `--effort medium`), run878 (`tools/gamelog/golden/chapter80w.cmd`, `docs/RUNS.md`). **What the disk
+could not answer**: run877's first block is 1198; the 1000 pass that wrote `0/7`'s cell was undumped (parked 2757).
 
-## 104. Reserved for the next item on the rules track
+**The value diff** (run878, blocks 998–1001, `WORLD=6`, `UNITS=3`; the first take, `--end-frame 1204`, printed no WORLD in its
+window — the `end:` details only reach the window when the window reaches the end frame — and is dead): who 1's `danger` plane is
+the same on every block, cell 235 = **120** (the Partisan `0/7` whole), cell 264 = 145. `seen3` 0 at `0/7`'s and `0/6`'s fog cells
+(both undetected, both `seen` 3). The only field that parts the two Partisans is **`unit_masks`: `0/7` 69632 = `0x11000`, `0/6` 0**
+(`idle` 21/26, `z` 46/0 are position). `is_seen`'s stealth arm skips the hide when `unit_masks & 0x1000` — `UnitData::is_blown`.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The cause, from run878b** (606–700, `UNITS=3`): `0/7` (204, 60) is 14 tiles from the Airbase `1/2006` and takes an `ATTACKORDER`
+at it on 611 (`near 1/0`, `in_range` 1 on 612): `Unit::fight@005fd4d0` writes `unit_masks |= 0x11000` (69636 on 612, 69632 from
+the order's end). `0/6` never takes an order. Ours took the same order on the same frame (probe, 611: `orders 1`) and kept
+neither bit — the `SEAM` in `do_attack_ground`'s step 6 and `cavarch.rs`.
 
-## 105. Reserved for the next item on the rules track
+**The model, now carried** (`Unit::blown` = `0x1000`, `Unit::fought` = `0x10000`): `fight` and `do_attack_ground` set both;
+`Unit::work@0060d180` sets `blown` for any order on a `STEALTH` (`0x40000`), non-`CLOAKED` (`0x4000`) type (the `0x800` and
+`unit_masks2 & 0x8000` guards: the second carried, the first not); `check_idle@006032c0` drops `blown` once the idle counter is 10
+**only while `0x10000` is clear**; and `Unit::process_cloak@005e1c20`, every 512th frame by `o`, drops `0x10000` if set and
+`0x1000` otherwise — which is why `0/7`'s `0x11000` of 1000 is `0` at 1198 (`process_cloak` at 1017 takes the upper bit,
+`check_idle` the lower, `idle` 21 → 34). `unit_stealth_hides` returns false for a blown unit.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Diff-backed**: `0/7` weighs 120 on 998–1201 (the staging test now asserts `(120, false, lit, 0)` at 1001), the `0/6` hidden
+at 60; the whole window agrees (`chapter_eighty_w_window_is_widened_whole`: the eleven standing `form` rows on 998), and run877's
+rewrites to the same eleven — **the added Scout `1/6`'s path rows (parked 2758) and the 1203 `seen3` cells left with the fix**: its
+explore ran off a unit the original did not see as hidden. The draws agree to 1204; the word is the capture's end.
+**Reading alone**: `process_cloak`'s 512-frame clear and `check_idle`'s drop — the dumps show `0x11000` at 1000 and `0` at 1198,
+not the frame between; the `unit_masks` field is not compared (ours has no word), only its effect on the plane. Not established:
+`unit_masks & 0x800` (the tribe/hero reveal), `process_cloak`'s `unit_masks2 & 0x60` arm, a cloaked Spy's particles, `do_cast`'s
+`0x11000` write.
 
-## 106. Reserved for the next item on the rules track
+## 104. The blown and fought bits compared — a garrisoned unit loses both; `process_cloak`'s 512-frame clear and `check_idle`'s drop diff-backed
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2798 (Claude Sonnet 5.5, `--effort medium`). **No capture, no staging: run 880 was not taken.** §103 left the 512-frame clear and
+`check_idle`'s drop as reading alone because `unit_masks` was parsed and compared by nothing (parked 2759); the disk already holds
+the windows. `widen_block` now carries two rows beside `half_step` and `packed` — `blown` (`unit_masks & 0x1000`) and `fought`
+(`& 0x10000`) — and `coverage`'s table names them as `UnitDump`/`unit_masks`.
 
-## 107. Reserved for the next item on the rules track
+**The value diff** (first run, all word-frame widenings): `f1183 1/0 blown: ours 1 theirs 0` on run678 and the same row, unit `1/0`,
+on every window that holds that Elite Special Forces (run710 1590, run711 2180, run715 2927, run754 4061, run779 1355, run788 2896,
+run809 3754, run867 5557, run462 10184, run480 11097, run506 11759). run678's dump: `1/0` (type 77, `STEALTH`) reads `unit_masks`
+`0x841008` on 977, takes a `CASTORDER` 650 on 978, is garrisoned (`inside_up` 24) on 979 and reads **`0x840008` on 980** — blown gone
+while idle is 0; it reads `0x841008` again on 1184 when its next order is current. Ours kept `0x1000` the whole time.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The cause**: `Unit::process@00610bc0`'s `inside_up >= 0` arm (`:555`–`:559`) — `unit_masks &= 0xfffeefff` on every frame inside (and
+`0xfffee7ff` with `0x2000` clear, which also drops `0x800`; `unit_masks2 &= 0xffff7f9f`). Ours has the arm's other half only (the
+`last_z` write). Built in `process_unit`'s `else` beside the cloak clear: `blown` and `fought` drop while `inside` or `inside_unit`
+is set. The rows sit in the `on_map` block, so a garrisoned unit is not compared on its inside frames; the first row it can part on
+is the frame it comes out, which is why the value shows at 1183 and the cause at 979.
+
+**Diff-backed now** (mutations on the built tree, `diff::` suite): `process_cloak`'s 512-frame clear removed — 1/59 `fought` and 1/51,
+1/49 `blown`/`fought` part in the run-ending windows (f3526–f4048) and the `golden` chapter 11–78 word-frame widenings fail; `check_idle`'s
+drop removed — `1/51`, `1/49`, `1/59` `blown` part (f3566, f3568, f4038, f4046). Both restored, the 220 word-frame widenings agree.
+
+**Not established**: the arm's `0x800` and `unit_masks2` halves (parked 2760, still unread by this crate); a rows-in-`on_map`
+blind spot on the inside frames — the garrison clear itself is compared only on the frame the unit leaves.
+
+## 105. `do_cast`'s two `0x11000` writes — a cloaked caster of a craft without `l`; built, reading alone
+
+Item 2804 (Claude Sonnet 5.5, `--effort medium`). **No capture, no staging: run 880 was not taken.** Parked 2760 said
+`do_cast@005ebfe0:695,715` write `unit_masks |= 0x11000` and this crate's casters do not. The listing (`llvm-objdump` of
+`0x5ebfe0`) says who they reach, and it is narrower than the booking's "stealth caster":
+
+- **Site one, `005ec932`**, on the in-range path every frame, ahead of the clock (the targeted half and the untargeted both join
+  at `005ec93e`): `UnitData::is_cloaked@0060a6a0` true, the craft's `+0x1c8 & 0x800` (`l`) clear, the order not `0x281` (the
+  Sniper), and `is(0x3a, 0)` — the vslot-`0xb8` call pushes `0x3a` and `0`, the Spy line — false.
+- **Site two, `005ec9a7`**, on the job-time frame ahead of `SpellType::cast`: `is_cloaked` and `l` clear. The Spy is not exempt.
+- **`is_cloaked`** is the type's `0x4000` (`CLOAKED`), `unit_masks2 & 0x8000`, `unit_masks & 0x800` (not carried), or a type
+  with `0x40000` **and no order**. A stealth-only unit casting holds its `CASTORDER`, so it is **not** cloaked and neither
+  site writes for it; `Unit::work:380` already blows it (§103) and `fought` stays down.
+
+So the writes reach `CLOAKED` types (the Spy, the submarines, Memnon, Fouché) casting a craft without `l`. `craftrules.xml`'s
+`l` rows: the Informer, Create Decoys, Rally, Ambush, the heroes' crafts; the ones without are Bribe (`fcbhm`), Counterintelligence
+(`febchm`), Sabotage, Sniper, Pilfer — every one of which this crate refuses or does not carry (`spellcaster.rs`'s SEAM). **No
+modelled cast reaches either site**, and no dump on disk holds a cloaked caster at one (the chapter-nineteen Informer keeps the
+cloak by `l`, as §27 reads), which is why a diff cannot back it and why a staged stealth caster would show nothing.
+
+**Built** in `crate::cast`: `unit_is_cloaked` and `cast_blow`, called from `do_cast_targeted` and the untargeted `do_cast` at
+both sites. **Test**: `cast::tests::a_cloaked_caster_of_a_craft_without_l_is_blown`, failing with the Spy exemption dropped
+(the others by construction: the cloak test, the `l` test, the order-held case).
+
+**Not established**: every claim here is the listing alone, no diff backs it; the first site's Spy exemption in particular
+rests on the pushed `0x3a` being the Spy line's `TypeIndex` (it is the one `unit_is_spy` uses). A staged Spy's Bribe would
+back site two once Bribe's validity is built (`spellcaster.rs`'s seam) — a capture for that item, not this.
+
+## 106. Chapter eighty-three — Bribe's target arm carried; the conversion and the staging parked (reading alone)
+
+**Booked** (item 2812): carry a cloaked Spy's Sabotage or Bribe cast, stage it in a who=1 scout's sight, compare `unit_masks`.
+
+**Which craft.** Sabotage (`fcm`, `FROM Commando`) is cast by a type that is not `CLOAKED`, so neither blow site of §105 can write
+for it; only the Spy's Bribe (`fcbhm`, `MANA 1000`, `JOB_TIME 150`) reaches site two (the Spy is exempt from site one). Bribe is
+the item; Sabotage stays refused.
+
+**Read from `SpellTypeData::is_valid_target@006763c0`** (the listing, end to end), the Bribe arm for an enemy's unit — the craft has
+no `c`, so a building is refused ahead of it: `has_general(v, 0, 0x165) >= 0` refuses (a CEO's reach); a government hero
+(`is_gov_hero`, `0x160..=0x165`) refuses; a unit of `who`'s own refuses; an ally refuses unless `Game::teams_locked` and the
+target's leader has not bit 2; an enemy's unit refuses when it is a Spy, neither armed (`UnitData::attack`) nor a hero, a caravan, a
+worker, a supply wagon, a merchant, or not of the land domain (`type +0x218`).
+
+**Built**: `Sim::bribe_valid_unit` (`cast.rs`), called from `spell_valid_target`; test
+`cast::tests::bribe_takes_only_an_enemy_s_armed_land_unit`, failing with the armed test dropped. With it a Spy's Bribe on an enemy
+soldier passes validation, reaches `do_cast_targeted`'s range, face and animation arm, and §105's site two on the job-time frame.
+
+**Not established, no diff backs any of it**: (1) `SpellType::cast_bribe@00672d00`'s unit arm — a leader counter at `+0x8f4` bumped
+and `Unit::swap_team@006118d0` (vslot `+0x94`, 286 lines, not read here) — is **not carried**: `cast_on` still ignores Bribe, so the
+target stays with its owner. (2) The ally arm, `teams_locked`, and `has_general`'s leader count (`+0x56fe`) are the hero scan of
+`near_marching_hero`'s shape. (3) The territory refusal, Bribe's one-tile range on a hero, supply wagon or building, and the spy
+upgrade ranges (`get_range`'s SEAM). **No staging was run and no capture taken**: a staged Bribe would diff the target's swap, which
+(1) leaves unbuilt, so the staging is the next chapter after `Unit::swap_team`. Census rows: none moved.
+
+## 107. Chapter eighty-four — Bribe's conversion built; the staging parked (reading alone)
+
+**Booked** (item 2823): build `cast_bribe`'s unit arm and `Unit::swap_team@006118d0`, then stage a cloaked Spy's Bribe. The
+conversion alone is the item; the staging is parked (parked 2823 first), per Loop 2824's shape.
+
+**Read** from the two decompiled bodies. `cast_bribe`'s unit arm ends `leaders[caster] +0x8f4 += 1; target.vslot(+0x94)` — vslot
+`+0x94` of the unit vtable is `Unit::swap_team` (`vtables.txt`). `swap_team(this, a)`: a non-captain hands the swap to its captain; a
+captain gets `Objects::init_unit(a, current_upgrade(a, type), pos)` — **a copy, not an owner write** — and the two squads are walked
+down `o_down` together, each figure copying `damage` (`+0x24`), `damage_frac` (`+0x3b`), angle (`+0x50`), `form` (`+0xaa`),
+`recharging` (`+0xae`), `guy_mark` (`+0xb5`), `unit_masks` (the new unit's `0x40000`, the old one's other bits), the flags byte's
+active and on-map bits, and per guy `stopped`, `x`/`y`/`z`, `angle` and the turrets, then `update_gpiece`. The old squad is
+closed through vslot `+0x150` (`Unit::close(0, −1, 0)`): the loop closes the captain, and whoever leads after the relink, until the
+one closed is a captain — so a whole squad goes, with no death roll and `Object::close`'s thirty-frame hold.
+
+**Built**: `crate::bribe` (`Sim::cast_bribe_unit`, `Sim::unit_swap_team`), called from `cast_on` for Bribe; the counter is
+`PlayerTech::bribes`. Test `cast::tests::bribe_swaps_a_unit_s_team_and_closes_the_old_one`, made to fail with the counter dropped.
+
+**Not established, no diff backs any of it**: (1) the `inside_down` chain (`+0x28`, carried units re-created and `go_inside`d) —
+none for a Land unit Bribe admits; (2) the `unit_masks` bits this crate keeps as separate fields, copied only for four; (3) the
+messages and sounds; (4) `cast_bribe`'s building and city arms and the territory refusal (parked 2822); (5) the cloaked Spy's
+Bribe in a scout's sight, `unit_masks` and the owner across the cast — **no staging was run and no capture taken**.
 
 ## 108. Reserved for the next item on the rules track
 
@@ -12846,6 +12944,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 109. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 110. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 111. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 112. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 113. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

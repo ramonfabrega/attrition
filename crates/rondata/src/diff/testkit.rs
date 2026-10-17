@@ -6541,9 +6541,11 @@ pub(crate) const WIDENING_CHAPTER_SEVENTY_NINE: (i64, i64) = (600, 1501);
 /// arm of `UnitData::is_seen` under a computer's `calc_danger`. **A state
 /// word, pinned where the state first parts**: `1198 world:danger`, who 1's
 /// half-cell (25, 7), ours 60, theirs 120 — the 1000 pass's plane, which no
-/// block dumps, so 1198 is the first block that shows it. The draws agree to
-/// the capture's end (1204), the dump's last block is 1203.
-pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY: i64 = 1198;
+/// block dumps, so 1198 is the first block that shows it. **Closed by item
+/// 2785** (`docs/GOLDEN.md` §103): the cause was `unit_masks & 0x1000`, the
+/// blown bit `0/7`'s fight on 612 set; the word is the capture's end, 1204,
+/// the draws' own. The dump's last block is 1203.
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY: i64 = 1204;
 
 /// `chapter_eighty_s_window_is_widened_whole`'s window: run877 whole, blocks
 /// 1198 to 1203 (1204 is the one the dump does not carry), so `w1198 of
@@ -7130,7 +7132,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // landing's `ez` and each frame's fall) and the walk past 5225 to the
     // word 5315.
     // Item 2638: 1672 -> 1678, the walk past 5315 to the word 5407.
-    ("lakota_pair_first_parting", 1678),
+    // Item 2780: 1678 -> 1864, the walk past 5564 to the word 5982.
+    // Item 2779: 1864 -> 1870, the walk past 5982 to the word 5985.
+    // Item 2808: 1870 -> 2227, the walk past 5985 to the word 6452.
+    // Item 2825: 2227 -> 2341, the walk past 6452 to the word 6808.
+    ("lakota_pair_first_parting", 2341),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
@@ -7141,6 +7147,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run866_s_word_frame_is_widened_whole", 1678),
     // And run867 (item 2677): the word 5407's window, 1699 reads.
     ("run867_s_word_frame_is_widened_whole", 1699),
+    // And run879 (item 2779): the word 5982's window, 2222 reads.
+    ("run879_s_word_frame_is_widened_whole", 2222),
+    // And run881 (item 2825): the word 6452's window, 2335 reads.
+    ("run881_s_word_frame_is_widened_whole", 2335),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -7323,9 +7333,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // President arm, as that window's own. Item 2554's run866 window: 1673,
     // as that window's own; 1678 with item 2609's crash round, as run866's
     // own walk. Item 2677's run867 window: 1699, as that window's own.
+    // Item 2779's run879 window: 2222, as that window's own. Item 2825's
+    // run881 window: 2335, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        1699,
+        2335,
     ),
 ];
 
@@ -9406,12 +9418,25 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // with `find_upath`'s zeroed near goal, in the same window (block
     // 5500), widened there by item 2761, which **moved it 5499 → 5564**
     // with `Unit::close`'s count, in the same window (block 5565).
+    // **Item 2780 moved it 5564 → 5982** with `was_really_seen`'s leader
+    // exits, past run867's last block (5657): run867's test keeps 5564's
+    // value diff (block 5565), and 5982 is widened on run879 over
+    // 5976..6232 (block 5983, item 2779). **Item 2779 moved it 5982 →
+    // 5985** with Capitalism's oil (`calc_gather`'s `006cf454`), in the
+    // same window (block 5986). **Item 2808 moved it 5985 → 6452** with
+    // `think_carry`'s attack arm, past run879's last block (6232):
+    // run879's test keeps 5985's value diff (block 5986, `1/225` from
+    // 5976), and 6452 is widened on run881 over 6446..6701 (block 6453,
+    // item 2825). **Item 2825 moved it 6452 → 6808** with `max_range`'s
+    // CEO term, past run881's last block (6701): run881's test keeps
+    // 6452's value diff (block 6453, `1/137`'s `recharging`), and 6808's
+    // widening is owed a capture (item 2845).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        Some("run867_s_word_frame_is_widened_whole"),
-        2656,
-        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_5407),
+        None,
+        2845,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

@@ -475,6 +475,10 @@ pub struct Holdings {
     /// peasants_garr − scout_garr − stable_garr`, the `LeaderData` counts
     /// at `+0x978`, `+0x988`, `+0x9fc`, `+0xa28`, `+0xa30`, `+0xa2c`.
     pub lakota: bool,
+    /// `has_preq(CAPITALISM_1)` — the first Capitalism bonus, whose one
+    /// prerequisite is the Capitalism government — which adds
+    /// `CAPITALISM_OIL_PROD × 16` to oil (`docs/ECONOMY.md` step 8).
+    pub capitalism: bool,
     pub lakota_units: i32,
     pub egyptians: bool,
     pub french: bool,
@@ -738,6 +742,11 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     // Refineries scale oil at the player level rather than per city.
     let oil = Resource::Oil.index();
     out[oil] = (h.refineries * t.refinery_bonus + 100) * out[oil] / 100;
+    // Step 8, `006cf454`–`006cf47f`: Capitalism's oil, flat and after the refineries,
+    // so no percentage reaches it until the wonder layer below.
+    if h.capitalism {
+        out[oil] += t.capitalism_oil_prod * RATE_SCALE;
+    }
 
     out[Resource::Wealth.index()] += territory_tax(t, h);
     out[Resource::Food.index()] += mongol_nomadic_food(t, h);
@@ -1464,6 +1473,28 @@ mod tests {
         assert_eq!(at(7), 500);
         // Past the end of the array clamps rather than reading off it.
         assert_eq!(at(99), 500);
+    }
+
+    /// Step 8: Capitalism's `CAPITALISM_OIL_PROD × 16` lands **after** the
+    /// refinery multiply, so two refineries leave it whole. run879's
+    /// who=1 reads `resources[oil]` 9966 = 8366 + 1600 on 5976: nine
+    /// worked wells outside every city (`9 × 560`, `× 166 / 100`) and the
+    /// term (`docs/AI.md` §234).
+    #[test]
+    fn capitalism_adds_its_oil_after_the_refineries() {
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.refineries = 2;
+        for _ in 0..9 {
+            let mut s = Site::new(Resource::Oil, 1);
+            s.gatherers = 1;
+            h.outside.push(s);
+        }
+        let oil = Resource::Oil.index();
+        assert_eq!(assemble(&t, &h)[oil], 8366);
+        h.capitalism = true;
+        assert_eq!(assemble(&t, &h)[oil], 9966);
+        assert_eq!(t.capitalism_oil_prod * RATE_SCALE, 1600);
     }
 
     #[test]

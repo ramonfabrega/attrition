@@ -125,8 +125,49 @@ pub(crate) const LAKOTA: Pair = Pair {
     // `Guy::set_anim+0x97a < Guy::move+0x19f`: who=1's scout `1/0` holds a
     // move ours alone on 5565 (`orders.len` 1 against 0, `group` 65
     // against 75).
-    count: 5564,
-    sequence: 5564,
+    // Item 2780: 5564 → 5982, `was_really_seen`'s two leader exits
+    // (`006b54f0`; `docs/AI.md` §233): who=1 holds the Space Program
+    // (`leader_flags & 0x800`, run867's `0xa3f03`), so every cell is seen
+    // to it, and on 5564 its Elite Special Forces `1/0` (`TypeIndex` 77,
+    // land) runs `think_scout`'s region scan of region 2 and accepts no
+    // cell; ours accepted (16, 6) and (21, 7), drew twice at `+0xaba` and
+    // pushed group 65 with an `EXPLORE_TO`. Now ours 37 draws, theirs 287,
+    // index 5 — ours `Leader::produce_building+0x1805`, theirs
+    // `Build::find_gather_tiles+0x10a`.
+    // Item 2779: 5982 → 5985, Capitalism's oil (`Leader::calc_gather`'s
+    // `006cf454`–`006cf47f`, `CAPITALISM_OIL_PROD × 16` after the
+    // refineries; `docs/AI.md` §234): who=1 took Capitalism in the gap
+    // 5658..5975, so on run879's block 5976 it reads `resources[oil]`
+    // 9966 against ours' 8366 (nine wells, two refineries), over its
+    // 8800 cap (`over_cap` 1 against 0). Its `create_buildings` then
+    // values no Oil Well, and on 5982 `make_stuff` buys `MAKE[4]` the
+    // Woodcutter's Camp (`t` 418, 141000, city 1) and `find_gather_tiles`
+    // shuffles its ground, where ours bought an Oil Well (421, 394500,
+    // city 0) and jittered its platform. Now ours 23 draws, theirs 24,
+    // index 19 — ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+    // theirs `Guy::set_anim+0x104b`.
+    // Item 2808: 5985 → 6452 (count 6455), `think_carry`'s attack arm
+    // (`005f2ee0`; `docs/AI.md` §235): the Transport Freighter `1/225`
+    // (`TypeIndex` 322, sea) carrying the Flamethrower `1/185` of army 1
+    // loses its `ATTACK_TO` on 5955 (`do_move`'s refused plan, both
+    // sides), idles on 5956, and on 5957 theirs' think sails it to army
+    // 1's target's cell, (6552, 7320) for the human's `0/2000` at (6240,
+    // 7008); ours had no arm and it stood idle, rolling its anim on 5985.
+    // Now 22 draws each on 6452, index 0 — ours `Guy::set_anim+0x97a <
+    // Unit::do_idle+0x7d` (`1/193`), theirs `Guy::set_anim+0xf2f <
+    // Unit::set_anim+0x56`.
+    // Item 2825: 6452 → 6808, `UnitData::max_range`'s CEO term
+    // (`0060fe90`; `docs/AI.md` §236): who=1's Strategic Bomber `1/137`
+    // (`TypeIndex` 305, air) strikes the human's `0/2000` from (6950,
+    // 7589), `attack_dist` 918 — past three tiles' 582 — and theirs
+    // releases on 6452 (`do_strafe+0x9d0`, `recharging` 41 on 6453)
+    // because its owner's `0x165` hero `1/161` (type 357) stands 2371
+    // off, inside its radius, and lends it `THECEO_UNIT_RANGE`, two tiles
+    // (966); ours flew on and wrapped its walk. Now ours 63 draws, theirs
+    // 61, index 43 — ours `Unit::find_attack_pos+0xea9 < Unit::fight+0x115e`,
+    // theirs `Unit::do_move+0xe84`.
+    count: 6808,
+    sequence: 6808,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -465,7 +506,11 @@ fn run866_s_word_frame_is_widened_whole() {
     }
     // Item 2761: 178 → 164 with `Unit::close`'s count (`docs/AI.md` §232):
     // who=1's `num_units[245]` on 5178, `[255]` and `[261]` on 5201 agree.
-    pin_eq!(w.firsts.len(), 164, "initial run866 baseline");
+    // Item 2780: 164 → 163 with the scout fog read's leader exits
+    // (`docs/AI.md` §233): `1/187`'s `path[2].to` on 5378 (ours (9240,
+    // 4440) against (10008, 4440)) agrees — `calc_cost` reads the same
+    // fog, and a Space Program sees every cell.
+    pin_eq!(w.firsts.len(), 163, "initial run866 baseline");
     // Item 2554: the word 5135's own block is 5136, widened at 5707 keys.
     // Theirs gives who=1's naval army (group 72, nine members: the
     // Missile Cruisers `1/20`, `1/21`, `1/25`, `1/26`, `1/34`, `1/36`,
@@ -547,7 +592,7 @@ fn run867_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 276, "initial run867 baseline");
+    pin_eq!(w.firsts.len(), 183, "initial run867 baseline");
     // Item 2677: the word 5407's own block is 5408, widened at 3418 keys.
     // Every who=1 Strategic Bomber (`TypeIndex` 305, air) on its
     // `AIRPATROLORDER` round the human's capital `0/2000` (6240, 7008)
@@ -587,4 +632,133 @@ fn run867_s_word_frame_is_widened_whole() {
     // 276 with `Unit::close`'s count: `1/263` is born on 5499 both sides,
     // no leader row stands from 5401 but the human's `SITE` and who=1's
     // buckets, and from 5565 `1/0`'s scouting move parts, the new word's.
+    // Item 2780: the word 5564's own block is 5565, widened at 276 keys.
+    // Its fourteen rows are `1/0`'s, on 5565 and 5566 (`group` ours 65
+    // against 75, `orders.len` 1 against 0, `orders_x/y` (16632, 5880)
+    // against (14976, 11136), `path:length` 6 against 0, then its walk):
+    // ours' region scan accepted two cells theirs did not, and the
+    // standing `group:65.held`/`pool:65` from 5542 are the dump's blind
+    // `held` (theirs prints `None` on every group). 276 → 183 with the fog
+    // read's leader exits: `1/0` holds no row, and with it go every row
+    // from 5565 the scout's draws shifted — `1/264` and `1/263`'s
+    // flights, `1/93` and `1/276`'s moves and who=1's `MAKE` on 5583,
+    // `1/176` on 5627 — and the standing `1/187` `path[2].to` from 5401
+    // and `1/234`'s on 5522. Left: the standing keys from 5401, the
+    // `form` rows, the three `g.angle[0]` births, two `mirror`s, the
+    // queues' `cost` on 5583, `1/210`/`1/211`'s `mandatory`. The new word
+    // 5982 is past the window (5657): its widening is owed (parked 2779).
+}
+
+/// run879: the word 5982's window, blocks 5976..6232 at the long's detail (item 2779).
+pub(crate) const RUN879: &str = "gamelog-run879-eastindies-lakota-peace-window-5976-6233.txt";
+
+/// The window: block 5976 through 6232; the word 5982's own block is 5983.
+pub(crate) const WIDENING_LAKOTA_FRAME_5982: (i64, i64) = (5976, 6232);
+
+pub(crate) fn lakota_frame_5982_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run879",
+        &[(RUN879, WIDENING_LAKOTA_FRAME_5982.0)],
+        WIDENING_LAKOTA_FRAME_5982,
+        1,
+        &[5983],
+        true,
+    )
+}
+
+#[test]
+fn run879_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_5982_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 2779: the word 5982's own block is 5983, widened at 4745 keys.
+    // Its first parting is who=1's oil, standing from 5976: `resources[oil]`
+    // ours 8366 against theirs 9966, `income` 8366 against 8800, `over_cap`
+    // 0 against 1, `leftover` 6630 against 1592, and `rate` on 5977 (522
+    // against 550) — Capitalism's `CAPITALISM_OIL_PROD × 16`, held from the
+    // gap 5658..5975 (run867's 5401..5657 agrees on every oil row). On block
+    // 5982 `MAKE[4]` parts: ours the Oil Well (`t` 421, `val` 394500, city
+    // 0), theirs the Woodcutter's Camp (418, 141000, city 1). 4745 → 2854
+    // with Capitalism's oil and gift: no oil row but `bucket` stands, block
+    // 5982 holds no `MAKE` row, and the word's block 5986 holds none. Left:
+    // the keys standing from 5976 (the human's `SITE`, `death:extra`, the
+    // held pools, who=1's buckets, the `form` and `mirror` rows, the
+    // births' `g.angle[0]`), the queues' `cost` rows, and the Transport
+    // Freighter `1/225` (`TypeIndex` 322, sea), idle in ours (`idle` 3)
+    // and on a move to (6552, 7320) in theirs from 5976 — the new word's
+    // candidate; the first row past it is `1/238`'s path on 5990.
+    // Item 2808: the word 5985's own block is 5986, widened at 2854 keys;
+    // it holds no row. The draws part on `1/225`, whose rows stand from
+    // 5976 (above): ours idle at (16200, 27864) with no order, theirs on a
+    // `MOVEORDER` to (6552, 7320) at (15864, 27440), 27 legs. 2854 → 191
+    // with `think_carry`'s attack arm: `pos`, the order, the path and the
+    // headings of `1/225` agree on 5976, and so does every row the
+    // freighter's idle draws shifted after it; `1/225` keeps only its
+    // standing `form`. Left: the standing keys from 5976, and from 6045
+    // `1/164`'s `attrition` (ours 6, theirs 0) and then its `hits`.
+    pin_eq!(w.firsts.len(), 191, "initial run879 baseline");
+}
+
+/// run881: the word 6452's window, blocks 6446..6701 at the long's detail (item 2825).
+pub(crate) const RUN881: &str = "gamelog-run881-eastindies-lakota-peace-window-6446-6702.txt";
+
+/// The window: block 6446 through 6701; the word 6452's own block is 6453.
+pub(crate) const WIDENING_LAKOTA_FRAME_6452: (i64, i64) = (6446, 6701);
+
+pub(crate) fn lakota_frame_6452_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run881",
+        &[(RUN881, WIDENING_LAKOTA_FRAME_6452.0)],
+        WIDENING_LAKOTA_FRAME_6452,
+        1,
+        &[6453],
+        true,
+    )
+}
+
+#[test]
+fn run881_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_6452_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 2825: the word 6452's own block is 6453, widened at 2138 keys.
+    // On it `1/137`, who=1's Strategic Bomber (`TypeIndex` 305), reads
+    // `recharging` ours 0 against theirs 41: theirs bombed `0/2000` on
+    // 6452 at `attack_dist` 918, ours flew on, and from 6470 the five
+    // bombers of its flight (`1/137`, `1/205`, `1/290`, `1/293`, `1/304`)
+    // read `order:kind` ours 16 (`STRAFE`) against 17 (`AIRPATROL`).
+    // Standing from 6446: `1/137`/`1/293` `mandatory` (ours 0, theirs 1),
+    // the flight's `mirror`, the held pools, who=1's buckets, the human's
+    // `SITE`. Walked back: `pos`, heading and `recharging` agree through
+    // 6452, and `in_range` was the gate (a reach of 582 from three
+    // tiles). 2138 → 252 with `max_range`'s CEO term: `recharging` 41 /
+    // 41 on 6453 and no order row from 6470. Left: the standing keys from
+    // 6446, the `attrition`/`sheltered` rows from 6453 (`1/44` ours 6,
+    // theirs 0, as run879's `1/164` on 6045), the `form` and
+    // `dest_angle` rows.
+    pin_eq!(w.firsts.len(), 252, "initial run881 baseline");
 }

@@ -132,8 +132,8 @@ class Harness:
         uc.reg_write(UC_X86_REG_ESP, esp + 4 + (0 if cdecl else 4 * nargs))
         uc.reg_write(UC_X86_REG_EIP, ret)
 
-    def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0, ret='eax'):
-        eax = self.m.call(entry, stack_args, ecx=ecx, edx=edx, max_insns=max_insns, ret=ret)
+    def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0, ret='eax', xmm=None):
+        eax = self.m.call(entry, stack_args, ecx=ecx, edx=edx, max_insns=max_insns, ret=ret, xmm=xmm)
         return eax - (1 << 32) if eax & 0x8000_0000 else eax
 
 

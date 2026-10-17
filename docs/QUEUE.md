@@ -12,18 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-15, **the thirty-seventh pass (steer, Fable) after the thirty-seventh tranche: 23 landings from `23e2df12`** (DECISIONS
-74), four lanes (Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rules track and two sweeps): 4.22 USD and **36.5 minutes
-waiting a landing** against 3.92 / 27.0 — a fifth broken, so **the fourth lane goes** (entry 61 §5); every gate green, no kill rule, one `DEEP`.*
+*2026-10-17, **the thirty-eighth tranche (commander, Opus): 18 landings from `a4ff472f`**, every booking gate green
+after its second commit at most (one: the Golden line, Loop 2799); last whole gate `6de0fd63`, last gate `3b2ffc6e`; two `DEEP`
+lanes cleared (2779, 2801), no kill rule. 2793 waited 1h50 on a subagent that ended its turn (Loop 2820), told to land without it.*
 
-- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5315 → 5564, the open word.
-  Chapter 79 closed (1500), 80 staged (run877) at 1198; 69 built, 70 surveyed. Census 1068 → 1140, `port` 171 → 156. Battery 576 / 6566
+- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 5982 → 5985 → 6452 → 6808 (2780: the scout's fog read takes the Space Program; 2779: Capitalism's oil; 2808: a soldier's boat sails to its army's target; 2825: a bomber near its President reaches two tiles further), the open word.
+  Chapter 80 closed (1204, run878: a fight blows a stealth unit), 81 compared the blown bits (2798), 82 built `do_cast`'s blow from the listing (2804), 83 carried Bribe's target arm (2812), 84 built its conversion (2823); 69 built, 70 surveyed. Census 1068 → 1208, `port` 171 → 156. Battery 576 / 6566
   / 2974; **when the peace pair closes, the AI word's successor is its lowest lobby** (DECISIONS 72).
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every third landing
   and at the drain; a whole gate refuses a stale `agent-*` worktree (Loop 2724). The sweep's per-function check runs in debug (2787).
-- **Lanes: four, live from `a4ff472f`** (DECISIONS 75: the lane entry 74 took goes back for the trial): 2780 (AI §233,
-  EU, run 873), 2785 (GOLDEN §103, EX, run 878), 2782 (EV) and 2793 (EY) on the two sweep lanes; 2783 landed (Census 1140 → 1151). Next 2794, run 879 (Astra 900–909). Pools: GOLDEN §104–109, AI §234–239, park EZ–FC.
-- **Fable backlog: 11 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792).
+- **Lanes: four, live from `a4ff472f`** (DECISIONS 75: the lane entry 74 took goes back for the trial): 2845 (AI §237,
+  FO, run 882), 2832 (GOLDEN §108, FL, run 880), 2852 (FP) and 2793 (EY) on the two sweep lanes; 2783, 2780, 2782, 2785, 2797, 2798, 2801, 2779, 2804, 2807, 2812, 2808, 2818, 2823, 2831, 2837, 2825, 2844 landed. Next 2853, run 883 (Astra 900–909). Pools: GOLDEN §109–113, AI §238–243, park FQ–FU.
+- **Fable backlog: 20 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792, 2796, 2799, 2809, 2819, 2820, 2824, 2827, 2843, 2847).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,10 +31,10 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Peace pair: EastIndiesLakotaPeace w5564 of 6,822
-Census: simulation backed 1151 of 3611
+Peace pair: EastIndiesLakotaPeace w6808 of 6,822
+Census: simulation backed 1208 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: ch80 w1198 of 1204 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-eighth tranche (commander, Opus): four lanes from the trial's gate commit (DECISIONS 75) — 2780 on
@@ -52,39 +52,44 @@ the whole gate runs the caches' verifiers, and `touch ~/Library/Caches/attrition
 every worktree at once. **The trial's two numbers**, read at the thirty-eighth pass: waiting a landing (`tools/tranche.py`)
 against 36.5 on four lanes, and the gates' `Admission wait:` line — a rise with the admission wait near zero is the box's
 cost and the fourth lane goes again; a rise with it high is the admission's and the marker is the answer.
+**The tranche's admission ledger** (ten landings): lane gates 2.1–12.5 s each over 380–919 leases, longest 1.2 s
+(2785's first gate 74 s, one 65 s lease); booking gates 41.0 s (`2280648b`, longest 32.6), 18.9 (whole), 3.5, 2.3, 10.4
+(whole), 2.1, 7.0, 10.6 (whole), 2.8; the one admission failure was the probe race `a8883529` fixed (exit 125, Loop
+2788); the marker was not used.
 Whole gate green on `946393a4`: 6 of 6, 422 s at eight threads, rondata 900 in 275 s with the verifiers on (128 s without, at
 four, on the branch's tip), 4080 fixture requests and none missing, admission wait 3.9 s over 917 leases.
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2780 the AI word's (Opus), 2785 the rules track's, 2782 and 2793 the
+2845 the AI word's (Opus), 2832 the rules track's, 2852 and 2793 the
 two sweep lanes' (Sonnet) — lower map first — East Indies (Lakota), the
 peace pair's only map. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-2780. **The peace pair's word 5564: ours 26 draws, theirs 24, index
-    7** (2761; ours `Unit::think_scout+0xaba`, theirs `Guy::set_anim+
-    0x97a < Guy::move+0x19f`; on 5565 who=1's scout `1/0` holds a move
-    in ours alone, `group` 65 against 75, group 65 ours alone since
-    5542). East Indies run867 (5401..5657) holds it, so no capture
-    first: the widening is every record on 5564, both directions,
-    `WIDENINGS` naming it, then group 65 walked back to 5542. AI §233.
+2845. **The peace pair's word 6808: ours 63 draws, theirs 61, index
+    43** (2825; ours `Unit::find_attack_pos+0xea9 < Unit::fight+0x115e`,
+    theirs `Unit::do_move+0xe84`), fourteen frames before the game's end.
+    run881 ends at 6701 and no dump holds 6808, so run 882 first:
+    run881's recipe at `--log-window 6802..6822`, `--end-frame 6822`
+    (`--allow-early-end` if the lobby ends itself); then every record on
+    6808, both directions, `WIDENINGS` naming it. AI §237.
 
-2785. **Chapter eighty's word 1198: `world:danger` who 1 cell 235 ours
-    60, theirs 120** (2755, run877; `0/7` weighed whole at the 1000
-    pass in theirs and halved in ours, `0/6` lit by the same Airbase
-    agreeing at 60, `seen3` agreeing on 1198 and 1199). The 1000 pass
-    is undumped: run 878 captures 998–1002 on `chapter80.cmd` at
-    `WORLD=6`, `UNITS=3` (parked 2757), then the value diff on `0/7`,
-    both directions. GOLDEN §103.
+2832. **Chapter eighty-five: the cloaked Spy's Bribe staged** (DECISIONS
+    56 §3; 2823 built `cast_bribe`'s unit arm and `Unit::swap_team@006118d0`
+    in `bribe.rs`, reading alone, the leader counter `PlayerTech`'s
+    bribes). Stage a cloaked Spy bribing in a who=1 scout's sight, one out
+    of sight as control, and compare `unit_masks` and the owner across the
+    cast (GOLDEN §106's site two); `stage_walk` of the recipe first. Census
+    rows first; run 880 only when no packet answers. GOLDEN §108.
 
-2782. **The sweep's hundred-and-seventh batch: ten never-backed simulation
-    functions, `--ptrtab` first** (DECISIONS 63 (iv); the score
-    `Census:` 1129 of 3611): 2768 swept four `GroupData` lists by sixty
-    hand flags apiece (parked 2772, Loop 2769); a pointer-array shape
-    built with a test made to fail first, then what it and slots ES and
-    ET hold, each checked against `census.py --never`. `--kind sweep`.
+2852. **The sweep's hundred-and-seventeenth batch: ten never-backed
+    simulation functions with a simulation effect** (DECISIONS 63 (iv);
+    the score `Census:` 1208 of 3611): `census.py --unbacked` from where
+    2844 stopped (parked 2848), past the renderer, UI and singleton bodies
+    (Loop 2819) and what 2851 skipped and why, a shape built with a test
+    made to fail first where a row wants one, each checked against
+    `census.py --never`. `--kind sweep`.
 
 2793. **The sweep's hundred-and-ninth batch: ten never-backed simulation
     functions a built shape already holds** (DECISIONS 63 (iv), 73; the

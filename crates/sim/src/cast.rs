@@ -279,9 +279,11 @@ impl Sim {
     /// the Informer on what `who` has infiltrated: 0
     /// ```
     ///
+    /// Bribe on an enemy unit is [`Sim::bribe_valid_unit`] (item 2812).
+    ///
     /// SEAM: the unit mask arms (`0x100`/`0x200` against objmask
     /// `0x200000`), which none of the Spy's crafts carries; and the whole
-    /// of Bribe's, Counterintelligence's, Pilfer's and Sabotage's own
+    /// of Counterintelligence's, Pilfer's and Sabotage's own
     /// arms, which **refuse** here rather than be guessed — run246's packet
     /// has the first two refuse the staged Barracks.
     pub(crate) fn spell_valid_target(&self, s: i32, who: Player, t: Obj) -> bool {
@@ -311,9 +313,67 @@ impl Sim {
         }
         match s {
             spell::INFORMER => self.infiltrated_of(t) & Self::who_bit(who) == 0,
-            spell::BRIBE | spell::COUNTERINTEL | 0x276 | 0x280 | 0x281 => false,
+            spell::BRIBE => match t {
+                Obj::Unit(v) => self.bribe_valid_unit(who, v),
+                Obj::Building(_) => false,
+            },
+            spell::COUNTERINTEL | 0x276 | 0x280 | 0x281 => false,
             _ => true,
         }
+    }
+
+    /// `SpellTypeData::is_valid_target@006763c0`'s Bribe arm (`0x275`,
+    /// `006767d0`ff.) for an enemy's unit — the one target the craft's
+    /// flags (`fcbhm`, no `c`) let through, a building being refused ahead
+    /// of it:
+    ///
+    /// ```text
+    /// has_general(v, 0, 0x165) >= 0         -> 0   (a CEO's reach)
+    /// is_gov_hero(v), v's owner == who      -> 0
+    /// an ally                               -> teams_locked && !(v's leader & 2)
+    /// an enemy: is(SPY), not (attack || hero), is_caravan, is_worker,
+    ///           is_supply, is_merchant, domain != 0           -> 0
+    /// ```
+    ///
+    /// SEAM: the ally arm (`Game::teams_locked`, which no lobby here locks)
+    /// refuses; and `has_general` is the owner's active, on-map `0x165`
+    /// hero within [`Sim::hero_radius`] × 0xc0, or the unit itself.
+    pub(crate) fn bribe_valid_unit(&self, who: Player, v: usize) -> bool {
+        let unit = &self.units[v];
+        if unit.type_index == 0x165
+            || (0..self.units.len()).any(|h| {
+                let x = &self.units[h];
+                x.owner == unit.owner
+                    && x.type_index == 0x165
+                    && x.alive()
+                    && x.on_map
+                    && crate::world::vector_dist(
+                        (x.pos.x - unit.pos.x).abs(),
+                        (x.pos.y - unit.pos.y).abs(),
+                    ) <= self.hero_radius(h) * 0xc0
+            })
+        {
+            return false;
+        }
+        if crate::type_index::is_gov_hero_type(unit.type_index)
+            || unit.owner == who
+            || !self.is_enemy(who, unit.owner)
+        {
+            return false;
+        }
+        let armed = self.attack_of(Obj::Unit(v)) != 0;
+        let caravan = unit.ty.is_some_and(|t| {
+            self.unit_types[t]
+                .cols
+                .flag2(crate::ai_load::uflags2::CARAVAN)
+        });
+        !(self.unit_is_spy(v)
+            || !(armed || self.is_hero_unit(v))
+            || caravan
+            || self.is_worker(v)
+            || self.is_supply_unit(v)
+            || self.is_merchant(v)
+            || self.unit_domain_of(v) != crate::attrition::Domain::Land)
     }
 
     /// `SpellTypeData::get_range@00676a80(spell, who, o, whom)`: the row's
@@ -484,7 +544,7 @@ impl Sim {
     ///
     /// SEAM: the captain and inside re-reads of the target; Bribe's
     /// territory refusal; `flags |= 0x80`; `update_local_seen` when the
-    /// caster stands in the target owner's fog; the cloak (`0x11000`) for a
+    /// caster stands in the target owner's fog; (the cloak write is [`Sim::cast_blow`]) for a
     /// craft without `l`; Bribe's `unit_masks2 |= 0x60`; a non-spy
     /// caster's animations; the messages and sounds.
     pub(crate) fn do_cast_targeted(&mut self, u: usize, order: CastOrder) {
@@ -582,14 +642,51 @@ impl Sim {
         };
         self.set_anim(u, anim, false, false);
         self.units[u].casting = true;
+        self.cast_blow(u, s, true);
         self.units[u].spell_time += 1;
         if self.units[u].spell_time < self.spell_job_time(s) {
             return;
         }
+        self.cast_blow(u, s, false);
         self.units[u].spell_time = 0;
         self.cast_on(u, s, t);
         self.clear_cast_paid(u);
         self.kill_current_order(u);
+    }
+
+    /// `UnitData::is_cloaked@0060a6a0`, with the order list as it stands:
+    /// the type's `CLOAKED` (`0x4000`), `unit_masks2 & 0x8000`, or a
+    /// `STEALTH` type with no order. `unit_masks & 0x800` is not carried.
+    pub(crate) fn unit_is_cloaked(&self, u: usize) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        let cols = self.unit_types[t].cols;
+        if cols.flag(crate::ai_load::uflags::CLOAKED) || self.units[u].unit_masks2 & 0x8000 != 0 {
+            return true;
+        }
+        cols.flag(crate::ai_load::uflags::STEALTH) && self.units[u].orders.is_empty()
+    }
+
+    /// `Unit::do_cast@005ebfe0`'s two `unit_masks |= 0x11000` writes
+    /// (`005ec932`, `005ec9a7`; `docs/GOLDEN.md` §105): a cloaked caster
+    /// whose craft lacks `l` ([`craft::KEEP_CLOAK`]) is blown and fought.
+    /// `every_frame` is the first, reached each frame ahead of the clock:
+    /// it also skips the Sniper (`0x281`) and a Spy (`is(0x3a, 0)`). The
+    /// second is the cast frame's, on the Spy too. A stealth-only unit
+    /// holds its cast order, so `is_cloaked` answers no for it.
+    pub(crate) fn cast_blow(&mut self, u: usize, s: i32, every_frame: bool) {
+        let Some(d) = self.spell(s) else {
+            return;
+        };
+        if !self.unit_is_cloaked(u) || d.flags & craft::KEEP_CLOAK != 0 {
+            return;
+        }
+        if every_frame && (s == 0x281 || self.unit_is_spy(u)) {
+            return;
+        }
+        self.units[u].blown = true;
+        self.units[u].fought = true;
     }
 
     /// `do_cast`'s `paid = 0` before its closing `kill_current_order`
@@ -610,6 +707,13 @@ impl Sim {
     /// target's line of sight for every leader in `infiltrated`); the
     /// captain re-read of a squad target; the selection hand-over.
     fn cast_on(&mut self, u: usize, s: i32, t: Obj) {
+        if s == spell::BRIBE
+            && let Obj::Unit(v) = t
+            && self.spell_castable(s, u)
+        {
+            self.cast_bribe_unit(u, v);
+            return;
+        }
         if s != spell::INFORMER || !self.spell_castable(s, u) {
             return;
         }
@@ -779,7 +883,7 @@ impl Sim {
     }
 
     /// `LeaderData::current_upgrade(who, ti)` as a unit record.
-    fn upgrade_record(&self, who: Player, ti: i32) -> Option<usize> {
+    pub(crate) fn upgrade_record(&self, who: Player, ti: i32) -> Option<usize> {
         let t = self.unit_types[self.unit_rec_of_index(ti)?].tree?;
         let up = self
             .tech_tree
@@ -1167,6 +1271,131 @@ mod tests {
             s.add_unit(u)
         });
         (s, units)
+    }
+
+    /// **`do_cast`'s two `0x11000` writes** (`005ec932`, `005ec9a7`; item
+    /// 2804, `docs/GOLDEN.md` §105): a cloaked caster of a craft without
+    /// `l` is blown and fought — on the first, every-frame site not a Spy
+    /// and not the Sniper, on the cast frame's a Spy too. A craft with `l`
+    /// keeps the cloak, and a stealth-only unit holds its cast order, so
+    /// it is not cloaked at all. Made to fail with the cloak test dropped,
+    /// with the `l` test dropped, and with the Spy exemption dropped.
+    #[test]
+    fn a_cloaked_caster_of_a_craft_without_l_is_blown() {
+        use crate::ai_load::{UnitCols, uflags};
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
+        s.spells[at(spell::BRIBE)].flags = 0;
+        s.spells[at(spell::INFORMER)].flags = super::craft::KEEP_CLOAK;
+        s.spells[at(0x281)].flags = 0;
+        let cloak = |s: &mut Sim, u: usize, flags: u32| {
+            let t = s.units[u].ty.unwrap();
+            s.unit_types[t].cols = UnitCols {
+                unit_flags: flags,
+                ..UnitCols::default()
+            };
+        };
+        cloak(&mut s, spy, uflags::CLOAKED);
+        cloak(&mut s, filler, uflags::CLOAKED);
+        let reset = |s: &mut Sim, u: usize| {
+            s.units[u].blown = false;
+            s.units[u].fought = false;
+        };
+        let bits = |s: &Sim, u: usize| (s.units[u].blown, s.units[u].fought);
+        // The first site: a cloaked non-Spy, the craft without `l`.
+        s.cast_blow(filler, spell::BRIBE, true);
+        assert_eq!(bits(&s, filler), (true, true));
+        reset(&mut s, filler);
+        s.cast_blow(filler, spell::INFORMER, true);
+        s.cast_blow(filler, 0x281, true);
+        assert_eq!(bits(&s, filler), (false, false), "`l`, and the Sniper");
+        // A Spy is exempt at the first site and not at the second.
+        s.cast_blow(spy, spell::BRIBE, true);
+        assert_eq!(bits(&s, spy), (false, false));
+        s.cast_blow(spy, spell::INFORMER, false);
+        assert_eq!(bits(&s, spy), (false, false), "the Informer keeps it");
+        s.cast_blow(spy, spell::BRIBE, false);
+        assert_eq!(bits(&s, spy), (true, true));
+        // Not cloaked: a stealth-only unit with its cast order held.
+        cloak(&mut s, filler, uflags::STEALTH);
+        reset(&mut s, filler);
+        s.add_cast_order(filler, spell::BRIBE);
+        s.cast_blow(filler, spell::BRIBE, false);
+        assert_eq!(bits(&s, filler), (false, false));
+        s.units[filler].orders.clear();
+        assert!(s.unit_is_cloaked(filler), "idle, it is");
+    }
+
+    /// **Bribe's target arm** (`SpellTypeData::is_valid_target@006763c0`,
+    /// item 2812): an enemy's armed, land, non-spy, non-worker unit; a
+    /// building, an unarmed unit, a Spy, a worker, an ally and a peace
+    /// partner are refused. Made to fail with the war test and with the
+    /// armed test dropped.
+    #[test]
+    fn bribe_takes_only_an_enemy_s_armed_land_unit() {
+        use crate::combat::Obj;
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        s.spells[usize::try_from(spell::BRIBE - spell::FIRST).unwrap()].flags = 0x2 | 0x20 | 0x80;
+        let target = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[filler].ty;
+            u
+        });
+        s.units[target].owner = 0;
+        let t = Obj::Unit(target);
+        s.units[spy].owner = 1;
+        assert!(!s.spell_valid_target(spell::BRIBE, 1, t), "at peace");
+        s.declare_war(0, 1);
+        assert!(!s.spell_valid_target(spell::BRIBE, 1, t), "unarmed");
+        let ty = s.units[target].ty.unwrap();
+        s.unit_types[ty].combat.attack = 5;
+        assert!(
+            s.spell_valid_target(spell::BRIBE, 1, t),
+            "an enemy's soldier"
+        );
+        assert!(
+            !s.spell_valid_target(spell::BRIBE, 1, Obj::Unit(spy)),
+            "its own"
+        );
+    }
+
+    /// **Bribe's conversion** (`SpellType::cast_bribe@00672d00`'s unit arm,
+    /// `Unit::swap_team@006118d0`, item 2823): a copy is born under the
+    /// caster's owner carrying the damage and the facing, the old unit is
+    /// closed without a death and held thirty frames, and the caster's
+    /// leader counts one. Made to fail with the counter dropped, with the
+    /// old unit left standing, and with the damage not carried.
+    #[test]
+    fn bribe_swaps_a_unit_s_team_and_closes_the_old_one() {
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        let target = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[filler].ty;
+            u
+        });
+        s.units[spy].owner = 1;
+        s.units[target].health = 15;
+        s.units[target].max_health = 20;
+        let bribes = s.tech[1].bribes;
+        let before = s.units.len();
+        let n = s.cast_bribe_unit(spy, target).expect("a copy is born");
+        assert!(s.units.len() > before || n < before, "a unit is made");
+        assert_eq!(s.units[n].owner, 1, "under the caster's owner");
+        assert_eq!(
+            s.units[n].max_health - s.units[n].health,
+            5,
+            "damage carried"
+        );
+        assert!(!s.units[target].alive(), "the old one is closed");
+        assert_eq!(s.units[target].hold_frames, Sim::CLOSE_HOLD);
+        assert_eq!(s.tech[1].bribes, bribes + 1, "the leader's +0x8f4");
+        assert!(s.cast_bribe_unit(spy, n).is_none(), "its own: nothing");
     }
 
     /// What one frame of each parity takes back from a `mana_burn` of 100.

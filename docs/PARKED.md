@@ -3751,7 +3751,61 @@ whether the trial's numbers before this commit count, and whether a sampler shou
 (2792) **`sweep_gen.py --regen` with no `--port` drops a hand-written port to `todo!()`** (2783's "for the Loop"
 line, filed at its merge): four times in one batch, though the keep is said to hold (item 2368); the port had been
 written by replacing the `todo!()` line, so perhaps the keep wants the generator's own markers. Each re-application
-cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach.
+cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach. **A second**, 2807's (parked 2815): `--regen` resets a hand-edited port to `0`; a redraw is delete-and-regenerate or a checkout. **A third**, 2818's "for the Loop" line, filed at its merge: `--regen` should refuse, or print a diff, when it would reset a hand-written port; and `--write-mod` leaves `mod.rs` alone on a non-`--regen` run, so the module line is added by hand — the generator could verify it was added. **A fourth**, 2844's "for the Loop" line, filed at its merge: `--regen` rewrites the `.rs` as well as the `.py`, so a draw tuned after the port loses it (kept in the job's tmp and transplanted); a `--regen --keep-port` would remove the step; and `--sparse` sorts its slices by offset whatever the line's order, which the help should say (beside 2842's traps).
+
+(2796) **A function's sixty flags and its port do not survive a shell line** (2782's "for the Loop" line, filed at its
+merge): the item's driver was a throwaway (`$JOB/tmp/gen.py`, a function's flags one a line in a file and its port in
+another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 KB port do not fit a command. Candidate:
+`sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer (Loop 2792's
+sibling). One reach; **a second**, 2797's "for the Loop" line, filed at its merge: two scratch `gen_*.sh` drivers again; **a third**, 2801's: a `gen.sh` per item (`fK` flags, `pK.rs` ports, `FRESH=1`), and a `--regen` that replaces a port block is the other half.
+
+(2799) **Two guards read the `Golden:` line by different rules when no chapter is open** (the commander, at 2785's
+booking): `docs_guard::the_handoff_carries_the_golden_line` accepts `none pinned`, a `w<frame>` or `every chapter closed`;
+`floors::tests::the_handoff_s_golden_line_is_the_pinned_word` accepts only `every chapter closed`, so a line that passed
+the reflex failed the whole gate on `a742d5bc` (one red, the second commit leading with `every chapter closed`).
+Candidate: one parser, shared. One reach.
+
+(2809) **A mechanic document's numbered steps are checked against the function that builds them** (2779's "for the
+Loop" line, filed at its merge): two neighbouring terms of `calc_gather` sat in `docs/ECONOMY.md`'s list ("8.
+Capitalism") for months with no code, and no `SEAM` or "not modelled" paragraph named them, so `seams.py` could not
+show them; they were the peace pair's word 5982. Candidate: a step with no code gets a `SEAM` line, held by a guard
+that reads the step lists. One reach.
+
+(2819) **The sweep lanes now harvest renderer and editor bodies the census counts as simulation** (the commander, at
+2807's merge): 2807's ten (`draw_thick_diamond`, `Nuke::draw_ctw`, `Game::run_unit_editor`, `WorldMap::on_right_down`…) are,
+in its own words, "a renderer or editor body or a thin wrapper; none has a simulation effect beyond what the rows hold",
+and the next-shortest unshaped rows (parked 2817) are more of the same; two batches running found the harvest slot EY empty.
+`Census:` rises (1169 → 1181) on functions the finish line does not need. Yours: whether `census.py`'s layer rules move
+these files out of `simulation`, and whether the two sweep lanes stay two (the roster is Ramon's). One reach. **A second**, 2831's "for the Loop" line, filed at its merge: a batch of one (`Map::stamp`), the shortest `--unbacked` rows renderer, UI or singleton bodies (parked 2836); `census.py --unbacked` could mark a body whose only effects are `draw_*`/`render` calls so the list skips it.
+
+(2820) **A lane waiting on a subagent that ended its turn is invisible to `lanewait.py`** (the commander, 2026-10-17):
+2793 fanned its batch to ten subagents (`agent-*` worktrees), and the `num_city_buildings` one ended its turn at 03:25 with
+"the harness will re-invoke me when the background job exits" — a subagent is not re-invoked that way — so the lane sat
+1h50 "waiting on the agent", its row `working`, no `STALLED` exit (a running subagent counts as running). Candidate: the
+waiter reads a lane's subagent transcripts and exits `STALLED` on one quiet past the threshold with `end_turn`; and the
+frame's brief says a subagent never ends its turn on a background wait. One reach.
+
+(2824) **A booking that says "carry the cast" is sized before its callee chain is counted** (2812's "for the Loop" line,
+filed at its merge): 2812 was booked to carry a cloaked Spy's Bribe and stage it, and the carry alone reached
+`cast_bribe` → `Unit::swap_team@006118d0` (286 lines, unread), so the staging went to the next chapter (2823). Candidate:
+the brief checklist asks a booking that names a cast or an action to list its callees' line counts first. One reach.
+
+(2847) **When the two sides' index-0 sites differ in caller, read theirs' caller first** (2825's "for the Loop" line, filed
+at its merge): the booking named `1/193`, and `seams.py` on its chain (`do_idle`, `set_anim`) could not reach the cause, which
+came from theirs' index-0 caller — a draw ours never makes; the unit ours names at that index is the first one after the
+missing draw. A second row: a reach difference with the distance agreeing is `max_range@0060fe90`'s terms, grepped against
+`tuning.rs` before a gate is read. Candidate: two brief-checklist rows beside Loop 2827's. One reach.
+
+(2843) **The census counts a sweep only when its test's doc comment spells `Class::method@addr` in full** (2837's "for the
+Loop" line, filed at its merge): a three-forms-in-one test that named `is_seen_wcoord@…` bare scored two of three until the
+full names were spelled. Candidate: `census.py --unbacked` says "cited bare" for an address a test file names without its
+class. One reach.
+
+(2827) **Once the draws name a unit, `seams.py` runs on its type's think chain** (2808's "for the Loop" line, filed at its
+merge): the seam that held 5985 (`think_carry`'s attack arm, "answers no" since AI §195) was named in prose for four days, and
+`seams.py --item` on the booking's names (`set_anim`, `inc_time`) could not reach it; the draw named the Transport Freighter
+`1/225`, and its type led to the seam. Candidate: a brief-checklist row — a residue whose draws name a unit runs `seams.py` on
+`think_<type>` before walking it back. One reach.
 
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
@@ -3774,7 +3828,7 @@ suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four l
 Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a shell loop of `--place`s, and
 `kill_tree`'s one stack argument (hidden by the decompile) faulted the first run at the stub page. Candidate: a
 `--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach;
-a second from 2768's "for the Loop" line, filed at its merge: an object list's sixty flags a function (parked 2772). **The thirty-seventh pass**: `--ptrtab LOC:N:SIZE` is 2782's own item (booked, a test made to fail first); the `callee_arity.py ADDR` half stays at one reach — closes at the next pass unreached (DECISIONS 54).
+a second from 2768's "for the Loop" line, filed at its merge: an object list's sixty flags a function (parked 2772). **The thirty-seventh pass**: `--ptrtab LOC:N:SIZE` is 2782's own item (booked, a test made to fail first; **built**, parked 2794); the `callee_arity.py ADDR` half stays at one reach — closes at the next pass unreached (DECISIONS 54).
 
 (2775) **A record array's bias is a `--place` per record, and `--answers` on a table-indexing stub draws wild words**
 (2743's "for the Loop" line, filed at its merge): parked 2747's record-array bias wants one flag, and `--answers`'
@@ -6143,21 +6197,33 @@ The stub answer layout (own arguments, one drawn answer a stub, then each `--seq
 
 (2778) Shapes lacking from the next rows read, each one line, none built: `Terrain::walk_coord_data` 0x850ef0 (two singletons and a walker through `param_1[0]`, a list per row at stride 0xc); `WorldData::is_seen` 0x6b55c0 (a leaders record at stride `0x6eec`, a game-info byte, two tile arrays: window sizes over a megabyte); `TurnControl::issue_speed_set` 0x956ad0 (a `Command` local the stub is handed by address and the function builds on its stack); `MapFairness::recompute` 0x68a100 (a float compare, no integer shape); `GatherPointList::get_new_data` 0x470e90 (a `malloc` and a constructor); `Player::end_game` 0x6ee110 (camera, scene and semaphore singletons, a write through each).
 
-## Parked by the next landing, slot EU — reserved
+## Parked by item 2780, 2026-10-17 — the scout's fog read takes the Space Program
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Its one row — the widening 5982 owes, run867's recipe with the window at 5976..6232 and `BUILDS=7` in the detail —
+was booked as the queue's item at 2780's merge.
 
-## Parked by the next landing, slot EV — reserved
+## Parked by item 2782, 2026-10-17 — the pointer-array shape, and the group list's ten
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2794) **`--ptrtab LOC:N:SIZE[:vt]` is built** (a test made to fail first, `test_a_pointer_table_is_one_place_for_the_array_and_one_a_record`;
+2772's eight-object group list is one flag, and its output reproduces 2768's `get_num_cap_const` script byte for byte), and ten
+`GroupData` functions fell to it: `has_air_units` 0x70b250, `get_repeat_air` 0x70c0b0, `is_on_map` 0x70c450, `get_auto_explore`
+0x70c1b0, `get_infinite_queue` 0x70c310, `get_form_mod_option` 0x70bd00, `get_form_option` 0x70beb0, `find_leader` 0x70ccb0,
+`get_max_range` 0x711080, `play_sound` 0x70d060. What the layout taught, for the next lane on this family: **a stub whose
+answer sizes a loop or indexes a record needs `--answer-range`**, not `--answers` (`--seq` draws a random word one in ten, and
+`--tame` is registers only: three first runs faulted at an unmapped record); the **units table is at `0xc0aec0 + who*0x1c`** and
+`UnitData::vftable` at `0xb41b08` laid half the rows by `--vtat-half` with the other half `--wbias`ed to it (a unit record's slot
+read inline against `UnitData::is_captain`/`is_on_map`/`is_plane`); `get_repeat_air` and `get_auto_explore` have **two different
+`counts` statics** (`0xee1518`, `0xee1510`), and `get_form_option` indexes a sixth `counts` word it never zeroes
+(`0xee1520`, 24 bytes); a function that tail-jumps (`play_sound`) is a plain `--stub ADDR:N` with `--record`, and its
+no-call row prints `-`. Not built: `GroupData::group_air` 0x70b160 (a Group argument's vtable slot `+0xc` called with four
+arguments, a passenger chain through `+0x28`/`+0x3e` as `has_air_units`'s, and a record vtable compared with
+`ObjectData::vftable` at `0xb43204` for `ObjectData::is` — every piece built, none yet together).
+
+(2795) **Equivalent breaks, named** (2782): `has_air_units`'s `break 'list` (the loop continues with the answer already 1, no stub log),
+`is_on_map`'s `break` (the same), `get_repeat_air`'s `counts.fill(0)` (the port overwrites both words after; the original's
+zeroing is observable only through the image window it holds, and the port writes the window in full), `get_form_option`'s
+`n > 1` for `n > 0` (the arm is reached only for `n != 1`), `find_leader`'s initial best score `0x12` (the `best < 0 ||` guard
+takes the first match whatever the score).
 
 ## Parked by item 2783, 2026-10-17 — the harvest sweep's hundred-and-eighth batch
 
@@ -6167,13 +6233,18 @@ words and edits nothing here; a refill lands when two remain.
 
 (2791) **Shapes lacking.** `StripBuilder::check_last_connect` 0x882050 walks a table of node pointers whose `+4` pointer must name a node whose `+0` equals the first (`cmp [edx], eax`): a placed pointer that points at another window's start, or at its own, has no flag, so the equal arm is a 2^-32 draw (`--place pN+OFF` aiming at the window that holds it, or a `--link` of size 4 that points back, would build it). `TurnControl::get_delta_percent` 0x957950 (`timeGetTime` and a float return), `Game::clock_init` 0x588530 (`timeGetTime`, an import answering a clock) and `MiscAccess::world_to_screen` 0x583810/0x583a00 (arguments in `edx` and `esi` the decompiler prints as unaffected registers) were read and not built.
 
-## Parked by the next landing, slot EX — reserved
+## Parked by item 2785, 2026-10-17 — chapter eighty closes: the blown bit
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2759) **`unit_masks` is not a word in this crate** (item 2785, `docs/GOLDEN.md` §103): `Unit::blown` (`0x1000`) and `fought`
+(`0x10000`) are carried; the dump prints the whole word (`0/7`: 69636 on 612, 69632 to 1000, 0 at 1198) and the widening parses it
+(`unit_masks: Some(…)`) but nothing compares it, so the 512-frame `process_cloak` clear and `check_idle`'s drop are reading alone.
+Names no score; a capture window across a `(frame + o) & 0x1ff == 0` frame with a blown stealth unit would back both.
+
+(2760) **`process_cloak@005e1c20`'s other writes and `do_cast`'s `0x11000`** (item 2785): the `unit_masks2 & 0x60` arm, the `0x800`
+tribe/hero reveal (`unit_masks & 0x800` is read by `Unit::work`'s blow test and `is_seen`, never set here) and the cloak particles
+have no reader; `do_cast@005ebfe0:695,715` writes `0x11000` too and this crate's casters do not. Names no score.
+
+Struck: (2757) closed by item 2785 (the blown bit); (2758) left with it — the added Scout's path and 1203 `seen3` rows agree.
 
 ## Parked by the next landing, slot EY — reserved
 
@@ -6183,34 +6254,338 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EZ — reserved
+## Parked by item 2779, 2026-10-17 — Capitalism pays its oil after the refineries
+
+No row of its own. The new word, 5985, booked as the queue's 2808 at the merge (`docs/AI.md` §234): ours 23 draws, theirs 24,
+index 19, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x104b`. It lies inside
+run879's window (block 5986), so its widening is on disk. The item before's hypothesis is the Transport Freighter
+`1/225`, idle in ours from 5976.
+
+## Parked by item 2797, 2026-10-17 — the Group argument's slot, and the alias pointer
+
+(2800) **Two shapes built, two functions; the batch is not ten.** `GroupData::group_air` 0x70b160 fell to flags that already
+existed, composed: two `--ptrtab`s (the objects tables at `0xc0ab84` and `+0x1c`, `vt`), `--ptrarg 0:16` with the stubbed
+vtable laid at it (`--vtat-also p0+0`: the Group's slot `+0xc`, four arguments, `--record 0` printing every call as
+`p0+0x0,index,table,0,0` joined by `/`), the type records laid by `--place pR+0x18` with the same vtable (`--vtat-also`) and
+`--wbias pT+536` `2,2,2,2,0,1` (the `+0x218 == 2` gate), `--slotbase 0xb8:0x653790` and `--seq 1:4 --seq 2:4` for the two answering
+slots (the base arm asks the type's `+0x60`, the other the stub). Layout lessons: **the single answers come first**, one a stub
+(`a[2..5]`), then the `--seq` runs, then the `--slotbase` flag, so `a[5+..]`, `a[9+..]`, `a[13]`; a table-0 chain may step into
+table 1 and table 1 only *down* its own index (`--link p7..10+0x28:2:'<'`) so a chain ends and index 0 is reachable (a `>`
+link starved `nx > 0`, found by a surviving break); and 140 of 220 rows make no call at the densities above (`m+12:1..6`,
+`argset 1:-1,-1,0,1,2`), the rest one to nine. `StripBuilder::check_last_connect` 0x882050 fell to **`--alias`** (built here, a test
+made to fail first: `test_a_word_may_name_a_window_s_own_address`): the word at `WIN+OFF` is the address of window `TARGET[+K]`
+half the rows. The array is `this+0x30` (`last_connect`'s `+0x10` at `+0x20`), four node pointers by `--ptrtab m+0x30:4:8`,
+each node's `+4` a placed 8-byte window, `--alias` laying that window's `+0` as the node's address and the node's own two words as
+its own address; the port cannot see addresses and recovers the target from the pointer array's entry. All breaks held (12 and 7).
+**No further functions**: slot EY (2793's lane) was empty at this base, and the next-shortest never-backed rows with no built
+shape are 257-byte rendering or editor bodies (`RiverDoober::add_for_render`, `Game::run_unit_editor`) and `Search::valid_filter`
+(an indexed jump over a table of arms, `--jump` over the arms' own addresses would hold it, each arm its own function).
+
+## Parked by item 2798, 2026-10-17 — the blown and fought bits compared
+
+(2802) **The inside arm's other halves** (item 2798, `docs/GOLDEN.md` §104): `Unit::process@00610bc0:557-559` also writes
+`unit_masks &= 0xfffee7ff` with `0x2000` clear (dropping `0x800`) and `unit_masks2 &= 0xffff7f9f` (`0x20`, `0x40`, `0x8000`); this
+crate drops `blown` and `fought` only. A `unit_masks2` row on a garrisoned unit would back the second. Names no score.
+
+(2803) **The `blown`/`fought` rows are gated on `on_map`**: a garrisoned unit's masks are not compared on its inside frames, so
+the garrison clear is backed only on the exit frame. Moving the row out of the gate would need `unit_masks` printed for inside
+units (it is) and ours to agree on the mask of an inside unit. Names no score.
+
+Struck: (2759) closed by item 2798 — the field is compared and both clears are diff-backed.
+
+## Parked by item 2801, 2026-10-17 — valid_filter's arms, the clock and the register pointer
+
+(2805) **`Search::valid_filter` 0x67dbb0 is swept, as 27 `--name valid_filter_caseK` modules at once** (parked 2664's rule), composed from
+flags that existed: no `--jump` change was wanted, `--argrange 3:K:K` pins the index. What the listing says that the
+decompile does not: the first table at 0x67e57c is **23 entries**, not 27 — entries 23–26 (`e425`, `dc38`, `e3c4`, `e442`) are
+the *second* table's targets (0x67e5d8, a byte table at 0x67e5e8 maps `p1 - 0x275` onto them, arm 19's inner dispatch), so
+cases 23–26 are reachable from outside only by an out-of-range index and read `ebx` — the caller's, which the harness holds
+zero (cases 23 and 25 index slot 0). The ports spell them as that, and arm 19 reaches them with `ebx = p0`. Layout lessons: the
+objects tables are `--ptrtab 0xc0ab84:4:SIZE[:vt]` and `+0x1c`, the type tables `0xc0aec0`, each place and bias by window
+number (`5*who + 1 + idx`; the first `--ptrtab` is `p0`..); **a `--seq` stub also has a single answer first**, so run values
+start after the singles; the players table (stride 0x6eec) and the per-player lists (stride 0x1c, `+0x10`) are `--sparse`
+tables whose slices come row-major, their lists and objects `--place`s after the ptrtab places (arm 17: 73 windows); arm 17's
+player loop runs eight players, not nine (`0x10 + 0x1c b < 0xf0`, found by a failed row). **A `--regen` with `--name` merged
+another arm's kept line** (the first script holding the function's token): fixed in `merged_with_kept`, its test made to fail
+first; and `--regen`'s merge drops every kept use of a flag the new line names, so a redraw passes the whole flag set.
+**Starved, not killed**: arm 10's two `a == 0` null tests on a stub's answered pointer (`--answer-win` never answers null; no
+break reaches them); `0x63637 → 0x63636` in arms 14 and 15's log helper is an equivalent mutant (`>> 6`).
+
+(2806) **`--edx-win WIN`** built (`edx` the address of window WIN, for `MiscAccess::world_to_screen`'s `in_EDX`, both overloads),
+its test made to fail first. `Game::clock_init` and `TurnControl::get_delta_percent` needed no shape: `--stub iat:0xac5460:0`
+(item 2336) answers `timeGetTime`, and `--ret xmm0` with `--answer-range` for the divisor (a zero divisor traps) holds the float.
+Parked 2791's "unhookable IAT cell" rows are stale for these. Five functions, `Census:` 1164 → 1169; slot EY was empty at this
+base again, and the next-shortest never-backed rows are render, editor and terraform bodies (`RiverDoober::add_for_render`,
+`Game::run_unit_editor`, `NukeOut::setup_terrain_terraforming`, `get_float_z`).
+
+## Parked by item 2804, 2026-10-17 — do_cast's 0x11000 on a cloaked caster
+
+(2810) **A staged Spy's Bribe or Sabotage would back `do_cast`'s two blow sites** (item 2804, `docs/GOLDEN.md` §105): built
+from the listing alone, no modelled cast reaches either, since the crafts without `l` are refused (`spellcaster.rs`) or not
+carried. Names no score.
+
+(2811) **`do_cast`'s `unit_masks |= 0x20000` and Bribe's `unit_masks2 |= 0x60`** are not carried (`0x20000` stops the mana
+recovery, `Unit::process`); the cast-time `0x800` reveal and `process_cloak`'s `unit_masks2 & 0x60` arm are still unread (2760's
+rest). Names no score.
+
+Struck: (2760)'s `0x11000` half, closed by item 2804.
+
+## Parked by item 2807, 2026-10-17 — `--xmm`, and ten short bodies
+
+(2813) **`--xmm N:LO..HI|V,V,..`** built (a float register argument; `tools/sweep_gen.py`, its test made to fail first,
+`test_a_float_register_argument_may_be_drawn`; `hooks.Harness.call` takes `xmm`): xmm N holds the float V/4 for an integer V
+drawn from the range or list, V printed after the row's other numbers. Quarters are exact in an f32, so the port needs no float
+(`cvttss2si` is Rust's `V / 4`, truncating toward zero), and no wild word is drawn (a random bit pattern is a NaN or a huge
+value `cvttss2si` answers `0x80000000` for; the x86 and the host would part on NaN payloads). `get_float_z` 0x8942d0 is its first
+user (`--cell-win 0xc06218:16 --stub 0x866560:4 --answer-win 0:8 --record 0 --ret xmm0`, two floats in xmm0/xmm1; the stub's
+answer is a pointer, the int it points at converted by `cvtdq2ps`). Guy::set_bank and set_pitch (parked 1867) are hand scripts
+that could be regenerated with it.
+
+(2814) **Ten functions, `Census:` 1169 → 1181 by `tools/census.py --layers`** (ten built; the count moved twelve, two
+more than the batch, and I did not trace which): `get_float_z`, `NukeOut::setup_terrain_terraforming`,
+`RiverDoober::add_for_render`, `Game::run_unit_editor`, `RiverSectionOut::compute_vert_height`,
+`TerrainMap::cancel_button_enable`, `WorldMap::reinit_all`, `Nuke::draw_ctw`, `draw_thick_diamond`, `WorldMap::on_right_down`.
+Each is a renderer or editor body or a thin wrapper; none has a simulation effect beyond what the rows hold. `compute_vert_height`'s
+nine-float table (the image's `0xb69870`, `0xb69ac0` and a literal 1.0) is spelled in its port as bit patterns read from the PE.
+
+(2815) **Three layout lessons.** A `--place` at a *global* address (`--place 0xe399ac:0:16 --place-null 0`) lays null a third
+of the rows, but nothing on the row shows it: the port cannot tell the null path. `--at 0xe399ac:4` with `--place c0+0:0:16
+--place-null 0` puts the pointer in a printed `c` window instead, and `WorldMap::reinit_all`'s port reads it there. **`--regen`
+resets a hand-edited port to `0`** (the journal of 2801 said it keeps the test; it keeps only the script's flags and does not read the port
+back) — I redrew `compute_vert_height`'s floats with it and re-applied the port from git; a redraw of a swept function is
+delete-and-regenerate or a checkout of the port. A function whose last act is a stub's answer, `--ret none`, leaves `eax` unchecked
+(`let _ = (got, want_eax)`): `WorldMap::reinit_all`'s `i64::from(a[3])` is a mutant that survives for that reason, an
+equivalent one, not a starved arm.
+
+(2816) **Not modelled**: `NukeOut::setup_terrain_terraforming` calls `Terrain::refresh_good_z` with `ecx` and a pushed
+argument both whatever `terraform_for_nuke` left in `ecx`; a stub leaves `ecx` as it found it (the object), so the row holds
+`m+0x0,m+0x0` and the original's callee-clobbered value is not held. A hooked callee's answer `(eax, ecx)` (1922) is not a flag
+of `sweep_gen`, and a flag for it would hold this and any other `ecx`-forwarding tail.
+
+(2817) **Next shortest never-backed rows with no built shape**: `NukeOut::draw_underlays` 0x9269d0 (419 bytes, a statics
+guard `__Init_thread_header` and `fs:[0x2c]` TLS), `TerrainMap::on_mouse_move` 0x9b47c0, the two `project` overloads (0x92d000,
+0x92cf40: `in_ECX`/`in_EDX` register arguments and `sin_table`, a `--ecx-int` and `--edx` pair would hold them),
+`Game::post_game_screens` 0x58fd50. Slot EY (2793's lane) was read at this base as still the reserved stub.
+
+## Parked by item 2808, 2026-10-17 — a soldier's boat sails to its army's target
+
+Booked as the queue's 2825 at the merge: **the peace pair's word 6452 is owed a widening and a capture** (`docs/AI.md` §235). Ours and theirs spend 22 draws
+each on 6452 and part at index 0. Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` (`1/193`), theirs `Guy::set_anim+0xf2f
+< Unit::set_anim+0x56`. Count parts at 6455. run879 ends at 6232, and no dump of this lobby holds 6452, so the disk cannot answer
+it. The capture is run879's recipe with the window at 6446..6702 (`--end-frame` 6707). `LAKOTA_PAIR_WORD`'s `WIDENINGS` row names
+this item as the one that owes it. Inside run879 the earliest row past the standing keys is `1/164`'s `attrition` on 6045 (ours
+6, theirs 0), then its `hits` on 6047. That row is the item before's candidate, not a cause.
+
+(2826) **Three arms of `think_carry`'s attack branch are reading only** (`Unit::think_carry@005f2ee0`; SEAMs in
+`Sim::think_carry_army`):
+- the eject when one of the boat's nine cells is in the army's region (`eject_contents(0, -1, 0, 1)`, `param_3` 0, unlike
+  `disembark`'s 1);
+- the group with no army: eject, then the coastal-city search;
+- the army with no live target: the region's centre, or a city the leader marks `& 4`.
+
+No capture reaches any of them. The rider chain's head is taken as the lowest-numbered rider.
+
+## Parked by item 2812, 2026-10-17 — Bribe's target arm carried; its conversion is the next build
+
+(2821) **`Unit::swap_team@006118d0` (286 lines) and `cast_bribe`'s unit arm are the next chapter's build**: the owner swap
+of the bribed unit and the leader counter at `+0x8f4`. Until it stands a staged Spy's Bribe parts on the target's owner, so the
+cloaked-Spy staging of GOLDEN §106 (site two on the cast frame) waits on it. Names no score.
+
+(2822) **`is_valid_target`'s Bribe ally arm, `has_general`'s `+0x56fe` count, and the territory refusal in `cast_bribe`
+(building and city arms)** are seams (GOLDEN §106). Names no score.
+
+## Parked by item 2818, 2026-10-17 — `--ecx-out`, the `project` pair, and four more bodies
+
+(2828) **`--ecx-out IDX:V,V,..`** built (`tools/sweep_gen.py`, `pair_answer`; its test
+`test_a_hooked_callee_may_answer_eax_and_ecx` failed first on the missing keyword): stub IDX answers `(eax, ecx)`, the `ecx` drawn
+from the list and printed last on the row, after the xmm values. It closes (2816): `NukeOut::setup_terrain_terraforming` redrawn with
+`--ecx-out 0:0x1000,0x2000,0x3000`, its port now logs `{a[4]},{a[4]}` for `refresh_good_z` (the old `m+0x0,m+0x0` is a mutant that
+fails). The `hooks` side was already built (1922); only the flag was missing.
+
+(2829) **The `project` pair** (0x92d000 `project_d`, 0x92cf40 `project_c`) needed no new flag: (2817)'s `--ecx-int` and `--edx`
+held them, with `--cdecl`, `--ptrarg 2:4 --ptrarg 3:4` for the two out words and the register-argument `sin_table` (0xa46a00,
+`ecx`/`edx`, no stack) as a `--stub 0xa46a00:0 --record --record-edx`. They differ: 0x92d000 takes the angle and distance on the stack and
+the base in `ecx`/`edx`; 0x92cf40 the reverse (angle `ecx`, distance `edx`, base on the stack). Do not read one as the other's overload.
+Breaks 16/16 held. `TerrainMap::remove_feature` (one `--cell-win` width record, `--place m+0x9c8` terrain bytes, `--wbias` words of tile
+types, three stubs) 6/6 after a re-run (the first mutant ran a stale binary: "failed nothing" and then held); `Border::generate_morph_side`
+(`--answer-win` pop, three stubs; the borders cell's `+0x164` is the literal 12659308 in its log, the image's value) 6/6.
+
+(2830) **Census 1181 → 1185** by `tools/census.py --layers` (four built: the `project` pair, `remove_feature`,
+`generate_morph_side`). Not modelled: `NukeOut::draw_underlays` (a statics guard and TLS) and `TerrainMap::on_mouse_move`,
+`Game::post_game_screens` are the next shortest rows with no shape; the rest of the shortest are renderer bodies (Loop 2819).
+This batch is short (four, not ten): no shape was left to build and the unshaped rows are the kind 2819 asks about.
+
+## Parked by item 2823, 2026-10-17 — Bribe's conversion built; its staging is the next chapter
+
+Booked as the queue's 2832 at the merge: **the cloaked Spy's Bribe staging**: a Spy bribing in a who=1 scout's sight, one out of sight as control, comparing
+`unit_masks` and the owner across the cast (GOLDEN §106 site two). Needs `stage_walk` of the recipe first; census rows before run
+880. The conversion (GOLDEN §107) stands under it, unbacked by a diff. Names no score.
+
+(2833) **`swap_team`'s `inside_down` chain and the `unit_masks` bits** this crate keeps as fields are seams (GOLDEN §107).
+Names no score.
+
+## Parked by item 2825, 2026-10-17 — a bomber near its President reaches two tiles further
+
+Booked as the queue's 2845 at the merge: **the peace pair's word 6808 is owed a widening and a capture** (`docs/AI.md` §236).
+Ours spends 63 draws on 6808 and theirs 61, parting at index 43 (count and sequence both): ours `Unit::find_attack_pos+0xea9
+< Unit::fight+0x115e`, theirs `Unit::do_move+0xe84`. run881 ends at 6701, and no dump of this lobby holds 6808, so the disk
+cannot answer it. The capture is run881's recipe with the window at 6802..6822, the game's last frame (`--end-frame` 6822
+and `--allow-early-end` if the lobby ends itself). `LAKOTA_PAIR_WORD`'s `WIDENINGS` row names item 2825 as the one that owes
+it, 2845. Inside run881 the earliest rows past the standing keys are `1/44`'s
+`attrition` on 6453 (ours 6, theirs 0) and `sheltered` on 6455, the kind run879's `1/164` showed on 6045 — the item before's
+candidate, not a cause.
+
+(2846) **`max_range`'s CEO term is diff-backed on one arm only** (`UnitData::max_range@0060fe90`; `Sim::ceo_unit_range`):
+the siege exemption (the type's vslot `+0x10c`, read as `is_siege_unit`), the unit itself a `0x165` hero, and the count at
+`+0x59c8` (read as `num_units` of the `0x165` type; a queued one untested) rest on the reading. A capture whose `0x165` hero
+stands near a siege engine or a ranged hero, or a frame where who=1's President is queued and not yet born, would test each.
+The SEAMed arms below it — `TURK_SIEGE_RANGE`, the Liberty (`0x219`) and Eiffel (`0x21c`) wonders, Napoleon (`0x167`),
+Ptolemy (`0x16a`), the rum naval range and the obsidian archers — reach no lobby on file.
+
+## Parked by item 2831, 2026-10-17 — `Map::stamp`, and why the batch is one
+
+(2834) **`Map::stamp` 0x69cf80 built** (`obj --own 3 --stub 0x69d5a0:3 --record-order --record 0 --seq 0:5:0,1,5`): five
+`Map::point` calls (the centre, then x+1, x-1, y-1, y+1) ending at the first zero answer. The draw lesson: a plain `--seq 0:5:0`
+draws its last value from the terminator list `0` alone, so the all-nonzero arm (eax 1) is starved; `0,1,5` reaches it (44 of 220
+rows). Breaks 3/3 (an offset's sign, the early-exit result, the answer index).
+
+(2835) **`NukeOut::draw_underlays` 0x9269d0 is a renderer body with no simulation effect and no statics guard in the
+export**: `if nuke_effect.+0x10c in {0,7,9} { draw_char_earth(...) }` and nothing else, the `float` arguments only forwarded. The
+"statics guard and TLS" of (2830) is not in the decompile; if the listing has one it is in the prologue of a different function. Not built (Loop 2819).
+
+(2836) **The rest of the shortest unbacked rows** are renderer, UI or singleton bodies: `TerrainMap::on_mouse_move`,
+`Game::post_game_screens`, `Syllable::say`, `debug_say`, the two `setup_render_window`s, `Player::end_game` (camera, scene and
+options singletons), `TerrainOil::remove_rocky_patch` (a heap free through `operator delete`, which the emulator's bump heap
+cannot witness), `CityData::num_city_buildings` (a virtual-slot list walk on a global object table: wants `walk` + `vcall` together,
+not a generator shape yet). No new shape was needed by `Map::stamp`; this batch is one function, not ten, for want of simulation-effect rows a built shape holds.
+
+## Parked by the next landing, slot FL — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EZ renames this heading `## Parked by item N, <date> — <title>`
+names slot FL renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FA — reserved
+## Parked by item 2837, 2026-10-17 — the hundred-and-fifteenth sweep batch: ten with a simulation effect
+
+(2838) **Ten built, walked down `census.py --unbacked` to about 1,500 decompile bytes.** `WorldData::is_seen`,
+`is_seen_wcoord` and `is_really_seen` (one hand-written script, three forms), `BuildData::check_capture_eligible`,
+`Type::unpay_cost`, `Type::pay_cost`, `Build::unpay_cost`, `ObjectData::armor`, `BuildQueueData::get_next_non_unit`,
+`ObjectsData::count_nukes_in_flight`. `Census:` 1187 → **1197 of 3,611** by `--layers` on the tip. Each is a state read or
+write a sim consumes: the fog and ally exits, a bucket XOR 0x8221, an armor value, a queue scan. Skipped, as 2836 listed: the
+renderer, UI, camera and singleton bodies. No subagents; ten ran serially in debug, three or four breaks each, all held bar one (below).
+
+(2839) **`Type::pay_cost`'s escrow arm has an equality boundary no draw reaches.** `bucket - escrow < cost` against
+`<= cost` passed all 220 rows: `bucket`, `escrow` and the slot's `cost` are three independent random words, so equality is
+2^-32. Every other break held. A relational draw (`--answer-range` tied to a window word, "the answer is `bucket - escrow` or one
+off it") would reach it; no flag spells that. One reach.
+
+(2840) **The `is_seen` family is hand-written on `tools/emu/hooks.py`, as `was_really_seen` was (item 2044).** The three
+read `gamec`'s `+0x30`, the leaders list and `wdata`/`seen`/`wcoord_seen` through `this` or the world cell `0xc061d0`; `obj` with
+`--sparse 0xc061e0` would hold the leaders and `--cell-win` the game record, but the fog and owner arrays are indexed by the
+drawn coordinates, which no flag ties to a window's size. The next such pair (`WallData::is_now_seen` calls `is_seen`
+natively) is the second reach of the shape. File as Loop if it recurs.
+
+(2841) **Not built, with why.** `CityData::is_disbanding` and `CityData::num_city_buildings` (2793's): a list walk through
+`objects[who][o]` and a vslot chain, the walk + vcall pair no generator shape holds; `WallData::is_now_seen`: a native `is_seen`
+inside, wants (3) first; `Army::charge`: a `groups` table 0x9d4 apart and an 11-argument callee; `Type::restore`, `Type::set_name`,
+`City::set_name`, `GatherPointList::get_new_data`: `String::operator=` or `malloc` inside, which the bump heap cannot witness.
+
+(2842) **Three generator traps cost this batch about an hour; none is a defect, each is undocumented.** `--argrange IDX:LO:HI`
+is inclusive (`0:0:8` drew 8, one past the leaders table: use `0:0:7`); a `--place m+OFF` past `--win` writes past the window (the
+row then shows `0` for a function that should return the field: widen `--win`); and the `p` windows are numbered ptrargs, then
+`--sparse` slices, then `--place`/`--ptrtab` windows in command-line order, whatever the script's prose says ("slices after the
+pointed buffers" reads as the reverse). Recording a stub whose `ecx` is a table row's address (`type_avail`'s leader) prints an
+absolute address the port cannot spell: leave that stub unrecorded.
+
+## Parked by item 2844, 2026-10-17 — the hundred-and-sixteenth sweep batch: ten with a simulation effect
+
+(2848) **Ten built, walked down `census.py --unbacked` past 2837's 1,500 bytes.** `BuildTypeData::get_stance_type`
+0x6396c0 (three stubs, one an `--answers` list per stub), `BuildData::hits` 0x62e740 (a float, `cvttss2si`'s out-of-range is
+`i32::MIN`; `--slotbase 0x4c`), `BuildData::could_queue` 0x62da50 (a store to the image's `queue_fail` at 0xcab3a4 by `--at`, a
+`--ptrtab` of the types, `--slotbase 0xb8`), `Game::get_patch_version` 0x595260 (a four-byte compare against
+`xpack_rtm_version` 0xe7fe4c, both words `--wbias`ed from one sixteen-word list), `Unit::set_angle` 0x605400
+(the groups cell 0xe85f20 as a `--sparse` table, `find_leader` recorded per row), `Army::member` 0x6f8de0 (the overload
+beside 0x6f9a50: `--name army_member_by_unit`; the groups table and four `--ptrtab`s on the per-owner object tables 0xc0ab84
++ 0x1c*who), `Army::remove_group` 0x6f8b50, `World::set_land` 0x6b2b50 (the world cell 0xc06188, a placed tile array),
+`BuildTypeData::get_garrison_limit` 0x633f50 (two `--seq`s, the leader row's address never recorded), `Categories::find_data`
+0x6f1e30 (`ignore_always` 0xee10e3 `--wbias`ed nonzero so the error report is skipped). `Census:` 1197 → **1208 of 3,611** by
+`--layers` on the tip (eleven: `get_stance_type`'s port counted a second overload). No subagents, ten serial, debug.
+
+(2849) **Survivors, read against the draw.** `Unit::set_angle`'s two range bounds (`0x4000_0000..` and `..=0xc000_0000`):
+the difference of two independent words equals a bound at 2^-32, as `Type::pay_cost` (2839); no flag ties an argument to a
+window word's offset. `BuildData::hits`'s `f.is_nan() ||` is an equivalent mutant (NaN and `i32::MIN` are both under 1 and
+answer 1). `Army::member`'s high byte of a member short: the draw puts a nonzero high byte in few rows that also reach the
+loop with a matching low byte; widened twice and still a pass, a thin draw rather than a defect. Every other break (about
+fifty) held.
+
+(2850) **Two generator facts, undocumented.** `--sparse`'s slices are sorted by offset whatever order the line gives
+(`0x48/0xc/0x8cc` ran as `0xc, 0x48, 0x8cc`; a bias on the wrong window parts the first run and the log token shows it);
+and `--ptrtab LOC:N:SIZE` lays the table as one `p` window and then N record windows, so a second ptrtab starts at
+`12 + (N+1)·t` after twelve sparse slices (`Army::member`). `--regen` rewrites the `.rs` as well as the `.py` and loses the
+port: a lane that tunes a draw after writing the port edits the script's `WBIAS` list by hand or transplants the body.
+
+(2851) **Not built, with why.** `ObjectData::cargo_inside` (a vslot chain through `objects` and `units` tables, a
+loop ended by a short that no link flag walks), `Unit::update_local_seen` and `ObjectsData::find_goody_at` (global
+`circle_x`/`circle_y`/`div_3_table` and the world's tile array: a table the image builds at boot reads as zeros, 2216),
+`MountainsData::total_gather_size` (two callees answering a `WCoord` through an out-argument), `ArmyData::select` (a
+`MiscAccess::console` singleton and a `SelectGroup` vtable), `Supplies::find_supply` and `SpecialsData::find_special`
+(`vector_dist` takes its operands in `esi` and `edi`: no stub shape holds a callee's register arguments), `UnitData::is_busy`,
+`UnitData::get_gpiece` ×2 (the `types.list` and orderlist walk, a `GraphicPieces` singleton).
+
+## Parked by the next landing, slot FO — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FA renames this heading `## Parked by item N, <date> — <title>`
+names slot FO renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FB — reserved
+## Parked by the next landing, slot FP — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FB renames this heading `## Parked by item N, <date> — <title>`
+names slot FP renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FC — reserved
+## Parked by the next landing, slot FQ — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FC renames this heading `## Parked by item N, <date> — <title>`
+names slot FQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FU renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

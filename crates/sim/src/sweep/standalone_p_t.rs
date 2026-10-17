@@ -60,6 +60,10 @@ mod player_lose;
 mod player_walk_data;
 #[path = "player_win.rs"]
 mod player_win;
+#[path = "project_c.rs"]
+mod project_c;
+#[path = "project_d.rs"]
+mod project_d;
 #[path = "region_fix_borders.rs"]
 mod region_fix_borders;
 #[path = "region_is_coast.rs"]
@@ -94,8 +98,12 @@ mod resource_divvy_pool_refresh_water;
 mod reversing;
 #[path = "river_doober_add_doob_for_render.rs"]
 mod river_doober_add_doob_for_render;
+#[path = "river_doober_add_for_render.rs"]
+mod river_doober_add_for_render;
 #[path = "river_doobers_add_doobers_for_render.rs"]
 mod river_doobers_add_doobers_for_render;
+#[path = "river_section_out_compute_vert_height.rs"]
+mod river_section_out_compute_vert_height;
 #[path = "rivers_out_get_name.rs"]
 mod rivers_out_get_name;
 #[path = "rivers_walk_data.rs"]
@@ -174,6 +182,8 @@ mod strafe_order_get_strafe_order_vtordisp;
 mod strafe_order_walk_data;
 #[path = "strafe_order_walk_data_vtordisp.rs"]
 mod strafe_order_walk_data_vtordisp;
+#[path = "strip_builder_check_last_connect.rs"]
+mod strip_builder_check_last_connect;
 #[path = "strip_builder_remove_end.rs"]
 mod strip_builder_remove_end;
 #[path = "sub_object_data_is_seen.rs"]
@@ -236,6 +246,8 @@ mod terrain_build_beach_data;
 mod terrain_convert_errant_sandy;
 #[path = "terrain_list_walk_data.rs"]
 mod terrain_list_walk_data;
+#[path = "terrain_map_cancel_button_enable.rs"]
+mod terrain_map_cancel_button_enable;
 #[path = "terrain_map_get_terrain_type.rs"]
 mod terrain_map_get_terrain_type;
 #[path = "terrain_map_on_left_up.rs"]
@@ -244,6 +256,8 @@ mod terrain_map_on_left_up;
 mod terrain_map_on_mouse_leave;
 #[path = "terrain_map_on_right_up.rs"]
 mod terrain_map_on_right_up;
+#[path = "terrain_map_remove_feature.rs"]
+mod terrain_map_remove_feature;
 #[path = "terrain_map_river_point.rs"]
 mod terrain_map_river_point;
 #[path = "terrain_map_start_river.rs"]
@@ -288,6 +302,8 @@ mod tribe_walk_rules_data;
 mod tribes_walk_data;
 #[path = "turn_control_compute_next_turn_solo.rs"]
 mod turn_control_compute_next_turn_solo;
+#[path = "turn_control_get_delta_percent.rs"]
+mod turn_control_get_delta_percent;
 #[path = "turn_control_get_frame_timing.rs"]
 mod turn_control_get_frame_timing;
 #[path = "turn_control_get_lag_time.rs"]
@@ -366,6 +382,8 @@ mod type_gov;
 mod type_gov_hero;
 #[path = "type_item.rs"]
 mod type_item;
+#[path = "type_pay_cost.rs"]
+mod type_pay_cost;
 #[path = "type_set_graph_name.rs"]
 mod type_set_graph_name;
 #[path = "type_set_help_name.rs"]
@@ -382,6 +400,8 @@ mod type_sum_cost;
 mod type_tech;
 #[path = "type_unit.rs"]
 mod type_unit;
+#[path = "type_unpay_cost.rs"]
+mod type_unpay_cost;
 #[path = "type_walk_rules_data.rs"]
 mod type_walk_rules_data;
 #[path = "type_wonder.rs"]

@@ -17,6 +17,7 @@
 use crate::ai_place::{MOVE_X, MOVE_Y};
 use crate::attrition::Domain;
 use crate::build;
+use crate::combat::Obj;
 use crate::orders::Worker;
 use crate::tech::TypeId;
 use crate::world::{Cell, Pos, TILES_PER_CELL, UNITS_PER_TILE, tile};
@@ -731,11 +732,13 @@ impl Sim {
     /// with 1; one with a unit of `is(0x45)` aboard asks it with 0.
     /// `count_inside` opens on `is_on_map` of the carrier itself.
     ///
-    /// SEAMS: the arm with nothing of either aboard — `think_carry_idle`
-    /// (`005f2f30`) when `count_inside(COUNT_ATTACK)` is zero, the
-    /// attack-carrier's own arm (the group's city and army search, then
-    /// the eject) otherwise — is not modelled, and answers `false`:
-    /// the think goes on to the tail, as it did before this arm existed.
+    /// A boat with a **captain that attacks** aboard
+    /// (`count_inside(COUNT_ATTACK)`) takes the attack-carrier's arm,
+    /// [`Sim::think_carry_army`] (`docs/AI.md` §235).
+    ///
+    /// SEAM: the arm with nothing of the three aboard — `think_carry_idle`
+    /// (`005f2f30`), the walk to the nearest coastal city with a dock — is
+    /// not modelled, and answers `false`: the think goes on to the tail.
     pub(crate) fn think_carry(&mut self, u: usize) -> bool {
         if !self.units[u].on_map {
             return false;
@@ -749,7 +752,78 @@ impl Sim {
         if riders.iter().any(|&i| self.unit_line_is(i, 0x45)) {
             return self.think_carry_civilian(u, false);
         }
-        false
+        let attack = riders
+            .iter()
+            .any(|&i| self.is_captain(i) && self.attack_of(Obj::Unit(i)) != 0);
+        if !attack {
+            return false;
+        }
+        self.think_carry_army(u, riders[0])
+    }
+
+    /// `Unit::think_carry@005f2ee0`'s attack arm (`docs/AI.md` §235): a boat
+    /// carrying a soldier sails it to **its army's target**.
+    ///
+    /// The group is the boat's `inside_down`'s (`+0x28`, then that unit's
+    /// `+0x80`); no group answers `false` (`return 0`). The army is the
+    /// group's `+8`, read straight off the group as the original does, not
+    /// through `get_army`'s membership test. With an army:
+    ///
+    /// 1. any of the boat's nine cells (its own and its eight neighbours,
+    ///    `move_x`/`move_y`) in the army's region (`ArmyData +0x8`) —
+    ///    `eject_contents(0, -1, 0, 1)` and `return 1`. SEAM: the eject is
+    ///    not modelled; the boat answers `true` and keeps its cargo, as
+    ///    the civilian arm's shore eject does;
+    /// 2. otherwise a **live** target (`+0x30`, `+0x34`; the object's
+    ///    `+8 & 1`) — a `MOVE_TO` to the centre of the target's cell, the
+    ///    merchant's inlined `add_move_order(…, QUEUE_NEW, 0)`, snapped to
+    ///    48: run879's `1/225` holds (6552, 7320) for the human's `0/2000`
+    ///    at (6240, 7008), `off_x/off_y` 408.
+    ///
+    /// SEAMS, answering `false`: the group with no army (an eject, then a
+    /// coastal city's search), and the army with no live target (its
+    /// region's centre, or a city of the region its leader marks `& 4`).
+    /// The rider chain's head is taken as the lowest-numbered rider; a boat
+    /// carries one squad here.
+    pub(crate) fn think_carry_army(&mut self, u: usize, head: usize) -> bool {
+        let who = self.units[u].owner;
+        let Some(s) = self.units[head].group_ptr else {
+            return false;
+        };
+        let Some((reg, target)) = self.armies.get(who as usize).and_then(|x| {
+            x.list
+                .iter()
+                .find(|a| a.valid && a.group.pool == Some(s))
+                .map(|a| (a.reg, a.target))
+        }) else {
+            return false;
+        };
+        let my_cell = self.units[u].pos.cell();
+        let (width, height) = (self.world.width(), self.world.height());
+        let ashore = (0..9).any(|k| {
+            let c = Cell::new(my_cell.x + MOVE_X[k], my_cell.y + MOVE_Y[k]);
+            c.x >= 0
+                && c.y >= 0
+                && c.x < width
+                && c.y < height
+                && self.world.region_of(c).map_or(-1, i32::from) == reg.map_or(-1, i32::from)
+        });
+        if ashore {
+            return true;
+        }
+        let Some(t) = target.filter(|&t| self.obj_alive(t)) else {
+            return false;
+        };
+        let c = self.pos_of(t).cell();
+        let to = Pos::new(c.x * 0x300 + 0x180, c.y * 0x300 + 0x180);
+        self.add_move_order(
+            u,
+            to,
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        true
     }
 
     /// `Unit::think_carry_civilian(workers)@005f37c0` (`docs/AI.md` §195): a
@@ -1075,10 +1149,12 @@ impl Sim {
                 }
             }
         }
+        self.cast_blow(u, s, true);
         self.units[u].spell_time += 1;
         if self.units[u].spell_time < self.cast_job_time(u, s) {
             return;
         }
+        self.cast_blow(u, s, false);
         // **The member waits on its captain's cast** (`005ecd9c`–`005ecdf0`,
         // item 2077, `docs/AI.md` §207): for `0x28a` alone, a figure that is
         // not a captain whose `get_captain`'s current order is
@@ -3520,6 +3596,64 @@ mod tests {
             .and_then(|o| o.move_dest())
             .expect("a move order");
         assert_eq!((dest.x, dest.y), (6264, 2424));
+    }
+
+    /// `think_carry`'s attack arm (`docs/AI.md` §235): a boat carrying a
+    /// captain that attacks sails it to the centre of its army's target's
+    /// cell, snapped to 48 — run879's `1/225`, (6240, 7008) to (6552,
+    /// 7320); here (6240, 2000) in cell (8, 2) to (6552, 1944). No group,
+    /// no army or a dead target answer no; a boat beside the army's region
+    /// answers yes and keeps its cargo (the eject's seam).
+    #[test]
+    fn a_boat_carrying_a_soldier_sails_to_its_army_s_target() {
+        let mut f = fix();
+        let soldier = f.sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: crate::combat::Profile {
+                attack: 10,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let boat = unit(&mut f.sim, 1, f.ship, tile_pos(36, 12));
+        f.sim.units[boat].on_map = true;
+        let rider = unit(&mut f.sim, 1, soldier, tile_pos(36, 12));
+        f.sim.units[rider].captain = true;
+        f.sim.units[rider].inside_unit = Some(boat);
+        f.sim.units[rider].on_map = false;
+        assert!(!f.sim.think_carry(boat), "a soldier with no group: no");
+        let slot = f.sim.init_army(1, None);
+        let target = unit(&mut f.sim, 0, f.citizen, Pos::new(6240, 2000));
+        {
+            let a = &mut f.sim.armies[1].list[slot];
+            a.group.pool = Some(3);
+            a.target = Some(Obj::Unit(target));
+            a.reg = None;
+        }
+        f.sim.units[rider].group_ptr = Some(3);
+        assert!(
+            f.sim.think_carry(boat),
+            "a soldier of an army with a target"
+        );
+        let dest = f.sim.units[boat]
+            .orders
+            .front()
+            .and_then(|o| o.move_dest())
+            .expect("a move order");
+        assert_eq!((dest.x, dest.y), (6552, 1944));
+        // Beside the army's region: the eject's seam, and no new order.
+        f.sim.units[boat].orders.clear();
+        f.sim.units[boat].pos = Pos::new(8 * 0x300 + 700, 3 * 0x300 + 0x180);
+        f.sim.armies[1].list[slot].reg = Some(f.land);
+        assert!(f.sim.think_carry(boat), "ashore beside its army's region");
+        assert!(f.sim.units[boat].orders.is_empty());
+        // Out at sea again with the target dead: the region arm's seam.
+        f.sim.units[boat].pos = tile_pos(36, 12);
+        f.sim.units[target].health = 0;
+        assert!(!f.sim.obj_alive(Obj::Unit(target)), "the target is dead");
+        assert!(!f.sim.think_carry(boat), "no live target: no");
+        assert!(f.sim.units[boat].orders.is_empty());
     }
 
     #[test]

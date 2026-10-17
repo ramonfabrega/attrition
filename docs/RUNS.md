@@ -17261,3 +17261,61 @@ frames, 303 s, kept in `~/ron-golden/ch80/map-14/`; block 1204 is not in the dum
 **What it holds**: an idle Partisan `0/6` lit and undetected weighs 60 (half) on every block; `0/7` weighs 120 at the 1200 pass
 after a Scout's disc; ours agrees on both. The word is `1198 world:danger` (cell 235, ours 60, theirs 120: the 1000 pass,
 undumped).
+
+## run879 — the peace pair: the word 5982's widening, blocks 5976..6232 (2026-10-17, item 2779, `att-2779`)
+
+`docs/AI.md` §234. **What the disk could not answer**: run867 ends at 5657, and run847 has checksums and the closing
+block only, so no dump of this lobby held a record on 5982. This is run867's recipe with the window moved to the word,
+through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run879`: `--map 18 --end-frame 6238 --timeout 7200
+--log-window 5976 6233 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 1 from the pool: `success`, 6239 frames, 1977 s from launch to exit. The first take exited
+  5, and the runner retook it 4.7 s later.
+- The dump holds 258 `BEGIN FRAME`s (5976..6232 and the closing block).
+- `rngcmp.py rontrace-run847.log rontrace-run879.log`: **6239 identical, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run879-eastindies-lakota-peace-window-5976-6233.txt`, 705,229,001 bytes,
+SHA-256 `6825083849c737bd09ba68369c125bde1497155abf0eaf3613d6ed67443c656f`.
+
+Archive `rontrace-run879.log`, 269,208,480 bytes,
+SHA-256 `5ea5d8d11469a9daf18201e94b95b9d09bff9166a409fffc9155117d09c0a1e4`.
+
+**What it holds**: `diff::lakota_pair::run879_s_word_frame_is_widened_whole`, 4745 keys as captured. From the window's
+first block, who=1's oil parts: `resources[oil]` ours 8366 against theirs 9966, over its 8800 cap in theirs alone. On
+block 5982 `MAKE[4]` reads ours' Oil Well against theirs' Woodcutter's Camp. With item 2779's Capitalism oil built,
+2854 keys remain. The window is in the coverage driver's slice, and its walk reads 2222 heights at inexact corners.
+## run878 — chapter eighty: the 1000 pass's own blocks (2026-10-17, item 2785, `att-2785`)
+
+`docs/GOLDEN.md` §103. **What the disk could not answer**: run877's first block is 1198, so the `calc_danger` pass of 1000 that
+wrote `0/7`'s cell was undumped. The recipe is `tools/gamelog/golden/chapter80w.cmd` (`chapter80.cmd` without its 1197 Scout):
+`--map 14 --end-frame 1002 --log-window 998 1002`, the chapter-eighty `--detail` flags. **A first take at `--end-frame 1204`
+printed no WORLD in its window** (the `end:` set only reaches the window at the end frame; dead, deleted). A second, 606–700
+with `UNITS=3` (`~/ron-golden/ch80early/`, not wired), found the fight at 611–612. Pool lane 1, `success`,
+`settings_restored`, 1,003 frames, kept in `~/ron-golden/ch80w/map-14/`; block 1002 is not in the dump. Minutes waited on another
+lane: none. **What it holds**: who 1's `danger` cell 235 = 120 on 998–1001, `0/7` `unit_masks` `0x11000`, `0/6` 0; ours agrees
+on the plane after item 2785 — the whole record, eleven standing `form` rows.
+
+## run881 — the peace pair: the word 6452's widening, blocks 6446..6701 (2026-10-17, item 2825, `att-2825`)
+
+`docs/AI.md` §236. **What the disk could not answer**: run879 ends at 6232, and run847 has checksums and the closing block only,
+so no dump of this lobby held a record on 6452. This is run879's recipe with the window moved to the word, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run881`: `--map 18 --end-frame 6707 --timeout 7200 --log-window 6446
+6702 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0 --profile STARTING_TECHNOLOGY=8
+--profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 1 from the pool: `success`, `settings_restored`, 6708 frames, 2048 s from launch to exit. The first
+  take exited 41, and the runner retook it 4.1 s later.
+- The dump holds 257 `BEGIN FRAME`s (6446..6701 and the closing block 6708).
+- `rngcmp.py rontrace-run847.log rontrace-run881.log`: **6708 identical, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run881-eastindies-lakota-peace-window-6446-6702.txt`, 680,965,961 bytes,
+SHA-256 `cfc858c8a4d7e0189dac4e661ff997834245d2f1c31c37879b524bd201fdd4b1`.
+
+Archive `rontrace-run881.log`, 279,955,232 bytes,
+SHA-256 `67daf3da6329980cb167bf9a08b6b0e3ecf36401f3e85cc6562d35ac4f3e2914`.
+
+**What it holds**: `diff::lakota_pair::run881_s_word_frame_is_widened_whole`, 2138 keys as captured. On the word's block 6453
+who=1's Strategic Bomber `1/137` reads `recharging` ours 0 against theirs 41: theirs bombed the human's `0/2000` on 6452 at
+`attack_dist` 918. With item 2825's CEO range term, 252 keys remain. The window is in the coverage driver's slice, and its walk
+reads 2335 heights at inexact corners.

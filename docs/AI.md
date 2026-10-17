@@ -16884,8 +16884,8 @@ original's on every map it reaches; no closed word or open floor moved.
 `val` (31), `land` (18), `gatherers` (17), `free` (13), `form` (11), `space` (7), `my_team_terr` (6) — the control's set again (§147, §150): ours 0 or −1
 against the original's positive counts from the start (`SITE[0].reg` ours 1 theirs 0; `leader:gatherers` ours 0 theirs 7; `city:land` ours 0 theirs 97).
 
-**What is not established.** The two leader exits of the pass's condition (`leader_flags & 0x800`, `+0x59e4`) are `was_really_seen`'s seams (no run sets
-either). The wholesale recompute at setup (`claim_oil_from_owners`) still makes the oil arm alone: the original's pass at setup would also meet a *seen*
+**What is not established.** ~~The two leader exits of the pass's condition (`leader_flags & 0x800`, `+0x59e4`) are `was_really_seen`'s seams (no run sets
+either)~~ — built by item 2780 (§233): the peace pair's who=1 sets `0x800` with the Space Program. The wholesale recompute at setup (`claim_oil_from_owners`) still makes the oil arm alone: the original's pass at setup would also meet a *seen*
 rare, and the harness's fog replay (`seed_new_rares_from_fog`) stands in for it in a different order — no capture has a lobby whose list order depends
 on it. `good_seen_bits` is written by this arm alone; `reveal_fog`'s own write of the bit is still answered by the fog read, which differs from it
 exactly where this word did (the tile gate). How the original's list reached the Wool on **439** (a pass after the cell was seen) is this crate's
@@ -18883,7 +18883,7 @@ whose `UnitTypeData +0x2d4` (`CARRY`) is non-zero and that is not strictly `AIRC
 
 - `count_inside(COUNT_WORKERS)` non-zero → `think_carry_civilian(1)`; `count_inside(COUNT_TYPE, 0x45)` non-zero → `(0)`;
   otherwise `count_inside(COUNT_ATTACK) == 0` → `think_carry_idle@005f2f30`, else the attack-carrier arm. **Not modelled** (SEAM; answers
-  no, as before): `think_carry_idle`, the attack arm, and `think_carry_military@005f3260`, the `(0)` call's fall-through.
+  no, as before): `think_carry_idle`, ~~the attack arm~~ (built by item 2808, §235), and `think_carry_military@005f3260`, the `(0)` call's fall-through.
 - `think_carry_civilian`: every land region of size, `go_here` (bit 1 only for workers), `Region::is_coast(r, the boat's own tregion)`
   (a `(0)` call also skips a region its leader has scouted); the region's cells strided `max(16, size/50)` and phased by `o + frame` as
   `think_civilian_transport` (§7); a cell is any `coast_here(r, my region)` ≠ 0 — **no water-half test**; the score is `vector_dist ×
@@ -21505,33 +21505,318 @@ so it is widened by the same test.
 **Diff-backed**: the count on a lone unit's death (run866 5178 and 5201, run867 5401..5500, run718 2267). **Reading
 only**: the squad arm.
 
-## 233. Reserved for the next item on the AI track
+## 233. A Space Program sees every cell to the scout, and the peace pair's word moves 5564 → 5982 (2026-10-17, item 2780)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The widening is on disk.** The word 5564 lies inside run867's window (5401..5657), so its block 5565 is compared
+whole by `diff::lakota_pair::run867_s_word_frame_is_widened_whole`. No capture was booked; run 873 is unused.
 
-## 234. Reserved for the next item on the AI track
+**The draws on 5564** (`report.py rontrace-run867.log draws 5564`; `RON_DEBUG_SITES=5564-5564`): ours 26, theirs 24.
+Both sides spend the same first seven: an idle roll, `think_spellcaster+0x413`, the city loop's `+0x436`/`+0x458`
+twice and the region scan's `+0x941` stride offset, all on who=1's Elite Special Forces `1/0` (`TypeIndex` 77,
+`ELITESPECIALFORCES`, land). At index 7 ours spends two `Unit::think_scout+0xaba` jitters, where theirs goes on to
+`Guy::set_anim+0x97a < Guy::move+0x19f`. **Ours made the record**: its region scan accepted two cells and theirs none.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The cast on 5565**, both directions, past the standing keys and the `form` rows, is `1/0`'s fourteen rows on 5565
+and 5566: `group` ours 65 against 75, `orders.len` 1 against 0, `orders_x/y` (16632, 5880) against (14976, 11136),
+`path:length` 6 against 0, then the walk. Group 65's `held` and `pool` rows from 5542 are the dump's blind `held`:
+theirs prints `None` for every group.
 
-## 235. Reserved for the next item on the AI track
+**The walk back.** A probe in `scout_region_scan` (reverted whole) put the region at 2 (`n` 260, stride 7, start 5)
+and the two accepted cells at (16, 6), with `seen2` 1 (the human's bit alone), and (21, 7), with `seen2` 0, against
+who=1's mask 2. The mask agrees: 1,506 earlier accepted cells read `seen2` 1 and the draws held. The fog agrees as
+well. run865's packet at logger 4859, read by item 1115's `fog_probe.py`, matches ours on every half-cell but 18
+far ones (255 in theirs), and both read 1 and 0 there. Only the scout's own landing disc reaches the two cells
+between 4859 and 5564: it came ashore from the Transport Freighter `1/202` on 5557 at (38, 29), with `mylos` 32.
+`come_out` lights no disc on landing in either side: the listing writes `x`/`y` to the spot at `618667`/`618675`
+before `set_new_location(spot, spot, 1, 1)` at `6186bc`, so no half-cell changes.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The gate.** `WorldData::was_really_seen@006b54f0` (and `think_scout`'s inlined copy at `005f69cd`) answers seen
+unless all four tests pass: `who < 8`, `reveal_map != 3`, `leader_flags & 0x800` clear and `LeaderData +0x59e4`
+zero. `+0x59e4` is `num_units[0x141]` (`+0x5762` plus `0x141 × 2`), a Fouché standing (`ai_sites::FOUCHE`).
+run867's `leader_flags` for who=1 read `0xa3f03` and `0x28a3f03` on every block of the window: `0x800` is set, the
+Space Program (`ai_sites::sees_every_unit`). Ours holds the Space Program at 5564 too (a probe: `wonders_held`
+`0x10800`, and `sees_every_unit` true; false at 3894). `was_really_seen_fog` took only the first two tests. Its own
+comment called the other two seams, and §152 carried them as not established.
 
-## 236. Reserved for the next item on the AI track
+**Built**: `Sim::was_really_seen_fog` (`crates/sim/src/scout.rs`) asks `Sim::sees_every_unit` before the grid. It
+is the one read behind the scout's two scans, `PathFinder::calc_cost`'s unexplored cost, the goody box, the
+merchant's spot, the placement check and the census.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Tests and mutations** (`tools/mutate.py`):
+- `scout::tests::a_fouche_sees_every_cell_to_the_scout`: an all-unseen grid is unseen to who=1 until a Fouché of
+  its own stands, and stays unseen to who=0.
+- The `sees_every_unit` test dropped: `lakota_pair_first_parting` fails (exit 101), its word back at 5564.
+
+**Value diff.**
+- **On 5565** `1/0` holds no row: `group` 75, `orders.len` 0 and `orders_x/y` (14976, 11136) agree.
+- **run867 goes 276 → 183.** Every row from 5565 that the scout's two draws shifted leaves with it: `1/264`'s and
+  `1/263`'s flights, `1/93`'s and `1/276`'s moves and who=1's `MAKE` on 5583, and `1/176` on 5627. The Flamethrower
+  `1/187`'s `path[2].to` (ours (9240, 4440) against (10008, 4440)), which stood from 5401, now agrees, and so does
+  `1/234`'s on 5522. That is `calc_cost` reading the same fog.
+- **run866 goes 164 → 163**: `1/187`'s `path[2].to` on 5378 agrees. Every other lobby's `first_parting` and
+  every other widening is unmoved (the rondata suite, 896 of 900, with the four reds the peace pair's re-pins and the
+  run's own thread width).
+
+**The word moves 5564 → 5982** (count and sequence): ours 37 draws, theirs 287, index 5. Ours spends
+`Leader::produce_building+0x1805` there, theirs `Build::find_gather_tiles+0x10a`. The word is past run867's last
+block (5657), and no dump of this lobby holds 5982: its widening is owed (parked 2779), and `WIDENINGS` names that
+item.
+
+**Not established.**
+- **The Space Program's frame.** Ours gains it between 3894 and 5401, and theirs holds `0x800` from 5401. The walk
+  agrees to 5982 and the fog read only matters at a scan, so if the two frames differ, no draw has shown it yet.
+- **The Fouché arm on a walk.** No capture on disk has a Fouché standing, so that arm rests on the reading and the
+  unit test alone.
+
+**Diff-backed**: the `0x800` arm on the scout's region scan (run867 5564) and on `calc_cost` (run866 5378, run867
+5401 and 5522). **Reading only**: `num_units[0x141]` as `+0x59e4`, which was §141's reading for `was_seen` before.
+
+## 234. Capitalism pays its oil after the refineries, and the peace pair's word moves 5982 → 5985 (2026-10-17, item 2779)
+
+**The capture.** No dump of this lobby held 5982: run867 ends at 5657, and run847 holds checksums and the closing
+block only. run879 is run867's recipe with the window moved to the word (5976..6232, `--end-frame 6238`, `BUILDS=7`).
+Its draw stream is run847's on all 6239 frames (`docs/RUNS.md`). `diff::lakota_pair::run879_s_word_frame_is_widened_whole`
+walks it.
+
+**The draws on 5982** (`report.py rontrace-run847.log draws 5982`; `RON_DEBUG_SITES=5982-5982`): ours 37, theirs 287.
+Both sides spend the same five `make_stuff` draws (`+0x221` ×3, `+0x63d` ×2). Then they part:
+
+| side | the first purchase | then |
+|---|---|---|
+| ours | one `produce_building+0x1805` jitter: an Oil Platform at (1152, 34944) | `+0x63d`, the Temple's four jitters, `+0x63d` |
+| theirs | 248 `Build::find_gather_tiles+0x10a` (`< Build::init+0x55b < Objects::init_build`), no jitter | `+0x63d`, four jitters, `+0x63d` |
+
+Theirs' purchase is a gather building that is not flat and draws nothing to place. That is the Woodcutter's compass
+ring (§2.20), and the shuffle is its 62 tiles (`4 × 62`). An oil site would not shuffle: `find_gather_tcoords@0063bdc0`
+lists tiles only for timber and the mine. **Both sides acted**: each bought one building with `MAKE[4]`.
+
+**The make list.** On block 5982 (the list `create_buildings` built on 5980), `MAKE[4]` is the only slot that parts:
+ours holds the Oil Well (`t` 421, `val` 394500, city 0), theirs the Woodcutter's Camp (418, 141000, city 1). Every
+other slot agrees.
+
+**The cast on 5976, both directions.** Past the standing keys from earlier windows, who=1's oil parts on the
+window's first block:
+- `resources[oil]` ours 8366 against theirs 9966;
+- `income` 8366 against 8800;
+- `over_cap` 0 against 1, against a `resource_cap` of 8800;
+- `leftover` 6630 against 1592;
+- the AI's `rate[oil]` on 5977, 522 against 550.
+
+Walked back, run867 agrees on every oil row through 5657 but `bucket`. So the oil rate parted in the gap 5658..5975,
+which no dump holds. Theirs' 9966 holds on every block of the window. Ours' terms, from a probe in the leader print
+(reverted whole) on 5976: ten wells outside every city, nine of them worked by one citizen, two refineries, and the
+Statue of Liberty and the Space Program (`wonders` `0x10800`). That is `9 × 560 × 166 / 100` = 8366. **Theirs is
+exactly 1600 higher**: a flat term added after the refinery multiply.
+
+**The term.** `Leader::calc_gather@006ceee0` has one: after the refinery multiply, `has_preq(CAPITALISM_1)` (`push
+0x325` at `006cf454`) adds `constants+0x9c0 << 4` to oil (`006cf476`–`006cf47f`). That constant is
+`CAPITALISM_OIL_PROD`, which ships as 100 income, so the term is 1600. Theirs' `gov` reads 628 (`0x274`, Capitalism)
+on every block. `docs/ECONOMY.md` listed the term as step 8, and the crate never built it. Its sibling went the same
+way: `Leader::gain_tech@006dcb60` writes `gov`, and then for a gained `is(0x274, 0)` after frame 0 it calls
+`bucket_add(5, constants+0x9c4)` (`006de2ac`–`006de2e4`). The decompile lost that literal; the listing reads `push
+0x274`. That constant is `CAPITALISM_OIL_GIFT`, 500.
+
+**Built:**
+- `Tuning::capitalism_oil_prod` (100) and `capitalism_oil_gift` (500), loaded from the rules;
+- `Holdings::capitalism`, from `Sim::holds_capitalism_bonus`, which reads `gov_bonuses`' second row's prerequisites
+  (`get_gov`'s order);
+- `economy::assemble` adds `capitalism_oil_prod × 16` after the refineries;
+- `Sim::gain_tech` adds the gift to the oil bucket.
+
+**Tests and mutations** (`tools/mutate.py`):
+- `economy::tests::capitalism_adds_its_oil_after_the_refineries`: nine wells and two refineries give 8366, and 9966
+  with the term. These are run879's numbers.
+- `cities_tests::capitalism_gained_after_frame_zero_gifts_its_oil`: no gift at frame 0 or for Socialism, and 500 for
+  Capitalism at frame 10.
+- With the rate term dropped, `lakota_pair_first_parting` and run879 fail (exit 101), and the word goes back to 5982.
+- With the gift dropped, the walk passes: ours' `bucket[oil]` on 5976 reads 10591 against 11091, and the row already
+  stood. So the gift is reached, and only the unit test holds it.
+
+**Value diff.**
+- **On 5976** who=1 holds no oil row but `bucket` (ours 11091 against 11621; it stood at 10703 against 11013 from
+  run867's 5401).
+- **On block 5982** `MAKE[4]` holds no row: `t` 418, `val` 141000, city 1 on both sides.
+- **On 5983** nothing parts: the escrow rows and the moves of `1/10` and `1/146` that the purchase shifted are gone.
+- **run879 goes 4745 → 2854.** The first row past the keys that stand from 5976 is `1/238`'s path on 5990.
+- run848 through run867 are unmoved, and so is every other lobby's `first_parting`.
+
+**The word moves 5982 → 5985** (count and sequence): ours 23 draws, theirs 24, index 19. Ours spends `Guy::set_anim+0x97a
+< Guy::inc_time+0x271` there, theirs `Guy::set_anim+0x104b`. Ours spends twelve `inc_time` draws to theirs' eleven,
+and three gaia `+0x104b` to theirs' five. The word's block 5986 holds no row. **The item before's hypothesis** is the
+Transport Freighter `1/225` (`TypeIndex` 322, sea). It stands parted from 5976: idle in ours (`idle` 3, no order),
+and in theirs on a `MOVEORDER` to (6552, 7320) with a 27-leg path. An idle figure rolls in `inc_time`, and a moving
+one does not.
+
+**Not established.**
+- **Capitalism's frame.** Both sides took it in the gap 5658..5975, and nothing compares the frames.
+- **The Woodcutter's value.** The shuffle's count (62 tiles) is read off the draws, not the dump's `gather_from`.
+
+**Diff-backed**: the rate term (run879 5976, 9966 to the unit). **Reading and listing only**: the gift's arm. The walk
+reaches it (500 on `bucket[oil]`), but that row stood before the build, so no pin holds it.
+
+## 235. A soldier's boat sails to its army's target, and the peace pair's word moves 5985 → 6452 (2026-10-17, item 2808)
+
+**The word, 5985** (§234's booking): ours 23 draws, theirs 24, index 19. No capture was needed: run879 (5976..6232) holds the
+word's block 5986.
+
+**The draws on 5985** (`report.py rontrace-run847.log draws 5985`; `RON_DEBUG_SITES=5985-5985`). The first eight agree. Then
+`Guy::inc_time`'s idle wraps: ours spends twelve, theirs eleven. Ours' list names **`1/225`** among the twelve. After the wraps
+come gaia's `+0x104b` rolls: ours spends three, theirs five. The gaia rolls follow from the shifted seeds; they are not a second
+cause.
+
+**The widening, both directions** (`run879_s_word_frame_is_widened_whole`, `RON_FIRSTS=1`, 2854 keys). The word's block 5986
+holds no row. The draws part on `1/225`, the Transport Freighter (`TypeIndex` 322, sea). It carries the Flamethrower `1/185`
+(`TypeIndex` 131, group 68, army 1). Its rows stand from the window's first block, 5976:
+
+| field | ours | theirs |
+|---|---|---|
+| `pos` | (16200, 27864) | (15864, 27440) |
+| `idle` | 3 | 0 |
+| `orders.len` | 0 | 1, a `MOVEORDER` |
+| `orders_x/y` | (16200, 27864) | (6552, 7320) |
+| `path:length` | 0 | 27 |
+
+Theirs' order has `off_x/off_y` 408. An idle unit rolls its anim in `inc_time`, and a moving one does not. So the item before's
+hypothesis holds: the freighter is the extra draw.
+
+**Walked back.** run867 agrees on `1/225` through 5657. There it holds an `ATTACKTOORDER` to (7992, 2136) with 42 legs. Ours, over
+the gap (`RON_DEBUG_UNIT=1/225@5640-5976`), shows three events:
+- on 5871 it collides at (17249, 26781) and replans, from 32 legs to 45;
+- on 5955 it is at its waypoint (16200, 27864) with 36 legs left, and it kills the order. A one-commit probe of
+  `kill_current_order`'s caller (reverted whole) names `do_move`'s `r == -1` arm, after the planner's grid roll
+  (`Unit::do_move+0xe84`);
+- on 5956 it rolls `Unit::do_idle+0x7d`.
+
+**Theirs did the same.** Its draw stream holds both draws at the same index: the grid roll on 5955 and the idle roll on 5956. So
+its order died on 5955 too. By 5976 it is 541 units on, at about 30 a frame, so its new order is from about 5957. That is the
+frame after the first idle frame, which is `Unit::think`'s cadence (§195; `docs/MERCHANT.md`).
+
+**The arm.** `Unit::think_carry@005f2ee0` has three arms:
+- a worker aboard → `think_carry_civilian(1)`;
+- an `is(0x45)` unit aboard → `think_carry_civilian(0)`;
+- `count_inside(COUNT_ATTACK)` zero → `think_carry_idle`.
+
+Anything else takes **the attack-carrier arm**, inline in `think_carry`. `COUNT_ATTACK` (`ObjectData::count_inside@0064dda0`)
+counts a rider whose type attacks (`+0x1e8`) and which answers vslot `0xe8`. This crate reads that as a captain, as
+`Army::count(COUNT_ATTACK)` does. The arm runs in this order:
+1. The group is the boat's `inside_down`'s `+0x80`. Below zero, return 0.
+2. The army is the group's `+8`. Below zero: eject, then a coastal city search.
+3. With an army, read `reg` `+0x8`, `target_o` `+0x30` and `target_who` `+0x34` (`docs/ARMY.md` §1). Then:
+   - if any of the boat's nine cells (`move_x`/`move_y`, its own and its eight neighbours) lies in the army's region:
+     `eject_contents(0, -1, 0, 1)`, return 1;
+   - otherwise, if the target is alive (`+8 & 1`): take its cell, `x / 0x300`;
+   - otherwise: the region's centre, or a city of that region when the leader marks it `& 4`.
+4. A `MOVE_TO` to the cell's centre, the merchant's inlined `add_move_order(…, QUEUE_NEW, 0)`, snapped to 48.
+
+Army 1's target is the human's `0/2000` at (6240, 7008) (`RON_DEBUG_ARMIES`, status 18). Cell (8, 9) has centre (6528, 7296),
+which snaps to **(6552, 7320)**. The snap's remainder is 6552 − 8 × 768 = **408**: theirs' order and offset, to the unit. This
+crate had no attack arm. `think_carry` answered no, the tail asked nothing of a boat, and the freighter stood.
+
+**Built** (`crates/sim/src/transport.rs`):
+- `Sim::think_carry` counts the attacking captains aboard;
+- `Sim::think_carry_army` reads the head rider's `group_ptr` and the army on that pool slot (straight off the group, not through
+  `get_army`'s membership test). It runs the nine-cell test against `reg`, then sends the live target's cell centre through
+  `add_move_order`.
+- **SEAMS**, stated in the code:
+  - the eject itself: the boat answers yes and keeps its cargo, as the civilian shore arm does;
+  - the no-army arm and the dead-target arm: both answer no;
+  - `think_carry_idle`;
+  - the rider chain's head is taken as the lowest-numbered rider.
+
+**Tests and mutations** (`tools/mutate.py`):
+- `transport::tests::a_boat_carrying_a_soldier_sails_to_its_army_s_target`: no group, the target's cell (8, 2) to (6552, 1944),
+  the shore seam, a dead target.
+- The arm answering no: `lakota_pair_first_parting` exits 101, and the word goes back to 5985.
+- The cell's corner taken for its centre: run879 exits 101, 191 → 4451.
+
+**Value diff.** On 5976, `1/225`'s `pos`, `idle`, order, `orders_x/y`, path and headings agree. Its one row left is the standing
+`form`. Every row the freighter's idle draws had shifted goes too. **run879 goes 2854 → 191.** What is left:
+- the keys standing from 5976 (the human's `SITE`, `death:extra`, the blind `held`/`pool`, who=1's buckets, the queued costs, the
+  `form`/`mirror` rows);
+- from 6045, `1/164`'s `attrition` (ours 6, theirs 0), then its `hits`;
+- `gather_stamp` on 6104;
+- births' `form` rows.
+
+**The word moves 5985 → 6452** (count 6455), past run879's last block. On 6452 both sides spend 22 draws and part at index 0.
+Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, for `1/193`. Theirs spends `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, a
+draw ours does not make. **No dump holds 6452.** The widening is owed a capture. `1/164`'s attrition on 6045 is the earliest row
+in the window, and it is the next item's to read.
+
+**Not established.**
+- The rider chain's order: a boat carried one squad here.
+- The no-army and dead-target arms, and the eject: no capture reaches them.
+- Whether theirs' think entered on exactly 5957. The position fits; no dump prints the gap.
+
+**Diff-backed**: the attack arm's live-target walk (run879 on 5976, to the unit, with its 408 offset). **Reading only**: the
+nine-cell eject test, the no-army and dead-target arms.
+
+## 236. A bomber near its President reaches two tiles further, and the peace pair's word moves 6452 → 6808 (2026-10-17, item 2825)
+
+**The word, 6452** (§235's booking): 22 draws each, index 0. No dump held it, so run881 is run879's recipe at `--log-window
+6446 6702`, `--end-frame 6707` (`docs/RUNS.md`): 256 blocks, `rngcmp` 6708 of 6708 against run847.
+
+**The draws on 6452** (`report.py rontrace-run847.log draws 6452`; `RON_DEBUG_SITES=6452-6452`):
+- theirs: index 0 is `Guy::set_anim+0xf2f < Unit::set_anim+0x56 < Unit::do_strafe+0x9d0`, a bomb's `CHAR_ATTACK2` (seed
+  `88332033`); then four `Unit::do_idle+0x7d` rolls, fourteen `Guy::inc_time` wraps and three gaia `+0x104b` rolls;
+- ours: the same four idle rolls (`1/193` and `1/203`, two each), **fifteen** wraps, the same three gaia rolls.
+
+One release in theirs against one extra wrap in ours. The idle units the booking named agree; `1/193` was the first draw after
+the missing one, not a cause.
+
+**The widening, both directions** (`run881_s_word_frame_is_widened_whole`, `RON_FIRSTS=1`, 2138 keys). On the word's block
+6453 the row is **`1/137`'s `recharging`, ours 0 against theirs 41**. `1/137` is who=1's Strategic Bomber (`TypeIndex` 305,
+air), on a `STRAFEORDER` at `0/2000`, the human's capital at (6240, 7008), over an `AIRPATROLORDER`. From 6470 its flight
+(`1/137`, `1/205`, `1/290`, `1/293`, `1/304`) reads `order:kind` ours 16 against theirs 17: theirs' strikes were over. Its
+standing rows from 6446 are `mandatory` (ours 0, theirs 1) and `mirror`; `pos`, heading and `recharging` agree on every
+block through 6452.
+
+**Which gate refused.** A one-commit probe of `strafe_attack` (reverted whole) on our walk: on 6452 `1/137` stands at (6950,
+7589), off the nose by `0x20000`, the capital's health 13, not returning, and **`is_in_range` false**: `attack_dist` 918 against
+a reach of `3 × 0xc0 + 6` = 582. The earlier releases of the same type agree with that reach: `1/197` on 5144 at 562, `1/211`
+on 5643 at 498, and theirs' releases match ours' in-range frames one for one until 6452. The distance is the original's too:
+`attack_dist@006488f0`'s plane arm (listing `648b7f`) is `vector_dist` of the two cells, and `vector_dist@0046cff0` is `max +
+min² / 2max`, 672 + 576² / 1344 = 918. So theirs' reach was larger. Two readings died on the way: the capital's health
+(`is_in_range_struck`; it is 13, not 0) and `is_plane` (the type's `0x2b4 & 0x20` is the helicopter bit).
+
+**The term.** `UnitData::max_range@0060fe90`'s first block, for a type that is not `is_siege` (the type's vslot `+0x10c`): when
+the leader's `+0x59c8` is non-zero — the per-type count at `+0x56fe`, indexed `0x165` — and `ObjectData::has_general@00646b00(0,
+0x165)` answers, add `THECEO_UNIT_RANGE` ("2 tile bonus"). `has_general` answers when the unit is itself a `0x165` hero, or
+when `HeroesData::find_hero@0073a1b0` finds one of the owner's heroes, active and on the map, answering `is(0x165)`, within
+`HeroData::get_radius × 0xc0` of the unit (`vector_dist`, less a building's footprint). who=1's **`1/161`** is type 357,
+`0x165` (§225's President), at (7965, 9718) on 6452: 2371 from the bomber, inside its radius. The reach is `5 × 0xc0 + 6` =
+966, and 918 is inside it. On 6451 the bomber was at 1021, outside, so the release falls on 6452 exactly.
+
+**Built** (`crates/sim/src/fight.rs`): `Sim::ceo_unit_range`, added in `max_range_of` for a unit: not `is_siege_unit`, the
+owner's `muster.by_type` of the `0x165` type non-zero, and the unit itself a `0x165` hero or an alive, on-map `0x165` hero of
+its owner within `hero_radius × 0xc0`. `Tuning::theceo_unit_range` (2), checked against `rules.xml`'s
+`THECEO_UNIT_RANGE`. SEAMs: the siege arm below it (`TURK_SIEGE_RANGE`, the Liberty and Eiffel wonders, Napoleon), Ptolemy's
+general, the rum naval range and the obsidian archers; `is(0x165)` is taken as the type itself, as `hero_radius` takes the
+patriot tests.
+
+**Tests and mutations** (`tools/mutate.py`):
+- `fight::tests::a_unit_near_its_owner_s_ceo_reaches_two_tiles_further`: no hero, an uncounted hero, inside the radius (5),
+  one unit past it, another player's hero, a siege type.
+- The term answering 0: `lakota_pair_first_parting` exits 101 and the word goes back to 6452.
+- The siege test dropped: the test exits 101 on "a siege type".
+
+**Value diff.** On 6453 `1/137` reads `recharging` 41 against 41, and from 6470 no order row stands on its flight. **run881
+goes 2138 → 252.** What is left: the keys standing from 6446 (the held pools, who=1's buckets, the human's `SITE`, the flight's
+`mandatory`/`mirror`), the `attrition`/`sheltered` rows from 6453 (`1/44`, ours 6 against 0, the kind run879's `1/164` showed on
+6045), and the `form` and `dest_angle` rows.
+
+**The word moves 6452 → 6808** (count and sequence), past run881's last block (6701), fourteen frames from the game's end
+(6822). On 6808 ours spends 63 draws and theirs 61, parting at index 43: ours `Unit::find_attack_pos+0xea9 <
+Unit::fight+0x115e`, theirs `Unit::do_move+0xe84`. No dump holds 6808; its widening is owed a capture. The other four lobbies'
+`first_parting` are unmoved.
+
+**Not established.**
+- What `+0x59c8` counts exactly: read as `num_units` by type, which the per-type array at `+0x56fe` indexed by `TypeIndex`
+  suggests (`num_units` itself is at `+0x5762`, 50 entries on). A `0x165` queued and not yet born is not tested.
+- The type's vslot `+0x10c` is taken as this crate's `is_siege_unit`, the predicate `collide.rs` reads for it.
+- `get_radius` for `1/161` is [`Sim::hero_radius`]'s, unchanged; 2371 is inside it on our numbers, not measured on theirs.
+
+**Diff-backed**: the term on a bomber at 918 with the President 2371 off (run881's 6453, `1/137`'s `recharging`). **Reading
+only**: the siege exemption, the self-hero arm, the count's identity, and the SEAMed arms.
 
 ## 237. Reserved for the next item on the AI track
 
@@ -21548,6 +21833,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 239. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 240. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 241. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 242. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 243. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

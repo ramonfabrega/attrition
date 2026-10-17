@@ -579,6 +579,7 @@ impl Sim {
         // Step 6, and the `rare_owned` it rebuilds ([`crate::rares`]).
         let (rares, rare_owned) = self.gather_rares(who);
         let lakota = self.nation[w].lakota && self.tuning.lakota_food != 0;
+        let capitalism = self.holds_capitalism_bonus(who);
         let lakota_units = if lakota {
             self.lakota_food_units(who)
         } else {
@@ -599,9 +600,28 @@ impl Sim {
         h.num_nations = self.players.len() as i32;
         h.lakota = lakota;
         h.lakota_units = lakota_units;
+        h.capitalism = capitalism;
         h.egyptians = self.nation[w].egyptians;
         h.french = self.nation[w].french;
         h.inca = self.nation[w].inca;
+    }
+
+    /// `has_preq(CAPITALISM_1)` (`0x325`, `calc_gather`'s `006cf454`): the
+    /// first Capitalism bonus, whose prerequisites are
+    /// `gov_bonuses`' second row — `get_gov`'s own order, Socialism,
+    /// Capitalism, Monarchy, Democracy (`crates/rondata/src/load.rs`). A
+    /// first-tier bonus asks nothing past its row.
+    pub(crate) fn holds_capitalism_bonus(&self, who: Player) -> bool {
+        let p = &self.tech[who as usize];
+        self.tech_tree
+            .roles
+            .gov_bonuses
+            .get(1)
+            .is_some_and(|(preqs, _)| {
+                preqs
+                    .iter()
+                    .all(|&q| self.tech_tree.has_tech_p(&self.setup, p, q))
+            })
     }
 
     /// The count `Leader::calc_gather@006ceee0:116`'s Lakota arm multiplies:

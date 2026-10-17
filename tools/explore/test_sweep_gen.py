@@ -408,8 +408,8 @@ class Shapes(unittest.TestCase):
             at=['0xed89ce:0xf68'], ecx_int='0..0x1ec', edx='0..7', port='i64::from(a[a.len() - 1])')
         compile(script, str(sp), 'exec')
         self.assertIn("EDX = ('range', 0, 7)", script)
-        self.assertIn('edx=0 if EDX is None else edx', script)
-        self.assertIn('+ ([] if EDX is None else [str(edx)])', script)
+        self.assertIn('edxa = 0 if EDX is None else edx', script)
+        self.assertIn('+ ([] if EDX is None else [str(edx)])\n', script)
         self.assertIn('`edx` an integer in 0..7', test)
         # Beside the object in `ecx` as well, and from a list.
         sp, script, tp, test, mod = sweep_gen.generate_obj(
@@ -425,7 +425,7 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, edx='1..2')
         hooks = (ROOT / 'tools/emu/hooks.py').read_text()
-        self.assertIn('def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0, ret=\'eax\'):', hooks)
+        self.assertIn('def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0, ret=\'eax\', xmm=None):', hooks)
         self.assertIn('edx=edx', hooks)
 
     def test_a_stub_may_write_a_window_word(self):
@@ -603,6 +603,55 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2223, win=8, bias=[], stubs=['0x401000:0'],
                                    vtat_half=['p0+0'])
 
+    def test_a_word_may_name_a_window_s_own_address(self):
+        # Item 2797 (parked 2791): `StripBuilder::check_last_connect` compares `*node->next` with the node's own
+        # address: a placed pointer cannot aim at another window (a 2^-32 draw), so `--alias WIN+OFF:TARGET[+K]`
+        # lays the word as the address of window TARGET (plus K) half the rows, the other half left as drawn.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2797, win=8, bias=[], places=['m+0:0:16', 'p0+0:0:8', 'p1+4:0:8'],
+            alias=['p2+0:p1+0x10'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ALIAS = [('p2', 0, 'p1', 16)]", script)
+        self.assertLess(script.index('for win, off, tgt, plus in ALIAS:'), script.index('for a_, b in wins:'))
+        self.assertIn('the word at `p2+0` laid as the address of `p1+0x10` half the rows', test)
+        for bad in (['p2+0'], ['p2+0:q1'], ['p2:p1']):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2797, win=8, bias=[], places=['m+0:0:16'],
+                                       alias=bad, port='0')
+
+    def test_edx_may_name_a_window(self):
+        # Item 2801 (parked 2791): `MiscAccess::world_to_screen` is entered with a pointer in `edx` (the decompiler's
+        # `in_EDX`) and adds a word to the int it points at; `--edx` draws an integer, so `--edx-win WIN` lays `edx`
+        # as the address of window WIN (m, cN or pN), whose bytes the row prints before and after.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2801, win=8, bias=[], own=1, ptrargs=['0:8'], edx_win='p0', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("EDXWIN = 'p0'", script)
+        self.assertIn('`edx` the address of window `p0`', test)
+        for bad in ('q0', 'p', '0'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2801, win=8, bias=[], own=1, ptrargs=['0:8'],
+                                       edx_win=bad, port='0')
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2801, win=8, bias=[], own=1, ptrargs=['0:8'],
+                                   edx_win='p0', edx='0..3', port='0')
+
+    def test_a_float_register_argument_may_be_drawn(self):
+        # Item 2807: `get_float_z` takes two floats in `xmm0` and `xmm1` (the decompiler's `in_XMM0_Da`), truncates
+        # them to ints; `--xmm N:LO..HI` loads xmm N with the float V/4 for an integer V drawn from the range (quarters,
+        # exact in an f32, so the port needs no float: Rust's `V / 4` truncates toward zero as `cvttss2si` does), V
+        # printed after the row's other numbers.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2807, win=8, bias=[], own=0, cdecl=True, ptrargs=[],
+            xmm=['0:-4000..4000', '1:-4000..4000'], ret='xmm0', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("XMM = [(0, ('range', -4000, 4000)), (1, ('range', -4000, 4000))]", script)
+        self.assertIn('xmm=xmm', script)
+        self.assertIn('xmm 0 an integer in -4000..4000, loaded as that over four', test)
+        for bad in ('0', '8:1..2', 'x:1..2'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2807, win=8, bias=[], own=0, xmm=[bad], port='0')
+
     def test_a_stub_may_answer_a_placed_record(self):
         # Item 2241: `CityData::get_pop_value` calls slot +0x3c of
         # `objects[who][o]` and reads `+4` of the record at `+0x18` of the
@@ -773,6 +822,22 @@ class Shapes(unittest.TestCase):
             break
         else:
             self.fail('no seed drew the early stop')
+
+    def test_a_hooked_callee_may_answer_eax_and_ecx(self):
+        # Item 2818 (parked 2816): a callee whose `ecx` the caller reads on
+        # return (the decompiler's `extraout_ECX`) was a hand edit; a
+        # `--ecx-out IDX:V,V,..` stub answers `(eax, ecx)`, the `ecx` drawn
+        # from the list and printed after the other numbers on the row.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2818, win=0x20, bias=[], own=0, ret='none',
+            stubs=['0x402000:1'], ecx_out=['0:0,5,0x1234'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ECXOUT = [(0, [0, 5, 4660])]", script)
+        self.assertIn('leaves `ecx` as', test)
+        self.assertIn('h.answers[names[idx]] = pair_answer(', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   stubs=['0x402000:1'], ecx_out=['1:5'])
 
     def test_an_iat_stub_may_be_cdecl(self):
         # Item 2400 (`Objects::add_ammo`): `malloc` is `call [VA]; add esp, 4`,
@@ -1520,6 +1585,27 @@ class Shapes(unittest.TestCase):
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_regen_merges_the_named_sweep_s_line_not_another_arm_s(self):
+        # Item 2801 (`Search::valid_filter`'s 27 arms, `--name valid_filter_caseK`): `--regen` with a whole line
+        # found the kept line by the function's token and took the first script that held it, so arm 3's redraw
+        # merged arm 0's stubs and port. With `--name` the sweep is that name's script, no other.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
+                self.assertEqual(sweep_gen.main(line + ['--name', 'x_y_a', '--cell-win', '0x500000:0x40', '--write-mod']), 0)
+                self.assertEqual(sweep_gen.main(line + ['--name', 'x_y_b', '--cell-win', '0x600000:0x40', '--write-mod']), 0)
+                self.assertEqual(sweep_gen.main(line + ['--name', 'x_y_b', '--argrange', '0:0:2', '--regen']), 0)
+                kept = sweep_gen.kept_line(Path(tmp) / 'sweep_x_y_b.py')
+                self.assertIn('0x600000:0x40', kept)
+                self.assertNotIn('0x500000:0x40', kept)
+                self.assertIn('--argrange', kept)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
     def test_write_mod_inserts_its_line_in_sorted_order(self):
         # Item 2379 (Loop 2003; parked 2318, 2375): `--write-mod` appended its
         # `mod` line at `mod.rs`'s tail, and two batches sorted the run by
@@ -1980,6 +2066,20 @@ class Shapes(unittest.TestCase):
             sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_byte='0xa0')
         with self.assertRaises(ValueError):
             sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_links=['0x90:3:>'])
+
+    def test_a_pointer_table_is_one_place_for_the_array_and_one_a_record(self):
+        # parked 2772 (item 2782): an object list's N records were N `--place` flags and N `--vtat-also`s written by a shell
+        # loop. `--ptrtab LOC:N:SIZE[:vt]` lays the array of N record pointers at LOC (a place of 4N bytes) and each record
+        # as a SIZE-byte place of the array's window, `vt` laying the stubbed vtable at each record's offset 0 as well.
+        x = sweep_gen.ptrtab_expand('0xc0ab84+m[0x4a]*0x1c:3:0x20', pbase=1)
+        self.assertEqual(x['place'], ['0xc0ab84+m[0x4a]*0x1c:0:12', 'p1+0:0:0x20', 'p1+4:0:0x20', 'p1+8:0:0x20'])
+        self.assertEqual(x['vtat_also'], [])
+        y = sweep_gen.ptrtab_expand('c0+8:2:0x20:vt', pbase=4)
+        self.assertEqual(y['place'], ['c0+8:0:8', 'p4+0:0:0x20', 'p4+4:0:0x20'])
+        self.assertEqual(y['vtat_also'], ['p5+0', 'p6+0'])
+        for bad in ('0xc0ab84:0:0x20', '0xc0ab84:3', '0xc0ab84:3:0x20:xx', '0xc0ab84:3:0'):
+            with self.assertRaises(ValueError):
+                sweep_gen.ptrtab_expand(bad, pbase=1)
 
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.

@@ -52,6 +52,8 @@ mod game_action_cheat_ai_speed_normal;
 mod game_action_cheat_ai_toggle;
 #[path = "game_add_game_fps_to_average.rs"]
 mod game_add_game_fps_to_average;
+#[path = "game_clock_init.rs"]
+mod game_clock_init;
 #[path = "game_current_age.rs"]
 mod game_current_age;
 #[path = "game_defeat_all.rs"]
@@ -60,6 +62,8 @@ mod game_defeat_all;
 mod game_get_armageddon;
 #[path = "game_get_game_fps_average.rs"]
 mod game_get_game_fps_average;
+#[path = "game_get_patch_version.rs"]
+mod game_get_patch_version;
 #[path = "game_info_default_setting.rs"]
 mod game_info_default_setting;
 #[path = "game_info_load_from_playback.rs"]
@@ -102,6 +106,8 @@ mod game_is_victory_timer;
 mod game_on_find_leaderboard;
 #[path = "game_popwin_timer.rs"]
 mod game_popwin_timer;
+#[path = "game_run_unit_editor.rs"]
+mod game_run_unit_editor;
 #[path = "game_teams_locked.rs"]
 mod game_teams_locked;
 #[path = "game_unload_net_lib.rs"]
@@ -128,6 +134,8 @@ mod gather_order_walk_data_vtordisp;
 mod gather_point_is_inside;
 #[path = "gather_point_walk_data.rs"]
 mod gather_point_walk_data;
+#[path = "get_float_z.rs"]
+mod get_float_z;
 #[path = "get_type_count.rs"]
 mod get_type_count;
 #[path = "get_type_count2.rs"]
@@ -188,24 +196,46 @@ mod group_compute_speed;
 mod group_data_can_transport;
 #[path = "group_data_equals_group_const.rs"]
 mod group_data_equals_group_const;
+#[path = "group_data_find_leader.rs"]
+mod group_data_find_leader;
 #[path = "group_data_get_angle.rs"]
 mod group_data_get_angle;
+#[path = "group_data_get_auto_explore.rs"]
+mod group_data_get_auto_explore;
 #[path = "group_data_get_form.rs"]
 mod group_data_get_form;
+#[path = "group_data_get_form_mod_option.rs"]
+mod group_data_get_form_mod_option;
+#[path = "group_data_get_form_option.rs"]
+mod group_data_get_form_option;
+#[path = "group_data_get_infinite_queue.rs"]
+mod group_data_get_infinite_queue;
+#[path = "group_data_get_max_range.rs"]
+mod group_data_get_max_range;
 #[path = "group_data_get_num_cap_const.rs"]
 mod group_data_get_num_cap_const;
 #[path = "group_data_get_num_const.rs"]
 mod group_data_get_num_const;
 #[path = "group_data_get_o.rs"]
 mod group_data_get_o;
+#[path = "group_data_get_repeat_air.rs"]
+mod group_data_get_repeat_air;
 #[path = "group_data_get_unit.rs"]
 mod group_data_get_unit;
+#[path = "group_data_group_air.rs"]
+mod group_data_group_air;
+#[path = "group_data_has_air_units.rs"]
+mod group_data_has_air_units;
+#[path = "group_data_is_on_map.rs"]
+mod group_data_is_on_map;
 #[path = "group_data_member.rs"]
 mod group_data_member;
 #[path = "group_data_num_valid.rs"]
 mod group_data_num_valid;
 #[path = "group_data_one_member.rs"]
 mod group_data_one_member;
+#[path = "group_data_play_sound.rs"]
+mod group_data_play_sound;
 #[path = "group_data_valid_target.rs"]
 mod group_data_valid_target;
 #[path = "group_equals_group.rs"]
@@ -388,6 +418,8 @@ mod map_scale_by_axis;
 mod map_script_run_map_script;
 #[path = "map_set_file.rs"]
 mod map_set_file;
+#[path = "map_stamp.rs"]
+mod map_stamp;
 #[path = "mining_list_clear.rs"]
 mod mining_list_clear;
 #[path = "misc_access_coord_vis_3.rs"]
@@ -420,16 +452,22 @@ mod move_order_walk_data_vtordisp;
 mod moveorder_is_fleeing;
 #[path = "nuke_been_damaged_before.rs"]
 mod nuke_been_damaged_before;
+#[path = "nuke_draw_ctw.rs"]
+mod nuke_draw_ctw;
 #[path = "nuke_get_name.rs"]
 mod nuke_get_name;
 #[path = "nuke_on_field_change.rs"]
 mod nuke_on_field_change;
 #[path = "nuke_out_num_current_nukes.rs"]
 mod nuke_out_num_current_nukes;
+#[path = "nuke_out_setup_terrain_terraforming.rs"]
+mod nuke_out_setup_terrain_terraforming;
 #[path = "nuke_out_update.rs"]
 mod nuke_out_update;
 #[path = "object_assault_benefit.rs"]
 mod object_assault_benefit;
+#[path = "object_data_armor.rs"]
+mod object_data_armor;
 #[path = "object_data_attack_dist.rs"]
 mod object_data_attack_dist;
 #[path = "object_data_attack_dist_at.rs"]
@@ -532,6 +570,8 @@ mod object_type_restore;
 mod object_type_walk_rules_data;
 #[path = "object_update_los.rs"]
 mod object_update_los;
+#[path = "objects_data_count_nukes_in_flight.rs"]
+mod objects_data_count_nukes_in_flight;
 #[path = "objects_data_find_good_at.rs"]
 mod objects_data_find_good_at;
 #[path = "objects_data_find_good_at_tcoord.rs"]

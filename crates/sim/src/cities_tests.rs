@@ -5192,6 +5192,34 @@ fn a_kremlin_trains_its_spy_on_the_first_slot_and_again_after_it_dies() {
 /// original `set_type`s the standing one instead, a seam here. Great Lakes'
 /// Despot `1/79` on tick 14982 and East Indies' Senator `1/60` on 15782.
 #[test]
+fn capitalism_gained_after_frame_zero_gifts_its_oil() {
+    use crate::tech::{Preq, TechTree, TypeDef};
+    let mut sim = world_sim();
+    let mut tree = TechTree::new();
+    let socialism = tree.add(TypeDef::gov("Socialism", 1, 0));
+    let capitalism = tree.add(TypeDef::gov("Capitalism", 1, 1));
+    // `get_gov`'s own order: Socialism, then Capitalism.
+    tree.roles.gov_bonuses = vec![
+        ([Preq::Of(socialism), Preq::None, Preq::None], socialism),
+        ([Preq::Of(capitalism), Preq::None, Preq::None], capitalism),
+    ];
+    sim.set_tech_tree(tree);
+    let oil = crate::economy::Resource::Oil.index();
+    // Frame 0 is the lobby's grant, and takes no gift (`006de2bd`).
+    let before = sim.ledgers[0].bucket[oil];
+    sim.gain_tech(0, capitalism);
+    assert_eq!(sim.ledgers[0].bucket[oil], before);
+    assert!(sim.holds_capitalism_bonus(0));
+    sim.frame = 10;
+    sim.gain_tech(1, socialism);
+    assert_eq!(sim.ledgers[1].bucket[oil], before);
+    assert!(!sim.holds_capitalism_bonus(1));
+    sim.gain_tech(1, capitalism);
+    assert_eq!(sim.ledgers[1].bucket[oil], before + 500);
+    assert!(sim.holds_capitalism_bonus(1));
+}
+
+#[test]
 fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
     use crate::tech::{Preq, TechTree, TypeDef, UnitTraits as Traits};
     let mut sim = world_sim();
