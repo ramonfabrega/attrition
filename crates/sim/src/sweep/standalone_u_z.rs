@@ -366,6 +366,8 @@ mod wall_is_started;
 mod wall_kill_competing_buildings;
 #[path = "wall_mask_city.rs"]
 mod wall_mask_city;
+#[path = "wall_mask_me.rs"]
+mod wall_mask_me;
 #[path = "wall_out_draw.rs"]
 mod wall_out_draw;
 #[path = "wall_out_get_gpiece.rs"]
