@@ -256,6 +256,10 @@ mod group_dbg_jump_to_waypoint;
 mod group_equals_group;
 #[path = "group_find_role.rs"]
 mod group_find_role;
+#[path = "group_get_num.rs"]
+mod group_get_num;
+#[path = "group_get_num_cap.rs"]
+mod group_get_num_cap;
 #[path = "group_get_speed.rs"]
 mod group_get_speed;
 #[path = "group_kill_group_order.rs"]
@@ -400,6 +404,8 @@ mod herds_start_herds;
 mod herds_walk_data;
 #[path = "hero_walk_data.rs"]
 mod hero_walk_data;
+#[path = "heroes_data_find_hero.rs"]
+mod heroes_data_find_hero;
 #[path = "is_air.rs"]
 mod is_air;
 #[path = "is_move.rs"]
@@ -524,8 +530,12 @@ mod object_data_attack_dist_at;
 mod object_data_can_carry;
 #[path = "object_data_cargo_inside.rs"]
 mod object_data_cargo_inside;
+#[path = "object_data_get_inside.rs"]
+mod object_data_get_inside;
 #[path = "object_data_get_wonder_value.rs"]
 mod object_data_get_wonder_value;
+#[path = "object_data_has_general.rs"]
+mod object_data_has_general;
 #[path = "object_data_has_objmask.rs"]
 mod object_data_has_objmask;
 #[path = "object_data_health_level.rs"]

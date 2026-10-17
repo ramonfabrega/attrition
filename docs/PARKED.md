@@ -3738,6 +3738,10 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3043) **`sweep_gen.py --ecx-int` without `--tame` draws wild ecx** (3024's "for the Loop" line and parked 3039, filed at
+its merge): a `--sparse` table indexed by `ecx` matched no row for 10 % of the first generation. Candidate: the generator
+defaults `--tame` when a `--sparse` table is indexed by `ecx`, or says so, a test made to fail first. One reach.
+
 (3037) **A mutant that does not compile reads as held** (3008's "for the Loop" line and parked 3034, filed at its merge):
 `mutate.py` scores the command's exit, and a port that fails to compile exits 101 as a red test does — fifteen "held"
 breaks of one batch were a type error. Candidate: `mutate.py` runs the un-mutated command once and refuses a tree that does
@@ -7064,13 +7068,32 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GZ — reserved
+## Parked by item 3024, 2026-10-17 — the sweep's third harvest batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Ten harvested (`Region::walk_data`, `TypeData::count_discovered`, `TypeData::get_score_value`,
+`ObjectData::has_general`, `WallData::armor`, `HeroesData::find_hero`, `Group::get_num`,
+`Group::get_num_cap`, `Search::valid_search`, `ObjectData::get_inside`); journal
+`docs/journal/2026-10-17-item-3024.md`.
+
+(3039) **`--ecx-int` without `--tame` draws wild ecx**: `Search::valid_search` took `this`
+as a player index and the first generation gave it 10 % wild integers, so a leader row named
+by `p<this>` never matched; the generator could say so, or default `--tame` when a `--sparse`
+table is indexed by `ecx`. Filed as Loop 3043.
+
+(3040) **`get_inside`'s climb is covered to eight calls only**: the chain draws 90 %
+0/1 answers so the ninth `slot 0x18` call (the seq's terminator) is never reached; a cycle of
+units whose links point at each other would be the starved arm. The container player byte
+`+0xb4` is drawn 0/1, so the signed-byte path (`movsx`) is not covered either.
+
+(3041) **`Group::get_num`'s short copy is a two-byte move**: indices past 255 (the high
+byte) are unreached since the objects table window is four pointers wide.
+
+(3042) **Not built this batch, read**: `Army::is_engaged` (`normalize`,
+`ArmyData::get_unit`, `get_action` slot, `center_of_gravity` then `vector_dist` twice),
+`ObjectsData::find_dock` (nine arguments and `Search::valid_search`'s register convention),
+`ObjectTypeData::get_wonder_value` (`Error::report` paths), `BuildData::show_later_tech`
+(recurses into itself), `UnitData::get_attrition` (the one `float`, an `f32` times 2^-8 into
+an `int` conversion).
 
 ## Parked by the next landing, slot HA — reserved
 
