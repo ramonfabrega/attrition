@@ -276,6 +276,8 @@ mod caravan_data_has_city;
 mod caravan_distance;
 #[path = "caravan_link_walk_data.rs"]
 mod caravan_link_walk_data;
+#[path = "caravan_restart_trade_route.rs"]
+mod caravan_restart_trade_route;
 #[path = "caravan_verify_road.rs"]
 mod caravan_verify_road;
 #[path = "caravan_walk_data.rs"]
@@ -316,8 +318,6 @@ mod city_data_get_radius;
 mod city_data_get_taxes;
 #[path = "city_data_get_trade_value.rs"]
 mod city_data_get_trade_value;
-#[path = "city_data_num_city_buildings.rs"]
-mod city_data_num_city_buildings;
 #[path = "city_data_granary_level.rs"]
 mod city_data_granary_level;
 #[path = "city_data_is_seen.rs"]
@@ -326,6 +326,8 @@ mod city_data_is_seen;
 mod city_data_is_unassimilated;
 #[path = "city_data_lumber_level.rs"]
 mod city_data_lumber_level;
+#[path = "city_data_num_city_buildings.rs"]
+mod city_data_num_city_buildings;
 #[path = "city_data_num_kinds_needed.rs"]
 mod city_data_num_kinds_needed;
 #[path = "city_data_pop_cap.rs"]
