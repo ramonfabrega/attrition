@@ -3757,7 +3757,7 @@ cost a step. Candidate: the keep keyed on the function's own block, held by a te
 merge): the item's driver was a throwaway (`$JOB/tmp/gen.py`, a function's flags one a line in a file and its port in
 another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 KB port do not fit a command. Candidate:
 `sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer (Loop 2792's
-sibling). One reach.
+sibling). One reach; **a second**, 2797's "for the Loop" line, filed at its merge: two scratch `gen_*.sh` drivers again.
 
 (2799) **Two guards read the `Golden:` line by different rules when no chapter is open** (the commander, at 2785's
 booking): `docs_guard::the_handoff_carries_the_golden_line` accepts `none pinned`, a `w<frame>` or `every chapter closed`;
@@ -6222,7 +6222,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2797, 2026-10-17 — the Group argument's slot, and the alias pointer
 
-**Two shapes built, two functions; the batch is not ten.** `GroupData::group_air` 0x70b160 fell to flags that already
+(2800) **Two shapes built, two functions; the batch is not ten.** `GroupData::group_air` 0x70b160 fell to flags that already
 existed, composed: two `--ptrtab`s (the objects tables at `0xc0ab84` and `+0x1c`, `vt`), `--ptrarg 0:16` with the stubbed
 vtable laid at it (`--vtat-also p0+0`: the Group's slot `+0xc`, four arguments, `--record 0` printing every call as
 `p0+0x0,index,table,0,0` joined by `/`), the type records laid by `--place pR+0x18` with the same vtable (`--vtat-also`) and
@@ -6239,9 +6239,6 @@ its own address; the port cannot see addresses and recovers the target from the 
 **No further functions**: slot EY (2793's lane) was empty at this base, and the next-shortest never-backed rows with no built
 shape are 257-byte rendering or editor bodies (`RiverDoober::add_for_render`, `Game::run_unit_editor`) and `Search::valid_filter`
 (an indexed jump over a table of arms, `--jump` over the arms' own addresses would hold it, each arm its own function).
-
-**For the Loop: a scratch driver per function is still the shape** (`gen_*.sh` with a `--port` read from a file: sixty flags and a 40-line
-port do not fit a shell line, 2796): `--from-file`/`--port-file` on `sweep_gen.py` are still unbuilt. This lane wrote two.
 
 ## Parked by the next landing, slot FB — reserved
 
