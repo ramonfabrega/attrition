@@ -312,6 +312,8 @@ mod turn_control_get_lag_time;
 mod turn_control_is_cannon_time;
 #[path = "turn_control_issue_speed_down.rs"]
 mod turn_control_issue_speed_down;
+#[path = "turn_control_issue_speed_set.rs"]
+mod turn_control_issue_speed_set;
 #[path = "turn_control_issue_speed_up.rs"]
 mod turn_control_issue_speed_up;
 #[path = "turn_control_issue_toggle_pause.rs"]
