@@ -514,6 +514,8 @@ mod object_data_attack_dist_at;
 mod object_data_can_carry;
 #[path = "object_data_cargo_inside.rs"]
 mod object_data_cargo_inside;
+#[path = "object_data_get_inside.rs"]
+mod object_data_get_inside;
 #[path = "object_data_get_wonder_value.rs"]
 mod object_data_get_wonder_value;
 #[path = "object_data_has_general.rs"]
