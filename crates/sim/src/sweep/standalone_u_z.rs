@@ -250,8 +250,24 @@ mod valid_filter_case13;
 mod valid_filter_case14;
 #[path = "valid_filter_case15.rs"]
 mod valid_filter_case15;
+#[path = "valid_filter_case16.rs"]
+mod valid_filter_case16;
+#[path = "valid_filter_case18.rs"]
+mod valid_filter_case18;
 #[path = "valid_filter_case2.rs"]
 mod valid_filter_case2;
+#[path = "valid_filter_case21.rs"]
+mod valid_filter_case21;
+#[path = "valid_filter_case22.rs"]
+mod valid_filter_case22;
+#[path = "valid_filter_case23.rs"]
+mod valid_filter_case23;
+#[path = "valid_filter_case24.rs"]
+mod valid_filter_case24;
+#[path = "valid_filter_case25.rs"]
+mod valid_filter_case25;
+#[path = "valid_filter_case26.rs"]
+mod valid_filter_case26;
 #[path = "valid_filter_case3.rs"]
 mod valid_filter_case3;
 #[path = "valid_filter_case4.rs"]
