@@ -1075,10 +1075,12 @@ impl Sim {
                 }
             }
         }
+        self.cast_blow(u, s, true);
         self.units[u].spell_time += 1;
         if self.units[u].spell_time < self.cast_job_time(u, s) {
             return;
         }
+        self.cast_blow(u, s, false);
         // **The member waits on its captain's cast** (`005ecd9c`–`005ecdf0`,
         // item 2077, `docs/AI.md` §207): for `0x28a` alone, a figure that is
         // not a captain whose `get_captain`'s current order is

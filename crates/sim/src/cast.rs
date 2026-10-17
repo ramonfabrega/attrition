@@ -582,14 +582,51 @@ impl Sim {
         };
         self.set_anim(u, anim, false, false);
         self.units[u].casting = true;
+        self.cast_blow(u, s, true);
         self.units[u].spell_time += 1;
         if self.units[u].spell_time < self.spell_job_time(s) {
             return;
         }
+        self.cast_blow(u, s, false);
         self.units[u].spell_time = 0;
         self.cast_on(u, s, t);
         self.clear_cast_paid(u);
         self.kill_current_order(u);
+    }
+
+    /// `UnitData::is_cloaked@0060a6a0`, with the order list as it stands:
+    /// the type's `CLOAKED` (`0x4000`), `unit_masks2 & 0x8000`, or a
+    /// `STEALTH` type with no order. `unit_masks & 0x800` is not carried.
+    pub(crate) fn unit_is_cloaked(&self, u: usize) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        let cols = self.unit_types[t].cols;
+        if cols.flag(crate::ai_load::uflags::CLOAKED) || self.units[u].unit_masks2 & 0x8000 != 0 {
+            return true;
+        }
+        cols.flag(crate::ai_load::uflags::STEALTH) && self.units[u].orders.is_empty()
+    }
+
+    /// `Unit::do_cast@005ebfe0`'s two `unit_masks |= 0x11000` writes
+    /// (`005ec932`, `005ec9a7`; `docs/GOLDEN.md` §105): a cloaked caster
+    /// whose craft lacks `l` ([`craft::KEEP_CLOAK`]) is blown and fought.
+    /// `every_frame` is the first, reached each frame ahead of the clock:
+    /// it also skips the Sniper (`0x281`) and a Spy (`is(0x3a, 0)`). The
+    /// second is the cast frame's, on the Spy too. A stealth-only unit
+    /// holds its cast order, so `is_cloaked` answers no for it.
+    pub(crate) fn cast_blow(&mut self, u: usize, s: i32, every_frame: bool) {
+        let Some(d) = self.spell(s) else {
+            return;
+        };
+        if !self.unit_is_cloaked(u) || d.flags & craft::KEEP_CLOAK != 0 {
+            return;
+        }
+        if every_frame && (s == 0x281 || self.unit_is_spy(u)) {
+            return;
+        }
+        self.units[u].blown = true;
+        self.units[u].fought = true;
     }
 
     /// `do_cast`'s `paid = 0` before its closing `kill_current_order`
@@ -1167,6 +1204,61 @@ mod tests {
             s.add_unit(u)
         });
         (s, units)
+    }
+
+    /// **`do_cast`'s two `0x11000` writes** (`005ec932`, `005ec9a7`; item
+    /// 2804, `docs/GOLDEN.md` §105): a cloaked caster of a craft without
+    /// `l` is blown and fought — on the first, every-frame site not a Spy
+    /// and not the Sniper, on the cast frame's a Spy too. A craft with `l`
+    /// keeps the cloak, and a stealth-only unit holds its cast order, so
+    /// it is not cloaked at all. Made to fail with the cloak test dropped,
+    /// with the `l` test dropped, and with the Spy exemption dropped.
+    #[test]
+    fn a_cloaked_caster_of_a_craft_without_l_is_blown() {
+        use crate::ai_load::{UnitCols, uflags};
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
+        s.spells[at(spell::BRIBE)].flags = 0;
+        s.spells[at(spell::INFORMER)].flags = super::craft::KEEP_CLOAK;
+        s.spells[at(0x281)].flags = 0;
+        let mut cloak = |s: &mut Sim, u: usize, flags: u32| {
+            let t = s.units[u].ty.unwrap();
+            s.unit_types[t].cols = UnitCols {
+                unit_flags: flags,
+                ..UnitCols::default()
+            };
+        };
+        cloak(&mut s, spy, uflags::CLOAKED);
+        cloak(&mut s, filler, uflags::CLOAKED);
+        let reset = |s: &mut Sim, u: usize| {
+            s.units[u].blown = false;
+            s.units[u].fought = false;
+        };
+        let bits = |s: &Sim, u: usize| (s.units[u].blown, s.units[u].fought);
+        // The first site: a cloaked non-Spy, the craft without `l`.
+        s.cast_blow(filler, spell::BRIBE, true);
+        assert_eq!(bits(&s, filler), (true, true));
+        reset(&mut s, filler);
+        s.cast_blow(filler, spell::INFORMER, true);
+        s.cast_blow(filler, 0x281, true);
+        assert_eq!(bits(&s, filler), (false, false), "`l`, and the Sniper");
+        // A Spy is exempt at the first site and not at the second.
+        s.cast_blow(spy, spell::BRIBE, true);
+        assert_eq!(bits(&s, spy), (false, false));
+        s.cast_blow(spy, spell::INFORMER, false);
+        assert_eq!(bits(&s, spy), (false, false), "the Informer keeps it");
+        s.cast_blow(spy, spell::BRIBE, false);
+        assert_eq!(bits(&s, spy), (true, true));
+        // Not cloaked: a stealth-only unit with its cast order held.
+        cloak(&mut s, filler, uflags::STEALTH);
+        reset(&mut s, filler);
+        s.add_cast_order(filler, spell::BRIBE);
+        s.cast_blow(filler, spell::BRIBE, false);
+        assert_eq!(bits(&s, filler), (false, false));
+        s.units[filler].orders.clear();
+        assert!(s.unit_is_cloaked(filler), "idle, it is");
     }
 
     /// What one frame of each parity takes back from a `mana_burn` of 100.
