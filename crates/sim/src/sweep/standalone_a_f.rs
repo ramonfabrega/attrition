@@ -128,6 +128,8 @@ mod borders_is_border_hidden;
 mod borders_out_no_border;
 #[path = "borders_process_all.rs"]
 mod borders_process_all;
+#[path = "borders_save_last_who.rs"]
+mod borders_save_last_who;
 #[path = "build_add_attack_order.rs"]
 mod build_add_attack_order;
 #[path = "build_add_gatherer.rs"]
@@ -636,6 +638,8 @@ mod command_package_process_quit;
 mod command_package_process_recall;
 #[path = "command_package_process_reject.rs"]
 mod command_package_process_reject;
+#[path = "command_package_process_rename_city.rs"]
+mod command_package_process_rename_city;
 #[path = "command_package_process_repair.rs"]
 mod command_package_process_repair;
 #[path = "command_package_process_resign.rs"]
@@ -696,6 +700,8 @@ mod doober_has_doobers;
 mod doober_inc_time;
 #[path = "doober_remove_cover_doober.rs"]
 mod doober_remove_cover_doober;
+#[path = "doober_remove_hold_doobers.rs"]
+mod doober_remove_hold_doobers;
 #[path = "draw_thick_diamond.rs"]
 mod draw_thick_diamond;
 #[path = "farms_add_animals_all.rs"]
@@ -744,3 +750,5 @@ mod form_order_walk_data_vtordisp;
 mod fort_walk_data;
 #[path = "forts_find_fort.rs"]
 mod forts_find_fort;
+#[path = "fractal_get_height.rs"]
+mod fractal_get_height;

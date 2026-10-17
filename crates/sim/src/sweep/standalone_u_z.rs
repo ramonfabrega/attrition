@@ -262,6 +262,8 @@ mod unit_type_walk_rules_data;
 mod unit_update_ceo_position;
 #[path = "unit_update_gpiece.rs"]
 mod unit_update_gpiece;
+#[path = "unit_update_local_seen.rs"]
+mod unit_update_local_seen;
 #[path = "unit_update_order.rs"]
 mod unit_update_order;
 #[path = "unit_update_patrol_order.rs"]
@@ -378,6 +380,8 @@ mod wall_out_make_options;
 mod wall_set_type;
 #[path = "wall_set_type_dispatch.rs"]
 mod wall_set_type_dispatch;
+#[path = "wall_swap_team.rs"]
+mod wall_swap_team;
 #[path = "wcoord_data_walk_data.rs"]
 mod wcoord_data_walk_data;
 #[path = "wcoord_get_tcorner.rs"]
@@ -402,6 +406,8 @@ mod wonder_get_timer;
 mod wonder_walk_data;
 #[path = "world_adjust_fog.rs"]
 mod world_adjust_fog;
+#[path = "world_compute_all_vals.rs"]
+mod world_compute_all_vals;
 #[path = "world_data_buildings_allowed.rs"]
 mod world_data_buildings_allowed;
 #[path = "world_data_get_bottom.rs"]
@@ -566,6 +572,8 @@ mod world_set_orig_coast;
 mod world_set_resource_at;
 #[path = "world_set_river_at.rs"]
 mod world_set_river_at;
+#[path = "world_set_seen2.rs"]
+mod world_set_seen2;
 #[path = "world_set_started2_at.rs"]
 mod world_set_started2_at;
 #[path = "world_set_started_at.rs"]

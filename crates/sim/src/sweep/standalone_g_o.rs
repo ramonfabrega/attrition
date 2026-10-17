@@ -346,6 +346,8 @@ mod group_walk_data;
 mod groupmoveorder_is_fleeing;
 #[path = "groupmoveorder_is_pathed.rs"]
 mod groupmoveorder_is_pathed;
+#[path = "groups_copy_group.rs"]
+mod groups_copy_group;
 #[path = "groups_data_find_group_const.rs"]
 mod groups_data_find_group_const;
 #[path = "groups_walk_data.rs"]
@@ -428,10 +430,14 @@ mod land_walk_data;
 mod lands_find_key;
 #[path = "lands_walk_data.rs"]
 mod lands_walk_data;
+#[path = "link_vert_append.rs"]
+mod link_vert_append;
 #[path = "map_calc_bonus.rs"]
 mod map_calc_bonus;
 #[path = "map_calc_bonus2.rs"]
 mod map_calc_bonus2;
+#[path = "map_conquest_check_sea_map.rs"]
+mod map_conquest_check_sea_map;
 #[path = "map_fairness_apply_distances.rs"]
 mod map_fairness_apply_distances;
 #[path = "map_fairness_enable_team_mode.rs"]
@@ -472,6 +478,10 @@ mod misc_access_coord_vis_4;
 mod misc_access_find_global_render_z;
 #[path = "mountain_range_validate_tcoord.rs"]
 mod mountain_range_validate_tcoord;
+#[path = "mountains_data_mnt_loc_x.rs"]
+mod mountains_data_mnt_loc_x;
+#[path = "mountains_data_mnt_loc_y.rs"]
+mod mountains_data_mnt_loc_y;
 #[path = "mountains_data_total_gather_size.rs"]
 mod mountains_data_total_gather_size;
 #[path = "mountains_out_mnt_locs.rs"]
@@ -586,6 +596,8 @@ mod object_kill_contents;
 mod object_los;
 #[path = "object_must_walk.rs"]
 mod object_must_walk;
+#[path = "object_poor_target.rs"]
+mod object_poor_target;
 #[path = "object_repair_damage.rs"]
 mod object_repair_damage;
 #[path = "object_support_cost.rs"]
@@ -630,6 +642,10 @@ mod object_update_los;
 mod objects_array_get_data_type;
 #[path = "objects_data_count_nukes_in_flight.rs"]
 mod objects_data_count_nukes_in_flight;
+#[path = "objects_data_find_city.rs"]
+mod objects_data_find_city;
+#[path = "objects_data_find_city_at.rs"]
+mod objects_data_find_city_at;
 #[path = "objects_data_find_good_at.rs"]
 mod objects_data_find_good_at;
 #[path = "objects_data_find_good_at_tcoord.rs"]
