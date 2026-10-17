@@ -888,6 +888,15 @@ impl Sim {
                 // PROBE 2956
                 if std::env::var("RON_PROBE_SITEFRAME").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) && who == 1 {
                     eprintln!("  sample f{} r{r} size{size} stride{stride} start{start} ({},{}) -> ({},{}) v{} d{}", self.frame, c.x, c.y, st.wx, st.wy, st.val, st.dist);
+                    if (c.x, c.y) == (47, 24) {
+                        let here = Cell::new(47, 24);
+                        let town = self.city_record(Ident::Town);
+                        eprintln!("    why: radius {} seen {} owner {:?} second {:?} ocean {} base {} clear {:?} danger {}",
+                            self.world.tile_mask(here.centre_tile()) & tile::CITY_RADIUS,
+                            self.site_was_seen(47, 24, who), self.world.owner(here), self.world.second(here),
+                            self.site_is_ocean(here), self.world.cell_data(here).val,
+                            town.map(|t| self.site_clear(who, t, 47, 24)), self.site_danger(who, 47, 24));
+                    }
                 }
 
                 // The insertion, transliterated: the running minimum starts
