@@ -154,6 +154,8 @@ mod good_type_data_is_flat;
 mod good_type_data_is_herd_type;
 #[path = "good_type_data_snap_center.rs"]
 mod good_type_data_snap_center;
+#[path = "good_type_out_say_gather_level.rs"]
+mod good_type_out_say_gather_level;
 #[path = "good_type_walk_rules_data.rs"]
 mod good_type_walk_rules_data;
 #[path = "good_walk_data.rs"]
