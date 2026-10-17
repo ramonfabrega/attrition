@@ -359,3 +359,43 @@ fn run893c_s_word_frame_is_widened_whole() {
     // The word moved to 12815, past the window's last block (6836); its
     // widening is run910's (`docs/AI.md` §242).
 }
+
+/// run910: the word 12815's window, blocks 12809..13066 at the long's
+/// detail (item 2974); run893c ends on block 6836.
+pub(crate) const RUN910: &str = "gamelog-run910-eastindies-german-diff3-window-12809-13067.txt";
+
+/// The window: block 12809 through 13066; the word 12815's own block is
+/// 12816.
+pub(crate) const WIDENING_GERMAN_FRAME_12815: (i64, i64) = (12809, 13066);
+
+pub(crate) fn german_frame_12815_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GERMAN.start],
+        true,
+        GERMAN.long,
+        "run910",
+        &[(RUN910, WIDENING_GERMAN_FRAME_12815.0)],
+        WIDENING_GERMAN_FRAME_12815,
+        1,
+        &[12816],
+        true,
+    )
+}
+
+#[test]
+fn run910_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_frame_12815_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "initial run910 baseline");
+    // Item 2974: WIDENING_COMMENT
+}

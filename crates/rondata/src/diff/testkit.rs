@@ -9580,13 +9580,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // unseen tally, past run891's last block (5827): run891's test keeps
     // 5577's value diff (block 5578, who=1's two Village offers), run893's
     // the site table's on 3976, and 6585 is widened on run893c over
-    // 6579..6836 (block 6586, item 2956).
+    // 6579..6836 (block 6586, item 2956). **Item 2974 moved it 6585 →
+    // 12815** with the Germans' Fire Raft line, past run893c's last block
+    // (6836): run893c's test keeps 6585's value diff (block 6581, who=1's
+    // make list heading the Fire Raft), and 12815 is widened on run910 over
+    // 12809..13066 (block 12816, item 2974).
     (
         "GERMAN_WORD",
         crate::diff::german_word::GERMAN_WORD,
-        Some("run893c_s_word_frame_is_widened_whole"),
-        2956,
-        Some(crate::diff::german_word::WIDENING_GERMAN_FRAME_6585),
+        Some("run910_s_word_frame_is_widened_whole"),
+        2974,
+        Some(crate::diff::german_word::WIDENING_GERMAN_FRAME_12815),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -9912,7 +9916,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::german_word::GERMAN_WORD,
         length: 13_519,
         endpoint: None,
-        window: Some("german_frame_6585_window"),
+        window: Some("german_frame_12815_window"),
     },
     // **The peace pair** (DECISIONS 53 §2, 61 §6; item 2320): East Indies,
     // the Lakota at Difficulty 3 and All Technologies, with five minutes'
