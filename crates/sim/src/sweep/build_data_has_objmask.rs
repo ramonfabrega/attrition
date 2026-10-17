@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -41,46 +46,53 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             'g: {
-    // has_objmask: the owned object's own mask (slot 0xf0, handed the argument) -- unless the object is a city's (flag
-    // 0x20 and a non-negative city short at +0x72), where the leader's gunpowder-age test (has_preq(0x222), called once
-    // a test, recorded on the leader's row) may add the 0x40 bit and always clears 0x20000.
-    let _ = (&c, &a[0]);
-    log.extend(["-"; 5].map(String::from));
-    let e = a[1];
-    if m[8] & 0x20 == 0 || i16::from_le_bytes([m[0x72], m[0x73]]) < 0 {
-        break 'g e as i64;
-    }
-    let owner = m[9] as usize;
-    let mut preq = |log: &mut Vec<String>| -> bool {
-        if log[owner] == "-" {
-            log[owner] = String::new();
-        } else {
-            log[owner].push('/');
-        }
-        log[owner].push_str("r+0x0,546");
-        a[4] != 0
-    };
-    let idx = rd(&p[5], 4);
-    let unit = if a[5] != 0 { (0x32..0x19e).contains(&idx) } else { a[2] != 0 };
-    if unit && !preq(&mut log) {
-        break 'g e as i64;
-    }
-    if a[3] != 0 {
-        if !preq(&mut log) {
-            break 'g e as i64;
-        }
-    } else if (p[owner][0] >> 2) & 1 == 0 {
-        break 'g e as i64;
-    }
-    let mut e = e;
-    if a[0] & 0x40 != 0 {
-        e |= 0x40;
-    }
-    (e & 0xfffd_ffffu32 as i32) as i64
-}
+                // has_objmask: the owned object's own mask (slot 0xf0, handed the argument) -- unless the object is a city's (flag
+                // 0x20 and a non-negative city short at +0x72), where the leader's gunpowder-age test (has_preq(0x222), called once
+                // a test, recorded on the leader's row) may add the 0x40 bit and always clears 0x20000.
+                let _ = (&c, &a[0]);
+                log.extend(["-"; 5].map(String::from));
+                let e = a[1];
+                if m[8] & 0x20 == 0 || i16::from_le_bytes([m[0x72], m[0x73]]) < 0 {
+                    break 'g e as i64;
+                }
+                let owner = m[9] as usize;
+                let preq = |log: &mut Vec<String>| -> bool {
+                    if log[owner] == "-" {
+                        log[owner] = String::new();
+                    } else {
+                        log[owner].push('/');
+                    }
+                    log[owner].push_str("r+0x0,546");
+                    a[4] != 0
+                };
+                let idx = rd(&p[5], 4);
+                let unit = if a[5] != 0 {
+                    (0x32..0x19e).contains(&idx)
+                } else {
+                    a[2] != 0
+                };
+                if unit && !preq(&mut log) {
+                    break 'g e as i64;
+                }
+                if a[3] != 0 {
+                    if !preq(&mut log) {
+                        break 'g e as i64;
+                    }
+                } else if (p[owner][0] >> 2) & 1 == 0 {
+                    break 'g e as i64;
+                }
+                let mut e = e;
+                if a[0] & 0x40 != 0 {
+                    e |= 0x40;
+                }
+                (e & 0xfffd_ffffu32 as i32) as i64
+            }
         };
         assert_eq!(got, want_eax, "has_objmask — eax, row `{line}`");
-        assert_eq!(log, want_log, "has_objmask — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "has_objmask — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "has_objmask — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

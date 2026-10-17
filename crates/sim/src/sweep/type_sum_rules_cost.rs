@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -38,33 +43,47 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // The cost words +0x18..+0x2c summed; the first class test that holds picks the factor of the constants record.
-    let sum = (0..6).fold(0i32, |s, k| s.wrapping_add(rd(m, 0x18 + 4 * k)));
-    let t = rd(m, 4);
-    let k = &c[0];
-    let kf = |o: usize| i32::from_le_bytes(k[o..o + 4].try_into().expect("four bytes"));
-    // a[0..4] the slots 0xc, 0x14, 0x48, 0x28 as the stub answers; a[4..8] the flags: laid as the class's own test.
-    let class = |i: usize, lo: i32, hi: i32| if a[4 + i] != 0 { t > lo && t < hi } else { a[i] != 0 };
-    let f = if class(0, 0x31, 0x19e) {
-        kf(0x354)
-    } else if class(1, 0x19d, 0x21f) {
-        kf(0x358)
-    } else if class(2, 0x274, 0x2ac) {
-        kf(0x360)
-    } else {
-        kf(0x35c)
-    };
-    f.wrapping_mul(sum) as i64
-}
+                // The cost words +0x18..+0x2c summed; the first class test that holds picks the factor of the constants record.
+                let sum = (0..6).fold(0i32, |s, k| s.wrapping_add(rd(m, 0x18 + 4 * k)));
+                let t = rd(m, 4);
+                let k = &c[0];
+                let kf = |o: usize| i32::from_le_bytes(k[o..o + 4].try_into().expect("four bytes"));
+                // a[0..4] the slots 0xc, 0x14, 0x48, 0x28 as the stub answers; a[4..8] the flags: laid as the class's own test.
+                let class = |i: usize, lo: i32, hi: i32| {
+                    if a[4 + i] != 0 {
+                        t > lo && t < hi
+                    } else {
+                        a[i] != 0
+                    }
+                };
+                let f = if class(0, 0x31, 0x19e) {
+                    kf(0x354)
+                } else if class(1, 0x19d, 0x21f) {
+                    kf(0x358)
+                } else if class(2, 0x274, 0x2ac) {
+                    kf(0x360)
+                } else {
+                    kf(0x35c)
+                };
+                f.wrapping_mul(sum) as i64
+            }
         };
         assert_eq!(got, want_eax, "sum_rules_cost — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "sum_rules_cost — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "sum_rules_cost — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "sum_rules_cost — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "sum_rules_cost — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "sum_rules_cost — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

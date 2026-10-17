@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,16 +43,16 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // copy_data: the byte at +0x9d and +0xa2, then the words +0xc..+0x14, +0x18, +0x20..+0x3c, +0x40 (a float, copied as bits)
-    let s = &p[0];
-    m[0x9d] = s[0x9d];
-    m[0xa2] = s[0xa2];
-    for (d, o) in [(0xc, 0xc), (0x10, 0x10), (0x14, 0x14), (0x18, 0x18)] {
-        m[d..d + 4].copy_from_slice(&s[o..o + 4]);
-    }
-    m[0x20..0x44].copy_from_slice(&s[0x20..0x44]);
-    0
-}
+                // copy_data: the byte at +0x9d and +0xa2, then the words +0xc..+0x14, +0x18, +0x20..+0x3c, +0x40 (a float, copied as bits)
+                let s = &p[0];
+                m[0x9d] = s[0x9d];
+                m[0xa2] = s[0xa2];
+                for (d, o) in [(0xc, 0xc), (0x10, 0x10), (0x14, 0x14), (0x18, 0x18)] {
+                    m[d..d + 4].copy_from_slice(&s[o..o + 4]);
+                }
+                m[0x20..0x44].copy_from_slice(&s[0x20..0x44]);
+                0
+            }
         };
         let _ = (got, want_eax);
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();

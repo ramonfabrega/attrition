@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,44 +43,44 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // Doober::inc_time: each hold fade fades 10 a frame toward 0 (negative) or up to 0xff (positive); a negative one that
-    // reaches 0 is the end of its life, popping the trailing zeros if it was the last.
-    let _ = (&a, &c);
-    let ptr_ok = |i: i32| (i as usize) * 4;
-    let mut i: i32 = 0;
-    while i < rd(m, 0xcc) {
-        let o = ptr_ok(i);
-        let v = rd(p[0].as_slice(), o);
-        if v < 0 {
-            if v + 10 < 0 {
-                wr(&mut p[0], o, v + 10);
-            } else {
-                wr(&mut p[0], o, 0);
-                let mut n = rd(m, 0xcc).wrapping_sub(1);
-                if i == n && n >= 0 {
-                    loop {
-                        if rd(&p[0], (n as usize) * 4) != 0 {
-                            break;
+                // Doober::inc_time: each hold fade fades 10 a frame toward 0 (negative) or up to 0xff (positive); a negative one that
+                // reaches 0 is the end of its life, popping the trailing zeros if it was the last.
+                let _ = (&a, &c);
+                let ptr_ok = |i: i32| (i as usize) * 4;
+                let mut i: i32 = 0;
+                while i < rd(m, 0xcc) {
+                    let o = ptr_ok(i);
+                    let v = rd(p[0].as_slice(), o);
+                    if v < 0 {
+                        if v + 10 < 0 {
+                            wr(&mut p[0], o, v + 10);
+                        } else {
+                            wr(&mut p[0], o, 0);
+                            let mut n = rd(m, 0xcc).wrapping_sub(1);
+                            if i == n && n >= 0 {
+                                loop {
+                                    if rd(&p[0], (n as usize) * 4) != 0 {
+                                        break;
+                                    }
+                                    wr(m, 0xcc, rd(m, 0xcc).wrapping_sub(1));
+                                    wr(m, 0xe8, rd(m, 0xe8).wrapping_sub(1));
+                                    wr(m, 0x104, rd(m, 0x104).wrapping_sub(1));
+                                    n -= 1;
+                                    if n < 0 {
+                                        break;
+                                    }
+                                }
+                            }
+                            wr(&mut p[0], o, 0);
+                            wr(m, 0x1e0, 1);
                         }
-                        wr(m, 0xcc, rd(m, 0xcc).wrapping_sub(1));
-                        wr(m, 0xe8, rd(m, 0xe8).wrapping_sub(1));
-                        wr(m, 0x104, rd(m, 0x104).wrapping_sub(1));
-                        n -= 1;
-                        if n < 0 {
-                            break;
-                        }
+                    } else if v > 0 {
+                        wr(&mut p[0], o, (v + 10).min(0xff));
                     }
+                    i += 1;
                 }
-                wr(&mut p[0], o, 0);
-                wr(m, 0x1e0, 1);
+                0
             }
-        } else if v > 0 {
-            wr(&mut p[0], o, (v + 10).min(0xff));
-        }
-        i += 1;
-    }
-    0
-}
         };
         assert_eq!(got, want_eax, "inc_time — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();

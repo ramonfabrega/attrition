@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,34 +43,50 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             'g: {
-    // get_age_slow: the first prerequisite (get_preq(i, -1), i below the type's count) that is a tech (index 0x220..0x274;
-    // else the slot-0x28 answer) names the age: its age number from the tech record (+0x1c8), one more when it is an age
-    // tech itself (0x220..0x226; else the slot-0x34 answer).
-    let _ = (&c, &m, &a[1]);
-    for i in 0..a[0] {
-        let t = a[4 + (i as usize).min(3)];
-        if t < 0 {
-            continue;
-        }
-        let idx = rd(&p[1 + t as usize], 4);
-        let tech = if a[8] != 0 { (0x220..0x275).contains(&idx) } else { a[2] != 0 };
-        if !tech {
-            continue;
-        }
-        let age = if a[9] != 0 { (0x220..0x227).contains(&idx) } else { a[3] != 0 };
-        break 'g (rd(&p[10 + t as usize], 0x1c8) + age as i32) as i64;
-    }
-    0
-}
+                // get_age_slow: the first prerequisite (get_preq(i, -1), i below the type's count) that is a tech (index 0x220..0x274;
+                // else the slot-0x28 answer) names the age: its age number from the tech record (+0x1c8), one more when it is an age
+                // tech itself (0x220..0x226; else the slot-0x34 answer).
+                let _ = (&c, &m, &a[1]);
+                for i in 0..a[0] {
+                    let t = a[4 + (i as usize).min(3)];
+                    if t < 0 {
+                        continue;
+                    }
+                    let idx = rd(&p[1 + t as usize], 4);
+                    let tech = if a[8] != 0 {
+                        (0x220..0x275).contains(&idx)
+                    } else {
+                        a[2] != 0
+                    };
+                    if !tech {
+                        continue;
+                    }
+                    let age = if a[9] != 0 {
+                        (0x220..0x227).contains(&idx)
+                    } else {
+                        a[3] != 0
+                    };
+                    break 'g (rd(&p[10 + t as usize], 0x1c8) + age as i32) as i64;
+                }
+                0
+            }
         };
         assert_eq!(got, want_eax, "get_age_slow — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "get_age_slow — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_age_slow — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_age_slow — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_age_slow — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_age_slow — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

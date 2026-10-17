@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(3);
@@ -41,39 +46,47 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             'p: {
-    // is_now_seen: the owner sees its own wall; the others if it is started (slot 0x50) or the viewer's leader has the
-    // owner's bit in the byte at +0x6929, unless the map is revealed (gamec +0x30 == 3) or the owner's fog is off; else
-    // the world is asked (is_seen) about the tile of the wall, whose answer is returned whole.
-    let _ = &c[2];
-    log.extend(["-".to_string(), "-".to_string(), "-".to_string()]);
-    let player = a[0];
-    let owner = m[9] as i32;
-    if player == owner {
-        break 'p 1;
-    }
-    let started = if a[3] != 0 { m[8] & 2 != 0 } else { a[1] != 0 };
-    let lead = |row: i32, k: usize| p[2 * row as usize + k][0];
-    if !started && (lead(player, 1) & (1u32.checked_shl(owner as u32 & 31).unwrap_or(0) as u8)) == 0 {
-        break 'p 0;
-    }
-    if c[1][0x30] == 3 || (m[8] & 0x20 != 0 && c[1][0x820] & 4 == 0 && lead(owner, 0) & 4 != 0) {
-        break 'p 1;
-    }
-    let tab = |w: i32| {
-        let i = ((w ^ 0x63637) >> 7) as usize;
-        rd(&c[2], 4 * i)
-    };
-    let x = tab(rd(m, 0x10));
-    let y = tab(rd(m, 0x14));
-    log.clear();
-    log.push(format!("c0+0x0,sp-0x10,sp-0x4,{player}"));
-    log.push(x.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect());
-    log.push(y.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect());
-    a[2] as i64
-}
+                // is_now_seen: the owner sees its own wall; the others if it is started (slot 0x50) or the viewer's leader has the
+                // owner's bit in the byte at +0x6929, unless the map is revealed (gamec +0x30 == 3) or the owner's fog is off; else
+                // the world is asked (is_seen) about the tile of the wall, whose answer is returned whole.
+                let _ = &c[2];
+                log.extend(["-".to_string(), "-".to_string(), "-".to_string()]);
+                let player = a[0];
+                let owner = m[9] as i32;
+                if player == owner {
+                    break 'p 1;
+                }
+                let started = if a[3] != 0 { m[8] & 2 != 0 } else { a[1] != 0 };
+                let lead = |row: i32, k: usize| p[2 * row as usize + k][0];
+                if !started
+                    && (lead(player, 1) & (1u32.checked_shl(owner as u32 & 31).unwrap_or(0) as u8))
+                        == 0
+                {
+                    break 'p 0;
+                }
+                if c[1][0x30] == 3
+                    || (m[8] & 0x20 != 0 && c[1][0x820] & 4 == 0 && lead(owner, 0) & 4 != 0)
+                {
+                    break 'p 1;
+                }
+                let tab = |w: i32| {
+                    let i = ((w ^ 0x63637) >> 7) as usize;
+                    rd(&c[2], 4 * i)
+                };
+                let x = tab(rd(m, 0x10));
+                let y = tab(rd(m, 0x14));
+                log.clear();
+                log.push(format!("c0+0x0,sp-0x10,sp-0x4,{player}"));
+                log.push(x.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect());
+                log.push(y.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect());
+                a[2] as i64
+            }
         };
         assert_eq!(got, want_eax, "is_now_seen — eax, row `{line}`");
-        assert_eq!(log, want_log, "is_now_seen — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "is_now_seen — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "is_now_seen — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

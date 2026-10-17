@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -38,34 +43,42 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // invalidate_wcoord: the nine neighbours (move_x[i], move_y[i]) of (xw, yw) that lie in the world get their two
-    // cached words (+0x6c, +0x70) cleared to -1 on the tile record; +0x70 is cleared again when the fog index at +0x7a is
-    // 0xffff or its entry in the table at this+0x14c is not -1 (the second store is the same value either way).
-    let _ = (&a, &m);
-    let xw = rd(&p[0], 0x14);
-    let yw = rd(&p[0], 0x18);
-    let (w, h) = (rd(&c[0], 0), rd(&c[0], 4));
-    for i in 0..9 {
-        let y = rd(&c[2], 4 * i).wrapping_add(yw);
-        let x = rd(&c[3], 4 * i).wrapping_add(xw);
-        if x >= 0 && y >= 0 && x < w && y < h {
-            let t = (w * y + x) as usize;
-            let rec = &mut p[2 + t];
-            wr(rec, 0x6c, -1);
-            wr(rec, 0x70, -1);
-        }
-    }
-    0
-}
+                // invalidate_wcoord: the nine neighbours (move_x[i], move_y[i]) of (xw, yw) that lie in the world get their two
+                // cached words (+0x6c, +0x70) cleared to -1 on the tile record; +0x70 is cleared again when the fog index at +0x7a is
+                // 0xffff or its entry in the table at this+0x14c is not -1 (the second store is the same value either way).
+                let _ = (&a, &m);
+                let xw = rd(&p[0], 0x14);
+                let yw = rd(&p[0], 0x18);
+                let (w, h) = (rd(&c[0], 0), rd(&c[0], 4));
+                for i in 0..9 {
+                    let y = rd(&c[2], 4 * i).wrapping_add(yw);
+                    let x = rd(&c[3], 4 * i).wrapping_add(xw);
+                    if x >= 0 && y >= 0 && x < w && y < h {
+                        let t = (w * y + x) as usize;
+                        let rec = &mut p[2 + t];
+                        wr(rec, 0x6c, -1);
+                        wr(rec, 0x70, -1);
+                    }
+                }
+                0
+            }
         };
         let _ = (got, want_eax);
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "invalidate_wcoord — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "invalidate_wcoord — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "invalidate_wcoord — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[5 + i], "invalidate_wcoord — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[5 + i],
+                "invalidate_wcoord — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

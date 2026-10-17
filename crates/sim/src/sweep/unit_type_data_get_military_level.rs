@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,46 +43,57 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             'g: {
-    // get_military_level: a stored level (>= 0) is returned; else the type's own tech, if it is an epoch tech (index
-    // 0x227..0x242, or the slot-0x38 answer) with nothing in the tech record's +0x14, else its first prerequisite
-    // (get_preq(1, -1)) under the same test, answering the index less 0x23b -- or 0.
-    let _ = (&c, &a[0]);
-    let level = rd(m, 0x2dc);
-    if level >= 0 {
-        break 'g level as i64;
-    }
-    let base = a[4] != 0;
-    let mut calls = 0;
-    let mut epoch_and_free = |t: i32, p: &[Vec<u8>]| -> bool {
-        let slot = a[2 + calls.min(1)];
-        calls += 1;
-        let epoch = if base {
-            let idx = rd(&p[1 + t as usize], 4);
-            (0x227..0x243).contains(&idx)
-        } else {
-            slot != 0
-        };
-        epoch && rd(&p[10 + t as usize], 0x14) == 0
-    };
-    let mut t = rd(m, 0x30);
-    if !(t >= 0 && epoch_and_free(t, p)) {
-        t = a[1];
-    }
-    if t >= 0 && epoch_and_free(t, p) {
-        (t - 0x23b) as i64
-    } else {
-        0
-    }
-}
+                // get_military_level: a stored level (>= 0) is returned; else the type's own tech, if it is an epoch tech (index
+                // 0x227..0x242, or the slot-0x38 answer) with nothing in the tech record's +0x14, else its first prerequisite
+                // (get_preq(1, -1)) under the same test, answering the index less 0x23b -- or 0.
+                let _ = (&c, &a[0]);
+                let level = rd(m, 0x2dc);
+                if level >= 0 {
+                    break 'g level as i64;
+                }
+                let base = a[4] != 0;
+                let mut calls = 0;
+                let mut epoch_and_free = |t: i32, p: &[Vec<u8>]| -> bool {
+                    let slot = a[2 + calls.min(1)];
+                    calls += 1;
+                    let epoch = if base {
+                        let idx = rd(&p[1 + t as usize], 4);
+                        (0x227..0x243).contains(&idx)
+                    } else {
+                        slot != 0
+                    };
+                    epoch && rd(&p[10 + t as usize], 0x14) == 0
+                };
+                let mut t = rd(m, 0x30);
+                if !(t >= 0 && epoch_and_free(t, p)) {
+                    t = a[1];
+                }
+                if t >= 0 && epoch_and_free(t, p) {
+                    (t - 0x23b) as i64
+                } else {
+                    0
+                }
+            }
         };
         assert_eq!(got, want_eax, "get_military_level — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "get_military_level — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "get_military_level — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_military_level — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_military_level — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_military_level — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_military_level — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -38,51 +43,75 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // set_fog_lookup: the cell (x, y) of a (xs+2) x (ys+2) byte table, which carries a one-cell border; a cell on the
-    // edge of the map also writes the border cells beside it, the corners included.
-    let _ = &m;
-    let (xs, ys) = (rd(&c[1], 0), rd(&c[1], 4));
-    let (x, y) = (rd(&p[0], 0), rd(&p[1], 0));
-    let v = a[2] as u8;
-    let stride = xs.wrapping_add(2);
-    let t = &mut c[0];
-    let mut put = |i: i32| t[i as usize] = v;
-    put(y.wrapping_add(1).wrapping_mul(stride).wrapping_add(x).wrapping_add(1));
-    if y == 0 {
-        put(x.wrapping_add(1));
-        if x == 0 {
-            put(0);
-        }
-        if x == xs - 1 {
-            put(xs.wrapping_add(2));
-        }
-    }
-    if y == ys - 1 {
-        put(y.wrapping_add(2).wrapping_mul(stride).wrapping_add(x).wrapping_add(1));
-        if x == 0 {
-            put(y.wrapping_add(2).wrapping_mul(stride));
-        }
-        if x == xs - 1 {
-            put(y.wrapping_add(2).wrapping_mul(stride).wrapping_add(x).wrapping_add(2));
-        }
-    }
-    if x == 0 {
-        put(y.wrapping_add(1).wrapping_mul(stride));
-    }
-    if x == xs - 1 {
-        put(y.wrapping_add(1).wrapping_mul(stride).wrapping_add(x).wrapping_add(2));
-    }
-    0
-}
+                // set_fog_lookup: the cell (x, y) of a (xs+2) x (ys+2) byte table, which carries a one-cell border; a cell on the
+                // edge of the map also writes the border cells beside it, the corners included.
+                let _ = &m;
+                let (xs, ys) = (rd(&c[1], 0), rd(&c[1], 4));
+                let (x, y) = (rd(&p[0], 0), rd(&p[1], 0));
+                let v = a[2] as u8;
+                let stride = xs.wrapping_add(2);
+                let t = &mut c[0];
+                let mut put = |i: i32| t[i as usize] = v;
+                put(y
+                    .wrapping_add(1)
+                    .wrapping_mul(stride)
+                    .wrapping_add(x)
+                    .wrapping_add(1));
+                if y == 0 {
+                    put(x.wrapping_add(1));
+                    if x == 0 {
+                        put(0);
+                    }
+                    if x == xs - 1 {
+                        put(xs.wrapping_add(2));
+                    }
+                }
+                if y == ys - 1 {
+                    put(y
+                        .wrapping_add(2)
+                        .wrapping_mul(stride)
+                        .wrapping_add(x)
+                        .wrapping_add(1));
+                    if x == 0 {
+                        put(y.wrapping_add(2).wrapping_mul(stride));
+                    }
+                    if x == xs - 1 {
+                        put(y
+                            .wrapping_add(2)
+                            .wrapping_mul(stride)
+                            .wrapping_add(x)
+                            .wrapping_add(2));
+                    }
+                }
+                if x == 0 {
+                    put(y.wrapping_add(1).wrapping_mul(stride));
+                }
+                if x == xs - 1 {
+                    put(y
+                        .wrapping_add(1)
+                        .wrapping_mul(stride)
+                        .wrapping_add(x)
+                        .wrapping_add(2));
+                }
+                0
+            }
         };
         let _ = (got, want_eax);
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "set_fog_lookup — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "set_fog_lookup — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "set_fog_lookup — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "set_fog_lookup — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[3 + i],
+                "set_fog_lookup — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
