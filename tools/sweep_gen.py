@@ -3248,20 +3248,23 @@ def main(argv=None):
     ap.add_argument('--row-link', action='append', default=[], metavar='OFF:SIZE:DIR[:T,T..]',
                     help='obj, with --table: a --link over each row\'s records (item 2719, parked 2713)')
     ap.add_argument('--ptrtab', action='append', default=[], metavar='LOC:N:SIZE[:vt]',
-                    help='obj: an array of N record pointers at LOC, each a SIZE-byte record; `vt` lays the stubbed '
+                    help='obj: an array of N record pointers at LOC, each a SIZE-byte record (the places come before every --place); `vt` lays the stubbed '
                          'vtable at each record too (item 2782, parked 2772)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(split_gate_this(argv))
+    tab_place = []
     for spec_ in args.ptrtab:
+        # The tables' places come before every `--place`, so `p<N>` in the other flags counts them first.
         try:
             pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))
-                                        for sp in args.sparse) + len(args.place)
+                                        for sp in args.sparse) + len(tab_place)
             x = ptrtab_expand(spec_, pb)
         except ValueError as e:
             print(f'sweep_gen.py: {e}', file=sys.stderr)
             return 2
-        args.place = args.place + x['place']
+        tab_place += x['place']
         args.vtat_also = args.vtat_also + x['vtat_also']
+    args.place = tab_place + args.place
     if args.table:
         try:
             pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))

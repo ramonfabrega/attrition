@@ -194,6 +194,8 @@ mod group_data_get_num_const;
 mod group_data_get_o;
 #[path = "group_data_get_unit.rs"]
 mod group_data_get_unit;
+#[path = "group_data_has_air_units.rs"]
+mod group_data_has_air_units;
 #[path = "group_data_member.rs"]
 mod group_data_member;
 #[path = "group_data_num_valid.rs"]
