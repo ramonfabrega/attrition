@@ -35,7 +35,7 @@ PNULLS = []
 STUBS = [('slot', 16, 0), ('slot', 84, 4), ('iat', 11293792, 0)]
 PLACES = [(None, '0xe335c8', '0', 64), (None, '0xc061e8', '0', 1536)]
 NULLS = [0]
-WBIAS = [('c0', 4, ('range', 0, 40)), ('p1', 1360, ('range', 0, 40)), ('c0', 0, ('set', [0, 1, 5, -3, 40]))]
+WBIAS = [('c0', 4, ('range', -20, 40)), ('p1', 1360, ('range', -20, 40)), ('c0', 0, ('set', [0, 1, 5, -3, 40]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -576,4 +576,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "2793", "obj", "TimeSync::update@00954cf0", "--ret", "none", "--own", "0", "--win", "0x40", "--at", "0xc89704:8", "--wbias", "c0+4:0..40", "--place", "0xe335c8:0:0x40", "--place-null", "0", "--place", "0xc061e8:0:0x600", "--wbias", "p1+0x550:0..40", "--wbias", "c0+0:0,1,5,-3,40", "--vtat", "p0+0", "--stub", "slot:0x10:0", "--stub", "slot:0x54:4", "--stub", "iat:0xac5460:0", "--answers", "0:0,0,0,1,2", "--record", "0", "--record", "1", "--record", "2", "--deref", "1:0:9", "--port", "todo!()"]
+# sweep_gen: ["--item", "2793", "obj", "TimeSync::update@00954cf0", "--ret", "none", "--own", "0", "--win", "0x40", "--at", "0xc89704:8", "--wbias", "c0+4:-20..40", "--place", "0xe335c8:0:0x40", "--place-null", "0", "--place", "0xc061e8:0:0x600", "--wbias", "p1+0x550:-20..40", "--wbias", "c0+0:0,1,5,-3,40", "--vtat", "p0+0", "--stub", "slot:0x10:0", "--stub", "slot:0x54:4", "--stub", "iat:0xac5460:0", "--answers", "0:0,0,0,1,2", "--record", "0", "--record", "1", "--record", "2", "--deref", "1:0:9", "--port", "todo!()"]
