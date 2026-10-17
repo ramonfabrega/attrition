@@ -163,6 +163,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the coverage pair's walks and fixture checks: per-record comparisons live in harness.rs (item 1466)",
     ),
     (
+        "diff/german_word.rs",
+        "the battery word's walks: it compares no field itself, and its widening is harness.rs's (item 2904)",
+    ),
+    (
         "diff/lakota_pair.rs",
         "the peace pair's walks: it compares no field itself, and its widening is harness.rs's (item 2320)",
     ),
