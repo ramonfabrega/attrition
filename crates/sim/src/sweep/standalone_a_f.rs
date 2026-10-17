@@ -426,6 +426,8 @@ mod command_manager_issue_clear_all;
 mod command_manager_issue_clear_tributes;
 #[path = "command_manager_issue_come_out.rs"]
 mod command_manager_issue_come_out;
+#[path = "command_manager_issue_console_cmd.rs"]
+mod command_manager_issue_console_cmd;
 #[path = "command_manager_issue_declare.rs"]
 mod command_manager_issue_declare;
 #[path = "command_manager_issue_disband.rs"]
@@ -514,6 +516,24 @@ mod command_manager_issue_unqueue_wall;
 mod command_package_add_command;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
+#[path = "command_package_process_alarm.rs"]
+mod command_package_process_alarm;
+#[path = "command_package_process_check_random.rs"]
+mod command_package_process_check_random;
+#[path = "command_package_process_halt.rs"]
+mod command_package_process_halt;
+#[path = "command_package_process_marwan.rs"]
+mod command_package_process_marwan;
+#[path = "command_package_process_pause.rs"]
+mod command_package_process_pause;
+#[path = "command_package_process_recall.rs"]
+mod command_package_process_recall;
+#[path = "command_package_process_scramble.rs"]
+mod command_package_process_scramble;
+#[path = "command_package_process_stop_spell.rs"]
+mod command_package_process_stop_spell;
+#[path = "command_package_process_ungraceful_player_drop.rs"]
+mod command_package_process_ungraceful_player_drop;
 #[path = "command_package_walk_data.rs"]
 mod command_package_walk_data;
 #[path = "constants_walk_data.rs"]
