@@ -3076,8 +3076,9 @@ impl Sim {
     /// `Object::find_nearby_target@00648da0`'s packed AI siege shortcut:
     /// take a valid army target strictly inside the response radius,
     /// mandatory and QUEUE_FIRST, before ranking nearby candidates.
-    /// Used by the attack-move look and packer's chase re-search
-    /// (`docs/COMBAT.md` §88); other search callers remain unestablished.
+    /// Used by the attack-move look, the packer's chase re-search
+    /// (`docs/COMBAT.md` §88) and `think`'s idle search (item 2864);
+    /// the other search callers remain unestablished.
     fn take_siege_army_target(&mut self, u: usize) -> Option<Obj> {
         let who = self.units[u].owner;
         let p = self.profile(Obj::Unit(u));
@@ -3902,6 +3903,22 @@ impl Sim {
             && !self.think_attack_packed(u)
         {
             self.think_attack_join_army(u);
+            let unit = &self.units[u];
+            // **The packed computer siege engine takes its army's target
+            // first** (`find_nearby_target@00648da0:198`–`222`, reached
+            // from `think_attack`'s `find_melee_target`; item 2864,
+            // `docs/AI.md` §238): `QUEUE_FIRST`, **mandatory**, no group
+            // normalize, no `near` write — the search's own return. The
+            // peace pair's idle MLRS `1/124` (`TypeIndex` 273) took the
+            // human's `0/2000` this way on 6820, `mandatory 1`, and on
+            // 6821 walked the ring that ours, holding a found target's
+            // `mandatory 0`, dropped.
+            if unit.combat.stance != combat::Stance::HoldFire
+                && unit.combat.target.is_none()
+                && self.take_siege_army_target(u).is_some()
+            {
+                return;
+            }
             let unit = &self.units[u];
             if unit.combat.stance != combat::Stance::HoldFire
                 && unit.combat.target.is_none()
@@ -9464,7 +9481,13 @@ impl Sim {
                 }
             }
         }
-        let in_range = self.is_in_range(me, target);
+        // **The slot, never the health** (`fight@005fd4d0:482`, the
+        // eight-argument `is_in_range@006486b0` with no margin; item 2864,
+        // `docs/AI.md` §238): a city at its ceiling still stands in range.
+        // run883b's packet answers 1 for the peace pair's MLRS `1/95` at
+        // 4500 of 4806 against `0/2000` at `damage` 1560 of 1560, and it
+        // unpacks; with the health term ours chased it instead.
+        let in_range = self.is_in_range_struck(me, target);
         a.in_range = in_range;
         if in_range {
             a.ever_in_range = true;
@@ -9505,7 +9528,16 @@ impl Sim {
         // reach (`find_nearby_target`'s `local_24`), so a catapult whose
         // attacker stands inside its minimum drops the attack and stays
         // put: run146's `0/6` on 868, 870 and 871.
-        let target = if packs {
+        //
+        // **A mandatory attack does neither** (item 2864, `docs/AI.md`
+        // §238): `do_attack@005f1b80:254` calls `fight(o, who,
+        // attack->mandatory, 0, 0)`, and `fight`'s third argument (`esi`,
+        // reloaded from `[ebp+0x10]` at `5fe0fc`) skips the re-search
+        // (`5fe108`) and the STAND_GROUND and entrenched gates (`5fe135`)
+        // below, straight to `find_attack_pos` (`5fe17f`). run883b's
+        // packet runs the peace pair's MLRS `1/124` on 6821: no
+        // `find_new_target`, no kill, the ring from `fight+0xcb4`.
+        let target = if packs && !state.mandatory {
             self.kill_current_order(u);
             if let Some(t) = self.take_siege_army_target(u) {
                 t
@@ -9531,7 +9563,7 @@ impl Sim {
         // guard's still walks. Every packer and worker reads 2
         // (`get_combat_stance@00610a30`, item 2265): run589's cannon
         // `1/132`, packed on its attack-move, walks at `0/2000` on 17945.
-        if state.stance == combat::Stance::StandGround && !self.on_duty(u) {
+        if !state.mandatory && state.stance == combat::Stance::StandGround && !self.on_duty(u) {
             return;
         }
         // **The chase** (`docs/COMBAT.md` §17): the unit asks where to

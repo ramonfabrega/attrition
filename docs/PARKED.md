@@ -4384,7 +4384,8 @@ cast. No packet.
 landing. Made `struck` for every caller, the coverage pair parts at **3142** (4730 before; ours 21 draws, theirs 20, index 3: `1/59`'s
 `Guy::move` roll in ours), so some reader of the range test leans on the health term — a ceiling city that an attack's in-range check
 should keep in range, and something of ours that drops it otherwise. Names no frame on an open word; the `near_o` arm asks
-`is_in_range_struck` alone.
+`is_in_range_struck` alone. **Item 2864** (`docs/AI.md` §238) made `do_attack`'s call site (`fight:482`) `struck` too, on run883b's
+packet; the coverage pair held at 4730. Every other caller keeps the health term.
 
 ## Parked by item 2055, 2026-10-13 — the order ring's bottom, and Great Sahara's close
 
@@ -6541,13 +6542,17 @@ walked through its own words, vslots 0x10c and 0x94 on the node's object). A sha
 (2872) **`sweep_gen.py obj` gaps**: the `void` shape ignores `--cell-win` and `--stub` (`Player::end_game` used `obj --ret none`); `--write-mod` is not always run by the generator (`TerrainOil::remove_rocky_patch`'s `mod` line was added by hand); `--place` into a record with a count at `-4` wants EXPR `-4`, undocumented.
 (2873) **Equivalent mutants**: `GuyData::get_render_angle` `>=` for `>` at `0x80000000` and `<=` at `-2^31` are equivalent (f32 rounding / `as i32` saturation).
 
-## Parked by the next landing, slot FR — reserved
+## Parked by item 2864, 2026-10-17 — the peace pair's close
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2864, second) **`find_nearby_target`'s find is mandatory for a computer siege engine that finds a city** (2864, `docs/AI.md` §238):
+`find_nearby_target:495`–`541` (listing `649926`–`649a3d`). The final add's `mandatory` is `[ebp+8]`, set 0 at `64992a` and 1 at
+`649a2d` when the searcher is listed by its group, is siege (vslot `+0x10c`), is computer-driven (`0x40000`), and its find is a
+building whose `flags & 0x20` (a city, `docs/CITIES.md` §1.2); beside it the army takes the find as its target and the
+searcher's cell as its muster (`+0x48/+0x4c`, angle `+0x50`). Ours' `nearby_add` passes false. No open word names it: the peace
+pair closed without it.
+
+(2864, third) **`1/106`'s `cavarch_o` on 6822** (2864): the Armored Cavalry's fire-on-the-move target on the peace pair's closing block,
+ours −1, theirs 2000, with no draw and no order — the one row of run883's block 6822 after item 2864.
 
 ## Parked by item 2876, 2026-10-17 — chapter eighty-six: the Bribe's control that reaches range
 

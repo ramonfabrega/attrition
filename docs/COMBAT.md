@@ -14009,6 +14009,11 @@ not established by this result. No independent blind reading is claimed.
 run594 captures the successor through the ending, beyond run589's last
 block; its full-record and projectile pins accompany the new word.
 
+**Since item 2864** (`docs/AI.md` §238) the shortcut has a third caller,
+the idle `think` ahead of its `find_melee_target` — the search's own
+head — and the chase it feeds honours `mandatory`: the packer arm's
+re-search and the STAND_GROUND gate are skipped under it.
+
 ## 89. The strike re-seats its crew before animation (item 1440, 2026-10-02)
 
 **Booking.** East Indies 18076 spends 20 draws against 19, first parting
