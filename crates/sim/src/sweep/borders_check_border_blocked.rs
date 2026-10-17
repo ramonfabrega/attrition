@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -38,36 +43,52 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             let w = rd(&c[0], 0x224);
-let i1 = ((w.wrapping_mul(a[1]).wrapping_add(a[0])).wrapping_mul(8)) as usize;
-let i2 = ((w.wrapping_mul(a[3]).wrapping_add(a[2])).wrapping_mul(8)) as usize;
-let t = p[2].clone();
-let (n1, n2) = (t[i1 + 1], t[i2 + 1]);
-let dir = |dx: i32, dy: i32| -> u8 {
-    1u8 << ((dx.abs().wrapping_sub(dy.abs().wrapping_mul(2)).wrapping_sub(dy).wrapping_sub(dx)) & 3)
-};
-let blocked_free = (n1 & 0xf) != 0
-    && (n2 & 0xf) != 0
-    && (n1 & dir(a[2] - a[0], a[3] - a[1])) == 0
-    && (n2 & dir(a[0] - a[2], a[1] - a[3])) == 0;
-if !blocked_free {
-    let both = t[i1 + 2] & t[i2 + 2];
-    for k in [0usize, 1] {
-        let v = rd(&p[k], 0);
-        if v > -1 && (((1u32 << (v as u32 & 0x1f)) as u8) & both) != 0 {
-            wr(&mut p[k], 0, -1);
-        }
-    }
-}
-0
+            let i1 = ((w.wrapping_mul(a[1]).wrapping_add(a[0])).wrapping_mul(8)) as usize;
+            let i2 = ((w.wrapping_mul(a[3]).wrapping_add(a[2])).wrapping_mul(8)) as usize;
+            let t = p[2].clone();
+            let (n1, n2) = (t[i1 + 1], t[i2 + 1]);
+            let dir = |dx: i32, dy: i32| -> u8 {
+                1u8 << ((dx
+                    .abs()
+                    .wrapping_sub(dy.abs().wrapping_mul(2))
+                    .wrapping_sub(dy)
+                    .wrapping_sub(dx))
+                    & 3)
+            };
+            let blocked_free = (n1 & 0xf) != 0
+                && (n2 & 0xf) != 0
+                && (n1 & dir(a[2] - a[0], a[3] - a[1])) == 0
+                && (n2 & dir(a[0] - a[2], a[1] - a[3])) == 0;
+            if !blocked_free {
+                let both = t[i1 + 2] & t[i2 + 2];
+                for k in [0usize, 1] {
+                    let v = rd(&p[k], 0);
+                    if v > -1 && (((1u32 << (v as u32 & 0x1f)) as u8) & both) != 0 {
+                        wr(&mut p[k], 0, -1);
+                    }
+                }
+            }
+            0
         };
         assert_eq!(got, want_eax, "check_border_blocked — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "check_border_blocked — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "check_border_blocked — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "check_border_blocked — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "check_border_blocked — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "check_border_blocked — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "check_border_blocked — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

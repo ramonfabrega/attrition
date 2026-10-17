@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,39 +43,41 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    let (idx, s, q) = (a[0], a[1] as i16, a[3]);
-    if idx < rd(m, 0) {
-        let rec = (idx * 0x14) as usize;
-        let put16 = |w: &mut Vec<u8>, off: usize, v: i16| w[off..off + 2].copy_from_slice(&v.to_le_bytes());
-        put16(&mut p[1], rec + 4, s);
-        if q == 0 {
-            p[1][rec..rec + 4].copy_from_slice(&0i32.to_le_bytes());
-        }
-        if a[2] != 0 {
-            let mut n = 0usize;
-            let mut done = false;
-            for k in 0..6usize {
-                let v = rd(&p[0], 4 * k);
-                if v != 0 {
-                    put16(&mut p[1], rec + 6 + 2 * n, k as i16);
-                    put16(&mut p[1], rec + 0xc + 2 * n, v as i16);
-                    n += 1;
-                    if n > 2 {
-                        done = true;
-                        break;
+                let (idx, s, q) = (a[0], a[1] as i16, a[3]);
+                if idx < rd(m, 0) {
+                    let rec = (idx * 0x14) as usize;
+                    let put16 = |w: &mut Vec<u8>, off: usize, v: i16| {
+                        w[off..off + 2].copy_from_slice(&v.to_le_bytes())
+                    };
+                    put16(&mut p[1], rec + 4, s);
+                    if q == 0 {
+                        p[1][rec..rec + 4].copy_from_slice(&0i32.to_le_bytes());
+                    }
+                    if a[2] != 0 {
+                        let mut n = 0usize;
+                        let mut done = false;
+                        for k in 0..6usize {
+                            let v = rd(&p[0], 4 * k);
+                            if v != 0 {
+                                put16(&mut p[1], rec + 6 + 2 * n, k as i16);
+                                put16(&mut p[1], rec + 0xc + 2 * n, v as i16);
+                                n += 1;
+                                if n > 2 {
+                                    done = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if !done {
+                            for k in n..3 {
+                                put16(&mut p[1], rec + 6 + 2 * k, -1);
+                                put16(&mut p[1], rec + 0xc + 2 * k, 0);
+                            }
+                        }
                     }
                 }
+                0
             }
-            if !done {
-                for k in n..3 {
-                    put16(&mut p[1], rec + 6 + 2 * k, -1);
-                    put16(&mut p[1], rec + 0xc + 2 * k, 0);
-                }
-            }
-        }
-    }
-    0
-}
         };
         let _ = (got, want_eax);
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();

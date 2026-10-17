@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -38,33 +43,33 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             'r: {
-    let (ww, wh) = (rd(&c[0], 0), rd(&c[0], 4));
-    let (x, y) = (a[0], a[1]);
-    let rad = |i: i32| rd(&c[1], 4 * i as usize);
-    let flags = |o: usize| u16::from_le_bytes([p[0][o], p[0][o + 1]]);
-    let land = |o: usize| matches!(p[0][o + 2], 1 | 2);
-    let s = ((ww * y + x) * 0x1c) as usize;
-    if flags(s) & 0x100 != 0 || !land(s) {
-        break 'r 0;
-    }
-    for r in 1..=0x40 {
-        for i in rad(r - 1)..rad(r) {
-            let tx = c[2][i as usize] as i8 as i32 + x;
-            let ty = c[3][i as usize] as i8 as i32 + y;
-            if tx < 0 || ty < 0 || ww <= tx || wh <= ty {
-                if a[2] != 0 {
-                    break 'r i64::from(r);
+                let (ww, wh) = (rd(&c[0], 0), rd(&c[0], 4));
+                let (x, y) = (a[0], a[1]);
+                let rad = |i: i32| rd(&c[1], 4 * i as usize);
+                let flags = |o: usize| u16::from_le_bytes([p[0][o], p[0][o + 1]]);
+                let land = |o: usize| matches!(p[0][o + 2], 1 | 2);
+                let s = ((ww * y + x) * 0x1c) as usize;
+                if flags(s) & 0x100 != 0 || !land(s) {
+                    break 'r 0;
                 }
-            } else {
-                let o = ((ww * ty + tx) * 0x1c) as usize;
-                if flags(o) & 0x100 != 0 || !land(o) {
-                    break 'r i64::from(r);
+                for r in 1..=0x40 {
+                    for i in rad(r - 1)..rad(r) {
+                        let tx = c[2][i as usize] as i8 as i32 + x;
+                        let ty = c[3][i as usize] as i8 as i32 + y;
+                        if tx < 0 || ty < 0 || ww <= tx || wh <= ty {
+                            if a[2] != 0 {
+                                break 'r i64::from(r);
+                            }
+                        } else {
+                            let o = ((ww * ty + tx) * 0x1c) as usize;
+                            if flags(o) & 0x100 != 0 || !land(o) {
+                                break 'r i64::from(r);
+                            }
+                        }
+                    }
                 }
+                0x41
             }
-        }
-    }
-    0x41
-}
         };
         assert_eq!(got, want_eax, "land_dist — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();

@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -41,44 +46,58 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    let base = 0x650usize;
-    let at = |i: i32| -> usize { (base as i32 + 4 * i) as usize };
-    let (mut e, mut s, mut d) = (0, 0, 0);
-    let mut kill = false;
-    for k in 0..8 {
-        let w = rd(m, at(k));
-        if w != 0 && rd(m, at(k - 0x12)) == 0 {
-            kill = true;
-            break;
-        }
-        if w != 0 {
-            e += 1;
-        }
-        if rd(m, at(k + 9)) != 0 {
-            s += 1;
-        }
-        if rd(m, at(k - 9)) != 0 {
-            d += 1;
-        }
-    }
-    if kill || (e == 1 && d == 0 && s == 0) {
-        log.push(format!("s0:c0+0x0,{},{},0,0,1", rd(&p[0], 0), rd(&p[1], 0)));
-        log.push("s1:c1+0x0,p0+0x0,p1+0x0,0,0,0".to_string());
-    } else {
-        log.push("-".to_string());
-    }
-    0
-}
+                let base = 0x650usize;
+                let at = |i: i32| -> usize { (base as i32 + 4 * i) as usize };
+                let (mut e, mut s, mut d) = (0, 0, 0);
+                let mut kill = false;
+                for k in 0..8 {
+                    let w = rd(m, at(k));
+                    if w != 0 && rd(m, at(k - 0x12)) == 0 {
+                        kill = true;
+                        break;
+                    }
+                    if w != 0 {
+                        e += 1;
+                    }
+                    if rd(m, at(k + 9)) != 0 {
+                        s += 1;
+                    }
+                    if rd(m, at(k - 9)) != 0 {
+                        d += 1;
+                    }
+                }
+                if kill || (e == 1 && d == 0 && s == 0) {
+                    log.push(format!("s0:c0+0x0,{},{},0,0,1", rd(&p[0], 0), rd(&p[1], 0)));
+                    log.push("s1:c1+0x0,p0+0x0,p1+0x0,0,0,0".to_string());
+                } else {
+                    log.push("-".to_string());
+                }
+                0
+            }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "scan_and_kill_straggled_tcoord — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "scan_and_kill_straggled_tcoord — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "scan_and_kill_straggled_tcoord — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "scan_and_kill_straggled_tcoord — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "scan_and_kill_straggled_tcoord — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "scan_and_kill_straggled_tcoord — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "scan_and_kill_straggled_tcoord — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[3 + i],
+                "scan_and_kill_straggled_tcoord — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,56 +43,69 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    let sx = |w: &[u8], off: usize| i32::from(i16::from_le_bytes([w[off], w[off + 1]]));
-    let mut i: i32 = 0;
-    let mut n = rd(m, 0x13c);
-    if n > 0 {
-        loop {
-            let u = i as usize;
-            if a[0] == rd(&p[2], 4 * u)
-                && a[1] == sx(&p[1], 8 * u)
-                && a[2] == sx(&p[1], 8 * u + 4)
-                && a[3] == rd(&p[3], 4 * u)
-                && a[4] == rd(&p[4], 4 * u)
-            {
-                let last = |m: &[u8], off: usize| (rd(m, off) - 1) as usize;
-                let l0 = last(m, 0x13c);
-                let v = rd(&p[0], 4 * l0);
-                wr(&mut p[0], 4 * u, v);
-                let l1 = last(m, 0x158);
-                let (v0, v1) = (rd(&p[1], 8 * l1), rd(&p[1], 8 * l1 + 4));
-                wr(&mut p[1], 8 * u, v0);
-                wr(&mut p[1], 8 * u + 4, v1);
-                for (k, off) in [(2usize, 0x174usize), (3, 0x190), (4, 0x1ac), (5, 0x1c8)] {
-                    let l = last(m, off);
-                    let v = rd(&p[k], 4 * l);
-                    wr(&mut p[k], 4 * u, v);
+                let sx = |w: &[u8], off: usize| i32::from(i16::from_le_bytes([w[off], w[off + 1]]));
+                let mut i: i32 = 0;
+                let mut n = rd(m, 0x13c);
+                if n > 0 {
+                    loop {
+                        let u = i as usize;
+                        if a[0] == rd(&p[2], 4 * u)
+                            && a[1] == sx(&p[1], 8 * u)
+                            && a[2] == sx(&p[1], 8 * u + 4)
+                            && a[3] == rd(&p[3], 4 * u)
+                            && a[4] == rd(&p[4], 4 * u)
+                        {
+                            let last = |m: &[u8], off: usize| (rd(m, off) - 1) as usize;
+                            let l0 = last(m, 0x13c);
+                            let v = rd(&p[0], 4 * l0);
+                            wr(&mut p[0], 4 * u, v);
+                            let l1 = last(m, 0x158);
+                            let (v0, v1) = (rd(&p[1], 8 * l1), rd(&p[1], 8 * l1 + 4));
+                            wr(&mut p[1], 8 * u, v0);
+                            wr(&mut p[1], 8 * u + 4, v1);
+                            for (k, off) in
+                                [(2usize, 0x174usize), (3, 0x190), (4, 0x1ac), (5, 0x1c8)]
+                            {
+                                let l = last(m, off);
+                                let v = rd(&p[k], 4 * l);
+                                wr(&mut p[k], 4 * u, v);
+                            }
+                            for off in [0x13cusize, 0x158, 0x174, 0x190, 0x1ac, 0x1c8] {
+                                let v = rd(m, off) - 1;
+                                wr(m, off, v);
+                            }
+                            i -= 1;
+                            wr(m, 0x1e0, 1);
+                        }
+                        n = rd(m, 0x13c);
+                        i += 1;
+                        if i >= n {
+                            break;
+                        }
+                    }
                 }
-                for off in [0x13cusize, 0x158, 0x174, 0x190, 0x1ac, 0x1c8] {
-                    let v = rd(m, off) - 1;
-                    wr(m, off, v);
-                }
-                i -= 1;
-                wr(m, 0x1e0, 1);
+                0
             }
-            n = rd(m, 0x13c);
-            i += 1;
-            if i >= n {
-                break;
-            }
-        }
-    }
-    0
-}
         };
         assert_eq!(got, want_eax, "remove_cover_doober — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "remove_cover_doober — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "remove_cover_doober — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "remove_cover_doober — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "remove_cover_doober — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "remove_cover_doober — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "remove_cover_doober — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

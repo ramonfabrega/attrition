@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -38,36 +43,48 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    let (ww, wh) = (rd(&c[0], 0), rd(&c[0], 4));
-    let (x, y) = (a[0], a[1]);
-    let tree = |tx: i32, ty: i32| -> bool {
-        tx > -1 && ty > -1 && tx < ww && ty < wh && p[1][((ww * ty + tx) * 0x1c) as usize] & 0x20 != 0
-    };
-    let mut mask = 0;
-    if tree(x - 1, y) {
-        mask |= 1;
-    }
-    if tree(x, y - 1) {
-        mask |= 2;
-    }
-    if tree(x + 1, y) {
-        mask |= 4;
-    }
-    if tree(x, y + 1) {
-        mask |= 8;
-    }
-    wr(&mut p[0], 0, mask);
-    0
-}
+                let (ww, wh) = (rd(&c[0], 0), rd(&c[0], 4));
+                let (x, y) = (a[0], a[1]);
+                let tree = |tx: i32, ty: i32| -> bool {
+                    tx > -1
+                        && ty > -1
+                        && tx < ww
+                        && ty < wh
+                        && p[1][((ww * ty + tx) * 0x1c) as usize] & 0x20 != 0
+                };
+                let mut mask = 0;
+                if tree(x - 1, y) {
+                    mask |= 1;
+                }
+                if tree(x, y - 1) {
+                    mask |= 2;
+                }
+                if tree(x + 1, y) {
+                    mask |= 4;
+                }
+                if tree(x, y + 1) {
+                    mask |= 8;
+                }
+                wr(&mut p[0], 0, mask);
+                0
+            }
         };
         assert_eq!(got, want_eax, "make_tree_mask — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "make_tree_mask — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "make_tree_mask — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "make_tree_mask — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "make_tree_mask — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "make_tree_mask — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
