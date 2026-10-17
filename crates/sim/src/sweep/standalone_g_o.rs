@@ -554,3 +554,5 @@ mod oil_well_walk_data;
 mod order_list_get_data_type;
 #[path = "order_list_get_new_data.rs"]
 mod order_list_get_new_data;
+#[path = "gather_point_list_get_new_data.rs"]
+mod gather_point_list_get_new_data;
