@@ -226,6 +226,8 @@ mod sub_object_time;
 mod subobject_is_active;
 #[path = "subobject_swap_team.rs"]
 mod subobject_swap_team;
+#[path = "supplies_find_supply.rs"]
+mod supplies_find_supply;
 #[path = "supply_data_get_radius.rs"]
 mod supply_data_get_radius;
 #[path = "supply_deplete.rs"]

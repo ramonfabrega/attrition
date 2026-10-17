@@ -84,6 +84,8 @@ mod unit_data_hits;
 mod unit_data_in_supply;
 #[path = "unit_data_is_attacking.rs"]
 mod unit_data_is_attacking;
+#[path = "unit_data_is_busy.rs"]
+mod unit_data_is_busy;
 #[path = "unit_data_is_caravan.rs"]
 mod unit_data_is_caravan;
 #[path = "unit_data_is_casting.rs"]
@@ -136,14 +138,20 @@ mod unit_data_will_be_corner;
 mod unit_die;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
+#[path = "unit_do_explore_to.rs"]
+mod unit_do_explore_to;
 #[path = "unit_do_flee_to.rs"]
 mod unit_do_flee_to;
 #[path = "unit_do_form_change.rs"]
 mod unit_do_form_change;
 #[path = "unit_do_gather.rs"]
 mod unit_do_gather;
+#[path = "unit_do_idle.rs"]
+mod unit_do_idle;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
+#[path = "unit_execute_events.rs"]
+mod unit_execute_events;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
 #[path = "unit_get_speed.rs"]
@@ -168,6 +176,10 @@ mod unit_is_supply;
 mod unit_kill_current_action;
 #[path = "unit_kill_current_path.rs"]
 mod unit_kill_current_path;
+#[path = "unit_kill_group_order.rs"]
+mod unit_kill_group_order;
+#[path = "unit_modify_group_order.rs"]
+mod unit_modify_group_order;
 #[path = "unit_must_walk.rs"]
 mod unit_must_walk;
 #[path = "unit_on_duty.rs"]
@@ -442,6 +454,8 @@ mod world_data_valid;
 mod world_data_was_really_seen;
 #[path = "world_data_was_seen.rs"]
 mod world_data_was_seen;
+#[path = "world_data_was_seen_wcoord.rs"]
+mod world_data_was_seen_wcoord;
 #[path = "world_get_land.rs"]
 mod world_get_land;
 #[path = "world_get_region.rs"]
