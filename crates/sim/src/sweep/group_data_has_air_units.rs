@@ -44,12 +44,10 @@ fn the_emulated_original_agrees_on_every_row() {
                 let num = rd(m, 12);
                 let who = usize::from(m[0x4a]);
                 let ty = |w: usize, i: usize| &p[10 + 4 * w + i];
-                let mut calls = 0usize;
                 let mut hit = 0i64;
                 'list: for k in 0..usize::try_from(num.max(0)).expect("a count") {
                     let i = usize::try_from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]])).expect("an index");
-                    let r = a[1 + calls];
-                    calls += 1;
+                    let r = a[1 + k];
                     if r != 0 {
                         let o = &p[1 + 5 * who + i];
                         let mut nx = i16::from_le_bytes([o[0x28], o[0x29]]);
