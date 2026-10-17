@@ -342,6 +342,8 @@ mod guard_order_get_guard_order_vtordisp;
 mod guard_order_walk_data;
 #[path = "guard_order_walk_data_vtordisp.rs"]
 mod guard_order_walk_data_vtordisp;
+#[path = "guy_copy_data.rs"]
+mod guy_copy_data;
 #[path = "guy_data_get_render_angle.rs"]
 mod guy_data_get_render_angle;
 #[path = "guy_data_get_render_bank.rs"]
