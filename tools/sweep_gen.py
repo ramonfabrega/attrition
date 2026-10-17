@@ -3001,6 +3001,23 @@ def table_expand(spec, pbase, row_byte=None, row_links=()):
     return {'place': place, 'link': link, 'wbias': wbias}
 
 
+def ptrtab_expand(spec, pbase):
+    """`--ptrtab LOC:N:SIZE[:vt]` (item 2782, parked 2772): an array of N record
+    pointers at LOC (a place of 4N bytes, window `p<pbase>`) and each record a
+    SIZE-byte place of that window, windows `p<pbase+1>`.. in order; `vt` also
+    lays the stubbed vtable at each record's offset 0 (`--vtat-also`). Returns
+    the flags it stands for."""
+    parts = spec.split(':')
+    if len(parts) not in (3, 4) or (len(parts) == 4 and parts[3] != 'vt'):
+        raise ValueError(f'--ptrtab {spec}: want LOC:N:SIZE[:vt]')
+    n, size = int(parts[1], 0), int(parts[2], 0)
+    if n < 1 or size < 1:
+        raise ValueError(f'--ptrtab {spec}: N and SIZE >= 1')
+    place = [f'{parts[0]}:0:{4 * n}'] + [f'p{pbase}+{4 * k}:0:{parts[2]}' for k in range(n)]
+    vt = [f'p{pbase + 1 + k}+0' for k in range(n)] if len(parts) == 4 else []
+    return {'place': place, 'vtat_also': vt}
+
+
 def jump_expand(spec, own):
     """`--jump IDX:N` (item 2615, parked 2607): a function whose body is one
     indexed jump over N arms (`jmp *TABLE(,%eax,4)`, `Setup::get_starting_citizens`)
@@ -3230,8 +3247,21 @@ def main(argv=None):
                     help='obj, with --table: each record\'s own row in the byte at OFF (item 2719, parked 2713)')
     ap.add_argument('--row-link', action='append', default=[], metavar='OFF:SIZE:DIR[:T,T..]',
                     help='obj, with --table: a --link over each row\'s records (item 2719, parked 2713)')
+    ap.add_argument('--ptrtab', action='append', default=[], metavar='LOC:N:SIZE[:vt]',
+                    help='obj: an array of N record pointers at LOC, each a SIZE-byte record; `vt` lays the stubbed '
+                         'vtable at each record too (item 2782, parked 2772)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(split_gate_this(argv))
+    for spec_ in args.ptrtab:
+        try:
+            pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))
+                                        for sp in args.sparse) + len(args.place)
+            x = ptrtab_expand(spec_, pb)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        args.place = args.place + x['place']
+        args.vtat_also = args.vtat_also + x['vtat_also']
     if args.table:
         try:
             pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))
