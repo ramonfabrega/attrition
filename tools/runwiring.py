@@ -76,7 +76,8 @@ def number_word(n, sep='_'):
 def chapter_mentions(n, texts):
     """Every line naming chapter `n` by any of its spellings, with its scope."""
     w = number_word(n)
-    word = re.compile(rf'(?<![A-Za-z0-9_])(?:chapter{n}|ch{n}|chapter_{w}|CHAPTER_{w.upper()}|chapter {n}|chapter {number_word(n, "-")})(?![0-9A-Za-z])')
+    # `GOLDEN_WORD_CHAPTER_NINETY` names the chapter after an underscore, so the uppercase form has no left boundary.
+    word = re.compile(rf'(?:(?<![A-Za-z0-9_])(?:chapter{n}|ch{n}|chapter_{w}|chapter {n}|chapter {number_word(n, "-")})|CHAPTER_{w.upper()})(?![0-9A-Za-z])')
     out = []
     for name, text in sorted(texts.items()):
         scope = ''

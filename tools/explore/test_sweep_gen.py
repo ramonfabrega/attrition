@@ -2,7 +2,9 @@
 the twenty-ninth pass). Each shape's script must parse as Python and its
 test must name the function, the script and the port; a function spelled
 any other way is refused."""
+import contextlib
 import inspect
+import io
 import sys
 import tempfile
 import unittest
@@ -1807,7 +1809,8 @@ class Shapes(unittest.TestCase):
                 self.assertNotIn('0x7a7a', tp.read_text())
                 self.assertNotIn('--port', kept)
                 self.assertIn('--regen kept from the old line: --cell-win 0x500000:0x40', err.getvalue())
-                self.assertEqual(sweep_gen.main(line + ['--win', '0x20', '--regen', '--fresh']), 0)
+                # Fresh, the windows change and the port block moves: the line names its port.
+                self.assertEqual(sweep_gen.main(line + ['--win', '0x20', '--port', '0x7c7c', '--regen', '--fresh']), 0)
                 kept = sweep_gen.kept_line(Path(tmp) / 'sweep_x_y.py')
                 self.assertNotIn('--cell-win', kept)
                 self.assertNotIn('--fresh', kept)

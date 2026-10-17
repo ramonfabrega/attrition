@@ -52,6 +52,7 @@ SUITES = (
     'test_sweep_gen',
     'test_unitaddr',
     'test_unitat',
+    'test_filerun',
     'test_runwiring',
     'test_births',
     'test_recomp_flags',
