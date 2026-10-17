@@ -14636,6 +14636,12 @@ British at 0 on map 9. Difficulties 1–4 and the other twenty-one nations appea
 | `EastIndiesGermanTier3` | 18 | Germans (12) | 3 | run646 | run643 | 13519 | **576 / 576** |
 | `GreatLakesRussianTier2` | 14 | Russians (13) | 2 | run647 | run644 | 7303 | **6566 / 6563** |
 | `GreatSaharaEgyptianTier4` | 7 | Egyptians (7) | 4 | run648 | run645 | 20380 | **2974 / 2974** |
+| `GreatLakesChineseTier1` | 14 | Chinese (14) | 1 | run887 | run888 | runs to 24000 | **176 / 176** |
+
+**Amended by item 2904** (§239, DECISIONS 72): `EastIndiesGermanTier3` left the battery for the AI word
+(`diff::german_word`, a `SCORED_LOBBIES` row) when every pair had closed. `GreatLakesChineseTier1` was minted beside it
+so three stay held out: its first try is 176 (ours 12 draws, theirs 14, at draw 6 ours `Farms::inc_time+0x1ae`, theirs
+`Guy::init_real+0x52`). Its game does not end itself by 24000.
 
 Every nation and every difficulty is new for its map, and no two lobbies share either. The
 click-free lane sets both (`--ai-tribe`, `--profile DIFFICULTY=`), so each is a
@@ -21964,6 +21970,17 @@ Ours spends 52: the same, except that the leader round runs **five times**, 20 d
   widening of the scored lobbies carries.
 - `standing.py` names the readers in `sim`. `income` has 11, `bucket` 57, `leftover` 3 (`economy.rs`) and `aggression` 1
   (`diplomacy.rs`). Nothing reads `resources` by that name.
+
+**The fourth held-out lobby** (runs 887–888). The battery keeps three lobbies nobody tuned for. The new one is
+**`GreatLakesChineseTier1`**: Great Lakes (`MAP_STYLE 14`), the **Chinese (14) at Difficulty 1**.
+- No scored or battery lobby has that nation, and no lobby on the disk has difficulty 1 (§125's survey). The two that stay
+  are Russians at 2 on map 14 and Egyptians at 4 on map 7.
+- run887 is its `DUMP_ALL` start (run595's recipe). run888 is its long (run643's recipe), which runs to 24000 without the
+  game ending; `rngcmp.py` finds the two identical over their 37 common frames.
+- **Its first try is 176 of 24000**, count and sequence. Ours spends 12 draws, theirs 14; at draw 6 ours
+  `Farms::inc_time+0x1ae`, theirs `Guy::init_real+0x52`, a birth.
+- It is measured and never debugged against: no item names it. `battery_captures_are_complete_and_say_their_lobby` reads
+  map, difficulty, nations and seed back from both captures.
 
 **No mechanism is named here.** Which of the standing economy rows, if any, holds ours' Village back is the next item's first
 question. The frame and the draw delta are the booking.

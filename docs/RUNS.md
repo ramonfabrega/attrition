@@ -17420,3 +17420,42 @@ SHA-256 `123e8b1af5078fde8cbb3cd651230ead2c54d57e70dac62be600c9541f9697dd`.
 **What it holds**: `diff::german_word::run886_s_word_frame_is_widened_whole`, 262 keys over 257 blocks. On the word's block 577
 theirs holds who=1's Village `1/2007` (type 414, a foundation at (34656, 36192)) and ours none, with the Citizen `1/2`'s
 `BUILDORDER` on it. The window is in the coverage driver's slice, and its walk reads no inexact corner.
+
+## run887 — the held-out battery's fourth lobby: Great Lakes, Chinese at difficulty 1, the `DUMP_ALL` start (2026-10-17, item 2904, `att-2904`)
+
+The start sibling of run888, run595's recipe (run646's shape): `--map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 14
+--profile DIFFICULTY=1`, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run887`.
+- Pool lane 2: `success`, `settings_restored`, 37 frames, `map_style 14`, seed 12345, players `(0,4,7),(1,14,1)`. 480 s from launch
+  to exit (10:59:20–11:07:20).
+- Read back from the dump: `MAP_STYLE 14`, `DIFFICULTY 1`, `(int)seed 12345`.
+- **Why a start of its own**: as for run646 (`docs/AI.md` §125), a sibling from another lobby is a different instrument.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run887-greatlakes-chinese-diff1-start.txt`, 151,187,002 bytes,
+SHA-256 `83f74823371bc53c095dd5b851a63ede8b2a5d1558611bc5549a91fb08c33e1d`.
+
+Archive `rontrace-run887.log`, 8,883,232 bytes,
+SHA-256 `59a8af30ed6075fb7e63fb3b19ddfe862d7bdd388120fc7a0c1e50e293202d26`.
+
+## run888 — the held-out battery's fourth lobby: Great Lakes, Chinese at difficulty 1, the long trace (2026-10-17, item 2904, `att-2904`)
+
+**Map 14, human Nubians (4) against the Chinese (tribe 14), `DIFFICULTY 1`, seed 12345.** No scored word or battery lobby has this
+nation, and none on the disk has difficulty 1 (`docs/AI.md` §125, §239). run643's recipe, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run888`: `--map 14 --end-frame 24000 --timeout 7200 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 14 --profile DIFFICULTY=1`. The details are `end:MISC`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`, `misc:CHECKSUM=2` and
+`endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 3: `success`, `settings_restored`, 24001 frames, last frame 24000, **`ended_early` false**: the game does not end
+  itself by 24000. 110 s from launch to exit (10:59:26–11:01:16).
+- `rngcmp.py rontrace-run887.log rontrace-run888.log`: 37 identical, 0 differing.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run888-greatlakes-chinese-diff1-24k-trace.txt`, 12,828,442 bytes,
+SHA-256 `8d92f7af32c826e9f20de8e487093d76e1cae73e32d71393868b9e2620fc37e9`.
+
+Archive `rontrace-run888.log`, 92,707,104 bytes,
+SHA-256 `44eedca26f3be8f7b4a833d1f050a2f727e9d963d2c5dbeb1bf96abf881248de`.
+
+**What it holds**: the lobby's draw stream to 24000, with its explicit setup and closing records. `diff::battery` walks it from
+run887's start. Its first try is **176 of 24000** (ours 12 draws, theirs 14, at draw 6 ours `Farms::inc_time+0x1ae`, theirs
+`Guy::init_real+0x52`), measured and never debugged against.
