@@ -272,6 +272,8 @@ mod wall_mask_city;
 mod wall_out_draw;
 #[path = "wall_out_get_gpiece.rs"]
 mod wall_out_get_gpiece;
+#[path = "wall_out_make_options.rs"]
+mod wall_out_make_options;
 #[path = "wall_set_type.rs"]
 mod wall_set_type;
 #[path = "wall_set_type_dispatch.rs"]
