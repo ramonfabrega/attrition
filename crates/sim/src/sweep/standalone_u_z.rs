@@ -38,6 +38,8 @@ mod unbuilt_wonder_walk_data;
 mod unbuilt_wonders_add_unbuilt_wonder;
 #[path = "unbuilt_wonders_remove_unbuilt_wonder.rs"]
 mod unbuilt_wonders_remove_unbuilt_wonder;
+#[path = "unit_add_spec_anim_order.rs"]
+mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
 mod unit_air_alt_speed;
 #[path = "unit_data_action_type.rs"]

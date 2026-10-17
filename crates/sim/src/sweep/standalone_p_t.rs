@@ -46,6 +46,8 @@ mod path_finder_walk_data;
 mod patrol_order_get_patrol_order;
 #[path = "patrol_order_walk_data.rs"]
 mod patrol_order_walk_data;
+#[path = "player_end_game.rs"]
+mod player_end_game;
 #[path = "player_is_active.rs"]
 mod player_is_active;
 #[path = "player_is_active_connection.rs"]
@@ -268,6 +270,8 @@ mod terrain_map_remove_feature;
 mod terrain_map_river_point;
 #[path = "terrain_map_start_river.rs"]
 mod terrain_map_start_river;
+#[path = "terrain_oil_remove_rocky_patch.rs"]
+mod terrain_oil_remove_rocky_patch;
 #[path = "terrain_out_get_name.rs"]
 mod terrain_out_get_name;
 #[path = "terrain_vis_get_verts_per_bucket.rs"]
@@ -282,6 +286,8 @@ mod terrain_vis_set_base_source_pool;
 mod terrain_vis_set_extra_source_pool;
 #[path = "terrain_vis_wcoord_was_cached.rs"]
 mod terrain_vis_wcoord_was_cached;
+#[path = "terrain_walk_coord_data.rs"]
+mod terrain_walk_coord_data;
 #[path = "think_order_get_type.rs"]
 mod think_order_get_type;
 #[path = "time_sync_get_best_ping_time.rs"]
@@ -318,6 +324,8 @@ mod turn_control_get_lag_time;
 mod turn_control_is_cannon_time;
 #[path = "turn_control_issue_speed_down.rs"]
 mod turn_control_issue_speed_down;
+#[path = "turn_control_issue_speed_set.rs"]
+mod turn_control_issue_speed_set;
 #[path = "turn_control_issue_speed_up.rs"]
 mod turn_control_issue_speed_up;
 #[path = "turn_control_issue_toggle_pause.rs"]
@@ -396,6 +404,8 @@ mod type_restore;
 mod type_set_graph_name;
 #[path = "type_set_help_name.rs"]
 mod type_set_help_name;
+#[path = "type_set_name.rs"]
+mod type_set_name;
 #[path = "type_set_type_name.rs"]
 mod type_set_type_name;
 #[path = "type_specialty.rs"]
