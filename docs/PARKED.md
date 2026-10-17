@@ -6977,13 +6977,40 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GW — reserved
+## Parked by item 3008, 2026-10-17 — the second harvest batch (ten world and table bodies)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3008, first) **`--wbias` takes a list or a range, never both.** `--wbias 'p0+0:0..3000,0..100000'` dies with `too many values to
+unpack (expected 2, got 3)`, an error that names neither the flag nor the colon. The draw it wanted (a small coordinate most
+rows, a >60000 one for `start_city_rad_wcoord`'s large-distance arm) is a list, which a range cannot spell. Loop: the message
+names the flag and says "list or range".
+
+(3008, second) **A window's `c`/`p` number is its flag order, and the header is the only place that says so.** `--cell-win`
+twice makes `c0`, `c1`; `--at VA:SIZE` flags follow as `c2`, `c3`, … and `--fill 'c1:i*5'` reaches the table a `--at` laid. Three
+sweeps (`Map::is_near_ocean`, `Map::land_dist`, `WorldData::start_city_rad_wcoord`) read a table the image builds at boot
+(`circle_radius/x/y`, 0xcbe330/0xcb7e90/0xcbb0e0, zeros under the emulator): the draw is a drawn table, not the real one, which
+tests the function's logic and not `circle_init`'s values (`scout::circle` is the ground for those). Loop: `--at` could take a
+fill expression of its own.
+
+(3008, third) **A draw whose two arms contradict starves the one that needs both.** `is_near_ocean` answers 1 only when the
+`param_4` ring has land and the `param_3` disk has none, and with one cell density the ring sits inside the disk: 3 of 220 rows
+answered 1, then 9 of 800, 16 of 1500, and all 15 breaks held only after the offsets were a diverse ±3 byte list (not
+`0x00ff0100`'s nine positions) at 800 rows. Worth a line in `sweep_gen.py`'s help: "read the eax histogram before the breaks".
+
+(3008, fourth) **A mutant that compiles nowhere reads as held.** `mutate.py` scores the command's exit; a broken port that fails to
+compile (`break 'r r` for an i64 label) exits 101 as a red test does, so `map_land_dist`'s first fifteen "held" were a type
+error. The lane ran the plain test first, saw "mismatched types", and re-ran. Loop: `mutate.py` could demand the un-mutated tree
+pass the command before the first break (one run), which would have named it.
+
+(3008, fifth) **`mutate.py --batch` cannot spell a multi-line old text,** and `head -n -2` is not macOS's. A pair file of
+` => ` lines through a four-line script (job tmp) did the batches; a flag taking `OLD => NEW` pairs would remove it.
+
+(3008, sixth) **Survivors left, each named.** `Roads::scan_and_kill_straggled_tcoord`: none. `BuildQueue::set_queue`: `if !done`
+→ `if true` is equivalent (done implies the tail range is empty). `Borders::check_border_blocked`: `dy.abs() * 2` → `dy * 2` is
+equivalent mod 4 (`4|dy|` vanishes under `& 3`). `WorldData::start_city_rad_wcoord`: `dy < dx` → `dy <= dx` is equivalent (the two
+orders agree at equality); `lo < 60000` → `lo < 59999` survives 6000 rows, the draw needing a record whose x and y distances are
+59999 and above 60000 at one index with the radius at 363000: a `--seq`-style paired draw. `Map::land_dist`: the `0x41` return
+(no ring in 64 holds non-land) is never drawn, the nearest non-land cell always inside 31 rings. `Doober::remove_cover_doober`:
+`n > 0` is a guard no drawn row crosses (the count is drawn 1..6).
 
 ## Parked by the next landing, slot GX — reserved
 
