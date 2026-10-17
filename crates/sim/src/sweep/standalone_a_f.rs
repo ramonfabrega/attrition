@@ -202,6 +202,8 @@ mod build_queue_data_get_queue;
 mod build_queue_get_size;
 #[path = "build_queue_set_job_counter.rs"]
 mod build_queue_set_job_counter;
+#[path = "build_queue_set_queue.rs"]
+mod build_queue_set_queue;
 #[path = "build_queue_un_queue.rs"]
 mod build_queue_un_queue;
 #[path = "build_queue_walk_data.rs"]
