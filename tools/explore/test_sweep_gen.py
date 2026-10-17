@@ -823,6 +823,22 @@ class Shapes(unittest.TestCase):
         else:
             self.fail('no seed drew the early stop')
 
+    def test_a_hooked_callee_may_answer_eax_and_ecx(self):
+        # Item 2818 (parked 2816): a callee whose `ecx` the caller reads on
+        # return (the decompiler's `extraout_ECX`) was a hand edit; a
+        # `--ecx-out IDX:V,V,..` stub answers `(eax, ecx)`, the `ecx` drawn
+        # from the list and printed after the other numbers on the row.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2818, win=0x20, bias=[], own=0, ret='none',
+            stubs=['0x402000:1'], ecx_out=['0:0,5,0x1234'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ECXOUT = [(0, [0, 5, 4660])]", script)
+        self.assertIn('leaves `ecx` as', test)
+        self.assertIn('h.answers[names[idx]] = pair_answer(', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   stubs=['0x402000:1'], ecx_out=['1:5'])
+
     def test_an_iat_stub_may_be_cdecl(self):
         # Item 2400 (`Objects::add_ammo`): `malloc` is `call [VA]; add esp, 4`,
         # an `iat` stub whose caller pops its argument; `--stub-cdecl` took
