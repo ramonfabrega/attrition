@@ -92,6 +92,8 @@ mod border_nodes_find;
 mod border_spline_get_name;
 #[path = "border_spline_on_field_change.rs"]
 mod border_spline_on_field_change;
+#[path = "border_spline_render_is_visible.rs"]
+mod border_spline_render_is_visible;
 #[path = "borders_get_who.rs"]
 mod borders_get_who;
 #[path = "borders_is_border_hidden.rs"]
@@ -448,6 +450,8 @@ mod command_manager_issue_unitmask;
 mod command_manager_issue_unqueue_unit;
 #[path = "command_manager_issue_unqueue_wall.rs"]
 mod command_manager_issue_unqueue_wall;
+#[path = "command_package_begin_process.rs"]
+mod command_package_begin_process;
 #[path = "command_package_walk_data.rs"]
 mod command_package_walk_data;
 #[path = "constants_walk_data.rs"]
@@ -466,6 +470,8 @@ mod doober_find_x_pos;
 mod doober_find_y_pos;
 #[path = "doober_get_num.rs"]
 mod doober_get_num;
+#[path = "doober_has_doobers.rs"]
+mod doober_has_doobers;
 #[path = "farms_add_animals_all.rs"]
 mod farms_add_animals_all;
 #[path = "farms_data_get_farm_type.rs"]

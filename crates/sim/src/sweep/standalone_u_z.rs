@@ -26,6 +26,8 @@ mod unbuilt_fort_get_y;
 mod unbuilt_fort_is_started;
 #[path = "unbuilt_fort_walk_data.rs"]
 mod unbuilt_fort_walk_data;
+#[path = "unbuilt_forts_add_unbuilt_fort.rs"]
+mod unbuilt_forts_add_unbuilt_fort;
 #[path = "unbuilt_forts_remove_unbuilt_fort.rs"]
 mod unbuilt_forts_remove_unbuilt_fort;
 #[path = "unbuilt_wonder_is_started.rs"]
@@ -132,6 +134,8 @@ mod unit_do_form_change;
 mod unit_do_gather;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
+#[path = "unit_find_nearby_spot.rs"]
+mod unit_find_nearby_spot;
 #[path = "unit_get_speed.rs"]
 mod unit_get_speed;
 #[path = "unit_go_to_city.rs"]
@@ -268,6 +272,8 @@ mod wall_mask_city;
 mod wall_out_draw;
 #[path = "wall_out_get_gpiece.rs"]
 mod wall_out_get_gpiece;
+#[path = "wall_out_make_options.rs"]
+mod wall_out_make_options;
 #[path = "wall_set_type.rs"]
 mod wall_set_type;
 #[path = "wall_set_type_dispatch.rs"]
