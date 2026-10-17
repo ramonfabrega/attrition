@@ -5474,6 +5474,20 @@ impl Sim {
     pub fn tick(&mut self) -> Vec<Tick> {
         self.in_play = true;
         let frame = self.frame;
+        if let Ok(v) = std::env::var("RON_PROBE_FOG") {
+            if v.split(',').any(|f| f.parse::<i64>().ok() == Some(frame as i64)) {
+                let mut out = String::new();
+                for y in 0..self.world.fog_ys() {
+                    let row: Vec<String> = (0..self.world.fog_xs())
+                        .map(|x| self.world.seen2(x, y).unwrap_or(0).to_string())
+                        .collect();
+                    out.push_str(&row.join(" "));
+                    out.push('\n');
+                }
+                let dir = std::env::var("RON_PROBE_FOG_OUT").unwrap_or_else(|_| ".".into());
+                std::fs::write(format!("{dir}/ours-seen2-{frame}.txt"), out).unwrap();
+            }
+        }
         let mut events = Vec::new();
         // The staged input's marks, taken before the clear and put back at
         // the head of the frame's own — `do_frame`'s entry, which is where
