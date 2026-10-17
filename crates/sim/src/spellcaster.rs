@@ -27,10 +27,9 @@
 //!
 //! SEAMS, each drawing nothing where it stands:
 //! - **the targets**: every target search goes through
-//!   [`Sim::spell_valid_target`], which refuses Bribe, Counterintelligence
-//!   and the Sniper outright (`docs/GOLDEN.md` §27's packet has the first
-//!   two refuse a staged Barracks); so no craft is cast from here yet, and
-//!   what is reproduced is the draw and every return before it;
+//!   [`Sim::spell_valid_target`], which since item 2971 reads the Sniper's
+//!   and Counterintelligence's arms (`docs/GOLDEN.md` §115); Bribe's
+//!   (item 2812) too. Pilfer and Sabotage still refuse;
 //! - **the Spy's cloak**: not carried, so a Spy is read as uncloaked and
 //!   returns 0 — the original's Spy arm draws nothing either way;
 //! - ~~**the hero arm**~~: built as [`Sim::think_hero`] (item 1305,

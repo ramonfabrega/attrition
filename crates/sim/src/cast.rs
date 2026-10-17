@@ -282,10 +282,10 @@ impl Sim {
     /// Bribe on an enemy unit is [`Sim::bribe_valid_unit`] (item 2812).
     ///
     /// SEAM: the unit mask arms (`0x100`/`0x200` against objmask
-    /// `0x200000`), which none of the Spy's crafts carries; and the whole
-    /// of Counterintelligence's, Pilfer's and Sabotage's own
-    /// arms, which **refuse** here rather than be guessed — run246's packet
-    /// has the first two refuse the staged Barracks.
+    /// `0x200000`), which none of the Spy's crafts carries; and Pilfer's
+    /// and Sabotage's own arms, which **refuse** here rather than be
+    /// guessed — run246's packet has Pilfer refuse the staged Barracks.
+    /// Counterintelligence's and the Sniper's are read (item 2971).
     pub(crate) fn spell_valid_target(&self, s: i32, who: Player, t: Obj) -> bool {
         let Some(d) = self.spell(s) else {
             return false;
@@ -317,9 +317,89 @@ impl Sim {
                 Obj::Unit(v) => self.bribe_valid_unit(who, v),
                 Obj::Building(_) => false,
             },
-            spell::COUNTERINTEL | 0x276 | 0x280 | 0x281 => false,
+            spell::COUNTERINTEL => self.counterintel_valid_target(who, t),
+            0x281 => match t {
+                Obj::Unit(v) => self.sniper_valid_unit(v),
+                Obj::Building(_) => false,
+            },
+            0x276 | 0x280 => false,
             _ => true,
         }
+    }
+
+    /// `SpellTypeData::is_valid_target@006763c0`'s Sniper arm (`0x281`,
+    /// `00676660`ff.) for a unit the craft's flags (`fbm`: an enemy's, no
+    /// `c`) let through:
+    ///
+    /// ```text
+    /// has_general(v, 0, 0x165) >= 0, is_gov_hero(v), domain != 0   -> 0
+    /// not (attack || hero || supply || is(SCOUT)) -> 0
+    /// is_caravan, is_worker, is_merchant                            -> 0
+    /// ```
+    pub(crate) fn sniper_valid_unit(&self, v: usize) -> bool {
+        if self.has_ceo_shield(v)
+            || crate::type_index::is_gov_hero_type(self.units[v].type_index)
+            || self.unit_domain_of(v) != crate::attrition::Domain::Land
+        {
+            return false;
+        }
+        if !(self.attack_of(Obj::Unit(v)) != 0
+            || self.is_hero_unit(v)
+            || self.is_supply_unit(v)
+            || self.unit_line_is(v, 0x45))
+        {
+            return false;
+        }
+        let caravan = self.units[v].ty.is_some_and(|t| {
+            self.unit_types[t]
+                .cols
+                .flag2(crate::ai_load::uflags2::CARAVAN)
+        });
+        !(caravan || self.is_worker(v) || self.is_merchant(v))
+    }
+
+    /// `SpellTypeData::is_valid_target@006763c0`'s Counterintelligence arm
+    /// (`0x277`, `00676880`ff.): a target `who` sees, and
+    ///
+    /// ```text
+    /// one's own:   infiltrated by anyone
+    /// an ally's:   infiltrated by anyone, and not yet by `who`
+    /// an enemy's:  is(SPY)
+    /// anyone else: 0
+    /// ```
+    pub(crate) fn counterintel_valid_target(&self, who: Player, t: Obj) -> bool {
+        if !self.target_seen_by(who, t) {
+            return false;
+        }
+        let inf = self.infiltrated_of(t);
+        let whom = self.owner_of(t);
+        if whom == who {
+            inf != 0
+        } else if self.is_ally(who, whom) {
+            inf != 0 && inf & Self::who_bit(who) == 0
+        } else if self.is_enemy(who, whom) {
+            matches!(t, Obj::Unit(v) if self.unit_is_spy(v))
+        } else {
+            false
+        }
+    }
+
+    /// `has_general(v, 0, 0x165) >= 0` — a CEO's reach: the unit is one, or
+    /// its owner's active, on-map `0x165` hero is within its radius.
+    fn has_ceo_shield(&self, v: usize) -> bool {
+        let unit = &self.units[v];
+        unit.type_index == 0x165
+            || (0..self.units.len()).any(|h| {
+                let x = &self.units[h];
+                x.owner == unit.owner
+                    && x.type_index == 0x165
+                    && x.alive()
+                    && x.on_map
+                    && crate::world::vector_dist(
+                        (x.pos.x - unit.pos.x).abs(),
+                        (x.pos.y - unit.pos.y).abs(),
+                    ) <= self.hero_radius(h) * 0xc0
+            })
     }
 
     /// `SpellTypeData::is_valid_target@006763c0`'s Bribe arm (`0x275`,
@@ -340,19 +420,7 @@ impl Sim {
     /// hero within [`Sim::hero_radius`] × 0xc0, or the unit itself.
     pub(crate) fn bribe_valid_unit(&self, who: Player, v: usize) -> bool {
         let unit = &self.units[v];
-        if unit.type_index == 0x165
-            || (0..self.units.len()).any(|h| {
-                let x = &self.units[h];
-                x.owner == unit.owner
-                    && x.type_index == 0x165
-                    && x.alive()
-                    && x.on_map
-                    && crate::world::vector_dist(
-                        (x.pos.x - unit.pos.x).abs(),
-                        (x.pos.y - unit.pos.y).abs(),
-                    ) <= self.hero_radius(h) * 0xc0
-            })
-        {
+        if self.has_ceo_shield(v) {
             return false;
         }
         if crate::type_index::is_gov_hero_type(unit.type_index)
@@ -626,21 +694,39 @@ impl Sim {
             self.units[u].movement.facing = angle;
             self.units[u].movement.frame_facing = angle;
         }
-        // The spy's animations (`is(SPY, 0)`): Bribe `CHAR_ATTACK3`, the
-        // Informer `CHAR_ATTACKWALK`, anything else `CHAR_ATTACK2` on a
-        // spy and `CHAR_ATTACK1` on anything else.
-        let anim = if !self.unit_is_spy(u) {
-            crate::anim::ATTACK1
-        } else if s == spell::BRIBE {
-            crate::anim::ATTACK3
-        } else if s == spell::INFORMER {
-            crate::anim::ATTACKWALK
-        } else if matches!(t, Obj::Unit(v) if self.unit_is_spy(v)) {
-            crate::anim::ATTACK2
+        // `Unit::do_cast@005ebfe0:5ec66f`..`5ec759`: a Spy (`is(0x3a, 0)`)
+        // — Bribe `CHAR_ATTACK3`, the Informer `CHAR_ATTACKWALK`, a Spy
+        // target `CHAR_ATTACK2`, else `CHAR_ATTACK1`; else a Scout line
+        // (`is(0x45, 0)`, the Commando's) — Sabotage `CHAR_ATTACKWALK`, the
+        // Sniper `CHAR_ATTACK3`, then as a Spy's; else `CHAR_ATTACK1` with
+        // `Unit::set_anim`'s third argument set (item 2971).
+        let target_spy = matches!(t, Obj::Unit(v) if self.unit_is_spy(v));
+        let (anim, p3) = if self.unit_is_spy(u) {
+            let a = if s == spell::BRIBE {
+                crate::anim::ATTACK3
+            } else if s == spell::INFORMER {
+                crate::anim::ATTACKWALK
+            } else if target_spy {
+                crate::anim::ATTACK2
+            } else {
+                crate::anim::ATTACK1
+            };
+            (a, false)
+        } else if self.unit_line_is(u, 0x45) {
+            let a = if s == 0x280 {
+                crate::anim::ATTACKWALK
+            } else if s == 0x281 {
+                crate::anim::ATTACK3
+            } else if target_spy {
+                crate::anim::ATTACK2
+            } else {
+                crate::anim::ATTACK1
+            };
+            (a, false)
         } else {
-            crate::anim::ATTACK1
+            (crate::anim::ATTACK1, true)
         };
-        self.set_anim(u, anim, false, false);
+        self.set_anim(u, anim, false, p3);
         self.units[u].casting = true;
         self.cast_blow(u, s, true);
         self.units[u].spell_time += 1;
@@ -712,6 +798,13 @@ impl Sim {
             && self.spell_castable(s, u)
         {
             self.cast_bribe_unit(u, v);
+            return;
+        }
+        if s == 0x281
+            && let Obj::Unit(v) = t
+            && self.spell_castable(s, u)
+        {
+            self.cast_sniper_unit(v);
             return;
         }
         if s != spell::INFORMER || !self.spell_castable(s, u) {
@@ -1362,6 +1455,79 @@ mod tests {
         assert!(
             !s.spell_valid_target(spell::BRIBE, 1, Obj::Unit(spy)),
             "its own"
+        );
+    }
+
+    /// **The Sniper's target arm** (`SpellTypeData::is_valid_target@006763c0`'s
+    /// `0x281`, item 2971): an enemy's armed land unit; refused unarmed, a
+    /// worker's line aside, and in the air. Made to fail with the armed
+    /// test dropped.
+    #[test]
+    fn sniper_takes_only_an_enemy_s_armed_land_unit() {
+        use crate::combat::Obj;
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        s.spells[usize::try_from(0x281 - spell::FIRST).unwrap()].flags = 0x2 | 0x20;
+        let target = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[filler].ty;
+            u
+        });
+        let t = Obj::Unit(target);
+        s.declare_war(0, 1);
+        assert!(!s.spell_valid_target(0x281, 1, t), "unarmed");
+        let ty = s.units[target].ty.unwrap();
+        s.unit_types[ty].combat.attack = 5;
+        assert!(s.spell_valid_target(0x281, 1, t), "an enemy's soldier");
+        assert!(
+            !s.spell_valid_target(0x281, 0, Obj::Unit(spy)),
+            "no war arm for its own side"
+        );
+    }
+
+    /// **Counterintelligence's target arm** (`0x277`, item 2971): one's own
+    /// is a target only once infiltrated; an enemy's only if it is a Spy.
+    /// Made to fail with the infiltrated test dropped and with the Spy
+    /// test dropped.
+    #[test]
+    fn counterintelligence_takes_an_infiltrated_friend_or_an_enemy_spy() {
+        use crate::combat::Obj;
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        s.spells[usize::try_from(spell::COUNTERINTEL - spell::FIRST).unwrap()].flags =
+            0x2 | 0x10 | 0x20;
+        let friend = Obj::Unit(filler);
+        assert!(
+            !s.spell_valid_target(spell::COUNTERINTEL, 1, friend),
+            "not infiltrated"
+        );
+        s.units[filler].infiltrated = 1;
+        assert!(
+            s.spell_valid_target(spell::COUNTERINTEL, 1, friend),
+            "infiltrated"
+        );
+        let foe_filler = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[filler].ty;
+            u
+        });
+        let foe_spy = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[spy].ty;
+            u
+        });
+        s.declare_war(0, 1);
+        assert!(
+            !s.spell_valid_target(spell::COUNTERINTEL, 1, Obj::Unit(foe_filler)),
+            "an enemy soldier"
+        );
+        assert!(
+            s.spell_valid_target(spell::COUNTERINTEL, 1, Obj::Unit(foe_spy)),
+            "an enemy Spy"
         );
     }
 

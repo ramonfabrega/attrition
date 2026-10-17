@@ -1083,10 +1083,16 @@ impl Sim {
     /// modelled, nothing sets it here) and `0x1000` (blown; likewise) are
     /// the arm's two bits this crate does not carry.
     pub(crate) fn target_is_seen(&self, attacker: Obj, target: Obj) -> bool {
+        self.target_seen_by(self.owner_of(attacker), target)
+    }
+
+    /// [`Sim::target_is_seen`] for a player rather than an attacker —
+    /// `ObjectData::is_seen(who, 0)` (`SpellTypeData::is_valid_target`'s
+    /// Counterintelligence arm asks it of `who` directly).
+    pub(crate) fn target_seen_by(&self, who: Player, target: Obj) -> bool {
         if !self.world.has_fog() {
             return true;
         }
-        let who = self.owner_of(attacker);
         if who >= 8 {
             return true;
         }
@@ -2774,6 +2780,27 @@ impl Sim {
             }
             Obj::Building(b) => self.damage_building(b, hit, Some(_by), _frame, false),
         }
+    }
+
+    /// `SpellType::cast_sabotage@006720e0`'s unit arm for the Sniper
+    /// (`0x281`, item 2971, `docs/GOLDEN.md` §115): the target figure
+    /// `die`s with `dtype` 2 — `Unit::die@0060eda0` through vslot `+0x158`,
+    /// the combat death's tail without a wound.
+    ///
+    /// SEAM: the caster's leader counters (`+0xa58`, `+0xa5a`, `+0x80c`)
+    /// and the score `+0x44 += cost / 5` for a squad captain, and the
+    /// message and sound.
+    pub(crate) fn cast_sniper_unit(&mut self, v: usize) {
+        let frame = self.frame;
+        self.units[v].health = 0;
+        self.close_count(v);
+        self.relink_squad(v);
+        self.close_unit(v, 2, frame);
+        self.kremlin_spy_closed(v);
+        self.close_dead_orders(v);
+        self.hold_dead_slot(v);
+        self.close_supply(v);
+        self.forget(Obj::Unit(v));
     }
 
     /// The **first wound**'s draws (§7.2 step 3), spent before the

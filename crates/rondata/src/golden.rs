@@ -2319,6 +2319,7 @@ mod tests {
         // in the record (item 676, `docs/GOLDEN.md` §17).
         ("chapter9.cmd", &[]),
         ("chapter90.cmd", &[]),
+        ("chapter91.cmd", &[]),
     ];
 
     /// The chapter directory as the tree has it, sorted.
