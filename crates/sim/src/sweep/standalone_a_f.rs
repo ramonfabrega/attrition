@@ -126,6 +126,8 @@ mod borders_get_who;
 mod borders_is_border_hidden;
 #[path = "borders_out_no_border.rs"]
 mod borders_out_no_border;
+#[path = "borders_process_all.rs"]
+mod borders_process_all;
 #[path = "build_add_attack_order.rs"]
 mod build_add_attack_order;
 #[path = "build_add_gatherer.rs"]
