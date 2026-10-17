@@ -406,6 +406,8 @@ mod map_fairness_apply_distances;
 mod map_fairness_enable_team_mode;
 #[path = "map_fairness_point_lowers_highest.rs"]
 mod map_fairness_point_lowers_highest;
+#[path = "map_fairness_recompute.rs"]
+mod map_fairness_recompute;
 #[path = "map_fairness_unapply_distances.rs"]
 mod map_fairness_unapply_distances;
 #[path = "map_get_player_overage.rs"]
