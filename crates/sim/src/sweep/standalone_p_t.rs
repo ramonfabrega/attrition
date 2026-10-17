@@ -426,6 +426,8 @@ mod type_specialty;
 mod type_spell;
 #[path = "type_sum_cost.rs"]
 mod type_sum_cost;
+#[path = "type_sum_rules_cost.rs"]
+mod type_sum_rules_cost;
 #[path = "type_tech.rs"]
 mod type_tech;
 #[path = "type_unit.rs"]
