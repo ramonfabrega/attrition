@@ -37,7 +37,7 @@ STUBS = [('call', 10612896, 0), ('call', 5628076, 3)]
 PLACES = [('m', '0x74', '0', 16), ('m', '0xb0', '0', 16)]
 NULLS = [0, 1]
 NULLFORCE = {}
-WBIAS = [('m', 124, ('set', [0, 1, 5, 98, 99, 100, 200])), ('m', 184, ('set', [0, 1, 20, 254, 255, 256, 300]))]
+WBIAS = [('m', 124, ('set', [0, 1, 5, 98, 99, 100, 200])), ('m', 184, ('set', [0, 1, 20, 254, 255, 256, 300])), ('p1', 0, ('set', [0, 1, 7])), ('p2', 0, ('set', [0, 1, 7]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -689,4 +689,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Type::backup@00667ee0", "--item", "3064", "--win", "0x100", "--own", "1", "--ret", "none", "--ptrarg", "0:0x300", "--stub", "0xa1f0a0:0", "--stub", "0x55e0ac:3", "--stub-cdecl", "1", "--stub-copy", "1", "--answer-win", "0:0x200", "--place", "m+0x74:0:0x10", "--place", "m+0xb0:0:0x10", "--place-null", "0", "--place-null", "1", "--wbias", "m+0x7c:0,1,5,98,99,100,200", "--wbias", "m+0xb8:0,1,20,254,255,256,300"]
+# sweep_gen: ["obj", "Type::backup@00667ee0", "--item", "3064", "--win", "0x100", "--own", "1", "--ret", "none", "--ptrarg", "0:0x300", "--stub", "0xa1f0a0:0", "--stub", "0x55e0ac:3", "--stub-cdecl", "1", "--stub-copy", "1", "--answer-win", "0:0x200", "--place", "m+0x74:0:0x10", "--place", "m+0xb0:0:0x10", "--place-null", "0", "--place-null", "1", "--wbias", "m+0x7c:0,1,5,98,99,100,200", "--wbias", "m+0xb8:0,1,20,254,255,256,300", "--wbias", "p1+0:0,1,7", "--wbias", "p2+0:0,1,7"]
