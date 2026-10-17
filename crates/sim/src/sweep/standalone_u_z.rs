@@ -448,6 +448,8 @@ mod world_data_num_waterhalf;
 mod world_data_restrict_coord;
 #[path = "world_data_restrict_wcoord.rs"]
 mod world_data_restrict_wcoord;
+#[path = "world_data_start_city_rad_wcoord.rs"]
+mod world_data_start_city_rad_wcoord;
 #[path = "world_data_start_city_wcoord.rs"]
 mod world_data_start_city_wcoord;
 #[path = "world_data_valid.rs"]
