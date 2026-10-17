@@ -2414,41 +2414,14 @@ Not established:
   two tails and their unequal gates are `docs/PATHFINDER.md` §21. Great
   Lakes' word parts at **8201**.
 
-### 17.7 The asker cannot ride while it searches (item 2845, 2026-10-17)
+### 17.7 The asker cannot ride while it searches (item 2845)
 
-**The rule.** At `6014ef`–`601505`, before the ring, a set `unit_masks &
-0x800000` on the asker — the bit `crates/sim` carries as
-`Unit::auto_transport` — is cleared and a restore flag (`-0x1c`) raised.
-The point is reached on every path into the search. Every exit ORs the
-bit back: `60160a`, `60193e`, `6027a8`, `602aa8`, `602b3f`, `602d65`,
-`602d77`. `UnitData::invalid_loc`'s land arm admits a water tile only
-with that bit set (it answers 2 at `607f28` otherwise), so for the length
-of the call a land asker that could sail is a land asker that cannot:
-the ring, the open slots and the sweep all refuse water.
-
-**How it was established.** The peace pair's word 6808 (`docs/AI.md`
-§237): who=1's Rocket Artillery `1/63` walks the bombard ring round the
-human's `0/2000` and ours drew 15 candidates against theirs' 11. A probe
-on ours showed four of the fifteen on water (mask `0x420` three times,
-`0x20` once); on run882b's packet (`--tracer-def RON_STATE_FRAME=6808`)
-`step4.py --entry 610bc0` with `--watch` on the asker's `unit_masks`
-showed `find_attack_pos+0x285` (`601505`) writing 0x8c000c → 0xc000c and
-`+0x1528` (`6027a8`) writing it back, and `invalid_loc` answering 2 at
-`607f28` on exactly the four. The listing then gave the restore on every
-exit. The blind reading of 2026-09-17 had the clear
-(`docs/audit/2026-09-17-find-attack-pos-blind.md`, its `[bytes]` side
-effects); this section did not carry it until now.
-
-**Built**: `Sim::find_attack_pos` holds the bit clear around
-`find_attack_pos_grounded` and ORs it back
-(`attack_pos::tests::an_asker_s_auto_transport_is_held_clear_while_it_searches`,
-made to fail by keeping the bit). With it the ring agrees on 6808 and
-the pair's word moves 6808 → 6821.
-
-**Confidence**: diff-backed for the ring on 6808 (run882's draws and the
-packet's watch); the restore on the exits other than `6027a8` is
-listing-only, and so is the clear's reach on the unit-target half,
-which `crates/sim` answers `None` for (§17.6).
+At `6014ef`–`601505`, on every path, a set `unit_masks & 0x800000`
+(`Unit::auto_transport`) is cleared, and every exit ORs it back
+(`60160a`, `60193e`, `6027a8`, `602aa8`, `602b3f`, `602d65`, `602d77`).
+`invalid_loc`'s land arm admits water only with it (2 at `607f28`), so
+the search refuses water. Diff-backed on the ring (run882b's packet,
+`docs/AI.md` §237); the other exits' restores are listing-only.
 
 ---
 

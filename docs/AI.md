@@ -21836,7 +21836,7 @@ carries a `MOVEORDER` to **(6648, 12408)** on both sides on 6809 — the destina
 cleared differs.
 
 **Which candidates.** A probe of ours' ring (two commits, reverted whole): all 15 clear, and four — indices 7, 9, 11 and 13,
-(5256, 12360), (4968, 12360), (4680, 12312) at mask `0x420` and (4392, 12264) at `0x20` — are water. Fitting theirs' seeds (the
+(5256, 12360), (4968, 12360), (4680, 12312) and (4392, 12264) — are water. Fitting theirs' seeds (the
 trace prints a seed before its step) puts the pick at candidate 4 only if rejections fall among candidates 5..14, which the four
 water spots are. **The packet** (run882b, `RON_STATE_FRAME=6808`): `1/63` at `0x1599773c`, `step4.py --entry 610bc0`:
 `invalid_loc` answers 2 at `607f28` (the land arm's water return) on exactly those four, and the watch on `unit_masks` shows
