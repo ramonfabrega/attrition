@@ -340,6 +340,8 @@ mod tribe_set_pseudonym;
 mod tribe_walk_data;
 #[path = "tribe_walk_rules_data.rs"]
 mod tribe_walk_rules_data;
+#[path = "tribes_find.rs"]
+mod tribes_find;
 #[path = "tribes_walk_data.rs"]
 mod tribes_walk_data;
 #[path = "turn_control_compute_next_turn_solo.rs"]
