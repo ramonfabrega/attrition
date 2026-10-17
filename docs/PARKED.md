@@ -6688,13 +6688,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GB — reserved
+## Parked by item 2910, 2026-10-17 — the hundred-and-twenty-fourth sweep batch (harvest)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2910, first) **An image cell's null arm is invisible to the port.** `CommandManager::check_accept_issue` 0x940a70
+  tests `[0xe335c8]` (the net system) for null before reading its local-player pointer; `--place 0xe335c8:...` lays the
+  cell as a window pointer every row and `--place-null` on it nulls the word in the image, where the port reads no
+  window. The sweep drew the non-null arm only (the null arm is one short-circuit away from the shipped one). A
+  `--place-null K` that also prints a 0/1 column after the answers (as `--slotbase` does) would open the arm. Shape lane.
+- (2910, second) **`TimeSync::analyze_response` 0x954b90 reads `timeGetTime` through the IAT** (`call [esi]`-style, the
+  same wall as 2905's `strrchr`): not built. The IAT-stub flag 2905 asks for opens both.
+- (2910, third) **A pair of `--wbias` words that must agree cannot be drawn.** `ObjectData::cargo_inside`'s links are
+  a short at +0x28 (index) and a byte at +0x3e (kind); an acyclic walk needs the next place lexicographically after
+  the current, which two independent words cannot say, so the sweep draws index strictly greater and the kind free.
+  The chain is short (at most four steps) and the cyclic corner is unreached. A `--wbias-pair` would draw both.
+- (2910, fourth) **Not built, unread by this batch:** `ObjectData::has_general` 0x646b00 (a `HeroesData::find_hero`
+  seven-argument stub and the leaders table at +0x56fe; the vcall family 2909 named) and `UnitData::is_busy` 0x60a370.
+  `TerrainList::delete_items` 0x84bdd0 loops over a global bucket count with `_eh_vector_destructor_iterator_` and
+  `free` (an import): the IAT wall again.
 
 ## Parked by the next landing, slot GC — reserved
 
