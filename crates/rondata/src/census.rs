@@ -131,12 +131,14 @@
 /// `--link-hi` and `--place-null K:WIN+OFF=V` built, four swept on them.
 /// item 2910: 1252 -> 1260 on the merged tree, the sweep's hundred-and-twenty-fourth batch, eight harvested
 /// (its two copies of 2900's functions dropped at the merge).
+/// item 2959: 1319 -> 1329 on the merged tree, the sweep's hundred-and-thirtieth batch, ten `CommandPackage::process_*`
+/// bodies that are not the three shapes (a table field before the action, a virtual slot, the objects table by owner).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1319;
+pub const SIMULATION_BACKED: usize = 1329;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
