@@ -5188,6 +5188,54 @@ mod tests {
         assert_eq!(sim.mods_of(1), sim.mods[1]);
     }
 
+    /// **`max_range`'s CEO term** (`UnitData::max_range@0060fe90`, item
+    /// 2825, `docs/AI.md` §236): a ranged unit within its owner's `0x165`
+    /// hero's radius (here 10 tiles, 1920) reaches two tiles further; one
+    /// a tile outside it, a siege type, another player's hero, and a hero
+    /// the leader does not count do not. run881's Strategic Bomber
+    /// `1/137` bombs on 6452 at `attack_dist` 918 with who=1's `1/161`
+    /// 2371 off. Made to fail with the term dropped and with the siege
+    /// test dropped.
+    #[test]
+    fn a_unit_near_its_owner_s_ceo_reaches_two_tiles_further() {
+        use crate::ai_load::uflags2;
+        use crate::{Unit, UnitType};
+        let mut s = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let mut shooter = UnitType::default();
+        shooter.combat.max_range = 3;
+        let shooter = s.add_unit_type(shooter);
+        let mut ceo = UnitType {
+            type_index: 0x165,
+            ..UnitType::default()
+        };
+        ceo.cols.unit_flags2 = uflags2::GENERAL;
+        let ceo = s.add_unit_type(ceo);
+        let place = |s: &mut Sim, who: u8, ty: usize, x: i32| {
+            let mut u = Unit::new(who, 0, Pos::new(x, 9000), 50);
+            u.ty = Some(ty);
+            u.type_index = s.unit_types[ty].type_index;
+            u.on_map = true;
+            s.add_unit(u)
+        };
+        let bomber = place(&mut s, 1, shooter, 9000);
+        let range = |s: &Sim| s.max_range_of(Obj::Unit(bomber));
+        assert_eq!(range(&s), 3, "no hero");
+        let hero = place(&mut s, 1, ceo, 9000 + 1920);
+        assert_eq!(range(&s), 3, "a hero the leader does not count");
+        s.muster[1].by_type[ceo] = 1;
+        assert_eq!(s.hero_radius(hero), 10, "6 × 3 / 2 + 1");
+        assert_eq!(range(&s), 5, "inside the radius");
+        s.units[hero].pos.x += 1;
+        assert_eq!(range(&s), 3, "one past it");
+        s.units[hero].pos.x -= 1;
+        s.units[hero].owner = 0;
+        s.muster[0].by_type[ceo] = 1;
+        assert_eq!(range(&s), 3, "another player's hero");
+        s.units[hero].owner = 1;
+        s.unit_types[shooter].combat.siege = true;
+        assert_eq!(range(&s), 3, "a siege type");
+    }
+
     use super::*;
     use crate::world::{PLAYER_SLOTS, World};
 
