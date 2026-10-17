@@ -260,6 +260,8 @@ mod unit_type_restore;
 mod unit_type_walk_rules_data;
 #[path = "unit_update_gpiece.rs"]
 mod unit_update_gpiece;
+#[path = "unit_update_local_seen.rs"]
+mod unit_update_local_seen;
 #[path = "unit_update_order.rs"]
 mod unit_update_order;
 #[path = "unit_update_patrol_order.rs"]
