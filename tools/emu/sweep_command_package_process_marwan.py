@@ -36,7 +36,7 @@ STUBS = [('iat', 11293756, 2), ('call', 4601328, 5), ('call', 10726144, 10)]
 PLACES = []
 NULLS = []
 NULLFORCE = {}
-WBIAS = []
+WBIAS = [('c1', 4, ('set', [-5, -1, 0, 1, 2, 9]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -655,4 +655,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "2921", "obj", "CommandPackage::process_marwan@00943660", "--win", "16", "--bias", "0x4:-1,0,3,7", "--own", "1", "--cell-win", "0xc06378:0x20", "--at", "0xeb13a8:8", "--stub", "iat:0xac543c:2", "--stub", "0x4635f0:5", "--stub", "0xa3ab00:10", "--stub-cdecl", "0", "--answers", "0:0,0x400000", "--record", "2", "--port", "todo!()"]
+# sweep_gen: ["--item", "2921", "obj", "CommandPackage::process_marwan@00943660", "--win", "16", "--bias", "0x4:-1,0,3,7", "--own", "1", "--cell-win", "0xc06378:0x20", "--at", "0xeb13a8:8", "--wbias", "c1+4:-5,-1,0,1,2,9", "--stub", "iat:0xac543c:2", "--stub", "0x4635f0:5", "--stub", "0xa3ab00:10", "--stub-cdecl", "0", "--answers", "0:0,0x400000", "--record", "2", "--port", "todo!()"]
