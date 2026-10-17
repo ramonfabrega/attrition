@@ -34,6 +34,8 @@ mod path_finder_find_wpath_army;
 mod path_finder_kill_lists;
 #[path = "path_finder_kill_tree_bt.rs"]
 mod path_finder_kill_tree_bt;
+#[path = "path_finder_kill_tree_te.rs"]
+mod path_finder_kill_tree_te;
 #[path = "path_finder_out_dbg_draw_failures.rs"]
 mod path_finder_out_dbg_draw_failures;
 #[path = "path_finder_out_get_name.rs"]
