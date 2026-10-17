@@ -50,7 +50,10 @@ fn the_emulated_original_agrees_on_every_row() {
                 let mut o = i32::from(i16_at(m, 8));
                 let who = i32::from(m[0x5e] as i8);
                 let mut n = 0i64;
+                let mut steps = 0;
                 while o >= 0 {
+                    steps += 1;
+                    assert!(steps <= 4, "the object chain does not end, row `{line}`");
                     let k = (4 * who + o) as usize;
                     let next = i16_at(&p[15 + k], 0x74);
                     if p[27 + k][0] & 0x10 == 0 {
