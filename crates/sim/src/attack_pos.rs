@@ -472,26 +472,6 @@ impl crate::Sim {
                 && self.world.tile_mask(tl) & tile::BLOCKED == 0
                 && !self.find_collision(u, c)
                 && !self.find_ordered_collision(u, c);
-            if std::env::var("RON_PROBE_RING").is_ok() {
-                eprintln!(
-                    "PROBE ring f{} o{} arm {} side {} step {} c {:?} tl {:?} inv {} blk {} coll {} ord {} stand {} from {:?} t {:?} start {}",
-                    self.frame,
-                    self.units[u].index,
-                    arm,
-                    a.side,
-                    a.step,
-                    c,
-                    tl,
-                    self.invalid_loc(u, tl, true, false, false, false, true),
-                    self.world.tile_mask(tl) & tile::BLOCKED,
-                    self.find_collision(u, c),
-                    self.find_ordered_collision(u, c),
-                    stand,
-                    from,
-                    t,
-                    start
-                );
-            }
             if clear {
                 self.mark(site);
                 let draw = self.rng.roll() % 0xc0;
