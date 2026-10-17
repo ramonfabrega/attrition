@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_command_manager_issue_rename_city.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 32-byte object of random bytes (no bias), 3 stack argument(s);
-argument 2 names 16 random bytes; callee 0x00940a70 (0 args) stubbed; callee 0x00a1f0a0 (0 args) stubbed; callee 0x0055e0ac (3 args) stubbed; callee 0x0094bae0 (2 args) stubbed; the word at `p0+0` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 prints the 9 bytes its argument 0 points at, hex, after the record (`/` a call); stub 2 is `__cdecl`: the caller pops its arguments.
+argument 2 names 16 random bytes; callee 0x00940a70 (0 args) stubbed; callee 0x00a1f0a0 (0 args) stubbed; callee 0x0055e0ac (3 args) stubbed; callee 0x0094bae0 (2 args) stubbed; the word at `p0+0` points at 16 random bytes less `0` (placed, null a third of the rows); stub 1's answer points at 48 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 prints the 55 bytes its argument 0 points at, hex, after the record (`/` a call); stub 2 is `__cdecl`: the caller pops its arguments; the stack 256 bytes under the call is zeroed before each row; stub 2 copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -33,8 +33,9 @@ AT = []
 PTRARGS = [(2, 16)]
 PNULLS = []
 STUBS = [('call', 9702000, 0), ('call', 10612896, 0), ('call', 5628076, 3), ('call', 9747168, 2)]
-PLACES = [('p0', '0', '0', 16)]
+PLACES = [('p0', '0', '0', 16), ('s1', '0', '0', 48)]
 NULLS = [0]
+NULLFORCE = {}
 WBIAS = [('p0', 8, ('set', [0, 1, 5, 19, 20, 21, 40, 65539, 458752])), ('p1', 0, ('set', [0, 1, 4660]))]
 FILLS = []
 ARGRANGE = []
@@ -65,13 +66,16 @@ RECORDORDER = False
 RECORDEDX = False
 ROWSPLIT = {}
 LINKS = []
+LINKHI = []
 OUTARG = []
 CDECLSTUBS = [2]
 STUBWRITE = []
+STUBCOPY = [2]
+STACKCLEAN = 256
 ECXANSWER = []
 ECXOUT = []
 RING = []
-DEREF = [(3, 0, 9, None)]
+DEREF = [(3, 0, 55, None)]
 RET = 'eax'
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
@@ -102,7 +106,8 @@ def u8(w, off):
 
 def token(v, spans):
     """A recorded value: a pointer into a window by the window's name and
-    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), anything
+    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), a word of the
+    caller's frame by its height (`sp+0xc`), anything
     else as a signed word (item 2281)."""
     v &= 0xFFFFFFFF
     for name, at, size in spans:
@@ -113,6 +118,10 @@ def token(v, spans):
     top = STACK_BASE + STACK_SIZE - 0x100
     if top - 0x1000 <= v < top:
         return f"sp-{top - v:#x}"
+    # A word at or above it, the caller's own frame (`ebp+0xc` past the function's arguments;
+    # item 2921, parked 2918): its height over `esp`, not the harness's stack constant.
+    if top <= v < top + 0x100:
+        return f"sp+{v - top:#x}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
@@ -190,6 +199,20 @@ def win_write(inner, at, size, v, write, read=None):
         else:
             write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
         return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
+def copy_answer(inner, read, write, cap):
+    """`--stub-copy IDX` (item 2921, parked 2906): a stubbed `__cdecl` callee
+    that does what `memcpy` does — argument 2's bytes from argument 1 to
+    argument 0, at most `cap` — and answers the destination. The thunk the
+    original calls is an import (`jmp [0xac5428]`), which the emulator
+    resolves to nothing, so a plain stub copied nothing."""
+    def answer(ecx, args):
+        dst, src, n = (a & 0xFFFFFFFF for a in args[:3])
+        if n:
+            write(dst, read(src, min(n, cap)))
+        return dst
     return answer
 
 
@@ -279,8 +302,8 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(220):
-        h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
+    for i in range(600):
+        h.brk = base  # the bump heap is reused a row; 600 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -385,6 +408,7 @@ def main(argv):
         # with the answers so a place may index by one (`o`, item 2325).
         outs = [wdraw(rng, vals) for _, _, vals in OUTARG]
         k = -1
+        forced = []
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
@@ -403,6 +427,7 @@ def main(argv):
             # index (item 2253; a guarded null ran one arm).
             if k in NULLS and rng.random() < 1 / 3:
                 ptr = bytes(4)
+                forced += NULLFORCE.get(k, [])
             at = eval(loc, env)
             if win is None:
                 uc.mem_write(at & 0xFFFFFFFF, ptr)
@@ -413,6 +438,11 @@ def main(argv):
             else:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[at:at + 4] = ptr
+        for win, off, v in forced:
+            # `--place-null K:WIN+OFF=V`: on a null row of place K, the word at WIN+OFF is V, written after every
+            # window is drawn, so a guard word beside the null pointer is held (item 2900, Loop 2899).
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
         callwins = {}
         for idx, size in ANSWERWIN:
             # A stub that answers a record: the address of SIZE random bytes,
@@ -466,6 +496,11 @@ def main(argv):
             for k in range(n):
                 v = link_value(rng, n, k, d, terms)
                 p[lo + k][off:off + size] = (v & ((1 << 8 * size) - 1)).to_bytes(size, "little")
+        for lo, hi, off, vals in LINKHI:
+            # `--link-hi pA..B+OFF:V,V,..|LO..HI`: the short beside a link (the player half of `obj+0x2c`'s word),
+            # drawn from the list or range every figure after the links, so a word that reads it is never clobbered.
+            for k in range(hi - lo + 1):
+                p[lo + k][off:off + 2] = (wdraw(rng, vals) & 0xFFFF).to_bytes(2, "little")
         for idx, win, off in ARGEQ:
             # An argument the function compares with a word of a window laid
             # after the arguments were drawn: the word copied (item 2200).
@@ -565,6 +600,9 @@ def main(argv):
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write,
                                                       lambda a_, n_: bytes(uc.mem_read(a_, n_)))
+        for idx in STUBCOPY:
+            h.answers[names[idx]] = copy_answer(h.answers[names[idx]], lambda a_, n_: bytes(uc.mem_read(a_, n_)),
+                                                uc.mem_write, 0x1000)
         derefs = [[] for _ in DEREF]
         for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
@@ -591,6 +629,10 @@ def main(argv):
         # `--xmm` (item 2807): xmm N the float V/4 for an integer V in the range, V on the row.
         xmmv = [rng.randint(spec[1], spec[2]) if spec[0] == "range" else rng.choice(spec[1]) for _, spec in XMM]
         xmm = {n: xmm_bits(v / 4) for (n, _), v in zip(XMM, xmmv)}
+        # `--clean-stack N` (item 2921, parked 2906): the stack under the call zeroed, so a byte of a
+        # caller's local the function did not write reads 00 and not an earlier row's.
+        if STACKCLEAN:
+            uc.mem_write(STACK_BASE + STACK_SIZE - 0x100 - STACKCLEAN, bytes(STACKCLEAN))
         h.calls.clear()
         h.edxs.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
@@ -641,4 +683,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "CommandManager::issue_rename_city@009411d0", "--item", "2893", "--own", "3", "--win", "0x20", "--ptrarg", "2:0x10", "--place", "p0+0:0:16", "--place-null", "0", "--wbias", "p0+8:0,1,5,19,20,21,40,0x10003,0x70000", "--wbias", "p1+0:0,1,0x1234", "--stub", "0x940a70:0", "--stub", "0xa1f0a0:0", "--stub", "0x55e0ac:3", "--stub-cdecl", "2", "--stub", "0x94bae0:2", "--answers", "0:0,1", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--deref", "3:0:9", "--ret", "none", "--port", "{ let le = |v: i32| v.to_le_bytes().iter().map(|b| format!(\"{b:02x}\")).collect::<String>(); log.push(\"15269728\".into()); if a[3] == 0 { for _ in 0..4 { log.push(\"-\".into()); } } else { let len = i32::from(u16::from_le_bytes([p[0][8], p[0][9]])); if rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0 { log.push(\"-\".into()); log.push(\"-\".into()); } else { log.push(\"p0+0x0\".into()); log.push(format!(\"p0+0x0,sp-0x43,{},{}\", a[4], 2 * len.min(20) + 2)); } log.push(\"15269768,sp-0x4c,53\".into()); log.push(format!(\"4b{}{}\", le(a[0]), le(a[1]))); } 0 }"]
+# sweep_gen: ["obj", "CommandManager::issue_rename_city@009411d0", "--item", "2893", "--own", "3", "--win", "0x20", "--ptrarg", "2:0x10", "--place", "p0+0:0:16", "--place", "s1:0:48", "--place-null", "0", "--wbias", "p0+8:0,1,5,19,20,21,40,0x10003,0x70000", "--wbias", "p1+0:0,1,0x1234", "--stub", "0x940a70:0", "--stub", "0xa1f0a0:0", "--stub", "0x55e0ac:3", "--stub-cdecl", "2", "--stub", "0x94bae0:2", "--answers", "0:0,1", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--deref", "3:0:55", "--ret", "none", "--stub-copy", "2", "--port", "{ let le = |v: i32| v.to_le_bytes().iter().map(|b| format!(\"{b:02x}\")).collect::<String>(); log.push(\"15269728\".into()); if a[3] == 0 { for _ in 0..4 { log.push(\"-\".into()); } } else { let len = i32::from(u16::from_le_bytes([p[0][8], p[0][9]])); if rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0 { log.push(\"-\".into()); log.push(\"-\".into()); } else { log.push(\"p0+0x0\".into()); log.push(format!(\"p0+0x0,sp-0x43,p2+0x0,{}\", 2 * len.min(20) + 2)); } log.push(\"15269768,sp-0x4c,53\".into()); let mut cmd = format!(\"4b{}{}\", le(a[0]), le(a[1])); let copied = !(rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0); let u = if copied { 2 * len.min(20) as usize } else { 0 }; for b in &p[2][..u] { cmd.push_str(&format!(\"{b:02x}\")); } cmd.push_str(&\"00\".repeat(46 - u)); log.push(cmd); } 0 }", "--clean-stack", "0x100", "--rows", "600"]

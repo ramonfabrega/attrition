@@ -2,6 +2,7 @@
 the twenty-ninth pass). Each shape's script must parse as Python and its
 test must name the function, the script and the port; a function spelled
 any other way is refused."""
+import inspect
 import sys
 import tempfile
 import unittest
@@ -490,6 +491,87 @@ class Shapes(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
                                        stubs=['0x402000:1', '0x403000:1'], stub_write=[bad])
+
+    def test_a_cdecl_stub_may_copy(self):
+        # Item 2921 (parked 2906): `memcpy` and `memcmp` are import thunks
+        # (`jmp [0xac5428]`); a stub of one copied nothing, so the string
+        # `CommandManager::issue_rename_city` copies into its command was
+        # never under the deref. `--stub-copy IDX` makes a stubbed cdecl callee
+        # copy argument 2's bytes from argument 1 to argument 0, as `memcpy`
+        # does, and answer the destination.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2921, win=0x40, bias=[], own=0, ret='none',
+            stubs=['0x402000:3'], stub_cdecl=['0'], stub_copy=['0'])
+        compile(script, str(sp), 'exec')
+        self.assertIn('STUBCOPY = [0]', script)
+        self.assertIn('def copy_answer(', script)
+        self.assertIn('stub 0 copies its argument 2 bytes from argument 1 to argument 0', test)
+        for bad in ('1', '-1', 'x'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
+                                       stubs=['0x402000:3'], stub_cdecl=['0'], stub_copy=[bad])
+        # a stub with fewer than three arguments, or one the caller does not pop, is no memcpy
+        for stubs, cd in ((['0x402000:2'], ['0']), (['0x402000:3'], [])):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
+                                       stubs=stubs, stub_cdecl=cd, stub_copy=['0'])
+        # the copy itself, on a fake memory: n bytes, the destination answered, n capped
+        src = script[script.index('def copy_answer('):]
+        ns = {}
+        exec(src[:src.index('\n\n\n')], ns)
+        mem = bytearray(0x40)
+        mem[0x10:0x14] = b'abcd'
+        rd_ = lambda a, n: bytes(mem[a:a + n])
+        wr_ = lambda a, b: mem.__setitem__(slice(a, a + len(b)), b)
+        self.assertEqual(ns['copy_answer'](None, rd_, wr_, 0x1000)(0, [0x20, 0x10, 4]), 0x20)
+        self.assertEqual(bytes(mem[0x20:0x24]), b'abcd')
+        self.assertEqual(bytes(mem[0x24:0x28]), bytes(4))
+        mem[0x20:0x24] = bytes(4)
+        ns['copy_answer'](None, rd_, wr_, 2)(0, [0x20, 0x10, 4])
+        self.assertEqual(bytes(mem[0x20:0x24]), b'ab\0\0')
+
+    def test_a_pointer_into_the_callers_argument_slots_is_sp_plus(self):
+        # Item 2921 (parked 2918): `walk_data` hands a stub `&flag` (a local, `sp-0x1`) and
+        # `ebp+0xc`, its own argument slot, which printed as the harness's raw stack
+        # constant (2147483392). A record token for a word above the held `esp`
+        # is `sp+0xN`, N bytes above it, so a port spells the slot and not the constant.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2921, win=0x40, bias=[], own=1, ret='none',
+            stubs=['0x402000:2'], record=['0'])
+        compile(script, str(sp), 'exec')
+        src = script[script.index('def token('):]
+        ns = {'STACK_BASE': 0x20000000, 'STACK_SIZE': 0x100000}
+        exec(src[:src.index('\n\n\n')], ns)
+        top = 0x20000000 + 0x100000 - 0x100
+        tok = ns['token']
+        self.assertEqual(tok(top - 1, []), 'sp-0x1')
+        self.assertEqual(tok(top + 0xc, []), 'sp+0xc')
+        self.assertEqual(tok(top, []), 'sp+0x0')
+        self.assertEqual(tok(top + 0x40, []), str(top + 0x40))
+        self.assertEqual(tok(0x7FFFFFFF, []), '2147483647')  # the integer edge, 0xff over the top
+        self.assertEqual(tok(top + 0xc, [('m', top + 0x8, 0x10)]), 'm+0x4')
+
+    def test_the_stack_under_the_call_may_be_cleared_each_row(self):
+        # Item 2921 (parked 2906): a `--deref` of a caller's local printed the
+        # last row's bytes wherever the function wrote less than the local
+        # holds (`issue_rename_city`'s Command, 55 bytes, its string a variable
+        # length). `--clean-stack N` zeroes N bytes under the entry `esp`
+        # before each row, so a byte the function did not write reads 00.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2921, win=0x40, bias=[], own=0, ret='none',
+            stubs=['0x402000:1'], deref=['0:0:55'], clean_stack=0x100)
+        compile(script, str(sp), 'exec')
+        self.assertIn('STACKCLEAN = 256', script)
+        self.assertIn('uc.mem_write(STACK_BASE + STACK_SIZE - 0x100 - STACKCLEAN, bytes(STACKCLEAN))', script)
+        self.assertIn('the stack 256 bytes under the call is zeroed before each row', test)
+        _, none, _, _, _ = sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=0, ret='none', stubs=['0x402000:1'])
+        self.assertIn('STACKCLEAN = 0', none)
+        # alone, with no stub or window, it still selects the windowed script (the plain obj has no row for it)
+        _, alone, _, _, _ = sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=0, ret='none', clean_stack=0x40)
+        self.assertIn('STACKCLEAN = 64', alone)
+        for bad in (-1, 0x20000):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none', clean_stack=bad)
 
     def test_a_stub_may_decrement_a_window_word_each_call(self):
         # Item 2749 (parked 2734): `PathFinder::kill_lists` and `Build::verify_gather_tiles`

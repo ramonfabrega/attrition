@@ -3743,6 +3743,11 @@ at its merge): the runner's `pace:` line (Loop 2874) made trimming run884's `end
 not read it still loses the hour, as run880 did. Candidate: `golden_capture.sh` refuses, or stops early with a receipt, a take
 whose first `pace:` projects past `--timeout`, a test made to fail first. One reach.
 
+(2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
+and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
+`archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
+to fail first. One reach.
+
 (2886) **A whole-line `--regen` brings back a port the `.rs` edited and the `--port-file` did not** (2863's "for the Loop"
 line, filed at its merge): `--regen` with a whole line and `--port-file` rewrites the port from the file, and a bare `--regen
 <name>` keeps the line's old port string, so an edit made only in the `.rs` returns at the next whole-line regen (once, in
@@ -3751,7 +3756,9 @@ not a fault at the read. Candidate: a regen that would overwrite a port differin
 both; an unmapped read under a sweep faults with its address. One reach. **A second reach** (2900's "for the Loop"
 line, filed at its merge): `--regen` with a new `@FILE`, on a script whose `--table` flag was in the old kept line, merged the
 old line's flags into the new (`PLACES` grew a second copy of the table); the lane deleted both generated files and generated
-fresh. The same candidate: a regen whose flags changed refuses or starts clean, never merges.
+fresh. The same candidate: a regen whose flags changed refuses or starts clean, never merges. **A third reach** (2921's
+"for the Loop" line, filed at its merge; parked 2939): `--regen` took the kept line's `--port` over the `.rs`'s twice in one
+batch (`issue_rename_city`, `process_halt`).
 
 (2892) **The generated `.rs` header does not say how `--sparse` and `--place` number the `p` windows** (2877's "for the
 Loop" line, filed at its merge): sparse windows come first, so a `--wbias p0+*` meant for the first place biased a sparse
@@ -3775,7 +3782,8 @@ answer takes a packet hooked at the caller's return before a reading. One reach.
 (2914) **A chapter's wiring is six files by hand** (2895's "for the Loop" line, filed at its merge): the script list,
 the walk and widening tests, `testkit`'s word and window, `WIDENINGS`, `floors` and the `coverage` driver, written for every
 chapter since eighty. Candidate: a `tools/` scaffold off `runwiring.py` that writes them from the chapter's number, run and
-word, a test made to fail first. One reach.
+word, a test made to fail first. One reach. **Second reach** (2915's "for the Loop" line, filed at its merge): the staged-line
+count `walk_script` asserts is counted by hand and was wrong on run889's first walk (8, not 6); the scaffold would count it.
 
 (2926) **The two sweep lanes swept the same function twice in one tranche** (the commander's, noticed at 2910's merge):
 2877 re-swept 2863's `Group::kill_next_order`, and 2910 re-swept 2900's `ObjectsData::find_goody_at@0065c040` and
@@ -6710,13 +6718,12 @@ sweep draws the walker at `0x2000....`, so the byte is `0x20` and the final walk
 whose addresses start below `0x01000000` would not make it. The sweep cannot say which the game has (a frame-time fact); the rule is
 in the port's comment. Not a mismatch, an input the emulator fixes.
 
-## Parked by the next landing, slot GA — reserved
+## Parked by item 2904, 2026-10-17 — the battery's East Indies Germans become the AI word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2932) **Both leaders' `aggression` stands 0 against 1 from run886's first block, 570** (2904, `docs/AI.md` §239):
+`0/-1 leader:aggression[1]` and `1/-1 leader:aggression[0]`, ours 0, theirs 1, with no draw or order on the word's frame that
+reads it. `diplomacy.rs:512` is its one reader in `sim`. It is not walked back: no earlier widening of this lobby exists, and
+run646's start ends at 36.
 
 ## Parked by item 2910, 2026-10-17 — the hundred-and-twenty-fourth sweep batch (harvest)
 
@@ -6738,18 +6745,37 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2915, 2026-10-17 — chapter 88, the kill arm
 
-- (2915, first) **A cast's completion on an unseen target** — §111 (3) still open: run885's Spy did not reach range in 400 frames, so whether range-arrival
-  asks `is_seen` is untested. Names no score; a staging with the Hoplite ~14 tiles out would reach it.
-- (2915, second) **A building target killed mid-approach** — the same `is_valid_target` branch as the unit kill (§112), no capture drives it; a Spy sent at a
-  Barracks that who=1 loses first. Names no score.
+(2928) **A cast's completion on an unseen target** — §111 (3) still open: run885's Spy did not reach range in 400 frames, so whether range-arrival
+asks `is_seen` is untested. Names no score; a staging with the Hoplite ~14 tiles out would reach it. Booked as 2930.
 
-## Parked by the next landing, slot GD — reserved
+(2929) **A building target killed mid-approach** — the same `is_valid_target` branch as the unit kill (§112), no capture drives it; a Spy sent at a
+Barracks that who=1 loses first. Names no score.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 2921, 2026-10-17 — the hundred-and-twenty-fifth sweep batch (shape lane)
+
+- (2934) **2905's flag already existed.** `--stub iat:VA:N` (item 2336) lays a stub in an import's IAT cell, and
+  `process_halt`'s `mov esi, [0xac543c]; call esi` lands on it — `--stub iat:0xac543c:2 --stub-cdecl 0` ran the family with
+  no new code. The row's premise ("a direct callee can be stubbed but not an indirect one through a register") was wrong;
+  the same holds for `timeGetTime` (`call [0xac5460]`, 2923) and for `free`/`malloc` imports (2925's `delete_items`, not swept).
+- (2935) **About twenty `CommandPackage::process_*` bodies are still never-backed** (`census.py --unbacked`): `process_cheat_*`,
+  `process_disband`, `process_resign`, `process_accept`, `process_buy`, `process_speed_up/down`, `process_unitmask`, `process_buildmask`,
+  `process_treaty`, `process_declare`, `process_tribute`, `process_city_gather`, ... Each is the log plus one call; the nine swept
+  here are the template (`command_package_process_alarm.rs` for log + say + a group call, `_ungraceful_player_drop.rs` for a gated one).
+- (2936) **The log's uninitialised argument slots are stack residue the original and the port both spell.** `process_check_random`'s
+  `logToMemory` is handed three words the caller never wrote; the rows hold them as the return address of the last `strrchr` call
+  (`0x946031`/`0x946045`), which is the emulator's stack and the original's by construction, not a game fact. `process_pause`'s
+  `TurnControl::process_pause` is called with the `ecx` the logger left (the singleton cell, 0 under the emulator): the decompile's
+  `this_00` is uninitialised, and which `TurnControl` it means is not established.
+- (2937) **`--clean-stack N` is opt-in and the residue it hides is real.** `issue_rename_city`'s Command printed the previous
+  row's string past the NUL because the harness's stack is never cleared; with the flag a byte the function did not write reads 00.
+  A sweep that derefs a caller's local and wants the residue (the original's) still uses `--deref IDX:K:N:W`'s mask.
+- (2938) **2922 and 2924 are not built** (`--place-null` printing a 0/1 column on an image cell; `--wbias-pair`). `--vtat-keep` is
+  still `--slotbase` without the stub check (2917), not folded.
+- (2939) **`--regen` takes the *kept line's* `--port`**, not the test file's, when the line carries one: a port edited only in
+  the `.rs` is lost by a regen that changes a flag (`issue_rename_city` twice, `process_halt`). Copy the port into the kept line first
+  (done by script this batch) or generate fresh. Loop 2886's trap, one case more.
+- (2940) **The record's `sp+0xN` stops 0x40 over the held `esp`.** The first range (0x100) swallowed the integer edge
+  `0x7FFFFFFF` (0xff over the top) in `analyze_response`'s first run and printed an argument as `sp+0xff`.
 
 ## Parked by item 2927, 2026-10-17 — the hundred-and-twenty-sixth sweep batch: ten swept, the vcall pair and the callers parked
 
@@ -6801,6 +6827,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GO renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

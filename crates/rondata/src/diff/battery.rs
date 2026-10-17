@@ -62,23 +62,15 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     (7, 17, 3),
     // The peace pair's (item 2320): the Lakota at Difficulty 3, East Indies.
     (18, 19, 3),
+    // The battery's first lobby, promoted to the AI word (item 2904,
+    // DECISIONS 72): the Germans at Difficulty 3, East Indies.
+    (18, 12, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
-    Lobby {
-        name: "EastIndiesGermanTier3",
-        map_style: 18,
-        ai_tribe: 12,
-        difficulty: 3,
-        start: "gamelog-run646-eastindies-german-diff3-start.txt",
-        long: (
-            "gamelog-run643-eastindies-german-diff3-24k-trace.txt",
-            "rontrace-run643.log",
-        ),
-        length: 13519,
-        count: 576,
-        sequence: 576,
-    },
+    // `EastIndiesGermanTier3` (Germans 12, Difficulty 3, map 18; run646 and
+    // run643, 576 of 13519) left the battery on item 2904 for the AI word
+    // (`diff::german_word`, DECISIONS 72).
     Lobby {
         name: "GreatLakesRussianTier2",
         map_style: 14,
@@ -106,6 +98,26 @@ pub(crate) const BATTERY: &[Lobby] = &[
         length: 20380,
         count: 2974,
         sequence: 2974,
+    },
+    // The fourth lobby (item 2904, DECISIONS 72), minted when the first
+    // left for the AI word so three stay held out: Great Lakes, the Chinese
+    // at Difficulty 1 — a nation and a difficulty no scored or battery
+    // lobby has. The game does not end itself: the long runs to 24000.
+    Lobby {
+        name: "GreatLakesChineseTier1",
+        map_style: 14,
+        ai_tribe: 14,
+        difficulty: 1,
+        start: "gamelog-run887-greatlakes-chinese-diff1-start.txt",
+        long: (
+            "gamelog-run888-greatlakes-chinese-diff1-24k-trace.txt",
+            "rontrace-run888.log",
+        ),
+        length: 24000,
+        // Item 2904, the first try: ours 12 draws, theirs 14, at 6 ours
+        // `Farms::inc_time+0x1ae`, theirs `Guy::init_real+0x52`.
+        count: 176,
+        sequence: 176,
     },
 ];
 

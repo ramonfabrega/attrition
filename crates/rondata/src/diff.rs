@@ -39,6 +39,8 @@ mod coverage_pair;
 mod endpoint;
 mod floors;
 #[cfg(test)]
+mod german_word;
+#[cfg(test)]
 mod golden;
 mod harness;
 #[cfg(test)]

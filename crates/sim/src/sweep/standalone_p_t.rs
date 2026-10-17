@@ -302,6 +302,8 @@ mod terrain_walk_coord_data;
 mod think_order_get_type;
 #[path = "time_sync_add_ping.rs"]
 mod time_sync_add_ping;
+#[path = "time_sync_analyze_response.rs"]
+mod time_sync_analyze_response;
 #[path = "time_sync_get_best_ping_time.rs"]
 mod time_sync_get_best_ping_time;
 #[path = "time_sync_on_player_deleted.rs"]

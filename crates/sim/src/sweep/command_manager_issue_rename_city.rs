@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `CommandManager::issue_rename_city@009411d0`, run by `tools/emu/sweep_command_manager_issue_rename_city.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 3 argument(s), argument 2 names 16 random bytes; callee 0x00940a70 (0 args) stubbed; callee 0x00a1f0a0 (0 args) stubbed; callee 0x0055e0ac (3 args) stubbed; callee 0x0094bae0 (2 args) stubbed; the word at `p0+0` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 prints the 9 bytes its argument 0 points at, hex, after the record (`/` a call); stub 2 is `__cdecl`: the caller pops its arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// (tools/emu): 32 random bytes of object, 3 argument(s), argument 2 names 16 random bytes; callee 0x00940a70 (0 args) stubbed; callee 0x00a1f0a0 (0 args) stubbed; callee 0x0055e0ac (3 args) stubbed; callee 0x0094bae0 (2 args) stubbed; the word at `p0+0` points at 16 random bytes less `0` (placed, null a third of the rows); stub 1's answer points at 48 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 prints the 55 bytes its argument 0 points at, hex, after the record (`/` a call); stub 2 is `__cdecl`: the caller pops its arguments; the stack 256 bytes under the call is zeroed before each row; stub 2 copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_command_manager_issue_rename_city.py") else {
@@ -64,10 +64,17 @@ fn the_emulated_original_agrees_on_every_row() {
                         log.push("-".into());
                     } else {
                         log.push("p0+0x0".into());
-                        log.push(format!("p0+0x0,sp-0x43,{},{}", a[4], 2 * len.min(20) + 2));
+                        log.push(format!("p0+0x0,sp-0x43,p2+0x0,{}", 2 * len.min(20) + 2));
                     }
                     log.push("15269768,sp-0x4c,53".into());
-                    log.push(format!("4b{}{}", le(a[0]), le(a[1])));
+                    let mut cmd = format!("4b{}{}", le(a[0]), le(a[1]));
+                    let copied = !(rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0);
+                    let u = if copied { 2 * len.min(20) as usize } else { 0 };
+                    for b in &p[2][..u] {
+                        cmd.push_str(&format!("{b:02x}"));
+                    }
+                    cmd.push_str(&"00".repeat(46 - u));
+                    log.push(cmd);
                 }
                 0
             }
@@ -95,6 +102,6 @@ fn the_emulated_original_agrees_on_every_row() {
         }
         n += 1;
     }
-    assert!(n >= 200, "only {n} rows");
+    assert!(n >= 600, "only {n} rows");
     eprintln!("CommandManager::issue_rename_city@009411d0: {n} rows agree");
 }
