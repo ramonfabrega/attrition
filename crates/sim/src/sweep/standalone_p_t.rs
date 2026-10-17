@@ -288,6 +288,8 @@ mod tribe_walk_rules_data;
 mod tribes_walk_data;
 #[path = "turn_control_compute_next_turn_solo.rs"]
 mod turn_control_compute_next_turn_solo;
+#[path = "turn_control_get_delta_percent.rs"]
+mod turn_control_get_delta_percent;
 #[path = "turn_control_get_frame_timing.rs"]
 mod turn_control_get_frame_timing;
 #[path = "turn_control_get_lag_time.rs"]
