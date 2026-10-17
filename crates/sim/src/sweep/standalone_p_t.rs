@@ -88,6 +88,12 @@ mod resource_divvy_pool_add_early;
 mod resource_divvy_pool_add_late;
 #[path = "resource_divvy_pool_add_water.rs"]
 mod resource_divvy_pool_add_water;
+#[path = "resource_divvy_pool_get_early.rs"]
+mod resource_divvy_pool_get_early;
+#[path = "resource_divvy_pool_get_late.rs"]
+mod resource_divvy_pool_get_late;
+#[path = "resource_divvy_pool_get_water.rs"]
+mod resource_divvy_pool_get_water;
 #[path = "resource_divvy_pool_refresh_early.rs"]
 mod resource_divvy_pool_refresh_early;
 #[path = "resource_divvy_pool_refresh_late.rs"]
