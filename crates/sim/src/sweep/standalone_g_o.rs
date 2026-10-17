@@ -184,6 +184,8 @@ mod group_data_can_transport;
 mod group_data_equals_group_const;
 #[path = "group_data_get_angle.rs"]
 mod group_data_get_angle;
+#[path = "group_data_get_auto_explore.rs"]
+mod group_data_get_auto_explore;
 #[path = "group_data_get_form.rs"]
 mod group_data_get_form;
 #[path = "group_data_get_num_cap_const.rs"]
