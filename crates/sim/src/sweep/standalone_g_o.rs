@@ -190,6 +190,8 @@ mod group_data_get_auto_explore;
 mod group_data_get_form;
 #[path = "group_data_get_form_mod_option.rs"]
 mod group_data_get_form_mod_option;
+#[path = "group_data_get_form_option.rs"]
+mod group_data_get_form_option;
 #[path = "group_data_get_infinite_queue.rs"]
 mod group_data_get_infinite_queue;
 #[path = "group_data_get_num_cap_const.rs"]
