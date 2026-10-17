@@ -212,6 +212,8 @@ mod build_type_data_fundamental_type;
 mod build_type_data_gather_radius;
 #[path = "build_type_data_get_city_level.rs"]
 mod build_type_data_get_city_level;
+#[path = "build_type_data_get_garrison_limit.rs"]
+mod build_type_data_get_garrison_limit;
 #[path = "build_type_data_get_kill_value.rs"]
 mod build_type_data_get_kill_value;
 #[path = "build_type_data_get_stance_type.rs"]
