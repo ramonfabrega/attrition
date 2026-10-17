@@ -246,6 +246,8 @@ mod target_order_walk_data;
 mod tcoord_data_walk_data;
 #[path = "tcoord_less.rs"]
 mod tcoord_less;
+#[path = "tech_type_add_preq_ai.rs"]
+mod tech_type_add_preq_ai;
 #[path = "tech_type_backup.rs"]
 mod tech_type_backup;
 #[path = "tech_type_restore.rs"]
