@@ -17415,6 +17415,12 @@ Ours agrees on every block but the standing 1100 rows.
 `~/ron-golden/ch88/map-14/`, 1,501 frames. No minutes waited on another lane. **What it holds**: `0/6` bribes the Hoplite on 1250; `0/7`'s cast is
 killed at its next review, 1258. Ours agrees on every block but the standing 1100 rows.
 
+## run913 — chapter ninety-three: Sabotage blows up two Supply Wagons (2026-10-17, item 3018, `att-3018`)
+
+`docs/GOLDEN.md` §117. **What the disk could not answer**: no dump held a Sabotage cast on a unit. Recipe `tools/gamelog/golden/chapter93.cmd` (`--map 14 --end-frame 1200
+--log-window 605 1200`, chapter 92's `end:`/`start:` sets). Pool lane, 583 s, kept in `~/ron-golden/ch93/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane.
+**What it holds**: Supply Wagons `1/6`, `1/7` dead by the Commandos' casts; ours agrees on every block bar the 11 standing `form` rows.
+
 ## run911 — chapter ninety-two: Sabotage razes a Barracks, a Hoplite refused (2026-10-17, item 2994, `att-2994`)
 
 `docs/GOLDEN.md` §116. **What the disk could not answer**: no dump held a Sabotage cast on a building (run246 refused a Pilfer on a Barracks only). Recipe

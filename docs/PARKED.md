@@ -7081,13 +7081,11 @@ orders agree at equality); `lo < 60000` → `lo < 59999` survives 6000 rows, the
   (values like 5242957, 67, 1 that no booted game holds); the sweep draws it as a window instead, so it pins the
   indexing and the call, not the table (the table is the sim's own `TurnControl::timings`, not swept here).
 
-## Parked by the next landing, slot GY — reserved
+## Parked by item 3018, 2026-10-17 — Sabotage on a vehicle
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3018) **An armed vehicle target is unstageable as a Sabotage victim**: a who=1 Tank shot the lone Commando dead before the cast's 150 frames ended; only an unarmed
+  vehicle (Supply Wagon) was staged. A Tank-class target and the caster's counters stay unestablished (GOLDEN §117).
+- (3018) **`waitrun.sh` missed the click-free lane's receipt**: it kept waiting 90 minutes after the run exited (receipt JSON is the log's last line); the commander noticed.
 
 ## Parked by item 3024, 2026-10-17 — the sweep's third harvest batch
 
