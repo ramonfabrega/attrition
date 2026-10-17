@@ -500,6 +500,8 @@ mod world_set_down;
 mod world_set_gather_edge;
 #[path = "world_set_gathered_at.rs"]
 mod world_set_gathered_at;
+#[path = "world_set_land.rs"]
+mod world_set_land;
 #[path = "world_set_mountain_at.rs"]
 mod world_set_mountain_at;
 #[path = "world_set_orig_coast.rs"]
