@@ -236,6 +236,8 @@ mod unit_type_walk_rules_data;
 mod unit_update_gpiece;
 #[path = "unit_update_order.rs"]
 mod unit_update_order;
+#[path = "unit_update_patrol_order.rs"]
+mod unit_update_patrol_order;
 #[path = "units_make_valid.rs"]
 mod units_make_valid;
 #[path = "valid_filter_case0.rs"]

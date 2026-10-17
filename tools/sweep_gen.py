@@ -1840,10 +1840,10 @@ def main(argv):
             if rng.random() < 0.5:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[off:off + 4] = vt.to_bytes(4, "little")
-        for win, off, tgt, plus in ALIAS:
+        for win, off, tgt, plus, always in ALIAS:
             # `--alias`: the word laid as a window's own address (plus K) half the rows, the other half left as
             # drawn: a pointer that names another window, or its own (item 2797, parked 2791).
-            if rng.random() < 0.5:
+            if always or rng.random() < 0.5:
                 at_ = this if tgt == "m" else wins[(0 if tgt[0] == "c" else nc) + int(tgt[1:])][0]
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[off:off + 4] = ((at_ + plus) & 0xFFFFFFFF).to_bytes(4, "little")
@@ -2376,10 +2376,11 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     for al in alias:
         loc, colon, tgt = al.partition(':')
         awin, plus, aoff = loc.partition('+')
-        twin, tplus, toff = tgt.partition('+')
+        always = tgt.endswith('!')  # `TARGET!`: every row (a list's end node must name its list; item 2863)
+        twin, tplus, toff = tgt.rstrip('!').partition('+')
         if not (colon and plus and re.fullmatch(r'm|c\d+|p\d+', awin) and re.fullmatch(r'm|c\d+|p\d+', twin)):
             raise ValueError(f'--alias is WIN+OFF:TARGET[+K] over m, cN or pN, not {al!r}')
-        palias.append((awin, int(aoff, 0), twin, int(toff, 0) if tplus else 0))
+        palias.append((awin, int(aoff, 0), twin, int(toff, 0) if tplus else 0, always))
     pimg = []
     for vi in vtat_image:
         loc, colon, va_ = vi.partition(':')
@@ -3393,9 +3394,9 @@ def main(argv=None):
     ap.add_argument('--vtat-also', action='append', default=[], metavar='WIN+OFF',
                     help='obj: the stubbed vtable laid at this word of window m, cN or pN as well, `this` '
                          'keeping it (a record whose slots the function asks beside its own; item 2217)')
-    ap.add_argument('--alias', action='append', default=[], metavar='WIN+OFF:TARGET[+K]',
+    ap.add_argument('--alias', action='append', default=[], metavar='WIN+OFF:TARGET[+K][!]',
                     help='obj: the word at this window offset laid as the address of window TARGET (plus K) half the '
-                         'rows, the other half left as drawn (a pointer that must name another window, or its own: '
+                         'rows (every row with a trailing `!`), the other half left as drawn (a pointer that must name another window, or its own: '
                          '`check_last_connect`; item 2797, parked 2791)')
     ap.add_argument('--vtat-image', action='append', default=[], metavar='WIN+OFF:VA',
                     help='obj: the stub slots copied into the image\'s vtable at VA, and the word at WIN+OFF laid VA half '
