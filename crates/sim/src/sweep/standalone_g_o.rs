@@ -62,6 +62,8 @@ mod game_get_armageddon;
 mod game_get_game_fps_average;
 #[path = "game_info_default_setting.rs"]
 mod game_info_default_setting;
+#[path = "game_info_load_from_playback.rs"]
+mod game_info_load_from_playback;
 #[path = "game_is_cooperative.rs"]
 mod game_is_cooperative;
 #[path = "game_is_deathmatch.rs"]
@@ -102,6 +104,8 @@ mod game_on_find_leaderboard;
 mod game_popwin_timer;
 #[path = "game_teams_locked.rs"]
 mod game_teams_locked;
+#[path = "game_unload_net_lib.rs"]
+mod game_unload_net_lib;
 #[path = "game_war_allowed.rs"]
 mod game_war_allowed;
 #[path = "game_wonder_timer.rs"]
@@ -152,6 +156,8 @@ mod good_type_data_is_flat;
 mod good_type_data_is_herd_type;
 #[path = "good_type_data_snap_center.rs"]
 mod good_type_data_snap_center;
+#[path = "good_type_out_say_gather_level.rs"]
+mod good_type_out_say_gather_level;
 #[path = "good_type_walk_rules_data.rs"]
 mod good_type_walk_rules_data;
 #[path = "good_walk_data.rs"]

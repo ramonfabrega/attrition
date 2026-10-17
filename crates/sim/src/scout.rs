@@ -299,8 +299,11 @@ impl Sim {
     /// different functions with one letter between their names). Answers
     /// true when no fog grid is loaded, which is the flat harness world.
     ///
-    /// The two leader exits (`leader_flags & 0x800`, `LeaderData +0x59e4`)
-    /// are seams: no run sets either.
+    /// The two leader exits are [`Sim::sees_every_unit`]'s (item 2780,
+    /// `docs/AI.md` §233): `leader_flags & 0x800` — the Space Program, or
+    /// `REVEAL_ENEMY_BONUS` — and `LeaderData +0x59e4`, which is
+    /// `num_units[0x141]`, a Fouché standing. Either and every cell is
+    /// seen (`006b54f0`'s third and fourth tests).
     pub(crate) fn was_really_seen(&self, c: Cell, who: Player) -> bool {
         self.was_really_seen_fog(2 * c.x + 1, 2 * c.y + 1, who)
     }
@@ -318,6 +321,12 @@ impl Sim {
     /// (`docs/PATHFINDER.md` §5).
     pub(crate) fn was_really_seen_fog(&self, fx: i32, fy: i32, who: Player) -> bool {
         if who >= 8 || self.lobby.reveal_map == 3 {
+            return true;
+        }
+        // The two leader exits, ahead of the grid: the peace pair's who=1
+        // holds the Space Program from before 5401 (run867's `leader_flags`
+        // `0xa3f03`), so its scout's region scan accepts no cell on 5564.
+        if self.sees_every_unit(who) {
             return true;
         }
         let Some(bits) = self.world.seen2(fx, fy) else {
@@ -958,6 +967,21 @@ mod tests {
         let ai = spawn(&mut s, 1, centre);
         let human = spawn(&mut s, 0, Pos::new(5 * 768 + 384, 5 * 768 + 384));
         (s, ai, human)
+    }
+
+    /// **`was_really_seen`'s leader exits** (`006b54f0`, `docs/AI.md`
+    /// §233): on an all-unseen grid a leader sees nothing until a Fouché of
+    /// its own stands (`num_units[0x141]`), and the other leader is not
+    /// lent the sight. The Space Program arm (`leader_flags & 0x800`) is
+    /// the same call, [`Sim::sees_every_unit`].
+    #[test]
+    fn a_fouche_sees_every_cell_to_the_scout() {
+        let (mut s, ai, _) = scout_sim(true);
+        let c = Cell::new(30, 30);
+        assert!(!s.was_really_seen(c, 1), "the fog alone: unseen");
+        s.units[ai].type_index = 0x32 + 0x141;
+        assert!(s.was_really_seen(c, 1), "a Fouché standing: every cell");
+        assert!(!s.was_really_seen(c, 0), "and only its owner's");
     }
 
     /// §4: `circle_init`'s first rings, and the check that the sweep order

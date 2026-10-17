@@ -3736,6 +3736,23 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-17 — the thirty-eighth tranche's
+
+(2788) **Two RSS samplers' slot probes read each other as holders: exit 125, "cannot monitor a held lease with
+invalid owner metadata"** (the commander, from 2783's lane gate, red twice on tests it did not touch): `status()`
+probed each `cpu-N.lock` with `LOCK_EX | LOCK_NB` under the *shared* admission mutex, so two supervisors sampling at
+once each found the other's probe as a holder, and a free slot never described (`cpu-24..31.lock` empty on disk,
+2026-10-17) read as `owner: None`. Three of 2783's run-3 failures were this exit (`debug_view::…replay_context`,
+`army::…run29_s_navy…`, `archive::…publication_never_overwrites…`); the marker does not reach it, since admission off
+still samples. **Fixed by the commander the same day**: the probe takes `LOCK_SH` — a holder's exclusive lock still
+refuses it, a second probe does not — held by `test_a_concurrent_probe_is_not_a_holder`, made to fail first. Yours:
+whether the trial's numbers before this commit count, and whether a sampler should ever raise on a slot it cannot read.
+
+(2792) **`sweep_gen.py --regen` with no `--port` drops a hand-written port to `todo!()`** (2783's "for the Loop"
+line, filed at its merge): four times in one batch, though the keep is said to hold (item 2368); the port had been
+written by replacing the `todo!()` line, so perhaps the keep wants the generator's own markers. Each re-application
+cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 (2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
@@ -6126,13 +6143,13 @@ The stub answer layout (own arguments, one drawn answer a stub, then each `--seq
 
 (2778) Shapes lacking from the next rows read, each one line, none built: `Terrain::walk_coord_data` 0x850ef0 (two singletons and a walker through `param_1[0]`, a list per row at stride 0xc); `WorldData::is_seen` 0x6b55c0 (a leaders record at stride `0x6eec`, a game-info byte, two tile arrays: window sizes over a megabyte); `TurnControl::issue_speed_set` 0x956ad0 (a `Command` local the stub is handed by address and the function builds on its stack); `MapFairness::recompute` 0x68a100 (a float compare, no integer shape); `GatherPointList::get_new_data` 0x470e90 (a `malloc` and a constructor); `Player::end_game` 0x6ee110 (camera, scene and semaphore singletons, a write through each).
 
-## Parked by the next landing, slot EU — reserved
+## Parked by item 2780, 2026-10-17 — the scout's fog read takes the Space Program
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2779) **The peace pair's word 5982 owes its widening** (2780, `docs/AI.md` §233): count and sequence part on 5982 at
+index 5, ours 37 draws, theirs 287 — ours `Leader::produce_building+0x1805`, theirs `Build::find_gather_tiles+0x10a`.
+run867 ends at 5657 and run847 holds checksums and the closing block only, so no dump of this lobby holds a record on
+5982. run867's recipe with the window moved to 5976..6232 (`--end-frame 6238`) is the capture; theirs' 287 draws on the
+frame suggest a building's completion, so `BUILDS=7` stays in the detail.
 
 ## Parked by item 2782, 2026-10-17 — the pointer-array shape, and the group list's ten
 
@@ -6161,13 +6178,13 @@ Of 2782, **for the Loop**: this item's driver was a throwaway (`$JOB/tmp/gen.py`
 another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 KB port do not survive a shell line; a
 `sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer, is the shape. One reach.
 
-## Parked by the next landing, slot EW — reserved
+## Parked by item 2783, 2026-10-17 — the harvest sweep's hundred-and-eighth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2789) Ten of ten on built shapes, `sweep_gen.py` as it stands: `UnbuiltForts::add_unbuilt_fort` 0x73bc00 (2774's two siblings at base 0xe39b20), `TurnControl::walk_data` 0x956c50 (two `--cell-win` cells, the walker a `--ptrarg` with `--vtat p0+0`, slots 0 and 4 recorded), `Unit::find_nearby_spot` 0x617010 (`--own 14`, a 16-argument forward to `UnitType::find_nearby_spot` 0x61de70), `BorderSplineRender::is_visible` 0x8826c0 (the callee `--stub-cdecl`: without it the harness pops the arguments the caller pops too and the return faults), `GameInfo::load_from_playback` 0x5d4a10, `CommandPackage::begin_process` 0x94c4c0 (`--cdecl`, three `--at` tables), `WallOut::make_options` 0x642470, `GoodTypeOut::say_gather_level` 0x6700d0 (its call to `say_level` is handed two stale stack words, a 0 and the return address 0x67010d, which the oracle fixes and the port states), `Doober::has_doobers` 0x8466d0 (float words by `--wbias`), `Game::unload_net_lib` 0x5877d0 (`--place-null` and a `--stub iat:`). Survivors, read against the draw: `unload_net_lib`'s `want_log[1]` for `want_log[0]` (the two slot calls are null together, an equivalent); `has_doobers`'s `y` and `p2` are never decisive (a finding, below).
+
+(2790) **Findings.** `Doober::has_doobers` tests `div_3_table[(int)(float)(y == (float)p2) >> 8] != 0`, an index that is 0 whichever way the compare went, so the function answers whether a row's truncated x indexes a table entry equal to `p1` and `div_3_table[0]` is nonzero; the port says so, and `docs/` has not been told (the record that would carry it is for the mechanic's lane). `unload_net_lib`'s store of 0 to the `netsys` cell is held to nothing: a `--place` cell is no window, and an `--at` on the same address overwrites the pointer.
+
+(2791) **Shapes lacking.** `StripBuilder::check_last_connect` 0x882050 walks a table of node pointers whose `+4` pointer must name a node whose `+0` equals the first (`cmp [edx], eax`): a placed pointer that points at another window's start, or at its own, has no flag, so the equal arm is a 2^-32 draw (`--place pN+OFF` aiming at the window that holds it, or a `--link` of size 4 that points back, would build it). `TurnControl::get_delta_percent` 0x957950 (`timeGetTime` and a float return), `Game::clock_init` 0x588530 (`timeGetTime`, an import answering a clock) and `MiscAccess::world_to_screen` 0x583810/0x583a00 (arguments in `edx` and `esi` the decompiler prints as unaffected registers) were read and not built.
 
 ## Parked by the next landing, slot EX — reserved
 

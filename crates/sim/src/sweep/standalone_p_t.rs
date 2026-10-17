@@ -304,6 +304,8 @@ mod turn_control_set_pause;
 mod turn_control_speed_down;
 #[path = "turn_control_speed_up.rs"]
 mod turn_control_speed_up;
+#[path = "turn_control_walk_data.rs"]
+mod turn_control_walk_data;
 #[path = "type_bonus.rs"]
 mod type_bonus;
 #[path = "type_build.rs"]
