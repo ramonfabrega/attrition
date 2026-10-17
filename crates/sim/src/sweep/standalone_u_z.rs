@@ -148,6 +148,8 @@ mod unit_do_flee_to;
 mod unit_do_form_change;
 #[path = "unit_do_gather.rs"]
 mod unit_do_gather;
+#[path = "unit_do_group_attack_to.rs"]
+mod unit_do_group_attack_to;
 #[path = "unit_do_idle.rs"]
 mod unit_do_idle;
 #[path = "unit_do_spec_unit_anim.rs"]
