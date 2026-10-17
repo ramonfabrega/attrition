@@ -352,6 +352,8 @@ mod city_data_smelter_level;
 mod city_data_upgrades_to;
 #[path = "city_get_trade_routes.rs"]
 mod city_get_trade_routes;
+#[path = "city_set_name.rs"]
+mod city_set_name;
 #[path = "city_walk_data.rs"]
 mod city_walk_data;
 #[path = "cliff_average_neighbor_norms.rs"]
