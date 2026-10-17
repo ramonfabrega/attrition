@@ -86,7 +86,10 @@ original test-name wrappers. Case rebuilds2.4–3.4× faster, CPU74–85% lower;
 shared-helper CPU flat. Combined validation: source guards corrected on `a30a36bd`
 after full run on `e8404b99`; all original checks/3276 fixture requests retained,
 one guard added. See [journal](journal/2026-10-16-replay-boundary.md).
-Next: observe admission wait versus execution; assess other replay-family boundaries.
+Harness follow-up:85 exact bodies in nine groups; measured case rebuild19.52→15.30s,
+CPU52.64→20.95s, sampled tree1566→1209MiB. Focused checks and failure probes pass;
+full committed-tree validation pending. See [journal](journal/2026-10-16-harness-boundary.md).
+Next: measure remaining admission/runtime costs; finer harness groups give little benefit.
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See

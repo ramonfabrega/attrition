@@ -499,3 +499,20 @@ and4.35s/6.35CPU/803MiB. The original gate exited1; no full-gate speedup claimed
 Source guards reconstruct the bodies from the frozen checkout. See the
 [replay-boundary journal](journal/2026-10-16-replay-boundary.md) and
 [audit](audit/2026-10-16-replay-boundary.json).
+
+## Harness replay case modules
+
+Eighty-five ordinary harness test bodies now use nine source groups beneath
+`diff/harness/tests/`, with original wrappers and attributes in `harness.rs`.
+An inner module keeps every original body byte, including string indentation.
+Shared widening helpers stay in the parent. Names, fixture labels, comparison
+coverage, profiles and runner selection remain unchanged. Nested source guards
+reconstruct the original logical bodies; registration guards reject missing,
+duplicate and misdirected cases. Add tests with a same-named wrapper and body.
+
+The measured run57 diagnostic edit rebuild goes19.52→15.30s, CPU52.64→20.95s,
+sampled tree1566→1209MiB. Seventeen and85 groups do not materially beat nine.
+This reduces build pressure; no shared-helper, concurrent-worktree or whole-suite
+speedup is inferred. Full required-fixture validation is pending the implementation
+commit. See the [harness journal](journal/2026-10-16-harness-boundary.md) and
+[audit](audit/2026-10-16-harness-boundary.json). Independent review remains owed.

@@ -61,6 +61,57 @@ class GoldenCaseRegistration(unittest.TestCase):
                 self.check_family(folder)
 
 
+class HarnessCaseRegistration(unittest.TestCase):
+    def check_family(self, folder):
+        import re
+        parent = (folder / 'harness.rs').read_text().split('pub(crate) mod tests {', 1)[1]
+        modules = re.findall(r'^    mod (cases_\w+);$', parent, re.M)
+        files = {p.stem for p in (folder / 'harness/tests').glob('cases_*.rs')}
+        self.assertEqual(len(modules), len(set(modules)))
+        self.assertEqual(set(modules), files)
+        wrappers = re.findall(
+            r'    #\[test\]\n(?:    #\[ignore\]\n)?    fn (\w+)\(\) \{\n        (cases_\w+)::(\w+)\(\);\n    \}', parent)
+        self.assertEqual(len(wrappers), parent.count('#[test]'))
+        actual = []
+        for module in modules:
+            source = (folder / 'harness/tests' / f'{module}.rs').read_text()
+            self.assertTrue(source.startswith('pub(super) use bodies::*;\n\nmod bodies {\n    use super::super::*;\n'))
+            self.assertNotIn('#[test]', source)
+            actual += [(name, module, name) for name in re.findall(
+                r'^    pub\(in super::super\) fn (\w+)\(\)', source, re.M)]
+        self.assertEqual(sorted(wrappers), sorted(actual))
+        self.assertEqual(len(wrappers), len({name for name, _, _ in wrappers}))
+
+    def test_harness_cases_have_one_original_name_and_one_body(self):
+        self.check_family(Path(__file__).resolve().parents[2] / 'crates/rondata/src/diff')
+
+    def test_nested_missing_misdirected_duplicate_or_unmounted_cases_fail(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            (folder / 'harness/tests').mkdir(parents=True)
+            parent = folder / 'harness.rs'
+            body = folder / 'harness/tests/cases_00.rs'
+            registration = ('pub(crate) mod tests {\n    mod cases_00;\n    #[test]\n'
+                            '    #[ignore]\n    fn original() {\n'
+                            '        cases_00::original();\n    }\n}\n')
+            definition = ('pub(super) use bodies::*;\n\nmod bodies {\n    use super::super::*;\n'
+                          '    pub(in super::super) fn original() {}\n}\n')
+            parent.write_text(registration)
+            body.write_text(definition)
+            self.check_family(folder)
+            for bad in [registration.replace('::original()', '::other()'),
+                        registration + registration,
+                        registration.replace('    mod cases_00;\n', '')]:
+                parent.write_text(bad)
+                with self.assertRaises(AssertionError):
+                    self.check_family(folder)
+            parent.write_text(registration)
+            for bad in ['', definition + definition]:
+                body.write_text(bad)
+                with self.assertRaises(AssertionError):
+                    self.check_family(folder)
+
+
 class RuntimePolicy(unittest.TestCase):
     def test_release_build_reuses_compilation_without_relaxing_checks(self):
         manifest = Path(__file__).resolve().parents[2] / 'Cargo.toml'

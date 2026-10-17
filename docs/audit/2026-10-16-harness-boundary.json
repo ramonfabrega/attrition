@@ -1,0 +1,56 @@
+{
+  "evidence": "/tmp/attrition-harness-boundary-20261016-01",
+  "baseline_commit": "fd360bbb2307f9d428a0867cc4573e9a0fa04bc9",
+  "layout": {
+    "test_bodies": 85,
+    "groups": 9,
+    "original_body_bytes_preserved": true,
+    "original_helpers_docs_reconstructed": true,
+    "original_test_names_preserved": true,
+    "new_rust_guards": 1,
+    "new_python_guards": 2
+  },
+  "measurements": {
+    "baseline": {
+      "wall_seconds": 19.52,
+      "cpu_seconds": 52.64,
+      "sampled_tree_mib": 1566
+    },
+    "split": {
+      "wall_seconds": 15.53,
+      "cpu_seconds": 21.14,
+      "sampled_tree_mib": 1232
+    },
+    "five": {
+      "wall_seconds": 15.17,
+      "cpu_seconds": 20.4,
+      "sampled_tree_mib": 1226
+    },
+    "singles": {
+      "wall_seconds": 15.29,
+      "cpu_seconds": 20.45,
+      "sampled_tree_mib": 1216
+    },
+    "final": {
+      "wall_seconds": 15.3,
+      "cpu_seconds": 20.95,
+      "sampled_tree_mib": 1209
+    }
+  },
+  "focused": {
+    "registration": 11,
+    "ledger": 3,
+    "floors": 22,
+    "source": 2,
+    "slots": 2,
+    "labels": 1,
+    "wrong_assertion_exit": 101,
+    "restored_assertion_exit": 0,
+    "removed_pin_hold_exit": 101,
+    "restored_pin_hold_exit": 0,
+    "ledger_output_identical": true
+  },
+  "full_gate": "pending committed-tree validation",
+  "scores": "unchanged; no sim or comparison changes",
+  "independent_review": "owed"
+}

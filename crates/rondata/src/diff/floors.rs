@@ -1220,6 +1220,8 @@ mod tests {
             }
             let source = if path.file_name().is_some_and(|n| n == "golden.rs") {
                 crate::testenv::source::golden().0
+            } else if path.file_name().is_some_and(|n| n == "harness.rs") {
+                crate::testenv::source::harness().0
             } else {
                 std::fs::read_to_string(&path).expect("read")
             };

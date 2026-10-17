@@ -63,7 +63,7 @@ const DIFF: [&str; 19] = [
     include_str!("diff/endpoint.rs"),
     include_str!("diff/floors.rs"),
     "", // Expanded from the live frozen tree by diff_sources; bodies are in child modules.
-    include_str!("diff/harness.rs"),
+    "", // Expanded from the live frozen tree; nested case bodies retain their checks.
     include_str!("diff/harness/checkpoint.rs"),
     include_str!("diff/leader.rs"),
     include_str!("diff/order.rs"),
@@ -105,12 +105,15 @@ const DIFF_FILES: [&str; 19] = [
 #[cfg(test)]
 fn diff_sources() -> Vec<String> {
     let golden = crate::testenv::source::golden().0;
+    let harness = crate::testenv::source::harness().0;
     DIFF_FILES
         .iter()
         .zip(DIFF)
         .map(|(path, source)| {
             if *path == "diff/golden.rs" {
                 golden.clone()
+            } else if *path == "diff/harness.rs" {
+                harness.clone()
             } else {
                 source.to_string()
             }
@@ -404,11 +407,13 @@ mod tests {
         }
         on_disk.sort();
         let (_, golden_cases) = crate::testenv::source::golden();
+        let (_, harness_cases) = crate::testenv::source::harness();
         let listed: std::collections::BTreeSet<&str> = DIFF_FILES
             .iter()
             .copied()
             .chain(NOT_A_DIFFER.iter().map(|(p, _)| *p))
             .chain(golden_cases.iter().map(String::as_str))
+            .chain(harness_cases.iter().map(String::as_str))
             .collect();
         let missing: Vec<&str> = on_disk
             .iter()
