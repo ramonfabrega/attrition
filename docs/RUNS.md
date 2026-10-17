@@ -17569,3 +17569,142 @@ SHA-256 `8c51852c807b56ae212d8792ce5800a0f72d21dc7d242c778dc610d127be825c`.
 **What it holds**: `diff::german_word::run893c_s_word_frame_is_widened_whole`, 436 keys over 258 blocks. Before the word's
 block 6586 who=1's make list parts on 6581 (head type 340 in ours against 334) and its queue `1/2010` on 6583. The window is
 in the coverage driver's slice.
+
+## run910 — the battery word: East Indies, Germans at difficulty 3, the word 12815's widening, blocks 12809..13066 (2026-10-17, item 2974, `att-2974`)
+
+`docs/AI.md` §242. **What the disk could not answer**: item 2974 moved the word 6585 → 12815, past run893c's last block
+(6836); run643 is `cover=0` with its setup and closing blocks only, so no dump of this lobby held a record on 12815.
+run891's recipe with the window moved to the word, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run910`: `--map 18 --end-frame 13072 --timeout 7200 --log-window 12809 13067 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 2: `success`, `settings_restored`, 13073 frames, `map_style 18`, seed 12345, players `(0,4,7),(1,12,1)`; 1471 s
+  from launch to exit (15:14:07 to 15:38:38).
+- The dump holds 259 `BEGIN FRAME`s (12809..13066 and the closing block). Filed by `filerun.py run910
+  eastindies-german-diff3-window-12809-13067`.
+- `rngcmp.py rontrace-run643.log rontrace-run910.log`: **13073 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run910-eastindies-german-diff3-window-12809-13067.txt`, 503,683,586 bytes,
+SHA-256 `f1826b4445dea0146ca423b062066a96a5ecf81d037da4adda67d4f1be4cea9f`.
+
+Archive `rontrace-run910.log`, 84,691,168 bytes,
+SHA-256 `6aa2c9400a2f8e55a8a033691e7494a3f841a7c14e63a1361678ff6d1d7ec957`.
+
+**What it holds**: `diff::german_word::run910_s_word_frame_is_widened_whole`, 967 keys over 258 blocks. Positions part
+already on the window's first block (`0/0` at (4680, 9362) in ours against (4674, 9396), `1/65` at (6394, 11516) against
+(6392, 11520)), so the state parted somewhere in 6837..12808, which no dump covers. The window is in the coverage driver's
+slice.
+## run895, run895b — held-out lobby Great Sahara, Aztecs (0) at difficulty 2: the `DUMP_ALL` start and the long trace (2026-10-17, item 2975, `att-2975`)
+
+`docs/AI.md` §125, §243. Map 7, human Nubians (4) against Aztecs (0), `DIFFICULTY 2`, seed 12345. Start (run895), run595's recipe through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run895`: `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 0
+--profile DIFFICULTY=2`. Long (run895b), run888's recipe plus `--allow-early-end`: `--map 7 --end-frame 24000 --timeout 7200 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000` and run643's four `--detail` lines. Filed with `filerun.py run895 greatsahara-aztec-diff2-start` and `run895b greatsahara-aztec-diff2-24k-trace`.
+- Pool lanes, ten captures launched together: 15:09:56–15:21:02 start (lane 1), 15:23:24–15:25:10 long (lane 3). Both `success`, `settings_restored`, players (0,4,7),(1,0,1); start 37 frames; the long's **game ended itself, last frame 17554**.
+- Minutes waited on another lane: the pool queued the ten captures; each runner waited for a free lane, not measured separately.
+- **First try 9130 / 9130** (count / sequence of 17554): ours 90 draws, theirs 87; at draw 23 ours `Unit::think_scout+0x436`, theirs `Unit::think_scout+0x64c`. Measured and never debugged against.
+
+Archive `gamelog-run895-greatsahara-aztec-diff2-start.txt`, 149,595,608 bytes,
+SHA-256 `791bb4129565bb5cd68cf0e702dd5eb8cd56dbe4716d00ccc4741ba9627f8295`.
+
+Archive `rontrace-run895.log`, 9,050,080 bytes,
+SHA-256 `6f72e287a884a3473d7a6947138e18125435388067695a7e539f8553b8e5fe1a`.
+
+Archive `gamelog-run895b-greatsahara-aztec-diff2-24k-trace.txt`, 12,519,390 bytes,
+SHA-256 `1ddb6f4e4743f7dc41fb950cf245ac0c980c8463bfe8b17e7a0d60499054843a`.
+
+Archive `rontrace-run895b.log`, 69,306,880 bytes,
+SHA-256 `0ac138718e72017bcd18b5f5a5d953a9855fceb68273b7c1f648cb2f84c46a5e`.
+
+
+## run896, run896b — held-out lobby Great Sahara, Spanish (9) at difficulty 3: the `DUMP_ALL` start and the long trace (2026-10-17, item 2975, `att-2975`)
+
+`docs/AI.md` §125, §243. Map 7, human Nubians (4) against Spanish (9), `DIFFICULTY 3`, seed 12345. Start (run896), run595's recipe through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run896`: `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 9
+--profile DIFFICULTY=3`. Long (run896b), run888's recipe plus `--allow-early-end`: `--map 7 --end-frame 24000 --timeout 7200 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000` and run643's four `--detail` lines. Filed with `filerun.py run896 greatsahara-spanish-diff3-start` and `run896b greatsahara-spanish-diff3-24k-trace`.
+- Pool lanes, ten captures launched together: 15:02:03–15:09:39 start (lane 1), 15:30:25–15:32:09 long (lane 3, relaunched once after 300 s). Both `success`, `settings_restored`, players (0,4,7),(1,9,1); start 37 frames; the long's **game ended itself, last frame 22700**.
+- Minutes waited on another lane: the pool queued the ten captures; each runner waited for a free lane, not measured separately.
+- **First try 576 / 576** (count / sequence of 22700): ours 55, theirs 54; at draw 19 ours `Leader::make_stuff+0x221`, theirs `Leader::compute_sites+0x4ac`. Measured and never debugged against.
+
+Archive `gamelog-run896-greatsahara-spanish-diff3-start.txt`, 149,618,388 bytes,
+SHA-256 `dfef0ffc935ab75ed8a9f7d668ed0def108a2ec1bdf2b79ddc9e7d6399cce598`.
+
+Archive `rontrace-run896.log`, 9,669,664 bytes,
+SHA-256 `2e6f47f42d0901abf92b420217a6aa8ebe7523b87d9d3aa2380371e270e87072`.
+
+Archive `gamelog-run896b-greatsahara-spanish-diff3-24k-trace.txt`, 13,014,384 bytes,
+SHA-256 `e00c1e1d95855cf666933376dcdc7288f4558612699c155d0bcb2843ed83ee8d`.
+
+Archive `rontrace-run896b.log`, 134,737,920 bytes,
+SHA-256 `13fcee4ff6a751bcbe285879dc25ce956fbb2a3ac4475cf72ff18e880c085329`.
+
+
+## run897, run897b — held-out lobby Great Lakes, Iroquois (18) at difficulty 3: the `DUMP_ALL` start and the long trace (2026-10-17, item 2975, `att-2975`)
+
+`docs/AI.md` §125, §243. Map 14, human Nubians (4) against Iroquois (18), `DIFFICULTY 3`, seed 12345. Start (run897), run595's recipe through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run897`: `--map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 18
+--profile DIFFICULTY=3`. Long (run897b), run888's recipe plus `--allow-early-end`: `--map 14 --end-frame 24000 --timeout 7200 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000` and run643's four `--detail` lines. Filed with `filerun.py run897 greatlakes-iroquois-diff3-start` and `run897b greatlakes-iroquois-diff3-24k-trace`.
+- Pool lanes, ten captures launched together: 15:02:03–15:09:39 start (lane 3), 15:12:12–15:13:57 long (lane 2). Both `success`, `settings_restored`, players (0,4,7),(1,18,1); start 37 frames; the long's **game ended itself, last frame 12658**.
+- Minutes waited on another lane: the pool queued the ten captures; each runner waited for a free lane, not measured separately.
+- **First try 0 / 0** (count / sequence of 12658): ours 121, theirs 122; at draw 30 ours `Unit::think_scout+0x436`, theirs `Unit::think_scout+0x64c`. Measured and never debugged against.
+
+Archive `gamelog-run897-greatlakes-iroquois-diff3-start.txt`, 150,815,334 bytes,
+SHA-256 `f69069559472074656b32d069254c1b618a22f0b642a7c98477cee2c0f2a78ef`.
+
+Archive `rontrace-run897.log`, 10,246,304 bytes,
+SHA-256 `f37826b80a3c4e1c139bc29ddcc6a1622a27fee41a29e2812f4afbf435c0f7f3`.
+
+Archive `gamelog-run897b-greatlakes-iroquois-diff3-24k-trace.txt`, 12,884,736 bytes,
+SHA-256 `e351c2064866598514408f2810e66d81710402b163bf7efc125ee82cd36b8846`.
+
+Archive `rontrace-run897b.log`, 63,842,208 bytes,
+SHA-256 `50ba452d0a8520bbb5efa1850185c243e4202b0cbb7482767eb81d14ec585ebe`.
+
+
+## run898, run898b — held-out lobby Great Lakes, Turks (8) at difficulty 4: the `DUMP_ALL` start and the long trace (2026-10-17, item 2975, `att-2975`)
+
+`docs/AI.md` §125, §243. Map 14, human Nubians (4) against Turks (8), `DIFFICULTY 4`, seed 12345. Start (run898), run595's recipe through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run898`: `--map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 8
+--profile DIFFICULTY=4`. Long (run898b), run888's recipe plus `--allow-early-end`: `--map 14 --end-frame 24000 --timeout 7200 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000` and run643's four `--detail` lines. Filed with `filerun.py run898 greatlakes-turkish-diff4-start` and `run898b greatlakes-turkish-diff4-24k-trace`.
+- Pool lanes, ten captures launched together: 15:09:56–15:21:29 start (lane 3), 15:21:42–15:23:14 long (lane 3). Both `success`, `settings_restored`, players (0,4,7),(1,8,1); start 37 frames; the long's **game ended itself, last frame 15503**.
+- Minutes waited on another lane: the pool queued the ten captures; each runner waited for a free lane, not measured separately.
+- **First try 1440 / 1440** (count / sequence of 15503): ours 35, theirs 39; at draw 28 ours `Objects::process_all+0x2df`, theirs `Guy::init_real+0x52`. Measured and never debugged against.
+
+Archive `gamelog-run898-greatlakes-turkish-diff4-start.txt`, 151,164,549 bytes,
+SHA-256 `c8090cfa955435c3613a3ac0ce60d3ac4b26422c4e2a8d6fc4cb9c1eacec18b8`.
+
+Archive `rontrace-run898.log`, 10,123,552 bytes,
+SHA-256 `976e7cfcb98d9873def996587bcc8ffc6d617b825ef1a053174d97d8f43c46af`.
+
+Archive `gamelog-run898b-greatlakes-turkish-diff4-24k-trace.txt`, 13,103,394 bytes,
+SHA-256 `6a9cb9697bead3a7015eb364756bc8089667f61a550c1664af0a3844689c7499`.
+
+Archive `rontrace-run898b.log`, 107,122,784 bytes,
+SHA-256 `f5153798e98ebd73eb9398db783ca3afd1aeb7259e11a229be5b92570510e782`.
+
+
+## run899, run899b — held-out lobby East Indies, Romans (6) at difficulty 2: the `DUMP_ALL` start and the long trace (2026-10-17, item 2975, `att-2975`)
+
+`docs/AI.md` §125, §243. Map 18, human Nubians (4) against Romans (6), `DIFFICULTY 2`, seed 12345. Start (run899), run595's recipe through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run899`: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 6
+--profile DIFFICULTY=2`. Long (run899b), run888's recipe plus `--allow-early-end`: `--map 18 --end-frame 24000 --timeout 7200 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000` and run643's four `--detail` lines. Filed with `filerun.py run899 eastindies-roman-diff2-start` and `run899b eastindies-roman-diff2-24k-trace`.
+- Pool lanes, ten captures launched together: 15:02:03–15:09:39 start (lane 2), 15:09:56–15:12:01 long (lane 2). Both `success`, `settings_restored`, players (0,4,7),(1,6,1); start 37 frames; the long's **game ended itself, last frame 18620**.
+- Minutes waited on another lane: the pool queued the ten captures; each runner waited for a free lane, not measured separately.
+- **First try 576 / 576** (count / sequence of 18620): ours 28, theirs 89; at draw 0 ours `Animal::think_bird+0x82`, theirs `Leader::produce_building+0xc99`. Measured and never debugged against.
+
+Archive `gamelog-run899-eastindies-roman-diff2-start.txt`, 153,475,176 bytes,
+SHA-256 `955be0b044cf251939591f3de3c87d839888fe5e363387dad9862cc8662a8fc9`.
+
+Archive `rontrace-run899.log`, 10,406,080 bytes,
+SHA-256 `fb6b3b66385a547337c87d6e82fccf591d75a4b5b2ce79d1904dbc92e7c04bc9`.
+
+Archive `gamelog-run899b-eastindies-roman-diff2-24k-trace.txt`, 13,426,979 bytes,
+SHA-256 `8598dafcd020cd5540d0f1ed5f6c7246d628720522cfe3977e707e2929bdf917`.
+
+Archive `rontrace-run899b.log`, 91,916,320 bytes,
+SHA-256 `21507a6ee575ac4b05997f596bffce76e584d2e46219175c182abef5fdd81106`.
+

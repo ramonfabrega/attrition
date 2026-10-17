@@ -494,7 +494,9 @@ shape carries no information and the predicates do:
   *swaps the resource index*, charging food where the file wrote wealth
   (**inert as shipped**: `EGYPTIAN_SCHOLARS_FOOD` is 0, A1 row 72).
   (The French siege arm is built as of item 1460; see "A French siege unit
-  costs less".)
+  costs less". The German submarine arm is built as of item 2974: it tests
+  `is(0x14e, 0)`, the Fire Raft **by lineage**, so the whole Fire Raft line
+  to the Submarine takes `GERMAN_SUBMARINE_COST`, 25%; `docs/AI.md` §242.)
 - **Rare resources.** Horses, Rubber, Sulphur, Aluminium, Uranium, Wool,
   Marble, Bison and Incense each cheapen one category (Horses and Rubber
   are built as of item 613, `docs/AI.md` §62: **both** take their 15% off
@@ -1085,7 +1087,8 @@ the original offered it.
 
 **How confident**: diff-backed by run631's standing `queue[0].cost` and
 bucket rows, and by the word (11582 → 12794). The tail's other nations'
-arms (Mongol stable, Japanese barracks and ships, German submarines,
+arms (Mongol stable, Japanese barracks and ships, ~~German submarines~~
+(built, item 2974, `docs/AI.md` §242),
 American aircraft, British anti-air, Nubian merchants, Russian spies,
 Roman legions, Terra Cotta, Angkor ships) are read but not carried.
 

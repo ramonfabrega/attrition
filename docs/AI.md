@@ -14638,11 +14638,19 @@ British at 0 on map 9. Difficulties 1–4 and the other twenty-one nations appea
 | `GreatLakesRussianTier2` | 14 | Russians (13) | 2 | run647 | run644 | 7303 | **6566 / 6563** |
 | `GreatSaharaEgyptianTier4` | 7 | Egyptians (7) | 4 | run648 | run645 | 20380 | **2974 / 2974** |
 | `GreatLakesChineseTier1` | 14 | Chinese (14) | 1 | run887 | run888 | runs to 24000 | **176 / 176** |
+| `GreatSaharaAztecTier2` | 7 | Aztecs (0) | 2 | run895 | run895b | 17554 | **9130 / 9130** |
+| `GreatSaharaSpanishTier3` | 7 | Spanish (9) | 3 | run896 | run896b | 22700 | **576 / 576** |
+| `GreatLakesIroquoisTier3` | 14 | Iroquois (18) | 3 | run897 | run897b | 12658 | **0 / 0** |
+| `GreatLakesTurkishTier4` | 14 | Turks (8) | 4 | run898 | run898b | 15503 | **1440 / 1440** |
+| `EastIndiesRomanTier2` | 18 | Romans (6) | 2 | run899 | run899b | 18620 | **576 / 576** |
 
 **Amended by item 2904** (§239, DECISIONS 72): `EastIndiesGermanTier3` left the battery for the AI word
 (`diff::german_word`, a `SCORED_LOBBIES` row) when every pair had closed. `GreatLakesChineseTier1` was minted beside it
 so three stay held out: its first try is 176 (ours 12 draws, theirs 14, at draw 6 ours `Farms::inc_time+0x1ae`, theirs
 `Guy::init_real+0x52`). Its game does not end itself by 24000.
+
+**Amended by item 2975** (§243): five more held-out lobbies, runs 895–899, are in the table above (the battery is eight lobbies
+and a gate floor, `battery_floors_hold`).
 
 Every nation and every difficulty is new for its map, and no two lobbies share either. The
 click-free lane sets both (`--ai-tribe`, `--profile DIFFICULTY=`), so each is a
@@ -22120,19 +22128,103 @@ draws `Leader::make_stuff+0x221`. On block 5578 who=1's make list held a third V
 **What is not established**: why ours reaches `use_market` at 6585 where theirs reaches `make_stuff`; that is the next
 item's.
 
-## 242. Reserved for the next item on the AI track
+## 242. The Germans' Fire Raft line: `get_cost`'s and `train_time`'s German arms, 6585 → 12815 (2026-10-17, item 2974)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: 6585 of 13519, ours 6 draws against theirs 5 — index 1 ours `Leader::use_market+0x1ed` where theirs
+draws `Leader::make_stuff+0x221`. run893c's widening had the state parting before it: on block 6581 who=1's make list
+heads with type 340 in ours against 334 in theirs.
 
-## 243. Reserved for the next item on the AI track
+**The units, by `TypeIndex`** (`decomp/enums/TypeIndex.txt`): 334 is `FIRERAFT`, 340 `TRIREME`, 153 `SOLDURI`; all
+three are offered by `create_units` (the step before 6581's `create_buildings`, §57), city 0, cat 6.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The walk.** The list is rebuilt on 6581, so the parting is that frame's own `create_units`; nothing earlier is needed.
+- Theirs (`tools/gamelog/leader.py 6581 1`): `MAKE[0..5]` Fire Raft 2000000, Trireme 2000000, Light Horse 1350000,
+  Slingers 1200000, Merchant 952380, Citizen 738461; `MAKE[6]` the Fire Raft again.
+- Ours (`RON_DEBUG_LEADER=6581-6581`): Trireme, Light Horse, Slingers, **Solduri ×5 at 1125000**, Merchant, Citizen;
+  `MAKE[6]` the Trireme.
+- So the list is the same less one offer: theirs' Fire Raft takes the head (offered first, 334 < 340, and `make_me`'s
+  head test is strict) and pushes the Solduri off slot 3. **The direction**: theirs offered the Fire Raft at 2000000
+  and ours did not.
+- A probe on ours' `create_units` (reverted whole): the Fire Raft passes every gate, `sea_value` returns 2000000 cat
+  6, and the tail's `check_income` gives **0x40**, not 0x100, so it is offered at 500000. With escrow on, 0x40 is the
+  arm for `type_affordable < num`: ours prices it **20 timber / 41 wealth** against a wealth bucket of 39. The
+  Trireme, 40 timber / 42 metal, is affordable.
+- Theirs' Dock `1/2010` queues it on 6583 at `cost` **15 / 31** — 25% off, the ramp's one wealth after.
+
+**The arm** (`TypeData::get_cost@00664090:258`–`266`, after the Japanese): `has_tribe_bonus(0xc)` (the Germans) and
+`UnitTypeData::is(0x14e, 0)` — the Fire Raft **by lineage**, so the Heavy Fire Raft through the Submarine — takes
+`GERMAN_SUBMARINE_COST`, `25% cost reduction` in `rules.xml`. `docs/COSTS.md` had it listed among the tail's arms "read
+but not carried", as "the Germans on submarines". Its twin in `ObjectData::train_time@006508c0:193`–`205`, after the
+French arm: the same nation's aircraft (`+0x218 == 2`) take `GERMAN_AIR_SPEED` and the same lineage takes
+`GERMAN_SUBMARINE_SPEED`, each `t × 100 / (k + 100)`, both 33 as shipped.
+
+**Built.**
+- `Sim::nation_unit_discount` (`lib.rs`) carries the German arm beside the French: one answer per type is the tail's
+  product, since the nations' arms are exclusive by tribe.
+- `Sim::train_tail` carries the German block after the British arm: the air test, then the lineage test.
+- `tuning.rs`: `GERMAN_SUBMARINE_COST` 25, `GERMAN_SUBMARINE_SPEED` 33, `GERMAN_AIR_SPEED` 33, in the slot table.
+- `nations::ty::FIRERAFT` (`0x14e`).
+- The test is `cities_tests::a_german_fire_raft_line_costs_a_quarter_less_and_trains_faster`: no discount for another
+  nation, 25% on the Fire Raft and the Heavy Fire Raft (by lineage), none on the Trireme; one 33% step on both rafts and
+  an aircraft, none on the Trireme.
+- Mutations (`tools/mutate.py`): the cost arm's guard `&& false` → `german_word_first_parting` reads 6585 against the
+  pinned 12815; the submarine-speed push removed → it reads **6718**. Both `mutation: held`. The air arm is held by the
+  sim test alone — no capture's German leader trains an aircraft in a walked window.
+
+**The value diff.**
+- run893c, block 6581: who=1's `MAKE[0]` is the Fire Raft (334) val 2000000 and `MAKE[1]` the Trireme (340) on both
+  sides, `MAKE[2..5]` agree. On 6583 the Dock `1/2010`'s `queue[0]` is type 334 with `cost` 15/31 on both, and the
+  buckets agree.
+- With the cost arm alone the word stood at **6718**: the Dock's `job_counter` 13600 in ours against 13533, theirs'
+  Fire Raft born on 6719 a third faster. With the speed arm the Fire Raft is born on 6719 on both.
+- The widening falls 436 → 50 keys, all standing kinds: the control's set on 6579 (`SITE[n].reg` 65/0 on the empty
+  slots, `form`, groups' `held`, the pool, both leaders' `aggression`), `g.angle[0]` on who=1's `1/23`, `1/24`, `1/27`,
+  `1/34`, `1/35` and from 6652 `1/37` (1431655765 against 0), and two pools' `held` on 6606 and 6724.
+- Every other lobby's `first_parting`, `battery::`, `battery_floors` and `coverage::` are green on this tree.
+
+**The new word, 12815.**
+- Ours 9 draws, theirs 8. At index 1 ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+- It is past run893c's last block (6836). Its widening is run910 over 12809..13066 (`run910_s_word_frame_is_widened_whole`,
+  967 keys; `rngcmp` against run643 13073 of 13073 identical), and **the state parts before the window**.
+  - On its first block 12809 positions already differ: `0/0` at (4680, 9362) in ours against (4674, 9396), `1/65` at
+    (6394, 11516) against (6392, 11520), and `1/60`'s heading.
+  - Up to the word: `1/44`'s and `1/47`'s move targets on 12810 (`orders_y` 9240/9288 and 8904/8952), `1/28`'s on
+    12814, and on 12815 `1/44`'s order kind 10 in ours against 1 in theirs.
+  - The first position parting lies in 6837..12808. No dump of this lobby covers it, so the next item's walk back
+    books a window there first.
+
+**Coverage.**
+- Diff-backed: the cost arm on the Fire Raft (6581's list and 6583's queue cost) and the submarine-speed arm on the Fire
+  Raft (its birth on 6719).
+- Reading-only: the arms on the Fire Raft's successors (the lineage), and `GERMAN_AIR_SPEED`.
+
+**What is not established**: the `g.angle[0]` standing row (`0x55555555` in ours against 0 on five of who=1's units,
+standing from run893c's first block) is parked, not the word's: it is on units that do not part in position.
+
+## 243. Five held-out lobbies minted: the battery grows to eight (2026-10-17, item 2975)
+
+DECISIONS 77 (ii), 61 §6. **Captures only, never debugged against.** Each lobby is a nation no dump on the disk holds (§125's
+list: not the Russians, Egyptians, Chinese, Germans, British, French, Koreans, Nubians, Lakota, Mongols or Persians) at a
+difficulty of 2, 3 or 4 on Great Sahara (7), Great Lakes (14) or East Indies (18), no two sharing a nation or a tier on a map
+inside the battery. Each owns a start sibling (`--dump-all-start`, run595's shape) and a long trace of run888's shape plus
+`--allow-early-end` (every one of these games ended itself, 110 s each), on the click-free pool lanes (`docs/RUNS.md`
+run895–899b). Nations were read as tribe ids (Aztecs 0, Turks 8, Spanish 9, Romans 6, Iroquois 18) and each was confirmed
+in the `PLAYER` blocks read back by `battery_captures_are_complete_and_say_their_lobby`.
+
+| lobby | first try (count / sequence) | draw delta at the parting |
+|---|---:|---|
+| `GreatSaharaAztecTier2` | 9130 of 17554 | ours 90 draws, theirs 87; at draw 23 ours `Unit::think_scout+0x436`, theirs `Unit::think_scout+0x64c` |
+| `GreatSaharaSpanishTier3` | 576 of 22700 | ours 55, theirs 54; at draw 19 ours `Leader::make_stuff+0x221`, theirs `Leader::compute_sites+0x4ac` |
+| `GreatLakesIroquoisTier3` | 0 of 12658 | ours 121, theirs 122; at draw 30 ours `Unit::think_scout+0x436`, theirs `Unit::think_scout+0x64c` |
+| `GreatLakesTurkishTier4` | 1440 of 15503 | ours 35, theirs 39; at draw 28 ours `Objects::process_all+0x2df`, theirs `Guy::init_real+0x52` |
+| `EastIndiesRomanTier2` | 576 of 18620 | ours 28, theirs 89; at draw 0 ours `Animal::think_bird+0x82`, theirs `Leader::produce_building+0xc99` |
+
+**No mechanism is named.** The frame and the draw delta are the booking. Two partings share a callsite pair: the Aztecs' and the
+Iroquois' both read `Unit::think_scout+0x436` against `+0x64c` (the Iroquois at frame 0, the first one the battery has had), and
+the Spanish and Romans part on 576 as the Germans did (the East Indies site table's neighbourhood, §240–§242). That is a coincidence
+to read, not a claim. **What is not established**: which parting is the nation's and which the tier's; who won each game; the
+census rows each should enter. **Diff-backed**: every number above, by `battery_measure` on the tree after `ccc update` to
+`e202373d`. **Reading only**: nothing.
 
 ## 244. Reserved for the next item on the AI track
 

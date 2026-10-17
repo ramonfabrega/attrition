@@ -417,6 +417,10 @@ pub struct Tuning {
     /// Percentage off a Spy or General while the leader holds
     /// `SPIES_GENERALS_CHEAPER` (`TypeData::get_cost`'s nation tail).
     pub spy_general_cost: i32,
+    /// Percentage off a German leader's unit of the Fire Raft line
+    /// (`is(0x14e, 0)`, the Submarine's) — `TypeData::get_cost`'s nation
+    /// tail, after the Japanese arm.
+    pub german_submarine_cost: i32,
     /// Percentage faster for the same units under Versailles.
     pub versailles_units_move: i32,
     /// Extra timber-worker capacity before the gather-access cap.
@@ -861,6 +865,12 @@ pub struct Tuning {
     /// British arm, on any type whose domain is the sea
     /// (`docs/PRODUCTION.md`, "The tail").
     pub british_ship_speed: i32,
+    /// Percentage faster for a German leader's aircraft (`+0x218 == 2`) —
+    /// `ObjectData::train_time`'s German arm, after the French.
+    pub german_air_speed: i32,
+    /// Percentage faster for a German leader's unit of the Fire Raft line
+    /// (`is(0x14e, 0)`), the same arm's second test.
+    pub german_submarine_speed: i32,
     /// Tiles added to the range of a British Tower-line or Fort-line
     /// building (`BuildTypeData::get_building_range@00639990`'s first
     /// block, `docs/GOLDEN.md` §59). Ships as `2 range increase`.
@@ -1174,6 +1184,7 @@ impl Tuning {
         french_siege_move: 20,
         french_siege_cost: 15,
         spy_general_cost: 50,
+        german_submarine_cost: 25,
         versailles_units_move: 25,
         french_woodies: 1,
         inca_wealth_cap: 33,
@@ -1369,6 +1380,8 @@ impl Tuning {
         spice_caravan_income: 20,
         indians_caravan: 15,
         british_ship_speed: 33,
+        german_air_speed: 33,
+        german_submarine_speed: 33,
         british_tower_range: 2,
         british_archer_speed: 0,
         british_aa_speed: 33,
@@ -1443,7 +1456,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 392] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 395] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1624,6 +1637,10 @@ impl Tuning {
             ("FRENCH_SIEGE_MOVE", Slot::Value(T.french_siege_move)),
             ("FRENCH_SIEGE_COST", Slot::Value(T.french_siege_cost)),
             ("SPY_GENERAL_COST", Slot::Value(T.spy_general_cost)),
+            (
+                "GERMAN_SUBMARINE_COST",
+                Slot::Value(T.german_submarine_cost),
+            ),
             (
                 "VERSAILLES_UNITS_MOVE",
                 Slot::Value(T.versailles_units_move),
@@ -2077,6 +2094,11 @@ impl Tuning {
             ("SPICE_CARAVAN_INCOME", Slot::Value(T.spice_caravan_income)),
             ("INDIANS_CARAVAN", Slot::Value(T.indians_caravan)),
             ("BRITISH_SHIP_SPEED", Slot::Value(T.british_ship_speed)),
+            ("GERMAN_AIR_SPEED", Slot::Value(T.german_air_speed)),
+            (
+                "GERMAN_SUBMARINE_SPEED",
+                Slot::Value(T.german_submarine_speed),
+            ),
             ("BRITISH_TOWER_RANGE", Slot::Value(T.british_tower_range)),
             ("BRITISH_ARCHER_SPEED", Slot::Value(T.british_archer_speed)),
             ("BRITISH_AA_SPEED", Slot::Value(T.british_aa_speed)),

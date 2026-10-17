@@ -3738,6 +3738,15 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3002) **A `--regen` without `--fresh` appends a changed flag set to the kept one** (2966's "for the Loop" line, filed at
+its merge): a stale `p11` place survived one regen. Candidate: the sweep brief says `--regen --fresh` first, or the regen
+refuses a flag set that differs from the kept one without `--fresh`, a test made to fail first. And a batch of ten wants a
+`cargo test` line taking several module filters. One reach.
+
+(3003) **A `--wbias` on a window under four bytes corrupts what follows it** (parked 2999, filed at its merge): a 2-byte
+`--sparse` slice with a `--wbias` faulted a read at a random address. Candidate: `sweep_gen.py` refuses or clips a
+`--wbias` wider than its window, a test made to fail first. One reach.
+
 (2987) **The objects- and groups-table windows are a shell loop of `--place` flags, four times over** (2959's "for the Loop"
 line and its parked 2987, filed at its merge): `process_repair`, `_garrison`, `_gather`, `_begin`. Candidate: a
 `sweep_gen.py` flag taking a table of N pointers to arrays of M records, a test made to fail first. One reach.
@@ -6832,13 +6841,16 @@ so no dump has read a Roman `income`; a lobby with a Roman AI on one city would 
   file tallies a Dock's footprint, and the editor's `semaphore[1] & 8` skip is not modelled. A capture where an AI or a
   console `add dock` places a Dock with more than half its footprint unseen would settle it. It names no score.
 
-## Parked by the next landing, slot GM — reserved
+## Parked by item 2974, 2026-10-17 — the Germans' Fire Raft line
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2995) **`g.angle[0]` stands on who=1's units of the battery's German lobby**: 1431655765 (`0x55555555`) in ours
+  against 0 in theirs on `1/23`, `1/24`, `1/27`, `1/34`, `1/35` from run893c's first block (6579), and on `1/37` from
+  6652 (`docs/AI.md` §242). None of those units parts in position or order in 6579..6836, so it names no score yet;
+  `0x55555555` reads as an unwritten fill, so the first step is `seams.py --field angle` and the writers of the figure's
+  `angle` in this crate against the dump's own print.
+- (2996) **`GERMAN_AIR_SPEED` rests on the reading alone** (`train_time@006508c0:198`–`201`, `+0x218 == 2`):
+  built beside the submarine arm and held by the sim test only, since no walked window has a German leader training an
+  aircraft. A German lobby past the Industrial age would back it. Names no score.
 
 ## Parked by item 2971, 2026-10-17 — Chapter ninety-one's leftovers
 
@@ -6849,7 +6861,14 @@ words and edits nothing here; a refill lands when two remain.
 - (2993) **The booking's premise was wrong**: the Commando's `mylos` prints 12 (`unitrules.xml` says `LOS 8`), so no caster in this lobby casts beyond its
   sight but the Informer; `LOS` and `mylos` differ by a factor this crate has not derived. Names no score.
 
-## Parked by the next landing, slot GO — reserved
+## Parked by item 2975, 2026-10-17 — five held-out lobbies minted
+
+- **`GreatLakesIroquoisTier3` parts at frame 0** (ours 121 draws, theirs 122; at draw 30 ours `Unit::think_scout+0x436`, theirs
+  `Unit::think_scout+0x64c`) — the first battery lobby to part on the first frame. Same callsite pair as `GreatSaharaAztecTier2`
+  at 9130. Names no score (the battery is a floor, never debugged against): a `think_scout` branch (a scout's target choice) that
+  differs for the Aztecs and Iroquois (both have a nation scout rule: `IROQUOIS_FREE_SCOUT`, `AZTEC` ...) is the supposition,
+  unread. The booking is the frame and the draw delta.
+- **The Spanish and Romans part on 576, as the Germans did** (§125); the AI word's lane (2974) may move all three if it is one cause.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GO renames this heading `## Parked by item N, <date> — <title>`
@@ -6885,13 +6904,23 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
 - (2988) **A stray tracked file stands in `crates/sim/src/sweep/`**, named `command_manager_issue_treaty declare
   clear_tributes clear_all accept reject tribute.rs` (spaces in the name): an earlier batch's shell glitch. Not compiled; delete it. **Deleted in 2959's booking commit** (it came from 2486's `008b9961`).
 
-## Parked by the next landing, slot GR — reserved
+## Parked by item 2966, 2026-10-17 — the hundred-and-thirty-first sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2998) **`Unit::update_local_seen@0060e410` is no built shape's**: it loops `circle_radius[type]` times
+  (a table at `0xcbe330` the image builds at boot, zeros under the emulator) over `circle_x`/`circle_y` byte tables
+  (`0xcb7e90`, `0xcbb0e0`, also boot-built) and the `div_3_table` cell `0xcae5fc`. `--at` draws the radius table as
+  random 32-bit words, which sizes a loop of 2^31; a shape needs a bounded image-table draw (`--at VA:SIZE:LO..HI`).
+  Names the census (+1) once the shape is there.
+- (2999) **`--wbias` on a window under four bytes corrupts what follows it**: a 2-byte `--sparse` slice with a
+  `--wbias` faulted a read at a random address (`was_seen_wcoord`'s `+0x59e4` short); the batch widened the slice to four
+  bytes. Filed as Loop 3003.
+- (3000) **`--record-edx` refuses `--record-order`**, so two stubs on one function (`find_supply`'s
+  `get_radius` and `vector_dist`) are recorded in two columns and their interleaving is unheld; the leftover `edx` the
+  first one sees (the previous measure's) is in the port instead.
+- (3001) **`UnitData::is_busy`'s type-table index is unexercised**: every type record in the `--ptrtab :vt` table
+  carries the one stubbed vtable, so a wrong index (`+0x20`) reads another record answering the same; and
+  `Unit::modify_group_order` reads `[this+0xd4]` after its loop whether or not `[this+0xdc]` is set, so its
+  null-tail row is undrawable (a stale `d4`). Both held by their ports' comments, not by a row.
 
 ## Parked by the next landing, slot GS — reserved
 

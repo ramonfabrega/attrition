@@ -67,6 +67,9 @@ pub mod ty {
     pub const BARK: TypeId = 0x143;
     /// `TRIREME`, the Spanish one from a Dock.
     pub const TRIREME: TypeId = 0x154;
+    /// `FIRERAFT`, the head of the line the Germans' submarine arms test
+    /// by lineage (`is(0x14e, 0)`): the Fire Raft through the Submarine.
+    pub const FIRERAFT: TypeId = 0x14e;
 
     /// `UNIVERSITY`.
     pub const UNIVERSITY: TypeId = 0x1a4;
