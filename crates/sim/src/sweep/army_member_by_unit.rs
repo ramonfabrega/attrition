@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -59,7 +64,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     continue;
                 }
                 for j in 0..rd(&p[3 * k], 0).max(0) as usize {
-                    if i32::from(i16::from_le_bytes([p[3 * k + 2][2 * j], p[3 * k + 2][2 * j + 1]])) == a[0] {
+                    if i32::from(i16::from_le_bytes([
+                        p[3 * k + 2][2 * j],
+                        p[3 * k + 2][2 * j + 1],
+                    ])) == a[0]
+                    {
                         r = 1;
                         break 'scan;
                     }

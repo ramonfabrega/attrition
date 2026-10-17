@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -41,7 +46,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // the second argument (`a[1]`) among the `m+0x18` of them, else -1 (the error report is
             // skipped with `ignore_always`, `c[0]`'s low byte, set; item 2844).
             let n = rd(m, 0x18).max(0) as usize;
-            (0..n).find(|&i| rd(&p[0], 0x58 * i) == a[1]).map_or(-1, |i| i as i64)
+            (0..n)
+                .find(|&i| rd(&p[0], 0x58 * i) == a[1])
+                .map_or(-1, |i| i as i64)
         };
         assert_eq!(got, want_eax, "find_data — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
