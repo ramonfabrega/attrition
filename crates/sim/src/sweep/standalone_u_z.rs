@@ -40,6 +40,8 @@ mod unbuilt_wonders_add_unbuilt_wonder;
 mod unbuilt_wonders_remove_unbuilt_wonder;
 #[path = "unit_add_await_board_order.rs"]
 mod unit_add_await_board_order;
+#[path = "unit_add_board_order.rs"]
+mod unit_add_board_order;
 #[path = "unit_add_spec_anim_order.rs"]
 mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
