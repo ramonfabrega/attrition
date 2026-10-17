@@ -466,6 +466,8 @@ mod mountains_out_mnt_ranges;
 mod mountains_out_mnt_types;
 #[path = "mountains_tileset_texture_load.rs"]
 mod mountains_tileset_texture_load;
+#[path = "mountains_walk_data.rs"]
+mod mountains_walk_data;
 #[path = "move_order_get_move_order_vtordisp.rs"]
 mod move_order_get_move_order_vtordisp;
 #[path = "move_order_is_fleeing_vtordisp.rs"]
