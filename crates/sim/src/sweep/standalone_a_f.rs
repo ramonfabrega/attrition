@@ -286,6 +286,8 @@ mod cast_order_walk_data;
 mod cast_order_walk_data_vtordisp;
 #[path = "caster_walk_data.rs"]
 mod caster_walk_data;
+#[path = "categories_find_data.rs"]
+mod categories_find_data;
 #[path = "circle_render_get_name.rs"]
 mod circle_render_get_name;
 #[path = "circle_render_on_field_change.rs"]
