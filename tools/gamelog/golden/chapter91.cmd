@@ -13,10 +13,11 @@
 # `add` coordinates snap to land):
 #   arm 1, the Sniper at range: Commando `0/6` is sent at the who=1
 #     Hoplite `1/6`, a squad 5,500 units off.
-#   arm 2, Counterintelligence on an enemy Spy while it walks (a Spy that
-#     stands idle is stealth-hidden and refused): Spy `0/7` at the who=1
-#     Spy `1/9`, 1 tile off, cast at 621 (idle: refused) and at 640 (walking). The friend arm needs a building infiltrated by the
-#     other side, which the console's seat cannot stage (parked).
+#   arm 2, Counterintelligence on an enemy Spy (a Spy is CLOAKED, so the
+#     owner never sees it: the cast is refused at `is_valid_target`'s seen
+#     test; the arm's accepted targets, an infiltrated friend or ally,
+#     need the other seat to cast and are parked): Spy `0/7` at the who=1
+#     Spy `1/9`.
 #
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch91 \
 #       --map 14 --end-frame 1200 --log-window 605 1200 --timeout 3600 \
@@ -28,9 +29,8 @@
 600 library who=0 2
 602 library who=1 2
 606 add commando who=0 100,100
-608 add spy who=0 130,130
+608 add spy who=0 120,130
 616 add hoplite who=1 134,100
 618 add spy who=1 134,130
 620 @spell 0 641 6 1 25728 19200 6
 621 @spell 0 631 9 1 25728 24960 7
-640 @spell 0 631 9 1 25728 24960 7
