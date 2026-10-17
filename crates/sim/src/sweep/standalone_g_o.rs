@@ -432,6 +432,8 @@ mod map_fairness_unapply_distances;
 mod map_get_player_overage;
 #[path = "map_get_player_underage.rs"]
 mod map_get_player_underage;
+#[path = "map_invert_land.rs"]
+mod map_invert_land;
 #[path = "map_is_near_ocean.rs"]
 mod map_is_near_ocean;
 #[path = "map_land_dist.rs"]
