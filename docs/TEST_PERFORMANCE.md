@@ -572,6 +572,8 @@ retain frame-minus-one, first nonempty duplicate and last nonempty position.
 compares full observations with original parsing. Two fault-tested guards added.
 Local OS RSS falls2131→398MiB,2053→206MiB and2030→22MiB; four competing copies
 of these four tests use28853→1265MiB sampled tree, wall7.54→5.16s andCPU50.26→41.64s.
-This selected pressure experiment is not four complete suites. Full gate pending;
-whole-suite10× remains unmet. See [journal](journal/2026-10-17-whole-capture.md)
+This selected pressure experiment is not four complete suites. Full required-fixture
+gate passes on `d68ee904`:899 rondata/2586 sim; exact3276 requests retained.
+Complete warm suite134.05→132.21s, CPU934.29→924.28s; sampled tree8541→7184MiB
+(16% lower). Whole-suite10× remains unmet. See [journal](journal/2026-10-17-whole-capture.md)
 and [audit](audit/2026-10-17-whole-capture.json). Independent review remains owed.

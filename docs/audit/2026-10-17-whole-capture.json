@@ -1,7 +1,7 @@
 {
   "baseline_commit": "01e766aefc07fcf4c83bed401003e6920180e613",
   "evidence": "/tmp/attrition-whole-capture-20261017-01",
-  "status": "pending full gate",
+  "status": "complete required-fixture gate passed",
   "local": {
     "baseline": [
       {
@@ -182,5 +182,818 @@
     },
     "scope": "four competing copies of four selected tests"
   },
-  "review": "independent review owed"
+  "review": "independent review owed",
+  "implementation": "d68ee904",
+  "equivalence": {
+    "added_tests": [
+      "diff::testkit::whole_capture::tests::bounded_bodies_keep_frame_offset_first_match_and_last_nonempty_position",
+      "diff::testkit::whole_capture::tests::rolling_pairs_preserve_duplicate_gap_empty_and_file_boundaries"
+    ],
+    "original_tests_preserved": true,
+    "ignored_unchanged": [
+      "diff::battery::battery_measure",
+      "diff::harness::tests::east_indies_pool_walk",
+      "diff::leader::tests::probe_active_against_the_muster",
+      "diff::leader::tests::probe_the_word_s_leader_record",
+      "diff::oracle::decoded_frame_experiment",
+      "gamelog::tests::the_reader_is_timed"
+    ],
+    "fixture_requests": 3276,
+    "fixture_multisets_equal": true,
+    "summaries": {
+      "baseline": {
+        "complete": true,
+        "success": true,
+        "passed": 897,
+        "failed": 0,
+        "ignored": 6,
+        "filtered": 0,
+        "elapsed": 134.04985050001414,
+        "cpu": 934.29
+      },
+      "gate": {
+        "complete": true,
+        "success": true,
+        "passed": 899,
+        "failed": 0,
+        "ignored": 6,
+        "filtered": 0,
+        "elapsed": 138.0636596250115,
+        "cpu": 948.1
+      },
+      "warm": {
+        "complete": true,
+        "success": true,
+        "passed": 899,
+        "failed": 0,
+        "ignored": 6,
+        "filtered": 0,
+        "elapsed": 132.21306587499566,
+        "cpu": 924.28
+      }
+    },
+    "baseline_family_cpu": {
+      "diff::harness": 200.62,
+      "diff::golden": 164.85,
+      "diff::third_pair": 75.59,
+      "diff::coverage": 71.85,
+      "diff::second": 67.86,
+      "diff::world": 46.71,
+      "diff::unit": 41.1,
+      "diff::build": 39.31,
+      "diff::sahara_toughest": 33.97,
+      "diff::coverage_pair": 25.68,
+      "diff::mongol_pair": 17.48,
+      "diff::sahara_coverage": 16.88,
+      "diff::third": 15.28,
+      "diff::order": 15.14,
+      "diff::endpoint": 14.53,
+      "diff::leader": 14.09,
+      "diff::lakota_pair": 13.99,
+      "diff::army": 13.16,
+      "diff::city": 11.11,
+      "diff::shutdown": 6.25,
+      "diff::setup": 5.6,
+      "diff::testkit": 4.61,
+      "load::tests": 3.92,
+      "diff::sahara_mongol": 3.83,
+      "diff::ammo": 1.89,
+      "capture::indexed": 1.81,
+      "gamelog::tests": 1.43,
+      "writers::a_field_the_sim_writes_is_read_by_something": 1.06,
+      "blind::tests": 0.89,
+      "census::tests": 0.74,
+      "debug_view::tests": 0.64,
+      "diff::battery": 0.61,
+      "typesdump::tests": 0.58,
+      "trace::tests": 0.47,
+      "recgame::tests": 0.29,
+      "diff::floors": 0.11,
+      "capture::archive": 0.1,
+      "writers::compared_fields_have_writers": 0.06,
+      "ledger::tests": 0.05,
+      "writers::every_no_reader_row_still_names_a_field": 0.04,
+      "writers::every_exemption_still_names_a_field": 0.04,
+      "trace::site_rows": 0.04,
+      "artdata::tests": 0.03,
+      "diff::oracle": 0.0,
+      "pe::tests": 0.0,
+      "diff::slots": 0.0,
+      "commands::tests": 0.0,
+      "golden::tests": 0.0,
+      "mountains::tests": 0.0,
+      "diff::compared": 0.0,
+      "scalar::tests": 0.0,
+      "writers::the_scanner_follows_the_harness_into_a_directory": 0.0,
+      "table::tests": 0.0,
+      "capture::tests": 0.0,
+      "dump::tests": 0.0,
+      "testenv::fixture_audit": 0.0,
+      "writers::a_one_line_literal_s_fields_are_read": 0.0,
+      "diff::corrections": 0.0,
+      "diff::report": 0.0,
+      "tests::tribe_mask_handles_all_and_none": 0.0,
+      "debug_view::fields": 0.0,
+      "testenv::a_debug_run_that_reaches_a_kept_dump_refuses": 0.0,
+      "tests::tribe_mask_is_msb_first": 0.0,
+      "capture::owned_codec": 0.0,
+      "testenv::source": 0.0
+    },
+    "baseline_top_cpu": [
+      {
+        "name": "diff::coverage::every_key_the_dump_prints_is_read_or_pinned",
+        "user": 36.68,
+        "system": 0.67,
+        "rss_bytes": 114622464
+      },
+      {
+        "name": "diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        "user": 32.29,
+        "system": 2.21,
+        "rss_bytes": 799866880
+      },
+      {
+        "name": "diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture",
+        "user": 12.93,
+        "system": 0.67,
+        "rss_bytes": 472383488
+      },
+      {
+        "name": "diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture",
+        "user": 9.86,
+        "system": 1.57,
+        "rss_bytes": 141017088
+      },
+      {
+        "name": "diff::harness::tests::run99_s_word_frame_is_widened_whole",
+        "user": 6.88,
+        "system": 0.64,
+        "rss_bytes": 390905856
+      },
+      {
+        "name": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+        "user": 5.91,
+        "system": 0.5,
+        "rss_bytes": 1737064448
+      },
+      {
+        "name": "diff::harness::tests::run123_s_word_frame_is_widened_whole",
+        "user": 5.53,
+        "system": 0.45,
+        "rss_bytes": 1601716224
+      },
+      {
+        "name": "diff::second::tests::run594_s_word_frame_is_widened_whole",
+        "user": 5.58,
+        "system": 0.25,
+        "rss_bytes": 471826432
+      },
+      {
+        "name": "diff::second::tests::run589_s_word_frame_is_widened_whole",
+        "user": 5.47,
+        "system": 0.24,
+        "rss_bytes": 471629824
+      },
+      {
+        "name": "diff::second::tests::run588_s_word_frame_is_widened_whole",
+        "user": 5.45,
+        "system": 0.24,
+        "rss_bytes": 472891392
+      },
+      {
+        "name": "diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides",
+        "user": 4.75,
+        "system": 0.7,
+        "rss_bytes": 566902784
+      },
+      {
+        "name": "diff::harness::tests::run136_s_word_frame_is_widened_whole",
+        "user": 4.84,
+        "system": 0.5,
+        "rss_bytes": 1472020480
+      },
+      {
+        "name": "diff::leader::tests::the_merchant_slots_are_the_original_s_own",
+        "user": 4.56,
+        "system": 0.7,
+        "rss_bytes": 421068800
+      },
+      {
+        "name": "diff::harness::tests::run57_s_four_thousand_frames_stand_where_the_original_s_do",
+        "user": 4.56,
+        "system": 0.4,
+        "rss_bytes": 1397850112
+      },
+      {
+        "name": "diff::harness::tests::great_lakes_run163_through_run226_are_widened_whole",
+        "user": 4.36,
+        "system": 0.51,
+        "rss_bytes": 478412800
+      }
+    ],
+    "baseline_top_memory": [
+      {
+        "name": "diff::city::tests::great_lakes_goods_record_and_its_trade_routes_are_the_original_s",
+        "user": 2.33,
+        "system": 0.39,
+        "rss_bytes": 2225045504
+      },
+      {
+        "name": "diff::unit::tests::run56_s_figures_stand_where_the_original_s_do",
+        "user": 2.57,
+        "system": 0.21,
+        "rss_bytes": 2152955904
+      },
+      {
+        "name": "diff::order::tests::a_blocked_animal_drops_its_walk_where_it_stands",
+        "user": 2.16,
+        "system": 0.15,
+        "rss_bytes": 2130903040
+      },
+      {
+        "name": "diff::order::tests::an_animal_more_than_0x180_from_its_order_hurries_by_three_halves",
+        "user": 2.15,
+        "system": 0.14,
+        "rss_bytes": 2128855040
+      },
+      {
+        "name": "diff::testkit::indexed_road_setups_preserve_every_initial_field_except_audit_bodies",
+        "user": 2.7,
+        "system": 0.25,
+        "rss_bytes": 2029125632
+      },
+      {
+        "name": "diff::world::tests::run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell",
+        "user": 2.02,
+        "system": 0.2,
+        "rss_bytes": 2016952320
+      },
+      {
+        "name": "diff::harness::tests::run14_s_frames_match_the_trace_draw_for_draw",
+        "user": 1.88,
+        "system": 0.22,
+        "rss_bytes": 2003533824
+      },
+      {
+        "name": "diff::harness::tests::run33_s_long_trace_says_where_the_word_parts",
+        "user": 1.95,
+        "system": 0.22,
+        "rss_bytes": 1969700864
+      },
+      {
+        "name": "diff::world::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames",
+        "user": 1.89,
+        "system": 0.19,
+        "rss_bytes": 1895694336
+      },
+      {
+        "name": "diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do",
+        "user": 3.02,
+        "system": 0.21,
+        "rss_bytes": 1880440832
+      },
+      {
+        "name": "diff::unit::tests::run89_s_window_is_great_lakes_word_frame",
+        "user": 2.93,
+        "system": 0.23,
+        "rss_bytes": 1815281664
+      },
+      {
+        "name": "diff::unit::tests::the_install_s_piece_lengths_match_the_dumps",
+        "user": 3.21,
+        "system": 0.56,
+        "rss_bytes": 1777418240
+      },
+      {
+        "name": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+        "user": 5.91,
+        "system": 0.5,
+        "rss_bytes": 1737064448
+      },
+      {
+        "name": "diff::unit::tests::run87_s_window_is_great_lakes_word_frame",
+        "user": 2.24,
+        "system": 0.23,
+        "rss_bytes": 1734361088
+      },
+      {
+        "name": "diff::army::tests::run93_says_great_lakes_7930_releases_and_takes_its_target_in_one_tick",
+        "user": 1.76,
+        "system": 0.27,
+        "rss_bytes": 1730838528
+      }
+    ],
+    "gate_family_cpu": {
+      "diff::harness": 203.05,
+      "diff::golden": 170.84,
+      "diff::third_pair": 76.44,
+      "diff::coverage": 73.65,
+      "diff::second": 69.1,
+      "diff::world": 47.14,
+      "diff::unit": 40.89,
+      "diff::build": 39.61,
+      "diff::sahara_toughest": 33.8,
+      "diff::coverage_pair": 26.61,
+      "diff::mongol_pair": 18.2,
+      "diff::sahara_coverage": 17.38,
+      "diff::third": 15.15,
+      "diff::order": 15.09,
+      "diff::endpoint": 14.7,
+      "diff::lakota_pair": 14.52,
+      "diff::leader": 14.11,
+      "diff::army": 13.08,
+      "diff::city": 9.98,
+      "diff::shutdown": 6.3,
+      "diff::setup": 5.69,
+      "diff::testkit": 4.65,
+      "diff::sahara_mongol": 3.82,
+      "load::tests": 3.73,
+      "diff::ammo": 1.86,
+      "capture::indexed": 1.68,
+      "gamelog::tests": 1.41,
+      "writers::a_field_the_sim_writes_is_read_by_something": 1.06,
+      "blind::tests": 0.88,
+      "census::tests": 0.72,
+      "debug_view::tests": 0.61,
+      "diff::battery": 0.59,
+      "typesdump::tests": 0.58,
+      "trace::tests": 0.46,
+      "recgame::tests": 0.26,
+      "diff::floors": 0.11,
+      "capture::archive": 0.1,
+      "writers::compared_fields_have_writers": 0.07,
+      "ledger::tests": 0.05,
+      "writers::every_no_reader_row_still_names_a_field": 0.04,
+      "writers::every_exemption_still_names_a_field": 0.04,
+      "artdata::tests": 0.03,
+      "trace::site_rows": 0.02,
+      "diff::oracle": 0.0,
+      "pe::tests": 0.0,
+      "diff::slots": 0.0,
+      "golden::tests": 0.0,
+      "commands::tests": 0.0,
+      "scalar::tests": 0.0,
+      "mountains::tests": 0.0,
+      "diff::compared": 0.0,
+      "writers::the_scanner_follows_the_harness_into_a_directory": 0.0,
+      "table::tests": 0.0,
+      "capture::tests": 0.0,
+      "dump::tests": 0.0,
+      "testenv::fixture_audit": 0.0,
+      "writers::a_one_line_literal_s_fields_are_read": 0.0,
+      "diff::corrections": 0.0,
+      "diff::report": 0.0,
+      "tests::tribe_mask_handles_all_and_none": 0.0,
+      "debug_view::fields": 0.0,
+      "testenv::a_debug_run_that_reaches_a_kept_dump_refuses": 0.0,
+      "tests::tribe_mask_is_msb_first": 0.0,
+      "capture::owned_codec": 0.0,
+      "testenv::source": 0.0
+    },
+    "gate_top_cpu": [
+      {
+        "name": "diff::coverage::every_key_the_dump_prints_is_read_or_pinned",
+        "user": 37.12,
+        "system": 0.99,
+        "rss_bytes": 111149056
+      },
+      {
+        "name": "diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        "user": 33.0,
+        "system": 2.54,
+        "rss_bytes": 808402944
+      },
+      {
+        "name": "diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture",
+        "user": 13.03,
+        "system": 0.84,
+        "rss_bytes": 469106688
+      },
+      {
+        "name": "diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture",
+        "user": 9.87,
+        "system": 1.52,
+        "rss_bytes": 130449408
+      },
+      {
+        "name": "diff::harness::tests::run99_s_word_frame_is_widened_whole",
+        "user": 6.81,
+        "system": 0.62,
+        "rss_bytes": 390332416
+      },
+      {
+        "name": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+        "user": 5.93,
+        "system": 0.52,
+        "rss_bytes": 1739816960
+      },
+      {
+        "name": "diff::harness::tests::run123_s_word_frame_is_widened_whole",
+        "user": 5.54,
+        "system": 0.46,
+        "rss_bytes": 1601224704
+      },
+      {
+        "name": "diff::second::tests::run594_s_word_frame_is_widened_whole",
+        "user": 5.64,
+        "system": 0.26,
+        "rss_bytes": 481361920
+      },
+      {
+        "name": "diff::second::tests::run589_s_word_frame_is_widened_whole",
+        "user": 5.53,
+        "system": 0.25,
+        "rss_bytes": 464633856
+      },
+      {
+        "name": "diff::second::tests::run588_s_word_frame_is_widened_whole",
+        "user": 5.51,
+        "system": 0.26,
+        "rss_bytes": 473481216
+      },
+      {
+        "name": "diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides",
+        "user": 4.77,
+        "system": 0.88,
+        "rss_bytes": 572735488
+      },
+      {
+        "name": "diff::harness::tests::run136_s_word_frame_is_widened_whole",
+        "user": 4.83,
+        "system": 0.52,
+        "rss_bytes": 1472249856
+      },
+      {
+        "name": "diff::leader::tests::the_merchant_slots_are_the_original_s_own",
+        "user": 4.58,
+        "system": 0.72,
+        "rss_bytes": 418070528
+      },
+      {
+        "name": "diff::harness::tests::great_lakes_run163_through_run226_are_widened_whole",
+        "user": 4.49,
+        "system": 0.55,
+        "rss_bytes": 480100352
+      },
+      {
+        "name": "diff::harness::tests::run57_s_four_thousand_frames_stand_where_the_original_s_do",
+        "user": 4.57,
+        "system": 0.43,
+        "rss_bytes": 1393917952
+      }
+    ],
+    "gate_top_memory": [
+      {
+        "name": "diff::testkit::indexed_road_setups_preserve_every_initial_field_except_audit_bodies",
+        "user": 2.72,
+        "system": 0.25,
+        "rss_bytes": 2026422272
+      },
+      {
+        "name": "diff::world::tests::run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell",
+        "user": 2.02,
+        "system": 0.24,
+        "rss_bytes": 2019246080
+      },
+      {
+        "name": "diff::harness::tests::run14_s_frames_match_the_trace_draw_for_draw",
+        "user": 1.89,
+        "system": 0.25,
+        "rss_bytes": 1986674688
+      },
+      {
+        "name": "diff::harness::tests::run33_s_long_trace_says_where_the_word_parts",
+        "user": 1.94,
+        "system": 0.24,
+        "rss_bytes": 1964769280
+      },
+      {
+        "name": "diff::world::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames",
+        "user": 1.88,
+        "system": 0.22,
+        "rss_bytes": 1894760448
+      },
+      {
+        "name": "diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do",
+        "user": 3.01,
+        "system": 0.21,
+        "rss_bytes": 1867628544
+      },
+      {
+        "name": "diff::unit::tests::run89_s_window_is_great_lakes_word_frame",
+        "user": 2.93,
+        "system": 0.23,
+        "rss_bytes": 1818935296
+      },
+      {
+        "name": "diff::unit::tests::the_install_s_piece_lengths_match_the_dumps",
+        "user": 3.21,
+        "system": 0.57,
+        "rss_bytes": 1796440064
+      },
+      {
+        "name": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+        "user": 5.93,
+        "system": 0.52,
+        "rss_bytes": 1739816960
+      },
+      {
+        "name": "diff::army::tests::run93_says_great_lakes_7930_releases_and_takes_its_target_in_one_tick",
+        "user": 1.77,
+        "system": 0.29,
+        "rss_bytes": 1732968448
+      },
+      {
+        "name": "diff::unit::tests::run87_s_window_is_great_lakes_word_frame",
+        "user": 2.26,
+        "system": 0.24,
+        "rss_bytes": 1725333504
+      },
+      {
+        "name": "diff::harness::tests::run94_s_window_clocks_are_the_original_s",
+        "user": 1.8,
+        "system": 0.19,
+        "rss_bytes": 1689731072
+      },
+      {
+        "name": "diff::order::tests::run39_s_woodcutters_reroll_on_the_chop_branch_not_the_arrival_s",
+        "user": 2.29,
+        "system": 0.22,
+        "rss_bytes": 1672052736
+      },
+      {
+        "name": "diff::world::tests::a_scout_with_no_city_near_scans_its_whole_region",
+        "user": 2.22,
+        "system": 0.22,
+        "rss_bytes": 1670332416
+      },
+      {
+        "name": "diff::world::tests::run39_s_sixth_farm_lights_the_cells_its_scout_then_paths_around",
+        "user": 2.17,
+        "system": 0.21,
+        "rss_bytes": 1670283264
+      }
+    ],
+    "warm_family_cpu": {
+      "diff::harness": 199.28,
+      "diff::golden": 165.95,
+      "diff::third_pair": 74.94,
+      "diff::coverage": 70.84,
+      "diff::second": 68.1,
+      "diff::world": 46.31,
+      "diff::unit": 39.77,
+      "diff::build": 38.92,
+      "diff::sahara_toughest": 32.57,
+      "diff::coverage_pair": 25.81,
+      "diff::mongol_pair": 17.69,
+      "diff::sahara_coverage": 16.85,
+      "diff::order": 14.73,
+      "diff::third": 14.6,
+      "diff::endpoint": 14.38,
+      "diff::lakota_pair": 14.07,
+      "diff::leader": 13.3,
+      "diff::army": 12.85,
+      "diff::city": 9.8,
+      "diff::shutdown": 6.11,
+      "diff::setup": 5.62,
+      "diff::testkit": 4.47,
+      "diff::sahara_mongol": 3.76,
+      "load::tests": 3.69,
+      "diff::ammo": 1.83,
+      "capture::indexed": 1.62,
+      "gamelog::tests": 1.42,
+      "writers::a_field_the_sim_writes_is_read_by_something": 1.06,
+      "census::tests": 0.66,
+      "typesdump::tests": 0.56,
+      "debug_view::tests": 0.55,
+      "diff::battery": 0.5,
+      "blind::tests": 0.47,
+      "trace::tests": 0.46,
+      "recgame::tests": 0.28,
+      "diff::floors": 0.11,
+      "capture::archive": 0.1,
+      "writers::compared_fields_have_writers": 0.07,
+      "ledger::tests": 0.05,
+      "writers::every_no_reader_row_still_names_a_field": 0.04,
+      "writers::every_exemption_still_names_a_field": 0.04,
+      "artdata::tests": 0.03,
+      "trace::site_rows": 0.02,
+      "diff::oracle": 0.0,
+      "pe::tests": 0.0,
+      "diff::slots": 0.0,
+      "golden::tests": 0.0,
+      "commands::tests": 0.0,
+      "mountains::tests": 0.0,
+      "scalar::tests": 0.0,
+      "diff::compared": 0.0,
+      "writers::the_scanner_follows_the_harness_into_a_directory": 0.0,
+      "table::tests": 0.0,
+      "capture::tests": 0.0,
+      "dump::tests": 0.0,
+      "testenv::fixture_audit": 0.0,
+      "writers::a_one_line_literal_s_fields_are_read": 0.0,
+      "diff::corrections": 0.0,
+      "tests::tribe_mask_handles_all_and_none": 0.0,
+      "diff::report": 0.0,
+      "debug_view::fields": 0.0,
+      "testenv::a_debug_run_that_reaches_a_kept_dump_refuses": 0.0,
+      "tests::tribe_mask_is_msb_first": 0.0,
+      "capture::owned_codec": 0.0,
+      "testenv::source": 0.0
+    },
+    "warm_top_cpu": [
+      {
+        "name": "diff::coverage::every_key_the_dump_prints_is_read_or_pinned",
+        "user": 36.89,
+        "system": 0.51,
+        "rss_bytes": 138706944
+      },
+      {
+        "name": "diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        "user": 32.07,
+        "system": 1.37,
+        "rss_bytes": 796819456
+      },
+      {
+        "name": "diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture",
+        "user": 13.0,
+        "system": 0.54,
+        "rss_bytes": 471252992
+      },
+      {
+        "name": "diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture",
+        "user": 9.96,
+        "system": 1.23,
+        "rss_bytes": 149487616
+      },
+      {
+        "name": "diff::harness::tests::run99_s_word_frame_is_widened_whole",
+        "user": 6.82,
+        "system": 0.5,
+        "rss_bytes": 391331840
+      },
+      {
+        "name": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+        "user": 5.96,
+        "system": 0.52,
+        "rss_bytes": 1737277440
+      },
+      {
+        "name": "diff::second::tests::run594_s_word_frame_is_widened_whole",
+        "user": 5.66,
+        "system": 0.26,
+        "rss_bytes": 468074496
+      },
+      {
+        "name": "diff::harness::tests::run123_s_word_frame_is_widened_whole",
+        "user": 5.54,
+        "system": 0.31,
+        "rss_bytes": 1606041600
+      },
+      {
+        "name": "diff::second::tests::run589_s_word_frame_is_widened_whole",
+        "user": 5.53,
+        "system": 0.25,
+        "rss_bytes": 513884160
+      },
+      {
+        "name": "diff::second::tests::run588_s_word_frame_is_widened_whole",
+        "user": 5.5,
+        "system": 0.24,
+        "rss_bytes": 500875264
+      },
+      {
+        "name": "diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides",
+        "user": 4.78,
+        "system": 0.51,
+        "rss_bytes": 568229888
+      },
+      {
+        "name": "diff::harness::tests::run136_s_word_frame_is_widened_whole",
+        "user": 4.82,
+        "system": 0.29,
+        "rss_bytes": 1458192384
+      },
+      {
+        "name": "diff::harness::tests::great_lakes_run163_through_run226_are_widened_whole",
+        "user": 4.52,
+        "system": 0.52,
+        "rss_bytes": 477560832
+      },
+      {
+        "name": "diff::harness::tests::run57_s_four_thousand_frames_stand_where_the_original_s_do",
+        "user": 4.55,
+        "system": 0.4,
+        "rss_bytes": 1394835456
+      },
+      {
+        "name": "diff::leader::tests::the_merchant_slots_are_the_original_s_own",
+        "user": 4.57,
+        "system": 0.26,
+        "rss_bytes": 423002112
+      }
+    ],
+    "warm_top_memory": [
+      {
+        "name": "diff::testkit::indexed_road_setups_preserve_every_initial_field_except_audit_bodies",
+        "user": 2.69,
+        "system": 0.19,
+        "rss_bytes": 2036613120
+      },
+      {
+        "name": "diff::world::tests::run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell",
+        "user": 2.0,
+        "system": 0.21,
+        "rss_bytes": 2016641024
+      },
+      {
+        "name": "diff::harness::tests::run14_s_frames_match_the_trace_draw_for_draw",
+        "user": 1.88,
+        "system": 0.22,
+        "rss_bytes": 1987739648
+      },
+      {
+        "name": "diff::harness::tests::run33_s_long_trace_says_where_the_word_parts",
+        "user": 1.94,
+        "system": 0.24,
+        "rss_bytes": 1981071360
+      },
+      {
+        "name": "diff::world::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames",
+        "user": 1.87,
+        "system": 0.22,
+        "rss_bytes": 1894383616
+      },
+      {
+        "name": "diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do",
+        "user": 3.0,
+        "system": 0.2,
+        "rss_bytes": 1884864512
+      },
+      {
+        "name": "diff::unit::tests::run89_s_window_is_great_lakes_word_frame",
+        "user": 2.91,
+        "system": 0.2,
+        "rss_bytes": 1817346048
+      },
+      {
+        "name": "diff::unit::tests::the_install_s_piece_lengths_match_the_dumps",
+        "user": 3.2,
+        "system": 0.27,
+        "rss_bytes": 1787904000
+      },
+      {
+        "name": "diff::unit::tests::run87_s_window_is_great_lakes_word_frame",
+        "user": 2.24,
+        "system": 0.19,
+        "rss_bytes": 1737408512
+      },
+      {
+        "name": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+        "user": 5.96,
+        "system": 0.52,
+        "rss_bytes": 1737277440
+      },
+      {
+        "name": "diff::army::tests::run93_says_great_lakes_7930_releases_and_takes_its_target_in_one_tick",
+        "user": 1.75,
+        "system": 0.19,
+        "rss_bytes": 1724432384
+      },
+      {
+        "name": "diff::harness::tests::run94_s_window_clocks_are_the_original_s",
+        "user": 1.82,
+        "system": 0.19,
+        "rss_bytes": 1677377536
+      },
+      {
+        "name": "diff::world::tests::run39_s_sixth_farm_lights_the_cells_its_scout_then_paths_around",
+        "user": 2.16,
+        "system": 0.18,
+        "rss_bytes": 1677000704
+      },
+      {
+        "name": "diff::world::tests::run13_s_world_at_frame_95_is_the_original_s_cell_for_cell",
+        "user": 1.68,
+        "system": 0.21,
+        "rss_bytes": 1673117696
+      },
+      {
+        "name": "diff::world::tests::a_pasture_herder_walks_only_on_its_own_256_frame_phase",
+        "user": 2.25,
+        "system": 0.2,
+        "rss_bytes": 1670807552
+      }
+    ],
+    "binary_sha256": "cc5331e99527a35ad02c7d355bca3bea3d69791d9a56c4bec9ec00dad4f47473"
+  },
+  "gate": {
+    "exit": 0,
+    "wall": 232.18,
+    "cpu": 1197.47,
+    "sampled_tree_mib": 7425
+  },
+  "warm_sampled_tree_mib": 7184,
+  "score_diff": 0,
+  "value_floor_changes": 0
 }

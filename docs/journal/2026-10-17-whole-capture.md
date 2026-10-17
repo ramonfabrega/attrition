@@ -74,3 +74,48 @@ All-target Clippy and focused guards pass. Complete required-fixture gate and
 complete warm-suite measurement remain pending on the committed implementation.
 Whole-suite10×, sub-minute/sub-GiB and concurrent-agent capacity remain unproven.
 Independent review of reader equivalence remains owed.
+
+## Complete verdict on `d68ee904`
+
+All six required-fixture gate phases pass, exit0, on the frozen clean tree.
+502 offline tests pass (three unchanged skips),899 rondata pass (six unchanged
+ignores),2586 sim,13 fixed and3 doctests pass; Clippy/fmt/survey/guard pass.
+`gate.log`, `gate.exit`, `gate/`, `warm-suite.log`, `warm-suite/` and
+`gate-equivalence.json` preserve the receipts. Reproduce with:
+
+```
+python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures --report-dir <new-output>
+python3 /tmp/attrition-whole-capture-20261017-01/equivalence.py
+```
+
+The complete warm run also passes899 tests. All original names/ignores remain,
+exactly two boundary guards are added, and both complete runs preserve the exact
+3276 fixture-request multiset (419 unique,zero missing). The gate, restored and
+saved audited executables have identical SHA256. Four pressure replicas also
+preserve their exact fixture multisets. Score/pins, draw and value floors: no
+movement. No simulation behavior changed.
+
+| Complete measurement | Previous landing | This landing |
+|---|---:|---:|
+| Full gate wall / CPU s |258.16 /1403.69|232.18 /1197.47|
+| Full gate sampled tree MiB |8201|7425|
+| Complete warm rondata wall / CPU s |134.05 /934.29|132.21 /924.28|
+| Complete warm sampled tree MiB |8541|7184|
+
+Warm aggregate peak falls15.9%; warm wall/CPU fall1.4%/1.1%, respectively.
+These are unpaired local measurements with scheduling variability. Previous gate
+included schema repopulation, so its larger time/CPU difference is not attributable
+solely to this change. The focused competing-subset result isolates the larger
+memory improvement, while the full suite still has other large consumers.
+Whole-suite10×, sub-minute/sub-GiB and20-agent capacity remain unmet.
+
+## Next measured target and review debt
+
+New warm OS RSS ranking: indexed road setup equivalence1942MiB, run12/run13 world
+cell comparison1923MiB, harness run14 trace1896MiB, run33 long trace1889MiB,
+run13 fog1807MiB and run69 positions1798MiB. Next investigate bounded world and
+harness observations; the setup equivalence test intentionally holds the original
+whole parser, so preserve its independent oracle even if lifetimes can shorten.
+Harness remains the largest CPU family at199.28s; no new CPU speedup is inferred.
+Independent review of observation boundaries and methodological changes remains
+owed. The paused commander was not resumed and this branch was not merged.
