@@ -352,7 +352,8 @@ impl Script {
                         )
                     })
                     .collect();
-                done.reached.push(reached_line(&command_word(&line.text), &changed));
+                done.reached
+                    .push(reached_line(&command_word(&line.text), &changed));
             }
         }
         let marks = std::mem::take(&mut built.sim.phase_marks);
@@ -2020,14 +2021,24 @@ mod tests {
     /// the fold into the walk's `Applied`.
     #[test]
     fn an_issuer_line_names_what_it_reached_and_an_add_where_it_landed() {
-        assert_eq!(super::reached_line("@attack", &[]), "@attack: reached no unit");
         assert_eq!(
-            super::reached_line("@attack", &["1/27 orders 0->1".to_string(), "1/28 orders 1->2".to_string()]),
+            super::reached_line("@attack", &[]),
+            "@attack: reached no unit"
+        );
+        assert_eq!(
+            super::reached_line(
+                "@attack",
+                &[
+                    "1/27 orders 0->1".to_string(),
+                    "1/28 orders 1->2".to_string()
+                ]
+            ),
             "@attack: reached 2 unit(s): 1/27 orders 0->1, 1/28 orders 1->2"
         );
         let mut a = super::Applied::default();
         let mut b = super::Applied::default();
-        b.landed.push("add hoplite who=1: 1/27 at (6552,18840) for (6540,18800)".to_string());
+        b.landed
+            .push("add hoplite who=1: 1/27 at (6552,18840) for (6540,18800)".to_string());
         b.reached.push("@attack: reached no unit".to_string());
         a.merge(&b);
         a.merge(&b);

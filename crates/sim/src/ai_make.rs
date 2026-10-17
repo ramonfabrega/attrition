@@ -1062,13 +1062,20 @@ mod tests {
             wx: 0,
             wy: 0,
         };
-        let line = make_debug_line(576, 1, &head, &[0, 80, 0, 0, 0, 0], &[12, 78, 0, 0, 0, 0], 0, false);
+        let line = make_debug_line(
+            576,
+            1,
+            &head,
+            &[0, 80, 0, 0, 0, 0],
+            &[12, 78, 0, 0, 0, 0],
+            0,
+            false,
+        );
         assert_eq!(
             line,
             "MAKE f576 who=1 head t=340 num=1 escrow=1 cost=[0, 80, 0, 0, 0, 0] bucket=[12, 78, 0, 0, 0, 0] affordable=0 paid=no"
         );
     }
-    use super::*;
     use crate::ai::CityAi;
     use crate::build::BuildType;
     use crate::economy::Resource;
