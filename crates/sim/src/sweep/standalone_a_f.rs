@@ -534,12 +534,16 @@ mod command_package_process_attack_ground;
 mod command_package_process_begin;
 #[path = "command_package_process_board_ship.rs"]
 mod command_package_process_board_ship;
+#[path = "command_package_process_build.rs"]
+mod command_package_process_build;
 #[path = "command_package_process_buildmask.rs"]
 mod command_package_process_buildmask;
 #[path = "command_package_process_buy.rs"]
 mod command_package_process_buy;
 #[path = "command_package_process_cannon_time.rs"]
 mod command_package_process_cannon_time;
+#[path = "command_package_process_chat_set.rs"]
+mod command_package_process_chat_set;
 #[path = "command_package_process_cheat_ai_speed_normal.rs"]
 mod command_package_process_cheat_ai_speed_normal;
 #[path = "command_package_process_cheat_ai_toggle.rs"]
@@ -572,6 +576,8 @@ mod command_package_process_demand_tribute;
 mod command_package_process_disband;
 #[path = "command_package_process_eject_all.rs"]
 mod command_package_process_eject_all;
+#[path = "command_package_process_flight.rs"]
+mod command_package_process_flight;
 #[path = "command_package_process_form.rs"]
 mod command_package_process_form;
 #[path = "command_package_process_garrison.rs"]
@@ -586,6 +592,10 @@ mod command_package_process_halt;
 mod command_package_process_launch_patrol;
 #[path = "command_package_process_marwan.rs"]
 mod command_package_process_marwan;
+#[path = "command_package_process_move_near.rs"]
+mod command_package_process_move_near;
+#[path = "command_package_process_mp_log.rs"]
+mod command_package_process_mp_log;
 #[path = "command_package_process_patrol.rs"]
 mod command_package_process_patrol;
 #[path = "command_package_process_pause.rs"]
