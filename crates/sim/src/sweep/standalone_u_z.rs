@@ -206,6 +206,8 @@ mod unit_type_data_can_entrench;
 mod unit_type_data_get_circle_radius;
 #[path = "unit_type_data_get_kill_value.rs"]
 mod unit_type_data_get_kill_value;
+#[path = "unit_type_data_get_military_level.rs"]
+mod unit_type_data_get_military_level;
 #[path = "unit_type_data_get_relative_value.rs"]
 mod unit_type_data_get_relative_value;
 #[path = "unit_type_data_get_underlay_circle_radius.rs"]
@@ -318,6 +320,8 @@ mod wall_data_hits;
 mod wall_data_is_defensive;
 #[path = "wall_data_is_neutralized.rs"]
 mod wall_data_is_neutralized;
+#[path = "wall_data_is_now_seen.rs"]
+mod wall_data_is_now_seen;
 #[path = "wall_data_is_sea_trade.rs"]
 mod wall_data_is_sea_trade;
 #[path = "wall_data_is_trade.rs"]
@@ -490,6 +494,8 @@ mod world_is_tree_at;
 mod world_map_fog_add_update;
 #[path = "world_map_fog_get_fog_lookup.rs"]
 mod world_map_fog_get_fog_lookup;
+#[path = "world_map_fog_set_fog_lookup.rs"]
+mod world_map_fog_set_fog_lookup;
 #[path = "world_map_on_right_down.rs"]
 mod world_map_on_right_down;
 #[path = "world_map_reinit_all.rs"]

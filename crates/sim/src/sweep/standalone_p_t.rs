@@ -288,6 +288,8 @@ mod terrain_vis_get_verts_per_bucket;
 mod terrain_vis_invalidate_fog_wcoord;
 #[path = "terrain_vis_invalidate_wcoord.rs"]
 mod terrain_vis_invalidate_wcoord;
+#[path = "terrain_vis_invalidate_wcoord_1.rs"]
+mod terrain_vis_invalidate_wcoord_1;
 #[path = "terrain_vis_set_base_source_pool.rs"]
 mod terrain_vis_set_base_source_pool;
 #[path = "terrain_vis_set_extra_source_pool.rs"]
@@ -300,6 +302,8 @@ mod terrain_walk_coord_data;
 mod think_order_get_type;
 #[path = "time_sync_add_ping.rs"]
 mod time_sync_add_ping;
+#[path = "time_sync_analyze_response.rs"]
+mod time_sync_analyze_response;
 #[path = "time_sync_get_best_ping_time.rs"]
 mod time_sync_get_best_ping_time;
 #[path = "time_sync_on_player_deleted.rs"]
@@ -426,6 +430,8 @@ mod type_specialty;
 mod type_spell;
 #[path = "type_sum_cost.rs"]
 mod type_sum_cost;
+#[path = "type_sum_rules_cost.rs"]
+mod type_sum_rules_cost;
 #[path = "type_tech.rs"]
 mod type_tech;
 #[path = "type_unit.rs"]

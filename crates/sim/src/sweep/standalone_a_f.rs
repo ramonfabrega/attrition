@@ -154,6 +154,8 @@ mod build_data_get_packer_stance;
 mod build_data_get_shot;
 #[path = "build_data_get_worker_stance.rs"]
 mod build_data_get_worker_stance;
+#[path = "build_data_has_objmask.rs"]
+mod build_data_has_objmask;
 #[path = "build_data_hits.rs"]
 mod build_data_hits;
 #[path = "build_data_is_gathered_by.rs"]
@@ -386,6 +388,8 @@ mod cliffs_get_parse_name;
 mod cliffs_out_get_mining_data;
 #[path = "cliffs_out_get_mining_size.rs"]
 mod cliffs_out_get_mining_size;
+#[path = "cliffs_set_edge_flags.rs"]
+mod cliffs_set_edge_flags;
 #[path = "coll_block_get.rs"]
 mod coll_block_get;
 #[path = "command_manager_check_accept_issue.rs"]
@@ -426,6 +430,8 @@ mod command_manager_issue_clear_all;
 mod command_manager_issue_clear_tributes;
 #[path = "command_manager_issue_come_out.rs"]
 mod command_manager_issue_come_out;
+#[path = "command_manager_issue_console_cmd.rs"]
+mod command_manager_issue_console_cmd;
 #[path = "command_manager_issue_declare.rs"]
 mod command_manager_issue_declare;
 #[path = "command_manager_issue_disband.rs"]
@@ -514,6 +520,24 @@ mod command_manager_issue_unqueue_wall;
 mod command_package_add_command;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
+#[path = "command_package_process_alarm.rs"]
+mod command_package_process_alarm;
+#[path = "command_package_process_check_random.rs"]
+mod command_package_process_check_random;
+#[path = "command_package_process_halt.rs"]
+mod command_package_process_halt;
+#[path = "command_package_process_marwan.rs"]
+mod command_package_process_marwan;
+#[path = "command_package_process_pause.rs"]
+mod command_package_process_pause;
+#[path = "command_package_process_recall.rs"]
+mod command_package_process_recall;
+#[path = "command_package_process_scramble.rs"]
+mod command_package_process_scramble;
+#[path = "command_package_process_stop_spell.rs"]
+mod command_package_process_stop_spell;
+#[path = "command_package_process_ungraceful_player_drop.rs"]
+mod command_package_process_ungraceful_player_drop;
 #[path = "command_package_walk_data.rs"]
 mod command_package_walk_data;
 #[path = "constants_walk_data.rs"]
@@ -534,6 +558,8 @@ mod doober_find_y_pos;
 mod doober_get_num;
 #[path = "doober_has_doobers.rs"]
 mod doober_has_doobers;
+#[path = "doober_inc_time.rs"]
+mod doober_inc_time;
 #[path = "draw_thick_diamond.rs"]
 mod draw_thick_diamond;
 #[path = "farms_add_animals_all.rs"]
