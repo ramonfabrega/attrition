@@ -6801,13 +6801,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GH — reserved
+## Parked by item 2941, 2026-10-17 — the process_* bodies, eighteen swept
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2941, first) **A `--regen` cannot widen a draw once the module is registered, and a delete-and-regenerate cannot either.** `sweep_gen.py` refuses a new generation over an existing script ("a sweep is generated once"), and after the two files are removed it refuses again with "duplicate standalone module" because the `mod` line in `standalone_*.rs` stays; `--regen` redraws but resets the port to the kept line's `--port`. A bias that starved an arm (`process_speed_up`'s flag word never drew a value with bit 0 alone, so a `& 0x101` break survived) was cured by editing the script's `WBIAS` and its kept `# sweep_gen:` line by hand. Loop: a `--regen` that takes a new `--wbias` and keeps the port in the `.rs` (Loop 2886's trap is the same wall from the other side).
+
+(2941, second) **The `process_*` bodies are one of three shapes and the port is the same four lines.** Log (strrchr's answer picks the file name: `0` gives the constant, else the hit + 1), `Log::say` round `game_log` (detail < 0 becomes 1), then a group call, a leader-table call (`0xe3a390 + who * 0x6eec`) or a gated write. Eighteen now: the seven `process_cheat_*` (view_all, zero/increase_buckets, zero/give_techs, ai_toggle, ai_speed_normal), `disband`, `unitmask`, `buildmask`, `resign`, `accept`, `buy`, `treaty`, `declare`, `tribute`, `speed_up`, `speed_down`. Still never-backed beside them: `city_gather`, `clear_all`, `clear_tributes`, `reject`, `demand_tribute`, `propose_attack`, `cheat_ai_speed_increase`, `cheat_init_unit`, `begin`, `transport`, `set_transport`, `patrol`, `attack_ground`, `queue_up`, `form`, `eject_all`, `rename_city`, `mp_log`, `come_out`, `flight`, `cannon_time`, `ping`, `gather_point`, `build`, `launch_patrol`, `gather`, `repair`, `chat_set`, `board_ship`, `garrison`, `siege_attack`. The ten that read only the command's dwords and one action are the same shape; the others (`build`, `gather`, `chat_set`) walk lists or strings and are a shape of their own.
+
+(2941, third) **A game pointer that is only added to need not be a window.** `Player::resign` is called with `ecx = game + 0x44 + who * 0x8c` and nothing reads through it, so `--at 0xc061ec:4` makes the cell a random dword and the recorded `ecx` a number the port can compute; `--cell-win` would have printed a window name for the same cell and hidden the arithmetic. Worth a line in `sweep_gen.py`'s `--at` help.
 
 ## Parked by the next landing, slot GI — reserved
 
