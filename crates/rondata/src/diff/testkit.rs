@@ -9438,12 +9438,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `0x800000`, in the same window (block 6822 is not captured: run882
     // ends at 6821 and the closing 6823); run882's test keeps 6808's
     // value diff (block 6809, `1/63`'s ring), and 6821's widening is
-    // owed by the next item.
+    // owed by item 2864.
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         None,
-        2845,
+        2864,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

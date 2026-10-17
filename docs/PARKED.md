@@ -3806,6 +3806,11 @@ new files count, exit 2), which three subagents each found the slow way. Candida
 in-image table is `@LOC`; a lane lost twenty minutes to 220 rows that recorded nothing. Candidate: the help says it, beside
 2842's and 2850's traps, and the generator counts the ` # -` rows and refuses when they are all of them. One reach.
 
+(2867) **When a predicate refuses on one side and the reading says it should pass, `--watch` the fields it reads across the
+caller's whole call on a packet before reading another callee** (2845's "for the Loop" line, filed at its merge): a blind
+reading's `[bytes]` side effect (2026-09-17) sat unbuilt for a month; its owner was the ring walk's predicate, found only
+through a packet's `--watch`. Candidate: a brief-checklist row beside Loops 2827 and 2847. One reach.
+
 (2843) **The census counts a sweep only when its test's doc comment spells `Class::method@addr` in full** (2837's "for the
 Loop" line, filed at its merge): a three-forms-in-one test that named `is_seen_wcoord@…` bare scored two of three until the
 full names were spelled. Candidate: `census.py --unbacked` says "cited bare" for an address a test file names without its
@@ -6554,10 +6559,15 @@ loop ended by a short that no link flag walks), `Unit::update_local_seen` and `O
 
 ## Parked by item 2845, 2026-10-17 — the peace pair's word 6808 → 6821
 
-- **The `set_anim+0x104b` tail on 6808** (ours 1, the bird `9/6`; theirs 3), after the ring and the wraps. Not re-measured
-  on the fixed tree; the word is now 6821, so it agrees there or the count would part on 6808. Names no score while the word
+No row of its own for the word. The new word, 6821, booked as the queue's 2864 at the merge (`docs/AI.md` §237): ours 17
+draws, theirs 23, index 3, theirs `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`; nearest lead `1/124`'s
+`attack[0].mandatory` (ours 0, theirs 1). 6821 is run882's last block, so its widening is owed a capture reaching 6822 and
+the closing 6823.
+
+(2865) **The `set_anim+0x104b` tail on 6808** (ours 1, the bird `9/6`; theirs 3), after the ring and the wraps. Not re-measured
+on the fixed tree; the word is now 6821, so it agrees there or the count would part on 6808. Names no score while the word
   sits past it.
-- **The `0x800000` restore on the unit-target half of `find_attack_pos`** (`docs/COMBAT.md` §17.7): listing-only, and the
+(2866) **The `0x800000` restore on the unit-target half of `find_attack_pos`** (`docs/COMBAT.md` §17.7): listing-only, and the
   half itself answers `None` here (§17.6). Names no score until a capture reaches a unit-target ring with an
   auto-transport asker.
 
