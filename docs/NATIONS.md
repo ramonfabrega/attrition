@@ -119,8 +119,8 @@ says in its doc comment that only the British and Mongol arms are built,
 | Romans | legions train faster | `ObjectData::train_time@006508c0` | not modelled | `roman_legion_fast` |
 | French | siege units train faster | `ObjectData::train_time@006508c0` | not modelled | `french_siege_speed` |
 | French | special (general) units train faster, 0 in the rules | `ObjectData::train_time@006508c0` | not modelled | `french_special_speed` |
-| Germans | aircraft train faster | `ObjectData::train_time@006508c0` | not modelled | `german_air_speed` |
-| Germans | submarines train faster | `ObjectData::train_time@006508c0` | not modelled | `german_submarine_speed` |
+| Germans | aircraft train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_air_speed` |
+| Germans | submarines train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_submarine_speed` |
 | Japanese | barracks units train faster (negative in the rules) | `ObjectData::train_time@006508c0` | not modelled | `japanese_barracks_speed` |
 | Japanese | carriers train faster | `ObjectData::train_time@006508c0` | not modelled | `japanese_carrier_speed` |
 | Lakota | raze speed (train_time's tail) | `ObjectData::train_time@006508c0` | not modelled | `lakota_raze_speed` |
@@ -252,9 +252,9 @@ left out; a constant with no reader in the export is dead there too.
 <!-- GENERATED:consts3 -->
 | constant | rules | the export reads it in | status | witness |
 |---|---:|---|---|---|
-| `GERMAN_SUBMARINE_COST` | 25 | TypeData::get_cost | not carried | `german_submarine_cost` |
-| `GERMAN_SUBMARINE_SPEED` | 33 | ObjectData::train_time | not carried | `german_submarine_speed` |
-| `GERMAN_AIR_SPEED` | 33 | ObjectData::train_time | not carried | `german_air_speed` |
+| `GERMAN_SUBMARINE_COST` | 25 | TypeData::get_cost | modelled at lib.rs | `german_submarine_cost` |
+| `GERMAN_SUBMARINE_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `german_submarine_speed` |
+| `GERMAN_AIR_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `german_air_speed` |
 | `GERMAN_FREE_FIGHTER` | 2 | Build::activate | modelled at nations.rs | `german_free_fighter` |
 | `GERMAN_FREE_BOMBER` | 0 | no reader in the export | not carried | `german_free_bomber` |
 | `GERMAN_METAL_EARLY` | 0 | LeaderData::has_preq | modelled at tech.rs | `german_metal_early` |
@@ -581,9 +581,10 @@ a pass books against a word, not a fix for the lobby that exposed it.
    §4): about forty percentage terms, of which `cost.rs` carries the
    French siege and the Spy/General arms and `lib.rs` the Chinese, Dutch,
    American, Persian and Turkish tail arms of the tech lines. The
-   uncarried ones that an AI reaches first in its lobby are the German
-   air and submarine speeds and costs (`EastIndiesGermanTier3` is the AI
-   word, so these are not held out; filed here for the audit's whole).
+   uncarried ones that an AI reaches first in its lobby ~~are the German
+   air and submarine speeds and costs~~ — built by item 2974 at `lib.rs`
+   (`docs/AI.md` §242; the submarine pair diff-backed by the battery
+   word, the air speed by the sim test alone).
 6. **The tiers' unbuilt arms** (§6): `Unit::do_gather`'s and
    `Build::process`'s AI repair arms (H12), `get_econ_mod` (no caller
    in the export, so it is dead there too). Tier 1–4 parts have not been
