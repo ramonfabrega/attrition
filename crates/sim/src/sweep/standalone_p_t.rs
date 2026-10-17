@@ -46,6 +46,8 @@ mod path_finder_walk_data;
 mod patrol_order_get_patrol_order;
 #[path = "patrol_order_walk_data.rs"]
 mod patrol_order_walk_data;
+#[path = "player_end_game.rs"]
+mod player_end_game;
 #[path = "player_is_active.rs"]
 mod player_is_active;
 #[path = "player_is_active_connection.rs"]
