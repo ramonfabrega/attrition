@@ -131,6 +131,15 @@ Three shapes, each a `__thiscall` on `ecx`:
           the port cannot see addresses, so it recovers the target from a
           pointer array's entry, as that sweep's does.
 
+          `--edx-win WIN` (item 2801, parked 2791): `edx` the address of
+          window WIN (m, cN or pN) rather than an integer, for a register
+          argument that is a pointer (`MiscAccess::world_to_screen`'s
+          `in_EDX`); `--record-edx` names it by the window. A function
+          swept as several modules (`Search::valid_filter`'s arms, one
+          `--argrange IDX:K:K` and `--name` each) redraws with `--regen`
+          from its own `--name`'s line only; pass the whole flag set,
+          since a flag the line names replaces every kept use of it.
+
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
           (parked 1889).
