@@ -566,6 +566,8 @@ mod object_type_data_basic_type;
 mod object_type_data_blocked_site;
 #[path = "object_type_data_get_age.rs"]
 mod object_type_data_get_age;
+#[path = "object_type_data_get_age_slow.rs"]
+mod object_type_data_get_age_slow;
 #[path = "object_type_data_get_stance_type.rs"]
 mod object_type_data_get_stance_type;
 #[path = "object_type_data_has_objmask.rs"]
