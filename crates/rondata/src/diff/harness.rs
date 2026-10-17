@@ -2095,6 +2095,20 @@ fn widen_block_rows(
                     i64::from(un.combat.packed),
                     them.unit_masks.map(|m| i64::from(m & 0x8_0000 != 0)),
                 ),
+                // **`unit_masks & 0x1000` and `& 0x10000`** (item 2798,
+                // `docs/GOLDEN.md` §104): the blown and fought bits, set
+                // by `fight`, dropped by `check_idle` and the 512-frame
+                // `process_cloak` — read off the word, never compared.
+                (
+                    "blown",
+                    i64::from(un.blown),
+                    them.unit_masks.map(|m| i64::from(m & 0x1000 != 0)),
+                ),
+                (
+                    "fought",
+                    i64::from(un.fought),
+                    them.unit_masks.map(|m| i64::from(m & 0x1_0000 != 0)),
+                ),
             ] {
                 rows.push((r.0.into(), r.1, r.2));
             }
@@ -2294,7 +2308,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "sheltered" => ("UnitDump", "unit_masks2"),
         "orders.len" => ("UnitDump", "orders"),
         "guys.len" => ("UnitDump", "guys"),
-        "half_step" | "packed" | "mirror" => ("UnitDump", "unit_masks"),
+        "half_step" | "packed" | "mirror" | "blown" | "fought" => ("UnitDump", "unit_masks"),
         "dest_angle" => ("UnitDump", "dest_angle"),
         "orders_x" => ("UnitDump", "orders_x"),
         "orders_y" => ("UnitDump", "orders_y"),

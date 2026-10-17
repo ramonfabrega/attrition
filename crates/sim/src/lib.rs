@@ -5983,6 +5983,14 @@ impl Sim {
                     self.units[i].blown = false;
                 }
             }
+        } else {
+            // `Unit::process@00610bc0:557`, the `inside_up >= 0` arm:
+            // `unit_masks &= 0xfffeefff` — a garrisoned unit loses both
+            // the blown and the fought bits on every frame it is inside
+            // (item 2798, `docs/GOLDEN.md` §104; run678's ESF `1/0`
+            // enters on 979 and reads `0x840008` on 980).
+            self.units[i].blown = false;
+            self.units[i].fought = false;
         }
         if !self.units[i].on_map {
             // **The inside arm's figure write** — `Unit::process@00610bc0`'s

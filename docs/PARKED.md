@@ -6240,13 +6240,17 @@ its own address; the port cannot see addresses and recovers the target from the 
 shape are 257-byte rendering or editor bodies (`RiverDoober::add_for_render`, `Game::run_unit_editor`) and `Search::valid_filter`
 (an indexed jump over a table of arms, `--jump` over the arms' own addresses would hold it, each arm its own function).
 
-## Parked by the next landing, slot FB — reserved
+## Parked by item 2798, 2026-10-17 — the blown and fought bits compared
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2802) **The inside arm's other halves** (item 2798, `docs/GOLDEN.md` §104): `Unit::process@00610bc0:557-559` also writes
+`unit_masks &= 0xfffee7ff` with `0x2000` clear (dropping `0x800`) and `unit_masks2 &= 0xffff7f9f` (`0x20`, `0x40`, `0x8000`); this
+crate drops `blown` and `fought` only. A `unit_masks2` row on a garrisoned unit would back the second. Names no score.
+
+(2803) **The `blown`/`fought` rows are gated on `on_map`**: a garrisoned unit's masks are not compared on its inside frames, so
+the garrison clear is backed only on the exit frame. Moving the row out of the gate would need `unit_masks` printed for inside
+units (it is) and ours to agree on the mask of an inside unit. Names no score.
+
+Struck: (2759) closed by item 2798 — the field is compared and both clears are diff-backed.
 
 ## Parked by item 2801, 2026-10-17 — valid_filter's arms, the clock and the register pointer
 
