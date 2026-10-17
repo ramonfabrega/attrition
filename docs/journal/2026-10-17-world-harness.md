@@ -86,3 +86,55 @@ Complete required-fixture gate and complete warm-suite measurement pending on
 the committed implementation. Preserve every original name and exact fixture
 multiset. Independent review of observation boundaries remains owed; whole-suite
 10×, sub-minute/sub-GiB and concurrent-agent capacity remain unproven.
+
+## Complete verdict on `7deda699`
+
+All six required-fixture gate phases pass, exit0, on the frozen clean tree:
+502 offline tests (three unchanged skips),900 rondata (six unchanged ignores),
+2586 sim,13 fixed and3 doctests. Clippy/fmt/survey/guard pass. A complete warm
+run also passes900 tests. All899 original rondata tests and ignores remain;
+exactly one boundary guard is added. Both complete candidate runs preserve the
+exact3276 fixture requests (419 unique,zero missing). Pressure replicas each
+preserve their exact fixture multisets. Saved audited, restored and gate binaries
+have identical SHA256. Score/pins and draw/value floors do not move.
+
+Receipts: gate.log, gate.exit, gate/, warm-suite.log, warm-suite/,
+baseline-control.log, baseline-control/ and gate-equivalence.json. Reproduce:
+
+```
+python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures --report-dir <new-output>
+python3 /tmp/attrition-world-harness-20261017-01/equivalence.py
+```
+
+| Complete measurement | Previous landing | This landing |
+|---|---:|---:|
+| Full gate wall / CPU s |232.18 /1197.47|230.33 /1191.14|
+| Full gate sampled tree MiB |7425|8698|
+| Complete warm rondata wall / CPU s |132.21 /924.28|132.86 /923.69|
+| Complete warm sampled tree MiB |7184|7813|
+
+The full warm suite is effectively flat on time/CPU; sampled peak rises8.8%.
+Gate peak rises17.1%. These measurements do not establish a complete-suite
+memory improvement, despite the five tests' large local and competing-subset
+savings. Changed overlap between remaining large tests is a possible explanation,
+not a measured attribution. Scheduling and sampling influence aggregate peaks.
+
+A nearby control reruns the saved original binary after the candidate:899 pass,
+exact original test/fixture inventories preserved, 133.53s/930.32CPU,
+7384MiB sampled peak. Compare this with candidate132.86s/923.69CPU/7813MiB;
+one nearby control is not a confidence interval or proof of capacity. Both the
+previous result and this control are retained, rather than selecting the better
+baseline. No whole-suite10×, sub-minute/sub-GiB or20-agent claim is made.
+
+## Next measured targets and review debt
+
+Warm OS RSS: whole-parser road setup oracle1930MiB (intentionally independent),
+run89 unit window1735MiB, piece-length equivalence1686MiB, run58 harness1655MiB,
+run87 unit window1651MiB, run93 army window1643MiB, world frame95 comparison1605MiB
+and run94 harness clocks1602MiB. Next investigate the same bounded-setup pattern
+across the remaining unit/window consumers, retaining independent reference
+readers. Harness remains largest CPU family at195.23s. The runner still uses its
+existing conservative profile; updated admission/order is a separate experiment,
+not a free performance claim. Independent review of observation boundaries,
+failure diagnostics and these methodological changes remains owed. Commander
+stays paused; this branch is not merged.

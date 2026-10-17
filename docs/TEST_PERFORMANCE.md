@@ -587,6 +587,9 @@ audits agree, and deliberate truncation faults fail. Forced failure-artifact
 replay reproduces the complete report. Local RSS1790–1924→394–436MiB.
 Four competing copies of these five tests: sampled memory26769→1840MiB,
 wall7.94→4.46s, CPU58.88→25.35s. This is a subset, not four full suites.
-Full gate pending; whole-suite10× remains unmet. See
+Full required-fixture gate passes on `7deda699`:900 rondata/2586 sim and exact3276
+fixture requests retained. Complete warm suite132.21→132.86s, CPU924.28→923.69;
+sampled peak7184→7813MiB (no full-suite memory win). Nearby original-binary control:
+133.53s/930.32CPU/7384MiB. Whole-suite10× remains unmet. See
 [journal](journal/2026-10-17-world-harness.md) and
 [audit](audit/2026-10-17-world-harness.json). Independent review remains owed.
