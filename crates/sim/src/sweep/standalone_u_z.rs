@@ -84,6 +84,8 @@ mod unit_data_hits;
 mod unit_data_in_supply;
 #[path = "unit_data_is_attacking.rs"]
 mod unit_data_is_attacking;
+#[path = "unit_data_is_busy.rs"]
+mod unit_data_is_busy;
 #[path = "unit_data_is_caravan.rs"]
 mod unit_data_is_caravan;
 #[path = "unit_data_is_casting.rs"]
@@ -452,6 +454,8 @@ mod world_data_valid;
 mod world_data_was_really_seen;
 #[path = "world_data_was_seen.rs"]
 mod world_data_was_seen;
+#[path = "world_data_was_seen_wcoord.rs"]
+mod world_data_was_seen_wcoord;
 #[path = "world_get_land.rs"]
 mod world_get_land;
 #[path = "world_get_region.rs"]
