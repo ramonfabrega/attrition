@@ -5621,6 +5621,22 @@ fn chapter_eighty_eight_s_window_is_widened_whole() {
     cases_80_89::chapter_eighty_eight_s_window_is_widened_whole();
 }
 
+/// **Chapter eighty-nine** (item 2930, `docs/GOLDEN.md` §113, run890): a Bribe whose
+/// target is outside the caster's owner's sight when the Spy reaches range.
+#[test]
+fn chapter_eighty_nine_holds_to_the_golden_word() {
+    cases_80_89::chapter_eighty_nine_holds_to_the_golden_word();
+}
+
+/// **run890 whole, both directions** (item 2930, `docs/GOLDEN.md` §113).
+#[test]
+fn chapter_eighty_nine_s_window_is_widened_whole() {
+    cases_80_89::chapter_eighty_nine_s_window_is_widened_whole();
+}
+
+/// What parts in run890's window, blocks 1100–1500.
+const WANT_CH89: &[&str] = &[];
+
 /// What parts in run889's window, blocks 1100–1500.
 const WANT_CH88: &[&str] = &[
     "1100 0/0 form",
