@@ -18,11 +18,11 @@ waiting a landing (35.2), every gate green, two `DEEP`, no kill rule, no merge b
 seven stay; `docs/audit/2026-10-17-fable-pass-39.md`.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
-  (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956), as 2974; it stays on its lobby until it closes (DECISIONS 77 (vii)).
+  (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956) → 12815 (2974), as 2997; it stays on its lobby until it closes (DECISIONS 77 (vii)).
   Chapters 86–91 closed; 92 is 2994. Census 1224 → 1329 of 3611. Battery 6566 / 2974 / 176, a gate floor now.
-- **Lanes: five live, three landings** (2976 `docs/NATIONS.md`; 2959 Census 1319 → 1329; 2971 chapter 91 on run894, parked
-  2991–2993). 2974 the AI word's (Opus 5.5 medium, run 910); 2975, 2966, 2990 and 2994 (Sonnet 5.5 medium); refilled only
-  while landings + live lanes < 20. Next 2995, run 912 (Astra 900–909). Pools: GOLDEN §117–120, AI §244–247, park GT–GX.
+- **Lanes: four landings** (2976 `docs/NATIONS.md`; 2959 Census → 1329; 2971 chapter 91; 2974 the word 6585 → 12815, parked
+  2995–2996). 2997 the AI word's (Opus 5.5 medium, run 912); 2994 the rules track's (Sonnet 5.5 medium, run 911); refilled
+  only while landings + live lanes < 20. Next 2998, run 913 (Astra 900–909). Pools: GOLDEN §117–120, AI §245–247, park GU–GX.
 - **Fable backlog: 11 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -32,7 +32,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: EastIndiesGermanTier3 w6585 of 13,519
+Battery word: EastIndiesGermanTier3 w12815 of 13,519
 Census: simulation backed 1329 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed
@@ -46,14 +46,17 @@ landings + live lanes < 20; stop at twenty.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2974 the AI word's (Opus); 2975, 2966, 2990 and 2994 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 6585. Take the first unstarted item unless a better
+2997 the AI word's (Opus); 2975, 2966, 2990 and 2994 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-2974. **The battery word, 6585 of 13519 (`EastIndiesGermanTier3`):
-    ours 6 draws against theirs 5** (2956 moved it from 5577 and widened
-    it on run893c, 436 keys): at index 1 ours draws `use_market+0x1ed`
-    where theirs draws `make_stuff+0x221`; who=1's make-list head parts
-    on 6581, type 340 in ours against 334 in theirs. Unstarted. AI §242.
+2997. **The battery word, 12815 of 13519 (`EastIndiesGermanTier3`, East Indies):
+    ours 9 draws against theirs 8** (2974 moved it from 6585 with the
+    Germans' Fire Raft costs and speed; run910 widens it, 967 keys): at
+    index 1 ours draws `Unit::fight+0x9b0` where theirs draws
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Positions part already
+    on 12809 (`0/0` (4680, 9362) against (4674, 9396)), so the state first
+    parts in 6837..12808, which no dump holds: a windowed capture or a
+    bisection, run 912. Unstarted. AI §244.
 
 2975. **Five held-out lobbies minted** (DECISIONS 77 (ii), 61 §6; `docs/AI.md`
     §125, `diff::battery::BATTERY`): captures only, never debugged against

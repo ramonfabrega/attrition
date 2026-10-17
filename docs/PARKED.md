@@ -6834,12 +6834,12 @@ so no dump has read a Roman `income`; a lobby with a Roman AI on one city would 
 
 ## Parked by item 2974, 2026-10-17 — the Germans' Fire Raft line
 
-- (2974, first) **`g.angle[0]` stands on who=1's units of the battery's German lobby**: 1431655765 (`0x55555555`) in ours
+- (2995) **`g.angle[0]` stands on who=1's units of the battery's German lobby**: 1431655765 (`0x55555555`) in ours
   against 0 in theirs on `1/23`, `1/24`, `1/27`, `1/34`, `1/35` from run893c's first block (6579), and on `1/37` from
   6652 (`docs/AI.md` §242). None of those units parts in position or order in 6579..6836, so it names no score yet;
   `0x55555555` reads as an unwritten fill, so the first step is `seams.py --field angle` and the writers of the figure's
   `angle` in this crate against the dump's own print.
-- (2974, second) **`GERMAN_AIR_SPEED` rests on the reading alone** (`train_time@006508c0:198`–`201`, `+0x218 == 2`):
+- (2996) **`GERMAN_AIR_SPEED` rests on the reading alone** (`train_time@006508c0:198`–`201`, `+0x218 == 2`):
   built beside the submarine arm and held by the sim test only, since no walked window has a German leader training an
   aircraft. A German lobby past the Industrial age would back it. Names no score.
 
