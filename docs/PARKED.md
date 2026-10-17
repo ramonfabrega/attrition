@@ -3764,7 +3764,9 @@ batch (`issue_rename_city`, `process_halt`).
 Loop" line, filed at its merge): sparse windows come first, so a `--wbias p0+*` meant for the first place biased a sparse
 byte and the run looked healthy until a break survived (parked 2890); two reruns. Candidate: the generated doc comment lists
 the windows in order (`p0..p3 sparse, p4 place`), a test made to fail first. One reach. **A second reach** (2893's "for the
-Loop" line, filed at its merge): `--sparse` makes one `p` window a *slice*, not a row (parked 2907), and two reruns again.
+Loop" line, filed at its merge): `--sparse` makes one `p` window a *slice*, not a row (parked 2907), and two reruns again. **A third reach** (2927's "for the
+Loop" line, filed at its merge; parked 2944): every later `p` number moves by rows × slices, two failed first runs; a
+`--dry-run` that printed the window table once (name, size, what it holds) would have saved both.
 
 (2896) **`unitat.py` re-scans the whole dump per unit** (2881's "for the Loop" line, filed at its merge): about 6 s a unit on
 run880's 1.2 GB dump, over 100 s for a cast of eighteen. Candidate: `--units a,b,c` reads the dump once, a test that counts
@@ -6779,22 +6781,22 @@ Barracks that who=1 loses first. Names no score.
 
 ## Parked by item 2927, 2026-10-17 — the hundred-and-twenty-sixth sweep batch: ten swept, the vcall pair and the callers parked
 
-- (2927) **Not built, the harvest lane's two named rows, read and left:** `ObjectData::has_general` 0x646b00 (five vtable
+- (2942) **Not built, the harvest lane's two named rows, read and left:** `ObjectData::has_general` 0x646b00 (five vtable
   slots of `this` and of `this+0x18`, the units table by `byte +9`, the leaders table at `+0x56fe`, and
   `HeroesData::find_hero` with seven stack arguments, every argument of which would have to be recorded) and
   `UnitData::is_busy` 0x60a370 (order list, slot 0xf4 twice, two types-table slots): each is the table-and-vtat recipe
   with more than six stubbed callees; the shape lane owns an hour each, or they wait for a generator that names a
   stub's argument count from the listing.
-- (2927, second) **`Wall::mask_me` 0x642fc0, `BuildData::get_queue` 0x62d280 and `CityData::count_farms` 0x7368c0 sit
+- (2943) **`Wall::mask_me` 0x642fc0, `BuildData::get_queue` 0x62d280 and `CityData::count_farms` 0x7368c0 sit
   behind the objects table's slot 0x3c** (a record answered per call, whose fields the function reads at +0x82, +0x88,
   +0x8c): the shape is `--answer-win` per call with fields biased through the answer, and `get_queue` also needs
   `LeaderData::get_first_library` answered with its register argument; no batch has built the answer-window-plus-wbias
   pair, so the first one is a shape lane's item.
-- (2927, third) **The sparse leaders table has an owner byte problem**: `--sparse @VA/ADDR` lays N rows only, so a
+- (2944) **The sparse leaders table has an owner byte problem**: `--sparse @VA/ADDR` lays N rows only, so a
   function that indexes the table by a byte of its object (`has_objmask`, `is_now_seen`) is held to owners below N by a
   `--wbias` of the owner's word; a generator that drew the byte from `0..N` itself (as `--argrange` does an argument)
   would not need the word named, and the `m+8` flags-and-owner word is a list of 28 products that the flag file spells.
-- (2927, fourth) **A starved arm, read against the draw (2222):** `Cliffs::set_edge_flags`'s ninth call (three cliffs of
+- (2945) **A starved arm, read against the draw (2222):** `Cliffs::set_edge_flags`'s ninth call (three cliffs of
   three points) is reached in about one row in a thousand, so `a[1 + calls.min(9) - 1]` against `.min(8)` is
   unobservable at 220 rows; `Doober::inc_time`'s `n >= 0` guard cannot fail with a count drawn from 0..8. Both are
   named in the journal as equivalents of the draw, not held breaks.
