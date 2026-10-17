@@ -384,6 +384,8 @@ mod type_unit;
 mod type_walk_rules_data;
 #[path = "type_wonder.rs"]
 mod type_wonder;
+#[path = "type_restore.rs"]
+mod type_restore;
 #[path = "types_walk_data.rs"]
 mod types_walk_data;
 #[path = "types_walk_rules_data.rs"]
