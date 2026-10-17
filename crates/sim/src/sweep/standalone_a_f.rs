@@ -442,6 +442,8 @@ mod command_manager_issue_halt;
 mod command_manager_issue_hotkey;
 #[path = "command_manager_issue_rename_city.rs"]
 mod command_manager_issue_rename_city;
+#[path = "command_manager_issue_leader_option.rs"]
+mod command_manager_issue_leader_option;
 #[path = "command_manager_issue_launch_patrol.rs"]
 mod command_manager_issue_launch_patrol;
 #[path = "command_manager_issue_move_to.rs"]
