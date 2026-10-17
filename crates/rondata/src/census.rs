@@ -127,12 +127,14 @@
 /// item 2877: 1229 -> 1238, the sweep's hundred-and-twentieth batch, nine harvested on the built shapes (its
 /// `Group::kill_next_order` dropped for 2863's at the merge).
 /// item 2893: 1238 -> 1247, the sweep's hundred-and-twenty-second batch, nine harvested on the built shapes.
+/// item 2900: 1247 -> 1252 on the merged tree, the sweep's hundred-and-twenty-third batch, `--vtat-keep`,
+/// `--link-hi` and `--place-null K:WIN+OFF=V` built, four swept on them.
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1247;
+pub const SIMULATION_BACKED: usize = 1252;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
