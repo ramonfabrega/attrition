@@ -532,6 +532,8 @@ mod command_package_process_attack_ground;
 mod command_package_process_buildmask;
 #[path = "command_package_process_buy.rs"]
 mod command_package_process_buy;
+#[path = "command_package_process_cannon_time.rs"]
+mod command_package_process_cannon_time;
 #[path = "command_package_process_cheat_ai_speed_normal.rs"]
 mod command_package_process_cheat_ai_speed_normal;
 #[path = "command_package_process_cheat_ai_toggle.rs"]
@@ -554,6 +556,8 @@ mod command_package_process_city_gather;
 mod command_package_process_clear_all;
 #[path = "command_package_process_clear_tributes.rs"]
 mod command_package_process_clear_tributes;
+#[path = "command_package_process_come_out.rs"]
+mod command_package_process_come_out;
 #[path = "command_package_process_declare.rs"]
 mod command_package_process_declare;
 #[path = "command_package_process_demand_tribute.rs"]
@@ -574,6 +578,8 @@ mod command_package_process_pause;
 mod command_package_process_propose_attack;
 #[path = "command_package_process_recall.rs"]
 mod command_package_process_recall;
+#[path = "command_package_process_reject.rs"]
+mod command_package_process_reject;
 #[path = "command_package_process_resign.rs"]
 mod command_package_process_resign;
 #[path = "command_package_process_scramble.rs"]
