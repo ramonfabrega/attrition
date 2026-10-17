@@ -218,6 +218,8 @@ mod build_queue_walk_data;
 mod build_remove_gatherer;
 #[path = "build_repair_damage.rs"]
 mod build_repair_damage;
+#[path = "build_swap_team.rs"]
+mod build_swap_team;
 #[path = "build_type_backup.rs"]
 mod build_type_backup;
 #[path = "build_type_corner_tile.rs"]
