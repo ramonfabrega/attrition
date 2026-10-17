@@ -248,6 +248,8 @@ mod group_find_role;
 mod group_get_speed;
 #[path = "group_kill_group_order.rs"]
 mod group_kill_group_order;
+#[path = "group_kill_next_order.rs"]
+mod group_kill_next_order;
 #[path = "group_leader_report_speed.rs"]
 mod group_leader_report_speed;
 #[path = "group_move_order_get_group_move_order_vtordisp.rs"]
