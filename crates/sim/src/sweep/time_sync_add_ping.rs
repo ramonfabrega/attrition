@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -37,7 +42,24 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            { let w = |b: &[u8], i: usize| u32::from_le_bytes(b[4 * i..4 * i + 4].try_into().unwrap()); let t0 = w(&c[0], 1); let mut v: Vec<u32> = vec![t0; 64]; v[0] = a[0] as u32; let mut s = v.clone(); s.sort_unstable(); c[0][0..4].copy_from_slice(&(a[0] as u32).to_le_bytes()); for (i, x) in v.iter().enumerate() { c[0][4 + 4 * i..8 + 4 * i].copy_from_slice(&x.to_le_bytes()); } for (i, x) in s.iter().enumerate() { c[0][260 + 4 * i..264 + 4 * i].copy_from_slice(&x.to_le_bytes()); } 0 }
+            {
+                let w = |b: &[u8], i: usize| {
+                    u32::from_le_bytes(b[4 * i..4 * i + 4].try_into().unwrap())
+                };
+                let t0 = w(&c[0], 1);
+                let mut v: Vec<u32> = vec![t0; 64];
+                v[0] = a[0] as u32;
+                let mut s = v.clone();
+                s.sort_unstable();
+                c[0][0..4].copy_from_slice(&(a[0] as u32).to_le_bytes());
+                for (i, x) in v.iter().enumerate() {
+                    c[0][4 + 4 * i..8 + 4 * i].copy_from_slice(&x.to_le_bytes());
+                }
+                for (i, x) in s.iter().enumerate() {
+                    c[0][260 + 4 * i..264 + 4 * i].copy_from_slice(&x.to_le_bytes());
+                }
+                0
+            }
         };
         let _ = (got, want_eax);
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();

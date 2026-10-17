@@ -216,8 +216,14 @@ mod build_type_data_basic_type;
 mod build_type_data_blocked_town;
 #[path = "build_type_data_can_capture.rs"]
 mod build_type_data_can_capture;
+#[path = "build_type_data_check_enemy_adjacent.rs"]
+mod build_type_data_check_enemy_adjacent;
 #[path = "build_type_data_connects_to_roads.rs"]
 mod build_type_data_connects_to_roads;
+#[path = "build_type_data_count_mountains_adjacent.rs"]
+mod build_type_data_count_mountains_adjacent;
+#[path = "build_type_data_count_trees_adjacent.rs"]
+mod build_type_data_count_trees_adjacent;
 #[path = "build_type_data_fundamental_type.rs"]
 mod build_type_data_fundamental_type;
 #[path = "build_type_data_gather_radius.rs"]
@@ -440,12 +446,10 @@ mod command_manager_issue_guard;
 mod command_manager_issue_halt;
 #[path = "command_manager_issue_hotkey.rs"]
 mod command_manager_issue_hotkey;
-#[path = "command_manager_issue_rename_city.rs"]
-mod command_manager_issue_rename_city;
-#[path = "command_manager_issue_leader_option.rs"]
-mod command_manager_issue_leader_option;
 #[path = "command_manager_issue_launch_patrol.rs"]
 mod command_manager_issue_launch_patrol;
+#[path = "command_manager_issue_leader_option.rs"]
+mod command_manager_issue_leader_option;
 #[path = "command_manager_issue_move_to.rs"]
 mod command_manager_issue_move_to;
 #[path = "command_manager_issue_mp_log.rs"]
@@ -464,6 +468,8 @@ mod command_manager_issue_queue_up;
 mod command_manager_issue_recall;
 #[path = "command_manager_issue_reject.rs"]
 mod command_manager_issue_reject;
+#[path = "command_manager_issue_rename_city.rs"]
+mod command_manager_issue_rename_city;
 #[path = "command_manager_issue_resign.rs"]
 mod command_manager_issue_resign;
 #[path = "command_manager_issue_scramble.rs"]
@@ -528,6 +534,8 @@ mod draw_thick_diamond;
 mod farms_add_animals_all;
 #[path = "farms_data_get_farm_type.rs"]
 mod farms_data_get_farm_type;
+#[path = "farms_data_get_nearest_farm_type.rs"]
+mod farms_data_get_nearest_farm_type;
 #[path = "farms_data_get_wheat_status.rs"]
 mod farms_data_get_wheat_status;
 #[path = "farms_grow.rs"]
@@ -566,11 +574,3 @@ mod form_order_walk_data_vtordisp;
 mod fort_walk_data;
 #[path = "forts_find_fort.rs"]
 mod forts_find_fort;
-#[path = "farms_data_get_nearest_farm_type.rs"]
-mod farms_data_get_nearest_farm_type;
-#[path = "build_type_data_count_trees_adjacent.rs"]
-mod build_type_data_count_trees_adjacent;
-#[path = "build_type_data_count_mountains_adjacent.rs"]
-mod build_type_data_count_mountains_adjacent;
-#[path = "build_type_data_check_enemy_adjacent.rs"]
-mod build_type_data_check_enemy_adjacent;

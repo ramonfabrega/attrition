@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -37,16 +42,55 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            { let (xs, ys) = (rd(&c[0], 0x18), rd(&c[0], 0x1c)); let (p1, p2, p3) = (a[0], a[1], a[2]); let (x0, y0) = (rd(m, 0x234).wrapping_add(p1), rd(m, 0x238).wrapping_add(p2)); let (lo_x, lo_y) = (p1.wrapping_sub(p3), p2.wrapping_sub(p3)); let mut n = 0i32; let mut x = lo_x; while x < x0.wrapping_add(p3) { let mut y = lo_y; while y < p3.wrapping_add(y0) { let outside = x < p1 || x0 <= x || y < p2 || y0 <= y; let corner = (x != p3.wrapping_sub(1).wrapping_add(x0) && x != lo_x) || (y != y0.wrapping_add(p3).wrapping_sub(1) && y != lo_y); if outside && corner && x > -1 && y > -1 && x < xs && y < ys { let k = ((xs * y + x) * 2) as usize; let t = p[0][k]; if (t & 3) == 2 { n += 1; } } y += 1; } x += 1; } i64::from(n) }
+            {
+                let (xs, ys) = (rd(&c[0], 0x18), rd(&c[0], 0x1c));
+                let (p1, p2, p3) = (a[0], a[1], a[2]);
+                let (x0, y0) = (rd(m, 0x234).wrapping_add(p1), rd(m, 0x238).wrapping_add(p2));
+                let (lo_x, lo_y) = (p1.wrapping_sub(p3), p2.wrapping_sub(p3));
+                let mut n = 0i32;
+                let mut x = lo_x;
+                while x < x0.wrapping_add(p3) {
+                    let mut y = lo_y;
+                    while y < p3.wrapping_add(y0) {
+                        let outside = x < p1 || x0 <= x || y < p2 || y0 <= y;
+                        let corner = (x != p3.wrapping_sub(1).wrapping_add(x0) && x != lo_x)
+                            || (y != y0.wrapping_add(p3).wrapping_sub(1) && y != lo_y);
+                        if outside && corner && x > -1 && y > -1 && x < xs && y < ys {
+                            let k = ((xs * y + x) * 2) as usize;
+                            let t = p[0][k];
+                            if (t & 3) == 2 {
+                                n += 1;
+                            }
+                        }
+                        y += 1;
+                    }
+                    x += 1;
+                }
+                i64::from(n)
+            }
         };
-        assert_eq!(got, want_eax, "count_mountains_adjacent — eax, row `{line}`");
+        assert_eq!(
+            got, want_eax,
+            "count_mountains_adjacent — eax, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "count_mountains_adjacent — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "count_mountains_adjacent — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "count_mountains_adjacent — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "count_mountains_adjacent — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "count_mountains_adjacent — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "count_mountains_adjacent — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

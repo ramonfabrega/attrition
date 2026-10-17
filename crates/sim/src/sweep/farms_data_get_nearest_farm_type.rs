@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -40,17 +45,60 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            { let w = |b: &[u8], o: usize| i32::from_le_bytes(b[o..o + 4].try_into().unwrap()); let o1 = &p[4 + 4 * a[1] as usize + a[0] as usize]; log.push(format!("12626800,{},{},0,-1,1152,0,1,417,0,3,{},{}", w(o1, 0x10) ^ 0x63637, w(o1, 0x14) ^ 0x63637, a[0], a[1])); if a[2] < 0 { log.push("-".into()); -1 } else { let q = rd(&c[0], 0) as usize; let k = 4 + 4 * q + a[2] as usize; let idx = i32::from(i16::from_le_bytes([p[16][0x78], p[16][0x79]])); if idx < 0 { log.push(format!("p{k}+0x0")); -1 } else { log.push(format!("p{k}+0x0/p{k}+0x0")); if idx < rd(m, 0x18) { i64::from(p[3][idx as usize * 0xc0 + 0xbd] & 1) } else { 0 } } } }
+            {
+                let w = |b: &[u8], o: usize| i32::from_le_bytes(b[o..o + 4].try_into().unwrap());
+                let o1 = &p[4 + 4 * a[1] as usize + a[0] as usize];
+                log.push(format!(
+                    "12626800,{},{},0,-1,1152,0,1,417,0,3,{},{}",
+                    w(o1, 0x10) ^ 0x63637,
+                    w(o1, 0x14) ^ 0x63637,
+                    a[0],
+                    a[1]
+                ));
+                if a[2] < 0 {
+                    log.push("-".into());
+                    -1
+                } else {
+                    let q = rd(&c[0], 0) as usize;
+                    let k = 4 + 4 * q + a[2] as usize;
+                    let idx = i32::from(i16::from_le_bytes([p[16][0x78], p[16][0x79]]));
+                    if idx < 0 {
+                        log.push(format!("p{k}+0x0"));
+                        -1
+                    } else {
+                        log.push(format!("p{k}+0x0/p{k}+0x0"));
+                        if idx < rd(m, 0x18) {
+                            i64::from(p[3][idx as usize * 0xc0 + 0xbd] & 1)
+                        } else {
+                            0
+                        }
+                    }
+                }
+            }
         };
         assert_eq!(got, want_eax, "get_nearest_farm_type — eax, row `{line}`");
-        assert_eq!(log, want_log, "get_nearest_farm_type — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "get_nearest_farm_type — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "get_nearest_farm_type — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "get_nearest_farm_type — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_nearest_farm_type — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_nearest_farm_type — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "get_nearest_farm_type — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "get_nearest_farm_type — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -40,17 +45,41 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            { let hx = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>(); log.push("sp-0x1f,p0+0x10".into()); log.push("15269768,sp-0x30,33".into()); log.push(format!("49{}{}20000000040000000100000000000000", hx(&c[0][0x298..0x29c]), hx(&p[0][4..16]))); 0 }
+            {
+                let hx = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
+                log.push("sp-0x1f,p0+0x10".into());
+                log.push("15269768,sp-0x30,33".into());
+                log.push(format!(
+                    "49{}{}20000000040000000100000000000000",
+                    hx(&c[0][0x298..0x29c]),
+                    hx(&p[0][4..16])
+                ));
+                0
+            }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "issue_leader_option — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "issue_leader_option — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "issue_leader_option — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "issue_leader_option — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "issue_leader_option — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "issue_leader_option — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "issue_leader_option — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "issue_leader_option — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
