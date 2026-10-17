@@ -380,6 +380,8 @@ mod type_gov;
 mod type_gov_hero;
 #[path = "type_item.rs"]
 mod type_item;
+#[path = "type_pay_cost.rs"]
+mod type_pay_cost;
 #[path = "type_set_graph_name.rs"]
 mod type_set_graph_name;
 #[path = "type_set_help_name.rs"]
@@ -396,6 +398,8 @@ mod type_sum_cost;
 mod type_tech;
 #[path = "type_unit.rs"]
 mod type_unit;
+#[path = "type_unpay_cost.rs"]
+mod type_unpay_cost;
 #[path = "type_walk_rules_data.rs"]
 mod type_walk_rules_data;
 #[path = "type_wonder.rs"]

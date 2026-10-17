@@ -464,6 +464,8 @@ mod nuke_out_setup_terrain_terraforming;
 mod nuke_out_update;
 #[path = "object_assault_benefit.rs"]
 mod object_assault_benefit;
+#[path = "object_data_armor.rs"]
+mod object_data_armor;
 #[path = "object_data_attack_dist.rs"]
 mod object_data_attack_dist;
 #[path = "object_data_attack_dist_at.rs"]
@@ -566,6 +568,8 @@ mod object_type_restore;
 mod object_type_walk_rules_data;
 #[path = "object_update_los.rs"]
 mod object_update_los;
+#[path = "objects_data_count_nukes_in_flight.rs"]
+mod objects_data_count_nukes_in_flight;
 #[path = "objects_data_find_good_at.rs"]
 mod objects_data_find_good_at;
 #[path = "objects_data_find_good_at_tcoord.rs"]

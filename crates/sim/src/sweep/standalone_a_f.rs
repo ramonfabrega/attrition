@@ -112,6 +112,8 @@ mod build_data_can_make;
 mod build_data_can_queue;
 #[path = "build_data_can_queue_4d2030.rs"]
 mod build_data_can_queue_4d2030;
+#[path = "build_data_check_capture_eligible.rs"]
+mod build_data_check_capture_eligible;
 #[path = "build_data_check_capture_health.rs"]
 mod build_data_check_capture_health;
 #[path = "build_data_find_in_queue.rs"]
@@ -164,6 +166,8 @@ mod build_queue_data_get_job_counter;
 mod build_queue_data_get_next_helicopter;
 #[path = "build_queue_data_get_next_non_caravan.rs"]
 mod build_queue_data_get_next_non_caravan;
+#[path = "build_queue_data_get_next_non_unit.rs"]
+mod build_queue_data_get_next_non_unit;
 #[path = "build_queue_data_get_queue.rs"]
 mod build_queue_data_get_queue;
 #[path = "build_queue_get_size.rs"]
@@ -248,6 +252,8 @@ mod build_type_restore;
 mod build_type_set_domain;
 #[path = "build_type_walk_rules_data.rs"]
 mod build_type_walk_rules_data;
+#[path = "build_unpay_cost.rs"]
+mod build_unpay_cost;
 #[path = "build_update_max_gatherers.rs"]
 mod build_update_max_gatherers;
 #[path = "build_verify_gather_tiles.rs"]

@@ -6446,13 +6446,37 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FM — reserved
+## Parked by item 2837, 2026-10-17 — the hundred-and-fifteenth sweep batch: ten with a simulation effect
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2837) **Ten built, walked down `census.py --unbacked` to about 1,500 decompile bytes.** `WorldData::is_seen`,
+`is_seen_wcoord` and `is_really_seen` (one hand-written script, three forms), `BuildData::check_capture_eligible`,
+`Type::unpay_cost`, `Type::pay_cost`, `Build::unpay_cost`, `ObjectData::armor`, `BuildQueueData::get_next_non_unit`,
+`ObjectsData::count_nukes_in_flight`. `Census:` 1187 → **1197 of 3,611** by `--layers` on the tip. Each is a state read or
+write a sim consumes: the fog and ally exits, a bucket XOR 0x8221, an armor value, a queue scan. Skipped, as 2836 listed: the
+renderer, UI, camera and singleton bodies. No subagents; ten ran serially in debug, three or four breaks each, all held bar one (below).
+
+(2837, second) **`Type::pay_cost`'s escrow arm has an equality boundary no draw reaches.** `bucket - escrow < cost` against
+`<= cost` passed all 220 rows: `bucket`, `escrow` and the slot's `cost` are three independent random words, so equality is
+2^-32. Every other break held. A relational draw (`--answer-range` tied to a window word, "the answer is `bucket - escrow` or one
+off it") would reach it; no flag spells that. One reach.
+
+(2837, third) **The `is_seen` family is hand-written on `tools/emu/hooks.py`, as `was_really_seen` was (item 2044).** The three
+read `gamec`'s `+0x30`, the leaders list and `wdata`/`seen`/`wcoord_seen` through `this` or the world cell `0xc061d0`; `obj` with
+`--sparse 0xc061e0` would hold the leaders and `--cell-win` the game record, but the fog and owner arrays are indexed by the
+drawn coordinates, which no flag ties to a window's size. The next such pair (`WallData::is_now_seen` calls `is_seen`
+natively) is the second reach of the shape. File as Loop if it recurs.
+
+(2837, fourth) **Not built, with why.** `CityData::is_disbanding` and `CityData::num_city_buildings` (2793's): a list walk through
+`objects[who][o]` and a vslot chain, the walk + vcall pair no generator shape holds; `WallData::is_now_seen`: a native `is_seen`
+inside, wants (3) first; `Army::charge`: a `groups` table 0x9d4 apart and an 11-argument callee; `Type::restore`, `Type::set_name`,
+`City::set_name`, `GatherPointList::get_new_data`: `String::operator=` or `malloc` inside, which the bump heap cannot witness.
+
+(2837, fifth) **Three generator traps cost this batch about an hour; none is a defect, each is undocumented.** `--argrange IDX:LO:HI`
+is inclusive (`0:0:8` drew 8, one past the leaders table: use `0:0:7`); a `--place m+OFF` past `--win` writes past the window (the
+row then shows `0` for a function that should return the field: widen `--win`); and the `p` windows are numbered ptrargs, then
+`--sparse` slices, then `--place`/`--ptrtab` windows in command-line order, whatever the script's prose says ("slices after the
+pointed buffers" reads as the reverse). Recording a stub whose `ecx` is a table row's address (`type_avail`'s leader) prints an
+absolute address the port cannot spell: leave that stub unrecorded.
 
 ## Parked by the next landing, slot FN — reserved
 
