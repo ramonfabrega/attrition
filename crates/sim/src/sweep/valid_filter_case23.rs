@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -41,17 +46,25 @@ fn the_emulated_original_agrees_on_every_row() {
                 // (`ebx` is the caller's: the harness holds it zero, so the slot index is 0.)
                 // Arm 23: 1 when the +0x24 word of `objects[who][p0]` is zero.
                 let who = a[4] as usize;
-                i64::from(rd(&p[5 * who + 1 + 0usize], 0x24) == 0)
+                i64::from(rd(&p[5 * who + 1], 0x24) == 0)
             }
         };
         assert_eq!(got, want_eax, "valid_filter — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "valid_filter — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "valid_filter — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "valid_filter — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "valid_filter — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "valid_filter — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
