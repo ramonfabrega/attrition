@@ -6953,13 +6953,13 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
 
 ## Parked by item 2994, 2026-10-17 — Chapter ninety-two's leftovers
 
-- (2994, first) **`cast_sabotage`'s leader counters and score** (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x818`, `+0x44 += cost/5`) are still unbuilt, and the crate carries none of
+- (3015) **`cast_sabotage`'s leader counters and score** (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x818`, `+0x44 += cost/5`) are still unbuilt, and the crate carries none of
   the five fields (`score_combat`, `units_killed`, `buildings_razed`, `deaths_current_frame`, `kills_current_frame`); `LEADERS=2` prints none of them and the compared pin
   lists them unread, so no diff can see them. Names no score.
-- (2994, second) **Pilfer** (`0x276`): `cast_pilfer@00673e80` (a goods steal, one `Random::get` draw) and its validity arm are read and the arm built, but `FROM None` means no
+- (3016) **Pilfer** (`0x276`): `cast_pilfer@00673e80` (a goods steal, one `Random::get` draw) and its validity arm are read and the arm built, but `FROM None` means no
   unit is given the cast, so no chapter stages it; who calls it in the original is not found. Names no score.
-- (2994, third) **A Stockade's border bleeds a lone Commando dead mid-cast** (150-frame job, 12 hp / 25 frames): the walk found it before the capture; Sabotage on a
-  vehicle (`dtype` 3, the boom) needs a staged vehicle for who=1 and is not covered. Names no score.
+- (3017) **A Stockade's border bleeds a lone Commando dead mid-cast** (150-frame job, 12 hp / 25 frames): the walk found it before the capture; Sabotage on a
+  vehicle (`dtype` 3, the boom) needs a staged vehicle for who=1 and is not covered. **Booked as chapter 93 (3018) at the merge.**
 
 ## Parked by the next landing, slot GU — reserved
 
