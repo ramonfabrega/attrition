@@ -316,6 +316,8 @@ mod city_data_get_radius;
 mod city_data_get_taxes;
 #[path = "city_data_get_trade_value.rs"]
 mod city_data_get_trade_value;
+#[path = "city_data_num_city_buildings.rs"]
+mod city_data_num_city_buildings;
 #[path = "city_data_granary_level.rs"]
 mod city_data_granary_level;
 #[path = "city_data_is_seen.rs"]
