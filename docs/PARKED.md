@@ -3736,6 +3736,27 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-17 — the fortieth tranche's
+
+(2987) **The objects- and groups-table windows are a shell loop of `--place` flags, four times over** (2959's "for the Loop"
+line and its parked 2987, filed at its merge): `process_repair`, `_garrison`, `_gather`, `_begin`. Candidate: a
+`sweep_gen.py` flag taking a table of N pointers to arrays of M records, a test made to fail first. One reach.
+
+(2989) **A lane gate's filters miss `blind::` when the landing is a document** (2976's booking gate, red on its first
+commit): `docs/NATIONS.md` cited nineteen functions no trace enters, and the lane gate (`--tests nations::` and the always
+set) never ran `the_blind_list_is_the_pinned_residue`, so the re-pin fell to the booking gate's second commit. Candidate:
+`brief.py`'s `ALWAYS_TESTS` carries `blind::` for every kind, or the lane gate adds it when the diff touches `docs/`, a test
+made to fail first. One reach.
+
+(2983) **A hand-typed `Class::name@addr` is checked only at the docs guard** (2976's "for the Loop" line, filed at its
+merge): five of `tools/nations_census.py`'s `HAND` names had the wrong class. Candidate: the generator takes the class from
+the export's `INDEX.tsv` by address and refuses a mismatch at generation, a test made to fail first. One reach.
+
+(2984) **`test_inherited_locks_keep_orphan_reservation` failed once under load** (2976's lane gate, the offline step,
+`tools/explore/test_isolated_tests.py:43`, `try_acquire()` False after the child exited, load average 21 with five lanes
+up): it passed ten of ten re-run on both trees at once. Candidate: the assertion waits on the child's fds closing (a
+bounded retry, or `child.wait()` before the probe), a test made to fail first under a held CPU. One reach.
+
 ## Loop, filed 2026-10-17 — the thirty-ninth tranche's
 
 (2948) **A `RON_STAGE` walk is not a prediction for a fog arm** (2930's "for the Loop" line, filed at its merge): the
@@ -6838,26 +6859,86 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GP — reserved
+## Parked by item 2976, 2026-10-17 — the nations and the tiers audited (docs/NATIONS.md)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with the held-out lobby's first parting, never a mechanism. None is built or has a diff. **The commander, at the merge:** the three lobbies named below are the held-out battery's, measured and never debugged against (DECISIONS 61 §6, 77 (ii)); a row reaches the queue only on a scored word that holds its nation, never on a battery lobby's parting.
 
-## Parked by the next landing, slot GQ — reserved
+- (2977) **The Chinese citizen arm of `ObjectData::train_time@006508c0`** (`CHINESE_CITIZEN_CREATION` 100, `CHINESE_CITIZEN_INSTANT` 1): the sim's `train_tail` has no Chinese arm. `GreatLakesChineseTier1` first parts at frame 176 (ours 12 draws, theirs 14). The booking is the frame and draw delta; read first which types the arm's `is_merchant`/`BASE_UNITTYPES`/`PEASANTSKOREAN` filter spares and whether `return 1` skips the tail that follows.
+- (2978) **`EGYPTIAN_WONDERS` (25%) in `TypeData::get_cost@00664090:906`, and `Wall::do_construct@006434d0`'s second wonder-limit enforcement.** Neither is carried. `GreatSaharaEgyptianTier4` parts at 2974 of 20380; a wonder offer is the arm's reach.
+- (2979) **The Russian oil term (`calc_resource_bonuses@006db030`, `RUSSIAN_OIL`) and the spy price (`get_cost:299`, `RUSSIAN_SPY_COST`)**, both uncarried; the oil term is already a SEAM at `economy::resource_bonuses`. `GreatLakesRussianTier2` parts at 6563 of 7303.
+- (2980) **`Leader::gain_tech@006dcb60`'s `*_UPGRADES` and herbal-lore fields (twenty `carried, unread` rows of NATIONS.md §4) are carried in `Tuning` and read by no module**. Whether their effect lives in the tech tree's grafts instead is the first question; a field read nowhere is also what a SEAM looks like from the outside.
+- (2981) **The audit is function-level for the nations outside §3.** A second audit pass reading each `carried at` row's nation arms (`get_cost` alone has 36 indices) would make the table arm-level; it names no score until a lobby with one of those nations is minted.
+- (2982) **`tools/nations_census.py` is the census's generator** (edit `HAND`/`OVERRIDES`, re-run with `--write`). It parses the export by balanced parentheses; a `+var` argument (`BuildTypeData::calc_gather@00639e40`) is a per-building nation table it does not resolve.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 2959, 2026-10-17 — the hundred-and-thirtieth sweep batch
+
+- (2985) **A `logToMemory` call's line, tags and format slots are the caller's uninitialised stack in `process_come_out` and
+  `process_cannon_time`.** The decompile prints `in_stack_ffffffcc..d4`; the emulator reads zero under `--clean-stack 64`
+  except cannon_time's line slot, which is the return address of the last `strrchr` call (`0x946507` / `0x946517`). Harmless
+  to the sim (a memory log), but the sweeps pin it; a Loop item could make `sweep_gen.py` name such slots.
+- (2986) **The rest of `CommandPackage::process_*` is still unswept**: `rename_city` (virtual slot 0xac, `String::operator=`,
+  `HotKeyGroups::find_group`), `build` (a different `GameLog::say`, 7-field logger), `board_ship` (the gather shape — objects by the
+  group's owner byte, now generated by hand-assembled `--place` chains), `flight`, `ping`, `mp_log`, `cheat_init_unit`,
+  `cheat_ai_speed_increase`, `attack`, `siege_attack`, `swarm_around`, `move_near`, `launch_patrol`, `chat_set`, `hotkey`,
+  `console_cmd`, `sell`, `trade`, `speed_set`, `quit`, `turn_data`. Names no score.
+- (2987) **The objects-table and groups-table windows (`--place 0xc0618c…`, `--place 0xe85f20…`, `--vtat`) are a
+  fourth shape written as a shell loop of `--place` flags** (`process_repair`, `_garrison`, `_gather`, `_begin`); a
+  `sweep_gen.py` flag taking "table of N pointers to arrays of M records" would remove it. Filed as Loop 2987 below.
+- (2988) **A stray tracked file stands in `crates/sim/src/sweep/`**, named `command_manager_issue_treaty declare
+  clear_tributes clear_all accept reject tribute.rs` (spaces in the name): an earlier batch's shell glitch. Not compiled; delete it. **Deleted in 2959's booking commit** (it came from 2486's `008b9961`).
 
 ## Parked by the next landing, slot GR — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GX renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
