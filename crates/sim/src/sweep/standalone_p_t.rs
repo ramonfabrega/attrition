@@ -90,6 +90,8 @@ mod repair_order_get_type;
 mod repair_order_get_type_vtordisp;
 #[path = "resource_divvy_pool_add_early.rs"]
 mod resource_divvy_pool_add_early;
+#[path = "resource_divvy_pool_add_good.rs"]
+mod resource_divvy_pool_add_good;
 #[path = "resource_divvy_pool_add_late.rs"]
 mod resource_divvy_pool_add_late;
 #[path = "resource_divvy_pool_add_water.rs"]
