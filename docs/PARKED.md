@@ -6835,13 +6835,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GP — reserved
+## Parked by item 2976, 2026-10-17 — the nations and the tiers audited (docs/NATIONS.md)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with the held-out lobby's first parting, never a mechanism. None is built or has a diff.
+
+- (2976, first) **The Chinese citizen arm of `ObjectData::train_time@006508c0`** (`CHINESE_CITIZEN_CREATION` 100, `CHINESE_CITIZEN_INSTANT` 1): the sim's `train_tail` has no Chinese arm. `GreatLakesChineseTier1` first parts at frame 176 (ours 12 draws, theirs 14). The booking is the frame and draw delta; read first which types the arm's `is_merchant`/`BASE_UNITTYPES`/`PEASANTSKOREAN` filter spares and whether `return 1` skips the tail that follows.
+- (2976, second) **`EGYPTIAN_WONDERS` (25%) in `TypeData::get_cost@00664090:906`, and `Wall::do_construct@006434d0`'s second wonder-limit enforcement.** Neither is carried. `GreatSaharaEgyptianTier4` parts at 2974 of 20380; a wonder offer is the arm's reach.
+- (2976, third) **The Russian oil term (`calc_resource_bonuses@006db030`, `RUSSIAN_OIL`) and the spy price (`get_cost:299`, `RUSSIAN_SPY_COST`)**, both uncarried; the oil term is already a SEAM at `economy::resource_bonuses`. `GreatLakesRussianTier2` parts at 6563 of 7303.
+- (2976, fourth) **`Leader::gain_tech@006dcb60`'s fifteen `*_UPGRADES` and herbal-lore fields are carried in `Tuning` and read by no module** (`carried, unread` rows of NATIONS.md §4). Whether their effect lives in the tech tree's grafts instead is the first question; a field read nowhere is also what a SEAM looks like from the outside.
+- (2976, fifth) **The audit is function-level for the nations outside §3.** A second audit pass reading each `carried at` row's nation arms (`get_cost` alone has 36 indices) would make the table arm-level; it names no score until a lobby with one of those nations is minted.
+- (2976, sixth) **`tools/nations_census.py` is the census's generator** (edit `HAND`/`OVERRIDES`, re-run with `--write`). It parses the export by balanced parentheses; a `+var` argument (`BuildData::calc_gather@00639e40`) is a per-building nation table it does not resolve.
 
 ## Parked by the next landing, slot GQ — reserved
 

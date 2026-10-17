@@ -874,4 +874,276 @@ mod tests {
         assert_eq!(cap(0), 1120, "70 x 16");
         assert_eq!(cap(1), 1392, "70 x 125 / 100 = 87, then x 16");
     }
+
+    // ---- the audit table (`docs/NATIONS.md`, item 2976) ---------------
+
+    /// `docs/NATIONS.md`, which the audit's guard reads.
+    fn audit_doc() -> String {
+        let p = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/NATIONS.md");
+        std::fs::read_to_string(&p).unwrap_or_else(|e| panic!("{}: {e}", p.display()))
+    }
+
+    /// Every `.rs` under `crates/sim/src` by file name: the raw text and
+    /// the text with line comments removed (a field witness is code, an
+    /// address witness is a citation).
+    fn sim_sources() -> Vec<(String, String, String)> {
+        fn walk(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+            for e in std::fs::read_dir(dir).expect("crates/sim/src") {
+                let p = e.expect("entry").path();
+                if p.is_dir() {
+                    walk(&p, out);
+                } else if p.extension().is_some_and(|x| x == "rs") {
+                    out.push(p);
+                }
+            }
+        }
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let mut files = Vec::new();
+        walk(&root, &mut files);
+        files
+            .into_iter()
+            .map(|p| {
+                let raw = std::fs::read_to_string(&p).expect("source");
+                let code = raw
+                    .lines()
+                    .map(|l| l.find("//").map_or(l, |i| &l[..i]))
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                let name = p.file_name().expect("name").to_string_lossy().into_owned();
+                (name, raw, code)
+            })
+            .collect()
+    }
+
+    fn is_ident(w: &str) -> bool {
+        !w.is_empty()
+            && w.bytes()
+                .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_')
+    }
+
+    fn is_addr(w: &str) -> bool {
+        w.len() == 8 && w.bytes().all(|b| b.is_ascii_hexdigit())
+    }
+
+    /// `w` as a whole word (an identifier witness) or as a substring.
+    fn holds(text: &str, w: &str) -> bool {
+        if !is_ident(w) || is_addr(w) {
+            return text.contains(w);
+        }
+        text.match_indices(w).any(|(i, _)| {
+            let b = text.as_bytes();
+            let ok = |c: u8| !(c.is_ascii_alphanumeric() || c == b'_');
+            (i == 0 || ok(b[i - 1])) && b.get(i + w.len()).is_none_or(|&c| ok(c))
+        })
+    }
+
+    const STATUSES: [&str; 6] = [
+        "modelled at ",
+        "carried at ",
+        "carried, unread",
+        "not carried",
+        "not modelled",
+        "not sim",
+    ];
+
+    /// The guarded rows: `(line, status, witness)`.
+    fn audit_rows(doc: &str) -> Vec<(usize, String, String)> {
+        let mut out = Vec::new();
+        for (n, line) in doc.lines().enumerate() {
+            if !line.starts_with('|') {
+                continue;
+            }
+            let cells: Vec<&str> = line.trim_matches('|').split('|').map(str::trim).collect();
+            if let Some(i) = cells
+                .iter()
+                .position(|c| STATUSES.iter().any(|s| c.starts_with(s)))
+                && let Some(w) = cells.get(i + 1)
+            {
+                out.push((n + 1, cells[i].to_string(), w.trim_matches('`').to_string()));
+            }
+        }
+        out
+    }
+
+    /// The roster table lists the 24 nations in `ROSTER`'s order, and the
+    /// rules key beside each is that nation's own.
+    #[test]
+    fn the_audit_table_lists_the_roster_in_order() {
+        let doc = audit_doc();
+        let names: Vec<String> = doc
+            .lines()
+            .filter(|l| {
+                l.starts_with("| ")
+                    && l.split('|')
+                        .nth(1)
+                        .is_some_and(|c| c.trim().parse::<usize>().is_ok())
+            })
+            .map(|l| l.split('|').nth(2).expect("nation").trim().to_string())
+            .collect();
+        assert_eq!(
+            names,
+            ROSTER.to_vec(),
+            "docs/NATIONS.md section 2 against nations::ROSTER"
+        );
+    }
+
+    /// Every row's status and witness are true of this tree. This is the
+    /// guard that fails when a row names a module that does not hold it —
+    /// and, the other way, when a `not modelled` row has been built.
+    #[test]
+    fn the_audit_table_s_witnesses_hold() {
+        let doc = audit_doc();
+        let src = sim_sources();
+        let tuning = &src
+            .iter()
+            .find(|s| s.0 == "tuning.rs")
+            .expect("tuning.rs")
+            .1;
+        let rows = audit_rows(&doc);
+        assert!(
+            rows.len() > 340,
+            "{} guarded rows; the tables are gone",
+            rows.len()
+        );
+        let mut bad = Vec::new();
+        for (line, status, w) in &rows {
+            let text = |s: &(String, String, String)| {
+                if is_addr(w) || w.contains('@') {
+                    s.1.clone()
+                } else {
+                    s.2.clone()
+                }
+            };
+            if status == "not sim" {
+                if w.is_empty() {
+                    bad.push(format!("line {line}: a `not sim` row gives no reason"));
+                }
+            } else if let Some(f) = status
+                .strip_prefix("modelled at ")
+                .or_else(|| status.strip_prefix("carried at "))
+            {
+                match src
+                    .iter()
+                    .filter(|s| s.0 == f)
+                    .map(text)
+                    .reduce(|a, b| a + &b)
+                {
+                    None => bad.push(format!(
+                        "line {line}: `{f}` is not a module of crates/sim/src"
+                    )),
+                    Some(t) if !holds(&t, w) => {
+                        bad.push(format!(
+                            "line {line}: `{status}` but {f} does not hold `{w}`"
+                        ));
+                    }
+                    Some(_) => {}
+                }
+            } else if status == "carried, unread" {
+                if !tuning.contains(&format!("pub {w}:")) {
+                    bad.push(format!("line {line}: `{w}` is not a Tuning field"));
+                }
+                for s in src.iter().filter(|s| s.0 != "tuning.rs") {
+                    if holds(&s.2, w) {
+                        bad.push(format!(
+                            "line {line}: `{w}` is read in {} — mark it modelled",
+                            s.0
+                        ));
+                    }
+                }
+            } else if status == "not carried" {
+                if tuning.contains(&format!("pub {w}:")) {
+                    bad.push(format!(
+                        "line {line}: `{w}` is now a Tuning field — the row is stale"
+                    ));
+                }
+            } else if status == "not modelled" {
+                for s in &src {
+                    if holds(&text(s), w) {
+                        bad.push(format!(
+                            "line {line}: `not modelled` but {} holds `{w}`",
+                            s.0
+                        ));
+                    }
+                }
+            }
+        }
+        assert!(
+            bad.is_empty(),
+            "docs/NATIONS.md rows that no longer hold:\n{}",
+            bad.join("\n")
+        );
+    }
+
+    /// A nation's constant added to `Tuning` has to be audited: every
+    /// `Tuning` field with a nation's prefix has a row in §4.
+    #[test]
+    fn every_nation_field_in_tuning_has_an_audit_row() {
+        let doc = audit_doc();
+        let src = sim_sources();
+        let tuning = &src
+            .iter()
+            .find(|s| s.0 == "tuning.rs")
+            .expect("tuning.rs")
+            .2;
+        let prefixes = [
+            "aztec_",
+            "maya_",
+            "inca_",
+            "bantu_",
+            "nubian_",
+            "greek_",
+            "roman_",
+            "egyptian_",
+            "turk_",
+            "spanish_",
+            "french_",
+            "british_",
+            "german_",
+            "russian_",
+            "chinese_",
+            "japanese_",
+            "korean_",
+            "mongol_",
+            "iroquois_",
+            "lakota_",
+            "americans_",
+            "indians_",
+            "dutch_",
+            "persians_",
+        ];
+        let missing: Vec<String> = tuning
+            .lines()
+            .filter_map(|l| l.trim().strip_prefix("pub "))
+            .filter_map(|l| l.split(':').next())
+            .filter(|f| prefixes.iter().any(|p| f.starts_with(p)) && is_ident(f))
+            .filter(|f| !doc.contains(&format!("`{}`", f.to_uppercase())))
+            .map(str::to_string)
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "Tuning nation fields with no row in docs/NATIONS.md section 4: {missing:?}"
+        );
+    }
+
+    /// The guard fails when it should: a witness that is false is caught
+    /// (the mutation the module's test of itself runs).
+    #[test]
+    fn the_audit_guard_catches_a_false_row() {
+        let src = sim_sources();
+        let city = src.iter().find(|s| s.0 == "city.rs").expect("city.rs");
+        assert!(holds(&city.2, "chinese_large_cities"));
+        // Spelled in halves, so that this file does not hold a witness the
+        // table says is absent.
+        assert!(!holds(&city.2, &["chinese_citizen", "_instant"].concat()));
+        assert!(
+            !holds("egyptian_wonders_early", &["egyptian", "_wonders"].concat()),
+            "whole words only"
+        );
+        let rows = audit_rows(
+            "| `X` | 1 | modelled at city.rs | `fn nothing_at_all` |\n| a | not sim | `why` |",
+        );
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[0].1, "modelled at city.rs");
+        assert_eq!(rows[1].2, "why");
+    }
 }
