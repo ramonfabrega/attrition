@@ -17415,6 +17415,12 @@ Ours agrees on every block but the standing 1100 rows.
 `~/ron-golden/ch88/map-14/`, 1,501 frames. No minutes waited on another lane. **What it holds**: `0/6` bribes the Hoplite on 1250; `0/7`'s cast is
 killed at its next review, 1258. Ours agrees on every block but the standing 1100 rows.
 
+## run911 — chapter ninety-two: Sabotage razes a Barracks, a Hoplite refused (2026-10-17, item 2994, `att-2994`)
+
+`docs/GOLDEN.md` §116. **What the disk could not answer**: no dump held a Sabotage cast on a building (run246 refused a Pilfer on a Barracks only). Recipe
+`tools/gamelog/golden/chapter92.cmd` (`--map 14 --end-frame 1200 --log-window 605 1200`, chapter 91's `end:`/`start:` sets). Pool lane 1, 263 s, kept in
+`~/ron-golden/ch92/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane. **What it holds**: four Commandos' blows on the who=1 Barracks, 600, 300, 200
+and the last 100 (razed on the fourth); Commando `0/10`'s order at the Hoplite refused on issue. Ours agrees on every block bar the 11 standing `form` rows.
 ## run894 — chapter ninety-one: the Sniper's kill and a refused Counterintelligence (2026-10-17, item 2971, `att-2971`)
 
 `docs/GOLDEN.md` §115. **What the disk could not answer**: no dump held a Commando, a Sniper cast, or a Counterintelligence order. Recipe

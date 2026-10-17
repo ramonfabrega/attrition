@@ -284,10 +284,10 @@ impl Sim {
     /// Bribe on an enemy unit is [`Sim::bribe_valid_unit`] (item 2812).
     ///
     /// SEAM: the unit mask arms (`0x100`/`0x200` against objmask
-    /// `0x200000`), which none of the Spy's crafts carries; and Pilfer's
-    /// and Sabotage's own arms, which **refuse** here rather than be
-    /// guessed — run246's packet has Pilfer refuse the staged Barracks.
-    /// Counterintelligence's and the Sniper's are read (item 2971).
+    /// `0x200000`), which none of the Spy's crafts carries. Pilfer's
+    /// (an active city, run246's packet refuses the Barracks) and
+    /// Sabotage's (a unit must be a vehicle, item 2994, run911) are read,
+    /// as are Counterintelligence's and the Sniper's (item 2971).
     pub(crate) fn spell_valid_target(&self, s: i32, who: Player, t: Obj) -> bool {
         let Some(d) = self.spell(s) else {
             return false;
