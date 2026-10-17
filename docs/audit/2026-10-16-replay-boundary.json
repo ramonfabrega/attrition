@@ -64,7 +64,45 @@
       "wall_seconds": 4.38,
       "cpu_seconds": 6.42,
       "sampled_tree_mib": 905
+    },
+    "corrected-setup-edit": {
+      "wall_seconds": 2.99,
+      "cpu_seconds": 3.5,
+      "sampled_tree_mib": 818
+    },
+    "corrected-chapter-edit": {
+      "wall_seconds": 4.35,
+      "cpu_seconds": 6.35,
+      "sampled_tree_mib": 803
     }
   },
-  "gate": "pending"
+  "gate": {
+    "commit": "e8404b99",
+    "exit": 1,
+    "phases_completed": 5,
+    "wall_seconds": 251.77,
+    "cpu_seconds": 1401.93,
+    "sampled_tree_mib": 7775,
+    "rondata_passed": 887,
+    "rondata_failed": 3,
+    "rondata_ignored": 6,
+    "fixture_requests": 3276,
+    "unique_fixtures": 419,
+    "missing_fixtures": 0
+  },
+  "combined_validation": {
+    "correction_commit": "a30a36bd",
+    "source_guard_correction_only": true,
+    "original_tests_preserved": true,
+    "added_source_guard_tests": 1,
+    "ledger_tests_passed": 3,
+    "floor_tests_passed": 22,
+    "source_tests_passed": 1,
+    "ledger_output_identical": true,
+    "offline_run": 500,
+    "offline_skipped": 3,
+    "clippy_exit": 0,
+    "final_guard": 0,
+    "fixture_receipt": "gate-equivalence.json"
+  }
 }

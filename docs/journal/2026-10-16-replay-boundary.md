@@ -88,3 +88,84 @@ do not move. No independent audit, merge or commander restart is claimed.
 Pre-commit guard passed (`guard.log`, exit0,4.51s admitted execution). Final
 runtime-policy tests9/9, formatting, whitespace, local links, audit JSON and
 exact body/helper/doc equivalence checks passed. Full gate remains pending.
+
+## Full run and source-guard correction
+
+Implementation `e8404b99` was committed before the complete run; tracked files
+were frozen until its actual exit:
+
+```sh
+/usr/bin/time -l zsh tools/memcap.sh 40 python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures --report-dir /tmp/attrition-replay-boundary-20261016-01/gate
+```
+
+**Actual gate exit1**, retained in `gate.exit`: five phases reached; final guard
+was not reached. Offline500 tests ran with3 skips; lint, format and survey passed.
+Every release test ran: sim2586/fixed13/doctests3 pass; rondata887 pass,3 fail,
+6 unchanged ignored. All211 golden cases pass. Exact3276 fixture requests
+(419 unique,0 missing) equal the preceding full gate. The three failures are:
+
+- `diff::floors::tests::a_widening_s_test_holds_its_pins_under_the_guard`
+- `ledger::tests::the_widening_ledger_counts_what_nothing_compares`
+- `ledger::tests::every_differ_module_is_on_the_ledger`
+
+They scan source: the pin check saw wrappers without pin holds, and the ledger
+omitted the new body files. This caught missing structural integration; these
+failures are not ignored or reclassified as passing. The failed whole run took
+251.77s/1401.93CPU/7775MiB sampled tree; rondata160.34s. Since the last guard phase
+was not reached, these are not a successful whole-gate speedup measurement.
+
+Correction `a30a36bd` changes only source-guard plumbing and adds one authored
+source-guard test. `testenv/source.rs` substitutes each wrapper's original body
+at the same logical location, refusing missing, duplicate, orphan or misdirected
+bodies. Floors runs its unchanged pin checks on that expansion; ledger runs its
+unchanged field/site checks on it and accounts for all registered case files.
+No simulation, replay, comparison function, expectation, floor or pin changes.
+
+Golden source checks now read the current checkout, consistently with floors'
+existing source guards. They require that source tree, and validation freezes it.
+The ledger no longer embeds the whole golden source in another compiler module
+with `include_str!`; that would reintroduce invalidation on every case edit.
+Other ledger source inputs remain unchanged. This is a source-check input change,
+not a change to the comparison recorder or which fields are held.
+
+The ledger's entire printed result equals the saved original binary exactly
+(`ledger-equivalence.txt`):25 records/328 fields,9 uncompared and31 single-capture;
+existing pins10/36 stay unchanged. Removing a `Pins::hold()` from an extracted
+case makes the existing pin guard fail, then restoring it passes
+(`source-fault.py`, `source-fault-red.log`, `source-fault-restored.log`).
+
+The final corrected layout still measures:
+
+| Edit | Original wall/CPU/MiB | Corrected wall/CPU/MiB |
+|---|---:|---:|
+| Setup case |10.27 /24.22 /1444|2.99 /3.50 /818|
+| Chapter-one case |10.44 /24.57 /1400|4.35 /6.35 /803|
+
+This is2.4–3.4× faster rebuilding those cases,74–86% less CPU and about43% less
+sampled memory, with all source checks restored. The shared-helper measurement
+above predates this guard correction; no extra improvement is inferred for it.
+
+## Combined validation
+
+Use AGENTS.md's explicit source-structure/paperwork correction allowance to reuse
+the completed replay results. **This is combined validation, not a claim that
+the original full gate passed.** The exact corrective diff is
+`git diff e8404b99 a30a36bd`; all211 replay bodies remain untouched.
+
+Affected ledger tests3/3, floors22/22 and the new source contract1/1 pass.
+Offline500 tests rerun with3 unchanged skips; original lint command and formatting
+pass. All original896 rondata names/ignored states are retained, plus exactly one
+new guard test (897 discovered,6 ignored); sim2586 names unchanged. The frozen
+release fixture audit still has the exact3276 requests and0 missing.
+`compare.py`/`gate-equivalence.json` retain the original failed summary, fixture
+equality and the explicitly named new guard rather than hiding a test-set change.
+Final paperwork guard/link/diff checks remain to be recorded below.
+
+Keep the ten chapter modules. Independent Fable review remains owed, particularly
+the source-check reconstruction. Scores, pins, draw/value comparisons stay fixed;
+whole-suite10× remains unmet. Next measure a similar boundary in another replay
+family. No merge or commander restart performed.
+
+Final combined-verdict checks passed: complete guard exit0
+(`guard-corrected.log`), formatting, whitespace, audit JSON and local links.
+No second complete corpus run is claimed.

@@ -83,7 +83,9 @@ Full gate passed on `f4e683b6`:255.00s/1396.42CPU/8369MiB;2586 sim tests and
 3276 fixture requests preserved. See [journal](journal/2026-10-16-public-sweeps.md).
 Golden replay follow-up:211 unchanged bodies split into ten chapter modules with
 original test-name wrappers. Case rebuilds2.4–3.4× faster, CPU74–85% lower;
-shared-helper CPU flat. Full gate pending; [journal](journal/2026-10-16-replay-boundary.md).
+shared-helper CPU flat. Combined validation: source guards corrected on `a30a36bd`
+after full run on `e8404b99`; all original checks/3276 fixture requests retained,
+one guard added. See [journal](journal/2026-10-16-replay-boundary.md).
 Next: observe admission wait versus execution; assess other replay-family boundaries.
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.

@@ -492,6 +492,10 @@ add a same-named `#[test]` wrapper in `diff/golden.rs`; registration checks reje
 missing, duplicate, orphan and misdirected cases. Rebuild measurements show
 setup-case edits10.27→3.01–3.12s/CPU24.22→3.66–3.69s and a case in the largest
 chapter group10.44→4.38s/CPU24.57→6.42s. Shared-helper CPU stays roughly flat.
-Full required-fixture gate pending; no whole-suite gain claimed. See the
+Combined validation after the complete required-fixture run: three source-scanner
+failures corrected and retested, all original checks/3276 fixture requests retained.
+One source-guard test added. Final corrected case builds are2.99s/3.50CPU/818MiB
+and4.35s/6.35CPU/803MiB. The original gate exited1; no full-gate speedup claimed.
+Source guards reconstruct the bodies from the frozen checkout. See the
 [replay-boundary journal](journal/2026-10-16-replay-boundary.md) and
 [audit](audit/2026-10-16-replay-boundary.json).
