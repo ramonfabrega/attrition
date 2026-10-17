@@ -438,6 +438,12 @@ mod map_fairness_unapply_distances;
 mod map_get_player_overage;
 #[path = "map_get_player_underage.rs"]
 mod map_get_player_underage;
+#[path = "map_invert_land.rs"]
+mod map_invert_land;
+#[path = "map_is_near_ocean.rs"]
+mod map_is_near_ocean;
+#[path = "map_land_dist.rs"]
+mod map_land_dist;
 #[path = "map_scale_by_area.rs"]
 mod map_scale_by_area;
 #[path = "map_scale_by_axis.rs"]
@@ -622,6 +628,8 @@ mod objects_data_find_goody_at_tile;
 mod objects_data_find_town;
 #[path = "objects_data_find_village.rs"]
 mod objects_data_find_village;
+#[path = "objects_data_make_tree_mask.rs"]
+mod objects_data_make_tree_mask;
 #[path = "objects_out_sort_objects.rs"]
 mod objects_out_sort_objects;
 #[path = "objects_remove_item.rs"]

@@ -82,6 +82,8 @@ mod region_release;
 mod regions_concat;
 #[path = "regions_fix_all_borders.rs"]
 mod regions_fix_all_borders;
+#[path = "regions_get_num_sea.rs"]
+mod regions_get_num_sea;
 #[path = "regions_walk_data.rs"]
 mod regions_walk_data;
 #[path = "repair_order_get_type.rs"]
@@ -136,6 +138,8 @@ mod roads_pieces_rot_byte;
 mod roads_road_added;
 #[path = "roads_road_cleared.rs"]
 mod roads_road_cleared;
+#[path = "roads_scan_and_kill_straggled_tcoord.rs"]
+mod roads_scan_and_kill_straggled_tcoord;
 #[path = "search_walk_data.rs"]
 mod search_walk_data;
 #[path = "setup_build_leader.rs"]
