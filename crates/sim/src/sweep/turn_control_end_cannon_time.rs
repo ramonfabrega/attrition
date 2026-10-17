@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -57,7 +62,10 @@ fn the_emulated_original_agrees_on_every_row() {
                     wr(m, 0x30, saved);
                     l0 = format!("m+0x0,{}", rd(&c[0], saved as usize * 4));
                     l1 = format!("15558448,{}", rd(&c[2], 0).wrapping_add(0x11abc));
-                    l2 = format!("15558448,{}", rd(&c[1], 0).wrapping_add(saved.wrapping_mul(0x58)));
+                    l2 = format!(
+                        "15558448,{}",
+                        rd(&c[1], 0).wrapping_add(saved.wrapping_mul(0x58))
+                    );
                     let w = rd(&c[3], 0);
                     l3 = format!("{w},15558448,-1,-1,0,13161032,-1,15558448,0,0,15558448");
                     l4 = format!("{w},342");
@@ -68,14 +76,25 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "end_cannon_time — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "end_cannon_time — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "end_cannon_time — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "end_cannon_time — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "end_cannon_time — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[5 + i], "end_cannon_time — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[5 + i],
+                "end_cannon_time — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
