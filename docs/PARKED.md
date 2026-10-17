@@ -3785,6 +3785,11 @@ these files out of `simulation`, and whether the two sweep lanes stay two (the r
 waiter reads a lane's subagent transcripts and exits `STALLED` on one quiet past the threshold with `end_turn`; and the
 frame's brief says a subagent never ends its turn on a background wait. One reach.
 
+(2824) **A booking that says "carry the cast" is sized before its callee chain is counted** (2812's "for the Loop" line,
+filed at its merge): 2812 was booked to carry a cloaked Spy's Bribe and stage it, and the carry alone reached
+`cast_bribe` → `Unit::swap_team@006118d0` (286 lines, unread), so the staging went to the next chapter (2823). Candidate:
+the brief checklist asks a booking that names a cast or an action to list its callees' line counts first. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 (2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
@@ -6355,11 +6360,11 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2812, 2026-10-17 — Bribe's target arm carried; its conversion is the next build
 
-(2812, first) **`Unit::swap_team@006118d0` (286 lines) and `cast_bribe`'s unit arm are the next chapter's build**: the owner swap
+(2821) **`Unit::swap_team@006118d0` (286 lines) and `cast_bribe`'s unit arm are the next chapter's build**: the owner swap
 of the bribed unit and the leader counter at `+0x8f4`. Until it stands a staged Spy's Bribe parts on the target's owner, so the
 cloaked-Spy staging of GOLDEN §106 (site two on the cast frame) waits on it. Names no score.
 
-(2812, second) **`is_valid_target`'s Bribe ally arm, `has_general`'s `+0x56fe` count, and the territory refusal in `cast_bribe`
+(2822) **`is_valid_target`'s Bribe ally arm, `has_general`'s `+0x56fe` count, and the territory refusal in `cast_bribe`
 (building and city arms)** are seams (GOLDEN §106). Names no score.
 
 ## Parked by the next landing, slot FH — reserved

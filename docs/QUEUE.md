@@ -12,18 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-eighth tranche at its seam (commander, Opus): 10 landings from `a4ff472f`**, every booking gate green
+*2026-10-17, **the thirty-eighth tranche (commander, Opus): 11 landings from `a4ff472f`**, every booking gate green
 after its second commit at most (one: the Golden line, Loop 2799); last whole gate `05718f24`, last gate `6d760eba`; two `DEEP`
 lanes cleared (2779, 2801), no kill rule. 2793 waited 1h50 on a subagent that ended its turn (Loop 2820), told to land without it.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 5982 → 5985 (2780: the scout's fog read takes the Space Program; 2779: Capitalism's oil), the open word.
-  Chapter 80 closed (1204, run878: a fight blows a stealth unit), 81 compared the blown bits (2798), 82 built `do_cast`'s blow from the listing (2804); 69 built, 70 surveyed. Census 1068 → 1181, `port` 171 → 156. Battery 576 / 6566
+  Chapter 80 closed (1204, run878: a fight blows a stealth unit), 81 compared the blown bits (2798), 82 built `do_cast`'s blow from the listing (2804), 83 carried Bribe's target arm (2812); 69 built, 70 surveyed. Census 1068 → 1181, `port` 171 → 156. Battery 576 / 6566
   / 2974; **when the peace pair closes, the AI word's successor is its lowest lobby** (DECISIONS 72).
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every third landing
   and at the drain; a whole gate refuses a stale `agent-*` worktree (Loop 2724). The sweep's per-function check runs in debug (2787).
 - **Lanes: four, live from `a4ff472f`** (DECISIONS 75: the lane entry 74 took goes back for the trial): 2808 (AI §235,
-  FF), 2812 (GOLDEN §106, FG, run 880), 2818 (FH) and 2793 (EY) on the two sweep lanes; 2783, 2780, 2782, 2785, 2797, 2798, 2801, 2779, 2804, 2807 landed. Next 2821, run 881 (Astra 900–909). Pools: GOLDEN §107–109, AI §236–239, park FI–FO.
-- **Fable backlog: 16 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792, 2796, 2799, 2809, 2819, 2820).
+  FF), 2823 (GOLDEN §107, FI, run 880), 2818 (FH) and 2793 (EY) on the two sweep lanes; 2783, 2780, 2782, 2785, 2797, 2798, 2801, 2779, 2804, 2807, 2812 landed. Next 2825, run 881 (Astra 900–909). Pools: GOLDEN §108–113, AI §236–239, park FJ–FO.
+- **Fable backlog: 17 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792, 2796, 2799, 2809, 2819, 2820, 2824).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -62,7 +62,7 @@ four, on the branch's tip), 4080 fixture requests and none missing, admission wa
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2808 the AI word's (Opus), 2812 the rules track's, 2818 and 2793 the
+2808 the AI word's (Opus), 2823 the rules track's, 2818 and 2793 the
 two sweep lanes' (Sonnet) — lower map first — East Indies (Lakota), the
 peace pair's only map. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
@@ -74,14 +74,14 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `WIDENINGS` naming it, then the Transport Freighter `1/225` (idle in
     ours from 5976, 2779's hypothesis) walked back. AI §235.
 
-2812. **Chapter eighty-three: a cloaked Spy's Sabotage or Bribe cast
-    carried and staged** (DECISIONS 56 §3; 2804 built `do_cast`'s two
-    blow sites from the listing, reading alone, since no modelled cast
-    reaches them — the crafts without `l` are refused or not carried,
-    parked 2810). Carry the cast, stage a cloaked Spy casting it in a
-    who=1 scout's sight, a Spy that does not as control, and compare
-    `unit_masks` across it. Census rows first; run 880 only when no
-    packet answers. GOLDEN §106.
+2823. **Chapter eighty-four: Bribe's conversion built, then the cloaked
+    Spy's Bribe staged** (DECISIONS 56 §3; 2812 carried Bribe's target
+    arm in `cast.rs`; Sabotage's caster is a Commando, not
+    cloaked). Build `cast_bribe`'s unit arm and `Unit::swap_team@006118d0`
+    with the leader counter at `+0x8f4` (parked 2821), then stage a
+    cloaked Spy bribing in a who=1 scout's sight, one out of sight as
+    control, and compare `unit_masks` and the owner across the cast.
+    Census rows first; run 880 only when no packet answers. GOLDEN §107.
 
 2818. **The sweep's hundred-and-thirteenth batch: ten never-backed
     simulation functions, a shape the parked rows name first** (DECISIONS
