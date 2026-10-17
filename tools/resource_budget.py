@@ -131,7 +131,9 @@ def _status(directory):
             continue
         try:
             try:
-                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                # Shared: a holder's exclusive lock refuses it, a concurrent
+                # status probe does not — an exclusive probe read as a holder.
+                fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
             except BlockingIOError:
                 try:
                     owner = json.loads(os.pread(fd, 4096, 0))
