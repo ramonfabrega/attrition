@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_supplies_find_supply.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 64-byte object of random bytes (no bias), 3 stack argument(s);
-`p` windows in order: p0..p1 sparse table 0 (2 rows × 1 slice(s), row-major), p2..p17 the place(s), in flag order; vtable slot +0x8 (0 args) stubbed; vtable slot +0xbc (0 args) stubbed; callee 0x0073b560 (0 args) stubbed; callee 0x0046cff0 (0 args) stubbed; the word at `0xe3a1c0+a[2]*0x1c` points at 16 random bytes less `0` (placed); the word at `p2+0` points at 16 random bytes less `0` (placed); the word at `p2+4` points at 16 random bytes less `0` (placed); the word at `p2+8` points at 16 random bytes less `0` (placed); the word at `p2+12` points at 16 random bytes less `0` (placed); the word at `0xc0aec0+a[2]*0x1c` points at 16 random bytes less `0` (placed); the word at `p7+0` points at 16 random bytes less `0` (placed); the word at `p7+4` points at 16 random bytes less `0` (placed); the word at `p7+8` points at 16 random bytes less `0` (placed); the word at `p7+12` points at 16 random bytes less `0` (placed); the word at `0xc0618c` points at 96 random bytes less `0` (placed); the word at `p12+0x14+a[2]*0x1c` points at 16 random bytes less `0` (placed); the word at `p13+0` points at 32 random bytes less `0` (placed); the word at `p13+4` points at 32 random bytes less `0` (placed); the word at `p13+8` points at 32 random bytes less `0` (placed); the word at `p13+12` points at 32 random bytes less `0` (placed); stub 0 answered from [1, 1, 0] (90%); stub 1 answered from [1, 1, 0] (90%); stub 2 answers 0..100 every row; stub 3 answers 0..25000 every row; stub 2 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; 2 rows 0x6eec apart at `@0xe3a390`, slices +0x434:0x4 (`p` windows after the pointed buffers, before the places); the stubbed vtable laid at `p8+0` as well as at `this`; the stubbed vtable laid at `p9+0` as well as at `this`; the stubbed vtable laid at `p10+0` as well as at `this`; the stubbed vtable laid at `p11+0` as well as at `this`.
+`p` windows in order: p0..p1 sparse table 0 (2 rows × 1 slice(s), row-major), p2..p17 the place(s), in flag order; vtable slot +0x8 (0 args) stubbed; vtable slot +0xbc (0 args) stubbed; callee 0x0073b560 (0 args) stubbed; callee 0x0046cff0 (0 args) stubbed; the word at `0xe3a1c0+a[2]*0x1c` points at 16 random bytes less `0` (placed); the word at `p2+0` points at 16 random bytes less `0` (placed); the word at `p2+4` points at 16 random bytes less `0` (placed); the word at `p2+8` points at 16 random bytes less `0` (placed); the word at `p2+12` points at 16 random bytes less `0` (placed); the word at `0xc0aec0+a[2]*0x1c` points at 16 random bytes less `0` (placed); the word at `p7+0` points at 16 random bytes less `0` (placed); the word at `p7+4` points at 16 random bytes less `0` (placed); the word at `p7+8` points at 16 random bytes less `0` (placed); the word at `p7+12` points at 16 random bytes less `0` (placed); the word at `0xc0618c` points at 96 random bytes less `0` (placed); the word at `p12+0x14+a[2]*0x1c` points at 16 random bytes less `0` (placed); the word at `p13+0` points at 32 random bytes less `0` (placed); the word at `p13+4` points at 32 random bytes less `0` (placed); the word at `p13+8` points at 32 random bytes less `0` (placed); the word at `p13+12` points at 32 random bytes less `0` (placed); stub 0 answered from [1, 1, 0] (90%); stub 1 answered from [1, 1, 0] (90%); stub 3 answered from [0, 191, 192, 193, 383, 384, 385, 575, 576, 577, 600] (90%); stub 2 answers 0..3 every row; stub 2 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; 2 rows 0x6eec apart at `@0xe3a390`, slices +0x434:0x4 (`p` windows after the pointed buffers, before the places); the stubbed vtable laid at `p8+0` as well as at `this`; the stubbed vtable laid at `p9+0` as well as at `this`; the stubbed vtable laid at `p10+0` as well as at `this`; the stubbed vtable laid at `p11+0` as well as at `this`.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -46,7 +46,7 @@ EDXWIN = None
 XMM = []
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = 0.1
-ANSWERS = [(0, [1, 1, 0]), (1, [1, 1, 0])]
+ANSWERS = [(0, [1, 1, 0]), (1, [1, 1, 0]), (3, [0, 191, 192, 193, 383, 384, 385, 575, 576, 577, 600])]
 VTAT = None
 VTATHALF = []
 VTIMAGE = []
@@ -56,7 +56,7 @@ ANSWERWIN = []
 CDECL = False
 ARGEQ = []
 SEQ = []
-ANSRANGE = [(2, 0, 100), (3, 0, 25000)]
+ANSRANGE = [(2, 0, 3)]
 CELLTHIS = []
 VTALSO = [('p8', 0), ('p9', 0), ('p10', 0), ('p11', 0)]
 SPARSE = [('@', '0xe3a390', 28396, 2, [(1076, 4)])]
@@ -303,8 +303,8 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(220):
-        h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
+    for i in range(400):
+        h.brk = base  # the bump heap is reused a row; 400 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Supplies::find_supply@0073aba0", "--item", "2966", "--win", "0x40", "--own", "3", "--argrange", "2:0:1", "--record-edx", "--stub", "slot:0x8:0", "--stub", "slot:0xbc:0", "--stub", "0x73b560:0", "--stub", "0x46cff0:0", "--answers", "0:1,1,0", "--answers", "1:1,1,0", "--answer-range", "2:0:100", "--answer-range", "3:0:25000", "--record", "2", "--record", "3", "--sparse", "@0xe3a390:0x6eec:2:0x434,4", "--wbias", "p0+0:0,1,2,3,4", "--wbias", "p1+0:0,1,2,3,4", "--place", "0xe3a1c0+a[2]*0x1c:0:16", "--place", "p2+0:0:16", "--place", "p2+4:0:16", "--place", "p2+8:0:16", "--place", "p2+12:0:16", "--place", "0xc0aec0+a[2]*0x1c:0:16", "--place", "p7+0:0:16", "--place", "p7+4:0:16", "--place", "p7+8:0:16", "--place", "p7+12:0:16", "--vtat-also", "p8+0", "--vtat-also", "p9+0", "--vtat-also", "p10+0", "--vtat-also", "p11+0", "--place", "0xc0618c:0:0x60", "--place", "p12+0x14+a[2]*0x1c:0:16", "--place", "p13+0:0:0x20", "--place", "p13+4:0:0x20", "--place", "p13+8:0:0x20", "--place", "p13+12:0:0x20", "--wbias", "p3+0:0,0x10000,0x20000,0x30000", "--wbias", "p3+4:0,1,1,3", "--wbias", "p4+0:0,0x10000,0x20000,0x30000", "--wbias", "p4+4:0,1,1,3", "--wbias", "p5+0:0,0x10000,0x20000,0x30000", "--wbias", "p5+4:0,1,1,3", "--wbias", "p6+0:0,0x10000,0x20000,0x30000", "--wbias", "p6+4:0,1,1,3"]
+# sweep_gen: ["obj", "Supplies::find_supply@0073aba0", "--item", "2966", "--win", "0x40", "--rows", "400", "--own", "3", "--argrange", "2:0:1", "--record-edx", "--stub", "slot:0x8:0", "--stub", "slot:0xbc:0", "--stub", "0x73b560:0", "--stub", "0x46cff0:0", "--answers", "0:1,1,0", "--answers", "1:1,1,0", "--answer-range", "2:0:3", "--answers", "3:0,191,192,193,383,384,385,575,576,577,600", "--record", "2", "--record", "3", "--sparse", "@0xe3a390:0x6eec:2:0x434,4", "--wbias", "p0+0:0,1,2,3,4", "--wbias", "p1+0:0,1,2,3,4", "--place", "0xe3a1c0+a[2]*0x1c:0:16", "--place", "p2+0:0:16", "--place", "p2+4:0:16", "--place", "p2+8:0:16", "--place", "p2+12:0:16", "--place", "0xc0aec0+a[2]*0x1c:0:16", "--place", "p7+0:0:16", "--place", "p7+4:0:16", "--place", "p7+8:0:16", "--place", "p7+12:0:16", "--vtat-also", "p8+0", "--vtat-also", "p9+0", "--vtat-also", "p10+0", "--vtat-also", "p11+0", "--place", "0xc0618c:0:0x60", "--place", "p12+0x14+a[2]*0x1c:0:16", "--place", "p13+0:0:0x20", "--place", "p13+4:0:0x20", "--place", "p13+8:0:0x20", "--place", "p13+12:0:0x20", "--wbias", "p3+0:0,0x10000,0x20000,0x30000", "--wbias", "p3+4:0,1,1,3", "--wbias", "p4+0:0,0x10000,0x20000,0x30000", "--wbias", "p4+4:0,1,1,3", "--wbias", "p5+0:0,0x10000,0x20000,0x30000", "--wbias", "p5+4:0,1,1,3", "--wbias", "p6+0:0,0x10000,0x20000,0x30000", "--wbias", "p6+4:0,1,1,3"]

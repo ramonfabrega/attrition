@@ -36,7 +36,7 @@ STUBS = [('slot', 232, 0), ('call', 6257456, 1), ('call', 6235456, 0)]
 PLACES = [(None, '0xc061ec', '0', 1536), ('m', '0xdc', '0', 16), ('p1', '4', '0', 16)]
 NULLS = [1]
 NULLFORCE = {}
-WBIAS = [('p0', 1360, ('set', [0, 1, 2, 15, 30, 14])), ('m', 8, ('set', [0, 65536, 983040, 1966080, 4294901760, 917504])), ('m', 140, ('set', [0, 2147483648, 65536]))]
+WBIAS = [('p0', 1360, ('set', [0, 1, 2, 15, 30, 14])), ('m', 8, ('set', [0, 65536, 983040, 1966080, 4294901760, 917504])), ('m', 140, ('set', [0, 2147483648, 65536, 1073741824, 3221225472]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = [(232, 4640432)]
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Unit::do_explore_to@005f24a0", "--item", "2966", "--win", "0x100", "--own", "1", "--ret", "none", "--record-order", "--stub", "slot:0xe8:0", "--stub", "0x5f7b30:1", "--stub", "0x5f2540:0", "--record", "1", "--record", "2", "--slotbase", "0xe8:0x46ceb0", "--answers", "0:0,1,1", "--place", "0xc061ec:0:0x600", "--place", "m+0xdc:0:16", "--place", "p1+4:0:16", "--place-null", "1", "--argeq", "0:p2+8", "--argset", "0:0", "--wbias", "p0+0x550:0,1,2,15,30,14", "--wbias", "m+0x8:0,0x10000,0xf0000,0x1e0000,0xffff0000,0xe0000", "--wbias", "m+0x8c:0,0x80000000,0x10000"]
+# sweep_gen: ["obj", "Unit::do_explore_to@005f24a0", "--item", "2966", "--win", "0x100", "--own", "1", "--ret", "none", "--record-order", "--stub", "slot:0xe8:0", "--stub", "0x5f7b30:1", "--stub", "0x5f2540:0", "--record", "1", "--record", "2", "--slotbase", "0xe8:0x46ceb0", "--answers", "0:0,1,1", "--place", "0xc061ec:0:0x600", "--place", "m+0xdc:0:16", "--place", "p1+4:0:16", "--place-null", "1", "--argeq", "0:p2+8", "--argset", "0:0", "--wbias", "p0+0x550:0,1,2,15,30,14", "--wbias", "m+0x8:0,0x10000,0xf0000,0x1e0000,0xffff0000,0xe0000", "--wbias", "m+0x8c:0,0x80000000,0x10000,0x40000000,0xc0000000"]
