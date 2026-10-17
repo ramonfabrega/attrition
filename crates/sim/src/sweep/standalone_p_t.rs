@@ -396,6 +396,8 @@ mod type_sum_cost;
 mod type_tech;
 #[path = "type_unit.rs"]
 mod type_unit;
+#[path = "type_unpay_cost.rs"]
+mod type_unpay_cost;
 #[path = "type_walk_rules_data.rs"]
 mod type_walk_rules_data;
 #[path = "type_wonder.rs"]

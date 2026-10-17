@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_type_unpay_cost.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 16-byte object of random bytes (no bias), 3 stack argument(s);
-the global cell 0x00c061ec points at 2112 random bytes; callee 0x006e33a0 (2 args) stubbed; vtable slot +0x78 (7 args) stubbed; the word at `p0+0` points at 24 random bytes less `0` (placed); the word at `p1+0` points at 24 random bytes less `0` (placed); the word at `p2+0` points at 24 random bytes less `0` (placed); the word at `p3+0` points at 24 random bytes less `0` (placed); the word at `p4+0` points at 24 random bytes less `0` (placed); the word at `p5+0` points at 24 random bytes less `0` (placed); the word at `p6+0` points at 24 random bytes less `0` (placed); the word at `p7+0` points at 24 random bytes less `0` (placed); 8 rows 0x6eec apart at `@0xe3a390`, slices +0x6eb8:0x4 (`p` windows after the pointed buffers, before the places).
+the global cell 0x00c061ec points at 2112 random bytes; callee 0x006e33a0 (2 args) stubbed; vtable slot +0x78 (7 args) stubbed; the word at `p0+0` points at 24 random bytes less `0` (placed); the word at `p1+0` points at 24 random bytes less `0` (placed); the word at `p2+0` points at 24 random bytes less `0` (placed); the word at `p3+0` points at 24 random bytes less `0` (placed); the word at `p4+0` points at 24 random bytes less `0` (placed); the word at `p5+0` points at 24 random bytes less `0` (placed); the word at `p6+0` points at 24 random bytes less `0` (placed); the word at `p7+0` points at 24 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1, 2, 5, 100, -7, 3, 250] (90%); stub 0 answers 6 values in call order, printed after the answers; stub 1 answers 6 values in call order, printed after the answers; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 8 rows 0x6eec apart at `@0xe3a390`, slices +0x6eb8:0x4 (`p` windows after the pointed buffers, before the places).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -37,7 +37,7 @@ PLACES = [('p0', '0', '0', 24), ('p1', '0', '0', 24), ('p2', '0', '0', 24), ('p3
 NULLS = []
 WBIAS = []
 FILLS = []
-ARGRANGE = [(0, 0, 8)]
+ARGRANGE = [(0, 0, 7)]
 SLOTBASE = []
 ECXINT = None
 EDX = None
@@ -45,21 +45,21 @@ EDXWIN = None
 XMM = []
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = 0.1
-ANSWERS = []
+ANSWERS = [(0, [0, 1]), (1, [0, 1, 2, 5, 100, -7, 3, 250])]
 VTAT = None
 VTATHALF = []
 ALIAS = []
 ANSWERWIN = []
 CDECL = False
 ARGEQ = []
-SEQ = []
+SEQ = [(0, 6, None), (1, 6, None)]
 ANSRANGE = []
 CELLTHIS = []
 VTALSO = []
 SPARSE = [('@', '0xe3a390', 28396, 8, [(28344, 4)])]
 GTAB = []
-RECORD = []
-RECORDORDER = False
+RECORD = [1]
+RECORDORDER = True
 RECORDEDX = False
 ROWSPLIT = {}
 LINKS = []
@@ -610,4 +610,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "--item", "2837", "--own", "3", "--win", "0x10", "--cell-win", "0xc061ec:0x840", "--stub", "0x6e33a0:2", "--stub", "slot:0x78:7", "--sparse", "@0xe3a390:0x6eec:8:0x6eb8,4", "--place", "p0+0:0:24", "--place", "p1+0:0:24", "--place", "p2+0:0:24", "--place", "p3+0:0:24", "--place", "p4+0:0:24", "--place", "p5+0:0:24", "--place", "p6+0:0:24", "--place", "p7+0:0:24", "--argrange", "0:0:8", "--ret", "none", "Type::unpay_cost@006682f0"]
+# sweep_gen: ["obj", "--item", "2837", "--own", "3", "--win", "0x10", "--cell-win", "0xc061ec:0x840", "--stub", "0x6e33a0:2", "--stub", "slot:0x78:7", "--sparse", "@0xe3a390:0x6eec:8:0x6eb8,4", "--place", "p0+0:0:24", "--place", "p1+0:0:24", "--place", "p2+0:0:24", "--place", "p3+0:0:24", "--place", "p4+0:0:24", "--place", "p5+0:0:24", "--place", "p6+0:0:24", "--place", "p7+0:0:24", "--argrange", "0:0:7", "--answers", "0:0,1", "--answers", "1:0,1,2,5,100,-7,3,250", "--seq", "0:6", "--seq", "1:6", "--record", "1", "--record-order", "--ret", "none", "Type::unpay_cost@006682f0"]
