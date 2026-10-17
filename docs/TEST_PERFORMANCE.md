@@ -577,3 +577,16 @@ gate passes on `d68ee904`:899 rondata/2586 sim; exact3276 requests retained.
 Complete warm suite134.05→132.21s, CPU934.29→924.28s; sampled tree8541→7184MiB
 (16% lower). Whole-suite10× remains unmet. See [journal](journal/2026-10-17-whole-capture.md)
 and [audit](audit/2026-10-17-whole-capture.json). Independent review remains owed.
+
+## Bounded world and harness consumers
+
+Five world/harness tests use bounded sibling setup; farm/fog readers stream
+positional frame-plus-sibling spans and run69 uses the existing indexed replay.
+All comparison/tick/floor assertions remain. Complete Initial/observation/Report
+audits agree, and deliberate truncation faults fail. Forced failure-artifact
+replay reproduces the complete report. Local RSS1790–1924→394–436MiB.
+Four competing copies of these five tests: sampled memory26769→1840MiB,
+wall7.94→4.46s, CPU58.88→25.35s. This is a subset, not four full suites.
+Full gate pending; whole-suite10× remains unmet. See
+[journal](journal/2026-10-17-world-harness.md) and
+[audit](audit/2026-10-17-world-harness.json). Independent review remains owed.

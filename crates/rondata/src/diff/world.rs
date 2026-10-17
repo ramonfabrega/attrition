@@ -1131,28 +1131,37 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = replay_initial(&log).unwrap();
-        borrow_from_siblings(&mut init, &refs);
+        let mut built = if crate::diff::testkit::whole_capture::legacy() {
+            let texts = sibling_texts();
+            let text = crate::capture::read(&path);
+            let log = Log::parse(&text);
+            let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+            let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
+            let refs: Vec<&Initial> = inits.iter().collect();
+            let mut init = replay_initial(&log).unwrap();
+            borrow_from_siblings(&mut init, &refs);
+            build_sim(&loaded, &init, Tuning::RON)
+        } else {
+            crate::diff::testkit::whole_capture::road_build(&loaded, &path)
+        };
 
         // Every frame either capture dumps the list on, by frame number.
         // A `FRAME n` block's `FULL DUMP` is the state after `n` ticks —
         // the same alignment `run13_s_world_at_frame_95…` stands on.
-        let (t12, t13) = (crate::capture::read(&r12), crate::capture::read(&r13));
-        let (l12, l13) = (Log::parse(&t12), Log::parse(&t13));
         let mut want: Vec<(i64, Vec<crate::gamelog::FarmDump>)> = Vec::new();
-        for l in [&l12, &l13] {
-            for (n, b) in l.frames() {
-                let farms = crate::gamelog::farms_of(b.kid("FULL DUMP").unwrap_or(b));
-                if !farms.is_empty() {
-                    want.push((n, farms));
-                }
-            }
+        for path in [&r12, &r13] {
+            want.extend(crate::diff::testkit::whole_capture::observations(
+                path,
+                |l| {
+                    l.frames()
+                        .into_iter()
+                        .filter_map(|(n, b)| {
+                            let farms = crate::gamelog::farms_of(b.kid("FULL DUMP").unwrap_or(b));
+                            (!farms.is_empty()).then_some((n, farms))
+                        })
+                        .collect()
+                },
+            ));
         }
         want.sort_by_key(|(n, _)| *n);
         assert!(
@@ -1161,7 +1170,6 @@ mod tests {
             want.iter().map(|(n, _)| *n).collect::<Vec<_>>()
         );
 
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
         let last = want.last().map_or(0, |(n, _)| *n);
         let mut parted: Vec<String> = Vec::new();
         for frame in 1..=last {
@@ -3302,27 +3310,31 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = replay_initial(&log).unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut built = if crate::diff::testkit::whole_capture::legacy() {
+            let texts = sibling_texts();
+            let text = crate::capture::read(&path);
+            let log = Log::parse(&text);
+            let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+            let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
+            let refs: Vec<&Initial> = inits.iter().collect();
+            let mut init = replay_initial(&log).unwrap();
+            borrow_from_siblings(&mut init, &refs);
+            build_sim(&loaded, &init, Tuning::RON)
+        } else {
+            crate::diff::testkit::whole_capture::road_build(&loaded, &path)
+        };
 
-        let t13 = crate::capture::read(&r13);
-        let l13 = Log::parse(&t13);
-        let grids: Vec<(i64, Vec<u8>)> = l13
-            .dumps()
-            .into_iter()
-            .filter_map(|(n, body)| {
-                let w = body.kid("WORLD")?;
-                let fog = crate::gamelog::world_fog(&w.fields().to_vec());
-                (!fog.is_empty()).then_some((n, fog))
-            })
-            .collect();
+        let grids: Vec<(i64, Vec<u8>)> =
+            crate::diff::testkit::whole_capture::observations(&r13, |l13| {
+                l13.dumps()
+                    .into_iter()
+                    .filter_map(|(n, body)| {
+                        let w = body.kid("WORLD")?;
+                        let fog = crate::gamelog::world_fog(&w.fields().to_vec());
+                        (!fog.is_empty()).then_some((n, fog))
+                    })
+                    .collect()
+            });
         assert_eq!(
             grids.iter().map(|(n, _)| *n).collect::<Vec<i64>>(),
             (95..=104).collect::<Vec<i64>>(),

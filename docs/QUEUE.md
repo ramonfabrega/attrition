@@ -112,6 +112,10 @@ intentional faults. Full required-fixture gate passes on `d68ee904`;899 rondata,
 exact3276 requests retained. Warm suite134.05→132.21s, CPU934.29→924.28s,
 sampled tree8541→7184MiB. Next: world/harness consumers near1.9GiB; see
 [journal](journal/2026-10-17-whole-capture.md).
+World/harness follow-up: five consumers fall1790–1924→394–436MiB locally;
+four competing copies of the subset use26769→1840MiB sampled memory and
+CPU58.88→25.35s. Complete observation/report audits agree; deliberate faults fail.
+Full required-fixture gate pending; see [journal](journal/2026-10-17-world-harness.md).
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See

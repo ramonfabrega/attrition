@@ -669,219 +669,241 @@ mod bodies {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let texts = sibling_texts();
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
-        // A test-selected fidelity failure, not every known comparator residue.
-        // Reuse the same loaded data, parsed log, siblings and trace; no inferred CLI.
-        if let Some(index) = report.frames.iter().position(|f| {
-            !f.diverged.is_empty()
-                || !f.build_diverged.is_empty()
-                || (f.frame < LONG_WORD_GREAT_LAKES
-                    && f.order_diverged.iter().any(|d| {
-                        matches!(
-                            d.what,
-                            OrderMismatch::Move {
-                                field: "dest_x" | "dest_y",
-                                ..
-                            }
-                        )
-                    }))
-        }) {
-            let artifact = (|| -> Result<_, Box<dyn std::error::Error>> {
-                let output =
-                    crate::debug_view::failure_path("run69-position-building-or-waypoint")?;
-                let meta = crate::debug_view::Metadata {
+        with_sibling_initials(|refs| {
+            let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+            let report = if crate::diff::testkit::whole_capture::legacy() {
+                let text = crate::capture::read(&path);
+                let log = Log::parse(&text);
+                run_traced(&loaded, &log, Tuning::RON, None, None, refs, Some(&tr)).unwrap()
+            } else {
+                run_indexed_observed(
+                    &loaded,
+                    &mut source,
+                    Tuning::RON,
+                    None,
+                    None,
+                    refs,
+                    Some(&tr),
+                    |_, _, _| {},
+                )
+                .unwrap()
+            };
+            if std::env::var_os("RON_VERIFY_WHOLE_CAPTURE").is_some() {
+                let text = crate::capture::read(&path);
+                let log = Log::parse(&text);
+                let expected =
+                    run_traced(&loaded, &log, Tuning::RON, None, None, refs, Some(&tr)).unwrap();
+                assert_eq!(report, expected, "run69 complete indexed report");
+            }
+            // A test-selected fidelity failure, not every known comparator residue.
+            // Reuse loaded data, resolved source, sibling inputs and trace; no inferred CLI.
+            if let Some(index) = report.frames.iter().position(|f| {
+                !f.diverged.is_empty()
+                    || !f.build_diverged.is_empty()
+                    || (f.frame < LONG_WORD_GREAT_LAKES
+                        && f.order_diverged.iter().any(|d| {
+                            matches!(
+                                d.what,
+                                OrderMismatch::Move {
+                                    field: "dest_x" | "dest_y",
+                                    ..
+                                }
+                            )
+                        }))
+            }) {
+                let text = crate::capture::read(&path);
+                let log = Log::parse(&text);
+                let artifact = (|| -> Result<_, Box<dyn std::error::Error>> {
+                    let output =
+                        crate::debug_view::failure_path("run69-position-building-or-waypoint")?;
+                    let meta = crate::debug_view::Metadata {
                     capture: path.clone(), source_bytes: text.len(),
-                    siblings: refs.iter().enumerate().map(|(i,_)| format!("already-parsed sibling Initial {i} from testkit::sibling_texts()" )).collect(),
+                    siblings: refs.iter().enumerate().map(|(i,_)| format!("bounded sibling Initial {i} from testkit::with_sibling_initials()" )).collect(),
                     trace: Some("already-parsed testkit::trace(rontrace-run69.log)".into()),
                     reproduce: "cargo test -p rondata --release run69_s_three_thousand_frames_stand_where_the_original_s_do -- --exact diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do --nocapture".into(),
                     ..Default::default()
                 };
-                crate::debug_view::write_failure(
-                    &report,
-                    Some((
-                        index,
-                        "unit positions and building fields must agree throughout run69; current waypoints must agree before the word",
-                    )),
-                    &meta,
-                    &output,
-                    |window| {
-                        run_traced_observed(
-                            &loaded,
-                            &log,
-                            Tuning::RON,
-                            None,
-                            None,
-                            &refs,
-                            Some(&tr),
-                            |built, frame, result| window.observe(built, frame, result),
-                        )
-                    },
-                )?;
-                Ok(output)
-            })();
-            match artifact {
-                Ok(path) => eprintln!("differential failure artifact: {}", path.display()),
-                Err(error) => eprintln!("differential artifact unavailable: {error}"),
+                    crate::debug_view::write_failure(
+                        &report,
+                        Some((
+                            index,
+                            "unit positions and building fields must agree throughout run69; current waypoints must agree before the word",
+                        )),
+                        &meta,
+                        &output,
+                        |window| {
+                            run_traced_observed(
+                                &loaded,
+                                &log,
+                                Tuning::RON,
+                                None,
+                                None,
+                                refs,
+                                Some(&tr),
+                                |built, frame, result| window.observe(built, frame, result),
+                            )
+                        },
+                    )?;
+                    Ok(output)
+                })();
+                match artifact {
+                    Ok(path) => eprintln!("differential failure artifact: {}", path.display()),
+                    Err(error) => eprintln!("differential artifact unavailable: {error}"),
+                }
             }
-        }
-        assert!(
-            report.frames.len() >= 3_000,
-            "run69's length is {} — a short file here is a wrong file",
-            report.frames.len()
-        );
-
-        // The buildings, whole.
-        let builds: usize = report.frames.iter().map(|f| f.build_compared).sum();
-        let build_bad: Vec<BuildDivergence> = report
-            .frames
-            .iter()
-            .flat_map(|f| f.build_diverged.iter().copied())
-            .collect();
-        eprintln!(
-            "run69 buildings: {builds} fields compared, {} wrong",
-            build_bad.len()
-        );
-        for d in build_bad.iter().take(8) {
-            eprintln!(
-                "  {}/{} f{}: {} ours {} theirs {}",
-                d.who, d.o, d.frame, d.field, d.ours, d.theirs
+            assert!(
+                report.frames.len() >= 3_000,
+                "run69's length is {} — a short file here is a wrong file",
+                report.frames.len()
             );
-        }
 
-        // The collision block, on every unit-frame whose position agrees.
-        let coll: usize = report.frames.iter().map(|f| f.collide_compared).sum();
-        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
-            .first_divergence_by_unit()
-            .into_iter()
-            .map(|(w, o, f)| ((w, o), f))
-            .collect();
-        let coll_bad: Vec<CollideDivergence> = report
-            .frames
-            .iter()
-            .flat_map(|f| f.collide_diverged.iter().copied())
-            .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
-            .collect();
-        eprintln!(
-            "run69 collision: {coll} field-frames compared, {} wrong, \
+            // The buildings, whole.
+            let builds: usize = report.frames.iter().map(|f| f.build_compared).sum();
+            let build_bad: Vec<BuildDivergence> = report
+                .frames
+                .iter()
+                .flat_map(|f| f.build_diverged.iter().copied())
+                .collect();
+            eprintln!(
+                "run69 buildings: {builds} fields compared, {} wrong",
+                build_bad.len()
+            );
+            for d in build_bad.iter().take(8) {
+                eprintln!(
+                    "  {}/{} f{}: {} ours {} theirs {}",
+                    d.who, d.o, d.frame, d.field, d.ours, d.theirs
+                );
+            }
+
+            // The collision block, on every unit-frame whose position agrees.
+            let coll: usize = report.frames.iter().map(|f| f.collide_compared).sum();
+            let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+                .first_divergence_by_unit()
+                .into_iter()
+                .map(|(w, o, f)| ((w, o), f))
+                .collect();
+            let coll_bad: Vec<CollideDivergence> = report
+                .frames
+                .iter()
+                .flat_map(|f| f.collide_diverged.iter().copied())
+                .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
+                .collect();
+            eprintln!(
+                "run69 collision: {coll} field-frames compared, {} wrong, \
              {} unit(s) ever off position",
-            coll_bad.len(),
-            parted.len()
-        );
-        for (&(who, o), &frame) in &parted {
-            eprintln!("  {who}/{o} parts at {frame}");
-        }
-
-        // **The waypoint, before the word.** `dest_x`/`dest_y` is the
-        // move order's *current* step (§4.1), and it is the record item
-        // 193 turned out to be. Folded to one row a unit and a field —
-        // who, what, the first frame and how many — because a route that
-        // parts stays parted for the rest of its walk and the count is
-        // the walk's length, not a second finding.
-        let mut waypoints: Vec<(i64, i64, &str, i64, usize)> = Vec::new();
-        for d in report
-            .frames
-            .iter()
-            .flat_map(|f| f.order_diverged.iter())
-            .filter(|d| d.frame < LONG_WORD_GREAT_LAKES)
-        {
-            let OrderMismatch::Move { field, .. } = d.what else {
-                continue;
-            };
-            if field != "dest_x" && field != "dest_y" {
-                continue;
+                coll_bad.len(),
+                parted.len()
+            );
+            for (&(who, o), &frame) in &parted {
+                eprintln!("  {who}/{o} parts at {frame}");
             }
-            match waypoints
-                .iter_mut()
-                .find(|r| (r.0, r.1, r.2) == (d.who, d.o, field))
+
+            // **The waypoint, before the word.** `dest_x`/`dest_y` is the
+            // move order's *current* step (§4.1), and it is the record item
+            // 193 turned out to be. Folded to one row a unit and a field —
+            // who, what, the first frame and how many — because a route that
+            // parts stays parted for the rest of its walk and the count is
+            // the walk's length, not a second finding.
+            let mut waypoints: Vec<(i64, i64, &str, i64, usize)> = Vec::new();
+            for d in report
+                .frames
+                .iter()
+                .flat_map(|f| f.order_diverged.iter())
+                .filter(|d| d.frame < LONG_WORD_GREAT_LAKES)
             {
-                Some(r) => r.4 += 1,
-                None => waypoints.push((d.who, d.o, field, d.frame, 1)),
+                let OrderMismatch::Move { field, .. } = d.what else {
+                    continue;
+                };
+                if field != "dest_x" && field != "dest_y" {
+                    continue;
+                }
+                match waypoints
+                    .iter_mut()
+                    .find(|r| (r.0, r.1, r.2) == (d.who, d.o, field))
+                {
+                    Some(r) => r.4 += 1,
+                    None => waypoints.push((d.who, d.o, field, d.frame, 1)),
+                }
             }
-        }
-        eprintln!("run69 waypoint rows before the word: {waypoints:?}");
+            eprintln!("run69 waypoint rows before the word: {waypoints:?}");
 
-        let build_early: Vec<&BuildDivergence> = build_bad
-            .iter()
-            .filter(|d| d.frame < LONG_WORD_GREAT_LAKES)
-            .collect();
-        assert!(
-            build_early.is_empty(),
-            "the AI's buildings stand where the original's do up to the word \
+            let build_early: Vec<&BuildDivergence> = build_bad
+                .iter()
+                .filter(|d| d.frame < LONG_WORD_GREAT_LAKES)
+                .collect();
+            assert!(
+                build_early.is_empty(),
+                "the AI's buildings stand where the original's do up to the word \
              ({LONG_WORD_GREAT_LAKES}): {build_early:?}"
-        );
-        assert!(
-            coll_bad.is_empty(),
-            "the collision block agrees on every comparable field-frame of \
+            );
+            assert!(
+                coll_bad.is_empty(),
+                "the collision block agrees on every comparable field-frame of \
              {coll}: {coll_bad:?}"
-        );
-        // **Nothing leaves the original's point before the word**, and it
-        // took three items to say so. A unit used to part on **1993**, and
-        // that was item 191: the woodcutter `1/9`'s two middle waypoints,
-        // one 48-grid step each, and the sixty-fourth-frame repaint of a
-        // standing guy's collision disc behind them
-        // (`docs/COLLISION.md` §2.2). Another parted on **2804** — the AI
-        // citizen `1/1`, which finishes building `2010` on 2803 and, in
-        // the original, walks to the next site rather than gathering at
-        // the one it just built (`docs/ORDERS.md` §5.5, item 194). Six
-        // more parted between **2935** and 2996, and one draw took all
-        // six: the pasture animal's reference object, which this crate
-        // read off the chain's length rather than off
-        // `num_gatherers(1, 0)`'s arrived count (`docs/SYNC.md` §3.6,
-        // item 196).
-        //
-        // So the list below is not merely empty before the word — **no
-        // unit in this capture's 3,000 frames ever stands where the
-        // original's does not**, and `parted` is empty outright. The word
-        // is now 4241, past the capture's whole length, so Great Lakes is
-        // owed a longer full-detail run (`docs/DECISIONS.md` 29) and this
-        // one has nothing left to say about position.
-        let early: Vec<(i64, i64, i64)> = parted
-            .iter()
-            .filter(|&(_, &f)| f < LONG_WORD_GREAT_LAKES)
-            .map(|(&(w, o), &f)| (w, o, f))
-            .collect();
-        assert_eq!(
-            early,
-            Vec::new(),
-            "no unit leaves the original's point before the word \
+            );
+            // **Nothing leaves the original's point before the word**, and it
+            // took three items to say so. A unit used to part on **1993**, and
+            // that was item 191: the woodcutter `1/9`'s two middle waypoints,
+            // one 48-grid step each, and the sixty-fourth-frame repaint of a
+            // standing guy's collision disc behind them
+            // (`docs/COLLISION.md` §2.2). Another parted on **2804** — the AI
+            // citizen `1/1`, which finishes building `2010` on 2803 and, in
+            // the original, walks to the next site rather than gathering at
+            // the one it just built (`docs/ORDERS.md` §5.5, item 194). Six
+            // more parted between **2935** and 2996, and one draw took all
+            // six: the pasture animal's reference object, which this crate
+            // read off the chain's length rather than off
+            // `num_gatherers(1, 0)`'s arrived count (`docs/SYNC.md` §3.6,
+            // item 196).
+            //
+            // So the list below is not merely empty before the word — **no
+            // unit in this capture's 3,000 frames ever stands where the
+            // original's does not**, and `parted` is empty outright. The word
+            // is now 4241, past the capture's whole length, so Great Lakes is
+            // owed a longer full-detail run (`docs/DECISIONS.md` 29) and this
+            // one has nothing left to say about position.
+            let early: Vec<(i64, i64, i64)> = parted
+                .iter()
+                .filter(|&(_, &f)| f < LONG_WORD_GREAT_LAKES)
+                .map(|(&(w, o), &f)| (w, o, f))
+                .collect();
+            assert_eq!(
+                early,
+                Vec::new(),
+                "no unit leaves the original's point before the word \
              ({LONG_WORD_GREAT_LAKES})"
-        );
-        // And no waypoint disagrees before the word either. `1/9`'s two
-        // slots — `dest_x` from 1993 and `dest_y` from 2000 — were pinned
-        // here **as they stood** so that the day the route was right this
-        // would fail rather than pass quietly. It did.
-        assert_eq!(
-            waypoints,
-            Vec::new(),
-            "no move order's current waypoint parts before the word"
-        );
-        assert!(
-            builds >= 95_476,
-            "two fields on every linked building-frame: {builds}"
-        );
-        assert!(
-            build_bad.is_empty(),
-            "and the AI's buildings stand where the original's do for the \
+            );
+            // And no waypoint disagrees before the word either. `1/9`'s two
+            // slots — `dest_x` from 1993 and `dest_y` from 2000 — were pinned
+            // here **as they stood** so that the day the route was right this
+            // would fail rather than pass quietly. It did.
+            assert_eq!(
+                waypoints,
+                Vec::new(),
+                "no move order's current waypoint parts before the word"
+            );
+            assert!(
+                builds >= 95_476,
+                "two fields on every linked building-frame: {builds}"
+            );
+            assert!(
+                build_bad.is_empty(),
+                "and the AI's buildings stand where the original's do for the \
              whole capture, not only to the word: {build_bad:?}"
-        );
-        assert!(
-            coll >= 254_924,
-            "five fields on every agreeing unit-frame, and the count only \
+            );
+            assert!(
+                coll >= 254_924,
+                "five fields on every agreeing unit-frame, and the count only \
              grows: {coll}"
-        );
-        // And the stronger form, which only became true with item 196:
-        // the whole capture, not only the stretch before the word.
-        assert!(
-            parted.is_empty(),
-            "no unit leaves the original's point in run69's 3,000 frames: \
+            );
+            // And the stronger form, which only became true with item 196:
+            // the whole capture, not only the stretch before the word.
+            assert!(
+                parted.is_empty(),
+                "no unit leaves the original's point in run69's 3,000 frames: \
              {parted:?}"
-        );
+            );
+        });
     }
 
     pub(in super::super) fn run71_s_five_thousand_frames_reach_past_the_word() {
@@ -1216,15 +1238,20 @@ mod bodies {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut built = if crate::diff::testkit::whole_capture::legacy() {
+            let texts = sibling_texts();
+            let text = crate::capture::read(&path);
+            let log = Log::parse(&text);
+            let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+            let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+            let refs: Vec<&Initial> = inits.iter().collect();
+            let mut init = log.initial().unwrap();
+            borrow_from_siblings(&mut init, &refs);
+            build_sim(&loaded, &init, Tuning::RON)
+        } else {
+            crate::diff::testkit::whole_capture::road_build(&loaded, &path)
+        };
+
         built.sim.trace_phases = true;
         let last = trace.frames.last().map_or(0, |(n, _)| *n);
         assert_eq!(last, 284, "run14's traced length");

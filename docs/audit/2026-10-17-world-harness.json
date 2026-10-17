@@ -1,0 +1,169 @@
+{
+  "baseline_commit": "60ace32af8c1ace00b13dfa2c3c5094c84104d46",
+  "evidence": "/tmp/attrition-world-harness-20261017-01",
+  "status": "pending full gate",
+  "local": {
+    "baseline": [
+      {
+        "test": "diff::world::tests::run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell",
+        "wall": 3.29,
+        "cpu": 2.58,
+        "rss_bytes": 2017476608,
+        "sampled_tree_mib": 1547
+      },
+      {
+        "test": "diff::world::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames",
+        "wall": 2.16,
+        "cpu": 2.17,
+        "rss_bytes": 1897103360,
+        "sampled_tree_mib": 1767
+      },
+      {
+        "test": "diff::harness::tests::run14_s_frames_match_the_trace_draw_for_draw",
+        "wall": 2.13,
+        "cpu": 2.14,
+        "rss_bytes": 1977303040,
+        "sampled_tree_mib": 1849
+      },
+      {
+        "test": "diff::harness::tests::run33_s_long_trace_says_where_the_word_parts",
+        "wall": 2.1,
+        "cpu": 2.06,
+        "rss_bytes": 1988984832,
+        "sampled_tree_mib": 32
+      },
+      {
+        "test": "diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do",
+        "wall": 3.22,
+        "cpu": 3.2,
+        "rss_bytes": 1876606976,
+        "sampled_tree_mib": 1787
+      }
+    ],
+    "candidate": [
+      {
+        "test": "diff::world::tests::run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell",
+        "wall": 1.57,
+        "cpu": 1.1,
+        "rss_bytes": 1577140224,
+        "sampled_tree_mib": 0
+      },
+      {
+        "test": "diff::world::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames",
+        "wall": 0.94,
+        "cpu": 0.89,
+        "rss_bytes": 1174192128,
+        "sampled_tree_mib": 28
+      },
+      {
+        "test": "diff::harness::tests::run14_s_frames_match_the_trace_draw_for_draw",
+        "wall": 0.54,
+        "cpu": 0.52,
+        "rss_bytes": 455589888,
+        "sampled_tree_mib": 48
+      },
+      {
+        "test": "diff::harness::tests::run33_s_long_trace_says_where_the_word_parts",
+        "wall": 0.55,
+        "cpu": 0.54,
+        "rss_bytes": 418611200,
+        "sampled_tree_mib": 33
+      },
+      {
+        "test": "diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do",
+        "wall": 1.95,
+        "cpu": 1.92,
+        "rss_bytes": 425918464,
+        "sampled_tree_mib": 35
+      }
+    ],
+    "final": [
+      {
+        "test": "diff::world::tests::run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell",
+        "wall": 1.41,
+        "cpu": 1.06,
+        "rss_bytes": 426311680,
+        "sampled_tree_mib": 20
+      },
+      {
+        "test": "diff::world::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames",
+        "wall": 0.86,
+        "cpu": 0.85,
+        "rss_bytes": 413581312,
+        "sampled_tree_mib": 29
+      },
+      {
+        "test": "diff::harness::tests::run14_s_frames_match_the_trace_draw_for_draw",
+        "wall": 0.55,
+        "cpu": 0.51,
+        "rss_bytes": 457162752,
+        "sampled_tree_mib": 46
+      },
+      {
+        "test": "diff::harness::tests::run33_s_long_trace_says_where_the_word_parts",
+        "wall": 0.6,
+        "cpu": 0.55,
+        "rss_bytes": 421085184,
+        "sampled_tree_mib": 33
+      },
+      {
+        "test": "diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do",
+        "wall": 1.96,
+        "cpu": 1.92,
+        "rss_bytes": 422543360,
+        "sampled_tree_mib": 34
+      }
+    ],
+    "audit-final": [
+      {
+        "test": "diff::world::tests::run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell",
+        "wall": 3.34,
+        "cpu": 3.31,
+        "rss_bytes": 2109898752,
+        "sampled_tree_mib": 1995
+      },
+      {
+        "test": "diff::world::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames",
+        "wall": 3.05,
+        "cpu": 3.05,
+        "rss_bytes": 2126381056,
+        "sampled_tree_mib": 1993
+      },
+      {
+        "test": "diff::harness::tests::run14_s_frames_match_the_trace_draw_for_draw",
+        "wall": 2.3,
+        "cpu": 2.3,
+        "rss_bytes": 2144010240,
+        "sampled_tree_mib": 1993
+      },
+      {
+        "test": "diff::harness::tests::run33_s_long_trace_says_where_the_word_parts",
+        "wall": 2.41,
+        "cpu": 2.37,
+        "rss_bytes": 2180644864,
+        "sampled_tree_mib": 2015
+      },
+      {
+        "test": "diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do",
+        "wall": 4.86,
+        "cpu": 4.88,
+        "rss_bytes": 1611694080,
+        "sampled_tree_mib": 1536
+      }
+    ]
+  },
+  "pressure": {
+    "scope": "four competing copies of five selected tests",
+    "before": {
+      "wall": 7.94,
+      "cpu": 58.88,
+      "sampled_tree_mib": 26769
+    },
+    "after": {
+      "wall": 4.46,
+      "cpu": 25.35,
+      "sampled_tree_mib": 1840
+    }
+  },
+  "review": "independent review owed"
+}

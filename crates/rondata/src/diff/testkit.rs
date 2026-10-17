@@ -181,6 +181,13 @@ pub(crate) fn with_named_sibling_initials<R>(
         crate::capture::indexed::IndexedCapture::open(path)
             .unwrap()
             .with_replay_initial(|init| {
+                if std::env::var_os("RON_VERIFY_WHOLE_CAPTURE").is_some() {
+                    let text = crate::capture::read(path);
+                    let log = Log::parse(&text);
+                    let mut expected = log.initial().unwrap();
+                    expected.frame_bodies.clear();
+                    assert_eq!(init, expected, "whole sibling Initial: {path}");
+                }
                 let mut refs = inits.to_vec();
                 refs.push(&init);
                 visit(rest, &refs, use_initials)

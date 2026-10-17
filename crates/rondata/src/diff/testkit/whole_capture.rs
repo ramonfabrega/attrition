@@ -160,6 +160,44 @@ pub(crate) fn build<'a>(
     crate::diff::setup::build_sim(loaded, &init, sim::Tuning::RON)
 }
 
+/// Collect owned observations from positional frames plus their GAME siblings.
+/// The reader must be frame-local (frames/dumps), never a setup/global reader.
+/// Keep sibling FULL DUMPs: a closing dump may follow an empty FRAME.
+pub(crate) fn observations<T: std::fmt::Debug + PartialEq>(
+    path: &str,
+    read: impl Fn(&Log<'_>) -> Vec<T>,
+) -> Vec<T> {
+    let whole = || {
+        let text = crate::capture::read(path);
+        read(&Log::parse(&text))
+    };
+    if legacy() {
+        return whole();
+    }
+    let mut source = IndexedCapture::open(path).unwrap();
+    let mut rows = Vec::new();
+    for at in 0..source.frames().len() {
+        let text = source.read_frame_and_siblings(at).unwrap();
+        rows.extend(read(&Log::parse(&text)));
+    }
+    source.validate().unwrap();
+    if verify() {
+        assert_eq!(rows, whole(), "whole frame-local observations: {path}");
+    }
+    rows
+}
+
+/// Road-lobby setup with the same ordered sibling sources and corrections.
+/// Body audit rows are not consumed by build_sim; all other Initial fields stay.
+pub(crate) fn road_build(loaded: &crate::load::Loaded, path: &str) -> crate::diff::Built {
+    super::with_sibling_initials(|siblings| {
+        let mut source = IndexedCapture::open(path).unwrap();
+        with_initial(&mut source, path, |init| {
+            build(loaded, init, siblings, None)
+        })
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -251,5 +289,27 @@ mod tests {
         assert_eq!(source.at(0).unwrap()[0].guys[0].pos.unwrap().x, 9);
         drop(source);
         std::fs::remove_dir_all(root).unwrap(); // authored files only
+    }
+    #[test]
+    fn frame_observations_preserve_nested_sibling_duplicate_and_empty_boundaries() {
+        let root = root();
+        let path = root.join("observations.txt");
+        let text = "BEGIN GAME\n BEGIN FULL DUMP\n  value 99\n BEGIN FRAME 3\n  BEGIN FULL DUMP\n   value 1\n BEGIN FULL DUMP\n  value 2\n BEGIN FRAME 3\n BEGIN FULL DUMP\n  value 3\n BEGIN FRAME 1\n BEGIN FRAME 8\n BEGIN FULL DUMP\n  value 4\n";
+        std::fs::write(&path, text.replace('\n', "\r\n")).unwrap();
+        let read = |log: &Log<'_>| {
+            log.dumps()
+                .into_iter()
+                .map(|(n, b)| (n, b.int("value")))
+                .collect::<Vec<_>>()
+        };
+        let expected = read(&Log::parse(text));
+        assert_eq!(expected, vec![(3, Some(1)), (3, Some(3)), (8, Some(4))]);
+        assert_eq!(observations(path.to_str().unwrap(), read), expected);
+        let frames = |log: &Log<'_>| log.frames().into_iter().map(|(n, _)| n).collect::<Vec<_>>();
+        assert_eq!(
+            observations(path.to_str().unwrap(), frames),
+            vec![3, 3, 1, 8]
+        );
+        std::fs::remove_dir_all(root).unwrap(); // this test's authored files only
     }
 }

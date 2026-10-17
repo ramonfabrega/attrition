@@ -13,15 +13,20 @@ mod bodies {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut built = if crate::diff::testkit::whole_capture::legacy() {
+            let texts = sibling_texts();
+            let text = crate::capture::read(&path);
+            let log = Log::parse(&text);
+            let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+            let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+            let refs: Vec<&Initial> = inits.iter().collect();
+            let mut init = log.initial().unwrap();
+            borrow_from_siblings(&mut init, &refs);
+            build_sim(&loaded, &init, Tuning::RON)
+        } else {
+            crate::diff::testkit::whole_capture::road_build(&loaded, &path)
+        };
+
         built.sim.trace_phases = true;
         let last = trace.frames.last().map_or(0, |(n, _)| *n);
         assert!(
