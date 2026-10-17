@@ -642,6 +642,8 @@ mod doober_get_num;
 mod doober_has_doobers;
 #[path = "doober_inc_time.rs"]
 mod doober_inc_time;
+#[path = "doober_remove_cover_doober.rs"]
+mod doober_remove_cover_doober;
 #[path = "draw_thick_diamond.rs"]
 mod draw_thick_diamond;
 #[path = "farms_add_animals_all.rs"]
