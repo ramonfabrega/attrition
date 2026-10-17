@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-ninth pass (Fable): the tranche scored at the loop's fastest, 13 Loop items built or closed, seven
-stay; the fortieth's clear waits on a steer with Ramon** (asked mid-pass: lanes, models). Twenty landings from `31eb3a05` in
-3 h 53 (21 in 4 h 44 with the drain's), 23.6 min waiting a landing (35.2), every gate green, two `DEEP`, no kill rule, no
-merge backed out; `docs/audit/2026-10-17-fable-pass-39.md`, DECISIONS 77.*
+*2026-10-17, **the thirty-ninth pass (Fable), steered with Ramon: five lanes, the battery a gate floor, five lobbies to mint,
+the nations audited** (DECISIONS 77). Twenty landings from `31eb3a05` in 3 h 53 (21 in 4 h 44 with the drain's), 23.6 min
+waiting a landing (35.2), every gate green, two `DEEP`, no kill rule, no merge backed out; 13 Loop items built or closed,
+seven stay; `docs/audit/2026-10-17-fable-pass-39.md`.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
-  (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956), as 2974 — above `GreatLakesRussianTier2`'s 6566 now; whether a word
-  follows the lowest lobby is Ramon's (DECISIONS 77). Chapters 86–90 closed; 91 is 2971. Census 1224 → 1319 of 3611.
-  Battery 6566 / 2974 / 176, unmoved.
-- **Lanes: none live.** 2974 the AI word's (Opus 5.5 medium), 2971 the rules track's, 2959 and 2966 the sweep lanes' (Sonnet
-  5.5 medium), unstarted; sweep briefs carry `--claimed` (2926). Next 2975, run 894 (Astra 900–909). Pools: GOLDEN §116–120, AI §243–247, park GM–GR.
+  (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956), as 2974; it stays on its lobby until it closes (DECISIONS 77 (vii)).
+  Chapters 86–90 closed; 91 is 2971. Census 1224 → 1319 of 3611. Battery 6566 / 2974 / 176, a gate floor now.
+- **Lanes: five from the pass's commit, none live yet.** 2974 the AI word's (Opus 5.5 medium); 2971 the rules track's, 2975
+  the minting lane, 2976 the audit lane, 2959 the shape sweep (Sonnet 5.5 medium); 2966 behind them; a lane is refilled
+  only while landings + live lanes < 20. Next 2977, run 910 (Astra 900–909). Pools: GOLDEN §116–120, AI §243–247, park GM–GR.
 - **Fable backlog: 7 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -38,10 +38,10 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the fortieth tranche from `docs/QUEUE.md`'s handoff (commander, Opus): spawn the queue's four lanes —
-2974 (`claude-opus-5-5[1m]`, `--effort medium`, the AI word), 2971, 2959 and 2966 (`claude-sonnet-5-5[1m]`, `--effort
-medium`; the sweep briefs `--kind sweep`, each naming the other's worktree in `--claimed`) — off the pass's gate commit;
-arm `lanewait.py`; stop at twenty. The roster is the steer's with Ramon: this opener runs as written once he has said so.**
+**Opener: continue the fortieth tranche from `docs/QUEUE.md`'s handoff (commander, Opus): spawn the queue's five lanes —
+2974 (`claude-opus-5-5[1m]`, `--effort medium`, the AI word), 2971, 2975, 2976 and 2959 (`claude-sonnet-5-5[1m]`,
+`--effort medium`; 2959's brief `--kind sweep`) — off the pass's gate commit; arm `lanewait.py`; refill only while
+landings + live lanes < 20; stop at twenty.**
 
 ## The queue
 
@@ -54,6 +54,23 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     it on run893c, 436 keys): at index 1 ours draws `use_market+0x1ed`
     where theirs draws `make_stuff+0x221`; who=1's make-list head parts
     on 6581, type 340 in ours against 334 in theirs. Unstarted. AI §242.
+
+2975. **Five held-out lobbies minted** (DECISIONS 77 (ii), 61 §6; `docs/AI.md`
+    §125, `diff::battery::BATTERY`): captures only, never debugged against
+    — each a nation no dump holds (§125's list) at difficulty 2, 3 or 4 on
+    Great Sahara, Great Lakes or East Indies (maps 7, 14, 18), no two
+    sharing a nation or a tier on a map; a start sibling and a long trace of run888's shape (110 s each);
+    its first try pinned as count and sequence with the draw delta in
+    §125's table. Runs 895–899, pool lanes in parallel. Unstarted. Sonnet.
+
+2976. **The nations and the AI's difficulty tiers, audited whole**
+    (DECISIONS 77 (iii)): `docs/NATIONS.md` — every nation's powers from
+    the rules data and the executable's nation arms (`calc_gather`'s,
+    `train_time`'s, `nation_unit_discount`'s kin), and the four tiers'
+    constants, each marked modelled at `<module>` or not, held by a guard
+    that reads the table; the unmodelled ones park as candidates, the
+    held-out lobbies' nations (Chinese, Russians, Egyptians) and tiers
+    first. No run. Unstarted. `--tests nations::`. Sonnet.
 
 2971. **Chapter ninety-one: the Sniper's and Counterintelligence's
     refused arms** (DECISIONS 56 §3; 2949 closed chapter 90 on run892 to

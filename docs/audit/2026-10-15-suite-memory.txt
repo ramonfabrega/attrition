@@ -1,6 +1,7 @@
-# Every rondata release test's peak resident set alone, 2026-10-17, tools/suite_timings.py (tree f3a8d061).
+# Every rondata release test's peak resident set alone, 2026-10-17, tools/suite_timings.py (tree 0892eede).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 866	diff::golden::run875_start_seen3_plane_is_compared_cell_for_cell
+764	diff::battery::battery_floors_hold
 762	diff::lakota_pair::run883_s_closing_frame_is_widened_whole
 762	diff::lakota_pair::run879_s_word_frame_is_widened_whole
 762	diff::lakota_pair::run867_s_word_frame_is_widened_whole

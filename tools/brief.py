@@ -55,7 +55,9 @@ TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the
 # pass): 1937's fix moved Great Sahara and broke the coverage pair's first
 # parting 4730 -> 4206, which took a capture to read; the three run in a
 # dozen seconds together. A sweep moves no word and runs neither.
-ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting'), 'chapter': ('coverage::', 'first_parting'),
+# And the held-out battery's floors (DECISIONS 77): a word lane's change can lower an unseen lobby.
+ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors'),
+                'chapter': ('coverage::', 'first_parting', 'battery_floors'),
                 'sweep': ('sweep::',)}
 # Rows of the checklist that are the commander's to follow in composing, or
 # the pass's, and say nothing to a worker.

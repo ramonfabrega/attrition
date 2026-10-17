@@ -183,7 +183,8 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertNotIn('{tests}', text)
         with self.assertRaisesRegex(ValueError, '--tests'):
             self.compose(1133, tests=[])
-        self.assertEqual(brief.filters('residue', ['coverage::', 'x::']), ['coverage::', 'x::', 'first_parting'])
+        self.assertEqual(brief.filters('residue', ['coverage::', 'x::']),
+                         ['coverage::', 'x::', 'first_parting', 'battery_floors'])
 
     def test_every_lobby_s_first_parting_is_among_a_word_s_filters(self):
         # Parked 1910 and 2000 (the thirty-first pass): 1937's fix moved
@@ -195,8 +196,9 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertIn('first_parting', brief.filters('residue', ['x::']))
         self.assertIn('first_parting', brief.filters('chapter', ['golden::']))
         self.assertNotIn('first_parting', brief.filters('sweep', []))
+        # And the held-out battery's floors (DECISIONS 77): a word lane's change can lower an unseen lobby.
         self.assertEqual(brief.filters('residue', ['first_parting', 'coverage::']),
-                         ['first_parting', 'coverage::'])
+                         ['first_parting', 'coverage::', 'battery_floors'])
         self.assertIn('first_parting', self.compose(1133))
 
     def test_a_sweep_brief_has_its_section_and_no_booking(self):

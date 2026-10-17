@@ -2,14 +2,20 @@
 //! word shares a nation, a map and a difficulty with, each walked once from
 //! the first try and scored by the frame its draw stream first parts on.
 //!
-//! **A measure, never a floor and never debugged against.** The numbers in
-//! [`BATTERY`] are not in `FLOORS`, `AI_WORDS` or the handoff's scoreboard;
-//! no item names a battery word, and a parting here that tempts a fix is
-//! parked, not built. The pass reads them with
+//! **A measure, a floor since the thirty-ninth steer, and never debugged
+//! against.** The numbers in [`BATTERY`] are not in `FLOORS`, `AI_WORDS` or
+//! the handoff's scoreboard; no item names a battery word, and a parting
+//! here that tempts a fix is parked, not built. The pass reads them with
 //! `cargo test --release -p rondata battery_measure -- --ignored --nocapture`
-//! and re-pins what moved. The identity test below runs in every gate, so a
-//! lobby that stopped being held out (a scored word moved onto its nation,
-//! map and difficulty) fails it.
+//! and re-pins what moved. Two tests run in every gate: the identity test,
+//! so a lobby that stopped being held out (a scored word moved onto its
+//! nation, map and difficulty) fails it; and [`battery_floors_hold`]
+//! (DECISIONS 77, Ramon's steer of 2026-10-17), so a landing that lowers an
+//! unseen lobby's first-try frame — a regression on a game nobody tuned
+//! for — is red in its own gate instead of found at the next pass. Nobody
+//! reads the lobby's dump for it: the lane finds a fix that does not lower
+//! it, or re-pins the lobby down in the same landing with the item in the
+//! comment and a `FABLE:` row, and the pass rules.
 //!
 //! The start sibling is the map's existing `DUMP_ALL` start — heights,
 //! herds and goods do not depend on the AI's nation or difficulty — and the
@@ -164,6 +170,35 @@ fn battery_measure() {
             lobby.name
         );
     }
+}
+
+/// **The floors** (DECISIONS 77): each held-out lobby's first-try frames,
+/// count and sequence, never lower than pinned on this tree. Higher passes —
+/// a landing that generalised — and the pass re-pins it upward with
+/// `battery_measure`. Lower is red: an unseen game regressed under this
+/// landing. About two seconds for three lobbies in release.
+#[test]
+fn battery_floors_hold() {
+    let mut fell = Vec::new();
+    for lobby in BATTERY {
+        let Some(w) = third::walk_from(lobby.start, lobby.long) else {
+            continue;
+        };
+        if w.count < lobby.count || w.sequence < lobby.sequence {
+            fell.push(format!(
+                "{}: count {} (pinned {}), sequence {} (pinned {}); {}",
+                lobby.name, w.count, lobby.count, w.sequence, lobby.sequence, w.row
+            ));
+        }
+    }
+    assert!(
+        fell.is_empty(),
+        "a held-out lobby fell under this tree — an unseen game regressed (DECISIONS 61 §6, 77). \
+         Nobody reads its dump: find a fix that does not lower it, or re-pin `count`/`sequence` \
+         down in `diff::battery::BATTERY` in this landing with the item in the comment and a \
+         `FABLE:` row in docs/PARKED.md's Loop section, and the pass rules:\n  {}",
+        fell.join("\n  ")
+    );
 }
 
 /// Every battery capture says its lobby — map, difficulty, nations, seed —

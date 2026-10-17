@@ -1,6 +1,6 @@
-# Every rondata release test timed alone, 2026-10-17, tools/suite_timings.py (tree f3a8d061).
+# Every rondata release test timed alone, 2026-10-17, tools/suite_timings.py (tree 0892eede).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 2,798 s over 926 tests; --stale-only merged. Top 10 = 617 s, top 30 = 939, top 100 = 1423; 382 tests under 1 s.
+# Sum 2,800 s over 927 tests; --stale-only merged. Top 10 = 617 s, top 30 = 939, top 100 = 1423; 382 tests under 1 s.
 # By module: golden 873 s / 249 tests, harness 471 s / 91 tests, coverage 339 s / 3 tests, second 246 s / 35 tests, third_pair 166 s / 48 tests.
 202.00	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 137.36	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
@@ -473,6 +473,7 @@
 1.81	diff::third_pair::french_east_indies_buys_its_fifth_city_at_a_third_off
 1.81	diff::build::tests::run40_and_run41_s_sites_and_territory_are_the_original_s
 1.80	diff::setup::tests::init_stance_is_the_original_s_on_both_maps_first_blocks
+1.79	diff::battery::battery_floors_hold
 1.78	diff::second::tests::run403_s_word_frame_is_widened_whole
 1.78	diff::harness::tests::run74_s_window_is_where_great_lakes_merchant_turns
 1.78	diff::build::tests::find_gather_tiles_rederives_run39_s_camp_lists

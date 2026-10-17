@@ -6135,3 +6135,29 @@ the `reached` print compares order-stack lengths, so a line that
 replaces one order with another of the same depth reads as reaching no
 unit.
 
+**Amended the same day, at the steer with Ramon (every item his):**
+(i) **the held-out battery is a floor in every gate** —
+`diff::battery::battery_floors_hold`, red when a landing lowers an
+unseen lobby's first-try frame; nobody reads the lobby's dump for it
+(entry 61 §6 stands), the lane finds a fix that does not lower it or
+re-pins down with a `FABLE:` row, and the pass rules; a word lane's
+gate runs it (`battery_floors` among `ALWAYS_TESTS`). (ii) **Five more
+held-out lobbies are minted** (item 2975, runs 895–899): captures only,
+no debugging, across the pairs' maps, difficulties 2–4 and nations no
+dump holds, so the battery is a distribution and the pass reports its
+median first try. (iii) **The nations and the AI's difficulty tiers are
+audited whole** (item 2976, `docs/NATIONS.md`): every nation's powers
+and every tier's constants, each marked modelled or not, held by a
+guard; the unmodelled ones park as candidates, the held-out lobbies'
+nations first — the thirty-ninth tranche's two AI-word fixes were
+nation-specific and moved no held-out lobby. (iv) **Five lanes for the
+fortieth tranche**: the AI word (Opus 5.5 medium), the rules track, the
+minting lane, the audit lane and the shape sweep (Sonnet 5.5 medium);
+the harvest sweep's item stays booked behind them. (v) **A lane is
+refilled only while the landings so far plus the lanes live are under
+twenty**, so the tranche drains together. (vi) **A pass's first act is
+the archives' compression**, backgrounded: six minutes and 19 GiB on
+this day. (vii) The AI word stays on its lobby until it closes. The
+tranche stays twenty landings: the drain's lone lane was the waste, and
+(v) removes it.
+
