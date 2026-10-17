@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse::<i64>().expect("an integer") as i32).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse::<i64>().expect("an integer") as i32)
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -48,12 +53,13 @@ fn the_emulated_original_agrees_on_every_row() {
             log.clear();
             let tick = rd(&p[12], 0x844);
             let mut reads: Vec<String> = Vec::new();
-            let mut build = |m: &mut [u8], c: &mut [Vec<u8>], state: u16, tick: i32, log: &mut Vec<String>| {
-                c[0][0..2].copy_from_slice(&state.to_le_bytes());
-                reads.push(format!("{:02x}{:02x}", state as u8, (state >> 8) as u8));
-                log.push(format!("s0:m+0x0,{tick}"));
-                wr(m, 0x40, 4);
-            };
+            let mut build =
+                |m: &mut [u8], c: &mut [Vec<u8>], state: u16, tick: i32, log: &mut Vec<String>| {
+                    c[0][0..2].copy_from_slice(&state.to_le_bytes());
+                    reads.push(format!("{:02x}{:02x}", state as u8, (state >> 8) as u8));
+                    log.push(format!("s0:m+0x0,{tick}"));
+                    wr(m, 0x40, 4);
+                };
             let rebuild_wanted = m[0xc8] != 0 || p[9][0x161] != 0 || p[10][0x22a] != 0;
             let mut visible = false;
             if rebuild_wanted {
@@ -82,7 +88,11 @@ fn the_emulated_original_agrees_on_every_row() {
             }
             log.push("s5:m+0x0".to_string());
             log.push(format!("s6:m+0x0,{}", a[7]));
-            log.push(if reads.is_empty() { "-".to_string() } else { reads.join("/") });
+            log.push(if reads.is_empty() {
+                "-".to_string()
+            } else {
+                reads.join("/")
+            });
             0
         };
         let _ = (got, want_eax);
