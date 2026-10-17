@@ -12,8 +12,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-ninth tranche (commander, Opus): 4 landings from `31eb3a05`** (2876 ch86 closed, 2863 `--answer-by`, 2877 nine, 2881 the re-target); four
-lanes live; the thirty-eighth pass's record is `docs/audit/2026-10-17-fable-pass-38.md`; last whole gate `2b6eed51`.*
+*2026-10-17, **the thirty-ninth tranche (commander, Opus): 5 landings from `31eb3a05`** (2876 ch86 closed, 2863
+`--answer-by`, 2877 nine, 2881 the re-target, 2887 the `void` shape); four lanes live; the thirty-eighth pass's record
+is `docs/audit/2026-10-17-fable-pass-38.md`; last whole gate `2b6eed51`.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 6821 (2780, 2779, 2808, 2825,
   2845), one frame before the game's end — **2864 runs 883 through the closing 6823 and scores the closing state** (55);
@@ -22,9 +23,9 @@ lanes live; the thirty-eighth pass's record is `docs/audit/2026-10-17-fable-pass
   2877; the pass subtracted nine through stubbed callees); `port` 156; `--unbacked` hides 235 `ui` bodies (Loop 2819),
   lists six bare citations. Battery 576 / 6566 / 2974.
 - **Lanes: four, live** (DECISIONS 75, 76; the roster is Ramon's, 71): 2864 the AI word's (Opus 5.5 medium), 2895 the
-  rules track's, 2887 and 2893 the sweep lanes' (Sonnet 5.5 medium); the fifth lane 61 §5 would add is Ramon's (76).
-  Next 2897, run 886 (Astra 900–909). Pools: GOLDEN §112–117, AI §239–243, park FZ–GE free (FR, FW, FX, FY live).
-- **Fable backlog: 9 Loop items** (1570, 1725, 2003, 2654, 2809, 2882, 2886, 2892, 2896).
+  rules track's, 2900 and 2893 the sweep lanes' (Sonnet 5.5 medium); the fifth lane 61 §5 would add is Ramon's (76).
+  Next 2901, run 886 (Astra 900–909). Pools: GOLDEN §112–117, AI §239–243, park GA–GE free (FR, FX, FY, FZ live).
+- **Fable backlog: 10 Loop items** (1570, 1725, 2003, 2654, 2809, 2882, 2886, 2892, 2896, 2899).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -46,7 +47,7 @@ twenty with the handoff written, the whole gate green, the lanes drained, and `c
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2864 the AI word's (Opus), 2895 the rules track's, 2887 and 2893 the
+2864 the AI word's (Opus), 2895 the rules track's, 2900 and 2893 the
 two sweep lanes' (Sonnet) — lower map first — East Indies (Lakota), the
 peace pair's only map. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
@@ -68,13 +69,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     answers; a staged line reaching no unit builds Loop 2654's print.
     Unstarted. GOLDEN §111.
 
-2887. **The sweep's hundred-and-twenty-first batch: the `void` shape's
-    gaps, then what they hold** (DECISIONS 63 (iv); the score `Census:`
-    1229 of 3611): `obj`'s `void` shape honouring `--cell-win` and
-    `--stub`, `--write-mod` always run (parked 2872), `--place-null` past
-    the first place (2885), each built with a test made to fail first,
-    then the functions the harvest lane parked for a shape, each checked
-    against `census.py --never`. Unstarted. `--kind sweep`.
+2900. **The sweep's hundred-and-twenty-third batch: a vtable compare and
+    a link-and-player word, then what they hold** (DECISIONS 63 (iv);
+    the score `Census:` 1238 of 3611): `--vtat-keep SLOT:VA` for a branch
+    on a vtable compare (parked 2888: `WallData::walk_data`,
+    `AnimalData::walk_data`, `UnitData::get_gpiece`, `CityData::count_farms`),
+    `--link-hi` (2889, `find_goody_at`), `--place-null K:WORD=0` (Loop
+    2899), each with a test made to fail first, then those functions. Unstarted. `--kind sweep`.
 
 2893. **The sweep's hundred-and-twenty-second batch: ten never-backed
     simulation functions a built shape holds** (DECISIONS 63 (iv), 73;

@@ -3759,6 +3759,10 @@ the windows in order (`p0..p3 sparse, p4 place`), a test made to fail first. One
 run880's 1.2 GB dump, over 100 s for a cast of eighteen. Candidate: `--units a,b,c` reads the dump once, a test that counts
 the reads made to fail first. One reach.
 
+(2899) **`--place-null` cannot force a guard word on a null row** (2887's "for the Loop" line, filed at its merge): a
+`--place-null K:WORD=0` that zeroes a named word on K's null rows would reach `replace_form_id`'s `0xdc == 0, 0xd8 != 0` arm
+without the `m+0xcc` wbias (parked 2885, 2898). Candidate: that flag, a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
 Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872).
@@ -6618,9 +6622,9 @@ target that stays outside its owner's fog, and the review's `is_seen` gate is th
 
 ## Parked by item 2887, 2026-10-17 — the void shape's gaps
 
-(2887) **No function swept.** The void gaps' functions (`Player::end_game`, `TerrainOil::remove_rocky_patch`) were already backed by hand-patched lines; the harvest lane (2877) had parked none for a shape when this landed. The remaining `census.py --unbacked` ports are 1–3.5 kB walks (`Unit::do_idle`, `Build::process_ejection`…) and the shortest rest are renderer-bound (`Nuke::setup` calls the graphics system), so each is its own item, not a tail.
+(2897) **No function swept.** The void gaps' functions (`Player::end_game`, `TerrainOil::remove_rocky_patch`) were already backed by hand-patched lines; the harvest lane (2877) had parked none for a shape when this landed. The remaining `census.py --unbacked` ports are 1–3.5 kB walks (`Unit::do_idle`, `Build::process_ejection`…) and the shortest rest are renderer-bound (`Nuke::setup` calls the graphics system), so each is its own item, not a tail.
 
-(2887, second) **`--place-null K` past the first place was not a generator gap.** K indexes the places on the line from 0 and the draw tests `k in NULLS`; `replace_form_id` already runs `--place-null 0,3,4,5`. What 2885 reports is a *correlation*, not an index: a null `m+0xdc` with a live `m+0xcc` crashes the original, so `m+0xcc` is forced 0 and the arm `0xdc == 0 && 0xd8 != 0` is reached only with `cc == 0`. A place-null that also forces another word on its null rows (`--place-null K:WORD=0`) is the shape the arm wants; not built.
+(2898) **`--place-null K` past the first place was not a generator gap.** K indexes the places on the line from 0 and the draw tests `k in NULLS`; `replace_form_id` already runs `--place-null 0,3,4,5`. What 2885 reports is a *correlation*, not an index: a null `m+0xdc` with a live `m+0xcc` crashes the original, so `m+0xcc` is forced 0 and the arm `0xdc == 0 && 0xd8 != 0` is reached only with `cc == 0`. A place-null that also forces another word on its null rows (`--place-null K:WORD=0`) is the shape the arm wants; not built.
 
 ## Parked by the next landing, slot FX — reserved
 
