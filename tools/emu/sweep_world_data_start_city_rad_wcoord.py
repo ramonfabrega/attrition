@@ -303,8 +303,8 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(2500):
-        h.brk = base  # the bump heap is reused a row; 2500 rows of windows outgrow it
+    for i in range(6000):
+        h.brk = base  # the bump heap is reused a row; 6000 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "WorldData::start_city_rad_wcoord@006b3850", "--item", "3008", "--win", "8", "--own", "2", "--rows", "2500", "--cell-win", "0xc06188:0x400", "--cell-win", "0xc061e4:0x200", "--ptrarg", "0:4", "--ptrarg", "1:4", "--wbias", "c0+0xbc:0..12", "--place", "c0+0xc8:0:0x40", "--place", "c0+0xe4:0:0x40", "--wbias", "p0+0:0,0,1,2,500,1000,70000,100000", "--wbias", "p1+0:0,0,1,2,500,1000,70000,100000", "--wbias", "p2+*:0,0,1,2,500,1000,2000,3000,59999,60000,60000,61000,70000,100000", "--wbias", "p3+*:0,0,1,2,500,1000,2000,3000,59999,60000,60000,61000,70000,100000", "--wbias", "c1+0x12c:1,2,3,4,5,100,500,2000,8000,40000,300000,300001,360000,361000,362000,363000,363000,410000"]
+# sweep_gen: ["obj", "WorldData::start_city_rad_wcoord@006b3850", "--item", "3008", "--win", "8", "--own", "2", "--rows", "6000", "--cell-win", "0xc06188:0x400", "--cell-win", "0xc061e4:0x200", "--ptrarg", "0:4", "--ptrarg", "1:4", "--wbias", "c0+0xbc:0..12", "--place", "c0+0xc8:0:0x40", "--place", "c0+0xe4:0:0x40", "--wbias", "p0+0:0,0,1,2,500,1000,70000,100000", "--wbias", "p1+0:0,0,1,2,500,1000,70000,100000", "--wbias", "p2+*:0,0,1,2,500,1000,2000,3000,59999,60000,60000,61000,70000,100000", "--wbias", "p3+*:0,0,1,2,500,1000,2000,3000,59999,60000,60000,61000,70000,100000", "--wbias", "c1+0x12c:1,2,3,4,5,100,500,2000,8000,40000,300000,300001,360000,361000,362000,363000,363000,410000"]
