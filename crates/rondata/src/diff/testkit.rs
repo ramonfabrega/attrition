@@ -9422,12 +9422,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // same window (block 5986). **Item 2808 moved it 5985 → 6452** with
     // `think_carry`'s attack arm, past run879's last block (6232):
     // run879's test keeps 5985's value diff (block 5986, `1/225` from
-    // 5976), and 6452's widening is owed a capture (parked by item 2808).
+    // 5976), and 6452's widening is owed a capture (item 2825).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         None,
-        2808,
+        2825,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

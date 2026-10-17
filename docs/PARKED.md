@@ -3790,6 +3790,12 @@ filed at its merge): 2812 was booked to carry a cloaked Spy's Bribe and stage it
 `cast_bribe` → `Unit::swap_team@006118d0` (286 lines, unread), so the staging went to the next chapter (2823). Candidate:
 the brief checklist asks a booking that names a cast or an action to list its callees' line counts first. One reach.
 
+(2827) **Once the draws name a unit, `seams.py` runs on its type's think chain** (2808's "for the Loop" line, filed at its
+merge): the seam that held 5985 (`think_carry`'s attack arm, "answers no" since AI §195) was named in prose for four days, and
+`seams.py --item` on the booking's names (`set_anim`, `inc_time`) could not reach it; the draw named the Transport Freighter
+`1/225`, and its type led to the seam. Candidate: a brief-checklist row — a residue whose draws name a unit runs `seams.py` on
+`think_<type>` before walking it back. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 (2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
@@ -6352,14 +6358,14 @@ guard `__Init_thread_header` and `fs:[0x2c]` TLS), `TerrainMap::on_mouse_move` 0
 
 ## Parked by item 2808, 2026-10-17 — a soldier's boat sails to its army's target
 
-(2808, first) **The peace pair's word 6452 is owed a widening and a capture** (`docs/AI.md` §235). Ours and theirs spend 22 draws
+Booked as the queue's 2825 at the merge: **the peace pair's word 6452 is owed a widening and a capture** (`docs/AI.md` §235). Ours and theirs spend 22 draws
 each on 6452 and part at index 0. Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` (`1/193`), theirs `Guy::set_anim+0xf2f
 < Unit::set_anim+0x56`. Count parts at 6455. run879 ends at 6232, and no dump of this lobby holds 6452, so the disk cannot answer
 it. The capture is run879's recipe with the window at 6446..6702 (`--end-frame` 6707). `LAKOTA_PAIR_WORD`'s `WIDENINGS` row names
 this item as the one that owes it. Inside run879 the earliest row past the standing keys is `1/164`'s `attrition` on 6045 (ours
 6, theirs 0), then its `hits` on 6047. That row is the item before's candidate, not a cause.
 
-(2808, second) **Three arms of `think_carry`'s attack branch are reading only** (`Unit::think_carry@005f2ee0`; SEAMs in
+(2826) **Three arms of `think_carry`'s attack branch are reading only** (`Unit::think_carry@005f2ee0`; SEAMs in
 `Sim::think_carry_army`):
 - the eject when one of the boat's nine cells is in the army's region (`eject_contents(0, -1, 0, 1)`, `param_3` 0, unlike
   `disembark`'s 1);
