@@ -124,6 +124,13 @@ Three shapes, each a `__thiscall` on `ecx`:
           only), laid `a[own + stubs + N0 + N1 + ..]` after the arguments
           and one drawn answer a stub.
 
+          `--alias WIN+OFF:TARGET[+K]` (item 2797, parked 2791): the word at
+          WIN+OFF laid as the address of window TARGET (plus K) half the
+          rows, the other half left as drawn: a pointer that must name
+          another window or its own (`check_last_connect`'s `*q == node`);
+          the port cannot see addresses, so it recovers the target from a
+          pointer array's entry, as that sweep's does.
+
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
           (parked 1889).

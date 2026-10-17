@@ -6209,13 +6209,28 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FA — reserved
+## Parked by item 2797, 2026-10-17 — the Group argument's slot, and the alias pointer
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2797) **Two shapes built, two functions; the batch is not ten.** `GroupData::group_air` 0x70b160 fell to flags that already
+existed, composed: two `--ptrtab`s (the objects tables at `0xc0ab84` and `+0x1c`, `vt`), `--ptrarg 0:16` with the stubbed
+vtable laid at it (`--vtat-also p0+0`: the Group's slot `+0xc`, four arguments, `--record 0` printing every call as
+`p0+0x0,index,table,0,0` joined by `/`), the type records laid by `--place pR+0x18` with the same vtable (`--vtat-also`) and
+`--wbias pT+536` `2,2,2,2,0,1` (the `+0x218 == 2` gate), `--slotbase 0xb8:0x653790` and `--seq 1:4 --seq 2:4` for the two answering
+slots (the base arm asks the type's `+0x60`, the other the stub). Layout lessons: **the single answers come first**, one a stub
+(`a[2..5]`), then the `--seq` runs, then the `--slotbase` flag, so `a[5+..]`, `a[9+..]`, `a[13]`; a table-0 chain may step into
+table 1 and table 1 only *down* its own index (`--link p7..10+0x28:2:'<'`) so a chain ends and index 0 is reachable (a `>`
+link starved `nx > 0`, found by a surviving break); and 140 of 220 rows make no call at the densities above (`m+12:1..6`,
+`argset 1:-1,-1,0,1,2`), the rest one to nine. `StripBuilder::check_last_connect` 0x882050 fell to **`--alias`** (built here, a test
+made to fail first: `test_a_word_may_name_a_window_s_own_address`): the word at `WIN+OFF` is the address of window `TARGET[+K]`
+half the rows. The array is `this+0x30` (`last_connect`'s `+0x10` at `+0x20`), four node pointers by `--ptrtab m+0x30:4:8`,
+each node's `+4` a placed 8-byte window, `--alias` laying that window's `+0` as the node's address and the node's own two words as
+its own address; the port cannot see addresses and recovers the target from the pointer array's entry. All breaks held (12 and 7).
+**No further functions**: slot EY (2793's lane) was empty at this base, and the next-shortest never-backed rows with no built
+shape are 257-byte rendering or editor bodies (`RiverDoober::add_for_render`, `Game::run_unit_editor`) and `Search::valid_filter`
+(an indexed jump over a table of arms, `--jump` over the arms' own addresses would hold it, each arm its own function).
+
+(2797, for the Loop) **A scratch driver per function is still the shape** (`gen_*.sh` with a `--port` read from a file: sixty flags and a 40-line
+port do not fit a shell line, 2796): `--from-file`/`--port-file` on `sweep_gen.py` are still unbuilt. This lane wrote two.
 
 ## Parked by the next landing, slot FB — reserved
 
