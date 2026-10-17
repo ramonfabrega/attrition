@@ -104,6 +104,8 @@ mod border_build_border;
 mod border_generate_morph_side;
 #[path = "border_nodes_find.rs"]
 mod border_nodes_find;
+#[path = "border_process.rs"]
+mod border_process;
 #[path = "border_process_morph.rs"]
 mod border_process_morph;
 #[path = "border_spline_get_name.rs"]
