@@ -21818,12 +21818,55 @@ Unit::fight+0x115e`, theirs `Unit::do_move+0xe84`. No dump holds 6808; its widen
 **Diff-backed**: the term on a bomber at 918 with the President 2371 off (run881's 6453, `1/137`'s `recharging`). **Reading
 only**: the siege exemption, the self-hero arm, the count's identity, and the SEAMed arms.
 
-## 237. Reserved for the next item on the AI track
+## 237. The asker cannot ride while it searches, and the peace pair's word moves 6808 → 6821 (2026-10-17, item 2845)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The word, 6808** (§236's booking): ours 63 draws, theirs 61, index 43, fourteen frames before the game's end. run881 ends at
+6701 and no dump held 6808, so run882 is run881's recipe at `--log-window 6802 6822`, `--end-frame 6822`, `--allow-early-end`
+(`docs/RUNS.md`): 20 blocks, `rngcmp` 6823 of 6823 against run847.
+
+**The draws on 6808** (`RON_DEBUG_SITES=6808-6808`): indices 0–31 agree (the spellcaster draw, then ten Wild Birds at three
+draws each); index 31 is `fight+0x824`. Then the ring draws, **ours 15 (32..46), theirs 11 (32..42)**, all of them who=1's
+Rocket Artillery `1/63` (`TypeIndex` 273, land, siege, army 1), which took the human's capital `0/2000` as its target on 6808
+and walked the bombard ring at a stand-off of 4704 from (6408, 8088). After the ring both sides draw `do_move` `1/242`,
+`do_air_physics` `1/264` and thirteen `inc_time` wraps; then `set_anim+0x104b`, ours 1 (the bird `9/6`) against theirs 3.
+
+**The widening, both directions** (`run882_s_word_frame_is_widened_whole`, `RON_FIRSTS=1`, 259 keys). On the word's block 6809
+two rows: who=0's `bucket[2:wealth]` (20891 / 20892) and `1/264`'s `air.cruising_alt` (1700 / 1500). **The value diff**: `1/63`
+carries a `MOVEORDER` to **(6648, 12408)** on both sides on 6809 — the destination agrees, only the number of candidates that
+cleared differs.
+
+**Which candidates.** A probe of ours' ring (two commits, reverted whole): all 15 clear, and four — indices 7, 9, 11 and 13,
+(5256, 12360), (4968, 12360), (4680, 12312) at mask `0x420` and (4392, 12264) at `0x20` — are water. Fitting theirs' seeds (the
+trace prints a seed before its step) puts the pick at candidate 4 only if rejections fall among candidates 5..14, which the four
+water spots are. **The packet** (run882b, `RON_STATE_FRAME=6808`): `1/63` at `0x1599773c`, `step4.py --entry 610bc0`:
+`invalid_loc` answers 2 at `607f28` (the land arm's water return) on exactly those four, and the watch on `unit_masks` shows
+`find_attack_pos+0x285` clearing `0x800000` and `+0x1528` restoring it. The listing gives the clear on every path and the
+restore on every exit: `docs/COMBAT.md` §17.7.
+
+**Readings killed on the way**: the Liberty and Eiffel siege range (who=1 holds both, both constants ship as 0); Napoleon (no
+`0x167` unit); `find_ordered_collision` (the freighters `1/163` and `1/217` are ordered onto the row but stand far off, and the
+chain walk agrees); units or buildings near the ring (none, either side).
+
+**Built** (`crates/sim/src/attack_pos.rs`): `find_attack_pos` holds `auto_transport` false around `find_attack_pos_grounded`
+and ORs it back. Test `an_asker_s_auto_transport_is_held_clear_while_it_searches` (water east of the face); mutation keeping
+the bit through the call: exit 101, held.
+
+**Value diff after the fix**: run882 **259 → 248**. Block 6809 keeps only who=0's wealth bucket; the `cruising_alt`, `1/61`
+`gather.wait`, `1/289` and `1/23` rows go. 235 stand from 6802 (`form`, `attrition`/`sheltered`, `death:extra`, the human's
+`SITE`, pools, buckets, territory); later ones are `1/189` `form` (6811), `0/2000`'s `damage` and `city_flags` (6816), and
+`1/124`'s `attack[0].mandatory` (6821).
+
+**The word moves 6808 → 6821** (count and sequence): ours 17 draws, theirs 23, index 3 — ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, theirs `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`. 6821 is one frame before the game's end
+(6822) and is run882's last block; its own block 6822 is not captured, so its widening is owed a capture (the window must reach
+6822 and the closing 6823). `1/124`'s `attack[0].mandatory` on 6821 (ours 0, theirs 1) is the nearest lead.
+
+**Not established.** The restore on exits other than `6027a8` is listing-only; the clear's effect on the unit-target half
+(answered `None` here, `docs/COMBAT.md` §17.6) is not reached. The `set_anim+0x104b` 1-vs-3 tail on 6808 has not been
+re-measured on the fixed tree.
+
+**Diff-backed**: the four water refusals and the eleven draws (run882's trace, run882b's packet). **Reading only**: the other
+six restores.
 
 ## 238. Reserved for the next item on the AI track
 

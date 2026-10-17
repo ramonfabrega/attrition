@@ -131,7 +131,7 @@ impl crate::Sim {
     /// [`Sim::attack_pos_refused`] (item 1519).
     ///
     /// **The asker cannot ride while it searches** (`6014ef`–`601505`,
-    /// `docs/COMBAT.md` §17.8, item 2845): a set `unit_masks & 0x800000`
+    /// `docs/COMBAT.md` §17.7, item 2845): a set `unit_masks & 0x800000`
     /// ([`crate::Unit::auto_transport`]) is cleared for the whole call and
     /// OR-ed back on every exit (`60160a`, `60193e`, `6027a8`, `602aa8`,
     /// `602b3f`, `602d65`, `602d77`). `invalid_loc`'s land arm admits
@@ -845,7 +845,7 @@ mod tests {
         );
     }
 
-    /// **The asker cannot ride while it searches** (§17.8, item 2845): a
+    /// **The asker cannot ride while it searches** (§17.7, item 2845): a
     /// land unit carrying `unit_masks & 0x800000` may stand on water as
     /// far as `invalid_loc` is concerned, but `find_attack_pos` clears the
     /// bit for the call (`601505`) and OR-s it back on every exit. So the
@@ -889,7 +889,8 @@ mod tests {
         let face = t.tile().x + 4;
         for y in 0..sim.world.height() * 4 {
             for x in face..sim.world.width() * 4 {
-                sim.world.set_tile_field(Pos::new(x, y), tile::SURFACE, tile::SURFACE_OCEAN);
+                sim.world
+                    .set_tile_field(Pos::new(x, y), tile::SURFACE, tile::SURFACE_OCEAN);
             }
         }
         let mut u = crate::Unit::new(1, 0, Pos::new(t.x + 0x1800, t.y), 70);

@@ -6534,13 +6534,14 @@ loop ended by a short that no link flag walks), `Unit::update_local_seen` and `O
 (`vector_dist` takes its operands in `esi` and `edi`: no stub shape holds a callee's register arguments), `UnitData::is_busy`,
 `UnitData::get_gpiece` ×2 (the `types.list` and orderlist walk, a `GraphicPieces` singleton).
 
-## Parked by the next landing, slot FO — reserved
+## Parked by item 2845, 2026-10-17 — the peace pair's word 6808 → 6821
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The `set_anim+0x104b` tail on 6808** (ours 1, the bird `9/6`; theirs 3), after the ring and the wraps. Not re-measured
+  on the fixed tree; the word is now 6821, so it agrees there or the count would part on 6808. Names no score while the word
+  sits past it.
+- **The `0x800000` restore on the unit-target half of `find_attack_pos`** (`docs/COMBAT.md` §17.7): listing-only, and the
+  half itself answers `None` here (§17.6). Names no score until a capture reaches a unit-target ring with an
+  auto-transport asker.
 
 ## Parked by the next landing, slot FP — reserved
 

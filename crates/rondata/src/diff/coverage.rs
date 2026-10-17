@@ -3067,6 +3067,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::lakota_pair::lakota_frame_5407_window(),
         || super::lakota_pair::lakota_frame_5982_window(),
         || super::lakota_pair::lakota_frame_6452_window(),
+        || super::lakota_pair::lakota_frame_6808_window(),
     ];
     let mut missing = false;
     let mut closing_blocks = 0;
