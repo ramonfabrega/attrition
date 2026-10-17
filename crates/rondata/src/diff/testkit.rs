@@ -9798,7 +9798,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (Lakota)",
         word: crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         length: 6_822,
-        endpoint: None,
+        // Closed by item 2864: the draw stream agrees to 6822, and run883's
+        // closing block scores the end itself.
+        endpoint: Some("run883_lakota_pair_closing_state"),
         window: Some("lakota_frame_4859_window"),
     },
     // **The successor pair** (DECISIONS 53 §2, 61 §6; item 1728): East
