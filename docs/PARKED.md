@@ -6711,13 +6711,12 @@ sweep draws the walker at `0x2000....`, so the byte is `0x20` and the final walk
 whose addresses start below `0x01000000` would not make it. The sweep cannot say which the game has (a frame-time fact); the rule is
 in the port's comment. Not a mismatch, an input the emulator fixes.
 
-## Parked by the next landing, slot GA — reserved
+## Parked by item 2904, 2026-10-17 — the battery's East Indies Germans become the AI word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2904, second) **Both leaders' `aggression` stands 0 against 1 from run886's first block, 570** (2904, `docs/AI.md` §239):
+`0/-1 leader:aggression[1]` and `1/-1 leader:aggression[0]`, ours 0, theirs 1, with no draw or order on the word's frame that
+reads it. `diplomacy.rs:512` is its one reader in `sim`. It is not walked back: no earlier widening of this lobby exists, and
+run646's start ends at 36.
 
 ## Parked by item 2910, 2026-10-17 — the hundred-and-twenty-fourth sweep batch (harvest)
 

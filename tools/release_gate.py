@@ -170,6 +170,7 @@ COMMANDERS_LINES = (
     'the_handoff_s_coverage_pair_is_the_pinned_word',
     'the_handoff_s_successor_pair_is_the_pinned_word',
     'the_handoff_s_peace_pair_is_the_pinned_word',
+    'the_handoff_s_battery_word_is_the_pinned_word',
     'the_handoff_s_census_is_the_pinned_share',
     # The census's own pin (Loop 2367, the thirty-fourth pass): two sweep
     # lanes re-pinned `census::SIMULATION_BACKED` in the same landing and

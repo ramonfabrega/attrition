@@ -9666,3 +9666,11 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #           --ai-tribe 19 --cover cover=0 (run846's profile)
 # Checks: `rngcmp.py` run847 vs run849 -> 0 differing in 2241.
 # ==== TAKEN 2026-10-14, 15:19-15:46, lane 2 (first take exit 40, retaken once) ====
+# ==== item 2904: the battery word and the fourth held-out lobby (`docs/AI.md` §239; `docs/RUNS.md` run886..888) ====
+#   run886  --map 18 --end-frame 832 --log-window 570 827 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#           --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3   (East Indies, Germans; the word 576's window)
+#   run887  --map 14 --end-frame 36 --dump-all-start --ai-tribe 14 --profile DIFFICULTY=1   (Great Lakes, Chinese; start)
+#   run888  --map 14 --end-frame 24000 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 14
+#           --profile DIFFICULTY=1 (run643's four --detail lines)
+# Checks: `rngcmp.py` run643 vs run886 -> 0 differing in 833; run887 vs run888 -> 0 differing in 37. run888 runs to 24000.
+# ==== TAKEN 2026-10-17, one take each, 10:35-11:07, pool lanes 1, 2, 3 ====

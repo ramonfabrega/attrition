@@ -14636,6 +14636,12 @@ British at 0 on map 9. Difficulties 1–4 and the other twenty-one nations appea
 | `EastIndiesGermanTier3` | 18 | Germans (12) | 3 | run646 | run643 | 13519 | **576 / 576** |
 | `GreatLakesRussianTier2` | 14 | Russians (13) | 2 | run647 | run644 | 7303 | **6566 / 6563** |
 | `GreatSaharaEgyptianTier4` | 7 | Egyptians (7) | 4 | run648 | run645 | 20380 | **2974 / 2974** |
+| `GreatLakesChineseTier1` | 14 | Chinese (14) | 1 | run887 | run888 | runs to 24000 | **176 / 176** |
+
+**Amended by item 2904** (§239, DECISIONS 72): `EastIndiesGermanTier3` left the battery for the AI word
+(`diff::german_word`, a `SCORED_LOBBIES` row) when every pair had closed. `GreatLakesChineseTier1` was minted beside it
+so three stay held out: its first try is 176 (ours 12 draws, theirs 14, at draw 6 ours `Farms::inc_time+0x1ae`, theirs
+`Guy::init_real+0x52`). Its game does not end itself by 24000.
 
 Every nation and every difficulty is new for its map, and no two lobbies share either. The
 click-free lane sets both (`--ai-tribe`, `--profile DIFFICULTY=`), so each is a
@@ -21924,12 +21930,64 @@ walk on disk reaches it (parked, 2864 second row). `fight`'s entrenched gate is 
 **Diff-backed**: the three terms on `1/124` and `1/95` (run883's draws and blocks, run883b's packet). **Reading only**: the
 find's mandatory arm, the entrenched gate.
 
-## 239. Reserved for the next item on the AI track
+## 239. The battery's East Indies Germans become the AI word, 576 of 13,519, and a fourth lobby is held out (2026-10-17, item 2904)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The promotion** (DECISIONS 72, last paragraph). The peace pair closed at its end (6822, item 2864, §238), so every pair is
+closed, and the AI word's successor is the held-out battery's lowest lobby: East Indies (`MAP_STYLE 18`), human Nubians (4)
+against **the Germans (12) at Difficulty 3**, seed 12345 (§125's first row; run646 the start, run643 the long). It stops being
+held out:
+- It leaves `diff::battery::BATTERY` for `SCORED_LOBBIES`, so the identity test refuses it from now on.
+- Its module is `diff::german_word`: `GERMAN` (a `battery::Lobby`), `GERMAN_WORD`, `german_word_first_parting` (count and
+  sequence 576 of 13519 on this tree, unmoved since item 1465's first try) and `german_word_is_no_other_lobby`.
+- Its `AI_WORDS` row is on a line of its own, **`Battery word`** (map `EastIndiesGermanTier3`, named "East Indies
+  (Germans)"), and `NEWEST_PAIR` is that line. It is one game, so the lower open word is always its own.
+- `floors::the_handoff_s_battery_word_is_the_pinned_word` reads the handoff's `Battery word:` line and is one of the gate's
+  commander's lines.
+
+**The frame (576) and its draw delta**, both sides (the walk with `RON_DEBUG_SITES=576-576`). Theirs spends 36 draws:
+1. one round of `Leader::compute_sites+0x4ac`, `+0x50a`, then `Leader::make_stuff+0x221` twice (first seed `7833f72d`);
+2. four birds (`9/5`..`9/8`, `Animal::think_bird+0x82`, `+0xa6`, `+0x1f8` each);
+3. six `Objects::process_all` `+0x2df`/`+0x30b` pairs, `Herd::process` `+0x17`/`+0x36`, and six `Farms::inc_time+0x1ae`.
+
+Ours spends 52: the same, except that the leader round runs **five times**, 20 draws against 4, so index 4 is ours'
+`compute_sites+0x4ac` against theirs' `think_bird+0x82`.
+
+**The widening** (run886, blocks 570..826; `run886_s_word_frame_is_widened_whole`, `WIDENINGS`' `GERMAN_WORD` row): 262 keys over
+257 blocks, both directions.
+- **The value diff on the word's block 577.** Theirs holds who=1's **Village `1/2007`** (type 414, a foundation at (34656,
+  36192), `constr_time` 60000, `myhits` 1200). Ours has no such building: the widening's `build:unlinked`, "the dump holds it
+  alone".
+  - who=1's Citizen `1/2` holds theirs' `BUILDORDER` on `1/2007` (`orders.len` 1 against 2, `orders_x` 40632 against 35400,
+    `path` 0 against 5, `pos` (40632, 38520) against (40607, 38519)).
+  - who=1's `SITE` table: theirs' `SITE[1]` is empty (`wx` 0 against ours' 51), and the rows below it read one slot off ours'.
+  - `gatherers` 8 against 7, on both the leader and the capital `1/2000`.
+- **The direction**: theirs acted. Its one `compute_sites`/`make_stuff` round placed a Village on 576, which is a record
+  (BUILDDATA `1/2007`). Ours' five rounds placed nothing.
+- **Standing from the window's first block, 570** (35 keys), none walked back: no earlier widening of this lobby exists, and
+  its start (run646) ends at 36. They are who=1's `income` and `resources` (food 800 against 880, timber 640 against 720),
+  `leftover` (food 5280 against 480, timber 800 against 3200) and `bucket` (food 73 against 80, timber 58 against 64); both
+  leaders' `aggression` (0 against 1); and the control's `SITE[n].reg`, `form` and the groups' `held`, the rows every
+  widening of the scored lobbies carries.
+- `standing.py` names the readers in `sim`. `income` has 11, `bucket` 57, `leftover` 3 (`economy.rs`) and `aggression` 1
+  (`diplomacy.rs`). Nothing reads `resources` by that name.
+
+**The fourth held-out lobby** (runs 887–888). The battery keeps three lobbies nobody tuned for. The new one is
+**`GreatLakesChineseTier1`**: Great Lakes (`MAP_STYLE 14`), the **Chinese (14) at Difficulty 1**.
+- No scored or battery lobby has that nation, and no lobby on the disk has difficulty 1 (§125's survey). The two that stay
+  are Russians at 2 on map 14 and Egyptians at 4 on map 7.
+- run887 is its `DUMP_ALL` start (run595's recipe). run888 is its long (run643's recipe), which runs to 24000 without the
+  game ending; `rngcmp.py` finds the two identical over their 37 common frames.
+- **Its first try is 176 of 24000**, count and sequence. Ours spends 12 draws, theirs 14; at draw 6 ours
+  `Farms::inc_time+0x1ae`, theirs `Guy::init_real+0x52`, a birth.
+- It is measured and never debugged against: no item names it. `battery_captures_are_complete_and_say_their_lobby` reads
+  map, difficulty, nations and seed back from both captures.
+
+**No mechanism is named here.** Which of the standing economy rows, if any, holds ours' Village back is the next item's first
+question. The frame and the draw delta are the booking.
+
+**What is not established.** Where who=1's `income`/`resources` gap first opens, before 570. Why ours' `make_stuff` re-runs
+the round. Whether the `aggression` row bears on anything. **Diff-backed**: the draw delta, every row above (run886 against
+the walk from run646). **Reading only**: nothing.
 
 ## 240. Reserved for the next item on the AI track
 

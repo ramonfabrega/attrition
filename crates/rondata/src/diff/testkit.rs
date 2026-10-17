@@ -9534,6 +9534,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         2864,
         Some(crate::diff::lakota_pair::WIDENING_LAKOTA_CLOSING),
     ),
+    // **The battery's word** (item 2904, DECISIONS 72): frame 576, the
+    // battery's first try, widened on run886 over 570..826 (block 577).
+    (
+        "GERMAN_WORD",
+        crate::diff::german_word::GERMAN_WORD,
+        Some("run886_s_word_frame_is_widened_whole"),
+        2904,
+        Some(crate::diff::german_word::WIDENING_GERMAN_FRAME_576),
+    ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
     // item 1538's build and **720** on the merged tree, widened on run680
@@ -9841,10 +9850,25 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 /// **The coverage pair since item 1511** (DECISIONS 62 §3): the French
 /// pair closed at its end on item 1519, and the coverage pair's row is
 /// the newest. **The peace pair since item 2320**: the successor pair
-/// closed at its game's end on item 2293 (DECISIONS 61 §6).
-pub(crate) const NEWEST_PAIR: &str = "Peace pair";
+/// closed at its game's end on item 2293 (DECISIONS 61 §6). **The
+/// battery's word since item 2904** (DECISIONS 72): the peace pair closed at
+/// its end on item 2864, every pair is closed, and the battery's lowest
+/// lobby is promoted; it is one game, so its line holds one row.
+pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's word** (DECISIONS 72; item 2904): East Indies, the
+    // Germans at Difficulty 3 — the held-out battery's lowest lobby, which
+    // ends itself at 13519.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesGermanTier3",
+        named: "East Indies (Germans)",
+        word: crate::diff::german_word::GERMAN_WORD,
+        length: 13_519,
+        endpoint: None,
+        window: Some("german_frame_576_window"),
+    },
     // **The peace pair** (DECISIONS 53 §2, 61 §6; item 2320): East Indies,
     // the Lakota at Difficulty 3 and All Technologies, with five minutes'
     // peace (`RUSH_RULES 10`); the idle human is defeated at 6822.
