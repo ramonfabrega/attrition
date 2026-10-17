@@ -214,3 +214,42 @@ fn run891_s_word_frame_is_widened_whole() {
     // control's `SITE[n].reg`, `form`, groups' `held` and the pool, and
     // both leaders' `aggression` 0/1 (`docs/AI.md` §240).
 }
+
+/// run893: the site table's walk-back, blocks 3770..4177 at the long's
+/// detail (item 2956) — the 3775, 3975 and 4175 sweeps; run886 ends on
+/// block 826 and run891 starts on 5571.
+pub(crate) const RUN893: &str = "gamelog-run893-eastindies-german-diff3-window-3770-4178.txt";
+
+/// The window: block 3770 through 4177; the sweep 3975's block is 3976.
+pub(crate) const WIDENING_GERMAN_SITES_3975: (i64, i64) = (3770, 4177);
+
+pub(crate) fn german_sites_3975_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GERMAN.start],
+        true,
+        GERMAN.long,
+        "run893",
+        &[(RUN893, WIDENING_GERMAN_SITES_3975.0)],
+        WIDENING_GERMAN_SITES_3975,
+        1,
+        &[3976],
+        true,
+    )
+}
+
+#[test]
+fn run893_s_site_sweep_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_sites_3975_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 408, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "initial run893 baseline");
+}
