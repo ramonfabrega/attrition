@@ -112,6 +112,8 @@ mod build_data_can_make;
 mod build_data_can_queue;
 #[path = "build_data_can_queue_4d2030.rs"]
 mod build_data_can_queue_4d2030;
+#[path = "build_data_check_capture_eligible.rs"]
+mod build_data_check_capture_eligible;
 #[path = "build_data_check_capture_health.rs"]
 mod build_data_check_capture_health;
 #[path = "build_data_find_in_queue.rs"]
