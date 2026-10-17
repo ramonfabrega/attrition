@@ -618,6 +618,8 @@ mod command_package_process_repair;
 mod command_package_process_resign;
 #[path = "command_package_process_scramble.rs"]
 mod command_package_process_scramble;
+#[path = "command_package_process_sell.rs"]
+mod command_package_process_sell;
 #[path = "command_package_process_set_transport.rs"]
 mod command_package_process_set_transport;
 #[path = "command_package_process_siege_attack.rs"]
