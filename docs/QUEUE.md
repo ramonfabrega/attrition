@@ -94,7 +94,9 @@ golden/harness replay work (47% of rondata CPU); finer harness groups plateau.
 Golden/harness observation follow-up: indexed near spans and bounded East Indies
 setup/decoded observations; all45 affected tests pass complete differential audits.
 Local warm examples10.60→0.59s and7.63→1.95s; two fail-first guards added.
-Full required-fixture gate pending; no whole-suite gain claimed yet. See
+Full required-fixture gate passes on `55793bfc`; exact3276 requests retained.
+Warm rondata161.22→145.58s, CPU1158.05→1037.78 (about10% lower). Whole-suite10×
+remains unmet. Next: complete golden civilian observations (283.12CPU family). See
 [journal](journal/2026-10-16-golden-replay.md).
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.

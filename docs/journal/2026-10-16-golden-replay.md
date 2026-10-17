@@ -73,3 +73,45 @@ The final committed tree must pass the full release gate, preserve the original
 fixture-request multiset and test inventory, and receive a separate warm complete
 rondata measurement before this landing is reported complete. Fable review of
 cache identity, trailing-record semantics and differential coverage remains owed.
+
+## Complete verdict on `55793bfc`
+
+The complete required-fixture gate exits0; all six phases pass. The tree remained
+clean and frozen. Receipts: `gate.log`, `gate.exit`, `gate/`, `warm.log`,
+`warm.exit`, `warm/`, `gate-equivalence.json`. The gate executable and saved
+`final-rondata` used by the audit and warm measurement are byte-identical.
+
+-502 offline tests pass, with three unchanged skips; Clippy, fmt, survey, guard pass.
+-Rondata894 pass, six unchanged ignored; sim2586, fixed13, doctests3 pass.
+-Every original rondata name retained; exactly two authored guards added.
+-Exact3276 fixture-request multiset preserved in both complete runs;419 unique,
+ zero missing. This verifies requested fixture coverage, not an exhaustive claim
+ about every file in the corpus.
+-3 ledger,22 floor and2 source guards pass. Ledger remains25 records/328 fields,
+ with9 uncompared and31 single-capture fields; no pins or fidelity floors changed.
+
+| Complete measurement | Previous landing | This landing |
+|---|---:|---:|
+| Full gate wall / CPU s |271.28 /1472.54|260.39 /1438.62|
+| Full gate sampled tree MiB |8864|7255|
+| Rondata in gate wall / CPU s |161.22 /1158.05|165.20 /1185.64|
+| Complete warm rondata wall / CPU s |161.22 /1158.05|145.58 /1037.78|
+
+The gate repopulates observations after a schema change; its rondata phase is
+slower than the previous landing. Warm rondata uses9.7% less elapsed time and10.4%
+less CPU. These are unpaired local runs, not statistical confidence intervals.
+The warm run's sampled tree peak is8186MiB (largest sampled process1994MiB),
+higher than this gate's7255MiB. Scheduling affects aggregate peaks: local test
+RSS reductions are established, but a stable whole-suite memory reduction or
+10–20 concurrent-agent capacity is not established. No contention experiment
+or sub-minute/sub-GiB complete-suite claim is made.
+
+Warm family CPU: golden298.56→283.12, harness242.02→198.12,
+second-pair118.54→67.04. Golden remains the largest family (283.12CPU); chapters
+36/37/35 still cost8.65/8.25/8.01CPU and use raw auxiliary observations in the
+civilian widening loop. Next investigate a complete reusable golden observation
+record covering those auxiliary checks, with whole-report and raw-read coverage
+proof before enabling it. Existing oracle fields alone do not cover that loop.
+The two coverage guards remain the largest individual tests at36.57/33.24CPU.
+Whole-suite10× remains open. Score, draw-stream and value differences: no movement.
+Independent review remains owed. This branch is not merged into the paused loop.

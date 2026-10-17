@@ -533,6 +533,10 @@ The oracle schema change requires one-time repopulation; old caches are preserve
 All45 affected replay tests pass differential auditing. Two new guards fail under
 intentional faults and pass after restoration. Local baseline→warm examples:
 near10.60→0.59s,1410→398MiB RSS; run2277.63→1.95s,381→256MiB;
-run2994.48→2.11s,384→262MiB. Full gate pending; no whole-suite10× claim.
+run2994.48→2.11s,384→262MiB. Full required-fixture gate passes on `55793bfc`: 894
+rondata and2586 sim tests; original3276 fixture requests retained. Complete warm
+rondata161.22→145.58s, CPU1158.05→1037.78 (about10% lower); sampled tree8186MiB.
+Schema repopulation makes the gate rondata phase165.20s/1185.64CPU. Whole-suite
+10×, sub-minute/sub-GiB and concurrent-agent capacity remain unproven.
 See [journal](journal/2026-10-16-golden-replay.md) and
 [audit](audit/2026-10-16-golden-replay.json). Independent review remains owed.

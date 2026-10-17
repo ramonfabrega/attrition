@@ -1,7 +1,7 @@
 {
   "baseline_commit": "d4e8d083b1a0788466140cd95308bfd711c11831",
   "evidence_root": "/tmp/attrition-golden-replay-20261016-01",
-  "status": "implementation pending complete required-fixture gate",
+  "status": "complete required-fixture gate and warm complete rondata pass",
   "samples": {
     "baseline": [
       {
@@ -147,5 +147,540 @@
   },
   "normal_sample_diagnostics_and_fixture_multisets_equal": true,
   "score_change": 0,
-  "independent_review": "owed"
+  "independent_review": "owed",
+  "implementation_commit": "55793bfc",
+  "gate_exit": 0,
+  "warm_exit": 0,
+  "full_gate": {
+    "wall": 260.39,
+    "cpu": 1438.62,
+    "sampled_tree_mib": 7255
+  },
+  "warm_sampled_tree_mib": 8186,
+  "equivalence": {
+    "added_tests": [
+      "diff::golden::indexed_near_reads_preserve_duplicates_missing_fields_and_trailing_records",
+      "diff::oracle::region_mode_has_distinct_identity_and_preserves_base_observations"
+    ],
+    "original_tests_preserved": true,
+    "ignored_unchanged": [
+      "diff::battery::battery_measure",
+      "diff::harness::tests::east_indies_pool_walk",
+      "diff::leader::tests::probe_active_against_the_muster",
+      "diff::leader::tests::probe_the_word_s_leader_record",
+      "diff::oracle::decoded_frame_experiment",
+      "gamelog::tests::the_reader_is_timed"
+    ],
+    "fixture_requests": 3276,
+    "fixture_multisets_equal": true,
+    "summaries": {
+      "baseline": {
+        "complete": true,
+        "success": true,
+        "passed": 892,
+        "failed": 0,
+        "ignored": 6,
+        "filtered": 0,
+        "elapsed": 161.21643224998843,
+        "cpu": 1158.05
+      },
+      "gate": {
+        "complete": true,
+        "success": true,
+        "passed": 894,
+        "failed": 0,
+        "ignored": 6,
+        "filtered": 0,
+        "elapsed": 165.1958604999818,
+        "cpu": 1185.64
+      },
+      "warm": {
+        "complete": true,
+        "success": true,
+        "passed": 894,
+        "failed": 0,
+        "ignored": 6,
+        "filtered": 0,
+        "elapsed": 145.5813760420133,
+        "cpu": 1037.78
+      }
+    },
+    "baseline_family_cpu": {
+      "diff::golden": 298.56,
+      "diff::harness": 242.02,
+      "diff::second": 118.54,
+      "diff::third_pair": 75.25,
+      "diff::coverage": 72.79,
+      "diff::world": 46.76,
+      "diff::unit": 40.79,
+      "diff::build": 39.17,
+      "diff::sahara_toughest": 33.12,
+      "diff::coverage_pair": 25.79,
+      "diff::mongol_pair": 17.58,
+      "diff::sahara_coverage": 16.86,
+      "diff::order": 15.18,
+      "diff::third": 14.92,
+      "diff::endpoint": 14.47,
+      "diff::leader": 13.98,
+      "diff::lakota_pair": 13.98,
+      "diff::army": 12.98,
+      "diff::city": 11.06,
+      "diff::shutdown": 6.25,
+      "diff::setup": 5.65,
+      "diff::testkit": 4.64,
+      "diff::sahara_mongol": 3.8,
+      "load::tests": 3.56,
+      "diff::ammo": 1.85,
+      "capture::indexed": 1.57,
+      "gamelog::tests": 1.44,
+      "writers::a_field_the_sim_writes_is_read_by_something": 1.07,
+      "blind::tests": 0.87,
+      "census::tests": 0.7,
+      "diff::battery": 0.59,
+      "typesdump::tests": 0.56,
+      "debug_view::tests": 0.55,
+      "trace::tests": 0.45,
+      "recgame::tests": 0.26,
+      "diff::floors": 0.11,
+      "capture::archive": 0.1,
+      "writers::compared_fields_have_writers": 0.06,
+      "ledger::tests": 0.05,
+      "writers::every_no_reader_row_still_names_a_field": 0.04,
+      "writers::every_exemption_still_names_a_field": 0.04,
+      "trace::site_rows": 0.02,
+      "artdata::tests": 0.02,
+      "diff::oracle": 0.0,
+      "pe::tests": 0.0,
+      "golden::tests": 0.0,
+      "diff::slots": 0.0,
+      "commands::tests": 0.0,
+      "mountains::tests": 0.0,
+      "scalar::tests": 0.0,
+      "diff::compared": 0.0,
+      "writers::the_scanner_follows_the_harness_into_a_directory": 0.0,
+      "table::tests": 0.0,
+      "capture::tests": 0.0,
+      "dump::tests": 0.0,
+      "testenv::fixture_audit": 0.0,
+      "writers::a_one_line_literal_s_fields_are_read": 0.0,
+      "diff::corrections": 0.0,
+      "diff::report": 0.0,
+      "tests::tribe_mask_handles_all_and_none": 0.0,
+      "debug_view::fields": 0.0,
+      "testenv::a_debug_run_that_reaches_a_kept_dump_refuses": 0.0,
+      "tests::tribe_mask_is_msb_first": 0.0,
+      "capture::owned_codec": 0.0,
+      "testenv::source": 0.0
+    },
+    "baseline_top_tests": [
+      {
+        "name": "diff::coverage::every_key_the_dump_prints_is_read_or_pinned",
+        "user": 37.08,
+        "system": 0.85,
+        "rss_bytes": 126795776
+      },
+      {
+        "name": "diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        "user": 32.47,
+        "system": 2.39,
+        "rss_bytes": 811614208
+      },
+      {
+        "name": "diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture",
+        "user": 12.98,
+        "system": 0.85,
+        "rss_bytes": 458358784
+      },
+      {
+        "name": "diff::golden::chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame",
+        "user": 10.74,
+        "system": 0.68,
+        "rss_bytes": 1496383488
+      },
+      {
+        "name": "diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture",
+        "user": 9.77,
+        "system": 1.53,
+        "rss_bytes": 127811584
+      },
+      {
+        "name": "diff::golden::chapter_thirty_six_s_word_frame_is_widened_whole",
+        "user": 8.23,
+        "system": 0.78,
+        "rss_bytes": 802979840
+      },
+      {
+        "name": "diff::golden::chapter_thirty_seven_s_word_frame_is_widened_whole",
+        "user": 7.85,
+        "system": 0.76,
+        "rss_bytes": 677249024
+      },
+      {
+        "name": "diff::golden::chapter_thirty_five_s_word_frame_is_widened_whole",
+        "user": 7.68,
+        "system": 0.75,
+        "rss_bytes": 668745728
+      },
+      {
+        "name": "diff::harness::tests::run227_s_word_frame_is_widened_whole",
+        "user": 6.97,
+        "system": 0.57,
+        "rss_bytes": 392675328
+      },
+      {
+        "name": "diff::harness::tests::run99_s_word_frame_is_widened_whole",
+        "user": 6.74,
+        "system": 0.6,
+        "rss_bytes": 393527296
+      },
+      {
+        "name": "diff::second::tests::run594_s_word_frame_is_widened_whole",
+        "user": 6.43,
+        "system": 0.26,
+        "rss_bytes": 479133696
+      },
+      {
+        "name": "diff::golden::chapter_thirty_four_s_word_frame_is_widened_whole",
+        "user": 6.16,
+        "system": 0.41,
+        "rss_bytes": 630128640
+      },
+      {
+        "name": "diff::second::tests::run588_s_word_frame_is_widened_whole",
+        "user": 6.16,
+        "system": 0.26,
+        "rss_bytes": 486801408
+      },
+      {
+        "name": "diff::second::tests::run589_s_word_frame_is_widened_whole",
+        "user": 6.14,
+        "system": 0.25,
+        "rss_bytes": 476348416
+      },
+      {
+        "name": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+        "user": 5.88,
+        "system": 0.51,
+        "rss_bytes": 1736998912
+      }
+    ],
+    "gate_family_cpu": {
+      "diff::golden": 285.51,
+      "diff::harness": 230.55,
+      "diff::coverage": 126.05,
+      "diff::third_pair": 77.41,
+      "diff::second": 72.94,
+      "diff::sahara_toughest": 57.26,
+      "diff::world": 47.03,
+      "diff::unit": 41.03,
+      "diff::build": 39.18,
+      "diff::third": 27.34,
+      "diff::coverage_pair": 26.3,
+      "diff::mongol_pair": 18.03,
+      "diff::lakota_pair": 17.34,
+      "diff::sahara_coverage": 17.12,
+      "diff::order": 15.19,
+      "diff::endpoint": 14.59,
+      "diff::leader": 13.91,
+      "diff::army": 13.01,
+      "diff::city": 11.17,
+      "diff::shutdown": 6.23,
+      "diff::setup": 5.65,
+      "diff::testkit": 4.6,
+      "diff::sahara_mongol": 3.86,
+      "load::tests": 3.82,
+      "diff::ammo": 1.86,
+      "capture::indexed": 1.63,
+      "gamelog::tests": 1.45,
+      "writers::a_field_the_sim_writes_is_read_by_something": 1.08,
+      "blind::tests": 0.89,
+      "census::tests": 0.71,
+      "diff::battery": 0.59,
+      "debug_view::tests": 0.57,
+      "typesdump::tests": 0.57,
+      "trace::tests": 0.45,
+      "recgame::tests": 0.27,
+      "diff::floors": 0.11,
+      "capture::archive": 0.1,
+      "writers::compared_fields_have_writers": 0.06,
+      "ledger::tests": 0.05,
+      "writers::every_no_reader_row_still_names_a_field": 0.04,
+      "writers::every_exemption_still_names_a_field": 0.04,
+      "artdata::tests": 0.03,
+      "trace::site_rows": 0.02,
+      "diff::oracle": 0.0,
+      "pe::tests": 0.0,
+      "commands::tests": 0.0,
+      "diff::slots": 0.0,
+      "golden::tests": 0.0,
+      "mountains::tests": 0.0,
+      "diff::compared": 0.0,
+      "scalar::tests": 0.0,
+      "writers::the_scanner_follows_the_harness_into_a_directory": 0.0,
+      "table::tests": 0.0,
+      "capture::tests": 0.0,
+      "dump::tests": 0.0,
+      "testenv::fixture_audit": 0.0,
+      "writers::a_one_line_literal_s_fields_are_read": 0.0,
+      "diff::corrections": 0.0,
+      "diff::report": 0.0,
+      "tests::tribe_mask_handles_all_and_none": 0.0,
+      "debug_view::fields": 0.0,
+      "testenv::a_debug_run_that_reaches_a_kept_dump_refuses": 0.0,
+      "tests::tribe_mask_is_msb_first": 0.0,
+      "capture::owned_codec": 0.0,
+      "testenv::source": 0.0
+    },
+    "gate_top_tests": [
+      {
+        "name": "diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        "user": 74.24,
+        "system": 14.96,
+        "rss_bytes": 802160640
+      },
+      {
+        "name": "diff::coverage::every_key_the_dump_prints_is_read_or_pinned",
+        "user": 36.14,
+        "system": 0.71,
+        "rss_bytes": 114720768
+      },
+      {
+        "name": "diff::harness::tests::great_lakes_run163_through_run226_are_widened_whole",
+        "user": 27.3,
+        "system": 5.14,
+        "rss_bytes": 484622336
+      },
+      {
+        "name": "diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture",
+        "user": 12.77,
+        "system": 0.76,
+        "rss_bytes": 458014720
+      },
+      {
+        "name": "diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture",
+        "user": 9.88,
+        "system": 1.5,
+        "rss_bytes": 145555456
+      },
+      {
+        "name": "diff::golden::chapter_thirty_six_s_word_frame_is_widened_whole",
+        "user": 8.06,
+        "system": 0.68,
+        "rss_bytes": 803487744
+      },
+      {
+        "name": "diff::golden::chapter_thirty_seven_s_word_frame_is_widened_whole",
+        "user": 7.65,
+        "system": 0.66,
+        "rss_bytes": 783007744
+      },
+      {
+        "name": "diff::golden::chapter_thirty_five_s_word_frame_is_widened_whole",
+        "user": 7.48,
+        "system": 0.65,
+        "rss_bytes": 772751360
+      },
+      {
+        "name": "diff::harness::tests::run99_s_word_frame_is_widened_whole",
+        "user": 6.72,
+        "system": 0.59,
+        "rss_bytes": 392839168
+      },
+      {
+        "name": "diff::golden::chapter_thirty_four_s_word_frame_is_widened_whole",
+        "user": 6.1,
+        "system": 0.41,
+        "rss_bytes": 715915264
+      },
+      {
+        "name": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+        "user": 5.88,
+        "system": 0.51,
+        "rss_bytes": 1737949184
+      },
+      {
+        "name": "diff::harness::tests::run123_s_word_frame_is_widened_whole",
+        "user": 5.54,
+        "system": 0.75,
+        "rss_bytes": 1610694656
+      },
+      {
+        "name": "diff::golden::chapter_thirty_three_s_word_frame_is_widened_whole",
+        "user": 5.82,
+        "system": 0.4,
+        "rss_bytes": 617398272
+      },
+      {
+        "name": "diff::second::tests::run594_s_word_frame_is_widened_whole",
+        "user": 5.54,
+        "system": 0.24,
+        "rss_bytes": 485736448
+      },
+      {
+        "name": "diff::second::tests::run589_s_word_frame_is_widened_whole",
+        "user": 5.44,
+        "system": 0.23,
+        "rss_bytes": 515047424
+      }
+    ],
+    "warm_family_cpu": {
+      "diff::golden": 283.12,
+      "diff::harness": 198.12,
+      "diff::third_pair": 74.58,
+      "diff::coverage": 69.81,
+      "diff::second": 67.04,
+      "diff::world": 46.37,
+      "diff::unit": 39.61,
+      "diff::build": 38.9,
+      "diff::sahara_toughest": 32.48,
+      "diff::coverage_pair": 25.45,
+      "diff::mongol_pair": 17.36,
+      "diff::sahara_coverage": 16.67,
+      "diff::order": 14.92,
+      "diff::third": 14.65,
+      "diff::endpoint": 14.36,
+      "diff::lakota_pair": 13.88,
+      "diff::leader": 13.66,
+      "diff::army": 12.75,
+      "diff::city": 10.92,
+      "diff::shutdown": 6.03,
+      "diff::setup": 5.63,
+      "diff::testkit": 4.46,
+      "diff::sahara_mongol": 3.72,
+      "load::tests": 3.56,
+      "diff::ammo": 1.84,
+      "capture::indexed": 1.53,
+      "gamelog::tests": 1.41,
+      "writers::a_field_the_sim_writes_is_read_by_something": 1.06,
+      "census::tests": 0.65,
+      "debug_view::tests": 0.57,
+      "typesdump::tests": 0.55,
+      "diff::battery": 0.49,
+      "trace::tests": 0.46,
+      "blind::tests": 0.46,
+      "recgame::tests": 0.26,
+      "capture::archive": 0.1,
+      "diff::floors": 0.1,
+      "writers::compared_fields_have_writers": 0.07,
+      "ledger::tests": 0.05,
+      "writers::every_no_reader_row_still_names_a_field": 0.04,
+      "writers::every_exemption_still_names_a_field": 0.04,
+      "artdata::tests": 0.03,
+      "trace::site_rows": 0.02,
+      "diff::oracle": 0.0,
+      "pe::tests": 0.0,
+      "commands::tests": 0.0,
+      "diff::slots": 0.0,
+      "golden::tests": 0.0,
+      "mountains::tests": 0.0,
+      "scalar::tests": 0.0,
+      "diff::compared": 0.0,
+      "writers::the_scanner_follows_the_harness_into_a_directory": 0.0,
+      "table::tests": 0.0,
+      "capture::tests": 0.0,
+      "dump::tests": 0.0,
+      "testenv::fixture_audit": 0.0,
+      "writers::a_one_line_literal_s_fields_are_read": 0.0,
+      "diff::corrections": 0.0,
+      "diff::report": 0.0,
+      "tests::tribe_mask_handles_all_and_none": 0.0,
+      "debug_view::fields": 0.0,
+      "tests::tribe_mask_is_msb_first": 0.0,
+      "testenv::a_debug_run_that_reaches_a_kept_dump_refuses": 0.0,
+      "testenv::source": 0.0,
+      "capture::owned_codec": 0.0
+    },
+    "warm_top_tests": [
+      {
+        "name": "diff::coverage::every_key_the_dump_prints_is_read_or_pinned",
+        "user": 36.04,
+        "system": 0.53,
+        "rss_bytes": 107102208
+      },
+      {
+        "name": "diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        "user": 31.77,
+        "system": 1.47,
+        "rss_bytes": 800997376
+      },
+      {
+        "name": "diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture",
+        "user": 12.83,
+        "system": 0.49,
+        "rss_bytes": 459194368
+      },
+      {
+        "name": "diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture",
+        "user": 9.78,
+        "system": 1.15,
+        "rss_bytes": 145375232
+      },
+      {
+        "name": "diff::golden::chapter_thirty_six_s_word_frame_is_widened_whole",
+        "user": 8.09,
+        "system": 0.56,
+        "rss_bytes": 803438592
+      },
+      {
+        "name": "diff::golden::chapter_thirty_seven_s_word_frame_is_widened_whole",
+        "user": 7.71,
+        "system": 0.54,
+        "rss_bytes": 781139968
+      },
+      {
+        "name": "diff::golden::chapter_thirty_five_s_word_frame_is_widened_whole",
+        "user": 7.49,
+        "system": 0.52,
+        "rss_bytes": 671694848
+      },
+      {
+        "name": "diff::harness::tests::run99_s_word_frame_is_widened_whole",
+        "user": 6.74,
+        "system": 0.47,
+        "rss_bytes": 395689984
+      },
+      {
+        "name": "diff::golden::chapter_thirty_four_s_word_frame_is_widened_whole",
+        "user": 6.13,
+        "system": 0.42,
+        "rss_bytes": 713211904
+      },
+      {
+        "name": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+        "user": 5.86,
+        "system": 0.52,
+        "rss_bytes": 1736245248
+      },
+      {
+        "name": "diff::golden::chapter_thirty_three_s_word_frame_is_widened_whole",
+        "user": 5.82,
+        "system": 0.41,
+        "rss_bytes": 699383808
+      },
+      {
+        "name": "diff::harness::tests::run123_s_word_frame_is_widened_whole",
+        "user": 5.54,
+        "system": 0.4,
+        "rss_bytes": 1599127552
+      },
+      {
+        "name": "diff::second::tests::run594_s_word_frame_is_widened_whole",
+        "user": 5.53,
+        "system": 0.25,
+        "rss_bytes": 473595904
+      },
+      {
+        "name": "diff::second::tests::run589_s_word_frame_is_widened_whole",
+        "user": 5.41,
+        "system": 0.22,
+        "rss_bytes": 504446976
+      },
+      {
+        "name": "diff::second::tests::run588_s_word_frame_is_widened_whole",
+        "user": 5.39,
+        "system": 0.23,
+        "rss_bytes": 471384064
+      }
+    ]
+  }
 }
