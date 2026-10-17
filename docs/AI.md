@@ -21571,12 +21571,88 @@ item.
 **Diff-backed**: the `0x800` arm on the scout's region scan (run867 5564) and on `calc_cost` (run866 5378, run867
 5401 and 5522). **Reading only**: `num_units[0x141]` as `+0x59e4`, which was §141's reading for `was_seen` before.
 
-## 234. Reserved for the next item on the AI track
+## 234. Capitalism pays its oil after the refineries, and the peace pair's word moves 5982 → 5985 (2026-10-17, item 2779)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The capture.** No dump of this lobby held 5982: run867 ends at 5657, and run847 holds checksums and the closing
+block only. run879 is run867's recipe with the window moved to the word (5976..6232, `--end-frame 6238`, `BUILDS=7`).
+Its draw stream is run847's on all 6239 frames (`docs/RUNS.md`). `diff::lakota_pair::run879_s_word_frame_is_widened_whole`
+walks it.
+
+**The draws on 5982** (`report.py rontrace-run847.log draws 5982`; `RON_DEBUG_SITES=5982-5982`): ours 37, theirs 287.
+Both sides spend the same five `make_stuff` draws (`+0x221` ×3, `+0x63d` ×2). Then they part:
+
+| side | the first purchase | then |
+|---|---|---|
+| ours | one `produce_building+0x1805` jitter: an Oil Platform at (1152, 34944) | `+0x63d`, the Temple's four jitters, `+0x63d` |
+| theirs | 248 `Build::find_gather_tiles+0x10a` (`< Build::init+0x55b < Objects::init_build`), no jitter | `+0x63d`, four jitters, `+0x63d` |
+
+Theirs' purchase is a gather building that is not flat and draws nothing to place. That is the Woodcutter's compass
+ring (§2.20), and the shuffle is its 62 tiles (`4 × 62`). An oil site would not shuffle: `find_gather_tcoords@0063bdc0`
+lists tiles only for timber and the mine. **Both sides acted**: each bought one building with `MAKE[4]`.
+
+**The make list.** On block 5982 (the list `create_buildings` built on 5980), `MAKE[4]` is the only slot that parts:
+ours holds the Oil Well (`t` 421, `val` 394500, city 0), theirs the Woodcutter's Camp (418, 141000, city 1). Every
+other slot agrees.
+
+**The cast on 5976, both directions.** Past the standing keys from earlier windows, who=1's oil parts on the
+window's first block:
+- `resources[oil]` ours 8366 against theirs 9966;
+- `income` 8366 against 8800;
+- `over_cap` 0 against 1, against a `resource_cap` of 8800;
+- `leftover` 6630 against 1592;
+- the AI's `rate[oil]` on 5977, 522 against 550.
+
+Walked back, run867 agrees on every oil row through 5657 but `bucket`. So the oil rate parted in the gap 5658..5975,
+which no dump holds. Theirs' 9966 holds on every block of the window. Ours' terms, from a probe in the leader print
+(reverted whole) on 5976: ten wells outside every city, nine of them worked by one citizen, two refineries, and the
+Statue of Liberty and the Space Program (`wonders` `0x10800`). That is `9 × 560 × 166 / 100` = 8366. **Theirs is
+exactly 1600 higher**: a flat term added after the refinery multiply.
+
+**The term.** `Leader::calc_gather@006ceee0` has one: after the refinery multiply, `has_preq(CAPITALISM_1)` (`push
+0x325` at `006cf454`) adds `constants+0x9c0 << 4` to oil (`006cf476`–`006cf47f`). That constant is
+`CAPITALISM_OIL_PROD`, which ships as 100 income, so the term is 1600. Theirs' `gov` reads 628 (`0x274`, Capitalism)
+on every block. `docs/ECONOMY.md` listed the term as step 8, and the crate never built it. Its sibling went the same
+way: `Leader::gain_tech@006dcb60` writes `gov`, and then for a gained `is(0x274, 0)` after frame 0 it calls
+`bucket_add(5, constants+0x9c4)` (`006de2ac`–`006de2e4`). The decompile lost that literal; the listing reads `push
+0x274`. That constant is `CAPITALISM_OIL_GIFT`, 500.
+
+**Built:**
+- `Tuning::capitalism_oil_prod` (100) and `capitalism_oil_gift` (500), loaded from the rules;
+- `Holdings::capitalism`, from `Sim::holds_capitalism_bonus`, which reads `gov_bonuses`' second row's prerequisites
+  (`get_gov`'s order);
+- `economy::assemble` adds `capitalism_oil_prod × 16` after the refineries;
+- `Sim::gain_tech` adds the gift to the oil bucket.
+
+**Tests and mutations** (`tools/mutate.py`):
+- `economy::tests::capitalism_adds_its_oil_after_the_refineries`: nine wells and two refineries give 8366, and 9966
+  with the term. These are run879's numbers.
+- `cities_tests::capitalism_gained_after_frame_zero_gifts_its_oil`: no gift at frame 0 or for Socialism, and 500 for
+  Capitalism at frame 10.
+- With the rate term dropped, `lakota_pair_first_parting` and run879 fail (exit 101), and the word goes back to 5982.
+- With the gift dropped, the walk passes: ours' `bucket[oil]` on 5976 reads 10591 against 11091, and the row already
+  stood. So the gift is reached, and only the unit test holds it.
+
+**Value diff.**
+- **On 5976** who=1 holds no oil row but `bucket` (ours 11091 against 11621; it stood at 10703 against 11013 from
+  run867's 5401).
+- **On block 5982** `MAKE[4]` holds no row: `t` 418, `val` 141000, city 1 on both sides.
+- **On 5983** nothing parts: the escrow rows and the moves of `1/10` and `1/146` that the purchase shifted are gone.
+- **run879 goes 4745 → 2854.** The first row past the keys that stand from 5976 is `1/238`'s path on 5990.
+- run848 through run867 are unmoved, and so is every other lobby's `first_parting`.
+
+**The word moves 5982 → 5985** (count and sequence): ours 23 draws, theirs 24, index 19. Ours spends `Guy::set_anim+0x97a
+< Guy::inc_time+0x271` there, theirs `Guy::set_anim+0x104b`. Ours spends twelve `inc_time` draws to theirs' eleven,
+and three gaia `+0x104b` to theirs' five. The word's block 5986 holds no row. **The item before's hypothesis** is the
+Transport Freighter `1/225` (`TypeIndex` 322, sea). It stands parted from 5976: idle in ours (`idle` 3, no order),
+and in theirs on a `MOVEORDER` to (6552, 7320) with a 27-leg path. An idle figure rolls in `inc_time`, and a moving
+one does not.
+
+**Not established.**
+- **Capitalism's frame.** Both sides took it in the gap 5658..5975, and nothing compares the frames.
+- **The Woodcutter's value.** The shuffle's count (62 tiles) is read off the draws, not the dump's `gather_from`.
+
+**Diff-backed**: the rate term (run879 5976, 9966 to the unit). **Reading and listing only**: the gift's arm. The walk
+reaches it (500 on `bucket[oil]`), but that row stood before the build, so no pin holds it.
 
 ## 235. Reserved for the next item on the AI track
 

@@ -603,7 +603,7 @@ cascade below call it with `upgrade_units = 1`; the cascades pass
 9. **A tech**: an epoch zeroes `misery` and, if Military, recomputes the
    population cap; a final, when announced, is a message; a government
    writes `LeaderData::gov = t`, and Capitalism gained after frame 0 adds
-   `CAPITALISM_OIL_GIFT` (500) to the oil bucket; and **an age under the
+   `CAPITALISM_OIL_GIFT` (500) to the oil bucket (`006de2ac`–`006de2e4`, `Sim::gain_tech`; `docs/AI.md` §234); and **an age under the
    Tech Race victory (`victory == 9`), outside Conquer the World, with `ages`
    now equal to `ending_technology`, is `victory(3)`** — the win. (Conquer
    the World's variant is in the epoch arm: all 28 epochs owned.)

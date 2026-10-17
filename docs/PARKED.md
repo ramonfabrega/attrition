@@ -6180,13 +6180,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EZ — reserved
+## Parked by item 2779, 2026-10-17 — Capitalism pays its oil after the refineries
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+No row of its own. The new word, 5985, is the commander's to book (`docs/AI.md` §234): ours 23 draws, theirs 24,
+index 19, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x104b`. It lies inside
+run879's window (block 5986), so its widening is on disk. The item before's hypothesis is the Transport Freighter
+`1/225`, idle in ours from 5976.
 
 ## Parked by the next landing, slot FA — reserved
 
