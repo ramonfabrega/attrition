@@ -390,6 +390,8 @@ mod type_restore;
 mod type_set_graph_name;
 #[path = "type_set_help_name.rs"]
 mod type_set_help_name;
+#[path = "type_set_name.rs"]
+mod type_set_name;
 #[path = "type_set_type_name.rs"]
 mod type_set_type_name;
 #[path = "type_specialty.rs"]
