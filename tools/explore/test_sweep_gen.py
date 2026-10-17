@@ -2279,6 +2279,7 @@ class FamilyRegistrations(unittest.TestCase):
                     self.assertEqual(sweep_gen.main(line + ['--dry-run']), 0)
                 # main hands `ret='eax'`; a void answers nothing whatever it is handed.
                 self.assertIn('an empty body', out.getvalue())
+                self.assertIn('let _ = (got, want_eax);', out.getvalue())
                 self.assertIn('CELLS = [(12607952, 128)]', out.getvalue())
                 sp, script, tp, test, mod = sweep_gen.generate_void(
                     'Foo::bar@00401000', item=2887, own=1, cells=['0xc061d0:0x80'],
