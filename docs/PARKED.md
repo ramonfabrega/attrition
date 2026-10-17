@@ -6310,13 +6310,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FG — reserved
+## Parked by item 2812, 2026-10-17 — Bribe's target arm carried; its conversion is the next build
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2812, first) **`Unit::swap_team@006118d0` (286 lines) and `cast_bribe`'s unit arm are the next chapter's build**: the owner swap
+of the bribed unit and the leader counter at `+0x8f4`. Until it stands a staged Spy's Bribe parts on the target's owner, so the
+cloaked-Spy staging of GOLDEN §106 (site two on the cast frame) waits on it. Names no score.
+
+(2812, second) **`is_valid_target`'s Bribe ally arm, `has_general`'s `+0x56fe` count, and the territory refusal in `cast_bribe`
+(building and city arms)** are seams (GOLDEN §106). Names no score.
 
 ## Parked by the next landing, slot FH — reserved
 
