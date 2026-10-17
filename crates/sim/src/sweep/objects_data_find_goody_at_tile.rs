@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,36 +43,44 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             let _ = (&a, &c);
-let r16 = |w: &[u8], o: usize| i32::from(i16::from_le_bytes([w[o], w[o + 1]]));
-// `*this` is x, the argument points at y; the tile (28 bytes) at y * width + x holds the head of its object
-// list (i16 at +8) and the player (i16 at +0xa) that selects the per-player table at 0xc0ab84 + 28 * player.
-let x = rd(m, 0);
-let y = rd(&p[0], 0);
-let at = (y.wrapping_mul(rd(&p[5], 0)).wrapping_add(x) as usize) * 28;
-let tile = &p[6][at..at + 28];
-let mut link = r16(tile, 8);
-let mut who = r16(tile, 10);
-while link >= 0 {
-    let row = usize::try_from(who).expect("a player row");
-    let rec = &p[8 + 5 * row + usize::try_from(link).expect("a column")];
-    who = r16(rec, 0x2e);
-    link = r16(rec, 0x2c);
-}
-if link == -3 {
-    let item = &p[2 + usize::try_from(who).expect("an item row")];
-    i64::from(if item[8] & 1 == 0 { -1 } else { who })
-} else {
-    -1
-}
+            let r16 = |w: &[u8], o: usize| i32::from(i16::from_le_bytes([w[o], w[o + 1]]));
+            // `*this` is x, the argument points at y; the tile (28 bytes) at y * width + x holds the head of its object
+            // list (i16 at +8) and the player (i16 at +0xa) that selects the per-player table at 0xc0ab84 + 28 * player.
+            let x = rd(m, 0);
+            let y = rd(&p[0], 0);
+            let at = (y.wrapping_mul(rd(&p[5], 0)).wrapping_add(x) as usize) * 28;
+            let tile = &p[6][at..at + 28];
+            let mut link = r16(tile, 8);
+            let mut who = r16(tile, 10);
+            while link >= 0 {
+                let row = usize::try_from(who).expect("a player row");
+                let rec = &p[8 + 5 * row + usize::try_from(link).expect("a column")];
+                who = r16(rec, 0x2e);
+                link = r16(rec, 0x2c);
+            }
+            if link == -3 {
+                let item = &p[2 + usize::try_from(who).expect("an item row")];
+                i64::from(if item[8] & 1 == 0 { -1 } else { who })
+            } else {
+                -1
+            }
         };
         assert_eq!(got, want_eax, "find_goody_at — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "find_goody_at — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "find_goody_at — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "find_goody_at — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "find_goody_at — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "find_goody_at — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

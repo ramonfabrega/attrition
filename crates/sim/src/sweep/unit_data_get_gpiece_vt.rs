@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -41,26 +46,39 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // A set word at this+0xe8 answers the i32 at +0x88 of the record behind the pointer behind this+0xf4 (`p1`). Otherwise
-// slot 0xb8 (or, when it is ObjectData::is, slot 0x60 of the record at this+0x18, `p2`) is asked (62, 0) -- the kept arm
-// is the flag after the answers -- and its whole `eax` != 0 is the fifth argument of `get_unit_gpiece`, handed the
-// graphic-pieces cell (`p3`), the type record's word +4 (the type behind the record `[player row][short at +0xa]`
-// of the table at 0xc0aec0), the player byte at +9, the short, 0, the flag, 0, 0; its answer is the answer.
-let _ = (&c, &a);
-if rd(m, 0xe8) != 0 {
-    log.push("-".into());
-    i64::from(rd(&p[1], 0x88))
-} else {
-    let (tok, ans) = if a[3] != 0 { ("s2:p2+0x0,62,0", a[2]) } else { ("s1:m+0x0,62,0", a[1]) };
-    log.push(tok.into());
-    let player = usize::from(m[9]);
-    let col = usize::from(u16::from_le_bytes([m[10], m[11]]));
-    let ty = &p[12 + 3 * player + col];
-    log.push(format!("s0:p3+0x0,{},{},{},0,{},0,0", rd(ty, 4), player, col, i32::from(ans != 0)));
-    i64::from(a[0])
-}
+            // slot 0xb8 (or, when it is ObjectData::is, slot 0x60 of the record at this+0x18, `p2`) is asked (62, 0) -- the kept arm
+            // is the flag after the answers -- and its whole `eax` != 0 is the fifth argument of `get_unit_gpiece`, handed the
+            // graphic-pieces cell (`p3`), the type record's word +4 (the type behind the record `[player row][short at +0xa]`
+            // of the table at 0xc0aec0), the player byte at +9, the short, 0, the flag, 0, 0; its answer is the answer.
+            let _ = (&c, &a);
+            if rd(m, 0xe8) != 0 {
+                log.push("-".into());
+                i64::from(rd(&p[1], 0x88))
+            } else {
+                let (tok, ans) = if a[3] != 0 {
+                    ("s2:p2+0x0,62,0", a[2])
+                } else {
+                    ("s1:m+0x0,62,0", a[1])
+                };
+                log.push(tok.into());
+                let player = usize::from(m[9]);
+                let col = usize::from(u16::from_le_bytes([m[10], m[11]]));
+                let ty = &p[12 + 3 * player + col];
+                log.push(format!(
+                    "s0:p3+0x0,{},{},{},0,{},0,0",
+                    rd(ty, 4),
+                    player,
+                    col,
+                    i32::from(ans != 0)
+                ));
+                i64::from(a[0])
+            }
         };
         assert_eq!(got, want_eax, "get_gpiece — eax, row `{line}`");
-        assert_eq!(log, want_log, "get_gpiece — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "get_gpiece — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "get_gpiece — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
