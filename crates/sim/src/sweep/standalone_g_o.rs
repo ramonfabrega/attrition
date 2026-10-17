@@ -200,6 +200,8 @@ mod group_attack_to_order_get_group_attack_to_order;
 mod group_attack_to_order_walk_data;
 #[path = "group_attack_to_order_walk_data_vtordisp.rs"]
 mod group_attack_to_order_walk_data_vtordisp;
+#[path = "group_can_activate.rs"]
+mod group_can_activate;
 #[path = "group_compute_speed.rs"]
 mod group_compute_speed;
 #[path = "group_data_can_transport.rs"]
@@ -636,6 +638,8 @@ mod object_type_restore;
 mod object_type_walk_rules_data;
 #[path = "object_update_los.rs"]
 mod object_update_los;
+#[path = "objects_array_get_data_type.rs"]
+mod objects_array_get_data_type;
 #[path = "objects_data_count_nukes_in_flight.rs"]
 mod objects_data_count_nukes_in_flight;
 #[path = "objects_data_find_city.rs"]

@@ -258,6 +258,8 @@ mod unit_type_num_preq;
 mod unit_type_restore;
 #[path = "unit_type_walk_rules_data.rs"]
 mod unit_type_walk_rules_data;
+#[path = "unit_update_ceo_position.rs"]
+mod unit_update_ceo_position;
 #[path = "unit_update_gpiece.rs"]
 mod unit_update_gpiece;
 #[path = "unit_update_local_seen.rs"]
@@ -266,6 +268,8 @@ mod unit_update_local_seen;
 mod unit_update_order;
 #[path = "unit_update_patrol_order.rs"]
 mod unit_update_patrol_order;
+#[path = "unit_update_z.rs"]
+mod unit_update_z;
 #[path = "units_make_valid.rs"]
 mod units_make_valid;
 #[path = "valid_filter_case0.rs"]
@@ -360,8 +364,12 @@ mod wall_die;
 mod wall_is_active;
 #[path = "wall_is_started.rs"]
 mod wall_is_started;
+#[path = "wall_kill_competing_buildings.rs"]
+mod wall_kill_competing_buildings;
 #[path = "wall_mask_city.rs"]
 mod wall_mask_city;
+#[path = "wall_mask_me.rs"]
+mod wall_mask_me;
 #[path = "wall_out_draw.rs"]
 mod wall_out_draw;
 #[path = "wall_out_get_gpiece.rs"]

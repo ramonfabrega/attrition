@@ -7151,13 +7151,26 @@ Candidate: decode `\n` in a batch row. One reach.
 (3047) **`h * 100 >> 8` against `h * 100 / 256` in `Fractal::get_height`'s port is an equivalent mutant** (h is
 clamped to 0..255), so the break "fails nothing" by arithmetic, not by a starved draw. Names no score.
 
-## Parked by the next landing, slot HC — reserved
+## Parked by item 3044, 2026-10-17 — the sweep's fourth harvest batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3044, first) **Starved draws accepted, said plainly.** `ObjectsArray::get_data_type`: a break `a[0] > 0`
+passes — the object argument is a `--ptrarg` address, never negative. `Unit::update_z`: the child's
+unit-index short is drawn 0/1 only (a break `as u16` for `as i16` passes), because a negative index reads
+before the pointer table and the emulator answers the neighbouring window; the sign of that short is not
+covered. `Group::can_activate`: the `is_team` answer is unused by the function and drawn wild.
+
+(3044, second) **Not built, read** (shortest of the rest): `ObjectData::num_aircraft_here` (a vtable
+slot compared with `ObjectData::is`'s address, `UnitData::home_base` through an out pointer, the
+`units` table twice), `ObjectData::can_carry` (the same `is`-slot compare four times and two
+type tables), `Army::is_engaged` and `Caravans::new_danger` (`vector_dist` called with
+register arguments the export shows as `unaff_*`), `Group::set_up_insert` (a `LinkListBase::add`
+and `copy_order`), `UnitData::get_attrition` (the `f32`, still not as a float),
+`Terrain::object_placed` (`spot_update_land` and `TerrainVis::invalidate_wcoord`).
+
+(3044, third) `--outarg IDX:K` repeated for one stub (two out pointers, as `tile_corner`'s) works and
+the generator says nothing of it; and a `--place` whose location is a stub's answer (`sN`) carrying a
+second `--wbias` window is the way to give a callee-returned record a field (`Wall::mask_me`'s
+`+0x72`). Worth a line in `sweep_gen.py`'s help (for the Loop).
 
 ## Parked by the next landing, slot HD — reserved
 
