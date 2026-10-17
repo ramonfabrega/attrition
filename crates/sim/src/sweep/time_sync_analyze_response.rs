@@ -40,6 +40,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
+            {
             // `param_1 <= ping_times_sorted[12]` (unsigned): `time = param_1/2 + param_2`, `base_time = timeGetTime()`,
             // the log's flag bit 3 set round `Log::say` and cleared after (so cleared), `game_log`'s detail put back unless
             // negative (then 1, what the say left). Either way `add_ping(param_1)`, its `ecx` `this` or the log's.
@@ -66,6 +67,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 log.push("-".into());
             }
             1
+}
         };
         assert_eq!(got, want_eax, "analyze_response — eax, row `{line}`");
         assert_eq!(log, want_log, "analyze_response — the recorded calls, row `{line}`");

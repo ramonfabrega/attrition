@@ -26,7 +26,7 @@ ENTRY = 0x00954b90
 WIN = 16
 OWN = 2
 BIAS = []
-ARGSET = []
+ARGSET = [(0, [0, 1, 5, 1000, 2147483647])]
 ARGFROM = []
 CELLS = [(12608376, 32)]
 AT = [(13146188, 4), (13145868, 8), (15405920, 96)]
@@ -36,7 +36,7 @@ STUBS = [('iat', 11293792, 0), ('call', 9784448, 1), ('call', 10726960, 10)]
 PLACES = []
 NULLS = []
 NULLFORCE = {}
-WBIAS = [('c3', 76, ('set', [-5, -1, 0, 1, 2, 9]))]
+WBIAS = [('c3', 76, ('set', [-5, -1, 0, 1, 2, 9])), ('c1', 0, ('set', [0, 1, 5, 1000, 2147483647]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "2921", "obj", "TimeSync::analyze_response@00954b90", "--win", "16", "--own", "2", "--cell-win", "0xc06378:0x20", "--at", "0xc8984c:4", "--at", "0xc8970c:8", "--at", "0xeb1360:0x60", "--stub", "iat:0xac5460:0", "--stub", "0x954c80:1", "--stub", "0xa3ae30:10", "--answers", "0:0,1,0x3e8,0x7fffffff", "--wbias", "c3+0x4c:-5,-1,0,1,2,9", "--record", "1", "--record", "2", "--port", "todo!()"]
+# sweep_gen: ["--item", "2921", "obj", "TimeSync::analyze_response@00954b90", "--win", "16", "--own", "2", "--cell-win", "0xc06378:0x20", "--at", "0xc8984c:4", "--at", "0xc8970c:8", "--at", "0xeb1360:0x60", "--stub", "iat:0xac5460:0", "--stub", "0x954c80:1", "--stub", "0xa3ae30:10", "--answers", "0:0,1,0x3e8,0x7fffffff", "--wbias", "c3+0x4c:-5,-1,0,1,2,9", "--record", "1", "--record", "2", "--argset", "0:0,1,5,1000,0x7fffffff", "--wbias", "c1+0:0,1,5,1000,0x7fffffff", "--port", "{\n            // `param_1 <= ping_times_sorted[12]` (unsigned): `time = param_1/2 + param_2`, `base_time = timeGetTime()`,\n            // the log's flag bit 3 set round `Log::say` and cleared after (so cleared), `game_log`'s detail put back unless\n            // negative (then 1, what the say left). Either way `add_ping(param_1)`, its `ecx` `this` or the log's.\n            let p1 = a[0] as u32;\n            let ping = u32::from_le_bytes([c[1][0], c[1][1], c[1][2], c[1][3]]);\n            if p1 <= ping {\n                let time = (p1 >> 1).wrapping_add(a[1] as u32);\n                c[2][0..4].copy_from_slice(&time.to_le_bytes());\n                c[2][4..8].copy_from_slice(&a[2].to_le_bytes());\n                let flags = rd(&c[3], 4) & !8;\n                wr(&mut c[3], 4, flags);\n                if rd(&c[3], 0x4c) < 0 {\n                    wr(&mut c[3], 0x4c, 1);\n                }\n                log.push(format!(\"c3+0x0,{}\", a[0]));\n                log.push(format!(\n                    \"c3+0x0,{},15418236,{},{},0,0,0,0,0,2\",\n                    rd(&c[0], 0x10).wrapping_add(0x21458),\n                    time as i32,\n                    a[2]\n                ));\n            } else {\n                log.push(format!(\"m+0x0,{}\", a[0]));\n                log.push(\"-\".into());\n            }\n            1\n}"]
