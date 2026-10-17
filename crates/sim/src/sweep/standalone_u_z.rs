@@ -136,12 +136,16 @@ mod unit_data_will_be_corner;
 mod unit_die;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
+#[path = "unit_do_explore_to.rs"]
+mod unit_do_explore_to;
 #[path = "unit_do_flee_to.rs"]
 mod unit_do_flee_to;
 #[path = "unit_do_form_change.rs"]
 mod unit_do_form_change;
 #[path = "unit_do_gather.rs"]
 mod unit_do_gather;
+#[path = "unit_do_idle.rs"]
+mod unit_do_idle;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
 #[path = "unit_execute_events.rs"]
@@ -170,6 +174,10 @@ mod unit_is_supply;
 mod unit_kill_current_action;
 #[path = "unit_kill_current_path.rs"]
 mod unit_kill_current_path;
+#[path = "unit_kill_group_order.rs"]
+mod unit_kill_group_order;
+#[path = "unit_modify_group_order.rs"]
+mod unit_modify_group_order;
 #[path = "unit_must_walk.rs"]
 mod unit_must_walk;
 #[path = "unit_on_duty.rs"]
