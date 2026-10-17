@@ -6354,13 +6354,26 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FH — reserved
+## Parked by item 2818, 2026-10-17 — `--ecx-out`, the `project` pair, and four more bodies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2818, first) **`--ecx-out IDX:V,V,..`** built (`tools/sweep_gen.py`, `pair_answer`; its test
+`test_a_hooked_callee_may_answer_eax_and_ecx` failed first on the missing keyword): stub IDX answers `(eax, ecx)`, the `ecx` drawn
+from the list and printed last on the row, after the xmm values. It closes (2816): `NukeOut::setup_terrain_terraforming` redrawn with
+`--ecx-out 0:0x1000,0x2000,0x3000`, its port now logs `{a[4]},{a[4]}` for `refresh_good_z` (the old `m+0x0,m+0x0` is a mutant that
+fails). The `hooks` side was already built (1922); only the flag was missing.
+
+(2818, second) **The `project` pair** (0x92d000 `project_d`, 0x92cf40 `project_c`) needed no new flag: (2817)'s `--ecx-int` and `--edx`
+held them, with `--cdecl`, `--ptrarg 2:4 --ptrarg 3:4` for the two out words and the register-argument `sin_table` (0xa46a00,
+`ecx`/`edx`, no stack) as a `--stub 0xa46a00:0 --record --record-edx`. They differ: 0x92d000 takes the angle and distance on the stack and
+the base in `ecx`/`edx`; 0x92cf40 the reverse (angle `ecx`, distance `edx`, base on the stack). Do not read one as the other's overload.
+Breaks 16/16 held. `TerrainMap::remove_feature` (one `--cell-win` width record, `--place m+0x9c8` terrain bytes, `--wbias` words of tile
+types, three stubs) 6/6 after a re-run (the first mutant ran a stale binary: "failed nothing" and then held); `Border::generate_morph_side`
+(`--answer-win` pop, three stubs; the borders cell's `+0x164` is the literal 12659308 in its log, the image's value) 6/6.
+
+(2818, third) **Census 1181 → 1185** by `tools/census.py --layers` (four built: the `project` pair, `remove_feature`,
+`generate_morph_side`). Not modelled: `NukeOut::draw_underlays` (a statics guard and TLS) and `TerrainMap::on_mouse_move`,
+`Game::post_game_screens` are the next shortest rows with no shape; the rest of the shortest are renderer bodies (Loop 2819).
+This batch is short (four, not ten): no shape was left to build and the unshaped rows are the kind 2819 asks about.
 
 ## Parked by the next landing, slot FI — reserved
 
