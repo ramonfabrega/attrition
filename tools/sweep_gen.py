@@ -1486,6 +1486,7 @@ LINKHI = {linkhi!r}
 OUTARG = {outarg!r}
 CDECLSTUBS = {cdeclstubs!r}
 STUBWRITE = {stubwrite!r}
+STUBCOPY = {stubcopy!r}
 ECXANSWER = {ecxanswer!r}
 ECXOUT = {ecxout!r}
 RING = {ring!r}
@@ -1608,6 +1609,20 @@ def win_write(inner, at, size, v, write, read=None):
         else:
             write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
         return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
+def copy_answer(inner, read, write, cap):
+    """`--stub-copy IDX` (item 2921, parked 2906): a stubbed `__cdecl` callee
+    that does what `memcpy` does — argument 2's bytes from argument 1 to
+    argument 0, at most `cap` — and answers the destination. The thunk the
+    original calls is an import (`jmp [0xac5428]`), which the emulator
+    resolves to nothing, so a plain stub copied nothing."""
+    def answer(ecx, args):
+        dst, src, n = (a & 0xFFFFFFFF for a in args[:3])
+        if n:
+            write(dst, read(src, min(n, cap)))
+        return dst
     return answer
 
 
@@ -1995,6 +2010,9 @@ def main(argv):
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write,
                                                       lambda a_, n_: bytes(uc.mem_read(a_, n_)))
+        for idx in STUBCOPY:
+            h.answers[names[idx]] = copy_answer(h.answers[names[idx]], lambda a_, n_: bytes(uc.mem_read(a_, n_)),
+                                                uc.mem_write, 0x1000)
         derefs = [[] for _ in DEREF]
         for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
@@ -2256,7 +2274,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=()):
+                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=()):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2491,6 +2509,17 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
             raise ValueError(f'--stub-write names stub {idx}, and there are {len(stubs)}')
         pwrite.append((idx, m_.group(2), int(m_.group(3), 0), int(m_.group(4)),
                        'dec' if m_.group(5) == 'dec' else int(m_.group(5), 0)))
+    pcopy = []
+    for spec in stub_copy:
+        try:
+            idx = int(spec, 0)
+        except ValueError:
+            raise ValueError(f'--stub-copy is IDX, a --stub callee by its order on the line, not {spec!r}') from None
+        if not 0 <= idx < len(pstubs) or pstubs[idx][0] not in ('call', 'iat') or pstubs[idx][2] < 3:
+            raise ValueError('--stub-copy IDX names a direct callee of three arguments or more (`memcpy`: dst, src, n)')
+        if idx not in pcdecl:
+            raise ValueError('--stub-copy IDX names a `__cdecl` callee: it needs --stub-cdecl IDX beside it')
+        pcopy.append(idx)
     pecxans = []
     for spec in ecx_answer:
         m_ = re.fullmatch(r'(\d+):(\w+)(?::(\w+))?', spec)
@@ -2593,6 +2622,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            + (f'{v[1]}..{v[2]}' if v[0] == 'range' else str(v[1]))
            + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
         + [f'stub {k} is `__cdecl`: the caller pops its arguments' for k in pcdecl]
+        + [f'stub {idx} copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`)' for idx in pcopy]
         + [f'stub {idx} lowers `{w}+{o:#x}` ({z} bytes) by one each call' if v == 'dec'
            else f'stub {idx} writes {v} ({z} bytes) at `{w}+{o:#x}` each call' for idx, w, o, z, v in pwrite]
         + [f'stub {idx} answers from its own `ecx`: the word at `+{o:#x}`'
@@ -2634,7 +2664,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
+                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
@@ -3425,6 +3455,9 @@ def main(argv=None):
     ap.add_argument('--stub-write', action='append', default=[], metavar='IDX:WIN+OFF:SIZE:VAL',
                     help='obj: stub IDX writes VAL (SIZE 1, 2 or 4 bytes) at window m, cN or pN\'s word each call: '
                          'a callee that unlinks the head its caller loops over (item 2346)')
+    ap.add_argument('--stub-copy', action='append', default=[], metavar='IDX',
+                    help='obj: stub IDX, a `__cdecl` callee of three arguments, copies argument 2 bytes from argument 1 '
+                         'to argument 0 and answers the destination, as the `memcpy` import thunk would (item 2921, parked 2906)')
     ap.add_argument('--ecx-answer', action='append', default=[], metavar='IDX:OFF[:FLAGOFF]',
                     help='obj: stub IDX answers from its own `ecx`: the word at ecx+OFF, or with FLAGOFF ecx+OFF '
                          'itself when the word at ecx+FLAGOFF is set, else null (a slot of a record laid in a '
@@ -3694,7 +3727,7 @@ def main(argv=None):
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link, link_hi=args.link_hi,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
-                                                    edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write,
+                                                    edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write, stub_copy=args.stub_copy,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
             sp, script, tp, test, mod = generate_vcallbase(args.function, item=args.item, slot=args.slot,

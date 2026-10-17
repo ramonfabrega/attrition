@@ -2,6 +2,7 @@
 the twenty-ninth pass). Each shape's script must parse as Python and its
 test must name the function, the script and the port; a function spelled
 any other way is refused."""
+import inspect
 import sys
 import tempfile
 import unittest
@@ -490,6 +491,44 @@ class Shapes(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
                                        stubs=['0x402000:1', '0x403000:1'], stub_write=[bad])
+
+    def test_a_cdecl_stub_may_copy(self):
+        # Item 2921 (parked 2906): `memcpy` and `memcmp` are import thunks
+        # (`jmp [0xac5428]`); a stub of one copied nothing, so the string
+        # `CommandManager::issue_rename_city` copies into its command was
+        # never under the deref. `--stub-copy IDX` makes a stubbed cdecl callee
+        # copy argument 2's bytes from argument 1 to argument 0, as `memcpy`
+        # does, and answer the destination.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2921, win=0x40, bias=[], own=0, ret='none',
+            stubs=['0x402000:3'], stub_cdecl=['0'], stub_copy=['0'])
+        compile(script, str(sp), 'exec')
+        self.assertIn('STUBCOPY = [0]', script)
+        self.assertIn('def copy_answer(', script)
+        self.assertIn('stub 0 copies its argument 2 bytes from argument 1 to argument 0', test)
+        for bad in ('1', '-1', 'x'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
+                                       stubs=['0x402000:3'], stub_cdecl=['0'], stub_copy=[bad])
+        # a stub with fewer than three arguments, or one the caller does not pop, is no memcpy
+        for stubs, cd in ((['0x402000:2'], ['0']), (['0x402000:3'], [])):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
+                                       stubs=stubs, stub_cdecl=cd, stub_copy=['0'])
+        # the copy itself, on a fake memory: n bytes, the destination answered, n capped
+        src = script[script.index('def copy_answer('):]
+        ns = {}
+        exec(src[:src.index('\n\n\n')], ns)
+        mem = bytearray(0x40)
+        mem[0x10:0x14] = b'abcd'
+        rd_ = lambda a, n: bytes(mem[a:a + n])
+        wr_ = lambda a, b: mem.__setitem__(slice(a, a + len(b)), b)
+        self.assertEqual(ns['copy_answer'](None, rd_, wr_, 0x1000)(0, [0x20, 0x10, 4]), 0x20)
+        self.assertEqual(bytes(mem[0x20:0x24]), b'abcd')
+        self.assertEqual(bytes(mem[0x24:0x28]), bytes(4))
+        mem[0x20:0x24] = bytes(4)
+        ns['copy_answer'](None, rd_, wr_, 2)(0, [0x20, 0x10, 4])
+        self.assertEqual(bytes(mem[0x20:0x24]), b'ab\0\0')
 
     def test_a_stub_may_decrement_a_window_word_each_call(self):
         # Item 2749 (parked 2734): `PathFinder::kill_lists` and `Build::verify_gather_tiles`
