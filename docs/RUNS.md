@@ -17489,3 +17489,27 @@ SHA-256 `44eedca26f3be8f7b4a833d1f050a2f727e9d963d2c5dbeb1bf96abf881248de`.
 **What it holds**: the lobby's draw stream to 24000, with its explicit setup and closing records. `diff::battery` walks it from
 run887's start. Its first try is **176 of 24000** (ours 12 draws, theirs 14, at draw 6 ours `Farms::inc_time+0x1ae`, theirs
 `Guy::init_real+0x52`), measured and never debugged against.
+
+## run891 — the battery word: East Indies, Germans at difficulty 3, the word 5577's widening, blocks 5571..5827 (2026-10-17, item 2931, `att-2931`)
+
+`docs/AI.md` §240. **What the disk could not answer**: item 2931 moved the word 576 → 5577, past run886's last block (826);
+run643 is `cover=0` with its setup and closing blocks only, so no dump of this lobby held a record on 5577. run886's recipe
+with the window moved to the word, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run891`: `--map 18
+--end-frame 5833 --timeout 7200 --log-window 5571 5828 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1: `success`, `settings_restored`, 5834 frames, `map_style 18`, seed 12345, players `(0,4,7),(1,12,1)`; 942 s from
+  launch to exit (launched 11:52:44, exited 12:08:25).
+- The dump holds 258 `BEGIN FRAME`s (5571..5827 and the closing block).
+- `rngcmp.py rontrace-run643.log rontrace-run891.log`: **5834 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run891-eastindies-german-diff3-window-5571-5828.txt`, 456,026,642 bytes,
+SHA-256 `4b4f7e8f9df3d9ddf0977749f20b4ceb181e12c10a55cac55c6fded44a05794b`.
+
+Archive `rontrace-run891.log`, 28,420,576 bytes,
+SHA-256 `a52e29745fadc3b51eb55550d6bcde0e36f4a2706fa7cf680c804ad8f50d648e`.
+
+**What it holds**: `diff::german_word::run891_s_word_frame_is_widened_whole`, 302 keys over 257 blocks. On the word's block
+5578 who=1's make list holds three Village offers in ours and two in theirs (`MAKE[0]` val 664398 at (47, 24) against
+286098 at (46, 27)); its site table stands apart from 5571 (`SITE[8]` (47, 24) against (51, 30)). The window is in the
+coverage driver's slice.

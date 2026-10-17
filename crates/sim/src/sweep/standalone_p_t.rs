@@ -90,6 +90,8 @@ mod repair_order_get_type;
 mod repair_order_get_type_vtordisp;
 #[path = "resource_divvy_pool_add_early.rs"]
 mod resource_divvy_pool_add_early;
+#[path = "resource_divvy_pool_add_good.rs"]
+mod resource_divvy_pool_add_good;
 #[path = "resource_divvy_pool_add_late.rs"]
 mod resource_divvy_pool_add_late;
 #[path = "resource_divvy_pool_add_water.rs"]
@@ -216,6 +218,8 @@ mod sub_object_out_is_on_screen;
 mod sub_object_refresh_z;
 #[path = "sub_object_set_new_location.rs"]
 mod sub_object_set_new_location;
+#[path = "sub_object_set_type.rs"]
+mod sub_object_set_type;
 #[path = "sub_object_time.rs"]
 mod sub_object_time;
 #[path = "subobject_is_active.rs"]
@@ -232,6 +236,8 @@ mod supply_walk_data;
 mod surf_get_name;
 #[path = "surf_wave_section_load_old_bh3.rs"]
 mod surf_wave_section_load_old_bh3;
+#[path = "syllable_parse.rs"]
+mod syllable_parse;
 #[path = "sync_point_on_player_deleted.rs"]
 mod sync_point_on_player_deleted;
 #[path = "target_order_get_target.rs"]
@@ -246,6 +252,8 @@ mod target_order_walk_data;
 mod tcoord_data_walk_data;
 #[path = "tcoord_less.rs"]
 mod tcoord_less;
+#[path = "tech_type_add_preq_ai.rs"]
+mod tech_type_add_preq_ai;
 #[path = "tech_type_backup.rs"]
 mod tech_type_backup;
 #[path = "tech_type_restore.rs"]
@@ -278,6 +286,10 @@ mod terrain_map_remove_feature;
 mod terrain_map_river_point;
 #[path = "terrain_map_start_river.rs"]
 mod terrain_map_start_river;
+#[path = "terrain_oil_gain_tech.rs"]
+mod terrain_oil_gain_tech;
+#[path = "terrain_oil_lose_tech.rs"]
+mod terrain_oil_lose_tech;
 #[path = "terrain_oil_remove_rocky_patch.rs"]
 mod terrain_oil_remove_rocky_patch;
 #[path = "terrain_out_get_name.rs"]

@@ -21989,12 +21989,63 @@ question. The frame and the draw delta are the booking.
 the round. Whether the `aggression` row bears on anything. **Diff-backed**: the draw delta, every row above (run886 against
 the walk from run646). **Reading only**: nothing.
 
-## 240. Reserved for the next item on the AI track
+## 240. The battery word's Village was two timber short: the Germans' flat per-city gather, 576 → 5577 (2026-10-17, item 2931)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: 576 of 13519, ours 52 draws against theirs 36 — theirs one round of `Leader::compute_sites+0x4ac`/`+0x50a`
+and `make_stuff+0x221` ×2, ours five (§239). The direction is theirs: on 577 it holds who=1's Village `1/2007` and ours none.
+
+**Why ours repeats the round.** Each round is one `place_city_with_cost` (`ScenarioFuncSet`, §2.17's tail): `compute_sites`
+(two draws), then `found_cities`, whose `make_stuff` expires the two Village slots of the make list (`+0x221` ×2). The
+script's step loop calls it once a pass while no Small City is queued (`economic.bhs`/`defensive.bhs`,
+`if (num_type_with_queued(who, "Small City") < 1) place_city_with_cost(who)` under `for (i < num_loops)`): theirs bought
+the Village on its first pass, so the guard stops the other four; ours bought nothing, so five passes ran. Which of the two
+scripts who=1 runs is reading only; the draws are the measurement.
+
+**Why ours bought nothing** (a probe in `make_stuff`, one commit reverted whole, `7743688e`/`5505b959`): on 576 ours'
+head is the Village (type 414, site (45, 47), `escrow` 1), priced food 60 and timber 60, and ours' who=1 bucket held
+**food 74, timber 58** — `can_pay` false, two timber short. Theirs' dump prints who=1's bucket timber 64 on 570.
+
+**Why ours' bucket is short: the standing income row.** run886 has who=1's `income` food 800/880 and timber 640/720 from
+570, a flat 80 apart on each, with one city. `LeaderData::calc_city_resources@006d5530`'s per-city arm, after
+`CITY_GATHER`:
+
+- `has_tribe_bonus(6)` (Romans): `ROMAN_CITY_GATHER × 16` to wealth (`rules.xml` 10);
+- `has_tribe_bonus(0xc)` (Germans): `GERMAN_CITY_GATHER × 16` to food and to timber, and to metal when
+  `type_avail(METAL, 1)` (`rules.xml` 5, so 80 each).
+
+`docs/ECONOMY.md` ("What a city gives") had both in prose; `economy::assemble` had neither. **Built**:
+`Tuning::roman_city_gather`/`german_city_gather` (slots `ROMAN_CITY_GATHER`, `GERMAN_CITY_GATHER`), `Holdings::romans`/
+`germans` from the nation flags, and `economy::nation_city_gather` once per city in `assemble`. Both are additions after
+the Forbidden City's and the CEO's percentages, which scale the building walk alone, so their place in the sum moves
+nothing. Test: `economy::tests::a_german_city_adds_five_food_and_timber_and_metal_once_available`.
+
+**The value diff on the word's block 577** (run886, `run886_s_word_frame_is_widened_whole`, **262 → 31 keys**): who=1's
+`income` and `resources` read food 880 and timber 720 on both sides from 570 (ours 800 and 640 before), and the
+`leftover` and `bucket` rows are gone with them (timber bucket 64 on both, ours 58). who=1's Village `1/2007` (type 414
+at (34656, 36192)) and the Citizen `1/2`'s `BUILDORDER` on it agree. What stands is the control's 27 from 570
+(`SITE[n].reg`, `form`, the groups' `held`, the pool, both leaders' `aggression` 0/1 — parked 2932) and who=1's
+`SITE[1..4].reg` on 576 and 776 as its sites fill.
+
+**The word moves 576 → 5577** (count and sequence). At 5577 ours spends 8 draws, theirs 6: ours
+`Leader::use_market+0x1ed` ×2 then `make_stuff+0x221` ×3, theirs `use_market+0x1ed` once then `make_stuff+0x221` ×2; both
+then `Guy::set_anim+0x97a < Guy::inc_time+0x271` on `0/0` and `1/20` and one `Farms::inc_time+0x1ae`. Ours acted more:
+one more market draw and one more expiring duplicate.
+
+**The new word's widening** (run891, blocks 5571..5827, `run891_s_word_frame_is_widened_whole`, 302 keys; the window is
+in the coverage driver's slice). No dump on disk held 5577: run886 ends on 826 and run643 holds its setup and closing
+blocks only. `rngcmp.py` run643 against run891: 5834 of 5834 frames identical.
+- **The value diff on the word's block 5578**: who=1's make list holds three Village offers in ours and two in theirs —
+  `MAKE[0]` val 664398 at (47, 24) against 286098 at (46, 27), `MAKE[1]` 286098 at (46, 27) against 11400 at (51, 30),
+  `MAKE[2]` 11400 at (51, 30) against empty. Ours' third offer is the third `make_stuff+0x221` expiry on 5577.
+- **The state first parts before the window**: on 5571 who=1's `SITE[8]` is (47, 24) val 330000 in ours against (51, 30)
+  val 1824 in theirs, and `SITE[6]` (49, 31) reg 5 against (44, 52) reg 11; on 5576 `SITE[2..4]` shift by one. Ours
+  keeps a site at (47, 24) that theirs does not hold. It is not walked back: no dump of this lobby covers 827..5570.
+- 46 keys stand on 5571: those site rows, the control's `SITE[n].reg`, `form`, the groups' `held` and the pool, and both
+  leaders' `aggression` 0/1.
+
+**What is not established.** The Roman term rests on the listing alone: no scored lobby has the Romans. Whether the
+`aggression` row bears on anything (parked 2932). **Diff-backed**: the German term (run886's `income`, `bucket`, the
+Village), the draw deltas on 576 and 5577. **Reading only**: the Roman term, and which script's loop makes the five calls.
 
 ## 241. Reserved for the next item on the AI track
 
