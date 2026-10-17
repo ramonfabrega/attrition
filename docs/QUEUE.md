@@ -13,7 +13,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-17, **the thirty-ninth tranche at twenty (commander, Opus): 20 landings from `31eb3a05` and 2956 at the
-drain**; every booking gate green at its first commit, last whole `5dfa2e14`; one `DEEP` (2946, cleared at 309k, landed with no
+drain**; every booking gate green at its first commit, last whole `704553b9`, green at the drain; one `DEEP` (2946, cleared at 309k, landed with no
 lane verdict — the whole gate stood in); no kill rule; sweep collisions only before the briefs named the other lane's (2926).*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's lowest lobby,
