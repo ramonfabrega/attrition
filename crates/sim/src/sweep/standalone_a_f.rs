@@ -92,6 +92,8 @@ mod border_nodes_find;
 mod border_spline_get_name;
 #[path = "border_spline_on_field_change.rs"]
 mod border_spline_on_field_change;
+#[path = "border_spline_render_is_visible.rs"]
+mod border_spline_render_is_visible;
 #[path = "borders_get_who.rs"]
 mod borders_get_who;
 #[path = "borders_is_border_hidden.rs"]

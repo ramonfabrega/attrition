@@ -62,6 +62,8 @@ mod game_get_armageddon;
 mod game_get_game_fps_average;
 #[path = "game_info_default_setting.rs"]
 mod game_info_default_setting;
+#[path = "game_info_load_from_playback.rs"]
+mod game_info_load_from_playback;
 #[path = "game_is_cooperative.rs"]
 mod game_is_cooperative;
 #[path = "game_is_deathmatch.rs"]
