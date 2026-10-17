@@ -3076,8 +3076,9 @@ impl Sim {
     /// `Object::find_nearby_target@00648da0`'s packed AI siege shortcut:
     /// take a valid army target strictly inside the response radius,
     /// mandatory and QUEUE_FIRST, before ranking nearby candidates.
-    /// Used by the attack-move look and packer's chase re-search
-    /// (`docs/COMBAT.md` §88); other search callers remain unestablished.
+    /// Used by the attack-move look, the packer's chase re-search
+    /// (`docs/COMBAT.md` §88) and `think`'s idle search (item 2864);
+    /// the other search callers remain unestablished.
     fn take_siege_army_target(&mut self, u: usize) -> Option<Obj> {
         let who = self.units[u].owner;
         let p = self.profile(Obj::Unit(u));
@@ -3871,6 +3872,22 @@ impl Sim {
             && !self.think_attack_packed(u)
         {
             self.think_attack_join_army(u);
+            let unit = &self.units[u];
+            // **The packed computer siege engine takes its army's target
+            // first** (`find_nearby_target@00648da0:198`–`222`, reached
+            // from `think_attack`'s `find_melee_target`; item 2864,
+            // `docs/AI.md` §238): `QUEUE_FIRST`, **mandatory**, no group
+            // normalize, no `near` write — the search's own return. The
+            // peace pair's idle MLRS `1/124` (`TypeIndex` 273) took the
+            // human's `0/2000` this way on 6820, `mandatory 1`, and on
+            // 6821 walked the ring that ours, holding a found target's
+            // `mandatory 0`, dropped.
+            if unit.combat.stance != combat::Stance::HoldFire
+                && unit.combat.target.is_none()
+                && self.take_siege_army_target(u).is_some()
+            {
+                return;
+            }
             let unit = &self.units[u];
             if unit.combat.stance != combat::Stance::HoldFire
                 && unit.combat.target.is_none()
