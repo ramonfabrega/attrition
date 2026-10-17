@@ -5537,6 +5537,11 @@ fn chapter_eighty_staging_reaches_the_stealth_arm() {
 /// **Chapter eighty** (item 2755, `docs/GOLDEN.md` §102, run877): the stealth
 /// arm of `is_seen` under a computer's `calc_danger`.
 #[test]
+fn chapter_eighty_probe_scratch() {
+    cases_80_89::chapter_eighty_probe_scratch();
+}
+
+#[test]
 fn chapter_eighty_holds_to_the_golden_word() {
     cases_80_89::chapter_eighty_holds_to_the_golden_word();
 }

@@ -60,6 +60,22 @@ pub(super) fn chapter_eighty_staging_reaches_the_stealth_arm() {
     assert_eq!(probe(&s, 0, 6).0, 60, "still half");
 }
 
+pub(super) fn chapter_eighty_probe_scratch() {
+    let Some(mut s) = stage_script("ch76", "chapter80") else {
+        return;
+    };
+    while s.built.sim.frame < 616 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let sim = &s.built.sim;
+        for o in [6i16, 7] {
+            if let Some(i) = sim.units.iter().position(|u| u.alive() && u.owner == 0 && u.index == o) {
+                eprintln!("PROBE f{} 0/{} orders {} masks {:#x}", sim.frame, o, sim.units[i].orders.len(), sim.units[i].unit_masks);
+            }
+        }
+    }
+}
+
 pub(super) fn chapter_eighty_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch80", "chapter80", 80, 6, 1204) else {
         return;
