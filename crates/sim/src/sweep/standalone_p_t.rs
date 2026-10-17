@@ -264,6 +264,8 @@ mod terrain_map_remove_feature;
 mod terrain_map_river_point;
 #[path = "terrain_map_start_river.rs"]
 mod terrain_map_start_river;
+#[path = "terrain_oil_remove_rocky_patch.rs"]
+mod terrain_oil_remove_rocky_patch;
 #[path = "terrain_out_get_name.rs"]
 mod terrain_out_get_name;
 #[path = "terrain_vis_get_verts_per_bucket.rs"]
