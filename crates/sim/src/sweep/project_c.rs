@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -50,7 +55,14 @@ fn the_emulated_original_agrees_on_every_row() {
                         d = d.wrapping_neg();
                         e &= 0x7fff_ffff;
                     }
-                    (if e & 0x4000_0000 != 0 { 0x7fff_ffff - e } else { e }, d)
+                    (
+                        if e & 0x4000_0000 != 0 {
+                            0x7fff_ffff - e
+                        } else {
+                            e
+                        },
+                        d,
+                    )
                 };
                 let (ang, dist, bx, by) = (a[5], a[6], a[0], a[1]);
                 let ans = a[4];
@@ -69,7 +81,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     calls.push(format!("{e},{d}"));
                     by.wrapping_sub(ans)
                 };
-                log.push(if calls.is_empty() { "-".to_string() } else { calls.join("/") });
+                log.push(if calls.is_empty() {
+                    "-".to_string()
+                } else {
+                    calls.join("/")
+                });
                 wr(&mut p[0], 0, x);
                 wr(&mut p[1], 0, y);
                 i64::from(a[3])
