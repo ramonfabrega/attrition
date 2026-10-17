@@ -172,6 +172,8 @@ mod unit_out_issue_come_out;
 mod unit_out_issue_unqueue;
 #[path = "unit_set_ai_control.rs"]
 mod unit_set_ai_control;
+#[path = "unit_set_angle.rs"]
+mod unit_set_angle;
 #[path = "unit_set_mask.rs"]
 mod unit_set_mask;
 #[path = "unit_set_rally.rs"]
