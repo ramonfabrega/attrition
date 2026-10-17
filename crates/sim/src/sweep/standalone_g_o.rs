@@ -52,6 +52,8 @@ mod game_action_cheat_ai_speed_normal;
 mod game_action_cheat_ai_toggle;
 #[path = "game_add_game_fps_to_average.rs"]
 mod game_add_game_fps_to_average;
+#[path = "game_clock_init.rs"]
+mod game_clock_init;
 #[path = "game_current_age.rs"]
 mod game_current_age;
 #[path = "game_defeat_all.rs"]
