@@ -566,6 +566,8 @@ mod world_set_cliff_at;
 mod world_set_coastal;
 #[path = "world_set_down.rs"]
 mod world_set_down;
+#[path = "world_set_edge_flags.rs"]
+mod world_set_edge_flags;
 #[path = "world_set_gather_edge.rs"]
 mod world_set_gather_edge;
 #[path = "world_set_gathered_at.rs"]
