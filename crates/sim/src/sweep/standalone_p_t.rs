@@ -216,6 +216,8 @@ mod sub_object_out_is_on_screen;
 mod sub_object_refresh_z;
 #[path = "sub_object_set_new_location.rs"]
 mod sub_object_set_new_location;
+#[path = "sub_object_set_type.rs"]
+mod sub_object_set_type;
 #[path = "sub_object_time.rs"]
 mod sub_object_time;
 #[path = "subobject_is_active.rs"]
