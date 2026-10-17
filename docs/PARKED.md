@@ -3768,6 +3768,11 @@ Loop" line, filed at its merge; parked 2969): neighbouring values snap to land b
 stagings put a target across a detour or on a squad that marched. Candidate: `walk_script` prints each staged unit's
 landing beside its verb, a test made to fail first. One reach.
 
+(2973) **"Theirs scored zero, why" is a hand-placed hook per early return** (2956's "for the Loop" line, filed at its
+merge): a packet plus `step4.py --hook` on each early-exit fall-through (`jcc → epilogue`, hook the next instruction) named
+`blocked_site`'s arm in one run. Candidate: a `tools/recomp/` mode that lists a function's early returns and reports which
+one each call took, a test made to fail first. One reach.
+
 (2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
 and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
 `archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
@@ -6884,7 +6889,7 @@ so no dump has read a Roman `income`; a lobby with a Roman AI on one city would 
 
 ## Parked by item 2956, 2026-10-17 — a Town site more than half unseen
 
-- **(2956, second) The Dock exemption of `blocked_site`'s unseen tally rests on the reading alone** (`docs/AI.md` §241,
+- (2972) **The Dock exemption of `blocked_site`'s unseen tally rests on the reading alone** (`docs/AI.md` §241,
   `docs/CITIES.md` §11). Item 2956 built the tally and kept `is(0x1b0)`'s exemption from the listing, but no capture on
   file tallies a Dock's footprint, and the editor's `semaphore[1] & 8` skip is not modelled. A capture where an AI or a
   console `add dock` places a Dock with more than half its footprint unseen would settle it. It names no score.
