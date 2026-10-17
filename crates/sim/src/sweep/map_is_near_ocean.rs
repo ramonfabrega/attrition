@@ -64,10 +64,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 {
                     break 'r 0;
                 }
-                if p3 != 0 {
-                    if 0x40 < p3 || (rad(0)..rad(p3)).any(&land) {
-                        break 'r 0;
-                    }
+                if p3 != 0 && (0x40 < p3 || (rad(0)..rad(p3)).any(&land)) {
+                    break 'r 0;
                 }
                 1
             }
