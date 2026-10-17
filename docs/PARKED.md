@@ -3738,6 +3738,10 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3007) **`golden_capture.sh` through `viadriver.sh` returns at once, so a loop of launches does not queue** (2975's "for
+the Loop" line, filed at its merge): ten captures in a shell loop raced the lane; the pool lanes did queue. Candidate: the
+wrapper waits on its own receipt or refuses a second launch into a held lane, a test made to fail first. One reach.
+
 (3002) **A `--regen` without `--fresh` appends a changed flag set to the kept one** (2966's "for the Loop" line, filed at
 its merge): a stale `p11` place survived one regen. Candidate: the sweep brief says `--regen --fresh` first, or the regen
 refuses a flag set that differs from the kept one without `--fresh`, a test made to fail first. And a batch of ten wants a
@@ -6863,12 +6867,12 @@ so no dump has read a Roman `income`; a lobby with a Roman AI on one city would 
 
 ## Parked by item 2975, 2026-10-17 — five held-out lobbies minted
 
-- **`GreatLakesIroquoisTier3` parts at frame 0** (ours 121 draws, theirs 122; at draw 30 ours `Unit::think_scout+0x436`, theirs
+- (3005) **`GreatLakesIroquoisTier3` parts at frame 0** (ours 121 draws, theirs 122; at draw 30 ours `Unit::think_scout+0x436`, theirs
   `Unit::think_scout+0x64c`) — the first battery lobby to part on the first frame. Same callsite pair as `GreatSaharaAztecTier2`
   at 9130. Names no score (the battery is a floor, never debugged against): a `think_scout` branch (a scout's target choice) that
   differs for the Aztecs and Iroquois (both have a nation scout rule: `IROQUOIS_FREE_SCOUT`, `AZTEC` ...) is the supposition,
   unread. The booking is the frame and the draw delta.
-- **The Spanish and Romans part on 576, as the Germans did** (§125); the AI word's lane (2974) may move all three if it is one cause.
+- (3006) **The Spanish and Romans part on 576, as the Germans did** (§125); the AI word's lane (2974) may move all three if it is one cause. **At the merge**: 2974's Fire Raft arms are German-only, and the battery stayed 576 / 576 on the merged tree.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GO renames this heading `## Parked by item N, <date> — <title>`
@@ -6966,6 +6970,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HD renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

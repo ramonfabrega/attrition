@@ -19,11 +19,11 @@ seven stay; `docs/audit/2026-10-17-fable-pass-39.md`.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956) → 12815 (2974), as 2997; it stays on its lobby until it closes (DECISIONS 77 (vii)).
-  Chapters 86–91 closed; 92 is 2994. Census 1224 → 1339 of 3611. Battery 6566 / 2974 / 176, a gate floor now.
-- **Lanes: five landings** (2976 NATIONS.md; 2959, 2966 Census → 1339; 2971 ch91; 2974 6585 → 12815). 2997 the AI word's
-  (Opus 5.5 medium, run 912); 2994 rules, 3004 harvest (Sonnet 5.5 medium); refilled while landings + live < 20. Next 3005,
-  run 913 (Astra 900–909). Pools: GOLDEN §117–120, AI §245–247, park GW–GX (GU 2997's, GV 3004's).
-- **Fable backlog: 13 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003).
+  Chapters 86–91 closed; 92 is 2994. Census 1224 → 1339 of 3611. Battery eight lobbies (2975), 0 to 9130, median 1008, a gate floor.
+- **Lanes: six landings** (2976 NATIONS.md; 2959, 2966 Census → 1339; 2971 ch91; 2974 6585 → 12815; 2975 five lobbies). 2997
+  the AI word's (Opus 5.5 medium, run 912); 2994 rules, 3004 and 3008 harvest (Sonnet 5.5 medium); refilled while landings +
+  live < 20. Next 3009, run 913 (Astra 900–909). Pools: GOLDEN §117–120, AI §245–247, park GX–HD (GW 3008's).
+- **Fable backlog: 14 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003, 3007).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -46,7 +46,7 @@ landings + live lanes < 20; stop at twenty.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2997 the AI word's (Opus); 2975, 2990, 2994 and 3004 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
+2997 the AI word's (Opus); 2990, 2994, 3004 and 3008 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 2997. **The battery word, 12815 of 13519 (`EastIndiesGermanTier3`, East Indies):
@@ -57,14 +57,6 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     on 12809 (`0/0` (4680, 9362) against (4674, 9396)), so the state first
     parts in 6837..12808, which no dump holds: a windowed capture or a
     bisection, run 912. Unstarted. AI §244.
-
-2975. **Five held-out lobbies minted** (DECISIONS 77 (ii), 61 §6; `docs/AI.md`
-    §125, `diff::battery::BATTERY`): captures only, never debugged against
-    — each a nation no dump holds (§125's list) at difficulty 2, 3 or 4 on
-    Great Sahara, Great Lakes or East Indies (maps 7, 14, 18), no two
-    sharing a nation or a tier on a map; a start sibling and a long trace of run888's shape (110 s each);
-    its first try pinned as count and sequence with the draw delta in
-    §125's table. Runs 895–899, pool lanes in parallel. Unstarted. Sonnet.
 
 2994. **Chapter ninety-two: Sabotage's and Pilfer's refused arms**
     (DECISIONS 56 §3; 2971 closed chapter 91 on run894 to 1200, the
@@ -87,6 +79,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     --unbacked --claimed <the shape lane's tree>` re-read at each `ccc
     update`, none the shape lane's (`process_*`, 2990's successor); a
     function no built shape holds parks for the shape lane. Unstarted. `--kind sweep`.
+
+3008. **A second harvest batch, beside 3004: ten never-backed simulation
+    functions a built shape holds** (DECISIONS 61 §5, a lane with no word
+    of its own; the score `Census:` 1339 of 3611): as 3004, with
+    `--claimed` naming 3004's tree and the shape lane's, so no function
+    is swept twice. Unstarted. `--kind sweep`.
 
 ## How to maintain this file
 
