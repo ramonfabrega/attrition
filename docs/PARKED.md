@@ -7002,13 +7002,26 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GX — reserved
+## Parked by item 3014, 2026-10-17 — ten more `process_*` bodies swept, Census 1349 → 1359
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3025) **Still unswept after this batch**: `CommandPackage::process_rename_city` (virtual slot 0xac on a unit
+  record placed through the objects table, so a `--vtat-also` on all twelve unit windows; the slot's answer is a pointer
+  the function indexes by a signed short at +0x72 into the per-player `cities` array at `0xc09970 + who*0x1c`; a
+  `String::operator=` whose `ecx` after the return is the next callee's argument, `find_group` and `update_name`), and
+  2964's `find_city`, `find_city_at`, `poor_target`, `Tribes::find`, `Unit::update_local_seen` (a bounded image-table
+  draw, `--at VA:SIZE:LO..HI`), `Wall::swap_team`, `Signposts::add`. None read this batch. **Booked as 3030 at the merge.**
+- (3026) **`--record-edx` prefixes `ecx,edx` to every recorded call**, so a logger of five references prints ten
+  arguments after its `ecx`; the generated docstring does not say so and `process_hotkey`'s first run looked as if the
+  logger's arity were off by one. One line in the docstring when the flag is set.
+- (3027) **`--answers IDX` with `--seq IDX:N:T` prints one plain answer then N values**, the last drawn from
+  the terminators (`process_sell`'s `do_sell`: `a[9]` the plain answer, `a[10..15]` the sequence); the usage text says "N
+  values" and the row has N+1 after the plain one. `process_sell` reads `a[10 + min(k, 4)]`.
+- (3028) **`--place-null K:WIN+OFF=V` is the only way a port tells a null placed pointer from a live one**:
+  `process_console_cmd` marks it with the word 12345678 at the start of the buffer (`p1+0`); a port of a function that
+  reads that word would have to take another marker.
+- (3029) **`process_speed_set`'s timings table (`0xafc4a4`) is read as the file's static bytes under the emulator**
+  (values like 5242957, 67, 1 that no booted game holds); the sweep draws it as a window instead, so it pins the
+  indexing and the call, not the table (the table is the sim's own `TurnControl::timings`, not swept here).
 
 ## Parked by the next landing, slot GY — reserved
 
