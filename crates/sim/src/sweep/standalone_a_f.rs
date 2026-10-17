@@ -104,6 +104,8 @@ mod border_build_border;
 mod border_generate_morph_side;
 #[path = "border_nodes_find.rs"]
 mod border_nodes_find;
+#[path = "border_process.rs"]
+mod border_process;
 #[path = "border_process_morph.rs"]
 mod border_process_morph;
 #[path = "border_spline_get_name.rs"]
@@ -524,6 +526,8 @@ mod command_package_begin_process;
 mod command_package_process_accept;
 #[path = "command_package_process_alarm.rs"]
 mod command_package_process_alarm;
+#[path = "command_package_process_attack_ground.rs"]
+mod command_package_process_attack_ground;
 #[path = "command_package_process_buildmask.rs"]
 mod command_package_process_buildmask;
 #[path = "command_package_process_buy.rs"]
@@ -544,28 +548,46 @@ mod command_package_process_cheat_zero_buckets;
 mod command_package_process_cheat_zero_techs;
 #[path = "command_package_process_check_random.rs"]
 mod command_package_process_check_random;
+#[path = "command_package_process_city_gather.rs"]
+mod command_package_process_city_gather;
+#[path = "command_package_process_clear_all.rs"]
+mod command_package_process_clear_all;
+#[path = "command_package_process_clear_tributes.rs"]
+mod command_package_process_clear_tributes;
 #[path = "command_package_process_declare.rs"]
 mod command_package_process_declare;
+#[path = "command_package_process_demand_tribute.rs"]
+mod command_package_process_demand_tribute;
 #[path = "command_package_process_disband.rs"]
 mod command_package_process_disband;
+#[path = "command_package_process_eject_all.rs"]
+mod command_package_process_eject_all;
 #[path = "command_package_process_halt.rs"]
 mod command_package_process_halt;
 #[path = "command_package_process_marwan.rs"]
 mod command_package_process_marwan;
+#[path = "command_package_process_patrol.rs"]
+mod command_package_process_patrol;
 #[path = "command_package_process_pause.rs"]
 mod command_package_process_pause;
+#[path = "command_package_process_propose_attack.rs"]
+mod command_package_process_propose_attack;
 #[path = "command_package_process_recall.rs"]
 mod command_package_process_recall;
 #[path = "command_package_process_resign.rs"]
 mod command_package_process_resign;
 #[path = "command_package_process_scramble.rs"]
 mod command_package_process_scramble;
+#[path = "command_package_process_set_transport.rs"]
+mod command_package_process_set_transport;
 #[path = "command_package_process_speed_down.rs"]
 mod command_package_process_speed_down;
 #[path = "command_package_process_speed_up.rs"]
 mod command_package_process_speed_up;
 #[path = "command_package_process_stop_spell.rs"]
 mod command_package_process_stop_spell;
+#[path = "command_package_process_transport.rs"]
+mod command_package_process_transport;
 #[path = "command_package_process_treaty.rs"]
 mod command_package_process_treaty;
 #[path = "command_package_process_tribute.rs"]

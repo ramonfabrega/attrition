@@ -679,6 +679,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch87 = golden_dump("ch87");
     let ch88 = golden_dump("ch88");
     let ch89 = golden_dump("ch89");
+    let ch90 = golden_dump("ch90");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2554,6 +2555,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             n, 7,
             "chapter eighty-nine carries seven blocks in the window"
         );
+        frames += n;
+    }
+    // **Chapter ninety, on run892** (item 2949): an Informer's three kills,
+    // 664 (stealth-hidden), 809 (building lost mid-approach), 841 (unseen at
+    // range); the window takes the last, whose cast ends the order on 842.
+    if let Some(p) = &ch90 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINETY;
+        let n = drive_capture(p, 838, 844, &mut paths);
+        assert_eq!(n, 7, "chapter ninety carries seven blocks in the window");
         frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
