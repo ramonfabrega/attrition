@@ -6644,8 +6644,9 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2900, 2026-10-17 — the sweep's hundred-and-twenty-third batch
 
-(2900, first) **`CityData::count_farms` 0x7368c0 is in neither `census.py --never` nor `--unbacked`, and no sweep file spells it**: 2888 named
-it with `get_building`; the census scores it backed some other way (a `port` or a `name` match), so a sweep of it moves no count. Not built.
+(2900, first) **`CityData::count_farms` 0x7368c0 was not swept**: `census.py --never`, `--unbacked` and `--all` print no row for it; the crate
+has it as `city_count_farms` (`farms.rs`), no sweep file spells it. If it is a census row under another name, a sweep of it is the
+vtable-compare arm 2888 named; I did not chase the row. One reach.
 
 (2900, second) **`--vtat-keep` is `--slotbase` without the stub-slot check**: the generated script is the same (`SLOTBASE`, the 0/1 flag
 after the answers); the two flags could be one. A compare of a *record word* with a function (`AnimalData::walk_data` reads the slot of
