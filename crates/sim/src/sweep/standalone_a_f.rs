@@ -554,6 +554,8 @@ mod command_package_process_cheat_ai_toggle;
 mod command_package_process_cheat_give_techs;
 #[path = "command_package_process_cheat_increase_buckets.rs"]
 mod command_package_process_cheat_increase_buckets;
+#[path = "command_package_process_cheat_init_unit.rs"]
+mod command_package_process_cheat_init_unit;
 #[path = "command_package_process_cheat_view_all.rs"]
 mod command_package_process_cheat_view_all;
 #[path = "command_package_process_cheat_zero_buckets.rs"]
