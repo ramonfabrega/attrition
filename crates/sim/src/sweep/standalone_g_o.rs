@@ -196,6 +196,8 @@ mod group_data_get_form_mod_option;
 mod group_data_get_form_option;
 #[path = "group_data_get_infinite_queue.rs"]
 mod group_data_get_infinite_queue;
+#[path = "group_data_get_max_range.rs"]
+mod group_data_get_max_range;
 #[path = "group_data_get_num_cap_const.rs"]
 mod group_data_get_num_cap_const;
 #[path = "group_data_get_num_const.rs"]
