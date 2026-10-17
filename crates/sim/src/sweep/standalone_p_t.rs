@@ -82,6 +82,8 @@ mod region_release;
 mod regions_concat;
 #[path = "regions_fix_all_borders.rs"]
 mod regions_fix_all_borders;
+#[path = "regions_get_num_sea.rs"]
+mod regions_get_num_sea;
 #[path = "regions_walk_data.rs"]
 mod regions_walk_data;
 #[path = "repair_order_get_type.rs"]
