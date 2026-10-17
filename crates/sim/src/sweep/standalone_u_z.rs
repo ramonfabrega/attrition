@@ -104,6 +104,8 @@ mod unit_data_is_packing;
 mod unit_data_is_packing_or_unpacking;
 #[path = "unit_data_is_rare_collector.rs"]
 mod unit_data_is_rare_collector;
+#[path = "unit_data_is_seen.rs"]
+mod unit_data_is_seen;
 #[path = "unit_data_is_unpacking.rs"]
 mod unit_data_is_unpacking;
 #[path = "unit_data_los.rs"]
@@ -524,6 +526,8 @@ mod world_set_started2_at;
 mod world_set_started_at;
 #[path = "world_set_tocean.rs"]
 mod world_set_tocean;
+#[path = "world_set_tree_at.rs"]
+mod world_set_tree_at;
 #[path = "world_set_was_seen.rs"]
 mod world_set_was_seen;
 #[path = "world_set_waterhalf.rs"]
