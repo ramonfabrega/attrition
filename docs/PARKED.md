@@ -6744,13 +6744,31 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GD — reserved
+## Parked by item 2921, 2026-10-17 — the hundred-and-twenty-fifth sweep batch (shape lane)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2921, first) **2905's flag already existed.** `--stub iat:VA:N` (item 2336) lays a stub in an import's IAT cell, and
+  `process_halt`'s `mov esi, [0xac543c]; call esi` lands on it — `--stub iat:0xac543c:2 --stub-cdecl 0` ran the family with
+  no new code. The row's premise ("a direct callee can be stubbed but not an indirect one through a register") was wrong;
+  the same holds for `timeGetTime` (`call [0xac5460]`, 2923) and for `free`/`malloc` imports (2925's `delete_items`, not swept).
+- (2921, second) **About twenty `CommandPackage::process_*` bodies are still never-backed** (`census.py --unbacked`): `process_cheat_*`,
+  `process_disband`, `process_resign`, `process_accept`, `process_buy`, `process_speed_up/down`, `process_unitmask`, `process_buildmask`,
+  `process_treaty`, `process_declare`, `process_tribute`, `process_city_gather`, ... Each is the log plus one call; the nine swept
+  here are the template (`command_package_process_alarm.rs` for log + say + a group call, `_ungraceful_player_drop.rs` for a gated one).
+- (2921, third) **The log's uninitialised argument slots are stack residue the original and the port both spell.** `process_check_random`'s
+  `logToMemory` is handed three words the caller never wrote; the rows hold them as the return address of the last `strrchr` call
+  (`0x946031`/`0x946045`), which is the emulator's stack and the original's by construction, not a game fact. `process_pause`'s
+  `TurnControl::process_pause` is called with the `ecx` the logger left (the singleton cell, 0 under the emulator): the decompile's
+  `this_00` is uninitialised, and which `TurnControl` it means is not established.
+- (2921, fourth) **`--clean-stack N` is opt-in and the residue it hides is real.** `issue_rename_city`'s Command printed the previous
+  row's string past the NUL because the harness's stack is never cleared; with the flag a byte the function did not write reads 00.
+  A sweep that derefs a caller's local and wants the residue (the original's) still uses `--deref IDX:K:N:W`'s mask.
+- (2921, fifth) **2922 and 2924 are not built** (`--place-null` printing a 0/1 column on an image cell; `--wbias-pair`). `--vtat-keep` is
+  still `--slotbase` without the stub check (2917), not folded.
+- (2921, sixth) **`--regen` takes the *kept line's* `--port`**, not the test file's, when the line carries one: a port edited only in
+  the `.rs` is lost by a regen that changes a flag (`issue_rename_city` twice, `process_halt`). Copy the port into the kept line first
+  (done by script this batch) or generate fresh. Loop 2886's trap, one case more.
+- (2921, seventh) **The record's `sp+0xN` stops 0x40 over the held `esp`.** The first range (0x100) swallowed the integer edge
+  `0x7FFFFFFF` (0xff over the top) in `analyze_response`'s first run and printed an argument as `sp+0xff`.
 
 ## Parked by the next landing, slot GE — reserved
 
