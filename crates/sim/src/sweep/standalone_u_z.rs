@@ -172,6 +172,8 @@ mod unit_out_issue_come_out;
 mod unit_out_issue_unqueue;
 #[path = "unit_set_ai_control.rs"]
 mod unit_set_ai_control;
+#[path = "unit_set_angle.rs"]
+mod unit_set_angle;
 #[path = "unit_set_mask.rs"]
 mod unit_set_mask;
 #[path = "unit_set_rally.rs"]
@@ -498,6 +500,8 @@ mod world_set_down;
 mod world_set_gather_edge;
 #[path = "world_set_gathered_at.rs"]
 mod world_set_gathered_at;
+#[path = "world_set_land.rs"]
+mod world_set_land;
 #[path = "world_set_mountain_at.rs"]
 mod world_set_mountain_at;
 #[path = "world_set_orig_coast.rs"]
