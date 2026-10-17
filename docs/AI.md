@@ -16884,8 +16884,8 @@ original's on every map it reaches; no closed word or open floor moved.
 `val` (31), `land` (18), `gatherers` (17), `free` (13), `form` (11), `space` (7), `my_team_terr` (6) — the control's set again (§147, §150): ours 0 or −1
 against the original's positive counts from the start (`SITE[0].reg` ours 1 theirs 0; `leader:gatherers` ours 0 theirs 7; `city:land` ours 0 theirs 97).
 
-**What is not established.** The two leader exits of the pass's condition (`leader_flags & 0x800`, `+0x59e4`) are `was_really_seen`'s seams (no run sets
-either). The wholesale recompute at setup (`claim_oil_from_owners`) still makes the oil arm alone: the original's pass at setup would also meet a *seen*
+**What is not established.** ~~The two leader exits of the pass's condition (`leader_flags & 0x800`, `+0x59e4`) are `was_really_seen`'s seams (no run sets
+either)~~ — built by item 2780 (§233): the peace pair's who=1 sets `0x800` with the Space Program. The wholesale recompute at setup (`claim_oil_from_owners`) still makes the oil arm alone: the original's pass at setup would also meet a *seen*
 rare, and the harness's fog replay (`seed_new_rares_from_fog`) stands in for it in a different order — no capture has a lobby whose list order depends
 on it. `good_seen_bits` is written by this arm alone; `reveal_fog`'s own write of the bit is still answered by the fog read, which differs from it
 exactly where this word did (the tile gate). How the original's list reached the Wool on **439** (a pass after the cell was seen) is this crate's
@@ -21505,12 +21505,71 @@ so it is widened by the same test.
 **Diff-backed**: the count on a lone unit's death (run866 5178 and 5201, run867 5401..5500, run718 2267). **Reading
 only**: the squad arm.
 
-## 233. Reserved for the next item on the AI track
+## 233. A Space Program sees every cell to the scout, and the peace pair's word moves 5564 → 5982 (2026-10-17, item 2780)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The widening is on disk.** The word 5564 lies inside run867's window (5401..5657), so its block 5565 is compared
+whole by `diff::lakota_pair::run867_s_word_frame_is_widened_whole`. No capture was booked; run 873 is unused.
+
+**The draws on 5564** (`report.py rontrace-run867.log draws 5564`; `RON_DEBUG_SITES=5564-5564`): ours 26, theirs 24.
+Both sides spend the same first seven: an idle roll, `think_spellcaster+0x413`, the city loop's `+0x436`/`+0x458`
+twice and the region scan's `+0x941` stride offset, all on who=1's Elite Special Forces `1/0` (`TypeIndex` 77,
+`ELITESPECIALFORCES`, land). At index 7 ours spends two `Unit::think_scout+0xaba` jitters, where theirs goes on to
+`Guy::set_anim+0x97a < Guy::move+0x19f`. **Ours made the record**: its region scan accepted two cells and theirs none.
+
+**The cast on 5565**, both directions, past the standing keys and the `form` rows, is `1/0`'s fourteen rows on 5565
+and 5566: `group` ours 65 against 75, `orders.len` 1 against 0, `orders_x/y` (16632, 5880) against (14976, 11136),
+`path:length` 6 against 0, then the walk. Group 65's `held` and `pool` rows from 5542 are the dump's blind `held`:
+theirs prints `None` for every group.
+
+**The walk back.** A probe in `scout_region_scan` (reverted whole) put the region at 2 (`n` 260, stride 7, start 5)
+and the two accepted cells at (16, 6), with `seen2` 1 (the human's bit alone), and (21, 7), with `seen2` 0, against
+who=1's mask 2. The mask agrees: 1,506 earlier accepted cells read `seen2` 1 and the draws held. The fog agrees as
+well. run865's packet at logger 4859, read by item 1115's `fog_probe.py`, matches ours on every half-cell but 18
+far ones (255 in theirs), and both read 1 and 0 there. Only the scout's own landing disc reaches the two cells
+between 4859 and 5564: it came ashore from the Transport Freighter `1/202` on 5557 at (38, 29), with `mylos` 32.
+`come_out` lights no disc on landing in either side: the listing writes `x`/`y` to the spot at `618667`/`618675`
+before `set_new_location(spot, spot, 1, 1)` at `6186bc`, so no half-cell changes.
+
+**The gate.** `WorldData::was_really_seen@006b54f0` (and `think_scout`'s inlined copy at `005f69cd`) answers seen
+unless all four tests pass: `who < 8`, `reveal_map != 3`, `leader_flags & 0x800` clear and `LeaderData +0x59e4`
+zero. `+0x59e4` is `num_units[0x141]` (`+0x5762` plus `0x141 × 2`), a Fouché standing (`ai_sites::FOUCHE`).
+run867's `leader_flags` for who=1 read `0xa3f03` and `0x28a3f03` on every block of the window: `0x800` is set, the
+Space Program (`ai_sites::sees_every_unit`). Ours holds the Space Program at 5564 too (a probe: `wonders_held`
+`0x10800`, and `sees_every_unit` true; false at 3894). `was_really_seen_fog` took only the first two tests. Its own
+comment called the other two seams, and §152 carried them as not established.
+
+**Built**: `Sim::was_really_seen_fog` (`crates/sim/src/scout.rs`) asks `Sim::sees_every_unit` before the grid. It
+is the one read behind the scout's two scans, `PathFinder::calc_cost`'s unexplored cost, the goody box, the
+merchant's spot, the placement check and the census.
+
+**Tests and mutations** (`tools/mutate.py`):
+- `scout::tests::a_fouche_sees_every_cell_to_the_scout`: an all-unseen grid is unseen to who=1 until a Fouché of
+  its own stands, and stays unseen to who=0.
+- The `sees_every_unit` test dropped: `lakota_pair_first_parting` fails (exit 101), its word back at 5564.
+
+**Value diff.**
+- **On 5565** `1/0` holds no row: `group` 75, `orders.len` 0 and `orders_x/y` (14976, 11136) agree.
+- **run867 goes 276 → 183.** Every row from 5565 that the scout's two draws shifted leaves with it: `1/264`'s and
+  `1/263`'s flights, `1/93`'s and `1/276`'s moves and who=1's `MAKE` on 5583, and `1/176` on 5627. The Flamethrower
+  `1/187`'s `path[2].to` (ours (9240, 4440) against (10008, 4440)), which stood from 5401, now agrees, and so does
+  `1/234`'s on 5522. That is `calc_cost` reading the same fog.
+- **run866 goes 164 → 163**: `1/187`'s `path[2].to` on 5378 agrees. Every other lobby's `first_parting` and
+  every other widening is unmoved (the rondata suite, 896 of 900, with the four reds the peace pair's re-pins and the
+  run's own thread width).
+
+**The word moves 5564 → 5982** (count and sequence): ours 37 draws, theirs 287, index 5. Ours spends
+`Leader::produce_building+0x1805` there, theirs `Build::find_gather_tiles+0x10a`. The word is past run867's last
+block (5657), and no dump of this lobby holds 5982: its widening is owed (parked 2779), and `WIDENINGS` names that
+item.
+
+**Not established.**
+- **The Space Program's frame.** Ours gains it between 3894 and 5401, and theirs holds `0x800` from 5401. The walk
+  agrees to 5982 and the fog read only matters at a scan, so if the two frames differ, no draw has shown it yet.
+- **The Fouché arm on a walk.** No capture on disk has a Fouché standing, so that arm rests on the reading and the
+  unit test alone.
+
+**Diff-backed**: the `0x800` arm on the scout's region scan (run867 5564) and on `calc_cost` (run866 5378, run867
+5401 and 5522). **Reading only**: `num_units[0x141]` as `+0x59e4`, which was §141's reading for `was_seen` before.
 
 ## 234. Reserved for the next item on the AI track
 

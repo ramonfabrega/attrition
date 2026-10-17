@@ -125,8 +125,17 @@ pub(crate) const LAKOTA: Pair = Pair {
     // `Guy::set_anim+0x97a < Guy::move+0x19f`: who=1's scout `1/0` holds a
     // move ours alone on 5565 (`orders.len` 1 against 0, `group` 65
     // against 75).
-    count: 5564,
-    sequence: 5564,
+    // Item 2780: 5564 → 5982, `was_really_seen`'s two leader exits
+    // (`006b54f0`; `docs/AI.md` §233): who=1 holds the Space Program
+    // (`leader_flags & 0x800`, run867's `0xa3f03`), so every cell is seen
+    // to it, and on 5564 its Elite Special Forces `1/0` (`TypeIndex` 77,
+    // land) runs `think_scout`'s region scan of region 2 and accepts no
+    // cell; ours accepted (16, 6) and (21, 7), drew twice at `+0xaba` and
+    // pushed group 65 with an `EXPLORE_TO`. Now ours 37 draws, theirs 287,
+    // index 5 — ours `Leader::produce_building+0x1805`, theirs
+    // `Build::find_gather_tiles+0x10a`.
+    count: 5982,
+    sequence: 5982,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -465,7 +474,11 @@ fn run866_s_word_frame_is_widened_whole() {
     }
     // Item 2761: 178 → 164 with `Unit::close`'s count (`docs/AI.md` §232):
     // who=1's `num_units[245]` on 5178, `[255]` and `[261]` on 5201 agree.
-    pin_eq!(w.firsts.len(), 164, "initial run866 baseline");
+    // Item 2780: 164 → 163 with the scout fog read's leader exits
+    // (`docs/AI.md` §233): `1/187`'s `path[2].to` on 5378 (ours (9240,
+    // 4440) against (10008, 4440)) agrees — `calc_cost` reads the same
+    // fog, and a Space Program sees every cell.
+    pin_eq!(w.firsts.len(), 163, "initial run866 baseline");
     // Item 2554: the word 5135's own block is 5136, widened at 5707 keys.
     // Theirs gives who=1's naval army (group 72, nine members: the
     // Missile Cruisers `1/20`, `1/21`, `1/25`, `1/26`, `1/34`, `1/36`,
@@ -547,7 +560,7 @@ fn run867_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 276, "initial run867 baseline");
+    pin_eq!(w.firsts.len(), 183, "initial run867 baseline");
     // Item 2677: the word 5407's own block is 5408, widened at 3418 keys.
     // Every who=1 Strategic Bomber (`TypeIndex` 305, air) on its
     // `AIRPATROLORDER` round the human's capital `0/2000` (6240, 7008)
@@ -587,4 +600,19 @@ fn run867_s_word_frame_is_widened_whole() {
     // 276 with `Unit::close`'s count: `1/263` is born on 5499 both sides,
     // no leader row stands from 5401 but the human's `SITE` and who=1's
     // buckets, and from 5565 `1/0`'s scouting move parts, the new word's.
+    // Item 2780: the word 5564's own block is 5565, widened at 276 keys.
+    // Its fourteen rows are `1/0`'s, on 5565 and 5566 (`group` ours 65
+    // against 75, `orders.len` 1 against 0, `orders_x/y` (16632, 5880)
+    // against (14976, 11136), `path:length` 6 against 0, then its walk):
+    // ours' region scan accepted two cells theirs did not, and the
+    // standing `group:65.held`/`pool:65` from 5542 are the dump's blind
+    // `held` (theirs prints `None` on every group). 276 → 183 with the fog
+    // read's leader exits: `1/0` holds no row, and with it go every row
+    // from 5565 the scout's draws shifted — `1/264` and `1/263`'s
+    // flights, `1/93` and `1/276`'s moves and who=1's `MAKE` on 5583,
+    // `1/176` on 5627 — and the standing `1/187` `path[2].to` from 5401
+    // and `1/234`'s on 5522. Left: the standing keys from 5401, the
+    // `form` rows, the three `g.angle[0]` births, two `mirror`s, the
+    // queues' `cost` on 5583, `1/210`/`1/211`'s `mandatory`. The new word
+    // 5982 is past the window (5657): its widening is owed (parked 2779).
 }
