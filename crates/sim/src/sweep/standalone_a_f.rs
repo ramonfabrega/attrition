@@ -506,6 +506,8 @@ mod command_manager_issue_unitmask;
 mod command_manager_issue_unqueue_unit;
 #[path = "command_manager_issue_unqueue_wall.rs"]
 mod command_manager_issue_unqueue_wall;
+#[path = "command_package_add_command.rs"]
+mod command_package_add_command;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
 #[path = "command_package_walk_data.rs"]
