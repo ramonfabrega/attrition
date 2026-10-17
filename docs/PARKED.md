@@ -6541,13 +6541,18 @@ seen by the *caster's* owner), which wants a target outside the Spy's own vision
 walks the Spy to it; parked, names no score.
 (2880) **Loop 2654's print was not built**: every staged line reached its unit (`chapter 86 staged: 6 line(s) ran, 4 unit(s)`).
 
-## Parked by the next landing, slot FT — reserved
+## Parked by item 2863, 2026-10-17 — the hundred-and-nineteenth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2863, first) **The shape that was asked for is not the one that holds.** `--answer-win` with `--seq` (parked 2861) answers the n-th ask, and a walk asks one
+object's slot several times an iteration; the shape is a stub that answers by `ecx` (`--answer-by`, built), a chain that ends by links laid only forward.
+A walk that is not forward (a cycle the original breaks by a visited flag) is not reachable with it.
+
+(2863, second) **Starved arms, named.** `is_disbanding` and `get_building` return 0 / -1 in 144 and 170 of 220 rows before the head bias (about 60%
+after); `(*n).min(4)` is equivalent on all five (five asks, six values). `Group::kill_next_order` fixes `who` at 0, so the objects table's other rows
+(`0xc0ab84 + who·0x1c`) are read by no row; a `who` drawn needs the place expression to follow it (it does in `is_disbanding`, which draws 0..3).
+
+(2863, third) **Not built.** `Unit::update_patrol_order`'s `field_0xdc == 0` arm and `replace_form_id`'s `m+0xdc == 0` arm with `m+0xd8 != 0` are reached
+by `--place-null` only on the first place; the second is held by forcing `m+0xcc` to 0, so a null-list walk over a live `cc` (which crashes the original) is out.
 
 ## Parked by the next landing, slot FU — reserved
 
