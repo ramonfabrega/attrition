@@ -20,17 +20,23 @@ fn unhex(s: &str) -> Vec<u8> {
 /// (tools/emu): 16 random bytes of object, 1 argument(s), the global cell 0x00c061ec points at 2304 random bytes; argument 0 names 4 random bytes; the import cell 0x00ac543c holds a stub (2 args); callee 0x00463700 (6 args) stubbed; callee 0x00959500 (2 args) stubbed; stub 0 answered from [0, 4194304] (90%); stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_command_package_process_ungraceful_player_drop.py") else {
+    let Some(rows) = super::emu_rows("sweep_command_package_process_ungraceful_player_drop.py")
+    else {
         return;
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -48,15 +54,32 @@ fn the_emulated_original_agrees_on_every_row() {
             }
             3
         };
-        assert_eq!(got, want_eax, "process_ungraceful_player_drop — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_ungraceful_player_drop — the recorded calls, row `{line}`");
+        assert_eq!(
+            got, want_eax,
+            "process_ungraceful_player_drop — eax, row `{line}`"
+        );
+        assert_eq!(
+            log, want_log,
+            "process_ungraceful_player_drop — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "process_ungraceful_player_drop — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "process_ungraceful_player_drop — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_ungraceful_player_drop — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_ungraceful_player_drop — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "process_ungraceful_player_drop — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "process_ungraceful_player_drop — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -40,17 +45,60 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            { let le = |v: i32| v.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect::<String>(); log.push("15269728".into()); if a[3] == 0 { for _ in 0..4 { log.push("-".into()); } } else { let len = i32::from(u16::from_le_bytes([p[0][8], p[0][9]])); if rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0 { log.push("-".into()); log.push("-".into()); } else { log.push("p0+0x0".into()); log.push(format!("p0+0x0,sp-0x43,p2+0x0,{}", 2 * len.min(20) + 2)); } log.push("15269768,sp-0x4c,53".into()); let mut cmd = format!("4b{}{}", le(a[0]), le(a[1])); let copied = !(rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0); let u = if copied { 2 * len.min(20) as usize } else { 0 }; for b in &p[2][..u] { cmd.push_str(&format!("{b:02x}")); } cmd.push_str(&"00".repeat(46 - u)); log.push(cmd); } 0 }
+            {
+                let le = |v: i32| {
+                    v.to_le_bytes()
+                        .iter()
+                        .map(|b| format!("{b:02x}"))
+                        .collect::<String>()
+                };
+                log.push("15269728".into());
+                if a[3] == 0 {
+                    for _ in 0..4 {
+                        log.push("-".into());
+                    }
+                } else {
+                    let len = i32::from(u16::from_le_bytes([p[0][8], p[0][9]]));
+                    if rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0 {
+                        log.push("-".into());
+                        log.push("-".into());
+                    } else {
+                        log.push("p0+0x0".into());
+                        log.push(format!("p0+0x0,sp-0x43,p2+0x0,{}", 2 * len.min(20) + 2));
+                    }
+                    log.push("15269768,sp-0x4c,53".into());
+                    let mut cmd = format!("4b{}{}", le(a[0]), le(a[1]));
+                    let copied = !(rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0);
+                    let u = if copied { 2 * len.min(20) as usize } else { 0 };
+                    for b in &p[2][..u] {
+                        cmd.push_str(&format!("{b:02x}"));
+                    }
+                    cmd.push_str(&"00".repeat(46 - u));
+                    log.push(cmd);
+                }
+                0
+            }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "issue_rename_city — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "issue_rename_city — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "issue_rename_city — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "issue_rename_city — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "issue_rename_city — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "issue_rename_city — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "issue_rename_city — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

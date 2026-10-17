@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -41,43 +46,54 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-            // `param_1 <= ping_times_sorted[12]` (unsigned): `time = param_1/2 + param_2`, `base_time = timeGetTime()`,
-            // the log's flag bit 3 set round `Log::say` and cleared after (so cleared), `game_log`'s detail put back unless
-            // negative (then 1, what the say left). Either way `add_ping(param_1)`, its `ecx` `this` or the log's.
-            let p1 = a[0] as u32;
-            let ping = u32::from_le_bytes([c[1][0], c[1][1], c[1][2], c[1][3]]);
-            if p1 <= ping {
-                let time = (p1 >> 1).wrapping_add(a[1] as u32);
-                c[2][0..4].copy_from_slice(&time.to_le_bytes());
-                c[2][4..8].copy_from_slice(&a[2].to_le_bytes());
-                let flags = rd(&c[3], 4) & !8;
-                wr(&mut c[3], 4, flags);
-                if rd(&c[3], 0x4c) < 0 {
-                    wr(&mut c[3], 0x4c, 1);
+                // `param_1 <= ping_times_sorted[12]` (unsigned): `time = param_1/2 + param_2`, `base_time = timeGetTime()`,
+                // the log's flag bit 3 set round `Log::say` and cleared after (so cleared), `game_log`'s detail put back unless
+                // negative (then 1, what the say left). Either way `add_ping(param_1)`, its `ecx` `this` or the log's.
+                let p1 = a[0] as u32;
+                let ping = u32::from_le_bytes([c[1][0], c[1][1], c[1][2], c[1][3]]);
+                if p1 <= ping {
+                    let time = (p1 >> 1).wrapping_add(a[1] as u32);
+                    c[2][0..4].copy_from_slice(&time.to_le_bytes());
+                    c[2][4..8].copy_from_slice(&a[2].to_le_bytes());
+                    let flags = rd(&c[3], 4) & !8;
+                    wr(&mut c[3], 4, flags);
+                    if rd(&c[3], 0x4c) < 0 {
+                        wr(&mut c[3], 0x4c, 1);
+                    }
+                    log.push(format!("c3+0x0,{}", a[0]));
+                    log.push(format!(
+                        "c3+0x0,{},15418236,{},{},0,0,0,0,0,2",
+                        rd(&c[0], 0x10).wrapping_add(0x21458),
+                        time as i32,
+                        a[2]
+                    ));
+                } else {
+                    log.push(format!("m+0x0,{}", a[0]));
+                    log.push("-".into());
                 }
-                log.push(format!("c3+0x0,{}", a[0]));
-                log.push(format!(
-                    "c3+0x0,{},15418236,{},{},0,0,0,0,0,2",
-                    rd(&c[0], 0x10).wrapping_add(0x21458),
-                    time as i32,
-                    a[2]
-                ));
-            } else {
-                log.push(format!("m+0x0,{}", a[0]));
-                log.push("-".into());
+                1
             }
-            1
-}
         };
         assert_eq!(got, want_eax, "analyze_response — eax, row `{line}`");
-        assert_eq!(log, want_log, "analyze_response — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "analyze_response — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "analyze_response — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "analyze_response — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "analyze_response — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[5 + i], "analyze_response — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[5 + i],
+                "analyze_response — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

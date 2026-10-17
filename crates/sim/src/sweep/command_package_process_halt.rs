@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -41,29 +46,43 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-            // The log, then `Group::action_halt(&groups[this->group], 0)` when `this->group >= 0`;
-            // its `ecx` is the group's slot (0x9d4 each) past the table's base word at 0xe85f20.
-            let g = rd(m, 0xc);
-            if g >= 0 {
-                log.push(format!("{},0", g.wrapping_mul(0x9d4).wrapping_add(rd(&c[2], 0))));
-            } else {
-                log.push("-".into());
+                // The log, then `Group::action_halt(&groups[this->group], 0)` when `this->group >= 0`;
+                // its `ecx` is the group's slot (0x9d4 each) past the table's base word at 0xe85f20.
+                let g = rd(m, 0xc);
+                if g >= 0 {
+                    log.push(format!(
+                        "{},0",
+                        g.wrapping_mul(0x9d4).wrapping_add(rd(&c[2], 0))
+                    ));
+                } else {
+                    log.push("-".into());
+                }
+                if rd(&c[3], 4) < 0 {
+                    wr(&mut c[3], 4, 1);
+                }
+                1
             }
-            if rd(&c[3], 4) < 0 {
-                wr(&mut c[3], 4, 1);
-            }
-            1
-}
         };
         assert_eq!(got, want_eax, "process_halt — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_halt — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "process_halt — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "process_halt — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_halt — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_halt — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[5 + i], "process_halt — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[5 + i],
+                "process_halt — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
