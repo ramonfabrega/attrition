@@ -154,6 +154,8 @@ mod build_data_get_packer_stance;
 mod build_data_get_shot;
 #[path = "build_data_get_worker_stance.rs"]
 mod build_data_get_worker_stance;
+#[path = "build_data_has_objmask.rs"]
+mod build_data_has_objmask;
 #[path = "build_data_hits.rs"]
 mod build_data_hits;
 #[path = "build_data_is_gathered_by.rs"]
