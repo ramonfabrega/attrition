@@ -326,6 +326,8 @@ mod valid_filter_case9;
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
 mod vector_dist_ints;
+#[path = "wall_data_armor.rs"]
+mod wall_data_armor;
 #[path = "wall_data_can_capture.rs"]
 mod wall_data_can_capture;
 #[path = "wall_data_can_make.rs"]
@@ -450,6 +452,8 @@ mod world_data_num_waterhalf;
 mod world_data_restrict_coord;
 #[path = "world_data_restrict_wcoord.rs"]
 mod world_data_restrict_wcoord;
+#[path = "world_data_start_city_rad_wcoord.rs"]
+mod world_data_start_city_rad_wcoord;
 #[path = "world_data_start_city_wcoord.rs"]
 mod world_data_start_city_wcoord;
 #[path = "world_data_valid.rs"]

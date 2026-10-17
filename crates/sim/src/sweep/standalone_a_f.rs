@@ -116,6 +116,8 @@ mod border_spline_get_name;
 mod border_spline_on_field_change;
 #[path = "border_spline_render_is_visible.rs"]
 mod border_spline_render_is_visible;
+#[path = "borders_check_border_blocked.rs"]
+mod borders_check_border_blocked;
 #[path = "borders_get_who.rs"]
 mod borders_get_who;
 #[path = "borders_is_border_hidden.rs"]
@@ -204,6 +206,8 @@ mod build_queue_data_get_queue;
 mod build_queue_get_size;
 #[path = "build_queue_set_job_counter.rs"]
 mod build_queue_set_job_counter;
+#[path = "build_queue_set_queue.rs"]
+mod build_queue_set_queue;
 #[path = "build_queue_un_queue.rs"]
 mod build_queue_un_queue;
 #[path = "build_queue_walk_data.rs"]
@@ -686,6 +690,8 @@ mod doober_get_num;
 mod doober_has_doobers;
 #[path = "doober_inc_time.rs"]
 mod doober_inc_time;
+#[path = "doober_remove_cover_doober.rs"]
+mod doober_remove_cover_doober;
 #[path = "draw_thick_diamond.rs"]
 mod draw_thick_diamond;
 #[path = "farms_add_animals_all.rs"]

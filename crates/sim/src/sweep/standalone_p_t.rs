@@ -78,10 +78,14 @@ mod region_is_coast;
 mod region_num_coasts;
 #[path = "region_release.rs"]
 mod region_release;
+#[path = "region_walk_data.rs"]
+mod region_walk_data;
 #[path = "regions_concat.rs"]
 mod regions_concat;
 #[path = "regions_fix_all_borders.rs"]
 mod regions_fix_all_borders;
+#[path = "regions_get_num_sea.rs"]
+mod regions_get_num_sea;
 #[path = "regions_walk_data.rs"]
 mod regions_walk_data;
 #[path = "repair_order_get_type.rs"]
@@ -136,6 +140,10 @@ mod roads_pieces_rot_byte;
 mod roads_road_added;
 #[path = "roads_road_cleared.rs"]
 mod roads_road_cleared;
+#[path = "search_valid_search.rs"]
+mod search_valid_search;
+#[path = "roads_scan_and_kill_straggled_tcoord.rs"]
+mod roads_scan_and_kill_straggled_tcoord;
 #[path = "search_walk_data.rs"]
 mod search_walk_data;
 #[path = "setup_build_leader.rs"]
@@ -382,12 +390,16 @@ mod type_build;
 mod type_data_avail;
 #[path = "type_data_can_pay_cost.rs"]
 mod type_data_can_pay_cost;
+#[path = "type_data_count_discovered.rs"]
+mod type_data_count_discovered;
 #[path = "type_data_get_abbrev_parsed.rs"]
 mod type_data_get_abbrev_parsed;
 #[path = "type_data_get_kill_value.rs"]
 mod type_data_get_kill_value;
 #[path = "type_data_get_limiting_resource.rs"]
 mod type_data_get_limiting_resource;
+#[path = "type_data_get_score_value.rs"]
+mod type_data_get_score_value;
 #[path = "type_data_is.rs"]
 mod type_data_is;
 #[path = "type_data_is_age_type.rs"]
