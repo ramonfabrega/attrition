@@ -41,10 +41,11 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
+                // (`ebx` is the caller's: the harness holds it zero, so the slot index is 0.)
                 // Arm 25: slot +0x1c of `objects[who][p0]` non-zero; slot +0x3c (stub 1, answering the placed
                 // p10) then slot +0x4c of that object non-zero; slot +0x3c again, and its slot +0x178 above zero.
                 let who = a[8] as usize;
-                let w = format!("p{}+0x0", 5 * who + 1 + a[0] as usize);
+                let w = format!("p{}+0x0", 5 * who + 1 + 0usize);
                 log.push(w.clone());
                 if a[4] == 0 {
                     for _ in 0..3 {

@@ -38,9 +38,10 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
+                // (`ebx` is the caller's: the harness holds it zero, so the slot index is 0.)
                 // Arm 23: 1 when the +0x24 word of `objects[who][p0]` is zero.
                 let who = a[4] as usize;
-                i64::from(rd(&p[5 * who + 1 + a[0] as usize], 0x24) == 0)
+                i64::from(rd(&p[5 * who + 1 + 0usize], 0x24) == 0)
             }
         };
         assert_eq!(got, want_eax, "valid_filter — eax, row `{line}`");

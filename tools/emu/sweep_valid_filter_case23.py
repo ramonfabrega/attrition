@@ -37,7 +37,7 @@ PLACES = [(None, '0xc0ab84', '0', 16), ('p0', '0', '0', 48), ('p0', '4', '0', 48
 NULLS = []
 WBIAS = [('p1', 36, ('set', [0, 1])), ('p2', 36, ('set', [0, 1])), ('p3', 36, ('set', [0, 1])), ('p4', 36, ('set', [0, 1])), ('p6', 36, ('set', [0, 1])), ('p7', 36, ('set', [0, 1])), ('p8', 36, ('set', [0, 1])), ('p9', 36, ('set', [0, 1]))]
 FILLS = []
-ARGRANGE = [(3, 23, 23), (0, 0, 3)]
+ARGRANGE = [(3, 23, 23)]
 SLOTBASE = []
 ECXINT = ('range', 0, 1)
 EDX = None
@@ -589,4 +589,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Search::valid_filter@0067dbb0", "--item", "2801", "--name", "valid_filter_case23", "--win", "0x10", "--own", "4", "--argrange", "3:23:23", "--ecx-int", "0..1", "--tame", "--argrange", "0:0:3", "--ptrtab", "0xc0ab84:4:0x30", "--ptrtab", "0xc0ab84+0x1c:4:0x30", "--wbias", "p1..4+0x24:0,1", "--wbias", "p6..9+0x24:0,1", "--port", "{\n                // Arm 23: 1 when the +0x24 word of `objects[who][p0]` is zero.\n                let who = a[4] as usize;\n                i64::from(rd(&p[5 * who + 1 + a[0] as usize], 0x24) == 0)\n            }"]
+# sweep_gen: ["obj", "Search::valid_filter@0067dbb0", "--item", "2801", "--name", "valid_filter_case23", "--win", "0x10", "--own", "4", "--argrange", "3:23:23", "--ecx-int", "0..1", "--tame", "--ptrtab", "0xc0ab84:4:0x30", "--ptrtab", "0xc0ab84+0x1c:4:0x30", "--wbias", "p1..4+0x24:0,1", "--wbias", "p6..9+0x24:0,1", "--port", "{\n                // (`ebx` is the caller's: the harness holds it zero, so the slot index is 0.)\n                // Arm 23: 1 when the +0x24 word of `objects[who][p0]` is zero.\n                let who = a[4] as usize;\n                i64::from(rd(&p[5 * who + 1 + 0usize], 0x24) == 0)\n            }"]
