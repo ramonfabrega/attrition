@@ -3765,6 +3765,12 @@ booking): `docs_guard::the_handoff_carries_the_golden_line` accepts `none pinned
 the reflex failed the whole gate on `a742d5bc` (one red, the second commit leading with `every chapter closed`).
 Candidate: one parser, shared. One reach.
 
+(2809) **A mechanic document's numbered steps are checked against the function that builds them** (2779's "for the
+Loop" line, filed at its merge): two neighbouring terms of `calc_gather` sat in `docs/ECONOMY.md`'s list ("8.
+Capitalism") for months with no code, and no `SEAM` or "not modelled" paragraph named them, so `seams.py` could not
+show them; they were the peace pair's word 5982. Candidate: a step with no code gets a `SEAM` line, held by a guard
+that reads the step lists. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 (2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
@@ -6214,7 +6220,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2779, 2026-10-17 — Capitalism pays its oil after the refineries
 
-No row of its own. The new word, 5985, is the commander's to book (`docs/AI.md` §234): ours 23 draws, theirs 24,
+No row of its own. The new word, 5985, booked as the queue's 2808 at the merge (`docs/AI.md` §234): ours 23 draws, theirs 24,
 index 19, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x104b`. It lies inside
 run879's window (block 5986), so its widening is on disk. The item before's hypothesis is the Transport Freighter
 `1/225`, idle in ours from 5976.
