@@ -3759,6 +3759,12 @@ another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 K
 `sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer (Loop 2792's
 sibling). One reach.
 
+(2799) **Two guards read the `Golden:` line by different rules when no chapter is open** (the commander, at 2785's
+booking): `docs_guard::the_handoff_carries_the_golden_line` accepts `none pinned`, a `w<frame>` or `every chapter closed`;
+`floors::tests::the_handoff_s_golden_line_is_the_pinned_word` accepts only `every chapter closed`, so a line that passed
+the reflex failed the whole gate on `a742d5bc` (one red, the second commit leading with `every chapter closed`).
+Candidate: one parser, shared. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 (2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
