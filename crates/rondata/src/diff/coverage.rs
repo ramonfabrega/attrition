@@ -680,6 +680,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch88 = golden_dump("ch88");
     let ch89 = golden_dump("ch89");
     let ch90 = golden_dump("ch90");
+    let ch91 = golden_dump("ch91");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");

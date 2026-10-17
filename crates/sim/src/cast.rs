@@ -694,21 +694,39 @@ impl Sim {
             self.units[u].movement.facing = angle;
             self.units[u].movement.frame_facing = angle;
         }
-        // The spy's animations (`is(SPY, 0)`): Bribe `CHAR_ATTACK3`, the
-        // Informer `CHAR_ATTACKWALK`, anything else `CHAR_ATTACK2` on a
-        // spy and `CHAR_ATTACK1` on anything else.
-        let anim = if !self.unit_is_spy(u) {
-            crate::anim::ATTACK1
-        } else if s == spell::BRIBE {
-            crate::anim::ATTACK3
-        } else if s == spell::INFORMER {
-            crate::anim::ATTACKWALK
-        } else if matches!(t, Obj::Unit(v) if self.unit_is_spy(v)) {
-            crate::anim::ATTACK2
+        // `Unit::do_cast@005ebfe0:5ec66f`..`5ec759`: a Spy (`is(0x3a, 0)`)
+        // — Bribe `CHAR_ATTACK3`, the Informer `CHAR_ATTACKWALK`, a Spy
+        // target `CHAR_ATTACK2`, else `CHAR_ATTACK1`; else a Scout line
+        // (`is(0x45, 0)`, the Commando's) — Sabotage `CHAR_ATTACKWALK`, the
+        // Sniper `CHAR_ATTACK3`, then as a Spy's; else `CHAR_ATTACK1` with
+        // `Unit::set_anim`'s third argument set (item 2971).
+        let target_spy = matches!(t, Obj::Unit(v) if self.unit_is_spy(v));
+        let (anim, p3) = if self.unit_is_spy(u) {
+            let a = if s == spell::BRIBE {
+                crate::anim::ATTACK3
+            } else if s == spell::INFORMER {
+                crate::anim::ATTACKWALK
+            } else if target_spy {
+                crate::anim::ATTACK2
+            } else {
+                crate::anim::ATTACK1
+            };
+            (a, false)
+        } else if self.unit_line_is(u, 0x45) {
+            let a = if s == 0x280 {
+                crate::anim::ATTACKWALK
+            } else if s == 0x281 {
+                crate::anim::ATTACK3
+            } else if target_spy {
+                crate::anim::ATTACK2
+            } else {
+                crate::anim::ATTACK1
+            };
+            (a, false)
         } else {
-            crate::anim::ATTACK1
+            (crate::anim::ATTACK1, true)
         };
-        self.set_anim(u, anim, false, false);
+        self.set_anim(u, anim, false, p3);
         self.units[u].casting = true;
         self.cast_blow(u, s, true);
         self.units[u].spell_time += 1;
@@ -780,6 +798,13 @@ impl Sim {
             && self.spell_castable(s, u)
         {
             self.cast_bribe_unit(u, v);
+            return;
+        }
+        if s == 0x281
+            && let Obj::Unit(v) = t
+            && self.spell_castable(s, u)
+        {
+            self.cast_sniper_unit(v);
             return;
         }
         if s != spell::INFORMER || !self.spell_castable(s, u) {
