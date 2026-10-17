@@ -6837,13 +6837,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GJ — reserved
+## Parked by item 2949, 2026-10-17 — chapter 90, the Informer's three kills (run892)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2949, first) **An Informer on a moving unit at arrival** is unwatched: C's Hoplite stood still and D's Spy is idle, so `check_cast_target_path`'s
+  `is_moving` re-path never ran in a capture that also reached the arrival. Names no score.
+- (2949, second) **Counterintelligence and the Sniper stay refused** in `spell_valid_target` (SEAM): the Sniper's 12 tiles against a Commando's 8 is the second
+  caster whose range exceeds its sight and it casts nowhere here. A staging needs the Commando's and the Sniper's `is_valid_target` arms read first. Names no score.
+- (2949, third) **The `add` verb's coordinates are not tiles.** Neighbouring values snap to land by up to 400 units (`134` → 24696, `138` → 27672, `142` → 28008);
+  a staging reads distances off the walk. For the Loop: `walk_script` could print each staged unit's landing beside the verb.
 
 ## Parked by the next landing, slot GK — reserved
 
