@@ -6568,6 +6568,16 @@ pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY_FIVE: i64 = 1219;
 /// 1100 to 1218.
 pub(crate) const WIDENING_CHAPTER_EIGHTY_FIVE: (i64, i64) = (1099, 1220);
 
+/// **Chapter eighty-six** (item 2876, `docs/GOLDEN.md` §109, run884): the
+/// cloaked Spy's Bribe on a Hoplite that stays, no Scout and no blown Spy.
+/// The cast completes on 1212 and the swap agrees; **the word is the
+/// capture's end, 1300**.
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY_SIX: i64 = 1300;
+
+/// `chapter_eighty_six_s_window_is_widened_whole`'s window: run884, blocks
+/// 1100 to 1300.
+pub(crate) const WIDENING_CHAPTER_EIGHTY_SIX: (i64, i64) = (1099, 1301);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9073,6 +9083,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_eighty_five_s_window_is_widened_whole"),
         2832,
         Some(WIDENING_CHAPTER_EIGHTY_FIVE),
+    ),
+    // Item 2876: run884, chapter eighty-six, the Bribe's control that
+    // reaches range; closed at the capture's end.
+    (
+        "GOLDEN_WORD_CHAPTER_EIGHTY_SIX",
+        GOLDEN_WORD_CHAPTER_EIGHTY_SIX,
+        Some("chapter_eighty_six_s_window_is_widened_whole"),
+        2876,
+        Some(WIDENING_CHAPTER_EIGHTY_SIX),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

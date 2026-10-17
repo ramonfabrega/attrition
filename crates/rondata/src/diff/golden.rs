@@ -5554,6 +5554,50 @@ fn chapter_eighty_five_s_window_is_widened_whole() {
     cases_80_89::chapter_eighty_five_s_window_is_widened_whole();
 }
 
+/// **Chapter eighty-six** (item 2876, `docs/GOLDEN.md` §109, run884): the
+/// cloaked Spy's Bribe, the control alone on a Hoplite that stays.
+#[test]
+fn chapter_eighty_six_holds_to_the_golden_word() {
+    cases_80_89::chapter_eighty_six_holds_to_the_golden_word();
+}
+
+/// **run884 whole, both directions** (item 2876, `docs/GOLDEN.md` §109).
+#[test]
+fn chapter_eighty_six_s_window_is_widened_whole() {
+    cases_80_89::chapter_eighty_six_s_window_is_widened_whole();
+}
+
+/// What parts in run884's window, blocks 1100–1299.
+///
+/// Only the standing rows of 1100 (`form`, the extra buildings this crate holds alone), the same as chapter eighty-five's. **Nothing
+/// the Bribe touches parts**: the cast from 1114, the swap on 1212, the new squad `0/7`..`0/9`, the closed `1/6` and the Spy's idle agree on every block.
+const WANT_CH86: &[&str] = &[
+    "1100 0/0 form",
+    "1100 0/1 form",
+    "1100 0/2 form",
+    "1100 0/2000 build:extra",
+    "1100 0/2001 build:extra",
+    "1100 0/2002 build:extra",
+    "1100 0/2003 build:extra",
+    "1100 0/2004 build:extra",
+    "1100 0/2005 build:extra",
+    "1100 0/2006 build:extra",
+    "1100 0/3 form",
+    "1100 0/4 form",
+    "1100 0/5 form",
+    "1100 1/1 form",
+    "1100 1/2 form",
+    "1100 1/2000 build:extra",
+    "1100 1/2001 build:extra",
+    "1100 1/2002 build:extra",
+    "1100 1/2003 build:extra",
+    "1100 1/2004 build:extra",
+    "1100 1/2005 build:extra",
+    "1100 1/3 form",
+    "1100 1/4 form",
+    "1100 1/5 form",
+];
+
 /// What parts in run880's window, blocks 1100–1218.
 ///
 /// The standing `form` rows; the added Scout's first disc (`1103 world:seen2`, 7 cells, the first (59, 54) ours 3 theirs 1);

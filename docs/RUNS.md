@@ -17359,3 +17359,12 @@ receipt); kept in `~/ron-golden/ch85/map-14/`, trace 1,219 frames, dump through 
 `1/6`..`1/8` is gone and `0/8`..`0/10` stand at its positions under who 0 with `idle 1`; the control Spy `0/7` chases a
 Hoplite that walks away and never casts. Ours agrees from 1100 to the take's end after one fix (the figures' `dest_angle`).
 
+
+## run884 — chapter eighty-six: the cloaked Spy's Bribe, the control alone (2026-10-17, item 2876, `att-2876`)
+
+`docs/GOLDEN.md` §109. **What the disk could not answer**: no capture holds a Bribe on a target that stays (run880's control target walked
+off). Recipe `tools/gamelog/golden/chapter86.cmd` (`--map 14 --end-frame 1300 --log-window 1100 1300`, `end:UNITS=3,DEATHS=1,LEADERS=2`,
+the chapter-eighty-five `start:` set); the staging was walked first (`RON_STAGE=ch76:chapter86:1300`). Pool lane 1, 64 MB, 105 s, the
+runner's `pace:` line 19.5 frames a second; kept in `~/ron-golden/ch86/map-14/`, trace 1,301 frames, dump through block 1299. No
+minutes waited on another lane. **What it holds**: the Spy `0/6` casts from 1114; on **1212** `1/6`..`1/8` close and `0/7`..`0/9`
+stand under who 0. Ours agrees on all of it.

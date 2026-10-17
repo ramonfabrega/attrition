@@ -6522,13 +6522,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FS — reserved
+## Parked by item 2876, 2026-10-17 — chapter eighty-six: the Bribe's control that reaches range
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2876, first) **The 1178 re-target (parked 2868) is untouched.** The stationary control never chases (the target stays), so the
+`do_cast_targeted` out-of-range re-target interval was not reached; ours and the original agree on all 200 blocks of run884. The
+hypothesis stays what 2868 wrote it: any targeted craft on a moving target. No score names it (no word is open on it); it parks.
+(2876, second) **The sight gate is still unproven in its original meaning.** Run884 shows a Bribe on a target nothing of who=1's
+sees, and no Scout and no blown Spy in the game, is *not* refused: it completes on 1212 exactly as the sighted pair did. So the
+sighted/unsighted pair does not differ in the conversion; a refusal for sight, if it exists, is a different arm (the target not
+seen by the *caster's* owner), which wants a target outside the Spy's own vision and a chase to range. Needs a staging that
+walks the Spy to it; parked, names no score.
+(2876, third) **Loop 2654's print was not built**: every staged line reached its unit (`chapter 86 staged: 6 line(s) ran, 4 unit(s)`).
 
 ## Parked by the next landing, slot FT — reserved
 
