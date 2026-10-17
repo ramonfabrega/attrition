@@ -21868,12 +21868,61 @@ re-measured on the fixed tree.
 **Diff-backed**: the four water refusals and the eleven draws (run882's trace, run882b's packet). **Reading only**: the other
 six restores.
 
-## 238. Reserved for the next item on the AI track
+## 238. A packed engine keeps its army's mandatory target, and the peace pair's word moves 6821 → 6822, the game's end (2026-10-17, item 2864)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The word, 6821** (§237's booking): ours 17 draws, theirs 23, index 3. run882's window ended at 6821, so run883 is its recipe at
+`--log-window 6815 6823 --end-frame 6823 --allow-early-end` (`docs/RUNS.md`): blocks 6815..6822 and the closing 6823, `rngcmp`
+6823 of 6823 against run847. A packet, run883b (`RON_STATE_FRAME=6821`), ran the two Rocket Artillery under `step4.py`.
+
+**The draws on 6821** (`RON_DEBUG_SITES`): theirs' indices 3..8 are six `find_attack_pos+0xea9 < fight+0xcb4` ring draws,
+ours none. The ring is who=1's MLRS `1/124` (`TypeIndex` 273, land, siege, `PACKS`, army 1), packed and idle at (6888, 6264).
+
+**The widening, both directions** (`run882_s_word_frame_is_widened_whole` on 6821, then run883's own). The first parting is
+`1/124`'s `attack[0].mandatory` on 6821, ours 0, theirs 1; ours' writer was `do_idle → think → find_melee_target →
+nearby_add`, mandatory false. On the word's block 6822, before the fix: `1/124` ours no order, theirs `[ATTACK mandatory 1 →
+0/2000, MOVEORDER (7224, 1656)]`; its sibling `1/95` ours `ATTACKTO` alone, theirs `[ATTACKTO, ATTACK in_range 1, CASTORDER
+652]` (the unpack). The target `0/2000`, the human's capital, reaches `damage` 1560 of `myhits` 1560 on 6821 on both sides —
+capture-eligible, health 0.
+
+**Three terms, each read off the original and built** (`crates/sim/src/orders.rs`):
+
+1. **The army shortcut on the idle think.** `find_nearby_target@00648da0:198`–`222` gives a packed computer siege engine its
+   army's target (`Army +0x30/+0x34`) at `QUEUE_FIRST`, **mandatory 1**. This crate had it as `take_siege_army_target`
+   (`docs/COMBAT.md` §88) on the attack-move look and the packer re-search only; `think` now calls it before its idle
+   `find_melee_target`.
+2. **A mandatory attack skips the packer's re-search and the STAND_GROUND gate.** `do_attack@005f1b80:254` is `fight(o, who,
+   attack->mandatory, 0, 0)`; `fight` reloads that argument at `5fe0fc` and jumps over `find_new_target` (`5fe108`) and the
+   stance and entrenched tests (`5fe135`) to `find_attack_pos` (`5fe17f`, returning to `fight+0xcb4`). The packet's
+   `Unit::process` on `1/124` (`--entry 610bc0`): `valid_target` once from `fight+0x354`, then `find_attack_pos` with `esi = 1`,
+   no `find_new_target`, no kill. Both arms in `do_attack` now take `!state.mandatory`; ours carries no entrenched gate there.
+3. **`fight:482` asks the slot, never the health.** The eight-argument `is_in_range@006486b0` tests `flags & 1` only. The
+   packet on `1/95`: `max_range` 25, reach 25 × 192 + 6 = 4806, distance 4500, answer 1, then `add_cast_order 0x28c`. Ours
+   had the same numbers and answered false through the health term (the capital at its ceiling). `do_attack` now calls
+   `is_in_range_struck`; every other caller keeps the health term (parked 2051).
+
+**Tests**: `an_idle_packed_engine_takes_its_army_target_mandatory` and `a_mandatory_packer_chases_without_a_re_search`
+(`fight.rs`), `a_packed_engine_unpacks_on_a_city_at_its_ceiling` (`cities_tests.rs`). Three mutations through
+`tools/mutate.py`, one per term — the `think` call dropped, `!state.mandatory` removed from the packer arm, `struck` → the
+health form in `do_attack` — each exit 101 on its test's assertion: held.
+
+**The word moves 6821 → 6822, the game's last frame**: `lakota_pair_first_parting` reads count and sequence 6822 of 6822, so
+the draw stream agrees on every frame. The other `first_parting` floors held (mongol 5056, coverage 4730, sahara_coverage 4340,
+sahara_mongol 3268).
+
+**Value diff after the fix.** run882's widening 248 → 247 (`1/124`'s `mandatory` row goes). run883's
+(`run883_s_closing_frame_is_widened_whole`, 6815..6823) 260 → 246 keys, 240 of them standing from 6815; block 6822 keeps one
+row, `1/106`'s `cavarch_o`, ours −1, theirs 2000, with no draw and no order. **The closing state is scored**
+(`run883_lakota_pair_closing_state`): frame 6822, 286 units compared, no position or order apart, both before and after the
+fix. The residue is that `cavarch_o` and the standing rows (`form`, `mirror`, `attrition`/`sheltered`, the pools and buckets,
+`1/2005`'s queue costs, `0/2000`'s `damage` and `city_flags` from 6816). **The pair closes.**
+
+**Not established.** `find_nearby_target`'s own mandatory arm (`:495`–`541`, `649a2d`): a computer siege engine listed by its
+group that finds a city takes it mandatory and rewrites its army's target and muster; ours' `nearby_add` passes false, and no
+walk on disk reaches it (parked, 2864 second row). `fight`'s entrenched gate is not modelled. `1/106`'s `cavarch_o` on 6822 is unexplained
+(parked, 2864 third row).
+
+**Diff-backed**: the three terms on `1/124` and `1/95` (run883's draws and blocks, run883b's packet). **Reading only**: the
+find's mandatory arm, the entrenched gate.
 
 ## 239. Reserved for the next item on the AI track
 
