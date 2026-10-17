@@ -1,5 +1,6 @@
 //! The fixtures every record's tests are built from.
 
+pub(crate) mod whole_capture;
 use super::*;
 use crate::gamelog::{CityDump, Guy, LeaderDump, UnitDump};
 

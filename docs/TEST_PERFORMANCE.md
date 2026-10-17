@@ -561,3 +561,17 @@ CPU1037.78→934.29; golden CPU283.12→164.85. Sampled tree memory rises8186→
 no aggregate memory improvement is claimed. Whole-suite10× remains unmet. See
 [journal](journal/2026-10-16-golden-civilian.md) and
 [audit](audit/2026-10-16-golden-civilian.json). Independent review remains owed.
+
+## Bounded whole-capture consumers
+
+City goods/trade, run56 figures and two animal tests now consume bounded setup
+and indexed frames. Every original tick/comparison remains; adjacency follows
+positions within each file, including duplicate/gap/empty frames. Figure bodies
+retain frame-minus-one, first nonempty duplicate and last nonempty position.
+`RON_DISABLE_WHOLE_CAPTURE` selects eager parsing; `RON_VERIFY_WHOLE_CAPTURE`
+compares full observations with original parsing. Two fault-tested guards added.
+Local OS RSS falls2131→398MiB,2053→206MiB and2030→22MiB; four competing copies
+of these four tests use28853→1265MiB sampled tree, wall7.54→5.16s andCPU50.26→41.64s.
+This selected pressure experiment is not four complete suites. Full gate pending;
+whole-suite10× remains unmet. See [journal](journal/2026-10-17-whole-capture.md)
+and [audit](audit/2026-10-17-whole-capture.json). Independent review remains owed.

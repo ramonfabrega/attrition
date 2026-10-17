@@ -725,23 +725,39 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::capture::read(&path);
-        let sib_text = crate::capture::read(&sib);
-        let log = Log::parse(&text);
-        let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
-        let mut init = log.initial().unwrap();
-        let theirs = std::mem::take(&mut init.frame_bodies);
-        borrow_from_siblings(&mut init, &[&sib_init]);
-        borrow_pasture(&mut init, &tr);
-        let last = theirs.last().map_or(0, |(n, _)| *n);
+        let mut built = if crate::diff::testkit::whole_capture::legacy() {
+            let text = crate::capture::read(&path);
+            let sib_text = crate::capture::read(&sib);
+            let log = Log::parse(&text);
+            let sib_log = Log::parse(&sib_text);
+            let sib_init = sib_log.initial().expect("run38 is a start dump");
+            let mut init = log.initial().unwrap();
+            init.frame_bodies.clear();
+            borrow_from_siblings(&mut init, &[&sib_init]);
+            borrow_pasture(&mut init, &tr);
+            build_sim(&loaded, &init, Tuning::RON)
+        } else {
+            let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+            let mut sibling = crate::capture::indexed::IndexedCapture::open(&sib).unwrap();
+            crate::diff::testkit::whole_capture::with_initial(&mut sibling, &sib, |sibling| {
+                crate::diff::testkit::whole_capture::with_initial(&mut source, &path, |init| {
+                    crate::diff::testkit::whole_capture::build(
+                        &loaded,
+                        init,
+                        &[&sibling],
+                        Some(&tr),
+                    )
+                })
+            })
+        };
+        let mut theirs = crate::diff::testkit::whole_capture::Bodies::open(&path);
+        let last = theirs.last();
         assert!(
             last >= 2_990,
             "run56's body table reaches frame {last}, wanted 2,990+ — this \
              is the long East Indies capture at full detail, and a short \
              file here is a wrong file"
         );
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
         let mut compared = 0usize;
         // Three tallies, because the rows fall into three kinds and only
         // one of them is this mechanic's.
@@ -750,7 +766,7 @@ mod tests {
         let mut wrong: Vec<String> = Vec::new();
         for f in 0..=last {
             built.tick();
-            let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
+            let Some(units) = theirs.at(f) else {
                 continue;
             };
             for state in units {

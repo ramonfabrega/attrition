@@ -1937,9 +1937,6 @@ mod tests {
             eprintln!("skipping: no long-trace captures (set RON_GAMELOG_DIR)");
             return;
         };
-        let texts: Vec<crate::capture::Text> = paths.iter().map(crate::capture::read).collect();
-        let captures: Vec<Vec<Frame>> =
-            texts.iter().map(|t| Log::parse(t).frame_states()).collect();
 
         // One dumped step: where it was, where its order sends it, the
         // cached speed `myspeed`, and where it ended up.
@@ -1954,8 +1951,8 @@ mod tests {
             to: (i64, i64),
         }
         let mut steps: Vec<Step> = Vec::new();
-        for (c, frames) in captures.iter().enumerate() {
-            for w in frames.windows(2) {
+        for (c, path) in paths.iter().enumerate() {
+            crate::diff::testkit::whole_capture::pairs(path, |w| {
                 for u in w[0].units.iter().filter(|u| u.who >= 8) {
                     let Some(next) = w[1].units.iter().find(|n| n.who == u.who && n.o == u.o)
                     else {
@@ -1979,7 +1976,7 @@ mod tests {
                         to: (next.pos.x, next.pos.y),
                     });
                 }
-            }
+            });
         }
         assert!(
             steps.len() >= 9,
@@ -2099,15 +2096,12 @@ mod tests {
             eprintln!("skipping: no long-trace captures (set RON_GAMELOG_DIR)");
             return;
         };
-        let texts: Vec<crate::capture::Text> = paths.iter().map(crate::capture::read).collect();
-        let captures: Vec<Vec<Frame>> =
-            texts.iter().map(|t| Log::parse(t).frame_states()).collect();
 
         let mut reached = 0usize;
         let mut abandoned = 0usize;
         let mut moved: Vec<String> = Vec::new();
-        for (c, frames) in captures.iter().enumerate() {
-            for w in frames.windows(2) {
+        for (c, path) in paths.iter().enumerate() {
+            crate::diff::testkit::whole_capture::pairs(path, |w| {
                 for u in w[0].units.iter().filter(|u| u.who >= 8) {
                     let (Some(gx), Some(gy)) = (u.orders_x, u.orders_y) else {
                         continue;
@@ -2146,7 +2140,7 @@ mod tests {
                         ));
                     }
                 }
-            }
+            });
         }
         eprintln!(
             "the two long traces: {reached} animal walks reached their goal, {abandoned} were dropped short of it"

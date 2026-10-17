@@ -1081,15 +1081,24 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&state);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = replay_initial(&log).unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut built = if crate::diff::testkit::whole_capture::legacy() {
+            let texts = sibling_texts();
+            let text = crate::capture::read(&state);
+            let log = Log::parse(&text);
+            let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+            let inits: Vec<Initial> = logs.iter().filter_map(replay_initial).collect();
+            let refs: Vec<&Initial> = inits.iter().collect();
+            let mut init = replay_initial(&log).unwrap();
+            borrow_from_siblings(&mut init, &refs);
+            build_sim(&loaded, &init, Tuning::RON)
+        } else {
+            with_sibling_initials(|siblings| {
+                let mut source = crate::capture::indexed::IndexedCapture::open(&state).unwrap();
+                crate::diff::testkit::whole_capture::with_initial(&mut source, &state, |init| {
+                    crate::diff::testkit::whole_capture::build(&loaded, init, siblings, None)
+                })
+            })
+        };
 
         const FIRST: i64 = 6374;
         const LAST: i64 = 7249;
@@ -1152,15 +1161,40 @@ mod tests {
                 eprintln!("skipping: no {file} (set RON_GAMELOG_DIR)");
                 return;
             };
-            let wtext = crate::capture::read(&path);
-            let wlog = Log::parse(&wtext);
+            let legacy = crate::diff::testkit::whole_capture::legacy();
+            let verify = std::env::var_os("RON_VERIFY_WHOLE_CAPTURE").is_some();
+            let wtext = (legacy || verify).then(|| crate::capture::read(&path));
+            let full = wtext.as_deref().map(Log::parse);
+            let mut source =
+                (!legacy).then(|| crate::capture::indexed::IndexedCapture::open(&path).unwrap());
             let (mut here, mut wrong) = (0usize, 0usize);
             for n in lo..=hi {
                 let Some(rows) = goods.get(&n) else { continue };
+                let raw = if let Some(source) = &mut source {
+                    let Some(at) = source.frames().iter().position(|f| f.number == n) else {
+                        continue;
+                    };
+                    Some(source.read_frame(at).unwrap())
+                } else {
+                    None
+                };
+                let sliced = raw.as_deref().map(Log::parse);
+                let wlog = sliced.as_ref().or(full.as_ref()).unwrap();
                 for (who, key, ours) in rows {
                     let Some(block) = wlog.leader_block(n, *who) else {
                         continue;
                     };
+                    if verify {
+                        assert_eq!(
+                            block.all(key),
+                            full.as_ref()
+                                .unwrap()
+                                .leader_block(n, *who)
+                                .unwrap()
+                                .all(key),
+                            "whole leader field {n}/{who}/{key}"
+                        );
+                    }
                     let theirs: Vec<i64> = block
                         .all(key)
                         .iter()
@@ -1237,9 +1271,7 @@ mod tests {
                 eprintln!("skipping: no {file} (set RON_GAMELOG_DIR)");
                 return;
             };
-            let wtext = crate::capture::read(&path);
-            let wlog = Log::parse(&wtext);
-            for f in wlog.frame_states() {
+            for f in crate::diff::testkit::whole_capture::frames(&path) {
                 if !(lo..=hi).contains(&f.n) || f.cities.is_empty() {
                     continue;
                 }

@@ -105,6 +105,11 @@ passes on `571c0298`;897 rondata, exact3276 requests retained. Warm full suite
 145.58→134.05s, CPU1037.78→934.29; sampled memory8186→8541MiB (no improvement).
 Next: whole-capture city/unit/animal consumers at2030–2122MiB per test. See
 [journal](journal/2026-10-16-golden-civilian.md).
+Whole-capture follow-up: bounded setup and rolling observations retain all checks.
+Four local tests fall from~2GiB each to22–398MiB; four competing copies of that
+subset use28853→1265MiB sampled tree, CPU50.26→41.64s. Two boundary guards catch
+intentional faults. Full required-fixture gate pending; see
+[journal](journal/2026-10-17-whole-capture.md).
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See

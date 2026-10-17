@@ -127,6 +127,10 @@ fn diff_sources() -> Vec<String> {
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/testkit/whole_capture.rs",
+        "bounded observation readers; original comparisons stay in city/unit/order",
+    ),
+    (
         "diff/golden/observations.rs",
         "owned source observations and codec; comparisons remain in golden.rs",
     ),
