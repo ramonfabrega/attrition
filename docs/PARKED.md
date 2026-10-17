@@ -3801,6 +3801,11 @@ of its nine built rows were on the base by its `ccc update` (2837, 2844, 2801), 
 new files count, exit 2), which three subagents each found the slow way. Candidate: the sweep frame's brief re-reads `census.py
 --unbacked` on the base at every `ccc update` before a fan-out, and `mutate.py` names the untracked file it refused on. One reach.
 
+(2862) **`sweep_gen.py`'s help does not say what `--sparse` without `@` writes, and a draw that records nothing passes**
+(2852's "for the Loop" line, filed at its merge): without `@` the table's base is written at LOC as a pointer cell, and an
+in-image table is `@LOC`; a lane lost twenty minutes to 220 rows that recorded nothing. Candidate: the help says it, beside
+2842's and 2850's traps, and the generator counts the ` # -` rows and refuses when they are all of them. One reach.
+
 (2843) **The census counts a sweep only when its test's doc comment spells `Class::method@addr` in full** (2837's "for the
 Loop" line, filed at its merge): a three-forms-in-one test that named `is_seen_wcoord@…` bare scored two of three until the
 full names were spelled. Candidate: `census.py --unbacked` says "cited bare" for an address a test file names without its
@@ -6557,7 +6562,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2852, 2026-10-17 — the hundred-and-seventeenth sweep batch: ten with a simulation effect
 
-(2852) **Ten built, walked down `census.py --unbacked` past 2844's stop.** `ResourceDivvyPool::get_early` 0x68a640,
+(2858) **Ten built, walked down `census.py --unbacked` past 2844's stop.** `ResourceDivvyPool::get_early` 0x68a640,
 `get_late` 0x68a570, `get_water` 0x68a4a0 (one shape three times: `Random::get` 0xa39d70 stubbed `--seq 0:12
 --answer-range 0:0:65535`, the bit mask and the goods array `--place`d, the mask words `--wbias`ed to patterns whose bit 0 is
 clear, or a pool of one good loops forever on a set bit), `World::set_river_at` 0x6b1f80 (two placed tile arrays, the fine
@@ -6569,21 +6574,21 @@ array shuffled in place), `World::set_oil_at` 0x6b2a10 (four cell windows, the g
 stubbed vtable laid by `--vtat-also`). `Census:` 1208 → **1219 of 3,611** by `--layers` on the tip. No subagents, ten serial,
 debug; about seventy breaks, all held bar the two named in the next row.
 
-(2852, second) **Survivors, read against the draw.** `ResourceDivvyPool::get_early`'s `count - 1 > 0` → `count > 0`: at one
+(2859) **Survivors, read against the draw.** `ResourceDivvyPool::get_early`'s `count - 1 > 0` → `count > 0`: at one
 good the original skips `Random::get` and the mutant takes `a[1] % 1 == 0`, the same index, and the stub's call count is
 not recorded: an equivalent mutant. `Border::process_morph`'s `origin[i] = origin[n - 1]` survived because the original
 never looks at the swapped-in slot again (`i` moves on): removed from the port rather than kept as dead state. `World::set_oil_at`
 reaches its good-matching arm in ten rows of 220 (a flag, a type of 5, two table matches in turn): every break on it held, but
 the arm is thin; a denser draw is `--wbias` on the pointer words toward the table's one nonzero entry.
 
-(2852, third) **Generator traps, undocumented.** `--sparse LOC:...` without `@` writes the table's *base address at LOC*, a
+(2860) **Generator traps, undocumented.** `--sparse LOC:...` without `@` writes the table's *base address at LOC*, a
 pointer cell (the groups table `0xe85f20`); a table the image holds inline (leaders at 0xe3a390, armies at 0xc09700) is
 `--sparse @LOC:...`, and with `@` the slices are written in the image itself and a later `--place pK+0` into a slice window
 lays a pointer there. Without the `@` the sweep passes its draw and every row answers nothing (`Armies::emergency` ran 220 rows
 with no recorded call). And a `--seq` stub's answers do not start at `a[own + 1]`: they follow every stub's single answer
 (`a[own + stubs + ...]`), with the base flag after them (`can_carry`'s `a[10]`).
 
-(2852, fourth) **Not built, with why.** `CityData::is_disbanding` 0x7380a0 and `CityData::get_building` 0x739480 (a walk down
+(2861) **Not built, with why.** `CityData::is_disbanding` 0x7380a0 and `CityData::get_building` 0x739480 (a walk down
 `o` through a `slot +0x3c` that answers a *pointer* whose +0x74 short is the next link: a stub answering a window address per
 call, in order, with a chain that must end — no flag lays it); `Group::kill_next_order` 0x713d90 (the objects table then a
 vtable slot of each object through a cell plus the units table, three levels); `Unit::update_patrol_order` 0x5e35e0 (a
