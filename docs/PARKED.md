@@ -3748,6 +3748,10 @@ walk on chapter 76's start showed a target unseen that run890's golden build saw
 unseen arm can land seen. Candidate: the walk prints the fog source it used beside each `is_seen`, or refuses fog
 predictions, a test made to fail first. One reach.
 
+(2955) **A `make_stuff` `can_pay` print is re-added by every item that needs it** (2931's "for the Loop" line, filed at
+its merge): a probe printing the head's cost, bucket and escrow answered 576 in one run, and each AI item adds it again.
+Candidate: an env-guarded `RON_DEBUG_MAKE=<frame>` print in `make_stuff`, a test made to fail first. One reach.
+
 (2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
 and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
 `archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
@@ -6816,7 +6820,7 @@ Barracks that who=1 loses first. Names no score.
 
 ## Parked by item 2931, 2026-10-17 — the Germans' flat per-city gather moves the battery word 576 → 5577
 
-(2931, second) **The Romans' flat per-city wealth is built from the listing alone** (`docs/AI.md` §240,
+(2954) **The Romans' flat per-city wealth is built from the listing alone** (`docs/AI.md` §240,
 `economy::nation_city_gather`): `calc_city_resources@006d5530` adds `ROMAN_CITY_GATHER` (10) × 16 to wealth per city
 under `has_tribe_bonus(6)`, in the same arm as the Germans' term run886 backs. No scored or battery lobby has the Romans,
 so no dump has read a Roman `income`; a lobby with a Roman AI on one city would read wealth 160 above its taxes and trade.
