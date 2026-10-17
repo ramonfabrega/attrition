@@ -199,5 +199,18 @@ fn run891_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "initial run891 baseline");
+    pin_eq!(w.firsts.len(), 302, "initial run891 baseline");
+    // Item 2931: 302 keys part on blocks 5571..5827, the word's own block
+    // being 5578 (frame 5577: ours 8 draws, theirs 6, index 1 — ours
+    // `Leader::use_market+0x1ed` ×2 and `Leader::make_stuff+0x221` ×3,
+    // theirs one and two). On 5578 who=1's make list holds three Village
+    // offers in ours and two in theirs: `MAKE[0]` val 664398 at (47, 24)
+    // against 286098 at (46, 27), `MAKE[1]` 286098 at (46, 27) against
+    // 11400 at (51, 30), `MAKE[2]` 11400 at (51, 30) against empty. The
+    // site table stands apart from 570's window on: on 5571 who=1's
+    // `SITE[8]` is (47, 24) val 330000 in ours against (51, 30) val 1824,
+    // `SITE[6]` (49, 31) reg 5 against (44, 52) reg 11; on 5576
+    // `SITE[2..4]` shift by one. 46 stand on 5571: those rows, the
+    // control's `SITE[n].reg`, `form`, groups' `held` and the pool, and
+    // both leaders' `aggression` 0/1 (`docs/AI.md` §240).
 }
