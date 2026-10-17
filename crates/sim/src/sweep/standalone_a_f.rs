@@ -60,6 +60,10 @@ mod armies_send_navy;
 mod army_count;
 #[path = "army_member.rs"]
 mod army_member;
+#[path = "army_member_by_unit.rs"]
+mod army_member_by_unit;
+#[path = "army_remove_group.rs"]
+mod army_remove_group;
 #[path = "army_walk_data.rs"]
 mod army_walk_data;
 #[path = "attack_ground_order_get_type.rs"]
@@ -116,6 +120,8 @@ mod build_data_can_queue_4d2030;
 mod build_data_check_capture_eligible;
 #[path = "build_data_check_capture_health.rs"]
 mod build_data_check_capture_health;
+#[path = "build_data_could_queue.rs"]
+mod build_data_could_queue;
 #[path = "build_data_find_in_queue.rs"]
 mod build_data_find_in_queue;
 #[path = "build_data_get_base_garrison_arrows.rs"]
@@ -136,6 +142,8 @@ mod build_data_get_packer_stance;
 mod build_data_get_shot;
 #[path = "build_data_get_worker_stance.rs"]
 mod build_data_get_worker_stance;
+#[path = "build_data_hits.rs"]
+mod build_data_hits;
 #[path = "build_data_is_gathered_by.rs"]
 mod build_data_is_gathered_by;
 #[path = "build_data_is_infinite.rs"]
@@ -204,8 +212,12 @@ mod build_type_data_fundamental_type;
 mod build_type_data_gather_radius;
 #[path = "build_type_data_get_city_level.rs"]
 mod build_type_data_get_city_level;
+#[path = "build_type_data_get_garrison_limit.rs"]
+mod build_type_data_get_garrison_limit;
 #[path = "build_type_data_get_kill_value.rs"]
 mod build_type_data_get_kill_value;
+#[path = "build_type_data_get_stance_type.rs"]
+mod build_type_data_get_stance_type;
 #[path = "build_type_data_has_stance_type.rs"]
 mod build_type_data_has_stance_type;
 #[path = "build_type_data_is_city.rs"]
@@ -274,6 +286,8 @@ mod cast_order_walk_data;
 mod cast_order_walk_data_vtordisp;
 #[path = "caster_walk_data.rs"]
 mod caster_walk_data;
+#[path = "categories_find_data.rs"]
+mod categories_find_data;
 #[path = "circle_render_get_name.rs"]
 mod circle_render_get_name;
 #[path = "circle_render_on_field_change.rs"]

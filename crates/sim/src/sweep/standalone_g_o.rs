@@ -62,6 +62,8 @@ mod game_defeat_all;
 mod game_get_armageddon;
 #[path = "game_get_game_fps_average.rs"]
 mod game_get_game_fps_average;
+#[path = "game_get_patch_version.rs"]
+mod game_get_patch_version;
 #[path = "game_info_default_setting.rs"]
 mod game_info_default_setting;
 #[path = "game_info_load_from_playback.rs"]

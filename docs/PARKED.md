@@ -3751,7 +3751,7 @@ whether the trial's numbers before this commit count, and whether a sampler shou
 (2792) **`sweep_gen.py --regen` with no `--port` drops a hand-written port to `todo!()`** (2783's "for the Loop"
 line, filed at its merge): four times in one batch, though the keep is said to hold (item 2368); the port had been
 written by replacing the `todo!()` line, so perhaps the keep wants the generator's own markers. Each re-application
-cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach. **A second**, 2807's (parked 2815): `--regen` resets a hand-edited port to `0`; a redraw is delete-and-regenerate or a checkout. **A third**, 2818's "for the Loop" line, filed at its merge: `--regen` should refuse, or print a diff, when it would reset a hand-written port; and `--write-mod` leaves `mod.rs` alone on a non-`--regen` run, so the module line is added by hand — the generator could verify it was added.
+cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach. **A second**, 2807's (parked 2815): `--regen` resets a hand-edited port to `0`; a redraw is delete-and-regenerate or a checkout. **A third**, 2818's "for the Loop" line, filed at its merge: `--regen` should refuse, or print a diff, when it would reset a hand-written port; and `--write-mod` leaves `mod.rs` alone on a non-`--regen` run, so the module line is added by hand — the generator could verify it was added. **A fourth**, 2844's "for the Loop" line, filed at its merge: `--regen` rewrites the `.rs` as well as the `.py`, so a draw tuned after the port loses it (kept in the job's tmp and transplanted); a `--regen --keep-port` would remove the step; and `--sparse` sorts its slices by offset whatever the line's order, which the help should say (beside 2842's traps).
 
 (2796) **A function's sixty flags and its port do not survive a shell line** (2782's "for the Loop" line, filed at its
 merge): the item's driver was a throwaway (`$JOB/tmp/gen.py`, a function's flags one a line in a file and its port in
@@ -6499,13 +6499,40 @@ row then shows `0` for a function that should return the field: widen `--win`); 
 pointed buffers" reads as the reverse). Recording a stub whose `ecx` is a table row's address (`type_avail`'s leader) prints an
 absolute address the port cannot spell: leave that stub unrecorded.
 
-## Parked by the next landing, slot FN — reserved
+## Parked by item 2844, 2026-10-17 — the hundred-and-sixteenth sweep batch: ten with a simulation effect
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2848) **Ten built, walked down `census.py --unbacked` past 2837's 1,500 bytes.** `BuildTypeData::get_stance_type`
+0x6396c0 (three stubs, one an `--answers` list per stub), `BuildData::hits` 0x62e740 (a float, `cvttss2si`'s out-of-range is
+`i32::MIN`; `--slotbase 0x4c`), `BuildData::could_queue` 0x62da50 (a store to the image's `queue_fail` at 0xcab3a4 by `--at`, a
+`--ptrtab` of the types, `--slotbase 0xb8`), `Game::get_patch_version` 0x595260 (a four-byte compare against
+`xpack_rtm_version` 0xe7fe4c, both words `--wbias`ed from one sixteen-word list), `Unit::set_angle` 0x605400
+(the groups cell 0xe85f20 as a `--sparse` table, `find_leader` recorded per row), `Army::member` 0x6f8de0 (the overload
+beside 0x6f9a50: `--name army_member_by_unit`; the groups table and four `--ptrtab`s on the per-owner object tables 0xc0ab84
++ 0x1c*who), `Army::remove_group` 0x6f8b50, `World::set_land` 0x6b2b50 (the world cell 0xc06188, a placed tile array),
+`BuildTypeData::get_garrison_limit` 0x633f50 (two `--seq`s, the leader row's address never recorded), `Categories::find_data`
+0x6f1e30 (`ignore_always` 0xee10e3 `--wbias`ed nonzero so the error report is skipped). `Census:` 1197 → **1208 of 3,611** by
+`--layers` on the tip (eleven: `get_stance_type`'s port counted a second overload). No subagents, ten serial, debug.
+
+(2849) **Survivors, read against the draw.** `Unit::set_angle`'s two range bounds (`0x4000_0000..` and `..=0xc000_0000`):
+the difference of two independent words equals a bound at 2^-32, as `Type::pay_cost` (2839); no flag ties an argument to a
+window word's offset. `BuildData::hits`'s `f.is_nan() ||` is an equivalent mutant (NaN and `i32::MIN` are both under 1 and
+answer 1). `Army::member`'s high byte of a member short: the draw puts a nonzero high byte in few rows that also reach the
+loop with a matching low byte; widened twice and still a pass, a thin draw rather than a defect. Every other break (about
+fifty) held.
+
+(2850) **Two generator facts, undocumented.** `--sparse`'s slices are sorted by offset whatever order the line gives
+(`0x48/0xc/0x8cc` ran as `0xc, 0x48, 0x8cc`; a bias on the wrong window parts the first run and the log token shows it);
+and `--ptrtab LOC:N:SIZE` lays the table as one `p` window and then N record windows, so a second ptrtab starts at
+`12 + (N+1)·t` after twelve sparse slices (`Army::member`). `--regen` rewrites the `.rs` as well as the `.py` and loses the
+port: a lane that tunes a draw after writing the port edits the script's `WBIAS` list by hand or transplants the body.
+
+(2851) **Not built, with why.** `ObjectData::cargo_inside` (a vslot chain through `objects` and `units` tables, a
+loop ended by a short that no link flag walks), `Unit::update_local_seen` and `ObjectsData::find_goody_at` (global
+`circle_x`/`circle_y`/`div_3_table` and the world's tile array: a table the image builds at boot reads as zeros, 2216),
+`MountainsData::total_gather_size` (two callees answering a `WCoord` through an out-argument), `ArmyData::select` (a
+`MiscAccess::console` singleton and a `SelectGroup` vtable), `Supplies::find_supply` and `SpecialsData::find_special`
+(`vector_dist` takes its operands in `esi` and `edi`: no stub shape holds a callee's register arguments), `UnitData::is_busy`,
+`UnitData::get_gpiece` ×2 (the `types.list` and orderlist walk, a `GraphicPieces` singleton).
 
 ## Parked by the next landing, slot FO — reserved
 
