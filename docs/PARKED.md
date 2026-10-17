@@ -3811,6 +3811,15 @@ caller's whole call on a packet before reading another callee** (2845's "for the
 reading's `[bytes]` side effect (2026-09-17) sat unbuilt for a month; its owner was the ring walk's predicate, found only
 through a packet's `--watch`. Candidate: a brief-checklist row beside Loops 2827 and 2847. One reach.
 
+(2874) **A golden take with a wide `end:` set runs at about a frame a second and meets the lane's hour unannounced** (2832's
+"for the Loop" line, filed at its merge): `WORLD=6,CITIES=5` took run880 to 1219 of 1260 before the 3600 s cap, no receipt.
+Candidate: `golden_capture.sh` prints a frames-per-second estimate from the first blocks, so a lane trims the `end:` set
+before it waits the hour. One reach.
+
+(2875) **A fan-out's brief ended at "Your function:" with the name in the task line only** (2857's "for the Loop" line,
+filed at its merge): two subagents found it; the `void` shape ignoring `--cell-win`/`--stub` and `--write-mod` not
+registering are parked 2872. Candidate: the sweep frame's fan-out template names the function in its body. One reach.
+
 (2843) **The census counts a sweep only when its test's doc comment spells `Class::method@addr` in full** (2837's "for the
 Loop" line, filed at its merge): a three-forms-in-one test that named `is_seen_wcoord@…` bare scored two of three until the
 full names were spelled. Candidate: `census.py --unbacked` says "cited bare" for an address a test file names without its
@@ -6484,20 +6493,20 @@ not a generator shape yet). No new shape was needed by `Map::stamp`; this batch 
 
 ## Parked by item 2832, 2026-10-17 — the cloaked Spy's Bribe staged (run880)
 
-- **(2832, first) The control Spy's chase re-target, run880 frame 1178.** A Spy casting Bribe on a *walking* target out of
-  range pushes a `MOVEORDER` to a ring spot on 1172 (both sides agree: `(23256, 19128)`) and the original **re-issues** it on
-  1178 to `(23304, 19032)` (`off_x/off_y` 264/600, a fresh `find_nearby_spot` for the target's new square); ours keeps the
-  first. Then 1183 the original has two orders and ours one cast, 1184–1185 the heading follows. The booking is the frame (1178)
-  and the first parted field (`order:move.dest_x/y`, ours 23256/19128, theirs 23304/19032); the mechanism is the approach's
-  re-target interval in `do_cast_targeted`'s out-of-range arm, **a hypothesis**. It is not Bribe's: any targeted craft on a
-  moving target takes it. `WANT_CH85` holds the rows.
-- **(2832, second) The added Scout's first disc, run880 block 1103, `world:seen2`**: 7 cells, first (59, 54), ours 3 theirs 1,
-  the frame after a who=1 Scout is added at 1101 (ch80's `seen3` residue, same family; item 2785 left the walk-path cells).
-- **(2832, third) The take stopped at 1219, not 1260**: with `WORLD=6,CITIES=5` in the `end:` set the lane's hour ran out at
-  frame 1219 (1.2 GB, `subprocess.TimeoutExpired`, settings restored, no receipt). Nothing after 1219 is dumped: the conversion
-  (1212) and 6 frames after are, and the **control's cast never reached range** by then, so "a target out of sight is refused"
-  is **not** established — the control spy chases and the Hoplite walks away. A control wants a stationary target (an
-  `add hoplite` that is ordered to stay) or a longer take at `UNITS=3` alone.
+(2868) **The control Spy's chase re-target, run880 frame 1178.** A Spy casting Bribe on a *walking* target out of
+range pushes a `MOVEORDER` to a ring spot on 1172 (both sides agree: `(23256, 19128)`) and the original **re-issues** it on
+1178 to `(23304, 19032)` (`off_x/off_y` 264/600, a fresh `find_nearby_spot` for the target's new square); ours keeps the
+first. Then 1183 the original has two orders and ours one cast, 1184–1185 the heading follows. The booking is the frame (1178)
+and the first parted field (`order:move.dest_x/y`, ours 23256/19128, theirs 23304/19032); the mechanism is the approach's
+re-target interval in `do_cast_targeted`'s out-of-range arm, **a hypothesis**. It is not Bribe's: any targeted craft on a
+moving target takes it. `WANT_CH85` holds the rows.
+(2869) **The added Scout's first disc, run880 block 1103, `world:seen2`**: 7 cells, first (59, 54), ours 3 theirs 1,
+the frame after a who=1 Scout is added at 1101 (ch80's `seen3` residue, same family; item 2785 left the walk-path cells).
+(2870) **The take stopped at 1219, not 1260**: with `WORLD=6,CITIES=5` in the `end:` set the lane's hour ran out at
+frame 1219 (1.2 GB, `subprocess.TimeoutExpired`, settings restored, no receipt). Nothing after 1219 is dumped: the conversion
+(1212) and 6 frames after are, and the **control's cast never reached range** by then, so "a target out of sight is refused"
+is **not** established — the control spy chases and the Hoplite walks away. A control wants a stationary target (an
+`add hoplite` that is ordered to stay) or a longer take at `UNITS=3` alone.
 
 ## Parked by item 2837, 2026-10-17 — the hundred-and-fifteenth sweep batch: ten with a simulation effect
 
@@ -6618,9 +6627,9 @@ walked through its own words, vslots 0x10c and 0x94 on the node's object). A sha
 
 ## Parked by item 2857, 2026-10-17 — the hundred-and-eighteenth sweep batch
 
-(2857, first) **Sweeps whose port is call-order only**: `Type::set_name` stubs `String::operator=`, so the copy semantics are not covered; `Terrain::walk_coord_data`'s `iVar3 != 0` arm on `field_0x47d8 + offset` is unreachable (table pointer always placed).
-(2857, second) **`sweep_gen.py obj` gaps**: the `void` shape ignores `--cell-win` and `--stub` (`Player::end_game` used `obj --ret none`); `--write-mod` is not always run by the generator (`TerrainOil::remove_rocky_patch`'s `mod` line was added by hand); `--place` into a record with a count at `-4` wants EXPR `-4`, undocumented.
-(2857, third) **Equivalent mutants**: `GuyData::get_render_angle` `>=` for `>` at `0x80000000` and `<=` at `-2^31` are equivalent (f32 rounding / `as i32` saturation).
+(2871) **Sweeps whose port is call-order only**: `Type::set_name` stubs `String::operator=`, so the copy semantics are not covered; `Terrain::walk_coord_data`'s `iVar3 != 0` arm on `field_0x47d8 + offset` is unreachable (table pointer always placed).
+(2872) **`sweep_gen.py obj` gaps**: the `void` shape ignores `--cell-win` and `--stub` (`Player::end_game` used `obj --ret none`); `--write-mod` is not always run by the generator (`TerrainOil::remove_rocky_patch`'s `mod` line was added by hand); `--place` into a record with a count at `-4` wants EXPR `-4`, undocumented.
+(2873) **Equivalent mutants**: `GuyData::get_render_angle` `>=` for `>` at `0x80000000` and `<=` at `-2^31` are equivalent (f32 rounding / `as i32` saturation).
 
 ## Parked by the next landing, slot FR — reserved
 
