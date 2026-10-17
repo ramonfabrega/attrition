@@ -3743,6 +3743,11 @@ at its merge): the runner's `pace:` line (Loop 2874) made trimming run884's `end
 not read it still loses the hour, as run880 did. Candidate: `golden_capture.sh` refuses, or stops early with a receipt, a take
 whose first `pace:` projects past `--timeout`, a test made to fail first. One reach.
 
+(2948) **A `RON_STAGE` walk is not a prediction for a fog arm** (2930's "for the Loop" line, filed at its merge): the
+walk on chapter 76's start showed a target unseen that run890's golden build saw, so a staging chosen off the walk for an
+unseen arm can land seen. Candidate: the walk prints the fog source it used beside each `is_seen`, or refuses fog
+predictions, a test made to fail first. One reach.
+
 (2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
 and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
 `archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
@@ -3786,6 +3791,7 @@ the walk and widening tests, `testkit`'s word and window, `WIDENINGS`, `floors` 
 chapter since eighty. Candidate: a `tools/` scaffold off `runwiring.py` that writes them from the chapter's number, run and
 word, a test made to fail first. One reach. **Second reach** (2915's "for the Loop" line, filed at its merge): the staged-line
 count `walk_script` asserts is counted by hand and was wrong on run889's first walk (8, not 6); the scaffold would count it.
+**A third reach** (2930's line): `GOLDEN_WORDS`' array length is hand-counted too (81 → 82).
 
 (2926) **The two sweep lanes swept the same function twice in one tranche** (the commander's, noticed at 2910's merge):
 2877 re-swept 2863's `Group::kill_next_order`, and 2910 re-swept 2900's `ObjectsData::find_goody_at@0065c040` and
@@ -6803,9 +6809,9 @@ Barracks that who=1 loses first. Names no score.
 
 ## Parked by item 2930, 2026-10-17 — chapter 89, a Bribe's range-arrival (run890)
 
-- **(2930) The unseen-arrival kill has no diff.** Never killing at `do_cast`'s range arrival fails nothing on run890: a Spy sees a target at Bribe's
+- (2947) **The unseen-arrival kill has no diff.** Never killing at `do_cast`'s range arrival fails nothing on run890: a Spy sees a target at Bribe's
   range. Reaching the kill needs a caster whose range exceeds its sight or a stealth-hidden target; it names no score, so it parks (GOLDEN §113).
-- **(2930, second) A building target killed mid-approach** (was parked 2929) is still the listing's alone; unchanged.
+- Parked 2929 (a building target killed mid-approach) is still the listing's alone; unchanged. Both booked as 2949.
 
 ## Parked by the next landing, slot GG — reserved
 
