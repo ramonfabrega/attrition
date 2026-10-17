@@ -98,6 +98,8 @@ mod river_doober_add_doob_for_render;
 mod river_doober_add_for_render;
 #[path = "river_doobers_add_doobers_for_render.rs"]
 mod river_doobers_add_doobers_for_render;
+#[path = "river_section_out_compute_vert_height.rs"]
+mod river_section_out_compute_vert_height;
 #[path = "rivers_out_get_name.rs"]
 mod rivers_out_get_name;
 #[path = "rivers_walk_data.rs"]
