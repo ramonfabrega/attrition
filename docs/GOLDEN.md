@@ -12985,7 +12985,7 @@ The word is the capture's end, 1300, `ch86` closed. No code changed: chapter eig
 
 **Diff-backed now**: the conversion on a stationary target, with no Scout; the cast's timing (1114 → 1212) on a second, unrelated staging.
 **Not established**: (1) a refusal for sight (the target outside the *caster's* owner's sight) — needs a staging that sends the Spy to
-range (parked 2876, second); (2) the chase's re-target on a moving target (parked 2868, untouched); (3) `unit_masks` bits kept as
+range (parked 2879); (2) the chase's re-target on a moving target (parked 2868, untouched); (3) `unit_masks` bits kept as
 separate fields.
 
 ## 110. Reserved for the next item on the rules track
