@@ -2362,6 +2362,36 @@ impl Sim {
                 ..
             }))
         );
+        if std::env::var("RON_PROBE_STRAFE").is_ok() {
+            let hp = match t {
+                crate::combat::Obj::Building(b) => self.buildings[b].health,
+                _ => -1,
+            };
+            eprintln!(
+                "PROBE strafe f{} u{} o{} ret {} in_range {} struck {} off {:#x} hp {}",
+                self.frame,
+                u,
+                self.units[u].index,
+                now_returning,
+                self.is_in_range(crate::combat::Obj::Unit(u), t),
+                self.is_in_range_struck(crate::combat::Obj::Unit(u), t),
+                off,
+                hp
+            );
+            let at = self.units[u].pos;
+            let c = crate::world::Pos::new(at.x.div_euclid(48) * 48 + 0x18, at.y.div_euclid(48) * 48 + 0x18);
+            eprintln!(
+                "PROBE2 f{} o{} at {:?} d {} max {} forest {} tpos {:?}",
+                self.frame,
+                self.units[u].index,
+                at,
+                self.attack_dist_from(crate::combat::Obj::Unit(u), c, t),
+                self.max_range_of(crate::combat::Obj::Unit(u)),
+                self.world.tile_mask(at.tile()) & crate::world::tile::SURFACE
+                    == crate::world::tile::SURFACE_FOREST,
+                self.pos_of(t)
+            );
+        }
         if now_returning || !self.is_in_range(crate::combat::Obj::Unit(u), t) {
             return true;
         }
