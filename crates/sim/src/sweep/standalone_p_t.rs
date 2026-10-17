@@ -94,6 +94,8 @@ mod resource_divvy_pool_refresh_water;
 mod reversing;
 #[path = "river_doober_add_doob_for_render.rs"]
 mod river_doober_add_doob_for_render;
+#[path = "river_doober_add_for_render.rs"]
+mod river_doober_add_for_render;
 #[path = "river_doobers_add_doobers_for_render.rs"]
 mod river_doobers_add_doobers_for_render;
 #[path = "rivers_out_get_name.rs"]
