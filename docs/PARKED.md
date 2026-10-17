@@ -6926,13 +6926,22 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
   `Unit::modify_group_order` reads `[this+0xd4]` after its loop whether or not `[this+0xdc]` is set, so its
   null-tail row is undrawable (a stale `d4`). Both held by their ports' comments, not by a row.
 
-## Parked by the next landing, slot GS — reserved
+## Parked by item 2990, 2026-10-17 — ten more `process_*` bodies swept, Census 1329 → 1339
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2990) **Still unswept in `CommandPackage::process_*`**: `rename_city` (virtual slot 0xac, `String::operator=`,
+  `HotKeyGroups::find_group`), `ping` (a loop over the eight leaders calling `Leader::action_ping`), `cheat_init_unit`,
+  `cheat_ai_speed_increase`, `console_cmd`, `hotkey`, `sell` (`has_tribe_bonus`/`has_preq`/`has_market`/`do_sell`
+  chain), `trade`, `speed_set` (timings table, `String`/`MessageWin`/`SoundGlobal` calls), `quit` (console play, `Player::quit`,
+  a vcall), `turn_data`. And 2964's list, not reached: `find_city`, `find_city_at`, `poor_target`, `Wall::swap_team`,
+  `Tribes::find`, `Signposts::add`. Names no score beyond the census.
+- (2990, second) **`--clean-stack 64` is not enough for a logger with five or more reference arguments**: the line, tags and
+  format slots of `logToMemory` read caller stack residue (varying by row) that 64 bytes leave; `--clean-stack 256` zeroes
+  them on every row (`process_attack`, `_swarm_around`, `_launch_patrol`, `_flight`, `_build`, `_move_near`). Parked 2985's
+  `come_out`/`cannon_time` pins could use 256 and lose their residue constants. `sweep_gen.py --regen` on a hand-ported
+  `.rs` whose `--clean-stack` argument changed reset the port to `todo!()` (the `.rs` did not win): file it with Loop 2886.
+- (2990, third) **The batch's `five.py`/graft shape is a fifth reach**: a sibling's port block copied with three constants
+  re-measured (the file literal for a null `strrchr`, the format pointer, the say offset) -- ten times this batch, each from
+  the first failing row. A `sweep_gen.py --port-from SIBLING` that copies the block and reports the constants is the Loop's.
 
 ## Parked by the next landing, slot GT — reserved
 
