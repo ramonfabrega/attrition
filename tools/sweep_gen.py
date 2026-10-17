@@ -1438,6 +1438,7 @@ ANSWERS = {answers!r}
 VTAT = {vtat!r}
 VTATHALF = {vtathalf!r}
 ALIAS = {alias!r}
+ANSWERBY = {answerby!r}
 ANSWERWIN = {answerwin!r}
 CDECL = {cdecl!r}
 ARGEQ = {argeq!r}
@@ -1806,6 +1807,11 @@ def main(argv):
             shape(rng, f"p{{len(p) - 1}}", b)
             answers[idx] = buf
             callwins.setdefault(idx, []).append(buf)
+        for idx, ofirst, dfirst, nobj, loff in ANSWERBY:
+            for j in range(nobj):
+                tail = list(range(j + 1, nobj))
+                link = rng.choice(tail) if tail and rng.random() < 0.8 else -1
+                p[dfirst + j][loff:loff + 2] = (link & 0xFFFF).to_bytes(2, "little")
         if VTAT is not None:
             # The stubbed vtable laid in a window: a slot of an object the
             # function reaches through a table, not of `this` (item 2170).
@@ -1892,6 +1898,21 @@ def main(argv):
                     turn[0] += 1
                     return v
                 h.answers[names[idx]] = answer
+        for idx, ofirst, dfirst, nobj, loff in ANSWERBY:
+            # `--answer-by IDX:OBJ0:DAT0:N:LINKOFF` (item 2863, parked 2861): stub IDX answers
+            # the address of `p<DAT0+j>` to the `ecx` that lies in `p<OBJ0+j>` — an object's
+            # data record, the same one each ask — and each data record's short at LINKOFF
+            # names a later object or is -1, so a walk down the links ends (the links
+            # are laid with the windows, before they are written to memory).
+            spans_ = [(wins[nc + ofirst + j][0], len(wins[nc + ofirst + j][1]), wins[nc + dfirst + j][0])
+                      for j in range(nobj)]
+
+            def by_ecx(ecx, args, spans_=spans_):
+                for a_, n_, d_ in spans_:
+                    if a_ <= (ecx & 0xFFFFFFFF) < a_ + n_:
+                        return d_
+                return 0
+            h.answers[names[idx]] = by_ecx
         # A callee called more than once a row answers each call in turn:
         # N values drawn a row (from its `--answers` list when it has one),
         # the last repeated past N — from the terminators when given (item
@@ -2171,7 +2192,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(),
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
                  rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=()):
     name, va = parse(spec)
@@ -2349,6 +2370,16 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if not (colon and plus and re.fullmatch(r'm|c\d+|p\d+', awin) and re.fullmatch(r'm|c\d+|p\d+', twin)):
             raise ValueError(f'--alias is WIN+OFF:TARGET[+K] over m, cN or pN, not {al!r}')
         palias.append((awin, int(aoff, 0), twin, int(toff, 0) if tplus else 0))
+    pby = []
+    for ab in answer_by:
+        parts = ab.split(':')
+        if len(parts) != 5:
+            raise ValueError(f'--answer-by is IDX:OBJ0:DAT0:N:LINKOFF, not {ab!r}')
+        pby.append(tuple(int(x, 0) for x in parts))
+    if any(not 0 <= t[0] < len(pstubs) or t[3] < 1 for t in pby):
+        raise ValueError('--answer-by IDX names one of the --stub callees, by its order on the line, and N >= 1')
+    if any(t[0] in {i for i, _ in pansw} or t[0] in {i for i, _, _ in pseq} for t in pby):
+        raise ValueError('--answer-by and --answer-win or --seq answer one stub two ways')
     pecx = None
     if ecx_int is not None:
         if '..' in ecx_int:
@@ -2409,7 +2440,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or edx_win or pxmm or psparse or pgtab or plinks or pout or pcdecl or pwrite or pecxout):
+            or pseq or pansr or pthis or palso or phalf or palias or pby or edx_win or pxmm or psparse or pgtab or plinks or pout or pcdecl or pwrite or pecxout):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2444,6 +2475,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'the stubbed vtable laid at `{vh}` half the rows' for vh in vtat_half]
         + [f'the word at `{al.partition(":")[0]}` laid as the address of `{al.partition(":")[2]}` half the rows'
            for al in alias]
+        + [f'stub {i} answers `p{d}+j`, the data of the object its `ecx` is in `p{f}+j` (j < {n}), linked at `+{o:#x}`'
+           for i, f, d, n, o in pby]
         + (['`__cdecl`: the caller pops the arguments'] if cdecl else [])
         + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
         + [f'stub {idx} answers {n} values in call order' + (f', the last from {t}' if t else '')
@@ -2502,7 +2535,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, xmm=pxmm, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
-                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias,
+                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
@@ -3344,6 +3377,10 @@ def main(argv=None):
                     help='obj: the word at this window offset laid as the address of window TARGET (plus K) half the '
                          'rows, the other half left as drawn (a pointer that must name another window, or its own: '
                          '`check_last_connect`; item 2797, parked 2791)')
+    ap.add_argument('--answer-by', action='append', default=[], metavar='IDX:OBJ0:DAT0:N:LINKOFF',
+                    help='obj: stub IDX answers by its `ecx` — the object in `p<OBJ0+j>` gets the window `p<DAT0+j>` '
+                         '(of N), whose short at LINKOFF is a later object\'s index or -1 (a chain that '
+                         'ends; `is_disbanding`\'s walk; item 2863, parked 2861)')
     ap.add_argument('--sparse', action='append', default=[], metavar='LOC:STRIDE:N:OFF,SIZE[/OFF,SIZE]',
                     help='obj: LOC points at a zeroed table of N rows STRIDE apart, each row\'s slices `p` '
                          'windows after the pointed buffers and before the places; `@VA` the image\'s own table '
@@ -3530,7 +3567,7 @@ def main(argv=None):
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
-                                                    vtat_half=args.vtat_half, alias=args.alias, place_null=args.place_null,
+                                                    vtat_half=args.vtat_half, alias=args.alias, answer_by=args.answer_by, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
