@@ -572,6 +572,8 @@ mod command_package_process_clear_all;
 mod command_package_process_clear_tributes;
 #[path = "command_package_process_come_out.rs"]
 mod command_package_process_come_out;
+#[path = "command_package_process_console_cmd.rs"]
+mod command_package_process_console_cmd;
 #[path = "command_package_process_declare.rs"]
 mod command_package_process_declare;
 #[path = "command_package_process_demand_tribute.rs"]
