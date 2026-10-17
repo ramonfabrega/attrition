@@ -5634,6 +5634,35 @@ fn chapter_eighty_nine_s_window_is_widened_whole() {
     cases_80_89::chapter_eighty_nine_s_window_is_widened_whole();
 }
 
+/// **Chapter ninety** (item 2949, `docs/GOLDEN.md` §114, run892): an Informer
+/// cast lost mid-approach on a building, unseen at range arrival on a unit,
+/// and refused on a stealth-hidden Spy.
+#[test]
+fn chapter_ninety_holds_to_the_golden_word() {
+    cases_80_89::chapter_ninety_holds_to_the_golden_word();
+}
+
+/// **run892 whole, both directions** (item 2949, `docs/GOLDEN.md` §114).
+#[test]
+fn chapter_ninety_s_window_is_widened_whole() {
+    cases_80_89::chapter_ninety_s_window_is_widened_whole();
+}
+
+/// What parts in run892's window, blocks 605–1200.
+const WANT_CH90: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
 /// What parts in run890's window, blocks 1100–1500.
 const WANT_CH89: &[&str] = &[
     "1100 0/0 form",

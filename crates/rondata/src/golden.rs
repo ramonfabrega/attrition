@@ -2233,6 +2233,7 @@ mod tests {
         ("chapter87.cmd", &[]),
         ("chapter88.cmd", &[]),
         ("chapter89.cmd", &[]),
+        ("chapter90.cmd", &[]),
         // Chapter nine: two `@move` issuer lines, the first player orders
         // in the record (item 676, `docs/GOLDEN.md` §17).
         ("chapter9.cmd", &[]),
