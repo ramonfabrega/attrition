@@ -70,6 +70,7 @@ LINKHI = []
 OUTARG = []
 CDECLSTUBS = []
 STUBWRITE = []
+STUBCOPY = []
 ECXANSWER = []
 ECXOUT = []
 RING = []
@@ -104,7 +105,8 @@ def u8(w, off):
 
 def token(v, spans):
     """A recorded value: a pointer into a window by the window's name and
-    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), anything
+    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), a word of the
+    caller's frame by its height (`sp+0xc`), anything
     else as a signed word (item 2281)."""
     v &= 0xFFFFFFFF
     for name, at, size in spans:
@@ -115,6 +117,10 @@ def token(v, spans):
     top = STACK_BASE + STACK_SIZE - 0x100
     if top - 0x1000 <= v < top:
         return f"sp-{top - v:#x}"
+    # A word at or above it, the caller's own frame (`ebp+0xc` past the function's arguments;
+    # item 2921, parked 2918): its height over `esp`, not the harness's stack constant.
+    if top <= v < top + 0x100:
+        return f"sp+{v - top:#x}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
@@ -192,6 +198,20 @@ def win_write(inner, at, size, v, write, read=None):
         else:
             write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
         return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
+def copy_answer(inner, read, write, cap):
+    """`--stub-copy IDX` (item 2921, parked 2906): a stubbed `__cdecl` callee
+    that does what `memcpy` does — argument 2's bytes from argument 1 to
+    argument 0, at most `cap` — and answers the destination. The thunk the
+    original calls is an import (`jmp [0xac5428]`), which the emulator
+    resolves to nothing, so a plain stub copied nothing."""
+    def answer(ecx, args):
+        dst, src, n = (a & 0xFFFFFFFF for a in args[:3])
+        if n:
+            write(dst, read(src, min(n, cap)))
+        return dst
     return answer
 
 
@@ -579,6 +599,9 @@ def main(argv):
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write,
                                                       lambda a_, n_: bytes(uc.mem_read(a_, n_)))
+        for idx in STUBCOPY:
+            h.answers[names[idx]] = copy_answer(h.answers[names[idx]], lambda a_, n_: bytes(uc.mem_read(a_, n_)),
+                                                uc.mem_write, 0x1000)
         derefs = [[] for _ in DEREF]
         for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,

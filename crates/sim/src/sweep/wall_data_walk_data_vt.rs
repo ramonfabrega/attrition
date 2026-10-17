@@ -60,7 +60,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 if rd(&p[0], 4) == 0 {
                     flag = u8::from(rd(m, 0x18) != 0 || m[8] & 1 != 0 || r16(m, 0x32) != 0);
                 }
-                log.push("s1:p0+0x0,sp-0x1,2147483392".into());
+                log.push("s1:p0+0x0,sp-0x1,sp+0x0".into());
             } else {
                 log.push("s3:m+0x0,p0+0x0".into());
                 flag = u8::from(a[4] != 0);
