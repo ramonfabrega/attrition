@@ -747,7 +747,7 @@ class Shapes(unittest.TestCase):
             'Foo::bar@00401000', item=2253, win=0xe0, bias=[],
             places=['m+0xdc:0:8', 'p0+4:0:0x10'], place_null=['0'], port='0')
         compile(script, str(sp), 'exec')
-        self.assertIn('NULLS = [1]', script)
+        self.assertIn('NULLS = [0]', script)
         self.assertIn('if k in NULLS and rng.random() < 1 / 3:', script)
         self.assertIn('null a third of the rows', test)
         sp2, script2, *_ = sweep_gen.generate_obj(
@@ -2332,7 +2332,7 @@ class FamilyRegistrations(unittest.TestCase):
                 compile(script, str(sp), 'exec')
                 self.assertIn('CELLS = [(12607952, 128)]', script)
                 self.assertIn("STUBS = [('call', 4198964, 1)]", script)
-                self.assertIn('NULLS = [1]', script)
+                self.assertIn('NULLS = [0]', script)
                 self.assertIn('an empty body', test)
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
