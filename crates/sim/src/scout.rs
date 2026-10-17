@@ -299,8 +299,11 @@ impl Sim {
     /// different functions with one letter between their names). Answers
     /// true when no fog grid is loaded, which is the flat harness world.
     ///
-    /// The two leader exits (`leader_flags & 0x800`, `LeaderData +0x59e4`)
-    /// are seams: no run sets either.
+    /// The two leader exits are [`Sim::sees_every_unit`]'s (item 2780,
+    /// `docs/AI.md` §233): `leader_flags & 0x800` — the Space Program, or
+    /// `REVEAL_ENEMY_BONUS` — and `LeaderData +0x59e4`, which is
+    /// `num_units[0x141]`, a Fouché standing. Either and every cell is
+    /// seen (`006b54f0`'s third and fourth tests).
     pub(crate) fn was_really_seen(&self, c: Cell, who: Player) -> bool {
         self.was_really_seen_fog(2 * c.x + 1, 2 * c.y + 1, who)
     }
@@ -318,6 +321,12 @@ impl Sim {
     /// (`docs/PATHFINDER.md` §5).
     pub(crate) fn was_really_seen_fog(&self, fx: i32, fy: i32, who: Player) -> bool {
         if who >= 8 || self.lobby.reveal_map == 3 {
+            return true;
+        }
+        // The two leader exits, ahead of the grid: the peace pair's who=1
+        // holds the Space Program from before 5401 (run867's `leader_flags`
+        // `0xa3f03`), so its scout's region scan accepts no cell on 5564.
+        if self.sees_every_unit(who) {
             return true;
         }
         let Some(bits) = self.world.seen2(fx, fy) else {
