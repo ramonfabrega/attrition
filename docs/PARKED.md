@@ -3743,6 +3743,11 @@ at its merge): the runner's `pace:` line (Loop 2874) made trimming run884's `end
 not read it still loses the hour, as run880 did. Candidate: `golden_capture.sh` refuses, or stops early with a receipt, a take
 whose first `pace:` projects past `--timeout`, a test made to fail first. One reach.
 
+(2948) **A `RON_STAGE` walk is not a prediction for a fog arm** (2930's "for the Loop" line, filed at its merge): the
+walk on chapter 76's start showed a target unseen that run890's golden build saw, so a staging chosen off the walk for an
+unseen arm can land seen. Candidate: the walk prints the fog source it used beside each `is_seen`, or refuses fog
+predictions, a test made to fail first. One reach.
+
 (2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
 and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
 `archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
@@ -3758,7 +3763,8 @@ line, filed at its merge): `--regen` with a new `@FILE`, on a script whose `--ta
 old line's flags into the new (`PLACES` grew a second copy of the table); the lane deleted both generated files and generated
 fresh. The same candidate: a regen whose flags changed refuses or starts clean, never merges. **A third reach** (2921's
 "for the Loop" line, filed at its merge; parked 2939): `--regen` took the kept line's `--port` over the `.rs`'s twice in one
-batch (`issue_rename_city`, `process_halt`).
+batch (`issue_rename_city`, `process_halt`). **A fourth reach** (2941's line; parked 2950): a regen cannot widen
+a `--wbias` once the module is registered, and a delete-and-regenerate cannot either.
 
 (2892) **The generated `.rs` header does not say how `--sparse` and `--place` number the `p` windows** (2877's "for the
 Loop" line, filed at its merge): sparse windows come first, so a `--wbias p0+*` meant for the first place biased a sparse
@@ -3786,6 +3792,7 @@ the walk and widening tests, `testkit`'s word and window, `WIDENINGS`, `floors` 
 chapter since eighty. Candidate: a `tools/` scaffold off `runwiring.py` that writes them from the chapter's number, run and
 word, a test made to fail first. One reach. **Second reach** (2915's "for the Loop" line, filed at its merge): the staged-line
 count `walk_script` asserts is counted by hand and was wrong on run889's first walk (8, not 6); the scaffold would count it.
+**A third reach** (2930's line): `GOLDEN_WORDS`' array length is hand-counted too (81 → 82).
 
 (2926) **The two sweep lanes swept the same function twice in one tranche** (the commander's, noticed at 2910's merge):
 2877 re-swept 2863's `Group::kill_next_order`, and 2910 re-swept 2900's `ObjectsData::find_goody_at@0065c040` and
@@ -6801,13 +6808,11 @@ Barracks that who=1 loses first. Names no score.
   unobservable at 220 rows; `Doober::inc_time`'s `n >= 0` guard cannot fail with a count drawn from 0..8. Both are
   named in the journal as equivalents of the draw, not held breaks.
 
-## Parked by the next landing, slot GF — reserved
+## Parked by item 2930, 2026-10-17 — chapter 89, a Bribe's range-arrival (run890)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2947) **The unseen-arrival kill has no diff.** Never killing at `do_cast`'s range arrival fails nothing on run890: a Spy sees a target at Bribe's
+  range. Reaching the kill needs a caster whose range exceeds its sight or a stealth-hidden target; it names no score, so it parks (GOLDEN §113).
+- Parked 2929 (a building target killed mid-approach) is still the listing's alone; unchanged. Both booked as 2949.
 
 ## Parked by the next landing, slot GG — reserved
 
@@ -6817,13 +6822,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GH — reserved
+## Parked by item 2941, 2026-10-17 — the process_* bodies, eighteen swept
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2950) **A `--regen` cannot widen a draw once the module is registered, and a delete-and-regenerate cannot either.** `sweep_gen.py` refuses a new generation over an existing script ("a sweep is generated once"), and after the two files are removed it refuses again with "duplicate standalone module" because the `mod` line in `standalone_*.rs` stays; `--regen` redraws but resets the port to the kept line's `--port`. A bias that starved an arm (`process_speed_up`'s flag word never drew a value with bit 0 alone, so a `& 0x101` break survived) was cured by editing the script's `WBIAS` and its kept `# sweep_gen:` line by hand. Loop: a `--regen` that takes a new `--wbias` and keeps the port in the `.rs` (Loop 2886's trap is the same wall from the other side).
+
+(2951) **The `process_*` bodies are one of three shapes and the port is the same four lines.** Log (strrchr's answer picks the file name: `0` gives the constant, else the hit + 1), `Log::say` round `game_log` (detail < 0 becomes 1), then a group call, a leader-table call (`0xe3a390 + who * 0x6eec`) or a gated write. Eighteen now: the seven `process_cheat_*` (view_all, zero/increase_buckets, zero/give_techs, ai_toggle, ai_speed_normal), `disband`, `unitmask`, `buildmask`, `resign`, `accept`, `buy`, `treaty`, `declare`, `tribute`, `speed_up`, `speed_down`. Still never-backed beside them: `city_gather`, `clear_all`, `clear_tributes`, `reject`, `demand_tribute`, `propose_attack`, `cheat_ai_speed_increase`, `cheat_init_unit`, `begin`, `transport`, `set_transport`, `patrol`, `attack_ground`, `queue_up`, `form`, `eject_all`, `rename_city`, `mp_log`, `come_out`, `flight`, `cannon_time`, `ping`, `gather_point`, `build`, `launch_patrol`, `gather`, `repair`, `chat_set`, `board_ship`, `garrison`, `siege_attack`. The ten that read only the command's dwords and one action are the same shape; the others (`build`, `gather`, `chat_set`) walk lists or strings and are a shape of their own.
+
+(2952) **A game pointer that is only added to need not be a window.** `Player::resign` is called with `ecx = game + 0x44 + who * 0x8c` and nothing reads through it, so `--at 0xc061ec:4` makes the cell a random dword and the recorded `ecx` a number the port can compute; `--cell-win` would have printed a window name for the same cell and hidden the arithmetic. Worth a line in `sweep_gen.py`'s `--at` help.
 
 ## Parked by the next landing, slot GI — reserved
 
