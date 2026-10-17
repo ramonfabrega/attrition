@@ -3113,15 +3113,6 @@ impl Sim {
         {
             return None;
         }
-        if std::env::var("RON_PROBE_ATK").is_ok_and(|v| v.split(',').any(|w| w == format!("{}/{}", self.units[u].owner, self.units[u].index))) {
-            let slot = self.army_of(u);
-            let t = slot.and_then(|s| self.armies[who as usize].list.get(s)).and_then(|a| a.target);
-            eprintln!("PROBE_SHORT f{} slot {:?} target {:?} valid {:?} eligible {:?} dist {:?} order {}",
-                self.frame, slot, t,
-                t.map(|t| self.clone().valid_target(Obj::Unit(u), t)),
-                t.map(|t| matches!(t, Obj::Building(b) if self.capture_eligible(b))),
-                t.map(|t| self.attack_dist(Obj::Unit(u), t)), self.order_type(u));
-        }
         let slot = self.army_of(u)?;
         let target = self.armies[who as usize].list.get(slot)?.target?;
         if !self.valid_target(Obj::Unit(u), target)
