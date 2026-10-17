@@ -64,6 +64,8 @@ mod armies_update_city;
 mod army_charge;
 #[path = "army_count.rs"]
 mod army_count;
+#[path = "army_data_select.rs"]
+mod army_data_select;
 #[path = "army_member.rs"]
 mod army_member;
 #[path = "army_member_by_unit.rs"]
