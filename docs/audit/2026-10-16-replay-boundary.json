@@ -1,0 +1,70 @@
+{
+  "starting_tip": "0dacafe4e1a0c3766f509288647fc15cc10f891c",
+  "evidence_root": "/tmp/attrition-replay-boundary-20261016-01",
+  "golden_bodies": 211,
+  "body_equivalence": "body-equivalence.json",
+  "unchanged_rondata_tests": 896,
+  "measurements": {
+    "baseline-edit": {
+      "wall_seconds": 11.52,
+      "cpu_seconds": 24.23,
+      "sampled_tree_mib": 1269
+    },
+    "units512-edit": {
+      "wall_seconds": 10.22,
+      "cpu_seconds": 24.05,
+      "sampled_tree_mib": 1399
+    },
+    "case-baseline-edit": {
+      "wall_seconds": 10.27,
+      "cpu_seconds": 24.22,
+      "sampled_tree_mib": 1444
+    },
+    "case-module-edit": {
+      "wall_seconds": 2.03,
+      "cpu_seconds": 2.75,
+      "sampled_tree_mib": 11
+    },
+    "family-module-edit": {
+      "wall_seconds": 16.23,
+      "cpu_seconds": 55.73,
+      "sampled_tree_mib": 1551
+    },
+    "family512-edit": {
+      "wall_seconds": 16.06,
+      "cpu_seconds": 38.12,
+      "sampled_tree_mib": 1384
+    },
+    "explicit-family-edit": {
+      "wall_seconds": 8.57,
+      "cpu_seconds": 9.54,
+      "sampled_tree_mib": 1204
+    },
+    "grouped-edit": {
+      "wall_seconds": 3.12,
+      "cpu_seconds": 3.69,
+      "sampled_tree_mib": 785
+    },
+    "grouped-repeat-edit": {
+      "wall_seconds": 3.01,
+      "cpu_seconds": 3.66,
+      "sampled_tree_mib": 828
+    },
+    "grouped-helper-edit": {
+      "wall_seconds": 9.85,
+      "cpu_seconds": 24.89,
+      "sampled_tree_mib": 1130
+    },
+    "chapter-baseline-edit": {
+      "wall_seconds": 10.44,
+      "cpu_seconds": 24.57,
+      "sampled_tree_mib": 1400
+    },
+    "chapter-grouped-edit": {
+      "wall_seconds": 4.38,
+      "cpu_seconds": 6.42,
+      "sampled_tree_mib": 905
+    }
+  },
+  "gate": "pending"
+}

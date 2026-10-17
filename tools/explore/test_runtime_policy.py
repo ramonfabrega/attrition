@@ -13,6 +13,54 @@ import isolated_tests as runner
 import release_gate as gate
 
 
+
+class GoldenCaseRegistration(unittest.TestCase):
+    def check_family(self, folder):
+        import re
+        parent = (folder / 'golden.rs').read_text()
+        modules = re.findall(r'^mod (cases_\w+);$', parent, re.M)
+        files = {p.stem for p in (folder / 'golden').glob('cases_*.rs')}
+        self.assertEqual(len(modules), len(set(modules)))
+        self.assertEqual(set(modules), files)
+        wrappers = re.findall(
+            r'#\[test\]\nfn (\w+)\(\) \{\n    (cases_\w+)::(\w+)\(\);\n\}', parent)
+        self.assertEqual(len(wrappers), parent.count('#[test]'))
+        actual = []
+        for module in modules:
+            source = (folder / 'golden' / f'{module}.rs').read_text()
+            self.assertNotIn('#[test]', source)
+            actual += [(name, module, name) for name in re.findall(
+                r'^pub\(super\) fn (\w+)\(\)', source, re.M)]
+        self.assertEqual(sorted(wrappers), sorted(actual))
+        self.assertEqual(len(wrappers), len({name for name, _, _ in wrappers}))
+
+    def test_golden_cases_have_one_original_name_and_one_body(self):
+        self.check_family(Path(__file__).resolve().parents[2] / 'crates/rondata/src/diff')
+
+    def test_missing_misdirected_duplicate_or_unmounted_cases_fail(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            (folder / 'golden').mkdir()
+            parent = folder / 'golden.rs'
+            body = folder / 'golden/cases_setup.rs'
+            registration = ('mod cases_setup;\n#[test]\nfn original() {\n'
+                            '    cases_setup::original();\n}\n')
+            definition = 'pub(super) fn original() {}\n'
+            parent.write_text(registration)
+            body.write_text(definition)
+            self.check_family(folder)
+            for bad in [registration.replace('::original()', '::other()'),
+                        registration + registration,
+                        registration.replace('mod cases_setup;\n', '')]:
+                parent.write_text(bad)
+                with self.assertRaises(AssertionError):
+                    self.check_family(folder)
+            parent.write_text(registration)
+            body.write_text('')
+            with self.assertRaises(AssertionError):
+                self.check_family(folder)
+
+
 class RuntimePolicy(unittest.TestCase):
     def test_release_build_reuses_compilation_without_relaxing_checks(self):
         manifest = Path(__file__).resolve().parents[2] / 'Cargo.toml'

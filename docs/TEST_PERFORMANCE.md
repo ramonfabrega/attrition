@@ -480,3 +480,18 @@ sampled build memory1071→400–404MiB; an existing independent sweep edit rema
 255.00s/1396.42CPU/8369MiB; all tests and3276 fixture requests retained. See the
 [public-API journal](journal/2026-10-16-public-sweeps.md) and
 [audit](audit/2026-10-16-public-sweeps.json). No whole-suite gain claimed.
+
+## Golden replay case modules
+
+The211 golden test bodies now live in ten chapter-based child modules, called
+once by wrappers retaining every original `diff::golden::*` test name. Helpers,
+private APIs, compared recorder, fixture audit and runner remain shared in the
+same rondata crate. All original bodies are byte-identical; no profiles, filters,
+assertions or expected values change. Add a new case to its chapter module and
+add a same-named `#[test]` wrapper in `diff/golden.rs`; registration checks reject
+missing, duplicate, orphan and misdirected cases. Rebuild measurements show
+setup-case edits10.27→3.01–3.12s/CPU24.22→3.66–3.69s and a case in the largest
+chapter group10.44→4.38s/CPU24.57→6.42s. Shared-helper CPU stays roughly flat.
+Full required-fixture gate pending; no whole-suite gain claimed. See the
+[replay-boundary journal](journal/2026-10-16-replay-boundary.md) and
+[audit](audit/2026-10-16-replay-boundary.json).
