@@ -1554,6 +1554,19 @@ impl Sim {
     /// `param_1 == 0`); the gather arm's `remove_gatherer` is gated on
     /// nothing but the building (§3.2, `docs/GOLDEN.md` §52).
     fn kill_order(&mut self, u: usize, closing: bool) {
+        if let Ok(v) = std::env::var("RON_PROBE_ATK") {
+            let unit = &self.units[u];
+            if v.split(',').any(|w| w == format!("{}/{}", unit.owner, unit.index)) {
+                eprintln!(
+                    "PROBE_KILL f{} {}/{} closing {}\n{}",
+                    self.frame,
+                    unit.owner,
+                    unit.index,
+                    closing,
+                    std::backtrace::Backtrace::force_capture()
+                );
+            }
+        }
         let Some(order) = self.units[u].orders.front().copied() else {
             return;
         };
