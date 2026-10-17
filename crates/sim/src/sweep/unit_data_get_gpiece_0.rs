@@ -53,7 +53,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let _ = a;
             if rd(m, 0xe8) != 0 {
                 log.extend(["-".into(), "-".into(), "-".into()]);
-                i64::from(rd(&p[28 + 0], 0x88))
+                i64::from(rd(&p[28], 0x88))
             } else {
                 let (k, j) = (m[9] as usize, i16::from_le_bytes([m[10], m[11]]) as usize);
                 let r = if a[3] != 0 {
