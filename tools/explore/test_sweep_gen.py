@@ -603,6 +603,22 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2223, win=8, bias=[], stubs=['0x401000:0'],
                                    vtat_half=['p0+0'])
 
+    def test_a_word_may_name_a_window_s_own_address(self):
+        # Item 2797 (parked 2791): `StripBuilder::check_last_connect` compares `*node->next` with the node's own
+        # address: a placed pointer cannot aim at another window (a 2^-32 draw), so `--alias WIN+OFF:TARGET[+K]`
+        # lays the word as the address of window TARGET (plus K) half the rows, the other half left as drawn.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2797, win=8, bias=[], places=['m+0:0:16', 'p0+0:0:8', 'p1+4:0:8'],
+            alias=['p2+0:p1+0x10'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ALIAS = [('p2', 0, 'p1', 16)]", script)
+        self.assertLess(script.index('for win, off, tgt, plus in ALIAS:'), script.index('for a_, b in wins:'))
+        self.assertIn('the word at `p2+0` laid as the address of `p1+0x10` half the rows', test)
+        for bad in (['p2+0'], ['p2+0:q1'], ['p2:p1']):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2797, win=8, bias=[], places=['m+0:0:16'],
+                                       alias=bad, port='0')
+
     def test_a_stub_may_answer_a_placed_record(self):
         # Item 2241: `CityData::get_pop_value` calls slot +0x3c of
         # `objects[who][o]` and reads `+4` of the record at `+0x18` of the
