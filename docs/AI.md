@@ -18883,7 +18883,7 @@ whose `UnitTypeData +0x2d4` (`CARRY`) is non-zero and that is not strictly `AIRC
 
 - `count_inside(COUNT_WORKERS)` non-zero → `think_carry_civilian(1)`; `count_inside(COUNT_TYPE, 0x45)` non-zero → `(0)`;
   otherwise `count_inside(COUNT_ATTACK) == 0` → `think_carry_idle@005f2f30`, else the attack-carrier arm. **Not modelled** (SEAM; answers
-  no, as before): `think_carry_idle`, the attack arm, and `think_carry_military@005f3260`, the `(0)` call's fall-through.
+  no, as before): `think_carry_idle`, ~~the attack arm~~ (built by item 2808, §235), and `think_carry_military@005f3260`, the `(0)` call's fall-through.
 - `think_carry_civilian`: every land region of size, `go_here` (bit 1 only for workers), `Region::is_coast(r, the boat's own tregion)`
   (a `(0)` call also skips a region its leader has scouted); the region's cells strided `max(16, size/50)` and phased by `o + frame` as
   `think_civilian_transport` (§7); a cell is any `coast_here(r, my region)` ≠ 0 — **no water-half test**; the score is `vector_dist ×
@@ -21654,12 +21654,101 @@ one does not.
 **Diff-backed**: the rate term (run879 5976, 9966 to the unit). **Reading and listing only**: the gift's arm. The walk
 reaches it (500 on `bucket[oil]`), but that row stood before the build, so no pin holds it.
 
-## 235. Reserved for the next item on the AI track
+## 235. A soldier's boat sails to its army's target, and the peace pair's word moves 5985 → 6452 (2026-10-17, item 2808)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The word, 5985** (§234's booking): ours 23 draws, theirs 24, index 19. No capture was needed: run879 (5976..6232) holds the
+word's block 5986.
+
+**The draws on 5985** (`report.py rontrace-run847.log draws 5985`; `RON_DEBUG_SITES=5985-5985`). The first eight agree. Then
+`Guy::inc_time`'s idle wraps: ours spends twelve, theirs eleven. Ours' list names **`1/225`** among the twelve. After the wraps
+come gaia's `+0x104b` rolls: ours spends three, theirs five. The gaia rolls follow from the shifted seeds; they are not a second
+cause.
+
+**The widening, both directions** (`run879_s_word_frame_is_widened_whole`, `RON_FIRSTS=1`, 2854 keys). The word's block 5986
+holds no row. The draws part on `1/225`, the Transport Freighter (`TypeIndex` 322, sea). It carries the Flamethrower `1/185`
+(`TypeIndex` 131, group 68, army 1). Its rows stand from the window's first block, 5976:
+
+| field | ours | theirs |
+|---|---|---|
+| `pos` | (16200, 27864) | (15864, 27440) |
+| `idle` | 3 | 0 |
+| `orders.len` | 0 | 1, a `MOVEORDER` |
+| `orders_x/y` | (16200, 27864) | (6552, 7320) |
+| `path:length` | 0 | 27 |
+
+Theirs' order has `off_x/off_y` 408. An idle unit rolls its anim in `inc_time`, and a moving one does not. So the item before's
+hypothesis holds: the freighter is the extra draw.
+
+**Walked back.** run867 agrees on `1/225` through 5657. There it holds an `ATTACKTOORDER` to (7992, 2136) with 42 legs. Ours, over
+the gap (`RON_DEBUG_UNIT=1/225@5640-5976`), shows three events:
+- on 5871 it collides at (17249, 26781) and replans, from 32 legs to 45;
+- on 5955 it is at its waypoint (16200, 27864) with 36 legs left, and it kills the order. A one-commit probe of
+  `kill_current_order`'s caller (reverted whole) names `do_move`'s `r == -1` arm, after the planner's grid roll
+  (`Unit::do_move+0xe84`);
+- on 5956 it rolls `Unit::do_idle+0x7d`.
+
+**Theirs did the same.** Its draw stream holds both draws at the same index: the grid roll on 5955 and the idle roll on 5956. So
+its order died on 5955 too. By 5976 it is 541 units on, at about 30 a frame, so its new order is from about 5957. That is the
+frame after the first idle frame, which is `Unit::think`'s cadence (§195; `docs/MERCHANT.md`).
+
+**The arm.** `Unit::think_carry@005f2ee0` has three arms:
+- a worker aboard → `think_carry_civilian(1)`;
+- an `is(0x45)` unit aboard → `think_carry_civilian(0)`;
+- `count_inside(COUNT_ATTACK)` zero → `think_carry_idle`.
+
+Anything else takes **the attack-carrier arm**, inline in `think_carry`. `COUNT_ATTACK` (`ObjectData::count_inside@0064dda0`)
+counts a rider whose type attacks (`+0x1e8`) and which answers vslot `0xe8`. This crate reads that as a captain, as
+`Army::count(COUNT_ATTACK)` does. The arm runs in this order:
+1. The group is the boat's `inside_down`'s `+0x80`. Below zero, return 0.
+2. The army is the group's `+8`. Below zero: eject, then a coastal city search.
+3. With an army, read `reg` `+0x8`, `target_o` `+0x30` and `target_who` `+0x34` (`docs/ARMY.md` §1). Then:
+   - if any of the boat's nine cells (`move_x`/`move_y`, its own and its eight neighbours) lies in the army's region:
+     `eject_contents(0, -1, 0, 1)`, return 1;
+   - otherwise, if the target is alive (`+8 & 1`): take its cell, `x / 0x300`;
+   - otherwise: the region's centre, or a city of that region when the leader marks it `& 4`.
+4. A `MOVE_TO` to the cell's centre, the merchant's inlined `add_move_order(…, QUEUE_NEW, 0)`, snapped to 48.
+
+Army 1's target is the human's `0/2000` at (6240, 7008) (`RON_DEBUG_ARMIES`, status 18). Cell (8, 9) has centre (6528, 7296),
+which snaps to **(6552, 7320)**. The snap's remainder is 6552 − 8 × 768 = **408**: theirs' order and offset, to the unit. This
+crate had no attack arm. `think_carry` answered no, the tail asked nothing of a boat, and the freighter stood.
+
+**Built** (`crates/sim/src/transport.rs`):
+- `Sim::think_carry` counts the attacking captains aboard;
+- `Sim::think_carry_army` reads the head rider's `group_ptr` and the army on that pool slot (straight off the group, not through
+  `get_army`'s membership test). It runs the nine-cell test against `reg`, then sends the live target's cell centre through
+  `add_move_order`.
+- **SEAMS**, stated in the code:
+  - the eject itself: the boat answers yes and keeps its cargo, as the civilian shore arm does;
+  - the no-army arm and the dead-target arm: both answer no;
+  - `think_carry_idle`;
+  - the rider chain's head is taken as the lowest-numbered rider.
+
+**Tests and mutations** (`tools/mutate.py`):
+- `transport::tests::a_boat_carrying_a_soldier_sails_to_its_army_s_target`: no group, the target's cell (8, 2) to (6552, 1944),
+  the shore seam, a dead target.
+- The arm answering no: `lakota_pair_first_parting` exits 101, and the word goes back to 5985.
+- The cell's corner taken for its centre: run879 exits 101, 191 → 4451.
+
+**Value diff.** On 5976, `1/225`'s `pos`, `idle`, order, `orders_x/y`, path and headings agree. Its one row left is the standing
+`form`. Every row the freighter's idle draws had shifted goes too. **run879 goes 2854 → 191.** What is left:
+- the keys standing from 5976 (the human's `SITE`, `death:extra`, the blind `held`/`pool`, who=1's buckets, the queued costs, the
+  `form`/`mirror` rows);
+- from 6045, `1/164`'s `attrition` (ours 6, theirs 0), then its `hits`;
+- `gather_stamp` on 6104;
+- births' `form` rows.
+
+**The word moves 5985 → 6452** (count 6455), past run879's last block. On 6452 both sides spend 22 draws and part at index 0.
+Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, for `1/193`. Theirs spends `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, a
+draw ours does not make. **No dump holds 6452.** The widening is owed a capture. `1/164`'s attrition on 6045 is the earliest row
+in the window, and it is the next item's to read.
+
+**Not established.**
+- The rider chain's order: a boat carried one squad here.
+- The no-army and dead-target arms, and the eject: no capture reaches them.
+- Whether theirs' think entered on exactly 5957. The position fits; no dump prints the gap.
+
+**Diff-backed**: the attack arm's live-target walk (run879 on 5976, to the unit, with its 408 offset). **Reading only**: the
+nine-cell eject test, the no-army and dead-target arms.
 
 ## 236. Reserved for the next item on the AI track
 

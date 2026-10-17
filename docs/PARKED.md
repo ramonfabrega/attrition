@@ -6298,13 +6298,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FF — reserved
+## Parked by item 2808, 2026-10-17 — a soldier's boat sails to its army's target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2808, first) **The peace pair's word 6452 is owed a widening and a capture** (`docs/AI.md` §235). Ours and theirs spend 22 draws
+each on 6452 and part at index 0. Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` (`1/193`), theirs `Guy::set_anim+0xf2f
+< Unit::set_anim+0x56`. Count parts at 6455. run879 ends at 6232, and no dump of this lobby holds 6452, so the disk cannot answer
+it. The capture is run879's recipe with the window at 6446..6702 (`--end-frame` 6707). `LAKOTA_PAIR_WORD`'s `WIDENINGS` row names
+this item as the one that owes it. Inside run879 the earliest row past the standing keys is `1/164`'s `attrition` on 6045 (ours
+6, theirs 0), then its `hits` on 6047. That row is the item before's candidate, not a cause.
+
+(2808, second) **Three arms of `think_carry`'s attack branch are reading only** (`Unit::think_carry@005f2ee0`; SEAMs in
+`Sim::think_carry_army`):
+- the eject when one of the boat's nine cells is in the army's region (`eject_contents(0, -1, 0, 1)`, `param_3` 0, unlike
+  `disembark`'s 1);
+- the group with no army: eject, then the coastal-city search;
+- the army with no live target: the region's centre, or a city the leader marks `& 4`.
+
+No capture reaches any of them. The rider chain's head is taken as the lowest-numbered rider.
 
 ## Parked by the next landing, slot FG — reserved
 
