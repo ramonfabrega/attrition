@@ -464,6 +464,8 @@ mod nuke_out_setup_terrain_terraforming;
 mod nuke_out_update;
 #[path = "object_assault_benefit.rs"]
 mod object_assault_benefit;
+#[path = "object_data_armor.rs"]
+mod object_data_armor;
 #[path = "object_data_attack_dist.rs"]
 mod object_data_attack_dist;
 #[path = "object_data_attack_dist_at.rs"]
