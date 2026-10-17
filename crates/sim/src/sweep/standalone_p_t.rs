@@ -432,3 +432,5 @@ mod type_wonder;
 mod types_walk_data;
 #[path = "types_walk_rules_data.rs"]
 mod types_walk_rules_data;
+#[path = "time_sync_add_ping.rs"]
+mod time_sync_add_ping;
