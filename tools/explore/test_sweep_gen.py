@@ -1553,6 +1553,27 @@ class Shapes(unittest.TestCase):
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_regen_merges_the_named_sweep_s_line_not_another_arm_s(self):
+        # Item 2801 (`Search::valid_filter`'s 27 arms, `--name valid_filter_caseK`): `--regen` with a whole line
+        # found the kept line by the function's token and took the first script that held it, so arm 3's redraw
+        # merged arm 0's stubs and port. With `--name` the sweep is that name's script, no other.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
+                self.assertEqual(sweep_gen.main(line + ['--name', 'x_y_a', '--cell-win', '0x500000:0x40', '--write-mod']), 0)
+                self.assertEqual(sweep_gen.main(line + ['--name', 'x_y_b', '--cell-win', '0x600000:0x40', '--write-mod']), 0)
+                self.assertEqual(sweep_gen.main(line + ['--name', 'x_y_b', '--argrange', '0:0:2', '--regen']), 0)
+                kept = sweep_gen.kept_line(Path(tmp) / 'sweep_x_y_b.py')
+                self.assertIn('0x600000:0x40', kept)
+                self.assertNotIn('0x500000:0x40', kept)
+                self.assertIn('--argrange', kept)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
     def test_write_mod_inserts_its_line_in_sorted_order(self):
         # Item 2379 (Loop 2003; parked 2318, 2375): `--write-mod` appended its
         # `mod` line at `mod.rs`'s tail, and two batches sorted the run by

@@ -2605,7 +2605,11 @@ def merged_with_kept(argv):
         return argv
     fn = next((a for a in argv if '::' in a and '@' in a), None)
     kept = None
-    for p in sorted(EMU.glob('sweep_*.py')) if fn else ():
+    # `--name M` (a function swept as several modules, `valid_filter`'s arms; item 2801): that module's script.
+    named = argv[argv.index('--name') + 1] if '--name' in argv[:-1] else None
+    for p in ([EMU / f'sweep_{named}.py'] if named else sorted(EMU.glob('sweep_*.py'))) if fn else ():
+        if not p.exists():
+            continue
         line = kept_line(p)
         if line and fn in line:
             kept = line

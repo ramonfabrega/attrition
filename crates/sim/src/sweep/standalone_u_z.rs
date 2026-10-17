@@ -234,6 +234,14 @@ mod unit_update_gpiece;
 mod unit_update_order;
 #[path = "units_make_valid.rs"]
 mod units_make_valid;
+#[path = "valid_filter_case0.rs"]
+mod valid_filter_case0;
+#[path = "valid_filter_case1.rs"]
+mod valid_filter_case1;
+#[path = "valid_filter_case2.rs"]
+mod valid_filter_case2;
+#[path = "valid_filter_case3.rs"]
+mod valid_filter_case3;
 #[path = "vector_dist_coords.rs"]
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
