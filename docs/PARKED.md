@@ -3790,6 +3790,11 @@ filed at its merge): 2812 was booked to carry a cloaked Spy's Bribe and stage it
 `cast_bribe` → `Unit::swap_team@006118d0` (286 lines, unread), so the staging went to the next chapter (2823). Candidate:
 the brief checklist asks a booking that names a cast or an action to list its callees' line counts first. One reach.
 
+(2843) **The census counts a sweep only when its test's doc comment spells `Class::method@addr` in full** (2837's "for the
+Loop" line, filed at its merge): a three-forms-in-one test that named `is_seen_wcoord@…` bare scored two of three until the
+full names were spelled. Candidate: `census.py --unbacked` says "cited bare" for an address a test file names without its
+class. One reach.
+
 (2827) **Once the draws name a unit, `seams.py` runs on its type's think chain** (2808's "for the Loop" line, filed at its
 merge): the seam that held 5985 (`think_carry`'s attack arm, "answers no" since AI §195) was named in prose for four days, and
 `seams.py --item` on the booking's names (`set_anim`, `inc_time`) could not reach it; the draw named the Transport Freighter
@@ -6448,30 +6453,30 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2837, 2026-10-17 — the hundred-and-fifteenth sweep batch: ten with a simulation effect
 
-(2837) **Ten built, walked down `census.py --unbacked` to about 1,500 decompile bytes.** `WorldData::is_seen`,
+(2838) **Ten built, walked down `census.py --unbacked` to about 1,500 decompile bytes.** `WorldData::is_seen`,
 `is_seen_wcoord` and `is_really_seen` (one hand-written script, three forms), `BuildData::check_capture_eligible`,
 `Type::unpay_cost`, `Type::pay_cost`, `Build::unpay_cost`, `ObjectData::armor`, `BuildQueueData::get_next_non_unit`,
 `ObjectsData::count_nukes_in_flight`. `Census:` 1187 → **1197 of 3,611** by `--layers` on the tip. Each is a state read or
 write a sim consumes: the fog and ally exits, a bucket XOR 0x8221, an armor value, a queue scan. Skipped, as 2836 listed: the
 renderer, UI, camera and singleton bodies. No subagents; ten ran serially in debug, three or four breaks each, all held bar one (below).
 
-(2837, second) **`Type::pay_cost`'s escrow arm has an equality boundary no draw reaches.** `bucket - escrow < cost` against
+(2839) **`Type::pay_cost`'s escrow arm has an equality boundary no draw reaches.** `bucket - escrow < cost` against
 `<= cost` passed all 220 rows: `bucket`, `escrow` and the slot's `cost` are three independent random words, so equality is
 2^-32. Every other break held. A relational draw (`--answer-range` tied to a window word, "the answer is `bucket - escrow` or one
 off it") would reach it; no flag spells that. One reach.
 
-(2837, third) **The `is_seen` family is hand-written on `tools/emu/hooks.py`, as `was_really_seen` was (item 2044).** The three
+(2840) **The `is_seen` family is hand-written on `tools/emu/hooks.py`, as `was_really_seen` was (item 2044).** The three
 read `gamec`'s `+0x30`, the leaders list and `wdata`/`seen`/`wcoord_seen` through `this` or the world cell `0xc061d0`; `obj` with
 `--sparse 0xc061e0` would hold the leaders and `--cell-win` the game record, but the fog and owner arrays are indexed by the
 drawn coordinates, which no flag ties to a window's size. The next such pair (`WallData::is_now_seen` calls `is_seen`
 natively) is the second reach of the shape. File as Loop if it recurs.
 
-(2837, fourth) **Not built, with why.** `CityData::is_disbanding` and `CityData::num_city_buildings` (2793's): a list walk through
+(2841) **Not built, with why.** `CityData::is_disbanding` and `CityData::num_city_buildings` (2793's): a list walk through
 `objects[who][o]` and a vslot chain, the walk + vcall pair no generator shape holds; `WallData::is_now_seen`: a native `is_seen`
 inside, wants (3) first; `Army::charge`: a `groups` table 0x9d4 apart and an 11-argument callee; `Type::restore`, `Type::set_name`,
 `City::set_name`, `GatherPointList::get_new_data`: `String::operator=` or `malloc` inside, which the bump heap cannot witness.
 
-(2837, fifth) **Three generator traps cost this batch about an hour; none is a defect, each is undocumented.** `--argrange IDX:LO:HI`
+(2842) **Three generator traps cost this batch about an hour; none is a defect, each is undocumented.** `--argrange IDX:LO:HI`
 is inclusive (`0:0:8` drew 8, one past the leaders table: use `0:0:7`); a `--place m+OFF` past `--win` writes past the window (the
 row then shows `0` for a function that should return the field: widen `--win`); and the `p` windows are numbered ptrargs, then
 `--sparse` slices, then `--place`/`--ptrtab` windows in command-line order, whatever the script's prose says ("slices after the
