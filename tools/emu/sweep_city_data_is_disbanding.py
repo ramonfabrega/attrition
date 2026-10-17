@@ -48,6 +48,7 @@ WILD = 0.1
 ANSWERS = [(1, [1, 1, 1, 0]), (2, [1, 1, 1, 0])]
 VTAT = None
 VTATHALF = []
+VTIMAGE = []
 ALIAS = []
 ANSWERBY = [(0, 1, 7, 5, 116)]
 ANSWERWIN = []
@@ -272,6 +273,11 @@ def main(argv):
         if i in CDECLSTUBS:
             h.hooked[sa] = h.hooked[sa][:3] + (True,)
     stubbed = {off: h.r32(vt + off) & 0xFFFFFFFF for off, _ in SLOTBASE}
+    # `--vtat-image WIN+OFF:VA` (item 2863): the stub slots copied into the image's own vtable at VA,
+    # so a record whose vtable word is compared with VA (`Build::vftable`) still answers its slots.
+    for va_ in sorted({va for _, _, va in VTIMAGE}):
+        for off in slots:
+            uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
     for i in range(220):
         h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
@@ -421,7 +427,7 @@ def main(argv):
         for idx, ofirst, dfirst, nobj, loff in ANSWERBY:
             for j in range(nobj):
                 tail = list(range(j + 1, nobj))
-                link = rng.choice(tail) if tail and rng.random() < 0.8 else -1
+                link = (j + 1 if rng.random() < 0.7 else rng.choice(tail)) if tail and rng.random() < 0.9 else -1
                 p[dfirst + j][loff:loff + 2] = (link & 0xFFFF).to_bytes(2, "little")
         if VTAT is not None:
             # The stubbed vtable laid in a window: a slot of an object the
@@ -434,6 +440,10 @@ def main(argv):
             # a record the function reaches whose slots it asks too (item 2217).
             w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
             w[off:off + 4] = vt.to_bytes(4, "little")
+        for win, off, va_ in VTIMAGE:
+            # The image's vtable at VA (stubbed above) laid half the rows, the stubbed vtable otherwise.
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = (va_ if rng.random() < 0.5 else vt).to_bytes(4, "little")
         for win, off in VTATHALF:
             # The stubbed vtable laid half the rows at a record the function
             # compares with a class's vtable, the other half left as drawn

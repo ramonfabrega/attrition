@@ -427,7 +427,7 @@ def main(argv):
         for idx, ofirst, dfirst, nobj, loff in ANSWERBY:
             for j in range(nobj):
                 tail = list(range(j + 1, nobj))
-                link = rng.choice(tail) if tail and rng.random() < 0.8 else -1
+                link = (j + 1 if rng.random() < 0.7 else rng.choice(tail)) if tail and rng.random() < 0.9 else -1
                 p[dfirst + j][loff:loff + 2] = (link & 0xFFFF).to_bytes(2, "little")
         if VTAT is not None:
             # The stubbed vtable laid in a window: a slot of an object the
