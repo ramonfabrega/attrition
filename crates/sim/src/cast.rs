@@ -484,7 +484,7 @@ impl Sim {
     ///
     /// SEAM: the captain and inside re-reads of the target; Bribe's
     /// territory refusal; `flags |= 0x80`; `update_local_seen` when the
-    /// caster stands in the target owner's fog; the cloak (`0x11000`) for a
+    /// caster stands in the target owner's fog; (the cloak write is [`Sim::cast_blow`]) for a
     /// craft without `l`; Bribe's `unit_masks2 |= 0x60`; a non-spy
     /// caster's animations; the messages and sounds.
     pub(crate) fn do_cast_targeted(&mut self, u: usize, order: CastOrder) {

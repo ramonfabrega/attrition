@@ -12861,12 +12861,33 @@ drop removed — `1/51`, `1/49`, `1/59` `blown` part (f3566, f3568, f4038, f4046
 **Not established**: the arm's `0x800` and `unit_masks2` halves (parked 2760, still unread by this crate); a rows-in-`on_map`
 blind spot on the inside frames — the garrison clear itself is compared only on the frame the unit leaves.
 
-## 105. Reserved for the next item on the rules track
+## 105. `do_cast`'s two `0x11000` writes — a cloaked caster of a craft without `l`; built, reading alone
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2804 (Claude Sonnet 5.5, `--effort medium`). **No capture, no staging: run 880 was not taken.** Parked 2760 said
+`do_cast@005ebfe0:695,715` write `unit_masks |= 0x11000` and this crate's casters do not. The listing (`llvm-objdump` of
+`0x5ebfe0`) says who they reach, and it is narrower than the booking's "stealth caster":
+
+- **Site one, `005ec932`**, on the in-range path every frame, ahead of the clock (the targeted half and the untargeted both join
+  at `005ec93e`): `UnitData::is_cloaked@0060a6a0` true, the craft's `+0x1c8 & 0x800` (`l`) clear, the order not `0x281` (the
+  Sniper), and `is(0x3a, 0)` — the vslot-`0xb8` call pushes `0x3a` and `0`, the Spy line — false.
+- **Site two, `005ec9a7`**, on the job-time frame ahead of `SpellType::cast`: `is_cloaked` and `l` clear. The Spy is not exempt.
+- **`is_cloaked`** is the type's `0x4000` (`CLOAKED`), `unit_masks2 & 0x8000`, `unit_masks & 0x800` (not carried), or a type
+  with `0x40000` **and no order**. A stealth-only unit casting holds its `CASTORDER`, so it is **not** cloaked and neither
+  site writes for it; `Unit::work:380` already blows it (§103) and `fought` stays down.
+
+So the writes reach `CLOAKED` types (the Spy, the submarines, Memnon, Fouché) casting a craft without `l`. `craftrules.xml`'s
+`l` rows: the Informer, Create Decoys, Rally, Ambush, the heroes' crafts; the ones without are Bribe (`fcbhm`), Counterintelligence
+(`febchm`), Sabotage, Sniper, Pilfer — every one of which this crate refuses or does not carry (`spellcaster.rs`'s SEAM). **No
+modelled cast reaches either site**, and no dump on disk holds a cloaked caster at one (the chapter-nineteen Informer keeps the
+cloak by `l`, as §27 reads), which is why a diff cannot back it and why a staged stealth caster would show nothing.
+
+**Built** in `crate::cast`: `unit_is_cloaked` and `cast_blow`, called from `do_cast_targeted` and the untargeted `do_cast` at
+both sites. **Test**: `cast::tests::a_cloaked_caster_of_a_craft_without_l_is_blown`, failing with the Spy exemption dropped
+(the others by construction: the cloak test, the `l` test, the order-held case).
+
+**Not established**: every claim here is the listing alone, no diff backs it; the first site's Spy exemption in particular
+rests on the pushed `0x3a` being the Spy line's `TypeIndex` (it is the one `unit_is_spy` uses). A staged Spy's Bribe would
+back site two once Bribe's validity is built (`spellcaster.rs`'s seam) — a capture for that item, not this.
 
 ## 106. Reserved for the next item on the rules track
 

@@ -6260,13 +6260,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FD — reserved
+## Parked by item 2804, 2026-10-17 — do_cast's 0x11000 on a cloaked caster
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2804, first) **A staged Spy's Bribe or Sabotage would back `do_cast`'s two blow sites** (item 2804, `docs/GOLDEN.md` §105): built
+from the listing alone, no modelled cast reaches either, since the crafts without `l` are refused (`spellcaster.rs`) or not
+carried. Names no score.
+
+(2804, second) **`do_cast`'s `unit_masks |= 0x20000` and Bribe's `unit_masks2 |= 0x60`** are not carried (`0x20000` stops the mana
+recovery, `Unit::process`); the cast-time `0x800` reveal and `process_cloak`'s `unit_masks2 & 0x60` arm are still unread (2760's
+rest). Names no score.
+
+Struck: (2760)'s `0x11000` half, closed by item 2804.
 
 ## Parked by the next landing, slot FE — reserved
 
