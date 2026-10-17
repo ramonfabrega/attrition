@@ -148,6 +148,14 @@ Three shapes, each a `__thiscall` on `ecx`:
           asked its slots either way (`get_building`'s `Build::vftable`).
           `--alias WIN+OFF:TARGET!` lays the alias every row: a list's end
           node that must name its list (`update_patrol_order`, `replace_form_id`).
+          `--vtat-keep SLOT:VA` (item 2900, parked 2888) lays the image function
+          at VA at vtable slot SLOT of the stubbed vtable half the rows (a flag
+          after the answers; the slot need not be a stub): a branch on a
+          vtable compare (`walk_data`'s `Object::must_walk`) reaches both arms.
+          `--link-hi pA..B+OFF:V,V,..|LO..HI` draws the short at OFF of each
+          figure after the `--link`s (the player half of `obj+0x2c`'s word).
+          `--place-null K:WIN+OFF=V` also sets the word at WIN+OFF to V on K's
+          null rows, after every window is drawn (a guard word beside a null).
 
           `--edx-win WIN` (item 2801, parked 2791): `edx` the address of
           window WIN (m, cN or pN) rather than an integer, for a register
