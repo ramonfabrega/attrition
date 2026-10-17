@@ -198,6 +198,8 @@ mod group_data_get_repeat_air;
 mod group_data_get_unit;
 #[path = "group_data_has_air_units.rs"]
 mod group_data_has_air_units;
+#[path = "group_data_is_on_map.rs"]
+mod group_data_is_on_map;
 #[path = "group_data_member.rs"]
 mod group_data_member;
 #[path = "group_data_num_valid.rs"]
