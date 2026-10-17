@@ -9450,7 +9450,13 @@ impl Sim {
                 }
             }
         }
-        let in_range = self.is_in_range(me, target);
+        // **The slot, never the health** (`fight@005fd4d0:482`, the
+        // eight-argument `is_in_range@006486b0` with no margin; item 2864,
+        // `docs/AI.md` §238): a city at its ceiling still stands in range.
+        // run883b's packet answers 1 for the peace pair's MLRS `1/95` at
+        // 4500 of 4806 against `0/2000` at `damage` 1560 of 1560, and it
+        // unpacks; with the health term ours chased it instead.
+        let in_range = self.is_in_range_struck(me, target);
         a.in_range = in_range;
         if in_range {
             a.ever_in_range = true;
