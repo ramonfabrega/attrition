@@ -13112,12 +13112,38 @@ waits for the unseen order — the Spy takes its spot and a different order list
 **Not established**: Counterintelligence on a unit its owner cannot see (it refuses here, §27 sees none); `unit_masks` `0x800`/`0x1000` as a hiding source;
 that an Informer on a *moving* unit re-paths (`is_moving` arm, §112, still unwatched at arrival).
 
-## 115. Reserved for the next item on the rules track
+## 115. Chapter ninety-one — the Sniper's kill and the Counterintelligence refusal (run894)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** DECISIONS 56 §3, parked 2968: `spell_valid_target` refused the Sniper (`0x281`) and Counterintelligence (`0x277`) outright (§114). Read
+`SpellTypeData::is_valid_target@006763c0` end to end and built both arms: **Sniper** — a unit only (no `c`), refused by `has_general(0x165) >= 0`,
+`is_gov_hero`, a non-land domain, a target that is none of attack, hero, supply or `is(SCOUT 0x45)`, a caravan, a worker or a merchant; **Counterintelligence** —
+the target must be `is_seen` by the caster's player, then own: infiltrated by anyone; an ally's: infiltrated by anyone and not by the caster; an enemy's: `is(SPY)`.
+**Disk could not answer**: no dump held a Commando, a Sniper cast or a Counterintelligence order (run246, §27, refused a Barracks only).
+
+**Staging** (`tools/gamelog/golden/chapter91.cmd`, 9 lines, `RON_STAGE=ch76:chapter91:1200`): arm 1 — Commando `0/6` at the who=1 Hoplite `1/6` (`@spell … 641`,
+620); arm 2 — Spy `0/7` at the idle who=1 Spy `1/9` (`@spell … 631`, 621).
+
+**What the original does** (run894, 1,201 frames, seed 12345): the premise of the booking is **false** — the Commando's `mylos` prints **12**, not the 8 of
+`unitrules.xml`, so the Sniper's 12 tiles do not exceed its sight, the target is seen on arrival (746) and **the cast lands**: Hoplite `1/6` dies alone on
+**807** (`death:direct`, `dtype` 2), its two squad-mates standing. `SpellType::cast@00676ce0` sends both `0x280` and `0x281` to `cast_sabotage@006720e0`, whose unit
+arm ends in `Unit::die(2, -1, 0)` (vslot `+0x158`). Counterintelligence on the Spy is **refused on issue** (a Spy is `CLOAKED`, never seen by its enemy): `0/7`
+spends nothing.
+
+**What was built, and what the diff found.** `Sim::cast_sniper_unit` (the combat death's tail without a wound, `close_unit` with `dtype` 2); and
+`Unit::do_cast@005ebfe0`'s animation choice past the Spy — `is(SCOUT)`: Sabotage `ATTACKWALK`, Sniper `ATTACK3`, else `ATTACK1`; a caster of neither line
+`ATTACK1` with `Unit::set_anim`'s third argument set. **The first word was 786** (ours 9 draws, theirs 8: the Commando's `Guy::set_anim` idle re-roll, 40 frames
+into a 60-frame cast, which the original's `ATTACK3` does not take); with the animation read off the listing the walk and the widening agree on every block bar the
+11 standing `form` rows (`WANT_CH91`). The word is the capture's end, **1200**, `ch91` closed. Without the kill the widening parts at 798 (`1/4` order)
+and 807 (`1/6` death).
+
+**What the diff backs, by mutation** (`tools/mutate.py`, clean tree): `cast_sniper_unit` dropped, the Sniper's `is_valid_target` arm made false, and the `ATTACK3`
+animation made `ATTACK1` each fail `chapter_ninety_one_*`; Counterintelligence's `is_seen` gate removed parts at **623** (`0/7` `cavarch_o` ours 9 theirs −1: ours
+orders the cast). Coverage window 804–810.
+
+**Not established**: Counterintelligence's accepted arms (an infiltrated friend, an infiltrated ally, an enemy Spy a `DETECT` object reveals): the first two need the
+other seat to cast the Informer (the console's seat is player 0 only, `@spell` refusal 1), the last a detector in the staging. The Sniper's refusals other than
+the unit-type ones (CEO shield, caravan, worker, merchant), the building arm of `cast_sabotage` (Sabotage `0x280`), the caster's leader counters and score
+(`+0xa58`, `+0xa5a`, `+0x80c`, `+0x44 += cost/5`, a captain target only), the message and sound. Unit tests in `cast.rs` pin each arm's predicates.
 
 ## 116. Reserved for the next item on the rules track
 

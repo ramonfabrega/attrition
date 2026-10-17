@@ -17415,6 +17415,13 @@ Ours agrees on every block but the standing 1100 rows.
 `~/ron-golden/ch88/map-14/`, 1,501 frames. No minutes waited on another lane. **What it holds**: `0/6` bribes the Hoplite on 1250; `0/7`'s cast is
 killed at its next review, 1258. Ours agrees on every block but the standing 1100 rows.
 
+## run894 — chapter ninety-one: the Sniper's kill and a refused Counterintelligence (2026-10-17, item 2971, `att-2971`)
+
+`docs/GOLDEN.md` §115. **What the disk could not answer**: no dump held a Commando, a Sniper cast, or a Counterintelligence order. Recipe
+`tools/gamelog/golden/chapter91.cmd` (`--map 14 --end-frame 1200 --log-window 605 1200`, chapter 90's `end:`/`start:` sets). Pool lane 1, kept in
+`~/ron-golden/ch91/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane (the pool lane was free). **What it holds**: Commando `0/6` arrives
+746 and casts the Sniper at the Hoplite `1/6`, which dies alone on 807; Spy `0/7`'s Counterintelligence on the idle enemy Spy `1/9` is refused on issue. Ours
+agrees on every block bar the 11 standing `form` rows.
 ## run892 — chapter ninety: the Informer's three kills (2026-10-17, item 2949, `att-2949`)
 
 `docs/GOLDEN.md` §114. **What the disk could not answer**: no dump held an Informer on a unit, a second Spy walking to an infiltrated building, or a cast on a

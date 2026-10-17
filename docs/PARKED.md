@@ -6840,13 +6840,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GN — reserved
+## Parked by item 2971, 2026-10-17 — Chapter ninety-one's leftovers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2971) **Counterintelligence's accepted arms** (an infiltrated friend, an infiltrated ally, an enemy Spy a `DETECT` object reveals) are reading-only: the
+  first two need the other seat to cast the Informer (`@spell` refuses a seat that is not the console's, refusal 1), the last a detector in the staging. Names no score.
+- (2971, second) **The Sniper's building arm and `cast_sabotage`'s leader counters and score** (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x44 += cost/5` for a squad captain,
+  the message and sound) are not built; Sabotage `0x280` and Pilfer `0x276` still refuse in `spell_valid_target`. Names no score.
+- (2971, third) **The booking's premise was wrong**: the Commando's `mylos` prints 12 (`unitrules.xml` says `LOS 8`), so no caster in this lobby casts beyond its
+  sight but the Informer; `LOS` and `mylos` differ by a factor this crate has not derived. Names no score.
 
 ## Parked by the next landing, slot GO — reserved
 

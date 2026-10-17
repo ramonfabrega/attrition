@@ -2567,6 +2567,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 7, "chapter ninety carries seven blocks in the window");
         frames += n;
     }
+    // **Chapter ninety-one, on run894** (item 2971): the Sniper's kill of
+    // Hoplite `1/6` on 806; the window takes the death and its neighbours.
+    if let Some(p) = &ch91 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINETY_ONE;
+        let n = drive_capture(p, 804, 810, &mut paths);
+        assert_eq!(
+            n, 7,
+            "chapter ninety-one carries seven blocks in the window"
+        );
+        frames += n;
+    }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
     // shot, the original's alone.
     if let Some(p) = &ch50 {
