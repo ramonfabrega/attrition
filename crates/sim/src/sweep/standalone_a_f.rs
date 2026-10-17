@@ -388,6 +388,8 @@ mod cliffs_out_get_mining_data;
 mod cliffs_out_get_mining_size;
 #[path = "coll_block_get.rs"]
 mod coll_block_get;
+#[path = "command_manager_check_accept_issue.rs"]
+mod command_manager_check_accept_issue;
 #[path = "command_manager_issue_accept.rs"]
 mod command_manager_issue_accept;
 #[path = "command_manager_issue_alarm.rs"]
@@ -510,6 +512,8 @@ mod command_manager_issue_unitmask;
 mod command_manager_issue_unqueue_unit;
 #[path = "command_manager_issue_unqueue_wall.rs"]
 mod command_manager_issue_unqueue_wall;
+#[path = "command_package_add_command.rs"]
+mod command_package_add_command;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
 #[path = "command_package_process_alarm.rs"]

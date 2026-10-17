@@ -3777,9 +3777,16 @@ the walk and widening tests, `testkit`'s word and window, `WIDENINGS`, `floors` 
 chapter since eighty. Candidate: a `tools/` scaffold off `runwiring.py` that writes them from the chapter's number, run and
 word, a test made to fail first. One reach.
 
+(2926) **The two sweep lanes swept the same function twice in one tranche** (the commander's, noticed at 2910's merge):
+2877 re-swept 2863's `Group::kill_next_order`, and 2910 re-swept 2900's `ObjectsData::find_goody_at@0065c040` and
+`UnitData::get_gpiece@616d70`; each came back on a conflicted update and dropped its copy, a gate and a half each. The
+second was the commander's: 2893's note said 2889 was the shape lane's and 2910's dropped the line. `census.py --unbacked`
+cannot see a function another live lane is building. Candidate: `brief.py --kind sweep` prints the other sweep lane's named
+functions from its brief, or a lane commits a claim file per function before it builds, read by `--unbacked`. One reach.
+
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
-Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872).
+Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872). **The thirty-ninth tranche's reaches**: 2863 `--answer-by`, `--vtat-image`, `--alias TARGET!`; 2887 the `void` shape's forwarding and `--write-mod` by default; 2900 `--vtat-keep`, `--link-hi`, `--place-null K:WIN+OFF=V`; 2910's line asks a `--place-null` on an image cell print a 0/1 column and a `--wbias-pair` (parked 2922, 2924).
 
 (2809) **A mechanic document's numbered steps are checked against the function that builds them** (2779's "for the
 Loop" line, filed at its merge): two neighbouring terms of `calc_gather` sat in `docs/ECONOMY.md`'s list ("8.
@@ -6711,13 +6718,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GB — reserved
+## Parked by item 2910, 2026-10-17 — the hundred-and-twenty-fourth sweep batch (harvest)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2922) **An image cell's null arm is invisible to the port.** `CommandManager::check_accept_issue` 0x940a70
+  tests `[0xe335c8]` (the net system) for null before reading its local-player pointer; `--place 0xe335c8:...` lays the
+  cell as a window pointer every row and `--place-null` on it nulls the word in the image, where the port reads no
+  window. The sweep drew the non-null arm only (the null arm is one short-circuit away from the shipped one). A
+  `--place-null K` that also prints a 0/1 column after the answers (as `--slotbase` does) would open the arm. Shape lane.
+- (2923) **`TimeSync::analyze_response` 0x954b90 reads `timeGetTime` through the IAT** (`call [esi]`-style, the
+  same wall as 2905's `strrchr`): not built. The IAT-stub flag 2905 asks for opens both.
+- (2924) **A pair of `--wbias` words that must agree cannot be drawn.** `ObjectData::cargo_inside`'s links are
+  a short at +0x28 (index) and a byte at +0x3e (kind); an acyclic walk needs the next place lexicographically after
+  the current, which two independent words cannot say, so the sweep draws index strictly greater and the kind free.
+  The chain is short (at most four steps) and the cyclic corner is unreached. A `--wbias-pair` would draw both.
+- (2925) **Not built, unread by this batch:** `ObjectData::has_general` 0x646b00 (a `HeroesData::find_hero`
+  seven-argument stub and the leaders table at +0x56fe; the vcall family 2909 named) and `UnitData::is_busy` 0x60a370.
+  `TerrainList::delete_items` 0x84bdd0 loops over a global bucket count with `_eh_vector_destructor_iterator_` and
+  `free` (an import): the IAT wall again.
 
 ## Parked by the next landing, slot GC — reserved
 
