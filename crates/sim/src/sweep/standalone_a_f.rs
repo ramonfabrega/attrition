@@ -110,6 +110,8 @@ mod border_nodes_find;
 mod border_process;
 #[path = "border_process_morph.rs"]
 mod border_process_morph;
+#[path = "border_rebuild_visible_list.rs"]
+mod border_rebuild_visible_list;
 #[path = "border_spline_get_name.rs"]
 mod border_spline_get_name;
 #[path = "border_spline_on_field_change.rs"]
