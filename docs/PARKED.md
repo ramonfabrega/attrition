@@ -6951,13 +6951,15 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
   re-measured (the file literal for a null `strrchr`, the format pointer, the say offset) -- ten times this batch, each from
   the first failing row. A `sweep_gen.py --port-from SIBLING` that copies the block and reports the constants: filed as Loop 3012.
 
-## Parked by the next landing, slot GT — reserved
+## Parked by item 2994, 2026-10-17 — Chapter ninety-two's leftovers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3015) **`cast_sabotage`'s leader counters and score** (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x818`, `+0x44 += cost/5`) are still unbuilt, and the crate carries none of
+  the five fields (`score_combat`, `units_killed`, `buildings_razed`, `deaths_current_frame`, `kills_current_frame`); `LEADERS=2` prints none of them and the compared pin
+  lists them unread, so no diff can see them. Names no score.
+- (3016) **Pilfer** (`0x276`): `cast_pilfer@00673e80` (a goods steal, one `Random::get` draw) and its validity arm are read and the arm built, but `FROM None` means no
+  unit is given the cast, so no chapter stages it; who calls it in the original is not found. Names no score.
+- (3017) **A Stockade's border bleeds a lone Commando dead mid-cast** (150-frame job, 12 hp / 25 frames): the walk found it before the capture; Sabotage on a
+  vehicle (`dtype` 3, the boom) needs a staged vehicle for who=1 and is not covered. **Booked as chapter 93 (3018) at the merge.**
 
 ## Parked by the next landing, slot GU — reserved
 

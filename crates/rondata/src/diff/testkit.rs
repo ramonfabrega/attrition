@@ -6624,6 +6624,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_ONE: i64 = 1200;
 /// 605 to 1199.
 pub(crate) const WIDENING_CHAPTER_NINETY_ONE: (i64, i64) = (604, 1201);
 
+/// **Chapter ninety-two** (item 2994, `docs/GOLDEN.md` §116, run911):
+/// Sabotage's building arm and its refused unit arm. **The word is the
+/// capture's end, 1200**.
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_TWO: i64 = 1200;
+
+/// `chapter_ninety_two_s_window_is_widened_whole`'s window: run911, blocks
+/// 605 to 1199.
+pub(crate) const WIDENING_CHAPTER_NINETY_TWO: (i64, i64) = (604, 1201);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9187,6 +9196,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_ninety_one_s_window_is_widened_whole"),
         2971,
         Some(WIDENING_CHAPTER_NINETY_ONE),
+    ),
+    // Item 2994: run911, chapter ninety-two, Sabotage's building arm and its
+    // refused unit arm; closed at the capture's end.
+    (
+        "GOLDEN_WORD_CHAPTER_NINETY_TWO",
+        GOLDEN_WORD_CHAPTER_NINETY_TWO,
+        Some("chapter_ninety_two_s_window_is_widened_whole"),
+        2994,
+        Some(WIDENING_CHAPTER_NINETY_TWO),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
