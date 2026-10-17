@@ -46,12 +46,16 @@ fn the_emulated_original_agrees_on_every_row() {
             // (`m+0x50`) plus the speed's timing (`c[3]`, indexed by `m+0x30`, or `m+0x34` once the game's bit 0x10 of
             // `c[1]+0x820` or the playback byte `c[2]` is set) or the frame is not due. A due frame bumps the counter
             // `m+0x18` and takes the clock as the new last frame time.
-            log.push("-".to_string());
+            // The recorded `ecx` of each `timeGetTime`: the object for the first call, and for the second the clock the
+            // first returned when the render phase was set (the stale register), joined with `/`.
+            let mut calls: Vec<String> = Vec::new();
             let sem = m[0x10];
-            if sem & 1 == 0 {
+            let eax = if sem & 1 == 0 {
                 let now = rd(&c[4], 0).wrapping_sub(rd(&c[4], 4)).wrapping_add(a[0]);
                 let mut due = true;
-                if rd(&c[0], 0x300) != 0 {
+                let phase = rd(&c[0], 0x300) != 0;
+                if phase {
+                    calls.push("m+0x0".to_string());
                     let speed = if c[1][0x820] & 0x10 == 0 && c[2][0] == 0 {
                         rd(m, 0x30)
                     } else {
@@ -61,6 +65,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     due = now >= rd(m, 0x50).wrapping_add(timing);
                 }
                 if due {
+                    calls.push(if phase { now.to_string() } else { "m+0x0".to_string() });
                     wr(m, 0x18, rd(m, 0x18).wrapping_add(1));
                     wr(m, 0x50, now);
                     1
@@ -75,7 +80,9 @@ fn the_emulated_original_agrees_on_every_row() {
                     wr(m, 0xc, 2);
                 }
                 1
-            }
+            };
+            log.push(if calls.is_empty() { "-".to_string() } else { calls.join("/") });
+            eax
         };
         assert_eq!(got, want_eax, "check_new_frame_playback — eax, row `{line}`");
         assert_eq!(log, want_log, "check_new_frame_playback — the recorded calls, row `{line}`");
