@@ -6541,9 +6541,11 @@ pub(crate) const WIDENING_CHAPTER_SEVENTY_NINE: (i64, i64) = (600, 1501);
 /// arm of `UnitData::is_seen` under a computer's `calc_danger`. **A state
 /// word, pinned where the state first parts**: `1198 world:danger`, who 1's
 /// half-cell (25, 7), ours 60, theirs 120 — the 1000 pass's plane, which no
-/// block dumps, so 1198 is the first block that shows it. The draws agree to
-/// the capture's end (1204), the dump's last block is 1203.
-pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY: i64 = 1198;
+/// block dumps, so 1198 is the first block that shows it. **Closed by item
+/// 2785** (`docs/GOLDEN.md` §103): the cause was `unit_masks & 0x1000`, the
+/// blown bit `0/7`'s fight on 612 set; the word is the capture's end, 1204,
+/// the draws' own. The dump's last block is 1203.
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY: i64 = 1204;
 
 /// `chapter_eighty_s_window_is_widened_whole`'s window: run877 whole, blocks
 /// 1198 to 1203 (1204 is the one the dump does not carry), so `w1198 of

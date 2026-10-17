@@ -5537,11 +5537,6 @@ fn chapter_eighty_staging_reaches_the_stealth_arm() {
 /// **Chapter eighty** (item 2755, `docs/GOLDEN.md` §102, run877): the stealth
 /// arm of `is_seen` under a computer's `calc_danger`.
 #[test]
-fn chapter_eighty_probe_scratch() {
-    cases_80_89::chapter_eighty_probe_scratch();
-}
-
-#[test]
 fn chapter_eighty_holds_to_the_golden_word() {
     cases_80_89::chapter_eighty_holds_to_the_golden_word();
 }
@@ -5552,14 +5547,35 @@ fn chapter_eighty_s_window_is_widened_whole() {
     cases_80_89::chapter_eighty_s_window_is_widened_whole();
 }
 
-/// What parts on run877's blocks 1198–1203 (block 1204 is not in the dump). **The first**, `1198 0/-1
-/// world:danger`, is the word: who 1's danger at half-cell (25, 7), the
+/// **run878 whole, both directions** (item 2785, `docs/GOLDEN.md` §103).
+#[test]
+fn chapter_eighty_w_window_is_widened_whole() {
+    cases_80_89::chapter_eighty_w_window_is_widened_whole();
+}
+
+/// What parts on run878's blocks 998–1001: the standing `form` rows alone
+/// (the `0/7` blown bit is carried, item 2785).
+const WANT_CH80W: &[&str] = &[
+    "998 0/0 form",
+    "998 0/1 form",
+    "998 0/2 form",
+    "998 0/3 form",
+    "998 0/4 form",
+    "998 0/5 form",
+    "998 1/1 form",
+    "998 1/2 form",
+    "998 1/3 form",
+    "998 1/4 form",
+    "998 1/5 form",
+];
+
+/// What parts on run877's blocks 1198–1203 (block 1204 is not in the dump). **Item 2785 closes the chapter**: the
+/// standing `form` rows alone remain. Before it, **the first**, `1198 0/-1 world:danger`, was the word: who 1's danger at half-cell (25, 7), the
 /// second Partisan's, is 120 theirs and 60 ours on the first dumped block —
 /// the plane the 1000 pass wrote, before the Scout stood there. The 1200
 /// pass, where the Scout's disc covers it, agrees. The rest are the added
 /// Scout's own walk from 1199 and the `seen3` cells its path leaves.
 const WANT_CH80: &[&str] = &[
-    "1198 0/-1 world:danger",
     "1198 0/0 form",
     "1198 0/1 form",
     "1198 0/2 form",
@@ -5571,13 +5587,6 @@ const WANT_CH80: &[&str] = &[
     "1198 1/3 form",
     "1198 1/4 form",
     "1198 1/5 form",
-    "1198 1/6 path:length",
-    "1198 1/6 path[1].to",
-    "1199 1/6 heading",
-    "1199 1/6 mirror",
-    "1199 1/6 order:move.dest_x",
-    "1199 1/6 pos",
-    "1203 0/-1 world:seen3",
 ];
 
 const WANT_CH79: &[&str] = &[

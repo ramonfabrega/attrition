@@ -41,8 +41,8 @@ pub(super) fn chapter_eighty_staging_reaches_the_stealth_arm() {
     );
     assert_eq!(
         probe(&s, 0, 7),
-        (60, true, true, 0),
-        "the second Partisan before the Scout"
+        (120, false, true, 0),
+        "the second Partisan before the Scout: it fought the Airbase on 612, so it is blown (item 2785)"
     );
     let (_, hides, lit, _) = probe(&s, 0, 8);
     assert!(
@@ -58,22 +58,6 @@ pub(super) fn chapter_eighty_staging_reaches_the_stealth_arm() {
     at(&mut s, 1201);
     assert_eq!(probe(&s, 0, 7).0, 120, "weighed whole at the 1200 pass");
     assert_eq!(probe(&s, 0, 6).0, 60, "still half");
-}
-
-pub(super) fn chapter_eighty_probe_scratch() {
-    let Some(mut s) = stage_script("ch76", "chapter80") else {
-        return;
-    };
-    while s.built.sim.frame < 616 {
-        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
-        s.built.tick();
-        let sim = &s.built.sim;
-        for o in [6i16, 7] {
-            if let Some(i) = sim.units.iter().position(|u| u.alive() && u.owner == 0 && u.index == o) {
-                eprintln!("PROBE f{} 0/{} orders {} masks {:#x}", sim.frame, o, sim.units[i].orders.len(), sim.units[i].unit_masks);
-            }
-        }
-    }
 }
 
 pub(super) fn chapter_eighty_holds_to_the_golden_word() {
@@ -116,4 +100,34 @@ pub(super) fn chapter_eighty_s_window_is_widened_whole() {
     let mut want: Vec<String> = WANT_CH80.iter().map(|r| r.to_string()).collect();
     want.sort();
     pin_eq!(got, want, "ch80: what parts in the window moved");
+}
+
+/// **run878 whole, both directions** (item 2785, `docs/GOLDEN.md` §103): the
+/// 1000 pass's own blocks, 998–1001 — block 1002 is not in the dump.
+pub(super) fn chapter_eighty_w_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch80w",
+        "chapter80w",
+        (998, 1002),
+        0,
+        0,
+        (999, 1002),
+        false,
+        92,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch80w f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch80w: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH80W.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch80w: what parts in the window moved");
 }

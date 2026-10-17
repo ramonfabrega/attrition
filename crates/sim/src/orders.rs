@@ -2744,6 +2744,13 @@ impl Sim {
         if !self.units[u].orders.is_empty() {
             self.units[u].idle = 0;
         }
+        // `Unit::work@0060d180:380`: an order of any type blows a stealth
+        // unit (`CVar15 != NONE`, a `0x40000` type without `0x4000`, and
+        // neither `unit_masks & 0x800` — not carried — nor
+        // `unit_masks2 & 0x8000`), item 2785.
+        if self.order_type(u) != index::NONE && self.unit_stealth_type(u) {
+            self.units[u].blown = true;
+        }
         // `Unit::work@0060d180:268`: a unit that has an order and is still
         // carrying the idle latch drops it, and a **fisherman or merchant**
         // marks its owner's economy dirty on the way — it has just left
@@ -3728,6 +3735,11 @@ impl Sim {
             unit.idle = 1;
         } else if unit.idle <= 1 || (frame + i64::from(unit.index)) & 15 == 0 {
             unit.idle += 1;
+        }
+        // `check_idle@006032c0:47`: `(unit_masks & 0x11000) == 0x1000`
+        // drops the blown bit once the counter has reached 10.
+        if self.units[u].blown && !self.units[u].fought && self.units[u].idle >= 10 {
+            self.units[u].blown = false;
         }
         // `check_idle@006032c0`'s **tail**, which runs whatever the counter
         // did: the first frame a unit is idle it takes the latch, and a
@@ -9781,6 +9793,9 @@ impl Sim {
             front.body = Body::AttackGround(g);
         }
         self.clear_attack(u);
+        // `unit_masks |= 0x11000` (step 6; item 2785).
+        self.units[u].blown = true;
+        self.units[u].fought = true;
         if self.units[u]
             .ty
             .is_some_and(|t| self.unit_types[t].combat.packs)
