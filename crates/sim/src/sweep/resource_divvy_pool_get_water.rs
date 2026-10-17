@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,9 +43,9 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // The pool's drawn pick: while no good is taken, `Random::get(0, 0xffff) % count` (index 0 without a call when
-    // `count <= 1`, the stub's answers `a[1..]` in call order) names a bit of the mask `p[0]`; a clear bit is set and
-    // the good `p[1][idx]` taken (a loop runs on while that is -1); then the mask is cleared through its `size`
-    // (`m+0x54`) bytes when every bit below `count` (`m+0x60`) is set (item 2852).
+            // `count <= 1`, the stub's answers `a[1..]` in call order) names a bit of the mask `p[0]`; a clear bit is set and
+            // the good `p[1][idx]` taken (a loop runs on while that is -1); then the mask is cleared through its `size`
+            // (`m+0x54`) bytes when every bit below `count` (`m+0x60`) is set (item 2852).
             let count = rd(m, 0x60);
             let size = rd(m, 0x54);
             let mut next = 1;

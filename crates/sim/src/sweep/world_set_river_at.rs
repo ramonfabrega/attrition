@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -44,7 +49,8 @@ fn the_emulated_original_agrees_on_every_row() {
             let (x, y) = (rd(&p[0], 0), rd(&p[1], 0));
             let wf = rd(&c[0], 0x18);
             let hw = |q: &[u8], i: usize| u16::from_le_bytes([q[i], q[i + 1]]);
-            let put = |q: &mut Vec<u8>, i: usize, v: u16| q[i..i + 2].copy_from_slice(&v.to_le_bytes());
+            let put =
+                |q: &mut Vec<u8>, i: usize, v: u16| q[i..i + 2].copy_from_slice(&v.to_le_bytes());
             let fine = (wf.wrapping_mul(y).wrapping_add(x) as usize) * 2;
             let coarse = (rd(&c[0], 0).wrapping_mul(y >> 2).wrapping_add(x >> 2) as usize) * 0x1c;
             if a[2] != 0 {
@@ -71,10 +77,18 @@ fn the_emulated_original_agrees_on_every_row() {
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "set_river_at — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "set_river_at — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "set_river_at — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "set_river_at — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "set_river_at — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
