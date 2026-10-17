@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-ninth tranche (commander, Opus): 12 landings from `31eb3a05`**, every gate
+*2026-10-17, **the thirty-ninth tranche (commander, Opus): 13 landings from `31eb3a05`**, every gate
 green; last whole gate `0431cff9`; two sweep collisions resolved by update (Loop 2926); no kill rule, no DEEP but 2864's.*
 
 - **Words**: **the peace pair closed** (East Indies, the Lakota, ends 6822): 6821 → 6822 by 2864 (run883), its closing
   state scored with no unit apart; every pair is closed now. The AI word is the battery's lowest lobby,
   `EastIndiesGermanTier3`, promoted unmoved at 576 of 13519 by 2904 (run886 widened; DECISIONS 72), as 2931. Chapters 80–88 closed (88 at 1500 on run889: the kill arm,
-  2915, diff-backed by a mutation), 89 is 2930. Census 1260 of 3611 (2863, 2877, 2893, 2900, 2910); `port` 156. Battery
+  2915, diff-backed by a mutation), 89 is 2930. Census 1271 of 3611 (2863, 2877, 2893, 2900, 2910, 2921); `port` 156. Battery
   6566 / 2974 / 176 (GreatLakesChineseTier1 minted, runs 887–888).
 - **Lanes: four, live** (DECISIONS 75, 76; the roster is Ramon's, 71): 2931 the AI word's (Opus 5.5 medium), 2930 the
-  rules track's, 2921 and 2927 the sweep lanes' (Sonnet 5.5 medium); the fifth lane 61 §5 would add is Ramon's (76).
-  Next 2934, run 891 (Astra 900–909). Pools: GOLDEN §114–117, AI §241–243, park GH–GI free (GD, GE, GF, GG live).
+  rules track's, 2941 and 2927 the sweep lanes' (Sonnet 5.5 medium); the fifth lane 61 §5 would add is Ramon's (76).
+  Next 2942, run 892 (Astra 900–909). Pools: GOLDEN §114–117, AI §241–243, park GI–GO free (GE, GF, GG, GH live).
 - **Fable backlog: 14 Loop items** (1570, 1725, 2003, 2654, 2809, 2882, 2886, 2892, 2896, 2899, 2903, 2914, 2926, 2933).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -33,7 +33,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: EastIndiesGermanTier3 w576 of 13,519
-Census: simulation backed 1260 of 3611
+Census: simulation backed 1271 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +46,7 @@ the twelfth, the stop at twenty with the handoff written, the whole gate green, 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2931 the AI word's (Opus), 2930 the rules track's, 2921 and 2927 the
+2931 the AI word's (Opus), 2930 the rules track's, 2941 and 2927 the
 two sweep lanes' (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 576. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
@@ -66,19 +66,19 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     tiles out, run 890 only when no packet answers. Unstarted. GOLDEN
     §113, park slot GF.
 
-2921. **The sweep's hundred-and-twenty-fifth batch: an imported callee
-    stubbed, a stub that copies, then what they hold** (DECISIONS 63 (iv);
-    the score `Census:` 1252 of 3611): a flag naming an IAT word as a
-    stubbed callee (parked 2905, the `process_*` family's `strrchr`), a
-    `--stub-copy` for the `memcpy` thunk (2906), an `sp+0xN` row token
-    (2918), each with a test made to fail first, then those functions,
-    each checked against `census.py --never`. Unstarted. `--kind sweep`.
+2941. **The sweep's hundred-and-twenty-seventh batch: the `process_*`
+    bodies still never-backed** (DECISIONS 63 (iv); the score `Census:`
+    1271 of 3611; parked 2935): `process_disband`, `_resign`, `_accept`,
+    `_buy`, `_speed_up`/`_down`, `_unitmask`, `_buildmask`, `_treaty`,
+    `_declare`, `_tribute`, `_city_gather` and the `process_cheat_*`, off
+    2921's template (`command_package_process_alarm.rs`), each checked
+    against `census.py --never`. Unstarted. `--kind sweep`, slot GH.
 
 2927. **The sweep's hundred-and-twenty-sixth batch: ten never-backed
     simulation functions a built shape holds** (DECISIONS 63 (iv), 73;
     the score `Census:` 1260 of 3611): off the base's `census.py
     --unbacked` re-read at each `ccc update`, each generated by
-    `sweep_gen.py` as it stands, none the shape lane's (2921 names its
+    `sweep_gen.py` as it stands, none the shape lane's (2941 names its
     own, Loop 2926); a function no built shape holds parks for the
     shape lane. Unstarted. `--kind sweep`.
 
