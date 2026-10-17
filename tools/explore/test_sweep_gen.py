@@ -167,6 +167,7 @@ class Shapes(unittest.TestCase):
         self.assertIn("LINKHI = [(1, 2, 46, ('range', 0, 2))]", script)
         self.assertLess(script.index('for lo, hi, off, size, d, terms in LINKS:'),
                         script.index('for lo, hi, off, vals in LINKHI:'))
+        self.assertIn('p[lo + k][off:off + 2] = (wdraw(rng, vals) & 0xFFFF)', script)
         self.assertIn('hold a short at +0x2e drawn from 0..2, after the links', test)
         for bad in ('p2..1+0x2e:0..2', 'p1+0x2e:0..2', 'p1..2+0x2e'):
             with self.assertRaises(ValueError):
