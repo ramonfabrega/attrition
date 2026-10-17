@@ -36,7 +36,7 @@ STUBS = []
 PLACES = [('c0', '0xc8', '0', 64), ('c0', '0xe4', '0', 64)]
 NULLS = []
 NULLFORCE = {}
-WBIAS = [('c0', 188, ('range', 0, 12)), ('p0', 0, ('set', [0, 500, 1000, 2000, 70000, 100000])), ('p1', 0, ('set', [0, 500, 1000, 2000, 70000, 100000])), ('p2', None, ('range', 0, 3000)), ('p3', None, ('range', 0, 3000)), ('c1', 300, ('set', [0, 100, 500, 2000, 8000, 40000, 300000]))]
+WBIAS = [('c0', 188, ('range', 0, 12)), ('p0', 0, ('set', [0, 1, 2, 500, 1000, 70000, 100000])), ('p1', 0, ('set', [0, 1, 2, 500, 1000, 70000, 100000])), ('p2', None, ('set', [0, 0, 1, 2, 500, 1000, 2000, 3000, 70000, 100000])), ('p3', None, ('set', [0, 0, 1, 2, 500, 1000, 2000, 3000, 70000, 100000])), ('c1', 300, ('set', [1, 2, 3, 4, 5, 100, 500, 2000, 8000, 40000, 300000, 300001, 410000]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -303,8 +303,8 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(500):
-        h.brk = base  # the bump heap is reused a row; 500 rows of windows outgrow it
+    for i in range(1500):
+        h.brk = base  # the bump heap is reused a row; 1500 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "WorldData::start_city_rad_wcoord@006b3850", "--item", "3008", "--win", "8", "--own", "2", "--rows", "500", "--cell-win", "0xc06188:0x400", "--cell-win", "0xc061e4:0x200", "--ptrarg", "0:4", "--ptrarg", "1:4", "--wbias", "c0+0xbc:0..12", "--place", "c0+0xc8:0:0x40", "--place", "c0+0xe4:0:0x40", "--wbias", "p0+0:0,500,1000,2000,70000,100000", "--wbias", "p1+0:0,500,1000,2000,70000,100000", "--wbias", "p2+*:0..3000", "--wbias", "p3+*:0..3000", "--wbias", "c1+0x12c:0,100,500,2000,8000,40000,300000", "--port", "{\n    let n = rd(&c[0], 0xbc);\n    let (px, py) = (rd(&p[0], 0), rd(&p[1], 0));\n    let radius = rd(&c[1], 0x12c);\n    let approx = |dx: u32, dy: u32| -> u32 {\n        let (hi, lo) = if dy < dx { (dx, dy) } else { (dy, dx) };\n        if hi == 0 {\n            0\n        } else if lo < 60000 {\n            (lo * lo) / (hi * 2) + hi\n        } else {\n            (lo + hi * 2) >> 1\n        }\n    };\n    let mut found = 0;\n    for k in 0..n.max(0) as usize {\n        let dx = rd(&p[2], 4 * k).wrapping_sub(px).unsigned_abs();\n        let dy = rd(&p[3], 4 * k).wrapping_sub(py).unsigned_abs();\n        if (approx(dx, dy) * 4) as i32 > i32::MIN && ((approx(dx, dy).wrapping_mul(4)) as i32) < radius - 1 {\n            found = 1;\n            break;\n        }\n    }\n    found\n}"]
+# sweep_gen: ["obj", "WorldData::start_city_rad_wcoord@006b3850", "--item", "3008", "--win", "8", "--own", "2", "--rows", "1500", "--cell-win", "0xc06188:0x400", "--cell-win", "0xc061e4:0x200", "--ptrarg", "0:4", "--ptrarg", "1:4", "--wbias", "c0+0xbc:0..12", "--place", "c0+0xc8:0:0x40", "--place", "c0+0xe4:0:0x40", "--wbias", "p0+0:0,1,2,500,1000,70000,100000", "--wbias", "p1+0:0,1,2,500,1000,70000,100000", "--wbias", "p2+*:0,0,1,2,500,1000,2000,3000,70000,100000", "--wbias", "p3+*:0,0,1,2,500,1000,2000,3000,70000,100000", "--wbias", "c1+0x12c:1,2,3,4,5,100,500,2000,8000,40000,300000,300001,410000"]
