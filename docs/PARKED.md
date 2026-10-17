@@ -3763,6 +3763,11 @@ the reads made to fail first. One reach.
 `--place-null K:WORD=0` that zeroes a named word on K's null rows would reach `replace_form_id`'s `0xdc == 0, 0xd8 != 0` arm
 without the `m+0xcc` wbias (parked 2885, 2898). Candidate: that flag, a test made to fail first. One reach.
 
+(2903) **A packet's `--hook` on a caller's return address reads a value no dump prints** (2864's "for the Loop" line,
+filed at its merge): two hooks on `5fe050` and `648876` turned "theirs re-adds a mandatory attack, somehow" into "theirs
+never killed it" in one run. Candidate: a brief-checklist row for the residue kind — a value question the dump cannot
+answer takes a packet hooked at the caller's return before a reading. One reach.
+
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
 Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872).
@@ -6544,14 +6549,14 @@ walked through its own words, vslots 0x10c and 0x94 on the node's object). A sha
 
 ## Parked by item 2864, 2026-10-17 — the peace pair's close
 
-(2864, second) **`find_nearby_target`'s find is mandatory for a computer siege engine that finds a city** (2864, `docs/AI.md` §238):
+(2901) **`find_nearby_target`'s find is mandatory for a computer siege engine that finds a city** (2864, `docs/AI.md` §238):
 `find_nearby_target:495`–`541` (listing `649926`–`649a3d`). The final add's `mandatory` is `[ebp+8]`, set 0 at `64992a` and 1 at
 `649a2d` when the searcher is listed by its group, is siege (vslot `+0x10c`), is computer-driven (`0x40000`), and its find is a
 building whose `flags & 0x20` (a city, `docs/CITIES.md` §1.2); beside it the army takes the find as its target and the
 searcher's cell as its muster (`+0x48/+0x4c`, angle `+0x50`). Ours' `nearby_add` passes false. No open word names it: the peace
 pair closed without it.
 
-(2864, third) **`1/106`'s `cavarch_o` on 6822** (2864): the Armored Cavalry's fire-on-the-move target on the peace pair's closing block,
+(2902) **`1/106`'s `cavarch_o` on 6822** (2864): the Armored Cavalry's fire-on-the-move target on the peace pair's closing block,
 ours −1, theirs 2000, with no draw and no order — the one row of run883's block 6822 after item 2864.
 
 ## Parked by item 2876, 2026-10-17 — chapter eighty-six: the Bribe's control that reaches range
