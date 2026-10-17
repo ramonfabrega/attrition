@@ -166,6 +166,8 @@ mod build_queue_data_get_job_counter;
 mod build_queue_data_get_next_helicopter;
 #[path = "build_queue_data_get_next_non_caravan.rs"]
 mod build_queue_data_get_next_non_caravan;
+#[path = "build_queue_data_get_next_non_unit.rs"]
+mod build_queue_data_get_next_non_unit;
 #[path = "build_queue_data_get_queue.rs"]
 mod build_queue_data_get_queue;
 #[path = "build_queue_get_size.rs"]
