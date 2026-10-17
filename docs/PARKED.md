@@ -3751,7 +3751,7 @@ whether the trial's numbers before this commit count, and whether a sampler shou
 (2792) **`sweep_gen.py --regen` with no `--port` drops a hand-written port to `todo!()`** (2783's "for the Loop"
 line, filed at its merge): four times in one batch, though the keep is said to hold (item 2368); the port had been
 written by replacing the `todo!()` line, so perhaps the keep wants the generator's own markers. Each re-application
-cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach. **A second**, 2807's (parked 2815): `--regen` resets a hand-edited port to `0`; a redraw is delete-and-regenerate or a checkout.
+cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach. **A second**, 2807's (parked 2815): `--regen` resets a hand-edited port to `0`; a redraw is delete-and-regenerate or a checkout. **A third**, 2818's "for the Loop" line, filed at its merge: `--regen` should refuse, or print a diff, when it would reset a hand-written port; and `--write-mod` leaves `mod.rs` alone on a non-`--regen` run, so the module line is added by hand — the generator could verify it was added.
 
 (2796) **A function's sixty flags and its port do not survive a shell line** (2782's "for the Loop" line, filed at its
 merge): the item's driver was a throwaway (`$JOB/tmp/gen.py`, a function's flags one a line in a file and its port in
@@ -6385,13 +6385,13 @@ cloaked-Spy staging of GOLDEN §106 (site two on the cast frame) waits on it. Na
 
 ## Parked by item 2818, 2026-10-17 — `--ecx-out`, the `project` pair, and four more bodies
 
-(2818, first) **`--ecx-out IDX:V,V,..`** built (`tools/sweep_gen.py`, `pair_answer`; its test
+(2828) **`--ecx-out IDX:V,V,..`** built (`tools/sweep_gen.py`, `pair_answer`; its test
 `test_a_hooked_callee_may_answer_eax_and_ecx` failed first on the missing keyword): stub IDX answers `(eax, ecx)`, the `ecx` drawn
 from the list and printed last on the row, after the xmm values. It closes (2816): `NukeOut::setup_terrain_terraforming` redrawn with
 `--ecx-out 0:0x1000,0x2000,0x3000`, its port now logs `{a[4]},{a[4]}` for `refresh_good_z` (the old `m+0x0,m+0x0` is a mutant that
 fails). The `hooks` side was already built (1922); only the flag was missing.
 
-(2818, second) **The `project` pair** (0x92d000 `project_d`, 0x92cf40 `project_c`) needed no new flag: (2817)'s `--ecx-int` and `--edx`
+(2829) **The `project` pair** (0x92d000 `project_d`, 0x92cf40 `project_c`) needed no new flag: (2817)'s `--ecx-int` and `--edx`
 held them, with `--cdecl`, `--ptrarg 2:4 --ptrarg 3:4` for the two out words and the register-argument `sin_table` (0xa46a00,
 `ecx`/`edx`, no stack) as a `--stub 0xa46a00:0 --record --record-edx`. They differ: 0x92d000 takes the angle and distance on the stack and
 the base in `ecx`/`edx`; 0x92cf40 the reverse (angle `ecx`, distance `edx`, base on the stack). Do not read one as the other's overload.
@@ -6399,7 +6399,7 @@ Breaks 16/16 held. `TerrainMap::remove_feature` (one `--cell-win` width record, 
 types, three stubs) 6/6 after a re-run (the first mutant ran a stale binary: "failed nothing" and then held); `Border::generate_morph_side`
 (`--answer-win` pop, three stubs; the borders cell's `+0x164` is the literal 12659308 in its log, the image's value) 6/6.
 
-(2818, third) **Census 1181 → 1185** by `tools/census.py --layers` (four built: the `project` pair, `remove_feature`,
+(2830) **Census 1181 → 1185** by `tools/census.py --layers` (four built: the `project` pair, `remove_feature`,
 `generate_morph_side`). Not modelled: `NukeOut::draw_underlays` (a statics guard and TLS) and `TerrainMap::on_mouse_move`,
 `Game::post_game_screens` are the next shortest rows with no shape; the rest of the shortest are renderer bodies (Loop 2819).
 This batch is short (four, not ten): no shape was left to build and the unshaped rows are the kind 2819 asks about.
