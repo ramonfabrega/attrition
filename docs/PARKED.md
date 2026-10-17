@@ -3738,6 +3738,14 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3012) **A sibling's port block is copied by hand with three constants re-measured, ten times a batch** (2990's "for the
+Loop" line and parked 3011, filed at its merge; the fifth reach of the shape). Candidate: `sweep_gen.py --port-from
+SIBLING` copies the block and reports the constants that differ, a test made to fail first. One reach.
+
+(3013) **A `--regen` whose `--clean-stack` changed resets a hand port to `todo!()`** (parked 3010, filed at its merge): the
+`.rs` did not win, against Loop 2886's built rule. Candidate: the regen keeps a hand port whatever flag changed and says
+so, a test made to fail first; and `--clean-stack 256` the default for a logger of five or more reference arguments. One reach.
+
 (3007) **`golden_capture.sh` through `viadriver.sh` returns at once, so a loop of launches does not queue** (2975's "for
 the Loop" line, filed at its merge): ten captures in a shell loop raced the lane; the pool lanes did queue. Candidate: the
 wrapper waits on its own receipt or refuses a second launch into a held lane, a test made to fail first. One reach.
@@ -6926,21 +6934,32 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
   `Unit::modify_group_order` reads `[this+0xd4]` after its loop whether or not `[this+0xdc]` is set, so its
   null-tail row is undrawable (a stale `d4`). Both held by their ports' comments, not by a row.
 
-## Parked by the next landing, slot GS — reserved
+## Parked by item 2990, 2026-10-17 — ten more `process_*` bodies swept, Census 1329 → 1339
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3009) **Still unswept in `CommandPackage::process_*`**: `rename_city` (virtual slot 0xac, `String::operator=`,
+  `HotKeyGroups::find_group`), `ping` (a loop over the eight leaders calling `Leader::action_ping`), `cheat_init_unit`,
+  `cheat_ai_speed_increase`, `console_cmd`, `hotkey`, `sell` (`has_tribe_bonus`/`has_preq`/`has_market`/`do_sell`
+  chain), `trade`, `speed_set` (timings table, `String`/`MessageWin`/`SoundGlobal` calls), `quit` (console play, `Player::quit`,
+  a vcall), `turn_data`. And 2964's list, not reached: `find_city`, `find_city_at`, `poor_target`, `Wall::swap_team`,
+  `Tribes::find`, `Signposts::add`. Names no score beyond the census.
+- (3010) **`--clean-stack 64` is not enough for a logger with five or more reference arguments**: the line, tags and
+  format slots of `logToMemory` read caller stack residue (varying by row) that 64 bytes leave; `--clean-stack 256` zeroes
+  them on every row (`process_attack`, `_swarm_around`, `_launch_patrol`, `_flight`, `_build`, `_move_near`). Parked 2985's
+  `come_out`/`cannon_time` pins could use 256 and lose their residue constants. `sweep_gen.py --regen` on a hand-ported
+  `.rs` whose `--clean-stack` argument changed reset the port to `todo!()` (the `.rs` did not win): filed as Loop 3013.
+- (3011) **The batch's `five.py`/graft shape is a fifth reach**: a sibling's port block copied with three constants
+  re-measured (the file literal for a null `strrchr`, the format pointer, the say offset) -- ten times this batch, each from
+  the first failing row. A `sweep_gen.py --port-from SIBLING` that copies the block and reports the constants: filed as Loop 3012.
 
-## Parked by the next landing, slot GT — reserved
+## Parked by item 2994, 2026-10-17 — Chapter ninety-two's leftovers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3015) **`cast_sabotage`'s leader counters and score** (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x818`, `+0x44 += cost/5`) are still unbuilt, and the crate carries none of
+  the five fields (`score_combat`, `units_killed`, `buildings_razed`, `deaths_current_frame`, `kills_current_frame`); `LEADERS=2` prints none of them and the compared pin
+  lists them unread, so no diff can see them. Names no score.
+- (3016) **Pilfer** (`0x276`): `cast_pilfer@00673e80` (a goods steal, one `Random::get` draw) and its validity arm are read and the arm built, but `FROM None` means no
+  unit is given the cast, so no chapter stages it; who calls it in the original is not found. Names no score.
+- (3017) **A Stockade's border bleeds a lone Commando dead mid-cast** (150-frame job, 12 hp / 25 frames): the walk found it before the capture; Sabotage on a
+  vehicle (`dtype` 3, the boom) needs a staged vehicle for who=1 and is not covered. **Booked as chapter 93 (3018) at the merge.**
 
 ## Parked by the next landing, slot GU — reserved
 

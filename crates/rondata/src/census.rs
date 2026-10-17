@@ -135,12 +135,14 @@
 /// bodies that are not the three shapes (a table field before the action, a virtual slot, the objects table by owner).
 /// item 2966: 1329 -> 1339 on the merged tree, the sweep's hundred-and-thirty-first batch, ten harvested
 /// (`Unit::execute_events`, `do_idle`, `Supplies::find_supply`, `WorldData::was_seen_wcoord` and six more).
+/// item 2990: 1339 -> 1349 on the merged tree, the sweep's hundred-and-thirty-second batch, ten more
+/// `CommandPackage::process_*` bodies (`board_ship`, `siege_attack`, `attack`, `build`, `move_near` and five more).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1339;
+pub const SIMULATION_BACKED: usize = 1349;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
