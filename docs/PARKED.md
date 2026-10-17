@@ -3743,6 +3743,11 @@ at its merge): the runner's `pace:` line (Loop 2874) made trimming run884's `end
 not read it still loses the hour, as run880 did. Candidate: `golden_capture.sh` refuses, or stops early with a receipt, a take
 whose first `pace:` projects past `--timeout`, a test made to fail first. One reach.
 
+(2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
+and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
+`archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
+to fail first. One reach.
+
 (2886) **A whole-line `--regen` brings back a port the `.rs` edited and the `--port-file` did not** (2863's "for the Loop"
 line, filed at its merge): `--regen` with a whole line and `--port-file` rewrites the port from the file, and a bare `--regen
 <name>` keeps the line's old port string, so an edit made only in the `.rs` returns at the next whole-line regen (once, in
@@ -6713,7 +6718,7 @@ in the port's comment. Not a mismatch, an input the emulator fixes.
 
 ## Parked by item 2904, 2026-10-17 — the battery's East Indies Germans become the AI word
 
-(2904, second) **Both leaders' `aggression` stands 0 against 1 from run886's first block, 570** (2904, `docs/AI.md` §239):
+(2932) **Both leaders' `aggression` stands 0 against 1 from run886's first block, 570** (2904, `docs/AI.md` §239):
 `0/-1 leader:aggression[1]` and `1/-1 leader:aggression[0]`, ours 0, theirs 1, with no draw or order on the word's frame that
 reads it. `diplomacy.rs:512` is its one reader in `sim`. It is not walked back: no earlier widening of this lobby exists, and
 run646's start ends at 36.
