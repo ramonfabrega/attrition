@@ -3738,6 +3738,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3037) **A mutant that does not compile reads as held** (3008's "for the Loop" line and parked 3034, filed at its merge):
+`mutate.py` scores the command's exit, and a port that fails to compile exits 101 as a red test does — fifteen "held"
+breaks of one batch were a type error. Candidate: `mutate.py` runs the un-mutated command once and refuses a tree that does
+not pass, before the first break, a test made to fail first. And `--wbias`'s errors name the flag and "list or range"
+(parked 3031). One reach.
+
 (3022) **`sweep_gen.py --regen` with a bad flag set leaves the old files and exits 0** (3004's "for the Loop" line, filed
 at its merge). Candidate: a regen that cannot write exits non-zero and names the flag, a test made to fail first. One reach.
 
@@ -6996,32 +7002,32 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3008, 2026-10-17 — the second harvest batch (ten world and table bodies)
 
-(3008, first) **`--wbias` takes a list or a range, never both.** `--wbias 'p0+0:0..3000,0..100000'` dies with `too many values to
+(3031) **`--wbias` takes a list or a range, never both.** `--wbias 'p0+0:0..3000,0..100000'` dies with `too many values to
 unpack (expected 2, got 3)`, an error that names neither the flag nor the colon. The draw it wanted (a small coordinate most
 rows, a >60000 one for `start_city_rad_wcoord`'s large-distance arm) is a list, which a range cannot spell. Loop: the message
 names the flag and says "list or range".
 
-(3008, second) **A window's `c`/`p` number is its flag order, and the header is the only place that says so.** `--cell-win`
+(3032) **A window's `c`/`p` number is its flag order, and the header is the only place that says so.** `--cell-win`
 twice makes `c0`, `c1`; `--at VA:SIZE` flags follow as `c2`, `c3`, … and `--fill 'c1:i*5'` reaches the table a `--at` laid. Three
 sweeps (`Map::is_near_ocean`, `Map::land_dist`, `WorldData::start_city_rad_wcoord`) read a table the image builds at boot
 (`circle_radius/x/y`, 0xcbe330/0xcb7e90/0xcbb0e0, zeros under the emulator): the draw is a drawn table, not the real one, which
 tests the function's logic and not `circle_init`'s values (`scout::circle` is the ground for those). Loop: `--at` could take a
 fill expression of its own.
 
-(3008, third) **A draw whose two arms contradict starves the one that needs both.** `is_near_ocean` answers 1 only when the
+(3033) **A draw whose two arms contradict starves the one that needs both.** `is_near_ocean` answers 1 only when the
 `param_4` ring has land and the `param_3` disk has none, and with one cell density the ring sits inside the disk: 3 of 220 rows
 answered 1, then 9 of 800, 16 of 1500, and all 15 breaks held only after the offsets were a diverse ±3 byte list (not
 `0x00ff0100`'s nine positions) at 800 rows. Worth a line in `sweep_gen.py`'s help: "read the eax histogram before the breaks".
 
-(3008, fourth) **A mutant that compiles nowhere reads as held.** `mutate.py` scores the command's exit; a broken port that fails to
+(3034) **A mutant that compiles nowhere reads as held.** `mutate.py` scores the command's exit; a broken port that fails to
 compile (`break 'r r` for an i64 label) exits 101 as a red test does, so `map_land_dist`'s first fifteen "held" were a type
 error. The lane ran the plain test first, saw "mismatched types", and re-ran. Loop: `mutate.py` could demand the un-mutated tree
 pass the command before the first break (one run), which would have named it.
 
-(3008, fifth) **`mutate.py --batch` cannot spell a multi-line old text,** and `head -n -2` is not macOS's. A pair file of
+(3035) **`mutate.py --batch` cannot spell a multi-line old text,** and `head -n -2` is not macOS's. A pair file of
 ` => ` lines through a four-line script (job tmp) did the batches; a flag taking `OLD => NEW` pairs would remove it.
 
-(3008, sixth) **Survivors left, each named.** `Roads::scan_and_kill_straggled_tcoord`: none. `BuildQueue::set_queue`: `if !done`
+(3036) **Survivors left, each named.** `Roads::scan_and_kill_straggled_tcoord`: none. `BuildQueue::set_queue`: `if !done`
 → `if true` is equivalent (done implies the tail range is empty). `Borders::check_border_blocked`: `dy.abs() * 2` → `dy * 2` is
 equivalent mod 4 (`4|dy|` vanishes under `& 3`). `WorldData::start_city_rad_wcoord`: `dy < dx` → `dy <= dx` is equivalent (the two
 orders agree at equality); `lo < 60000` → `lo < 59999` survives 6000 rows, the draw needing a record whose x and y distances are
@@ -7094,6 +7100,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot HD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HJ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
