@@ -302,8 +302,8 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(220):
-        h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
+    for i in range(600):
+        h.brk = base  # the bump heap is reused a row; 600 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -683,4 +683,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "CommandManager::issue_rename_city@009411d0", "--item", "2893", "--own", "3", "--win", "0x20", "--ptrarg", "2:0x10", "--place", "p0+0:0:16", "--place", "s1:0:48", "--place-null", "0", "--wbias", "p0+8:0,1,5,19,20,21,40,0x10003,0x70000", "--wbias", "p1+0:0,1,0x1234", "--stub", "0x940a70:0", "--stub", "0xa1f0a0:0", "--stub", "0x55e0ac:3", "--stub-cdecl", "2", "--stub", "0x94bae0:2", "--answers", "0:0,1", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--deref", "3:0:55", "--ret", "none", "--stub-copy", "2", "--port", "{ let le = |v: i32| v.to_le_bytes().iter().map(|b| format!(\"{b:02x}\")).collect::<String>(); log.push(\"15269728\".into()); if a[3] == 0 { for _ in 0..4 { log.push(\"-\".into()); } } else { let len = i32::from(u16::from_le_bytes([p[0][8], p[0][9]])); if rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0 { log.push(\"-\".into()); log.push(\"-\".into()); } else { log.push(\"p0+0x0\".into()); log.push(format!(\"p0+0x0,sp-0x43,{},{}\", a[4], 2 * len.min(20) + 2)); } log.push(\"15269768,sp-0x4c,53\".into()); log.push(format!(\"4b{}{}\", le(a[0]), le(a[1]))); } 0 }", "--clean-stack", "0x100"]
+# sweep_gen: ["obj", "CommandManager::issue_rename_city@009411d0", "--item", "2893", "--own", "3", "--win", "0x20", "--ptrarg", "2:0x10", "--place", "p0+0:0:16", "--place", "s1:0:48", "--place-null", "0", "--wbias", "p0+8:0,1,5,19,20,21,40,0x10003,0x70000", "--wbias", "p1+0:0,1,0x1234", "--stub", "0x940a70:0", "--stub", "0xa1f0a0:0", "--stub", "0x55e0ac:3", "--stub-cdecl", "2", "--stub", "0x94bae0:2", "--answers", "0:0,1", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--deref", "3:0:55", "--ret", "none", "--stub-copy", "2", "--port", "{ let le = |v: i32| v.to_le_bytes().iter().map(|b| format!(\"{b:02x}\")).collect::<String>(); log.push(\"15269728\".into()); if a[3] == 0 { for _ in 0..4 { log.push(\"-\".into()); } } else { let len = i32::from(u16::from_le_bytes([p[0][8], p[0][9]])); if rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0 { log.push(\"-\".into()); log.push(\"-\".into()); } else { log.push(\"p0+0x0\".into()); log.push(format!(\"p0+0x0,sp-0x43,p2+0x0,{}\", 2 * len.min(20) + 2)); } log.push(\"15269768,sp-0x4c,53\".into()); let mut cmd = format!(\"4b{}{}\", le(a[0]), le(a[1])); let copied = !(rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0); let u = if copied { 2 * len.min(20) as usize } else { 0 }; for b in &p[2][..u] { cmd.push_str(&format!(\"{b:02x}\")); } cmd.push_str(&\"00\".repeat(46 - u)); log.push(cmd); } 0 }", "--clean-stack", "0x100", "--rows", "600"]
