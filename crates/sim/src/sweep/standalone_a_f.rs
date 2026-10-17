@@ -60,6 +60,8 @@ mod armies_send_navy;
 mod army_count;
 #[path = "army_member.rs"]
 mod army_member;
+#[path = "army_member_by_unit.rs"]
+mod army_member_by_unit;
 #[path = "army_walk_data.rs"]
 mod army_walk_data;
 #[path = "attack_ground_order_get_type.rs"]
