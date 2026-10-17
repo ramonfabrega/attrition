@@ -6185,13 +6185,18 @@ takes the first match whatever the score).
 
 (2791) **Shapes lacking.** `StripBuilder::check_last_connect` 0x882050 walks a table of node pointers whose `+4` pointer must name a node whose `+0` equals the first (`cmp [edx], eax`): a placed pointer that points at another window's start, or at its own, has no flag, so the equal arm is a 2^-32 draw (`--place pN+OFF` aiming at the window that holds it, or a `--link` of size 4 that points back, would build it). `TurnControl::get_delta_percent` 0x957950 (`timeGetTime` and a float return), `Game::clock_init` 0x588530 (`timeGetTime`, an import answering a clock) and `MiscAccess::world_to_screen` 0x583810/0x583a00 (arguments in `edx` and `esi` the decompiler prints as unaffected registers) were read and not built.
 
-## Parked by the next landing, slot EX — reserved
+## Parked by item 2785, 2026-10-17 — chapter eighty closes: the blown bit
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2759) **`unit_masks` is not a word in this crate** (item 2785, `docs/GOLDEN.md` §103): `Unit::blown` (`0x1000`) and `fought`
+(`0x10000`) are carried; the dump prints the whole word (`0/7`: 69636 on 612, 69632 to 1000, 0 at 1198) and the widening parses it
+(`unit_masks: Some(…)`) but nothing compares it, so the 512-frame `process_cloak` clear and `check_idle`'s drop are reading alone.
+Names no score; a capture window across a `(frame + o) & 0x1ff == 0` frame with a blown stealth unit would back both.
+
+(2760) **`process_cloak@005e1c20`'s other writes and `do_cast`'s `0x11000`** (item 2785): the `unit_masks2 & 0x60` arm, the `0x800`
+tribe/hero reveal (`unit_masks & 0x800` is read by `Unit::work`'s blow test and `is_seen`, never set here) and the cloak particles
+have no reader; `do_cast@005ebfe0:695,715` writes `0x11000` too and this crate's casters do not. Names no score.
+
+Struck: (2757) closed by item 2785 (the blown bit); (2758) left with it — the added Scout's path and 1203 `seen3` rows agree.
 
 ## Parked by the next landing, slot EY — reserved
 
