@@ -568,6 +568,8 @@ mod object_kill_contents;
 mod object_los;
 #[path = "object_must_walk.rs"]
 mod object_must_walk;
+#[path = "object_poor_target.rs"]
+mod object_poor_target;
 #[path = "object_repair_damage.rs"]
 mod object_repair_damage;
 #[path = "object_support_cost.rs"]
