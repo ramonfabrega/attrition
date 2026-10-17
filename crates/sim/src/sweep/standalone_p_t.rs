@@ -174,6 +174,8 @@ mod strafe_order_get_strafe_order_vtordisp;
 mod strafe_order_walk_data;
 #[path = "strafe_order_walk_data_vtordisp.rs"]
 mod strafe_order_walk_data_vtordisp;
+#[path = "strip_builder_check_last_connect.rs"]
+mod strip_builder_check_last_connect;
 #[path = "strip_builder_remove_end.rs"]
 mod strip_builder_remove_end;
 #[path = "sub_object_data_is_seen.rs"]
