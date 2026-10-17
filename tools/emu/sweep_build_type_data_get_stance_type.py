@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_build_type_data_get_stance_type.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 16-byte object of random bytes (no bias), 0 stack argument(s);
-callee 0x00639de0 (0 args) stubbed; vtable slot +0x64 (0 args) stubbed; vtable slot +0xfc (0 args) stubbed.
+callee 0x00639de0 (0 args) stubbed; vtable slot +0x64 (0 args) stubbed; vtable slot +0xfc (0 args) stubbed; stub 0 answered from [1, 1, 1, 0] (90%); stub 1 answered from [0, 0, 0, 5] (90%); stub 2 answered from [0, 0, 0, 5] (90%).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -45,7 +45,7 @@ EDXWIN = None
 XMM = []
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = 0.1
-ANSWERS = []
+ANSWERS = [(0, [1, 1, 1, 0]), (1, [0, 0, 0, 5]), (2, [0, 0, 0, 5])]
 VTAT = None
 VTATHALF = []
 ALIAS = []
@@ -610,4 +610,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "BuildTypeData::get_stance_type@006396c0", "--item", "2844", "--own", "0", "--win", "0x10", "--stub", "0x639de0:0", "--stub", "slot:0x64:0", "--stub", "slot:0xfc:0", "--wbias", "m+4:0x1ae,0x1af,0x1b4,0x1a4,0x1bf,0x208,0x100", "--port", "0"]
+# sweep_gen: ["obj", "BuildTypeData::get_stance_type@006396c0", "--item", "2844", "--own", "0", "--win", "0x10", "--stub", "0x639de0:0", "--stub", "slot:0x64:0", "--stub", "slot:0xfc:0", "--wbias", "m+4:0x1ae,0x1af,0x1b4,0x1a4,0x1bf,0x208,0x100", "--answers", "0:1,1,1,0", "--answers", "1:0,0,0,5", "--answers", "2:0,0,0,5", "--port", "0"]
