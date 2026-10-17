@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(3);
@@ -43,8 +48,14 @@ fn the_emulated_original_agrees_on_every_row() {
             // The log (strrchr's answer picks the file name), `Log::say` round `game_log`'s type and detail (put back
             // unless the detail was negative, then 1), then the leader action on the slot `who` of the 0x6eec-byte
             // leader table at 0xe3a390; its arguments the command's dwords.
-            let file = if a[1] == 0 { 0xaf9ee0 } else { a[1].wrapping_add(1) };
-            log.push(format!("0,{file},1828,p0+0xd,11509296,p0+0x1,p0+0x5,p0+0x9,p0+0xd,c1+0x550"));
+            let file = if a[1] == 0 {
+                0xaf9ee0
+            } else {
+                a[1].wrapping_add(1)
+            };
+            log.push(format!(
+                "0,{file},1828,p0+0xd,11509296,p0+0x1,p0+0x5,p0+0x9,p0+0xd,c1+0x550"
+            ));
             log.push(format!(
                 "15405920,{},15418236,{},{},{},0,0,0,0,3",
                 rd(&c[0], 0x10).wrapping_add(0x3480),
@@ -65,14 +76,25 @@ fn the_emulated_original_agrees_on_every_row() {
             17
         };
         assert_eq!(got, want_eax, "process_tribute — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_tribute — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "process_tribute — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "process_tribute — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_tribute — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_tribute — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[4 + i], "process_tribute — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[4 + i],
+                "process_tribute — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

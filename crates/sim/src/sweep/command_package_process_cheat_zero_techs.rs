@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -43,7 +48,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // strrchr's answer picks the file name (the constant when 0, else the hit + 1); the sync log's line 0x926,
             // `Log::say` round `game_log`'s type and detail (put back unless the detail was negative, then 1), then the
             // action on `who`, the dword at the argument + 1.
-            let file = if a[1] == 0 { 0xafb2cc } else { a[1].wrapping_add(1) };
+            let file = if a[1] == 0 {
+                0xafb2cc
+            } else {
+                a[1].wrapping_add(1)
+            };
             log.push(format!("0,{file},2279,4,11514464,p0+0x1"));
             log.push(format!(
                 "15405920,{},15418236,0,0,0,0,0,0,0,0",
@@ -55,15 +64,32 @@ fn the_emulated_original_agrees_on_every_row() {
             log.push(format!("15405920,{}", rd(&p[0], 1)));
             5
         };
-        assert_eq!(got, want_eax, "process_cheat_zero_techs — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_cheat_zero_techs — the recorded calls, row `{line}`");
+        assert_eq!(
+            got, want_eax,
+            "process_cheat_zero_techs — eax, row `{line}`"
+        );
+        assert_eq!(
+            log, want_log,
+            "process_cheat_zero_techs — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "process_cheat_zero_techs — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "process_cheat_zero_techs — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_cheat_zero_techs — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_cheat_zero_techs — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "process_cheat_zero_techs — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[3 + i],
+                "process_cheat_zero_techs — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
