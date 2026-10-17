@@ -35,7 +35,7 @@ PNULLS = []
 STUBS = [('slot', 8, 0), ('slot', 256, 0), ('iat', 11292868, 1)]
 PLACES = [(None, '0xe335c8', '0', 32)]
 NULLS = [0]
-WBIAS = [('c0', 0, ('set', [0, 1, 5]))]
+WBIAS = [('c0', 0, ('set', [0, 1, 5, -1, 2147483648]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -576,4 +576,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "2783", "obj", "Game::unload_net_lib@005877d0", "--ret", "none", "--own", "0", "--win", "0xc00", "--at", "0xe335b8:4", "--wbias", "c0+0:0,1,5", "--place", "0xe335c8:0:0x20", "--place-null", "0", "--vtat", "p0+0", "--stub", "slot:8:0", "--stub", "slot:0x100:0", "--stub", "iat:0xac50c4:1", "--record", "0", "--record", "1", "--record", "2", "--port", "todo!()"]
+# sweep_gen: ["--item", "2783", "obj", "Game::unload_net_lib@005877d0", "--ret", "none", "--own", "0", "--win", "0xc00", "--at", "0xe335b8:4", "--wbias", "c0+0:0,1,5,-1,0x80000000", "--place", "0xe335c8:0:0x20", "--place-null", "0", "--vtat", "p0+0", "--stub", "slot:8:0", "--stub", "slot:0x100:0", "--stub", "iat:0xac50c4:1", "--record", "0", "--record", "1", "--record", "2", "--port", "todo!()"]
