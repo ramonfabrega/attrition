@@ -246,6 +246,10 @@ mod valid_filter_case3;
 mod valid_filter_case4;
 #[path = "valid_filter_case5.rs"]
 mod valid_filter_case5;
+#[path = "valid_filter_case6.rs"]
+mod valid_filter_case6;
+#[path = "valid_filter_case7.rs"]
+mod valid_filter_case7;
 #[path = "vector_dist_coords.rs"]
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
