@@ -14638,11 +14638,19 @@ British at 0 on map 9. Difficulties 1–4 and the other twenty-one nations appea
 | `GreatLakesRussianTier2` | 14 | Russians (13) | 2 | run647 | run644 | 7303 | **6566 / 6563** |
 | `GreatSaharaEgyptianTier4` | 7 | Egyptians (7) | 4 | run648 | run645 | 20380 | **2974 / 2974** |
 | `GreatLakesChineseTier1` | 14 | Chinese (14) | 1 | run887 | run888 | runs to 24000 | **176 / 176** |
+| `GreatSaharaAztecTier2` | 7 | Aztecs (0) | 2 | run895 | run895b | 17554 | **9130 / 9130** |
+| `GreatSaharaSpanishTier3` | 7 | Spanish (9) | 3 | run896 | run896b | 22700 | **576 / 576** |
+| `GreatLakesIroquoisTier3` | 14 | Iroquois (18) | 3 | run897 | run897b | 12658 | **0 / 0** |
+| `GreatLakesTurkishTier4` | 14 | Turks (8) | 4 | run898 | run898b | 15503 | **1440 / 1440** |
+| `EastIndiesRomanTier2` | 18 | Romans (6) | 2 | run899 | run899b | 18620 | **576 / 576** |
 
 **Amended by item 2904** (§239, DECISIONS 72): `EastIndiesGermanTier3` left the battery for the AI word
 (`diff::german_word`, a `SCORED_LOBBIES` row) when every pair had closed. `GreatLakesChineseTier1` was minted beside it
 so three stay held out: its first try is 176 (ours 12 draws, theirs 14, at draw 6 ours `Farms::inc_time+0x1ae`, theirs
 `Guy::init_real+0x52`). Its game does not end itself by 24000.
+
+**Amended by item 2975** (§243): five more held-out lobbies, runs 895–899, are in the table above (the battery is eight lobbies
+and a gate floor, `battery_floors_hold`).
 
 Every nation and every difficulty is new for its map, and no two lobbies share either. The
 click-free lane sets both (`--ai-tribe`, `--profile DIFFICULTY=`), so each is a
@@ -22193,12 +22201,30 @@ French arm: the same nation's aircraft (`+0x218 == 2`) take `GERMAN_AIR_SPEED` a
 **What is not established**: the `g.angle[0]` standing row (`0x55555555` in ours against 0 on five of who=1's units,
 standing from run893c's first block) is parked, not the word's: it is on units that do not part in position.
 
-## 243. Reserved for the next item on the AI track
+## 243. Five held-out lobbies minted: the battery grows to eight (2026-10-17, item 2975)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+DECISIONS 77 (ii), 61 §6. **Captures only, never debugged against.** Each lobby is a nation no dump on the disk holds (§125's
+list: not the Russians, Egyptians, Chinese, Germans, British, French, Koreans, Nubians, Lakota, Mongols or Persians) at a
+difficulty of 2, 3 or 4 on Great Sahara (7), Great Lakes (14) or East Indies (18), no two sharing a nation or a tier on a map
+inside the battery. Each owns a start sibling (`--dump-all-start`, run595's shape) and a long trace of run888's shape plus
+`--allow-early-end` (every one of these games ended itself, 110 s each), on the click-free pool lanes (`docs/RUNS.md`
+run895–899b). Nations were read as tribe ids (Aztecs 0, Turks 8, Spanish 9, Romans 6, Iroquois 18) and each was confirmed
+in the `PLAYER` blocks read back by `battery_captures_are_complete_and_say_their_lobby`.
+
+| lobby | first try (count / sequence) | draw delta at the parting |
+|---|---:|---|
+| `GreatSaharaAztecTier2` | 9130 of 17554 | ours 90 draws, theirs 87; at draw 23 ours `Unit::think_scout+0x436`, theirs `Unit::think_scout+0x64c` |
+| `GreatSaharaSpanishTier3` | 576 of 22700 | ours 55, theirs 54; at draw 19 ours `Leader::make_stuff+0x221`, theirs `Leader::compute_sites+0x4ac` |
+| `GreatLakesIroquoisTier3` | 0 of 12658 | ours 121, theirs 122; at draw 30 ours `Unit::think_scout+0x436`, theirs `Unit::think_scout+0x64c` |
+| `GreatLakesTurkishTier4` | 1440 of 15503 | ours 35, theirs 39; at draw 28 ours `Objects::process_all+0x2df`, theirs `Guy::init_real+0x52` |
+| `EastIndiesRomanTier2` | 576 of 18620 | ours 28, theirs 89; at draw 0 ours `Animal::think_bird+0x82`, theirs `Leader::produce_building+0xc99` |
+
+**No mechanism is named.** The frame and the draw delta are the booking. Two partings share a callsite pair: the Aztecs' and the
+Iroquois' both read `Unit::think_scout+0x436` against `+0x64c` (the Iroquois at frame 0, the first one the battery has had), and
+the Spanish and Romans part on 576 as the Germans did (the East Indies site table's neighbourhood, §240–§242). That is a coincidence
+to read, not a claim. **What is not established**: which parting is the nation's and which the tier's; who won each game; the
+census rows each should enter. **Diff-backed**: every number above, by `battery_measure` on the tree after `ccc update` to
+`e202373d`. **Reading only**: nothing.
 
 ## 244. Reserved for the next item on the AI track
 

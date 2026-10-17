@@ -19,11 +19,11 @@ seven stay; `docs/audit/2026-10-17-fable-pass-39.md`.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956) → 12815 (2974), as 2997; it stays on its lobby until it closes (DECISIONS 77 (vii)).
-  Chapters 86–91 closed; 92 is 2994. Census 1224 → 1339 of 3611. Battery 6566 / 2974 / 176, a gate floor now.
-- **Lanes: five landings** (2976 NATIONS.md; 2959, 2966 Census → 1339; 2971 ch91; 2974 6585 → 12815). 2997 the AI word's
-  (Opus 5.5 medium, run 912); 2994 rules, 3004 harvest (Sonnet 5.5 medium); refilled while landings + live < 20. Next 3005,
-  run 913 (Astra 900–909). Pools: GOLDEN §117–120, AI §245–247, park GW–GX (GU 2997's, GV 3004's).
-- **Fable backlog: 13 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003).
+  Chapters 86–91 closed; 92 is 2994. Census 1224 → 1349 of 3611. Battery eight lobbies (2975), 0 to 9130, median 1008, a gate floor.
+- **Lanes: seven landings** (2976 NATIONS.md; 2959, 2966, 2990 Census → 1349; 2971 ch91; 2974 6585 → 12815; 2975 five
+  lobbies). 2997 the AI word's (Opus 5.5 medium, run 912); 2994 rules, 3004 and 3008 harvest, 3014 shape (Sonnet 5.5
+  medium); refilled while landings + live < 20. Next 3015, run 913 (Astra 900–909). Pools: GOLDEN §117–120, AI §245–247, park GY–HD.
+- **Fable backlog: 16 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003, 3007, 3012, 3013).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,7 +33,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: EastIndiesGermanTier3 w12815 of 13,519
-Census: simulation backed 1339 of 3611
+Census: simulation backed 1349 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +46,7 @@ landings + live lanes < 20; stop at twenty.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2997 the AI word's (Opus); 2975, 2990, 2994 and 3004 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
+2997 the AI word's (Opus); 2994, 3004, 3008 and 3014 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 2997. **The battery word, 12815 of 13519 (`EastIndiesGermanTier3`, East Indies):
@@ -58,14 +58,6 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     parts in 6837..12808, which no dump holds: a windowed capture or a
     bisection, run 912. Unstarted. AI §244.
 
-2975. **Five held-out lobbies minted** (DECISIONS 77 (ii), 61 §6; `docs/AI.md`
-    §125, `diff::battery::BATTERY`): captures only, never debugged against
-    — each a nation no dump holds (§125's list) at difficulty 2, 3 or 4 on
-    Great Sahara, Great Lakes or East Indies (maps 7, 14, 18), no two
-    sharing a nation or a tier on a map; a start sibling and a long trace of run888's shape (110 s each);
-    its first try pinned as count and sequence with the draw delta in
-    §125's table. Runs 895–899, pool lanes in parallel. Unstarted. Sonnet.
-
 2994. **Chapter ninety-two: Sabotage's and Pilfer's refused arms**
     (DECISIONS 56 §3; 2971 closed chapter 91 on run894 to 1200, the
     Sniper's kill through `cast_sabotage`'s unit arm, parked 2991–2993):
@@ -74,12 +66,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     (`+0xa58`, `+0xa5a`, `+0x80c`) are unbuilt (parked 2992); the arms
     read first, run 911 only when no packet answers. Unstarted. GOLDEN §116.
 
-2990. **The sweep's next shape batch: the rest of `process_*` and 2964's
-    list** (DECISIONS 63 (iv); the score `Census:` 1329 of 3611; parked
-    2986, 2964): `rename_city` (virtual slot 0xac), `build` (its own
-    `GameLog::say`), `board_ship` (the gather shape), `flight`, `attack`,
-    `siege_attack`, `move_near`, `sell`, `trade` and the rest of 2986;
-    then `find_city`, `find_city_at`, `poor_target`, `Tribes::find`. Unstarted. `--kind sweep`.
+3014. **The sweep's next shape batch: the last of `process_*` and 2964's
+    list** (DECISIONS 63 (iv); the score `Census:` 1349 of 3611; parked
+    3009, 2964, 2998): `rename_city` (virtual slot 0xac), `ping`, `sell`,
+    `trade`, `speed_set`, `quit`, `hotkey`, `console_cmd`, `turn_data`, the
+    two cheats; then `find_city`, `find_city_at`, `poor_target`,
+    `Tribes::find`, `Unit::update_local_seen`. Unstarted. `--kind sweep`.
 
 3004. **The sweep's next harvest batch: ten never-backed simulation
     functions a built shape holds** (DECISIONS 63 (iv), 73; the score
@@ -87,6 +79,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     --unbacked --claimed <the shape lane's tree>` re-read at each `ccc
     update`, none the shape lane's (`process_*`, 2990's successor); a
     function no built shape holds parks for the shape lane. Unstarted. `--kind sweep`.
+
+3008. **A second harvest batch, beside 3004: ten never-backed simulation
+    functions a built shape holds** (DECISIONS 61 §5, a lane with no word
+    of its own; the score `Census:` 1339 of 3611): as 3004, with
+    `--claimed` naming 3004's tree and the shape lane's, so no function
+    is swept twice. Unstarted. `--kind sweep`.
 
 ## How to maintain this file
 
