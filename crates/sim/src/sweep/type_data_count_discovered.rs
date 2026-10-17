@@ -69,7 +69,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let v = rd(rec, 4);
                 let mut preq = || {
                     calls.push(format!("p{}+0x0,{t}", 2 * i));
-                    let ans = a[3 + turn.min(15)] != 0;
+                    let ans = a[3 + turn] != 0;
                     turn += 1;
                     ans
                 };
