@@ -821,6 +821,15 @@ impl Sim {
             // `+0xaba`: the jitter, one draw per accepted cell. The
             // distance is scaled by **16** here, not the city loop's 8.
             self.mark(SITE_REGION_CELL);
+            if std::env::var_os("RON_PROBE_SCOUT").is_some() {
+                eprintln!(
+                    "probe scout f{} {}/{} region {} n {} stride {} start {} cell ({}, {}) seen2 {:?} mask {:#x} here ({}, {})",
+                    self.frame, who, u, region, n, stride, start, c.x, c.y,
+                    self.world.seen2(2 * c.x + 1, 2 * c.y + 1),
+                    self.ai.get(who as usize).map_or(0, |a| a.census.ally_mask) | (1 << who),
+                    here.x, here.y
+                );
+            }
             let mut score = vector_dist(here.x - c.x, here.y - c.y) * 16 + self.rng.roll() % 8;
             let owner = self.world.owner(c).player().unwrap_or(who);
             if quartered {
