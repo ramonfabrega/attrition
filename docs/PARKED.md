@@ -3751,7 +3751,7 @@ whether the trial's numbers before this commit count, and whether a sampler shou
 (2792) **`sweep_gen.py --regen` with no `--port` drops a hand-written port to `todo!()`** (2783's "for the Loop"
 line, filed at its merge): four times in one batch, though the keep is said to hold (item 2368); the port had been
 written by replacing the `todo!()` line, so perhaps the keep wants the generator's own markers. Each re-application
-cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach. **A second**, 2807's (parked 2815): `--regen` resets a hand-edited port to `0`; a redraw is delete-and-regenerate or a checkout.
+cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach. **A second**, 2807's (parked 2815): `--regen` resets a hand-edited port to `0`; a redraw is delete-and-regenerate or a checkout. **A third**, 2818's "for the Loop" line, filed at its merge: `--regen` should refuse, or print a diff, when it would reset a hand-written port; and `--write-mod` leaves `mod.rs` alone on a non-`--regen` run, so the module line is added by hand — the generator could verify it was added.
 
 (2796) **A function's sixty flags and its port do not survive a shell line** (2782's "for the Loop" line, filed at its
 merge): the item's driver was a throwaway (`$JOB/tmp/gen.py`, a function's flags one a line in a file and its port in
@@ -3776,7 +3776,7 @@ that reads the step lists. One reach.
 in its own words, "a renderer or editor body or a thin wrapper; none has a simulation effect beyond what the rows hold",
 and the next-shortest unshaped rows (parked 2817) are more of the same; two batches running found the harvest slot EY empty.
 `Census:` rises (1169 → 1181) on functions the finish line does not need. Yours: whether `census.py`'s layer rules move
-these files out of `simulation`, and whether the two sweep lanes stay two (the roster is Ramon's). One reach.
+these files out of `simulation`, and whether the two sweep lanes stay two (the roster is Ramon's). One reach. **A second**, 2831's "for the Loop" line, filed at its merge: a batch of one (`Map::stamp`), the shortest `--unbacked` rows renderer, UI or singleton bodies (parked 2836); `census.py --unbacked` could mark a body whose only effects are `draw_*`/`render` calls so the list skips it.
 
 (2820) **A lane waiting on a subagent that ended its turn is invisible to `lanewait.py`** (the commander, 2026-10-17):
 2793 fanned its batch to ten subagents (`agent-*` worktrees), and the `num_city_buildings` one ended its turn at 03:25 with
@@ -3789,6 +3789,11 @@ frame's brief says a subagent never ends its turn on a background wait. One reac
 filed at its merge): 2812 was booked to carry a cloaked Spy's Bribe and stage it, and the carry alone reached
 `cast_bribe` → `Unit::swap_team@006118d0` (286 lines, unread), so the staging went to the next chapter (2823). Candidate:
 the brief checklist asks a booking that names a cast or an action to list its callees' line counts first. One reach.
+
+(2843) **The census counts a sweep only when its test's doc comment spells `Class::method@addr` in full** (2837's "for the
+Loop" line, filed at its merge): a three-forms-in-one test that named `is_seen_wcoord@…` bare scored two of three until the
+full names were spelled. Candidate: `census.py --unbacked` says "cited bare" for an address a test file names without its
+class. One reach.
 
 (2827) **Once the draws name a unit, `seams.py` runs on its type's think chain** (2808's "for the Loop" line, filed at its
 merge): the seam that held 5985 (`think_carry`'s attack arm, "answers no" since AI §195) was named in prose for four days, and
@@ -6383,21 +6388,35 @@ cloaked-Spy staging of GOLDEN §106 (site two on the cast frame) waits on it. Na
 (2822) **`is_valid_target`'s Bribe ally arm, `has_general`'s `+0x56fe` count, and the territory refusal in `cast_bribe`
 (building and city arms)** are seams (GOLDEN §106). Names no score.
 
-## Parked by the next landing, slot FH — reserved
+## Parked by item 2818, 2026-10-17 — `--ecx-out`, the `project` pair, and four more bodies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2828) **`--ecx-out IDX:V,V,..`** built (`tools/sweep_gen.py`, `pair_answer`; its test
+`test_a_hooked_callee_may_answer_eax_and_ecx` failed first on the missing keyword): stub IDX answers `(eax, ecx)`, the `ecx` drawn
+from the list and printed last on the row, after the xmm values. It closes (2816): `NukeOut::setup_terrain_terraforming` redrawn with
+`--ecx-out 0:0x1000,0x2000,0x3000`, its port now logs `{a[4]},{a[4]}` for `refresh_good_z` (the old `m+0x0,m+0x0` is a mutant that
+fails). The `hooks` side was already built (1922); only the flag was missing.
 
-## Parked by the next landing, slot FI — reserved
+(2829) **The `project` pair** (0x92d000 `project_d`, 0x92cf40 `project_c`) needed no new flag: (2817)'s `--ecx-int` and `--edx`
+held them, with `--cdecl`, `--ptrarg 2:4 --ptrarg 3:4` for the two out words and the register-argument `sin_table` (0xa46a00,
+`ecx`/`edx`, no stack) as a `--stub 0xa46a00:0 --record --record-edx`. They differ: 0x92d000 takes the angle and distance on the stack and
+the base in `ecx`/`edx`; 0x92cf40 the reverse (angle `ecx`, distance `edx`, base on the stack). Do not read one as the other's overload.
+Breaks 16/16 held. `TerrainMap::remove_feature` (one `--cell-win` width record, `--place m+0x9c8` terrain bytes, `--wbias` words of tile
+types, three stubs) 6/6 after a re-run (the first mutant ran a stale binary: "failed nothing" and then held); `Border::generate_morph_side`
+(`--answer-win` pop, three stubs; the borders cell's `+0x164` is the literal 12659308 in its log, the image's value) 6/6.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2830) **Census 1181 → 1185** by `tools/census.py --layers` (four built: the `project` pair, `remove_feature`,
+`generate_morph_side`). Not modelled: `NukeOut::draw_underlays` (a statics guard and TLS) and `TerrainMap::on_mouse_move`,
+`Game::post_game_screens` are the next shortest rows with no shape; the rest of the shortest are renderer bodies (Loop 2819).
+This batch is short (four, not ten): no shape was left to build and the unshaped rows are the kind 2819 asks about.
+
+## Parked by item 2823, 2026-10-17 — Bribe's conversion built; its staging is the next chapter
+
+Booked as the queue's 2832 at the merge: **the cloaked Spy's Bribe staging**: a Spy bribing in a who=1 scout's sight, one out of sight as control, comparing
+`unit_masks` and the owner across the cast (GOLDEN §106 site two). Needs `stage_walk` of the recipe first; census rows before run
+880. The conversion (GOLDEN §107) stands under it, unbacked by a diff. Names no score.
+
+(2833) **`swap_team`'s `inside_down` chain and the `unit_masks` bits** this crate keeps as fields are seams (GOLDEN §107).
+Names no score.
 
 ## Parked by item 2825, 2026-10-17 — a bomber near its President reaches two tiles further
 
@@ -6417,13 +6436,22 @@ stands near a siege engine or a ranged hero, or a frame where who=1's President 
 The SEAMed arms below it — `TURK_SIEGE_RANGE`, the Liberty (`0x219`) and Eiffel (`0x21c`) wonders, Napoleon (`0x167`),
 Ptolemy (`0x16a`), the rum naval range and the obsidian archers — reach no lobby on file.
 
-## Parked by the next landing, slot FK — reserved
+## Parked by item 2831, 2026-10-17 — `Map::stamp`, and why the batch is one
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2834) **`Map::stamp` 0x69cf80 built** (`obj --own 3 --stub 0x69d5a0:3 --record-order --record 0 --seq 0:5:0,1,5`): five
+`Map::point` calls (the centre, then x+1, x-1, y-1, y+1) ending at the first zero answer. The draw lesson: a plain `--seq 0:5:0`
+draws its last value from the terminator list `0` alone, so the all-nonzero arm (eax 1) is starved; `0,1,5` reaches it (44 of 220
+rows). Breaks 3/3 (an offset's sign, the early-exit result, the answer index).
+
+(2835) **`NukeOut::draw_underlays` 0x9269d0 is a renderer body with no simulation effect and no statics guard in the
+export**: `if nuke_effect.+0x10c in {0,7,9} { draw_char_earth(...) }` and nothing else, the `float` arguments only forwarded. The
+"statics guard and TLS" of (2830) is not in the decompile; if the listing has one it is in the prologue of a different function. Not built (Loop 2819).
+
+(2836) **The rest of the shortest unbacked rows** are renderer, UI or singleton bodies: `TerrainMap::on_mouse_move`,
+`Game::post_game_screens`, `Syllable::say`, `debug_say`, the two `setup_render_window`s, `Player::end_game` (camera, scene and
+options singletons), `TerrainOil::remove_rocky_patch` (a heap free through `operator delete`, which the emulator's bump heap
+cannot witness), `CityData::num_city_buildings` (a virtual-slot list walk on a global object table: wants `walk` + `vcall` together,
+not a generator shape yet). No new shape was needed by `Map::stamp`; this batch is one function, not ten, for want of simulation-effect rows a built shape holds.
 
 ## Parked by the next landing, slot FL — reserved
 
@@ -6433,13 +6461,37 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FM — reserved
+## Parked by item 2837, 2026-10-17 — the hundred-and-fifteenth sweep batch: ten with a simulation effect
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2838) **Ten built, walked down `census.py --unbacked` to about 1,500 decompile bytes.** `WorldData::is_seen`,
+`is_seen_wcoord` and `is_really_seen` (one hand-written script, three forms), `BuildData::check_capture_eligible`,
+`Type::unpay_cost`, `Type::pay_cost`, `Build::unpay_cost`, `ObjectData::armor`, `BuildQueueData::get_next_non_unit`,
+`ObjectsData::count_nukes_in_flight`. `Census:` 1187 → **1197 of 3,611** by `--layers` on the tip. Each is a state read or
+write a sim consumes: the fog and ally exits, a bucket XOR 0x8221, an armor value, a queue scan. Skipped, as 2836 listed: the
+renderer, UI, camera and singleton bodies. No subagents; ten ran serially in debug, three or four breaks each, all held bar one (below).
+
+(2839) **`Type::pay_cost`'s escrow arm has an equality boundary no draw reaches.** `bucket - escrow < cost` against
+`<= cost` passed all 220 rows: `bucket`, `escrow` and the slot's `cost` are three independent random words, so equality is
+2^-32. Every other break held. A relational draw (`--answer-range` tied to a window word, "the answer is `bucket - escrow` or one
+off it") would reach it; no flag spells that. One reach.
+
+(2840) **The `is_seen` family is hand-written on `tools/emu/hooks.py`, as `was_really_seen` was (item 2044).** The three
+read `gamec`'s `+0x30`, the leaders list and `wdata`/`seen`/`wcoord_seen` through `this` or the world cell `0xc061d0`; `obj` with
+`--sparse 0xc061e0` would hold the leaders and `--cell-win` the game record, but the fog and owner arrays are indexed by the
+drawn coordinates, which no flag ties to a window's size. The next such pair (`WallData::is_now_seen` calls `is_seen`
+natively) is the second reach of the shape. File as Loop if it recurs.
+
+(2841) **Not built, with why.** `CityData::is_disbanding` and `CityData::num_city_buildings` (2793's): a list walk through
+`objects[who][o]` and a vslot chain, the walk + vcall pair no generator shape holds; `WallData::is_now_seen`: a native `is_seen`
+inside, wants (3) first; `Army::charge`: a `groups` table 0x9d4 apart and an 11-argument callee; `Type::restore`, `Type::set_name`,
+`City::set_name`, `GatherPointList::get_new_data`: `String::operator=` or `malloc` inside, which the bump heap cannot witness.
+
+(2842) **Three generator traps cost this batch about an hour; none is a defect, each is undocumented.** `--argrange IDX:LO:HI`
+is inclusive (`0:0:8` drew 8, one past the leaders table: use `0:0:7`); a `--place m+OFF` past `--win` writes past the window (the
+row then shows `0` for a function that should return the field: widen `--win`); and the `p` windows are numbered ptrargs, then
+`--sparse` slices, then `--place`/`--ptrtab` windows in command-line order, whatever the script's prose says ("slices after the
+pointed buffers" reads as the reverse). Recording a stub whose `ecx` is a table row's address (`type_avail`'s leader) prints an
+absolute address the port cannot spell: leave that stub unrecorded.
 
 ## Parked by the next landing, slot FN — reserved
 
@@ -6453,6 +6505,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FU renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

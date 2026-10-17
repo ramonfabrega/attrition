@@ -57,6 +57,7 @@ pub mod attrition;
 pub mod balance;
 pub mod bhs;
 pub mod border_pass;
+pub mod bribe;
 pub mod build;
 pub mod calc_gather;
 pub mod caravan;

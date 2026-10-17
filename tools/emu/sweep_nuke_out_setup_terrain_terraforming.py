@@ -3,12 +3,12 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_nuke_out_setup_terrain_terraforming.py — `NukeOut::setup_terrain_terraforming@00925c90` under unicorn (item 2807, tools/sweep_gen.py, obj with windows).
+"""sweep_nuke_out_setup_terrain_terraforming.py — `NukeOut::setup_terrain_terraforming@00925c90` under unicorn (item 2818, tools/sweep_gen.py, obj with windows).
 
     uv run tools/emu/sweep_nuke_out_setup_terrain_terraforming.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 16-byte object of random bytes (no bias), 2 stack argument(s);
-callee 0x00869ca0 (2 args) stubbed; callee 0x00850b60 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `.
+callee 0x00869ca0 (2 args) stubbed; callee 0x00850b60 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 leaves `ecx` as a callee would, a value from [4096, 8192, 12288], after the other numbers on the row.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -67,6 +67,7 @@ OUTARG = []
 CDECLSTUBS = []
 STUBWRITE = []
 ECXANSWER = []
+ECXOUT = [(0, [4096, 8192, 12288])]
 RING = []
 DEREF = []
 RET = 'eax'
@@ -163,6 +164,16 @@ def out_answer(inner, k, v, write):
     return answer
 
 
+def pair_answer(inner, ecx_out):
+    """`--ecx-out IDX:V,V,..` (item 2818, parked 2816): a stub that answers
+    as `inner` would, then leaves `ecx` as `ecx_out`, the pair `(eax, ecx)`
+    `hooks.answer_regs` reads."""
+    def answer(ecx, args):
+        out = inner(ecx, args) if callable(inner) else inner
+        return (out[0] if isinstance(out, tuple) else out), ecx_out
+    return answer
+
+
 def win_write(inner, at, size, v, write, read=None):
     """`--stub-write IDX:WIN+OFF:SIZE:VAL` (item 2346): a stub that writes VAL
     at a window's word each call — a callee that unlinks the head of the
@@ -243,7 +254,7 @@ def shape(rng, name, buf):
 
 def main(argv):
     from hooks import Harness
-    rng = random.Random(2807)
+    rng = random.Random(2818)
     # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
     h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"})
@@ -527,6 +538,11 @@ def main(argv):
         for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
                                              lambda a_, n_: bytes(uc.mem_read(a_, n_)), sink, wr)
+        # `--ecx-out IDX:V,V,..` (item 2818, parked 2816): stub IDX leaves `ecx`
+        # as a callee would, a value drawn from the list, after the other numbers on the row.
+        ecxo = [rng.choice(vals) & 0xFFFFFFFF for _, vals in ECXOUT]
+        for (idx, _), v in zip(ECXOUT, ecxo):
+            h.answers[names[idx]] = pair_answer(h.answers[names[idx]], v)
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -559,7 +575,7 @@ def main(argv):
         shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
                  + ([] if ECXINT is None else [str(ecx)]) + ([] if EDX is None else [str(edx)])
-                 + [str(v) for v in xmmv])
+                 + [str(v) for v in xmmv] + [str(v) for v in ecxo])
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
@@ -594,4 +610,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "NukeOut::setup_terrain_terraforming@00925c90", "--item", "2807", "--win", "16", "--own", "2", "--stub", "0x869ca0:2", "--stub", "0x850b60:1", "--record", "0", "--record", "1", "--port", "0"]
+# sweep_gen: ["obj", "NukeOut::setup_terrain_terraforming@00925c90", "--item", "2818", "--win", "16", "--own", "2", "--stub", "0x869ca0:2", "--stub", "0x850b60:1", "--record", "0", "--record", "1", "--ecx-out", "0:0x1000,0x2000,0x3000", "--port", "0"]

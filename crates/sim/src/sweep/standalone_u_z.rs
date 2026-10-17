@@ -392,6 +392,8 @@ mod world_data_is_flat;
 mod world_data_is_pass_land;
 #[path = "world_data_is_passable.rs"]
 mod world_data_is_passable;
+#[path = "world_data_is_seen.rs"]
+mod world_data_is_seen;
 #[path = "world_data_is_tocean_slow.rs"]
 mod world_data_is_tocean_slow;
 #[path = "world_data_is_valid_coord.rs"]

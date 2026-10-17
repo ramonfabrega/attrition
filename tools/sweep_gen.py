@@ -1456,6 +1456,7 @@ OUTARG = {outarg!r}
 CDECLSTUBS = {cdeclstubs!r}
 STUBWRITE = {stubwrite!r}
 ECXANSWER = {ecxanswer!r}
+ECXOUT = {ecxout!r}
 RING = {ring!r}
 DEREF = {deref!r}
 RET = {ret!r}
@@ -1549,6 +1550,16 @@ def out_answer(inner, k, v, write):
         if args[k]:
             write(args[k] & 0xFFFFFFFF, v)
         return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
+def pair_answer(inner, ecx_out):
+    """`--ecx-out IDX:V,V,..` (item 2818, parked 2816): a stub that answers
+    as `inner` would, then leaves `ecx` as `ecx_out`, the pair `(eax, ecx)`
+    `hooks.answer_regs` reads."""
+    def answer(ecx, args):
+        out = inner(ecx, args) if callable(inner) else inner
+        return (out[0] if isinstance(out, tuple) else out), ecx_out
     return answer
 
 
@@ -1916,6 +1927,11 @@ def main(argv):
         for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
                                              lambda a_, n_: bytes(uc.mem_read(a_, n_)), sink, wr)
+        # `--ecx-out IDX:V,V,..` (item 2818, parked 2816): stub IDX leaves `ecx`
+        # as a callee would, a value drawn from the list, after the other numbers on the row.
+        ecxo = [rng.choice(vals) & 0xFFFFFFFF for _, vals in ECXOUT]
+        for (idx, _), v in zip(ECXOUT, ecxo):
+            h.answers[names[idx]] = pair_answer(h.answers[names[idx]], v)
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -1948,7 +1964,7 @@ def main(argv):
         shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
                  + ([] if ECXINT is None else [str(ecx)]) + ([] if EDX is None else [str(edx)])
-                 + [str(v) for v in xmmv])
+                 + [str(v) for v in xmmv] + [str(v) for v in ecxo])
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
@@ -2157,7 +2173,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), deref=(), ecx_answer=(), ring=(), gtab=()):
+                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=()):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2356,6 +2372,12 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if not m_ or int(m_.group(1)) >= len(stubs):
             raise ValueError(f'--ecx-answer is IDX:OFF[:FLAGOFF], IDX naming a --stub, not {spec!r}')
         pecxans.append((int(m_.group(1)), int(m_.group(2), 0), None if m_.group(3) is None else int(m_.group(3), 0)))
+    pecxout = []
+    for spec in ecx_out:
+        m_ = re.fullmatch(r'(\d+):(-?\w+(?:,-?\w+)*)', spec)
+        if not m_ or int(m_.group(1)) >= len(stubs):
+            raise ValueError(f'--ecx-out is IDX:V,V,.., IDX naming a --stub, not {spec!r}')
+        pecxout.append((int(m_.group(1)), [int(v, 0) for v in m_.group(2).split(',')]))
     pring = []
     for spec in ring:
         m_ = re.fullmatch(r'(m|c\d+|p\d+)\+(\w+):(\d+)\.\.(\d+):(\w+):(\w+):(\w+):(\w+)', spec)
@@ -2387,7 +2409,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or edx_win or pxmm or psparse or pgtab or plinks or pout or pcdecl or pwrite):
+            or pseq or pansr or pthis or palso or phalf or palias or edx_win or pxmm or psparse or pgtab or plinks or pout or pcdecl or pwrite or pecxout):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2448,6 +2470,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'stub {idx} answers from its own `ecx`: the word at `+{o:#x}`'
            + (f', or `ecx+{o:#x}` when the word at `+{f:#x}` is set' if f is not None else '')
            for idx, o, f in pecxans]
+        + [f'stub {idx} leaves `ecx` as a callee would, a value from {v}, after the other numbers on the row'
+           for idx, v in pecxout]
         + [f'a circular list in `c{lo}..c{hi}` at {b:#x}+{st:#x}k, next `+{n:#x}`, prev `+{pv:#x}`, head the word at `{w}+{ho:#x}`'
            for w, ho, lo, hi, n, pv, b, st in pring]
         + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
@@ -2480,7 +2504,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ring=pring, rows=rows,
+                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
@@ -3230,6 +3254,9 @@ def main(argv=None):
                     help='obj: stub IDX answers from its own `ecx`: the word at ecx+OFF, or with FLAGOFF ecx+OFF '
                          'itself when the word at ecx+FLAGOFF is set, else null (a slot of a record laid in a '
                          'window, `kill_group_move`\'s orders; item 2400, parked 2369)')
+    ap.add_argument('--ecx-out', action='append', default=[], metavar='IDX:V,V,..',
+                    help='obj: stub IDX answers `(eax, ecx)`: `ecx` drawn from the list, printed after the other numbers '
+                         'on the row (a callee whose `ecx` the caller reads on return; item 2818, parked 2816)')
     ap.add_argument('--ring', action='append', default=[], metavar='HWIN+HOFF:LO..HI:NEXT:PREV:BASE:STRIDE',
                     help='obj: a circular doubly linked list in the c windows LO..HI at BASE+STRIDE*k, its head the '
                          'word at HWIN+HOFF: each node\'s PREV laid as its predecessor on the NEXT walk, a fifth '
@@ -3469,7 +3496,7 @@ def main(argv=None):
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
                                                     edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write,
-                                                    deref=args.deref, ecx_answer=args.ecx_answer, ring=args.ring, gtab=args.gtab)
+                                                    deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
