@@ -35,7 +35,7 @@ PNULLS = []
 STUBS = [('call', 8807776, 4), ('call', 5781568, 5)]
 PLACES = []
 NULLS = []
-WBIAS = [('c1', 296, ('range', 0, 65535))]
+WBIAS = [('c1', 296, ('set', [0, 65536, 2147418112, -65536, -1, -2147483648, 305397760, 163840]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -589,4 +589,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "MiscAccess::world_to_screen@00583a00", "--item", "2801", "--name", "world_to_screen_b", "--win", "0x10", "--own", "4", "--cdecl", "--ptrarg", "2:8", "--edx-win", "p0", "--cell-win", "0xc06218:0x20", "--cell-win", "0xc06210:0x140", "--stub", "0x866560:4", "--stub", "0x583840:5", "--stub-cdecl", "1", "--outarg", "0:0:-300..300", "--answers", "1:0,1,-1,320,240", "--record", "0", "--record", "1", "--record-edx", "--wbias", "c1+0x128:0..0xffff", "--port", "{ log.push(\"x\".into()); log.push(\"x\".into()); 0 }"]
+# sweep_gen: ["obj", "MiscAccess::world_to_screen@00583a00", "--item", "2801", "--name", "world_to_screen_b", "--win", "0x10", "--own", "4", "--cdecl", "--ptrarg", "2:8", "--edx-win", "p0", "--cell-win", "0xc06218:0x20", "--cell-win", "0xc06210:0x140", "--stub", "0x866560:4", "--stub", "0x583840:5", "--stub-cdecl", "1", "--outarg", "0:0:-300..300", "--answers", "1:0,1,-1,320,240", "--record", "0", "--record", "1", "--record-edx", "--wbias", "c1+0x128:0,65536,2147418112,-65536,-1,-2147483648,305397760,163840", "--port", "{ log.push(\"x\".into()); log.push(\"x\".into()); 0 }"]

@@ -35,7 +35,7 @@ PNULLS = []
 STUBS = [('call', 5781568, 5)]
 PLACES = []
 NULLS = []
-WBIAS = [('c0', 296, ('range', 0, 65535))]
+WBIAS = [('c0', 296, ('set', [0, 65536, 2147418112, -65536, -1, -2147483648, 305397760, 163840]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -589,4 +589,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "MiscAccess::world_to_screen@00583810", "--item", "2801", "--name", "world_to_screen_a", "--win", "0x10", "--own", "5", "--cdecl", "--ptrarg", "3:8", "--edx-win", "p0", "--cell-win", "0xc06210:0x140", "--stub", "0x583840:5", "--stub-cdecl", "0", "--answers", "0:0,1,-1,320,240", "--record", "0", "--record-edx", "--wbias", "c0+0x128:0..0xffff", "--port", "{\n                // world_to_console (stub 0, cdecl, handed `ecx`, `edx` and the five arguments) answers; the word `edx`\n                // names then gains the signed short at +0x12a of the console (the cell at 0xc06210).\n                log.push(\"m+0x0,p0+0x0,0,0,0,0,0\".into());\n                let k = i32::from(i16::from_le_bytes([c[0][0x12a], c[0][0x12b]]));\n                let w = rd(&p[0], 0).wrapping_add(k);\n                wr(&mut p[0], 0, w);\n                i64::from(a[5])\n            }"]
+# sweep_gen: ["obj", "MiscAccess::world_to_screen@00583810", "--item", "2801", "--name", "world_to_screen_a", "--win", "0x10", "--own", "5", "--cdecl", "--ptrarg", "3:8", "--edx-win", "p0", "--cell-win", "0xc06210:0x140", "--stub", "0x583840:5", "--stub-cdecl", "0", "--answers", "0:0,1,-1,320,240", "--record", "0", "--record-edx", "--wbias", "c0+0x128:0,65536,2147418112,-65536,-1,-2147483648,305397760,163840", "--port", "{\n                // world_to_console (stub 0, cdecl, handed `ecx`, `edx` and the five arguments) answers; the word `edx`\n                // names then gains the signed short at +0x12a of the console (the cell at 0xc06210).\n                log.push(\"m+0x0,p0+0x0,0,0,0,0,0\".into());\n                let k = i32::from(i16::from_le_bytes([c[0][0x12a], c[0][0x12b]]));\n                let w = rd(&p[0], 0).wrapping_add(k);\n                wr(&mut p[0], 0, w);\n                i64::from(a[5])\n            }"]
