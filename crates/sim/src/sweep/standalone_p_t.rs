@@ -166,6 +166,8 @@ mod signposts_head;
 mod signposts_next;
 #[path = "sort_b.rs"]
 mod sort_b;
+#[path = "sort_c.rs"]
+mod sort_c;
 #[path = "special_anim_order_walk_data.rs"]
 mod special_anim_order_walk_data;
 #[path = "special_data_get_radius.rs"]
