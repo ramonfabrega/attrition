@@ -358,6 +358,8 @@ mod tribes_find;
 mod tribes_walk_data;
 #[path = "turn_control_compute_next_turn_solo.rs"]
 mod turn_control_compute_next_turn_solo;
+#[path = "turn_control_end_cannon_time.rs"]
+mod turn_control_end_cannon_time;
 #[path = "turn_control_get_delta_percent.rs"]
 mod turn_control_get_delta_percent;
 #[path = "turn_control_get_frame_timing.rs"]
