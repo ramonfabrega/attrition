@@ -32,6 +32,10 @@ mod path_finder_find_wpath;
 mod path_finder_find_wpath_army;
 #[path = "path_finder_kill_lists.rs"]
 mod path_finder_kill_lists;
+#[path = "path_finder_kill_tree_bt.rs"]
+mod path_finder_kill_tree_bt;
+#[path = "path_finder_kill_tree_te.rs"]
+mod path_finder_kill_tree_te;
 #[path = "path_finder_out_dbg_draw_failures.rs"]
 mod path_finder_out_dbg_draw_failures;
 #[path = "path_finder_out_get_name.rs"]
@@ -336,6 +340,8 @@ mod turn_control_issue_speed_set;
 mod turn_control_issue_speed_up;
 #[path = "turn_control_issue_toggle_pause.rs"]
 mod turn_control_issue_toggle_pause;
+#[path = "turn_control_set_new_target_time.rs"]
+mod turn_control_set_new_target_time;
 #[path = "turn_control_set_pause.rs"]
 mod turn_control_set_pause;
 #[path = "turn_control_speed_down.rs"]

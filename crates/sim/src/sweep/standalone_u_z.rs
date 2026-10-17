@@ -60,6 +60,8 @@ mod unit_data_get_capture_value;
 mod unit_data_get_caster_stance;
 #[path = "unit_data_get_combat_stance.rs"]
 mod unit_data_get_combat_stance;
+#[path = "unit_data_get_gpiece_2.rs"]
+mod unit_data_get_gpiece_2;
 #[path = "unit_data_get_gpiece_vt.rs"]
 mod unit_data_get_gpiece_vt;
 #[path = "unit_data_get_order.rs"]
@@ -484,6 +486,8 @@ mod world_is_rocks;
 mod world_is_tocean;
 #[path = "world_is_tree_at.rs"]
 mod world_is_tree_at;
+#[path = "world_map_fog_add_update.rs"]
+mod world_map_fog_add_update;
 #[path = "world_map_fog_get_fog_lookup.rs"]
 mod world_map_fog_get_fog_lookup;
 #[path = "world_map_on_right_down.rs"]
