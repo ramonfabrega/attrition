@@ -11,6 +11,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
+use crate::testenv::{dump, install};
 
 pub(crate) const LAKOTA: Pair = Pair {
     name: "EastIndiesLakotaPeace",
@@ -821,4 +822,90 @@ fn run882_s_word_frame_is_widened_whole() {
     // `damage` and `city_flags` (6816) and `1/124`'s
     // `attack[0].mandatory` on 6821, the new word's frame.
     pin_eq!(w.firsts.len(), 248, "initial run882 baseline");
+}
+
+/// run883: the word 6821's window, blocks 6815..6822 and the closing block
+/// 6823 at the long's detail (item 2864).
+pub(crate) const RUN883: &str = "gamelog-run883-eastindies-lakota-peace-window-6815-6823.txt";
+
+/// The window: block 6815 through the closing block 6823; the word 6821's
+/// own block is 6822.
+pub(crate) const WIDENING_LAKOTA_CLOSING: (i64, i64) = (6815, 6823);
+
+pub(crate) fn lakota_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run883",
+        &[(RUN883, WIDENING_LAKOTA_CLOSING.0)],
+        WIDENING_LAKOTA_CLOSING,
+        1,
+        &[6822],
+        true,
+    )
+}
+
+#[test]
+fn run883_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "run883 baseline");
+}
+
+/// **The pair's closing state** (item 2864, DECISIONS 55): run883's
+/// closing block 6823, walked to and compared whole.
+#[test]
+fn run883_lakota_pair_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(RUN883), dump(LAKOTA.start), trace(LAKOTA.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Lakota pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 0, "the closing block");
+    pin_eq!(e.compared, 0, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
