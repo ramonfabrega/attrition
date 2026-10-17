@@ -206,6 +206,8 @@ mod unit_type_data_can_entrench;
 mod unit_type_data_get_circle_radius;
 #[path = "unit_type_data_get_kill_value.rs"]
 mod unit_type_data_get_kill_value;
+#[path = "unit_type_data_get_military_level.rs"]
+mod unit_type_data_get_military_level;
 #[path = "unit_type_data_get_relative_value.rs"]
 mod unit_type_data_get_relative_value;
 #[path = "unit_type_data_get_underlay_circle_radius.rs"]
