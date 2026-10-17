@@ -258,6 +258,8 @@ mod group_equals_group;
 mod group_find_role;
 #[path = "group_get_num.rs"]
 mod group_get_num;
+#[path = "group_get_num_cap.rs"]
+mod group_get_num_cap;
 #[path = "group_get_speed.rs"]
 mod group_get_speed;
 #[path = "group_kill_group_order.rs"]
