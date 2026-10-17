@@ -116,6 +116,8 @@ mod game_run_unit_editor;
 mod game_teams_locked;
 #[path = "game_unload_net_lib.rs"]
 mod game_unload_net_lib;
+#[path = "game_walk_rules_data.rs"]
+mod game_walk_rules_data;
 #[path = "game_war_allowed.rs"]
 mod game_war_allowed;
 #[path = "game_wonder_timer.rs"]
