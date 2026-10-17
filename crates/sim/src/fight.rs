@@ -413,7 +413,11 @@ impl Sim {
                     && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
                         <= self.hero_radius(h) * 0xc0
             });
-        if near { self.tuning.theceo_unit_range } else { 0 }
+        if near {
+            self.tuning.theceo_unit_range
+        } else {
+            0
+        }
     }
 
     /// **`BuildTypeData::get_building_range@00639990`'s first block**
