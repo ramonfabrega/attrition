@@ -1409,7 +1409,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 from sweeplib import link_value  # noqa: E402
-from sweeplib import draw_reg  # noqa: E402
+from sweeplib import draw_reg, xmm_bits  # noqa: E402
 
 ENTRY = 0x{va:08x}
 WIN = {win}
@@ -1431,6 +1431,7 @@ SLOTBASE = {slotbase!r}
 ECXINT = {ecxint!r}
 EDX = {edx!r}
 EDXWIN = {edxwin!r}
+XMM = {xmm!r}
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = {wild!r}
 ANSWERS = {answers!r}
@@ -1929,10 +1930,13 @@ def main(argv):
         edxa = 0 if EDX is None else edx
         if EDXWIN is not None:
             edxa = this if EDXWIN == "m" else wins[(0 if EDXWIN[0] == "c" else nc) + int(EDXWIN[1:])][0]
+        # `--xmm` (item 2807): xmm N the float V/4 for an integer V in the range, V on the row.
+        xmmv = [rng.randint(spec[1], spec[2]) if spec[0] == "range" else rng.choice(spec[1]) for _, spec in XMM]
+        xmm = {{n: xmm_bits(v / 4) for (n, _), v in zip(XMM, xmmv)}}
         h.calls.clear()
         h.edxs.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
-                   edx=edxa, ret=RET)  # Harness.call signs eax; signed() again would double a negative
+                   edx=edxa, xmm=xmm, ret=RET)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
         # A `__cdecl` function leaves its arguments for the caller (item 2181).
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
@@ -1943,7 +1947,8 @@ def main(argv):
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
         shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
-                 + ([] if ECXINT is None else [str(ecx)]) + ([] if EDX is None else [str(edx)]))
+                 + ([] if ECXINT is None else [str(ecx)]) + ([] if EDX is None else [str(edx)])
+                 + [str(v) for v in xmmv])
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
@@ -2152,7 +2157,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, tame=False, stub_write=(), deref=(), ecx_answer=(), ring=(), gtab=()):
+                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), deref=(), ecx_answer=(), ring=(), gtab=()):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2370,10 +2375,19 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
             raise ValueError(f'--edx-win is m, cN or pN, not {edx_win!r}')
         if pedx is not None:
             raise ValueError('--edx-win and --edx both fill `edx`: name one')
+    pxmm = []
+    for x in xmm:
+        m_ = re.fullmatch(r'([0-7]):(-?\w+)\.\.(-?\w+)|([0-7]):(-?\w+(?:,-?\w+)*)', x)
+        if not m_:
+            raise ValueError(f'--xmm is N:LO..HI or N:V,V,.. with N 0..7, not {x!r}')
+        if m_.group(1):
+            pxmm.append((int(m_.group(1)), ('range', int(m_.group(2), 0), int(m_.group(3), 0))))
+        else:
+            pxmm.append((int(m_.group(4)), ('set', [int(v, 0) for v in m_.group(5).split(',')])))
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or edx_win or psparse or pgtab or plinks or pout or pcdecl or pwrite):
+            or pseq or pansr or pthis or palso or phalf or palias or edx_win or pxmm or psparse or pgtab or plinks or pout or pcdecl or pwrite):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2455,11 +2469,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
             if pedx[0] == 'range' else f'`edx` an integer in {pedx[1]}, after `ecx` on the row']
            if pedx else [])
         + ([f'`edx` the address of window `{edx_win}`'] if edx_win else [])
+        + [f'xmm {n} an integer in {sp_[1]}..{sp_[2]}, loaded as that over four (after the other numbers on the row)'
+           if sp_[0] == 'range' else f'xmm {n} an integer from {sp_[1]}, loaded as that over four (after the other numbers on the row)'
+           for n, sp_ in pxmm]
         + (['`ecx` and `edx` held to their draw every row, no wild word'] if tame else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
                                    cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
-                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, wild=0.0 if tame else 0.1,
+                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, xmm=pxmm, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
@@ -3196,6 +3213,10 @@ def main(argv=None):
                     'the list (90%%), not the object; printed last on the row (parked 2141)')
     ap.add_argument('--edx', metavar='LO..HI|V,V,..', help='obj: `edx` an integer drawn from the range or the '
                     'list (90%%), beside `ecx`; printed after `ecx` on the row (item 2346, parked 2338)')
+    ap.add_argument('--xmm', action='append', default=[], metavar='N:LO..HI|V,V,..',
+                    help='obj: xmm register N holds the float V/4 for an integer V drawn from the range or the list '
+                         '(quarters are exact in an f32, so the port truncates with an integer divide); V printed '
+                         'after the row\'s other numbers (a float register argument, `get_float_z`; item 2807, parked 1867)')
     ap.add_argument('--edx-win', metavar='WIN', help='obj: `edx` the address of window WIN (m, cN or pN) rather than an '
                     'integer -- a register argument that is a pointer (`world_to_screen`\'s `in_EDX`; item 2801, parked 2791)')
     ap.add_argument('--deref', action='append', default=[], metavar='IDX:K:N',
@@ -3447,7 +3468,7 @@ def main(argv=None):
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
-                                                    edx=args.edx, edx_win=args.edx_win, tame=args.tame, stub_write=args.stub_write,
+                                                    edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)

@@ -409,7 +409,7 @@ class Shapes(unittest.TestCase):
         compile(script, str(sp), 'exec')
         self.assertIn("EDX = ('range', 0, 7)", script)
         self.assertIn('edxa = 0 if EDX is None else edx', script)
-        self.assertIn('+ ([] if EDX is None else [str(edx)])', script)
+        self.assertIn('+ ([] if EDX is None else [str(edx)])\n', script)
         self.assertIn('`edx` an integer in 0..7', test)
         # Beside the object in `ecx` as well, and from a list.
         sp, script, tp, test, mod = sweep_gen.generate_obj(
@@ -425,7 +425,7 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x20, bias=[], own=0, edx='1..2')
         hooks = (ROOT / 'tools/emu/hooks.py').read_text()
-        self.assertIn('def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0, ret=\'eax\'):', hooks)
+        self.assertIn('def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0, ret=\'eax\', xmm=None):', hooks)
         self.assertIn('edx=edx', hooks)
 
     def test_a_stub_may_write_a_window_word(self):
@@ -635,6 +635,22 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2801, win=8, bias=[], own=1, ptrargs=['0:8'],
                                    edx_win='p0', edx='0..3', port='0')
+
+    def test_a_float_register_argument_may_be_drawn(self):
+        # Item 2807: `get_float_z` takes two floats in `xmm0` and `xmm1` (the decompiler's `in_XMM0_Da`), truncates
+        # them to ints; `--xmm N:LO..HI` loads xmm N with the float V/4 for an integer V drawn from the range (quarters,
+        # exact in an f32, so the port needs no float: Rust's `V / 4` truncates toward zero as `cvttss2si` does), V
+        # printed after the row's other numbers.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2807, win=8, bias=[], own=0, cdecl=True, ptrargs=[],
+            xmm=['0:-4000..4000', '1:-4000..4000'], ret='xmm0', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("XMM = [(0, ('range', -4000, 4000)), (1, ('range', -4000, 4000))]", script)
+        self.assertIn('xmm=xmm', script)
+        self.assertIn('xmm 0 an integer in -4000..4000, loaded as that over four', test)
+        for bad in ('0', '8:1..2', 'x:1..2'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2807, win=8, bias=[], own=0, xmm=[bad], port='0')
 
     def test_a_stub_may_answer_a_placed_record(self):
         # Item 2241: `CityData::get_pop_value` calls slot +0x3c of

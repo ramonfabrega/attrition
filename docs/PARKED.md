@@ -6294,13 +6294,42 @@ rest). Names no score.
 
 Struck: (2760)'s `0x11000` half, closed by item 2804.
 
-## Parked by the next landing, slot FE — reserved
+## Parked by item 2807, 2026-10-17 — `--xmm`, and ten short bodies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2807) **`--xmm N:LO..HI|V,V,..`** built (a float register argument; `tools/sweep_gen.py`, its test made to fail first,
+`test_a_float_register_argument_may_be_drawn`; `hooks.Harness.call` takes `xmm`): xmm N holds the float V/4 for an integer V
+drawn from the range or list, V printed after the row's other numbers. Quarters are exact in an f32, so the port needs no float
+(`cvttss2si` is Rust's `V / 4`, truncating toward zero), and no wild word is drawn (a random bit pattern is a NaN or a huge
+value `cvttss2si` answers `0x80000000` for; the x86 and the host would part on NaN payloads). `get_float_z` 0x8942d0 is its first
+user (`--cell-win 0xc06218:16 --stub 0x866560:4 --answer-win 0:8 --record 0 --ret xmm0`, two floats in xmm0/xmm1; the stub's
+answer is a pointer, the int it points at converted by `cvtdq2ps`). Guy::set_bank and set_pitch (parked 1867) are hand scripts
+that could be regenerated with it.
+
+(2807, second) **Ten functions, `Census:` 1169 → 1181 by `tools/census.py --layers`** (ten built; the count moved twelve, two
+more than the batch, and I did not trace which): `get_float_z`, `NukeOut::setup_terrain_terraforming`,
+`RiverDoober::add_for_render`, `Game::run_unit_editor`, `RiverSectionOut::compute_vert_height`,
+`TerrainMap::cancel_button_enable`, `WorldMap::reinit_all`, `Nuke::draw_ctw`, `draw_thick_diamond`, `WorldMap::on_right_down`.
+Each is a renderer or editor body or a thin wrapper; none has a simulation effect beyond what the rows hold. `compute_vert_height`'s
+nine-float table (the image's `0xb69870`, `0xb69ac0` and a literal 1.0) is spelled in its port as bit patterns read from the PE.
+
+(2807, third) **Three layout lessons.** A `--place` at a *global* address (`--place 0xe399ac:0:16 --place-null 0`) lays null a third
+of the rows, but nothing on the row shows it: the port cannot tell the null path. `--at 0xe399ac:4` with `--place c0+0:0:16
+--place-null 0` puts the pointer in a printed `c` window instead, and `WorldMap::reinit_all`'s port reads it there. **`--regen`
+resets a hand-edited port to `0`** (the journal of 2801 said it keeps the test; it keeps only the script's flags and does not read the port
+back) — I redrew `compute_vert_height`'s floats with it and re-applied the port from git; a redraw of a swept function is
+delete-and-regenerate or a checkout of the port. A function whose last act is a stub's answer, `--ret none`, leaves `eax` unchecked
+(`let _ = (got, want_eax)`): `WorldMap::reinit_all`'s `i64::from(a[3])` is a mutant that survives for that reason, an
+equivalent one, not a starved arm.
+
+(2807, fourth) **Not modelled**: `NukeOut::setup_terrain_terraforming` calls `Terrain::refresh_good_z` with `ecx` and a pushed
+argument both whatever `terraform_for_nuke` left in `ecx`; a stub leaves `ecx` as it found it (the object), so the row holds
+`m+0x0,m+0x0` and the original's callee-clobbered value is not held. A hooked callee's answer `(eax, ecx)` (1922) is not a flag
+of `sweep_gen`, and a flag for it would hold this and any other `ecx`-forwarding tail.
+
+(2807, fifth) **Next shortest never-backed rows with no built shape**: `NukeOut::draw_underlays` 0x9269d0 (419 bytes, a statics
+guard `__Init_thread_header` and `fs:[0x2c]` TLS), `TerrainMap::on_mouse_move` 0x9b47c0, the two `project` overloads (0x92d000,
+0x92cf40: `in_ECX`/`in_EDX` register arguments and `sin_table`, a `--ecx-int` and `--edx` pair would hold them),
+`Game::post_game_screens` 0x58fd50. Slot EY (2793's lane) was read at this base as still the reserved stub.
 
 ## Parked by the next landing, slot FF — reserved
 
