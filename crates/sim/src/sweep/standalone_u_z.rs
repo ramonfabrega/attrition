@@ -508,6 +508,8 @@ mod world_set_mountain_at;
 mod world_set_orig_coast;
 #[path = "world_set_resource_at.rs"]
 mod world_set_resource_at;
+#[path = "world_set_river_at.rs"]
+mod world_set_river_at;
 #[path = "world_set_started2_at.rs"]
 mod world_set_started2_at;
 #[path = "world_set_started_at.rs"]
