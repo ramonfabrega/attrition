@@ -6134,13 +6134,32 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EV — reserved
+## Parked by item 2782, 2026-10-17 — the pointer-array shape, and the group list's ten
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2782) **`--ptrtab LOC:N:SIZE[:vt]` is built** (a test made to fail first, `test_a_pointer_table_is_one_place_for_the_array_and_one_a_record`;
+2772's eight-object group list is one flag, and its output reproduces 2768's `get_num_cap_const` script byte for byte), and ten
+`GroupData` functions fell to it: `has_air_units` 0x70b250, `get_repeat_air` 0x70c0b0, `is_on_map` 0x70c450, `get_auto_explore`
+0x70c1b0, `get_infinite_queue` 0x70c310, `get_form_mod_option` 0x70bd00, `get_form_option` 0x70beb0, `find_leader` 0x70ccb0,
+`get_max_range` 0x711080, `play_sound` 0x70d060. What the layout taught, for the next lane on this family: **a stub whose
+answer sizes a loop or indexes a record needs `--answer-range`**, not `--answers` (`--seq` draws a random word one in ten, and
+`--tame` is registers only: three first runs faulted at an unmapped record); the **units table is at `0xc0aec0 + who*0x1c`** and
+`UnitData::vftable` at `0xb41b08` laid half the rows by `--vtat-half` with the other half `--wbias`ed to it (a unit record's slot
+read inline against `UnitData::is_captain`/`is_on_map`/`is_plane`); `get_repeat_air` and `get_auto_explore` have **two different
+`counts` statics** (`0xee1518`, `0xee1510`), and `get_form_option` indexes a sixth `counts` word it never zeroes
+(`0xee1520`, 24 bytes); a function that tail-jumps (`play_sound`) is a plain `--stub ADDR:N` with `--record`, and its
+no-call row prints `-`. Not built: `GroupData::group_air` 0x70b160 (a Group argument's vtable slot `+0xc` called with four
+arguments, a passenger chain through `+0x28`/`+0x3e` as `has_air_units`'s, and a record vtable compared with
+`ObjectData::vftable` at `0xb43204` for `ObjectData::is` — every piece built, none yet together).
+
+Of 2782, **equivalent breaks, named**: `has_air_units`'s `break 'list` (the loop continues with the answer already 1, no stub log),
+`is_on_map`'s `break` (the same), `get_repeat_air`'s `counts.fill(0)` (the port overwrites both words after; the original's
+zeroing is observable only through the image window it holds, and the port writes the window in full), `get_form_option`'s
+`n > 1` for `n > 0` (the arm is reached only for `n != 1`), `find_leader`'s initial best score `0x12` (the `best < 0 ||` guard
+takes the first match whatever the score).
+
+Of 2782, **for the Loop**: this item's driver was a throwaway (`$JOB/tmp/gen.py`: a function's flags one a line in a file, its port in
+another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 KB port do not survive a shell line; a
+`sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer, is the shape. One reach.
 
 ## Parked by the next landing, slot EW — reserved
 

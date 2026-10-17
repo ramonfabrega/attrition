@@ -112,6 +112,18 @@ Three shapes, each a `__thiscall` on `ecx`:
           (item 2513) reads the absolute cell VA, as it stands when the
           stub is called: a flag the function sets around its callee.
 
+          `--ptrtab LOC:N:SIZE[:vt]` (item 2782, parked 2772): an array of N
+          record pointers at LOC (an address expression, `m[0x4a]` the
+          object's own byte allowed) and each record SIZE random bytes, the
+          array window `p<K>` and the records the N after it; the tables'
+          places come before every `--place`, so a later flag names
+          `p<K+1+i>`; `vt` also lays the stubbed vtable at each record's
+          offset 0. A stub's answers per call are `--seq IDX:N` with
+          `--answer-range IDX:LO:HI` (no wild word: a stub whose answer
+          sizes a loop or indexes a record needs it; `--tame` is registers
+          only), laid `a[own + stubs + N0 + N1 + ..]` after the arguments
+          and one drawn answer a stub.
+
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
           (parked 1889).
