@@ -125,6 +125,79 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 176,
         sequence: 176,
     },
+    // The five lobbies minted by item 2975 (DECISIONS 77 (ii), `docs/AI.md`
+    // §125, §243; runs 895–899): a nation no dump holds, a tier of 2, 3 or 4,
+    // no two sharing a nation or a tier on a map. Each game ended itself.
+    Lobby {
+        name: "GreatSaharaAztecTier2",
+        map_style: 7,
+        ai_tribe: 0,
+        difficulty: 2,
+        start: "gamelog-run895-greatsahara-aztec-diff2-start.txt",
+        long: (
+            "gamelog-run895b-greatsahara-aztec-diff2-24k-trace.txt",
+            "rontrace-run895b.log",
+        ),
+        length: 17554,
+        count: 0,
+        sequence: 0,
+    },
+    Lobby {
+        name: "GreatSaharaSpanishTier3",
+        map_style: 7,
+        ai_tribe: 9,
+        difficulty: 3,
+        start: "gamelog-run896-greatsahara-spanish-diff3-start.txt",
+        long: (
+            "gamelog-run896b-greatsahara-spanish-diff3-24k-trace.txt",
+            "rontrace-run896b.log",
+        ),
+        length: 22700,
+        count: 0,
+        sequence: 0,
+    },
+    Lobby {
+        name: "GreatLakesIroquoisTier3",
+        map_style: 14,
+        ai_tribe: 18,
+        difficulty: 3,
+        start: "gamelog-run897-greatlakes-iroquois-diff3-start.txt",
+        long: (
+            "gamelog-run897b-greatlakes-iroquois-diff3-24k-trace.txt",
+            "rontrace-run897b.log",
+        ),
+        length: 12658,
+        count: 0,
+        sequence: 0,
+    },
+    Lobby {
+        name: "GreatLakesTurkishTier4",
+        map_style: 14,
+        ai_tribe: 8,
+        difficulty: 4,
+        start: "gamelog-run898-greatlakes-turkish-diff4-start.txt",
+        long: (
+            "gamelog-run898b-greatlakes-turkish-diff4-24k-trace.txt",
+            "rontrace-run898b.log",
+        ),
+        length: 15503,
+        count: 0,
+        sequence: 0,
+    },
+    Lobby {
+        name: "EastIndiesRomanTier2",
+        map_style: 18,
+        ai_tribe: 6,
+        difficulty: 2,
+        start: "gamelog-run899-eastindies-roman-diff2-start.txt",
+        long: (
+            "gamelog-run899b-eastindies-roman-diff2-24k-trace.txt",
+            "rontrace-run899b.log",
+        ),
+        length: 18620,
+        count: 0,
+        sequence: 0,
+    },
 ];
 
 /// **The measure, read at every pass** (`--ignored`): each lobby walked
