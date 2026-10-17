@@ -1387,7 +1387,11 @@ mod tests {
         let n = s.cast_bribe_unit(spy, target).expect("a copy is born");
         assert!(s.units.len() > before || n < before, "a unit is made");
         assert_eq!(s.units[n].owner, 1, "under the caster's owner");
-        assert_eq!(s.units[n].max_health - s.units[n].health, 5, "damage carried");
+        assert_eq!(
+            s.units[n].max_health - s.units[n].health,
+            5,
+            "damage carried"
+        );
         assert!(!s.units[target].alive(), "the old one is closed");
         assert_eq!(s.units[target].hold_frames, Sim::CLOSE_HOLD);
         assert_eq!(s.tech[1].bribes, bribes + 1, "the leader's +0x8f4");
