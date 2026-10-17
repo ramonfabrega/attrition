@@ -572,6 +572,8 @@ mod command_package_process_eject_all;
 mod command_package_process_form;
 #[path = "command_package_process_garrison.rs"]
 mod command_package_process_garrison;
+#[path = "command_package_process_gather.rs"]
+mod command_package_process_gather;
 #[path = "command_package_process_gather_point.rs"]
 mod command_package_process_gather_point;
 #[path = "command_package_process_halt.rs"]
