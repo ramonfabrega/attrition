@@ -9674,3 +9674,8 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #           --profile DIFFICULTY=1 (run643's four --detail lines)
 # Checks: `rngcmp.py` run643 vs run886 -> 0 differing in 833; run887 vs run888 -> 0 differing in 37. run888 runs to 24000.
 # ==== TAKEN 2026-10-17, one take each, 10:35-11:07, pool lanes 1, 2, 3 ====
+# ==== item 2931: the battery word's widening at 5577 (`docs/AI.md` §240; `docs/RUNS.md` run891) ====
+#   run891  --map 18 --end-frame 5833 --log-window 5571 5828 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#           --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3   (East Indies, Germans; the word 5577's window)
+# Checks: `rngcmp.py` run643 vs run891 -> 0 differing in 5834.
+# ==== TAKEN 2026-10-17, one take, 11:52-12:08, pool lane 1 ====

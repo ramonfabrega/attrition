@@ -714,7 +714,11 @@ worth ten knowledge per thirty seconds**, and a library on its own is worth
 nothing — the library's value is that scholars can live in it.
 
 Then the Romans add wealth per city and the Germans add food, timber and metal
-per city.
+per city — `ROMAN_CITY_GATHER` (10) and `GERMAN_CITY_GATHER` (5) times sixteen,
+the metal only under `type_avail(METAL, 1)`. Built by item 2931
+(`economy::nation_city_gather`); diff-backed for the Germans by run886, whose
+who=1 reads food 880 and timber 720 on one city (`docs/AI.md` §240). The Roman
+term rests on the listing alone.
 
 ### Caravans, and the city they are cached in
 

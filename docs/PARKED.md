@@ -3748,6 +3748,10 @@ walk on chapter 76's start showed a target unseen that run890's golden build saw
 unseen arm can land seen. Candidate: the walk prints the fog source it used beside each `is_seen`, or refuses fog
 predictions, a test made to fail first. One reach.
 
+(2955) **A `make_stuff` `can_pay` print is re-added by every item that needs it** (2931's "for the Loop" line, filed at
+its merge): a probe printing the head's cost, bucket and escrow answered 576 in one run, and each AI item adds it again.
+Candidate: an env-guarded `RON_DEBUG_MAKE=<frame>` print in `make_stuff`, a test made to fail first. One reach.
+
 (2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
 and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
 `archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
@@ -6814,13 +6818,12 @@ Barracks that who=1 loses first. Names no score.
   range. Reaching the kill needs a caster whose range exceeds its sight or a stealth-hidden target; it names no score, so it parks (GOLDEN §113).
 - Parked 2929 (a building target killed mid-approach) is still the listing's alone; unchanged. Both booked as 2949.
 
-## Parked by the next landing, slot GG — reserved
+## Parked by item 2931, 2026-10-17 — the Germans' flat per-city gather moves the battery word 576 → 5577
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2954) **The Romans' flat per-city wealth is built from the listing alone** (`docs/AI.md` §240,
+`economy::nation_city_gather`): `calc_city_resources@006d5530` adds `ROMAN_CITY_GATHER` (10) × 16 to wealth per city
+under `has_tribe_bonus(6)`, in the same arm as the Germans' term run886 backs. No scored or battery lobby has the Romans,
+so no dump has read a Roman `income`; a lobby with a Roman AI on one city would read wealth 160 above its taxes and trade.
 
 ## Parked by item 2941, 2026-10-17 — the process_* bodies, eighteen swept
 
@@ -6850,13 +6853,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GK — reserved
+## Parked by item 2953, 2026-10-17 — the hundred-and-twenty-ninth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **(2953, first) The remaining `CommandPackage::process_*` bodies are not the three shapes.** `process_reject` and
+  `process_come_out` branch on a leader-table / unit-table field before the action (`leader+0x692c + whom*0x5c == 1` picks
+  `action_respond(.., 0)` or `(.., 2)`; `come_out` tests `unit->flags & 1` and `uid == unit+0x30`); `process_cannon_time` logs a
+  `unsigned_char&` and calls `TurnControl::start_cannon_time` with a game byte; `process_begin` calls a *virtual* slot 0x14 of
+  the group record; the rest (`cheat_init_unit`, `cheat_ai_speed_increase`, `queue_up`, `form`, `rename_city`, `mp_log`,
+  `flight`, `ping`, `gather*`, `build`, `repair`, `garrison`, `board_ship`, …) were not read. Each wants a window for the
+  table it tests (`--cell-win`/`--at`) and its own port arm: a later shape item, not a flag in this batch.
+- **(2953, second) Tooling that paid for itself.** The ten ports here were written by a scratch script from a one-line spec
+  per function (logToMemory address and arity, line, say offset, say/action argument expressions); its template is
+  `command_package_process_demand_tribute.rs` (leader table) and `_patrol.rs` (group, no frame in the say). A flag on
+  `sweep_gen.py obj` taking that spec would remove the hand step; Loop candidate, not built.
 
 ## Parked by the next landing, slot GL — reserved
 

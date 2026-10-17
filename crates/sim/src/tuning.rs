@@ -236,6 +236,12 @@ pub struct Tuning {
     pub basic_gather: [i32; 6],
     /// What a city is worth per period before anybody works in it.
     pub city_gather: [i32; 6],
+    /// Wealth a Roman city adds per period, flat
+    /// (`LeaderData::calc_city_resources@006d5530`, `has_tribe_bonus(6)`).
+    pub roman_city_gather: i32,
+    /// Food and timber — and metal, once metal is available — a German city
+    /// adds per period, flat (`calc_city_resources`, `has_tribe_bonus(0xc)`).
+    pub german_city_gather: i32,
     /// One gatherer's rate, as 8.8 fixed point. The file writes `10 resources`
     /// and the engine loads 2560; see [`Slot::Ratio256`].
     pub peasant_rate: i32,
@@ -1105,6 +1111,8 @@ impl Tuning {
         persians_bonus_food: 50,
         basic_gather: [0, 0, 0, 0, 0, 0],
         city_gather: [10, 10, 0, 0, 0, 0],
+        roman_city_gather: 10,
+        german_city_gather: 5,
         peasant_rate: 2560,
         oil_rate: 8960,
         scholar_rate: [1280, 1792, 2560, 3840, 5120, 6400],
@@ -1432,7 +1440,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 389] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 391] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1700,6 +1708,8 @@ impl Tuning {
             ("PERSIANS_BONUS_FOOD", Slot::Value(T.persians_bonus_food)),
             ("BASIC_GATHER", Slot::Entries(&T.basic_gather)),
             ("CITY_GATHER", Slot::Entries(&T.city_gather)),
+            ("ROMAN_CITY_GATHER", Slot::Value(T.roman_city_gather)),
+            ("GERMAN_CITY_GATHER", Slot::Value(T.german_city_gather)),
             ("FISHERMEN_BONUS", Slot::Entries(&T.fishermen_bonus)),
             ("MERCHANTS_BONUS", Slot::Entries(&T.merchants_bonus)),
             ("WHALES_SHIPS_MOVE", Slot::Value(T.whales_ships_move)),
