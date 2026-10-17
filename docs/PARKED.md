@@ -3738,6 +3738,16 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3063) **`waitrun.sh` missed the click-free lane's receipt** (the commander, at a `STALLED att-3018` exit, 2026-10-17):
+run913's capture on pool lane 2 exited at 17:03:50 with its receipt JSON (`"success": true`, `"exit_code": 0`) as the
+viadriver log's last line, and the lane's `waitrun.sh` on that log was still waiting at 18:25 — 81 minutes, until
+`lanewait.py`'s child rule named it. Candidate: `waitrun.sh` keys on the receipt's JSON line as well as its banner, a test
+made to fail first on this log. One reach.
+
+(3062) **`sweep_gen.py`'s help omits two working spellings** (3044's "for the Loop" line, parked 3061, filed at its merge):
+`--outarg IDX:K` repeated for one stub, and a `--place` at a stub's answer (`sN`) with its own `--wbias` window for a
+callee-returned record's field. Candidate: both in the help with an example each. One reach.
+
 (3057) **`sweep_gen.py --answers IDX:V,..` draws a wild word a tenth of the rows** (3030's parked 3053, filed at its
 merge): a stub whose answer indexes an array faults there, where `--answer-range` does not; and a `slot:` stub with the
 wrong argument count faults at 0x1000 from a return address of 0. Candidate: `--answers` draws only its list, and the
@@ -7153,13 +7163,13 @@ clamped to 0..255), so the break "fails nothing" by arithmetic, not by a starved
 
 ## Parked by item 3044, 2026-10-17 — the sweep's fourth harvest batch
 
-(3044, first) **Starved draws accepted, said plainly.** `ObjectsArray::get_data_type`: a break `a[0] > 0`
+(3059) **Starved draws accepted, said plainly.** `ObjectsArray::get_data_type`: a break `a[0] > 0`
 passes — the object argument is a `--ptrarg` address, never negative. `Unit::update_z`: the child's
 unit-index short is drawn 0/1 only (a break `as u16` for `as i16` passes), because a negative index reads
 before the pointer table and the emulator answers the neighbouring window; the sign of that short is not
 covered. `Group::can_activate`: the `is_team` answer is unused by the function and drawn wild.
 
-(3044, second) **Not built, read** (shortest of the rest): `ObjectData::num_aircraft_here` (a vtable
+(3060) **Not built, read** (shortest of the rest): `ObjectData::num_aircraft_here` (a vtable
 slot compared with `ObjectData::is`'s address, `UnitData::home_base` through an out pointer, the
 `units` table twice), `ObjectData::can_carry` (the same `is`-slot compare four times and two
 type tables), `Army::is_engaged` and `Caravans::new_danger` (`vector_dist` called with
@@ -7167,10 +7177,10 @@ register arguments the export shows as `unaff_*`), `Group::set_up_insert` (a `Li
 and `copy_order`), `UnitData::get_attrition` (the `f32`, still not as a float),
 `Terrain::object_placed` (`spot_update_land` and `TerrainVis::invalidate_wcoord`).
 
-(3044, third) `--outarg IDX:K` repeated for one stub (two out pointers, as `tile_corner`'s) works and
+(3061) `--outarg IDX:K` repeated for one stub (two out pointers, as `tile_corner`'s) works and
 the generator says nothing of it; and a `--place` whose location is a stub's answer (`sN`) carrying a
 second `--wbias` window is the way to give a callee-returned record a field (`Wall::mask_me`'s
-`+0x72`). Worth a line in `sweep_gen.py`'s help (for the Loop).
+`+0x72`). Worth a line in `sweep_gen.py`'s help (Loop 3062).
 
 ## Parked by the next landing, slot HD — reserved
 
