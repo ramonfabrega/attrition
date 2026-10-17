@@ -6969,12 +6969,12 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3004, 2026-10-17 — the second harvest batch
 
-- (3004) **`Unit::update_armor@006054c0` needs a climb that ends**: the loop calls slot `+0xa8` on the object table's
+- (3004) **`Unit::update_armor` needs a climb that ends**: the loop calls slot `+0xa8` on the object table's
   record until a captain is reached, and `sweep_gen.py obj` can answer a stub with one window, which makes the climb
   its own parent (an unbounded loop unless every row's second `+0xe8` answer is 1). A `--climb` shape (a chain of
   windows, each `+0x8e` naming the next, terminated) would take it and the other `is_captain` climbs. Names no score
   beyond the census.
-- (3004, second) **`AmmoData::walk_data@0067ab50`, `Game::walk_data@00589600` and `TurnControl::end_cannon_time@00956470`
+- (3004, second) **`AmmoData::walk_data`, `Game::walk_data` and `TurnControl::end_cannon_time`
   read and not taken**: the first reads a stack byte of its own argument slot that the real walker writes on input (the
   walker stub cannot; `--stub-write` writes through a pointer argument, not the caller's slot), the second calls
   `timeGetTime`, the third pushes a dozen-argument `MessageWin::add_message` with uninitialised stack temporaries.
