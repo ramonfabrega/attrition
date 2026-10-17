@@ -6621,13 +6621,32 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FX — reserved
+## Parked by item 2893, 2026-10-17 — the hundred-and-twenty-second sweep batch (harvest)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2893, first) **The `process_*` family logs through an imported `strrchr`.** `CommandPackage::process_halt` 0x949140,
+  `process_pause` 0x944160 and the rest of the family open with `call esi` on the IAT word at 0xac543c (`strrchr`), then
+  `SyncLogger::logToMemory` 0x463820, `Log::say`, and writes to `game_log.current_type`/`current_detail` (0xeb13a8/ac).
+  `callfn.py` resolves no import, so the call faults; a direct callee can be stubbed by address (`--stub ADDR:N`) but not
+  an indirect one through a register. A generator flag naming an IAT word as a stubbed callee (answer 0 / pointer) would
+  open the family (each is the log, then one `Group::action_*` or a `TurnControl` call). Shape lane.
+- (2893, second) **`memcpy`/`memcmp` are import thunks (`jmp [0xac5428]`), so a stub of one cannot copy.**
+  `CommandManager::issue_rename_city` 0x9411d0 was built with the thunk stubbed (`--stub 0x55e0ac:3 --stub-cdecl 2`) and
+  the command buffer's first nine bytes held; the copied string and its terminating NUL are not observed. A `--stub-copy
+  IDX` (a stubbed cdecl callee that copies arg 2 bytes from arg 1 to arg 0 before it returns) would put them under the
+  deref. Shape lane.
+- (2893, third) **`--sparse`'s windows are one a *slice*, not one a row.** Four rows with two slices (`8,4/0x74,16`) are
+  eight `p` windows, `p(2k)` the first slice of row k and `p(2k+1)` the second; the generated header says "`p` windows
+  after the pointed buffers, before the places" and not the count. `check_enemy_adjacent` took two reruns. A line in the
+  doc comment (`p0..p7 sparse, p8 place`) names them (the 2877 journal's Loop line asks the same of `--place`).
+- (2893, fourth) **A stub's unlisted answers still take a column.** `--answers` names the stubs that draw from a list; the
+  others take a drawn word each in the row (rename_city's row carries three), which the port ignores but a reader of the
+  row counts. Not a defect; the header could list "stubs 1..3 draw an unused word".
+- (2893, fifth) **Unread, a vcall-chain family on the objects table:** `ObjectData::has_general` 0x646b00 and
+  `ObjectData::cargo_inside` 0x64dcd0 (a loop through `objects`/`units` tables with vtable slots 0xbc, 8), and
+  `UnitData::is_busy` 0x60a370 (order list, slot 0xf4 twice, two types-table slots, `is_entering_or_exiting`): each built
+  shape holds the table-and-vtat recipe (`ArmyData::select`, `FarmsData::get_nearest_farm_type`) but the stubbed
+  callees number five or six; a worker with an hour each. `Map::scale_land_area` 0x68b1e0 reads `edx` as a float
+  (`extraout_EDX` after `get_player_overage`) and a float `div`; not a sim-integer function to port by this recipe.
 
 ## Parked by the next landing, slot FY — reserved
 
