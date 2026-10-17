@@ -36,7 +36,7 @@ STUBS = [('iat', 11293756, 2), ('call', 4601040, 4), ('call', 10726144, 10)]
 PLACES = []
 NULLS = []
 NULLFORCE = {}
-WBIAS = [('c1', 2080, ('set', [0, 4, 16, 20, 255])), ('c2', 0, ('set', [0, 0, 1, 5])), ('c3', 4, ('set', [-5, -1, 0, 1, 2, 9]))]
+WBIAS = [('c1', 2080, ('set', [0, 4, 16, 20, 255])), ('c2', 0, ('set', [-1, 0, 5, 9, 9, 10, 10, 11, 2147483647])), ('c3', 4, ('set', [-5, -1, 0, 1, 2, 9]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -280,7 +280,7 @@ def shape(rng, name, buf):
 
 def main(argv):
     from hooks import Harness
-    rng = random.Random(2941)
+    rng = random.Random(3014)
     # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
     h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"})
