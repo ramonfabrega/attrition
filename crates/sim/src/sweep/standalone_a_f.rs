@@ -510,8 +510,16 @@ mod command_manager_issue_unqueue_unit;
 mod command_manager_issue_unqueue_wall;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
+#[path = "command_package_process_check_random.rs"]
+mod command_package_process_check_random;
 #[path = "command_package_process_halt.rs"]
 mod command_package_process_halt;
+#[path = "command_package_process_marwan.rs"]
+mod command_package_process_marwan;
+#[path = "command_package_process_pause.rs"]
+mod command_package_process_pause;
+#[path = "command_package_process_ungraceful_player_drop.rs"]
+mod command_package_process_ungraceful_player_drop;
 #[path = "command_package_walk_data.rs"]
 mod command_package_walk_data;
 #[path = "constants_walk_data.rs"]
