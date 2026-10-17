@@ -6664,13 +6664,15 @@ target that stays outside its owner's fog, and the review's `is_seen` gate is th
   callees number five or six; a worker with an hour each. `Map::scale_land_area` 0x68b1e0 reads `edx` as a float
   (`extraout_EDX` after `get_player_overage`) and a float `div`; not a sim-integer function to port by this recipe.
 
-## Parked by the next landing, slot FY — reserved
+## Parked by item 2895, 2026-10-17 — chapter eighty-seven: the Bribe outside sight
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(unnumbered, 2895) **Parked 2879 is answered**: a cast chasing a walking target outside the caster's owner's sight is not `repath`ed (run885, 1291 under
+a mutation of `check_cast_target_path`); `GOLDEN.md` §111. No code changed.
+
+(unnumbered, 2895, second) **The unseen arm's far side is still unreached**: an invalid target the owner *sees* (`repath` + kill), a building
+target, and range-arrival on an unseen target (the Spy did not arrive in 400 frames) have no capture. Names no score.
+
+(unnumbered, 2895, third) **Loop 2654's print was not built**: every staged line reached its unit (`staged: 6 ran, 4 unit(s)`).
 
 ## Parked by the next landing, slot FZ — reserved
 

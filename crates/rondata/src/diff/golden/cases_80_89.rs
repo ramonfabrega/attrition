@@ -207,3 +207,41 @@ pub(super) fn chapter_eighty_six_s_window_is_widened_whole() {
     want.sort();
     pin_eq!(got, want, "ch86: what parts in the window moved");
 }
+
+pub(super) fn chapter_eighty_seven_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch87", "chapter87", 87, 6, 1500) else {
+        return;
+    };
+    eprintln!(
+        "chapter eighty-seven: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+}
+
+pub(super) fn chapter_eighty_seven_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch87",
+        "chapter87",
+        (1100, 1500),
+        0,
+        0,
+        (1101, 1500),
+        false,
+        92,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch87 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch87: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH87.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch87: what parts in the window moved");
+}
