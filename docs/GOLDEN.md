@@ -13014,12 +13014,30 @@ eleven `form` rows and the Scout's `world:seen2`.
 arm is carried from the listing alone; (2) the arm for a building target (`+0x8` is not asked); (3) a target outside the caster's
 owner's sight, still parked 2879 — the review's `is_seen` gate is where it would show.
 
-## 111. Reserved for the next item on the rules track
+## 111. Chapter eighty-seven's second arm — a Bribe on a target outside the caster's owner's sight (run885)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 2879, 2894: `check_target_path`'s cast arm asks `is_seen` first (§110, `Sim::check_cast_target_path`), and no dump held
+a cast on a target the caster's owner does not see. **Disk could not answer**: run880's and run884's targets sat within the Spy's sight.
+
+**Staging** (`tools/gamelog/golden/chapter87.cmd`, walked by `stage_walk` on run871's start, `RON_STAGE=ch76:chapter87:1500`): chapter eighty-six's
+control with the Hoplite 22 tiles off (`add hoplite who=1 142,100` at 1100), `@spell` Bribe on 1112. A nearer Hoplite (8 tiles) was in sight and
+was bribed on 1240 in the walk, so it was moved out; the walk showed the Spy winding on a path of about 6,000 units and the Hoplite standing
+until ~1283.
+
+**What the original does** (run885, `docs/RUNS.md`): `CASTORDER` on 1114 with a move to range under it; the Spy walks the whole window and
+has not reached range by 1499; the Hoplite `1/6` stands until 1283 and then walks (`AttackTo`). No cast completes, no draw parts.
+
+**Diff**: ours agrees on every block of 1100–1499; the only rows are the standing 1100 `form` and `build:extra` rows (`WANT_CH87`, the same
+24 as `WANT_CH86`). The word is the capture's end, 1500, `ch87` closed. **No code changed.**
+
+**The gate is diff-backed, by mutation**: with `check_cast_target_path`'s `target_is_seen` early return removed, the widening parts on **1291** —
+`0/6 dest_angle` ours 1392836608 theirs 992215040, then the move's `dest_x/y` and `path[0..4]` — because the walking target would be `repath`ed
+every sixteen frames. The original does not: the target stays in who=0's fog, so the review returns before the `is_moving` test. This is the
+arm §110 left (3).
+
+**Not established**: (1) the unseen-target arm's *death* (`repath` + `kill_current_order` for an invalid target) — only the `is_seen` early
+return is reached, never an invalid seen target; (2) a building target; (3) the cast's completion on an unseen target (the Spy did not reach range
+in 400 frames, so whether range-arrival itself asks `is_seen` is untested).
 
 ## 112. Reserved for the next item on the rules track
 

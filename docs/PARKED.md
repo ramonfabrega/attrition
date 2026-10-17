@@ -3769,6 +3769,11 @@ filed at its merge): two hooks on `5fe050` and `648876` turned "theirs re-adds a
 never killed it" in one run. Candidate: a brief-checklist row for the residue kind — a value question the dump cannot
 answer takes a packet hooked at the caller's return before a reading. One reach.
 
+(2914) **A chapter's wiring is six files by hand** (2895's "for the Loop" line, filed at its merge): the script list,
+the walk and widening tests, `testkit`'s word and window, `WIDENINGS`, `floors` and the `coverage` driver, written for every
+chapter since eighty. Candidate: a `tools/` scaffold off `runwiring.py` that writes them from the chapter's number, run and
+word, a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
 Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872).
@@ -6664,13 +6669,15 @@ target that stays outside its owner's fog, and the review's `is_seen` gate is th
   callees number five or six; a worker with an hour each. `Map::scale_land_area` 0x68b1e0 reads `edx` as a float
   (`extraout_EDX` after `get_player_overage`) and a float `div`; not a sim-integer function to port by this recipe.
 
-## Parked by the next landing, slot FY — reserved
+## Parked by item 2895, 2026-10-17 — chapter eighty-seven: the Bribe outside sight
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2911) **Parked 2879 is answered**: a cast chasing a walking target outside the caster's owner's sight is not `repath`ed (run885, 1291 under
+a mutation of `check_cast_target_path`); `GOLDEN.md` §111. No code changed.
+
+(2912) **The unseen arm's far side is still unreached**: an invalid target the owner *sees* (`repath` + kill), a building
+target, and range-arrival on an unseen target (the Spy did not arrive in 400 frames) have no capture. Names no score.
+
+(2913) **Loop 2654's print was not built**: every staged line reached its unit (`staged: 6 ran, 4 unit(s)`).
 
 ## Parked by the next landing, slot FZ — reserved
 
@@ -6726,6 +6733,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GI renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

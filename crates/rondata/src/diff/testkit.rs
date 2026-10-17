@@ -6578,6 +6578,16 @@ pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY_SIX: i64 = 1300;
 /// 1100 to 1300.
 pub(crate) const WIDENING_CHAPTER_EIGHTY_SIX: (i64, i64) = (1099, 1301);
 
+/// **Chapter eighty-seven** (item 2895, `docs/GOLDEN.md` §111, run885): a
+/// Bribe cast on a Hoplite 22 tiles off, outside the Spy's owner's sight;
+/// the review's `is_seen` gate holds the whole chase. **The word is the
+/// capture's end, 1500**.
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTY_SEVEN: i64 = 1500;
+
+/// `chapter_eighty_seven_s_window_is_widened_whole`'s window: run885, blocks
+/// 1100 to 1499.
+pub(crate) const WIDENING_CHAPTER_EIGHTY_SEVEN: (i64, i64) = (1099, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9096,6 +9106,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_eighty_six_s_window_is_widened_whole"),
         2876,
         Some(WIDENING_CHAPTER_EIGHTY_SIX),
+    ),
+    // Item 2895: run885, chapter eighty-seven, a Bribe on a target outside
+    // the caster's owner's sight; closed at the capture's end.
+    (
+        "GOLDEN_WORD_CHAPTER_EIGHTY_SEVEN",
+        GOLDEN_WORD_CHAPTER_EIGHTY_SEVEN,
+        Some("chapter_eighty_seven_s_window_is_widened_whole"),
+        2895,
+        Some(WIDENING_CHAPTER_EIGHTY_SEVEN),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
