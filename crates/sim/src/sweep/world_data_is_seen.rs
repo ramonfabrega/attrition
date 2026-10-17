@@ -1,6 +1,6 @@
-//! `WorldData::is_seen@006b55c0`, `is_seen_wcoord@006b2540` and `is_really_seen@006b42c0` (no revealed-map exit) under the emulator against the port (item 2837; hand-written on tools/emu/hooks.py).
+//! `WorldData::is_seen@006b55c0`, `WorldData::is_seen_wcoord@006b2540` and `WorldData::is_really_seen@006b42c0` (no revealed-map exit) under the emulator against the port (item 2837; hand-written on tools/emu/hooks.py).
 
-/// Both run by `tools/emu/sweep_world_data_is_seen.py` under unicorn (tools/emu). A player of slot 8 or past, a
+/// `WorldData::is_seen@006b55c0`, `WorldData::is_seen_wcoord@006b2540` and `WorldData::is_really_seen@006b42c0`, run by `tools/emu/sweep_world_data_is_seen.py` under unicorn (tools/emu). A player of slot 8 or past, a
 /// revealed map (`reveal_map == 3`), a leader word with `0x800` or a nonzero short at `+0x59e4` answer 1; else,
 /// with `0x2000`, a cell owner that is the leader or an ally both ways (`LeaderData::is_ally`: diplo 2 each
 /// side) answers 1; else the fog byte masked by the leader's byte at `+0x6929`.
