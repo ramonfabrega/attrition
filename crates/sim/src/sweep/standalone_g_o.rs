@@ -182,6 +182,8 @@ mod group_compute_speed;
 mod group_data_can_transport;
 #[path = "group_data_equals_group_const.rs"]
 mod group_data_equals_group_const;
+#[path = "group_data_find_leader.rs"]
+mod group_data_find_leader;
 #[path = "group_data_get_angle.rs"]
 mod group_data_get_angle;
 #[path = "group_data_get_auto_explore.rs"]
