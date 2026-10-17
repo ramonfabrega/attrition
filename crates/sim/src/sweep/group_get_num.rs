@@ -68,8 +68,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                     let cur = rd(m, 0xc) as usize;
                     for j in i..cur.saturating_sub(1) {
-                        m[0x8cc + 2 * j] = m[0x8cc + 2 * (j + 1)];
-                        m[0x8cc + 2 * j + 1] = m[0x8cc + 2 * (j + 1) + 1];
+                        m.copy_within(0x8cc + 2 * (j + 1)..0x8cc + 2 * (j + 1) + 2, 0x8cc + 2 * j);
                         m[0x84c + j] = m[0x84c + j + 1];
                         for base in [0x4c, 0x24c, 0x44c, 0x64c] {
                             let v = rd(m, base + 4 * (j + 1));
