@@ -9430,13 +9430,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // item 2825). **Item 2825 moved it 6452 → 6808** with `max_range`'s
     // CEO term, past run881's last block (6701): run881's test keeps
     // 6452's value diff (block 6453, `1/137`'s `recharging`), and 6808's
-    // widening is owed a capture by item 2825's parked row (the commander
-    // writes its number here).
+    // widening is owed a capture (item 2845).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         None,
-        2825,
+        2845,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

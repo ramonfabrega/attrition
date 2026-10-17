@@ -3790,6 +3790,12 @@ filed at its merge): 2812 was booked to carry a cloaked Spy's Bribe and stage it
 `cast_bribe` → `Unit::swap_team@006118d0` (286 lines, unread), so the staging went to the next chapter (2823). Candidate:
 the brief checklist asks a booking that names a cast or an action to list its callees' line counts first. One reach.
 
+(2847) **When the two sides' index-0 sites differ in caller, read theirs' caller first** (2825's "for the Loop" line, filed
+at its merge): the booking named `1/193`, and `seams.py` on its chain (`do_idle`, `set_anim`) could not reach the cause, which
+came from theirs' index-0 caller — a draw ours never makes; the unit ours names at that index is the first one after the
+missing draw. A second row: a reach difference with the distance agreeing is `max_range@0060fe90`'s terms, grepped against
+`tuning.rs` before a gate is read. Candidate: two brief-checklist rows beside Loop 2827's. One reach.
+
 (2843) **The census counts a sweep only when its test's doc comment spells `Class::method@addr` in full** (2837's "for the
 Loop" line, filed at its merge): a three-forms-in-one test that named `is_seen_wcoord@…` bare scored two of three until the
 full names were spelled. Candidate: `census.py --unbacked` says "cited bare" for an address a test file names without its
@@ -6420,16 +6426,16 @@ Names no score.
 
 ## Parked by item 2825, 2026-10-17 — a bomber near its President reaches two tiles further
 
-To be booked as the queue's next AI word: **the peace pair's word 6808 is owed a widening and a capture** (`docs/AI.md` §236).
+Booked as the queue's 2845 at the merge: **the peace pair's word 6808 is owed a widening and a capture** (`docs/AI.md` §236).
 Ours spends 63 draws on 6808 and theirs 61, parting at index 43 (count and sequence both): ours `Unit::find_attack_pos+0xea9
 < Unit::fight+0x115e`, theirs `Unit::do_move+0xe84`. run881 ends at 6701, and no dump of this lobby holds 6808, so the disk
 cannot answer it. The capture is run881's recipe with the window at 6802..6822, the game's last frame (`--end-frame` 6822
 and `--allow-early-end` if the lobby ends itself). `LAKOTA_PAIR_WORD`'s `WIDENINGS` row names item 2825 as the one that owes
-it; the commander writes this row's number there. Inside run881 the earliest rows past the standing keys are `1/44`'s
+it, 2845. Inside run881 the earliest rows past the standing keys are `1/44`'s
 `attrition` on 6453 (ours 6, theirs 0) and `sheltered` on 6455, the kind run879's `1/164` showed on 6045 — the item before's
 candidate, not a cause.
 
-(2825, second) **`max_range`'s CEO term is diff-backed on one arm only** (`UnitData::max_range@0060fe90`; `Sim::ceo_unit_range`):
+(2846) **`max_range`'s CEO term is diff-backed on one arm only** (`UnitData::max_range@0060fe90`; `Sim::ceo_unit_range`):
 the siege exemption (the type's vslot `+0x10c`, read as `is_siege_unit`), the unit itself a `0x165` hero, and the count at
 `+0x59c8` (read as `num_units` of the `0x165` type; a queued one untested) rest on the reading. A capture whose `0x165` hero
 stands near a siege engine or a ranged hero, or a frame where who=1's President is queued and not yet born, would test each.
