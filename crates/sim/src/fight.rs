@@ -9350,7 +9350,11 @@ mod tests {
             sim.work(me, 15);
             let kinds: Vec<u8> = sim.units[me].orders.iter().map(|o| o.index()).collect();
             if mandatory {
-                assert_eq!(kinds, [index::MOVE_TO, index::ATTACK], "the chase stands above it");
+                assert_eq!(
+                    kinds,
+                    [index::MOVE_TO, index::ATTACK],
+                    "the chase stands above it"
+                );
                 assert!(sim.units[me].combat.mandatory);
             } else {
                 assert!(

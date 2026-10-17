@@ -2822,6 +2822,64 @@ fn valid_target_on_a_city_at_its_ceiling_is_a_capture_attempt() {
     );
 }
 
+/// **A packed engine unpacks on a city at its ceiling** (item 2864,
+/// `docs/AI.md` §238): `do_attack`'s in-range test is
+/// `fight@005fd4d0:482`'s eight-argument `is_in_range@006486b0`, whose
+/// head asks the slot and never the health, so a city building with
+/// `damage` at `hits` still stands in range and a packed computer siege
+/// engine's mandatory attack unpacks there — run883b's packet on the peace
+/// pair's MLRS `1/95` against `0/2000`, 4500 of 4806. With the health term
+/// the same engine chased a target it already reached.
+#[test]
+fn a_packed_engine_unpacks_on_a_city_at_its_ceiling() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 1, 8, 8);
+    sim.nation[0].human = false;
+    sim.frame = 1000;
+    // An MLRS is a `VEHICLE` and a `WAR_MACHINE`: what keeps a city at its
+    // ceiling a valid target under a mandatory attack.
+    let engine = sim.add_unit_type(UnitType {
+        hits: 100,
+        combat: combat::Profile {
+            attack: 40,
+            obj_masks: combat::mask::VEHICLE | combat::mask::WAR_MACHINE,
+            max_range: 25,
+            packs: true,
+            siege: true,
+            combat_role: true,
+            uber_size: 1,
+            ..combat::Profile::default()
+        },
+        ..UnitType::default()
+    });
+    let u = spawn(&mut sim, 0, engine, tile_pos(38, 32));
+    sim.units[u].combat.packed = true;
+    let city = Obj::Building(b);
+    assert!(sim.capture_eligible(b));
+    assert!(
+        !sim.is_in_range(Obj::Unit(u), city),
+        "the health term refuses it"
+    );
+    assert!(
+        sim.is_in_range_struck(Obj::Unit(u), city),
+        "the slot keeps it"
+    );
+    sim.add_attack_order(u, city, crate::orders::QueuePos::New, true, false);
+    sim.work(u, 15);
+    assert_eq!(
+        sim.order_type(u),
+        crate::orders::index::CAST_SPELL,
+        "the unpack heads the queue: {:?}",
+        sim.units[u].orders
+    );
+}
+
 #[test]
 fn the_turks_assimilate_three_times_faster() {
     let mut sim = world_sim();
