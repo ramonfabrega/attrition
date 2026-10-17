@@ -6751,13 +6751,27 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GE — reserved
+## Parked by item 2927, 2026-10-17 — the hundred-and-twenty-sixth sweep batch: ten swept, the vcall pair and the callers parked
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2927) **Not built, the harvest lane's two named rows, read and left:** `ObjectData::has_general` 0x646b00 (five vtable
+  slots of `this` and of `this+0x18`, the units table by `byte +9`, the leaders table at `+0x56fe`, and
+  `HeroesData::find_hero` with seven stack arguments, every argument of which would have to be recorded) and
+  `UnitData::is_busy` 0x60a370 (order list, slot 0xf4 twice, two types-table slots): each is the table-and-vtat recipe
+  with more than six stubbed callees; the shape lane owns an hour each, or they wait for a generator that names a
+  stub's argument count from the listing.
+- (2927, second) **`Wall::mask_me` 0x642fc0, `BuildData::get_queue` 0x62d280 and `CityData::count_farms` 0x7368c0 sit
+  behind the objects table's slot 0x3c** (a record answered per call, whose fields the function reads at +0x82, +0x88,
+  +0x8c): the shape is `--answer-win` per call with fields biased through the answer, and `get_queue` also needs
+  `LeaderData::get_first_library` answered with its register argument; no batch has built the answer-window-plus-wbias
+  pair, so the first one is a shape lane's item.
+- (2927, third) **The sparse leaders table has an owner byte problem**: `--sparse @VA/ADDR` lays N rows only, so a
+  function that indexes the table by a byte of its object (`has_objmask`, `is_now_seen`) is held to owners below N by a
+  `--wbias` of the owner's word; a generator that drew the byte from `0..N` itself (as `--argrange` does an argument)
+  would not need the word named, and the `m+8` flags-and-owner word is a list of 28 products that the flag file spells.
+- (2927, fourth) **A starved arm, read against the draw (2222):** `Cliffs::set_edge_flags`'s ninth call (three cliffs of
+  three points) is reached in about one row in a thousand, so `a[1 + calls.min(9) - 1]` against `.min(8)` is
+  unobservable at 220 rows; `Doober::inc_time`'s `n >= 0` guard cannot fail with a count drawn from 0..8. Both are
+  named in the journal as equivalents of the draw, not held breaks.
 
 ## Parked by the next landing, slot GF — reserved
 
