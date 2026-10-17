@@ -90,6 +90,8 @@ mod resource_divvy_pool_add_early;
 mod resource_divvy_pool_add_late;
 #[path = "resource_divvy_pool_add_water.rs"]
 mod resource_divvy_pool_add_water;
+#[path = "resource_divvy_pool_done_adding_goods.rs"]
+mod resource_divvy_pool_done_adding_goods;
 #[path = "resource_divvy_pool_get_early.rs"]
 mod resource_divvy_pool_get_early;
 #[path = "resource_divvy_pool_get_late.rs"]
@@ -292,6 +294,8 @@ mod terrain_vis_wcoord_was_cached;
 mod terrain_walk_coord_data;
 #[path = "think_order_get_type.rs"]
 mod think_order_get_type;
+#[path = "time_sync_add_ping.rs"]
+mod time_sync_add_ping;
 #[path = "time_sync_get_best_ping_time.rs"]
 mod time_sync_get_best_ping_time;
 #[path = "time_sync_on_player_deleted.rs"]
