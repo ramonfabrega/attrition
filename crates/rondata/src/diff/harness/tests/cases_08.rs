@@ -575,6 +575,10 @@ mod bodies {
         );
     }
 
+    #[expect(
+        clippy::eq_op,
+        reason = "Preserve the original test assertion relating the captured coordinates to 144"
+    )]
     pub(in super::super) fn run90_s_window_is_east_indies_shuffle() {
         let Some(inst) = install() else { return };
         let (Some(path), Some(sib), Some(tr)) = (

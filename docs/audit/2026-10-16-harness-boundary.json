@@ -52,5 +52,13 @@
   },
   "full_gate": "pending committed-tree validation",
   "scores": "unchanged; no sim or comparison changes",
-  "independent_review": "owed"
+  "independent_review": "owed",
+  "initial_gate": {
+    "commit": "66daa64e000e27e739f606e80b80a246d06c77f5",
+    "exit": 1,
+    "phases_run": 2,
+    "release_tests_ran": false,
+    "cause": "Clippy eq_op on unchanged run90 constant assertion after extraction",
+    "correction": "function-scoped expected lint; assertion unchanged"
+  }
 }

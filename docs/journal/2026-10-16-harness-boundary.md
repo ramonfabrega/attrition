@@ -88,3 +88,14 @@ retained name/fixture evidence; this session does not claim independent review.
 After the full gate, choose the next item from measured admission and runtime
 costs. Finer harness partitions have diminishing returns. Global10× and sub-minute,
 sub-GiB whole-suite operation remain unmet, and are not implied by build savings.
+
+## Initial gate interruption
+
+The complete-gate attempt on `66daa64e` exits1 after two phases: all502 offline
+tests pass (three unchanged skips), then Clippy rejects the original run90
+constant arithmetic equality now located in a helper rather than a `#[test]`
+function. No release tests ran. Add a function-scoped `#[expect(clippy::eq_op)]`
+with the coordinate-check rationale; the assertion and all body bytes remain
+unchanged. This is not combined validation: a complete six-phase gate will run
+again on the correction commit. Original receipts remain at `gate/` and
+`gate.log`; the rerun uses `gate-final/` and `gate-final.log`.
