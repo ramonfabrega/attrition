@@ -9268,17 +9268,6 @@ impl Sim {
             self.kill_current_order(u);
             return;
         };
-        if std::env::var("RON_PROBE_ATK").is_ok_and(|v| v.split(',').any(|w| w == format!("{}/{}", self.units[u].owner, self.units[u].index))) {
-            let ap = self.profile(me);
-            eprintln!(
-                "PROBE_VALID f{} {}/{} const {} eligible {} vehicle {} war_machine {} order {} mandatory {}",
-                self.frame, self.units[u].owner, self.units[u].index,
-                self.valid_target_const(me, target),
-                matches!(target, Obj::Building(b) if self.capture_eligible(b)),
-                ap.has(crate::combat::mask::VEHICLE), ap.has(crate::combat::mask::WAR_MACHINE),
-                self.order_type(u), self.units[u].combat.mandatory
-            );
-        }
         if !self.valid_target(me, target) {
             // `find_new_target`: the order dropped, then
             // `find_melee_target(−1, NULL, 0, 1, 0)`, **whose head is the
