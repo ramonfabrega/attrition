@@ -138,6 +138,8 @@ mod roads_pieces_rot_byte;
 mod roads_road_added;
 #[path = "roads_road_cleared.rs"]
 mod roads_road_cleared;
+#[path = "search_valid_search.rs"]
+mod search_valid_search;
 #[path = "search_walk_data.rs"]
 mod search_walk_data;
 #[path = "setup_build_leader.rs"]
