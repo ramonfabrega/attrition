@@ -218,6 +218,8 @@ mod group_data_member;
 mod group_data_num_valid;
 #[path = "group_data_one_member.rs"]
 mod group_data_one_member;
+#[path = "group_data_play_sound.rs"]
+mod group_data_play_sound;
 #[path = "group_data_valid_target.rs"]
 mod group_data_valid_target;
 #[path = "group_equals_group.rs"]
