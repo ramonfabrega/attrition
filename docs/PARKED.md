@@ -3753,6 +3753,12 @@ line, filed at its merge): four times in one batch, though the keep is said to h
 written by replacing the `todo!()` line, so perhaps the keep wants the generator's own markers. Each re-application
 cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach.
 
+(2796) **A function's sixty flags and its port do not survive a shell line** (2782's "for the Loop" line, filed at its
+merge): the item's driver was a throwaway (`$JOB/tmp/gen.py`, a function's flags one a line in a file and its port in
+another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 KB port do not fit a command. Candidate:
+`sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer (Loop 2792's
+sibling). One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 (2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
@@ -3774,7 +3780,7 @@ suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four l
 Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a shell loop of `--place`s, and
 `kill_tree`'s one stack argument (hidden by the decompile) faulted the first run at the stub page. Candidate: a
 `--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach;
-a second from 2768's "for the Loop" line, filed at its merge: an object list's sixty flags a function (parked 2772). **The thirty-seventh pass**: `--ptrtab LOC:N:SIZE` is 2782's own item (booked, a test made to fail first); the `callee_arity.py ADDR` half stays at one reach — closes at the next pass unreached (DECISIONS 54).
+a second from 2768's "for the Loop" line, filed at its merge: an object list's sixty flags a function (parked 2772). **The thirty-seventh pass**: `--ptrtab LOC:N:SIZE` is 2782's own item (booked, a test made to fail first; **built**, parked 2794); the `callee_arity.py ADDR` half stays at one reach — closes at the next pass unreached (DECISIONS 54).
 
 (2775) **A record array's bias is a `--place` per record, and `--answers` on a table-indexing stub draws wild words**
 (2743's "for the Loop" line, filed at its merge): parked 2747's record-array bias wants one flag, and `--answers`'
@@ -6150,7 +6156,7 @@ was booked as the queue's item at 2780's merge.
 
 ## Parked by item 2782, 2026-10-17 — the pointer-array shape, and the group list's ten
 
-(2782) **`--ptrtab LOC:N:SIZE[:vt]` is built** (a test made to fail first, `test_a_pointer_table_is_one_place_for_the_array_and_one_a_record`;
+(2794) **`--ptrtab LOC:N:SIZE[:vt]` is built** (a test made to fail first, `test_a_pointer_table_is_one_place_for_the_array_and_one_a_record`;
 2772's eight-object group list is one flag, and its output reproduces 2768's `get_num_cap_const` script byte for byte), and ten
 `GroupData` functions fell to it: `has_air_units` 0x70b250, `get_repeat_air` 0x70c0b0, `is_on_map` 0x70c450, `get_auto_explore`
 0x70c1b0, `get_infinite_queue` 0x70c310, `get_form_mod_option` 0x70bd00, `get_form_option` 0x70beb0, `find_leader` 0x70ccb0,
@@ -6165,15 +6171,11 @@ no-call row prints `-`. Not built: `GroupData::group_air` 0x70b160 (a Group argu
 arguments, a passenger chain through `+0x28`/`+0x3e` as `has_air_units`'s, and a record vtable compared with
 `ObjectData::vftable` at `0xb43204` for `ObjectData::is` — every piece built, none yet together).
 
-Of 2782, **equivalent breaks, named**: `has_air_units`'s `break 'list` (the loop continues with the answer already 1, no stub log),
+(2795) **Equivalent breaks, named** (2782): `has_air_units`'s `break 'list` (the loop continues with the answer already 1, no stub log),
 `is_on_map`'s `break` (the same), `get_repeat_air`'s `counts.fill(0)` (the port overwrites both words after; the original's
 zeroing is observable only through the image window it holds, and the port writes the window in full), `get_form_option`'s
 `n > 1` for `n > 0` (the arm is reached only for `n != 1`), `find_leader`'s initial best score `0x12` (the `best < 0 ||` guard
 takes the first match whatever the score).
-
-Of 2782, **for the Loop**: this item's driver was a throwaway (`$JOB/tmp/gen.py`: a function's flags one a line in a file, its port in
-another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 KB port do not survive a shell line; a
-`sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer, is the shape. One reach.
 
 ## Parked by item 2783, 2026-10-17 — the harvest sweep's hundred-and-eighth batch
 
@@ -6227,6 +6229,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FI renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

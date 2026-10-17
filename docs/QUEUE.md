@@ -17,13 +17,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 waiting a landing** against 3.92 / 27.0 — a fifth broken, so **the fourth lane goes** (entry 61 §5); every gate green, no kill rule, one `DEEP`.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 5982 (2780: the scout's fog read takes the Space Program), the open word.
-  Chapter 79 closed (1500), 80 staged (run877) at 1198; 69 built, 70 surveyed. Census 1068 → 1140, `port` 171 → 156. Battery 576 / 6566
+  Chapter 79 closed (1500), 80 staged (run877) at 1198; 69 built, 70 surveyed. Census 1068 → 1162, `port` 171 → 156. Battery 576 / 6566
   / 2974; **when the peace pair closes, the AI word's successor is its lowest lobby** (DECISIONS 72).
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every third landing
   and at the drain; a whole gate refuses a stale `agent-*` worktree (Loop 2724). The sweep's per-function check runs in debug (2787).
 - **Lanes: four, live from `a4ff472f`** (DECISIONS 75: the lane entry 74 took goes back for the trial): 2779 (AI §234,
-  EZ, run 879), 2785 (GOLDEN §103, EX, run 878), 2782 (EV) and 2793 (EY) on the two sweep lanes; 2783 and 2780 landed. Next 2794, run 880 (Astra 900–909). Pools: GOLDEN §104–109, AI §235–239, park FA–FC.
-- **Fable backlog: 11 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792).
+  EZ, run 879), 2785 (GOLDEN §103, EX, run 878), 2797 (FA) and 2793 (EY) on the two sweep lanes; 2783, 2780, 2782 landed. Next 2798, run 880 (Astra 900–909). Pools: GOLDEN §104–109, AI §235–239, park FB–FI.
+- **Fable backlog: 12 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792, 2796).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -32,7 +32,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w5982 of 6,822
-Census: simulation backed 1151 of 3611
+Census: simulation backed 1162 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: ch80 w1198 of 1204 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -58,7 +58,7 @@ four, on the branch's tip), 4080 fixture requests and none missing, admission wa
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2779 the AI word's (Opus), 2785 the rules track's, 2782 and 2793 the
+2779 the AI word's (Opus), 2785 the rules track's, 2797 and 2793 the
 two sweep lanes' (Sonnet) — lower map first — East Indies (Lakota), the
 peace pair's only map. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
@@ -79,12 +79,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `WORLD=6`, `UNITS=3` (parked 2757), then the value diff on `0/7`,
     both directions. GOLDEN §103.
 
-2782. **The sweep's hundred-and-seventh batch: ten never-backed simulation
-    functions, `--ptrtab` first** (DECISIONS 63 (iv); the score
-    `Census:` 1129 of 3611): 2768 swept four `GroupData` lists by sixty
-    hand flags apiece (parked 2772, Loop 2769); a pointer-array shape
-    built with a test made to fail first, then what it and slots ES and
-    ET hold, each checked against `census.py --never`. `--kind sweep`.
+2797. **The sweep's hundred-and-tenth batch: ten never-backed simulation
+    functions, a shape the parked rows name first** (DECISIONS 63 (iv);
+    the score `Census:` 1162 of 3611): `group_air`'s pieces together
+    (2794), then 2791's alias pointer (`check_last_connect`, a `--place`
+    aiming at its own window or a `--link` back) — each shape built with
+    a test made to fail first, then what it and slot EY hold, each
+    checked against `census.py --never`. `--kind sweep`.
 
 2793. **The sweep's hundred-and-ninth batch: ten never-backed simulation
     functions a built shape already holds** (DECISIONS 63 (iv), 73; the
