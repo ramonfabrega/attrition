@@ -547,7 +547,8 @@ class Shapes(unittest.TestCase):
         self.assertEqual(tok(top - 1, []), 'sp-0x1')
         self.assertEqual(tok(top + 0xc, []), 'sp+0xc')
         self.assertEqual(tok(top, []), 'sp+0x0')
-        self.assertEqual(tok(top + 0x100, []), str(top + 0x100))
+        self.assertEqual(tok(top + 0x40, []), str(top + 0x40))
+        self.assertEqual(tok(0x7FFFFFFF, []), '2147483647')  # the integer edge, 0xff over the top
         self.assertEqual(tok(top + 0xc, [('m', top + 0x8, 0x10)]), 'm+0x4')
 
     def test_the_stack_under_the_call_may_be_cleared_each_row(self):

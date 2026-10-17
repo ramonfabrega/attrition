@@ -1536,7 +1536,8 @@ def token(v, spans):
         return f"sp-{{top - v:#x}}"
     # A word at or above it, the caller's own frame (`ebp+0xc` past the function's arguments;
     # item 2921, parked 2918): its height over `esp`, not the harness's stack constant.
-    if top <= v < top + 0x100:
+    # (Only 0x40 of it: the integer edge 0x7FFFFFFF lies 0xff over the top and is no pointer.)
+    if top <= v < top + 0x40:
         return f"sp+{{v - top:#x}}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
