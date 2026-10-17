@@ -1433,6 +1433,79 @@ mod tests {
         );
     }
 
+    /// **The Sniper's target arm** (`SpellTypeData::is_valid_target@006763c0`'s
+    /// `0x281`, item 2971): an enemy's armed land unit; refused unarmed, a
+    /// worker's line aside, and in the air. Made to fail with the armed
+    /// test dropped.
+    #[test]
+    fn sniper_takes_only_an_enemy_s_armed_land_unit() {
+        use crate::combat::Obj;
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        s.spells[usize::try_from(0x281 - spell::FIRST).unwrap()].flags = 0x2 | 0x20;
+        let target = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[filler].ty;
+            u
+        });
+        let t = Obj::Unit(target);
+        s.declare_war(0, 1);
+        assert!(!s.spell_valid_target(0x281, 1, t), "unarmed");
+        let ty = s.units[target].ty.unwrap();
+        s.unit_types[ty].combat.attack = 5;
+        assert!(s.spell_valid_target(0x281, 1, t), "an enemy's soldier");
+        assert!(
+            !s.spell_valid_target(0x281, 0, Obj::Unit(spy)),
+            "no war arm for its own side"
+        );
+    }
+
+    /// **Counterintelligence's target arm** (`0x277`, item 2971): one's own
+    /// is a target only once infiltrated; an enemy's only if it is a Spy.
+    /// Made to fail with the infiltrated test dropped and with the Spy
+    /// test dropped.
+    #[test]
+    fn counterintelligence_takes_an_infiltrated_friend_or_an_enemy_spy() {
+        use crate::combat::Obj;
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        s.spells[usize::try_from(spell::COUNTERINTEL - spell::FIRST).unwrap()].flags =
+            0x2 | 0x10 | 0x20;
+        let friend = Obj::Unit(filler);
+        assert!(
+            !s.spell_valid_target(spell::COUNTERINTEL, 1, friend),
+            "not infiltrated"
+        );
+        s.units[filler].infiltrated = 1;
+        assert!(
+            s.spell_valid_target(spell::COUNTERINTEL, 1, friend),
+            "infiltrated"
+        );
+        let foe_filler = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[filler].ty;
+            u
+        });
+        let foe_spy = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[spy].ty;
+            u
+        });
+        s.declare_war(0, 1);
+        assert!(
+            !s.spell_valid_target(spell::COUNTERINTEL, 1, Obj::Unit(foe_filler)),
+            "an enemy soldier"
+        );
+        assert!(
+            s.spell_valid_target(spell::COUNTERINTEL, 1, Obj::Unit(foe_spy)),
+            "an enemy Spy"
+        );
+    }
+
     /// **Bribe's conversion** (`SpellType::cast_bribe@00672d00`'s unit arm,
     /// `Unit::swap_team@006118d0`, item 2823): a copy is born under the
     /// caster's owner carrying the damage and the facing, the old unit is
