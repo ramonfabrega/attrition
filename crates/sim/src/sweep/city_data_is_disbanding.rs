@@ -44,7 +44,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 // order) and the data's pointed record (`p[12 + o]`) has bit 4 of +0x2c0 clear; it adds slot +0x190's
                 // answer (`a[16..22]`).
                 let (mut n1, mut n2, mut n3) = (0usize, 0usize, 0usize);
-                let mut next = |base: usize, n: &mut usize| {
+                let next = |base: usize, n: &mut usize| {
                     let v = a[base + (*n).min(5)];
                     *n += 1;
                     v
