@@ -476,6 +476,7 @@ promotion requires compilation. The guard requires the public API bridge where
 used, while Rust rejects private access. Regeneration retains ownership.
 The newly extracted corner-tile edit measures14.37→2.47s, CPU16.59→13.98–14.00s,
 sampled build memory1071→400–404MiB; an existing independent sweep edit remains
-2.15s/2.76CPU/229MiB. Full required-fixture validation is pending. See the
+2.15s/2.76CPU/229MiB. Full required-fixture gate passes on `f4e683b6`:
+255.00s/1396.42CPU/8369MiB; all tests and3276 fixture requests retained. See the
 [public-API journal](journal/2026-10-16-public-sweeps.md) and
 [audit](audit/2026-10-16-public-sweeps.json). No whole-suite gain claimed.

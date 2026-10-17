@@ -79,7 +79,8 @@ full required-fixture gate passed on `69e343a3`:262.15s/1443.50CPU/8360MiB,
 all checks and3276 fixture requests retained. See [family journal](journal/2026-10-16-test-families.md).
 Public-API follow-up:196 more unchanged sweeps use the existing four partitions;
 corner-tile edit14.37→2.47s/CPU16.59→14.00s/build memory1071→400–404MiB.
-2586 total names preserved; full gate pending. See [journal](journal/2026-10-16-public-sweeps.md).
+Full gate passed on `f4e683b6`:255.00s/1396.42CPU/8369MiB;2586 sim tests and
+3276 fixture requests preserved. See [journal](journal/2026-10-16-public-sweeps.md).
 Next: observe admission wait versus execution; assess replay compilation boundaries.
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.

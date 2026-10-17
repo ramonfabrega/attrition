@@ -34,5 +34,15 @@
       "sampled_tree_mib": 229
     }
   },
-  "gate": "pending"
+  "gate": {
+    "commit": "f4e683b6",
+    "exit": 0,
+    "wall_seconds": 255.0,
+    "cpu_seconds": 1396.42,
+    "sampled_tree_mib": 8369,
+    "fixture_requests": 3276,
+    "unique_fixtures": 419,
+    "missing_fixtures": 0,
+    "equivalence_receipt": "gate-equivalence.json"
+  }
 }

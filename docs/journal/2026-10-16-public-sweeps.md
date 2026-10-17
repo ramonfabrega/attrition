@@ -70,7 +70,7 @@ Cargo targets. The existing `--lib` limitation remains: use ordinary `cargo test
 Cargo selection of its exact name fails with exit101 and the equality assertion,
 then passes after restoring the exact source (`fault-red.log`,
 `fault-restored.log`). This proves it executes and can fail, rather than passing
-through fixture skipping or zero selected tests. Generator tests:109 pass with1
+through fixture skipping or zero selected tests. Generator tests:109 run with1
 unchanged skip (`tool-tests.log`). Formatting passes. All probe sources restored.
 
 Implementation will be committed before the full required-fixture gate; its
@@ -79,3 +79,33 @@ review remains owed; no merge or commander restart.
 
 Pre-commit guard passed (`guard.log`, exit0,6.47s admitted execution). Formatting,
 diff whitespace, audit JSON and local documentation links pass.
+
+## Frozen committed-tree verdict
+
+Implementation `f4e683b6` was committed before this complete run; no tracked file
+changed while it ran:
+
+```sh
+/usr/bin/time -l zsh tools/memcap.sh 40 python3 tools/release_gate.py /Users/rf-studio/ron-golden/ch80/map-14 --test-threads 4 --require-fixtures --report-dir /tmp/attrition-public-sweeps-20261016-01/gate
+```
+
+Actual exit0 (`gate.exit`), six of six phases passed. Offline498 tests ran with3
+unchanged skips. Sim2586 pass across all five targets,0 ignored/filtered;
+rondata890 pass,6 unchanged ignored,0 filtered; fixed13 and doctests3 pass.
+`compare.py` and `gate-equivalence.json` verify the full workspace test-name
+multiset, no duplicate sim names, unchanged ordered rondata manifest/ignored
+list, and exact3276 fixture requests (419 unique,0 missing). All comparisons
+use the actual newly built executables and recorded fixture requests.
+
+Complete gate255.00s wall/1396.42CPU/8369MiB sampled tree versus the preceding
+262.15s/1443.50CPU/8360MiB. Rondata159.20s/1144.01CPU versus164.91s/1170.41CPU.
+These single full runs show no regression and essentially unchanged peak memory;
+they do not establish a causal whole-suite runtime improvement. The retained
+benefit is the measured edit/rebuild boundary. Scores, pins and compared values
+remain unchanged; whole-suite10× is still unmet. Independent review is owed.
+
+The verdict follow-up changes bookkeeping only; guard, formatting, links, audit
+JSON and diff checks validate it without another full game-data run.
+
+Verdict guard passed (`guard-verdict.log`, exit0). Formatting, local documentation
+links, audit JSON and diff whitespace checks also passed.
