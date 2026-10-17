@@ -5635,7 +5635,32 @@ fn chapter_eighty_nine_s_window_is_widened_whole() {
 }
 
 /// What parts in run890's window, blocks 1100–1500.
-const WANT_CH89: &[&str] = &[];
+const WANT_CH89: &[&str] = &[
+    "1100 0/0 form",
+    "1100 0/1 form",
+    "1100 0/2 form",
+    "1100 0/2000 build:extra",
+    "1100 0/2001 build:extra",
+    "1100 0/2002 build:extra",
+    "1100 0/2003 build:extra",
+    "1100 0/2004 build:extra",
+    "1100 0/2005 build:extra",
+    "1100 0/2006 build:extra",
+    "1100 0/3 form",
+    "1100 0/4 form",
+    "1100 0/5 form",
+    "1100 1/1 form",
+    "1100 1/2 form",
+    "1100 1/2000 build:extra",
+    "1100 1/2001 build:extra",
+    "1100 1/2002 build:extra",
+    "1100 1/2003 build:extra",
+    "1100 1/2004 build:extra",
+    "1100 1/2005 build:extra",
+    "1100 1/3 form",
+    "1100 1/4 form",
+    "1100 1/5 form",
+];
 
 /// What parts in run889's window, blocks 1100–1500.
 const WANT_CH88: &[&str] = &[
