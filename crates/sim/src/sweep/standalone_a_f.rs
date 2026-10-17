@@ -424,6 +424,8 @@ mod command_manager_issue_clear_all;
 mod command_manager_issue_clear_tributes;
 #[path = "command_manager_issue_come_out.rs"]
 mod command_manager_issue_come_out;
+#[path = "command_manager_issue_console_cmd.rs"]
+mod command_manager_issue_console_cmd;
 #[path = "command_manager_issue_declare.rs"]
 mod command_manager_issue_declare;
 #[path = "command_manager_issue_disband.rs"]
