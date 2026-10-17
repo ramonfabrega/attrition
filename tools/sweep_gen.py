@@ -124,6 +124,13 @@ Three shapes, each a `__thiscall` on `ecx`:
           only), laid `a[own + stubs + N0 + N1 + ..]` after the arguments
           and one drawn answer a stub.
 
+          `--alias WIN+OFF:TARGET[+K]` (item 2797, parked 2791): the word at
+          WIN+OFF laid as the address of window TARGET (plus K) half the
+          rows, the other half left as drawn: a pointer that must name
+          another window or its own (`check_last_connect`'s `*q == node`);
+          the port cannot see addresses, so it recovers the target from a
+          pointer array's entry, as that sweep's does.
+
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
           (parked 1889).
@@ -1419,6 +1426,7 @@ WILD = {wild!r}
 ANSWERS = {answers!r}
 VTAT = {vtat!r}
 VTATHALF = {vtathalf!r}
+ALIAS = {alias!r}
 ANSWERWIN = {answerwin!r}
 CDECL = {cdecl!r}
 ARGEQ = {argeq!r}
@@ -1794,6 +1802,13 @@ def main(argv):
             if rng.random() < 0.5:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[off:off + 4] = vt.to_bytes(4, "little")
+        for win, off, tgt, plus in ALIAS:
+            # `--alias`: the word laid as a window's own address (plus K) half the rows, the other half left as
+            # drawn: a pointer that names another window, or its own (item 2797, parked 2791).
+            if rng.random() < 0.5:
+                at_ = this if tgt == "m" else wins[(0 if tgt[0] == "c" else nc) + int(tgt[1:])][0]
+                w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+                w[off:off + 4] = ((at_ + plus) & 0xFFFFFFFF).to_bytes(4, "little")
         for lo, hi, off, size, d, terms in LINKS:
             # A link field (`o_up`, a type's upgrade) of figures p(lo)..p(hi),
             # drawn from the figures on one side of each one's own index or a
@@ -2121,7 +2136,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
                  rows=220, record_order=False, record_edx=False, edx=None, tame=False, stub_write=(), deref=(), ecx_answer=(), ring=(), gtab=()):
     name, va = parse(spec)
@@ -2291,6 +2306,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if not any(k == 'slot' for k, _, _ in pstubs):
             raise ValueError('--vtat-half lays the stubbed vtable: it needs a --stub slot:OFF:N')
         phalf.append((vwin, int(voff, 0)))
+    palias = []
+    for al in alias:
+        loc, colon, tgt = al.partition(':')
+        awin, plus, aoff = loc.partition('+')
+        twin, tplus, toff = tgt.partition('+')
+        if not (colon and plus and re.fullmatch(r'm|c\d+|p\d+', awin) and re.fullmatch(r'm|c\d+|p\d+', twin)):
+            raise ValueError(f'--alias is WIN+OFF:TARGET[+K] over m, cN or pN, not {al!r}')
+        palias.append((awin, int(aoff, 0), twin, int(toff, 0) if tplus else 0))
     pecx = None
     if ecx_int is not None:
         if '..' in ecx_int:
@@ -2331,7 +2354,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or psparse or pgtab or plinks or pout or pcdecl or pwrite):
+            or pseq or pansr or pthis or palso or phalf or palias or psparse or pgtab or plinks or pout or pcdecl or pwrite):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2364,6 +2387,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            and idx not in [i for i, _ in pansw[:k]]]
         + ([f'the stubbed vtable laid at `{vtat}`'] if pvtat else [])
         + [f'the stubbed vtable laid at `{vh}` half the rows' for vh in vtat_half]
+        + [f'the word at `{al.partition(":")[0]}` laid as the address of `{al.partition(":")[2]}` half the rows'
+           for al in alias]
         + (['`__cdecl`: the caller pops the arguments'] if cdecl else [])
         + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
         + [f'stub {idx} answers {n} values in call order' + (f', the last from {t}' if t else '')
@@ -2416,7 +2441,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
-                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
+                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
@@ -3204,6 +3229,10 @@ def main(argv=None):
     ap.add_argument('--vtat-also', action='append', default=[], metavar='WIN+OFF',
                     help='obj: the stubbed vtable laid at this word of window m, cN or pN as well, `this` '
                          'keeping it (a record whose slots the function asks beside its own; item 2217)')
+    ap.add_argument('--alias', action='append', default=[], metavar='WIN+OFF:TARGET[+K]',
+                    help='obj: the word at this window offset laid as the address of window TARGET (plus K) half the '
+                         'rows, the other half left as drawn (a pointer that must name another window, or its own: '
+                         '`check_last_connect`; item 2797, parked 2791)')
     ap.add_argument('--sparse', action='append', default=[], metavar='LOC:STRIDE:N:OFF,SIZE[/OFF,SIZE]',
                     help='obj: LOC points at a zeroed table of N rows STRIDE apart, each row\'s slices `p` '
                          'windows after the pointed buffers and before the places; `@VA` the image\'s own table '
@@ -3388,7 +3417,7 @@ def main(argv=None):
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
-                                                    vtat_half=args.vtat_half, place_null=args.place_null,
+                                                    vtat_half=args.vtat_half, alias=args.alias, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
