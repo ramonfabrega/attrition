@@ -484,6 +484,8 @@ mod type_unpay_cost;
 mod type_walk_rules_data;
 #[path = "type_wonder.rs"]
 mod type_wonder;
+#[path = "types_object_key.rs"]
+mod types_object_key;
 #[path = "types_walk_data.rs"]
 mod types_walk_data;
 #[path = "types_walk_rules_data.rs"]
