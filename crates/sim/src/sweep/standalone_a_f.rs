@@ -438,6 +438,8 @@ mod command_manager_issue_gather_point;
 mod command_manager_issue_guard;
 #[path = "command_manager_issue_halt.rs"]
 mod command_manager_issue_halt;
+#[path = "command_manager_issue_hotkey.rs"]
+mod command_manager_issue_hotkey;
 #[path = "command_manager_issue_launch_patrol.rs"]
 mod command_manager_issue_launch_patrol;
 #[path = "command_manager_issue_move_to.rs"]
