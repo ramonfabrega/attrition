@@ -568,3 +568,7 @@ mod fort_walk_data;
 mod forts_find_fort;
 #[path = "farms_data_get_nearest_farm_type.rs"]
 mod farms_data_get_nearest_farm_type;
+#[path = "build_type_data_count_trees_adjacent.rs"]
+mod build_type_data_count_trees_adjacent;
+#[path = "build_type_data_count_mountains_adjacent.rs"]
+mod build_type_data_count_mountains_adjacent;
