@@ -40,7 +40,45 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            todo!()
+            {
+                // `a`: 0 the DataWalk pointer, 1..=5 the stubs' answers (a[3] what the recycler pops), 6 the value
+                // slot +0 writes through its first argument on every call: `flags` is the dword at this+4, `rolling`
+                // the dword at this+5, and the walked byte is a stack local (only its low byte is read).
+                let v = a[6];
+                let input = rd(&p[0], 4);
+                let ammo = |m: &[u8]| rd(m, 0x68);
+                let mut l0 = vec!["p0+0x0,m+0x4,m+0x5".to_string()];
+                let mut l3 = "-".to_string();
+                let mut l4 = "-".to_string();
+                let l1 = format!("p0+0x0,{}", rd(&c[0], 0x10).wrapping_add(0x9d8));
+                let mut l2 = "-".to_string();
+                wr(m, 4, v);
+                if m[4] & 3 != 0 {
+                    l0.push("p0+0x0,m+0x5,m+0x68".to_string());
+                    wr(m, 5, v);
+                }
+                l0.push("p0+0x0,sp-0x1,sp+0x0".to_string());
+                let local = (v & 0xff) as u8;
+                let _ = ammo(m);
+                if input == 0 {
+                    if local != 0 {
+                        l4 = format!("{},p0+0x0", ammo(m));
+                    }
+                } else if local == 0 {
+                    if ammo(m) != 0 {
+                        l3 = format!("{}", ammo(m).wrapping_add(0x3c));
+                        wr(m, 0x68, 0);
+                    }
+                } else if ammo(m) == 0 {
+                    l2 = "p0+0x0".to_string();
+                    wr(m, 0x68, a[3]);
+                    l4 = format!("{},p0+0x0", a[3]);
+                } else {
+                    l4 = format!("{},p0+0x0", ammo(m));
+                }
+                log.extend([l0.join("/"), l1, l2, l3, l4]);
+                0
+            }
         };
         let _ = (got, want_eax);
         assert_eq!(log, want_log, "walk_data — the recorded calls, row `{line}`");
