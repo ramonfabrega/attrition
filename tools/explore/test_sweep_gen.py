@@ -530,6 +530,26 @@ class Shapes(unittest.TestCase):
         ns['copy_answer'](None, rd_, wr_, 2)(0, [0x20, 0x10, 4])
         self.assertEqual(bytes(mem[0x20:0x24]), b'ab\0\0')
 
+    def test_a_pointer_into_the_callers_argument_slots_is_sp_plus(self):
+        # Item 2921 (parked 2918): `walk_data` hands a stub `&flag` (a local, `sp-0x1`) and
+        # `ebp+0xc`, its own argument slot, which printed as the harness's raw stack
+        # constant (2147483392). A record token for a word above the held `esp`
+        # is `sp+0xN`, N bytes above it, so a port spells the slot and not the constant.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2921, win=0x40, bias=[], own=1, ret='none',
+            stubs=['0x402000:2'], record=['0'])
+        compile(script, str(sp), 'exec')
+        src = script[script.index('def token('):]
+        ns = {'STACK_BASE': 0x20000000, 'STACK_SIZE': 0x100000}
+        exec(src[:src.index('\n\n\n')], ns)
+        top = 0x20000000 + 0x100000 - 0x100
+        tok = ns['token']
+        self.assertEqual(tok(top - 1, []), 'sp-0x1')
+        self.assertEqual(tok(top + 0xc, []), 'sp+0xc')
+        self.assertEqual(tok(top, []), 'sp+0x0')
+        self.assertEqual(tok(top + 0x100, []), str(top + 0x100))
+        self.assertEqual(tok(top + 0xc, [('m', top + 0x8, 0x10)]), 'm+0x4')
+
     def test_a_stub_may_decrement_a_window_word_each_call(self):
         # Item 2749 (parked 2734): `PathFinder::kill_lists` and `Build::verify_gather_tiles`
         # loop on a count a callee (`remove_current`, `Array::remove`) lowers by

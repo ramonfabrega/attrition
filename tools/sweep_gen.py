@@ -1521,7 +1521,8 @@ def u8(w, off):
 
 def token(v, spans):
     """A recorded value: a pointer into a window by the window's name and
-    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), anything
+    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), a word of the
+    caller's frame by its height (`sp+0xc`), anything
     else as a signed word (item 2281)."""
     v &= 0xFFFFFFFF
     for name, at, size in spans:
@@ -1532,6 +1533,10 @@ def token(v, spans):
     top = STACK_BASE + STACK_SIZE - 0x100
     if top - 0x1000 <= v < top:
         return f"sp-{{top - v:#x}}"
+    # A word at or above it, the caller's own frame (`ebp+0xc` past the function's arguments;
+    # item 2921, parked 2918): its height over `esp`, not the harness's stack constant.
+    if top <= v < top + 0x100:
+        return f"sp+{{v - top:#x}}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
