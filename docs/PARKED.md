@@ -3752,6 +3752,12 @@ predictions, a test made to fail first. One reach.
 its merge): a probe printing the head's cost, bucket and escrow answered 576 in one run, and each AI item adds it again.
 Candidate: an env-guarded `RON_DEBUG_MAKE=<frame>` print in `make_stuff`, a test made to fail first. One reach.
 
+(2958) **The `process_*` ports are written from a one-line spec by a scratch script** (2953's "for the Loop" line and
+second parked row, filed at its merge): the log + say + action shape is a dozen functions deep (templates
+`command_package_process_demand_tribute.rs`, `_patrol.rs`), and each port is a hand step. Candidate: a `sweep_gen.py obj`
+flag taking the spec (logToMemory address and arity, line, say offset, say/action argument expressions), a test made to
+fail first. One reach.
+
 (2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
 and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
 `archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
@@ -6851,17 +6857,14 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2953, 2026-10-17 — the hundred-and-twenty-ninth sweep batch
 
-- **(2953, first) The remaining `CommandPackage::process_*` bodies are not the three shapes.** `process_reject` and
+- (2957) **The remaining `CommandPackage::process_*` bodies are not the three shapes.** `process_reject` and
   `process_come_out` branch on a leader-table / unit-table field before the action (`leader+0x692c + whom*0x5c == 1` picks
   `action_respond(.., 0)` or `(.., 2)`; `come_out` tests `unit->flags & 1` and `uid == unit+0x30`); `process_cannon_time` logs a
   `unsigned_char&` and calls `TurnControl::start_cannon_time` with a game byte; `process_begin` calls a *virtual* slot 0x14 of
   the group record; the rest (`cheat_init_unit`, `cheat_ai_speed_increase`, `queue_up`, `form`, `rename_city`, `mp_log`,
   `flight`, `ping`, `gather*`, `build`, `repair`, `garrison`, `board_ship`, …) were not read. Each wants a window for the
   table it tests (`--cell-win`/`--at`) and its own port arm: a later shape item, not a flag in this batch.
-- **(2953, second) Tooling that paid for itself.** The ten ports here were written by a scratch script from a one-line spec
-  per function (logToMemory address and arity, line, say offset, say/action argument expressions); its template is
-  `command_package_process_demand_tribute.rs` (leader table) and `_patrol.rs` (group, no frame in the say). A flag on
-  `sweep_gen.py obj` taking that spec would remove the hand step; Loop candidate, not built.
+- Its second row, the hand-written ports' spec, is Loop 2958.
 
 ## Parked by the next landing, slot GL — reserved
 
