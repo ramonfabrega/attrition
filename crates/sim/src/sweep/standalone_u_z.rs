@@ -324,6 +324,8 @@ mod wall_data_los;
 mod wall_data_support_cost;
 #[path = "wall_data_valid_buildmask.rs"]
 mod wall_data_valid_buildmask;
+#[path = "wall_data_walk_data_vt.rs"]
+mod wall_data_walk_data_vt;
 #[path = "wall_die.rs"]
 mod wall_die;
 #[path = "wall_is_active.rs"]
