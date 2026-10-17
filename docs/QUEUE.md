@@ -12,19 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-ninth tranche (commander, Opus): 5 landings from `31eb3a05`** (2876, 2863, 2877, 2881,
-2887); four lanes live; the pass's record `docs/audit/2026-10-17-fable-pass-38.md`; last whole gate `2b6eed51`.*
+*2026-10-17, **the thirty-ninth tranche (commander, Opus): 7 landings from `31eb3a05`** (2876, 2863, 2877, 2881,
+2887, 2864, 2893); four lanes live; the pass's record `docs/audit/2026-10-17-fable-pass-38.md`; last whole gate `2b6eed51`.*
 
-- **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 6821 (2780, 2779, 2808, 2825,
-  2845), one frame before the game's end — **2864 runs 883 through the closing 6823 and scores the closing state** (55);
-  when it closes, the AI word's successor is its lowest lobby (72). Chapters 80–86 closed or built (86 by 2876, run884,
-  to 1300); 87's re-target built (2881, `WANT_CH85` 31 → 12), its sight arm is 2895. Census 1238 of 3611 (2863,
-  2877; the pass subtracted nine through stubbed callees); `port` 156; `--unbacked` hides 235 `ui` bodies (Loop 2819),
-  lists six bare citations. Battery 576 / 6566 / 2974.
-- **Lanes: four, live** (DECISIONS 75, 76; the roster is Ramon's, 71): 2864 the AI word's (Opus 5.5 medium), 2895 the
-  rules track's, 2900 and 2893 the sweep lanes' (Sonnet 5.5 medium); the fifth lane 61 §5 would add is Ramon's (76).
-  Next 2901, run 886 (Astra 900–909). Pools: GOLDEN §112–117, AI §239–243, park GA–GE free (FR, FX, FY, FZ live).
-- **Fable backlog: 10 Loop items** (1570, 1725, 2003, 2654, 2809, 2882, 2886, 2892, 2896, 2899).
+- **Words**: **the peace pair closed** (East Indies, the Lakota, ends 6822): 6821 → 6822 by 2864 (run883, `find_attack_pos`
+  never kills the mandatory attack), its closing state scored with no unit apart; every pair is closed now. The AI word
+  moves to the battery's lowest lobby, `EastIndiesGermanTier3` 576 of 13519 (DECISIONS 72), as 2904. Chapters 80–86
+  closed or built; 87's re-target built (2881, `WANT_CH85` 31 → 12), its sight arm 2895. Census 1247 of 3611 (2863,
+  2877, 2893); `port` 156; `--unbacked` hides 235 `ui` bodies, lists six bare citations. Battery 576 / 6566 / 2974.
+- **Lanes: four, live** (DECISIONS 75, 76; the roster is Ramon's, 71): 2904 the AI word's (Opus 5.5 medium), 2895 the
+  rules track's, 2900 and 2910 the sweep lanes' (Sonnet 5.5 medium); the fifth lane 61 §5 would add is Ramon's (76).
+  Next 2911, run 889 (Astra 900–909). Pools: GOLDEN §112–117, AI §240–243, park GC–GE free (FY, FZ, GA, GB live).
+- **Fable backlog: 11 Loop items** (1570, 1725, 2003, 2654, 2809, 2882, 2886, 2892, 2896, 2899, 2903).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -32,8 +31,8 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
-Peace pair: EastIndiesLakotaPeace w6821 of 6,822
-Census: simulation backed 1238 of 3611
+Peace pair: EastIndiesLakotaPeace w6822 of 6,822
+Census: simulation backed 1247 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,18 +45,18 @@ twenty with the handoff written, the whole gate green, the lanes drained, and `c
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2864 the AI word's (Opus), 2895 the rules track's, 2900 and 2893 the
-two sweep lanes' (Sonnet) — lower map first — East Indies (Lakota), the
-peace pair's only map. Take the first unstarted item unless a better
+2904 the AI word's (Opus), 2895 the rules track's, 2900 and 2910 the
+two sweep lanes' (Sonnet). The peace pair is closed — lower map first — closed: 2904 promotes the battery's East Indies
+(German). Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-2864. **The peace pair's word 6821: ours 17 draws, theirs 23, index 3**
-    (2845; theirs `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`;
-    nearest lead `1/124`'s `attack[0].mandatory`, ours 0, theirs 1), one
-    frame before the game's end. 6821 is run882's last block, so run 883
-    first: run882's recipe through 6822 and the closing 6823, the closing
-    state scored (DECISIONS 55); then every record on 6821, both
-    directions, `WIDENINGS` naming it. Unstarted: booked at the drain. AI §238.
+2904. **The AI word moves to the battery's lowest lobby,
+    `EastIndiesGermanTier3`, 576 of 13519** (DECISIONS 72; the peace
+    pair closed at its end, 6822, 2864): the lobby promoted — an
+    `AI_WORDS` row, `SCORED_LOBBIES`, `BATTERY`, `NEWEST_PAIR` re-pinned
+    (the queue's lines the commander's) — then the widening on 576 off
+    run643, or run 886 sized to it; a fourth held-out lobby minted beside
+    the battery (runs 887–888) so three stay held out. Unstarted. AI §239.
 
 2895. **Chapter eighty-seven's second arm: a Bribe on a target outside
     the caster's owner's sight** (DECISIONS 56 §3; 2881 built
@@ -76,13 +75,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `--link-hi` (2889, `find_goody_at`), `--place-null K:WORD=0` (Loop
     2899), each with a test made to fail first, then those functions. Unstarted. `--kind sweep`.
 
-2893. **The sweep's hundred-and-twenty-second batch: ten never-backed
+2910. **The sweep's hundred-and-twenty-fourth batch: ten never-backed
     simulation functions a built shape holds** (DECISIONS 63 (iv), 73;
-    the score `Census:` 1238 of 3611): off the base's `census.py
-    --unbacked` re-read at each `ccc update`, its `ui` bodies hidden,
-    each generated by `sweep_gen.py` as it stands; a function no built
-    shape holds parks for the shape lane (2888, 2889 are its). The two
-    sweep lanes share `census.rs`'s pin. Unstarted. `--kind sweep`.
+    the score `Census:` 1247 of 3611): off the base's `census.py
+    --unbacked` re-read at each `ccc update`, each generated by
+    `sweep_gen.py` as it stands; a function no built shape holds parks
+    for the shape lane (2905, 2906 are its; 2909's vcall family is
+    yours if an hour each fits). Unstarted. `--kind sweep`.
 
 ## How to maintain this file
 

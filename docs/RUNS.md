@@ -17347,6 +17347,35 @@ RON_STATE_FRAME=6808 --tracer-def RON_STATE_PLAN=<item 597's plan.h>`, pool lane
 who=1's Rocket Artillery `1/63` carries the same `MOVEORDER` (6648, 12408) on both sides; the draw delta is its ring, 15
 candidates against 11. With item 2845's held-clear bit, 248 keys remain. The window is in the coverage driver's slice, and its
 walk reads 2341 heights at inexact corners.
+## run883 — the peace pair: the word 6821's widening and the game's close, blocks 6815..6823, and its packet run883b (2026-10-17, item 2864, `att-2864`)
+
+`docs/AI.md` §238. **What the disk could not answer**: run882's window ends at 6821 (its `6802 6822` is end-exclusive), so no
+dump held the word's block 6822 nor the closing 6823. This is run882's recipe with `--log-window 6815 6823 --end-frame 6823
+--allow-early-end`, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run883 --map 18 --timeout 7200 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- Pool lane 1: `success`, `settings_restored`, 6823 frames, the last 6822 with `ended_early` true (the game's own end), 81 s
+  from launch to exit.
+- Nine `BEGIN FRAME`s: 6815..6822 and the closing block 6823.
+- `rngcmp.py` against run847: **6823 of 6823 identical**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run883-eastindies-lakota-peace-window-6815-6823.txt`, 21,395,696 bytes,
+SHA-256 `0d98353d7925fdabe24d82912a4d19505c25e93cdb5b35fe1db4f839f96811a5`.
+
+Archive `rontrace-run883.log`, 282,454,880 bytes,
+SHA-256 `4d93fe8c4310e4bb75e22b826e322bcf799569c4ac3fb646eb57901c3c443cf5`.
+
+**run883b, the packet**: the same lobby at `--end-frame 6823 --allow-early-end --timeout 3600 --log-window 6820 6823 --detail
+end:UNITS=3,BUILDS=7 --tracer-def RON_STATE_FRAME=6821 --tracer-def RON_STATE_PLAN=<item 597's plan.h>`, pool lane 1:
+`success`. The disk could not answer what theirs' `fight` does with `1/124`'s attack after the packer arm, nor `is_in_range` on
+`1/95`. Kept as `~/ron-golden/run883b/map-18/frame-snapshot.bin`, 974,144,256 bytes, SHA-256
+`ce758e9102b1b473df4fca25877ea5442ee5bb750b47d96dfbe6d92c5e85df97`.
+
+**What it holds**: `diff::lakota_pair::run883_s_closing_frame_is_widened_whole` (260 keys as captured, 246 after item 2864) and
+`run883_lakota_pair_closing_state` (frame 6822, 286 units, no position or order apart). The window is in the coverage driver's
+slice; its walk reads 2341 heights at inexact corners.
+
 ## run880 — chapter eighty-five: the cloaked Spy's Bribe (2026-10-17, item 2832, `att-2832`)
 
 `docs/GOLDEN.md` §108. **What the disk could not answer**: no capture holds a Spy's Bribe (the `CASTORDER` 629 on a unit, the

@@ -7177,6 +7177,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run881_s_word_frame_is_widened_whole", 2335),
     // And run882 (item 2845): the word 6808's window, 2341 reads.
     ("run882_s_word_frame_is_widened_whole", 2341),
+    // And run883 (item 2864): the word 6821's window and the closing
+    // block, 2341 reads; its closing state walks the same.
+    ("run883_s_closing_frame_is_widened_whole", 2341),
+    ("run883_lakota_pair_closing_state", 2341),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -9480,13 +9484,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `0x800000`, in the same window (block 6822 is not captured: run882
     // ends at 6821 and the closing 6823); run882's test keeps 6808's
     // value diff (block 6809, `1/63`'s ring), and 6821's widening is
-    // owed by item 2864.
+    // owed by item 2864. **Item 2864 widened 6821 on run883 over 6815..6823
+    // (block 6822, on to the closing block 6823) and moved it 6821 →
+    // 6822, the game's last frame**, with the MLRS' army shortcut, the
+    // mandatory chase and `fight:482`'s slot test: the draw stream agrees
+    // to the end, and the closing state is scored by
+    // `run883_lakota_pair_closing_state`.
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        None,
+        Some("run883_s_closing_frame_is_widened_whole"),
         2864,
-        None,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_CLOSING),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -9808,7 +9817,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (Lakota)",
         word: crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
         length: 6_822,
-        endpoint: None,
+        // Closed by item 2864: the draw stream agrees to 6822, and run883's
+        // closing block scores the end itself.
+        endpoint: Some("run883_lakota_pair_closing_state"),
         window: Some("lakota_frame_4859_window"),
     },
     // **The successor pair** (DECISIONS 53 §2, 61 §6; item 1728): East

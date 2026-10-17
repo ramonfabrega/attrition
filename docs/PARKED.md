@@ -3753,7 +3753,8 @@ both; an unmapped read under a sweep faults with its address. One reach.
 (2892) **The generated `.rs` header does not say how `--sparse` and `--place` number the `p` windows** (2877's "for the
 Loop" line, filed at its merge): sparse windows come first, so a `--wbias p0+*` meant for the first place biased a sparse
 byte and the run looked healthy until a break survived (parked 2890); two reruns. Candidate: the generated doc comment lists
-the windows in order (`p0..p3 sparse, p4 place`), a test made to fail first. One reach.
+the windows in order (`p0..p3 sparse, p4 place`), a test made to fail first. One reach. **A second reach** (2893's "for the
+Loop" line, filed at its merge): `--sparse` makes one `p` window a *slice*, not a row (parked 2907), and two reruns again.
 
 (2896) **`unitat.py` re-scans the whole dump per unit** (2881's "for the Loop" line, filed at its merge): about 6 s a unit on
 run880's 1.2 GB dump, over 100 s for a cast of eighteen. Candidate: `--units a,b,c` reads the dump once, a test that counts
@@ -3762,6 +3763,11 @@ the reads made to fail first. One reach.
 (2899) **`--place-null` cannot force a guard word on a null row** (2887's "for the Loop" line, filed at its merge): a
 `--place-null K:WORD=0` that zeroes a named word on K's null rows would reach `replace_form_id`'s `0xdc == 0, 0xd8 != 0` arm
 without the `m+0xcc` wbias (parked 2885, 2898). Candidate: that flag, a test made to fail first. One reach.
+
+(2903) **A packet's `--hook` on a caller's return address reads a value no dump prints** (2864's "for the Loop" line,
+filed at its merge): two hooks on `5fe050` and `648876` turned "theirs re-adds a mandatory attack, somehow" into "theirs
+never killed it" in one run. Candidate: a brief-checklist row for the residue kind — a value question the dump cannot
+answer takes a packet hooked at the caller's return before a reading. One reach.
 
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
@@ -4384,7 +4390,8 @@ cast. No packet.
 landing. Made `struck` for every caller, the coverage pair parts at **3142** (4730 before; ours 21 draws, theirs 20, index 3: `1/59`'s
 `Guy::move` roll in ours), so some reader of the range test leans on the health term — a ceiling city that an attack's in-range check
 should keep in range, and something of ours that drops it otherwise. Names no frame on an open word; the `near_o` arm asks
-`is_in_range_struck` alone.
+`is_in_range_struck` alone. **Item 2864** (`docs/AI.md` §238) made `do_attack`'s call site (`fight:482`) `struck` too, on run883b's
+packet; the coverage pair held at 4730. Every other caller keeps the health term.
 
 ## Parked by item 2055, 2026-10-13 — the order ring's bottom, and Great Sahara's close
 
@@ -6541,13 +6548,17 @@ walked through its own words, vslots 0x10c and 0x94 on the node's object). A sha
 (2872) **`sweep_gen.py obj` gaps**: the `void` shape ignores `--cell-win` and `--stub` (`Player::end_game` used `obj --ret none`); `--write-mod` is not always run by the generator (`TerrainOil::remove_rocky_patch`'s `mod` line was added by hand); `--place` into a record with a count at `-4` wants EXPR `-4`, undocumented.
 (2873) **Equivalent mutants**: `GuyData::get_render_angle` `>=` for `>` at `0x80000000` and `<=` at `-2^31` are equivalent (f32 rounding / `as i32` saturation).
 
-## Parked by the next landing, slot FR — reserved
+## Parked by item 2864, 2026-10-17 — the peace pair's close
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2901) **`find_nearby_target`'s find is mandatory for a computer siege engine that finds a city** (2864, `docs/AI.md` §238):
+`find_nearby_target:495`–`541` (listing `649926`–`649a3d`). The final add's `mandatory` is `[ebp+8]`, set 0 at `64992a` and 1 at
+`649a2d` when the searcher is listed by its group, is siege (vslot `+0x10c`), is computer-driven (`0x40000`), and its find is a
+building whose `flags & 0x20` (a city, `docs/CITIES.md` §1.2); beside it the army takes the find as its target and the
+searcher's cell as its muster (`+0x48/+0x4c`, angle `+0x50`). Ours' `nearby_add` passes false. No open word names it: the peace
+pair closed without it.
+
+(2902) **`1/106`'s `cavarch_o` on 6822** (2864): the Armored Cavalry's fire-on-the-move target on the peace pair's closing block,
+ours −1, theirs 2000, with no draw and no order — the one row of run883's block 6822 after item 2864.
 
 ## Parked by item 2876, 2026-10-17 — chapter eighty-six: the Bribe's control that reaches range
 
@@ -6626,13 +6637,32 @@ target that stays outside its owner's fog, and the review's `is_seen` gate is th
 
 (2898) **`--place-null K` past the first place was not a generator gap.** K indexes the places on the line from 0 and the draw tests `k in NULLS`; `replace_form_id` already runs `--place-null 0,3,4,5`. What 2885 reports is a *correlation*, not an index: a null `m+0xdc` with a live `m+0xcc` crashes the original, so `m+0xcc` is forced 0 and the arm `0xdc == 0 && 0xd8 != 0` is reached only with `cc == 0`. A place-null that also forces another word on its null rows (`--place-null K:WORD=0`) is the shape the arm wants; not built.
 
-## Parked by the next landing, slot FX — reserved
+## Parked by item 2893, 2026-10-17 — the hundred-and-twenty-second sweep batch (harvest)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2905) **The `process_*` family logs through an imported `strrchr`.** `CommandPackage::process_halt` 0x949140,
+  `process_pause` 0x944160 and the rest of the family open with `call esi` on the IAT word at 0xac543c (`strrchr`), then
+  `SyncLogger::logToMemory` 0x463820, `Log::say`, and writes to `game_log.current_type`/`current_detail` (0xeb13a8/ac).
+  `callfn.py` resolves no import, so the call faults; a direct callee can be stubbed by address (`--stub ADDR:N`) but not
+  an indirect one through a register. A generator flag naming an IAT word as a stubbed callee (answer 0 / pointer) would
+  open the family (each is the log, then one `Group::action_*` or a `TurnControl` call). Shape lane.
+- (2906) **`memcpy`/`memcmp` are import thunks (`jmp [0xac5428]`), so a stub of one cannot copy.**
+  `CommandManager::issue_rename_city` 0x9411d0 was built with the thunk stubbed (`--stub 0x55e0ac:3 --stub-cdecl 2`) and
+  the command buffer's first nine bytes held; the copied string and its terminating NUL are not observed. A `--stub-copy
+  IDX` (a stubbed cdecl callee that copies arg 2 bytes from arg 1 to arg 0 before it returns) would put them under the
+  deref. Shape lane.
+- (2907) **`--sparse`'s windows are one a *slice*, not one a row.** Four rows with two slices (`8,4/0x74,16`) are
+  eight `p` windows, `p(2k)` the first slice of row k and `p(2k+1)` the second; the generated header says "`p` windows
+  after the pointed buffers, before the places" and not the count. `check_enemy_adjacent` took two reruns. A line in the
+  doc comment (`p0..p7 sparse, p8 place`) names them (the 2877 journal's Loop line asks the same of `--place`).
+- (2908) **A stub's unlisted answers still take a column.** `--answers` names the stubs that draw from a list; the
+  others take a drawn word each in the row (rename_city's row carries three), which the port ignores but a reader of the
+  row counts. Not a defect; the header could list "stubs 1..3 draw an unused word".
+- (2909) **Unread, a vcall-chain family on the objects table:** `ObjectData::has_general` 0x646b00 and
+  `ObjectData::cargo_inside` 0x64dcd0 (a loop through `objects`/`units` tables with vtable slots 0xbc, 8), and
+  `UnitData::is_busy` 0x60a370 (order list, slot 0xf4 twice, two types-table slots, `is_entering_or_exiting`): each built
+  shape holds the table-and-vtat recipe (`ArmyData::select`, `FarmsData::get_nearest_farm_type`) but the stubbed
+  callees number five or six; a worker with an hour each. `Map::scale_land_area` 0x68b1e0 reads `edx` as a float
+  (`extraout_EDX` after `get_player_overage`) and a float `div`; not a sim-integer function to port by this recipe.
 
 ## Parked by the next landing, slot FY — reserved
 
