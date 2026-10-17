@@ -244,6 +244,10 @@ mod group_data_one_member;
 mod group_data_play_sound;
 #[path = "group_data_valid_target.rs"]
 mod group_data_valid_target;
+#[path = "group_dbg_jump_to_action.rs"]
+mod group_dbg_jump_to_action;
+#[path = "group_dbg_jump_to_waypoint.rs"]
+mod group_dbg_jump_to_waypoint;
 #[path = "group_equals_group.rs"]
 mod group_equals_group;
 #[path = "group_find_role.rs"]
