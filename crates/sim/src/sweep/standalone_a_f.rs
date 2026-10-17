@@ -556,6 +556,10 @@ mod command_package_process_recall;
 mod command_package_process_resign;
 #[path = "command_package_process_scramble.rs"]
 mod command_package_process_scramble;
+#[path = "command_package_process_speed_down.rs"]
+mod command_package_process_speed_down;
+#[path = "command_package_process_speed_up.rs"]
+mod command_package_process_speed_up;
 #[path = "command_package_process_stop_spell.rs"]
 mod command_package_process_stop_spell;
 #[path = "command_package_process_treaty.rs"]
