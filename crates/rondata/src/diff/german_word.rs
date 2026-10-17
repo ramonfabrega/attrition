@@ -35,9 +35,16 @@ pub(crate) const GERMAN: Lobby = Lobby {
     // timber bucket 64 on both (ours 58, two short of the Village's 60), and
     // ours' one site round buys the Village `1/2007` theirs does. At 5577
     // ours 8 draws, theirs 6, index 1: ours `Leader::use_market+0x1ed`,
-    // theirs `Leader::make_stuff+0x221` (`docs/AI.md` §240).
-    count: 5577,
-    sequence: 5577,
+    // theirs `Leader::make_stuff+0x221` (`docs/AI.md` §240). **Item 2956
+    // moved it 5577 → 6585** with `blocked_site`'s unseen tally: the 3975
+    // sweep's Town site at (47, 24), 29 of its 49 footprint tiles unseen,
+    // is refused `0x24` on both sides now (run893b's packet), so who=1's
+    // `SITE[8]` on block 3976 is (42, 53) val 32 on both (ours (47, 24) val
+    // 293333 before) and the third Village offer of 5578 is gone. At 6585
+    // ours 6 draws, theirs 5, index 1: ours `Leader::use_market+0x1ed`,
+    // theirs `Leader::make_stuff+0x221` (`docs/AI.md` §241).
+    count: 6585,
+    sequence: 6585,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -199,7 +206,7 @@ fn run891_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 302, "initial run891 baseline");
+    pin_eq!(w.firsts.len(), 36, "initial run891 baseline");
     // Item 2931: 302 keys part on blocks 5571..5827, the word's own block
     // being 5578 (frame 5577: ours 8 draws, theirs 6, index 1 — ours
     // `Leader::use_market+0x1ed` ×2 and `Leader::make_stuff+0x221` ×3,
@@ -213,4 +220,118 @@ fn run891_s_word_frame_is_widened_whole() {
     // `SITE[2..4]` shift by one. 46 stand on 5571: those rows, the
     // control's `SITE[n].reg`, `form`, groups' `held` and the pool, and
     // both leaders' `aggression` 0/1 (`docs/AI.md` §240).
+    //
+    // **Item 2956: 302 → 36**, with `blocked_site`'s unseen tally. The
+    // word's value diff, block 5578: who=1's make list holds two Village
+    // offers on both sides, `MAKE[0]` val 286098 at (46, 27) and `MAKE[1]`
+    // 11400 at (51, 30) (ours (47, 24) val 664398 first before), and on
+    // 5571 its `SITE[6..9]` agree — (44, 52) val 299, (49, 31) and (51, 30)
+    // val 1824, (46, 27) val 269472 (ours (47, 24) val 330000 before). What
+    // stands is the control's set on 5571 (`SITE[n].reg` 65/0 on the empty
+    // slots, `form`, groups' `held`, the pool, both leaders' `aggression`
+    // 0/1) and two pools' `held` rows on 5622 and 5734. The word moved to
+    // 6585, past the window's last block (5827); its widening is run893c's
+    // (`docs/AI.md` §241).
+}
+
+/// run893: the site table's walk-back, blocks 3770..4177 at the long's
+/// detail (item 2956) — the 3775, 3975 and 4175 sweeps; run886 ends on
+/// block 826 and run891 starts on 5571.
+pub(crate) const RUN893: &str = "gamelog-run893-eastindies-german-diff3-window-3770-4178.txt";
+
+/// The window: block 3770 through 4177; the sweep 3975's block is 3976.
+pub(crate) const WIDENING_GERMAN_SITES_3975: (i64, i64) = (3770, 4177);
+
+pub(crate) fn german_sites_3975_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GERMAN.start],
+        true,
+        GERMAN.long,
+        "run893",
+        &[(RUN893, WIDENING_GERMAN_SITES_3975.0)],
+        WIDENING_GERMAN_SITES_3975,
+        1,
+        &[3976],
+        true,
+    )
+}
+
+#[test]
+fn run893_s_site_sweep_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_sites_3975_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 408, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 37, "initial run893 baseline");
+    // Item 2956: the site table's walk-back. Before the build 62 keys
+    // parted, the first not standing on block 3976: who=1's `SITE[8]` (47,
+    // 24) val 293333 reg 5 in ours against (42, 53) val 32 reg 11, the
+    // 3975 sweep's sample that theirs refuses — `blocked_site` returns
+    // `0x24` for the Town's footprint there, 29 of 49 tiles unseen (run893b's
+    // packet, `compute_site_stats@006cd040` leaving at `006cd4a5`). With
+    // the tally, 37: the control's standing set from 3770 (`SITE[n].reg`
+    // 65/0 on the empty slots, `form`, groups' `held`, the pool, both
+    // leaders' `aggression` 0/1) and who=1's `SITE[5].reg` on 3776, a
+    // group's `held` on 3777 and two pools on 3795 and 3862, every one of
+    // the same standing kinds (`docs/AI.md` §241).
+}
+
+/// run893c: the word 6585's window, blocks 6579..6836 at the long's detail
+/// (item 2956); run891 ends on block 5827.
+pub(crate) const RUN893C: &str = "gamelog-run893c-eastindies-german-diff3-window-6579-6837.txt";
+
+/// The window: block 6579 through 6836; the word 6585's own block is 6586.
+pub(crate) const WIDENING_GERMAN_FRAME_6585: (i64, i64) = (6579, 6836);
+
+pub(crate) fn german_frame_6585_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GERMAN.start],
+        true,
+        GERMAN.long,
+        "run893c",
+        &[(RUN893C, WIDENING_GERMAN_FRAME_6585.0)],
+        WIDENING_GERMAN_FRAME_6585,
+        1,
+        &[6586],
+        true,
+    )
+}
+
+#[test]
+fn run893c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_frame_6585_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 258, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 436, "initial run893c baseline");
+    // Item 2956: 436 keys part on blocks 6579..6836, the word's own block
+    // being 6586 (frame 6585: ours 6 draws, theirs 5, index 1 — ours
+    // `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`). The
+    // state parts before the word: on 6581 who=1's make list heads with
+    // type 340 in ours against 334 in theirs (`MAKE[1..3]` shifted by
+    // one, `MAKE[3].num` 5/1); on 6583 its queue `1/2010` holds type
+    // 340 against 334 (`cost` 40/15 and 42/31, `good[1]` 4/2), the
+    // `num_queued` rows 290/284 follow, and the buckets part (timber 4/29,
+    // wealth 39/8, metal 136/178). Standing on 6579: the control's set
+    // (`SITE[n].reg` 65/0 on the empty slots, `form`, groups' `held`, the
+    // pool, both leaders' `aggression` 0/1) and `g.angle[0]` on who=1's
+    // `1/23`, `1/24`, `1/27`, `1/34`, `1/35` (1431655765 against 0); from
+    // 6587 `0/3`'s move (`orders_x` 5688/5880) and the rest downstream
+    // (`docs/AI.md` §241).
 }

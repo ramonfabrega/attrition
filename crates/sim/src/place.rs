@@ -441,6 +441,10 @@ impl Sim {
             }
         }
         let mut first = Blocked::Clear;
+        // The unseen tally: the footprint tiles whose fog half-cell
+        // `was_seen` denies `who`, counted in the same walk (none for no
+        // `who`).
+        let mut unseen = 0i32;
         for t in self.footprint(ty, corner) {
             let r = self.blocked_tcoord(who, ty, t, exclude);
             if r == Blocked::OffMap {
@@ -449,11 +453,27 @@ impl Sim {
             if r != Blocked::Clear && (first == Blocked::Clear || r == Blocked::Territory) {
                 first = r;
             }
+            if let Some(w) = who
+                && !self.was_seen_fog(t.x >> 1, t.y >> 1, w)
+            {
+                unseen += 1;
+            }
         }
         // `blocked_site@00636a50`: a first refusal of `0x24` is returned
-        // beside water's, before the unseen tally and `blocked_location`
-        // (twenty-fourth pass, group 12; A8 row 52).
-        if first == Blocked::Water || first == Blocked::Seen {
+        // first; then a footprint more than half unseen is `0x24` too,
+        // unless the type is of the Dock's lineage (`is(0x1b0)`); then
+        // water's; then `blocked_location` (twenty-fourth pass, group 12;
+        // A8 row 52). The tally is item 2956's (`docs/AI.md` §241): the
+        // battery's Germans scored a Town site at (47, 24), outside their
+        // border, whose footprint is 29 of 49 tiles unseen, and the
+        // original refuses it on run893b's packet.
+        if first == Blocked::Seen {
+            return (first, 0);
+        }
+        if b.x_size * b.y_size / 2 < unseen && !build::is_dock(&self.build_types, ty) {
+            return (Blocked::Seen, 0);
+        }
+        if first == Blocked::Water {
             return (first, 0);
         }
         let (r, slots) = self.blocked_location(who, ty, pos, corner, exclude);

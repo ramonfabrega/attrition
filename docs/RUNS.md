@@ -17513,3 +17513,46 @@ SHA-256 `a52e29745fadc3b51eb55550d6bcde0e36f4a2706fa7cf680c804ad8f50d648e`.
 5578 who=1's make list holds three Village offers in ours and two in theirs (`MAKE[0]` val 664398 at (47, 24) against
 286098 at (46, 27)); its site table stands apart from 5571 (`SITE[8]` (47, 24) against (51, 30)). The window is in the
 coverage driver's slice.
+
+## run893 — the battery word's site table, walked back: East Indies, Germans at difficulty 3, blocks 3770..4177 (2026-10-17, item 2956, `att-2956`)
+
+`docs/AI.md` §241. **What the disk could not answer**: on 5571 who=1's `SITE[8]` is (47, 24) in ours and (51, 30) in
+theirs, and no dump of this lobby covers 827..5570 (run886 ends on 826, run891 starts on 5571, run643 is setup and closing
+only). Ours' own walk put the site's entry at the 3975 sweep; run891's recipe with the window moved over the 3775, 3975 and
+4175 sweeps: `--map 18 --end-frame 4183 --timeout 7200 --log-window 3770 4178 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1: `success`, `settings_restored`, 4184 frames, `map_style 18`, seed 12345, players `(0,4,7),(1,12,1)`; 1656 s
+  from launch to exit (12:35:39 to 13:03:15).
+- `rngcmp.py rontrace-run643.log rontrace-run893.log`: **4184 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run893-eastindies-german-diff3-window-3770-4178.txt`, 710,124,731 bytes,
+SHA-256 `f04c7e14c6d9e9c1572ca400f2da6a374900db376e25be669804e064ee1664aa`.
+
+Archive `rontrace-run893.log`, 20,068,928 bytes,
+SHA-256 `2054e65705a4a8c76c06ec5dc7837a82939c34de258797597c932a88eae94cfd`.
+
+**What it holds**: `diff::german_word::run893_s_site_sweep_is_widened_whole`, 408 blocks. Before item 2956's build 62 keys
+parted, the first not standing who=1's `SITE[8]` on block 3976 ((47, 24) val 293333 in ours against (42, 53) val 32); 37
+after it, all standing. The window is in the coverage driver's slice.
+
+**run893b, the packet**: the same lobby at `--end-frame 3985 --timeout 3600 --log-window 3972 3980` (same detail)
+`--tracer-def RON_STATE_FRAME=3975 --tracer-def RON_STATE_PLAN=<item 597's plan.h>`, pool lane 1: `success`, 53 s launch to
+exit. The disk could not answer which of `compute_site_stats`' arms zeroes (47, 24) in theirs. Kept as
+`~/ron-golden/run893b/map-18/frame-snapshot.bin`, 824,126,400 bytes, SHA-256
+`9aee0085302fdb1e61dd5d5492e446ac4cbb7a275533276da1fb7038c0f76e4c`. On it `step4.py --entry 6cc950 --this e4127c --args 0`
+runs who=1's `compute_sites(0)`: call 28, (47, 24), returns early on `blocked_site`'s `0x24`.
+
+**run893c, the word 6585's widening**: `--end-frame 6842 --timeout 7200 --log-window 6579 6837` (same detail), pool lane 1:
+`success`, 6843 frames, 803 s launch to exit (13:19:50 to 13:33:13); `rngcmp.py` against run643: **6843 identical**. The
+disk held nothing on 6585 (run891 ends on 5827).
+
+Archive `gamelog-run893c-eastindies-german-diff3-window-6579-6837.txt`, 465,818,816 bytes,
+SHA-256 `bacdcba68d0fd646cafc47a446f0f84618eda9cb4e280863f63b34634b2c1806`.
+
+Archive `rontrace-run893c.log`, 33,280,800 bytes,
+SHA-256 `8c51852c807b56ae212d8792ce5800a0f72d21dc7d242c778dc610d127be825c`.
+
+**What it holds**: `diff::german_word::run893c_s_word_frame_is_widened_whole`, 436 keys over 258 blocks. Before the word's
+block 6586 who=1's make list parts on 6581 (head type 340 in ours against 334) and its queue `1/2010` on 6583. The window is
+in the coverage driver's slice.

@@ -6882,13 +6882,12 @@ so no dump has read a Roman `income`; a lobby with a Roman AI on one city would 
   table it tests (`--cell-win`/`--at`) and its own port arm: a later shape item, not a flag in this batch.
 - Its second row, the hand-written ports' spec, is Loop 2958.
 
-## Parked by the next landing, slot GL — reserved
+## Parked by item 2956, 2026-10-17 — a Town site more than half unseen
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **(2956, second) The Dock exemption of `blocked_site`'s unseen tally rests on the reading alone** (`docs/AI.md` §241,
+  `docs/CITIES.md` §11). Item 2956 built the tally and kept `is(0x1b0)`'s exemption from the listing, but no capture on
+  file tallies a Dock's footprint, and the editor's `semaphore[1] & 8` skip is not modelled. A capture where an AI or a
+  console `add dock` places a Dock with more than half its footprint unseen would settle it. It names no score.
 
 ## Parked by the next landing, slot GM — reserved
 

@@ -2638,9 +2638,10 @@ against 17 at offset 1, and offset 0 is the centre, so the original's
 fog half-cell (`t >> 1`) the placer has never seen and returns `0x24` when
 more than half are dark, with only a Dock (`is(0x1b0)`) exempt;
 `blocked_tcoord` here grants visibility everywhere (`docs/CITIES.md` §11).
-Landing that rule alone moves none of the numbers — the AI's own territory
+~~Landing that rule alone moves none of the numbers — the AI's own territory
 answers "seen" through the same territorial arm — so it is **booked, not
-guessed at**. The one wrong slot drags the `rank` of the four it outscores
+guessed at**.~~ **Landed by item 2956 (§241)**: a site outside the border is
+not territorially seen, and the battery's Germans met one at the 3975 sweep. The one wrong slot drags the `rank` of the four it outscores
 with it, which is the rest of the 580-of-4,000 and 520-of-3,000 residue the
 test pins as ceilings.
 
@@ -22047,12 +22048,77 @@ blocks only. `rngcmp.py` run643 against run891: 5834 of 5834 frames identical.
 `aggression` row bears on anything (parked 2932). **Diff-backed**: the German term (run886's `income`, `bucket`, the
 Village), the draw deltas on 576 and 5577. **Reading only**: the Roman term, and which script's loop makes the five calls.
 
-## 241. Reserved for the next item on the AI track
+## 241. A Town site more than half unseen: `blocked_site`'s unseen tally, 5577 → 6585 (2026-10-17, item 2956)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: 5577 of 13519, ours 8 draws against theirs 6 — index 1 ours `Leader::use_market+0x1ed` where theirs
+draws `Leader::make_stuff+0x221`. On block 5578 who=1's make list held a third Village offer in ours, at (47, 24), from a
+`SITE[8]` row standing from run891's first block (5571).
+
+**The walk back.** `compute_sites` re-scores who=1's ten sites every 200 frames, at 175 mod 200 (§2.7).
+- Ours, walked with a probe (reverted whole), takes (47, 24) at the 3975 sweep, val 293333, and keeps it on every sweep
+  after (330000 from 5375).
+- run893 (blocks 3770..4177, run891's detail) was booked for it: nothing dumps this lobby in 827..5570.
+  - Its widening (`run893_s_site_sweep_is_widened_whole`) parts 62 keys, every unit, building and city agreeing.
+  - The first row not standing is who=1's `SITE[8]` on block 3976: ours (47, 24) val 293333 reg 5, theirs (42, 53)
+    val 32 reg 11.
+  - Theirs keeps one more slot empty: it inserts nothing for (47, 24).
+- **The direction**: ours acted. Ours inserted a site theirs scored zero.
+
+**The arm, on a packet.** run893b is a `RON_STATE_FRAME=3975` packet, the state before the 3975 sweep. On it
+`step4.py --entry 6cc950 --this e4127c --args 0` runs theirs' `compute_sites(0)` for who=1 to its return.
+- It makes 106 `compute_site_stats` calls, the same as ours' 3 re-scores and 103 samples. Every positive score equals
+  ours, (46, 27) at 718634 included.
+- Call 28, at (47, 24) with no city and unit 11 (the explorer `1/11`) as its reference, leaves early.
+  - It passes `6cd154`, then `jle 006cdc68` at `006cd4a5`, which is step 4's `base < 1`.
+  - `BuildTypeData::blocked_site(36096, 18432, 1, −1, 0)` at `006cd18b` returned **`0x24`**, and the `cmovne` at
+    `006cd197` zeroed the base.
+- It is not the goody arm. Theirs' `WData` on the four footprint cells (46..47, 23..24) reads flags 0 and `val` 20 at
+  (47, 24), the same as ours.
+- It is not the fog either. Theirs' `seen2` at (95, 49) holds who=1's bit (`02`), as ours does from 3779, when `1/11`'s
+  `EXPLORETOORDER` brings it there.
+- **It is the tally** (`blocked_site@00636a50`, the block after the footprint walk).
+  - The walk counts the footprint tiles whose half-cell `was_seen` denies `who`.
+  - It returns `0x24` when `x_size × y_size / 2 < count`, unless the type `is(0x1b0)`.
+  - The Town is 7×7 and the site lies outside who=1's border, where `was_seen`'s territorial arm does not answer. Ours
+    counts 29 of the 49 tiles unseen: cells (46, 23), (47, 23) and half of (47, 24).
+  - `docs/CITIES.md` §11 and §18 here had the rule since 2026-08-31, booked and never landed. Their premise was that
+    every footprint an AI considers is inside its own border, and a sweep's sample need not be.
+
+**Built**: `Sim::blocked_site_slots` (`place.rs`).
+- It counts the unseen footprint tiles in the walk it already makes (none with no `who`).
+- It returns `Blocked::Seen` past half, the Dock's lineage exempt.
+- Order: after a first refusal of `0x24` and before water's, as the listing has it.
+- The test is `cities_tests::a_footprint_more_than_half_unseen_is_refused_seen`, which checks both sides of the half,
+  no tally without a `who`, and the Dock.
+- Mutation (`tools/mutate.py`, the tally's guard `&& false`): `german_word_first_parting` reads 5577 against the pinned
+  6585. `mutation: held`.
+
+**The value diff.**
+- run893, block 3976: who=1's `SITE[8]` is (42, 53) val 32 on both, `SITE[4..6]` agree, and the table agrees through
+  4176. The widening falls 62 → 37 keys, all of the control's standing kinds (the empty slots' `reg` 65/0, `form`,
+  groups' `held`, the pool, `aggression`).
+- run891, block 5578: who=1's make list holds the same two Village offers on both, `MAKE[0]` 286098 at (46, 27) and
+  `MAKE[1]` 11400 at (51, 30). On 5571 `SITE[6..9]` agree. The widening falls 302 → 36 keys.
+- Every other lobby's `first_parting` and the floors are unmoved on this tree.
+
+**The new word, 6585.**
+- Ours 6 draws, theirs 5. At index 1 ours `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`: the same
+  shape as 5577's.
+- It is past run891's last block (5827). Its widening is run893c over 6579..6836
+  (`run893c_s_word_frame_is_widened_whole`, 436 keys), and **the state parts before the word**.
+  - On 6581 who=1's make list heads with type 340 in ours against 334 in theirs. `MAKE[1..3]` are shifted by one and
+    `MAKE[3].num` reads 5/1.
+  - On 6583 its queue `1/2010` holds 340 against 334 (`cost` 40/15 and 42/31), and the buckets part.
+  - Standing from 6579: the control's set, and `g.angle[0]` on `1/23`, `1/24`, `1/27`, `1/34` and `1/35` (1431655765
+    against 0).
+
+**Coverage.**
+- Diff-backed: the tally's verdict on (47, 24) at 3975 (run893's block 3976, and the word's move).
+- Reading-only: the Dock exemption (no Dock site is tallied on a capture) and the tally's skip under the editor's
+  `semaphore[1] & 8`, which this crate does not model (§11).
+
+**What is not established**: why ours reaches `use_market` at 6585 where theirs reaches `make_stuff`; that is the next
+item's.
 
 ## 242. Reserved for the next item on the AI track
 
