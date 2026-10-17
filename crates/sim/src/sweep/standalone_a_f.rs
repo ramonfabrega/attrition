@@ -62,6 +62,8 @@ mod army_count;
 mod army_member;
 #[path = "army_member_by_unit.rs"]
 mod army_member_by_unit;
+#[path = "army_remove_group.rs"]
+mod army_remove_group;
 #[path = "army_walk_data.rs"]
 mod army_walk_data;
 #[path = "attack_ground_order_get_type.rs"]
