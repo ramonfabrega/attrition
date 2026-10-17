@@ -122,12 +122,14 @@
 /// the thirty-eighth pass: 1233 -> 1224, nine functions that were backed only by a chunk whose script stubbed
 /// them (`// Map::point (stub 0) answers …` in a port's comment); `census.py`'s `sweep_backed` now subtracts a
 /// script's hooked callees, so a function a sweep answers for is never counted as one it ran.
+/// item 2863: 1224 -> 1229, the sweep's hundred-and-nineteenth batch, `--answer-by` built (a stub that answers by
+/// `ecx`) for `is_disbanding` and `get_building`, and three more.
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1224;
+pub const SIMULATION_BACKED: usize = 1229;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

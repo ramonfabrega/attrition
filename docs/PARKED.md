@@ -3743,6 +3743,13 @@ at its merge): the runner's `pace:` line (Loop 2874) made trimming run884's `end
 not read it still loses the hour, as run880 did. Candidate: `golden_capture.sh` refuses, or stops early with a receipt, a take
 whose first `pace:` projects past `--timeout`, a test made to fail first. One reach.
 
+(2886) **A whole-line `--regen` brings back a port the `.rs` edited and the `--port-file` did not** (2863's "for the Loop"
+line, filed at its merge): `--regen` with a whole line and `--port-file` rewrites the port from the file, and a bare `--regen
+<name>` keeps the line's old port string, so an edit made only in the `.rs` returns at the next whole-line regen (once, in
+2863); and `Harness`'s unmapped-read hook answers zeros, so a vtable read through a mis-placed pointer shows as a call to 0,
+not a fault at the read. Candidate: a regen that would overwrite a port differing from its `--port-file` refuses, naming
+both; an unmapped read under a sweep faults with its address. One reach.
+
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
 Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872).
@@ -6543,15 +6550,15 @@ walks the Spy to it; parked, names no score.
 
 ## Parked by item 2863, 2026-10-17 — the hundred-and-nineteenth sweep batch
 
-(2863, first) **The shape that was asked for is not the one that holds.** `--answer-win` with `--seq` (parked 2861) answers the n-th ask, and a walk asks one
+(2883) **The shape that was asked for is not the one that holds.** `--answer-win` with `--seq` (parked 2861) answers the n-th ask, and a walk asks one
 object's slot several times an iteration; the shape is a stub that answers by `ecx` (`--answer-by`, built), a chain that ends by links laid only forward.
 A walk that is not forward (a cycle the original breaks by a visited flag) is not reachable with it.
 
-(2863, second) **Starved arms, named.** `is_disbanding` and `get_building` return 0 / -1 in 144 and 170 of 220 rows before the head bias (about 60%
+(2884) **Starved arms, named.** `is_disbanding` and `get_building` return 0 / -1 in 144 and 170 of 220 rows before the head bias (about 60%
 after); `(*n).min(4)` is equivalent on all five (five asks, six values). `Group::kill_next_order` fixes `who` at 0, so the objects table's other rows
 (`0xc0ab84 + who·0x1c`) are read by no row; a `who` drawn needs the place expression to follow it (it does in `is_disbanding`, which draws 0..3).
 
-(2863, third) **Not built.** `Unit::update_patrol_order`'s `field_0xdc == 0` arm and `replace_form_id`'s `m+0xdc == 0` arm with `m+0xd8 != 0` are reached
+(2885) **Not built.** `Unit::update_patrol_order`'s `field_0xdc == 0` arm and `replace_form_id`'s `m+0xdc == 0` arm with `m+0xd8 != 0` are reached
 by `--place-null` only on the first place; the second is held by forcing `m+0xcc` to 0, so a null-list walk over a live `cc` (which crashes the original) is out.
 
 ## Parked by the next landing, slot FU — reserved
