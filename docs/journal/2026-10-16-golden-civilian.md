@@ -92,3 +92,54 @@ Complete required-fixture gate pending on the committed implementation. After
 that gate, measure all rondata tests warm and compare original test names and
 fixture requests. Independent review of cache semantics and coverage remains
 owed; this branch is not merged into the paused commander's checkout.
+
+## Complete verdict on `571c0298`
+
+All six required-fixture gate phases pass, exit0. Tree stayed clean and frozen.
+`gate.log`, `gate.exit`, `gate/`, `audit-warm.log`, `audit-warm/`,
+`warm-suite.log`, `warm-suite/` and `gate-equivalence.json` retain receipts.
+The gate binary is byte-identical to the saved and differentially audited binary.
+
+-502 offline tests pass (three unchanged skips), Clippy/fmt/survey/guard pass.
+-Rondata897 pass, six unchanged ignored; sim2586, fixed13, doctests3 pass.
+-All original rondata names retained, exactly three new guards added.
+-Exact3276 fixture requests preserved in both complete runs:419 unique,zero missing.
+-A second72-case audit after cache population passes159.78s/618.73CPU. It checks
+ persisted decodes against raw parsing, plus complete civilian and pool reports.
+-Score/pins, draw-stream and value floors: no movement. No simulation edits.
+
+| Complete measurement | Previous landing | This landing |
+|---|---:|---:|
+| Full gate wall / CPU s |260.39 /1438.62|258.16 /1403.69|
+| Full gate sampled tree MiB |7255|8201|
+| Complete warm rondata wall / CPU s |145.58 /1037.78|134.05 /934.29|
+| Complete warm sampled tree MiB |8186|8541|
+| Warm golden family CPU s |283.12|164.85|
+
+Warm rondata is7.9% faster and uses10.0% less CPU; golden CPU falls41.8%.
+These are unpaired local runs, not statistical confidence intervals. Memory does
+not improve: warm sampled peak rises4.3%, and gate peak rises13.0%. Individual
+warm sample RSS is roughly flat. Scheduling affects tree peaks, but that does
+not justify claiming a memory saving. First-use parsing/publication penalties
+remain as measured above. The gate's rondata phase is161.70s/1153.15CPU; other
+oracle users repopulate entries after the shared schema change, so this phase
+is not a fully warm execution. No concurrent-agent capacity claim is made.
+
+## Next measured target and review debt
+
+The memory ranking points to remaining whole-capture consumers: city goods/trade
+2122MiB OS RSS, run56 figures2053MiB, and two animal-order tests2032/2030MiB.
+Source inspection finds whole captures/siblings retained by the city/unit cases,
+and both captures plus all decoded frames retained by the animal tests. Next
+measure bounded setup and rolling frame windows there, preserving every frame,
+comparison, adjacency boundary and tally. This is a measured memory target; no
+benefit is claimed before implementation and differential proof. Harness is now
+the largest CPU family at200.62CPU; coverage's two tests remain37.35/34.50CPU.
+
+Another open cost is conservative schema invalidation: civilian identities hash
+the whole golden helper file, so adding a wrapper there also invalidates them.
+Moving reader dependencies behind a narrower source boundary could preserve
+reuse across more test edits; it needs invalidation/fail-first proof. Ordinary
+sim edits and existing moved case-body edits already preserve observation keys.
+Whole-suite10×, sub-minute/sub-GiB and lower aggregate memory remain unmet.
+Independent review remains owed, and the paused commander has not been resumed.

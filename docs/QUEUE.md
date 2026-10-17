@@ -101,7 +101,10 @@ remains unmet. Next: complete golden civilian observations (283.12CPU family). S
 Golden civilian follow-up: complete auxiliary observations cached with distinct
 ammunition modes; all72 complete-report differential tests pass. Warm chapter36
 8.89→1.72s, CPU8.22→1.67; warm memory flat and first-use cost higher. Full gate
-pending; see [journal](journal/2026-10-16-golden-civilian.md).
+passes on `571c0298`;897 rondata, exact3276 requests retained. Warm full suite
+145.58→134.05s, CPU1037.78→934.29; sampled memory8186→8541MiB (no improvement).
+Next: whole-capture city/unit/animal consumers at2030–2122MiB per test. See
+[journal](journal/2026-10-16-golden-civilian.md).
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See

@@ -554,6 +554,10 @@ All72 affected cases pass complete civilian/pool differential auditing. Three
 new guards cover values, bounded codecs and cache-mode separation; deliberate
 faults fail. Warm chapter36 improves8.89→1.72s/CPU8.22→1.67; memory765→763MiB.
 First-use cost rises to12.21s/1141MiB; this is not a cold-cache memory saving.
-Full required-fixture gate pending; whole-suite10× remains unmet. See
+Full required-fixture gate passes on `571c0298`;897 rondata and2586 sim tests,
+exact3276 fixture requests preserved. A second72-case audit verifies persisted
+decodes against raw readers. Complete warm rondata145.58→134.05s,
+CPU1037.78→934.29; golden CPU283.12→164.85. Sampled tree memory rises8186→8541MiB;
+no aggregate memory improvement is claimed. Whole-suite10× remains unmet. See
 [journal](journal/2026-10-16-golden-civilian.md) and
 [audit](audit/2026-10-16-golden-civilian.json). Independent review remains owed.
