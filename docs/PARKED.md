@@ -6846,13 +6846,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GK — reserved
+## Parked by item 2953, 2026-10-17 — the hundred-and-twenty-ninth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **(2953, first) The remaining `CommandPackage::process_*` bodies are not the three shapes.** `process_reject` and
+  `process_come_out` branch on a leader-table / unit-table field before the action (`leader+0x692c + whom*0x5c == 1` picks
+  `action_respond(.., 0)` or `(.., 2)`; `come_out` tests `unit->flags & 1` and `uid == unit+0x30`); `process_cannon_time` logs a
+  `unsigned_char&` and calls `TurnControl::start_cannon_time` with a game byte; `process_begin` calls a *virtual* slot 0x14 of
+  the group record; the rest (`cheat_init_unit`, `cheat_ai_speed_increase`, `queue_up`, `form`, `rename_city`, `mp_log`,
+  `flight`, `ping`, `gather*`, `build`, `repair`, `garrison`, `board_ship`, …) were not read. Each wants a window for the
+  table it tests (`--cell-win`/`--at`) and its own port arm: a later shape item, not a flag in this batch.
+- **(2953, second) Tooling that paid for itself.** The ten ports here were written by a scratch script from a one-line spec
+  per function (logToMemory address and arity, line, say offset, say/action argument expressions); its template is
+  `command_package_process_demand_tribute.rs` (leader table) and `_patrol.rs` (group, no frame in the say). A flag on
+  `sweep_gen.py obj` taking that spec would remove the hand step; Loop candidate, not built.
 
 ## Parked by the next landing, slot GL — reserved
 
