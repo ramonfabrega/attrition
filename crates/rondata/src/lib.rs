@@ -386,6 +386,7 @@ pub(crate) fn parse<'a>(path: &Path, text: &'a str) -> Result<roxmltree::Documen
 #[cfg(test)]
 pub(crate) mod testenv {
     mod fixture_audit;
+    pub(crate) mod source;
     /// The install's root: `$RON_INSTALL`, else the checkout's `game/`, else
     /// — from a worktree under `.claude/worktrees/<name>/` — the main
     /// checkout's `game/`, three directories up. The last is what stops

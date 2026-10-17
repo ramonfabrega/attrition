@@ -62,7 +62,7 @@ const DIFF: [&str; 19] = [
     include_str!("diff/corrections.rs"),
     include_str!("diff/endpoint.rs"),
     include_str!("diff/floors.rs"),
-    include_str!("diff/golden.rs"),
+    "", // Expanded from the live frozen tree by diff_sources; bodies are in child modules.
     include_str!("diff/harness.rs"),
     include_str!("diff/harness/checkpoint.rs"),
     include_str!("diff/leader.rs"),
@@ -98,6 +98,25 @@ const DIFF_FILES: [&str; 19] = [
     "diff/unit.rs",
     "diff/world.rs",
 ];
+
+// Reconstruct each golden wrapper's original logical body. Keeping the case
+// source in an include_str! here would invalidate this entire ledger module on
+// every case edit; these source guards instead read the frozen validation tree.
+#[cfg(test)]
+fn diff_sources() -> Vec<String> {
+    let golden = crate::testenv::source::golden().0;
+    DIFF_FILES
+        .iter()
+        .zip(DIFF)
+        .map(|(path, source)| {
+            if *path == "diff/golden.rs" {
+                golden.clone()
+            } else {
+                source.to_string()
+            }
+        })
+        .collect()
+}
 
 /// A file under `src/diff/` that is deliberately not on the ledger, with
 /// the reason. `coverage.rs` *lists* the keys nothing reads in its
@@ -384,10 +403,12 @@ mod tests {
             }
         }
         on_disk.sort();
+        let (_, golden_cases) = crate::testenv::source::golden();
         let listed: std::collections::BTreeSet<&str> = DIFF_FILES
             .iter()
             .copied()
             .chain(NOT_A_DIFFER.iter().map(|(p, _)| *p))
+            .chain(golden_cases.iter().map(String::as_str))
             .collect();
         let missing: Vec<&str> = on_disk
             .iter()
@@ -423,7 +444,7 @@ mod tests {
     #[test]
     fn a_comparison_gated_on_both_sides_says_which_side_is_quiet() {
         let mut bare = Vec::new();
-        for (file, src) in DIFF_FILES.iter().zip(DIFF.iter()) {
+        for (file, src) in DIFF_FILES.iter().zip(diff_sources().iter()) {
             let lines: Vec<&str> = src.lines().collect();
             for (i, l) in lines.iter().enumerate() {
                 if !l.contains("if let (Some(") {
@@ -454,7 +475,7 @@ mod tests {
             "the parser's records did not parse: {} found",
             recs.len()
         );
-        let diff = DIFF.concat();
+        let diff = diff_sources().concat();
         let seen = named(&diff);
         // One pass over the file, not one per record: `named` is a byte
         // scan and the differ is 800 KB.

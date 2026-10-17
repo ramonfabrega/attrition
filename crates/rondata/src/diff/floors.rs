@@ -1218,7 +1218,11 @@ mod tests {
             if path.extension().is_none_or(|e| e != "rs") {
                 continue;
             }
-            let source = std::fs::read_to_string(&path).expect("read");
+            let source = if path.file_name().is_some_and(|n| n == "golden.rs") {
+                crate::testenv::source::golden().0
+            } else {
+                std::fs::read_to_string(&path).expect("read")
+            };
             let lines: Vec<&str> = source.lines().collect();
             for (_, _, test, _, _) in WIDENINGS {
                 let Some(t) = test else { continue };
