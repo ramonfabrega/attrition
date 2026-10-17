@@ -544,6 +544,8 @@ mod command_package_process_buy;
 mod command_package_process_cannon_time;
 #[path = "command_package_process_chat_set.rs"]
 mod command_package_process_chat_set;
+#[path = "command_package_process_cheat_ai_speed_increase.rs"]
+mod command_package_process_cheat_ai_speed_increase;
 #[path = "command_package_process_cheat_ai_speed_normal.rs"]
 mod command_package_process_cheat_ai_speed_normal;
 #[path = "command_package_process_cheat_ai_toggle.rs"]
