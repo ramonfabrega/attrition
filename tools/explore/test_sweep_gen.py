@@ -143,6 +143,20 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1, slotbase=['0xc:0x401000'])
 
+    def test_vtat_keep_lays_an_image_function_at_an_unstubbed_slot(self):
+        # Item 2900 (parked 2888): `--vtat-keep SLOT:VA` lays the image function at VA at vtable slot SLOT half the rows
+        # (a flag after the answers), the slot a stub or not; it needs a stubbed vtable.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, stubs=['slot:0x3c:0'],
+            vtat_keep=['0x78:0x642510'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('SLOTBASE = [(120, %d)]' % 0x642510, script)
+        self.assertIn('slot +0x78 laid as 0x00642510', test)
+        for kw in ({'vtat_keep': ['0x78']}, {'vtat_keep': ['0x78:0x642510'], 'stubs': []}):
+            kw = {'stubs': ['slot:0x3c:0'], **kw}
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, port='0', **kw)
+
     def test_a_range_bias_draws_its_own_edges(self):
         # Loop 2003's sixteenth reach (item 2170's "for the Loop", built by
         # item 2181): a `--wbias LO..HI` range was drawn uniformly, so a

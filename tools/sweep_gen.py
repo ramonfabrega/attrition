@@ -2221,7 +2221,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(),
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
                  rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=()):
     name, va = parse(spec)
@@ -2276,11 +2276,23 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
     pslot = [tuple(int(x, 0) for x in s.split(':')) for s in slotbase]
+    # `--vtat-keep SLOT:VA` (item 2900, parked 2888): one named image function laid at one slot of the stubbed vtable
+    # half the rows, a stub or nothing the others, so a branch on a vtable compare reaches both arms. The slot need not
+    # be a stub (`--slotbase` names one that is); the flag after the answers is the same.
+    pkeep = []
+    for k_ in vtat_keep:
+        slot_, colon_, va_k = k_.partition(':')
+        if not colon_:
+            raise ValueError(f'--vtat-keep is SLOT:VA, not {k_!r}')
+        pkeep.append((int(slot_, 0), int(va_k, 0)))
+    if pkeep and not any(k == 'slot' for k, _, _ in pstubs):
+        raise ValueError('--vtat-keep lays a slot of the stubbed vtable: it needs a --stub slot:OFF:N')
     pans = [(int(a.split(':', 1)[0]), [int(v, 0) for v in a.split(':', 1)[1].split(',')]) for a in answers]
     if any(not 0 <= idx < len(pstubs) for idx, _ in pans):
         raise ValueError('--answers IDX:V,.. names one of the --stub callees, by its order on the line')
     if any(('slot', off) not in {(k, a) for k, a, _ in pstubs} for off, _ in pslot):
         raise ValueError('--slotbase OFF:ADDR names a slot --stub slot:OFF:N stubs')
+    pslot = pslot + pkeep
     if any(w and w[0] == 's' and not int(w[1:]) < len(pstubs) for w, _, _, _ in pplaces):
         raise ValueError('--place sN:EXPR:SIZE names one of the --stub callees, by its order on the line')
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
@@ -3428,6 +3440,10 @@ def main(argv=None):
                     help='obj: the stub slots copied into the image\'s vtable at VA, and the word at WIN+OFF laid VA half '
                          'the rows, the stubbed vtable otherwise (a record compared with a class\'s vtable that is '
                          'asked its slots either way: `get_building`\'s `Build::vftable`; item 2863)')
+    ap.add_argument('--vtat-keep', action='append', default=[], metavar='SLOT:VA',
+                    help='obj: the image function at VA laid at vtable slot SLOT half the rows (the stub, or nothing, the '
+                         'others), a 0/1 flag after the answers: a branch on a vtable compare reaches both arms; the slot '
+                         'need not be a stub (`--slotbase` names one that is; item 2900, parked 2888)')
     ap.add_argument('--answer-by', action='append', default=[], metavar='IDX:OBJ0:DAT0:N:LINKOFF',
                     help='obj: stub IDX answers by its `ecx` — the object in `p<OBJ0+j>` gets the window `p<DAT0+j>` '
                          '(of N), whose short at LINKOFF is a later object\'s index or -1 (a chain that '
@@ -3624,7 +3640,7 @@ def main(argv=None):
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
-                                                    vtat_half=args.vtat_half, alias=args.alias, answer_by=args.answer_by, vtat_image=args.vtat_image, place_null=args.place_null,
+                                                    vtat_half=args.vtat_half, alias=args.alias, answer_by=args.answer_by, vtat_image=args.vtat_image, vtat_keep=args.vtat_keep, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
