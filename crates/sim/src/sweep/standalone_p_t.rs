@@ -252,6 +252,8 @@ mod tech_type_walk_rules_data;
 mod terrain_build_beach_data;
 #[path = "terrain_convert_errant_sandy.rs"]
 mod terrain_convert_errant_sandy;
+#[path = "terrain_has_south_forest.rs"]
+mod terrain_has_south_forest;
 #[path = "terrain_list_walk_data.rs"]
 mod terrain_list_walk_data;
 #[path = "terrain_map_cancel_button_enable.rs"]

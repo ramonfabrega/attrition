@@ -64,6 +64,8 @@ mod armies_update_city;
 mod army_charge;
 #[path = "army_count.rs"]
 mod army_count;
+#[path = "army_data_select.rs"]
+mod army_data_select;
 #[path = "army_member.rs"]
 mod army_member;
 #[path = "army_member_by_unit.rs"]
@@ -356,6 +358,8 @@ mod city_data_smelter_level;
 mod city_data_upgrades_to;
 #[path = "city_get_trade_routes.rs"]
 mod city_get_trade_routes;
+#[path = "city_set_name.rs"]
+mod city_set_name;
 #[path = "city_walk_data.rs"]
 mod city_walk_data;
 #[path = "cliff_average_neighbor_norms.rs"]

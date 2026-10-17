@@ -64,6 +64,8 @@ mod game_get_armageddon;
 mod game_get_game_fps_average;
 #[path = "game_get_patch_version.rs"]
 mod game_get_patch_version;
+#[path = "game_get_time_limit.rs"]
+mod game_get_time_limit;
 #[path = "game_info_default_setting.rs"]
 mod game_info_default_setting;
 #[path = "game_info_load_from_playback.rs"]
@@ -148,6 +150,8 @@ mod get_unique_types;
 mod get_unique_types2;
 #[path = "good_data_get_gpiece.rs"]
 mod good_data_get_gpiece;
+#[path = "good_data_is_seen.rs"]
+mod good_data_is_seen;
 #[path = "good_inc_time.rs"]
 mod good_inc_time;
 #[path = "good_type_avail_drop.rs"]
@@ -246,6 +250,8 @@ mod group_equals_group;
 mod group_find_role;
 #[path = "group_get_speed.rs"]
 mod group_get_speed;
+#[path = "group_kill_group_order.rs"]
+mod group_kill_group_order;
 #[path = "group_kill_next_order.rs"]
 mod group_kill_next_order;
 #[path = "group_leader_report_speed.rs"]
@@ -386,6 +392,8 @@ mod is_air;
 mod is_move;
 #[path = "item_data_get_gpiece.rs"]
 mod item_data_get_gpiece;
+#[path = "item_data_is_seen.rs"]
+mod item_data_is_seen;
 #[path = "item_out_draw_overlays.rs"]
 mod item_out_draw_overlays;
 #[path = "item_type_data_snap_center.rs"]
