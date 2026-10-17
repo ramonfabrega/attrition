@@ -132,6 +132,8 @@ mod gather_order_walk_data;
 mod gather_order_walk_data_vtordisp;
 #[path = "gather_point_is_inside.rs"]
 mod gather_point_is_inside;
+#[path = "gather_point_list_get_new_data.rs"]
+mod gather_point_list_get_new_data;
 #[path = "gather_point_walk_data.rs"]
 mod gather_point_walk_data;
 #[path = "get_float_z.rs"]
@@ -594,5 +596,3 @@ mod oil_well_walk_data;
 mod order_list_get_data_type;
 #[path = "order_list_get_new_data.rs"]
 mod order_list_get_new_data;
-#[path = "gather_point_list_get_new_data.rs"]
-mod gather_point_list_get_new_data;

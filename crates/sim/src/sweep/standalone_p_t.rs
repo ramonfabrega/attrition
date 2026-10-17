@@ -384,6 +384,8 @@ mod type_gov_hero;
 mod type_item;
 #[path = "type_pay_cost.rs"]
 mod type_pay_cost;
+#[path = "type_restore.rs"]
+mod type_restore;
 #[path = "type_set_graph_name.rs"]
 mod type_set_graph_name;
 #[path = "type_set_help_name.rs"]
@@ -406,8 +408,6 @@ mod type_unpay_cost;
 mod type_walk_rules_data;
 #[path = "type_wonder.rs"]
 mod type_wonder;
-#[path = "type_restore.rs"]
-mod type_restore;
 #[path = "types_walk_data.rs"]
 mod types_walk_data;
 #[path = "types_walk_rules_data.rs"]
