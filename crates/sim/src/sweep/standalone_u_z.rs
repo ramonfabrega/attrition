@@ -250,6 +250,8 @@ mod valid_filter_case5;
 mod valid_filter_case6;
 #[path = "valid_filter_case7.rs"]
 mod valid_filter_case7;
+#[path = "valid_filter_case8.rs"]
+mod valid_filter_case8;
 #[path = "vector_dist_coords.rs"]
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
