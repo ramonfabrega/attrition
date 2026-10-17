@@ -2261,6 +2261,67 @@ class FamilyRegistrations(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sweep_gen.validate_sweep_registrations(root)
 
+    def test_a_void_honours_the_obj_windows_and_stubs(self):
+        # Item 2887 (parked 2872): `void` ignored `--cell-win` and `--stub`
+        # (`Player::end_game` used `obj --ret none`). A void is `obj` with no
+        # answer; every window and stub the line names reaches the script.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('mod a_b;\n')
+            try:
+                line = ['void', 'Foo::bar@00401000', '--item', '2887', '--own', '1',
+                        '--cell-win', '0xc061d0:0x80', '--stub', '0x00401234:1',
+                        '--place', 'm+0x10:0:0x20', '--place-null', '0']
+                self.assertEqual(sweep_gen.main(line + ['--dry-run']), 0)
+                sp, script, tp, test, mod = sweep_gen.generate_void(
+                    'Foo::bar@00401000', item=2887, own=1, cells=['0xc061d0:0x80'],
+                    stubs=['0x00401234:1'], places=['m+0x10:0:0x20'], place_null=['0'])
+                compile(script, str(sp), 'exec')
+                self.assertIn('CELLS = [(12607952, 128)]', script)
+                self.assertIn("STUBS = [('call', 4198964, 1)]", script)
+                self.assertIn('NULLS = [0]', script)
+                self.assertIn('an empty body', test)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_a_new_sweep_is_registered_without_the_flag(self):
+        # Item 2887 (parked 2872): `--write-mod` was added by hand to
+        # `TerrainOil::remove_rocky_patch`'s line. A fresh generation
+        # registers; `--no-write-mod` and `--dry-run` do not, `--regen`
+        # leaves `mod.rs` alone.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            mod = Path(tmp) / 'mod.rs'
+            mod.write_text('mod a_b;\n')
+            try:
+                self.assertEqual(sweep_gen.main(['const', 'X::y@00401000', '--item', '1', '--dry-run']), 0)
+                self.assertEqual(mod.read_text(), 'mod a_b;\n')
+                self.assertEqual(sweep_gen.main(['const', 'X::y@00401000', '--item', '1', '--no-write-mod']), 0)
+                self.assertEqual(mod.read_text(), 'mod a_b;\n')
+                (Path(tmp) / 'x_y.rs').unlink()
+                (Path(tmp) / 'sweep_x_y.py').unlink()
+                self.assertEqual(sweep_gen.main(['const', 'X::y@00401000', '--item', '1']), 0)
+                self.assertEqual(mod.read_text(), 'mod a_b;\nmod x_y;\n')
+                self.assertEqual(sweep_gen.main(['const', 'X::y@00401000', '--item', '1', '--regen']), 0)
+                self.assertEqual(mod.read_text(), 'mod a_b;\nmod x_y;\n')
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_a_place_null_past_the_first_place_nulls_that_place_alone(self):
+        # Item 2887 (parked 2885): `--place-null K` for K past 0 lays place K
+        # (its order on the line) null, and no other.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2887, win=0xe0, bias=[],
+            places=['m+0xd8:0:8', 'm+0xdc:0:8', 'p1+4:0:0x10'], place_null=['1'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('NULLS = [1]', script)
+        self.assertIn('the word at `m+0xdc` points at 8 random bytes less `0` (placed, null a third of the rows)', test + script)
+        self.assertNotIn('the word at `m+0xd8` points at 8 random bytes less `0` (placed, null', test + script)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2595,11 +2595,16 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
-def generate_void(spec, *, item, own=0, win=0x40):
-    """An empty body (parked 1889): `obj` with no answer and every byte held."""
-    return generate_obj(spec, item=item, win=win, bias=[], own=own, ret='none', port='0',
-                        doc=f'an empty body: {win} random bytes of object and {own} argument(s), every byte held '
-                            f'after the return and `esp` checked (parked 1889).')
+def generate_void(spec, *, item, own=0, win=0x40, **kw):
+    """An empty body (parked 1889): `obj` with no answer and every byte held.
+    Every window, stub and place `obj` takes is taken here too (item 2887,
+    parked 2872: `void` once dropped `--cell-win` and `--stub`)."""
+    kw['ret'] = 'none'
+    kw['port'] = kw.get('port') or '0'
+    kw.setdefault('bias', [])
+    kw['doc'] = (f'an empty body: {win} random bytes of object and {own} argument(s), every byte held '
+                 f'after the return and `esp` checked (parked 1889).')
+    return generate_obj(spec, item=item, win=win, own=own, **kw)
 
 
 def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slot=None, nargs=0, tail=False, own=0):
@@ -2688,7 +2693,7 @@ def shown(path):
 
 
 KEPT = '# sweep_gen: '
-NOT_KEPT = ('--write-mod', '--regen', '--dry-run', '--reset-port')
+NOT_KEPT = ('--write-mod', '--no-write-mod', '--regen', '--dry-run', '--reset-port')
 
 
 def kept_line(path):
@@ -3327,7 +3332,9 @@ def main(argv=None):
     ap.add_argument('--place', action='append', default=[], metavar='LOC:EXPR:SIZE',
                     help='obj: the word at LOC (`m+OFF`, `cN+OFF`, `pN+OFF` or an address expression) points at '
                          'SIZE random bytes less EXPR, the offset the function adds — a new `p` window (parked 2113); '
-                         'LOC `sN` lays stub N\'s answer as the pointer (a record a callee answers, item 2241)')
+                         'LOC `sN` lays stub N\'s answer as the pointer (a record a callee answers, item 2241); '
+                         'a record whose element count sits at -4 before the pointer (a `new[]` block) is placed with '
+                         'EXPR `-4`: the pointer is buffer+4, so the count is the first word of the buffer (item 2887, parked 2872)')
     ap.add_argument('--place-null', action='append', default=[], metavar='K',
                     help='obj: --place K (by its order on the line) laid as a null pointer a third of the rows, '
                          'its buffer still drawn (a guard against null; item 2253)')
@@ -3448,7 +3455,9 @@ def main(argv=None):
     ap.add_argument('--stub-cdecl', action='append', default=[], metavar='IDX',
                     help='obj: --stub IDX (a direct callee) is `__cdecl`: its arguments are read and the caller '
                          'pops them (`memcpy`, an import the emulator cannot enter; item 2325)')
-    ap.add_argument('--write-mod', action='store_true', help='register in the existing or selected sweep target in sorted order')
+    ap.add_argument('--write-mod', action='store_true', help='register in the existing or selected sweep target in sorted order '
+                    '(the default for a fresh generation since item 2887; kept so old lines run)')
+    ap.add_argument('--no-write-mod', action='store_true', help='leave the registry alone and print the line (item 2887, parked 2872)')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
                     '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
     ap.add_argument('--fwd-gate', metavar='OFF:MASK:VA[:T,T..]',
@@ -3586,6 +3595,8 @@ def main(argv=None):
     if args.regen and args.write_mod:
         print('sweep_gen.py: --regen leaves mod.rs alone; drop --write-mod', file=sys.stderr)
         return 2
+    # Item 2887 (parked 2872): a fresh generation registers itself.
+    args.write_mod = args.write_mod or not (args.regen or args.dry_run or args.no_write_mod)
     try:
         if args.shape == 'walk':
             sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1,
@@ -3597,8 +3608,10 @@ def main(argv=None):
                                                     gate_this=args.gate_this or args.gate_bare, vbase=args.vbase, len_at=args.len_at,
                                                     gate_ne=args.gate_ne, ret_arg=args.ret_arg, store=args.store, elems=args.elems,
                                                     stale_col=args.stale_col, vbase2=args.vbase2, bit_at=args.bit_at)
-        elif args.shape == 'obj':
-            sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
+        elif args.shape in ('obj', 'void'):
+            sp, script, tp, test, mod = (generate_obj if args.shape == 'obj' else generate_void)(
+                                                    args.function, item=args.item,
+                                                    win=args.win if args.shape == 'obj' or args.win != 0x400 else 0x40, bias=args.bias,
                                                     own=args.own, ret=args.ret or 'eax', port=args.port,
                                                     argset=args.argset, argfrom=args.argfrom, cells=args.cells,
                                                     at=args.at, ptrargs=args.ptrarg, stubs=args.stub,
@@ -3616,8 +3629,6 @@ def main(argv=None):
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
                                                     edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)
-        elif args.shape == 'void':
-            sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
             sp, script, tp, test, mod = generate_vcallbase(args.function, item=args.item, slot=args.slot,
                                                            base=args.base, base_slot=args.base_call,
