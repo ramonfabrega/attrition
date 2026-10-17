@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -55,7 +60,8 @@ fn the_emulated_original_agrees_on_every_row() {
                     break 'out 1;
                 }
                 let b = row(who);
-                if rd(&p[b], 0) & 0x1800 != 0 || i16::from_le_bytes([p[b + 3][0], p[b + 3][1]]) != 0 {
+                if rd(&p[b], 0) & 0x1800 != 0 || i16::from_le_bytes([p[b + 3][0], p[b + 3][1]]) != 0
+                {
                     break 'out 1;
                 }
                 let whose = a[3];
@@ -73,7 +79,9 @@ fn the_emulated_original_agrees_on_every_row() {
                         }
                     }
                 }
-                let idx = rd(&p[1], 0).wrapping_mul(rd(&p[43], 0)).wrapping_add(rd(&p[0], 0));
+                let idx = rd(&p[1], 0)
+                    .wrapping_mul(rd(&p[43], 0))
+                    .wrapping_add(rd(&p[0], 0));
                 i64::from(p[44][0x14 + 0x1c * idx as usize] & p[b + 4][0])
             };
             if log.is_empty() {
@@ -82,14 +90,25 @@ fn the_emulated_original_agrees_on_every_row() {
             seen
         };
         assert_eq!(got, want_eax, "was_seen_wcoord — eax, row `{line}`");
-        assert_eq!(log, want_log, "was_seen_wcoord — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "was_seen_wcoord — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "was_seen_wcoord — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "was_seen_wcoord — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "was_seen_wcoord — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "was_seen_wcoord — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "was_seen_wcoord — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
