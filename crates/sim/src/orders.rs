@@ -9451,6 +9451,9 @@ impl Sim {
             }
         }
         let in_range = self.is_in_range(me, target);
+        if std::env::var("RON_PROBE_ATK").is_ok_and(|v| v.split(',').any(|w| w == format!("{}/{}", self.units[u].owner, self.units[u].index))) {
+            eprintln!("PROBE_RANGE f{} {}/{} in {} pos {:?} dist {} max {} tpos {:?}", self.frame, self.units[u].owner, self.units[u].index, in_range, self.units[u].pos, self.attack_dist(me, target), self.max_range_of(me), self.pos_of(target));
+        }
         a.in_range = in_range;
         if in_range {
             a.ever_in_range = true;
