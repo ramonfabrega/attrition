@@ -178,8 +178,22 @@ pub(crate) const LAKOTA: Pair = Pair {
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`, one frame before
     // the game's end (6822).
-    count: 6821,
-    sequence: 6821,
+    // Item 2864: 6821 → 6822, the game's end — the draw stream agrees on
+    // every frame (`docs/AI.md` §238). Three terms on who=1's MLRS
+    // (`TypeIndex` 273, packed computer siege, army 1): `think`'s idle
+    // search takes the army's target first (`find_nearby_target@00648da0:
+    // 198`, mandatory 1) — `1/124`'s `attack[0].mandatory` on 6821, ours 0
+    // against 1; a mandatory attack skips the packer's re-search and the
+    // STAND_GROUND gate (`fight`'s third argument, `5fe108`/`5fe135`), so
+    // `1/124` walks its six-candidate ring on 6821 as theirs does; and
+    // `fight:482` asks the slot, never the health, so `1/95` at 4500 of
+    // 4806 from the capital at its ceiling (`damage` 1560 of 1560) is in
+    // range and unpacks (run883b's packet: `is_in_range` 1, then
+    // `add_cast_order` 0x28c). On block 6822 `1/124` reads `[ATTACK
+    // mandatory 1, MOVEORDER (7224, 1656)]` and `1/95` `[ATTACKTO, ATTACK,
+    // CASTORDER 652]` on both sides.
+    count: 6822,
+    sequence: 6822,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -821,7 +835,9 @@ fn run882_s_word_frame_is_widened_whole() {
     // territory); later ones are `1/189` `form` (6811), `0/2000`'s
     // `damage` and `city_flags` (6816) and `1/124`'s
     // `attack[0].mandatory` on 6821, the new word's frame.
-    pin_eq!(w.firsts.len(), 248, "initial run882 baseline");
+    // Item 2864: 248 → 247, `1/124`'s `attack[0].mandatory` goes with
+    // `think`'s army shortcut (`docs/AI.md` §238).
+    pin_eq!(w.firsts.len(), 247, "initial run882 baseline");
 }
 
 /// run883: the word 6821's window, blocks 6815..6822 and the closing block
@@ -852,7 +868,7 @@ fn run883_s_closing_frame_is_widened_whole() {
     let Some(w) = lakota_closing_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 8, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -860,7 +876,21 @@ fn run883_s_closing_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run883 baseline");
+    // Item 2864: the word 6821's own block is 6822, and the closing block
+    // 6823 follows it. The first walk, before the fix: 260 keys, 240
+    // standing on 6815 (the pair's `form`, `mirror`, `attrition` and
+    // `sheltered`, `g.angle`, pools, buckets, `1/2005`'s queue costs, the
+    // human's `SITE`), then `0/2000`'s `damage` and `city_flags` (6816),
+    // `1/131` `sheltered` (6818), who=0's `bucket[2:wealth]` (6820),
+    // `1/124`'s `attack[0].mandatory` (6821, ours 0 against 1), and on the
+    // word's block 6822 `1/124`'s order (ours none against `[ATTACK,
+    // MOVEORDER (7224, 1656)]`, path 0 against 5) and `1/95`'s (ours
+    // `ATTACKTO` alone against `[ATTACKTO, ATTACK, CASTORDER 652]`). With
+    // the army shortcut, the mandatory chase and `fight:482`'s slot test,
+    // 260 → 246: block 6822 keeps one row, the Armored Cavalry `1/106`'s
+    // `cavarch_o` (ours −1, theirs 2000 — its fire-on-the-move target,
+    // no draw, no order).
+    pin_eq!(w.firsts.len(), 246, "run883 baseline");
 }
 
 /// **The pair's closing state** (item 2864, DECISIONS 55): run883's
@@ -905,7 +935,11 @@ fn run883_lakota_pair_closing_state() {
         "Closing fields: {}",
         harness::compare(&built, &fin, 8).closing_fields()
     );
-    pin_eq!(e.frame, 0, "the closing block");
-    pin_eq!(e.compared, 0, "units compared");
+    pin_eq!(e.frame, 6822, "the closing block");
+    // Item 2864, the first walk: 286 units compared, none apart, and no
+    // building or city field-row — before the fix and after it. The
+    // residue of the game's end is `1/106`'s `cavarch_o` and the
+    // standing rows run883's widening holds, none a position.
+    pin_eq!(e.compared, 286, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
