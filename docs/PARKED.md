@@ -3738,6 +3738,15 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3002) **A `--regen` without `--fresh` appends a changed flag set to the kept one** (2966's "for the Loop" line, filed at
+its merge): a stale `p11` place survived one regen. Candidate: the sweep brief says `--regen --fresh` first, or the regen
+refuses a flag set that differs from the kept one without `--fresh`, a test made to fail first. And a batch of ten wants a
+`cargo test` line taking several module filters. One reach.
+
+(3003) **A `--wbias` on a window under four bytes corrupts what follows it** (parked 2999, filed at its merge): a 2-byte
+`--sparse` slice with a `--wbias` faulted a read at a random address. Candidate: `sweep_gen.py` refuses or clips a
+`--wbias` wider than its window, a test made to fail first. One reach.
+
 (2987) **The objects- and groups-table windows are a shell loop of `--place` flags, four times over** (2959's "for the Loop"
 line and its parked 2987, filed at its merge): `process_repair`, `_garrison`, `_gather`, `_begin`. Candidate: a
 `sweep_gen.py` flag taking a table of N pointers to arrays of M records, a test made to fail first. One reach.
@@ -6890,18 +6899,18 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
 
 ## Parked by item 2966, 2026-10-17 — the hundred-and-thirty-first sweep batch
 
-- (2966, first) **`Unit::update_local_seen@0060e410` is no built shape's**: it loops `circle_radius[type]` times
+- (2998) **`Unit::update_local_seen@0060e410` is no built shape's**: it loops `circle_radius[type]` times
   (a table at `0xcbe330` the image builds at boot, zeros under the emulator) over `circle_x`/`circle_y` byte tables
   (`0xcb7e90`, `0xcbb0e0`, also boot-built) and the `div_3_table` cell `0xcae5fc`. `--at` draws the radius table as
   random 32-bit words, which sizes a loop of 2^31; a shape needs a bounded image-table draw (`--at VA:SIZE:LO..HI`).
   Names the census (+1) once the shape is there.
-- (2966, second) **`--wbias` on a window under four bytes corrupts what follows it**: a 2-byte `--sparse` slice with a
+- (2999) **`--wbias` on a window under four bytes corrupts what follows it**: a 2-byte `--sparse` slice with a
   `--wbias` faulted a read at a random address (`was_seen_wcoord`'s `+0x59e4` short); the batch widened the slice to four
-  bytes. A Loop item: `sweep_gen.py` refuse or clip a `--wbias` wider than its window.
-- (2966, third) **`--record-edx` refuses `--record-order`**, so two stubs on one function (`find_supply`'s
+  bytes. Filed as Loop 3003.
+- (3000) **`--record-edx` refuses `--record-order`**, so two stubs on one function (`find_supply`'s
   `get_radius` and `vector_dist`) are recorded in two columns and their interleaving is unheld; the leftover `edx` the
   first one sees (the previous measure's) is in the port instead.
-- (2966, fourth) **`UnitData::is_busy`'s type-table index is unexercised**: every type record in the `--ptrtab :vt` table
+- (3001) **`UnitData::is_busy`'s type-table index is unexercised**: every type record in the `--ptrtab :vt` table
   carries the one stubbed vtable, so a wrong index (`+0x20`) reads another record answering the same; and
   `Unit::modify_group_order` reads `[this+0xd4]` after its loop whether or not `[this+0xdc]` is set, so its
   null-tail row is undrawable (a stale `d4`). Both held by their ports' comments, not by a row.
