@@ -260,6 +260,8 @@ mod unit_type_restore;
 mod unit_type_walk_rules_data;
 #[path = "unit_update_gpiece.rs"]
 mod unit_update_gpiece;
+#[path = "unit_update_local_seen.rs"]
+mod unit_update_local_seen;
 #[path = "unit_update_order.rs"]
 mod unit_update_order;
 #[path = "unit_update_patrol_order.rs"]
@@ -370,6 +372,8 @@ mod wall_out_make_options;
 mod wall_set_type;
 #[path = "wall_set_type_dispatch.rs"]
 mod wall_set_type_dispatch;
+#[path = "wall_swap_team.rs"]
+mod wall_swap_team;
 #[path = "wcoord_data_walk_data.rs"]
 mod wcoord_data_walk_data;
 #[path = "wcoord_get_tcorner.rs"]

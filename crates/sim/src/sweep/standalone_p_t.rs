@@ -152,6 +152,8 @@ mod setup_build_leader;
 mod setup_get_starting_citizens;
 #[path = "setup_init_wild_life.rs"]
 mod setup_init_wild_life;
+#[path = "signposts_add.rs"]
+mod signposts_add;
 #[path = "signposts_cur_name.rs"]
 mod signposts_cur_name;
 #[path = "signposts_cur_x.rs"]
@@ -348,6 +350,8 @@ mod tribe_set_pseudonym;
 mod tribe_walk_data;
 #[path = "tribe_walk_rules_data.rs"]
 mod tribe_walk_rules_data;
+#[path = "tribes_find.rs"]
+mod tribes_find;
 #[path = "tribes_walk_data.rs"]
 mod tribes_walk_data;
 #[path = "turn_control_compute_next_turn_solo.rs"]

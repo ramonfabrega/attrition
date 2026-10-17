@@ -632,6 +632,8 @@ mod command_package_process_quit;
 mod command_package_process_recall;
 #[path = "command_package_process_reject.rs"]
 mod command_package_process_reject;
+#[path = "command_package_process_rename_city.rs"]
+mod command_package_process_rename_city;
 #[path = "command_package_process_repair.rs"]
 mod command_package_process_repair;
 #[path = "command_package_process_resign.rs"]

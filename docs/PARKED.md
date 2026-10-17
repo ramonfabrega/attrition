@@ -7101,13 +7101,29 @@ byte) are unreached since the objects table window is four pointers wide.
 (recurses into itself), `UnitData::get_attrition` (the one `float`, an `f32` times 2^-8 into
 an `int` conversion).
 
-## Parked by the next landing, slot HA — reserved
+## Parked by item 3030, 2026-10-17 — eight shapes swept, Census 1389 → 1397 on the merged tree
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3030, first) **`Unit::update_armor` is parked twice now** (3019, and again here): the climb needs a stub chain
+  that ends — `--slotbase 0xe8:<is_captain>` ends it from data (the `+0x8e` high bit) but the slot-`+0xa8`
+  answer (the parent) is one window; `--answer-by` makes a chain from the stub's `ecx` and would take it, with
+  `--link` on `+0x8e`. Its own item, not a third batch's tail (2732).
+- (3030, second) **`Tribes::find`'s `_wcsicmp` arm (`call *0xac5640`, an import) is unreached**: the draw keeps
+  non-null data pointers equal (`{0, 0x401000}`), string offsets zero. Equal non-null pointers with different
+  offsets reach the import and the emulator faults (UC_ERR_READ_UNMAPPED). An `iat:` stub for it
+  (`--stub iat:0xac5640:2 --stub-cdecl`) would answer it and let the offsets move; the port's `side()` arm is
+  held only by the null-pointer rows. Three of its seven breaks pass for that reason.
+- (3030, third) **`Object::poor_target`'s exact edges pass**: `e < 0x2aaaaaaa` and `- 0x80000000` +1 need an
+  angle drawn at the threshold (the generator cannot compute `find_angle`'s answer), and `d > 0xc0` in the
+  unflagged arm needs 192 from a 150..450 range in the ~5 % of rows that reach it.
+- (3030, fourth) **`--answers IDX:V,..` draws a wild word the other tenth of the rows** (`--answer-range`
+  does not): a stub whose answer indexes an array (`init_build`'s `ebx`) faults on that tenth, and the fault
+  names a fetch at 0x1000 from a return address of 0 when a `slot:` stub's argument count is wrong (`slot:0x60:0`
+  for a `ret 8` callee) — two traps for the docstring of `--stub slot:`.
+- (3030, fifth) **`--at VA:SIZE:LO..HI[/b]` is built** (`tools/sweep_gen.py`, a unit test made to fail first in
+  `tools/explore/test_sweep_gen.py`): `Unit::update_local_seen`'s `circle_radius/x/y` use it.
+- (3030, sixth) **`Wall::swap_team` and the `is`-slot sibling shape**: the base-or-slot arm is `--slotbase`, and
+  its flag is 1 for base; `Build::swap_team@00628210` and `SubObject`'s are the same text and not yet swept.
+- (3030, seventh) **`AmmoData::walk_data`, `Game::walk_data`, `TurnControl::end_cannon_time` (3020)** not taken.
 
 ## Parked by item 3038, 2026-10-17 — the third harvest batch
 
