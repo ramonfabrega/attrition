@@ -13,7 +13,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-17, **the thirty-eighth tranche at twenty (commander, Opus): 20 landings from `a4ff472f` and three at the drain**: every
-booking gate green, the last nine at their first commit; last whole gate `6c605a42`, last gate `83ca6133`; four `DEEP`
+booking gate green, the last nine at their first commit; last whole gate `149fe872`, green at the drain; four `DEEP`
 lanes (2779, 2801, 2825 landed at it, 2845 cleared and landed at the drain), no kill rule. 2793 sat 250 minutes, 223 of them on a hung subagent (Loop 2820).*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 5982 → 5985 → 6452 → 6808 → 6821 (2780: the scout's fog read takes the Space Program; 2779: Capitalism's oil; 2808: a soldier's boat sails to its army's target; 2825: a bomber near its President reaches two tiles further; 2845: `find_attack_pos` holds the asker's `0x800000` clear), the open word.
@@ -53,7 +53,7 @@ against 36.5 on four lanes, and the gates' `Admission wait:` line — a rise wit
 cost and the fourth lane goes again; a rise with it high is the admission's and the marker is the answer.
 **The tranche's admission ledger** (twenty landings): lane gates 1.8–12.5 s each over 380–920 leases, longest 1.2 s
 (2785's first gate 74 s, one 65 s lease); booking gates 41.0 s (`2280648b`, longest 32.6), 18.9 (whole), 3.5, 2.3, 10.4
-(whole), 2.1, 7.0, 10.6 (whole), 2.8, 7.6, 9.0 (whole), 2.1, 7.2, 5.4 (whole), 3.2, 9.0, 6.4 (whole), 6.9 (longest 4.8), 10.1 (whole, the twentieth), 4.5;
+(whole), 2.1, 7.0, 10.6 (whole), 2.8, 7.6, 9.0 (whole), 2.1, 7.2, 5.4 (whole), 3.2, 9.0, 6.4 (whole), 6.9 (longest 4.8), 10.1 (whole, the twentieth), 4.5, 4.0 (whole, the drain's `149fe872`);
 the one admission failure was the probe race `a8883529` fixed (exit 125, Loop 2788); the marker was not used. **Waiting a
 landing** (`tools/tranche.py` over the twenty, lore's list price at 2026-10-17's rates): 640 minutes over 20, **32.0 a
 landing against 36.5**, 20.5 without 2793's 250 (223 on a hung subagent); 104.00 USD, 4.52 a lane-session.
