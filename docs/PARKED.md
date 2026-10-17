@@ -6832,13 +6832,16 @@ so no dump has read a Roman `income`; a lobby with a Roman AI on one city would 
   file tallies a Dock's footprint, and the editor's `semaphore[1] & 8` skip is not modelled. A capture where an AI or a
   console `add dock` places a Dock with more than half its footprint unseen would settle it. It names no score.
 
-## Parked by the next landing, slot GM — reserved
+## Parked by item 2974, 2026-10-17 — the Germans' Fire Raft line
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2974, first) **`g.angle[0]` stands on who=1's units of the battery's German lobby**: 1431655765 (`0x55555555`) in ours
+  against 0 in theirs on `1/23`, `1/24`, `1/27`, `1/34`, `1/35` from run893c's first block (6579), and on `1/37` from
+  6652 (`docs/AI.md` §242). None of those units parts in position or order in 6579..6836, so it names no score yet;
+  `0x55555555` reads as an unwritten fill, so the first step is `seams.py --field angle` and the writers of the figure's
+  `angle` in this crate against the dump's own print.
+- (2974, second) **`GERMAN_AIR_SPEED` rests on the reading alone** (`train_time@006508c0:198`–`201`, `+0x218 == 2`):
+  built beside the submarine arm and held by the sim test only, since no walked window has a German leader training an
+  aircraft. A German lobby past the Industrial age would back it. Names no score.
 
 ## Parked by item 2971, 2026-10-17 — Chapter ninety-one's leftovers
 
