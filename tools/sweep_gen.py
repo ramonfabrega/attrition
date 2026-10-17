@@ -148,6 +148,14 @@ Three shapes, each a `__thiscall` on `ecx`:
           asked its slots either way (`get_building`'s `Build::vftable`).
           `--alias WIN+OFF:TARGET!` lays the alias every row: a list's end
           node that must name its list (`update_patrol_order`, `replace_form_id`).
+          `--vtat-keep SLOT:VA` (item 2900, parked 2888) lays the image function
+          at VA at vtable slot SLOT of the stubbed vtable half the rows (a flag
+          after the answers; the slot need not be a stub): a branch on a
+          vtable compare (`walk_data`'s `Object::must_walk`) reaches both arms.
+          `--link-hi pA..B+OFF:V,V,..|LO..HI` draws the short at OFF of each
+          figure after the `--link`s (the player half of `obj+0x2c`'s word).
+          `--place-null K:WIN+OFF=V` also sets the word at WIN+OFF to V on K's
+          null rows, after every window is drawn (a guard word beside a null).
 
           `--edx-win WIN` (item 2801, parked 2791): `edx` the address of
           window WIN (m, cN or pN) rather than an integer, for a register
@@ -1443,6 +1451,7 @@ PNULLS = {pnulls!r}
 STUBS = {stubs!r}
 PLACES = {places!r}
 NULLS = {nulls!r}
+NULLFORCE = {nullforce!r}
 WBIAS = {wbias!r}
 FILLS = {fills!r}
 ARGRANGE = {argrange!r}
@@ -1473,6 +1482,7 @@ RECORDORDER = {recordorder!r}
 RECORDEDX = {recordedx!r}
 ROWSPLIT = {rowsplit!r}
 LINKS = {links!r}
+LINKHI = {linkhi!r}
 OUTARG = {outarg!r}
 CDECLSTUBS = {cdeclstubs!r}
 STUBWRITE = {stubwrite!r}
@@ -1793,6 +1803,7 @@ def main(argv):
         # with the answers so a place may index by one (`o`, item 2325).
         outs = [wdraw(rng, vals) for _, _, vals in OUTARG]
         k = -1
+        forced = []
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
@@ -1811,6 +1822,7 @@ def main(argv):
             # index (item 2253; a guarded null ran one arm).
             if k in NULLS and rng.random() < 1 / 3:
                 ptr = bytes(4)
+                forced += NULLFORCE.get(k, [])
             at = eval(loc, env)
             if win is None:
                 uc.mem_write(at & 0xFFFFFFFF, ptr)
@@ -1821,6 +1833,11 @@ def main(argv):
             else:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[at:at + 4] = ptr
+        for win, off, v in forced:
+            # `--place-null K:WIN+OFF=V`: on a null row of place K, the word at WIN+OFF is V, written after every
+            # window is drawn, so a guard word beside the null pointer is held (item 2900, Loop 2899).
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
         callwins = {{}}
         for idx, size in ANSWERWIN:
             # A stub that answers a record: the address of SIZE random bytes,
@@ -1874,6 +1891,11 @@ def main(argv):
             for k in range(n):
                 v = link_value(rng, n, k, d, terms)
                 p[lo + k][off:off + size] = (v & ((1 << 8 * size) - 1)).to_bytes(size, "little")
+        for lo, hi, off, vals in LINKHI:
+            # `--link-hi pA..B+OFF:V,V,..|LO..HI`: the short beside a link (the player half of `obj+0x2c`'s word),
+            # drawn from the list or range every figure after the links, so a word that reads it is never clobbered.
+            for k in range(hi - lo + 1):
+                p[lo + k][off:off + 2] = (wdraw(rng, vals) & 0xFFFF).to_bytes(2, "little")
         for idx, win, off in ARGEQ:
             # An argument the function compares with a word of a window laid
             # after the arguments were drawn: the word copied (item 2200).
@@ -2200,6 +2222,17 @@ def _link(spec):
     return (int(m.group(1)), int(m.group(2)), int(m.group(3), 0), int(size), d, terms)
 
 
+def _link_hi(spec):
+    """`pA..B+OFF:V,V,..` or `pA..B+OFF:LO..HI` — the short at OFF of figures p(A)..p(B), drawn from the
+    list or range every row, after the links (item 2900, parked 2889)."""
+    loc, _, vals = spec.rpartition(':')
+    m = re.fullmatch(r'p(\d+)\.\.(\d+)\+(\w+)', loc)
+    if not m or int(m.group(1)) > int(m.group(2)) or not vals:
+        raise ValueError(f'--link-hi is pA..B+OFF:V,V,.. or pA..B+OFF:LO..HI, A <= B, not {spec!r}')
+    (w,) = _wbias(f'p{m.group(1)}+{m.group(3)}:{vals}')[:1]
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3), 0), w[2])
+
+
 def _wbias(spec):
     """`WIN+OFF:V,V,..` or `WIN+OFF:LO..HI`, OFF `*` for every word, held every row."""
     loc, vals = spec.rsplit(':', 1)
@@ -2221,7 +2254,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(),
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
                  rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=()):
     name, va = parse(spec)
@@ -2266,21 +2299,43 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--ptrarg-null IDX names one of the --ptrarg arguments')
     pstubs = [_stub(s) for s in stubs]
     pplaces = [_place(s) for s in places]
-    pnull = [int(k, 0) for k in place_null]
+    pnull = []
+    pforce = {}
+    for spec_ in place_null:
+        k_, colon_, forced_ = spec_.partition(':')
+        pnull.append(int(k_, 0))
+        if colon_:
+            m_ = re.fullmatch(r'(m|c\d+|p\d+)\+(\w+)=(-?\w+)', forced_)
+            if not m_:
+                raise ValueError(f'--place-null is K or K:WIN+OFF=V over m, cN or pN, not {spec_!r}')
+            pforce.setdefault(int(k_, 0), []).append((m_.group(1), int(m_.group(2), 0), int(m_.group(3), 0)))
     if any(not 0 <= k < len(pplaces) for k in pnull):
         raise ValueError('--place-null K names one of the --place pointers, by its order on the line')
     pwbias = [w for s in wbias for w in _wbias(s)]
     psparse = [_sparse(s) for s in sparse]
     pgtab = [_gtab(s) for s in gtab]
     plinks = [_link(s) for s in links]
+    plinkhi = [_link_hi(s) for s in link_hi]
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
     pslot = [tuple(int(x, 0) for x in s.split(':')) for s in slotbase]
+    # `--vtat-keep SLOT:VA` (item 2900, parked 2888): one named image function laid at one slot of the stubbed vtable
+    # half the rows, a stub or nothing the others, so a branch on a vtable compare reaches both arms. The slot need not
+    # be a stub (`--slotbase` names one that is); the flag after the answers is the same.
+    pkeep = []
+    for k_ in vtat_keep:
+        slot_, colon_, va_k = k_.partition(':')
+        if not colon_:
+            raise ValueError(f'--vtat-keep is SLOT:VA, not {k_!r}')
+        pkeep.append((int(slot_, 0), int(va_k, 0)))
+    if pkeep and not any(k == 'slot' for k, _, _ in pstubs):
+        raise ValueError('--vtat-keep lays a slot of the stubbed vtable: it needs a --stub slot:OFF:N')
     pans = [(int(a.split(':', 1)[0]), [int(v, 0) for v in a.split(':', 1)[1].split(',')]) for a in answers]
     if any(not 0 <= idx < len(pstubs) for idx, _ in pans):
         raise ValueError('--answers IDX:V,.. names one of the --stub callees, by its order on the line')
     if any(('slot', off) not in {(k, a) for k, a, _ in pstubs} for off, _ in pslot):
         raise ValueError('--slotbase OFF:ADDR names a slot --stub slot:OFF:N stubs')
+    pslot = pslot + pkeep
     if any(w and w[0] == 's' and not int(w[1:]) < len(pstubs) for w, _, _, _ in pplaces):
         raise ValueError('--place sN:EXPR:SIZE names one of the --stub callees, by its order on the line')
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
@@ -2479,7 +2534,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or pout or pcdecl or pwrite or pecxout):
+            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or plinkhi or pout or pcdecl or pwrite or pecxout):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2557,6 +2612,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'figures p{lo}..p{hi} link at +{o:#x} ({z} bytes) '
            + ('below' if d == '<' else 'above') + ' their own index or to ' + ', '.join(map(str, t))
            for lo, hi, o, z, d, t in plinks]
+        + [f'figures p{lo}..p{hi} hold a short at +{o:#x} drawn from {v[1] if v[0] == "set" else str(v[1]) + ".." + str(v[2])}, after the links'
+           for lo, hi, o, v in plinkhi]
         + [f'the stubbed vtable laid at `{w}+{o:#x}` as well as at `this`'.replace('+0x0`', '+0`')
            for w, o in palso]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
@@ -2572,11 +2629,11 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + (['`ecx` and `edx` held to their draw every row, no wild word'] if tame else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
-                                   cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
+                                   cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull, nullforce=pforce,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, xmm=pxmm, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
-                                   sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
+                                   sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
@@ -3336,9 +3393,10 @@ def main(argv=None):
                          'LOC `sN` lays stub N\'s answer as the pointer (a record a callee answers, item 2241); '
                          'a record whose element count sits at -4 before the pointer (a `new[]` block) is placed with '
                          'EXPR `-4`: the pointer is buffer+4, so the count is the first word of the buffer (item 2887, parked 2872)')
-    ap.add_argument('--place-null', action='append', default=[], metavar='K',
+    ap.add_argument('--place-null', action='append', default=[], metavar='K[:WIN+OFF=V]',
                     help='obj: --place K (by its order on the line) laid as a null pointer a third of the rows, '
-                         'its buffer still drawn (a guard against null; item 2253)')
+                         'its buffer still drawn (a guard against null; item 2253); with :WIN+OFF=V the word at '
+                         'WIN+OFF is also V on those rows (a guard word beside the null; item 2900, Loop 2899)')
     ap.add_argument('--wbias', action='append', default=[], metavar='WIN+OFF:V,V|LO..HI',
                     help='obj: a 32-bit word of window m, cN or pN held to the list or range every row; OFF `*` every word')
     ap.add_argument('--fill', action='append', default=[], metavar='WIN:EXPR',
@@ -3428,6 +3486,10 @@ def main(argv=None):
                     help='obj: the stub slots copied into the image\'s vtable at VA, and the word at WIN+OFF laid VA half '
                          'the rows, the stubbed vtable otherwise (a record compared with a class\'s vtable that is '
                          'asked its slots either way: `get_building`\'s `Build::vftable`; item 2863)')
+    ap.add_argument('--vtat-keep', action='append', default=[], metavar='SLOT:VA',
+                    help='obj: the image function at VA laid at vtable slot SLOT half the rows (the stub, or nothing, the '
+                         'others), a 0/1 flag after the answers: a branch on a vtable compare reaches both arms; the slot '
+                         'need not be a stub (`--slotbase` names one that is; item 2900, parked 2888)')
     ap.add_argument('--answer-by', action='append', default=[], metavar='IDX:OBJ0:DAT0:N:LINKOFF',
                     help='obj: stub IDX answers by its `ecx` — the object in `p<OBJ0+j>` gets the window `p<DAT0+j>` '
                          '(of N), whose short at LINKOFF is a later object\'s index or -1 (a chain that '
@@ -3443,6 +3505,10 @@ def main(argv=None):
     ap.add_argument('--gtab', action='append', default=[], metavar='CNT:LO..HI:PTR:SIZE',
                     help='obj: a counted array behind image words (item 2709, parked 2699): the count at CNT drawn from LO..HI, '
                          'the array pointer at PTR, SIZE random bytes an element; `c` windows the head and array, `p` the elements')
+    ap.add_argument('--link-hi', action='append', default=[], metavar='pA..B+OFF:V,V,..|LO..HI',
+                    help='obj: the short at OFF of figures pA..pB drawn from the list or range, written after the '
+                         '`--link`s (`find_goody_at` re-reads the player half of `obj+0x2c`\'s word every step; '
+                         'item 2900, parked 2889)')
     ap.add_argument('--link', action='append', default=[], metavar='pA..B+OFF:SIZE:DIR[:T,T..]',
                     help='obj: figure k (window p(A+k))\'s link at OFF drawn from the figures below (`<`) or '
                          'above (`>`) its own index or a terminator (-1), so a walk through them ends '
@@ -3624,9 +3690,9 @@ def main(argv=None):
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
-                                                    vtat_half=args.vtat_half, alias=args.alias, answer_by=args.answer_by, vtat_image=args.vtat_image, place_null=args.place_null,
+                                                    vtat_half=args.vtat_half, alias=args.alias, answer_by=args.answer_by, vtat_image=args.vtat_image, vtat_keep=args.vtat_keep, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
-                                                    record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
+                                                    record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link, link_hi=args.link_hi,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
                                                     edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)

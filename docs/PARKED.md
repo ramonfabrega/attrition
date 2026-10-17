@@ -6679,13 +6679,26 @@ target, and range-arrival on an unseen target (the Spy did not arrive in 400 fra
 
 (2913) **Loop 2654's print was not built**: every staged line reached its unit (`staged: 6 ran, 4 unit(s)`).
 
-## Parked by the next landing, slot FZ — reserved
+## Parked by item 2900, 2026-10-17 — the sweep's hundred-and-twenty-third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2900, first) **`CityData::count_farms` 0x7368c0 was not swept**: `census.py --never`, `--unbacked` and `--all` print no row for it; the crate
+has it as `city_count_farms` (`farms.rs`), no sweep file spells it. If it is a census row under another name, a sweep of it is the
+vtable-compare arm 2888 named; I did not chase the row. One reach.
+
+(2900, second) **`--vtat-keep` is `--slotbase` without the stub-slot check**: the generated script is the same (`SLOTBASE`, the 0/1 flag
+after the answers); the two flags could be one. A compare of a *record word* with a function (`AnimalData::walk_data` reads the slot of
+the vtable, `UnitData::get_gpiece` the same) is a slot, so both reached; a compare of a word of the record itself (`*(this+0x78)` in
+2888's note) is `--wbias m+0x78:0,VA`, which already works.
+
+(2900, third) **A `__thiscall` stub the function calls with a pointer into its own frame prints as `sp-0x1` for the first and as the raw
+stack constant (`2147483392`) for the second**: `walk_data`'s `(&flag, ebp+0xc)` pair. The port spells both tokens as literals
+(`wall_data_walk_data_vt.rs`, `animal_data_walk_data_vt.rs`); a row token for "the caller's argument slot" (`sp+0xN`) would let a port
+spell it, and a change of the harness's `STACK_BASE` would fail both for no reason in the function.
+
+(2900, fourth) **The walkers' flag byte at `[ebp+0xb]` is the top byte of the walker pointer when `input != 0` on the kept arm**: the
+sweep draws the walker at `0x2000....`, so the byte is `0x20` and the final walker call is always made; a real walker on a heap
+whose addresses start below `0x01000000` would not make it. The sweep cannot say which the game has (a frame-time fact); the rule is
+in the port's comment. Not a mismatch, an input the emulator fixes.
 
 ## Parked by the next landing, slot GA — reserved
 
