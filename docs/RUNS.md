@@ -17368,3 +17368,13 @@ the chapter-eighty-five `start:` set); the staging was walked first (`RON_STAGE=
 runner's `pace:` line 19.5 frames a second; kept in `~/ron-golden/ch86/map-14/`, trace 1,301 frames, dump through block 1299. No
 minutes waited on another lane. **What it holds**: the Spy `0/6` casts from 1114; on **1212** `1/6`..`1/8` close and `0/7`..`0/9`
 stand under who 0. Ours agrees on all of it.
+
+## run885 — chapter eighty-seven: a Bribe on a target outside the caster's owner's sight (2026-10-17, item 2895, `att-2895`)
+
+`docs/GOLDEN.md` §111. **What the disk could not answer**: no dump held a cast whose target the caster's owner did not see (parked 2879, 2894); the
+staging was walked first (`RON_STAGE=ch76:chapter87:1500`). Recipe `tools/gamelog/golden/chapter87.cmd` (`--map 14 --end-frame 1500
+--log-window 1100 1500`, `end:UNITS=3,DEATHS=1,LEADERS=2`, the chapter-eighty-five `start:` set). Pool lane 1, 171 MB, 315 s, the runner's `pace:`
+line 5.2 frames a second at a minute in (the `UNITS=3` end set over a longer window); kept in `~/ron-golden/ch87/map-14/`, trace 1,501 frames,
+dump through block 1499. No minutes waited on another lane. **What it holds**: the Spy `0/6` casts from 1114 and walks a winding path toward a
+Hoplite `1/6` 22 tiles off; the Hoplite stands until 1283, then walks; the Spy has not reached range by 1499 and the cast does not complete.
+Ours agrees on every block but the standing 1100 rows.
