@@ -49,7 +49,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (idx, pl) = (a[0] as usize, a[1] as usize);
             let ri = 2 * pl + idx;
             let u = 7 + 3 * pl + idx;
-            let (yw, zw) = (13 + 3 * ri, 14 + 3 * ri);
+            let yw = 13 + 3 * ri;
             let (mut t1, mut t2, mut t3, mut t4, mut t5) =
                 (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
             let res: i64 = 'run: {

@@ -60,9 +60,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 let gx = d3((rd(m, 0x10) ^ 0x63637) >> 7);
                 let gy = d3((rd(m, 0x14) ^ 0x63637) >> 7);
                 let (w, h) = (rd(&c[1], 0xc), rd(&c[1], 0x10));
-                for k in 0..radius.max(0) as usize {
-                    let x = i32::from(c[3][k] as i8) + gx;
-                    let y = i32::from(c[4][k] as i8) + gy;
+                for (&bx, &by) in c[3].iter().zip(c[4].iter()).take(radius.max(0) as usize) {
+                    let x = i32::from(bx as i8) + gx;
+                    let y = i32::from(by as i8) + gy;
                     if x >= 0 && y >= 0 && x < w && y < h {
                         t_call.push(format!("{x},sp-0x10,sp-0x14,{seen},0"));
                         t_x.push(le(x));

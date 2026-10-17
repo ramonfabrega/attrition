@@ -55,9 +55,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let r_ptr = rd(r, b + 0x2c);
                 let r_off = u16at(r, b + 0x32);
                 let hit = if (r_flags & 2) == 0 || (s_flags & 2) == 0 {
-                    if s_len == 0 {
-                        true
-                    } else if r_ptr == s_ptr && r_off == s_off {
+                    if s_len == 0 || (r_ptr == s_ptr && r_off == s_off) {
                         true
                     } else if r_ptr == 0 || s_ptr == 0 {
                         // the pointers themselves compared: with bit 0 of the flags set the data
