@@ -17,12 +17,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 waiting a landing** against 3.92 / 27.0 — a fifth broken, so **the fourth lane goes** (entry 61 §5); every gate green, no kill rule, one `DEEP`.*
 
 - **Words**: the peace pair (East Indies, the Lakota, `RUSH_RULES 10`, ends 6822) 5564 → 5982 (2780: the scout's fog read takes the Space Program), the open word.
-  Chapter 80 closed (1204, run878: a fight blows a stealth unit); 69 built, 70 surveyed. Census 1068 → 1164, `port` 171 → 156. Battery 576 / 6566
+  Chapter 80 closed (1204, run878: a fight blows a stealth unit), 81 compared the blown bits (2798); 69 built, 70 surveyed. Census 1068 → 1164, `port` 171 → 156. Battery 576 / 6566
   / 2974; **when the peace pair closes, the AI word's successor is its lowest lobby** (DECISIONS 72).
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every third landing
   and at the drain; a whole gate refuses a stale `agent-*` worktree (Loop 2724). The sweep's per-function check runs in debug (2787).
 - **Lanes: four, live from `a4ff472f`** (DECISIONS 75: the lane entry 74 took goes back for the trial): 2779 (AI §234,
-  EZ, run 879), 2798 (GOLDEN §104, FB, run 880), 2801 (FC) and 2793 (EY) on the two sweep lanes; 2783, 2780, 2782, 2785, 2797 landed. Next 2802, run 881 (Astra 900–909). Pools: GOLDEN §105–109, AI §235–239, park FD–FI.
+  EZ, run 879), 2804 (GOLDEN §105, FD, run 880), 2801 (FC) and 2793 (EY) on the two sweep lanes; 2783, 2780, 2782, 2785, 2797, 2798 landed. Next 2805, run 881 (Astra 900–909). Pools: GOLDEN §106–109, AI §235–239, park FE–FI.
 - **Fable backlog: 13 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788, 2792, 2796, 2799).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -58,7 +58,7 @@ four, on the branch's tip), 4080 fixture requests and none missing, admission wa
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2779 the AI word's (Opus), 2798 the rules track's, 2801 and 2793 the
+2779 the AI word's (Opus), 2804 the rules track's, 2801 and 2793 the
 two sweep lanes' (Sonnet) — lower map first — East Indies (Lakota), the
 peace pair's only map. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
@@ -71,13 +71,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     in the detail; then the widening, every record on 5982, both
     directions, `WIDENINGS` naming it. AI §234.
 
-2798. **Chapter eighty-one: `process_cloak`'s 512-frame clear held on a
-    blown stealth unit** (DECISIONS 56 §3; 2785 closed eighty at 1204,
-    a fight blows a stealth unit). The blown and fought bits are carried
-    and `unit_masks` is printed, parsed and compared by nothing (parked
-    2759): stage a blown stealth unit across a `(frame + o) & 0x1ff == 0`
-    frame, `check_idle`'s drop beside it, and compare the word. Census
-    rows first; run 880 only when no packet answers. GOLDEN §104.
+2804. **Chapter eighty-two: `do_cast`'s blow held on a stealth caster**
+    (DECISIONS 56 §3; 2798 compared the blown and fought bits, both
+    clears diff-backed). `do_cast@005ebfe0` writes `0x11000` too and
+    this crate's casters do not (parked 2760): stage a stealth unit that
+    casts in a who=1 scout's sight, one that does not as control, and
+    compare `unit_masks` across the cast. Census rows first; run 880
+    only when no packet answers. GOLDEN §105.
 
 2801. **The sweep's hundred-and-eleventh batch: ten never-backed
     simulation functions, a shape the parked rows name first** (DECISIONS

@@ -6242,11 +6242,11 @@ shape are 257-byte rendering or editor bodies (`RiverDoober::add_for_render`, `G
 
 ## Parked by item 2798, 2026-10-17 — the blown and fought bits compared
 
-(2761) **The inside arm's other halves** (item 2798, `docs/GOLDEN.md` §104): `Unit::process@00610bc0:557-559` also writes
+(2802) **The inside arm's other halves** (item 2798, `docs/GOLDEN.md` §104): `Unit::process@00610bc0:557-559` also writes
 `unit_masks &= 0xfffee7ff` with `0x2000` clear (dropping `0x800`) and `unit_masks2 &= 0xffff7f9f` (`0x20`, `0x40`, `0x8000`); this
 crate drops `blown` and `fought` only. A `unit_masks2` row on a garrisoned unit would back the second. Names no score.
 
-(2762) **The `blown`/`fought` rows are gated on `on_map`**: a garrisoned unit's masks are not compared on its inside frames, so
+(2803) **The `blown`/`fought` rows are gated on `on_map`**: a garrisoned unit's masks are not compared on its inside frames, so
 the garrison clear is backed only on the exit frame. Moving the row out of the gate would need `unit_masks` printed for inside
 units (it is) and ours to agree on the mask of an inside unit. Names no score.
 
