@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -47,7 +52,14 @@ fn the_emulated_original_agrees_on_every_row() {
             let n = rd(m, 0xc) as i64;
             let mut calls = vec!["p0+0x0,m+0x4,m+0x4c".to_string()];
             if n != 0 {
-                for (from, width) in [(0x8cc, 2), (0x4c, 4), (0x24c, 4), (0x44c, 4), (0x64c, 4), (0x84c, 1)] {
+                for (from, width) in [
+                    (0x8cc, 2),
+                    (0x4c, 4),
+                    (0x24c, 4),
+                    (0x44c, 4),
+                    (0x64c, 4),
+                    (0x84c, 1),
+                ] {
                     calls.push(format!("p0+0x0,m+{from:#x},m+{:#x}", from + width * n));
                 }
             }
@@ -55,7 +67,10 @@ fn the_emulated_original_agrees_on_every_row() {
             want_eax
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "walk_data — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "walk_data — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "walk_data — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
