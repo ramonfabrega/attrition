@@ -380,6 +380,8 @@ mod type_build;
 mod type_data_avail;
 #[path = "type_data_can_pay_cost.rs"]
 mod type_data_can_pay_cost;
+#[path = "type_data_count_discovered.rs"]
+mod type_data_count_discovered;
 #[path = "type_data_get_abbrev_parsed.rs"]
 mod type_data_get_abbrev_parsed;
 #[path = "type_data_get_kill_value.rs"]
