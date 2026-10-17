@@ -98,11 +98,17 @@ class Admission(unittest.TestCase):
         self.assertEqual(budget.rss_for_roots(table, {10, 11, 20}), 405)
         self.assertEqual(budget.rss_for_roots(table, {10}), 175)
 
-    def test_unreadable_live_owner_refuses_global_monitoring(self):
-        rows = f"{os.getpid()} 1 1 10\n"
-        with patch.object(budget.subprocess, 'check_output', return_value=rows), patch.object(budget, 'status', return_value=[{'owner': None}]):
-            with self.assertRaises(RuntimeError):
-                budget.sample_rss(123, '/unused')
+    def test_unreadable_live_owner_is_skipped_for_the_sample(self):
+        # Loop 2788, the thirty-eighth pass: a lease is locked before its
+        # owner record is written, so a sampler that meets the window read
+        # `invalid owner metadata` and ended a gate at exit 125 (2783's lane
+        # gate, three tests). One sample's unknown slot is not a reason to
+        # fail a run: the slot is skipped and the next sample reads it.
+        rows = f"{os.getpid()} 1 1 10\n123 1 1 7\n"
+        with patch.object(budget.subprocess, 'check_output', return_value=rows), \
+                patch.object(budget, 'status', return_value=[{'slot': 0, 'owner': None},
+                                                              {'slot': 1, 'owner': {'supervisor_pid': 'x'}}]):
+            self.assertEqual(budget.sample_rss(123, '/unused'), (7, 7))
 
     def test_combined_host_ceiling_stops_an_otherwise_small_workload(self):
         with tempfile.TemporaryDirectory() as d, patch.object(budget, 'sample_rss', return_value=(1, budget.MEMORY_MIB*1024+1)):

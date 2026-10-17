@@ -302,19 +302,67 @@ carries.
 - **A stanza `check:` that pipes `samegame.py` into a count wraps the
   call in `(… || true)`** (1080): the runner's `pipefail` carries the
   verdict the line meant not to assert.
-- **A worker's own test run is `--test-threads 2`, or under
+- ~~**A worker's own test run is `--test-threads 2`, or under
   `tools/memcap.sh`** (1081, 1086, 1089): three read the thread-width
-  guard's red as their mutation's.
+  guard's red as their mutation's.~~
 
 
 ## The brief checklist, from the thirty-second pass
 
 The rows continue; the first section's opening paragraph applies.
 
-- **`tools/memcap.sh` is written with its ceiling** (2082, 2049's Loop
+- ~~**`tools/memcap.sh` is written with its ceiling** (2082, 2049's Loop
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
-  came of the bare form, refused by the usage line.
+  came of the bare form, refused by the usage line.~~
+## The brief checklist, from the thirty-eighth pass
+
+The thirty-eighth tranche (DECISIONS 76): twenty-three landings on
+four lanes in 5 h 31 min from the pass's commit, 5.42 USD and 35.2
+minutes waiting a landing (4.22 / 36.5 before; 32.0 over the first
+twenty) under host admission — the waiting held within a fifth, the
+admission waited 2 to 41 s a gate, and both stay. The pass added these
+rows, each from the tranche's own journals or its own measure, and
+struck five rows the tools now enforce: 1743 (the brief composes the
+item's seams itself), and 1081, 1086, 1089 and 2082 (the host budget
+admits every test run; `memcap.sh` is `check.sh`'s now).
+
+- **Your own test run is `zsh tools/check.sh test …`** (2763, Ramon's
+  hog, measured): it joins the host budget Astra's branch brought; the
+  heaviest coverage test fell from 200 s and 2.70 GB alone to 38 s and
+  2.42 GB on the windowed reads.
+- **Index-0 sites in different callers: theirs' first** (2847, 2825's
+  Loop line): the booking named `1/193`, and the cause was a draw ours
+  never makes, in theirs' index-0 caller; the unit ours names at that
+  index is the first one after the missing draw. **A reach gap at equal
+  distance is `max_range`'s terms in `tuning.rs`**, grepped before a
+  gate is read (2847).
+- **`seams.py --item` on `think_<type>` of a unit the draws name**
+  (2827, 2808's Loop line): the seam that held 5985 was named in prose
+  four days and reached only through the Transport Freighter's type.
+- **A predicate refusing on one side against the reading: `--watch` its
+  fields over the caller's call on a packet first** (2867, 2845's Loop
+  line): a blind reading's `[bytes]` side effect sat unbuilt a month;
+  the ring walk's predicate owned it.
+- **A booking that carries a cast lists its callees' line counts before
+  it is sized** (2824, 2812's Loop line): the carry alone reached
+  `Unit::swap_team`'s 286 unread lines and the staging went to the next
+  chapter.
+- **The batch is re-read on the base at every `ccc update` before a
+  fan-out** (2856, 2793's Loop line): six of nine built rows were on the
+  base by the lane's update. `mutate.py`'s refusal already names the
+  staged paths (`-uno`: an untracked file never counts).
+- **A subagent's brief names its function in the body, never in the
+  task line alone** (2875, 2857's Loop line): two subagents found a
+  brief that ended at "Your function:".
+- **A subagent never ends its turn on a background wait** (2820, the
+  commander's): it is not re-invoked, and 2793 sat 1 h 50 on one that
+  did; `lanewait.py` names a lane idle behind a child older than
+  `--stalled-child-after` (90 minutes).
+- The sweep rows name what the pass built for the lane: the `ui` mark
+  (2819), the bare-citation list (2843), `@FILE` and `--port-file`
+  (2796) and the regen that refuses to reset a hand port (2792).
+
 ## The brief checklist, from the thirty-seventh pass
 
 The thirty-seventh tranche (DECISIONS 74): twenty-three landings on
@@ -880,11 +928,11 @@ a landing. The pass added these rows, each from the tranche's own
 journals, and paid by trimming the wording of twenty rows, no number
 struck; the chapter kind stands at 12,979 of 13,000.
 
-- **The seams are read for the lane, in the brief** (1743): the frame's
+- ~~**The seams are read for the lane, in the brief** (1743): the frame's
   step 7 ran in one journal of nine word lanes and `standing.py` in none
   (lore's transcripts: `seams.py` once, `--callees` once, `report.py when`
   never), so `tools/brief.py` runs `seams.py --item N` and carries the
-  print; the lane re-runs it with `--field` once it has one.
+  print; the lane re-runs it with `--field` once it has one.~~
 - **A probe is committed before any other edit; never `commit -a` across
   a probe and a build** (1864): 1829's revert of its probe commits took
   an uncommitted build that a `commit -a` had swallowed.

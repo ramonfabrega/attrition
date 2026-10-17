@@ -142,6 +142,45 @@ def stalled_before_frame_zero(gamelog):
         return True
 
 
+def trace_frames_so_far(trace):
+    """The highest frame the tracer has written to `rontrace.log` — the
+    `FRAME` record is type 2, its frame in word 1 and word 7 — read off
+    the file's last 64 KiB of whole 32-byte records; None before the first
+    frame or without the file."""
+    try:
+        size = trace.stat().st_size
+    except FileNotFoundError:
+        return None
+    whole = size - size % 32
+    if whole < 64:
+        return None
+    start = max(32, whole - 65536)
+    start -= start % 32
+    with trace.open('rb') as stream:
+        stream.seek(start)
+        chunk = stream.read(whole - start)
+    frames = [row[1] for row in struct.iter_unpack('<8I', chunk) if row[0] == 2 and row[1] == row[7]]
+    return max(frames) if frames else None
+
+
+def pace_line(frame, seconds, end_frame, timeout):
+    """One line on the capture's pace, once a minute of frames is in (Loop
+    2874: run880 ran at a frame a second and met the hour's cap at 1219 of
+    1260 with no receipt): the frames so far, the rate, the seconds the
+    endpoint lies at on that rate, and whether that is past the timeout.
+    None under a minute or before the first frame."""
+    if not frame or seconds < 60:
+        return None
+    rate = frame / seconds
+    eta = round(end_frame / rate)
+    line = (f"pace: {frame} frames in {seconds:.0f} s ({rate:.1f}/s); --end-frame {end_frame} at this "
+            f"pace in about {eta} s, --timeout {timeout}")
+    if eta > timeout:
+        line = line[:-len(f", --timeout {timeout}")] + (f", which exceeds --timeout {timeout} — trim the "
+                                                        "`end:` set or raise the timeout")
+    return line
+
+
 def refused_detail(detail):
     """Why a `--detail` is refused before anything is staged, or None:
     `GROUPS` beside `DEATHS` at one section prints no GROUPDATA at all
@@ -424,6 +463,12 @@ def capture(args, output, style):
             except subprocess.TimeoutExpired:
                 pass
             now = time.monotonic()
+            if 'pace' not in report:
+                said = pace_line(trace_frames_so_far(output/'rontrace.log'), now - launch,
+                                 args.end_frame, args.timeout)
+                if said:
+                    report['pace'] = said
+                    print(said, flush=True)
             verdict = stall_verdict(report, now - launch, stall,
                                     stalled_before_frame_zero(gamelog))
             if verdict == 'relaunch':

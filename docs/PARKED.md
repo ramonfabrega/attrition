@@ -3738,126 +3738,15 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
-(2788) **Two RSS samplers' slot probes read each other as holders: exit 125, "cannot monitor a held lease with
-invalid owner metadata"** (the commander, from 2783's lane gate, red twice on tests it did not touch): `status()`
-probed each `cpu-N.lock` with `LOCK_EX | LOCK_NB` under the *shared* admission mutex, so two supervisors sampling at
-once each found the other's probe as a holder, and a free slot never described (`cpu-24..31.lock` empty on disk,
-2026-10-17) read as `owner: None`. Three of 2783's run-3 failures were this exit (`debug_view::…replay_context`,
-`army::…run29_s_navy…`, `archive::…publication_never_overwrites…`); the marker does not reach it, since admission off
-still samples. **Fixed by the commander the same day**: the probe takes `LOCK_SH` — a holder's exclusive lock still
-refuses it, a second probe does not — held by `test_a_concurrent_probe_is_not_a_holder`, made to fail first. Yours:
-whether the trial's numbers before this commit count, and whether a sampler should ever raise on a slot it cannot read.
-
-(2792) **`sweep_gen.py --regen` with no `--port` drops a hand-written port to `todo!()`** (2783's "for the Loop"
-line, filed at its merge): four times in one batch, though the keep is said to hold (item 2368); the port had been
-written by replacing the `todo!()` line, so perhaps the keep wants the generator's own markers. Each re-application
-cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach. **A second**, 2807's (parked 2815): `--regen` resets a hand-edited port to `0`; a redraw is delete-and-regenerate or a checkout. **A third**, 2818's "for the Loop" line, filed at its merge: `--regen` should refuse, or print a diff, when it would reset a hand-written port; and `--write-mod` leaves `mod.rs` alone on a non-`--regen` run, so the module line is added by hand — the generator could verify it was added. **A fourth**, 2844's "for the Loop" line, filed at its merge: `--regen` rewrites the `.rs` as well as the `.py`, so a draw tuned after the port loses it (kept in the job's tmp and transplanted); a `--regen --keep-port` would remove the step; and `--sparse` sorts its slices by offset whatever the line's order, which the help should say (beside 2842's traps).
-
-(2796) **A function's sixty flags and its port do not survive a shell line** (2782's "for the Loop" line, filed at its
-merge): the item's driver was a throwaway (`$JOB/tmp/gen.py`, a function's flags one a line in a file and its port in
-another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 KB port do not fit a command. Candidate:
-`sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer (Loop 2792's
-sibling). One reach; **a second**, 2797's "for the Loop" line, filed at its merge: two scratch `gen_*.sh` drivers again; **a third**, 2801's: a `gen.sh` per item (`fK` flags, `pK.rs` ports, `FRESH=1`), and a `--regen` that replaces a port block is the other half.
-
-(2799) **Two guards read the `Golden:` line by different rules when no chapter is open** (the commander, at 2785's
-booking): `docs_guard::the_handoff_carries_the_golden_line` accepts `none pinned`, a `w<frame>` or `every chapter closed`;
-`floors::tests::the_handoff_s_golden_line_is_the_pinned_word` accepts only `every chapter closed`, so a line that passed
-the reflex failed the whole gate on `a742d5bc` (one red, the second commit leading with `every chapter closed`).
-Candidate: one parser, shared. One reach.
+Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872).
 
 (2809) **A mechanic document's numbered steps are checked against the function that builds them** (2779's "for the
 Loop" line, filed at its merge): two neighbouring terms of `calc_gather` sat in `docs/ECONOMY.md`'s list ("8.
 Capitalism") for months with no code, and no `SEAM` or "not modelled" paragraph named them, so `seams.py` could not
 show them; they were the peace pair's word 5982. Candidate: a step with no code gets a `SEAM` line, held by a guard
-that reads the step lists. One reach.
-
-(2819) **The sweep lanes now harvest renderer and editor bodies the census counts as simulation** (the commander, at
-2807's merge): 2807's ten (`draw_thick_diamond`, `Nuke::draw_ctw`, `Game::run_unit_editor`, `WorldMap::on_right_down`…) are,
-in its own words, "a renderer or editor body or a thin wrapper; none has a simulation effect beyond what the rows hold",
-and the next-shortest unshaped rows (parked 2817) are more of the same; two batches running found the harvest slot EY empty.
-`Census:` rises (1169 → 1181) on functions the finish line does not need. Yours: whether `census.py`'s layer rules move
-these files out of `simulation`, and whether the two sweep lanes stay two (the roster is Ramon's). One reach. **A second**, 2831's "for the Loop" line, filed at its merge: a batch of one (`Map::stamp`), the shortest `--unbacked` rows renderer, UI or singleton bodies (parked 2836); `census.py --unbacked` could mark a body whose only effects are `draw_*`/`render` calls so the list skips it.
-
-(2820) **A lane waiting on a subagent that ended its turn is invisible to `lanewait.py`** (the commander, 2026-10-17):
-2793 fanned its batch to ten subagents (`agent-*` worktrees), and the `num_city_buildings` one ended its turn at 03:25 with
-"the harness will re-invoke me when the background job exits" — a subagent is not re-invoked that way — so the lane sat
-1h50 "waiting on the agent", its row `working`, no `STALLED` exit (a running subagent counts as running). Candidate: the
-waiter reads a lane's subagent transcripts and exits `STALLED` on one quiet past the threshold with `end_turn`; and the
-frame's brief says a subagent never ends its turn on a background wait. One reach.
-
-(2824) **A booking that says "carry the cast" is sized before its callee chain is counted** (2812's "for the Loop" line,
-filed at its merge): 2812 was booked to carry a cloaked Spy's Bribe and stage it, and the carry alone reached
-`cast_bribe` → `Unit::swap_team@006118d0` (286 lines, unread), so the staging went to the next chapter (2823). Candidate:
-the brief checklist asks a booking that names a cast or an action to list its callees' line counts first. One reach.
-
-(2847) **When the two sides' index-0 sites differ in caller, read theirs' caller first** (2825's "for the Loop" line, filed
-at its merge): the booking named `1/193`, and `seams.py` on its chain (`do_idle`, `set_anim`) could not reach the cause, which
-came from theirs' index-0 caller — a draw ours never makes; the unit ours names at that index is the first one after the
-missing draw. A second row: a reach difference with the distance agreeing is `max_range@0060fe90`'s terms, grepped against
-`tuning.rs` before a gate is read. Candidate: two brief-checklist rows beside Loop 2827's. One reach.
-
-(2856) **A sweep lane picks its batch at spawn and sweeps it for an hour** (2793's "for the Loop" line, filed at its merge): six
-of its nine built rows were on the base by its `ccc update` (2837, 2844, 2801), and `mutate.py` refuses a dirty tree (untracked
-new files count, exit 2), which three subagents each found the slow way. Candidate: the sweep frame's brief re-reads `census.py
---unbacked` on the base at every `ccc update` before a fan-out, and `mutate.py` names the untracked file it refused on. One reach.
-
-(2862) **`sweep_gen.py`'s help does not say what `--sparse` without `@` writes, and a draw that records nothing passes**
-(2852's "for the Loop" line, filed at its merge): without `@` the table's base is written at LOC as a pointer cell, and an
-in-image table is `@LOC`; a lane lost twenty minutes to 220 rows that recorded nothing. Candidate: the help says it, beside
-2842's and 2850's traps, and the generator counts the ` # -` rows and refuses when they are all of them. One reach.
-
-(2867) **When a predicate refuses on one side and the reading says it should pass, `--watch` the fields it reads across the
-caller's whole call on a packet before reading another callee** (2845's "for the Loop" line, filed at its merge): a blind
-reading's `[bytes]` side effect (2026-09-17) sat unbuilt for a month; its owner was the ring walk's predicate, found only
-through a packet's `--watch`. Candidate: a brief-checklist row beside Loops 2827 and 2847. One reach.
-
-(2874) **A golden take with a wide `end:` set runs at about a frame a second and meets the lane's hour unannounced** (2832's
-"for the Loop" line, filed at its merge): `WORLD=6,CITIES=5` took run880 to 1219 of 1260 before the 3600 s cap, no receipt.
-Candidate: `golden_capture.sh` prints a frames-per-second estimate from the first blocks, so a lane trims the `end:` set
-before it waits the hour. One reach.
-
-(2875) **A fan-out's brief ended at "Your function:" with the name in the task line only** (2857's "for the Loop" line,
-filed at its merge): two subagents found it; the `void` shape ignoring `--cell-win`/`--stub` and `--write-mod` not
-registering are parked 2872. Candidate: the sweep frame's fan-out template names the function in its body. One reach.
-
-(2843) **The census counts a sweep only when its test's doc comment spells `Class::method@addr` in full** (2837's "for the
-Loop" line, filed at its merge): a three-forms-in-one test that named `is_seen_wcoord@…` bare scored two of three until the
-full names were spelled. Candidate: `census.py --unbacked` says "cited bare" for an address a test file names without its
-class. One reach.
-
-(2827) **Once the draws name a unit, `seams.py` runs on its type's think chain** (2808's "for the Loop" line, filed at its
-merge): the seam that held 5985 (`think_carry`'s attack arm, "answers no" since AI §195) was named in prose for four days, and
-`seams.py --item` on the booking's names (`set_anim`, `inc_time`) could not reach it; the draw named the Transport Freighter
-`1/225`, and its type led to the seam. Candidate: a brief-checklist row — a residue whose draws name a unit runs `seams.py` on
-`think_<type>` before walking it back. One reach.
+that reads the step lists. One reach. **The thirty-eighth pass**: one reach; stays — closes at the next pass unreached (DECISIONS 54). The candidate narrowed: `seams.py --steps docs/<MECHANIC>.md`, listing a numbered step whose bold term no `crates/sim` source spells, so a step with no code shows beside the `SEAM`s.
 
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
-
-(2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
-its merge): adding `normalize` as a fourth stub moved `equals_group`'s seq answers from `a[4]`, `a[5]` to `a[5]`,
-`a[6]`, and the port broke until renumbered by hand. Candidate: the generator names each stub's answers in the
-port it writes. One reach. **The thirty-seventh pass**: one reach; stays — the sweep lane's at its next `--stub` added to a port that counts `a[N]`; closes at the next pass unreached (DECISIONS 54).
-
-(2763) **The rondata test binary is the box's CPU and memory hog** (Ramon, 2026-10-15, for the steer): measured on
-2725's booking gate (`replan-pdb`, `--scope 1c2bb098 --test-threads=8`), `rondata-4337e333078eb556` held **7,836 MB
-resident at 7 min 08 s**, one core at 100 % by then, beside two lanes' `rustc --crate-name sim` at ~950 MB each; the
-gate's slow rows were `coverage::every_key_the_dump_prints_is_read_or_pinned`,
-`coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned` and `third_pair_windows_check_groups_and_
-projectiles_on_both_sides` (each "running for over 60 seconds"). Four lanes' lane gates run the same binary name, so a
-hog is named by its cwd, not its name. Not measured: which test holds the 7.8 GB (a `sample` at its peak missed it).
-Candidate: one sampled whole gate at its RSS peak, then the dump reader's footprint (entry 56 §3 found half the
-suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four lanes and a booking gate live. One reach. **The thirty-seventh pass, measured**: `diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned` alone is **200 s and 2.70 GB resident** (`/usr/bin/time -l`, 184 s user — one core, CPU-bound), its sibling 137 s alone; at eight threads the binary's 7.8 GB is these two beside `third_pair_windows_check_groups_and_projectiles_on_both_sides` (56 s) and the next heaviest, each holding its parsed dumps. The suite is 2,762 s alone over 865 tests, so the gate's floor at any width is the 200 s test, and the drain gate's suite ran 314 s at eight threads: the levers are the two coverage tests split per window (parallel) or a parsed-dump cache (entry 56 §3: half the suite is `gamelog::fill`). Yours: whether to spend a pass on either.
-
-(2769) **A pointer array of N records is N `--place` flags, and a callee's arity is read by hand** (2749's "for the
-Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a shell loop of `--place`s, and
-`kill_tree`'s one stack argument (hidden by the decompile) faulted the first run at the stub page. Candidate: a
-`--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach;
-a second from 2768's "for the Loop" line, filed at its merge: an object list's sixty flags a function (parked 2772). **The thirty-seventh pass**: `--ptrtab LOC:N:SIZE` is 2782's own item (booked, a test made to fail first; **built**, parked 2794); the `callee_arity.py ADDR` half stays at one reach — closes at the next pass unreached (DECISIONS 54).
-
-(2775) **A record array's bias is a `--place` per record, and `--answers` on a table-indexing stub draws wild words**
-(2743's "for the Loop" line, filed at its merge): parked 2747's record-array bias wants one flag, and `--answers`'
-help should say a stub that indexes a table wants `--answer-range` instead. Candidate: `--records
-BASE:STRIDE:N:OFF=VALS`, and the help line, each held by a test made to fail first. One reach. **The thirty-seventh pass**: one reach; stays — the harvest lane's at its next record-array bias (2783's batch runs off the same list); closes at the next pass unreached (DECISIONS 54).
 
 ## Loop, filed 2026-10-15 — the thirty-sixth tranche's
 
@@ -3867,7 +3756,7 @@ Barracks — (212, 96) dropped, (212, 101) taken — and the walk said only `ski
 refused for sight says so in `staged:`, a test made to fail first. One reach. **The thirty-sixth pass**: one reach; stays — `group_action_attack` returns nothing to the walk and the sight refusal sits inside the sim's per-member issue, so the print needs a return the walk can name; a worker's on its next staging that loses a line (chapter seventy-nine's `@flight` is the same family); closes at the next pass unreached (DECISIONS 54).
 **2649** (a second reach, filed at its merge): a `@launchpatrol` on a refuelling plane took effect on no unit and
 `staged:` printed `skipped {}` empty (parked 2661); the same print, named for a line that reached no unit.
-**2755** (a third reach, folded by the thirty-seventh pass from Loop 2786, 2755's "for the Loop" line): a staging recipe for a unit that must stay idle should print each line's effect on the unit's orders — three of chapter eighty's six attempts left the stealth unit with an order, found only by reading `orders.len()` in ours. **Graduated at three reaches**; the build is owed and sized: the walk defers issuer lines to the frame whose tick first sees them, so a before/after of the named units' order stacks at apply time would misreport, and the honest print needs each issue to return what it reached (`group_action_attack` returns nothing today) — a `Script::apply` that records, per staged line, the units whose orders changed on its tick, `staged:` printing `reached no unit` and `<unit>: +<order>` for each; the next pass builds it, or the next chapter lane that loses a line builds it under its own item.
+**2755** (a third reach, folded by the thirty-seventh pass from Loop 2786, 2755's "for the Loop" line): a staging recipe for a unit that must stay idle should print each line's effect on the unit's orders — three of chapter eighty's six attempts left the stealth unit with an order, found only by reading `orders.len()` in ours. **Graduated at three reaches**; the build is owed and sized: the walk defers issuer lines to the frame whose tick first sees them, so a before/after of the named units' order stacks at apply time would misreport, and the honest print needs each issue to return what it reached (`group_action_attack` returns nothing today) — a `Script::apply` that records, per staged line, the units whose orders changed on its tick, `staged:` printing `reached no unit` and `<unit>: +<order>` for each; the next pass builds it, or the next chapter lane that loses a line builds it under its own item. **The thirty-eighth pass**: no reach this tranche (2832 staged chapter eighty-five and lost no line; its control never reached range, parked 2870); stays graduated — the next chapter lane that loses a staged line builds the print under its own item, and 2876's booking says so.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
@@ -3956,10 +3845,6 @@ address writes memory but not the `cN` window (parked 2686, 2687); six shapes no
 of ten (`inside_bottom`, `has_damage`, `equals_group`); the brief's `start_herds` was already 2655's (parked 2710);
 a `--table` record's own row byte and links within the row were written by hand (2713; booked in 2719).
 
-(2518) **An emptied queue is invisible to `stage_walk`** (2500's "for the Loop" line, filed at its merge).
-`stage_walk` prints a building only while its queue is non-empty, so a dequeue shows nothing unless
-`RON_STAGE_ALL=1`. Candidate: a dequeue prints `queue=[]` once, held by a test made to fail first. One reach. **The thirty-fifth pass**: one reach; stays — a worker's on its next dequeue; closes at the next pass unreached (DECISIONS 54). **The thirty-sixth pass**: a second reach — 2519's Loop line (parked 2532): `stage_walk` prints a queue's entry types and never their counters or targets, so the held head was read through a throwaway probe each time. Stays; the third reach graduates the print — counters, targets, and `queue=[]` once. **The thirty-seventh pass**: no reach this tranche (2755's staging read orders, not a queue); stays one more — closes at the next pass unreached (DECISIONS 54).
-
 ## Loop, filed 2026-10-14 — the thirty-fourth tranche's
 
 ## Loop, filed 2026-10-14 — the thirty-third tranche's
@@ -3996,7 +3881,7 @@ line moves the same as for a ported reader. Candidate: the census splits
 "layout backed" from "port backed", or the sweep takes only functions
 with a port consumer. Two reaches: 1724's ten had no port consumer at
 all, and its journal reads the small functions with one as nearly dry;
-1735 found one port consumer in ten by looking past the shortest (three). **The twenty-ninth pass**: `tools/census.py --unbacked` marks `port` where this crate defines the method's snake-case name (605 of 3,433 never-backed simulation functions), so a batch is picked with its consumers first; whether the `Census:` score should split layout-backed from port-backed is the finish line's and goes to Ramon (DECISIONS 66). Stays. **The thirtieth pass**: to Ramon again, unchanged; `--unbacked` hides the dead weight now (1861), so the port-marked rows lead the list. **The thirty-first tranche, 1889**: ten empty-body voids (bare `ret N`, one `port`-marked) moved the census 329 → 339 — a function with no body backs nothing a port reads, and the shortest-first rule now reaches them in bulk; a fourth reach. **The thirty-first pass**: to Ramon a third time, with 1889's empty bodies as the sharpest case; the census's `size` is the decompile's, so an empty body is not detectable there without the listing. **The thirty-second pass**: to Ramon a fourth time, unchanged; this tranche's ten batches were all port-marked or shortest-first, and `--hooked` (Loop 2025, built this pass) audits the other leak at zero. **The thirty-third pass**: to Ramon a fifth time, unchanged; the tranche's thirteen batches were port-marked or shortest-first, `--hooked` stands at zero, and the backed column moved 571 → 721 on them. **The thirty-fourth pass**: to Ramon a sixth time; the `port` mark now needs the crate to spell the function's own `Class::method` (Loop 2286, built this pass: 216 `port`, 31 `name`), so the sweep lane's pool is the consumers', and the split of the `Census:` score is still his. **The thirty-fifth pass**: to Ramon a seventh time; the `port` mark is stricter again (Loop 2420, built this pass: a comment alone names no consumer — 171 `port`, 86 `name`), and the split of the `Census:` score is still his. **The thirty-sixth pass**: to Ramon an eighth time, unchanged; `port` 171 rows stand under the stricter mark, and the census moved 994 → 1068 on twelve batches off `--unbacked`'s head. **The thirty-seventh pass**: to Ramon a ninth time; `port` 171 → 156 as the two sweep lanes took fifteen port-marked rows, the census 1068 → 1140, and the split of the `Census:` score is still his.
+1735 found one port consumer in ten by looking past the shortest (three). **The twenty-ninth pass**: `tools/census.py --unbacked` marks `port` where this crate defines the method's snake-case name (605 of 3,433 never-backed simulation functions), so a batch is picked with its consumers first; whether the `Census:` score should split layout-backed from port-backed is the finish line's and goes to Ramon (DECISIONS 66). Stays. **The thirtieth pass**: to Ramon again, unchanged; `--unbacked` hides the dead weight now (1861), so the port-marked rows lead the list. **The thirty-first tranche, 1889**: ten empty-body voids (bare `ret N`, one `port`-marked) moved the census 329 → 339 — a function with no body backs nothing a port reads, and the shortest-first rule now reaches them in bulk; a fourth reach. **The thirty-first pass**: to Ramon a third time, with 1889's empty bodies as the sharpest case; the census's `size` is the decompile's, so an empty body is not detectable there without the listing. **The thirty-second pass**: to Ramon a fourth time, unchanged; this tranche's ten batches were all port-marked or shortest-first, and `--hooked` (Loop 2025, built this pass) audits the other leak at zero. **The thirty-third pass**: to Ramon a fifth time, unchanged; the tranche's thirteen batches were port-marked or shortest-first, `--hooked` stands at zero, and the backed column moved 571 → 721 on them. **The thirty-fourth pass**: to Ramon a sixth time; the `port` mark now needs the crate to spell the function's own `Class::method` (Loop 2286, built this pass: 216 `port`, 31 `name`), so the sweep lane's pool is the consumers', and the split of the `Census:` score is still his. **The thirty-fifth pass**: to Ramon a seventh time; the `port` mark is stricter again (Loop 2420, built this pass: a comment alone names no consumer — 171 `port`, 86 `name`), and the split of the `Census:` score is still his. **The thirty-sixth pass**: to Ramon an eighth time, unchanged; `port` 171 rows stand under the stricter mark, and the census moved 994 → 1068 on twelve batches off `--unbacked`'s head. **The thirty-seventh pass**: to Ramon a ninth time; `port` 171 → 156 as the two sweep lanes took fifteen port-marked rows, the census 1068 → 1140, and the split of the `Census:` score is still his. **The thirty-eighth pass**: to Ramon a tenth time; the census 1140 → 1233 on the tranche's batches and **1233 → 1224 at the pass** — nine functions had been counted through a chunk whose script stubbed them (`sweep_backed` now subtracts a script's hooked callees); `port` 156; and the `--unbacked` list hides 235 renderer, input, sound, cheat and editor bodies under a `ui` mark (Loop 2819, built this pass), so the harvest lane's head is simulation again — whether those bodies leave the `simulation` layer, which moves the `Census:` denominator, is his with the split.
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
 
@@ -4013,7 +3898,7 @@ Whether that is a timing problem at the autostart or two tracer builds
 that do not combine is not known. Score: a `cover=1` capture and a
 lobby the autostart could not start, both on a pool lane with no
 cursor; then the queue lane goes and the pool is the only lane. One
-reach; the suite lane's after 1569. **The twenty-seventh pass**: stays — a capture trial (`cover=1` on a pool lane, a lobby the autostart cannot start) the user books; no lane ran it this tranche. **The twenty-eighth pass**: stays — the user's capture trial; no lane ran it in the race, which took no lane but the four arms. **The twenty-ninth pass**: stays — the user's capture trial; no lane ran it. **The thirtieth pass**: stays — the user's capture trial; no lane ran it. **The thirty-first pass**: stays — the user's capture trial; no lane ran it. **The thirty-second pass**: stays — the user's capture trial; no lane ran it. **The thirty-third pass**: stays — the user's capture trial; no lane ran it. **The thirty-fourth pass**: stays — the user's capture trial; no lane ran it. **The thirty-fifth pass**: stays — the user's capture trial; no lane ran it. **The thirty-sixth pass**: stays — the user's capture trial; no lane ran it. **The thirty-seventh pass**: stays — the user's capture trial; no lane ran it.
+reach; the suite lane's after 1569. **The twenty-seventh pass**: stays — a capture trial (`cover=1` on a pool lane, a lobby the autostart cannot start) the user books; no lane ran it this tranche. **The twenty-eighth pass**: stays — the user's capture trial; no lane ran it in the race, which took no lane but the four arms. **The twenty-ninth pass**: stays — the user's capture trial; no lane ran it. **The thirtieth pass**: stays — the user's capture trial; no lane ran it. **The thirty-first pass**: stays — the user's capture trial; no lane ran it. **The thirty-second pass**: stays — the user's capture trial; no lane ran it. **The thirty-third pass**: stays — the user's capture trial; no lane ran it. **The thirty-fourth pass**: stays — the user's capture trial; no lane ran it. **The thirty-fifth pass**: stays — the user's capture trial; no lane ran it. **The thirty-sixth pass**: stays — the user's capture trial; no lane ran it. **The thirty-seventh pass**: stays — the user's capture trial; no lane ran it. **The thirty-eighth pass**: stays — the user's capture trial; no lane ran it.
 
 ## Loop, filed 2026-10-05 — the twenty-fourth pass's own
 
@@ -6061,7 +5946,6 @@ says. A record of what moved, not a score.
 
 (2687) `--at` with a `--place` at the global's own address writes the pointer to memory but not into the `cN` window, so the port reads a random word; `--place cN+OFF` is the form (Signposts head/next).
 
-
 ## Parked by item 2688, 2026-10-15 — the sweep's ninety-seventh batch
 
 (2689) **`BuildQueue::walk_data` 0x6305f0** (2669's second half) is not built: it calls the walker's slot 4 with `*(int_str_array+0x10)+6000`, then on `input != 0` calls `close`/`init` by the queue count (callees that write `this`), then loops the count over 0x14-byte records handed to the walker. `mix --elems` holds a list or a table, never a count read from `this` with a stride; a `--count-at OFF:STRIDE` elems kind is the shape.
@@ -6104,7 +5988,6 @@ stealth unit of a military role weighed by `calc_danger`; names no score, so par
 (2712) **`Group::equals_group`'s `normalize` is hooked**, not run: the original rewrites `field_0xc` and the `+0x8cc` shorts before the loop; the row's count and shorts are the drawn ones. A callee that writes `this` before a loop (parked 2701) is still unbuilt as a shape (`--stub-write` writes one window, one value, every call; `normalize` is called on two windows).
 
 (2713) Loop: `--table` with ROWS > 1 gives each record a drawn next-row word at `VOFF`; `has_damage` needed a record's own row (`who`, its +9 byte) and the links within the row, so its two rows were written as `--place`/`--link`/`--wbias` by hand. A `--table`'s `--row-byte OFF` (the record's row at OFF, no next-row word) would generate it.
-
 
 ## Parked by item 2714, 2026-10-15 — the harvest sweep's hundredth batch
 

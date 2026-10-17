@@ -1990,7 +1990,10 @@ fn the_handoff_carries_the_golden_line() {
     assert!(
         pinned || rest.starts_with("none pinned") || rest.starts_with("every chapter closed"),
         "the `Golden:` line is {rest:?}; it says `none pinned`, names a word `w<frame>`, \
-         or leads with `every chapter closed`"
+         or leads with `every chapter closed`. This asks only that the slot is filled: \
+         the parts are read against the pinned words by \
+         `rondata::diff::floors::tests::the_handoff_s_golden_line_is_the_pinned_word`, \
+         which `tools/guard.sh` runs for the commander (Loop 2799)"
     );
 }
 

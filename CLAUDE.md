@@ -702,15 +702,15 @@ and makes the eventual diff mechanical rather than a translation exercise.
   are authored once and invoked thereafter; one-off hypothesis probes
   stay scratch scripts, because a wrong abstraction costs more than the
   typing it saves.
-- **Host admission is on trial for the thirty-eighth tranche**
-  (`docs/DECISIONS.md` entry 75): `tools/guard.sh` and every gate mode
-  reserve from one host budget (`tools/resource_budget.py`), each gate's
-  last lines carry an `Admission wait:` receipt, and `touch
-  ~/Library/Caches/attrition/admission-off` turns admission off for every
-  worktree at once — the pass reads the two numbers and keeps or drops
-  it. A standalone `cargo test …` joins the budget as `zsh tools/check.sh
-  test …`; nothing wraps `guard.sh` or a gate again. The design and its
-  limits are `docs/TEST_PERFORMANCE.md`.
+- **Host admission stays** (`docs/DECISIONS.md` entries 75 and 76: the
+  thirty-eighth tranche waited 32.0 minutes a landing against 36.5 with
+  the admission waiting 2–41 s a gate): `tools/guard.sh` and every gate
+  mode reserve from one host budget (`tools/resource_budget.py`), each
+  gate's last lines carry an `Admission wait:` receipt, and `touch
+  ~/Library/Caches/attrition/admission-off` is the kill switch for every
+  worktree at once. A standalone `cargo test …` joins the budget as `zsh
+  tools/check.sh test …`; nothing wraps `guard.sh` or a gate again. The
+  design and its limits are `docs/TEST_PERFORMANCE.md`.
 - **`tools/guard.sh [filter …]` is the reflex between edits** — the
   paperwork guards plus the current item's tests, debug, seconds. The
   full `--release` diff suite remains the gate: before a commit and

@@ -87,6 +87,7 @@ is append-only and amended in place, as it always was.
 - 73 standing — The mixed roster's second tranche is scored, the fourth lane is added under entry 61 §5, the build cache is measured moot, and twenty-two Loop items become tools, rows or closes
 - 74 standing — The mixed roster's third tranche is scored, the fourth lane goes by entry 61 §5, the sweep's cycle is measured as the box's cost, and twenty-two Loop items become tools, rows or closes
 - 75 standing — Astra's test-suite branch is fast-forwarded whole, adapted at four points, and tried for one tranche with a kill switch and two numbers
+- 76 standing — The thirty-eighth tranche is scored under host admission, the admission and the fourth lane stay, the census subtracts a sweep's stubbed callees, and twenty Loop items become tools, rows or closes
 
 ## 1. Fidelity before divergence
 
@@ -5967,3 +5968,70 @@ queue carried, is `docs/journal/2026-10-17-pr10-adoption.md` with the
 steer's review; the design is `docs/TEST_PERFORMANCE.md`, its last
 section the trial's terms; the clause in `CLAUDE.md`'s conventions is
 the pass's to keep or strike with the numbers.
+
+## 76. The thirty-eighth tranche is scored under host admission, the admission and the fourth lane stay, the census subtracts a sweep's stubbed callees, and twenty Loop items become tools, rows or closes
+
+*2026-10-17, the thirty-eighth Fable pass, unattended (entry 61 §4);
+the record is `docs/audit/2026-10-17-fable-pass-38.md`.*
+
+**The trial (entry 75).** Twenty-three landings on four lanes in 5 h 31
+from the pass's commit (`a4ff472f` 02:39 to `f5cc36eb` 08:10). (1)
+`tools/tranche.py`'s waiting a landing: **32.0** minutes over the first
+twenty and **35.2** over the twenty-three with the drain's three —
+against 36.5 on four lanes (entry 74) and 27.0 on three (entry 73):
+within a fifth, and lower; 25.5 without 2793's 250 minutes, 223 of them
+behind a subagent that ended its turn on a background wait (Loop 2820).
+(2) The gates' `Admission wait:` lines: lane gates 1.8–12.5 s each over
+380–920 leases (one 74 s before the probe fix `a8883529`), booking
+gates 2.1–41.0 s, whole gates 4.0–18.9 s; about three minutes summed
+over the tranche against 810 minutes waited. Both low, so by entry 75's
+own rule **the branch earned the lane and the admission stays**: the
+clause in `CLAUDE.md` reads so, and the marker is a kill switch, not a
+trial. The one admission failure was the probe race the commander
+fixed the same day (Loop 2788, `LOCK_SH`); the pass made the sampler
+skip a slot it cannot read for one sample instead of ending a run at
+125 (`test_unreadable_live_owner_is_skipped_for_the_sample`).
+
+**The lane count.** Entry 61 §5 would add a fifth lane on this waiting.
+The pass holds four and puts the fifth to Ramon, for a measured reason
+(entry 66's precedent): the sweep pool's head at the pass was twelve
+renderer and editor bodies — the harvest lane's whole tranche (Loop
+2819) — and the pass built the `ui` mark that hides 235 of them; the
+pool under the mark is measured for a tranche before a third sweep lane
+is spent on it. Neither the roster's models nor its efforts move
+(entry 71).
+
+**The roster, lane by lane** (every session's model read from its
+transcript; lore's list price at 2026-10-17's rates): the AI word on
+Opus 5.5 medium, five landings, **10.03 USD and 32.4 minutes** waiting a
+landing (8.06 / 49.1 before), the peace pair 5564 → 6821 of 6822 in
+five words, each with its value diff, three `DEEP` clears; the rules
+track on Sonnet 5.5 medium, six landings, **3.58 / 39.2** (3.57 / 52.2),
+chapters eighty to eighty-five closed or built, one 102-minute wait on
+run880's capture (Loop 2874); the builder sweep on Sonnet, six
+landings, **4.49 / 15.5** (2.84 / 19.9), five generator shapes; the
+harvest sweep on Sonnet, six landings, **4.34 / 53.2** (4.30 / 48.1),
+11.6 without 2793's hang. Workers 124.64 USD, **5.42 a landing** (4.22);
+the commander 19.12; 143.76 in all (116.24). No kill rule tripped, no
+red booking gate, no merge backed out.
+
+**The census leak.** `tools/census.py --hooked` (entry 69's audit) read
+sixteen chunks that name the callee their script stubs — `// Map::point
+(stub 0) answers …` in a port's comment — and `sweep_backed` counted
+each as backed. The count now subtracts a script's hooked callees, by
+address and by name (`test_a_hooked_callee_a_chunk_names_is_not_backed_
+by_that_chunk`, red first); `census::SIMULATION_BACKED` **1233 → 1224**,
+re-pinned by the pass. The audit stays a lint.
+
+**Twenty Loop items ruled.** Fifteen built, each red first — 2788,
+2792, 2796, 2799, 2819, 2820, 2824, 2827, 2843, 2847, 2856, 2862, 2867,
+2874, 2875; 2763 closed on Astra's measure (the 200 s, 2.70 GB test at
+38 s and 2.42 GB alone); 2750, 2769, 2775 and 2518 closed unreached
+under entry 54 §7. Five stay: 1570, 1725, 2003, 2654, 2809.
+
+**What is not established.** The admission under a fifth lane; the `ui`
+mark is a name rule read off twelve bodies and may hide a simulation
+body named `draw_*` (`--all` shows them); whether the harvest pool
+under the mark holds a tranche's worth; the stalled-behind-a-child
+threshold of 90 minutes is a reading of this tranche's gates (to 25
+min) and captures (to 80), not a measure of hangs.

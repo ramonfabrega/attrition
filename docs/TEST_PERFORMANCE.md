@@ -611,3 +611,15 @@ The caches' schema is a hand-listed `include_str!` hash, complete on this day
 and guarded by nothing; the verifiers on the whole gate are the check until a
 whole-tree hash replaces the list. Cache files beside the captures are never
 pruned; about 1.3 GB stood under `~/ron-golden` at adoption.
+
+**The verdict (the thirty-eighth pass, DECISIONS 76).** Waiting a landing
+32.0 minutes over the tranche's first twenty and 35.2 over its twenty-three,
+against 36.5; the admission waited 2 to 41 s a gate, about three minutes
+summed over the tranche. Both low: the admission stays, and the clause in
+`CLAUDE.md` reads so. The branch's own measure on this tree:
+`diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned`
+alone ran 38.5 s at 2.42 GB maximum resident (`/usr/bin/time -l`,
+2026-10-17) against 199.8 s and 2.70 GB on 2026-10-15 (Loop 2763, closed).
+The budget sampler skips a slot whose owner record it cannot read for one
+sample instead of raising (Loop 2788); the trial's one admission failure was
+the probe race fixed at `a8883529`.

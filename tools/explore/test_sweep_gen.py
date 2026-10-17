@@ -1556,6 +1556,53 @@ class Shapes(unittest.TestCase):
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_regen_refuses_to_reset_a_hand_written_port(self):
+        # Loop 2792 (2783's, 2807's, 2818's and 2844's lines, the thirty-eighth
+        # pass): `--regen` with no `--port` dropped a hand-written port to
+        # `todo!()` four times in one batch when the keep could not find its
+        # block, and each cost a step. A regen that would reset a port that
+        # is not `todo!()` refuses and names the three ways on; `--port-file`
+        # reads the expression from a file (Loop 2796: a 3 KB port does not
+        # fit a command), and an `@file` holds flags one a line.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
+                self.assertEqual(sweep_gen.main(line + ['--write-mod']), 0)
+                tp = Path(tmp) / 'x_y.rs'
+                text = tp.read_text()
+                todo = 'todo!("the port of X::y")'
+                self.assertIn(todo, text)
+                # The hand port replaces the todo line whole, and the lane
+                # also touched the line above it, so the keep has no anchor.
+                at = text.index(todo)
+                above = text.rfind('\n', 0, text.rfind('\n', 0, at))
+                hand = text[:above] + ' // by hand' + text[above:].replace(todo, '7')
+                tp.write_text(hand)
+                self.assertEqual(sweep_gen.main(line + ['--argrange', '0:0:2', '--regen']), 2,
+                                 'a regen that would reset the port refuses')
+                self.assertEqual(tp.read_text(), hand, 'and writes nothing')
+                self.assertEqual(sweep_gen.main(line + ['--argrange', '0:0:2', '--regen', '--reset-port']), 0)
+                self.assertIn(todo, tp.read_text())
+                port = Path(tmp) / 'port.rs'
+                port.write_text('{\n    let v = a[0];\n    v + 1\n}\n')
+                self.assertEqual(sweep_gen.main(line + ['--argrange', '0:0:2', '--regen', '--port-file', str(port)]), 0)
+                self.assertIn('let v = a[0];', tp.read_text())
+                self.assertIn('v + 1', (Path(tmp) / 'sweep_x_y.py').read_text().split('# sweep_gen: ')[1],
+                              'the kept line records the port text, not the file')
+                flags = Path(tmp) / 'x_y.args'
+                flags.write_text('# the flags, one a line\n--argrange\n0:0:3\n--regen\n')
+                self.assertEqual(sweep_gen.main(line + [f'@{flags}']), 0)
+                self.assertIn('ARGRANGE = [(0, 0, 3)]', (Path(tmp) / 'sweep_x_y.py').read_text())
+                self.assertIn('let v = a[0];', tp.read_text(), 'the keep found the block this time')
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+        self.assertEqual(sweep_gen.expand_argfiles(['a', '@/no/such/file', '--x']), ['a', '@/no/such/file', '--x'],
+                         'a missing @file is left as it stands')
+
     def test_regen_given_a_whole_line_keeps_the_flags_the_line_leaves_out(self):
         # Loop 2508 (2507's Loop line; the thirty-fifth pass): `--regen` with
         # a whole line redrew `issue_toggle_pause` without the kept line's

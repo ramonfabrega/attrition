@@ -2616,7 +2616,7 @@ def shown(path):
 
 
 KEPT = '# sweep_gen: '
-NOT_KEPT = ('--write-mod', '--regen', '--dry-run')
+NOT_KEPT = ('--write-mod', '--regen', '--dry-run', '--reset-port')
 
 
 def kept_line(path):
@@ -3147,8 +3147,41 @@ def split_gate_this(argv):
     return out
 
 
+def expand_argfiles(argv):
+    """`@FILE` on the line stands for the file's lines, one argument each,
+    blank and `#` lines dropped; `--port-file FILE` becomes `--port <the
+    file's text>` (Loop 2796: sixty `--wbias` flags and a 3 KB port do not
+    fit a command, and three batches wrote throwaway `gen.sh` drivers). Both
+    expand before parsing, so the kept `# sweep_gen:` line records the
+    arguments themselves and `--regen` redraws after the files are gone. A
+    missing `@FILE` is left as it stands (an argument may start with `@`)."""
+    out = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == '--port-file' and i + 1 < len(argv):
+            out += ['--port', Path(argv[i + 1]).read_text().strip('\n')]
+            i += 2
+            continue
+        if a.startswith('@') and len(a) > 1 and Path(a[1:]).is_file():
+            for line in Path(a[1:]).read_text().splitlines():
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    out.append(line)
+            i += 1
+            continue
+        out.append(a)
+        i += 1
+    return out
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
+    try:
+        argv = expand_argfiles(argv)
+    except OSError as e:
+        print(f'sweep_gen.py: {e}', file=sys.stderr)
+        return 2
     try:
         line = _kept_for_regen(argv)
     except ValueError as e:
@@ -3199,7 +3232,11 @@ def main(argv=None):
                     'took fwd\'s none and eight value-returning sweeps compared no eax)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
     ap.add_argument('--item', type=int, required=True)
-    ap.add_argument('--port', help="the port's Rust expression (`v`, `t` or `_this` in scope)")
+    ap.add_argument('--port', help="the port's Rust expression (`v`, `t` or `_this` in scope); `--port-file FILE` "
+                                   "reads it from a file, and `@FILE` on the line holds flags one a line (Loop 2796)")
+    ap.add_argument('--reset-port', action='store_true',
+                    help='--regen: redraw the port as todo!() when the hand-written one cannot be kept; without it '
+                         'such a regen refuses (Loop 2792)')
     ap.add_argument('--off', type=lambda s: int(s, 0), help='the field offset (field; range: default 0x4)')
     ap.add_argument('--via', type=lambda s: int(s, 0), help='field: the pointer at this+VIA holds the record; vcall: the object whose vtable is called')
     ap.add_argument('--cell', type=lambda s: int(s, 0), help='cell: the global cell that holds the record pointer')
@@ -3311,8 +3348,10 @@ def main(argv=None):
                     help='obj: LOC points at a zeroed table of N rows STRIDE apart, each row\'s slices `p` '
                          'windows after the pointed buffers and before the places; `@VA` the image\'s own table '
                          '(the leaders table, parked 2201; item 2247). Two forms, not one: `@VA` is the table '
-                         'itself at VA; a bare address is a CELL holding a pointer to the table — `@` on a cell '
-                         'reads the pointer as row 0 and faults as a wild index (Loop 2744)')
+                         'itself at VA; a bare address is a CELL holding a pointer to the table — the generator lays the '
+                         'table in a window and writes its base into the cell at LOC — and `@` on a cell '
+                         'reads the pointer as row 0 and faults as a wild index (Loops 2744, 2862). A draw whose '
+                         'every row records `-` recorded nothing: redraw before reading it')
     ap.add_argument('--gtab', action='append', default=[], metavar='CNT:LO..HI:PTR:SIZE',
                     help='obj: a counted array behind image words (item 2709, parked 2699): the count at CNT drawn from LO..HI, '
                          'the array pointer at PTR, SIZE random bytes an element; `c` windows the head and array, `p` the elements')
@@ -3537,9 +3576,19 @@ def main(argv=None):
     if args.regen and args.port is None and tp.exists():
         # The test's hand-written port is kept between the generated halves
         # (item 2368: two of 2341's ten restored it by hand from a copy).
-        kept = kept_port(tp.read_text(), test, f'todo!("the port of {parse(args.function)[0]}")')
+        old_test = tp.read_text()
+        todo = f'todo!("the port of {parse(args.function)[0]}")'
+        kept = kept_port(old_test, test, todo)
         if kept is not None:
             test = kept
+        elif todo not in old_test and not args.reset_port:
+            # Loop 2792: four hand ports in one batch went back to todo!()
+            # in silence; a regen that cannot keep one refuses instead.
+            print(f'sweep_gen.py: {shown(tp)}: --regen would reset its hand-written port to todo!() — no port '
+                  'block where the new test holds one (its windows changed, or the line above the port was '
+                  'edited); pass --port EXPR or --port-file FILE, or --reset-port to redraw it as todo!() '
+                  '(Loop 2792)', file=sys.stderr)
+            return 2
         else:
             print(f'sweep_gen.py: {shown(tp)}: no port block where the new test holds one (its windows '
                   'changed?); the port is `todo!()` again — restore it from git', file=sys.stderr)

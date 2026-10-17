@@ -171,15 +171,17 @@ def sample_rss(root, directory):
     roots = {root}
     for slot in status(directory):
         owner = slot['owner']
+        # A lease is locked before its owner record lands (Loop 2788, the
+        # thirty-eighth pass): a sampler that meets that window, or an
+        # orphaned lease, skips the slot for this sample and reads it on
+        # the next — one unknown slot is not a reason to end a run at 125.
         if (not isinstance(owner, dict) or type(owner.get('supervisor_pid')) is not int
                 or owner['supervisor_pid'] <= 0
                 or (owner.get('child_pid') is not None
                     and (type(owner['child_pid']) is not int or owner['child_pid'] <= 0))):
-            raise RuntimeError('cannot monitor a held lease with invalid owner metadata')
+            continue
         if owner.get('child_pid'):
             roots.add(owner['child_pid'])
-        elif owner.get('supervisor_pid') not in table:
-            raise RuntimeError('cannot locate the workload of an orphaned lease')
     return rss_for_roots(table, {root}), rss_for_roots(table, roots)
 
 

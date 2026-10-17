@@ -176,6 +176,29 @@ class EndedCarriesTheRowsDetail(unittest.TestCase):
         self.assertIsNone(lanewait.stalled(['b'], {'b': 'done'}, {'b': 90.0}, {'b': []}, 30, set()))
         self.assertIsNone(lanewait.stalled(['a'], {'a': 'working'}, {'a': 45.0}, {'a': ['sh -c sleep 9']}, 30, set()))
 
+    def test_a_working_row_idle_behind_an_old_child_has_stalled(self):
+        # Loop 2820, the thirty-eighth pass: 2793 ended its turn at 08:25 with
+        # a subagent's background `cargo test` as its only child, sat idle
+        # 1 h 50 while the child ran four hours, and no exit fired — a child
+        # of any age read as a wait. A gate takes twenty minutes and a
+        # capture eighty; a lane idle past the threshold whose every child
+        # has outlived `child_after` is named, with the child.
+        idle = {'a': 110.0, 'b': 45.0, 'c': 110.0}
+        children = {'a': [(110.0, 'cargo test --release -p sim city_data')],
+                    'b': [(20.0, 'python3 tools/release_gate.py')],
+                    'c': [(110.0, 'zsh -c sleep 9'), (5.0, 'python3 tools/release_gate.py')]}
+        states = {'a': 'working', 'b': 'working', 'c': 'working'}
+        found = lanewait.stalled(['b', 'c', 'a'], states, idle, children, 30, set(), child_after=90)
+        self.assertEqual(found, (6, 'STALLED a 110 (child 110 min: cargo test --release -p sim city_data)'))
+        self.assertIsNone(lanewait.stalled(['a'], states, idle, children, 30, set(), child_after=0),
+                          'off at 0: a child of any age is a wait, as before')
+        # The old shape — a command line alone — stays a wait of unknown age.
+        self.assertIsNone(lanewait.stalled(['a'], states, idle, {'a': ['cargo test']}, 30, set(), child_after=90))
+        self.assertEqual(lanewait.etime_minutes('1-02:03:04'), 26 * 60 + 3 + 4 / 60)
+        self.assertEqual(lanewait.etime_minutes('02:03'), 2 + 3 / 60)
+        self.assertEqual(lanewait.etime_minutes('03:04:05'), 184 + 5 / 60)
+        self.assertIsNone(lanewait.etime_minutes('-'))
+
     def test_a_server_child_is_not_a_wait(self):
         self.assertTrue(lanewait.is_server('bun /x/lazy/server.ts'))
         self.assertTrue(lanewait.is_server('bun run --cwd /x/hail --shell=bun --silent start'))

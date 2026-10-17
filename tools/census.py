@@ -338,9 +338,14 @@ def tests_in(text):
         yield "\n".join(lines[top:i]) + "\n" + rest[:end]
 
 
-def sweep_backed(src, by_name):
+def sweep_backed(src, by_name, emu_dir=None):
     """Every function a `crates/sim` test that runs the original under the
-    emulator cites, in its doc comment or its body."""
+    emulator cites, in its doc comment or its body — less the callees its
+    own script hooks, when `emu_dir` is given (the thirty-eighth pass:
+    sixteen landed sweeps named a stubbed callee in the port's comment,
+    `// Map::point (stub 0) answers …`, and each was counted as backed
+    beside the function swept; a function the sweep answers for is one it
+    never runs)."""
     out = set()
     for p in glob.glob(os.path.join(src, "**", "*.rs"), recursive=True):
         if os.path.basename(p) in NOT_A_SWEEP:
@@ -348,8 +353,13 @@ def sweep_backed(src, by_name):
         with open(p, errors="replace") as f:
             text = f.read()
         for chunk in tests_in(text):
-            if SWEEP.search(chunk):
-                out |= named(chunk, by_name)
+            if not SWEEP.search(chunk):
+                continue
+            cited = named(chunk, by_name)
+            if emu_dir is not None:
+                for m in SCRIPT.finditer(chunk):
+                    cited -= hooked_by_script(os.path.join(emu_dir, m.group(1)))
+            out |= cited
     return out
 
 
@@ -359,6 +369,22 @@ def sweep_backed(src, by_name):
 HOOKED_SCRIPT = re.compile(r"Harness\(\s*[^,()]*,\s*\{(.*?)\}", re.S)
 SCRIPT = re.compile(r"tools/emu/(sweep_[a-z0-9_]+\.py)")
 STUBS_LIST = re.compile(r"^STUBS = \[(.*)\]$", re.M)
+
+
+def hooked_by_script(script):
+    """The addresses a sweep script hands `Harness(exe, {ADDR: …})` as hooked
+    callees, or lists as `('call', ADDR, N)` rows of its `STUBS`; empty when
+    the script is not on disk."""
+    if not os.path.isfile(script):
+        return set()
+    with open(script, errors="replace") as f:
+        body = f.read()
+    hm = HOOKED_SCRIPT.search(body)
+    hooked = {int(a, 16) for a in re.findall(r"0x(00[0-9a-f]{6})", hm.group(1))} if hm else set()
+    sm = STUBS_LIST.search(body)
+    if sm:
+        hooked |= {int(a) for a in re.findall(r"\(\s*'call'\s*,\s*(\d+)", sm.group(1))}
+    return hooked
 
 
 def hooked_in_sweeps(src, emu_dir, by_name=None):
@@ -384,16 +410,7 @@ def hooked_in_sweeps(src, emu_dir, by_name=None):
             if by_name is not None:
                 cited |= named(chunk, by_name)
             for m in SCRIPT.finditer(chunk):
-                script = os.path.join(emu_dir, m.group(1))
-                if not os.path.isfile(script):
-                    continue
-                with open(script, errors="replace") as f:
-                        body = f.read()
-                hm = HOOKED_SCRIPT.search(body)
-                hooked = {int(a, 16) for a in re.findall(r"0x(00[0-9a-f]{6})", hm.group(1))} if hm else set()
-                sm = STUBS_LIST.search(body)
-                if sm:
-                    hooked |= {int(a) for a in re.findall(r"\(\s*'call'\s*,\s*(\d+)", sm.group(1))}
+                hooked = hooked_by_script(os.path.join(emu_dir, m.group(1)))
                 for addr in sorted(hooked & cited):
                     out.append((os.path.relpath(p, src), m.group(1), addr))
     return out
@@ -412,7 +429,7 @@ def layers(index, docs, sim_src, pdb):
             by_name.setdefault(name, []).append(va)
     source = source_of(source_ranges(pdb), names)
     by_doc = doc_backed(docs, by_name) & names.keys()
-    by_sweep = sweep_backed(sim_src, by_name) & names.keys()
+    by_sweep = sweep_backed(sim_src, by_name, os.path.join(HERE, "emu")) & names.keys()
     rows, sim_files, unknown = {}, Counter(), Counter()
     for va, path in source.items():
         lay = layer_of(path)
@@ -533,6 +550,8 @@ def rank_unbacked(entries, backed, port, spelled=()):
             mark = "operator"
         elif is_dead_weight(name):
             mark = "skip"
+        elif is_ui_body(name):
+            mark = "ui"
         elif snake(short) in port and name in spelled:
             mark = "port"
         elif snake(short) in port:
@@ -567,9 +586,57 @@ def is_dead_weight(name):
             or "dynamic initializer" in name or "dynamic atexit" in name)
 
 
+# A renderer's, an input handler's, a sound's, a debug or cheat action's or
+# an editor's body, filed under simulation by its source file (Loop 2819, the
+# thirty-eighth pass: the harvest lane's batches were `draw_thick_diamond`,
+# `Nuke::draw_ctw`, `Game::run_unit_editor`, `WorldMap::on_right_down`, and
+# the `--unbacked` head at the pass was twelve more). The `*Out` classes are
+# the engine's renderers of each object kind. The layer and the score do not
+# move on this mark; the list the sweep lane reads does.
+UI_BODY = re.compile(r"^(draw|render|paint|blit|on_(mouse|left|right|middle|key|char|wheel|paint|size)|"
+                     r"setup_render_window|play_\w*sound|say|debug_|add_for_render|add_\w*_poly|"
+                     r"post_game_screens|action_cheat_|run_\w*editor|\w*_editor$|\w*_to_screen$|"
+                     r"screen_to_\w*|\w*_screen$)")
+
+
+def is_ui_body(name):
+    cls, _, short = name.rpartition("::")
+    return cls.endswith("Out") or bool(UI_BODY.match(short)) or short.endswith(("_draw", "_render"))
+
+
+BARE_CITE = re.compile(r"(?<![A-Za-z0-9_:])([a-z_][a-z0-9_]*)@(00[0-9a-f]{6})")
+
+
+def cited_bare(src, by_name=None):
+    """Each `(file, name, address)` a `crates/sim` sweep test spells as a bare
+    `method@addr`, no class before it (Loop 2843: the census counts only the
+    `Class::method@addr` form, so a bare citation scores nothing). A free
+    function's name is whole as it stands: with `by_name`, a name the export
+    knows is not bare."""
+    out = []
+    for p in sorted(glob.glob(os.path.join(src, "**", "*.rs"), recursive=True)):
+        if os.path.basename(p) in NOT_A_SWEEP:
+            continue
+        with open(p, errors="replace") as f:
+            text = f.read()
+        chunks = [c for c in tests_in(text) if SWEEP.search(c)]
+        if not chunks:
+            continue
+        # An address the file also spells whole somewhere is counted; only
+        # one it never spells whole is a bare citation.
+        whole = {int(m.group(1), 16) for m in CITE.finditer(text) if "::" in m.group(0)}
+        for chunk in chunks:
+            for m in BARE_CITE.finditer(chunk):
+                row = (os.path.relpath(p, src), m.group(1), int(m.group(2), 16))
+                if row[2] not in whole and row not in out and not (by_name and m.group(1) in by_name):
+                    out.append(row)
+    return out
+
+
 def worth_sweeping(rows):
-    """The rows the sweep wants: not `skip`, not `operator` (parked 1722)."""
-    return [r for r in rows if r[3] not in ("skip", "operator")]
+    """The rows the sweep wants: not `skip`, not `operator` (parked 1722),
+    not a `ui` body (Loop 2819)."""
+    return [r for r in rows if r[3] not in ("skip", "operator", "ui")]
 
 
 def unbacked(index, docs, sim_src, pdb, top, show_all=False):
@@ -588,7 +655,7 @@ def unbacked(index, docs, sim_src, pdb, top, show_all=False):
             entries.append((va, name, None, os.path.getsize(full) if os.path.isfile(full) else 0))
     source = source_of(source_ranges(pdb), [e[0] for e in entries])
     entries = [(va, name, source.get(va), size) for va, name, _, size in entries]
-    backed = (doc_backed(docs, by_name) | sweep_backed(sim_src, by_name))
+    backed = (doc_backed(docs, by_name) | sweep_backed(sim_src, by_name, os.path.join(HERE, "emu")))
     rows = rank_unbacked(entries, backed, port_names(sim_src), port_spellings(sim_src))
     shown = rows if show_all else worth_sweeping(rows)
     print(f"{'bytes':>6} {'function':52} {'mark':8} file")
@@ -598,9 +665,15 @@ def unbacked(index, docs, sim_src, pdb, top, show_all=False):
     print(f"\n{len(rows)} never-backed simulation functions: {marks.get('port', 0)} with a port "
           f"consumer (the crate spells the Class::method), {marks.get('name', 0)} matched by name alone, "
           f"{marks.get('operator', 0)} operators, {marks.get('skip', 0)} dead weight "
-          f"(destructors, close/init/clear, loggers, initializers"
+          f"(destructors, close/init/clear, loggers, initializers), {marks.get('ui', 0)} renderer, input, "
+          f"sound, cheat or editor bodies (`ui`, Loop 2819"
           f"{'; shown' if show_all else '; hidden, --all shows them'}); the {min(top, len(shown))} "
           f"shortest shown (--top)")
+    bare = cited_bare(sim_src, by_name)
+    if bare:
+        print(f"cited bare: {len(bare)} address(es) a sweep test names without the class — the census "
+              f"counts only `Class::method@addr` (Loop 2843): "
+              + ", ".join(f"{f}:{n}@{va:08x}" for f, n, va in bare[:12]))
 
 
 def print_layers(rows, sim_files, unknown, as_json):

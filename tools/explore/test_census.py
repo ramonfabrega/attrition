@@ -117,6 +117,27 @@ class PinnedTraces(unittest.TestCase):
         # 501 landed sweeps cites a callee its script hooks.
         self.assertEqual(census.hooked_in_sweeps(str(ROOT / 'crates/sim/src'), str(ROOT / 'tools/emu')), [])
 
+    def test_a_hooked_callee_a_chunk_names_is_not_backed_by_that_chunk(self):
+        # The thirty-eighth pass: sixteen landed sweeps name the callee their
+        # script stubs in the port's own comment (`// Map::point (stub 0)
+        # answers a[4..9]`), and `sweep_backed` counted each as backed beside
+        # the function swept — a function the sweep answers for, never runs.
+        # The count subtracts a chunk's hooked callees by address and by
+        # name; the `--hooked` audit stays a lint. Made to fail first.
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp, 'src'); emu = Path(tmp, 'emu')
+            src.mkdir(); emu.mkdir()
+            Path(emu, 'sweep_m_s.py').write_text(
+                "STUBS = [('call', 5317440, 3)]\n"
+                'h = Harness(argv[1], {a: (f"{a:x}", n) for k, a, n in STUBS if k == "call"})\n')
+            Path(src, 'm.rs').write_text(
+                '/// `M::s@00401000`, run by `tools/emu/sweep_m_s.py` under unicorn.\n'
+                '#[test]\nfn z() { /* `Objects::at` (stub 0) answers a[4]; `Other::f@00402000` is read */ }\n')
+            by_name = {'M::s': [0x401000], 'Objects::at': [0x512340], 'Other::f': [0x402000]}
+            self.assertEqual(census.sweep_backed(str(src), by_name, str(emu)), {0x401000, 0x402000})
+            # Without the scripts' directory nothing is subtracted (the old count).
+            self.assertEqual(census.sweep_backed(str(src), by_name), {0x401000, 0x402000, 0x512340})
+
     def test_the_trampoline_table_is_not_shadowed_by_the_sweep_regex(self):
         # The thirty-second pass named its `Harness(exe, {…})` regex `HOOKS`,
         # the trampolined functions' table's name, so `--pin --never` died
@@ -149,6 +170,62 @@ class PinnedTraces(unittest.TestCase):
             self.assertEqual(marks[name], 'skip', name)
         self.assertEqual(marks['World::adjust_fog'], '-')
         self.assertEqual([r[2] for r in census.worth_sweeping(rows)], ['World::adjust_fog'])
+
+    def test_a_renderer_or_editor_body_is_marked_ui_and_hidden(self):
+        # Loop 2819 (the thirty-eighth pass): the harvest lane's batches were
+        # `draw_thick_diamond`, `Nuke::draw_ctw`, `Game::run_unit_editor`,
+        # `WorldMap::on_right_down` — renderer and editor bodies the layer
+        # rules file under simulation by their source file — and the
+        # `--unbacked` head at the pass was twelve more of them. A body a
+        # name rule reads as a renderer's, an input handler's, a sound's, a
+        # debug or cheat action's or an editor's is marked `ui` and hidden
+        # with the dead weight; the layer and the score are untouched.
+        entries = [(0x10, 'NukeOut::draw_underlays', 'c:\\rise\\game\\nuke.cpp', 419),
+                   (0x20, 'TerrainMap::on_mouse_move', 'c:\\rise\\game\\terrainmap.cpp', 468),
+                   (0x30, 'Game::post_game_screens', 'c:\\rise\\game\\game.cpp', 510),
+                   (0x40, 'Syllable::say', 'c:\\rise\\game\\syllable.cpp', 557),
+                   (0x50, 'debug_say', 'c:\\rise\\game\\support.cpp', 560),
+                   (0x60, 'WorldMap::setup_render_window', 'c:\\rise\\game\\worldmap.cpp', 565),
+                   (0x70, 'Game::action_cheat_zero_techs', 'c:\\rise\\game\\game.cpp', 663),
+                   (0x80, 'ObjectOut::play_gather_sound', 'c:\\rise\\game\\object.cpp', 663),
+                   (0x90, 'RiverDoobers::add_anchor_doob_poly', 'c:\\rise\\game\\riverdoobers.cpp', 675),
+                   (0xa0, 'Game::run_unit_editor', 'c:\\rise\\game\\game.cpp', 700),
+                   (0xb0, 'MiscAccess::world_to_screen', 'c:\\rise\\game\\miscaccess.cpp', 300),
+                   (0xc0, 'RiverDoober::add_for_render', 'c:\\rise\\game\\riverdoober.cpp', 300),
+                   (0xd0, 'Nuke::setup', 'c:\\rise\\game\\nuke.cpp', 682),
+                   (0xe0, 'TurnControl::do_frame', 'c:\\rise\\game\\turncontrol.cpp', 606),
+                   (0xf0, 'Unit::draw_order_lines', 'c:\\rise\\game\\unit.cpp', 200),
+                   (0x100, 'Map::stamp', 'c:\\rise\\game\\map.cpp', 200)]
+        with patch.object(census, 'layer_of', return_value='simulation'):
+            rows = census.rank_unbacked(entries, set(), set())
+        marks = {name: mark for _, _, name, mark, _ in rows}
+        for name in ('NukeOut::draw_underlays', 'TerrainMap::on_mouse_move', 'Game::post_game_screens',
+                     'Syllable::say', 'debug_say', 'WorldMap::setup_render_window',
+                     'Game::action_cheat_zero_techs', 'ObjectOut::play_gather_sound',
+                     'RiverDoobers::add_anchor_doob_poly', 'Game::run_unit_editor',
+                     'MiscAccess::world_to_screen', 'RiverDoober::add_for_render', 'Unit::draw_order_lines'):
+            self.assertEqual(marks[name], 'ui', name)
+        for name in ('Nuke::setup', 'TurnControl::do_frame', 'Map::stamp'):
+            self.assertEqual(marks[name], '-', name)
+        self.assertEqual(sorted(r[2] for r in census.worth_sweeping(rows)),
+                         ['Map::stamp', 'Nuke::setup', 'TurnControl::do_frame'])
+
+    def test_an_address_a_sweep_test_cites_without_its_class_is_named(self):
+        # Loop 2843 (2837's line): a three-forms-in-one test named
+        # `is_seen_wcoord@…` bare and the census scored two of three until the
+        # class was spelled. `cited_bare` lists each such citation.
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp, 'src'); src.mkdir()
+            Path(src, 'a.rs').write_text(
+                '/// `World::is_seen@00401000` and `is_seen_wcoord@00401010`, run by `tools/emu/sweep_a.py`.\n'
+                '#[test]\nfn x() { /* `is_seen_coord@00401020` too; `World::is_seen_coord@00401020` once */ }\n')
+            self.assertEqual(census.cited_bare(str(src)),
+                             [('a.rs', 'is_seen_wcoord', 0x401010)])
+            # A free function's name is whole as it stands.
+            Path(src, 'b.rs').write_text(
+                '/// `angle_diff@00402000`, run by `tools/emu/sweep_angle_diff.py`.\n#[test]\nfn y() {}\n')
+            self.assertEqual(census.cited_bare(str(src), {'angle_diff': [0x402000], 'World::is_seen': [0x401000]}),
+                             [('a.rs', 'is_seen_wcoord', 0x401010)])
 
     def test_a_backticked_initializer_is_dead_weight(self):
         # Loop 2394 (2379's line, the thirty-fourth pass): the export spells

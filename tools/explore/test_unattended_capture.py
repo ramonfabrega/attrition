@@ -12,6 +12,31 @@ import unattended_capture as runner
 
 
 class RunnerTest(unittest.TestCase):
+    def test_the_pace_line_projects_the_end_frame_against_the_timeout(self):
+        # Loop 2874 (2832's line): a golden take with `WORLD=6,CITIES=5` ran
+        # at about a frame a second and met the lane's hour at 1219 of 1260
+        # with no receipt. The runner says the pace once it has a minute of
+        # frames, and says when the endpoint lies past the timeout.
+        self.assertIsNone(runner.pace_line(10, 20.0, 1260, 3600), 'under a minute of frames: no estimate')
+        self.assertIsNone(runner.pace_line(0, 90.0, 1260, 3600), 'no frame yet: no estimate')
+        self.assertEqual(runner.pace_line(61, 61.0, 1260, 3600),
+                         'pace: 61 frames in 61 s (1.0/s); --end-frame 1260 at this pace in about 1260 s, --timeout 3600')
+        self.assertEqual(runner.pace_line(60, 120.0, 1260, 600),
+                         'pace: 60 frames in 120 s (0.5/s); --end-frame 1260 at this pace in about 2520 s, '
+                         'which exceeds --timeout 600 — trim the `end:` set or raise the timeout')
+        with tempfile.TemporaryDirectory() as d:
+            trace = Path(d) / 'rontrace.log'
+            self.assertIsNone(runner.trace_frames_so_far(trace), 'no file')
+            import struct
+            rows = [struct.pack('<8I', 0x544E4F52, 2, 0x400000, 0, 0, 0, 0, 0)]
+            for f in range(0, 7):
+                rows.append(struct.pack('<8I', 2, f, 0, 0, 0, 0, 0, f))
+                rows.append(struct.pack('<8I', 1, f, 9, 9, 9, 9, 9, 9))
+            trace.write_bytes(b''.join(rows))
+            self.assertEqual(runner.trace_frames_so_far(trace), 6)
+            trace.write_bytes(b''.join(rows) + b'\x00' * 7)
+            self.assertEqual(runner.trace_frames_so_far(trace), 6, 'a torn tail is read up to its last whole record')
+
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name)

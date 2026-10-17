@@ -14,6 +14,8 @@ session. A lane is named as `ccc list` names it. The exits:
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
     5  DEEP <lane> <ctx>k                    a lane's next turn would carry --deep k
     6  STALLED <lane> <minutes>              a working row idle --stalled-after minutes
+                                            with nothing running, or behind a child older
+                                            than --stalled-child-after (named)
                                              with no child process but its servers:
                                              a gate's or a capture's exit notice was
                                              lost (parked 1871, 178 minutes); one line
@@ -282,42 +284,72 @@ def is_server(command):
     return command.startswith(SERVERS)
 
 
-def stalled(watch, states, idle_minutes, children, after, reported):
+def stalled(watch, states, idle_minutes, children, after, reported, child_after=0):
     """The first watched lane that is `working`, idle for `after` minutes
     or more, with no child process but its servers, not yet in `reported`
     — as (6, `STALLED <lane> <minutes>`), or None. Parked 1871: 1738's lane
     gate exited and its notice never reached the session, which sat
     `working` at `tempo=idle` for 178 minutes; the row never left
     `working`, so no other exit could fire. A lane that waits on a gate or
-    a capture has that process as a child."""
+    a capture has that process as a child.
+
+    A child is a command line, or `(minutes, command)` with its age (Loop
+    2820, the thirty-eighth pass: 2793 ended its turn with a subagent's
+    background `cargo test` as its only child and sat idle 1 h 50, the
+    child four hours, and a child of any age read as a wait). With
+    `child_after` above zero, a lane idle past `after` whose every
+    non-server child has outlived `child_after` is named with the oldest
+    child; a child of unknown age, or one younger, is a wait."""
     for lane in watch:
         if states.get(lane) != WORKING or lane in reported:
             continue
         idle = idle_minutes.get(lane)
         if idle is None or idle < after:
             continue
-        if any(not is_server(c) for c in children.get(lane, [])):
-            continue
+        waits = [(c if isinstance(c, tuple) else (None, c)) for c in children.get(lane, [])]
+        waits = [(age, cmd) for age, cmd in waits if not is_server(cmd)]
+        if waits:
+            if not child_after or any(age is None or age < child_after for age, _ in waits):
+                continue
+            age, cmd = max(waits, key=lambda w: w[0])
+            reported.add(lane)
+            return 6, f"STALLED {lane} {int(idle)} (child {int(age)} min: {cmd})"
         reported.add(lane)
         return 6, f"STALLED {lane} {int(idle)}"
     return None
 
 
+def etime_minutes(etime):
+    """Minutes from `ps`'s `etime` (`[[dd-]hh:]mm:ss`), or None."""
+    try:
+        days, _, rest = etime.rpartition('-')
+        parts = [int(x) for x in rest.split(':')]
+        if len(parts) == 2:
+            h, m, s = 0, *parts
+        elif len(parts) == 3:
+            h, m, s = parts
+        else:
+            return None
+        return (int(days or 0) * 24 + h) * 60 + m + s / 60
+    except ValueError:
+        return None
+
+
 def children_of(pids):
-    """Each pid's child command lines, from one `ps`."""
-    out = subprocess.run(['ps', '-axo', 'pid=,ppid=,command='], capture_output=True, text=True,
+    """Each pid's children as `(minutes alive, command line)`, from one `ps`."""
+    out = subprocess.run(['ps', '-axo', 'pid=,ppid=,etime=,command='], capture_output=True, text=True,
                          check=False).stdout
     found = {pid: [] for pid in pids}
     for line in out.splitlines():
-        parts = line.split(None, 2)
-        if len(parts) < 3:
+        parts = line.split(None, 3)
+        if len(parts) < 4:
             continue
         try:
             ppid = int(parts[1])
         except ValueError:
             continue
         if ppid in found:
-            found[ppid].append(parts[2])
+            found[ppid].append((etime_minutes(parts[2]), parts[3]))
     return found
 
 
@@ -450,6 +482,9 @@ def main(argv=None):
                         help='read lore agents every this many polls')
     parser.add_argument('--stalled-after', type=float, default=30, metavar='MIN',
                         help='exit STALLED once per working lane idle this long with nothing running; 0 off')
+    parser.add_argument('--stalled-child-after', type=float, default=90, metavar='MIN',
+                        help='a stalled lane whose every child has run this long is named with the child '
+                             '(Loop 2820: a subagent\'s four-hour background test read as a wait); 0 off')
     parser.add_argument('--uncleared-after', type=float, default=5, metavar='MIN',
                         help="exit UNCLEARED once per lane whose newest transcript ends on a /clear "
                              "this long with no turn after it (parked 2127); 0 off")
@@ -513,7 +548,8 @@ def main(argv=None):
             pids = {lane: rests[lane][0] for lane in watch if lane in rests and rests[lane][0]}
             kids = children_of(list(pids.values()))
             children = {lane: kids.get(pid, []) for lane, pid in pids.items()}
-            found = stalled(list(watch), states, idle, children, args.stalled_after, stalled_reported)
+            found = stalled(list(watch), states, idle, children, args.stalled_after, stalled_reported,
+                            args.stalled_child_after)
             if found:
                 print(found[1], flush=True)
                 return found[0]
