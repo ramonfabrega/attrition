@@ -470,6 +470,8 @@ mod doober_find_x_pos;
 mod doober_find_y_pos;
 #[path = "doober_get_num.rs"]
 mod doober_get_num;
+#[path = "doober_has_doobers.rs"]
+mod doober_has_doobers;
 #[path = "farms_add_animals_all.rs"]
 mod farms_add_animals_all;
 #[path = "farms_data_get_farm_type.rs"]
