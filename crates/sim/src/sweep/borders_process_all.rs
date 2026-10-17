@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -47,7 +52,8 @@ fn the_emulated_original_agrees_on_every_row() {
             if c[0][0x22a] != 0 || rd(&c[1], 0x218) == 0 {
                 wr(&mut c[1], 0x218, 0);
                 let who = rd(&c[2], 0x298);
-                let ecx = (rd(&c[3], 0) as u32).wrapping_add((who as u32).wrapping_mul(0x6eec)) as i32;
+                let ecx =
+                    (rd(&c[3], 0) as u32).wrapping_add((who as u32).wrapping_mul(0x6eec)) as i32;
                 for i in 0..8 {
                     log.push(format!("s0:{ecx},{i},0"));
                     if a[2 + i] != 0 {
@@ -67,7 +73,10 @@ fn the_emulated_original_agrees_on_every_row() {
             0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "process_all — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "process_all — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "process_all — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

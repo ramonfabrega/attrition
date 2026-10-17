@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -47,7 +52,10 @@ fn the_emulated_original_agrees_on_every_row() {
             // on the type `p[15]`: the masked corner, the radius, the two arguments, the corner's y,
             // the object's index and owner, the second argument.
             const K: i32 = 0x63637;
-            let (owner, index) = (usize::from(m[9]), i16::from_le_bytes([m[0xa], m[0xb]]) as usize);
+            let (owner, index) = (
+                usize::from(m[9]),
+                i16::from_le_bytes([m[0xa], m[0xb]]) as usize,
+            );
             let mut tokens: Vec<String> = Vec::new();
             let mut radius = 0;
             if m[8] & 0x20 != 0 {
@@ -68,7 +76,10 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
             }
             let (x, y) = (rd(m, 0x10) ^ K, rd(m, 0x14) ^ K);
-            tokens.push(format!("s3:p15+0x0,{x},{y},{radius},{},{y},{index},{owner},{}", a[0], a[1]));
+            tokens.push(format!(
+                "s3:p15+0x0,{x},{y},{radius},{},{y},{index},{owner},{}",
+                a[0], a[1]
+            ));
             log = tokens;
             0
         };

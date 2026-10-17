@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -55,11 +60,25 @@ fn the_emulated_original_agrees_on_every_row() {
                     let (obj, ty) = (3 + 2 * player + index, 7 + 2 * player + index);
                     let (x, y) = (a[4], a[5]);
                     let (tw, th) = (rd(&p[ty], 0x234), rd(&p[ty], 0x238));
-                    let rect = [x * 0xc0, x * 0xc0 + tw * 0xc0, y * 0xc0, y * 0xc0 + th * 0xc0];
+                    let rect = [
+                        x * 0xc0,
+                        x * 0xc0 + tw * 0xc0,
+                        y * 0xc0,
+                        y * 0xc0 + th * 0xc0,
+                    ];
                     tokens.push(format!("s0:p{obj}+0x0"));
                     tokens.push(format!("s1:{},sp-0x14,sp-0x4", a[1]));
                     tokens.push(format!("s2:p{ty}+0x0,p{ty}+0x0,sp-0x24"));
-                    tokens.push(rect.iter().map(|v| v.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect::<String>()).collect());
+                    tokens.push(
+                        rect.iter()
+                            .map(|v| {
+                                v.to_le_bytes()
+                                    .iter()
+                                    .map(|b| format!("{b:02x}"))
+                                    .collect::<String>()
+                            })
+                            .collect(),
+                    );
                 }
             }
             if tokens.is_empty() {
