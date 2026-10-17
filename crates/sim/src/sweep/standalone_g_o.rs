@@ -188,6 +188,8 @@ mod group_data_get_angle;
 mod group_data_get_auto_explore;
 #[path = "group_data_get_form.rs"]
 mod group_data_get_form;
+#[path = "group_data_get_infinite_queue.rs"]
+mod group_data_get_infinite_queue;
 #[path = "group_data_get_num_cap_const.rs"]
 mod group_data_get_num_cap_const;
 #[path = "group_data_get_num_const.rs"]
