@@ -38,7 +38,7 @@ NULLS = []
 NULLFORCE = {}
 WBIAS = []
 FILLS = []
-ARGRANGE = [(1, -4, 384)]
+ARGRANGE = [(1, 350, 369)]
 SLOTBASE = []
 ECXINT = None
 EDX = None
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Balance::lookup_absolute_name@00582910", "--item", "3004", "--win", "0x40", "--own", "3", "--ptrarg", "0:16", "--stub", "0x5829b0:4", "--record", "0", "--argrange", "1:-4:0x180"]
+# sweep_gen: ["obj", "Balance::lookup_absolute_name@00582910", "--item", "3004", "--win", "0x40", "--own", "3", "--ptrarg", "0:16", "--stub", "0x5829b0:4", "--record", "0", "--argrange", "1:0x15e:0x171"]

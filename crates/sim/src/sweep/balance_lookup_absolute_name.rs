@@ -59,7 +59,6 @@ fn the_emulated_original_agrees_on_every_row() {
             i64::from(a[0])
         };
         assert_eq!(got, want_eax, "lookup_absolute_name — eax, row `{line}`");
-        let log: Vec<&str> = log.iter().map(String::as_str).collect();
         assert_eq!(log, want_log, "lookup_absolute_name — the recorded calls, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "lookup_absolute_name — this's bytes, row `{line}`");
