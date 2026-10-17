@@ -242,6 +242,8 @@ mod terrain_build_beach_data;
 mod terrain_convert_errant_sandy;
 #[path = "terrain_list_walk_data.rs"]
 mod terrain_list_walk_data;
+#[path = "terrain_map_cancel_button_enable.rs"]
+mod terrain_map_cancel_button_enable;
 #[path = "terrain_map_get_terrain_type.rs"]
 mod terrain_map_get_terrain_type;
 #[path = "terrain_map_on_left_up.rs"]
