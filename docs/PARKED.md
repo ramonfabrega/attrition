@@ -6145,11 +6145,8 @@ The stub answer layout (own arguments, one drawn answer a stub, then each `--seq
 
 ## Parked by item 2780, 2026-10-17 — the scout's fog read takes the Space Program
 
-(2779) **The peace pair's word 5982 owes its widening** (2780, `docs/AI.md` §233): count and sequence part on 5982 at
-index 5, ours 37 draws, theirs 287 — ours `Leader::produce_building+0x1805`, theirs `Build::find_gather_tiles+0x10a`.
-run867 ends at 5657 and run847 holds checksums and the closing block only, so no dump of this lobby holds a record on
-5982. run867's recipe with the window moved to 5976..6232 (`--end-frame 6238`) is the capture; theirs' 287 draws on the
-frame suggest a building's completion, so `BUILDS=7` stays in the detail.
+Its one row — the widening 5982 owes, run867's recipe with the window at 5976..6232 and `BUILDS=7` in the detail —
+was booked as the queue's item at 2780's merge.
 
 ## Parked by the next landing, slot EV — reserved
 
