@@ -1,4 +1,4 @@
-//! `NukeOut::setup_terrain_terraforming@00925c90` under the emulator against the port (item 2807; tools/sweep_gen.py, obj with windows).
+//! `NukeOut::setup_terrain_terraforming@00925c90` under the emulator against the port (item 2818; tools/sweep_gen.py, obj with windows).
 
 #[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {
@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `NukeOut::setup_terrain_terraforming@00925c90`, run by `tools/emu/sweep_nuke_out_setup_terrain_terraforming.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), callee 0x00869ca0 (2 args) stubbed; callee 0x00850b60 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// (tools/emu): 16 random bytes of object, 2 argument(s), callee 0x00869ca0 (2 args) stubbed; callee 0x00850b60 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 leaves `ecx` as a callee would, a value from [4096, 8192, 12288], after the other numbers on the row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_nuke_out_setup_terrain_terraforming.py") else {
@@ -46,10 +46,10 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-                // terraform_for_nuke (stub 0) takes this and the two Coords; the callee leaves `ecx` as it found it
-                // here, and refresh_good_z (stub 1, its `eax` the result) is handed it as `this` and as its argument.
+                // terraform_for_nuke (stub 0) takes this and the two Coords and leaves a value in `ecx` (a[4], drawn);
+                // refresh_good_z (stub 1, its `eax` the result) is handed that `ecx` as `this` and as its argument.
                 log.push(format!("m+0x0,{},{}", a[0], a[1]));
-                log.push("m+0x0,m+0x0".to_string());
+                log.push(format!("{0},{0}", a[4]));
                 i64::from(a[3])
             }
         };

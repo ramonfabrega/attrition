@@ -60,6 +60,10 @@ mod player_lose;
 mod player_walk_data;
 #[path = "player_win.rs"]
 mod player_win;
+#[path = "project_c.rs"]
+mod project_c;
+#[path = "project_d.rs"]
+mod project_d;
 #[path = "region_fix_borders.rs"]
 mod region_fix_borders;
 #[path = "region_is_coast.rs"]
@@ -252,6 +256,8 @@ mod terrain_map_on_left_up;
 mod terrain_map_on_mouse_leave;
 #[path = "terrain_map_on_right_up.rs"]
 mod terrain_map_on_right_up;
+#[path = "terrain_map_remove_feature.rs"]
+mod terrain_map_remove_feature;
 #[path = "terrain_map_river_point.rs"]
 mod terrain_map_river_point;
 #[path = "terrain_map_start_river.rs"]
