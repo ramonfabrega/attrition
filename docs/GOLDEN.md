@@ -12835,12 +12835,31 @@ not the frame between; the `unit_masks` field is not compared (ours has no word)
 `unit_masks & 0x800` (the tribe/hero reveal), `process_cloak`'s `unit_masks2 & 0x60` arm, a cloaked Spy's particles, `do_cast`'s
 `0x11000` write.
 
-## 104. Reserved for the next item on the rules track
+## 104. The blown and fought bits compared — a garrisoned unit loses both; `process_cloak`'s 512-frame clear and `check_idle`'s drop diff-backed
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2798 (Claude Sonnet 5.5, `--effort medium`). **No capture, no staging: run 880 was not taken.** §103 left the 512-frame clear and
+`check_idle`'s drop as reading alone because `unit_masks` was parsed and compared by nothing (parked 2759); the disk already holds
+the windows. `widen_block` now carries two rows beside `half_step` and `packed` — `blown` (`unit_masks & 0x1000`) and `fought`
+(`& 0x10000`) — and `coverage`'s table names them as `UnitDump`/`unit_masks`.
+
+**The value diff** (first run, all word-frame widenings): `f1183 1/0 blown: ours 1 theirs 0` on run678 and the same row, unit `1/0`,
+on every window that holds that Elite Special Forces (run710 1590, run711 2180, run715 2927, run754 4061, run779 1355, run788 2896,
+run809 3754, run867 5557, run462 10184, run480 11097, run506 11759). run678's dump: `1/0` (type 77, `STEALTH`) reads `unit_masks`
+`0x841008` on 977, takes a `CASTORDER` 650 on 978, is garrisoned (`inside_up` 24) on 979 and reads **`0x840008` on 980** — blown gone
+while idle is 0; it reads `0x841008` again on 1184 when its next order is current. Ours kept `0x1000` the whole time.
+
+**The cause**: `Unit::process@00610bc0`'s `inside_up >= 0` arm (`:555`–`:559`) — `unit_masks &= 0xfffeefff` on every frame inside (and
+`0xfffee7ff` with `0x2000` clear, which also drops `0x800`; `unit_masks2 &= 0xffff7f9f`). Ours has the arm's other half only (the
+`last_z` write). Built in `process_unit`'s `else` beside the cloak clear: `blown` and `fought` drop while `inside` or `inside_unit`
+is set. The rows sit in the `on_map` block, so a garrisoned unit is not compared on its inside frames; the first row it can part on
+is the frame it comes out, which is why the value shows at 1183 and the cause at 979.
+
+**Diff-backed now** (mutations on the built tree, `diff::` suite): `process_cloak`'s 512-frame clear removed — 1/59 `fought` and 1/51,
+1/49 `blown`/`fought` part in the run-ending windows (f3526–f4048) and the `golden` chapter 11–78 word-frame widenings fail; `check_idle`'s
+drop removed — `1/51`, `1/49`, `1/59` `blown` part (f3566, f3568, f4038, f4046). Both restored, the 220 word-frame widenings agree.
+
+**Not established**: the arm's `0x800` and `unit_masks2` halves (parked 2760, still unread by this crate); a rows-in-`on_map`
+blind spot on the inside frames — the garrison clear itself is compared only on the frame the unit leaves.
 
 ## 105. Reserved for the next item on the rules track
 
