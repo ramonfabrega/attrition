@@ -22120,12 +22120,71 @@ draws `Leader::make_stuff+0x221`. On block 5578 who=1's make list held a third V
 **What is not established**: why ours reaches `use_market` at 6585 where theirs reaches `make_stuff`; that is the next
 item's.
 
-## 242. Reserved for the next item on the AI track
+## 242. The Germans' Fire Raft line: `get_cost`'s and `train_time`'s German arms, 6585 → 12815 (2026-10-17, item 2974)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: 6585 of 13519, ours 6 draws against theirs 5 — index 1 ours `Leader::use_market+0x1ed` where theirs
+draws `Leader::make_stuff+0x221`. run893c's widening had the state parting before it: on block 6581 who=1's make list
+heads with type 340 in ours against 334 in theirs.
+
+**The units, by `TypeIndex`** (`decomp/enums/TypeIndex.txt`): 334 is `FIRERAFT`, 340 `TRIREME`, 153 `SOLDURI`; all
+three are offered by `create_units` (the step before 6581's `create_buildings`, §57), city 0, cat 6.
+
+**The walk.** The list is rebuilt on 6581, so the parting is that frame's own `create_units`; nothing earlier is needed.
+- Theirs (`tools/gamelog/leader.py 6581 1`): `MAKE[0..5]` Fire Raft 2000000, Trireme 2000000, Light Horse 1350000,
+  Slingers 1200000, Merchant 952380, Citizen 738461; `MAKE[6]` the Fire Raft again.
+- Ours (`RON_DEBUG_LEADER=6581-6581`): Trireme, Light Horse, Slingers, **Solduri ×5 at 1125000**, Merchant, Citizen;
+  `MAKE[6]` the Trireme.
+- So the list is the same less one offer: theirs' Fire Raft takes the head (offered first, 334 < 340, and `make_me`'s
+  head test is strict) and pushes the Solduri off slot 3. **The direction**: theirs offered the Fire Raft at 2000000
+  and ours did not.
+- A probe on ours' `create_units` (reverted whole): the Fire Raft passes every gate, `sea_value` returns 2000000 cat
+  6, and the tail's `check_income` gives **0x40**, not 0x100, so it is offered at 500000. With escrow on, 0x40 is the
+  arm for `type_affordable < num`: ours prices it **20 timber / 41 wealth** against a wealth bucket of 39. The
+  Trireme, 40 timber / 42 metal, is affordable.
+- Theirs' Dock `1/2010` queues it on 6583 at `cost` **15 / 31** — 25% off, the ramp's one wealth after.
+
+**The arm** (`TypeData::get_cost@00664090:258`–`266`, after the Japanese): `has_tribe_bonus(0xc)` (the Germans) and
+`UnitTypeData::is(0x14e, 0)` — the Fire Raft **by lineage**, so the Heavy Fire Raft through the Submarine — takes
+`GERMAN_SUBMARINE_COST`, `25% cost reduction` in `rules.xml`. `docs/COSTS.md` had it listed among the tail's arms "read
+but not carried", as "the Germans on submarines". Its twin in `ObjectData::train_time@006508c0:193`–`205`, after the
+French arm: the same nation's aircraft (`+0x218 == 2`) take `GERMAN_AIR_SPEED` and the same lineage takes
+`GERMAN_SUBMARINE_SPEED`, each `t × 100 / (k + 100)`, both 33 as shipped.
+
+**Built.**
+- `Sim::nation_unit_discount` (`lib.rs`) carries the German arm beside the French: one answer per type is the tail's
+  product, since the nations' arms are exclusive by tribe.
+- `Sim::train_tail` carries the German block after the British arm: the air test, then the lineage test.
+- `tuning.rs`: `GERMAN_SUBMARINE_COST` 25, `GERMAN_SUBMARINE_SPEED` 33, `GERMAN_AIR_SPEED` 33, in the slot table.
+- `nations::ty::FIRERAFT` (`0x14e`).
+- The test is `cities_tests::a_german_fire_raft_line_costs_a_quarter_less_and_trains_faster`: no discount for another
+  nation, 25% on the Fire Raft and the Heavy Fire Raft (by lineage), none on the Trireme; one 33% step on both rafts and
+  an aircraft, none on the Trireme.
+- Mutations (`tools/mutate.py`): the cost arm's guard `&& false` → `german_word_first_parting` reads 6585 against the
+  pinned 12815; the submarine-speed push removed → it reads **6718**. Both `mutation: held`. The air arm is held by the
+  sim test alone — no capture's German leader trains an aircraft in a walked window.
+
+**The value diff.**
+- run893c, block 6581: who=1's `MAKE[0]` is the Fire Raft (334) val 2000000 and `MAKE[1]` the Trireme (340) on both
+  sides, `MAKE[2..5]` agree. On 6583 the Dock `1/2010`'s `queue[0]` is type 334 with `cost` 15/31 on both, and the
+  buckets agree.
+- With the cost arm alone the word stood at **6718**: the Dock's `job_counter` 13600 in ours against 13533, theirs'
+  Fire Raft born on 6719 a third faster. With the speed arm the Fire Raft is born on 6719 on both.
+- The widening falls 436 → 50 keys, all standing kinds: the control's set on 6579 (`SITE[n].reg` 65/0 on the empty
+  slots, `form`, groups' `held`, the pool, both leaders' `aggression`), `g.angle[0]` on who=1's `1/23`, `1/24`, `1/27`,
+  `1/34`, `1/35` and from 6652 `1/37` (1431655765 against 0), and two pools' `held` on 6606 and 6724.
+- Every other lobby's `first_parting`, `battery::`, `battery_floors` and `coverage::` are green on this tree.
+
+**The new word, 12815.**
+- Ours 9 draws, theirs 8. At index 1 ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+- It is past run893c's last block (6836). NEWWORD
+
+**Coverage.**
+- Diff-backed: the cost arm on the Fire Raft (6581's list and 6583's queue cost) and the submarine-speed arm on the Fire
+  Raft (its birth on 6719).
+- Reading-only: the arms on the Fire Raft's successors (the lineage), and `GERMAN_AIR_SPEED`.
+
+**What is not established**: the `g.angle[0]` standing row (`0x55555555` in ours against 0 on five of who=1's units,
+standing from run893c's first block) is parked, not the word's: it is on units that do not part in position.
 
 ## 243. Reserved for the next item on the AI track
 
