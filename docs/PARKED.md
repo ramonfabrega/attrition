@@ -6406,11 +6406,11 @@ This batch is short (four, not ten): no shape was left to build and the unshaped
 
 ## Parked by item 2823, 2026-10-17 — Bribe's conversion built; its staging is the next chapter
 
-(2823, first) **The cloaked Spy's Bribe staging**: a Spy bribing in a who=1 scout's sight, one out of sight as control, comparing
+Booked as the queue's 2832 at the merge: **the cloaked Spy's Bribe staging**: a Spy bribing in a who=1 scout's sight, one out of sight as control, comparing
 `unit_masks` and the owner across the cast (GOLDEN §106 site two). Needs `stage_walk` of the recipe first; census rows before run
 880. The conversion (GOLDEN §107) stands under it, unbacked by a diff. Names no score.
 
-(2823, second) **`swap_team`'s `inside_down` chain and the `unit_masks` bits** this crate keeps as fields are seams (GOLDEN §107).
+(2833) **`swap_team`'s `inside_down` chain and the `unit_masks` bits** this crate keeps as fields are seams (GOLDEN §107).
 Names no score.
 
 ## Parked by the next landing, slot FJ — reserved
