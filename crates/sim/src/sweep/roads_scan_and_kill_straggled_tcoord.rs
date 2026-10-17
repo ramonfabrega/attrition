@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `Roads::scan_and_kill_straggled_tcoord@0088e050`, run by `tools/emu/sweep_roads_scan_and_kill_straggled_tcoord.py` under unicorn
-/// (tools/emu): 1792 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 pointed argument(s); the global cell 0x00c06218 points at 16 random bytes; the global cell 0x00c06188 points at 16 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x00866a70 (5 args) stubbed; callee 0x006b43b0 (5 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
+/// (tools/emu): 1792 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 pointed argument(s); the global cell 0x00c06218 points at 16 random bytes; the global cell 0x00c06188 points at 16 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x00866a70 (5 args) stubbed; callee 0x006b43b0 (5 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_roads_scan_and_kill_straggled_tcoord.py") else {
@@ -82,6 +82,6 @@ fn the_emulated_original_agrees_on_every_row() {
         }
         n += 1;
     }
-    assert!(n >= 600, "only {n} rows");
+    assert!(n >= 1200, "only {n} rows");
     eprintln!("Roads::scan_and_kill_straggled_tcoord@0088e050: {n} rows agree");
 }
