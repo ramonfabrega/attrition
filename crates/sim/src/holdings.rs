@@ -601,6 +601,8 @@ impl Sim {
         h.lakota = lakota;
         h.lakota_units = lakota_units;
         h.capitalism = capitalism;
+        h.romans = self.nation[w].romans;
+        h.germans = self.nation[w].germans;
         h.egyptians = self.nation[w].egyptians;
         h.french = self.nation[w].french;
         h.inca = self.nation[w].inca;
