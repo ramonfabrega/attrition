@@ -3381,7 +3381,38 @@ impl Sim {
             Body::Garrison { building, .. } if self.adjacent_to(u, building) => {
                 self.repath(u);
             }
+            Body::Cast(c) => self.check_cast_target_path(u, c),
             _ => {}
+        }
+    }
+
+    /// `Unit::check_target_path@005e22d0`'s action-type `0xe` arm (a
+    /// cast on an object target, `docs/GOLDEN.md` §110): a target that
+    /// is seen by the caster's player and is no longer a valid one ends
+    /// the walk **and the cast** (`repath`, `kill_current_order`); a
+    /// valid **unit** whose head order is a move (`UnitData::is_moving`)
+    /// ends the walk only (`repath`), and the head re-read runs
+    /// `do_cast` the same frame, which re-aims the approach at where the
+    /// target now stands. run880's `0/7` on 1177, five frames after its
+    /// approach began.
+    ///
+    /// SEAM: the arm's `is_seen` is `target_is_seen`'s fog half; the
+    /// building target's `+0x8` is not asked.
+    fn check_cast_target_path(&mut self, u: usize, c: CastOrder) {
+        let Some(t) = c.target else { return };
+        if !self.target_is_seen(Obj::Unit(u), t) {
+            return;
+        }
+        let who = self.units[u].owner;
+        if !self.obj_alive(t) || !self.spell_valid_target(c.spell, who, t) {
+            self.repath(u);
+            self.kill_current_order(u);
+            return;
+        }
+        if let Obj::Unit(v) = t
+            && self.is_moving(v)
+        {
+            self.repath(u);
         }
     }
 

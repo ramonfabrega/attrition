@@ -12988,12 +12988,31 @@ The word is the capture's end, 1300, `ch86` closed. No code changed: chapter eig
 range (parked 2879); (2) the chase's re-target on a moving target (parked 2868, untouched); (3) `unit_masks` bits kept as
 separate fields.
 
-## 110. Reserved for the next item on the rules track
+## 110. Chapter eighty-seven — a Spy sent to range on a walking target (run880, no new capture)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 2868: run880 frame 1178, the control Spy `0/7`'s `MOVEORDER` to a ring spot, ours `(23256, 19128)`, theirs
+`(23304, 19032)`. The disk answered it; no run 885.
+
+**How it was established.** `unitat.py` on run880's `0/7` over 1172–1185 and on the target `1/10` (a Hoplite, walking 24 a frame up
+the map): the original's block 1178 holds a *fresh* approach — new `x/y`, `off_x/off_y` 264/600, `dest` 0 — and the Spy's position
+has not stepped between the 1177 and 1178 blocks, so the move was killed and re-issued inside one frame. No draw is attributable
+to it (`report.py sites 1170-1180`). The listing: `Unit::work@0060d180` (the `(frame + o) & 0xf` gate, `0060d440`) calls
+`Unit::check_target_path@005e22d0` for a head move whose action is an order it knows; the action type `0xe` arm (a cast on an object
+target) asks the target's `is_seen`, then `is_valid_target` (a failure is `repath` and `kill_current_order`), then — for a live unit
+whose **head order is a move** (`UnitData::is_moving@00610af0`, vslot `+0xd8`) — `repath` alone. The head re-read runs `do_cast`
+the same frame, whose out-of-range arm computes a new spot for the target's new square. `0/7` is `o` 7: `(1177 + 7) & 0xf == 0`,
+and 1177 is the frame before the block that shows it.
+
+**Built.** `Sim::check_cast_target_path` (`crates/sim/src/orders.rs`), one more arm of `check_target_path_review`. `WANT_CH85` loses
+**19 rows** (31 → 12): every `0/7` row, 1178 through 1185 — `order:flags`, the move's `dest`, `off_x/off_y`, `x/y`, `orders_x/y`,
+`path:length`, `pos`, 1179's `dest_x/y` and `path[0].to`, 1183's `order:kind/length` and `orders.len` (the two-orders-against-one
+the booking named), 1184's `dest_angle` and `order:move.angle`, 1185's `heading`. One cause for all of them; what stands is the
+eleven `form` rows and the Scout's `world:seen2`.
+
+**Diff-backed**: the re-target frame and its value (every field of the order, both directions, on run880's 1100–1218).
+**Not established**: (1) a target that is invalid or unseen at the review (`repath` and the cast's death) — no capture reaches it; the
+arm is carried from the listing alone; (2) the arm for a building target (`+0x8` is not asked); (3) a target outside the caster's
+owner's sight, still parked 2879 — the review's `is_seen` gate is where it would show.
 
 ## 111. Reserved for the next item on the rules track
 

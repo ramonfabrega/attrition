@@ -6557,13 +6557,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FV — reserved
+## Parked by item 2881, 2026-10-17 — chapter eighty-seven: the chase's re-target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2881, first) **Parked 2868 is answered**: `check_target_path`'s cast arm (`Unit::work`'s sixteen-frame review), carried as
+`check_cast_target_path`; `WANT_CH85` 31 → 12. No score names the rest: the invalid/unseen-target arm (`repath` + kill) and a
+building target have no capture; parked 2879 (a target outside the caster's sight) is unchanged and wants a Spy sent to range on a
+target that stays outside its owner's fog, and the review's `is_seen` gate is the arm to watch there.
 
 ## Parked by the next landing, slot FW — reserved
 
