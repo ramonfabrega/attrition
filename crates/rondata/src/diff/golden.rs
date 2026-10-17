@@ -5600,10 +5600,12 @@ const WANT_CH86: &[&str] = &[
 
 /// What parts in run880's window, blocks 1100–1218.
 ///
-/// The standing `form` rows; the added Scout's first disc (`1103 world:seen2`, 7 cells, the first (59, 54) ours 3 theirs 1);
-/// and the **control** Spy `0/7`'s chase of a walking target (parked 2832): the original re-issues the approach `MOVEORDER`
-/// on 1178 to a fresh spot (23304, 19032), ours keeps the first (23256, 19128). **Nothing the Bribe's conversion touches
-/// parts**: the swapped squad `0/8`..`0/10`, its owner, `unit_masks` and the closed `1/6` agree on every block.
+/// The standing `form` rows and the added Scout's first disc (`1103 world:seen2`, 7 cells, the first (59, 54) ours 3 theirs 1).
+/// **The control Spy `0/7`'s chase of a walking target no longer parts** (item 2881, 19 rows struck): the original's
+/// sixteen-frame review (`Unit::work`'s `(frame + o) & 0xf` gate, `check_target_path`'s cast arm) `repath`s the approach on 1177
+/// because the target's head order is a move, and `do_cast` re-aims it the same frame; this crate carries the arm.
+/// **Nothing the Bribe's conversion touches parts**: the swapped squad `0/8`..`0/10`, its owner, `unit_masks` and the closed `1/6`
+/// agree on every block.
 const WANT_CH85: &[&str] = &[
     "1100 0/0 form",
     "1100 0/1 form",
@@ -5617,25 +5619,6 @@ const WANT_CH85: &[&str] = &[
     "1100 1/4 form",
     "1100 1/5 form",
     "1103 0/-1 world:seen2",
-    "1178 0/7 order:flags",
-    "1178 0/7 order:move.dest",
-    "1178 0/7 order:move.off_x",
-    "1178 0/7 order:move.off_y",
-    "1178 0/7 order:move.x",
-    "1178 0/7 order:move.y",
-    "1178 0/7 orders_x",
-    "1178 0/7 orders_y",
-    "1178 0/7 path:length",
-    "1178 0/7 pos",
-    "1179 0/7 order:move.dest_x",
-    "1179 0/7 order:move.dest_y",
-    "1179 0/7 path[0].to",
-    "1183 0/7 order:kind",
-    "1183 0/7 order:length",
-    "1183 0/7 orders.len",
-    "1184 0/7 dest_angle",
-    "1184 0/7 order:move.angle",
-    "1185 0/7 heading",
 ];
 
 /// **run877 whole, both directions** (item 2755, `docs/GOLDEN.md` §102).
