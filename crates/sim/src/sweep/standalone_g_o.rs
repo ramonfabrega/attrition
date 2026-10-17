@@ -398,6 +398,8 @@ mod herds_start_herds;
 mod herds_walk_data;
 #[path = "hero_walk_data.rs"]
 mod hero_walk_data;
+#[path = "heroes_data_find_hero.rs"]
+mod heroes_data_find_hero;
 #[path = "is_air.rs"]
 mod is_air;
 #[path = "is_move.rs"]
