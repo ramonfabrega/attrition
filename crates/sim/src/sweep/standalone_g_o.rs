@@ -1,5 +1,7 @@
 //! Independent sweep partition; test bodies keep their original paths.
 
+#[path = "get_float_z.rs"]
+mod get_float_z;
 #[path = "support.rs"]
 mod support;
 #[allow(unused_imports)]
