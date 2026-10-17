@@ -19,11 +19,11 @@ seven stay; `docs/audit/2026-10-17-fable-pass-39.md`.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956) → 12815 (2974), as 2997; it stays on its lobby until it closes (DECISIONS 77 (vii)).
-  Chapters 86–91 closed; 92 is 2994. Census 1224 → 1339 of 3611. Battery eight lobbies (2975), 0 to 9130, median 1008, a gate floor.
-- **Lanes: six landings** (2976 NATIONS.md; 2959, 2966 Census → 1339; 2971 ch91; 2974 6585 → 12815; 2975 five lobbies). 2997
-  the AI word's (Opus 5.5 medium, run 912); 2994 rules, 3004 and 3008 harvest (Sonnet 5.5 medium); refilled while landings +
-  live < 20. Next 3009, run 913 (Astra 900–909). Pools: GOLDEN §117–120, AI §245–247, park GX–HD (GW 3008's).
-- **Fable backlog: 14 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003, 3007).
+  Chapters 86–91 closed; 92 is 2994. Census 1224 → 1349 of 3611. Battery eight lobbies (2975), 0 to 9130, median 1008, a gate floor.
+- **Lanes: seven landings** (2976 NATIONS.md; 2959, 2966, 2990 Census → 1349; 2971 ch91; 2974 6585 → 12815; 2975 five
+  lobbies). 2997 the AI word's (Opus 5.5 medium, run 912); 2994 rules, 3004 and 3008 harvest, 3014 shape (Sonnet 5.5
+  medium); refilled while landings + live < 20. Next 3015, run 913 (Astra 900–909). Pools: GOLDEN §117–120, AI §245–247, park GY–HD.
+- **Fable backlog: 16 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003, 3007, 3012, 3013).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,7 +33,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: EastIndiesGermanTier3 w12815 of 13,519
-Census: simulation backed 1339 of 3611
+Census: simulation backed 1349 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +46,7 @@ landings + live lanes < 20; stop at twenty.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2997 the AI word's (Opus); 2990, 2994, 3004 and 3008 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
+2997 the AI word's (Opus); 2994, 3004, 3008 and 3014 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 2997. **The battery word, 12815 of 13519 (`EastIndiesGermanTier3`, East Indies):
@@ -66,12 +66,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     (`+0xa58`, `+0xa5a`, `+0x80c`) are unbuilt (parked 2992); the arms
     read first, run 911 only when no packet answers. Unstarted. GOLDEN §116.
 
-2990. **The sweep's next shape batch: the rest of `process_*` and 2964's
-    list** (DECISIONS 63 (iv); the score `Census:` 1329 of 3611; parked
-    2986, 2964): `rename_city` (virtual slot 0xac), `build` (its own
-    `GameLog::say`), `board_ship` (the gather shape), `flight`, `attack`,
-    `siege_attack`, `move_near`, `sell`, `trade` and the rest of 2986;
-    then `find_city`, `find_city_at`, `poor_target`, `Tribes::find`. Unstarted. `--kind sweep`.
+3014. **The sweep's next shape batch: the last of `process_*` and 2964's
+    list** (DECISIONS 63 (iv); the score `Census:` 1349 of 3611; parked
+    3009, 2964, 2998): `rename_city` (virtual slot 0xac), `ping`, `sell`,
+    `trade`, `speed_set`, `quit`, `hotkey`, `console_cmd`, `turn_data`, the
+    two cheats; then `find_city`, `find_city_at`, `poor_target`,
+    `Tribes::find`, `Unit::update_local_seen`. Unstarted. `--kind sweep`.
 
 3004. **The sweep's next harvest batch: ten never-backed simulation
     functions a built shape holds** (DECISIONS 63 (iv), 73; the score

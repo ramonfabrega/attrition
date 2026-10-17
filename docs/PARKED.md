@@ -3738,6 +3738,14 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3012) **A sibling's port block is copied by hand with three constants re-measured, ten times a batch** (2990's "for the
+Loop" line and parked 3011, filed at its merge; the fifth reach of the shape). Candidate: `sweep_gen.py --port-from
+SIBLING` copies the block and reports the constants that differ, a test made to fail first. One reach.
+
+(3013) **A `--regen` whose `--clean-stack` changed resets a hand port to `todo!()`** (parked 3010, filed at its merge): the
+`.rs` did not win, against Loop 2886's built rule. Candidate: the regen keeps a hand port whatever flag changed and says
+so, a test made to fail first; and `--clean-stack 256` the default for a logger of five or more reference arguments. One reach.
+
 (3007) **`golden_capture.sh` through `viadriver.sh` returns at once, so a loop of launches does not queue** (2975's "for
 the Loop" line, filed at its merge): ten captures in a shell loop raced the lane; the pool lanes did queue. Candidate: the
 wrapper waits on its own receipt or refuses a second launch into a held lane, a test made to fail first. One reach.
@@ -6928,20 +6936,20 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
 
 ## Parked by item 2990, 2026-10-17 — ten more `process_*` bodies swept, Census 1329 → 1339
 
-- (2990) **Still unswept in `CommandPackage::process_*`**: `rename_city` (virtual slot 0xac, `String::operator=`,
+- (3009) **Still unswept in `CommandPackage::process_*`**: `rename_city` (virtual slot 0xac, `String::operator=`,
   `HotKeyGroups::find_group`), `ping` (a loop over the eight leaders calling `Leader::action_ping`), `cheat_init_unit`,
   `cheat_ai_speed_increase`, `console_cmd`, `hotkey`, `sell` (`has_tribe_bonus`/`has_preq`/`has_market`/`do_sell`
   chain), `trade`, `speed_set` (timings table, `String`/`MessageWin`/`SoundGlobal` calls), `quit` (console play, `Player::quit`,
   a vcall), `turn_data`. And 2964's list, not reached: `find_city`, `find_city_at`, `poor_target`, `Wall::swap_team`,
   `Tribes::find`, `Signposts::add`. Names no score beyond the census.
-- (2990, second) **`--clean-stack 64` is not enough for a logger with five or more reference arguments**: the line, tags and
+- (3010) **`--clean-stack 64` is not enough for a logger with five or more reference arguments**: the line, tags and
   format slots of `logToMemory` read caller stack residue (varying by row) that 64 bytes leave; `--clean-stack 256` zeroes
   them on every row (`process_attack`, `_swarm_around`, `_launch_patrol`, `_flight`, `_build`, `_move_near`). Parked 2985's
   `come_out`/`cannon_time` pins could use 256 and lose their residue constants. `sweep_gen.py --regen` on a hand-ported
-  `.rs` whose `--clean-stack` argument changed reset the port to `todo!()` (the `.rs` did not win): file it with Loop 2886.
-- (2990, third) **The batch's `five.py`/graft shape is a fifth reach**: a sibling's port block copied with three constants
+  `.rs` whose `--clean-stack` argument changed reset the port to `todo!()` (the `.rs` did not win): filed as Loop 3013.
+- (3011) **The batch's `five.py`/graft shape is a fifth reach**: a sibling's port block copied with three constants
   re-measured (the file literal for a null `strrchr`, the format pointer, the say offset) -- ten times this batch, each from
-  the first failing row. A `sweep_gen.py --port-from SIBLING` that copies the block and reports the constants is the Loop's.
+  the first failing row. A `sweep_gen.py --port-from SIBLING` that copies the block and reports the constants: filed as Loop 3012.
 
 ## Parked by the next landing, slot GT — reserved
 
