@@ -252,6 +252,8 @@ mod valid_filter_case14;
 mod valid_filter_case15;
 #[path = "valid_filter_case16.rs"]
 mod valid_filter_case16;
+#[path = "valid_filter_case17.rs"]
+mod valid_filter_case17;
 #[path = "valid_filter_case18.rs"]
 mod valid_filter_case18;
 #[path = "valid_filter_case19.rs"]
