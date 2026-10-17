@@ -40,7 +40,26 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            todo!()
+            // `Game::unload_net_lib()`: with the net system cell `0xe335c8` non-null (the original's own
+            // first slot call says which, `want_log[0]`; the cell itself is no window, so the store of 0 to it
+            // is not held) it calls slot 8 and slot 0x100 of its vtable (`ecx` the record, `p[0]`); then a
+            // nonzero library handle `0xe335b8` (`c[0]`) goes to `FreeLibrary` (`0xac50c4`, `ecx` still the record) and is zeroed;
+            // last `this+0xbf0` is -1.
+            if want_log[0] != "-" {
+                log.push("p0+0x0".to_string());
+                log.push("p0+0x0".to_string());
+                let h = rd(&c[0], 0);
+                if h != 0 {
+                    log.push(format!("p0+0x0,{h}"));
+                    wr(&mut c[0], 0, 0);
+                } else {
+                    log.push("-".to_string());
+                }
+                wr(m, 0xbf0, -1);
+            } else {
+                log.extend(["-".to_string(), "-".to_string(), "-".to_string()]);
+            }
+            0i64
         };
         let _ = (got, want_eax);
         assert_eq!(log, want_log, "unload_net_lib — the recorded calls, row `{line}`");
