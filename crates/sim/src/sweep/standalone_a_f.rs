@@ -386,6 +386,8 @@ mod cliffs_get_parse_name;
 mod cliffs_out_get_mining_data;
 #[path = "cliffs_out_get_mining_size.rs"]
 mod cliffs_out_get_mining_size;
+#[path = "cliffs_set_edge_flags.rs"]
+mod cliffs_set_edge_flags;
 #[path = "coll_block_get.rs"]
 mod coll_block_get;
 #[path = "command_manager_check_accept_issue.rs"]
