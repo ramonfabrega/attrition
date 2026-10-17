@@ -630,6 +630,8 @@ mod command_package_process_set_transport;
 mod command_package_process_siege_attack;
 #[path = "command_package_process_speed_down.rs"]
 mod command_package_process_speed_down;
+#[path = "command_package_process_speed_set.rs"]
+mod command_package_process_speed_set;
 #[path = "command_package_process_speed_up.rs"]
 mod command_package_process_speed_up;
 #[path = "command_package_process_stop_spell.rs"]
