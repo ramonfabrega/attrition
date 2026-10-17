@@ -1,7 +1,5 @@
 //! Independent sweep partition; test bodies keep their original paths.
 
-#[path = "get_float_z.rs"]
-mod get_float_z;
 #[path = "support.rs"]
 mod support;
 #[allow(unused_imports)]
@@ -132,6 +130,8 @@ mod gather_order_walk_data_vtordisp;
 mod gather_point_is_inside;
 #[path = "gather_point_walk_data.rs"]
 mod gather_point_walk_data;
+#[path = "get_float_z.rs"]
+mod get_float_z;
 #[path = "get_type_count.rs"]
 mod get_type_count;
 #[path = "get_type_count2.rs"]
@@ -452,6 +452,8 @@ mod nuke_get_name;
 mod nuke_on_field_change;
 #[path = "nuke_out_num_current_nukes.rs"]
 mod nuke_out_num_current_nukes;
+#[path = "nuke_out_setup_terrain_terraforming.rs"]
+mod nuke_out_setup_terrain_terraforming;
 #[path = "nuke_out_update.rs"]
 mod nuke_out_update;
 #[path = "object_assault_benefit.rs"]
