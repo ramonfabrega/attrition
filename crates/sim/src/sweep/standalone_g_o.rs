@@ -448,6 +448,8 @@ mod move_order_walk_data_vtordisp;
 mod moveorder_is_fleeing;
 #[path = "nuke_been_damaged_before.rs"]
 mod nuke_been_damaged_before;
+#[path = "nuke_draw_ctw.rs"]
+mod nuke_draw_ctw;
 #[path = "nuke_get_name.rs"]
 mod nuke_get_name;
 #[path = "nuke_on_field_change.rs"]
