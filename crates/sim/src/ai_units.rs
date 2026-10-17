@@ -663,6 +663,22 @@ impl Sim {
             let city_attacked = self.cities[c].no_heal;
 
             for &t in &units {
+                let probe = std::env::var("RON_PROBE_2974")
+                    .ok()
+                    .and_then(|v| v.parse::<i64>().ok())
+                    == Some(self.frame)
+                    && (self.tech_tree.types[t].name.contains("Fire")
+                        || self.tech_tree.types[t].name.contains("Trireme"));
+                if probe {
+                    eprintln!(
+                        "P2974 f{} c{c} t{t} {} eff {} cap {} avail {}",
+                        self.frame,
+                        self.tech_tree.types[t].name,
+                        self.ai[w].effective_pop,
+                        pop_cap,
+                        self.type_available(who, t)
+                    );
+                }
                 // 1. The population and the availability.
                 if self.ai[w].effective_pop > pop_cap || !self.type_available(who, t) {
                     continue;
@@ -670,6 +686,7 @@ impl Sim {
                 let Some(f) = self.unit_facts(t) else {
                     continue;
                 };
+                if probe { eprintln!("P2974 at 2. The trainer bu"); }
                 // 2. The trainer buildings, including their upgraded forms.
                 let Some(wt) = self.tech_tree.types[t].where_ else {
                     continue;
@@ -678,10 +695,12 @@ impl Sim {
                     continue;
                 };
                 let trainers = self.buildings_of_line(who, wrec);
+                if probe { eprintln!("P2974 at 3. Trainers exist"); }
                 // 3. Trainers exist, and the type is not excluded (`p`).
                 if trainers == 0 || f.flag_p {
                     continue;
                 }
+                if probe { eprintln!("P2974 at 4. City-trained"); }
                 // 4. City-trained or globally trained.
                 let fort = self.build_is_ident(wrec, Ident::Fort);
                 let per_city = !fort
@@ -695,6 +714,7 @@ impl Sim {
                     continue;
                 }
 
+                if probe { eprintln!("P2974 at 5. The count cap."); }
                 // 5. The count cap.
                 let (units_now, queued_now) = self.raw_counts(who, f.rec);
                 let owned = units_now + queued_now;
@@ -737,10 +757,12 @@ impl Sim {
                     remaining = cap - owned;
                 }
 
+                if probe { eprintln!("P2974 at 6. The base."); }
                 // 6. The base.
                 let mut base = self.ai[w].census.pop * 1000 / city_num.max(1);
                 let mut escrow = 0;
 
+                if probe { eprintln!("P2974 at 7. The military g"); }
                 // 7. The military gate — the `else` of the `role & 0x10000`
                 // test, so it runs for sea and air military too, not only
                 // land (the first reading called it the land gate).
@@ -793,6 +815,7 @@ impl Sim {
                     }
                 }
 
+                if probe { eprintln!("P2974 at 8. The common bod"); }
                 // 8. The common body: the near-cap tapering, then `want`.
                 if !f.citizen && !f.caravan && !f.military {
                     let eff = self.ai[w].effective_pop;
@@ -834,6 +857,7 @@ impl Sim {
                     want = 1;
                 }
 
+                if probe { eprintln!("P2974 at 9. The branch."); }
                 // 9. The branch.
                 //
                 // **`num` is the branch's own answer, not a constant**
@@ -871,11 +895,20 @@ impl Sim {
                     };
                     v = pass;
                 } else if f.sea {
+                    if probe {
+                        eprintln!("P2974 sea_value in base {base} remaining {remaining} cap {cap}");
+                    }
                     let Some((sv, sc)) =
                         self.sea_value(who, t, &f, c, base, r, army_here, &mut escrow)
                     else {
+                        if probe {
+                            eprintln!("P2974 sea_value None");
+                        }
                         continue;
                     };
+                    if probe {
+                        eprintln!("P2974 sea_value {sv} {sc}");
+                    }
                     v = sv;
                     cat = sc;
                 } else if !f.military {
@@ -985,6 +1018,7 @@ impl Sim {
                     num = batch_size(f.control_cost, remaining, self.ai[w].effective_pop, pop_cap);
                 }
 
+                if probe { eprintln!("P2974 at 10. The tail."); }
                 // 10. The tail.
                 let mut val = v;
                 if cap >= 0
@@ -1032,6 +1066,9 @@ impl Sim {
                     continue;
                 }
                 let mut out = offer_value(fac, want, val, divisor);
+                if probe {
+                    eprintln!("P2974 out {out} fac {fac} want {want} val {val} div {divisor} num {num}");
+                }
                 if self.ai[w].wonder_mod != 0 {
                     out /= 2;
                 }
