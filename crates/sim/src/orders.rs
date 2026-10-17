@@ -9491,7 +9491,16 @@ impl Sim {
         // reach (`find_nearby_target`'s `local_24`), so a catapult whose
         // attacker stands inside its minimum drops the attack and stays
         // put: run146's `0/6` on 868, 870 and 871.
-        let target = if packs {
+        //
+        // **A mandatory attack does neither** (item 2864, `docs/AI.md`
+        // §238): `do_attack@005f1b80:254` calls `fight(o, who,
+        // attack->mandatory, 0, 0)`, and `fight`'s third argument (`esi`,
+        // reloaded from `[ebp+0x10]` at `5fe0fc`) skips the re-search
+        // (`5fe108`) and the STAND_GROUND and entrenched gates (`5fe135`)
+        // below, straight to `find_attack_pos` (`5fe17f`). run883b's
+        // packet runs the peace pair's MLRS `1/124` on 6821: no
+        // `find_new_target`, no kill, the ring from `fight+0xcb4`.
+        let target = if packs && !state.mandatory {
             self.kill_current_order(u);
             if let Some(t) = self.take_siege_army_target(u) {
                 t
@@ -9517,7 +9526,7 @@ impl Sim {
         // guard's still walks. Every packer and worker reads 2
         // (`get_combat_stance@00610a30`, item 2265): run589's cannon
         // `1/132`, packed on its attack-move, walks at `0/2000` on 17945.
-        if state.stance == combat::Stance::StandGround && !self.on_duty(u) {
+        if !state.mandatory && state.stance == combat::Stance::StandGround && !self.on_duty(u) {
             return;
         }
         // **The chase** (`docs/COMBAT.md` §17): the unit asks where to
