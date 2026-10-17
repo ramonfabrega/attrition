@@ -58,6 +58,8 @@ mod armies_find_useful_army;
 mod armies_leader_defeated;
 #[path = "armies_num_armies.rs"]
 mod armies_num_armies;
+#[path = "armies_process_all.rs"]
+mod armies_process_all;
 #[path = "armies_send_navy.rs"]
 mod armies_send_navy;
 #[path = "armies_update_city.rs"]
