@@ -3750,6 +3750,11 @@ line, filed at its merge): `--regen` with a whole line and `--port-file` rewrite
 not a fault at the read. Candidate: a regen that would overwrite a port differing from its `--port-file` refuses, naming
 both; an unmapped read under a sweep faults with its address. One reach.
 
+(2892) **The generated `.rs` header does not say how `--sparse` and `--place` number the `p` windows** (2877's "for the
+Loop" line, filed at its merge): sparse windows come first, so a `--wbias p0+*` meant for the first place biased a sparse
+byte and the run looked healthy until a break survived (parked 2890); two reruns. Candidate: the generated doc comment lists
+the windows in order (`p0..p3 sparse, p4 place`), a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
 Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872).
@@ -6563,7 +6568,7 @@ by `--place-null` only on the first place; the second is held by forcing `m+0xcc
 
 ## Parked by item 2877, 2026-10-17 — the sweep's hundred-and-twentieth batch
 
-(2877, first) **A `void`/`obj` shape for a vtable *compare* the function branches on.** `WallData::walk_data` 0x642510,
+(2888) **A `void`/`obj` shape for a vtable *compare* the function branches on.** `WallData::walk_data` 0x642510,
 `AnimalData::walk_data` 0x5d7ea0 (`*(this+0x78) == Object::must_walk`), `UnitData::get_gpiece` 0x616d70 (`*(this+0xb8) ==
 ObjectData::is`), `CityData::count_farms` 0x7368c0 and `CityData::get_building` 0x739480 (`*record == Build::vftable`) all
 choose a branch by comparing a vtable slot or the vtable itself to a known address; `--vtat` lays a stubbed vtable whose slots
@@ -6572,14 +6577,14 @@ one named image function at one slot of the vtable (`--vtat-keep SLOT:VA`) would
 walker object's vtable (`[walker+_padding_]`) with `ecx = walker` and two stack addresses — `--vtat-also` on the pointed
 buffer covers it, the stack addresses print as `sp-0x..`. Not built here.
 
-(2877, second) **`ObjectsData::find_goody_at` 0x65c040 and the `o`-list walkers.** The function follows `obj+0x2c` (short, the
+(2889) **`ObjectsData::find_goody_at` 0x65c040 and the `o`-list walkers.** The function follows `obj+0x2c` (short, the
 next) and re-reads the *player* from `obj+0x2e` (the high half of the same word) every step, indexing the per-player table at
 `0xc0ab84 + 28 * player` by it; `--link pA..B+OFF:2:<` writes the low half only and a `--wbias` on the word clobbers the link,
 so a random player short indexes an unmapped table. A `--link` that also draws the neighbouring short from a list
 (`--link pA..B+0x2c:2:<:T,T --link-hi 0..2`) would build it. `CityData::is_disbanding` 0x7380a0 adds three record vslots
 (0x20, 0x4c, 0x190 with two arguments) to the `num_city_buildings` chain and was left for it.
 
-(2877, third) **Generator traps, undocumented.** (i) `--sparse LOC:...` windows come *before* the `--place` windows in the `p`
+(2890) **Generator traps, undocumented.** (i) `--sparse LOC:...` windows come *before* the `--place` windows in the `p`
 numbering (four sparse bytes made `p0..p3`; the first place was `p4`) — a `--wbias p0+*` written for the place biased a sparse
 byte instead and the run looked healthy until a break survived. (ii) A stub whose callee takes the string register `edx`
 (`City::set_name`'s hash at 0xa1b6b0) turns `--record-edx` on for *every* recorded stub of the script, though the flag was not
@@ -6590,7 +6595,7 @@ survived until the bias was `v << 16`. (iv) `--at VA:N` windows follow the `--ce
 `kill_next_order` offsets 4 and 12 on a script with four stubs and no argument); `--answers` for a seq stub does not clamp the
 ten per cent it replaces with a random word — a table index wants `--answer-range` as well (`ArmyData::select`).
 
-(2877, fourth) **Equivalent or thin breaks.** `Group::kill_next_order`: `(on - 1).min(7)` to `.min(6)` survives (it takes eight
+(2891) **Equivalent or thin breaks.** `Group::kill_next_order`: `(on - 1).min(7)` to `.min(6)` survives (it takes eight
 consecutive on-map members, one row in thousands); `UnitData::is_seen` `^ 0x63637` to `^ 0x63636` and `& 31` to `& 15` survive
 (coordinates are drawn at `>> 7` granularity and the player is 0..3: equivalent over the draw).
 
