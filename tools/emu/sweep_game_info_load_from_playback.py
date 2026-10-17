@@ -35,7 +35,7 @@ PNULLS = []
 STUBS = [('call', 10612400, 1), ('call', 9777504, 0)]
 PLACES = []
 NULLS = []
-WBIAS = [('p0', 8, ('set', [0, 1, 65536, 131072]))]
+WBIAS = [('p0', 8, ('set', [0, 1, 65536, 131072, 65535, 32768]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -576,4 +576,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "2783", "obj", "GameInfo::load_from_playback@005d4a10", "--own", "1", "--win", "0x10", "--ptrarg", "0:0x20", "--wbias", "p0+8:0,1,0x10000,0x20000", "--stub", "0xa1eeb0:1", "--stub", "0x953160:0", "--record", "0", "--record", "1", "--port", "todo!()"]
+# sweep_gen: ["--item", "2783", "obj", "GameInfo::load_from_playback@005d4a10", "--own", "1", "--win", "0x10", "--ptrarg", "0:0x20", "--wbias", "p0+8:0,1,0x10000,0x20000,0xffff,0x8000", "--stub", "0xa1eeb0:1", "--stub", "0x953160:0", "--record", "0", "--record", "1", "--port", "todo!()"]
