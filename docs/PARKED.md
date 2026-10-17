@@ -6126,13 +6126,13 @@ The stub answer layout (own arguments, one drawn answer a stub, then each `--seq
 
 (2778) Shapes lacking from the next rows read, each one line, none built: `Terrain::walk_coord_data` 0x850ef0 (two singletons and a walker through `param_1[0]`, a list per row at stride 0xc); `WorldData::is_seen` 0x6b55c0 (a leaders record at stride `0x6eec`, a game-info byte, two tile arrays: window sizes over a megabyte); `TurnControl::issue_speed_set` 0x956ad0 (a `Command` local the stub is handed by address and the function builds on its stack); `MapFairness::recompute` 0x68a100 (a float compare, no integer shape); `GatherPointList::get_new_data` 0x470e90 (a `malloc` and a constructor); `Player::end_game` 0x6ee110 (camera, scene and semaphore singletons, a write through each).
 
-## Parked by the next landing, slot EU — reserved
+## Parked by item 2780, 2026-10-17 — the scout's fog read takes the Space Program
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2779) **The peace pair's word 5982 owes its widening** (2780, `docs/AI.md` §233): count and sequence part on 5982 at
+index 5, ours 37 draws, theirs 287 — ours `Leader::produce_building+0x1805`, theirs `Build::find_gather_tiles+0x10a`.
+run867 ends at 5657 and run847 holds checksums and the closing block only, so no dump of this lobby holds a record on
+5982. run867's recipe with the window moved to 5976..6232 (`--end-frame 6238`) is the capture; theirs' 287 draws on the
+frame suggest a building's completion, so `BUILDS=7` stays in the detail.
 
 ## Parked by the next landing, slot EV — reserved
 
