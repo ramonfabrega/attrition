@@ -1,4 +1,4 @@
-//! `WorldData::is_seen@006b55c0` and `WorldData::is_seen_wcoord@006b2540` under the emulator against the port (item 2837; hand-written on tools/emu/hooks.py).
+//! `WorldData::is_seen@006b55c0`, `is_seen_wcoord@006b2540` and `is_really_seen@006b42c0` (no revealed-map exit) under the emulator against the port (item 2837; hand-written on tools/emu/hooks.py).
 
 /// Both run by `tools/emu/sweep_world_data_is_seen.py` under unicorn (tools/emu). A player of slot 8 or past, a
 /// revealed map (`reveal_map == 3`), a leader word with `0x800` or a nonzero short at `+0x59e4` answer 1; else,
@@ -15,7 +15,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (a, want) = super::row(line);
         let (who, reveal, lw, nu, mask) = (a[3], a[4], a[5] as i32, a[6], a[7]);
         let (lwho, d_lc, d_cl, owner, cell) = (a[8], a[9], a[10], a[11], a[12]);
-        let (got, exit) = if who >= i64::from(crate::world::PLAYER_SLOTS) || reveal == 3 {
+        let (got, exit) = if who >= i64::from(crate::world::PLAYER_SLOTS) || (reveal == 3 && a[0] != 2) {
             (1, 0)
         } else if lw & 0x800 != 0 || nu != 0 {
             (1, 0)
@@ -33,5 +33,5 @@ fn the_emulated_original_agrees_on_every_row() {
     }
     assert!(n >= 500, "only {n} rows");
     assert!(by_exit[1] >= 10 && by_exit[2] >= 50, "starved arm {by_exit:?}");
-    eprintln!("WorldData::is_seen/is_seen_wcoord: {n} rows agree {by_exit:?}");
+    eprintln!("WorldData::is_seen/is_seen_wcoord/is_really_seen: {n} rows agree {by_exit:?}");
 }

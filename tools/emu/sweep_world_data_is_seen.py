@@ -3,8 +3,8 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_world_data_is_seen.py — `WorldData::is_seen@006b55c0` and `WorldData::is_seen_wcoord@006b2540` under
-unicorn (item 2837, hand-written on tools/emu/hooks.py beside sweep_world_data_was_really_seen.py).
+"""sweep_world_data_is_seen.py — `WorldData::is_seen@006b55c0`, `WorldData::is_seen_wcoord@006b2540` and
+`WorldData::is_really_seen@006b42c0` under unicorn (item 2837, hand-written on tools/emu/hooks.py beside sweep_world_data_was_really_seen.py).
 
     uv run tools/emu/sweep_world_data_is_seen.py <install>/riseofnations.exe
 
@@ -12,7 +12,8 @@ Both are `__thiscall` with three stack arguments (two coordinate pointers and `w
 (signed) is 1, so is a game record (cell `0xc061e8`) whose byte `+0x30` is 3 and a leader (cell `0xc061e0` names
 the list, stride `0x6eec`) whose flags have `0x800` or whose short at `+0x59e4` is nonzero. Else, with flag
 `0x2000`, a cell owner >= 0 that is the leader itself or both ways diplo 2 answers 1; else the fog byte
-masked by the leader's byte at `+0x6929`. The FCoord form reads the owner at wdata[(y>>1)*xs+(x>>1)] and fog
+masked by the leader's byte at `+0x6929`. `is_really_seen` (form 2) is the FCoord form without the `reveal_map` exit, reading the world through the
+global cell `0xc061d0` rather than `this` (`ecx` is a decoy there). The FCoord form reads the owner at wdata[(y>>1)*xs+(x>>1)] and fog
 at `seen[x + fog_xs*y]` (`this+0x15c`); the WCoord form the owner at wdata[x+y*xs] and `wcoord_seen`
 (`this+0x168`) at `x + y*xs`. A cell owner of 8 or more would index past the eight leaders: not drawn.
 Row: `<form> <x> <y> <who> <reveal> <flags> <nu> <mask> <leader.who> <d_lc> <d_cl> <owner> <fog byte> -> <eax>`
@@ -32,8 +33,8 @@ def popped(uc):
     assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {esp:x}: wrong pop"
 
 
-ENTRIES = {0: 0x006B55C0, 1: 0x006B2540}
-GAME, LEADERS = 0x00C061E8, 0x00C061E0
+ENTRIES = {0: 0x006B55C0, 1: 0x006B2540, 2: 0x006B42C0}
+GAME, LEADERS, WORLD = 0x00C061E8, 0x00C061E0, 0x00C061D0
 LEADER = 0x6EEC
 FOG = 4096
 WD = 0x1C
@@ -44,17 +45,18 @@ def main(argv):
     h = Harness(argv[1], {})
     uc = h.m.uc
     rng = random.Random(2837)
-    saved = bytes(uc.mem_read(GAME, 4)), bytes(uc.mem_read(LEADERS, 4))
+    saved = bytes(uc.mem_read(GAME, 4)), bytes(uc.mem_read(LEADERS, 4)), bytes(uc.mem_read(WORLD, 4))
     game = h.alloc(0x40)
     leaders = h.alloc(8 * LEADER)
     this = h.alloc(0x170)
+    decoy = h.alloc(0x170)
     fog = h.alloc(FOG)
     wd = h.alloc(WD * 1024)
     xy = h.alloc(8)
     h.w32(GAME, game)
     h.w32(LEADERS, leaders)
     for i in range(600):
-        form = i & 1
+        form = i % 3
         who = rng.randrange(10)
         reveal = 3 if rng.random() < 0.1 else rng.randrange(256)
         uc.mem_write(game, bytes(rng.randrange(256) for _ in range(0x40)))
@@ -76,9 +78,9 @@ def main(argv):
             if rng.random() < 0.15:
                 h.w16(L + 0x59E4, rng.randint(1, 0x7FFF))
         xs = rng.randrange(4, 17)
-        fx = 2 * xs if form == 0 else xs
+        fx = xs if form == 1 else 2 * xs
         x, y = rng.randrange(fx), rng.randrange(min(fx, FOG // fx))
-        cx, cy = (x >> 1, y >> 1) if form == 0 else (x, y)
+        cx, cy = (x, y) if form == 1 else (x >> 1, y >> 1)
         owner = rng.choice([-1, -3, 0, 1, 2, 3, 4, 5, 6, 7, 7])
         uc.mem_write(wd, bytes(rng.randrange(256) for _ in range(WD * 1024)))
         h.w8(wd + WD * (cx + cy * xs) + 0xF, owner & 0xFF)
@@ -105,7 +107,8 @@ def main(argv):
                     d_cl = int.from_bytes(uc.mem_read(leaders + owner * LEADER + 0x74 + 4 * lwho, 4),
                                           "little", signed=True)
         before = bytes(uc.mem_read(this, 0x170)), bytes(uc.mem_read(fog, FOG)), bytes(uc.mem_read(wd, WD * 1024))
-        res = h.call(ENTRIES[form], (xy, xy + 4, who), ecx=this)
+        h.w32(WORLD, this)
+        res = h.call(ENTRIES[form], (xy, xy + 4, who), ecx=decoy if form == 2 else this)
         popped(uc)
         assert (bytes(uc.mem_read(this, 0x170)), bytes(uc.mem_read(fog, FOG)),
                 bytes(uc.mem_read(wd, WD * 1024))) == before, "wrote"
@@ -113,6 +116,7 @@ def main(argv):
         print(f"{form} {x} {y} {who} {reveal} {lw} {nu} {mask} {lwho} {d_lc} {d_cl} {owner} {cell} -> {res}")
     uc.mem_write(GAME, saved[0])
     uc.mem_write(LEADERS, saved[1])
+    uc.mem_write(WORLD, saved[2])
     return 0
 
 
