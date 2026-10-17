@@ -42,9 +42,18 @@ pub(crate) const GERMAN: Lobby = Lobby {
     // `SITE[8]` on block 3976 is (42, 53) val 32 on both (ours (47, 24) val
     // 293333 before) and the third Village offer of 5578 is gone. At 6585
     // ours 6 draws, theirs 5, index 1: ours `Leader::use_market+0x1ed`,
-    // theirs `Leader::make_stuff+0x221` (`docs/AI.md` §241).
-    count: 6585,
-    sequence: 6585,
+    // theirs `Leader::make_stuff+0x221` (`docs/AI.md` §241). **Item 2974
+    // moved it 6585 → 12815** with the Germans' Fire Raft line
+    // (`get_cost`'s `GERMAN_SUBMARINE_COST`, `train_time`'s
+    // `GERMAN_SUBMARINE_SPEED`): who=1's make list on block 6581 heads the
+    // Fire Raft (334) val 2000000 then the Trireme (340) on both sides (ours
+    // the Trireme first, its Fire Raft at 500000 for a price of 20/41
+    // against a wealth bucket of 39 — theirs 15/31), and its Dock `1/2010`
+    // finishes the Fire Raft on 6718 on both. At 12815 ours 9 draws, theirs
+    // 8, index 1: ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271` (`docs/AI.md` §242).
+    count: 12815,
+    sequence: 12815,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -319,7 +328,7 @@ fn run893c_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 436, "initial run893c baseline");
+    pin_eq!(w.firsts.len(), 50, "initial run893c baseline");
     // Item 2956: 436 keys part on blocks 6579..6836, the word's own block
     // being 6586 (frame 6585: ours 6 draws, theirs 5, index 1 — ours
     // `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`). The
@@ -334,4 +343,19 @@ fn run893c_s_word_frame_is_widened_whole() {
     // `1/23`, `1/24`, `1/27`, `1/34`, `1/35` (1431655765 against 0); from
     // 6587 `0/3`'s move (`orders_x` 5688/5880) and the rest downstream
     // (`docs/AI.md` §241).
+    //
+    // **Item 2974: 436 → 50**, with the Germans' Fire Raft line. The value
+    // diff, block 6581: who=1's `MAKE[0]` is the Fire Raft (334) val
+    // 2000000 and `MAKE[1]` the Trireme (340) val 2000000 on both sides
+    // (ours 340 and 209 before; ours' Fire Raft had been offered at 500000,
+    // `check_income`'s 0x40 for an unaffordable 20/41 against wealth 39);
+    // on 6583 the Dock `1/2010`'s `queue[0]` is type 334, `cost` 15/31, on
+    // both; on 6718 its `job_counter` agrees (ours 13600 against 13533
+    // with the cost arm alone) and the Fire Raft is born on 6719. What
+    // stands is the control's set on 6579 (`SITE[n].reg`, `form`, groups'
+    // `held`, the pool, both leaders' `aggression`), `g.angle[0]` on
+    // who=1's `1/23`, `1/24`, `1/27`, `1/34`, `1/35` and from 6652 `1/37`
+    // (1431655765 against 0), and two pools' `held` rows on 6606 and 6724.
+    // The word moved to 12815, past the window's last block (6836); its
+    // widening is run910's (`docs/AI.md` §242).
 }

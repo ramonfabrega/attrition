@@ -3400,7 +3400,8 @@ impl Sim {
     /// original's own order — as far as it is built — and the
     /// speed-upgrade step after it (item 1365).
     ///
-    /// **Of the national arms only the British and the Mongol are here**, and that is a scope claim rather
+    /// **Of the national arms only the British, the German (item 2974) and
+    /// the Mongol are here**, and that is a scope claim rather
     /// than an oversight: the block's nine other arms are inert in every
     /// capture on disk, so each would be a predicate no diff could check,
     /// and the audit's standing lesson is that predicates are exactly where

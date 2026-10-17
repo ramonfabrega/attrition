@@ -7414,6 +7414,73 @@ fn a_french_siege_factory_unit_costs_fifteen_percent_less() {
     assert_eq!(sim.price_of(1, foot)[metal], scaled, "not the factory line");
 }
 
+/// **A German leader's Fire Raft line costs a quarter less and trains a
+/// third faster** (item 2974, `docs/AI.md` §242): `get_cost`'s German arm
+/// takes `GERMAN_SUBMARINE_COST` (25%) off a unit that `is(0x14e, 0)` — by
+/// lineage, so the Heavy Fire Raft too — and `train_time`'s takes
+/// `GERMAN_SUBMARINE_SPEED` (33%) off the same units and
+/// `GERMAN_AIR_SPEED` (33%) off an aircraft. The battery's German who=1
+/// priced its Fire Raft 20/41 here and 15/31 there on 6580.
+#[test]
+fn a_german_fire_raft_line_costs_a_quarter_less_and_trains_faster() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x14e {
+        tree.add(TypeDef::good("filler"));
+    }
+    let raft_t = tree.add(TypeDef::unit("Fire Raft", Traits::default()));
+    assert_eq!(raft_t, 0x14e);
+    let heavy_t = tree.add(TypeDef::unit("Heavy Fire Raft", Traits::default()).from(raft_t));
+    let trireme_t = tree.add(TypeDef::unit("Trireme", Traits::default()));
+    sim.set_tech_tree(tree);
+    for t in [raft_t, heavy_t, trireme_t] {
+        sim.tech[1].tech[t] = true;
+    }
+    let ty = |sim: &mut Sim, t, air: bool| {
+        let mut u = UnitType {
+            price: cost::Price::free()
+                .with_base(economy::Resource::Timber, 2)
+                .with_base(economy::Resource::Wealth, 4),
+            tree: Some(t),
+            ..UnitType::default()
+        };
+        if air {
+            u.combat.domain = crate::attrition::Domain::Air;
+        }
+        sim.add_unit_type(u)
+    };
+    let raft = ty(&mut sim, raft_t, false);
+    let heavy = ty(&mut sim, heavy_t, false);
+    let trireme = ty(&mut sim, trireme_t, false);
+    let plane = ty(&mut sim, trireme_t, true);
+    let wealth = economy::Resource::Wealth.index();
+    let timber = economy::Resource::Timber.index();
+    sim.holdings[1].available[wealth] = true;
+    sim.holdings[1].available[timber] = true;
+    let w = 4 * sim.tuning.unit_cost_factor;
+    let faster = |s: &Sim, ty| {
+        s.train_tail(1, ty)
+            .iter()
+            .filter(|a| matches!(a, production::Adjust::Faster(33)))
+            .count()
+    };
+    assert_eq!(sim.price_of(1, raft)[wealth], w, "not a German");
+    assert_eq!(faster(&sim, raft), 0, "not a German");
+    sim.nation[1].germans = true;
+    assert_eq!(sim.price_of(1, raft)[wealth], w * 75 / 100);
+    assert_eq!(
+        sim.price_of(1, raft)[timber],
+        2 * sim.tuning.unit_cost_factor * 75 / 100
+    );
+    assert_eq!(sim.price_of(1, heavy)[wealth], w * 75 / 100, "by lineage");
+    assert_eq!(sim.price_of(1, trireme)[wealth], w, "not the line");
+    assert_eq!(faster(&sim, raft), 1);
+    assert_eq!(faster(&sim, heavy), 1, "by lineage");
+    assert_eq!(faster(&sim, trireme), 0, "not the line");
+    assert_eq!(faster(&sim, plane), 1, "an aircraft");
+}
+
 /// **`path_recursion` survives a recycled object slot** (item 1458,
 /// `docs/GROUPS.md` §37.2): `Unit::init` never writes `UnitData +0xaf`,
 /// so a unit born into a dead unit's object number keeps its count. A
