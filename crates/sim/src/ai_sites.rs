@@ -885,6 +885,10 @@ impl Sim {
                 let c = cells[i as usize];
                 let st = self.compute_site_stats(who, c.x, c.y, city, unit, reg, true);
                 i += stride;
+                // PROBE 2956
+                if std::env::var("RON_PROBE_SITEFRAME").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) && who == 1 {
+                    eprintln!("  sample f{} r{r} size{size} stride{stride} start{start} ({},{}) -> ({},{}) v{} d{}", self.frame, c.x, c.y, st.wx, st.wy, st.val, st.dist);
+                }
 
                 // The insertion, transliterated: the running minimum starts
                 // at `(0, −1)` and is *replaced* unless the old minimum is
