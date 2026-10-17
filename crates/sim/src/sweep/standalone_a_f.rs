@@ -602,6 +602,8 @@ mod command_package_process_mp_log;
 mod command_package_process_patrol;
 #[path = "command_package_process_pause.rs"]
 mod command_package_process_pause;
+#[path = "command_package_process_ping.rs"]
+mod command_package_process_ping;
 #[path = "command_package_process_propose_attack.rs"]
 mod command_package_process_propose_attack;
 #[path = "command_package_process_queue_up.rs"]
