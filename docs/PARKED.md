@@ -6563,13 +6563,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FQ — reserved
+## Parked by item 2857, 2026-10-17 — the hundred-and-eighteenth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2857, first) **Sweeps whose port is call-order only**: `Type::set_name` stubs `String::operator=`, so the copy semantics are not covered; `Terrain::walk_coord_data`'s `iVar3 != 0` arm on `field_0x47d8 + offset` is unreachable (table pointer always placed).
+(2857, second) **`sweep_gen.py obj` gaps**: the `void` shape ignores `--cell-win` and `--stub` (`Player::end_game` used `obj --ret none`); `--write-mod` is not always run by the generator (`TerrainOil::remove_rocky_patch`'s `mod` line was added by hand); `--place` into a record with a count at `-4` wants EXPR `-4`, undocumented.
+(2857, third) **Equivalent mutants**: `GuyData::get_render_angle` `>=` for `>` at `0x80000000` and `<=` at `-2^31` are equivalent (f32 rounding / `as i32` saturation).
 
 ## Parked by the next landing, slot FR — reserved
 
