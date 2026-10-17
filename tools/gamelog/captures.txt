@@ -9679,3 +9679,11 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #           --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3   (East Indies, Germans; the word 5577's window)
 # Checks: `rngcmp.py` run643 vs run891 -> 0 differing in 5834.
 # ==== TAKEN 2026-10-17, one take, 11:52-12:08, pool lane 1 ====
+# ==== item 2956: the battery's site table walked back, its packet, and the word 6585's widening (`docs/AI.md` §241; `docs/RUNS.md` run893) ====
+#   run893  --map 18 --end-frame 4183 --log-window 3770 4178 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#           --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3   (East Indies, Germans; the 3775, 3975 and 4175 sweeps)
+#   run893b --map 18 --end-frame 3985 --log-window 3972 3980 (same detail) --tracer-def RON_STATE_FRAME=3975
+#           --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (the packet before the 3975 sweep)
+#   run893c --map 18 --end-frame 6842 --log-window 6579 6837 (same detail)   (the word 6585's window)
+# Checks: `rngcmp.py` run643 vs run893 -> 0 differing in 4184; vs run893c -> 0 differing in 6843.
+# ==== TAKEN 2026-10-17, one take each, 12:35-13:33, pool lane 1 ====

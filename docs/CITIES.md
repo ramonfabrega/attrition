@@ -2119,10 +2119,15 @@ heal, ejection), then the sites' `construct_hits` refresh.
   `blocked_tcoord`, the footprint **tiles** whose fog half-cell (`t >> 1` on
   both axes) `was_seen(·, who)` denies, and after the walk returns `0x24`
   when `x_size × y_size / 2 < that count` — with only a Dock (`is(0x1b0)`)
-  exempt, and the whole tally skipped for `who < 0`. Landing it moves no
+  exempt, and the whole tally skipped for `who < 0`. ~~Landing it moves no
   measured number on any capture, because `was_seen`'s first arm is
   territorial and every footprint an AI considers is inside its own border,
-  so it is booked rather than landed blind (`docs/AI.md` §18, queue).
+  so it is booked rather than landed blind (`docs/AI.md` §18, queue).~~
+  **Landed by item 2956** (`docs/AI.md` §241): `compute_sites` samples every
+  region where the leader has peasants, and its Town footprints outside the
+  border are not territorially seen. The battery's Germans scored (47, 24) at
+  the 3975 sweep with 29 of its 49 tiles unseen, and the original refuses it
+  `0x24` on run893b's packet. Diff-backed: the battery word moved 5577 → 6585.
   **Partial correction, item 1444:** the goody-ruins arm now reads both
   visibility predicates. Its signed short is `WData.flags`, not `region`:
   `blocked_tcoord@00636db0` reads the cell's first two bytes. run608 observes
@@ -2131,7 +2136,8 @@ heal, ejection), then the sites' `construct_hits` refresh.
   really seen. run606's candidate (51,12) consequently moves to (53,11),
   score 138 and distance 28, while the omitted guard stays at (51,12),
   score 554 and distance 27. The other 51 candidate outputs agree.
-  Other visibility refusals and the majority-footprint rule remain unmodelled;
+  Other visibility refusals remain unmodelled (the majority-footprint rule is
+  item 2956's, above);
   no independent audit or general placement-visibility parity is claimed.
 - **The editor relaxations are not modelled.** `semaphore[1] & 8` is always
   clear.

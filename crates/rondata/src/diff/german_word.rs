@@ -283,3 +283,55 @@ fn run893_s_site_sweep_is_widened_whole() {
     // group's `held` on 3777 and two pools on 3795 and 3862, every one of
     // the same standing kinds (`docs/AI.md` §241).
 }
+
+/// run893c: the word 6585's window, blocks 6579..6836 at the long's detail
+/// (item 2956); run891 ends on block 5827.
+pub(crate) const RUN893C: &str = "gamelog-run893c-eastindies-german-diff3-window-6579-6837.txt";
+
+/// The window: block 6579 through 6836; the word 6585's own block is 6586.
+pub(crate) const WIDENING_GERMAN_FRAME_6585: (i64, i64) = (6579, 6836);
+
+pub(crate) fn german_frame_6585_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GERMAN.start],
+        true,
+        GERMAN.long,
+        "run893c",
+        &[(RUN893C, WIDENING_GERMAN_FRAME_6585.0)],
+        WIDENING_GERMAN_FRAME_6585,
+        1,
+        &[6586],
+        true,
+    )
+}
+
+#[test]
+fn run893c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_frame_6585_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 258, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 436, "initial run893c baseline");
+    // Item 2956: 436 keys part on blocks 6579..6836, the word's own block
+    // being 6586 (frame 6585: ours 6 draws, theirs 5, index 1 — ours
+    // `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`). The
+    // state parts before the word: on 6581 who=1's make list heads with
+    // type 340 in ours against 334 in theirs (`MAKE[1..3]` shifted by
+    // one, `MAKE[3].num` 5/1); on 6583 its queue `1/2010` holds type
+    // 340 against 334 (`cost` 40/15 and 42/31, `good[1]` 4/2), the
+    // `num_queued` rows 290/284 follow, and the buckets part (timber 4/29,
+    // wealth 39/8, metal 136/178). Standing on 6579: the control's set
+    // (`SITE[n].reg` 65/0 on the empty slots, `form`, groups' `held`, the
+    // pool, both leaders' `aggression` 0/1) and `g.angle[0]` on who=1's
+    // `1/23`, `1/24`, `1/27`, `1/34`, `1/35` (1431655765 against 0); from
+    // 6587 `0/3`'s move (`orders_x` 5688/5880) and the rest downstream
+    // (`docs/AI.md` §241).
+}

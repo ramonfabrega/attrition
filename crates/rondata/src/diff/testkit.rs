@@ -9558,13 +9558,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // gather, past run886's last block (826): run886's test keeps 576's
     // value diff (block 577, who=1's Village `1/2007` and its `income`),
     // and 5577 is widened on run891 over 5571..5827 (block 5578, item
-    // 2931).
+    // 2931). **Item 2956 moved it 5577 → 6585** with `blocked_site`'s
+    // unseen tally, past run891's last block (5827): run891's test keeps
+    // 5577's value diff (block 5578, who=1's two Village offers), run893's
+    // the site table's on 3976, and 6585 is widened on run893c over
+    // 6579..6836 (block 6586, item 2956).
     (
         "GERMAN_WORD",
         crate::diff::german_word::GERMAN_WORD,
-        Some("run891_s_word_frame_is_widened_whole"),
-        2931,
-        Some(crate::diff::german_word::WIDENING_GERMAN_FRAME_5577),
+        Some("run893c_s_word_frame_is_widened_whole"),
+        2956,
+        Some(crate::diff::german_word::WIDENING_GERMAN_FRAME_6585),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -9890,7 +9894,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::german_word::GERMAN_WORD,
         length: 13_519,
         endpoint: None,
-        window: Some("german_frame_5577_window"),
+        window: Some("german_frame_6585_window"),
     },
     // **The peace pair** (DECISIONS 53 §2, 61 §6; item 2320): East Indies,
     // the Lakota at Difficulty 3 and All Technologies, with five minutes'
