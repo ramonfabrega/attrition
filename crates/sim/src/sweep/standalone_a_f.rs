@@ -154,6 +154,8 @@ mod build_data_get_packer_stance;
 mod build_data_get_shot;
 #[path = "build_data_get_worker_stance.rs"]
 mod build_data_get_worker_stance;
+#[path = "build_data_has_objmask.rs"]
+mod build_data_has_objmask;
 #[path = "build_data_hits.rs"]
 mod build_data_hits;
 #[path = "build_data_is_gathered_by.rs"]
@@ -386,6 +388,8 @@ mod cliffs_get_parse_name;
 mod cliffs_out_get_mining_data;
 #[path = "cliffs_out_get_mining_size.rs"]
 mod cliffs_out_get_mining_size;
+#[path = "cliffs_set_edge_flags.rs"]
+mod cliffs_set_edge_flags;
 #[path = "coll_block_get.rs"]
 mod coll_block_get;
 #[path = "command_manager_check_accept_issue.rs"]
@@ -554,6 +558,8 @@ mod doober_find_y_pos;
 mod doober_get_num;
 #[path = "doober_has_doobers.rs"]
 mod doober_has_doobers;
+#[path = "doober_inc_time.rs"]
+mod doober_inc_time;
 #[path = "draw_thick_diamond.rs"]
 mod draw_thick_diamond;
 #[path = "farms_add_animals_all.rs"]

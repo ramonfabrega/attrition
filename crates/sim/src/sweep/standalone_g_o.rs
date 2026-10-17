@@ -342,6 +342,8 @@ mod guard_order_get_guard_order_vtordisp;
 mod guard_order_walk_data;
 #[path = "guard_order_walk_data_vtordisp.rs"]
 mod guard_order_walk_data_vtordisp;
+#[path = "guy_copy_data.rs"]
+mod guy_copy_data;
 #[path = "guy_data_get_render_angle.rs"]
 mod guy_data_get_render_angle;
 #[path = "guy_data_get_render_bank.rs"]
@@ -564,6 +566,8 @@ mod object_type_data_basic_type;
 mod object_type_data_blocked_site;
 #[path = "object_type_data_get_age.rs"]
 mod object_type_data_get_age;
+#[path = "object_type_data_get_age_slow.rs"]
+mod object_type_data_get_age_slow;
 #[path = "object_type_data_get_stance_type.rs"]
 mod object_type_data_get_stance_type;
 #[path = "object_type_data_has_objmask.rs"]
