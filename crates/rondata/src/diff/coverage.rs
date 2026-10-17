@@ -3130,6 +3130,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::lakota_pair::lakota_closing_window(),
         || super::german_word::german_frame_576_window(),
         || super::german_word::german_frame_5577_window(),
+        || super::german_word::german_sites_3975_window(),
     ];
     let mut missing = false;
     let mut closing_blocks = 0;
