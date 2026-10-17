@@ -6814,13 +6814,12 @@ Barracks that who=1 loses first. Names no score.
   range. Reaching the kill needs a caster whose range exceeds its sight or a stealth-hidden target; it names no score, so it parks (GOLDEN §113).
 - Parked 2929 (a building target killed mid-approach) is still the listing's alone; unchanged. Both booked as 2949.
 
-## Parked by the next landing, slot GG — reserved
+## Parked by item 2931, 2026-10-17 — the Germans' flat per-city gather moves the battery word 576 → 5577
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2931, second) **The Romans' flat per-city wealth is built from the listing alone** (`docs/AI.md` §240,
+`economy::nation_city_gather`): `calc_city_resources@006d5530` adds `ROMAN_CITY_GATHER` (10) × 16 to wealth per city
+under `has_tribe_bonus(6)`, in the same arm as the Germans' term run886 backs. No scored or battery lobby has the Romans,
+so no dump has read a Roman `income`; a lobby with a Roman AI on one city would read wealth 160 above its taxes and trade.
 
 ## Parked by item 2941, 2026-10-17 — the process_* bodies, eighteen swept
 

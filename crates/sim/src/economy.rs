@@ -480,6 +480,10 @@ pub struct Holdings {
     /// `CAPITALISM_OIL_PROD × 16` to oil (`docs/ECONOMY.md` step 8).
     pub capitalism: bool,
     pub lakota_units: i32,
+    /// `has_tribe_bonus(6)` and `has_tribe_bonus(0xc)`: the Romans' and the
+    /// Germans' flat per-city terms ([`assemble`]).
+    pub romans: bool,
+    pub germans: bool,
     pub egyptians: bool,
     pub french: bool,
     pub inca: bool,
@@ -724,6 +728,7 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
         for r in Resource::ALL {
             out[r.index()] += c[r.index()];
         }
+        nation_city_gather(t, h, &mut out);
     }
     // Steps 4 and 5: the sites outside every city, at the bare rate.
     for site in &h.outside {
@@ -752,6 +757,28 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     out[Resource::Food.index()] += mongol_nomadic_food(t, h);
     resource_bonuses(t, h.wonders, &mut out);
     out
+}
+
+/// The nations' flat per-city terms, after `CITY_GATHER` and before taxes in
+/// `LeaderData::calc_city_resources@006d5530`'s per-city arm: the Romans add
+/// `ROMAN_CITY_GATHER` wealth, the Germans `GERMAN_CITY_GATHER` food and
+/// timber, and metal too when `type_avail(METAL, 1)` — each times sixteen,
+/// and only when the constant is non-zero (`docs/ECONOMY.md`, "What a city
+/// gives"). Both are additions after the Forbidden City's and the CEO's
+/// percentages, which scale the building walk alone, so where in the city's
+/// sum they land moves nothing.
+fn nation_city_gather(t: &Tuning, h: &Holdings, out: &mut [i32; RESOURCES]) {
+    if t.roman_city_gather != 0 && h.romans {
+        out[Resource::Wealth.index()] += t.roman_city_gather * RATE_SCALE;
+    }
+    if t.german_city_gather != 0 && h.germans {
+        let g = t.german_city_gather * RATE_SCALE;
+        out[Resource::Food.index()] += g;
+        out[Resource::Timber.index()] += g;
+        if h.available[Resource::Metal.index()] {
+            out[Resource::Metal.index()] += g;
+        }
+    }
 }
 
 /// `LeaderData::calc_resource_bonuses@006db030`, the last thing
@@ -1239,6 +1266,42 @@ mod tests {
             rates[Resource::Food.index()],
             200 * 3 + t.city_gather[0] * RATE_SCALE
         );
+    }
+
+    #[test]
+    fn a_german_city_adds_five_food_and_timber_and_metal_once_available() {
+        // `calc_city_resources@006d5530`'s per-city arm: `GERMAN_CITY_GATHER`
+        // (5) × 16 to food and timber, and to metal under `type_avail`; the
+        // Romans' `ROMAN_CITY_GATHER` (10) × 16 to wealth. The battery's
+        // East Indies Germans read food 880 and timber 720 on one city where
+        // ours read 800 and 640 without it (item 2931).
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.available[Resource::Metal.index()] = false;
+        h.cities.push(City::default());
+        h.cities.push(City::default());
+        let plain = assemble(&t, &h);
+        h.germans = true;
+        let german = assemble(&t, &h);
+        let d = |r: Resource| german[r.index()] - plain[r.index()];
+        assert_eq!(d(Resource::Food), 2 * 5 * RATE_SCALE);
+        assert_eq!(d(Resource::Timber), 2 * 5 * RATE_SCALE);
+        assert_eq!(d(Resource::Metal), 0, "metal not yet available");
+        assert_eq!(d(Resource::Wealth), 0);
+        h.available[Resource::Metal.index()] = true;
+        let metal = assemble(&t, &h);
+        assert_eq!(
+            metal[Resource::Metal.index()] - plain[Resource::Metal.index()],
+            2 * 5 * RATE_SCALE
+        );
+        h.germans = false;
+        h.romans = true;
+        let roman = assemble(&t, &h);
+        assert_eq!(
+            roman[Resource::Wealth.index()] - plain[Resource::Wealth.index()],
+            2 * 10 * RATE_SCALE
+        );
+        assert_eq!(roman[Resource::Food.index()], plain[Resource::Food.index()]);
     }
 
     #[test]
