@@ -3757,7 +3757,7 @@ cost a step. Candidate: the keep keyed on the function's own block, held by a te
 merge): the item's driver was a throwaway (`$JOB/tmp/gen.py`, a function's flags one a line in a file and its port in
 another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 KB port do not fit a command. Candidate:
 `sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer (Loop 2792's
-sibling). One reach; **a second**, 2797's "for the Loop" line, filed at its merge: two scratch `gen_*.sh` drivers again.
+sibling). One reach; **a second**, 2797's "for the Loop" line, filed at its merge: two scratch `gen_*.sh` drivers again; **a third**, 2801's: a `gen.sh` per item (`fK` flags, `pK.rs` ports, `FRESH=1`), and a `--regen` that replaces a port block is the other half.
 
 (2799) **Two guards read the `Golden:` line by different rules when no chapter is open** (the commander, at 2785's
 booking): `docs_guard::the_handoff_carries_the_golden_line` accepts `none pinned`, a `w<frame>` or `every chapter closed`;
@@ -6254,7 +6254,7 @@ Struck: (2759) closed by item 2798 — the field is compared and both clears are
 
 ## Parked by item 2801, 2026-10-17 — valid_filter's arms, the clock and the register pointer
 
-**`Search::valid_filter` 0x67dbb0 is swept, as 27 `--name valid_filter_caseK` modules at once** (parked 2664's rule), composed from
+(2805) **`Search::valid_filter` 0x67dbb0 is swept, as 27 `--name valid_filter_caseK` modules at once** (parked 2664's rule), composed from
 flags that existed: no `--jump` change was wanted, `--argrange 3:K:K` pins the index. What the listing says that the
 decompile does not: the first table at 0x67e57c is **23 entries**, not 27 — entries 23–26 (`e425`, `dc38`, `e3c4`, `e442`) are
 the *second* table's targets (0x67e5d8, a byte table at 0x67e5e8 maps `p1 - 0x275` onto them, arm 19's inner dispatch), so
@@ -6270,16 +6270,12 @@ first; and `--regen`'s merge drops every kept use of a flag the new line names, 
 **Starved, not killed**: arm 10's two `a == 0` null tests on a stub's answered pointer (`--answer-win` never answers null; no
 break reaches them); `0x63637 → 0x63636` in arms 14 and 15's log helper is an equivalent mutant (`>> 6`).
 
-**`--edx-win WIN`** built (`edx` the address of window WIN, for `MiscAccess::world_to_screen`'s `in_EDX`, both overloads),
+(2806) **`--edx-win WIN`** built (`edx` the address of window WIN, for `MiscAccess::world_to_screen`'s `in_EDX`, both overloads),
 its test made to fail first. `Game::clock_init` and `TurnControl::get_delta_percent` needed no shape: `--stub iat:0xac5460:0`
 (item 2336) answers `timeGetTime`, and `--ret xmm0` with `--answer-range` for the divisor (a zero divisor traps) holds the float.
 Parked 2791's "unhookable IAT cell" rows are stale for these. Five functions, `Census:` 1164 → 1169; slot EY was empty at this
 base again, and the next-shortest never-backed rows are render, editor and terraform bodies (`RiverDoober::add_for_render`,
 `Game::run_unit_editor`, `NukeOut::setup_terrain_terraforming`, `get_float_z`).
-
-**For the Loop: a scratch `gen.sh` per item is still the shape** (this lane wrote one that reads `fK` flags and `pK.rs` port per
-arm and redraws with `FRESH=1`): `--from-file`/`--port-file` (parked 2796) and a `--regen` that replaces a port block are the
-builds; without them a port edit is delete-both-and-regenerate.
 
 ## Parked by the next landing, slot FD — reserved
 
