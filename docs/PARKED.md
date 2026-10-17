@@ -6830,13 +6830,17 @@ words and edits nothing here; a refill lands when two remain.
 
 (2952) **A game pointer that is only added to need not be a window.** `Player::resign` is called with `ecx = game + 0x44 + who * 0x8c` and nothing reads through it, so `--at 0xc061ec:4` makes the cell a random dword and the recorded `ecx` a number the port can compute; `--cell-win` would have printed a window name for the same cell and hidden the arithmetic. Worth a line in `sweep_gen.py`'s `--at` help.
 
-## Parked by the next landing, slot GI — reserved
+## Parked by item 2946, 2026-10-17 — the hundred-and-twenty-eighth sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2946) **`--regen` re-appends the previous line's flags and keeps the old lists.** A regen of a script with a changed `--rows`, `--own`, `--place-null`, `--argset` or `--answers` came back with the new value *and* the old one (`NULLS = [23, 27, 19]`, `ARGSET` twice, `--rows=2400 … --rows=1200`, `OWN` unchanged), and for `ARGSET`/`ANSWERS` the later entry wins, so the old one silently overrode the new. Hand-fixing the emitted `.py` after a regen worked (and was done for `gain_tech`, `add_good`'s kin, `has_gather_access`, `good_merchant_spot`, `think_caravan`), but the generator should replace a flag it is given again.
+
+(2946, second) **An `--argrange` argument starves its own edges, and a sweep that wants an edge needs rows.** `SubObject::set_type`'s `<= 0x80` edge (type 0x21e) was never drawn in 1200 or 2400 rows of `--argrange 0:0x30:0x220` (541 and 543 were; 542 not once), so `<= 0x7f` passed; widening the range by one moved the draw and it was held. A `--edges` flag (the range's ends and its neighbours drawn a tenth of the rows) would cure every `--argrange` sweep at once.
+
+(2946, third) **A break-script that splits `old|new` on `|` breaks on `||`.** Four "passed" breaks of this batch were the shell loop cutting a Rust `||` in two; each was re-run one at a time through `tools/mutate.py --edit` and was held. A `tools/mutate.py --batch FILE` taking old/new pairs from a file would keep the loop out of the shell.
+
+(2946, fourth) **Starved arms named, not fixed (no generator change).** `Border::process`: the second `build_morph` call never changes the morph count (`--stub-write` writes a fixed value, so `count == edi` always holds), so the `count != edi` arm of the strip-flag loop is untested. `UnitData::good_merchant_spot`: a mask low byte of 0xff (`<= -1` against `<= -2`) is never drawn. `WorldData::has_gather_access`'s orthogonal tables (`orthog_x`/`orthog_y`, 0xadd214/0xadd254) are zero at boot under the emulator and were drawn by `--at` from {-1, 0, 1}; the real tables (0/±1 pairs) are not exercised as the image builds them.
+
+(2946, fifth) **Not built, no built shape holds them:** `ObjectsData::find_city` (14 leaders at stride 0x6eec, `vector_dist` and `valid_search`/`valid_filter` stubs, `vector_dist`'s arguments in registers the decompile prints as `unaff_`), `find_city_at`/`find_town_at` (the same), `Object::poor_target` (`find_angle`, `flanking`, `attack_dist` and the units table as image statics), `Wall::swap_team` (`init_build` and an xpack version compare), `Tribes::find` (string-guts pointer equality and `_wcsicmp`), `Signposts::add` (a String copy in an SEH frame). They stay for the shape lane.
 
 ## Parked by the next landing, slot GJ — reserved
 
