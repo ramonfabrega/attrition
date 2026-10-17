@@ -710,6 +710,8 @@ mod farms_data_get_wheat_status;
 mod farms_grow;
 #[path = "farms_out_get_name.rs"]
 mod farms_out_get_name;
+#[path = "farms_remove.rs"]
+mod farms_remove;
 #[path = "farms_snip.rs"]
 mod farms_snip;
 #[path = "farms_walk_data.rs"]
