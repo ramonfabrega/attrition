@@ -3738,6 +3738,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3048) **Two sweep tools pass or refuse by accident** (3038's "for the Loop" lines, parked 3045 and 3046, filed at its
+merge): `sweep_gen.py --cell-win` on a muted-error call site's flag byte writes a pointer whose low byte is the flag, so a
+sweep passes until a draw puts a zero there; and `mutate.py --batch` reads `\n` literally, so a two-line break is refused
+(parked 3035 the same). Candidate: `--cell-win` refuses an address a `cmp byte ptr [VA], 0` names, and a batch row decodes
+`\n`, each a test made to fail first. One reach.
+
 (3043) **`sweep_gen.py --ecx-int` without `--tame` draws wild ecx** (3024's "for the Loop" line and parked 3039, filed at
 its merge): a `--sparse` table indexed by `ecx` matched no row for 10 % of the first generation. Candidate: the generator
 defaults `--tame` when a `--sparse` table is indexed by `ecx`, or says so, a test made to fail first. One reach.
@@ -7119,13 +7125,20 @@ an `int` conversion).
   its flag is 1 for base; `Build::swap_team@00628210` and `SubObject`'s are the same text and not yet swept.
 - (3030, seventh) **`AmmoData::walk_data`, `Game::walk_data`, `TurnControl::end_cannon_time` (3020)** not taken.
 
-## Parked by the next landing, slot HB — reserved
+## Parked by item 3038, 2026-10-17 — the third harvest batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3045) **`sweep_gen.py --cell-win` on a muted-error call site's flag byte passes by luck** (names no score; filed
+as Loop 3048). The decompiler's `ignore_always` is a separate byte per error call site (`0xee121c`, `0xee1232`, `0xee1244`,
+`0xee1245`); `--cell-win VA` writes a pointer there, whose low byte is the flag, so a sweep passed (`remove_hold_doobers`)
+until a draw put a zero low byte. Candidate: `sweep_gen.py` refuses `--cell-win` on an address a function's `cmp byte ptr
+[VA], 0` names, or offers `--flag-byte VA`. One reach.
+
+(3046) **`mutate.py --batch` cannot carry a multi-line OLD** (Loop 3048): a break that spans two source lines is
+written as a literal backslash-n and refused ("occurs 0 times"); two of 24 in this batch had to be rewritten as one-liners.
+Candidate: decode `\n` in a batch row. One reach.
+
+(3047) **`h * 100 >> 8` against `h * 100 / 256` in `Fractal::get_height`'s port is an equivalent mutant** (h is
+clamped to 0..255), so the break "fails nothing" by arithmetic, not by a starved draw. Names no score.
 
 ## Parked by the next landing, slot HC — reserved
 
