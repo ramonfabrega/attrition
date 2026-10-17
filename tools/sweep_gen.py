@@ -1473,6 +1473,7 @@ RECORDORDER = {recordorder!r}
 RECORDEDX = {recordedx!r}
 ROWSPLIT = {rowsplit!r}
 LINKS = {links!r}
+LINKHI = {linkhi!r}
 OUTARG = {outarg!r}
 CDECLSTUBS = {cdeclstubs!r}
 STUBWRITE = {stubwrite!r}
@@ -1874,6 +1875,11 @@ def main(argv):
             for k in range(n):
                 v = link_value(rng, n, k, d, terms)
                 p[lo + k][off:off + size] = (v & ((1 << 8 * size) - 1)).to_bytes(size, "little")
+        for lo, hi, off, vals in LINKHI:
+            # `--link-hi pA..B+OFF:V,V,..|LO..HI`: the short beside a link (the player half of `obj+0x2c`'s word),
+            # drawn from the list or range every figure after the links, so a word that reads it is never clobbered.
+            for k in range(hi - lo + 1):
+                p[lo + k][off:off + 2] = (wdraw(rng, vals) & 0xFFFF).to_bytes(2, "little")
         for idx, win, off in ARGEQ:
             # An argument the function compares with a word of a window laid
             # after the arguments were drawn: the word copied (item 2200).
@@ -2200,6 +2206,17 @@ def _link(spec):
     return (int(m.group(1)), int(m.group(2)), int(m.group(3), 0), int(size), d, terms)
 
 
+def _link_hi(spec):
+    """`pA..B+OFF:V,V,..` or `pA..B+OFF:LO..HI` — the short at OFF of figures p(A)..p(B), drawn from the
+    list or range every row, after the links (item 2900, parked 2889)."""
+    loc, _, vals = spec.rpartition(':')
+    m = re.fullmatch(r'p(\d+)\.\.(\d+)\+(\w+)', loc)
+    if not m or int(m.group(1)) > int(m.group(2)) or not vals:
+        raise ValueError(f'--link-hi is pA..B+OFF:V,V,.. or pA..B+OFF:LO..HI, A <= B, not {spec!r}')
+    (w,) = _wbias(f'p{m.group(1)}+{m.group(3)}:{vals}')[:1]
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3), 0), w[2])
+
+
 def _wbias(spec):
     """`WIN+OFF:V,V,..` or `WIN+OFF:LO..HI`, OFF `*` for every word, held every row."""
     loc, vals = spec.rsplit(':', 1)
@@ -2221,7 +2238,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(),
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
                  rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=()):
     name, va = parse(spec)
@@ -2273,6 +2290,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     psparse = [_sparse(s) for s in sparse]
     pgtab = [_gtab(s) for s in gtab]
     plinks = [_link(s) for s in links]
+    plinkhi = [_link_hi(s) for s in link_hi]
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
     pslot = [tuple(int(x, 0) for x in s.split(':')) for s in slotbase]
@@ -2491,7 +2509,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or pout or pcdecl or pwrite or pecxout):
+            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or plinkhi or pout or pcdecl or pwrite or pecxout):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2569,6 +2587,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'figures p{lo}..p{hi} link at +{o:#x} ({z} bytes) '
            + ('below' if d == '<' else 'above') + ' their own index or to ' + ', '.join(map(str, t))
            for lo, hi, o, z, d, t in plinks]
+        + [f'figures p{lo}..p{hi} hold a short at +{o:#x} drawn from {v[1] if v[0] == "set" else str(v[1]) + ".." + str(v[2])}, after the links'
+           for lo, hi, o, v in plinkhi]
         + [f'the stubbed vtable laid at `{w}+{o:#x}` as well as at `this`'.replace('+0x0`', '+0`')
            for w, o in palso]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
@@ -2588,7 +2608,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, xmm=pxmm, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
-                                   sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
+                                   sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
@@ -3459,6 +3479,10 @@ def main(argv=None):
     ap.add_argument('--gtab', action='append', default=[], metavar='CNT:LO..HI:PTR:SIZE',
                     help='obj: a counted array behind image words (item 2709, parked 2699): the count at CNT drawn from LO..HI, '
                          'the array pointer at PTR, SIZE random bytes an element; `c` windows the head and array, `p` the elements')
+    ap.add_argument('--link-hi', action='append', default=[], metavar='pA..B+OFF:V,V,..|LO..HI',
+                    help='obj: the short at OFF of figures pA..pB drawn from the list or range, written after the '
+                         '`--link`s (`find_goody_at` re-reads the player half of `obj+0x2c`\'s word every step; '
+                         'item 2900, parked 2889)')
     ap.add_argument('--link', action='append', default=[], metavar='pA..B+OFF:SIZE:DIR[:T,T..]',
                     help='obj: figure k (window p(A+k))\'s link at OFF drawn from the figures below (`<`) or '
                          'above (`>`) its own index or a terminator (-1), so a walk through them ends '
@@ -3642,7 +3666,7 @@ def main(argv=None):
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
                                                     vtat_half=args.vtat_half, alias=args.alias, answer_by=args.answer_by, vtat_image=args.vtat_image, vtat_keep=args.vtat_keep, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
-                                                    record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
+                                                    record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link, link_hi=args.link_hi,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
                                                     edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)

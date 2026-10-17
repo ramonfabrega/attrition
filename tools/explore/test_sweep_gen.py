@@ -157,6 +157,21 @@ class Shapes(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, port='0', **kw)
 
+    def test_link_hi_draws_the_short_beside_a_link(self):
+        # Item 2900 (parked 2889): `--link-hi pA..B+OFF:V,..|LO..HI` writes the short at OFF after the links.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, ptrargs=['0:4'],
+            places=['m+4:0:0x40', 'p1+0:0:0x40', 'p2+0:0:0x40'], links=['p1..2+0x2c:2:<'], link_hi=['p1..2+0x2e:0..2'],
+            port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("LINKHI = [(1, 2, 46, ('range', 0, 2))]", script)
+        self.assertLess(script.index('for lo, hi, off, size, d, terms in LINKS:'),
+                        script.index('for lo, hi, off, vals in LINKHI:'))
+        self.assertIn('hold a short at +0x2e drawn from 0..2, after the links', test)
+        for bad in ('p2..1+0x2e:0..2', 'p1+0x2e:0..2', 'p1..2+0x2e'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, port='0', link_hi=[bad])
+
     def test_a_range_bias_draws_its_own_edges(self):
         # Loop 2003's sixteenth reach (item 2170's "for the Loop", built by
         # item 2181): a `--wbias LO..HI` range was drawn uniformly, so a
