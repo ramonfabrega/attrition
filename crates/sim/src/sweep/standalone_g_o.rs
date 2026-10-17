@@ -214,6 +214,8 @@ mod group_data_get_o;
 mod group_data_get_repeat_air;
 #[path = "group_data_get_unit.rs"]
 mod group_data_get_unit;
+#[path = "group_data_group_air.rs"]
+mod group_data_group_air;
 #[path = "group_data_has_air_units.rs"]
 mod group_data_has_air_units;
 #[path = "group_data_is_on_map.rs"]
