@@ -238,6 +238,8 @@ mod units_make_valid;
 mod valid_filter_case0;
 #[path = "valid_filter_case1.rs"]
 mod valid_filter_case1;
+#[path = "valid_filter_case10.rs"]
+mod valid_filter_case10;
 #[path = "valid_filter_case2.rs"]
 mod valid_filter_case2;
 #[path = "valid_filter_case3.rs"]
@@ -252,6 +254,8 @@ mod valid_filter_case6;
 mod valid_filter_case7;
 #[path = "valid_filter_case8.rs"]
 mod valid_filter_case8;
+#[path = "valid_filter_case9.rs"]
+mod valid_filter_case9;
 #[path = "vector_dist_coords.rs"]
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
