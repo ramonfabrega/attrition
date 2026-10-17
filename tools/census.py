@@ -528,25 +528,31 @@ def default_pdb(here):
     return candidate if os.path.isfile(candidate) else beside
 
 
-def rank_unbacked(entries, backed, port, spelled=()):
+def rank_unbacked(entries, backed, port, spelled=(), claimed=()):
     """`(size, va, name, mark, file)` for every simulation function not yet
     backed, shortest decompile first (parked 1703: four batches wrote this
     lister as a scratch script). `entries` is `(va, name, source path,
     decompile size)`; `backed` the by-doc and by-sweep union; `port` the
     names `crates/sim` defines; `spelled` the `Class::method` names its text
-    carries. The mark says what the sweep lane wants to know before it
-    reads a function: `port` when this crate spells the function's own
-    `Class::method` and defines the method's snake-case name (a consumer the
-    sweep can run against — parked 1725; Loop 2286: the class, not the name
-    alone), `name` when only the snake-case name is defined somewhere,
-    `operator` for a name the citation pattern spells with a symbol, `-`
-    otherwise."""
+    carries; `claimed` the addresses a sibling lane's tree already backs
+    (Loop 2926, the thirty-ninth pass: the two sweep lanes swept the same
+    function twice in one tranche, a gate and a half each — `--claimed
+    DIR` reads the other lane's worktree, and a function it cites is
+    `claimed` here and hidden). The mark says what the sweep lane wants to
+    know before it reads a function: `port` when this crate spells the
+    function's own `Class::method` and defines the method's snake-case name
+    (a consumer the sweep can run against — parked 1725; Loop 2286: the
+    class, not the name alone), `name` when only the snake-case name is
+    defined somewhere, `operator` for a name the citation pattern spells
+    with a symbol, `-` otherwise."""
     rows = []
     for va, name, path, size in entries:
         if layer_of(path) != "simulation" or va in backed:
             continue
         short = name.rsplit("::", 1)[-1]
-        if "operator" in short:
+        if va in claimed:
+            mark = "claimed"
+        elif "operator" in short:
             mark = "operator"
         elif is_dead_weight(name):
             mark = "skip"
@@ -635,13 +641,29 @@ def cited_bare(src, by_name=None):
 
 def worth_sweeping(rows):
     """The rows the sweep wants: not `skip`, not `operator` (parked 1722),
-    not a `ui` body (Loop 2819)."""
-    return [r for r in rows if r[3] not in ("skip", "operator", "ui")]
+    not a `ui` body (Loop 2819), not a function a sibling lane's tree
+    already cites (`claimed`, Loop 2926)."""
+    return [r for r in rows if r[3] not in ("skip", "operator", "ui", "claimed")]
 
 
-def unbacked(index, docs, sim_src, pdb, top, show_all=False):
+def claimed_in(dirs, by_name):
+    """Every function a sweep test on one of the sibling trees `dirs`
+    (another lane's worktree, its root) cites — what that lane has built
+    or is building, committed or not — so `--unbacked` can hide it (Loop
+    2926). A tree with no `crates/sim/src` claims nothing."""
+    out = set()
+    for d in dirs:
+        src = os.path.join(d, "crates", "sim", "src")
+        if os.path.isdir(src):
+            out |= sweep_backed(src, by_name, os.path.join(d, "tools", "emu"))
+    return out
+
+
+def unbacked(index, docs, sim_src, pdb, top, show_all=False, claimed_dirs=()):
     """The never-backed simulation functions, shortest decompile first;
-    the dead weight (`skip`) and the operators are hidden unless `show_all`."""
+    the dead weight (`skip`) and the operators are hidden unless `show_all`;
+    a function a tree in `claimed_dirs` cites is `claimed` and hidden too
+    (Loop 2926)."""
     root = os.path.dirname(index)
     entries, by_name = [], {}
     with open(index) as f:
@@ -656,7 +678,8 @@ def unbacked(index, docs, sim_src, pdb, top, show_all=False):
     source = source_of(source_ranges(pdb), [e[0] for e in entries])
     entries = [(va, name, source.get(va), size) for va, name, _, size in entries]
     backed = (doc_backed(docs, by_name) | sweep_backed(sim_src, by_name, os.path.join(HERE, "emu")))
-    rows = rank_unbacked(entries, backed, port_names(sim_src), port_spellings(sim_src))
+    claimed = claimed_in(claimed_dirs, by_name) - backed
+    rows = rank_unbacked(entries, backed, port_names(sim_src), port_spellings(sim_src), claimed)
     shown = rows if show_all else worth_sweeping(rows)
     print(f"{'bytes':>6} {'function':52} {'mark':8} file")
     for size, va, name, mark, fname in shown[:top]:
@@ -667,8 +690,10 @@ def unbacked(index, docs, sim_src, pdb, top, show_all=False):
           f"{marks.get('operator', 0)} operators, {marks.get('skip', 0)} dead weight "
           f"(destructors, close/init/clear, loggers, initializers), {marks.get('ui', 0)} renderer, input, "
           f"sound, cheat or editor bodies (`ui`, Loop 2819"
-          f"{'; shown' if show_all else '; hidden, --all shows them'}); the {min(top, len(shown))} "
-          f"shortest shown (--top)")
+          f"{'; shown' if show_all else '; hidden, --all shows them'})"
+          + (f", {marks.get('claimed', 0)} claimed by a sibling lane's tree (--claimed, Loop 2926"
+             f"{'; shown' if show_all else '; hidden'})" if claimed_dirs else "")
+          + f"; the {min(top, len(shown))} shortest shown (--top)")
     bare = cited_bare(sim_src, by_name)
     if bare:
         print(f"cited bare: {len(bare)} address(es) a sweep test names without the class — the census "
@@ -716,6 +741,9 @@ def main():
     ap.add_argument("--pdb", default=default_pdb(HERE))
     ap.add_argument("--all", action="store_true",
                     help="--unbacked: show the dead weight and the operators too")
+    ap.add_argument("--claimed", action="append", default=[], metavar="DIR",
+                    help="--unbacked: a sibling lane's worktree (its root); a function a sweep test there cites "
+                         "is `claimed` and hidden, so two sweep lanes never build one function (Loop 2926)")
     ap.add_argument("--hooked", action="store_true",
                     help="the audit of Loop 2025: every sweep test chunk that cites an address its own "
                          "script hooks as a callee; exit 1 when any")
@@ -725,7 +753,7 @@ def main():
         print_layers(*layers(a.index, a.docs, a.sim_src, a.pdb), a.json)
         return
     if a.unbacked:
-        unbacked(a.index, a.docs, a.sim_src, a.pdb, a.top, a.all)
+        unbacked(a.index, a.docs, a.sim_src, a.pdb, a.top, a.all, a.claimed)
         return
     if a.hooked:
         by_name = {}

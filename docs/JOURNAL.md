@@ -21201,3 +21201,27 @@ fail first: the booking gate's stale `agent-*` refusal (2724),
 two fields (2678); six rows into the frame, eight struck; 2524 closed,
 2786 folded into 2654 at three reaches. Nine Loop items stay.
 **DECISIONS 74.** `docs/audit/2026-10-15-fable-pass-37.md`.
+
+**2026-10-17 — the thirty-eighth Fable pass** appended nothing here; its
+record is `docs/audit/2026-10-17-fable-pass-38.md` and DECISIONS 76.
+
+**2026-10-17 — the thirty-ninth Fable pass: the loop's fastest tranche,
+the sweep lanes get a claim mark, the fifth lane goes to a steer.**
+Twenty landings on four lanes in 3 h 53 (twenty-one in 4 h 44): 5.20
+USD and 23.6 minutes waiting a landing against 5.42 / 35.2; the peace
+pair closed at 6822 and the battery's East Indies Germans became the AI
+word, 576 → 5577 → 6585 of 13,519; chapters eighty-six to ninety
+closed; the census 1224 → 1319; two `DEEP`, no kill rule, no red gate,
+no merge backed out. The roster, verified: Opus medium on the AI word
+9.56 / 39.8, Sonnet medium on the rules track 2.76 / 25.5, the shape
+sweep 3.97 / 17.7, the harvest sweep 6.11 / 15.4 as its short rows ran
+out. Built, each made to fail first: the census's `claimed` mark and
+the sweep brief's claims line (2926), the regen's three rules (2886),
+the header's window order (2892), `unitat.py` one pass (2896),
+`runwiring.py --chapter` and `GOLDEN_WORDS` as a slice (2914),
+`mutate.py --batch` (2965), the walk's landed and reached lines (2970,
+2654), `RON_DEBUG_MAKE` (2955), `filerun.py` (2933); 2903 a row; 2882
+closed on run880's counter-example, 2809 unreached. Seven Loop items
+stay. The fourth lane holds and the fifth goes to the steer Ramon asked
+for mid-pass. **DECISIONS 77.** `docs/audit/2026-10-17-fable-pass-39.md`.
+

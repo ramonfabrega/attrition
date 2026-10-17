@@ -195,6 +195,11 @@ fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Opt
     for ((word, why), k) in &applied.skipped {
         eprintln!("  {k:5} {word}: {why}");
     }
+    // Where each `add` landed and what each issuer line reached (Loops
+    // 2970 and 2654), so a staging is read off the walk, not a probe.
+    for line in applied.landed.iter().chain(&applied.reached) {
+        eprintln!("  {line}");
+    }
     let word = built
         .frame_sites
         .iter()

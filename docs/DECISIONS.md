@@ -88,6 +88,7 @@ is append-only and amended in place, as it always was.
 - 74 standing — The mixed roster's third tranche is scored, the fourth lane goes by entry 61 §5, the sweep's cycle is measured as the box's cost, and twenty-two Loop items become tools, rows or closes
 - 75 standing — Astra's test-suite branch is fast-forwarded whole, adapted at four points, and tried for one tranche with a kill switch and two numbers
 - 76 standing — The thirty-eighth tranche is scored under host admission, the admission and the fourth lane stay, the census subtracts a sweep's stubbed callees, and twenty Loop items become tools, rows or closes
+- 77 standing — The thirty-ninth tranche is scored at the loop's fastest, the fourth lane holds while the fifth goes to a steer, the sweep lanes get a claim mark, and thirteen Loop items become tools, rows or closes
 
 ## 1. Fidelity before divergence
 
@@ -6035,3 +6036,102 @@ body named `draw_*` (`--all` shows them); whether the harvest pool
 under the mark holds a tranche's worth; the stalled-behind-a-child
 threshold of 90 minutes is a reading of this tranche's gates (to 25
 min) and captures (to 80), not a measure of hangs.
+
+## 77. The thirty-ninth tranche is scored at the loop's fastest, the fourth lane holds while the fifth goes to a steer, the sweep lanes get a claim mark, and thirteen Loop items become tools, rows or closes
+
+*2026-10-17, the thirty-ninth Fable pass, unattended (entry 61 §4) until
+Ramon asked, mid-pass, for a steer before the fortieth tranche; the
+record is `docs/audit/2026-10-17-fable-pass-39.md`.*
+
+**The tranche.** Twenty landings on four lanes in **3 h 53** from the
+pass's commit (`31eb3a05` 09:13 to 2949's booking `bd627866` 13:06),
+twenty-one in 4 h 44 with 2956 at the drain (`f3a8d061` 13:57) — the
+loop's fastest tranche. `tools/tranche.py` over the twenty-one: working
+346 minutes, waiting 495, **23.6 a landing** (22.2 over the twenty),
+against 35.2 the tranche before and 36.5 on four lanes before that —
+the trial's number has fallen by a third in two tranches, and the
+classes say why: gate 9.5 minutes a session (7.2), other 6.8, capture
+4.8 (6.0), message 0.4 (9.9 — no lane sat behind a subagent), script
+0.1. Every booking gate green at its first commit, `6 of 6`; the
+admission waited 2.1–45.2 s a gate, 3.5 minutes summed over seventeen;
+no kill rule, no blocked ending, no merge backed out; two `DEEP` exits
+(2864 at 349 k, 2946 at 309 k), none `STALLED` or `UNCLEARED`.
+
+**The words.** The peace pair **closed** at 6822 (2864, run883, no unit
+apart at its end) and its successor by entry 72 is the battery's lowest
+lobby, `EastIndiesGermanTier3`: promoted at 576 (2904, run886; a fourth
+lobby, `GreatLakesChineseTier1`, minted held out at 176), then **576 →
+5577** (2931: the Germans' flat per-city gather, run891) and **5577 →
+6585** (2956: a Town site more than half unseen, `blocked_site`'s
+unseen tally, run893 and a packet). Chapters **86 to 90 closed** (2876,
+2881 + 2895, 2915, 2930, 2949; runs 884, 885, 889, 890, 892), the
+Informer reaching both kill arms. The census **1224 → 1319** of 3611 in
+eleven sweep landings. The held-out battery is unmoved at 6566 / 2974 /
+176 — and the AI word, at 6585, now stands above `GreatLakesRussianTier2`'s
+6566. Entry 72 named the lowest lobby at promotion and says nothing
+about a word that rises past another; the pass leaves the word where it
+is (a word is its lobby's until it closes, as every pair's was) and
+puts the question to Ramon.
+
+**The roster, lane by lane** (every session's model read from its
+transcript, every spawn's `--effort medium` from the commander's spawn
+lines; lore's list price at 2026-10-17's rates): the AI word on Opus 5.5
+medium, four landings, **9.56 USD and 39.8 minutes** waiting a landing
+(10.03 / 32.4 before), two of four drawn `DEEP`; the rules track on
+Sonnet 5.5 medium, six landings, **2.76 / 25.5** (3.58 / 39.2); the
+shape sweep on Sonnet, six, **3.97 / 17.7** (4.49 / 15.5); the harvest
+sweep on Sonnet, five, **6.11 / 15.4** (4.34 / 53.2) — its price up by
+two fifths as the pool's short rows ran out: `--unbacked`'s head is 600
+to 1,150 bytes a body now, simulation bodies (`TurnControl::do_frame`,
+`Armies::process_all`, `Borders::process_all`). Workers 109.11 USD,
+**5.20 a landing** (5.42); the commander 16.90; **126.01** in all
+(143.76).
+
+**The lane count.** Entry 61 §5 would add a fifth lane on this waiting,
+a second tranche running. The pass holds four, for a reason it can
+measure and one it cannot: the lane the rule would add has no pool of
+its own — the AI word is one lane by rule, the next chapter is booked
+from the running chapter's rows at its merge, and the sweep head is the
+dearest kind of batch — and Ramon asked, as the pass ran, for a steer on
+lanes and models before the fortieth tranche. The fifth lane is that
+steer's, with the numbers above; the user's silence is consent to
+nothing on the fenced list.
+
+**The sweep lanes' collisions** (Loop 2926, the commander's): two
+functions of one tranche were swept twice, a gate and a half each,
+because `census.py --unbacked` cannot see what a live lane is building.
+`--claimed DIR` reads a sibling worktree's `crates/sim/src/sweep/` and
+marks a function it cites `claimed`, hidden from the head; the sweep
+brief names the other sweep lane's worktree in that flag
+(`test_a_function_a_sibling_lane_s_tree_cites_is_claimed_and_hidden`,
+`test_a_sweep_brief_names_the_other_sweep_lane_s_worktree_for_claims`,
+each red first).
+
+**Thirteen Loop items ruled.** Built, each red first: 2926 (above);
+2886 — the regen's three rules (`--rows=2400` replaces a kept `--rows
+1200`, the `.rs` port is never overwritten by the kept line's, `--fresh`
+takes nothing, and what is merged is said aloud); 2892 — the generated
+header names the `p` windows in the script's order; 2896 — `unitat.py`
+reads several units in one pass; 2914 — `runwiring.py --chapter N` and
+`GOLDEN_WORDS` as a slice, no hand count; 2965 — `mutate.py --batch
+FILE`; 2970 and 2654 — the walk prints each `add`'s landing and what
+each issuer line reached, `reached no unit` where a staged line was
+refused in silence; 2955 — `RON_DEBUG_MAKE=<frame>` prints the make
+list's head's `can_pay` inputs; 2933 — `filerun.py <run> <tag>` files a
+windowed capture's dump and trace under the harness's names; 2903 — a
+checklist row. Closed: 2882 on reading — run880 closed chapter
+eighty-five at 1219 of 1260 past its own pace, so a runner that stops a
+take at its first `pace:` line would have cost the chapter; the line is
+in the receipt and the lane reads it. 2809 closed unreached under entry
+54 §7. Seven stay: 1570 and 1725 (Ramon's), 2003 (the ledger), 2899,
+2948, 2958 and 2973 at one reach each.
+
+**What is not established.** Whether the AI word should follow the
+battery's lowest lobby as it rises, or stay until it closes; what a
+fifth lane would work on at a price under the harvest lane's; whether
+`claimed` reads a lane's tree often enough — it is read at every `ccc
+update`, and a function built between two updates can still collide;
+the `reached` print compares order-stack lengths, so a line that
+replaces one order with another of the same depth reads as reaching no
+unit.
+

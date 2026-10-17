@@ -216,6 +216,24 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertIn('the sweep track', text)
         self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
 
+    def test_a_sweep_brief_names_the_other_sweep_lane_s_worktree_for_claims(self):
+        # Loop 2926 (the thirty-ninth pass): 2877 re-swept 2863's function
+        # and 2910 re-swept 2900's two, a gate and a half each; the census
+        # cannot see what a live lane is building, so the brief hands the
+        # lane the other sweep lane's worktree for `--claimed`.
+        queue = QUEUE.replace('1131. **Chapter thirty-eight\'s word: frame 878, ours 7 draws against 5**\n'
+                              '    (1113). No mechanism is named.',
+                              '1131. **The sweep\'s third batch: ten never-backed simulation functions**\n'
+                              '    (DECISIONS 63 (iv)). Packet-free first.')
+        queue = queue.replace('1133. **', '1133. **The sweep\'s fourth batch: ', 1)
+        text = self.compose(1131, 'sweep', queue=queue, tests=[])
+        self.assertIn('--claimed ' + brief.lane_worktree(1133), text)
+        self.assertNotIn('att-1131', text)
+        self.assertIn('--unbacked --claimed', text)
+        residue = self.compose(1133, 'residue', queue=queue)
+        self.assertNotIn('--claimed', residue)
+        self.assertTrue(brief.lane_worktree(7).endswith('/att-7'))
+
     def test_the_commander_s_own_note_is_last_before_the_landing(self):
         text = self.compose(1133, note='Read `1/2`\'s path on block 6 first.')
         self.assertLess(text.index("Read `1/2`'s path"), text.index('## Landing'))

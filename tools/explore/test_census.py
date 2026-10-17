@@ -210,6 +210,30 @@ class PinnedTraces(unittest.TestCase):
         self.assertEqual(sorted(r[2] for r in census.worth_sweeping(rows)),
                          ['Map::stamp', 'Nuke::setup', 'TurnControl::do_frame'])
 
+    def test_a_function_a_sibling_lane_s_tree_cites_is_claimed_and_hidden(self):
+        # Loop 2926 (the thirty-ninth pass): 2877 re-swept 2863's
+        # `kill_next_order` and 2910 re-swept 2900's `find_goody_at` and
+        # `get_gpiece` — `--unbacked` cannot see a function another live
+        # lane is building. `--claimed DIR` reads that lane's worktree:
+        # a sweep test there cites the function, so it is claimed here.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep = Path(tmp) / 'crates/sim/src/sweep'
+            sweep.mkdir(parents=True)
+            (sweep / 'group_kill_next_order.rs').write_text(
+                '/// `Group::kill_next_order@00707c80`, run by `tools/emu/sweep_group_kill_next_order.py` '
+                'under unicorn\n#[test]\nfn group_kill_next_order() {}\n')
+            by_name = {'Group::kill_next_order': [0x707c80], 'World::adjust_fog': [0x90]}
+            claimed = census.claimed_in([tmp, str(Path(tmp) / 'no-such-tree')], by_name)
+            self.assertEqual(claimed, {0x707c80})
+        entries = [(0x707c80, 'Group::kill_next_order', 'c:\\rise\\game\\groups.cpp', 120),
+                   (0x90, 'World::adjust_fog', 'c:\\rise\\game\\world.cpp', 106)]
+        with patch.object(census, 'layer_of', return_value='simulation'):
+            rows = census.rank_unbacked(entries, set(), set(), claimed={0x707c80})
+        marks = {name: mark for _, _, name, mark, _ in rows}
+        self.assertEqual(marks['Group::kill_next_order'], 'claimed')
+        self.assertEqual(marks['World::adjust_fog'], '-')
+        self.assertEqual([r[2] for r in census.worth_sweeping(rows)], ['World::adjust_fog'])
+
     def test_an_address_a_sweep_test_cites_without_its_class_is_named(self):
         # Loop 2843 (2837's line): a three-forms-in-one test named
         # `is_seen_wcoord@…` bare and the census scored two of three until the

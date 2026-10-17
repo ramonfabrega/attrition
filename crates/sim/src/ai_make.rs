@@ -128,6 +128,37 @@ impl Sim {
             .unwrap_or([0; RESOURCES])
     }
 
+    /// `RON_DEBUG_MAKE=all|<frame>|<lo>-<hi>`: the head's `can_pay` inputs
+    /// on the frames named — its type, `num`, `escrow`, the cost, the
+    /// bucket, the affordable count and the verdict — the probe every AI
+    /// item re-added by hand (Loop 2955, the thirty-ninth pass; it
+    /// answered the battery word's 576 in one run).
+    fn make_debug(
+        &self,
+        who: Player,
+        head: &MakeObject,
+        cost: &[i32; RESOURCES],
+        paid: bool,
+    ) -> Option<String> {
+        let spec = std::env::var("RON_DEBUG_MAKE").ok()?;
+        if !debug_make_wanted(&spec, self.frame) {
+            return None;
+        }
+        let affordable = usize::try_from(head.t)
+            .ok()
+            .filter(|&t| t < self.tech_tree.types.len())
+            .map_or(-1, |t| self.type_affordable(who, t, head.escrow != 0));
+        Some(make_debug_line(
+            self.frame,
+            who,
+            head,
+            cost,
+            &self.ledgers[who as usize].bucket,
+            affordable,
+            paid,
+        ))
+    }
+
     /// `Leader::can_pay(slot)@006c9b90`: `can_pay_cost(who, city, o, escrow)
     /// >= num`.
     pub(crate) fn can_pay_slot(&self, who: Player, m: &MakeObject) -> bool {
@@ -167,6 +198,9 @@ impl Sim {
         let cost = self.make_cost(who, head.t);
         let head_t = usize::try_from(head.t).unwrap_or(usize::MAX);
         let valid_head = head_t < self.tech_tree.types.len();
+        if let Some(line) = self.make_debug(who, &head, &cost, paid) {
+            eprintln!("{line}");
+        }
 
         // `saving` is the original's `local_14 == 0` after the knowledge
         // override: a leader short of knowledge alone does not save up.
@@ -964,8 +998,76 @@ impl Sim {
     }
 }
 
+/// Whether `RON_DEBUG_MAKE`'s spec names `frame`: `all`, one frame, or an
+/// inclusive `lo-hi`; anything else names nothing (Loop 2955).
+pub(crate) fn debug_make_wanted(spec: &str, frame: i64) -> bool {
+    let spec = spec.trim();
+    if spec == "all" {
+        return true;
+    }
+    if let Some((lo, hi)) = spec.split_once('-') {
+        return match (lo.trim().parse::<i64>(), hi.trim().parse::<i64>()) {
+            (Ok(lo), Ok(hi)) => (lo..=hi).contains(&frame),
+            _ => false,
+        };
+    }
+    spec.parse::<i64>().is_ok_and(|f| f == frame)
+}
+
+/// One line, the head's `can_pay` inputs (Loop 2955): `MAKE f<frame> who=W
+/// head t=T num=N escrow=E cost=[..] bucket=[..] affordable=A paid=yes|no`.
+pub(crate) fn make_debug_line(
+    frame: i64,
+    who: Player,
+    head: &MakeObject,
+    cost: &[i32; RESOURCES],
+    bucket: &[i32; RESOURCES],
+    affordable: i32,
+    paid: bool,
+) -> String {
+    format!(
+        "MAKE f{frame} who={who} head t={} num={} escrow={} cost={cost:?} bucket={bucket:?} affordable={affordable} paid={}",
+        head.t,
+        head.num,
+        head.escrow,
+        if paid { "yes" } else { "no" }
+    )
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    /// Loop 2955 (the thirty-ninth pass): the `can_pay` probe every AI item
+    /// re-added by hand is an env-guarded print now; the spec names one
+    /// frame, a window or every frame, and the line carries every input.
+    #[test]
+    fn the_make_debug_print_is_named_by_frame_and_carries_the_can_pay_inputs() {
+        assert!(debug_make_wanted("all", 7));
+        assert!(debug_make_wanted("576", 576));
+        assert!(!debug_make_wanted("576", 577));
+        assert!(debug_make_wanted("570-580", 576));
+        assert!(!debug_make_wanted("570-575", 576));
+        assert!(!debug_make_wanted("", 576));
+        assert!(!debug_make_wanted("x-y", 576));
+        let head = MakeObject {
+            t: 340,
+            val: 9,
+            escrow: 1,
+            city: 2,
+            up: 0,
+            o: -1,
+            num: 1,
+            cat: 0,
+            wx: 0,
+            wy: 0,
+        };
+        let line = make_debug_line(576, 1, &head, &[0, 80, 0, 0, 0, 0], &[12, 78, 0, 0, 0, 0], 0, false);
+        assert_eq!(
+            line,
+            "MAKE f576 who=1 head t=340 num=1 escrow=1 cost=[0, 80, 0, 0, 0, 0] bucket=[12, 78, 0, 0, 0, 0] affordable=0 paid=no"
+        );
+    }
     use super::*;
     use crate::ai::CityAi;
     use crate::build::BuildType;

@@ -428,7 +428,7 @@ mod tests {
             "docs/QUEUE.md has no `Golden:` line in the handoff; write \
              `Golden: chN closed · chM w<frame> of <length> · …`",
         );
-        if let Err(why) = golden_line_verdict(line, &GOLDEN_WORDS) {
+        if let Err(why) = golden_line_verdict(line, GOLDEN_WORDS) {
             panic!("{why}");
         }
     }
@@ -456,7 +456,9 @@ mod tests {
             .flat_map(&tokens)
             .collect();
         // The array's own declaration, not this test's mention of it.
-        let needle = format!("const {}: [", "GOLDEN_WORDS");
+        // A slice, not an array: the length was hand-counted and wrong
+        // once (Loop 2914's third reach, the thirty-ninth pass).
+        let needle = format!("const {}: &[", "GOLDEN_WORDS");
         let list = floors
             .split_once(needle.as_str())
             .and_then(|(_, rest)| rest.split_once("\n    ];"))
@@ -552,7 +554,7 @@ mod tests {
     /// widening's wherever that widening is its trace whole; a widening cut
     /// at its word names its trace here instead
     /// ([`a_golden_widening_s_window_reaches_its_trace_s_end`]).
-    const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 83] = [
+    const GOLDEN_WORDS: &[(&str, i64, (i64, i64))] = &[
         ("ch1", GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
         ("ch2", GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
         ("ch3", GOLDEN_WORD_CHAPTER_THREE, WIDENING_CHAPTER_THREE),

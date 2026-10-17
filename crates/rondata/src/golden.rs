@@ -127,6 +127,14 @@ pub struct Applied {
     /// Lines carried and not acted on, by command word and reason — the
     /// honest half, as [`crate::input::Applied::skipped`] is for commands.
     pub skipped: BTreeMap<(String, &'static str), usize>,
+    /// Where each `add` landed: `add <type> who=W: W/o at (x,y)` a squad
+    /// head (Loop 2970: the verb's coordinates are not tiles, a neighbour
+    /// snaps to land by up to 400 units, and the walk never said where).
+    pub landed: Vec<String>,
+    /// What each issuer line reached at the pump: the units whose order
+    /// stack changed under it, or `reached no unit` (Loop 2654, three
+    /// reaches: a staged `@attack` refused for sight printed `skipped {}`).
+    pub reached: Vec<String>,
 }
 
 impl Applied {
@@ -141,6 +149,8 @@ impl Applied {
         for (k, n) in &other.skipped {
             *self.skipped.entry(k.clone()).or_default() += n;
         }
+        self.landed.extend(other.landed.iter().cloned());
+        self.reached.extend(other.reached.iter().cloned());
     }
 
     pub fn skipped_total(&self) -> usize {
@@ -322,7 +332,27 @@ impl Script {
                     "not the seat at the pump (process_group)",
                 );
             } else {
+                // The order stacks before and after, so the line says
+                // which units it reached (Loop 2654).
+                let before: Vec<usize> = built.sim.units.iter().map(|u| u.orders.len()).collect();
                 issue(&line, built, &mut done);
+                let changed: Vec<String> = built
+                    .sim
+                    .units
+                    .iter()
+                    .enumerate()
+                    .filter(|(i, u)| before.get(*i).is_none_or(|&n| n != u.orders.len()))
+                    .map(|(i, u)| {
+                        format!(
+                            "{}/{} orders {}->{}",
+                            u.owner,
+                            u.index,
+                            before.get(i).copied().unwrap_or(0),
+                            u.orders.len()
+                        )
+                    })
+                    .collect();
+                done.reached.push(reached_line(&command_word(&line.text), &changed));
             }
         }
         let marks = std::mem::take(&mut built.sim.phase_marks);
@@ -1372,6 +1402,22 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
     done.ran += 1;
 }
 
+/// One line per issuer line at the pump (Loop 2654): the units whose order
+/// stack changed under it, or `reached no unit` — the sight refusal a
+/// staged `@attack` meets sits inside the per-member issue and returns
+/// nothing, so this is read off the stacks rather than the issuer.
+fn reached_line(word: &str, changed: &[String]) -> String {
+    if changed.is_empty() {
+        format!("{word}: reached no unit")
+    } else {
+        format!(
+            "{word}: reached {} unit(s): {}",
+            changed.len(),
+            changed.join(", ")
+        )
+    }
+}
+
 fn command_word(text: &str) -> String {
     text.split_whitespace()
         .next()
@@ -1889,6 +1935,11 @@ fn add(
                 return;
             };
             let head = built.sim.init_unit(who as sim::Player, ty, spot);
+            let u = &built.sim.units[head];
+            done.landed.push(format!(
+                "add {name} who={who}: {}/{} at ({},{}) for ({},{})",
+                u.owner, u.index, u.pos.x, u.pos.y, at.x, at.y
+            ));
             // The squad's members, as `Sim::init_unit` threads them.
             let mut n = 1;
             let mut at_unit = head;
@@ -1964,6 +2015,26 @@ fn named_build(loaded: &Loaded, name: &str) -> Option<usize> {
 
 #[cfg(test)]
 mod tests {
+    /// Loops 2654 and 2970 (the thirty-ninth pass): an issuer line says
+    /// what it reached, an `add` says where it landed, and both survive
+    /// the fold into the walk's `Applied`.
+    #[test]
+    fn an_issuer_line_names_what_it_reached_and_an_add_where_it_landed() {
+        assert_eq!(super::reached_line("@attack", &[]), "@attack: reached no unit");
+        assert_eq!(
+            super::reached_line("@attack", &["1/27 orders 0->1".to_string(), "1/28 orders 1->2".to_string()]),
+            "@attack: reached 2 unit(s): 1/27 orders 0->1, 1/28 orders 1->2"
+        );
+        let mut a = super::Applied::default();
+        let mut b = super::Applied::default();
+        b.landed.push("add hoplite who=1: 1/27 at (6552,18840) for (6540,18800)".to_string());
+        b.reached.push("@attack: reached no unit".to_string());
+        a.merge(&b);
+        a.merge(&b);
+        assert_eq!(a.landed.len(), 2);
+        assert_eq!(a.reached.len(), 2);
+    }
+
     use super::*;
 
     /// **What each chapter of the golden record asks for and the interpreter

@@ -65,6 +65,13 @@ N = r'\d{1,4}(?!\d)'
 SEAMS_LINES = 120
 
 
+def lane_worktree(item):
+    """Where ccc cuts item N's lane: `att-N` beside this worktree, or under
+    the checkout's `.claude/worktrees` when this is the checkout."""
+    base = ROOT.parent if ROOT.parent.name == 'worktrees' else ROOT / '.claude' / 'worktrees'
+    return str(base / f'att-{item}')
+
+
 def run_seams(item):
     """`python3 tools/seams.py --item N` on this tree, its stdout and stderr."""
     out = subprocess.run([sys.executable, str(ROOT / 'tools/seams.py'), '--item', str(item)],
@@ -129,6 +136,10 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
                 .replace('{tests}', ' '.join(tests)))
 
     others = [(n, h) for n, h in open_items(queue) if n != item]
+    # The other sweep lanes' worktrees, for `census.py --unbacked --claimed`
+    # (Loop 2926: two sweep lanes swept one function twice in a tranche,
+    # and the commander's note of the other lane's names dropped a line).
+    claims = [lane_worktree(n) for n, h in others if kind == 'sweep' and 'sweep' in h.lower()]
     out = [fill(body['opening']), '']
     out += ['## The item, as the queue books it', '', items[item], '']
     if 'booked' in KINDS[kind]:
@@ -140,6 +151,11 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
             'below, by its number, when a row is not clear.', '']
     out += ['## The other lanes', '', fill(body['lanes']), '']
     out += [f'- **{n}**: {h}' for n, h in others] or ['- None is booked.']
+    if claims:
+        out += ['', '- **The other sweep lane\'s claims**: your batch is `python3 tools/census.py --unbacked '
+                + ' '.join(f'--claimed {w}' for w in claims)
+                + '`, re-read at every `ccc update` — a function a sweep test on that tree cites is `claimed` '
+                  'and hidden, committed or not (Loop 2926: two batches of one tranche built one function twice).']
     out += ['', '## Reserved for you', '']
     out += ['- **Run numbers**: ' + (', '.join(runs) if runs else 'none; ask for one before a capture') + '.']
     out += ['- **Sections**: ' + ('; '.join(sections) if sections else

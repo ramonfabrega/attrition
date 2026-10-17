@@ -1779,6 +1779,55 @@ class Shapes(unittest.TestCase):
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_regen_replaces_an_option_given_in_equals_form_and_never_takes_the_kept_port(self):
+        # Loop 2886 (five reaches, the thirty-ninth pass). 2946: `--rows=2400`
+        # on the new line left the kept `--rows 1200` merged in after it,
+        # so the old value won. 2921: the kept line's `--port` came back
+        # over a port edited in the `.rs`. 2900: a merged `--table` grew a
+        # second copy of its places in silence — `--fresh` starts clean,
+        # and what is merged is said.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1']
+                self.assertEqual(sweep_gen.main(line + ['--win', '0x20', '--cell-win', '0x500000:0x40',
+                                                        '--port', '0x7a7a', '--write-mod']), 0)
+                tp = Path(tmp) / 'x_y.rs'
+                tp.write_text(tp.read_text().replace('0x7a7a', '0x7b7b'))
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    self.assertEqual(sweep_gen.main(line + ['--win=0x40', '--regen']), 0)
+                kept = sweep_gen.kept_line(Path(tmp) / 'sweep_x_y.py')
+                self.assertIn('--win=0x40', kept)
+                self.assertNotIn('0x20', kept, 'the kept `--win 0x20` is replaced, not merged after the new value')
+                self.assertIn('--cell-win', kept)
+                self.assertIn('0x7b7b', tp.read_text(), 'the `.rs` port is the one kept')
+                self.assertNotIn('0x7a7a', tp.read_text())
+                self.assertNotIn('--port', kept)
+                self.assertIn('--regen kept from the old line: --cell-win 0x500000:0x40', err.getvalue())
+                self.assertEqual(sweep_gen.main(line + ['--win', '0x20', '--regen', '--fresh']), 0)
+                kept = sweep_gen.kept_line(Path(tmp) / 'sweep_x_y.py')
+                self.assertNotIn('--cell-win', kept)
+                self.assertNotIn('--fresh', kept)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_the_header_names_the_p_windows_in_the_script_s_order(self):
+        # Loop 2892 (three reaches): sparse slices are `p` windows before the
+        # places, so a `--wbias p0+…` meant for the first place biased a
+        # slice and every later `p` moved by rows × slices. The generated
+        # doc comment lists the windows in the order the script numbers them.
+        line = sweep_gen.window_order([(0, 0x100)], [], [('@', '0xe3a390', 0x6eec, 4, [(0, 4), (8, 2)])],
+                                      [('m', 0, '0', 0x40), ('m', 4, '0', 0x40)], [(1, 0x20)])
+        self.assertEqual(line, '`p` windows in order: p0 argument 0, p1..p8 sparse table 0 (4 rows × 2 slice(s), '
+                               "row-major), p9..p10 the place(s), in flag order, p11 stub 1's answer window")
+        self.assertEqual(sweep_gen.window_order([], [], [], [], []), '`p` windows in order: none')
+        out = sweep_gen.generate_obj('X::y@00401000', item=1, win=0x20, bias=(), places=['m+0:0:0x40'])
+        self.assertIn('`p` windows in order: p0 the place', out[3])
+
     def test_regen_merges_the_named_sweep_s_line_not_another_arm_s(self):
         # Item 2801 (`Search::valid_filter`'s 27 arms, `--name valid_filter_caseK`): `--regen` with a whole line
         # found the kept line by the function's token and took the first script that held it, so arm 3's redraw

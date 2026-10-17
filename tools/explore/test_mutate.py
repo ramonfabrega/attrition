@@ -83,6 +83,35 @@ class Mutate(unittest.TestCase):
         mutate.apply_edit(self.d, 'src.rs', 'let x = 1;', 'let x = 2;', nth=2)
         self.assertEqual((Path(self.d) / 'src.rs').read_text(), 'fn f() { let x = 1; let x = 2; }\n')
 
+    def test_a_batch_keeps_a_double_bar_whole_and_scores_every_break(self):
+        # Loop 2965 (2946's line, the thirty-ninth pass): a shell loop over
+        # `old|new` pairs split a Rust `||` in two, and four breaks of one
+        # batch "passed" that held when run alone. A batch file is one
+        # break a line, tab-separated, each on the restored tree.
+        d = repo()
+        (Path(d) / 'src.rs').write_text('fn f() {\n    let x = 1;\n    if a || b { g(); }\n}\n')
+        subprocess.run(['git', '-C', d, 'commit', '-q', '-am', 'bar'], check=True)
+        walk = [sys.executable, '-c',
+                'import sys; s = open("src.rs").read(); sys.exit(0 if "a || b" in s and "let x = 1;" in s else 1)']
+        batch = Path(d) / 'breaks.tsv'
+        batch.write_text('# one break a line\n'
+                         'src.rs\ta || b\ta && b\n'
+                         'src.rs\tlet x = 1;\tlet x = 2;\n'
+                         'src.rs\tg();\tg(); // a break the walk never reads\n')
+        out = StringIO()
+        code = mutate.batch(d, str(batch), '\t', walk, out=out)
+        text = out.getvalue()
+        self.assertIn("batch 1/3 src.rs 'a || b': held", text)
+        self.assertIn("batch 2/3 src.rs 'let x = 1;': held", text)
+        self.assertIn("batch 3/3 src.rs 'g();': failed nothing", text)
+        self.assertIn('batch: 3 break(s) — 2 held, 1 failed nothing, 0 refused', text)
+        self.assertEqual(code, 1)
+        self.assertEqual(mutate.dirty(d), [], 'the tree is restored after the batch')
+        batch.write_text('src.rs\ta || b\n')
+        with self.assertRaises(mutate.Refused):
+            mutate.read_batch(str(batch), '\t')
+        self.assertEqual(mutate.main(['--root', d, '--batch', str(batch), '--', *walk]), 2)
+
     def test_a_dirty_tree_is_refused_before_anything_is_written(self):
         (Path(self.d) / 'src.rs').write_text('fn f() {}\n')
         with self.assertRaises(mutate.Refused) as cm:

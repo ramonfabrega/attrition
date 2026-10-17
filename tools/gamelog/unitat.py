@@ -2,7 +2,7 @@
 """unitat.py — one unit out of a dump, by name, its path's ends and its orders
 bottom first, the current order last.
 
-    python3 tools/gamelog/unitat.py <dump> <frame | lo-hi> <who>/<o> [--all] [--enums DIR]
+    python3 tools/gamelog/unitat.py <dump> <frame | lo-hi> <who>/<o>[,<who>/<o>..] [--all] [--enums DIR]
 
 Four lanes wrote the same scratch parsers (parked 1981: 1948's `blk.py` and
 `ord.py`, 1982's `units.py` and `th.py`; 1739; 1601 (d)): a unit's
@@ -16,7 +16,10 @@ marked, the figures — or a window, `lo-hi`: the first frame whole and then
 only the lines that changed, a per-unit history across the window (1601
 (d)). `--enums DIR` names the enum export (`~/ghidra-projects/decomp/enums`
 by default, outside the repository); without it the number stands alone.
-Exits 2 when the unit is absent on every frame asked.
+Several units, comma-separated, are read in one pass over the dump (Loop
+2896: about 6 s a unit on a 1.2 GB dump, over 100 s for a cast of
+eighteen, when each was a scan of its own). Exits 2 when every unit asked
+is absent on every frame asked; an absent unit is named either way.
 """
 import os
 import sys
@@ -184,37 +187,42 @@ def parse_args(argv):
     lo, _, hi = frames.partition('-')
     lo = int(lo)
     hi = int(hi) if hi else lo
-    who, _, o = unit.partition('/')
-    return path, lo, hi, (int(who), int(o)), opts
+    wants = []
+    for one in unit.split(','):
+        who, _, o = one.partition('/')
+        wants.append((int(who), int(o)))
+    return path, lo, hi, wants, opts
 
 
 def main(argv=None):
-    path, lo, hi, want, opts = parse_args(sys.argv[1:] if argv is None else argv)
+    path, lo, hi, wants, opts = parse_args(sys.argv[1:] if argv is None else argv)
     names = type_names(opts['enums'])
-    seen = 0
-    last = None
+    seen = {w: 0 for w in wants}
+    last = {}
+    # One pass over the dump for every unit asked (Loop 2896).
     for frame, block in units(path, lo, hi):
         unit = parse_block(block)
-        if identity(unit) != want:
+        want = identity(unit)
+        if want not in seen:
             continue
-        seen += 1
+        seen[want] += 1
         lines = describe(unit, names, opts['all'])
         tag = f"f{frame} {want[0]}/{want[1]}"
-        if last is None:
+        if want not in last:
             print(f"{tag} {lines[0]}")
             for l in lines[1:]:
                 print(f"  {l}")
         else:
-            changed = [l for l in lines if l not in last]
+            changed = [l for l in lines if l not in last[want]]
             if changed:
                 print(f"{tag} changed:")
                 for l in changed:
                     print(f"  {l}")
-        last = lines
-    if not seen:
-        print(f"{want[0]}/{want[1]} absent on frames {lo}-{hi}")
-        return 2
-    return 0
+        last[want] = lines
+    for want in wants:
+        if not seen[want]:
+            print(f"{want[0]}/{want[1]} absent on frames {lo}-{hi}")
+    return 2 if not any(seen.values()) else 0
 
 
 if __name__ == '__main__':

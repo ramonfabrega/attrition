@@ -101,9 +101,9 @@ twenty "for the Loop" lines and one measurement of its own.
   (860): 850's word sat on one that said no capture had been measured on
   that frame. The widening prints the first parting block's standing
   rows by default now (830).
-- **A first killer that is a group move names the slot's `GROUPDATA` on
+~~- **A first killer that is a group move names the slot's `GROUPDATA` on
   both sides of the gap** (875): slot 69's `facing` and `order_num`
-  answered 865 without a capture.
+  answered 865 without a capture.~~
 - **A floor row's brief asks for a killer per reading, run as a mutation
   on the built tree** (864): chapter twenty-two's damage row was three
   causes and each reading was half of one. **A landing that introduces a
@@ -157,12 +157,12 @@ tranche's "for the Loop" lines and two measurements of its own.
   readable, so a candidate one side skips is named by arithmetic, with
   no packet. **A completion's draws ask for the two consecutive
   blocks' `BUILDDATA` beside them** (926).
-- **A route parting's brief cites every proxied step the disk holds**
+~~- **A route parting's brief cites every proxied step the disk holds**
   (914): run240's whole-game `calc_cost` proxies had been read for one
-  tick since item 776, and walked whole they named 899's cause.
-- **A residue whose unit is a captain reads its members' rows on the
+  tick since item 776, and walked whole they named 899's cause.~~
+~~- **A residue whose unit is a captain reads its members' rows on the
   same block first** (958): `0/18` and `0/19` agreed where their
-  captain did not, which the booked premise could not survive.
+  captain did not, which the booked premise could not survive.~~
 - **A row that agrees on a state another writer reached is quiet, not
   proven** (898): chapter twenty-four's pool agreed only because
   `Groups::process` had re-speeded the squad four blocks earlier.
@@ -218,10 +218,10 @@ three measurements of its own.
   listing alone argued the wrong way twice.
 - **"Nothing parts on the block" is said of the object, walked back to
   its first parted field** (1046): 1028 called 4691 quiet while
-  `0/2000`'s damage had stood parted since 4661. **And a parking that
+  `0/2000`'s damage had stood parted since 4661. ~~**And a parking that
   shares the word's frames is a candidate for the word's mechanism**
   (1060): 1048's parting sat in the unit whose drift was parked as
-  not-mine.
+  not-mine.~~
 - **A floor a mechanism passes is quiet, not proven, while a value it
   reads is wrong elsewhere** (1039; 898 one level up): 1012's hand-off
   passed on an inflated city value that 1028's packet showed.
@@ -288,17 +288,17 @@ carries.
   PE beside the name** (1090): `vtables.txt` called `Unit::vftable + 8`
   by a COMDAT twin and a section read it as "is it a unit"; the bytes
   are `flags & 1`.
-- **A gate's own test uses a key the measured table lacks** (1126): a
+~~- **A gate's own test uses a key the measured table lacks** (1126): a
   release gate nested inside `pivot::release`'s lookup was silent for
   every piece but the one the table measures, and its test used that
-  one.
+  one.~~
 - **A `SEAM` that says no capture holds its arm carries `scan:` and the
   command** (1132), so the next capture can run it again; a guard pins
   the forty-nine that do not (parked 1135).
-- **A fixture for a sea or air unit sets the domain in all three
+~~- **A fixture for a sea or air unit sets the domain in all three
   fields** — the type's `kind`, the type's `combat`, the unit's `kind`
   (1130, parked 1134): vision read one and movement another, and the
-  test passed without its fix.
+  test passed without its fix.~~
 - **A stanza `check:` that pipes `samegame.py` into a count wraps the
   call in `(… || true)`** (1080): the runner's `pipefail` carries the
   verdict the line meant not to assert.
@@ -315,6 +315,52 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the thirty-ninth pass
+
+The thirty-ninth tranche (DECISIONS 77): twenty landings on four lanes
+in 3 h 53 min from the pass's commit, twenty-one with the drain's in
+4 h 44, 5.20 USD and 23.6 minutes waiting a landing (5.42 / 35.2
+before) under host admission; no kill rule, no red gate, no merge
+backed out. The pass added these rows, each from the tranche's own
+journals or the commander's note, and struck seven rows the tools
+now enforce or the loop has outgrown: 875, 914, 958, 1060 (the
+candidates list), 1176, 1126 and 1130 (fixture lore).
+
+- **A `claimed` row is the other sweep lane's** (2926, the commander's):
+  2877 re-swept 2863's function and 2910 re-swept 2900's two, a gate
+  and a half each; `census.py --unbacked --claimed <worktree>` hides a
+  function a sweep test on that tree cites, committed or not, and the
+  sweep brief names the other lane's worktree.
+- **Breaks go in one `mutate.py --batch FILE`** (2965, 2946's Loop line):
+  a shell loop over `old|new` pairs split a Rust `||` and reported four
+  breaks as passed; a tab-separated line each, on the restored tree.
+- **`--regen` says what it kept from the old line, `--fresh` keeps
+  nothing, and the `.rs` port wins** (2886, five reaches): `--rows=2400`
+  left the kept `--rows 1200` merged in after it; the kept `--port`
+  came back over a hand edit; a merged `--table` grew a second copy.
+- **The generated header names the `p` windows in order** (2892, three
+  reaches): sparse slices are `p` windows before the places, and a bias
+  meant for the first place landed on a slice twice.
+- **Units are read in one pass, comma-separated** (2896, 2881's line):
+  6 s a unit on a 1.2 GB dump, over 100 s for a cast of eighteen.
+- **`runwiring.py --chapter N` lists a chapter's places and its staged
+  count against the walk's** (2914, three reaches): six files by hand
+  since chapter eighty, the count and the words array's length each
+  hand-counted and wrong once; the array is a slice now.
+- **The walk prints each `add`'s landing and what each issuer line
+  reached** (2970, 2654): the verb's coordinates snap to land by up to
+  400 units, and a staged `@attack` refused for sight printed
+  `skipped {}`.
+- **The make list's head is `RON_DEBUG_MAKE=<frame>`** (2955, 2931's
+  line): the probe every AI item re-added by hand, env-guarded now.
+- **A windowed capture is filed by `filerun.py <run> <tag>`** (2933,
+  2904's line): the copy into `Logs/` under the archive's names was a
+  hand step in every journal of the AI word.
+- **A value question the dump cannot answer takes a packet hooked at
+  the caller's return before a reading** (2903, 2864's line): two
+  hooks turned "theirs re-adds it, somehow" into "theirs never killed
+  it" in one run.
+
 ## The brief checklist, from the thirty-eighth pass
 
 The thirty-eighth tranche (DECISIONS 76): twenty-three landings on
@@ -578,9 +624,9 @@ had been broken by the landings that filed it.
   `pop` and `escrow`, then its wealth and `trade_val`, stood on two
   widenings' first blocks each, read as noise. The row the checklist
   already had (769, 834) asked for this in prose.
-- **A row three widenings pin is a rule, not a residue** (1176): run414,
+~~- **A row three widenings pin is a rule, not a residue** (1176): run414,
   run419 and run420 each pinned a passenger's `avg_speed` apart after a
-  landing, and it was one unbuilt exit rule.
+  landing, and it was one unbuilt exit rule.~~
 - **A first row is no cause until the same key is read on every other
   unit of the window** (1155): `0/7`'s hit on 784 was chapter
   thirty-eight's first row, and `0/6` parted the same way on 854 with no

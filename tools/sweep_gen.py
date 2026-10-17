@@ -2217,6 +2217,41 @@ def _gtab(spec):
     return (cnt, lo, hi, ptr, size)
 
 
+def window_order(ptrargs, gtab, sparse, places, answerwins):
+    """One line naming the `p` windows in the order the script numbers them
+    (Loop 2892, three reaches: a `--wbias p0+…` meant for the first place
+    biased a sparse slice, and every later `p` moves by rows × slices):
+    the pointed arguments, the counted arrays' elements, each sparse
+    table's rows × slices, the places, then the stubs' answer windows."""
+    parts, k = [], 0
+
+    def span(n, what):
+        nonlocal k
+        if n <= 0:
+            return
+        parts.append((f'p{k}' if n == 1 else f'p{k}..p{k + n - 1}') + f' {what}')
+        k += n
+
+    span(len(ptrargs), 'pointed argument(s)' if len(ptrargs) != 1 else f'argument {ptrargs[0][0]}')
+    if gtab:
+        parts.append(f'then the {len(gtab)} counted array(s)\' elements, a count a row, so every later number moves')
+        k = None
+    for t, (w, lo, st, n, sl) in enumerate(sparse):
+        if k is None:
+            parts.append(f'sparse table {t}: {n} rows × {len(sl)} slice(s)')
+        else:
+            span(n * len(sl), f'sparse table {t} ({n} rows × {len(sl)} slice(s), row-major)')
+    if k is None:
+        if places:
+            parts.append(f'{len(places)} place(s)')
+        if answerwins:
+            parts.append(f'{len(answerwins)} answer window(s)')
+    else:
+        span(len(places), 'the place(s), in flag order' if len(places) != 1 else 'the place')
+        span(len(answerwins), 'the stubs\' answer window(s)' if len(answerwins) != 1 else f'stub {answerwins[0][0]}\'s answer window')
+    return '`p` windows in order: ' + (', '.join(parts) if parts else 'none')
+
+
 def _sparse(spec):
     """`LOC:STRIDE:N:OFF,SIZE[/OFF,SIZE..]` — LOC a window's `m+OFF`, `cN+OFF`,
     `pN+OFF`, an address expression, or `@VA` for a table in the image itself
@@ -2590,7 +2625,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                floor=floor)
         return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
     windoc = '; '.join(
-        [f'the global cell 0x{va:08x} points at {size} random bytes' for va, size in pcells]
+        [window_order(pptr, pgtab, psparse, pplaces, pansw)]
+        + [f'the global cell 0x{va:08x} points at {size} random bytes' for va, size in pcells]
         + [f'{size} random bytes at 0x{va:08x}' for va, size in pat]
         + [f'argument {idx} names {size} random bytes' + (' (null a third of the rows)' if idx in ppnull else '')
            for idx, size in pptr]
@@ -2795,7 +2831,19 @@ def shown(path):
 
 
 KEPT = '# sweep_gen: '
-NOT_KEPT = ('--write-mod', '--no-write-mod', '--regen', '--dry-run', '--reset-port')
+NOT_KEPT = ('--write-mod', '--no-write-mod', '--regen', '--dry-run', '--reset-port', '--fresh')
+# Options a whole-line `--regen` never takes from the kept line (Loop 2886,
+# five reaches): the test's port lives in the `.rs`, where a lane edits it,
+# and `kept_port` carries that block over; the kept line's `--port` is the
+# older of the two and overwrote a hand edit twice in one batch (2921).
+NOT_MERGED = ('--port', '--port-file')
+
+
+def option_name(arg):
+    """`--rows` for `--rows=1200` as for `--rows` (Loop 2886's fifth reach:
+    `--rows=2400` on the new line left the kept `--rows 1200` merged in
+    after it, and argparse took the old value)."""
+    return arg.split('=', 1)[0]
 
 
 def kept_line(path):
@@ -2832,6 +2880,11 @@ def merged_with_kept(argv):
     is found by its function, the token the kept line carries verbatim."""
     if '--regen' not in argv:
         return argv
+    if '--fresh' in argv:
+        # Loop 2886's second reach: a new `@FILE` on a script whose `--table`
+        # was on the kept line merged the table in again, and the lane
+        # deleted both files to start clean. `--fresh` is that, in place.
+        return [a for a in argv if a != '--fresh']
     fn = next((a for a in argv if '::' in a and '@' in a), None)
     kept = None
     # `--name M` (a function swept as several modules, `valid_filter`'s arms; item 2801): that module's script.
@@ -2845,7 +2898,7 @@ def merged_with_kept(argv):
             break
     if kept is None:
         return argv
-    new_opts = {a for a in argv if a.startswith('--')}
+    new_opts = {option_name(a) for a in argv if a.startswith('--')}
     extra, i = [], 0
     while i < len(kept):
         a = kept[i]
@@ -2857,8 +2910,14 @@ def merged_with_kept(argv):
         while i < len(kept) and not kept[i].startswith('--'):
             group.append(kept[i])
             i += 1
-        if a not in new_opts and a not in NOT_KEPT:
+        name = option_name(a)
+        if name not in new_opts and name not in NOT_KEPT and name not in NOT_MERGED:
             extra += group
+    if extra:
+        # Said out loud: the kept flags that came back under the new line
+        # (Loop 2886: a merged table grew a second copy in silence).
+        print('sweep_gen.py: --regen kept from the old line: ' + ' '.join(extra)
+              + '  (--fresh regenerates from the new line alone)', file=sys.stderr)
     return argv + extra
 
 
@@ -3611,6 +3670,8 @@ def main(argv=None):
                     help='obj: an array of N record pointers at LOC, each a SIZE-byte record (the places come before every --place); `vt` lays the stubbed '
                          'vtable at each record too (item 2782, parked 2772)')
     ap.add_argument('--dry-run', action='store_true')
+    ap.add_argument('--fresh', action='store_true',
+                    help='--regen with a whole line: take nothing from the kept line (Loop 2886)')
     args = ap.parse_args(split_gate_this(argv))
     tab_place = []
     for spec_ in args.ptrtab:

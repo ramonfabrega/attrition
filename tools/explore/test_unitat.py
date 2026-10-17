@@ -5,6 +5,7 @@ import io
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from contextlib import redirect_stdout
 from pathlib import Path
 
@@ -188,6 +189,27 @@ class OneUnit(unittest.TestCase):
         self.assertIn('path 2:', out)
         # The window's later frames carry only what changed, never the header again.
         self.assertNotIn('f3133 1/27 uid', out)
+
+    def test_several_units_are_read_in_one_pass_over_the_dump(self):
+        # Loop 2896 (2881's line, the thirty-ninth pass): about 6 s a unit on
+        # run880's 1.2 GB dump, over 100 s for a cast of eighteen, each a
+        # scan of its own. Several units, comma-separated, share one pass;
+        # an absent one is named and the exit is 2 only when all are.
+        passes = []
+        real = unitat.units
+
+        def counted(path, lo, hi):
+            passes.append(path)
+            return real(path, lo, hi)
+
+        with patch.object(unitat, 'units', counted):
+            rc, out = self.run_tool('3131-3133', '1/27,1/28,2/27')
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(len(passes), 1, 'one pass over the dump for every unit asked')
+        self.assertIn('f3131 1/27', out)
+        self.assertIn('f3131 1/28', out)
+        self.assertIn('2/27 absent on frames 3131-3133', out)
+        self.assertIn('f3133 1/27 changed:', out)
 
     def test_an_absent_unit_exits_non_zero(self):
         rc, out = self.run_tool('3131', '2/27')

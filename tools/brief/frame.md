@@ -53,7 +53,8 @@ Before any reading, in order:
    the firsts of the unit the draws name** (1622);
    **a birth no queue holds is `births.py`'s** (1674);
    **a birth on the word's frame: `RON_DEBUG_BUILDS` over
-   `<word−1>–<word>` names the queue that emptied** (2319); **a value
+   `<word−1>–<word>` names the queue that emptied** (2319); **the make
+   list's head: `RON_DEBUG_MAKE=<frame>`** (2955); **a value
    the dump prints that no reading produces is grepped in the export**
    (2577); **one the original computes and ours does not runs on a
    packet, `step4-entered.txt` first** (2527).
@@ -61,8 +62,7 @@ Before any reading, in order:
    directions, every unit on the block; **walk the object back to its
    first parted field** before calling a block quiet (1046); **a first
    row is no cause until its key is read on every unit in the window**
-   (1155); **a gone actor parts no key** (1199). Candidates (1060, 958,
-   875, 914): parked row, captain's members, group's gap, proxied route. **A projectile's landing reads the shooter's firsts;
+   (1155); **a gone actor parts no key** (1199). **A projectile's landing reads the shooter's firsts;
    two swapped numbers are births, by `uid`** (1597) — numbering or
    state, `unitat.py` on an earlier window says (2154). **A fallback's
    parting asks first which of its gate's inputs differs** (2726); **a
@@ -76,8 +76,7 @@ Before any reading, in order:
    (1475) — and **pipe the
    widening's `RON_FIRSTS=1` print through `standing.py`**
    (1250, 1471): a standing field this crate reads goes in the journal,
-   both values (769, 834, 1162, 1187); three widenings' row is a
-   rule (1176); **agreeing is quiet, not proven** (898, 1039).
+   both values (769, 834, 1162, 1187); **agreeing is quiet, not proven** (898, 1039).
    **A standing row on a unit the block names, or on the object the
    parted orders target, is walked back through every earlier widening
    before its mechanism is read** (2180, 2264, 2738). **A leader row:
@@ -92,9 +91,8 @@ Before any reading, in order:
    1340), **grepped for the event's subsystem, not the field** (1633);
    **one side spent nothing: run it on the other's order chain** (1233);
    an absence's seam is `--dated` (1132, 1590).
-8. **One unit is `tools/gamelog/unitat.py <dump> <frame|lo-hi>
-   <who>/<o>`** (1981, 1739, 1601, 2145): type by name, path ends, orders
-   bottom first, a window's changes. **A parked row is the item before's wording, never a
+8. **Units are `unitat.py <dump> <frame|lo-hi> <who>/<o>[,..]`, one
+   pass** (1981, 1739, 1601, 2145, 2896). **A parked row is the item before's wording, never a
    citation**: grep its nouns in the export's index, `blind.rs`'s
    `NEVER`s and struck text (1010, 1033).
 
@@ -126,8 +124,8 @@ Before any reading, in order:
   `RON_STATE_FRAME=N−1` for a decision block N prints (2303, EMULATOR
   §8), the entered function named, never `Game::do_frame` (1026, 685).
   **On a packet, run the unit's whole `process` first** (1526),
-  `step4.py --poke`/`--hook` (1869), the address off `unitaddr.py
-  <packet> <x> <y>` (1953).
+  `step4.py --poke`/`--hook` (1869), **hooked at the caller's return**
+  (2903), the address off `unitaddr.py <packet> <x> <y>` (1953).
 - **The window is sized to the word**: six blocks before for
   `samegame.py`, 250 after (799); a `check:` wraps the count in
   `(… || true)` (1080); a measurement names its instrument (881);
@@ -139,7 +137,8 @@ Before any reading, in order:
   log>`** — the launcher's `log:` file, never your redirect (2449) —
   backgrounded, **the Bash tool's `timeout:
   3600000`, never a `timeout` command** (1672, 2599); end your turn;
-  minutes waited on another lane go in the journal.
+  minutes waited on another lane go in the journal. **A windowed
+  capture is filed by `filerun.py <run> <tag>`** (2933).
 - **The pool picks the lane** (1568, 1569): never set
   `RON_CAPTURE_LANE`; a traceback and no receipt is a dead take (1503).
 
@@ -171,7 +170,9 @@ Before any reading, in order:
   `issuesmatch.py --none-refused <trace>`** (966, 1256).
 - **A table row that will not fit says where** (932, 949); **a staging
   that names ids reads them off `RON_STAGE_ALL`**, `add N <type>` makes N
-  squads (1730).
+  squads (1730). **`runwiring.py --chapter N`: the places and the
+  staged count** (2914); **the walk prints each `add`'s landing and
+  what each line reached** (2970, 2654).
 
 ## sweep
 
@@ -233,6 +234,13 @@ Before any reading, in order:
   builds at boot reads as zeros under the emulator** (2216): a draw
   whose every row answers one value on both sides is no test — `--fill`
   the cell, or name the rows it starves.
+- **A `claimed` row is the other sweep lane's**: `--unbacked --claimed
+  <its worktree>` (the brief names it), re-read at every `ccc update`,
+  never swept (2926). **Breaks go in one `mutate.py --batch FILE`**,
+  tab-separated, each on the restored tree (2965). **`--regen` says what
+  it kept from the old line, `--fresh` keeps nothing, and the `.rs`
+  port wins** (2886); **the header names the `p` windows in order**
+  (2892).
 
 ## build
 
@@ -249,9 +257,6 @@ Before any reading, in order:
   run, `repin.py <log> --write` rewrites them (1349, 1411); "stands
   from N" is the window's first block or the gap's. **A new record kind
   in a window runs the `coverage` tests** (1601).
-- **A gate's test uses a key the measured table lacks** (1126); **a sea
-  or air fixture sets the domain in type `kind`, `combat` and unit `kind`**
-  (1130).
 - **Your test run is `zsh tools/check.sh test …`** (2763), one filter
   a run (1551); **kill a gate by its `Gate pid:`, never `pkill
   -f`** (1527, 1713).

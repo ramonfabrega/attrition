@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-10-17, tools/suite_timings.py (tree f5cc36eb).
+# Every rondata release test timed alone, 2026-10-17, tools/suite_timings.py (tree f3a8d061).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 2,780 s over 906 tests; --stale-only merged. Top 10 = 617 s, top 30 = 939, top 100 = 1423; 366 tests under 1 s.
-# By module: golden 866 s / 238 tests, harness 471 s / 91 tests, coverage 339 s / 3 tests, second 246 s / 35 tests, third_pair 166 s / 48 tests.
+# Sum 2,798 s over 926 tests; --stale-only merged. Top 10 = 617 s, top 30 = 939, top 100 = 1423; 382 tests under 1 s.
+# By module: golden 873 s / 249 tests, harness 471 s / 91 tests, coverage 339 s / 3 tests, second 246 s / 35 tests, third_pair 166 s / 48 tests.
 202.00	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 137.36	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 55.58	diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides
@@ -255,6 +255,7 @@
 3.24	diff::golden::chapter_ten_s_word_frame_is_widened_whole
 3.24	diff::world::tests::run33_s_herd_centre_jitters_about_its_home_cell
 3.23	diff::lakota_pair::run881_s_word_frame_is_widened_whole
+3.22	diff::lakota_pair::run883_lakota_pair_closing_state
 3.22	diff::third_pair::run636_s_word_frame_is_widened_whole
 3.22	diff::golden::chapter_three_s_restage_holds_to_its_word
 3.22	diff::golden::an_issuer_line_for_another_seat_is_refused_as_the_dll_refuses_it
@@ -315,6 +316,7 @@
 2.91	diff::third::tests::run426_s_word_frame_is_widened_whole
 2.91	diff::golden::chapter_seventy_three_s_word_frame_is_widened_whole
 2.90	diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit
+2.89	diff::lakota_pair::run883_s_closing_frame_is_widened_whole
 2.89	diff::second::tests::run349_s_word_frame_is_widened_whole
 2.89	diff::coverage_pair::run714_s_word_frame_is_widened_whole
 2.89	diff::harness::tests::run80_s_word_frame_is_widened_whole
@@ -524,6 +526,7 @@
 1.38	diff::world::tests::run64_s_danger_map_is_the_original_s
 1.37	diff::world::tests::run64_s_caravan_road_is_the_original_s_node_for_node
 1.35	diff::third_pair::run598_french_great_lakes_word
+1.35	diff::golden::chapter_ninety_s_window_is_widened_whole
 1.34	diff::sahara_toughest::tests::run640_s_word_frame_is_widened_whole
 1.30	diff::harness::tests::run82_s_leader_record_is_the_original_s_wealth
 1.30	diff::harness::tests::run85_s_window_is_the_east_indies_word_frame
@@ -532,6 +535,7 @@
 1.26	diff::golden::a_turning_catapult_s_crew_mirror_and_never_walk
 1.25	gamelog::tests::replay_initial_preserves_every_correction_input
 1.23	diff::ammo::tests::run100_and_run109_agree_on_where_the_bow_hand_is_off_the_ground
+1.21	diff::german_word::german_word_first_parting
 1.20	diff::harness::tests::run100_s_scholar_job_runs_to_the_word
 1.17	diff::sahara_toughest::tests::run469_s_score_holds
 1.14	diff::world::tests::run32_s_two_fresh_roads_are_the_original_s_tile_for_tile
@@ -543,11 +547,15 @@
 1.05	diff::golden::run875_start_seen3_plane_is_compared_cell_for_cell
 1.04	diff::sahara_toughest::tests::run469_s_trace_holds_to_its_end
 0.97	diff::world::tests::run20_s_pasture_grows_nothing_and_its_five_animals_draw_six
+0.96	diff::golden::chapter_eighty_eight_s_window_is_widened_whole
 0.96	diff::sahara_coverage::run683_s_road_searches_hold_node_for_node
 0.96	diff::golden::the_ground_order_s_life_is_the_dump_s
+0.96	diff::golden::chapter_eighty_seven_s_window_is_widened_whole
+0.95	diff::golden::chapter_eighty_nine_s_window_is_widened_whole
 0.95	diff::harness::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps
 0.93	diff::third_pair::run602_s_word_frame_is_widened_whole
 0.92	diff::setup::tests::run18b_and_run19_s_make_list_windows_replay_slot_for_slot
+0.89	diff::german_word::run893c_s_word_frame_is_widened_whole
 0.88	diff::city::tests::run64_s_frame_6167_prices_are_the_originals
 0.87	debug_view::tests::selected_failure_exports_actual_replay_context
 0.87	diff::sahara_toughest::tests::run469_is_great_sahara_at_toughest_and_nothing_else_moved
@@ -556,11 +564,13 @@
 0.86	diff::golden::chapter_seventy_nine_s_word_frame_is_widened_whole
 0.85	diff::army::tests::run29_s_engagement_seeds_its_attack_from_the_first_member_of_the_group_s_list
 0.85	diff::army::tests::run29_s_mustering_army_is_released_with_no_forming_bit_and_the_tail_s_point
+0.84	diff::german_word::run891_s_word_frame_is_widened_whole
 0.83	diff::golden::chapter_eighty_five_holds_to_the_golden_word
 0.82	diff::golden::chapter_seven_s_civilians_act_alike_with_the_ai_off_and_on
 0.82	diff::harness::tests::east_indies_pool_numbering_takes_who_1_s_building_groups
 0.82	diff::golden::chapter_seven_b_s_civilians_act_alike_with_the_ai_off_and_on
 0.82	diff::army::tests::run31_s_three_mirrors_come_out_of_facing_s_three_writers
+0.82	diff::german_word::run893_s_site_sweep_is_widened_whole
 0.81	diff::third_pair::run609_s_closing_frame_is_widened_whole
 0.78	diff::world::tests::run32_s_scheduled_replans_cost_the_original_s_nodes
 0.77	diff::world::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair
@@ -572,6 +582,7 @@
 0.75	diff::build::tests::the_placed_templates_tile_the_map_s_mountains
 0.73	diff::order::tests::run20_s_world_chain_sits_on_the_move_orders_own_offset
 0.72	census::tests::the_census_s_simulation_share_is_pinned
+0.71	diff::golden::chapter_eighty_six_s_window_is_widened_whole
 0.71	diff::third_pair::run601_s_word_frame_is_widened_whole
 0.71	diff::testkit::indexed_market_road_frame_preserves_world_fields_and_heights
 0.70	diff::army::tests::run26_s_navy_targets_its_own_attacked_capital_with_three_draws
@@ -579,6 +590,7 @@
 0.65	diff::army::tests::run20_s_first_army_is_the_census_s_init_army_whole
 0.64	diff::army::tests::run27_s_defending_search_finds_no_cell_at_norwich_again
 0.64	diff::army::tests::run25_s_emergency_search_finds_no_cell_at_norwich_and_the_navy_re_finds_46_58
+0.64	diff::german_word::run886_s_word_frame_is_widened_whole
 0.63	diff::army::tests::run22_s_muster_cells_are_the_ring_search_s_on_block_3579_s_own_map
 0.62	diff::harness::tests::observing_a_replay_preserves_the_complete_report
 0.62	diff::world::tests::run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings
@@ -591,11 +603,16 @@
 0.58	diff::build::tests::run22_s_first_dock_registers_in_the_sea_and_grants_the_level
 0.53	diff::golden::chapter_eighty_five_s_window_is_widened_whole
 0.53	diff::golden::chapter_eighty_staging_reaches_the_stealth_arm
+0.52	diff::golden::chapter_eighty_eight_holds_to_the_golden_word
 0.52	diff::world::tests::run9_s_world_dump_puts_the_ai_s_farm_on_the_original_s_tile
 0.50	diff::golden::chapter_seventy_nine_holds_to_the_golden_word
 0.49	trace::tests::complete_trace_frame_lookup_matches_a_single_pass_partition
 0.47	diff::golden::chapter_eighty_holds_to_the_golden_word
 0.47	diff::golden::run223_s_air_orders_are_read_whole
+0.47	diff::golden::chapter_eighty_seven_holds_to_the_golden_word
+0.46	diff::golden::chapter_eighty_six_holds_to_the_golden_word
+0.46	diff::golden::chapter_ninety_holds_to_the_golden_word
+0.46	diff::golden::chapter_eighty_nine_holds_to_the_golden_word
 0.46	diff::golden::chapter_eighty_w_window_is_widened_whole
 0.46	diff::harness::tests::run12_s_end_of_frame_words_are_read
 0.46	diff::golden::chapter_eighty_s_window_is_widened_whole
@@ -660,6 +677,7 @@
 0.19	diff::army::tests::run29_s_navy_group_is_a_line_of_four_rotated_at_forty_eight_units_a_step
 0.19	diff::army::tests::run29_s_priority_bit_says_allocated_rather_than_hotkey
 0.17	diff::build::tests::the_templates_give_the_packet_s_solid_cells
+0.16	diff::german_word::german_word_is_no_other_lobby
 0.16	diff::third_pair::run613_dates_first_contact_on_block_7946
 0.15	diff::army::tests::run22_s_two_armies_are_init_s_records_with_the_ring_search_s_muster_cells
 0.14	diff::golden::chapter_two_s_v1z_is_arc_v1z_to_the_last_digit
@@ -760,6 +778,8 @@
 0.01	capture::indexed::observations::persistent::tests::streamed_observations_preserve_every_field_and_duplicate_order
 0.01	diff::third_pair::replay::full_state_audit_accepts_only_future_inputs_and_rejects_value_changes
 0.01	diff::compared::tests::recorder_audit_rejects_a_missing_registration
+0.01	diff::floors::tests::the_handoff_s_battery_word_is_the_pinned_word
+0.00	golden::tests::an_issuer_line_names_what_it_reached_and_an_add_where_it_landed
 0.00	diff::harness::deferred_row_labels_preserve_names_and_field_registration
 0.00	capture::owned_codec::reuse_tests::changed_reordered_invalid_and_bounded_maps_match_original_decoder
 0.00	capture::indexed::observations::persistent::tests::raw_key_recording_bypasses_both_observation_caches

@@ -120,6 +120,45 @@ def run(root, mutate, command, out=sys.stdout):
     return code
 
 
+def read_batch(path, sep):
+    """The breaks of a `--batch` file: one a line, `FILE<sep>OLD<sep>NEW[<sep>NTH]`,
+    blank and `#` lines dropped (Loop 2965: a shell loop over `old|new`
+    pairs split a Rust `||` in two and reported four breaks as passed; the
+    separator is a tab by default, which no formatted source holds)."""
+    out = []
+    for n, line in enumerate(Path(path).read_text().splitlines(), 1):
+        if not line.strip() or line.lstrip().startswith('#'):
+            continue
+        parts = line.split(sep)
+        if len(parts) not in (3, 4):
+            raise Refused(f'{path}:{n}: {len(parts)} field(s) split on {sep!r}; a break is FILE, OLD, NEW and an optional NTH')
+        nth = int(parts[3]) if len(parts) == 4 and parts[3].strip() else None
+        out.append((parts[0], parts[1], parts[2], nth))
+    if not out:
+        raise Refused(f'{path}: no break on any line')
+    return out
+
+
+def batch(root, path, sep, command, out=sys.stdout):
+    """Every break of the file in turn, each on the restored tree, with
+    one verdict a line and a count at the end; 0 only when every break
+    held (Loop 2965)."""
+    breaks = read_batch(path, sep)
+    held = failed = refused = 0
+    for k, (file, old, new, nth) in enumerate(breaks, 1):
+        try:
+            code = run(root, lambda r: apply_edit(r, file, old, new, nth), command, out)
+            verdict = 'held' if code else 'failed nothing'
+            held += bool(code)
+            failed += not code
+        except Refused as e:
+            verdict = f'refused — {e}'
+            refused += 1
+        print(f'batch {k}/{len(breaks)} {file} {old!r}: {verdict}', file=out, flush=True)
+    print(f'batch: {len(breaks)} break(s) — {held} held, {failed} failed nothing, {refused} refused', file=out)
+    return 0 if held == len(breaks) else 1
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--root', default='.', help='the repository (default: the current directory)')
@@ -127,6 +166,10 @@ def main(argv=None):
     g.add_argument('--edit', nargs=3, metavar=('FILE', 'OLD', 'NEW'),
                    help='replace OLD (exactly once, or the --nth occurrence) with NEW in FILE')
     g.add_argument('--patch', help='a unified diff for `git apply`')
+    g.add_argument('--batch', metavar='FILE',
+                   help='one break a line, FILE<sep>OLD<sep>NEW[<sep>NTH], each run on the restored tree; '
+                        'exit 0 only when every break held (Loop 2965)')
+    ap.add_argument('--sep', default='\t', help="--batch: the field separator (default: a tab)")
     ap.add_argument('--nth', type=int, metavar='N', help='with --edit: which occurrence of OLD, from one (Loop 2784)')
     ap.add_argument('command', nargs='+', help='the test command, after `--`')
     a = ap.parse_args(argv)
@@ -137,6 +180,12 @@ def main(argv=None):
               'pass it as words after `--`, or `${=T}` under zsh', file=sys.stderr)
         return 2
     root = str(Path(a.root).resolve())
+    if a.batch:
+        try:
+            return batch(root, a.batch, a.sep, a.command)
+        except Refused as e:
+            print(f'mutate.py refuses: {e}', file=sys.stderr)
+            return 2
     if a.edit:
         path, old, new = a.edit
         mutate = lambda r: apply_edit(r, path, old, new, a.nth)  # noqa: E731

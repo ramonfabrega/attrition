@@ -3738,116 +3738,33 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the thirty-ninth tranche's
 
-(2882) **A golden take whose `pace:` line projects past `--timeout` runs on to the hour** (2876's "for the Loop" line, filed
-at its merge): the runner's `pace:` line (Loop 2874) made trimming run884's `end:` set obvious up front, but a lane that does
-not read it still loses the hour, as run880 did. Candidate: `golden_capture.sh` refuses, or stops early with a receipt, a take
-whose first `pace:` projects past `--timeout`, a test made to fail first. One reach.
-
 (2948) **A `RON_STAGE` walk is not a prediction for a fog arm** (2930's "for the Loop" line, filed at its merge): the
 walk on chapter 76's start showed a target unseen that run890's golden build saw, so a staging chosen off the walk for an
 unseen arm can land seen. Candidate: the walk prints the fog source it used beside each `is_seen`, or refuses fog
-predictions, a test made to fail first. One reach.
-
-(2955) **A `make_stuff` `can_pay` print is re-added by every item that needs it** (2931's "for the Loop" line, filed at
-its merge): a probe printing the head's cost, bucket and escrow answered 576 in one run, and each AI item adds it again.
-Candidate: an env-guarded `RON_DEBUG_MAKE=<frame>` print in `make_stuff`, a test made to fail first. One reach.
+predictions, a test made to fail first. One reach. **The thirty-ninth pass**: one reach; stays — the chapter lane's at its next fog arm; closes at the next pass unreached (DECISIONS 54). The walk prints each `add`'s landing now (Loop 2970), which is the other half of a staging read off the walk.
 
 (2958) **The `process_*` ports are written from a one-line spec by a scratch script** (2953's "for the Loop" line and
 second parked row, filed at its merge): the log + say + action shape is a dozen functions deep (templates
 `command_package_process_demand_tribute.rs`, `_patrol.rs`), and each port is a hand step. Candidate: a `sweep_gen.py obj`
 flag taking the spec (logToMemory address and arity, line, say offset, say/action argument expressions), a test made to
-fail first. One reach.
-
-(2965) **A shell loop over `old|new` break pairs splits a Rust `||` and reports a break as passed** (2946's "for the
-Loop" line, filed at its merge; parked 2962): four "passed" breaks of one batch were the loop cutting `||` in two, each held
-when re-run alone through `tools/mutate.py --edit`. Candidate: `mutate.py --batch FILE` taking one break per line with its
-own delimiter, a test made to fail first on a `||` break. One reach.
-
-(2970) **A staged `add` lands hundreds of units from its coordinates and the walk does not say where** (2949's "for the
-Loop" line, filed at its merge; parked 2969): neighbouring values snap to land by up to 400 units, and run892's first two
-stagings put a target across a detour or on a squad that marched. Candidate: `walk_script` prints each staged unit's
-landing beside its verb, a test made to fail first. One reach.
+fail first. One reach. **The thirty-ninth pass**: one reach; stays — 2959 is booked on the bodies that are not the three shapes, and the spec flag is the shape lane's at its next reach; closes at the next pass unreached (DECISIONS 54).
 
 (2973) **"Theirs scored zero, why" is a hand-placed hook per early return** (2956's "for the Loop" line, filed at its
 merge): a packet plus `step4.py --hook` on each early-exit fall-through (`jcc → epilogue`, hook the next instruction) named
 `blocked_site`'s arm in one run. Candidate: a `tools/recomp/` mode that lists a function's early returns and reports which
-one each call took, a test made to fail first. One reach.
-
-(2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
-and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
-`archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
-to fail first. One reach.
-
-(2886) **A whole-line `--regen` brings back a port the `.rs` edited and the `--port-file` did not** (2863's "for the Loop"
-line, filed at its merge): `--regen` with a whole line and `--port-file` rewrites the port from the file, and a bare `--regen
-<name>` keeps the line's old port string, so an edit made only in the `.rs` returns at the next whole-line regen (once, in
-2863); and `Harness`'s unmapped-read hook answers zeros, so a vtable read through a mis-placed pointer shows as a call to 0,
-not a fault at the read. Candidate: a regen that would overwrite a port differing from its `--port-file` refuses, naming
-both; an unmapped read under a sweep faults with its address. One reach. **A second reach** (2900's "for the Loop"
-line, filed at its merge): `--regen` with a new `@FILE`, on a script whose `--table` flag was in the old kept line, merged the
-old line's flags into the new (`PLACES` grew a second copy of the table); the lane deleted both generated files and generated
-fresh. The same candidate: a regen whose flags changed refuses or starts clean, never merges. **A third reach** (2921's
-"for the Loop" line, filed at its merge; parked 2939): `--regen` took the kept line's `--port` over the `.rs`'s twice in one
-batch (`issue_rename_city`, `process_halt`). **A fourth reach** (2941's line; parked 2950): a regen cannot widen
-a `--wbias` once the module is registered, and a delete-and-regenerate cannot either. **A fifth reach** (2946's line; parked
-2960): a regen re-appends the old line's flags and the emitted lists keep both values.
-
-(2892) **The generated `.rs` header does not say how `--sparse` and `--place` number the `p` windows** (2877's "for the
-Loop" line, filed at its merge): sparse windows come first, so a `--wbias p0+*` meant for the first place biased a sparse
-byte and the run looked healthy until a break survived (parked 2890); two reruns. Candidate: the generated doc comment lists
-the windows in order (`p0..p3 sparse, p4 place`), a test made to fail first. One reach. **A second reach** (2893's "for the
-Loop" line, filed at its merge): `--sparse` makes one `p` window a *slice*, not a row (parked 2907), and two reruns again. **A third reach** (2927's "for the
-Loop" line, filed at its merge; parked 2944): every later `p` number moves by rows × slices, two failed first runs; a
-`--dry-run` that printed the window table once (name, size, what it holds) would have saved both.
-
-(2896) **`unitat.py` re-scans the whole dump per unit** (2881's "for the Loop" line, filed at its merge): about 6 s a unit on
-run880's 1.2 GB dump, over 100 s for a cast of eighteen. Candidate: `--units a,b,c` reads the dump once, a test that counts
-the reads made to fail first. One reach.
+one each call took, a test made to fail first. One reach. **The thirty-ninth pass**: one reach; stays — the AI lane's at its next "theirs scored zero" question on a packet; closes at the next pass unreached (DECISIONS 54).
 
 (2899) **`--place-null` cannot force a guard word on a null row** (2887's "for the Loop" line, filed at its merge): a
 `--place-null K:WORD=0` that zeroes a named word on K's null rows would reach `replace_form_id`'s `0xdc == 0, 0xd8 != 0` arm
-without the `m+0xcc` wbias (parked 2885, 2898). Candidate: that flag, a test made to fail first. One reach.
-
-(2903) **A packet's `--hook` on a caller's return address reads a value no dump prints** (2864's "for the Loop" line,
-filed at its merge): two hooks on `5fe050` and `648876` turned "theirs re-adds a mandatory attack, somehow" into "theirs
-never killed it" in one run. Candidate: a brief-checklist row for the residue kind — a value question the dump cannot
-answer takes a packet hooked at the caller's return before a reading. One reach.
-
-(2914) **A chapter's wiring is six files by hand** (2895's "for the Loop" line, filed at its merge): the script list,
-the walk and widening tests, `testkit`'s word and window, `WIDENINGS`, `floors` and the `coverage` driver, written for every
-chapter since eighty. Candidate: a `tools/` scaffold off `runwiring.py` that writes them from the chapter's number, run and
-word, a test made to fail first. One reach. **Second reach** (2915's "for the Loop" line, filed at its merge): the staged-line
-count `walk_script` asserts is counted by hand and was wrong on run889's first walk (8, not 6); the scaffold would count it.
-**A third reach** (2930's line): `GOLDEN_WORDS`' array length is hand-counted too (81 → 82).
-
-(2926) **The two sweep lanes swept the same function twice in one tranche** (the commander's, noticed at 2910's merge):
-2877 re-swept 2863's `Group::kill_next_order`, and 2910 re-swept 2900's `ObjectsData::find_goody_at@0065c040` and
-`UnitData::get_gpiece@616d70`; each came back on a conflicted update and dropped its copy, a gate and a half each. The
-second was the commander's: 2893's note said 2889 was the shape lane's and 2910's dropped the line. `census.py --unbacked`
-cannot see a function another live lane is building. Candidate: `brief.py --kind sweep` prints the other sweep lane's named
-functions from its brief, or a lane commits a claim file per function before it builds, read by `--unbacked`. One reach.
+without the `m+0xcc` wbias (parked 2885, 2898). Candidate: that flag, a test made to fail first. One reach. **The thirty-ninth pass**: one reach; stays — the shape lane's at its next null-row guard; closes at the next pass unreached (DECISIONS 54).
 
 ## Loop, filed 2026-10-17 — the thirty-eighth tranche's
 
-Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872). **The thirty-ninth tranche's reaches**: 2863 `--answer-by`, `--vtat-image`, `--alias TARGET!`; 2887 the `void` shape's forwarding and `--write-mod` by default; 2900 `--vtat-keep`, `--link-hi`, `--place-null K:WIN+OFF=V`; 2910's line asks a `--place-null` on an image cell print a 0/1 column and a `--wbias-pair` (parked 2922, 2924).
-
-(2809) **A mechanic document's numbered steps are checked against the function that builds them** (2779's "for the
-Loop" line, filed at its merge): two neighbouring terms of `calc_gather` sat in `docs/ECONOMY.md`'s list ("8.
-Capitalism") for months with no code, and no `SEAM` or "not modelled" paragraph named them, so `seams.py` could not
-show them; they were the peace pair's word 5982. Candidate: a step with no code gets a `SEAM` line, held by a guard
-that reads the step lists. One reach. **The thirty-eighth pass**: one reach; stays — closes at the next pass unreached (DECISIONS 54). The candidate narrowed: `seams.py --steps docs/<MECHANIC>.md`, listing a numbered step whose bold term no `crates/sim` source spells, so a step with no code shows beside the `SEAM`s.
+Loop 2003's sixty-seventh to seventy-first reaches, filed here below its own row (its section is at the size ceiling, 16 kB): 2782 built `--ptrtab LOC:N:SIZE` (2769's half); 2797 `--alias`; 2801 `--edx-win` for `valid_filter`'s 27 arms; 2807 `--xmm`; 2818 `--ecx-out` and the `project` pair; 2863 is booked for `--answer-win` with `--seq` (parked 2861). **The pass built** `@FILE` flags and `--port-file` (Loop 2796) and a `--regen` that refuses to reset a hand-written port (Loop 2792, four reaches). **Owed**: a generated test that refuses a draw whose every row records `-` (Loop 2862's second half), and the `void` shape's gaps (parked 2872). **The thirty-ninth tranche's reaches**: 2863 `--answer-by`, `--vtat-image`, `--alias TARGET!`; 2887 the `void` shape's forwarding and `--write-mod` by default; 2900 `--vtat-keep`, `--link-hi`, `--place-null K:WIN+OFF=V`; 2910's line asks a `--place-null` on an image cell print a 0/1 column and a `--wbias-pair` (parked 2922, 2924). **The thirty-ninth pass built** Loop 2886's three regen rules (`=`-form options replace, the `.rs` port wins, `--fresh`, the merge said aloud) and Loop 2892's window-order line in the header; 2921's `--stub-copy`, `--clean-stack` and `sp+0xN`, 2941's and 2953's `process_*` ports (Loop 2958) and 2946's `--answer-win` reaches are the lane's own landings.
 
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 ## Loop, filed 2026-10-15 — the thirty-sixth tranche's
-
-(2654) **A staged `@attack` on a target nothing of the player's can see is dropped as `skipped {}`** (2627's "for the
-Loop" line, filed at its merge). 2627's second take lost its `@attack` until a Citizen stood within sight of the
-Barracks — (212, 96) dropped, (212, 101) taken — and the walk said only `skipped {}`. Candidate: a staged line
-refused for sight says so in `staged:`, a test made to fail first. One reach. **The thirty-sixth pass**: one reach; stays — `group_action_attack` returns nothing to the walk and the sight refusal sits inside the sim's per-member issue, so the print needs a return the walk can name; a worker's on its next staging that loses a line (chapter seventy-nine's `@flight` is the same family); closes at the next pass unreached (DECISIONS 54).
-**2649** (a second reach, filed at its merge): a `@launchpatrol` on a refuelling plane took effect on no unit and
-`staged:` printed `skipped {}` empty (parked 2661); the same print, named for a line that reached no unit.
-**2755** (a third reach, folded by the thirty-seventh pass from Loop 2786, 2755's "for the Loop" line): a staging recipe for a unit that must stay idle should print each line's effect on the unit's orders — three of chapter eighty's six attempts left the stealth unit with an order, found only by reading `orders.len()` in ours. **Graduated at three reaches**; the build is owed and sized: the walk defers issuer lines to the frame whose tick first sees them, so a before/after of the named units' order stacks at apply time would misreport, and the honest print needs each issue to return what it reached (`group_action_attack` returns nothing today) — a `Script::apply` that records, per staged line, the units whose orders changed on its tick, `staged:` printing `reached no unit` and `<unit>: +<order>` for each; the next pass builds it, or the next chapter lane that loses a line builds it under its own item. **The thirty-eighth pass**: no reach this tranche (2832 staged chapter eighty-five and lost no line; its control never reached range, parked 2870); stays graduated — the next chapter lane that loses a staged line builds the print under its own item, and 2876's booking says so.
 
 ## Loop, filed 2026-10-15 — the thirty-fifth tranche's
 
@@ -6914,6 +6831,30 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot GR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot GR renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
