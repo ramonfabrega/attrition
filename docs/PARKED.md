@@ -3738,6 +3738,14 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3022) **`sweep_gen.py --regen` with a bad flag set leaves the old files and exits 0** (3004's "for the Loop" line, filed
+at its merge). Candidate: a regen that cannot write exits non-zero and names the flag, a test made to fail first. One reach.
+
+(3023) **A booking gate was killed mid-run with exit 144 and no verdict** (the fortieth tranche's eighth booking gate,
+`f9a46406`, 16:53, its log ending on a passing `rondata` test; the re-run was green, 6 of 6): five lanes were live, and
+the gate's banner warns against `pkill -f` on a name every lane shares. Candidate: the gate traps the signal and prints
+who sent it (`siginfo` pid where the platform gives one) in its last line, a test made to fail first. One reach.
+
 (3012) **A sibling's port block is copied by hand with three constants re-measured, ten times a batch** (2990's "for the
 Loop" line and parked 3011, filed at its merge; the fifth reach of the shape). Candidate: `sweep_gen.py --port-from
 SIBLING` copies the block and reports the constants that differ, a test made to fail first. One reach.
@@ -6971,16 +6979,16 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3004, 2026-10-17 — the second harvest batch
 
-- (3004) **`Unit::update_armor` needs a climb that ends**: the loop calls slot `+0xa8` on the object table's
+- (3019) **`Unit::update_armor` needs a climb that ends**: the loop calls slot `+0xa8` on the object table's
   record until a captain is reached, and `sweep_gen.py obj` can answer a stub with one window, which makes the climb
   its own parent (an unbounded loop unless every row's second `+0xe8` answer is 1). A `--climb` shape (a chain of
   windows, each `+0x8e` naming the next, terminated) would take it and the other `is_captain` climbs. Names no score
   beyond the census.
-- (3004, second) **`AmmoData::walk_data`, `Game::walk_data` and `TurnControl::end_cannon_time`
+- (3020) **`AmmoData::walk_data`, `Game::walk_data` and `TurnControl::end_cannon_time`
   read and not taken**: the first reads a stack byte of its own argument slot that the real walker writes on input (the
   walker stub cannot; `--stub-write` writes through a pointer argument, not the caller's slot), the second calls
   `timeGetTime`, the third pushes a dozen-argument `MessageWin::add_message` with uninitialised stack temporaries.
-- (3004, third) **Three breaks of the batch pass and are not draw faults worth a flag**: `count_farms`' `(k - 1).min(5)`
+- (3021) **Three breaks of the batch pass and are not draw faults worth a flag**: `count_farms`' `(k - 1).min(5)`
   needs a six-member live chain (the `--link` draw above each figure's own index rarely walks all six), and
   `get_abbrev_parsed`' `ty < 0x32` is equivalent (`SILK` and `GEMS`, the only types the arm tests, are both below it).
   The third, `lookup_absolute_name`'s two boundary breaks, passed on `--argrange 1:-4:0x180` and held on
