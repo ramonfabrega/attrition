@@ -53,12 +53,12 @@ fn the_emulated_original_agrees_on_every_row() {
             let ty = c[3][i as usize] as i8 as i32 + y;
             if tx < 0 || ty < 0 || ww <= tx || wh <= ty {
                 if a[2] != 0 {
-                    break 'r r;
+                    break 'r i64::from(r);
                 }
             } else {
                 let o = ((ww * ty + tx) * 0x1c) as usize;
                 if flags(o) & 0x100 != 0 || !land(o) {
-                    break 'r r;
+                    break 'r i64::from(r);
                 }
             }
         }
