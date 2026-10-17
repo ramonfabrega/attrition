@@ -240,6 +240,12 @@ mod valid_filter_case0;
 mod valid_filter_case1;
 #[path = "valid_filter_case10.rs"]
 mod valid_filter_case10;
+#[path = "valid_filter_case11.rs"]
+mod valid_filter_case11;
+#[path = "valid_filter_case12.rs"]
+mod valid_filter_case12;
+#[path = "valid_filter_case13.rs"]
+mod valid_filter_case13;
 #[path = "valid_filter_case2.rs"]
 mod valid_filter_case2;
 #[path = "valid_filter_case3.rs"]
