@@ -72,6 +72,8 @@ mod unit_data_get_packer_stance;
 mod unit_data_get_stance_type;
 #[path = "unit_data_get_worker_stance.rs"]
 mod unit_data_get_worker_stance;
+#[path = "unit_data_good_merchant_spot.rs"]
+mod unit_data_good_merchant_spot;
 #[path = "unit_data_has_damage.rs"]
 mod unit_data_has_damage;
 #[path = "unit_data_has_stance_type.rs"]
@@ -192,6 +194,8 @@ mod unit_set_rally;
 mod unit_set_type;
 #[path = "unit_supplies_left.rs"]
 mod unit_supplies_left;
+#[path = "unit_think_caravan.rs"]
+mod unit_think_caravan;
 #[path = "unit_think_hero.rs"]
 mod unit_think_hero;
 #[path = "unit_think_supply.rs"]
@@ -392,6 +396,8 @@ mod world_data_get_land;
 mod world_data_get_land_wcoord;
 #[path = "world_data_get_whose.rs"]
 mod world_data_get_whose;
+#[path = "world_data_has_gather_access.rs"]
+mod world_data_has_gather_access;
 #[path = "world_data_has_mountain_tcoords.rs"]
 mod world_data_has_mountain_tcoords;
 #[path = "world_data_is_building_wcoord.rs"]
