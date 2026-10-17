@@ -10,8 +10,40 @@ use support::{emu_rows, row, tail_row};
 mod game_access_const_find_data_z;
 #[path = "game_access_const_find_tcoord_z.rs"]
 mod game_access_const_find_tcoord_z;
+#[path = "game_access_const_get_scary_camera.rs"]
+mod game_access_const_get_scary_camera;
+#[path = "game_access_const_get_scary_cliffs.rs"]
+mod game_access_const_get_scary_cliffs;
+#[path = "game_access_const_get_scary_console.rs"]
+mod game_access_const_get_scary_console;
+#[path = "game_access_const_get_scary_console_leader.rs"]
+mod game_access_const_get_scary_console_leader;
+#[path = "game_access_const_get_scary_console_who.rs"]
+mod game_access_const_get_scary_console_who;
+#[path = "game_access_const_get_scary_doobers.rs"]
+mod game_access_const_get_scary_doobers;
+#[path = "game_access_const_get_scary_fog.rs"]
+mod game_access_const_get_scary_fog;
+#[path = "game_access_const_get_scary_graphic_pieces.rs"]
+mod game_access_const_get_scary_graphic_pieces;
+#[path = "game_access_const_get_scary_iface_current.rs"]
+mod game_access_const_get_scary_iface_current;
+#[path = "game_access_const_get_scary_iface_main.rs"]
+mod game_access_const_get_scary_iface_main;
+#[path = "game_access_const_get_scary_message_win.rs"]
+mod game_access_const_get_scary_message_win;
+#[path = "game_access_const_get_scary_my_player.rs"]
+mod game_access_const_get_scary_my_player;
 #[path = "game_access_const_get_scary_options.rs"]
 mod game_access_const_get_scary_options;
+#[path = "game_access_const_get_scary_scenario_editor.rs"]
+mod game_access_const_get_scary_scenario_editor;
+#[path = "game_access_const_get_scary_scene.rs"]
+mod game_access_const_get_scary_scene;
+#[path = "game_access_const_get_scary_select_group.rs"]
+mod game_access_const_get_scary_select_group;
+#[path = "game_access_const_get_scary_terrain.rs"]
+mod game_access_const_get_scary_terrain;
 #[path = "game_action_cheat_ai_speed_increase.rs"]
 mod game_action_cheat_ai_speed_increase;
 #[path = "game_action_cheat_ai_speed_normal.rs"]
@@ -32,16 +64,32 @@ mod game_get_game_fps_average;
 mod game_info_default_setting;
 #[path = "game_is_cooperative.rs"]
 mod game_is_cooperative;
+#[path = "game_is_deathmatch.rs"]
+mod game_is_deathmatch;
 #[path = "game_is_game_ready.rs"]
 mod game_is_game_ready;
 #[path = "game_is_infinite.rs"]
 mod game_is_infinite;
+#[path = "game_is_never_war.rs"]
+mod game_is_never_war;
+#[path = "game_is_no_rush.rs"]
+mod game_is_no_rush;
+#[path = "game_is_nomad.rs"]
+mod game_is_nomad;
 #[path = "game_is_observing.rs"]
 mod game_is_observing;
+#[path = "game_is_raining.rs"]
+mod game_is_raining;
+#[path = "game_is_recording.rs"]
+mod game_is_recording;
 #[path = "game_is_sandbox.rs"]
 mod game_is_sandbox;
 #[path = "game_is_scenario.rs"]
 mod game_is_scenario;
+#[path = "game_is_solo.rs"]
+mod game_is_solo;
+#[path = "game_is_team_game.rs"]
+mod game_is_team_game;
 #[path = "game_is_tournament.rs"]
 mod game_is_tournament;
 #[path = "game_is_turbo_resources.rs"]
@@ -62,20 +110,36 @@ mod game_wonder_timer;
 mod garrison_order_walk_data;
 #[path = "garrison_order_walk_data_vtordisp.rs"]
 mod garrison_order_walk_data_vtordisp;
+#[path = "garrisonorder_get_garrison_order.rs"]
+mod garrisonorder_get_garrison_order;
+#[path = "gather_order_get_type.rs"]
+mod gather_order_get_type;
 #[path = "gather_order_get_type_vtordisp.rs"]
 mod gather_order_get_type_vtordisp;
 #[path = "gather_order_walk_data.rs"]
 mod gather_order_walk_data;
 #[path = "gather_order_walk_data_vtordisp.rs"]
 mod gather_order_walk_data_vtordisp;
+#[path = "gather_point_is_inside.rs"]
+mod gather_point_is_inside;
 #[path = "gather_point_walk_data.rs"]
 mod gather_point_walk_data;
+#[path = "get_type_count.rs"]
+mod get_type_count;
+#[path = "get_type_count2.rs"]
+mod get_type_count2;
+#[path = "get_unique_types.rs"]
+mod get_unique_types;
+#[path = "get_unique_types2.rs"]
+mod get_unique_types2;
 #[path = "good_data_get_gpiece.rs"]
 mod good_data_get_gpiece;
 #[path = "good_inc_time.rs"]
 mod good_inc_time;
 #[path = "good_type_avail_drop.rs"]
 mod good_type_avail_drop;
+#[path = "good_type_compute_largest_gather.rs"]
+mod good_type_compute_largest_gather;
 #[path = "good_type_data_avail_ctw.rs"]
 mod good_type_data_avail_ctw;
 #[path = "good_type_data_best_gather_type.rs"]
@@ -92,6 +156,8 @@ mod good_type_data_snap_center;
 mod good_type_walk_rules_data;
 #[path = "good_walk_data.rs"]
 mod good_walk_data;
+#[path = "graphicwinxml_get_graphicwinxml.rs"]
+mod graphicwinxml_get_graphicwinxml;
 #[path = "greatest_common_factor.rs"]
 mod greatest_common_factor;
 #[path = "group_action_begin.rs"]
@@ -140,6 +206,8 @@ mod group_data_valid_target;
 mod group_equals_group;
 #[path = "group_find_role.rs"]
 mod group_find_role;
+#[path = "group_get_speed.rs"]
+mod group_get_speed;
 #[path = "group_leader_report_speed.rs"]
 mod group_leader_report_speed;
 #[path = "group_move_order_get_group_move_order_vtordisp.rs"]
@@ -212,10 +280,16 @@ mod group_report_speed;
 mod group_set_ordered;
 #[path = "group_toggle.rs"]
 mod group_toggle;
+#[path = "groupmoveorder_is_fleeing.rs"]
+mod groupmoveorder_is_fleeing;
+#[path = "groupmoveorder_is_pathed.rs"]
+mod groupmoveorder_is_pathed;
 #[path = "groups_data_find_group_const.rs"]
 mod groups_data_find_group_const;
 #[path = "groups_walk_data.rs"]
 mod groups_walk_data;
+#[path = "guard_order_get_guard_order.rs"]
+mod guard_order_get_guard_order;
 #[path = "guard_order_get_guard_order_vtordisp.rs"]
 mod guard_order_get_guard_order_vtordisp;
 #[path = "guard_order_walk_data.rs"]
@@ -248,6 +322,8 @@ mod guy_set_pitch;
 mod guy_set_pivot_angle;
 #[path = "guy_turn_angles.rs"]
 mod guy_turn_angles;
+#[path = "guy_turn_towards.rs"]
+mod guy_turn_towards;
 #[path = "guy_update_z.rs"]
 mod guy_update_z;
 #[path = "herd_walk_data.rs"]
@@ -262,6 +338,10 @@ mod herds_start_herds;
 mod herds_walk_data;
 #[path = "hero_walk_data.rs"]
 mod hero_walk_data;
+#[path = "is_air.rs"]
+mod is_air;
+#[path = "is_move.rs"]
+mod is_move;
 #[path = "item_data_get_gpiece.rs"]
 mod item_data_get_gpiece;
 #[path = "item_out_draw_overlays.rs"]
@@ -324,10 +404,14 @@ mod mountains_tileset_texture_load;
 mod move_order_get_move_order_vtordisp;
 #[path = "move_order_is_fleeing_vtordisp.rs"]
 mod move_order_is_fleeing_vtordisp;
+#[path = "move_order_is_pathed.rs"]
+mod move_order_is_pathed;
 #[path = "move_order_is_pathed_vtordisp.rs"]
 mod move_order_is_pathed_vtordisp;
 #[path = "move_order_walk_data_vtordisp.rs"]
 mod move_order_walk_data_vtordisp;
+#[path = "moveorder_is_fleeing.rs"]
+mod moveorder_is_fleeing;
 #[path = "nuke_been_damaged_before.rs"]
 mod nuke_been_damaged_before;
 #[path = "nuke_get_name.rs"]
@@ -342,10 +426,14 @@ mod nuke_out_update;
 mod object_assault_benefit;
 #[path = "object_data_attack_dist.rs"]
 mod object_data_attack_dist;
+#[path = "object_data_attack_dist_at.rs"]
+mod object_data_attack_dist_at;
 #[path = "object_data_get_wonder_value.rs"]
 mod object_data_get_wonder_value;
 #[path = "object_data_has_objmask.rs"]
 mod object_data_has_objmask;
+#[path = "object_data_health_level.rs"]
+mod object_data_health_level;
 #[path = "object_data_hits_left.rs"]
 mod object_data_hits_left;
 #[path = "object_data_in_a_building.rs"]
@@ -388,6 +476,8 @@ mod object_data_support;
 mod object_execute_events;
 #[path = "object_get_army.rs"]
 mod object_get_army;
+#[path = "object_get_captain.rs"]
+mod object_get_captain;
 #[path = "object_hits.rs"]
 mod object_hits;
 #[path = "object_is_in_range.rs"]
@@ -438,6 +528,8 @@ mod object_type_walk_rules_data;
 mod object_update_los;
 #[path = "objects_data_find_good_at.rs"]
 mod objects_data_find_good_at;
+#[path = "objects_data_find_good_at_tcoord.rs"]
+mod objects_data_find_good_at_tcoord;
 #[path = "objects_data_find_goody_at.rs"]
 mod objects_data_find_goody_at;
 #[path = "objects_data_find_town.rs"]

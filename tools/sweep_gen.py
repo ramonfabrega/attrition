@@ -2685,12 +2685,13 @@ def validate_sweep_registrations(crate):
         for name in selected:
             if sweep_family(name) != family:
                 raise ValueError(f'{name} is in the wrong partition: {family}')
-            if 'crate::' in (folder / f'{name}.rs').read_text():
-                raise ValueError(f'{name} now references crate internals; move its registration to mod.rs')
         entry = crate / 'tests' / f'sweep_{family}.rs'
         mount = f'#[path = "../src/sweep/standalone_{family}.rs"]\nmod sweep;'
         if mount not in entry.read_text():
             raise ValueError(f'partition is not mounted by {entry}')
+        if any('crate::' in (folder / f'{name}.rs').read_text() for name in selected):
+            if 'pub use sim::*;' not in entry.read_text().splitlines():
+                raise ValueError(f'public API bridge missing from {entry}')
         names += selected
     excluded = {'mod', 'support', *(f'standalone_{f}' for f in SWEEP_FAMILIES)}
     sources = {p.stem for p in folder.glob('*.rs')

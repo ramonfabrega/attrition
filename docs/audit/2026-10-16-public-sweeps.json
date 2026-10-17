@@ -1,0 +1,38 @@
+{
+  "starting_tip": "1273edded33d3550195b26c43302ec7772b8d9c0",
+  "evidence_root": "/tmp/attrition-public-sweeps-20261016-01",
+  "moved_modules": 196,
+  "unchanged_source_bodies": 1047,
+  "body_hashes": "body-hashes.json",
+  "test_names_equal": true,
+  "sim_tests": {
+    "lib": 1654,
+    "sweep_a_f": 251,
+    "sweep_g_o": 270,
+    "sweep_p_t": 190,
+    "sweep_u_z": 221
+  },
+  "measurements": {
+    "baseline-edit": {
+      "wall_seconds": 14.37,
+      "cpu_seconds": 16.59,
+      "sampled_tree_mib": 1071
+    },
+    "extracted-edit": {
+      "wall_seconds": 2.47,
+      "cpu_seconds": 13.98,
+      "sampled_tree_mib": 404
+    },
+    "repeat-edit": {
+      "wall_seconds": 2.47,
+      "cpu_seconds": 14.0,
+      "sampled_tree_mib": 400
+    },
+    "existing-edit": {
+      "wall_seconds": 2.15,
+      "cpu_seconds": 2.76,
+      "sampled_tree_mib": 229
+    }
+  },
+  "gate": "pending"
+}

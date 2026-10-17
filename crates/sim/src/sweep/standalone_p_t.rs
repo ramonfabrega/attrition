@@ -42,12 +42,18 @@ mod path_finder_valid_tcoord;
 mod path_finder_valid_ucoord;
 #[path = "path_finder_walk_data.rs"]
 mod path_finder_walk_data;
+#[path = "patrol_order_get_patrol_order.rs"]
+mod patrol_order_get_patrol_order;
 #[path = "patrol_order_walk_data.rs"]
 mod patrol_order_walk_data;
+#[path = "player_is_active.rs"]
+mod player_is_active;
 #[path = "player_is_active_connection.rs"]
 mod player_is_active_connection;
 #[path = "player_is_connection.rs"]
 mod player_is_connection;
+#[path = "player_is_over.rs"]
+mod player_is_over;
 #[path = "player_lose.rs"]
 mod player_lose;
 #[path = "player_walk_data.rs"]
@@ -68,6 +74,8 @@ mod regions_concat;
 mod regions_fix_all_borders;
 #[path = "regions_walk_data.rs"]
 mod regions_walk_data;
+#[path = "repair_order_get_type.rs"]
+mod repair_order_get_type;
 #[path = "repair_order_get_type_vtordisp.rs"]
 mod repair_order_get_type_vtordisp;
 #[path = "resource_divvy_pool_add_early.rs"]
@@ -82,6 +90,8 @@ mod resource_divvy_pool_refresh_early;
 mod resource_divvy_pool_refresh_late;
 #[path = "resource_divvy_pool_refresh_water.rs"]
 mod resource_divvy_pool_refresh_water;
+#[path = "reversing.rs"]
+mod reversing;
 #[path = "river_doober_add_doob_for_render.rs"]
 mod river_doober_add_doob_for_render;
 #[path = "river_doobers_add_doobers_for_render.rs"]
@@ -112,6 +122,12 @@ mod setup_get_starting_citizens;
 mod setup_init_wild_life;
 #[path = "signposts_cur_name.rs"]
 mod signposts_cur_name;
+#[path = "signposts_cur_x.rs"]
+mod signposts_cur_x;
+#[path = "signposts_cur_y.rs"]
+mod signposts_cur_y;
+#[path = "signposts_get_num.rs"]
+mod signposts_get_num;
 #[path = "signposts_head.rs"]
 mod signposts_head;
 #[path = "signposts_next.rs"]
@@ -148,6 +164,10 @@ mod spell_type_walk_rules_data;
 mod storm_get_name;
 #[path = "storm_on_field_change.rs"]
 mod storm_on_field_change;
+#[path = "strafe_order_get_air_order.rs"]
+mod strafe_order_get_air_order;
+#[path = "strafe_order_get_attack_order.rs"]
+mod strafe_order_get_attack_order;
 #[path = "strafe_order_get_strafe_order_vtordisp.rs"]
 mod strafe_order_get_strafe_order_vtordisp;
 #[path = "strafe_order_walk_data.rs"]
@@ -174,8 +194,12 @@ mod sub_object_refresh_z;
 mod sub_object_set_new_location;
 #[path = "sub_object_time.rs"]
 mod sub_object_time;
+#[path = "subobject_is_active.rs"]
+mod subobject_is_active;
 #[path = "subobject_swap_team.rs"]
 mod subobject_swap_team;
+#[path = "supply_data_get_radius.rs"]
+mod supply_data_get_radius;
 #[path = "supply_deplete.rs"]
 mod supply_deplete;
 #[path = "supply_walk_data.rs"]
@@ -188,12 +212,16 @@ mod surf_wave_section_load_old_bh3;
 mod sync_point_on_player_deleted;
 #[path = "target_order_get_target.rs"]
 mod target_order_get_target;
+#[path = "target_order_get_target_order.rs"]
+mod target_order_get_target_order;
 #[path = "target_order_target_exists.rs"]
 mod target_order_target_exists;
 #[path = "target_order_walk_data.rs"]
 mod target_order_walk_data;
 #[path = "tcoord_data_walk_data.rs"]
 mod tcoord_data_walk_data;
+#[path = "tcoord_less.rs"]
+mod tcoord_less;
 #[path = "tech_type_backup.rs"]
 mod tech_type_backup;
 #[path = "tech_type_restore.rs"]
@@ -234,6 +262,8 @@ mod terrain_vis_set_base_source_pool;
 mod terrain_vis_set_extra_source_pool;
 #[path = "terrain_vis_wcoord_was_cached.rs"]
 mod terrain_vis_wcoord_was_cached;
+#[path = "think_order_get_type.rs"]
+mod think_order_get_type;
 #[path = "time_sync_get_best_ping_time.rs"]
 mod time_sync_get_best_ping_time;
 #[path = "time_sync_on_player_deleted.rs"]
@@ -274,8 +304,14 @@ mod turn_control_set_pause;
 mod turn_control_speed_down;
 #[path = "turn_control_speed_up.rs"]
 mod turn_control_speed_up;
+#[path = "type_bonus.rs"]
+mod type_bonus;
+#[path = "type_build.rs"]
+mod type_build;
 #[path = "type_data_avail.rs"]
 mod type_data_avail;
+#[path = "type_data_can_pay_cost.rs"]
+mod type_data_can_pay_cost;
 #[path = "type_data_get_kill_value.rs"]
 mod type_data_get_kill_value;
 #[path = "type_data_get_limiting_resource.rs"]
@@ -306,20 +342,46 @@ mod type_data_is_scholar;
 mod type_data_is_unpack;
 #[path = "type_data_is_worker.rs"]
 mod type_data_is_worker;
+#[path = "type_data_research_time.rs"]
+mod type_data_research_time;
 #[path = "type_data_say_name.rs"]
 mod type_data_say_name;
+#[path = "type_data_time.rs"]
+mod type_data_time;
 #[path = "type_data_type_graft.rs"]
 mod type_data_type_graft;
+#[path = "type_final.rs"]
+mod type_final;
+#[path = "type_gaia.rs"]
+mod type_gaia;
+#[path = "type_good.rs"]
+mod type_good;
+#[path = "type_gov.rs"]
+mod type_gov;
+#[path = "type_gov_hero.rs"]
+mod type_gov_hero;
+#[path = "type_item.rs"]
+mod type_item;
 #[path = "type_set_graph_name.rs"]
 mod type_set_graph_name;
 #[path = "type_set_help_name.rs"]
 mod type_set_help_name;
 #[path = "type_set_type_name.rs"]
 mod type_set_type_name;
+#[path = "type_specialty.rs"]
+mod type_specialty;
+#[path = "type_spell.rs"]
+mod type_spell;
 #[path = "type_sum_cost.rs"]
 mod type_sum_cost;
+#[path = "type_tech.rs"]
+mod type_tech;
+#[path = "type_unit.rs"]
+mod type_unit;
 #[path = "type_walk_rules_data.rs"]
 mod type_walk_rules_data;
+#[path = "type_wonder.rs"]
+mod type_wonder;
 #[path = "types_walk_data.rs"]
 mod types_walk_data;
 #[path = "types_walk_rules_data.rs"]

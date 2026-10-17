@@ -465,3 +465,17 @@ sweeps and is not a complete sim suite. The release gate still discovers/runs
 all targets and applies the same exact filters. See the
 [family journal](journal/2026-10-16-test-families.md) and
 [audit](audit/2026-10-16-test-families.json) for evidence and limitations.
+
+### Public-API extension
+
+A compiler-checked follow-up moves196 more unchanged sweeps into the same four
+partitions via test-only re-exports of the existing public sim API. No production
+APIs are widened. Sim totals remain2586: library1654, partitions251/270/190/221.
+New generated `crate::` tests still start conservatively in the library; manual
+promotion requires compilation. The guard requires the public API bridge where
+used, while Rust rejects private access. Regeneration retains ownership.
+The newly extracted corner-tile edit measures14.37→2.47s, CPU16.59→13.98–14.00s,
+sampled build memory1071→400–404MiB; an existing independent sweep edit remains
+2.15s/2.76CPU/229MiB. Full required-fixture validation is pending. See the
+[public-API journal](journal/2026-10-16-public-sweeps.md) and
+[audit](audit/2026-10-16-public-sweeps.json). No whole-suite gain claimed.

@@ -77,8 +77,11 @@ Test-family follow-up:736 independent sweeps move into four Cargo targets;
 2586 total sim names preserved exactly. Sweep edit21.95→2.21–2.78s/CPU103.49→2.76–2.83s;
 full required-fixture gate passed on `69e343a3`:262.15s/1443.50CPU/8360MiB,
 all checks and3276 fixture requests retained. See [family journal](journal/2026-10-16-test-families.md).
-Next: observe admission wait versus execution; assess further independent test
-boundaries. Each revision keeps its own test verdict.
+Public-API follow-up:196 more unchanged sweeps use the existing four partitions;
+corner-tile edit14.37→2.47s/CPU16.59→14.00s/build memory1071→400–404MiB.
+2586 total names preserved; full gate pending. See [journal](journal/2026-10-16-public-sweeps.md).
+Next: observe admission wait versus execution; assess replay compilation boundaries.
+Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See
 [journal](journal/2026-10-16-shared-runner.md) for evidence and validation status.

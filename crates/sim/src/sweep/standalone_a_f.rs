@@ -20,6 +20,8 @@ mod air_attack_ground_order_vector_deleting_destructor_vtordisp;
 mod air_attack_ground_order_walk_data;
 #[path = "air_attack_ground_order_walk_data_vtordisp.rs"]
 mod air_attack_ground_order_walk_data_vtordisp;
+#[path = "air_order_get_air_order.rs"]
+mod air_order_get_air_order;
 #[path = "air_order_walk_data.rs"]
 mod air_order_walk_data;
 #[path = "air_patrol_order_vector_deleting_destructor_vtordisp.rs"]
@@ -28,6 +30,10 @@ mod air_patrol_order_vector_deleting_destructor_vtordisp;
 mod air_patrol_order_walk_data;
 #[path = "air_patrol_order_walk_data_vtordisp.rs"]
 mod air_patrol_order_walk_data_vtordisp;
+#[path = "airattackgroundorder_get_air_order.rs"]
+mod airattackgroundorder_get_air_order;
+#[path = "airpatrolorder_get_air_patrol_order.rs"]
+mod airpatrolorder_get_air_patrol_order;
 #[path = "ammo_out_set_shooter_vis.rs"]
 mod ammo_out_set_shooter_vis;
 #[path = "ammo_process.rs"]
@@ -40,6 +46,10 @@ mod animal_data_valid_target_const;
 mod animal_update_los;
 #[path = "armies_diplo_change.rs"]
 mod armies_diplo_change;
+#[path = "armies_find_city.rs"]
+mod armies_find_city;
+#[path = "armies_find_useful_army.rs"]
+mod armies_find_useful_army;
 #[path = "armies_leader_defeated.rs"]
 mod armies_leader_defeated;
 #[path = "armies_num_armies.rs"]
@@ -52,18 +62,24 @@ mod army_count;
 mod army_member;
 #[path = "army_walk_data.rs"]
 mod army_walk_data;
+#[path = "attack_ground_order_get_type.rs"]
+mod attack_ground_order_get_type;
 #[path = "attack_ground_order_get_type_vtordisp.rs"]
 mod attack_ground_order_get_type_vtordisp;
 #[path = "attack_ground_order_walk_data.rs"]
 mod attack_ground_order_walk_data;
 #[path = "attack_ground_order_walk_data_vtordisp.rs"]
 mod attack_ground_order_walk_data_vtordisp;
+#[path = "attack_order_get_type.rs"]
+mod attack_order_get_type;
 #[path = "attack_order_get_type_vtordisp.rs"]
 mod attack_order_get_type_vtordisp;
 #[path = "attack_order_walk_data.rs"]
 mod attack_order_walk_data;
 #[path = "attack_to_order_walk_data.rs"]
 mod attack_to_order_walk_data;
+#[path = "attacktoorder_get_attack_to_order.rs"]
+mod attacktoorder_get_attack_to_order;
 #[path = "balance_return_modifier.rs"]
 mod balance_return_modifier;
 #[path = "balance_walk_rules_data.rs"]
@@ -98,12 +114,22 @@ mod build_data_check_capture_health;
 mod build_data_find_in_queue;
 #[path = "build_data_get_base_garrison_arrows.rs"]
 mod build_data_get_base_garrison_arrows;
+#[path = "build_data_get_caster_stance.rs"]
+mod build_data_get_caster_stance;
+#[path = "build_data_get_combat_stance.rs"]
+mod build_data_get_combat_stance;
+#[path = "build_data_get_first_gather.rs"]
+mod build_data_get_first_gather;
 #[path = "build_data_get_garrison_arrows.rs"]
 mod build_data_get_garrison_arrows;
 #[path = "build_data_get_most_shots.rs"]
 mod build_data_get_most_shots;
+#[path = "build_data_get_packer_stance.rs"]
+mod build_data_get_packer_stance;
 #[path = "build_data_get_shot.rs"]
 mod build_data_get_shot;
+#[path = "build_data_get_worker_stance.rs"]
+mod build_data_get_worker_stance;
 #[path = "build_data_is_gathered_by.rs"]
 mod build_data_is_gathered_by;
 #[path = "build_data_is_infinite.rs"]
@@ -112,6 +138,8 @@ mod build_data_is_infinite;
 mod build_data_is_now_seen;
 #[path = "build_data_is_unassimilated.rs"]
 mod build_data_is_unassimilated;
+#[path = "build_data_is_wonder.rs"]
+mod build_data_is_wonder;
 #[path = "build_data_max_gatherers.rs"]
 mod build_data_max_gatherers;
 #[path = "build_data_most_shots.rs"]
@@ -122,6 +150,8 @@ mod build_data_num_gather;
 mod build_data_num_scholars;
 #[path = "build_finished.rs"]
 mod build_finished;
+#[path = "build_order_get_type.rs"]
+mod build_order_get_type;
 #[path = "build_order_get_type_vtordisp.rs"]
 mod build_order_get_type_vtordisp;
 #[path = "build_queue_data_get_job_counter.rs"]
@@ -132,6 +162,8 @@ mod build_queue_data_get_next_helicopter;
 mod build_queue_data_get_next_non_caravan;
 #[path = "build_queue_data_get_queue.rs"]
 mod build_queue_data_get_queue;
+#[path = "build_queue_get_size.rs"]
+mod build_queue_get_size;
 #[path = "build_queue_set_job_counter.rs"]
 mod build_queue_set_job_counter;
 #[path = "build_queue_un_queue.rs"]
@@ -144,6 +176,8 @@ mod build_remove_gatherer;
 mod build_repair_damage;
 #[path = "build_type_backup.rs"]
 mod build_type_backup;
+#[path = "build_type_corner_tile.rs"]
+mod build_type_corner_tile;
 #[path = "build_type_data_already_built.rs"]
 mod build_type_data_already_built;
 #[path = "build_type_data_area.rs"]
@@ -154,14 +188,24 @@ mod build_type_data_basic_type;
 mod build_type_data_blocked_town;
 #[path = "build_type_data_can_capture.rs"]
 mod build_type_data_can_capture;
+#[path = "build_type_data_connects_to_roads.rs"]
+mod build_type_data_connects_to_roads;
+#[path = "build_type_data_fundamental_type.rs"]
+mod build_type_data_fundamental_type;
+#[path = "build_type_data_gather_radius.rs"]
+mod build_type_data_gather_radius;
 #[path = "build_type_data_get_city_level.rs"]
 mod build_type_data_get_city_level;
+#[path = "build_type_data_get_kill_value.rs"]
+mod build_type_data_get_kill_value;
 #[path = "build_type_data_has_stance_type.rs"]
 mod build_type_data_has_stance_type;
 #[path = "build_type_data_is_city.rs"]
 mod build_type_data_is_city;
 #[path = "build_type_data_is_civilian.rs"]
 mod build_type_data_is_civilian;
+#[path = "build_type_data_is_defensive.rs"]
+mod build_type_data_is_defensive;
 #[path = "build_type_data_is_dock.rs"]
 mod build_type_data_is_dock;
 #[path = "build_type_data_is_embassy.rs"]
@@ -170,18 +214,28 @@ mod build_type_data_is_embassy;
 mod build_type_data_is_flat;
 #[path = "build_type_data_is_fort.rs"]
 mod build_type_data_is_fort;
+#[path = "build_type_data_is_gather_enhancer.rs"]
+mod build_type_data_is_gather_enhancer;
 #[path = "build_type_data_is_gather_type.rs"]
 mod build_type_data_is_gather_type;
+#[path = "build_type_data_is_military_trainer.rs"]
+mod build_type_data_is_military_trainer;
 #[path = "build_type_data_is_mine.rs"]
 mod build_type_data_is_mine;
+#[path = "build_type_data_is_spellcaster.rs"]
+mod build_type_data_is_spellcaster;
 #[path = "build_type_data_is_tower.rs"]
 mod build_type_data_is_tower;
+#[path = "build_type_data_is_training_building.rs"]
+mod build_type_data_is_training_building;
 #[path = "build_type_data_makes_roads.rs"]
 mod build_type_data_makes_roads;
 #[path = "build_type_data_max_flat_gatherers.rs"]
 mod build_type_data_max_flat_gatherers;
 #[path = "build_type_data_max_knowledge_gatherers.rs"]
 mod build_type_data_max_knowledge_gatherers;
+#[path = "build_type_data_num_preq.rs"]
+mod build_type_data_num_preq;
 #[path = "build_type_data_queue_here.rs"]
 mod build_type_data_queue_here;
 #[path = "build_type_restore.rs"]
@@ -214,12 +268,20 @@ mod caster_walk_data;
 mod circle_render_get_name;
 #[path = "circle_render_on_field_change.rs"]
 mod circle_render_on_field_change;
+#[path = "city_calc_gather.rs"]
+mod city_calc_gather;
 #[path = "city_could_queue.rs"]
 mod city_could_queue;
 #[path = "city_data_depop_can_queue.rs"]
 mod city_data_depop_can_queue;
+#[path = "city_data_enhancer_amount.rs"]
+mod city_data_enhancer_amount;
 #[path = "city_data_enhancer_level.rs"]
 mod city_data_enhancer_level;
+#[path = "city_data_get_farm_limit.rs"]
+mod city_data_get_farm_limit;
+#[path = "city_data_get_level.rs"]
+mod city_data_get_level;
 #[path = "city_data_get_literacy.rs"]
 mod city_data_get_literacy;
 #[path = "city_data_get_pop_value.rs"]
@@ -236,10 +298,20 @@ mod city_data_granary_level;
 mod city_data_is_seen;
 #[path = "city_data_is_unassimilated.rs"]
 mod city_data_is_unassimilated;
+#[path = "city_data_lumber_level.rs"]
+mod city_data_lumber_level;
+#[path = "city_data_num_kinds_needed.rs"]
+mod city_data_num_kinds_needed;
+#[path = "city_data_pop_cap.rs"]
+mod city_data_pop_cap;
 #[path = "city_data_pop_growth.rs"]
 mod city_data_pop_growth;
 #[path = "city_data_ready_to_upgrade.rs"]
 mod city_data_ready_to_upgrade;
+#[path = "city_data_smelter_level.rs"]
+mod city_data_smelter_level;
+#[path = "city_data_upgrades_to.rs"]
+mod city_data_upgrades_to;
 #[path = "city_get_trade_routes.rs"]
 mod city_get_trade_routes;
 #[path = "city_walk_data.rs"]
@@ -380,6 +452,8 @@ mod command_manager_issue_unqueue_wall;
 mod command_package_walk_data;
 #[path = "constants_walk_data.rs"]
 mod constants_walk_data;
+#[path = "cosx.rs"]
+mod cosx;
 #[path = "death_obj_data_blocking.rs"]
 mod death_obj_data_blocking;
 #[path = "death_obj_data_walk_data.rs"]
@@ -398,20 +472,34 @@ mod farms_add_animals_all;
 mod farms_data_get_farm_type;
 #[path = "farms_data_get_wheat_status.rs"]
 mod farms_data_get_wheat_status;
+#[path = "farms_grow.rs"]
+mod farms_grow;
 #[path = "farms_out_get_name.rs"]
 mod farms_out_get_name;
+#[path = "farms_snip.rs"]
+mod farms_snip;
 #[path = "farms_walk_data.rs"]
 mod farms_walk_data;
+#[path = "find_angle.rs"]
+mod find_angle;
+#[path = "flanking.rs"]
+mod flanking;
 #[path = "fog_master_get_name.rs"]
 mod fog_master_get_name;
+#[path = "follow_order_get_follow_order.rs"]
+mod follow_order_get_follow_order;
 #[path = "follow_order_get_follow_order_vtordisp.rs"]
 mod follow_order_get_follow_order_vtordisp;
+#[path = "follow_order_get_type.rs"]
+mod follow_order_get_type;
 #[path = "follow_order_get_type_vtordisp.rs"]
 mod follow_order_get_type_vtordisp;
 #[path = "follow_order_walk_data.rs"]
 mod follow_order_walk_data;
 #[path = "follow_order_walk_data_vtordisp.rs"]
 mod follow_order_walk_data_vtordisp;
+#[path = "form_order_get_form_order.rs"]
+mod form_order_get_form_order;
 #[path = "form_order_walk_data.rs"]
 mod form_order_walk_data;
 #[path = "form_order_walk_data_vtordisp.rs"]

@@ -2068,6 +2068,15 @@ class FamilyRegistrations(unittest.TestCase):
             path = folder / 'standalone_a_f.rs'
             path.write_text(sweep_gen.insert_standalone(path.read_text(), 'mod apple;'))
             sweep_gen.validate_sweep_registrations(root)
+            # A crate:: path may name a public API. Preserve its body and let
+            # Rust enforce visibility through the integration target bridge.
+            (folder / 'apple.rs').write_text('crate::public_api();')
+            with self.assertRaisesRegex(ValueError, 'public API bridge missing'):
+                sweep_gen.validate_sweep_registrations(root)
+            entry = root / 'tests/sweep_a_f.rs'
+            entry.write_text('pub use sim::*;\n' + entry.read_text())
+            sweep_gen.validate_sweep_registrations(root)
+            (folder / 'apple.rs').write_text('#[test] fn check() {}')
             manifest = root / 'Cargo.toml'
             manifest.write_text('[package]\nautotests = false\n')
             with self.assertRaises(ValueError):
