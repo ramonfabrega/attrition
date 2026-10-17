@@ -572,3 +572,5 @@ mod farms_data_get_nearest_farm_type;
 mod build_type_data_count_trees_adjacent;
 #[path = "build_type_data_count_mountains_adjacent.rs"]
 mod build_type_data_count_mountains_adjacent;
+#[path = "build_type_data_check_enemy_adjacent.rs"]
+mod build_type_data_check_enemy_adjacent;
