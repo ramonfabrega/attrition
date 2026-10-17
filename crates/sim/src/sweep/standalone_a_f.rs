@@ -206,6 +206,8 @@ mod build_type_data_gather_radius;
 mod build_type_data_get_city_level;
 #[path = "build_type_data_get_kill_value.rs"]
 mod build_type_data_get_kill_value;
+#[path = "build_type_data_get_stance_type.rs"]
+mod build_type_data_get_stance_type;
 #[path = "build_type_data_has_stance_type.rs"]
 mod build_type_data_has_stance_type;
 #[path = "build_type_data_is_city.rs"]
