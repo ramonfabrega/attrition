@@ -64,6 +64,22 @@ class Admission(unittest.TestCase):
             lease.close()
             self.assertEqual(budget.status(d), [])
 
+    def test_a_concurrent_probe_is_not_a_holder(self):
+        # Two RSS samplers probe the slots at once under the shared mutex; one's
+        # probe of a free, never-described slot must not read to the other as a
+        # lease with invalid owner metadata (2783's lane gate, exit 125 x3).
+        import fcntl
+        with tempfile.TemporaryDirectory() as d:
+            budget.Lease(d, 1, 128)
+            (Path(d) / 'admission.lock').touch()
+            fd = os.open(Path(d) / 'cpu-0.lock', os.O_RDWR | os.O_CREAT, 0o600)
+            try:
+                fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
+                self.assertEqual(budget.status(d), [])
+                budget.sample_rss(os.getpid(), d)
+            finally:
+                os.close(fd)
+
     def test_invalid_budget(self):
         with tempfile.TemporaryDirectory() as d:
             for cpu, memory in [(0, 1), (budget.CPU + 1, 1), (1, 0), (1, budget.MEMORY_MIB + 1)]:

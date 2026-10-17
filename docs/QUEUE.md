@@ -22,8 +22,8 @@ waiting a landing** against 3.92 / 27.0 — a fifth broken, so **the fourth lane
 - **Gates (DECISIONS 72, 73)**: the booking gate `--scope <last whole gate's tip> --test-threads 8`, whole every third landing
   and at the drain; a whole gate refuses a stale `agent-*` worktree (Loop 2724). The sweep's per-function check runs in debug (2787).
 - **Lanes: four, live from `a4ff472f`** (DECISIONS 75: the lane entry 74 took goes back for the trial): 2780 (AI §233,
-  EU, run 873), 2785 (GOLDEN §103, EX, run 878), 2782 (EV) and 2783 (EW) on the two sweep lanes. Next 2788, run 879 (Astra 900–909). Pools: GOLDEN §104–109, AI §234–239, park EY–FC.
-- **Fable backlog: 9 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775).
+  EU, run 873), 2785 (GOLDEN §103, EX, run 878), 2782 (EV) and 2783 (EW) on the two sweep lanes. Next 2789, run 879 (Astra 900–909). Pools: GOLDEN §104–109, AI §234–239, park EY–FC.
+- **Fable backlog: 10 Loop items** (1570, 1725, 2003, 2518, 2654, 2750, 2763, 2769, 2775, 2788).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

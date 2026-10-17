@@ -3736,6 +3736,18 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-17 — the thirty-eighth tranche's
+
+(2788) **Two RSS samplers' slot probes read each other as holders: exit 125, "cannot monitor a held lease with
+invalid owner metadata"** (the commander, from 2783's lane gate, red twice on tests it did not touch): `status()`
+probed each `cpu-N.lock` with `LOCK_EX | LOCK_NB` under the *shared* admission mutex, so two supervisors sampling at
+once each found the other's probe as a holder, and a free slot never described (`cpu-24..31.lock` empty on disk,
+2026-10-17) read as `owner: None`. Three of 2783's run-3 failures were this exit (`debug_view::…replay_context`,
+`army::…run29_s_navy…`, `archive::…publication_never_overwrites…`); the marker does not reach it, since admission off
+still samples. **Fixed by the commander the same day**: the probe takes `LOCK_SH` — a holder's exclusive lock still
+refuses it, a second probe does not — held by `test_a_concurrent_probe_is_not_a_holder`, made to fail first. Yours:
+whether the trial's numbers before this commit count, and whether a sampler should ever raise on a slot it cannot read.
+
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 (2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
