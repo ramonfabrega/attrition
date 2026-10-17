@@ -62,6 +62,8 @@ mod unit_data_get_caster_stance;
 mod unit_data_get_combat_stance;
 #[path = "unit_data_get_gpiece_0.rs"]
 mod unit_data_get_gpiece_0;
+#[path = "unit_data_get_gpiece_2.rs"]
+mod unit_data_get_gpiece_2;
 #[path = "unit_data_get_order.rs"]
 mod unit_data_get_order;
 #[path = "unit_data_get_packer_stance.rs"]
