@@ -141,6 +141,7 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
     let difficulty = built.sim.lobby.difficulty;
     let last = tr.frames.last().map_or(0, |(n, _)| *n);
     let (mut count, mut sequence) = (None, None);
+    let mut probe_last: Option<String> = None;
     for _ in 0..last {
         let at = built.sim.frame;
         // `RON_SWEEP=<frame>:<who>/<o>` — every collision sweep one unit
@@ -177,6 +178,19 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         crate::diff::harness::debug_ammo(&built, at);
         crate::diff::harness::debug_builds(&built, at);
         crate::diff::harness::debug_tech(&built, at);
+        // PROBE 2956: `RON_PROBE_AISITES=1` — who=1's site table whenever it changes.
+        if std::env::var("RON_PROBE_AISITES").is_ok() {
+            let s: Vec<String> = built.sim.ai[1]
+                .sites
+                .iter()
+                .map(|x| format!("({},{}) v{} r{} d{} k{}", x.wx, x.wy, x.val, x.reg, x.dist, x.rank))
+                .collect();
+            let line = s.join(" | ");
+            if probe_last.as_deref() != Some(line.as_str()) {
+                eprintln!("  aisites f{at}: {line}");
+                probe_last = Some(line);
+            }
+        }
         // `RON_DEBUG_UNIT` and `RON_DEBUG_SITES=<lo>-<hi>`'s attributed
         // sites, as the second pair's long walk prints them (item 1206).
         crate::diff::harness::debug_watch(&built, at + 1);
