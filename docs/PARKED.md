@@ -3775,7 +3775,8 @@ answer takes a packet hooked at the caller's return before a reading. One reach.
 (2914) **A chapter's wiring is six files by hand** (2895's "for the Loop" line, filed at its merge): the script list,
 the walk and widening tests, `testkit`'s word and window, `WIDENINGS`, `floors` and the `coverage` driver, written for every
 chapter since eighty. Candidate: a `tools/` scaffold off `runwiring.py` that writes them from the chapter's number, run and
-word, a test made to fail first. One reach.
+word, a test made to fail first. One reach. **Second reach** (2915's "for the Loop" line, filed at its merge): the staged-line
+count `walk_script` asserts is counted by hand and was wrong on run889's first walk (8, not 6); the scaffold would count it.
 
 (2926) **The two sweep lanes swept the same function twice in one tranche** (the commander's, noticed at 2910's merge):
 2877 re-swept 2863's `Group::kill_next_order`, and 2910 re-swept 2900's `ObjectsData::find_goody_at@0065c040` and
@@ -6738,10 +6739,11 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2915, 2026-10-17 — chapter 88, the kill arm
 
-- (2915, first) **A cast's completion on an unseen target** — §111 (3) still open: run885's Spy did not reach range in 400 frames, so whether range-arrival
-  asks `is_seen` is untested. Names no score; a staging with the Hoplite ~14 tiles out would reach it.
-- (2915, second) **A building target killed mid-approach** — the same `is_valid_target` branch as the unit kill (§112), no capture drives it; a Spy sent at a
-  Barracks that who=1 loses first. Names no score.
+(2928) **A cast's completion on an unseen target** — §111 (3) still open: run885's Spy did not reach range in 400 frames, so whether range-arrival
+asks `is_seen` is untested. Names no score; a staging with the Hoplite ~14 tiles out would reach it. Booked as 2930.
+
+(2929) **A building target killed mid-approach** — the same `is_valid_target` branch as the unit kill (§112), no capture drives it; a Spy sent at a
+Barracks that who=1 loses first. Names no score.
 
 ## Parked by the next landing, slot GD — reserved
 
