@@ -2512,8 +2512,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + ([f'the stubbed vtable laid at `{vtat}`'] if pvtat else [])
         + [f'the stubbed vtable laid at `{vh}` half the rows' for vh in vtat_half]
         + [f'the word at `{vi.partition(":")[0]}` laid as the image vtable at {vi.partition(":")[2]} (the stub slots copied there) half the rows' for vi in vtat_image]
-        + [f'the word at `{al.partition(":")[0]}` laid as the address of `{al.partition(":")[2]}` half the rows'
-           for al in alias]
+        + [f'the word at `{al.partition(":")[0]}` laid as the address of `{al.partition(":")[2].rstrip("!")}` '
+           + ('every row' if al.endswith('!') else 'half the rows') for al in alias]
         + [f'stub {i} answers `p{d}+j`, the data of the object its `ecx` is in `p{f}+j` (j < {n}), linked at `+{o:#x}`'
            for i, f, d, n, o in pby]
         + (['`__cdecl`: the caller pops the arguments'] if cdecl else [])
