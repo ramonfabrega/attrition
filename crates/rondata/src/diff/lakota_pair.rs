@@ -134,8 +134,20 @@ pub(crate) const LAKOTA: Pair = Pair {
     // pushed group 65 with an `EXPLORE_TO`. Now ours 37 draws, theirs 287,
     // index 5 — ours `Leader::produce_building+0x1805`, theirs
     // `Build::find_gather_tiles+0x10a`.
-    count: 5982,
-    sequence: 5982,
+    // Item 2779: 5982 → 5985, Capitalism's oil (`Leader::calc_gather`'s
+    // `006cf454`–`006cf47f`, `CAPITALISM_OIL_PROD × 16` after the
+    // refineries; `docs/AI.md` §234): who=1 took Capitalism in the gap
+    // 5658..5975, so on run879's block 5976 it reads `resources[oil]`
+    // 9966 against ours' 8366 (nine wells, two refineries), over its
+    // 8800 cap (`over_cap` 1 against 0). Its `create_buildings` then
+    // values no Oil Well, and on 5982 `make_stuff` buys `MAKE[4]` the
+    // Woodcutter's Camp (`t` 418, 141000, city 1) and `find_gather_tiles`
+    // shuffles its ground, where ours bought an Oil Well (421, 394500,
+    // city 0) and jittered its platform. Now ours 23 draws, theirs 24,
+    // index 19 — ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+    // theirs `Guy::set_anim+0x104b`.
+    count: 5985,
+    sequence: 5985,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -651,5 +663,21 @@ fn run879_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "initial run879 baseline");
+    // Item 2779: the word 5982's own block is 5983, widened at 4745 keys.
+    // Its first parting is who=1's oil, standing from 5976: `resources[oil]`
+    // ours 8366 against theirs 9966, `income` 8366 against 8800, `over_cap`
+    // 0 against 1, `leftover` 6630 against 1592, and `rate` on 5977 (522
+    // against 550) — Capitalism's `CAPITALISM_OIL_PROD × 16`, held from the
+    // gap 5658..5975 (run867's 5401..5657 agrees on every oil row). On block
+    // 5982 `MAKE[4]` parts: ours the Oil Well (`t` 421, `val` 394500, city
+    // 0), theirs the Woodcutter's Camp (418, 141000, city 1). 4745 → 2854
+    // with Capitalism's oil and gift: no oil row but `bucket` stands, block
+    // 5982 holds no `MAKE` row, and the word's block 5986 holds none. Left:
+    // the keys standing from 5976 (the human's `SITE`, `death:extra`, the
+    // held pools, who=1's buckets, the `form` and `mirror` rows, the
+    // births' `g.angle[0]`), the queues' `cost` rows, and the Transport
+    // Freighter `1/225` (`TypeIndex` 322, sea), idle in ours (`idle` 3)
+    // and on a move to (6552, 7320) in theirs from 5976 — the new word's
+    // candidate; the first row past it is `1/238`'s path on 5990.
+    pin_eq!(w.firsts.len(), 2854, "initial run879 baseline");
 }
