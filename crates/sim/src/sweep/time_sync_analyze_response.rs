@@ -40,7 +40,32 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            todo!()
+            // `param_1 <= ping_times_sorted[12]` (unsigned): `time = param_1/2 + param_2`, `base_time = timeGetTime()`,
+            // the log's flag bit 3 set round `Log::say` and cleared after (so cleared), `game_log`'s detail put back unless
+            // negative (then 1, what the say left). Either way `add_ping(param_1)`, its `ecx` `this` or the log's.
+            let p1 = a[0] as u32;
+            let ping = u32::from_le_bytes([c[1][0], c[1][1], c[1][2], c[1][3]]);
+            if p1 <= ping {
+                let time = (p1 >> 1).wrapping_add(a[1] as u32);
+                c[2][0..4].copy_from_slice(&time.to_le_bytes());
+                c[2][4..8].copy_from_slice(&a[2].to_le_bytes());
+                let flags = rd(&c[3], 4) & !8;
+                wr(&mut c[3], 4, flags);
+                if rd(&c[3], 0x4c) < 0 {
+                    wr(&mut c[3], 0x4c, 1);
+                }
+                log.push(format!("c3+0x0,{}", a[0]));
+                log.push(format!(
+                    "c3+0x0,{},15418236,{},{},0,0,0,0,0,2",
+                    rd(&c[0], 0x10).wrapping_add(0x21458),
+                    time as i32,
+                    a[2]
+                ));
+            } else {
+                log.push(format!("m+0x0,{}", a[0]));
+                log.push("-".into());
+            }
+            1
         };
         assert_eq!(got, want_eax, "analyze_response — eax, row `{line}`");
         assert_eq!(log, want_log, "analyze_response — the recorded calls, row `{line}`");
