@@ -131,6 +131,24 @@ Three shapes, each a `__thiscall` on `ecx`:
           the port cannot see addresses, so it recovers the target from a
           pointer array's entry, as that sweep's does.
 
+          `--answer-by IDX:OBJ0:DAT0:N:LINKOFF` (item 2863, parked 2861): stub
+          IDX answers by its `ecx` — the object in `p<OBJ0+j>` gets the
+          address of `p<DAT0+j>`, the same record every ask, as slot +0x3c
+          of `CityData`'s order objects does — and each data record's short
+          at LINKOFF names a later object or is -1, a chain that must end
+          (the links are laid before the windows are written, so a flag that
+          wants them later never sees them). It answers one stub, so it
+          takes neither `--seq` nor `--answer-win` (the two parked 2861 asked
+          for answer in call order and cannot say which object they were
+          asked of); `--ptrtab ...:vt` lays the object windows and the data
+          windows, and `m+0x74`-style locations hold the second table.
+          `--vtat-image WIN+OFF:VA` copies the stub slots into the image's own
+          vtable at VA and lays VA at WIN+OFF half the rows (the stubbed
+          vtable otherwise): a record compared with a class's vtable that is
+          asked its slots either way (`get_building`'s `Build::vftable`).
+          `--alias WIN+OFF:TARGET!` lays the alias every row: a list's end
+          node that must name its list (`update_patrol_order`, `replace_form_id`).
+
           `--edx-win WIN` (item 2801, parked 2791): `edx` the address of
           window WIN (m, cN or pN) rather than an integer, for a register
           argument that is a pointer (`MiscAccess::world_to_screen`'s
