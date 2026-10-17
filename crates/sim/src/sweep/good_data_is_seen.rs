@@ -64,10 +64,12 @@ fn the_emulated_original_agrees_on_every_row() {
                     1
                 } else {
                     let mut seen = 2usize;
-                    if kind != 6 && kind != 0x1f && player >= 0 {
-                        if kind == 5 || a[5] != 0 || a[6] != 0 {
-                            seen = 1;
-                        }
+                    if kind != 6
+                        && kind != 0x1f
+                        && player >= 0
+                        && (kind == 5 || a[5] != 0 || a[6] != 0)
+                    {
+                        seen = 1;
                     }
                     l[seen - 1] = format!("c0+0x0,sp-0x14,sp-0x8,{player}");
                     l[2 * seen] = h(d(x));
