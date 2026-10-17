@@ -20,10 +20,10 @@ seven stay; `docs/audit/2026-10-17-fable-pass-39.md`.*
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956), as 2974; it stays on its lobby until it closes (DECISIONS 77 (vii)).
   Chapters 86–90 closed; 91 is 2971. Census 1224 → 1319 of 3611. Battery 6566 / 2974 / 176, a gate floor now.
-- **Lanes: five from the pass's commit, none live yet.** 2974 the AI word's (Opus 5.5 medium); 2971 the rules track's, 2975
-  the minting lane, 2976 the audit lane, 2959 the shape sweep (Sonnet 5.5 medium); 2966 behind them; a lane is refilled
-  only while landings + live lanes < 20. Next 2977, run 910 (Astra 900–909). Pools: GOLDEN §116–120, AI §243–247, park GM–GR.
-- **Fable backlog: 7 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973).
+- **Lanes: five live, one landing** (2976, `docs/NATIONS.md`, parked 2977–2982). 2974 the AI word's (Opus 5.5 medium, run
+  910); 2971, 2975, 2959 and 2966 (Sonnet 5.5 medium); refilled only while landings + live lanes < 20. Next 2985, run 911
+  (Astra 900–909). Pools: GOLDEN §116–120, AI §244–247, park GS–GX (GR is 2966's).
+- **Fable backlog: 9 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -46,7 +46,7 @@ landings + live lanes < 20; stop at twenty.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2974 the AI word's (Opus); 2971, 2959 and 2966 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 6585. Take the first unstarted item unless a better
+2974 the AI word's (Opus); 2971, 2975, 2959 and 2966 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 6585. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 2974. **The battery word, 6585 of 13519 (`EastIndiesGermanTier3`):
@@ -62,15 +62,6 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     sharing a nation or a tier on a map; a start sibling and a long trace of run888's shape (110 s each);
     its first try pinned as count and sequence with the draw delta in
     §125's table. Runs 895–899, pool lanes in parallel. Unstarted. Sonnet.
-
-2976. **The nations and the AI's difficulty tiers, audited whole**
-    (DECISIONS 77 (iii)): `docs/NATIONS.md` — every nation's powers from
-    the rules data and the executable's nation arms (`calc_gather`'s,
-    `train_time`'s, `nation_unit_discount`'s kin), and the four tiers'
-    constants, each marked modelled at `<module>` or not, held by a guard
-    that reads the table; the unmodelled ones park as candidates, the
-    held-out lobbies' nations (Chinese, Russians, Egyptians) and tiers
-    first. No run. Unstarted. `--tests nations::`. Sonnet.
 
 2971. **Chapter ninety-one: the Sniper's and Counterintelligence's
     refused arms** (DECISIONS 56 §3; 2949 closed chapter 90 on run892 to
