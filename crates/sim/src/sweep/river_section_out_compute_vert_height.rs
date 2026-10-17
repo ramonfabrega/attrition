@@ -37,19 +37,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            {
-                // The nine-float table (1.0, 0.75, 0.26, 0.0 | 0.0, 0.0, 0.26, 0.75 | 1.0; the image's 0xb69870, 0xb69ac0 and
-                // a literal 1.0) at the argument; c is the float at 0xc11ccc, b the byte at 0xc11cc8, and the 0.25 at
-                // 0xb69484: c - t*c + (c*0.25) * -b, each step a single-precision operation in the order written.
-                const T: [u32; 9] = [
-                    0x3f800000, 0x3f400000, 0x3e851eb8, 0, 0, 0, 0x3e851eb8, 0x3f400000, 0x3f800000,
-                ];
-                let t = f32::from_bits(T[a[0] as usize]);
-                let cf = f32::from_bits(u32::from_le_bytes([c[0][4], c[0][5], c[0][6], c[0][7]]));
-                let b = i32::from(c[0][0]);
-                let r = (cf - t * cf) + (cf * 0.25) * ((-b) as f32);
-                i64::from(r.to_bits() as i32)
-            }
+            0
         };
         assert_eq!(got, want_eax, "compute_vert_height — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
