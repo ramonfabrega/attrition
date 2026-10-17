@@ -392,6 +392,8 @@ mod world_data_get_land;
 mod world_data_get_land_wcoord;
 #[path = "world_data_get_whose.rs"]
 mod world_data_get_whose;
+#[path = "world_data_has_gather_access.rs"]
+mod world_data_has_gather_access;
 #[path = "world_data_has_mountain_tcoords.rs"]
 mod world_data_has_mountain_tcoords;
 #[path = "world_data_is_building_wcoord.rs"]
