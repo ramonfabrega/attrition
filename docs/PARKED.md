@@ -3738,6 +3738,11 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3057) **`sweep_gen.py --answers IDX:V,..` draws a wild word a tenth of the rows** (3030's parked 3053, filed at its
+merge): a stub whose answer indexes an array faults there, where `--answer-range` does not; and a `slot:` stub with the
+wrong argument count faults at 0x1000 from a return address of 0. Candidate: `--answers` draws only its list, and the
+`--stub slot:` docstring names both traps, a test made to fail first. One reach.
+
 (3048) **Two sweep tools pass or refuse by accident** (3038's "for the Loop" lines, parked 3045 and 3046, filed at its
 merge): `sweep_gen.py --cell-win` on a muted-error call site's flag byte writes a pointer whose low byte is the flag, so a
 sweep passes until a draw puts a zero there; and `mutate.py --batch` reads `\n` literally, so a two-line break is refused
@@ -7103,27 +7108,33 @@ an `int` conversion).
 
 ## Parked by item 3030, 2026-10-17 — eight shapes swept, Census 1389 → 1397 on the merged tree
 
-- (3030, first) **`Unit::update_armor` is parked twice now** (3019, and again here): the climb needs a stub chain
-  that ends — `--slotbase 0xe8:<is_captain>` ends it from data (the `+0x8e` high bit) but the slot-`+0xa8`
-  answer (the parent) is one window; `--answer-by` makes a chain from the stub's `ecx` and would take it, with
-  `--link` on `+0x8e`. Its own item, not a third batch's tail (2732).
-- (3030, second) **`Tribes::find`'s `_wcsicmp` arm (`call *0xac5640`, an import) is unreached**: the draw keeps
-  non-null data pointers equal (`{0, 0x401000}`), string offsets zero. Equal non-null pointers with different
-  offsets reach the import and the emulator faults (UC_ERR_READ_UNMAPPED). An `iat:` stub for it
-  (`--stub iat:0xac5640:2 --stub-cdecl`) would answer it and let the offsets move; the port's `side()` arm is
-  held only by the null-pointer rows. Three of its seven breaks pass for that reason.
-- (3030, third) **`Object::poor_target`'s exact edges pass**: `e < 0x2aaaaaaa` and `- 0x80000000` +1 need an
-  angle drawn at the threshold (the generator cannot compute `find_angle`'s answer), and `d > 0xc0` in the
-  unflagged arm needs 192 from a 150..450 range in the ~5 % of rows that reach it.
-- (3030, fourth) **`--answers IDX:V,..` draws a wild word the other tenth of the rows** (`--answer-range`
-  does not): a stub whose answer indexes an array (`init_build`'s `ebx`) faults on that tenth, and the fault
-  names a fetch at 0x1000 from a return address of 0 when a `slot:` stub's argument count is wrong (`slot:0x60:0`
-  for a `ret 8` callee) — two traps for the docstring of `--stub slot:`.
-- (3030, fifth) **`--at VA:SIZE:LO..HI[/b]` is built** (`tools/sweep_gen.py`, a unit test made to fail first in
-  `tools/explore/test_sweep_gen.py`): `Unit::update_local_seen`'s `circle_radius/x/y` use it.
-- (3030, sixth) **`Wall::swap_team` and the `is`-slot sibling shape**: the base-or-slot arm is `--slotbase`, and
-  its flag is 1 for base; `Build::swap_team@00628210` and `SubObject`'s are the same text and not yet swept.
-- (3030, seventh) **`AmmoData::walk_data`, `Game::walk_data`, `TurnControl::end_cannon_time` (3020)** not taken.
+(3050) **`Unit::update_armor` is parked twice now** (3019, and again here): the climb needs a stub chain
+that ends — `--slotbase 0xe8:<is_captain>` ends it from data (the `+0x8e` high bit) but the slot-`+0xa8`
+answer (the parent) is one window; `--answer-by` makes a chain from the stub's `ecx` and would take it, with
+`--link` on `+0x8e`. Its own item, not a third batch's tail (2732).
+
+(3051) **`Tribes::find`'s `_wcsicmp` arm (`call *0xac5640`, an import) is unreached**: the draw keeps
+non-null data pointers equal (`{0, 0x401000}`), string offsets zero. Equal non-null pointers with different
+offsets reach the import and the emulator faults (UC_ERR_READ_UNMAPPED). An `iat:` stub for it
+(`--stub iat:0xac5640:2 --stub-cdecl`) would answer it and let the offsets move; the port's `side()` arm is
+held only by the null-pointer rows. Three of its seven breaks pass for that reason.
+
+(3052) **`Object::poor_target`'s exact edges pass**: `e < 0x2aaaaaaa` and `- 0x80000000` +1 need an
+angle drawn at the threshold (the generator cannot compute `find_angle`'s answer), and `d > 0xc0` in the
+unflagged arm needs 192 from a 150..450 range in the ~5 % of rows that reach it.
+
+(3053) **`--answers IDX:V,..` draws a wild word the other tenth of the rows** (`--answer-range`
+does not): a stub whose answer indexes an array (`init_build`'s `ebx`) faults on that tenth, and the fault
+names a fetch at 0x1000 from a return address of 0 when a `slot:` stub's argument count is wrong (`slot:0x60:0`
+for a `ret 8` callee) — two traps for the docstring of `--stub slot:`. Filed as Loop 3057.
+
+(3054) **`--at VA:SIZE:LO..HI[/b]` is built** (`tools/sweep_gen.py`, a unit test made to fail first in
+`tools/explore/test_sweep_gen.py`): `Unit::update_local_seen`'s `circle_radius/x/y` use it.
+
+(3055) **`Wall::swap_team` and the `is`-slot sibling shape**: the base-or-slot arm is `--slotbase`, and
+its flag is 1 for base; `Build::swap_team@00628210` and `SubObject`'s are the same text and not yet swept.
+
+(3056) **`AmmoData::walk_data`, `Game::walk_data`, `TurnControl::end_cannon_time` (3020)** not taken.
 
 ## Parked by item 3038, 2026-10-17 — the third harvest batch
 
