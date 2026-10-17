@@ -1981,6 +1981,20 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_links=['0x90:3:>'])
 
+    def test_a_pointer_table_is_one_place_for_the_array_and_one_a_record(self):
+        # parked 2772 (item 2782): an object list's N records were N `--place` flags and N `--vtat-also`s written by a shell
+        # loop. `--ptrtab LOC:N:SIZE[:vt]` lays the array of N record pointers at LOC (a place of 4N bytes) and each record
+        # as a SIZE-byte place of the array's window, `vt` laying the stubbed vtable at each record's offset 0 as well.
+        x = sweep_gen.ptrtab_expand('0xc0ab84+m[0x4a]*0x1c:3:0x20', pbase=1)
+        self.assertEqual(x['place'], ['0xc0ab84+m[0x4a]*0x1c:0:12', 'p1+0:0:0x20', 'p1+4:0:0x20', 'p1+8:0:0x20'])
+        self.assertEqual(x['vtat_also'], [])
+        y = sweep_gen.ptrtab_expand('c0+8:2:0x20:vt', pbase=4)
+        self.assertEqual(y['place'], ['c0+8:0:8', 'p4+0:0:0x20', 'p4+4:0:0x20'])
+        self.assertEqual(y['vtat_also'], ['p5+0', 'p6+0'])
+        for bad in ('0xc0ab84:0:0x20', '0xc0ab84:3', '0xc0ab84:3:0x20:xx', '0xc0ab84:3:0'):
+            with self.assertRaises(ValueError):
+                sweep_gen.ptrtab_expand(bad, pbase=1)
+
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
         self.assertEqual(sweep_gen.split_gate_this(['mix', '--gate-this', 'Foo::bar@00401000']),
