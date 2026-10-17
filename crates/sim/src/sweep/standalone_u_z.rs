@@ -26,6 +26,8 @@ mod unbuilt_fort_get_y;
 mod unbuilt_fort_is_started;
 #[path = "unbuilt_fort_walk_data.rs"]
 mod unbuilt_fort_walk_data;
+#[path = "unbuilt_forts_add_unbuilt_fort.rs"]
+mod unbuilt_forts_add_unbuilt_fort;
 #[path = "unbuilt_forts_remove_unbuilt_fort.rs"]
 mod unbuilt_forts_remove_unbuilt_fort;
 #[path = "unbuilt_wonder_is_started.rs"]
