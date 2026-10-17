@@ -166,8 +166,19 @@ pub(crate) const LAKOTA: Pair = Pair {
     // (966); ours flew on and wrapped its walk. Now ours 63 draws, theirs
     // 61, index 43 — ours `Unit::find_attack_pos+0xea9 < Unit::fight+0x115e`,
     // theirs `Unit::do_move+0xe84`.
-    count: 6808,
-    sequence: 6808,
+    // Item 2845: 6808 → 6821, `find_attack_pos`'s held-clear
+    // `0x800000` (`601505`, OR-ed back on every exit; `docs/COMBAT.md`
+    // §17.8, `docs/AI.md` §237): who=1's Rocket Artillery `1/63`
+    // (`TypeIndex` 273, land) walks the bombard ring round the human's
+    // `0/2000` from (6408, 8088), and with its auto-transport bit held
+    // clear `invalid_loc` refuses the four water candidates (`607f28`),
+    // so theirs draws 11 ring candidates to ours' 15; both pick (6648,
+    // 12408). Now ours 17 draws, theirs 23, index 3 — ours
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`, one frame before
+    // the game's end (6822).
+    count: 6821,
+    sequence: 6821,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -761,4 +772,53 @@ fn run881_s_word_frame_is_widened_whole() {
     // theirs 0, as run879's `1/164` on 6045), the `form` and
     // `dest_angle` rows.
     pin_eq!(w.firsts.len(), 252, "initial run881 baseline");
+}
+
+/// run882: the word 6808's window, blocks 6802..6821 at the long's detail (item 2845).
+pub(crate) const RUN882: &str = "gamelog-run882-eastindies-lakota-peace-window-6802-6822.txt";
+
+/// The window: block 6802 through 6821; the word 6808's own block is 6809.
+pub(crate) const WIDENING_LAKOTA_FRAME_6808: (i64, i64) = (6802, 6821);
+
+pub(crate) fn lakota_frame_6808_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run882",
+        &[(RUN882, WIDENING_LAKOTA_FRAME_6808.0)],
+        WIDENING_LAKOTA_FRAME_6808,
+        1,
+        &[6809],
+        true,
+    )
+}
+
+#[test]
+fn run882_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_6808_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 20, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // The word 6808's own block is 6809 (item 2845). Before the fix it
+    // held two rows — who=0's `bucket[2:wealth]` (20891 / 20892) and
+    // `1/264`'s `air.cruising_alt` (1700 / 1500) — and the draw delta
+    // was `1/63`'s ring: ours 15 candidates, theirs 11, both `MOVEORDER`
+    // to (6648, 12408) on 6809. With the held-clear bit the ring agrees
+    // and 259 rows fall to 248: block 6809 keeps only the leader's
+    // bucket, and the `cruising_alt`, `1/61` `gather.wait`, `1/289` and
+    // `1/23` rows go. 235 stand from 6802 (`form`, `attrition` and
+    // `sheltered`, `death:extra`, the human's `SITE`, pools, buckets,
+    // territory); later ones are `1/189` `form` (6811), `0/2000`'s
+    // `damage` and `city_flags` (6816) and `1/124`'s
+    // `attack[0].mandatory` on 6821, the new word's frame.
+    pin_eq!(w.firsts.len(), 248, "initial run882 baseline");
 }

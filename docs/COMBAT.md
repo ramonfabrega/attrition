@@ -2414,6 +2414,15 @@ Not established:
   two tails and their unequal gates are `docs/PATHFINDER.md` §21. Great
   Lakes' word parts at **8201**.
 
+### 17.7 The asker cannot ride while it searches (item 2845)
+
+At `6014ef`–`601505`, on every path, a set `unit_masks & 0x800000`
+(`Unit::auto_transport`) is cleared, and every exit ORs it back
+(`60160a`, `60193e`, `6027a8`, `602aa8`, `602b3f`, `602d65`, `602d77`).
+`invalid_loc`'s land arm admits water only with it (2 at `607f28`), so
+the search refuses water. Diff-backed on the ring (run882b's packet,
+`docs/AI.md` §237); the other exits' restores are listing-only.
+
 ---
 
 ## 18. The engagement frame, read off the golden record (item 384, 2026-09-18)

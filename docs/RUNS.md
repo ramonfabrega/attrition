@@ -17319,3 +17319,31 @@ SHA-256 `67daf3da6329980cb167bf9a08b6b0e3ecf36401f3e85cc6562d35ac4f3e2914`.
 who=1's Strategic Bomber `1/137` reads `recharging` ours 0 against theirs 41: theirs bombed the human's `0/2000` on 6452 at
 `attack_dist` 918. With item 2825's CEO range term, 252 keys remain. The window is in the coverage driver's slice, and its walk
 reads 2335 heights at inexact corners.
+
+## run882 — the peace pair: the word 6808's widening, blocks 6802..6821, and its packet run882b (2026-10-17, item 2845, `att-2845`)
+
+`docs/AI.md` §237. **What the disk could not answer**: run881 ends at 6701, and run847 has checksums and the closing block only,
+so no dump of this lobby held a record on 6808. This is run881's recipe with the window moved to the word, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run882`: `--map 18 --end-frame 6822 --allow-early-end --timeout 7200
+--log-window 6802 6822 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on pool lane 2: `success`, `settings_restored`, 6823 frames, 304 s from launch to exit, not ended early.
+- The dump holds 21 `BEGIN FRAME`s (6802..6821 and the closing block 6823).
+- `rngcmp.py rontrace-run847.log rontrace-run882.log`: **6823 identical, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run882-eastindies-lakota-peace-window-6802-6822.txt`, 53,501,109 bytes,
+SHA-256 `ec87305241bdf472591b48b49d3e1758689a1a489cd59328a2c9f6438b5e76aa`.
+
+Archive `rontrace-run882.log`, 280,415,296 bytes,
+SHA-256 `c7bbd10d5d7f30b3b2d117a15181bed69b79d17c540e73865ab5c23c396134f5`.
+
+**run882b, the packet**: the same lobby at `--end-frame 6812 --log-window 6807 6809 --detail end:UNITS=3,BUILDS=7 --tracer-def
+RON_STATE_FRAME=6808 --tracer-def RON_STATE_PLAN=<item 597's plan.h>`, pool lane 2: `success`. Kept as
+`~/ron-golden/run882b/map-18/frame-snapshot.bin`, 956,785,272 bytes, SHA-256
+`2d92a01fbd6a9650dc9922d4be9b11ce88626fd7648b94c5303b7863b6d282f9`.
+
+**What it holds**: `diff::lakota_pair::run882_s_word_frame_is_widened_whole`, 259 keys as captured. On the word's block 6809
+who=1's Rocket Artillery `1/63` carries the same `MOVEORDER` (6648, 12408) on both sides; the draw delta is its ring, 15
+candidates against 11. With item 2845's held-clear bit, 248 keys remain. The window is in the coverage driver's slice, and its
+walk reads 2341 heights at inexact corners.

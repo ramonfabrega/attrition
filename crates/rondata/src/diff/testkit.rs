@@ -7151,6 +7151,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run879_s_word_frame_is_widened_whole", 2222),
     // And run881 (item 2825): the word 6452's window, 2335 reads.
     ("run881_s_word_frame_is_widened_whole", 2335),
+    // And run882 (item 2845): the word 6808's window, 2341 reads.
+    ("run882_s_word_frame_is_widened_whole", 2341),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -7334,10 +7336,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // as that window's own; 1678 with item 2609's crash round, as run866's
     // own walk. Item 2677's run867 window: 1699, as that window's own.
     // Item 2779's run879 window: 2222, as that window's own. Item 2825's
-    // run881 window: 2335, as that window's own.
+    // run881 window: 2335, as that window's own. Item 2845's run882
+    // window: 2341, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        2335,
+        2341,
     ),
 ];
 
@@ -9429,8 +9432,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 5976), and 6452 is widened on run881 over 6446..6701 (block 6453,
     // item 2825). **Item 2825 moved it 6452 → 6808** with `max_range`'s
     // CEO term, past run881's last block (6701): run881's test keeps
-    // 6452's value diff (block 6453, `1/137`'s `recharging`), and 6808's
-    // widening is owed a capture (item 2845).
+    // 6452's value diff (block 6453, `1/137`'s `recharging`), and 6808 is
+    // widened on run882 over 6802..6821 (block 6809, item 2845). **Item
+    // 2845 moved it 6808 → 6821** with `find_attack_pos`'s held-clear
+    // `0x800000`, in the same window (block 6822 is not captured: run882
+    // ends at 6821 and the closing 6823); run882's test keeps 6808's
+    // value diff (block 6809, `1/63`'s ring), and 6821's widening is
+    // owed by the next item.
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
