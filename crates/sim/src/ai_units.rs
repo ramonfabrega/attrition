@@ -1067,7 +1067,7 @@ impl Sim {
                 }
                 let mut out = offer_value(fac, want, val, divisor);
                 if probe {
-                    eprintln!("P2974 out {out} fac {fac} want {want} val {val} div {divisor} num {num}");
+                    eprintln!("P2974 out {out} fac {fac} want {want} val {val} div {divisor} num {num} afford {afford} price {:?} bucket {:?} escrowb {:?}", self.type_price(who, t), self.ledgers[w].bucket, self.ledgers[w].escrow);
                 }
                 if self.ai[w].wonder_mod != 0 {
                     out /= 2;
