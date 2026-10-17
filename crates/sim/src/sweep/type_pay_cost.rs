@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -54,7 +59,10 @@ fn the_emulated_original_agrees_on_every_row() {
                 if a[7 + g] == 0 {
                     continue;
                 }
-                log.push(format!("s1:m+0x0,{g},{},{},{},{},1,-1", a[0], a[1], a[2], 0));
+                log.push(format!(
+                    "s1:m+0x0,{g},{},{},{},{},1,-1",
+                    a[0], a[1], a[2], 0
+                ));
                 let cost = a[asked];
                 asked += 1;
                 if a[4] != 0 {
@@ -65,7 +73,11 @@ fn the_emulated_original_agrees_on_every_row() {
                 if a[3] == 0 && bucket.wrapping_sub(escrow) < cost {
                     wr(&mut p[1 + 2 * who], 4 * g, 0);
                 }
-                wr(&mut p[17 + who], 4 * g, bucket.wrapping_sub(cost).max(0) ^ 0x8221);
+                wr(
+                    &mut p[17 + who],
+                    4 * g,
+                    bucket.wrapping_sub(cost).max(0) ^ 0x8221,
+                );
                 if a[3] != 0 {
                     let escrow = rd(&p[1 + 2 * who], 4 * g);
                     wr(&mut p[1 + 2 * who], 4 * g, escrow.wrapping_sub(cost).max(0));
