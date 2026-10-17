@@ -46,6 +46,8 @@ mod animal_data_valid_target_const;
 mod animal_update_los;
 #[path = "armies_diplo_change.rs"]
 mod armies_diplo_change;
+#[path = "armies_emergency.rs"]
+mod armies_emergency;
 #[path = "armies_find_city.rs"]
 mod armies_find_city;
 #[path = "armies_find_useful_army.rs"]
