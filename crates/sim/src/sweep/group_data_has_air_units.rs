@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -46,14 +51,19 @@ fn the_emulated_original_agrees_on_every_row() {
                 let ty = |w: usize, i: usize| &p[10 + 4 * w + i];
                 let mut hit = 0i64;
                 'list: for k in 0..usize::try_from(num.max(0)).expect("a count") {
-                    let i = usize::try_from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]])).expect("an index");
+                    let i =
+                        usize::try_from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]]))
+                            .expect("an index");
                     let r = a[1 + k];
                     if r != 0 {
                         let o = &p[1 + 5 * who + i];
                         let mut nx = i16::from_le_bytes([o[0x28], o[0x29]]);
                         let mut nw = o[0x3e] as i8;
                         while nx >= 0 && nw >= 0 {
-                            let (w2, i2) = (usize::try_from(nw).expect("a table"), usize::try_from(nx).expect("an index"));
+                            let (w2, i2) = (
+                                usize::try_from(nw).expect("a table"),
+                                usize::try_from(nx).expect("an index"),
+                            );
                             if rd(ty(w2, i2), 0x218) == 2 {
                                 hit = 1;
                                 break 'list;
@@ -66,16 +76,23 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
                 hit
             }
-
         };
         assert_eq!(got, want_eax, "has_air_units — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "has_air_units — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "has_air_units — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "has_air_units — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "has_air_units — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "has_air_units — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

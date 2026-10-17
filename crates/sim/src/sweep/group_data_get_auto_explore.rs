@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -45,7 +50,10 @@ fn the_emulated_original_agrees_on_every_row() {
                 // slot +0x18 (stub 2, a[14..]) answers by the unit's bit 8, and answers 1 when counts[1] > 0 and
                 // counts[0] <= counts[1]; `*out` is then `bVar5 < 2`, bVar5 = (counts[0] > 0) + (counts[1] > 0).
                 let (mut c0, mut c2) = (0usize, 0usize);
-                let list = |k: usize| usize::try_from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]])).expect("an index");
+                let list = |k: usize| {
+                    usize::try_from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]]))
+                        .expect("an index")
+                };
                 let bit8 = |u: &[u8]| usize::from(u[0x69] & 1);
                 let (res, outv): (i64, i32) = if m[0x49] != 0 {
                     (0, 1)
@@ -54,10 +62,18 @@ fn the_emulated_original_agrees_on_every_row() {
                     c0 += 1;
                     if n < 2 {
                         let leader = a[12];
-                        if rd(m, 12) < 1 || leader < 0 || p[2 + usize::try_from(leader).expect("an index")][8] & 1 == 0 {
+                        if rd(m, 12) < 1
+                            || leader < 0
+                            || p[2 + usize::try_from(leader).expect("an index")][8] & 1 == 0
+                        {
                             (0, 1)
                         } else {
-                            (i64::from(p[7 + usize::try_from(leader).expect("an index")][0x69] & 1), 1)
+                            (
+                                i64::from(
+                                    p[7 + usize::try_from(leader).expect("an index")][0x69] & 1,
+                                ),
+                                1,
+                            )
                         }
                     } else {
                         let mut cnt = [0i32; 2];
@@ -99,16 +115,23 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
                 res
             }
-
         };
         assert_eq!(got, want_eax, "get_auto_explore — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "get_auto_explore — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_auto_explore — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_auto_explore — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "get_auto_explore — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "get_auto_explore — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

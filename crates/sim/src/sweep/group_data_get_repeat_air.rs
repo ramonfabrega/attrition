@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -43,7 +48,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 // zeroes the image's `counts`, walks as many list entries as `get_num_const` says (asked again
                 // after each) and answers whether the slot-answering objects outnumber (counts[1] >= counts[0], > 0).
                 let (mut c0, mut c2) = (0usize, 0usize);
-                let list = |k: usize| i32::from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]]));
+                let list =
+                    |k: usize| i32::from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]]));
                 let n = a[4 + c0];
                 c0 += 1;
                 if n > 1 {
@@ -68,7 +74,8 @@ fn the_emulated_original_agrees_on_every_row() {
                     i64::from(cnt[1] > 0 && cnt[0] <= cnt[1])
                 } else if rd(m, 12) > 0 {
                     let leader = if m[0x49] == 0 { a[12] } else { list(0) };
-                    if leader >= 0 && p[1 + usize::try_from(leader).expect("an index")][8] & 1 != 0 {
+                    if leader >= 0 && p[1 + usize::try_from(leader).expect("an index")][8] & 1 != 0
+                    {
                         i64::from(a[14] != 0)
                     } else {
                         0
@@ -77,16 +84,23 @@ fn the_emulated_original_agrees_on_every_row() {
                     0
                 }
             }
-
         };
         assert_eq!(got, want_eax, "get_repeat_air — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "get_repeat_air — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_repeat_air — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_repeat_air — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "get_repeat_air — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "get_repeat_air — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

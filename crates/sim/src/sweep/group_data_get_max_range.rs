@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -44,12 +49,16 @@ fn the_emulated_original_agrees_on_every_row() {
                 // a[19..]) answers non-zero exactly when the argument a[0] is; a `buildings` one when slot +0x20
                 // (stub 4, a[23..]) answers and a[0] is 0. A counting entry only asks slot +0x130 when its object
                 // type's word +0x1e8 (p[10 + i]) is non-zero.
-                let list = |k: usize| usize::try_from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]])).expect("an index");
+                let list = |k: usize| {
+                    usize::try_from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]]))
+                        .expect("an index")
+                };
                 let num = rd(m, 12);
                 if num < 1 {
                     0
                 } else {
-                    let (mut c0, mut c1, mut c2, mut c3, mut c4, mut c5) = (0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
+                    let (mut c0, mut c1, mut c2, mut c3, mut c4, mut c5) =
+                        (0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
                     let mut best = 0i32;
                     for k in 0..usize::try_from(num).expect("a count") {
                         let i = list(k);
@@ -88,16 +97,23 @@ fn the_emulated_original_agrees_on_every_row() {
                     i64::from(best)
                 }
             }
-
         };
         assert_eq!(got, want_eax, "get_max_range — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "get_max_range — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_max_range — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_max_range — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_max_range — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_max_range — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -42,7 +47,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 // on the first pass only, +0xbc (stub 2, a[21..]) answer is scored by `FormData::type_cat` (stub 3,
                 // a[25..]); the lowest score (the first on a tie, the best starting at 0x12) wins. A winner is answered,
                 // its list position written through the out-pointer when given; no winner in both passes answers -1.
-                let list = |k: usize| i32::from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]]));
+                let list =
+                    |k: usize| i32::from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]]));
                 let num = rd(m, 12);
                 let (mut c0, mut c1, mut c2, mut c3) = (0usize, 0usize, 0usize, 0usize);
                 let (mut best, mut best_pos, mut best_cat) = (-1i32, 0i32, 0x12i32);
@@ -85,7 +91,6 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
                 res
             }
-
         };
         assert_eq!(got, want_eax, "find_leader — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();

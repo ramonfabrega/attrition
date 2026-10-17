@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -44,7 +49,10 @@ fn the_emulated_original_agrees_on_every_row() {
                 // Above one the image's five of six `counts` are zeroed (the sixth is only counted into), each listed object whose slot answers adds one at its
                 // unit's byte +0xaa in 0..5, and the answer is the first index whose count the next beat, with `*out`
                 // `bVar7 < 2` (the number of non-empty counts, saturated by the chain's own test).
-                let list = |k: usize| usize::try_from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]])).expect("an index");
+                let list = |k: usize| {
+                    usize::try_from(i16::from_le_bytes([m[0x8cc + 2 * k], m[0x8cd + 2 * k]]))
+                        .expect("an index")
+                };
                 let n = a[1];
                 let mut c2 = 0usize;
                 let mut outv: Option<i32> = None;
@@ -85,11 +93,19 @@ fn the_emulated_original_agrees_on_every_row() {
                     outv = Some(1);
                     let mut r = 0i64;
                     if rd(m, 12) > 0 {
-                        let leader = if m[0x49] == 0 { a[2] } else { i32::try_from(list(0)).expect("an index") };
+                        let leader = if m[0x49] == 0 {
+                            a[2]
+                        } else {
+                            i32::try_from(list(0)).expect("an index")
+                        };
                         if leader >= 0 {
                             let l = usize::try_from(leader).expect("an index");
                             if p[2 + l][8] & 1 != 0 {
-                                r = if a[4] == 0 { 0 } else { i64::from(p[7 + l][0xaa] as i8) };
+                                r = if a[4] == 0 {
+                                    0
+                                } else {
+                                    i64::from(p[7 + l][0xaa] as i8)
+                                };
                             }
                         }
                     }
@@ -100,16 +116,23 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
                 res
             }
-
         };
         assert_eq!(got, want_eax, "get_form_option — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "get_form_option — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_form_option — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_form_option — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "get_form_option — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "get_form_option — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
