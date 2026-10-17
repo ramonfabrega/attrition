@@ -142,7 +142,6 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
     let last = tr.frames.last().map_or(0, |(n, _)| *n);
     let (mut count, mut sequence) = (None, None);
     let mut probe_last: Option<String> = None;
-    let mut probe_fog: Option<String> = None;
     for _ in 0..last {
         let at = built.sim.frame;
         // `RON_SWEEP=<frame>:<who>/<o>` — every collision sweep one unit
@@ -179,22 +178,6 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         crate::diff::harness::debug_ammo(&built, at);
         crate::diff::harness::debug_builds(&built, at);
         crate::diff::harness::debug_tech(&built, at);
-        // PROBE 2956: the fog bit at (47, 24)'s centre half-cell.
-        if std::env::var("RON_PROBE_FOG").is_ok() {
-            let b = built.sim.world.seen2(95, 49);
-            let line = format!("{b:?}");
-            if probe_fog.as_deref() != Some(line.as_str()) {
-                eprintln!("  fog f{at}: seen2(95,49) {line}");
-                for (i, u) in built.sim.units.iter().enumerate() {
-                    if !u.alive() { continue; }
-                    let (dx, dy) = (u.pos.x - (47 * 768 + 384), u.pos.y - (24 * 768 + 384));
-                    if dx.abs() < 768 * 12 && dy.abs() < 768 * 12 {
-                        eprintln!("    unit {i} owner {} type {} at ({}, {}) d=({dx},{dy})", u.owner, u.type_index, u.pos.x, u.pos.y);
-                    }
-                }
-                probe_fog = Some(line);
-            }
-        }
         // PROBE 2956: `RON_PROBE_AISITES=1` — who=1's site table whenever it changes.
         if std::env::var("RON_PROBE_AISITES").is_ok() {
             let s: Vec<String> = built.sim.ai[1]
