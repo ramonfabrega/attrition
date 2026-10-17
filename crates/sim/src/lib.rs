@@ -2485,12 +2485,30 @@ impl Sim {
     /// there, 94/94 here before item 1460.
     ///
     /// The arm's other branch, `FRENCH_SPECIAL_COST` on a type of class
-    /// `0x36`, ships as 0 and is not modelled; nor are the other nations'
-    /// arms of the same tail.
+    /// `0x36`, ships as 0 and is not modelled.
+    ///
+    /// **The German arm** (`get_cost:258`–`266`, after the Japanese): a
+    /// German leader's (`has_tribe_bonus(0xc)`) unit of the Fire Raft line
+    /// — `UnitTypeData::is(0x14e, 0)`, by lineage, so the Fire Raft through
+    /// the Submarine — takes `GERMAN_SUBMARINE_COST` off, 25% as shipped.
+    /// The battery's German who=1 priced the Fire Raft 20/41 here and 15/31
+    /// there on 6580, and with a wealth bucket of 39 offered it at a
+    /// quarter (`docs/AI.md` §242). The nations' arms are exclusive by
+    /// tribe, so one answer per type is the tail's product. The Mongol,
+    /// Japanese, American, British, Nubian, Russian and Roman arms of the
+    /// same tail are not modelled.
     pub fn nation_unit_discount(&self, who: Player, ty: usize) -> i32 {
         let french = self.nation[who as usize].french;
         if french && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
             return self.tuning.french_siege_cost;
+        }
+        if self.nation[who as usize].germans
+            && self.unit_types[ty].tree.is_some_and(|t| {
+                self.tech_tree.types.get(nations::ty::FIRERAFT).is_some()
+                    && self.tech_tree.is(t, nations::ty::FIRERAFT, false)
+            })
+        {
+            return self.tuning.german_submarine_cost;
         }
         // The tail's last arm (`get_cost:336`–`343`): a Spy or a General
         // under `SPIES_GENERALS_CHEAPER`, a half in the shipped rules
@@ -3428,10 +3446,29 @@ impl Sim {
                 tail.push(production::Adjust::Faster(self.tuning.british_aa_speed));
             }
         }
-        // The French, German and Roman arms, and `TROOPS_FASTER` (`role &
-        // 0x10000`, three-quarters), stand between: the first three are
-        // other nations' powers, and the bonus's prerequisite is `Disable`
-        // in the shipped file, so no player holds it.
+        // **The German arm** (`train_time@006508c0:193`–`205`, after the
+        // French): a German leader's aircraft (`+0x218 == 2`) takes
+        // `GERMAN_AIR_SPEED`, and a unit of the Fire Raft line (`is(0x14e,
+        // 0)`, through the Submarine) `GERMAN_SUBMARINE_SPEED`, each `t ×
+        // 100 / (k + 100)`. The battery's German Dock `1/2010` finishes its
+        // Fire Raft on 6718 there (`docs/AI.md` §242).
+        if self.nation[who as usize].germans {
+            if self.unit_types[ty].combat.domain == attrition::Domain::Air {
+                tail.push(production::Adjust::Faster(self.tuning.german_air_speed));
+            }
+            if self.unit_types[ty].tree.is_some_and(|t| {
+                self.tech_tree.types.get(nations::ty::FIRERAFT).is_some()
+                    && self.tech_tree.is(t, nations::ty::FIRERAFT, false)
+            }) {
+                tail.push(production::Adjust::Faster(
+                    self.tuning.german_submarine_speed,
+                ));
+            }
+        }
+        // The French and Roman arms, and `TROOPS_FASTER` (`role & 0x10000`,
+        // three-quarters), stand around it: the first two are other
+        // nations' powers, and the bonus's prerequisite is `Disable` in the
+        // shipped file, so no player holds it.
         //
         // **The speed-upgrade step** (`0065102d`): `t = (10 − n) × t / 10`,
         // `n` the ships' count for a sea unit (`+0x218 == 1`), else the
