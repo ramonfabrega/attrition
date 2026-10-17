@@ -62,23 +62,15 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     (7, 17, 3),
     // The peace pair's (item 2320): the Lakota at Difficulty 3, East Indies.
     (18, 19, 3),
+    // The battery's first lobby, promoted to the AI word (item 2904,
+    // DECISIONS 72): the Germans at Difficulty 3, East Indies.
+    (18, 12, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
-    Lobby {
-        name: "EastIndiesGermanTier3",
-        map_style: 18,
-        ai_tribe: 12,
-        difficulty: 3,
-        start: "gamelog-run646-eastindies-german-diff3-start.txt",
-        long: (
-            "gamelog-run643-eastindies-german-diff3-24k-trace.txt",
-            "rontrace-run643.log",
-        ),
-        length: 13519,
-        count: 576,
-        sequence: 576,
-    },
+    // `EastIndiesGermanTier3` (Germans 12, Difficulty 3, map 18; run646 and
+    // run643, 576 of 13519) left the battery on item 2904 for the AI word
+    // (`diff::german_word`, DECISIONS 72).
     Lobby {
         name: "GreatLakesRussianTier2",
         map_style: 14,

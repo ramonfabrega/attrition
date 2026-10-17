@@ -246,6 +246,14 @@ mod tests {
         the_handoff_carries("Peace pair");
     }
 
+    /// **The battery word's line is its pinned word** (item 2904,
+    /// DECISIONS 72): the battery's lowest lobby, promoted when every pair
+    /// had closed.
+    #[test]
+    fn the_handoff_s_battery_word_is_the_pinned_word() {
+        the_handoff_carries("Battery word");
+    }
+
     /// **The third map's line is its pinned word** (parked 1080, the
     /// nineteenth pass): item 1066 pinned `LONG_WORD_GREAT_SAHARA` and the
     /// commander wrote a `Third map:` line that no guard read. Made to
