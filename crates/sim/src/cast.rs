@@ -282,10 +282,10 @@ impl Sim {
     /// Bribe on an enemy unit is [`Sim::bribe_valid_unit`] (item 2812).
     ///
     /// SEAM: the unit mask arms (`0x100`/`0x200` against objmask
-    /// `0x200000`), which none of the Spy's crafts carries; and the whole
-    /// of Counterintelligence's, Pilfer's and Sabotage's own
-    /// arms, which **refuse** here rather than be guessed — run246's packet
-    /// has the first two refuse the staged Barracks.
+    /// `0x200000`), which none of the Spy's crafts carries; and Pilfer's
+    /// and Sabotage's own arms, which **refuse** here rather than be
+    /// guessed — run246's packet has Pilfer refuse the staged Barracks.
+    /// Counterintelligence's and the Sniper's are read (item 2971).
     pub(crate) fn spell_valid_target(&self, s: i32, who: Player, t: Obj) -> bool {
         let Some(d) = self.spell(s) else {
             return false;
@@ -317,9 +317,89 @@ impl Sim {
                 Obj::Unit(v) => self.bribe_valid_unit(who, v),
                 Obj::Building(_) => false,
             },
-            spell::COUNTERINTEL | 0x276 | 0x280 | 0x281 => false,
+            spell::COUNTERINTEL => self.counterintel_valid_target(who, t),
+            0x281 => match t {
+                Obj::Unit(v) => self.sniper_valid_unit(v),
+                Obj::Building(_) => false,
+            },
+            0x276 | 0x280 => false,
             _ => true,
         }
+    }
+
+    /// `SpellTypeData::is_valid_target@006763c0`'s Sniper arm (`0x281`,
+    /// `00676660`ff.) for a unit the craft's flags (`fbm`: an enemy's, no
+    /// `c`) let through:
+    ///
+    /// ```text
+    /// has_general(v, 0, 0x165) >= 0, is_gov_hero(v), domain != 0   -> 0
+    /// not (attack || hero || supply || is(SCOUT)) -> 0
+    /// is_caravan, is_worker, is_merchant                            -> 0
+    /// ```
+    pub(crate) fn sniper_valid_unit(&self, v: usize) -> bool {
+        if self.has_ceo_shield(v)
+            || crate::type_index::is_gov_hero_type(self.units[v].type_index)
+            || self.unit_domain_of(v) != crate::attrition::Domain::Land
+        {
+            return false;
+        }
+        if !(self.attack_of(Obj::Unit(v)) != 0
+            || self.is_hero_unit(v)
+            || self.is_supply_unit(v)
+            || self.unit_line_is(v, 0x45))
+        {
+            return false;
+        }
+        let caravan = self.units[v].ty.is_some_and(|t| {
+            self.unit_types[t]
+                .cols
+                .flag2(crate::ai_load::uflags2::CARAVAN)
+        });
+        !(caravan || self.is_worker(v) || self.is_merchant(v))
+    }
+
+    /// `SpellTypeData::is_valid_target@006763c0`'s Counterintelligence arm
+    /// (`0x277`, `00676880`ff.): a target `who` sees, and
+    ///
+    /// ```text
+    /// one's own:   infiltrated by anyone
+    /// an ally's:   infiltrated by anyone, and not yet by `who`
+    /// an enemy's:  is(SPY)
+    /// anyone else: 0
+    /// ```
+    pub(crate) fn counterintel_valid_target(&self, who: Player, t: Obj) -> bool {
+        if !self.target_seen_by(who, t) {
+            return false;
+        }
+        let inf = self.infiltrated_of(t);
+        let whom = self.owner_of(t);
+        if whom == who {
+            inf != 0
+        } else if self.is_ally(who, whom) {
+            inf != 0 && inf & Self::who_bit(who) == 0
+        } else if self.is_enemy(who, whom) {
+            matches!(t, Obj::Unit(v) if self.unit_is_spy(v))
+        } else {
+            false
+        }
+    }
+
+    /// `has_general(v, 0, 0x165) >= 0` — a CEO's reach: the unit is one, or
+    /// its owner's active, on-map `0x165` hero is within its radius.
+    fn has_ceo_shield(&self, v: usize) -> bool {
+        let unit = &self.units[v];
+        unit.type_index == 0x165
+            || (0..self.units.len()).any(|h| {
+                let x = &self.units[h];
+                x.owner == unit.owner
+                    && x.type_index == 0x165
+                    && x.alive()
+                    && x.on_map
+                    && crate::world::vector_dist(
+                        (x.pos.x - unit.pos.x).abs(),
+                        (x.pos.y - unit.pos.y).abs(),
+                    ) <= self.hero_radius(h) * 0xc0
+            })
     }
 
     /// `SpellTypeData::is_valid_target@006763c0`'s Bribe arm (`0x275`,
@@ -340,19 +420,7 @@ impl Sim {
     /// hero within [`Sim::hero_radius`] × 0xc0, or the unit itself.
     pub(crate) fn bribe_valid_unit(&self, who: Player, v: usize) -> bool {
         let unit = &self.units[v];
-        if unit.type_index == 0x165
-            || (0..self.units.len()).any(|h| {
-                let x = &self.units[h];
-                x.owner == unit.owner
-                    && x.type_index == 0x165
-                    && x.alive()
-                    && x.on_map
-                    && crate::world::vector_dist(
-                        (x.pos.x - unit.pos.x).abs(),
-                        (x.pos.y - unit.pos.y).abs(),
-                    ) <= self.hero_radius(h) * 0xc0
-            })
-        {
+        if self.has_ceo_shield(v) {
             return false;
         }
         if crate::type_index::is_gov_hero_type(unit.type_index)

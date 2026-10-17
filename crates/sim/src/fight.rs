@@ -1083,10 +1083,16 @@ impl Sim {
     /// modelled, nothing sets it here) and `0x1000` (blown; likewise) are
     /// the arm's two bits this crate does not carry.
     pub(crate) fn target_is_seen(&self, attacker: Obj, target: Obj) -> bool {
+        self.target_seen_by(self.owner_of(attacker), target)
+    }
+
+    /// [`Sim::target_is_seen`] for a player rather than an attacker —
+    /// `ObjectData::is_seen(who, 0)` (`SpellTypeData::is_valid_target`'s
+    /// Counterintelligence arm asks it of `who` directly).
+    pub(crate) fn target_seen_by(&self, who: Player, target: Obj) -> bool {
         if !self.world.has_fog() {
             return true;
         }
-        let who = self.owner_of(attacker);
         if who >= 8 {
             return true;
         }
