@@ -17285,3 +17285,13 @@ SHA-256 `5ea5d8d11469a9daf18201e94b95b9d09bff9166a409fffc9155117d09c0a1e4`.
 first block, who=1's oil parts: `resources[oil]` ours 8366 against theirs 9966, over its 8800 cap in theirs alone. On
 block 5982 `MAKE[4]` reads ours' Oil Well against theirs' Woodcutter's Camp. With item 2779's Capitalism oil built,
 2854 keys remain. The window is in the coverage driver's slice, and its walk reads 2222 heights at inexact corners.
+## run878 — chapter eighty: the 1000 pass's own blocks (2026-10-17, item 2785, `att-2785`)
+
+`docs/GOLDEN.md` §103. **What the disk could not answer**: run877's first block is 1198, so the `calc_danger` pass of 1000 that
+wrote `0/7`'s cell was undumped. The recipe is `tools/gamelog/golden/chapter80w.cmd` (`chapter80.cmd` without its 1197 Scout):
+`--map 14 --end-frame 1002 --log-window 998 1002`, the chapter-eighty `--detail` flags. **A first take at `--end-frame 1204`
+printed no WORLD in its window** (the `end:` set only reaches the window at the end frame; dead, deleted). A second, 606–700
+with `UNITS=3` (`~/ron-golden/ch80early/`, not wired), found the fight at 611–612. Pool lane 1, `success`,
+`settings_restored`, 1,003 frames, kept in `~/ron-golden/ch80w/map-14/`; block 1002 is not in the dump. Minutes waited on another
+lane: none. **What it holds**: who 1's `danger` cell 235 = 120 on 998–1001, `0/7` `unit_masks` `0x11000`, `0/6` 0; ours agrees
+on the plane after item 2785 — the whole record, eleven standing `form` rows.

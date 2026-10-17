@@ -3753,6 +3753,18 @@ line, filed at its merge): four times in one batch, though the keep is said to h
 written by replacing the `todo!()` line, so perhaps the keep wants the generator's own markers. Each re-application
 cost a step. Candidate: the keep keyed on the function's own block, held by a test made to fail first. One reach.
 
+(2796) **A function's sixty flags and its port do not survive a shell line** (2782's "for the Loop" line, filed at its
+merge): the item's driver was a throwaway (`$JOB/tmp/gen.py`, a function's flags one a line in a file and its port in
+another, `sweep_gen.py obj` run on both) because sixty `--wbias` flags and a 3 KB port do not fit a command. Candidate:
+`sweep_gen.py --from-file NAME.args --port-file NAME.rs`, or `--regen` keeping a hand-edited footer (Loop 2792's
+sibling). One reach; **a second**, 2797's "for the Loop" line, filed at its merge: two scratch `gen_*.sh` drivers again.
+
+(2799) **Two guards read the `Golden:` line by different rules when no chapter is open** (the commander, at 2785's
+booking): `docs_guard::the_handoff_carries_the_golden_line` accepts `none pinned`, a `w<frame>` or `every chapter closed`;
+`floors::tests::the_handoff_s_golden_line_is_the_pinned_word` accepts only `every chapter closed`, so a line that passed
+the reflex failed the whole gate on `a742d5bc` (one red, the second commit leading with `every chapter closed`).
+Candidate: one parser, shared. One reach.
+
 ## Loop, filed 2026-10-15 — the thirty-seventh tranche's
 
 (2750) **A `--stub` index is a position every port's `a[N]` counts after** (2731's "for the Loop" line, filed at
@@ -3774,7 +3786,7 @@ suite's time in `gamelog::fill`) against `tools/memcap.sh`'s ceiling with four l
 Loop" line, filed at its merge): `find_useful_army`'s 16-pointer table took a shell loop of `--place`s, and
 `kill_tree`'s one stack argument (hidden by the decompile) faulted the first run at the stub page. Candidate: a
 `--ptrtab LOC:N:SIZE` that expands as `--table` does, and a `callee_arity.py ADDR` printing the `ret imm`. One reach;
-a second from 2768's "for the Loop" line, filed at its merge: an object list's sixty flags a function (parked 2772). **The thirty-seventh pass**: `--ptrtab LOC:N:SIZE` is 2782's own item (booked, a test made to fail first); the `callee_arity.py ADDR` half stays at one reach — closes at the next pass unreached (DECISIONS 54).
+a second from 2768's "for the Loop" line, filed at its merge: an object list's sixty flags a function (parked 2772). **The thirty-seventh pass**: `--ptrtab LOC:N:SIZE` is 2782's own item (booked, a test made to fail first; **built**, parked 2794); the `callee_arity.py ADDR` half stays at one reach — closes at the next pass unreached (DECISIONS 54).
 
 (2775) **A record array's bias is a `--place` per record, and `--answers` on a table-indexing stub draws wild words**
 (2743's "for the Loop" line, filed at its merge): parked 2747's record-array bias wants one flag, and `--answers`'
@@ -6148,13 +6160,28 @@ The stub answer layout (own arguments, one drawn answer a stub, then each `--seq
 Its one row — the widening 5982 owes, run867's recipe with the window at 5976..6232 and `BUILDS=7` in the detail —
 was booked as the queue's item at 2780's merge.
 
-## Parked by the next landing, slot EV — reserved
+## Parked by item 2782, 2026-10-17 — the pointer-array shape, and the group list's ten
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2794) **`--ptrtab LOC:N:SIZE[:vt]` is built** (a test made to fail first, `test_a_pointer_table_is_one_place_for_the_array_and_one_a_record`;
+2772's eight-object group list is one flag, and its output reproduces 2768's `get_num_cap_const` script byte for byte), and ten
+`GroupData` functions fell to it: `has_air_units` 0x70b250, `get_repeat_air` 0x70c0b0, `is_on_map` 0x70c450, `get_auto_explore`
+0x70c1b0, `get_infinite_queue` 0x70c310, `get_form_mod_option` 0x70bd00, `get_form_option` 0x70beb0, `find_leader` 0x70ccb0,
+`get_max_range` 0x711080, `play_sound` 0x70d060. What the layout taught, for the next lane on this family: **a stub whose
+answer sizes a loop or indexes a record needs `--answer-range`**, not `--answers` (`--seq` draws a random word one in ten, and
+`--tame` is registers only: three first runs faulted at an unmapped record); the **units table is at `0xc0aec0 + who*0x1c`** and
+`UnitData::vftable` at `0xb41b08` laid half the rows by `--vtat-half` with the other half `--wbias`ed to it (a unit record's slot
+read inline against `UnitData::is_captain`/`is_on_map`/`is_plane`); `get_repeat_air` and `get_auto_explore` have **two different
+`counts` statics** (`0xee1518`, `0xee1510`), and `get_form_option` indexes a sixth `counts` word it never zeroes
+(`0xee1520`, 24 bytes); a function that tail-jumps (`play_sound`) is a plain `--stub ADDR:N` with `--record`, and its
+no-call row prints `-`. Not built: `GroupData::group_air` 0x70b160 (a Group argument's vtable slot `+0xc` called with four
+arguments, a passenger chain through `+0x28`/`+0x3e` as `has_air_units`'s, and a record vtable compared with
+`ObjectData::vftable` at `0xb43204` for `ObjectData::is` — every piece built, none yet together).
+
+(2795) **Equivalent breaks, named** (2782): `has_air_units`'s `break 'list` (the loop continues with the answer already 1, no stub log),
+`is_on_map`'s `break` (the same), `get_repeat_air`'s `counts.fill(0)` (the port overwrites both words after; the original's
+zeroing is observable only through the image window it holds, and the port writes the window in full), `get_form_option`'s
+`n > 1` for `n > 0` (the arm is reached only for `n != 1`), `find_leader`'s initial best score `0x12` (the `best < 0 ||` guard
+takes the first match whatever the score).
 
 ## Parked by item 2783, 2026-10-17 — the harvest sweep's hundred-and-eighth batch
 
@@ -6164,13 +6191,18 @@ words and edits nothing here; a refill lands when two remain.
 
 (2791) **Shapes lacking.** `StripBuilder::check_last_connect` 0x882050 walks a table of node pointers whose `+4` pointer must name a node whose `+0` equals the first (`cmp [edx], eax`): a placed pointer that points at another window's start, or at its own, has no flag, so the equal arm is a 2^-32 draw (`--place pN+OFF` aiming at the window that holds it, or a `--link` of size 4 that points back, would build it). `TurnControl::get_delta_percent` 0x957950 (`timeGetTime` and a float return), `Game::clock_init` 0x588530 (`timeGetTime`, an import answering a clock) and `MiscAccess::world_to_screen` 0x583810/0x583a00 (arguments in `edx` and `esi` the decompiler prints as unaffected registers) were read and not built.
 
-## Parked by the next landing, slot EX — reserved
+## Parked by item 2785, 2026-10-17 — chapter eighty closes: the blown bit
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2759) **`unit_masks` is not a word in this crate** (item 2785, `docs/GOLDEN.md` §103): `Unit::blown` (`0x1000`) and `fought`
+(`0x10000`) are carried; the dump prints the whole word (`0/7`: 69636 on 612, 69632 to 1000, 0 at 1198) and the widening parses it
+(`unit_masks: Some(…)`) but nothing compares it, so the 512-frame `process_cloak` clear and `check_idle`'s drop are reading alone.
+Names no score; a capture window across a `(frame + o) & 0x1ff == 0` frame with a blown stealth unit would back both.
+
+(2760) **`process_cloak@005e1c20`'s other writes and `do_cast`'s `0x11000`** (item 2785): the `unit_masks2 & 0x60` arm, the `0x800`
+tribe/hero reveal (`unit_masks & 0x800` is read by `Unit::work`'s blow test and `is_seen`, never set here) and the cloak particles
+have no reader; `do_cast@005ebfe0:695,715` writes `0x11000` too and this crate's casters do not. Names no score.
+
+Struck: (2757) closed by item 2785 (the blown bit); (2758) left with it — the added Scout's path and 1203 `seen3` rows agree.
 
 ## Parked by the next landing, slot EY — reserved
 
@@ -6187,13 +6219,25 @@ index 19, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_ani
 run879's window (block 5986), so its widening is on disk. The item before's hypothesis is the Transport Freighter
 `1/225`, idle in ours from 5976.
 
-## Parked by the next landing, slot FA — reserved
+## Parked by item 2797, 2026-10-17 — the Group argument's slot, and the alias pointer
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2800) **Two shapes built, two functions; the batch is not ten.** `GroupData::group_air` 0x70b160 fell to flags that already
+existed, composed: two `--ptrtab`s (the objects tables at `0xc0ab84` and `+0x1c`, `vt`), `--ptrarg 0:16` with the stubbed
+vtable laid at it (`--vtat-also p0+0`: the Group's slot `+0xc`, four arguments, `--record 0` printing every call as
+`p0+0x0,index,table,0,0` joined by `/`), the type records laid by `--place pR+0x18` with the same vtable (`--vtat-also`) and
+`--wbias pT+536` `2,2,2,2,0,1` (the `+0x218 == 2` gate), `--slotbase 0xb8:0x653790` and `--seq 1:4 --seq 2:4` for the two answering
+slots (the base arm asks the type's `+0x60`, the other the stub). Layout lessons: **the single answers come first**, one a stub
+(`a[2..5]`), then the `--seq` runs, then the `--slotbase` flag, so `a[5+..]`, `a[9+..]`, `a[13]`; a table-0 chain may step into
+table 1 and table 1 only *down* its own index (`--link p7..10+0x28:2:'<'`) so a chain ends and index 0 is reachable (a `>`
+link starved `nx > 0`, found by a surviving break); and 140 of 220 rows make no call at the densities above (`m+12:1..6`,
+`argset 1:-1,-1,0,1,2`), the rest one to nine. `StripBuilder::check_last_connect` 0x882050 fell to **`--alias`** (built here, a test
+made to fail first: `test_a_word_may_name_a_window_s_own_address`): the word at `WIN+OFF` is the address of window `TARGET[+K]`
+half the rows. The array is `this+0x30` (`last_connect`'s `+0x10` at `+0x20`), four node pointers by `--ptrtab m+0x30:4:8`,
+each node's `+4` a placed 8-byte window, `--alias` laying that window's `+0` as the node's address and the node's own two words as
+its own address; the port cannot see addresses and recovers the target from the pointer array's entry. All breaks held (12 and 7).
+**No further functions**: slot EY (2793's lane) was empty at this base, and the next-shortest never-backed rows with no built
+shape are 257-byte rendering or editor bodies (`RiverDoober::add_for_render`, `Game::run_unit_editor`) and `Search::valid_filter`
+(an indexed jump over a table of arms, `--jump` over the arms' own addresses would hold it, each arm its own function).
 
 ## Parked by the next landing, slot FB — reserved
 
@@ -6207,6 +6251,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FI renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

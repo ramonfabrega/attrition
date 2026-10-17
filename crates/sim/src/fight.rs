@@ -1063,6 +1063,19 @@ impl Sim {
     /// `ally_mask(who) & seen3[pos / 0x180]`, the inner disc of a `DETECT`
     /// object ([`crate::world::World::seen3`]). The viewer is never the
     /// owner's own side here — `who == owner` is detected.
+    /// `Unit::work@0060d180:380`'s type test: `STEALTH` without `CLOAKED`
+    /// and no `unit_masks2 & 0x8000`.
+    pub(crate) fn unit_stealth_type(&self, u: usize) -> bool {
+        let un = &self.units[u];
+        let Some(t) = un.ty else {
+            return false;
+        };
+        let cols = self.unit_types[t].cols;
+        cols.flag(crate::ai_load::uflags::STEALTH)
+            && !cols.flag(crate::ai_load::uflags::CLOAKED)
+            && un.unit_masks2 & 0x8000 == 0
+    }
+
     pub fn unit_stealth_hides(&self, u: usize, who: crate::Player) -> bool {
         let un = &self.units[u];
         let Some(t) = un.ty else {
@@ -1072,7 +1085,8 @@ impl Sim {
         let stealthy = cols.flag(crate::ai_load::uflags::CLOAKED)
             || un.unit_masks2 & 0x8000 != 0
             || (cols.flag(crate::ai_load::uflags::STEALTH) && self.is_idle(u));
-        if !stealthy || who == un.owner || who >= 8 {
+        // `!(unit_masks & 0x1000)`: a blown unit is seen (item 2785).
+        if !stealthy || un.blown || who == un.owner || who >= 8 {
             return false;
         }
         let fog = crate::vision::UNITS_PER_FOG;
@@ -1298,6 +1312,10 @@ impl Sim {
         // keeps `this->angle` and the unit shoots **without turning**
         // (`docs/COMBAT.md` §52) — and so does an `ANTI_AIR` unit at an
         // aircraft, whatever its pivots answered (`5fe81f`, §83).
+        // `fight@005fd4d0:580`: `unit_masks |= 0x11000` ahead of
+        // `set_attack` — blown, and never to be dropped (item 2785).
+        self.units[i].blown = true;
+        self.units[i].fought = true;
         let pivoted = self.set_attack(i, target) || self.anti_air_keeps_angle(i, target);
         let angle = if pivoted {
             self.units[i].movement.heading

@@ -112,6 +112,25 @@ Three shapes, each a `__thiscall` on `ecx`:
           (item 2513) reads the absolute cell VA, as it stands when the
           stub is called: a flag the function sets around its callee.
 
+          `--ptrtab LOC:N:SIZE[:vt]` (item 2782, parked 2772): an array of N
+          record pointers at LOC (an address expression, `m[0x4a]` the
+          object's own byte allowed) and each record SIZE random bytes, the
+          array window `p<K>` and the records the N after it; the tables'
+          places come before every `--place`, so a later flag names
+          `p<K+1+i>`; `vt` also lays the stubbed vtable at each record's
+          offset 0. A stub's answers per call are `--seq IDX:N` with
+          `--answer-range IDX:LO:HI` (no wild word: a stub whose answer
+          sizes a loop or indexes a record needs it; `--tame` is registers
+          only), laid `a[own + stubs + N0 + N1 + ..]` after the arguments
+          and one drawn answer a stub.
+
+          `--alias WIN+OFF:TARGET[+K]` (item 2797, parked 2791): the word at
+          WIN+OFF laid as the address of window TARGET (plus K) half the
+          rows, the other half left as drawn: a pointer that must name
+          another window or its own (`check_last_connect`'s `*q == node`);
+          the port cannot see addresses, so it recovers the target from a
+          pointer array's entry, as that sweep's does.
+
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
           (parked 1889).
@@ -1407,6 +1426,7 @@ WILD = {wild!r}
 ANSWERS = {answers!r}
 VTAT = {vtat!r}
 VTATHALF = {vtathalf!r}
+ALIAS = {alias!r}
 ANSWERWIN = {answerwin!r}
 CDECL = {cdecl!r}
 ARGEQ = {argeq!r}
@@ -1782,6 +1802,13 @@ def main(argv):
             if rng.random() < 0.5:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[off:off + 4] = vt.to_bytes(4, "little")
+        for win, off, tgt, plus in ALIAS:
+            # `--alias`: the word laid as a window's own address (plus K) half the rows, the other half left as
+            # drawn: a pointer that names another window, or its own (item 2797, parked 2791).
+            if rng.random() < 0.5:
+                at_ = this if tgt == "m" else wins[(0 if tgt[0] == "c" else nc) + int(tgt[1:])][0]
+                w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+                w[off:off + 4] = ((at_ + plus) & 0xFFFFFFFF).to_bytes(4, "little")
         for lo, hi, off, size, d, terms in LINKS:
             # A link field (`o_up`, a type's upgrade) of figures p(lo)..p(hi),
             # drawn from the figures on one side of each one's own index or a
@@ -2109,7 +2136,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
                  rows=220, record_order=False, record_edx=False, edx=None, tame=False, stub_write=(), deref=(), ecx_answer=(), ring=(), gtab=()):
     name, va = parse(spec)
@@ -2279,6 +2306,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if not any(k == 'slot' for k, _, _ in pstubs):
             raise ValueError('--vtat-half lays the stubbed vtable: it needs a --stub slot:OFF:N')
         phalf.append((vwin, int(voff, 0)))
+    palias = []
+    for al in alias:
+        loc, colon, tgt = al.partition(':')
+        awin, plus, aoff = loc.partition('+')
+        twin, tplus, toff = tgt.partition('+')
+        if not (colon and plus and re.fullmatch(r'm|c\d+|p\d+', awin) and re.fullmatch(r'm|c\d+|p\d+', twin)):
+            raise ValueError(f'--alias is WIN+OFF:TARGET[+K] over m, cN or pN, not {al!r}')
+        palias.append((awin, int(aoff, 0), twin, int(toff, 0) if tplus else 0))
     pecx = None
     if ecx_int is not None:
         if '..' in ecx_int:
@@ -2319,7 +2354,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or psparse or pgtab or plinks or pout or pcdecl or pwrite):
+            or pseq or pansr or pthis or palso or phalf or palias or psparse or pgtab or plinks or pout or pcdecl or pwrite):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2352,6 +2387,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            and idx not in [i for i, _ in pansw[:k]]]
         + ([f'the stubbed vtable laid at `{vtat}`'] if pvtat else [])
         + [f'the stubbed vtable laid at `{vh}` half the rows' for vh in vtat_half]
+        + [f'the word at `{al.partition(":")[0]}` laid as the address of `{al.partition(":")[2]}` half the rows'
+           for al in alias]
         + (['`__cdecl`: the caller pops the arguments'] if cdecl else [])
         + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
         + [f'stub {idx} answers {n} values in call order' + (f', the last from {t}' if t else '')
@@ -2404,7 +2441,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
-                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
+                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
@@ -3001,6 +3038,23 @@ def table_expand(spec, pbase, row_byte=None, row_links=()):
     return {'place': place, 'link': link, 'wbias': wbias}
 
 
+def ptrtab_expand(spec, pbase):
+    """`--ptrtab LOC:N:SIZE[:vt]` (item 2782, parked 2772): an array of N record
+    pointers at LOC (a place of 4N bytes, window `p<pbase>`) and each record a
+    SIZE-byte place of that window, windows `p<pbase+1>`.. in order; `vt` also
+    lays the stubbed vtable at each record's offset 0 (`--vtat-also`). Returns
+    the flags it stands for."""
+    parts = spec.split(':')
+    if len(parts) not in (3, 4) or (len(parts) == 4 and parts[3] != 'vt'):
+        raise ValueError(f'--ptrtab {spec}: want LOC:N:SIZE[:vt]')
+    n, size = int(parts[1], 0), int(parts[2], 0)
+    if n < 1 or size < 1:
+        raise ValueError(f'--ptrtab {spec}: N and SIZE >= 1')
+    place = [f'{parts[0]}:0:{4 * n}'] + [f'p{pbase}+{4 * k}:0:{parts[2]}' for k in range(n)]
+    vt = [f'p{pbase + 1 + k}+0' for k in range(n)] if len(parts) == 4 else []
+    return {'place': place, 'vtat_also': vt}
+
+
 def jump_expand(spec, own):
     """`--jump IDX:N` (item 2615, parked 2607): a function whose body is one
     indexed jump over N arms (`jmp *TABLE(,%eax,4)`, `Setup::get_starting_citizens`)
@@ -3175,6 +3229,10 @@ def main(argv=None):
     ap.add_argument('--vtat-also', action='append', default=[], metavar='WIN+OFF',
                     help='obj: the stubbed vtable laid at this word of window m, cN or pN as well, `this` '
                          'keeping it (a record whose slots the function asks beside its own; item 2217)')
+    ap.add_argument('--alias', action='append', default=[], metavar='WIN+OFF:TARGET[+K]',
+                    help='obj: the word at this window offset laid as the address of window TARGET (plus K) half the '
+                         'rows, the other half left as drawn (a pointer that must name another window, or its own: '
+                         '`check_last_connect`; item 2797, parked 2791)')
     ap.add_argument('--sparse', action='append', default=[], metavar='LOC:STRIDE:N:OFF,SIZE[/OFF,SIZE]',
                     help='obj: LOC points at a zeroed table of N rows STRIDE apart, each row\'s slices `p` '
                          'windows after the pointed buffers and before the places; `@VA` the image\'s own table '
@@ -3230,8 +3288,24 @@ def main(argv=None):
                     help='obj, with --table: each record\'s own row in the byte at OFF (item 2719, parked 2713)')
     ap.add_argument('--row-link', action='append', default=[], metavar='OFF:SIZE:DIR[:T,T..]',
                     help='obj, with --table: a --link over each row\'s records (item 2719, parked 2713)')
+    ap.add_argument('--ptrtab', action='append', default=[], metavar='LOC:N:SIZE[:vt]',
+                    help='obj: an array of N record pointers at LOC, each a SIZE-byte record (the places come before every --place); `vt` lays the stubbed '
+                         'vtable at each record too (item 2782, parked 2772)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(split_gate_this(argv))
+    tab_place = []
+    for spec_ in args.ptrtab:
+        # The tables' places come before every `--place`, so `p<N>` in the other flags counts them first.
+        try:
+            pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))
+                                        for sp in args.sparse) + len(tab_place)
+            x = ptrtab_expand(spec_, pb)
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        tab_place += x['place']
+        args.vtat_also = args.vtat_also + x['vtat_also']
+    args.place = tab_place + args.place
     if args.table:
         try:
             pb = len(args.ptrarg) + sum(int(sp.split(':')[2], 0) * len(sp.split(':')[3].split('/'))
@@ -3343,7 +3417,7 @@ def main(argv=None):
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
-                                                    vtat_half=args.vtat_half, place_null=args.place_null,
+                                                    vtat_half=args.vtat_half, alias=args.alias, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,

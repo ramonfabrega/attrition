@@ -188,24 +188,46 @@ mod group_compute_speed;
 mod group_data_can_transport;
 #[path = "group_data_equals_group_const.rs"]
 mod group_data_equals_group_const;
+#[path = "group_data_find_leader.rs"]
+mod group_data_find_leader;
 #[path = "group_data_get_angle.rs"]
 mod group_data_get_angle;
+#[path = "group_data_get_auto_explore.rs"]
+mod group_data_get_auto_explore;
 #[path = "group_data_get_form.rs"]
 mod group_data_get_form;
+#[path = "group_data_get_form_mod_option.rs"]
+mod group_data_get_form_mod_option;
+#[path = "group_data_get_form_option.rs"]
+mod group_data_get_form_option;
+#[path = "group_data_get_infinite_queue.rs"]
+mod group_data_get_infinite_queue;
+#[path = "group_data_get_max_range.rs"]
+mod group_data_get_max_range;
 #[path = "group_data_get_num_cap_const.rs"]
 mod group_data_get_num_cap_const;
 #[path = "group_data_get_num_const.rs"]
 mod group_data_get_num_const;
 #[path = "group_data_get_o.rs"]
 mod group_data_get_o;
+#[path = "group_data_get_repeat_air.rs"]
+mod group_data_get_repeat_air;
 #[path = "group_data_get_unit.rs"]
 mod group_data_get_unit;
+#[path = "group_data_group_air.rs"]
+mod group_data_group_air;
+#[path = "group_data_has_air_units.rs"]
+mod group_data_has_air_units;
+#[path = "group_data_is_on_map.rs"]
+mod group_data_is_on_map;
 #[path = "group_data_member.rs"]
 mod group_data_member;
 #[path = "group_data_num_valid.rs"]
 mod group_data_num_valid;
 #[path = "group_data_one_member.rs"]
 mod group_data_one_member;
+#[path = "group_data_play_sound.rs"]
+mod group_data_play_sound;
 #[path = "group_data_valid_target.rs"]
 mod group_data_valid_target;
 #[path = "group_equals_group.rs"]

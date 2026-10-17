@@ -12803,12 +12803,37 @@ weighed whole only once the Scout's disc covers it (`0/7` at the 1200 pass); the
 a building's `seen3` write (parked 2728); the 1000 pass. Confidence: the hide/detect predicate is diff-backed on `s`
 (`0/6`, `0/7`@1200), the first reading it rested on is not wrong; the original's weighing at 1000 says something unread.
 
-## 103. Reserved for the next item on the rules track
+## 103. Chapter eighty closes: a fight blows a stealth unit — `unit_masks & 0x1000` — word 1198 → 1204, the trace's end
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 2785 (Claude Sonnet 5.5, `--effort medium`), run878 (`tools/gamelog/golden/chapter80w.cmd`, `docs/RUNS.md`). **What the disk
+could not answer**: run877's first block is 1198; the 1000 pass that wrote `0/7`'s cell was undumped (parked 2757).
+
+**The value diff** (run878, blocks 998–1001, `WORLD=6`, `UNITS=3`; the first take, `--end-frame 1204`, printed no WORLD in its
+window — the `end:` details only reach the window when the window reaches the end frame — and is dead): who 1's `danger` plane is
+the same on every block, cell 235 = **120** (the Partisan `0/7` whole), cell 264 = 145. `seen3` 0 at `0/7`'s and `0/6`'s fog cells
+(both undetected, both `seen` 3). The only field that parts the two Partisans is **`unit_masks`: `0/7` 69632 = `0x11000`, `0/6` 0**
+(`idle` 21/26, `z` 46/0 are position). `is_seen`'s stealth arm skips the hide when `unit_masks & 0x1000` — `UnitData::is_blown`.
+
+**The cause, from run878b** (606–700, `UNITS=3`): `0/7` (204, 60) is 14 tiles from the Airbase `1/2006` and takes an `ATTACKORDER`
+at it on 611 (`near 1/0`, `in_range` 1 on 612): `Unit::fight@005fd4d0` writes `unit_masks |= 0x11000` (69636 on 612, 69632 from
+the order's end). `0/6` never takes an order. Ours took the same order on the same frame (probe, 611: `orders 1`) and kept
+neither bit — the `SEAM` in `do_attack_ground`'s step 6 and `cavarch.rs`.
+
+**The model, now carried** (`Unit::blown` = `0x1000`, `Unit::fought` = `0x10000`): `fight` and `do_attack_ground` set both;
+`Unit::work@0060d180` sets `blown` for any order on a `STEALTH` (`0x40000`), non-`CLOAKED` (`0x4000`) type (the `0x800` and
+`unit_masks2 & 0x8000` guards: the second carried, the first not); `check_idle@006032c0` drops `blown` once the idle counter is 10
+**only while `0x10000` is clear**; and `Unit::process_cloak@005e1c20`, every 512th frame by `o`, drops `0x10000` if set and
+`0x1000` otherwise — which is why `0/7`'s `0x11000` of 1000 is `0` at 1198 (`process_cloak` at 1017 takes the upper bit,
+`check_idle` the lower, `idle` 21 → 34). `unit_stealth_hides` returns false for a blown unit.
+
+**Diff-backed**: `0/7` weighs 120 on 998–1201 (the staging test now asserts `(120, false, lit, 0)` at 1001), the `0/6` hidden
+at 60; the whole window agrees (`chapter_eighty_w_window_is_widened_whole`: the eleven standing `form` rows on 998), and run877's
+rewrites to the same eleven — **the added Scout `1/6`'s path rows (parked 2758) and the 1203 `seen3` cells left with the fix**: its
+explore ran off a unit the original did not see as hidden. The draws agree to 1204; the word is the capture's end.
+**Reading alone**: `process_cloak`'s 512-frame clear and `check_idle`'s drop — the dumps show `0x11000` at 1000 and `0` at 1198,
+not the frame between; the `unit_masks` field is not compared (ours has no word), only its effect on the plane. Not established:
+`unit_masks & 0x800` (the tribe/hero reveal), `process_cloak`'s `unit_masks2 & 0x60` arm, a cloaked Spy's particles, `do_cast`'s
+`0x11000` write.
 
 ## 104. Reserved for the next item on the rules track
 

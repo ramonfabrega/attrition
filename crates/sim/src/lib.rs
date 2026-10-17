@@ -585,6 +585,17 @@ pub struct Unit {
     /// survives about a third of a second past the last arrow and the
     /// visibility survives up to 32 frames past that.
     pub attacking: bool,
+    /// `unit_masks & 0x1000`, "blown" (`UnitData::is_blown@0060a6e0`): a
+    /// stealth unit that has worked an order is no longer hidden by
+    /// `is_seen`'s stealth arm. Set by `Unit::work@0060d180:386` (an order,
+    /// a `STEALTH`-not-`CLOAKED` type) and by every `|= 0x11000`; dropped
+    /// by `check_idle@006032c0` once the idle counter reaches 10, and only
+    /// while [`Unit::fought`] is clear (item 2785, `docs/GOLDEN.md` §103).
+    pub blown: bool,
+    /// `unit_masks & 0x10000`: `fight@005fd4d0:580`, `do_attack_ground` and
+    /// `do_cast` write `0x11000` together; nothing this crate reaches
+    /// clears the upper bit, so `check_idle` never drops `blown` after.
+    pub fought: bool,
 }
 
 /// What a unit needs in order to move.
@@ -1009,6 +1020,8 @@ impl Unit {
             visible: 0,
             in_danger: false,
             attacking: false,
+            blown: false,
+            fought: false,
         }
     }
 
@@ -5967,6 +5980,20 @@ impl Sim {
         // it at the end of the frame. `docs/COMBAT.md` §43.2.
         if self.units[i].inside.is_none() && self.units[i].inside_unit.is_none() {
             self.units[i].unit_masks2 &= !combat::umask2::NOT_FIRING;
+            // `Unit::process_cloak@005e1c20`, reached every sixteenth
+            // frame by `o` and gated again to every 512th: a unit with
+            // `unit_masks & 0x10000` drops that bit, one without drops
+            // `0x1000` — so a fight's `0x11000` takes two passes to go
+            // (item 2785, `docs/GOLDEN.md` §103). SEAM: the pass's other
+            // writes (`unit_masks2 & 0x60`, the Spy cloak particles, the
+            // `0x800` tribe and hero arms) have no reader here.
+            if (frame + i64::from(self.units[i].index)).rem_euclid(512) == 0 {
+                if self.units[i].fought {
+                    self.units[i].fought = false;
+                } else {
+                    self.units[i].blown = false;
+                }
+            }
         }
         if !self.units[i].on_map {
             // **The inside arm's figure write** — `Unit::process@00610bc0`'s

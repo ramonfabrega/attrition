@@ -603,6 +603,22 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2223, win=8, bias=[], stubs=['0x401000:0'],
                                    vtat_half=['p0+0'])
 
+    def test_a_word_may_name_a_window_s_own_address(self):
+        # Item 2797 (parked 2791): `StripBuilder::check_last_connect` compares `*node->next` with the node's own
+        # address: a placed pointer cannot aim at another window (a 2^-32 draw), so `--alias WIN+OFF:TARGET[+K]`
+        # lays the word as the address of window TARGET (plus K) half the rows, the other half left as drawn.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2797, win=8, bias=[], places=['m+0:0:16', 'p0+0:0:8', 'p1+4:0:8'],
+            alias=['p2+0:p1+0x10'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("ALIAS = [('p2', 0, 'p1', 16)]", script)
+        self.assertLess(script.index('for win, off, tgt, plus in ALIAS:'), script.index('for a_, b in wins:'))
+        self.assertIn('the word at `p2+0` laid as the address of `p1+0x10` half the rows', test)
+        for bad in (['p2+0'], ['p2+0:q1'], ['p2:p1']):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2797, win=8, bias=[], places=['m+0:0:16'],
+                                       alias=bad, port='0')
+
     def test_a_stub_may_answer_a_placed_record(self):
         # Item 2241: `CityData::get_pop_value` calls slot +0x3c of
         # `objects[who][o]` and reads `+4` of the record at `+0x18` of the
@@ -1980,6 +1996,20 @@ class Shapes(unittest.TestCase):
             sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_byte='0xa0')
         with self.assertRaises(ValueError):
             sweep_gen.table_expand('0xc0aec0:0x1c:2:4:0xa0:0x8e:-', pbase=1, row_links=['0x90:3:>'])
+
+    def test_a_pointer_table_is_one_place_for_the_array_and_one_a_record(self):
+        # parked 2772 (item 2782): an object list's N records were N `--place` flags and N `--vtat-also`s written by a shell
+        # loop. `--ptrtab LOC:N:SIZE[:vt]` lays the array of N record pointers at LOC (a place of 4N bytes) and each record
+        # as a SIZE-byte place of the array's window, `vt` laying the stubbed vtable at each record's offset 0 as well.
+        x = sweep_gen.ptrtab_expand('0xc0ab84+m[0x4a]*0x1c:3:0x20', pbase=1)
+        self.assertEqual(x['place'], ['0xc0ab84+m[0x4a]*0x1c:0:12', 'p1+0:0:0x20', 'p1+4:0:0x20', 'p1+8:0:0x20'])
+        self.assertEqual(x['vtat_also'], [])
+        y = sweep_gen.ptrtab_expand('c0+8:2:0x20:vt', pbase=4)
+        self.assertEqual(y['place'], ['c0+8:0:8', 'p4+0:0:0x20', 'p4+4:0:0x20'])
+        self.assertEqual(y['vtat_also'], ['p5+0', 'p6+0'])
+        for bad in ('0xc0ab84:0:0x20', '0xc0ab84:3', '0xc0ab84:3:0x20:xx', '0xc0ab84:3:0'):
+            with self.assertRaises(ValueError):
+                sweep_gen.ptrtab_expand(bad, pbase=1)
 
     def test_gate_this_does_not_swallow_a_following_positional(self):
         # parked 2569: a bare `--gate-this` before the function name is the flag, not its value.
