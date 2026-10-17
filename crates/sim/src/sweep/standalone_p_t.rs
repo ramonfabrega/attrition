@@ -390,6 +390,8 @@ mod type_set_type_name;
 mod type_specialty;
 #[path = "type_spell.rs"]
 mod type_spell;
+#[path = "type_pay_cost.rs"]
+mod type_pay_cost;
 #[path = "type_sum_cost.rs"]
 mod type_sum_cost;
 #[path = "type_tech.rs"]
