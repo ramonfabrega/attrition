@@ -969,6 +969,21 @@ mod tests {
         (s, ai, human)
     }
 
+    /// **`was_really_seen`'s leader exits** (`006b54f0`, `docs/AI.md`
+    /// §233): on an all-unseen grid a leader sees nothing until a Fouché of
+    /// its own stands (`num_units[0x141]`), and the other leader is not
+    /// lent the sight. The Space Program arm (`leader_flags & 0x800`) is
+    /// the same call, [`Sim::sees_every_unit`].
+    #[test]
+    fn a_fouche_sees_every_cell_to_the_scout() {
+        let (mut s, ai, _) = scout_sim(true);
+        let c = Cell::new(30, 30);
+        assert!(!s.was_really_seen(c, 1), "the fog alone: unseen");
+        s.units[ai].type_index = 0x32 + 0x141;
+        assert!(s.was_really_seen(c, 1), "a Fouché standing: every cell");
+        assert!(!s.was_really_seen(c, 0), "and only its owner's");
+    }
+
     /// §4: `circle_init`'s first rings, and the check that the sweep order
     /// is right — ring 1 is the eight neighbours and nothing else.
     #[test]
