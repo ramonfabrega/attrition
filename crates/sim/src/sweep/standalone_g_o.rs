@@ -104,6 +104,8 @@ mod game_is_victory_timer;
 mod game_on_find_leaderboard;
 #[path = "game_popwin_timer.rs"]
 mod game_popwin_timer;
+#[path = "game_run_unit_editor.rs"]
+mod game_run_unit_editor;
 #[path = "game_teams_locked.rs"]
 mod game_teams_locked;
 #[path = "game_unload_net_lib.rs"]
