@@ -104,6 +104,8 @@ mod unit_data_is_packing;
 mod unit_data_is_packing_or_unpacking;
 #[path = "unit_data_is_rare_collector.rs"]
 mod unit_data_is_rare_collector;
+#[path = "unit_data_is_seen.rs"]
+mod unit_data_is_seen;
 #[path = "unit_data_is_unpacking.rs"]
 mod unit_data_is_unpacking;
 #[path = "unit_data_los.rs"]
