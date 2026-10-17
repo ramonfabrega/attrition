@@ -594,6 +594,8 @@ mod command_package_process_gather;
 mod command_package_process_gather_point;
 #[path = "command_package_process_halt.rs"]
 mod command_package_process_halt;
+#[path = "command_package_process_hotkey.rs"]
+mod command_package_process_hotkey;
 #[path = "command_package_process_launch_patrol.rs"]
 mod command_package_process_launch_patrol;
 #[path = "command_package_process_marwan.rs"]
