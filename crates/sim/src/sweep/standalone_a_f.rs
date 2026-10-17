@@ -528,6 +528,8 @@ mod command_package_process_accept;
 mod command_package_process_alarm;
 #[path = "command_package_process_attack_ground.rs"]
 mod command_package_process_attack_ground;
+#[path = "command_package_process_begin.rs"]
+mod command_package_process_begin;
 #[path = "command_package_process_buildmask.rs"]
 mod command_package_process_buildmask;
 #[path = "command_package_process_buy.rs"]
@@ -566,6 +568,8 @@ mod command_package_process_demand_tribute;
 mod command_package_process_disband;
 #[path = "command_package_process_eject_all.rs"]
 mod command_package_process_eject_all;
+#[path = "command_package_process_form.rs"]
+mod command_package_process_form;
 #[path = "command_package_process_halt.rs"]
 mod command_package_process_halt;
 #[path = "command_package_process_marwan.rs"]
@@ -576,6 +580,8 @@ mod command_package_process_patrol;
 mod command_package_process_pause;
 #[path = "command_package_process_propose_attack.rs"]
 mod command_package_process_propose_attack;
+#[path = "command_package_process_queue_up.rs"]
+mod command_package_process_queue_up;
 #[path = "command_package_process_recall.rs"]
 mod command_package_process_recall;
 #[path = "command_package_process_reject.rs"]
