@@ -152,6 +152,10 @@ mod spell_type_cast_jam_radar;
 mod spell_type_cast_lock_gate;
 #[path = "spell_type_cast_rally.rs"]
 mod spell_type_cast_rally;
+#[path = "project_c.rs"]
+mod project_c;
+#[path = "project_d.rs"]
+mod project_d;
 #[path = "spell_type_cast_research_project.rs"]
 mod spell_type_cast_research_project;
 #[path = "spell_type_cast_supplies.rs"]
