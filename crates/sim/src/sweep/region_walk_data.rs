@@ -82,14 +82,11 @@ fn the_emulated_original_agrees_on_every_row() {
             let walk3 = "m+0x6c,p0+0x0,p0+0x0".to_string();
             let mut border = "-".to_string();
             if checksum == 0 {
-                let mut local = 0;
-                if input == 0 {
-                    local = i32::from(m[0x30] != 0);
-                    s0.push("p0+0x0,sp-0x4,sp+0x0".into());
-                } else {
-                    s0.push("p0+0x0,sp-0x4,sp+0x0".into());
-                    local = v;
-                }
+                // The flag is a caller local handed by address (`sp-0x4`); on output it is
+                // `[this+0x30] != 0`, which the stub never reads, so only the input arm's
+                // `a[5]` (written through the pointer) is observable.
+                s0.push("p0+0x0,sp-0x4,sp+0x0".into());
+                let local = if input == 0 { 0 } else { v };
                 if input != 0 && local != 0 {
                     border = format!("p0+0x0,{}", rd(m, 0x10));
                     let id = a[4] & 0xff;
