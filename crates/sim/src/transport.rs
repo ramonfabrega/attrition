@@ -773,7 +773,7 @@ impl Sim {
     ///    `move_x`/`move_y`) in the army's region (`ArmyData +0x8`) —
     ///    `eject_contents(0, -1, 0, 1)` and `return 1`. SEAM: the eject is
     ///    not modelled; the boat answers `true` and keeps its cargo, as
-    ///    [`Sim::think_carry_civilian`]'s shore arm does;
+    ///    the civilian arm's shore eject does;
     /// 2. otherwise a **live** target (`+0x30`, `+0x34`; the object's
     ///    `+8 & 1`) — a `MOVE_TO` to the centre of the target's cell, the
     ///    merchant's inlined `add_move_order(…, QUEUE_NEW, 0)`, snapped to
