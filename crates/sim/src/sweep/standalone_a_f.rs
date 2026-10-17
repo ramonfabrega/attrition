@@ -94,6 +94,8 @@ mod attack_order_walk_data;
 mod attack_to_order_walk_data;
 #[path = "attacktoorder_get_attack_to_order.rs"]
 mod attacktoorder_get_attack_to_order;
+#[path = "balance_lookup_absolute_name.rs"]
+mod balance_lookup_absolute_name;
 #[path = "balance_return_modifier.rs"]
 mod balance_return_modifier;
 #[path = "balance_walk_rules_data.rs"]
@@ -152,6 +154,8 @@ mod build_data_get_garrison_arrows;
 mod build_data_get_most_shots;
 #[path = "build_data_get_packer_stance.rs"]
 mod build_data_get_packer_stance;
+#[path = "build_data_get_queue.rs"]
+mod build_data_get_queue;
 #[path = "build_data_get_shot.rs"]
 mod build_data_get_shot;
 #[path = "build_data_get_worker_stance.rs"]
@@ -322,6 +326,8 @@ mod circle_render_on_field_change;
 mod city_calc_gather;
 #[path = "city_could_queue.rs"]
 mod city_could_queue;
+#[path = "city_data_count_farms.rs"]
+mod city_data_count_farms;
 #[path = "city_data_depop_can_queue.rs"]
 mod city_data_depop_can_queue;
 #[path = "city_data_enhancer_amount.rs"]
