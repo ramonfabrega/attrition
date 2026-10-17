@@ -512,6 +512,8 @@ mod command_manager_issue_unqueue_unit;
 mod command_manager_issue_unqueue_wall;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
+#[path = "command_package_process_alarm.rs"]
+mod command_package_process_alarm;
 #[path = "command_package_process_check_random.rs"]
 mod command_package_process_check_random;
 #[path = "command_package_process_halt.rs"]
@@ -520,6 +522,12 @@ mod command_package_process_halt;
 mod command_package_process_marwan;
 #[path = "command_package_process_pause.rs"]
 mod command_package_process_pause;
+#[path = "command_package_process_recall.rs"]
+mod command_package_process_recall;
+#[path = "command_package_process_scramble.rs"]
+mod command_package_process_scramble;
+#[path = "command_package_process_stop_spell.rs"]
+mod command_package_process_stop_spell;
 #[path = "command_package_process_ungraceful_player_drop.rs"]
 mod command_package_process_ungraceful_player_drop;
 #[path = "command_package_walk_data.rs"]
