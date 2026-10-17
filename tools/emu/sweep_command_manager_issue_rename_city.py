@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_command_manager_issue_rename_city.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 32-byte object of random bytes (no bias), 3 stack argument(s);
-argument 2 names 16 random bytes; callee 0x00940a70 (0 args) stubbed; callee 0x00a1f0a0 (0 args) stubbed; callee 0x0055e0ac (3 args) stubbed; callee 0x0094bae0 (2 args) stubbed; the word at `p0+0` points at 16 random bytes less `0` (placed, null a third of the rows); stub 1's answer points at 48 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 prints the 55 bytes its argument 0 points at, hex, after the record (`/` a call); stub 2 is `__cdecl`: the caller pops its arguments; stub 2 copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`).
+argument 2 names 16 random bytes; callee 0x00940a70 (0 args) stubbed; callee 0x00a1f0a0 (0 args) stubbed; callee 0x0055e0ac (3 args) stubbed; callee 0x0094bae0 (2 args) stubbed; the word at `p0+0` points at 16 random bytes less `0` (placed, null a third of the rows); stub 1's answer points at 48 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 prints the 55 bytes its argument 0 points at, hex, after the record (`/` a call); stub 2 is `__cdecl`: the caller pops its arguments; the stack 256 bytes under the call is zeroed before each row; stub 2 copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -71,6 +71,7 @@ OUTARG = []
 CDECLSTUBS = [2]
 STUBWRITE = []
 STUBCOPY = [2]
+STACKCLEAN = 256
 ECXANSWER = []
 ECXOUT = []
 RING = []
@@ -628,6 +629,10 @@ def main(argv):
         # `--xmm` (item 2807): xmm N the float V/4 for an integer V in the range, V on the row.
         xmmv = [rng.randint(spec[1], spec[2]) if spec[0] == "range" else rng.choice(spec[1]) for _, spec in XMM]
         xmm = {n: xmm_bits(v / 4) for (n, _), v in zip(XMM, xmmv)}
+        # `--clean-stack N` (item 2921, parked 2906): the stack under the call zeroed, so a byte of a
+        # caller's local the function did not write reads 00 and not an earlier row's.
+        if STACKCLEAN:
+            uc.mem_write(STACK_BASE + STACK_SIZE - 0x100 - STACKCLEAN, bytes(STACKCLEAN))
         h.calls.clear()
         h.edxs.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
@@ -678,4 +683,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "CommandManager::issue_rename_city@009411d0", "--item", "2893", "--own", "3", "--win", "0x20", "--ptrarg", "2:0x10", "--place", "p0+0:0:16", "--place", "s1:0:48", "--place-null", "0", "--wbias", "p0+8:0,1,5,19,20,21,40,0x10003,0x70000", "--wbias", "p1+0:0,1,0x1234", "--stub", "0x940a70:0", "--stub", "0xa1f0a0:0", "--stub", "0x55e0ac:3", "--stub-cdecl", "2", "--stub", "0x94bae0:2", "--answers", "0:0,1", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--deref", "3:0:55", "--ret", "none", "--stub-copy", "2", "--port", "{ let le = |v: i32| v.to_le_bytes().iter().map(|b| format!(\"{b:02x}\")).collect::<String>(); log.push(\"15269728\".into()); if a[3] == 0 { for _ in 0..4 { log.push(\"-\".into()); } } else { let len = i32::from(u16::from_le_bytes([p[0][8], p[0][9]])); if rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0 { log.push(\"-\".into()); log.push(\"-\".into()); } else { log.push(\"p0+0x0\".into()); log.push(format!(\"p0+0x0,sp-0x43,{},{}\", a[4], 2 * len.min(20) + 2)); } log.push(\"15269768,sp-0x4c,53\".into()); log.push(format!(\"4b{}{}\", le(a[0]), le(a[1]))); } 0 }"]
+# sweep_gen: ["obj", "CommandManager::issue_rename_city@009411d0", "--item", "2893", "--own", "3", "--win", "0x20", "--ptrarg", "2:0x10", "--place", "p0+0:0:16", "--place", "s1:0:48", "--place-null", "0", "--wbias", "p0+8:0,1,5,19,20,21,40,0x10003,0x70000", "--wbias", "p1+0:0,1,0x1234", "--stub", "0x940a70:0", "--stub", "0xa1f0a0:0", "--stub", "0x55e0ac:3", "--stub-cdecl", "2", "--stub", "0x94bae0:2", "--answers", "0:0,1", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--deref", "3:0:55", "--ret", "none", "--stub-copy", "2", "--port", "{ let le = |v: i32| v.to_le_bytes().iter().map(|b| format!(\"{b:02x}\")).collect::<String>(); log.push(\"15269728\".into()); if a[3] == 0 { for _ in 0..4 { log.push(\"-\".into()); } } else { let len = i32::from(u16::from_le_bytes([p[0][8], p[0][9]])); if rd(&p[0], 0) == 0 || rd(&p[1], 0) == 0 || len == 0 { log.push(\"-\".into()); log.push(\"-\".into()); } else { log.push(\"p0+0x0\".into()); log.push(format!(\"p0+0x0,sp-0x43,{},{}\", a[4], 2 * len.min(20) + 2)); } log.push(\"15269768,sp-0x4c,53\".into()); log.push(format!(\"4b{}{}\", le(a[0]), le(a[1]))); } 0 }", "--clean-stack", "0x100"]
