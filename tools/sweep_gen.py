@@ -160,7 +160,8 @@ Three shapes, each a `__thiscall` on `ecx`:
 
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
-          (parked 1889).
+          (parked 1889); it takes every window, stub and place `obj`
+          takes (`--cell-win`, `--stub`, `--place`; item 2887).
 
 A fixed-offset `lea eax, [ecx-0x70]` is `const` with `--port '_this - 0x70'`;
 a `--mask` is `field` with the mask in the port. `vcall --own N` hands the
@@ -168,7 +169,7 @@ function N stack arguments of its own, which the port reads as `p[..]`
 (1966's `has_stance_type` compares the slot's answer with its `p0`).
 
 Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
-the registration is printed, or inserted with `--write-mod`. New tests without
+the registration is inserted (the default since item 2887; `--no-write-mod` prints it instead). New tests without
 `crate::` references join one of four standalone alphabetical partitions; tests
 using crate internals stay in `sweep/mod.rs`. Existing registrations stay owned
 by their current target. `--regen` redraws a generated sweep in place (both files
