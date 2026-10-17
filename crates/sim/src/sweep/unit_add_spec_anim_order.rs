@@ -1,0 +1,75 @@
+//! `Unit::add_spec_anim_order@005e4160` under the emulator against the port (item 2857; tools/sweep_gen.py, obj with windows).
+
+#[allow(dead_code)]
+fn rd(m: &[u8], off: usize) -> i32 {
+    i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
+}
+
+#[allow(dead_code)]
+fn wr(m: &mut [u8], off: usize, v: i32) {
+    m[off..off + 4].copy_from_slice(&v.to_le_bytes());
+}
+
+fn unhex(s: &str) -> Vec<u8> {
+    (0..s.len() / 2)
+        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
+        .collect()
+}
+
+/// `Unit::add_spec_anim_order@005e4160`, run by `tools/emu/sweep_unit_add_spec_anim_order.py` under unicorn
+/// (tools/emu): 256 random bytes of object, 4 argument(s), callee 0x00730ac0 (1 args) stubbed; vtable slot +0xa8 (0 args) stubbed; callee 0x0046d5a0 (1 args) stubbed; callee 0x005e3920 (0 args) stubbed; callee 0x0060a870 (0 args) stubbed; the word at `m+0xdc` points at 4 random bytes less `0` (placed); stub 0 answers the address of 32 random bytes, a `p` window after the places; stub 1 answers the address of 32 random bytes, a `p` window after the places; the stubbed vtable laid at `p1+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+#[test]
+fn the_emulated_original_agrees_on_every_row() {
+    let Some(rows) = super::emu_rows("sweep_unit_add_spec_anim_order.py") else {
+        return;
+    };
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {
+        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
+        let want_log: Vec<&str> = calls.split_whitespace().collect();
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
+        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
+        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
+        let mut m = wins.remove(0);
+        let mut p: Vec<Vec<u8>> = wins.split_off(0);
+        let mut c: Vec<Vec<u8>> = wins;
+        let want_eax: i64 = eax.trim().parse().expect("an integer");
+        let mut log: Vec<String> = Vec::new();
+        let got: i64 = {
+            let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
+            let _ = (&a, &m, &c, &p);
+            // `Unit::add_spec_anim_order(a, b, c, _)`: `get_obj(SPECIAL_ANIM = 0x19)` answers a record
+            // (`p[1]`), whose slot `+0xa8` answers the order (`p[2]`). Its flag byte `+4` gains bit 2, its
+            // words `+8`, `+0x14`, `+0x18` take the three arguments; the order joins the list at `this+0xcc`;
+            // `clear_partial_path`; `this+0xdc` is set to the word its own pointer names (`p[0]`);
+            // `update_action`, whose answer is returned.
+            log.push("s0:m+0x0,25".to_string());
+            log.push("s1:p1+0x0".to_string());
+            p[2][4] |= 4;
+            wr(&mut p[2], 8, a[0]);
+            wr(&mut p[2], 0x14, a[1]);
+            wr(&mut p[2], 0x18, a[2]);
+            log.push("s2:m+0xcc,p2+0x0".to_string());
+            log.push("s3:m+0x0".to_string());
+            let w = rd(&p[0], 0);
+            wr(m, 0xdc, w);
+            log.push("s4:m+0x0".to_string());
+            i64::from(a[8])
+        };
+        assert_eq!(got, want_eax, "add_spec_anim_order — eax, row `{line}`");
+        assert_eq!(log, want_log, "add_spec_anim_order — the recorded calls, row `{line}`");
+        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
+        assert_eq!(m, want[0], "add_spec_anim_order — this's bytes, row `{line}`");
+        for (i, w) in c.iter().enumerate() {
+            assert_eq!(w, &want[1 + i], "add_spec_anim_order — window c[{i}], row `{line}`");
+        }
+        for (i, w) in p.iter().enumerate() {
+            assert_eq!(w, &want[1 + i], "add_spec_anim_order — window p[{i}], row `{line}`");
+        }
+        n += 1;
+    }
+    assert!(n >= 200, "only {n} rows");
+    eprintln!("Unit::add_spec_anim_order@005e4160: {n} rows agree");
+}
