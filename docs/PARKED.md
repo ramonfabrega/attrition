@@ -6250,12 +6250,13 @@ Struck: (2757) closed by item 2785 (the blown bit); (2758) left with it — the 
 
 Nine of the ten chosen rows were built by subagents; by the time the lane updated, 2837 and 2844 had swept five of them on the base
 (`Border::generate_morph_side`, `TerrainMap::cancel_button_enable`, `RiverDoober::add_for_render`, `TurnControl::get_delta_percent`,
-`Game::clock_init`) and 2801 a sixth (`MiscAccess::world_to_screen@00583a00` is `world_to_screen_b`); those six were dropped, the base's
+`Game::clock_init`) and 2801 a sixth (`MiscAccess::world_to_screen`'s second form is `world_to_screen_b`); those six were dropped, the base's
 kept. Three landed: `GatherPointList::get_new_data`, `Type::restore`, `TimeSync::update`, 220 rows each.
 
-- **`CityData::num_city_buildings@00737ae0` unswept**: its subagent committed a sweep but hung on a `mutate.py` run and left a stray break
-  (`4 * who` for `3 * who`); the committed test reported "0 tests" under the shared target dir (the stale-binary trap, 1629) and was not
-  re-verified, so the branch (185c06da) was dropped. A vcall chain through `objects` indexed by `who`; needs a fresh batch.
+- **`CityData::num_city_buildings` unswept, built but not landed**: its subagent's sweep (commit 185c06da, in the object store only) passed
+  220 rows with six breaks held, then its worktree was removed mid-run; two breaks were never read (`n += 1` for `+= 2`, and `4 * who`
+  for `3 * who`, which hung — an infinite loop in the port, a detection but not an assertion). A fresh lane cherry-picks 185c06da, reads
+  the two breaks, and lands it (a vcall chain through `objects` indexed by `who`; `--link` per who).
 - **A harvest read against the base first**: ten rows picked off `census.py --unbacked` at 2280648b were five-sixths already swept at
   the merge; a lane picks from the base's `--unbacked` at its `ccc update`, not at its spawn.
 - **`Game::clock_init`'s port (dropped) hard-coded the harness's pointee address** for eax; a sweep of a function that leaves a pointer in
