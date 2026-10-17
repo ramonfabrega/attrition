@@ -192,6 +192,8 @@ mod group_data_get_num_cap_const;
 mod group_data_get_num_const;
 #[path = "group_data_get_o.rs"]
 mod group_data_get_o;
+#[path = "group_data_get_repeat_air.rs"]
+mod group_data_get_repeat_air;
 #[path = "group_data_get_unit.rs"]
 mod group_data_get_unit;
 #[path = "group_data_has_air_units.rs"]
