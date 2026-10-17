@@ -59,6 +59,15 @@ pub(crate) trait Wire: Sized + Default {
         Ok(())
     }
 }
+impl Wire for u8 {
+    const MIN: usize = 1;
+    fn put(&self, out: &mut Encoder) -> Result<()> {
+        out.put(&[*self])
+    }
+    fn get(input: &mut Decoder<'_>) -> Result<Self> {
+        Ok(input.take(1)?[0])
+    }
+}
 impl Wire for i64 {
     const MIN: usize = 8;
     fn put(&self, out: &mut Encoder) -> Result<()> {
@@ -323,6 +332,47 @@ impl Wire for BTreeMap<String, i64> {
         Ok(())
     }
 }
+// Numeric observation identities retain duplicate rejection and bounded allocation.
+macro_rules! numeric_map {
+    ($key:ty) => {
+        impl<V: Wire> Wire for BTreeMap<$key, V> {
+            fn heap_bytes(&self) -> usize {
+                self.len() * (128 + std::mem::size_of::<$key>() + std::mem::size_of::<V>())
+                    + self.values().map(Wire::heap_bytes).sum::<usize>()
+            }
+            const MIN: usize = 4;
+            fn put(&self, out: &mut Encoder) -> Result<()> {
+                out.len(self.len())?;
+                for (k, v) in self {
+                    k.put(out)?;
+                    v.put(out)?;
+                }
+                Ok(())
+            }
+            fn get(input: &mut Decoder<'_>) -> Result<Self> {
+                let n = input.len()?;
+                if n > input.bytes.len() / (<$key as Wire>::MIN + V::MIN) {
+                    return Err("invalid numeric map length");
+                }
+                input.reserve(
+                    n.checked_mul(128 + std::mem::size_of::<$key>() + std::mem::size_of::<V>())
+                        .ok_or("map allocation overflow")?,
+                )?;
+                let mut out = BTreeMap::new();
+                for _ in 0..n {
+                    if out.insert(<$key>::get(input)?, V::get(input)?).is_some() {
+                        return Err("duplicate map key");
+                    }
+                }
+                Ok(out)
+            }
+        }
+    };
+}
+numeric_map!(i64);
+numeric_map!((i64, i64));
+numeric_map!((i64, i64, i64));
+
 // Both patterns are exhaustive: a new owned field cannot silently disappear.
 macro_rules! record {
     ($ty:ident { $($field:ident: $kind:ty),* $(,)? }) => {
@@ -512,7 +562,12 @@ mod reuse_tests {
         .concat();
         for reuse in [false, true] {
             assert_eq!(
-                read(&bytes, &mut BTreeMap::from([("a".into(), 0)]), reuse, 4096),
+                read(
+                    &bytes,
+                    &mut BTreeMap::<String, i64>::from([("a".into(), 0)]),
+                    reuse,
+                    4096
+                ),
                 Err("invalid UTF-8")
             );
         }

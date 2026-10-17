@@ -127,6 +127,10 @@ fn diff_sources() -> Vec<String> {
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/golden/observations.rs",
+        "owned source observations and codec; comparisons remain in golden.rs",
+    ),
+    (
         "diff/third_pair/replay.rs",
         "window replay setup/reuse and fresh-state audit; original-record comparisons remain in third_pair.rs",
     ),

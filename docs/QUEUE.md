@@ -98,6 +98,10 @@ Full required-fixture gate passes on `55793bfc`; exact3276 requests retained.
 Warm rondata161.22→145.58s, CPU1158.05→1037.78 (about10% lower). Whole-suite10×
 remains unmet. Next: complete golden civilian observations (283.12CPU family). See
 [journal](journal/2026-10-16-golden-replay.md).
+Golden civilian follow-up: complete auxiliary observations cached with distinct
+ammunition modes; all72 complete-report differential tests pass. Warm chapter36
+8.89→1.72s, CPU8.22→1.67; warm memory flat and first-use cost higher. Full gate
+pending; see [journal](journal/2026-10-16-golden-civilian.md).
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See

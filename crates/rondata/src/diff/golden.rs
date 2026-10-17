@@ -27,6 +27,7 @@
 //! [`refusing_the_borrowed_frame_stream_does_not_move_great_lakes_word`] —
 //! but it would have made this one meaningless.
 
+pub(super) mod observations;
 use super::*;
 use crate::diff::testkit::*;
 use crate::gamelog::{Initial, Log};
@@ -2247,6 +2248,12 @@ fn widen_civilians_walk(
 ) -> Option<CivilianWidening> {
     use std::collections::{BTreeMap, BTreeSet};
     let mut s = stage_script(run, stem)?;
+    let mut store = super::oracle::Store::new(
+        reuse
+            && std::env::var_os("RON_DISABLE_GOLDEN_ORACLE").is_none()
+            && std::env::var_os("RON_DISABLE_GOLDEN_READERS").is_none(),
+    )
+    .with_civilian(ammo);
     let players = s.built.sim.players.len();
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -2270,25 +2277,35 @@ fn widen_civilians_walk(
         };
         // One slice and eager tree serve both typed and auxiliary readers.
         // The legacy branch exists only for the opt-in differential audit.
-        let reused_raw = reuse.then(|| s.ix.read_frame(at).unwrap());
+        let cached = store.enabled().then(|| store.read(&mut s.ix, at));
+        let auxiliary = cached
+            .as_ref()
+            .map(|v| v.civilian.as_ref().expect("civilian mode"));
+        let reused_raw = (reuse && cached.is_none()).then(|| s.ix.read_frame(at).unwrap());
         let reused_log = reused_raw.as_deref().map(Log::parse_eager);
-        let frame = if let Some(log) = &reused_log {
-            crate::capture::indexed::IndexedCapture::frame_from_log(log, n).unwrap()
+        let fresh_frame;
+        let frame = if let Some(value) = &cached {
+            &value.frame
         } else {
-            s.ix.frame_state(at).unwrap()
+            fresh_frame = if let Some(log) = &reused_log {
+                crate::capture::indexed::IndexedCapture::frame_from_log(log, n).unwrap()
+            } else {
+                s.ix.frame_state(at).unwrap()
+            };
+            &fresh_frame
         };
         blocks += 1;
-        let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
+        let (_, k) = crate::diff::harness::widen_block(&s.built, frame, players, n, &mut firsts);
         rows += k;
-        rows += widen_turrets(&s.built, &frame, players, n, &mut firsts);
+        rows += widen_turrets(&s.built, frame, players, n, &mut firsts);
         // `RON_ROW_WALK=who/o,…` — every key that parts on this block for
         // the units named, not only its first parting: a key whose first
         // parting is a birth seat hides everything after it (parked 1046,
         // item 1048).
         if let Ok(spec) = std::env::var("RON_ROW_WALK") {
             let mut here = BTreeMap::new();
-            crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut here);
-            widen_turrets(&s.built, &frame, players, n, &mut here);
+            crate::diff::harness::widen_block(&s.built, frame, players, n, &mut here);
+            widen_turrets(&s.built, frame, players, n, &mut here);
             for ((w, o, what), (_, row)) in &here {
                 if spec.split(',').any(|u| u.trim() == format!("{w}/{o}")) {
                     eprintln!("  walk f{n} {w}/{o} {what}: {row}");
@@ -2296,7 +2313,7 @@ fn widen_civilians_walk(
             }
         }
         let legacy_raw = (!reuse).then(|| s.ix.read_frame(at).unwrap());
-        let raw = reused_raw.as_ref().or(legacy_raw.as_ref()).unwrap();
+        let raw = reused_raw.as_deref().or(legacy_raw.as_deref());
         // **`near_o`/`near_who`, every unit, both directions** (item
         // 707): the last search's footprint (`sim::Unit::near`,
         // `docs/COMBAT.md` §37.1), which no parser carries, so the
@@ -2304,7 +2321,13 @@ fn widen_civilians_walk(
         // eleven's guard is the witness: its `near_o` goes 6 → −1 on
         // the block its attack ends, the one record that says a search
         // ran there and saw nothing.
-        let near = raw_near(raw);
+        let fresh_near;
+        let near = if let Some(value) = auxiliary {
+            &value.near
+        } else {
+            fresh_near = raw_near(raw.unwrap());
+            &fresh_near
+        };
         for them in &frame.units {
             if !(0..players as i64).contains(&them.who) {
                 continue;
@@ -2335,22 +2358,38 @@ fn widen_civilians_walk(
                     .or_insert((n, format!("ours {ours:?} theirs {:?}", (no, nw))));
             }
         }
-        let legacy_log = (!reuse).then(|| Log::parse(raw));
-        let flog = reused_log.as_ref().or(legacy_log.as_ref()).unwrap();
+        let legacy_log = (!reuse).then(|| Log::parse(raw.unwrap()));
+        let flog = reused_log.as_ref().or(legacy_log.as_ref());
         if let Some(pool) = pool.as_deref_mut() {
             assert_eq!(
                 n, s.built.sim.frame,
                 "{run}: the pool and civilian clocks differ"
             );
-            pool.observe(run, &s.built, flog, n);
+            if let Some(value) = &cached {
+                pool.observe_groups(run, &s.built, &value.groups, n);
+            } else {
+                pool.observe(run, &s.built, flog.unwrap(), n);
+            }
         }
         // **An anti-air building's cycle, both directions** (item 1112,
         // `docs/COMBAT.md` §84): `recharging` and `attack_ox/attack_whom`
         // on every building whose type carries the `Wall::inc_time`
         // cycle — no other reader parses the three, and the cycle is
         // nothing but them.
-        for (_, fb) in flog.frames() {
-            for ((w, o), [rech, ox, whom]) in cycle_rows(fb) {
+        let fresh_cycles;
+        let cycles = if let Some(value) = auxiliary {
+            &value.cycles
+        } else {
+            fresh_cycles = flog
+                .unwrap()
+                .frames()
+                .into_iter()
+                .flat_map(|(_, fb)| cycle_rows(fb))
+                .collect();
+            &fresh_cycles
+        };
+        {
+            for &((w, o), [rech, ox, whom]) in cycles {
                 let Some(b) =
                     s.built.sim.buildings.iter().position(|b| {
                         b.alive && i64::from(b.owner) == w && i64::from(b.index) == o
@@ -2394,8 +2433,20 @@ fn widen_civilians_walk(
         // **A building's `visible` byte, every building** (item 1423,
         // `docs/GOLDEN.md` §61): the mask its own round sets and its phase
         // clears, held until now by a unit test alone.
-        for (_, fb) in flog.frames() {
-            for ((w, o), theirs) in visible_rows(fb) {
+        let fresh_visible;
+        let visible = if let Some(value) = auxiliary {
+            &value.visible
+        } else {
+            fresh_visible = flog
+                .unwrap()
+                .frames()
+                .into_iter()
+                .flat_map(|(_, fb)| visible_rows(fb))
+                .collect();
+            &fresh_visible
+        };
+        {
+            for &((w, o), theirs) in visible {
                 let Some(b) =
                     s.built.sim.buildings.iter().position(|b| {
                         b.alive && i64::from(b.owner) == w && i64::from(b.index) == o
@@ -2422,11 +2473,15 @@ fn widen_civilians_walk(
         // `update_local_seen_build`'s mask — `ever_seen | visible | owner`
         // — is held by a unit test alone until a window prints `WORLD=6`
         // per frame (run770); the other chapters print none and skip.
-        for (_, fb) in flog.frames() {
-            let Some(world) = fb.find("WORLD") else {
-                continue;
-            };
-            let theirs = crate::gamelog::world_fog(&world.fields().to_vec());
+        let fresh_worlds;
+        let worlds = if let Some(value) = auxiliary {
+            &value.worlds
+        } else {
+            fresh_worlds = observations::worlds(flog.unwrap());
+            &fresh_worlds
+        };
+        for world in worlds {
+            let theirs = &world.fog;
             if theirs.is_empty() {
                 continue;
             }
@@ -2453,7 +2508,7 @@ fn widen_civilians_walk(
             // **And the detect plane beside it** (item 2755, `docs/GOLDEN.md`
             // §102): `seen3`, the inner disc of every `DETECT` object, which
             // `is_detected` reads for a stealth unit (parked 2727).
-            let theirs3 = crate::gamelog::world_fog3(&world.fields().to_vec());
+            let theirs3 = &world.detect;
             let mut bad3 = 0usize;
             let mut first3 = String::new();
             for (i, &t) in theirs3.iter().enumerate() {
@@ -2469,7 +2524,7 @@ fn widen_civilians_walk(
             }
             // **And the danger planes** (`calc_danger`, every 200th frame,
             // which `is_seen`'s stealth arm weighs): every viewer's row.
-            let dg = crate::gamelog::world_danger(&world.fields().to_vec());
+            let dg = &world.danger;
             if !dg.is_empty() {
                 let reg = dg.len() / 8;
                 let mut badd = 0usize;
@@ -2499,10 +2554,19 @@ fn widen_civilians_walk(
             }
         }
         for who in 0..2usize {
-            let Some(block) = flog.leader_block(n, who as i64) else {
-                continue;
+            let fresh_leader;
+            let t = if let Some(value) = &cached {
+                let Some(t) = &value.leaders[who] else {
+                    continue;
+                };
+                t
+            } else {
+                let Some(block) = flog.unwrap().leader_block(n, who as i64) else {
+                    continue;
+                };
+                fresh_leader = crate::diff::leader::theirs(&block);
+                &fresh_leader
             };
-            let t = crate::diff::leader::theirs(&block);
             for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
                 let Some(&y) = t.get(&k) else {
                     missing.insert(k);
@@ -2528,8 +2592,16 @@ fn widen_civilians_walk(
         // A capture taken without `GOODS` in its `end:` set (chapter six)
         // prints no list at all, and a block of that kind is counted, not
         // compared: this crate's goods would be rows against nothing.
-        let theirs: BTreeMap<i64, FrameGood> =
-            frame_goods(raw).into_iter().map(|g| (g.o, g)).collect();
+        let fresh_goods;
+        let theirs = if let Some(value) = auxiliary {
+            &value.goods
+        } else {
+            fresh_goods = frame_goods(raw.unwrap())
+                .into_iter()
+                .map(|g| (g.o, g))
+                .collect::<BTreeMap<_, _>>();
+            &fresh_goods
+        };
         let ours = s.built.sim.world.goods();
         if theirs.is_empty() {
             no_goods += 1;
@@ -2588,11 +2660,13 @@ fn widen_civilians_walk(
             // short, and this walk said the two rounds agreed on every
             // block to the word because it compared which rounds were
             // held and nothing else.
-            let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(raw)
-                .into_iter()
-                .filter(|(a, _)| a.flags & 2 != 0)
-                .map(|(a, _)| ((a.who, a.o, a.index), a))
-                .collect();
+            let fresh_ammo;
+            let theirs = if let Some(value) = auxiliary {
+                value.ammo.as_ref().expect("ammo mode")
+            } else {
+                fresh_ammo = observations::ammo(raw.unwrap());
+                &fresh_ammo
+            };
             let sim = &s.built.sim;
             let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
                 .projectiles
@@ -2827,6 +2901,16 @@ impl PoolWidening {
             return;
         };
         let pool = crate::gamelog::groups(block);
+        self.observe_groups(run, built, &pool, n);
+    }
+
+    fn observe_groups(
+        &mut self,
+        run: &str,
+        built: &Built,
+        pool: &[crate::gamelog::GroupDump],
+        n: i64,
+    ) {
         assert_eq!(pool.len(), 512, "{run} block {n}: the pool is 512 records");
         self.blocks += 1;
         let w = sim::Player::try_from(self.who).unwrap();

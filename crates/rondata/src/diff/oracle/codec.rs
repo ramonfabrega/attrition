@@ -13,7 +13,7 @@ pub(super) fn decode(bytes: &[u8]) -> Result<Oracle> {
 pub(super) fn decode_into(bytes: &[u8], value: &mut Oracle) -> Result<()> {
     crate::capture::owned_codec::decode_into(bytes, value)
 }
-record!(Oracle { frame: Frame, groups: Vec<GroupDump>, leaders: [Option<BTreeMap<String, i64>>; 2], regions: [Option<BTreeMap<String, i64>>; 2] });
+record!(Oracle { frame: Frame, groups: Vec<GroupDump>, leaders: [Option<BTreeMap<String, i64>>; 2], regions: [Option<BTreeMap<String, i64>>; 2], civilian: Option<crate::diff::golden::observations::Civilian> });
 record!(Frame {
     n: i64,
     units: Vec<UnitDump>,
@@ -279,6 +279,7 @@ mod tests {
     #[test]
     fn whole_record_roundtrip_and_invalid_inputs() {
         let value = Oracle {
+            civilian: None,
             frame: Frame {
                 n: i64::MIN,
                 units: vec![UnitDump {

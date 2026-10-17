@@ -540,3 +540,20 @@ Schema repopulation makes the gate rondata phase165.20s/1185.64CPU. Whole-suite
 10×, sub-minute/sub-GiB and concurrent-agent capacity remain unproven.
 See [journal](journal/2026-10-16-golden-replay.md) and
 [audit](audit/2026-10-16-golden-replay.json). Independent review remains owed.
+
+## Golden civilian observations
+
+Civilian widening now optionally decodes persistent near, cycle/visibility,
+world-plane, goods and ammunition observations alongside the existing frame,
+leader and pool records. Every simulation tick and comparison still runs.
+Ammunition inclusion is part of cache identity; civilian reader source is hashed.
+`RON_DISABLE_GOLDEN_ORACLE` retains eager parsing; existing raw-reader opt-outs
+and whole-report audit flags remain effective. Raw-key coverage bypasses caches.
+
+All72 affected cases pass complete civilian/pool differential auditing. Three
+new guards cover values, bounded codecs and cache-mode separation; deliberate
+faults fail. Warm chapter36 improves8.89→1.72s/CPU8.22→1.67; memory765→763MiB.
+First-use cost rises to12.21s/1141MiB; this is not a cold-cache memory saving.
+Full required-fixture gate pending; whole-suite10× remains unmet. See
+[journal](journal/2026-10-16-golden-civilian.md) and
+[audit](audit/2026-10-16-golden-civilian.json). Independent review remains owed.

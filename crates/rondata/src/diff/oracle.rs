@@ -9,6 +9,7 @@ pub(super) struct Oracle {
     pub(super) frame: Frame,
     pub(super) groups: Vec<GroupDump>,
     pub(super) leaders: [Option<BTreeMap<String, i64>>; 2],
+    pub(super) civilian: Option<super::golden::observations::Civilian>,
     pub(super) regions: [Option<BTreeMap<String, i64>>; 2],
 }
 impl Oracle {
@@ -16,6 +17,9 @@ impl Oracle {
         Self::parse_with_regions(text, n, false)
     }
     fn parse_with_regions(text: &str, n: i64, include_regions: bool) -> Self {
+        Self::parse_modes(text, n, include_regions, None)
+    }
+    fn parse_modes(text: &str, n: i64, include_regions: bool, civilian: Option<bool>) -> Self {
         let log = Log::parse_eager(text);
         let frame = IndexedCapture::frame_from_log(&log, n).unwrap();
         let block = log.frames().into_iter().find(|(k, _)| *k == n).unwrap().1;
@@ -37,6 +41,8 @@ impl Oracle {
             groups,
             leaders,
             regions,
+            civilian: civilian
+                .map(|ammo| super::golden::observations::Civilian::parse(text, &log, ammo)),
         }
     }
 }
@@ -80,6 +86,7 @@ fn decoded_frame_experiment() {
 pub(super) struct Store {
     enabled: bool,
     include_regions: bool,
+    civilian: Option<bool>,
     directory: Option<std::path::PathBuf>,
     value: Oracle,
     compressed: Vec<u8>,
@@ -92,6 +99,7 @@ impl Store {
     pub(super) fn new(enabled: bool) -> Self {
         Self {
             include_regions: false,
+            civilian: None,
             enabled: enabled && std::env::var_os("RON_DISABLE_ORACLE_CACHE").is_none(),
             directory: std::env::var_os("RON_ORACLE_CACHE_DIR").map(Into::into),
             value: Oracle::default(),
@@ -106,13 +114,23 @@ impl Store {
         self.include_regions = true;
         self
     }
+    pub(super) fn with_civilian(mut self, ammo: bool) -> Self {
+        self.civilian = Some(ammo);
+        self
+    }
     pub(super) fn enabled(&self) -> bool {
         self.enabled && !crate::gamelog::reads::active()
     }
     pub(super) fn read(&mut self, source: &mut IndexedCapture, at: usize) -> &Oracle {
         source.validate().unwrap();
         let n = source.frames()[at].number;
-        let identity = identity(source, at, self.include_regions);
+        let mut identity = identity(source, at, self.include_regions);
+        if let Some(ammo) = self.civilian {
+            identity.push_str(&format!(
+                " civilian-ammo={ammo} schema={:016x}",
+                civilian_schema()
+            ));
+        }
         let directory = self.directory.clone().unwrap_or_else(|| {
             source
                 .oracle_identity()
@@ -133,11 +151,14 @@ impl Store {
             && self.value.frame.n == n
         {
             source.validate().unwrap();
-            if std::env::var_os("RON_VERIFY_ORACLE").is_some() {
+            if std::env::var_os("RON_VERIFY_ORACLE").is_some()
+                || (self.civilian.is_some()
+                    && std::env::var_os("RON_VERIFY_GOLDEN_READERS").is_some())
+            {
                 let text = source.read_frame(at).unwrap();
                 assert_eq!(
                     self.value,
-                    Oracle::parse_with_regions(&text, n, self.include_regions),
+                    Oracle::parse_modes(&text, n, self.include_regions, self.civilian),
                     "whole oracle differs at position {at}"
                 );
             }
@@ -146,7 +167,7 @@ impl Store {
         }
         self.misses += 1;
         let text = source.read_frame(at).unwrap();
-        let value = Oracle::parse_with_regions(&text, n, self.include_regions);
+        let value = Oracle::parse_modes(&text, n, self.include_regions, self.civilian);
         source.validate().unwrap();
         if let Ok(bytes) = pack(&identity, &value)
             && publish(&path, &bytes).is_ok()
@@ -175,6 +196,19 @@ fn schema() -> u64 {
                 include_str!("../capture/indexed.rs"),
                 include_str!("../capture/source.rs"),
                 include_str!("../capture/archive.rs")
+            )
+            .as_bytes(),
+        )
+    })
+}
+fn civilian_schema() -> u64 {
+    static SCHEMA: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
+    *SCHEMA.get_or_init(|| {
+        hash(
+            concat!(
+                include_str!("golden.rs"),
+                include_str!("golden/observations.rs"),
+                include_str!("ammo.rs")
             )
             .as_bytes(),
         )
@@ -292,6 +326,7 @@ fn entry_rejects_corruption_staleness_and_wrong_frame_identity() {
         groups: vec![],
         leaders: [None, None],
         regions: [None, None],
+        civilian: None,
     };
     let bytes = pack("source version frame-position=0", &value).unwrap();
     assert_eq!(
@@ -339,6 +374,7 @@ fn store_preserves_duplicate_frames_source_versions_and_existing_entries() {
     let mut store = Store {
         enabled: true,
         include_regions: false,
+        civilian: None,
         directory: Some(root.join("cache")),
         value: Oracle::default(),
         compressed: Vec::new(),
@@ -429,4 +465,42 @@ fn region_mode_has_distinct_identity_and_preserves_base_observations() {
     crate::gamelog::reads::stop();
     drop(source);
     std::fs::remove_dir_all(root).unwrap(); // only this test's authored files
+}
+
+#[test]
+fn civilian_modes_do_not_alias_and_keep_every_observation() {
+    let root = std::env::temp_dir().join(format!(
+        "ron-civilian-modes-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir(&root).unwrap();
+    let path = root.join("capture.txt");
+    let text = "BEGIN GAME\n BEGIN FRAME 3\n  BEGIN WORLD\n   seen2[scan] 7\n   seen3[scan] 8\n  BEGIN AMMO\n   who 0\n   o 7\n   index 2\n   flags 2\n   accuracy 17\n";
+    std::fs::write(&path, text).unwrap();
+    let mut source = IndexedCapture::open(&path).unwrap();
+    for mode in [None, Some(false), Some(true)] {
+        let mut store = Store::new(true);
+        store.enabled = true;
+        store.directory = Some(root.join("cache"));
+        if let Some(ammo) = mode {
+            store = store.with_civilian(ammo);
+        }
+        let expected = Oracle::parse_modes(text, 3, false, mode);
+        for _ in 0..2 {
+            assert_eq!(store.read(&mut source, 0), &expected);
+        }
+        assert_eq!((store.hits, store.misses, store.writes), (1, 1, 1));
+        assert_eq!(expected.civilian.is_some(), mode.is_some());
+    }
+    assert_eq!(std::fs::read_dir(root.join("cache")).unwrap().count(), 3);
+    let store = Store::new(true).with_civilian(true);
+    crate::gamelog::reads::start();
+    assert!(!store.enabled());
+    crate::gamelog::reads::stop();
+    drop(source);
+    std::fs::remove_dir_all(root).unwrap(); // exclusively this test's authored files
 }
