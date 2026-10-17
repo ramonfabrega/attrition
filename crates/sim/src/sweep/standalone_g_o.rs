@@ -472,6 +472,8 @@ mod object_data_armor;
 mod object_data_attack_dist;
 #[path = "object_data_attack_dist_at.rs"]
 mod object_data_attack_dist_at;
+#[path = "object_data_can_carry.rs"]
+mod object_data_can_carry;
 #[path = "object_data_get_wonder_value.rs"]
 mod object_data_get_wonder_value;
 #[path = "object_data_has_objmask.rs"]
