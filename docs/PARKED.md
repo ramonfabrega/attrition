@@ -6761,13 +6761,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GF — reserved
+## Parked by item 2930, 2026-10-17 — chapter 89, a Bribe's range-arrival (run890)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **(2930) The unseen-arrival kill has no diff.** Never killing at `do_cast`'s range arrival fails nothing on run890: a Spy sees a target at Bribe's
+  range. Reaching the kill needs a caster whose range exceeds its sight or a stealth-hidden target; it names no score, so it parks (GOLDEN §113).
+- **(2930, second) A building target killed mid-approach** (was parked 2929) is still the listing's alone; unchanged.
 
 ## Parked by the next landing, slot GG — reserved
 
