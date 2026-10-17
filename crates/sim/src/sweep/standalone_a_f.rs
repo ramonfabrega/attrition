@@ -534,6 +534,8 @@ mod doober_find_y_pos;
 mod doober_get_num;
 #[path = "doober_has_doobers.rs"]
 mod doober_has_doobers;
+#[path = "doober_inc_time.rs"]
+mod doober_inc_time;
 #[path = "draw_thick_diamond.rs"]
 mod draw_thick_diamond;
 #[path = "farms_add_animals_all.rs"]
