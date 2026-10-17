@@ -6842,11 +6842,11 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2971, 2026-10-17 — Chapter ninety-one's leftovers
 
-- (2971) **Counterintelligence's accepted arms** (an infiltrated friend, an infiltrated ally, an enemy Spy a `DETECT` object reveals) are reading-only: the
+- (2991) **Counterintelligence's accepted arms** (an infiltrated friend, an infiltrated ally, an enemy Spy a `DETECT` object reveals) are reading-only: the
   first two need the other seat to cast the Informer (`@spell` refuses a seat that is not the console's, refusal 1), the last a detector in the staging. Names no score.
-- (2971, second) **The Sniper's building arm and `cast_sabotage`'s leader counters and score** (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x44 += cost/5` for a squad captain,
-  the message and sound) are not built; Sabotage `0x280` and Pilfer `0x276` still refuse in `spell_valid_target`. Names no score.
-- (2971, third) **The booking's premise was wrong**: the Commando's `mylos` prints 12 (`unitrules.xml` says `LOS 8`), so no caster in this lobby casts beyond its
+- (2992) **The Sniper's building arm and `cast_sabotage`'s leader counters and score** (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x44 += cost/5` for a squad captain,
+  the message and sound) are not built; Sabotage `0x280` and Pilfer `0x276` still refuse in `spell_valid_target`. **Booked as chapter 92 (2994) at the merge.**
+- (2993) **The booking's premise was wrong**: the Commando's `mylos` prints 12 (`unitrules.xml` says `LOS 8`), so no caster in this lobby casts beyond its
   sight but the Informer; `LOS` and `mylos` differ by a factor this crate has not derived. Names no score.
 
 ## Parked by the next landing, slot GO — reserved
