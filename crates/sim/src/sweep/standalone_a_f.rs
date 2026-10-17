@@ -516,10 +516,14 @@ mod command_manager_issue_unqueue_wall;
 mod command_package_add_command;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
+#[path = "command_package_process_accept.rs"]
+mod command_package_process_accept;
 #[path = "command_package_process_alarm.rs"]
 mod command_package_process_alarm;
 #[path = "command_package_process_buildmask.rs"]
 mod command_package_process_buildmask;
+#[path = "command_package_process_buy.rs"]
+mod command_package_process_buy;
 #[path = "command_package_process_cheat_ai_speed_normal.rs"]
 mod command_package_process_cheat_ai_speed_normal;
 #[path = "command_package_process_cheat_ai_toggle.rs"]
@@ -536,6 +540,8 @@ mod command_package_process_cheat_zero_buckets;
 mod command_package_process_cheat_zero_techs;
 #[path = "command_package_process_check_random.rs"]
 mod command_package_process_check_random;
+#[path = "command_package_process_declare.rs"]
+mod command_package_process_declare;
 #[path = "command_package_process_disband.rs"]
 mod command_package_process_disband;
 #[path = "command_package_process_halt.rs"]
@@ -546,10 +552,16 @@ mod command_package_process_marwan;
 mod command_package_process_pause;
 #[path = "command_package_process_recall.rs"]
 mod command_package_process_recall;
+#[path = "command_package_process_resign.rs"]
+mod command_package_process_resign;
 #[path = "command_package_process_scramble.rs"]
 mod command_package_process_scramble;
 #[path = "command_package_process_stop_spell.rs"]
 mod command_package_process_stop_spell;
+#[path = "command_package_process_treaty.rs"]
+mod command_package_process_treaty;
+#[path = "command_package_process_tribute.rs"]
+mod command_package_process_tribute;
 #[path = "command_package_process_ungraceful_player_drop.rs"]
 mod command_package_process_ungraceful_player_drop;
 #[path = "command_package_process_unitmask.rs"]
