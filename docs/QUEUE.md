@@ -12,18 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-ninth tranche (commander, Opus): 19 landings from `31eb3a05`**, every gate
-green; last whole gate `ab2dbd08`; two sweep collisions resolved by update (Loop 2926); no kill rule, no DEEP but 2864's.*
+*2026-10-17, **the thirty-ninth tranche at twenty (commander, Opus): 20 landings from `31eb3a05`**, 2956 live to the
+drain; every booking gate green at its first commit, last whole `5dfa2e14`; one `DEEP` (2946, cleared at 309k, landed with no
+lane verdict — the whole gate stood in); no kill rule; sweep collisions only before the briefs named the other lane's (2926).*
 
-- **Words**: **the peace pair closed** (East Indies, the Lakota, ends 6822): 6821 → 6822 by 2864 (run883), its closing
-  state scored with no unit apart; every pair is closed now. The AI word is the battery's lowest lobby,
-  `EastIndiesGermanTier3`, 576 → 5577 of 13519 by 2931 (the Germans' flat per-city gather; run891 widened), as 2956. Chapters 80–89 closed (89 at 1500 on run890: the range
-  arrival, 2930), 90 is 2949. Census 1319 of 3611 (2863, 2877, 2893, 2900, 2910, 2921, 2927, 2941, 2946, 2953); `port` 156. Battery
-  6566 / 2974 / 176 (GreatLakesChineseTier1 minted, runs 887–888).
-- **Lanes: four, live** (DECISIONS 75, 76; the roster is Ramon's, 71): 2956 the AI word's (Opus 5.5 medium), 2949 the
-  rules track's; the sweep lanes not refilled at 18 and 19 of 20 (the drain), 2959 and 2966 unstarted; the fifth lane 61 §5 would add is Ramon's (76).
-  Next 2967, run 894 (Astra 900–909). Pools: GOLDEN §115–117, AI §242–243, park GM–GO free (GJ, GL live).
-- **Fable backlog: 18 Loop items** (1570, 1725, 2003, 2654, 2809, 2882, 2886, 2892, 2896, 2899, 2903, 2914, 2926, 2933, 2948, 2955, 2958, 2965).
+- **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's lowest lobby,
+  `EastIndiesGermanTier3` (DECISIONS 72): promoted unmoved at 576 by 2904 (run886; `GreatLakesChineseTier1` minted held out,
+  first try 176), 576 → 5577 by 2931 (the Germans' flat per-city gather, run891), the open word, as 2956. Chapters 86–90
+  closed (2881, 2895, 2915, 2930, 2949: `check_cast_target_path` whole, the Informer reaching both kill arms on run892);
+  91 is 2971. Census 1260 → 1319 of 3611 (2910, 2921, 2927, 2941, 2946, 2953). Battery 6566 / 2974 / 176.
+- **Lanes: four from `31eb3a05`; at twenty, 2956 the AI word's (Opus 5.5 medium) live to the drain**; 2971, 2959, 2966
+  unstarted. Next 2972, run 894 (Astra 900–909). Pools: GOLDEN §115–117, AI §242–243, park GM–GO free (GL live).
+- **Fable backlog: 19 Loop items** (1570, 1725, 2003, 2654, 2809, 2882, 2886, 2892, 2896, 2899, 2903, 2914, 2926, 2933, 2948, 2955, 2958, 2965, 2970).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,19 +35,19 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: EastIndiesGermanTier3 w5577 of 13,519
 Census: simulation backed 1319 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the thirty-ninth tranche (commander, Opus) from this handoff: re-arm `tools/lanewait.py` on the live
-lanes, then merge, book, spawn, gate, push, reap as one chain; landings by `git log` from `31eb3a05`, the whole gate at
-the twelfth, the stop at twenty with the handoff written, the whole gate green, the lanes drained, and `ccc clear steer
---then` the pass's opener.**
+**Opener: the thirty-ninth pass (Fable, the session): twenty landings from `31eb3a05` to the drain's commit; score the
+roster lane by lane for Ramon (Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rules track and two sweep lanes),
+rule the 19 Loop items, and clear `commander` into the fortieth tranche with the queue's four lanes (2956's successor or
+2956, 2971, 2959, 2966).**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2956 the AI word's (Opus), 2949 the rules track's (Sonnet); 2959 and 2966
-wait for the next tranche's sweep lanes. The battery word is the AI's — lower map first — East Indies (Germans), at 5577. Take the first unstarted item unless a better
+2956 the AI word's (Opus), live to the drain; 2971, 2959 and 2966 wait for
+the next tranche's lanes (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 5577. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 2956. **The battery word, 5577 of 13519 (`EastIndiesGermanTier3`):
@@ -58,13 +58,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     from a `SITE[8]` row standing from 5571 that theirs does not hold.
     Unstarted. AI §241, run 893, slot GL.
 
-2949. **Chapter ninety: `check_cast_target_path`'s last two arms**
-    (DECISIONS 56 §3; 2930 closed chapter 89 on run890 to 1500, the
-    range arrival diff-backed, parked 2947): the unseen-arrival kill,
-    which a Spy never reaches (it sees at Bribe's range) — a caster whose
-    range exceeds its sight or a stealth-hidden target — and a building
-    target killed mid-approach (parked 2929); census rows first, run 892
-    only when no packet answers. Unstarted. GOLDEN §114, slot GJ.
+2971. **Chapter ninety-one: the Sniper's and Counterintelligence's
+    refused arms** (DECISIONS 56 §3; 2949 closed chapter 90 on run892 to
+    1200, the Informer reaching both kill arms, parked 2967–2969): the
+    Sniper (12 tiles against a Commando's 8) is the second caster whose
+    range exceeds its sight, and `spell_valid_target` refuses both
+    (SEAM); the Commando's and the Sniper's `is_valid_target` arms read
+    first, run 894 only when no packet answers. Unstarted. GOLDEN §115.
 
 2959. **The sweep's next shape batch: the `process_*` bodies that are
     not the three shapes** (DECISIONS 63 (iv); the score `Census:` 1309

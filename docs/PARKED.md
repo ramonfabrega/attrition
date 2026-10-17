@@ -3763,6 +3763,11 @@ Loop" line, filed at its merge; parked 2962): four "passed" breaks of one batch 
 when re-run alone through `tools/mutate.py --edit`. Candidate: `mutate.py --batch FILE` taking one break per line with its
 own delimiter, a test made to fail first on a `||` break. One reach.
 
+(2970) **A staged `add` lands hundreds of units from its coordinates and the walk does not say where** (2949's "for the
+Loop" line, filed at its merge; parked 2969): neighbouring values snap to land by up to 400 units, and run892's first two
+stagings put a target across a detour or on a squad that marched. Candidate: `walk_script` prints each staged unit's
+landing beside its verb, a test made to fail first. One reach.
+
 (2933) **A windowed capture's copy into `Logs/` is a hand step** (2904's "for the Loop" line, filed at its merge): its dump
 and trace land in `~/ron-golden/runNNN/map-NN/`, and every journal copies them into `Logs/` under the archive's name by hand;
 `archive.sh` is `live.sh`'s and no tool owns it. Candidate: the runner (or a `tools/gamelog/` verb) files them, a test made
@@ -6859,12 +6864,12 @@ so no dump has read a Roman `income`; a lobby with a Roman AI on one city would 
 
 ## Parked by item 2949, 2026-10-17 — chapter 90, the Informer's three kills (run892)
 
-- (2949, first) **An Informer on a moving unit at arrival** is unwatched: C's Hoplite stood still and D's Spy is idle, so `check_cast_target_path`'s
+- (2967) **An Informer on a moving unit at arrival** is unwatched: C's Hoplite stood still and D's Spy is idle, so `check_cast_target_path`'s
   `is_moving` re-path never ran in a capture that also reached the arrival. Names no score.
-- (2949, second) **Counterintelligence and the Sniper stay refused** in `spell_valid_target` (SEAM): the Sniper's 12 tiles against a Commando's 8 is the second
+- (2968) **Counterintelligence and the Sniper stay refused** in `spell_valid_target` (SEAM): the Sniper's 12 tiles against a Commando's 8 is the second
   caster whose range exceeds its sight and it casts nowhere here. A staging needs the Commando's and the Sniper's `is_valid_target` arms read first. Names no score.
-- (2949, third) **The `add` verb's coordinates are not tiles.** Neighbouring values snap to land by up to 400 units (`134` → 24696, `138` → 27672, `142` → 28008);
-  a staging reads distances off the walk. For the Loop: `walk_script` could print each staged unit's landing beside the verb.
+- (2969) **The `add` verb's coordinates are not tiles.** Neighbouring values snap to land by up to 400 units (`134` → 24696, `138` → 27672, `142` → 28008);
+  a staging reads distances off the walk. For the Loop: Loop 2970.
 
 ## Parked by item 2953, 2026-10-17 — the hundred-and-twenty-ninth sweep batch
 
