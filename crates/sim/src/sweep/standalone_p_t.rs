@@ -300,6 +300,8 @@ mod terrain_map_remove_feature;
 mod terrain_map_river_point;
 #[path = "terrain_map_start_river.rs"]
 mod terrain_map_start_river;
+#[path = "terrain_object_placed.rs"]
+mod terrain_object_placed;
 #[path = "terrain_oil_gain_tech.rs"]
 mod terrain_oil_gain_tech;
 #[path = "terrain_oil_lose_tech.rs"]
