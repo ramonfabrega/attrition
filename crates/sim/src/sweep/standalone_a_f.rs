@@ -528,10 +528,14 @@ mod command_package_process_accept;
 mod command_package_process_alarm;
 #[path = "command_package_process_attack_ground.rs"]
 mod command_package_process_attack_ground;
+#[path = "command_package_process_begin.rs"]
+mod command_package_process_begin;
 #[path = "command_package_process_buildmask.rs"]
 mod command_package_process_buildmask;
 #[path = "command_package_process_buy.rs"]
 mod command_package_process_buy;
+#[path = "command_package_process_cannon_time.rs"]
+mod command_package_process_cannon_time;
 #[path = "command_package_process_cheat_ai_speed_normal.rs"]
 mod command_package_process_cheat_ai_speed_normal;
 #[path = "command_package_process_cheat_ai_toggle.rs"]
@@ -554,6 +558,8 @@ mod command_package_process_city_gather;
 mod command_package_process_clear_all;
 #[path = "command_package_process_clear_tributes.rs"]
 mod command_package_process_clear_tributes;
+#[path = "command_package_process_come_out.rs"]
+mod command_package_process_come_out;
 #[path = "command_package_process_declare.rs"]
 mod command_package_process_declare;
 #[path = "command_package_process_demand_tribute.rs"]
@@ -562,6 +568,14 @@ mod command_package_process_demand_tribute;
 mod command_package_process_disband;
 #[path = "command_package_process_eject_all.rs"]
 mod command_package_process_eject_all;
+#[path = "command_package_process_form.rs"]
+mod command_package_process_form;
+#[path = "command_package_process_garrison.rs"]
+mod command_package_process_garrison;
+#[path = "command_package_process_gather.rs"]
+mod command_package_process_gather;
+#[path = "command_package_process_gather_point.rs"]
+mod command_package_process_gather_point;
 #[path = "command_package_process_halt.rs"]
 mod command_package_process_halt;
 #[path = "command_package_process_marwan.rs"]
@@ -572,8 +586,14 @@ mod command_package_process_patrol;
 mod command_package_process_pause;
 #[path = "command_package_process_propose_attack.rs"]
 mod command_package_process_propose_attack;
+#[path = "command_package_process_queue_up.rs"]
+mod command_package_process_queue_up;
 #[path = "command_package_process_recall.rs"]
 mod command_package_process_recall;
+#[path = "command_package_process_reject.rs"]
+mod command_package_process_reject;
+#[path = "command_package_process_repair.rs"]
+mod command_package_process_repair;
 #[path = "command_package_process_resign.rs"]
 mod command_package_process_resign;
 #[path = "command_package_process_scramble.rs"]
