@@ -550,6 +550,8 @@ mod command_package_process_buy;
 mod command_package_process_cannon_time;
 #[path = "command_package_process_chat_set.rs"]
 mod command_package_process_chat_set;
+#[path = "command_package_process_cheat_ai_speed_increase.rs"]
+mod command_package_process_cheat_ai_speed_increase;
 #[path = "command_package_process_cheat_ai_speed_normal.rs"]
 mod command_package_process_cheat_ai_speed_normal;
 #[path = "command_package_process_cheat_ai_toggle.rs"]
@@ -558,6 +560,8 @@ mod command_package_process_cheat_ai_toggle;
 mod command_package_process_cheat_give_techs;
 #[path = "command_package_process_cheat_increase_buckets.rs"]
 mod command_package_process_cheat_increase_buckets;
+#[path = "command_package_process_cheat_init_unit.rs"]
+mod command_package_process_cheat_init_unit;
 #[path = "command_package_process_cheat_view_all.rs"]
 mod command_package_process_cheat_view_all;
 #[path = "command_package_process_cheat_zero_buckets.rs"]
@@ -574,6 +578,8 @@ mod command_package_process_clear_all;
 mod command_package_process_clear_tributes;
 #[path = "command_package_process_come_out.rs"]
 mod command_package_process_come_out;
+#[path = "command_package_process_console_cmd.rs"]
+mod command_package_process_console_cmd;
 #[path = "command_package_process_declare.rs"]
 mod command_package_process_declare;
 #[path = "command_package_process_demand_tribute.rs"]
@@ -594,6 +600,8 @@ mod command_package_process_gather;
 mod command_package_process_gather_point;
 #[path = "command_package_process_halt.rs"]
 mod command_package_process_halt;
+#[path = "command_package_process_hotkey.rs"]
+mod command_package_process_hotkey;
 #[path = "command_package_process_launch_patrol.rs"]
 mod command_package_process_launch_patrol;
 #[path = "command_package_process_marwan.rs"]
@@ -606,10 +614,14 @@ mod command_package_process_mp_log;
 mod command_package_process_patrol;
 #[path = "command_package_process_pause.rs"]
 mod command_package_process_pause;
+#[path = "command_package_process_ping.rs"]
+mod command_package_process_ping;
 #[path = "command_package_process_propose_attack.rs"]
 mod command_package_process_propose_attack;
 #[path = "command_package_process_queue_up.rs"]
 mod command_package_process_queue_up;
+#[path = "command_package_process_quit.rs"]
+mod command_package_process_quit;
 #[path = "command_package_process_recall.rs"]
 mod command_package_process_recall;
 #[path = "command_package_process_reject.rs"]
@@ -620,24 +632,32 @@ mod command_package_process_repair;
 mod command_package_process_resign;
 #[path = "command_package_process_scramble.rs"]
 mod command_package_process_scramble;
+#[path = "command_package_process_sell.rs"]
+mod command_package_process_sell;
 #[path = "command_package_process_set_transport.rs"]
 mod command_package_process_set_transport;
 #[path = "command_package_process_siege_attack.rs"]
 mod command_package_process_siege_attack;
 #[path = "command_package_process_speed_down.rs"]
 mod command_package_process_speed_down;
+#[path = "command_package_process_speed_set.rs"]
+mod command_package_process_speed_set;
 #[path = "command_package_process_speed_up.rs"]
 mod command_package_process_speed_up;
 #[path = "command_package_process_stop_spell.rs"]
 mod command_package_process_stop_spell;
 #[path = "command_package_process_swarm_around.rs"]
 mod command_package_process_swarm_around;
+#[path = "command_package_process_trade.rs"]
+mod command_package_process_trade;
 #[path = "command_package_process_transport.rs"]
 mod command_package_process_transport;
 #[path = "command_package_process_treaty.rs"]
 mod command_package_process_treaty;
 #[path = "command_package_process_tribute.rs"]
 mod command_package_process_tribute;
+#[path = "command_package_process_turn_data.rs"]
+mod command_package_process_turn_data;
 #[path = "command_package_process_ungraceful_player_drop.rs"]
 mod command_package_process_ungraceful_player_drop;
 #[path = "command_package_process_unitmask.rs"]

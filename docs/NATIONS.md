@@ -478,7 +478,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `IFaceOptions::on_redraw@00815a50` | 8 | not sim | `interface or render side` |
 | `IFaceResources::update_visibility@0081ba60` | 4 | not sim | `interface or render side` |
 | `Scene::set_help_type@008be140` | 12 | not sim | `interface or render side` |
-| `CommandPackage::process_sell@009468a0` | 4 | not modelled | `009468a0` |
+| `CommandPackage::process_sell@009468a0` | 4 | modelled at command_package_process_sell.rs | `009468a0` |
 | `ScenarioFuncSet::buy_good@009fb790` | 4 | not sim | `the scenario trigger set, cut from v1` |
 | `ScenarioFuncSet::sell_good@009fb880` | 4 | not sim | `the scenario trigger set, cut from v1` |
 | `ScenarioFuncSet::can_buy_sell@009fb970` | 4 | not sim | `the scenario trigger set, cut from v1` |
