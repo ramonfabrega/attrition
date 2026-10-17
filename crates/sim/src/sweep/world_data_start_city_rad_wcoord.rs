@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `WorldData::start_city_rad_wcoord@006b3850`, run by `tools/emu/sweep_world_data_start_city_rad_wcoord.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 pointed argument(s), p2..p3 the place(s), in flag order; the global cell 0x00c06188 points at 1024 random bytes; the global cell 0x00c061e4 points at 512 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `c0+0xc8` points at 64 random bytes less `0` (placed); the word at `c0+0xe4` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1500 rows (an arm few rows reach).
+/// (tools/emu): 8 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 pointed argument(s), p2..p3 the place(s), in flag order; the global cell 0x00c06188 points at 1024 random bytes; the global cell 0x00c061e4 points at 512 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `c0+0xc8` points at 64 random bytes less `0` (placed); the word at `c0+0xe4` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2500 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_world_data_start_city_rad_wcoord.py") else {
@@ -74,6 +74,6 @@ fn the_emulated_original_agrees_on_every_row() {
         }
         n += 1;
     }
-    assert!(n >= 1500, "only {n} rows");
+    assert!(n >= 2500, "only {n} rows");
     eprintln!("WorldData::start_city_rad_wcoord@006b3850: {n} rows agree");
 }
