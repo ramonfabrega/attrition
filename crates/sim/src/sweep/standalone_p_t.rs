@@ -140,10 +140,10 @@ mod roads_pieces_rot_byte;
 mod roads_road_added;
 #[path = "roads_road_cleared.rs"]
 mod roads_road_cleared;
-#[path = "search_valid_search.rs"]
-mod search_valid_search;
 #[path = "roads_scan_and_kill_straggled_tcoord.rs"]
 mod roads_scan_and_kill_straggled_tcoord;
+#[path = "search_valid_search.rs"]
+mod search_valid_search;
 #[path = "search_walk_data.rs"]
 mod search_walk_data;
 #[path = "setup_build_leader.rs"]
@@ -306,6 +306,8 @@ mod terrain_oil_lose_tech;
 mod terrain_oil_remove_rocky_patch;
 #[path = "terrain_out_get_name.rs"]
 mod terrain_out_get_name;
+#[path = "terrain_refresh_good_z.rs"]
+mod terrain_refresh_good_z;
 #[path = "terrain_vis_get_verts_per_bucket.rs"]
 mod terrain_vis_get_verts_per_bucket;
 #[path = "terrain_vis_invalidate_fog_wcoord.rs"]
