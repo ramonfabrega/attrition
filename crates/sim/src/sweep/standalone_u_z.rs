@@ -392,6 +392,8 @@ mod wonder_get_timer;
 mod wonder_walk_data;
 #[path = "world_adjust_fog.rs"]
 mod world_adjust_fog;
+#[path = "world_compute_all_vals.rs"]
+mod world_compute_all_vals;
 #[path = "world_data_buildings_allowed.rs"]
 mod world_data_buildings_allowed;
 #[path = "world_data_get_bottom.rs"]
@@ -556,6 +558,8 @@ mod world_set_orig_coast;
 mod world_set_resource_at;
 #[path = "world_set_river_at.rs"]
 mod world_set_river_at;
+#[path = "world_set_seen2.rs"]
+mod world_set_seen2;
 #[path = "world_set_started2_at.rs"]
 mod world_set_started2_at;
 #[path = "world_set_started_at.rs"]
