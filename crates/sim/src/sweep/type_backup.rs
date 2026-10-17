@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -43,16 +48,17 @@ fn the_emulated_original_agrees_on_every_row() {
             // to `+0x20c` and `+0xc` (2n+2 bytes, the terminator written after the n characters), or cleared when
             // the string, its head or its length is null; then three prerequisites and six costs.
             let (head, tn) = (rd(&p[1], 0), rd(&p[2], 0));
-            let copy_name = |p: &mut [Vec<u8>], at: usize, ptr: i32, h: i32, len: u16, cap: usize| {
-                if ptr != 0 && h != 0 && len != 0 {
-                    let n = (len as usize).min(cap);
-                    let src = p[3][..2 * n + 2].to_vec();
-                    p[0][at..at + 2 * n + 2].copy_from_slice(&src);
-                    p[0][at + 2 * n..at + 2 * n + 2].fill(0);
-                } else {
-                    p[0][at..at + 2].fill(0);
-                }
-            };
+            let copy_name =
+                |p: &mut [Vec<u8>], at: usize, ptr: i32, h: i32, len: u16, cap: usize| {
+                    if ptr != 0 && h != 0 && len != 0 {
+                        let n = (len as usize).min(cap);
+                        let src = p[3][..2 * n + 2].to_vec();
+                        p[0][at..at + 2 * n + 2].copy_from_slice(&src);
+                        p[0][at + 2 * n..at + 2 * n + 2].fill(0);
+                    } else {
+                        p[0][at..at + 2].fill(0);
+                    }
+                };
             let w = rd(m, 8);
             wr(&mut p[0], 0, w);
             let w = rd(m, 0x10);
