@@ -550,6 +550,28 @@ class Shapes(unittest.TestCase):
         self.assertEqual(tok(top + 0x100, []), str(top + 0x100))
         self.assertEqual(tok(top + 0xc, [('m', top + 0x8, 0x10)]), 'm+0x4')
 
+    def test_the_stack_under_the_call_may_be_cleared_each_row(self):
+        # Item 2921 (parked 2906): a `--deref` of a caller's local printed the
+        # last row's bytes wherever the function wrote less than the local
+        # holds (`issue_rename_city`'s Command, 55 bytes, its string a variable
+        # length). `--clean-stack N` zeroes N bytes under the entry `esp`
+        # before each row, so a byte the function did not write reads 00.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2921, win=0x40, bias=[], own=0, ret='none',
+            stubs=['0x402000:1'], deref=['0:0:55'], clean_stack=0x100)
+        compile(script, str(sp), 'exec')
+        self.assertIn('STACKCLEAN = 256', script)
+        self.assertIn('uc.mem_write(STACK_BASE + STACK_SIZE - 0x100 - STACKCLEAN, bytes(STACKCLEAN))', script)
+        self.assertIn('the stack 256 bytes under the call is zeroed before each row', test)
+        _, none, _, _, _ = sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=0, ret='none', stubs=['0x402000:1'])
+        self.assertIn('STACKCLEAN = 0', none)
+        # alone, with no stub or window, it still selects the windowed script (the plain obj has no row for it)
+        _, alone, _, _, _ = sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=0, ret='none', clean_stack=0x40)
+        self.assertIn('STACKCLEAN = 64', alone)
+        for bad in (-1, 0x20000):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none', clean_stack=bad)
+
     def test_a_stub_may_decrement_a_window_word_each_call(self):
         # Item 2749 (parked 2734): `PathFinder::kill_lists` and `Build::verify_gather_tiles`
         # loop on a count a callee (`remove_current`, `Array::remove`) lowers by
