@@ -518,6 +518,16 @@ mod command_package_add_command;
 mod command_package_begin_process;
 #[path = "command_package_process_alarm.rs"]
 mod command_package_process_alarm;
+#[path = "command_package_process_cheat_give_techs.rs"]
+mod command_package_process_cheat_give_techs;
+#[path = "command_package_process_cheat_increase_buckets.rs"]
+mod command_package_process_cheat_increase_buckets;
+#[path = "command_package_process_cheat_view_all.rs"]
+mod command_package_process_cheat_view_all;
+#[path = "command_package_process_cheat_zero_buckets.rs"]
+mod command_package_process_cheat_zero_buckets;
+#[path = "command_package_process_cheat_zero_techs.rs"]
+mod command_package_process_cheat_zero_techs;
 #[path = "command_package_process_check_random.rs"]
 mod command_package_process_check_random;
 #[path = "command_package_process_halt.rs"]
