@@ -40,7 +40,20 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            todo!()
+            // `TurnControl::walk_data(walker)`, on the turn-control record `T` the cell `0xc06180` names
+            // (`c[1]`; `this` is unread): slot 4 of the walker is handed `*(G+0x10) + 0x22268` for `G` the
+            // record of cell `0xc06378` (`c[0]`); slot 0 walks `(T+4, T+0xc)`, then `(T+0x10, T+0x10+[T+8])`,
+            // then — after a walker with a nonzero input word at `+4` stores 2 at `T+0xc` — `(T+0x14, T+0x169)`.
+            let size = rd(&c[1], 8);
+            log.push(format!(
+                "p0+0x0,c1+0x4,c1+0xc/p0+0x0,c1+0x10,c1+{:#x}/p0+0x0,c1+0x14,c1+0x169",
+                0x10 + size
+            ));
+            log.push(format!("p0+0x0,{}", rd(&c[0], 0x10).wrapping_add(0x22268)));
+            if rd(&p[0], 4) != 0 {
+                wr(&mut c[1], 0xc, 2);
+            }
+            0i64
         };
         let _ = (got, want_eax);
         assert_eq!(log, want_log, "walk_data — the recorded calls, row `{line}`");
