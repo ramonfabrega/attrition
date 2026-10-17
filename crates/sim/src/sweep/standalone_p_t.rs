@@ -96,6 +96,8 @@ mod resource_divvy_pool_get_early;
 mod resource_divvy_pool_get_late;
 #[path = "resource_divvy_pool_get_water.rs"]
 mod resource_divvy_pool_get_water;
+#[path = "resource_divvy_pool_done_adding_goods.rs"]
+mod resource_divvy_pool_done_adding_goods;
 #[path = "resource_divvy_pool_refresh_early.rs"]
 mod resource_divvy_pool_refresh_early;
 #[path = "resource_divvy_pool_refresh_late.rs"]
