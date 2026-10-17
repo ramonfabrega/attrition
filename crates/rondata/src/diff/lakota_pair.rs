@@ -146,8 +146,18 @@ pub(crate) const LAKOTA: Pair = Pair {
     // city 0) and jittered its platform. Now ours 23 draws, theirs 24,
     // index 19 — ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
     // theirs `Guy::set_anim+0x104b`.
-    count: 5985,
-    sequence: 5985,
+    // Item 2808: 5985 → 6452 (count 6455), `think_carry`'s attack arm
+    // (`005f2ee0`; `docs/AI.md` §235): the Transport Freighter `1/225`
+    // (`TypeIndex` 322, sea) carrying the Flamethrower `1/185` of army 1
+    // loses its `ATTACK_TO` on 5955 (`do_move`'s refused plan, both
+    // sides), idles on 5956, and on 5957 theirs' think sails it to army
+    // 1's target's cell, (6552, 7320) for the human's `0/2000` at (6240,
+    // 7008); ours had no arm and it stood idle, rolling its anim on 5985.
+    // Now 22 draws each on 6452, index 0 — ours `Guy::set_anim+0x97a <
+    // Unit::do_idle+0x7d` (`1/193`), theirs `Guy::set_anim+0xf2f <
+    // Unit::set_anim+0x56`.
+    count: 6455,
+    sequence: 6452,
 };
 
 /// The pair's word as the handoff's `Peace pair:` line and `AI_WORDS` carry it.
@@ -679,5 +689,14 @@ fn run879_s_word_frame_is_widened_whole() {
     // Freighter `1/225` (`TypeIndex` 322, sea), idle in ours (`idle` 3)
     // and on a move to (6552, 7320) in theirs from 5976 — the new word's
     // candidate; the first row past it is `1/238`'s path on 5990.
-    pin_eq!(w.firsts.len(), 2854, "initial run879 baseline");
+    // Item 2808: the word 5985's own block is 5986, widened at 2854 keys;
+    // it holds no row. The draws part on `1/225`, whose rows stand from
+    // 5976 (above): ours idle at (16200, 27864) with no order, theirs on a
+    // `MOVEORDER` to (6552, 7320) at (15864, 27440), 27 legs. 2854 → 191
+    // with `think_carry`'s attack arm: `pos`, the order, the path and the
+    // headings of `1/225` agree on 5976, and so does every row the
+    // freighter's idle draws shifted after it; `1/225` keeps only its
+    // standing `form`. Left: the standing keys from 5976, and from 6045
+    // `1/164`'s `attrition` (ours 6, theirs 0) and then its `hits`.
+    pin_eq!(w.firsts.len(), 191, "initial run879 baseline");
 }
