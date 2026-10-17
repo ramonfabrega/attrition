@@ -46,6 +46,8 @@ mod animal_data_valid_target_const;
 mod animal_update_los;
 #[path = "armies_diplo_change.rs"]
 mod armies_diplo_change;
+#[path = "armies_emergency.rs"]
+mod armies_emergency;
 #[path = "armies_find_city.rs"]
 mod armies_find_city;
 #[path = "armies_find_useful_army.rs"]
@@ -56,6 +58,10 @@ mod armies_leader_defeated;
 mod armies_num_armies;
 #[path = "armies_send_navy.rs"]
 mod armies_send_navy;
+#[path = "armies_update_city.rs"]
+mod armies_update_city;
+#[path = "army_charge.rs"]
+mod army_charge;
 #[path = "army_count.rs"]
 mod army_count;
 #[path = "army_member.rs"]
@@ -94,6 +100,8 @@ mod border_build_border;
 mod border_generate_morph_side;
 #[path = "border_nodes_find.rs"]
 mod border_nodes_find;
+#[path = "border_process_morph.rs"]
+mod border_process_morph;
 #[path = "border_spline_get_name.rs"]
 mod border_spline_get_name;
 #[path = "border_spline_on_field_change.rs"]

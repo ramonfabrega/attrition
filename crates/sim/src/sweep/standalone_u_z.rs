@@ -504,10 +504,14 @@ mod world_set_gathered_at;
 mod world_set_land;
 #[path = "world_set_mountain_at.rs"]
 mod world_set_mountain_at;
+#[path = "world_set_oil_at.rs"]
+mod world_set_oil_at;
 #[path = "world_set_orig_coast.rs"]
 mod world_set_orig_coast;
 #[path = "world_set_resource_at.rs"]
 mod world_set_resource_at;
+#[path = "world_set_river_at.rs"]
+mod world_set_river_at;
 #[path = "world_set_started2_at.rs"]
 mod world_set_started2_at;
 #[path = "world_set_started_at.rs"]

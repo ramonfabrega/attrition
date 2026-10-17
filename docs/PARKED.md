@@ -6555,13 +6555,41 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FP — reserved
+## Parked by item 2852, 2026-10-17 — the hundred-and-seventeenth sweep batch: ten with a simulation effect
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2852) **Ten built, walked down `census.py --unbacked` past 2844's stop.** `ResourceDivvyPool::get_early` 0x68a640,
+`get_late` 0x68a570, `get_water` 0x68a4a0 (one shape three times: `Random::get` 0xa39d70 stubbed `--seq 0:12
+--answer-range 0:0:65535`, the bit mask and the goods array `--place`d, the mask words `--wbias`ed to patterns whose bit 0 is
+clear, or a pool of one good loops forever on a set bit), `World::set_river_at` 0x6b1f80 (two placed tile arrays, the fine
+one `--wbias`ed mostly zero so the coarse bit's clear arm is reached), `Army::charge` 0x6f9a90 (ten-argument stub recorded per
+group row, the objects table two placed levels deep), `ObjectData::can_carry` 0x646c40 (the `could_queue` shape: slot 0xb8 laid
+as the base half the rows, `--seq 1:3 --seq 2:3`), `Armies::emergency` 0x6f3250 and `Armies::update_city` 0x6f2d70 (the
+leaders and armies tables **in the image**, `--sparse @LOC`), `Border::process_morph` 0x87fd00 (two recorded callees, the
+array shuffled in place), `World::set_oil_at` 0x6b2a10 (four cell windows, the goods list and their types placed, a record's
+stubbed vtable laid by `--vtat-also`). `Census:` 1208 → **1219 of 3,611** by `--layers` on the tip. No subagents, ten serial,
+debug; about seventy breaks, all held bar the two named in the next row.
+
+(2852, second) **Survivors, read against the draw.** `ResourceDivvyPool::get_early`'s `count - 1 > 0` → `count > 0`: at one
+good the original skips `Random::get` and the mutant takes `a[1] % 1 == 0`, the same index, and the stub's call count is
+not recorded: an equivalent mutant. `Border::process_morph`'s `origin[i] = origin[n - 1]` survived because the original
+never looks at the swapped-in slot again (`i` moves on): removed from the port rather than kept as dead state. `World::set_oil_at`
+reaches its good-matching arm in ten rows of 220 (a flag, a type of 5, two table matches in turn): every break on it held, but
+the arm is thin; a denser draw is `--wbias` on the pointer words toward the table's one nonzero entry.
+
+(2852, third) **Generator traps, undocumented.** `--sparse LOC:...` without `@` writes the table's *base address at LOC*, a
+pointer cell (the groups table `0xe85f20`); a table the image holds inline (leaders at 0xe3a390, armies at 0xc09700) is
+`--sparse @LOC:...`, and with `@` the slices are written in the image itself and a later `--place pK+0` into a slice window
+lays a pointer there. Without the `@` the sweep passes its draw and every row answers nothing (`Armies::emergency` ran 220 rows
+with no recorded call). And a `--seq` stub's answers do not start at `a[own + 1]`: they follow every stub's single answer
+(`a[own + stubs + ...]`), with the base flag after them (`can_carry`'s `a[10]`).
+
+(2852, fourth) **Not built, with why.** `CityData::is_disbanding` 0x7380a0 and `CityData::get_building` 0x739480 (a walk down
+`o` through a `slot +0x3c` that answers a *pointer* whose +0x74 short is the next link: a stub answering a window address per
+call, in order, with a chain that must end — no flag lays it); `Group::kill_next_order` 0x713d90 (the objects table then a
+vtable slot of each object through a cell plus the units table, three levels); `Unit::update_patrol_order` 0x5e35e0 (a
+virtual call through a vtordisp thunk, `*(*piVar1 + 4) + piVar1`); `Unit::replace_form_id` 0x5fd420 (a `LinkListBase` cursor
+walked through its own words, vslots 0x10c and 0x94 on the node's object). A shape that answers a window address per call
+(`--answer-win` with `--seq`) would hold the first two; it is the next shape, one item.
 
 ## Parked by the next landing, slot FQ — reserved
 
