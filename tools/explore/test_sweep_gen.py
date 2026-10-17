@@ -173,6 +173,21 @@ class Shapes(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, port='0', link_hi=[bad])
 
+    def test_place_null_may_force_a_guard_word_on_its_null_rows(self):
+        # Item 2900 (Loop 2899): `--place-null K:WIN+OFF=V` sets the word on K's null rows, after every window is drawn.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2900, win=0x100, bias=[], own=0,
+            places=['m+0xd8:0:8', 'p0+0:0:8'], place_null=['0:m+0xdc=0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("NULLFORCE = {0: [('m', 220, 0)]}", script)
+        self.assertIn('NULLS = [0]', script)
+        self.assertLess(script.index('forced += NULLFORCE.get(k, [])'), script.index('for win, off, v in forced:'))
+        self.assertLess(script.index('for win, off, v in forced:'), script.index('callwins = {}'))
+        for bad in ('0:m+0xdc', '0:q+0xdc=0', '5:m+0xdc=0'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2900, win=0x100, bias=[], own=0,
+                                       places=['m+0xd8:0:8'], place_null=[bad], port='0')
+
     def test_a_range_bias_draws_its_own_edges(self):
         # Loop 2003's sixteenth reach (item 2170's "for the Loop", built by
         # item 2181): a `--wbias LO..HI` range was drawn uniformly, so a

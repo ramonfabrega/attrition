@@ -1443,6 +1443,7 @@ PNULLS = {pnulls!r}
 STUBS = {stubs!r}
 PLACES = {places!r}
 NULLS = {nulls!r}
+NULLFORCE = {nullforce!r}
 WBIAS = {wbias!r}
 FILLS = {fills!r}
 ARGRANGE = {argrange!r}
@@ -1794,6 +1795,7 @@ def main(argv):
         # with the answers so a place may index by one (`o`, item 2325).
         outs = [wdraw(rng, vals) for _, _, vals in OUTARG]
         k = -1
+        forced = []
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
@@ -1812,6 +1814,7 @@ def main(argv):
             # index (item 2253; a guarded null ran one arm).
             if k in NULLS and rng.random() < 1 / 3:
                 ptr = bytes(4)
+                forced += NULLFORCE.get(k, [])
             at = eval(loc, env)
             if win is None:
                 uc.mem_write(at & 0xFFFFFFFF, ptr)
@@ -1822,6 +1825,11 @@ def main(argv):
             else:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[at:at + 4] = ptr
+        for win, off, v in forced:
+            # `--place-null K:WIN+OFF=V`: on a null row of place K, the word at WIN+OFF is V, written after every
+            # window is drawn, so a guard word beside the null pointer is held (item 2900, Loop 2899).
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
         callwins = {{}}
         for idx, size in ANSWERWIN:
             # A stub that answers a record: the address of SIZE random bytes,
@@ -2283,7 +2291,16 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--ptrarg-null IDX names one of the --ptrarg arguments')
     pstubs = [_stub(s) for s in stubs]
     pplaces = [_place(s) for s in places]
-    pnull = [int(k, 0) for k in place_null]
+    pnull = []
+    pforce = {}
+    for spec_ in place_null:
+        k_, colon_, forced_ = spec_.partition(':')
+        pnull.append(int(k_, 0))
+        if colon_:
+            m_ = re.fullmatch(r'(m|c\d+|p\d+)\+(\w+)=(-?\w+)', forced_)
+            if not m_:
+                raise ValueError(f'--place-null is K or K:WIN+OFF=V over m, cN or pN, not {spec_!r}')
+            pforce.setdefault(int(k_, 0), []).append((m_.group(1), int(m_.group(2), 0), int(m_.group(3), 0)))
     if any(not 0 <= k < len(pplaces) for k in pnull):
         raise ValueError('--place-null K names one of the --place pointers, by its order on the line')
     pwbias = [w for s in wbias for w in _wbias(s)]
@@ -2604,7 +2621,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + (['`ecx` and `edx` held to their draw every row, no wild word'] if tame else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
-                                   cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
+                                   cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull, nullforce=pforce,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, xmm=pxmm, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
@@ -3368,9 +3385,10 @@ def main(argv=None):
                          'LOC `sN` lays stub N\'s answer as the pointer (a record a callee answers, item 2241); '
                          'a record whose element count sits at -4 before the pointer (a `new[]` block) is placed with '
                          'EXPR `-4`: the pointer is buffer+4, so the count is the first word of the buffer (item 2887, parked 2872)')
-    ap.add_argument('--place-null', action='append', default=[], metavar='K',
+    ap.add_argument('--place-null', action='append', default=[], metavar='K[:WIN+OFF=V]',
                     help='obj: --place K (by its order on the line) laid as a null pointer a third of the rows, '
-                         'its buffer still drawn (a guard against null; item 2253)')
+                         'its buffer still drawn (a guard against null; item 2253); with :WIN+OFF=V the word at '
+                         'WIN+OFF is also V on those rows (a guard word beside the null; item 2900, Loop 2899)')
     ap.add_argument('--wbias', action='append', default=[], metavar='WIN+OFF:V,V|LO..HI',
                     help='obj: a 32-bit word of window m, cN or pN held to the list or range every row; OFF `*` every word')
     ap.add_argument('--fill', action='append', default=[], metavar='WIN:EXPR',
