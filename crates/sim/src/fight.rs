@@ -2816,7 +2816,16 @@ impl Sim {
     pub(crate) fn cast_sabotage_building(&mut self, b: usize) {
         let frame = self.frame;
         let dmg = (self.buildings[b].health / 2).max(self.tuning.commando_min_damage);
-        self.damage_building(b, Sixteenths { whole: dmg, frac: 0 }, None, frame, true);
+        self.damage_building(
+            b,
+            Sixteenths {
+                whole: dmg,
+                frac: 0,
+            },
+            None,
+            frame,
+            true,
+        );
     }
 
     /// The **first wound**'s draws (§7.2 step 3), spent before the
