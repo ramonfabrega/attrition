@@ -470,6 +470,8 @@ mod world_is_tocean;
 mod world_is_tree_at;
 #[path = "world_map_fog_get_fog_lookup.rs"]
 mod world_map_fog_get_fog_lookup;
+#[path = "world_map_on_right_down.rs"]
+mod world_map_on_right_down;
 #[path = "world_map_reinit_all.rs"]
 mod world_map_reinit_all;
 #[path = "world_scale_by_area.rs"]
