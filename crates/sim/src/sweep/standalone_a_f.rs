@@ -386,6 +386,8 @@ mod cliffs_out_get_mining_data;
 mod cliffs_out_get_mining_size;
 #[path = "coll_block_get.rs"]
 mod coll_block_get;
+#[path = "command_manager_check_accept_issue.rs"]
+mod command_manager_check_accept_issue;
 #[path = "command_manager_issue_accept.rs"]
 mod command_manager_issue_accept;
 #[path = "command_manager_issue_alarm.rs"]
