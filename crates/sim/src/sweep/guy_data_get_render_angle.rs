@@ -55,7 +55,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     let gp = f32::from_bits(rd(&c[0], 0x854) as u32);
                     let prod = (wide as f32) * gp;
                     // cvttss2si: NaN and out-of-range answer the integer indefinite
-                    let mut t = if prod.is_nan() || prod >= 2147483648.0 || prod < -2147483648.0 {
+                    let mut t = if !(-2147483648.0..2147483648.0).contains(&prod) {
                         i32::MIN
                     } else {
                         prod as i32
