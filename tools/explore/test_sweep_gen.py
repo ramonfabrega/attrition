@@ -2273,7 +2273,13 @@ class FamilyRegistrations(unittest.TestCase):
                 line = ['void', 'Foo::bar@00401000', '--item', '2887', '--own', '1',
                         '--cell-win', '0xc061d0:0x80', '--stub', '0x00401234:1',
                         '--place', 'm+0x10:0:0x20', '--place-null', '0']
-                self.assertEqual(sweep_gen.main(line + ['--dry-run']), 0)
+                import contextlib, io
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    self.assertEqual(sweep_gen.main(line + ['--dry-run']), 0)
+                # main hands `ret='eax'`; a void answers nothing whatever it is handed.
+                self.assertIn('an empty body', out.getvalue())
+                self.assertIn('CELLS = [(12607952, 128)]', out.getvalue())
                 sp, script, tp, test, mod = sweep_gen.generate_void(
                     'Foo::bar@00401000', item=2887, own=1, cells=['0xc061d0:0x80'],
                     stubs=['0x00401234:1'], places=['m+0x10:0:0x20'], place_null=['0'])
