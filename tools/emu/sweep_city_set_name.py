@@ -35,7 +35,7 @@ PNULLS = []
 STUBS = [('call', 10612400, 1), ('call', 10598064, 0)]
 PLACES = [('m', '0x90', '0', 16), ('m', '0xa4', '0', 16)]
 NULLS = [0, 1]
-WBIAS = [('m', 148, ('range', 0, 7)), ('m', 152, ('set', [0, 65536, 131072, 196608])), ('m', 168, ('range', 0, 7)), ('m', 172, ('set', [0, 65536, 131072, 196608]))]
+WBIAS = [('m', 148, ('set', [0, 65536, 131072, 196608, 262144, 458752])), ('m', 152, ('set', [0, 65536, 131072, 196608])), ('m', 168, ('set', [0, 65536, 131072, 196608, 262144, 458752])), ('m', 172, ('set', [0, 65536, 131072, 196608]))]
 FILLS = []
 ARGRANGE = []
 SLOTBASE = []
@@ -610,4 +610,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "City::set_name@00735be0", "--item", "2877", "--own", "2", "--win", "0xc0", "--ret", "none", "--place", "m+0x90:0:16", "--place", "m+0xa4:0:16", "--place-null", "0", "--place-null", "1", "--stub", "0xa1eeb0:1", "--stub", "0xa1b6b0:0", "--record", "0", "--record", "1", "--seq", "1:2", "--wbias", "m+0x94:0..7", "--wbias", "m+0x98:0,0x10000,0x20000,0x30000", "--wbias", "m+0xa8:0..7", "--wbias", "m+0xac:0,0x10000,0x20000,0x30000", "--record-edx"]
+# sweep_gen: ["obj", "City::set_name@00735be0", "--item", "2877", "--own", "2", "--win", "0xc0", "--ret", "none", "--place", "m+0x90:0:16", "--place", "m+0xa4:0:16", "--place-null", "0", "--place-null", "1", "--stub", "0xa1eeb0:1", "--stub", "0xa1b6b0:0", "--record", "0", "--record", "1", "--seq", "1:2", "--wbias", "m+0x94:0,0x10000,0x20000,0x30000,0x40000,0x70000", "--wbias", "m+0x98:0,0x10000,0x20000,0x30000", "--wbias", "m+0xa8:0,0x10000,0x20000,0x30000,0x40000,0x70000", "--wbias", "m+0xac:0,0x10000,0x20000,0x30000", "--record-edx"]
