@@ -362,6 +362,8 @@ mod wall_die;
 mod wall_is_active;
 #[path = "wall_is_started.rs"]
 mod wall_is_started;
+#[path = "wall_kill_competing_buildings.rs"]
+mod wall_kill_competing_buildings;
 #[path = "wall_mask_city.rs"]
 mod wall_mask_city;
 #[path = "wall_out_draw.rs"]
