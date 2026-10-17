@@ -1673,3 +1673,35 @@ pub(super) fn stage_walk() {
         applied.ran, applied.units, applied.buildings, applied.skipped
     );
 }
+
+pub(super) fn indexed_near_reads_preserve_duplicates_missing_fields_and_trailing_records() {
+    let path = std::env::temp_dir().join(format!(
+        "ron-near-{}-{}.txt",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    let text = "BEGIN GAME\r\n BEGIN FRAME 2\r\n  BEGIN UNITDATA\r\n   near_o 8\r\n   near_o 99\r\n   near_who 1\r\n   BEGIN SUBOBJECT\r\n    who 0\r\n    o 7\r\n BEGIN FRAME 2\r\n  BEGIN UNITDATA\r\n   near_o 77\r\n   near_who 0\r\n   who 1\r\n   o 8\r\n BEGIN FRAME 1\r\n  BEGIN UNITDATA\r\n   near_o 3\r\n   who 0\r\n   o 9\r\n BEGIN FULL DUMP\r\n  BEGIN UNITDATA\r\n   near_o 5\r\n   near_who 0\r\n   who 1\r\n   o 10\r\n";
+    use std::io::Write;
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)
+        .unwrap();
+    file.write_all(text.as_bytes()).unwrap();
+    drop(file);
+    let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    for frame in [0, 1, 2, 3] {
+        assert_eq!(
+            indexed_ch2_near(&mut source, frame),
+            ch2_dump_near(text, frame)
+        );
+    }
+    assert_eq!(indexed_ch2_near(&mut source, 2)[&(0, 7)], (8, 1));
+    assert_eq!(indexed_ch2_near(&mut source, 1)[&(0, 9)], (3, i64::MIN));
+    assert_eq!(indexed_ch2_near(&mut source, 1)[&(1, 10)], (5, 0));
+    drop(source);
+    std::fs::remove_file(path).unwrap();
+}

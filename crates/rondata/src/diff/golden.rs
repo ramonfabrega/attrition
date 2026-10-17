@@ -251,6 +251,11 @@ mod cases_70_79;
 mod cases_80_89;
 mod cases_setup;
 
+#[test]
+fn indexed_near_reads_preserve_duplicates_missing_fields_and_trailing_records() {
+    cases_setup::indexed_near_reads_preserve_duplicates_missing_fields_and_trailing_records();
+}
+
 /// **The setup is shared, and this is what says so.** The golden capture
 /// carries no `game_random` record of its own, so `borrow_from_siblings`
 /// hands it run11's setup trace whole. That is only legitimate if the two
@@ -1418,6 +1423,23 @@ const NEAR_TALLY: (usize, usize, usize) = (17219, 859, 17219);
 /// One frame's `near_o`/`near_who` per unit, read out of the raw dump
 /// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes
 /// only `near_o` of.
+fn indexed_ch2_near(
+    source: &mut crate::capture::indexed::IndexedCapture,
+    frame: i64,
+) -> std::collections::BTreeMap<(i64, i64), (i64, i64)> {
+    let Some(at) = source
+        .frames()
+        .iter()
+        .position(|range| range.number == frame)
+    else {
+        return std::collections::BTreeMap::new();
+    };
+    // Preserve the original reader's first matching frame and all trailing
+    // siblings up to the next frame, including the final frame's footer.
+    let text = source.read_frame_and_siblings(at).unwrap();
+    ch2_dump_near(&text, frame)
+}
+
 fn ch2_dump_near(text: &str, frame: i64) -> std::collections::BTreeMap<(i64, i64), (i64, i64)> {
     let head = format!("BEGIN FRAME {frame}");
     let mut out = std::collections::BTreeMap::new();

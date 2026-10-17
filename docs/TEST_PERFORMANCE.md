@@ -518,3 +518,21 @@ speedup is inferred. The complete required-fixture gate passes on `5491fe87`:
 requests retained. Whole-gate cost rises versus the previous successful run;
 this is a rebuild improvement, not a suite-runtime gain. See the [harness journal](journal/2026-10-16-harness-boundary.md) and
 [audit](audit/2026-10-16-harness-boundary.json). Independent review remains owed.
+
+## Golden near and East Indies observation reuse
+
+Chapter two near reads indexed frame-plus-sibling spans through the original
+parser. East Indies uses bounded setup and persistent frame/group/leader/region
+observations, with region mode included in cache identity. Every simulation tick
+and comparison still runs. Optional `RON_VERIFY_EAST_REUSE` compares complete
+reports and setup; `RON_VERIFY_GOLDEN_NEAR` compares each near map. Existing
+`RON_VERIFY_ORACLE` and `RON_VERIFY_GOLDEN_SETUP` audit underlying observations.
+`RON_DISABLE_EAST_REUSE` and `RON_DISABLE_GOLDEN_NEAR_INDEX` retain raw fallbacks.
+The oracle schema change requires one-time repopulation; old caches are preserved.
+
+All45 affected replay tests pass differential auditing. Two new guards fail under
+intentional faults and pass after restoration. Local baseline→warm examples:
+near10.60→0.59s,1410→398MiB RSS; run2277.63→1.95s,381→256MiB;
+run2994.48→2.11s,384→262MiB. Full gate pending; no whole-suite10× claim.
+See [journal](journal/2026-10-16-golden-replay.md) and
+[audit](audit/2026-10-16-golden-replay.json). Independent review remains owed.

@@ -9,9 +9,13 @@ pub(super) struct Oracle {
     pub(super) frame: Frame,
     pub(super) groups: Vec<GroupDump>,
     pub(super) leaders: [Option<BTreeMap<String, i64>>; 2],
+    pub(super) regions: [Option<BTreeMap<String, i64>>; 2],
 }
 impl Oracle {
     fn parse(text: &str, n: i64) -> Self {
+        Self::parse_with_regions(text, n, false)
+    }
+    fn parse_with_regions(text: &str, n: i64, include_regions: bool) -> Self {
         let log = Log::parse_eager(text);
         let frame = IndexedCapture::frame_from_log(&log, n).unwrap();
         let block = log.frames().into_iter().find(|(k, _)| *k == n).unwrap().1;
@@ -20,10 +24,19 @@ impl Oracle {
             log.leader_block(n, who as i64)
                 .map(|b| super::leader::theirs(&b))
         });
+        let regions = std::array::from_fn(|who| {
+            include_regions
+                .then(|| {
+                    log.leader_block(n, who as i64)
+                        .map(|b| super::leader::region_theirs(&b))
+                })
+                .flatten()
+        });
         Self {
             frame,
             groups,
             leaders,
+            regions,
         }
     }
 }
@@ -66,6 +79,7 @@ fn decoded_frame_experiment() {
 // be outside git because entries contain derived original observations.
 pub(super) struct Store {
     enabled: bool,
+    include_regions: bool,
     directory: Option<std::path::PathBuf>,
     value: Oracle,
     compressed: Vec<u8>,
@@ -77,6 +91,7 @@ pub(super) struct Store {
 impl Store {
     pub(super) fn new(enabled: bool) -> Self {
         Self {
+            include_regions: false,
             enabled: enabled && std::env::var_os("RON_DISABLE_ORACLE_CACHE").is_none(),
             directory: std::env::var_os("RON_ORACLE_CACHE_DIR").map(Into::into),
             value: Oracle::default(),
@@ -87,13 +102,17 @@ impl Store {
             writes: 0,
         }
     }
+    pub(super) fn with_regions(mut self) -> Self {
+        self.include_regions = true;
+        self
+    }
     pub(super) fn enabled(&self) -> bool {
         self.enabled && !crate::gamelog::reads::active()
     }
     pub(super) fn read(&mut self, source: &mut IndexedCapture, at: usize) -> &Oracle {
         source.validate().unwrap();
         let n = source.frames()[at].number;
-        let identity = identity(source, at);
+        let identity = identity(source, at, self.include_regions);
         let directory = self.directory.clone().unwrap_or_else(|| {
             source
                 .oracle_identity()
@@ -118,7 +137,7 @@ impl Store {
                 let text = source.read_frame(at).unwrap();
                 assert_eq!(
                     self.value,
-                    Oracle::parse(&text, n),
+                    Oracle::parse_with_regions(&text, n, self.include_regions),
                     "whole oracle differs at position {at}"
                 );
             }
@@ -127,7 +146,7 @@ impl Store {
         }
         self.misses += 1;
         let text = source.read_frame(at).unwrap();
-        let value = Oracle::parse(&text, n);
+        let value = Oracle::parse_with_regions(&text, n, self.include_regions);
         source.validate().unwrap();
         if let Ok(bytes) = pack(&identity, &value)
             && publish(&path, &bytes).is_ok()
@@ -161,11 +180,11 @@ fn schema() -> u64 {
         )
     })
 }
-fn identity(source: &IndexedCapture, at: usize) -> String {
+fn identity(source: &IndexedCapture, at: usize, include_regions: bool) -> String {
     let (path, length, modified) = source.oracle_identity();
     // Debug path representation is escaped, preserving non-UTF8 paths too.
     format!(
-        "oracle-v1 schema={:016x} path={path:?} length={length} mtime={modified:?} at={at} range={:?}",
+        "oracle-v1 schema={:016x} path={path:?} length={length} mtime={modified:?} at={at} regions={include_regions} range={:?}",
         schema(),
         source.frames()[at]
     )
@@ -272,6 +291,7 @@ fn entry_rejects_corruption_staleness_and_wrong_frame_identity() {
         frame: Frame::default(),
         groups: vec![],
         leaders: [None, None],
+        regions: [None, None],
     };
     let bytes = pack("source version frame-position=0", &value).unwrap();
     assert_eq!(
@@ -318,6 +338,7 @@ fn store_preserves_duplicate_frames_source_versions_and_existing_entries() {
     let mut source = IndexedCapture::open(&path).unwrap();
     let mut store = Store {
         enabled: true,
+        include_regions: false,
         directory: Some(root.join("cache")),
         value: Oracle::default(),
         compressed: Vec::new(),
@@ -334,7 +355,7 @@ fn store_preserves_duplicate_frames_source_versions_and_existing_entries() {
     assert_eq!(store.read(&mut source, 0), &first);
     assert_eq!(store.read(&mut source, 1), &second);
     assert_eq!((store.hits, store.misses, store.writes), (2, 2, 2));
-    let key = identity(&source, 0);
+    let key = identity(&source, 0, false);
     let entry = store
         .directory
         .as_ref()
@@ -355,8 +376,57 @@ fn store_preserves_duplicate_frames_source_versions_and_existing_entries() {
     fs::write(&path, format!("{text} BEGIN FRAME 4\n")).unwrap();
     assert!(source.validate().is_err());
     let reopened = IndexedCapture::open(&path).unwrap();
-    assert_ne!(identity(&reopened, 0), key);
+    assert_ne!(identity(&reopened, 0, false), key);
     drop(source);
     drop(reopened);
     fs::remove_dir_all(root).unwrap(); // exclusively this test's synthetic files
+}
+
+#[test]
+fn region_mode_has_distinct_identity_and_preserves_base_observations() {
+    let root = std::env::temp_dir().join(format!(
+        "ron-oracle-regions-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir(&root).unwrap();
+    let path = root.join("capture.txt");
+    let text = "BEGIN GAME\n BEGIN FRAME 3\n  BEGIN LEADERDATA\n   who 0\n   reg_active[scan] 4\n   reg_active[scan] bad\n   reg_naval[scan] 8\n";
+    std::fs::write(&path, text).unwrap();
+    let mut source = IndexedCapture::open(&path).unwrap();
+    let mut base = Store::new(true);
+    base.enabled = true;
+    base.directory = Some(root.join("cache"));
+    let mut regions = Store::new(true).with_regions();
+    regions.enabled = true;
+    regions.directory = base.directory.clone();
+    let original = Oracle::parse(text, 3);
+    let expanded = Oracle::parse_with_regions(text, 3, true);
+    assert_eq!(original.frame, expanded.frame);
+    assert_eq!(original.groups, expanded.groups);
+    assert_eq!(original.leaders, expanded.leaders);
+    assert_eq!(original.regions, [None, None]);
+    assert_eq!(
+        expanded.regions[0],
+        Some(BTreeMap::from([
+            ("reg_active[0]".into(), 4),
+            ("reg_active[1]".into(), i64::MIN),
+            ("reg_naval[63]".into(), 8),
+        ]))
+    );
+    assert_ne!(identity(&source, 0, false), identity(&source, 0, true));
+    for _ in 0..2 {
+        assert_eq!(base.read(&mut source, 0), &original);
+        assert_eq!(regions.read(&mut source, 0), &expanded);
+    }
+    assert_eq!((base.hits, base.misses, base.writes), (1, 1, 1));
+    assert_eq!((regions.hits, regions.misses, regions.writes), (1, 1, 1));
+    crate::gamelog::reads::start();
+    assert!(!regions.enabled());
+    crate::gamelog::reads::stop();
+    drop(source);
+    std::fs::remove_dir_all(root).unwrap(); // only this test's authored files
 }

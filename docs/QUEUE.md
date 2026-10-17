@@ -91,6 +91,11 @@ CPU52.64→20.95s, sampled tree1566→1209MiB. Full required-fixture gate passes
 `5491fe87`:271.28s/1472.54CPU/8864MiB; exact3276 requests retained. No whole-suite
 gain. See [journal](journal/2026-10-16-harness-boundary.md). Next: profile repeated
 golden/harness replay work (47% of rondata CPU); finer harness groups plateau.
+Golden/harness observation follow-up: indexed near spans and bounded East Indies
+setup/decoded observations; all45 affected tests pass complete differential audits.
+Local warm examples10.60→0.59s and7.63→1.95s; two fail-first guards added.
+Full required-fixture gate pending; no whole-suite gain claimed yet. See
+[journal](journal/2026-10-16-golden-replay.md).
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See

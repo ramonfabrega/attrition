@@ -6851,7 +6851,7 @@ pub(crate) mod tests {
     /// Great Lakes' second-pair widenings have them since item 1061; East
     /// Indies' word window asks for them since item 1106.
     pub(crate) fn widen_east_indies_on(
-        (base, base_trace): (&str, &str),
+        base: (&str, &str),
         name: &str,
         capture: &str,
         window: (i64, i64),
@@ -6859,6 +6859,57 @@ pub(crate) mod tests {
         gaia: bool,
         records: bool,
     ) -> Option<Widened> {
+        let result = widen_east_indies_walk(base, name, capture, window, near, gaia, records, true);
+        if std::env::var_os("RON_VERIFY_EAST_REUSE").is_some() {
+            let legacy =
+                widen_east_indies_walk(base, name, capture, window, near, gaia, records, false);
+            assert_eq!(
+                result, legacy,
+                "{name}: decoded East Indies replay changed its complete report"
+            );
+            eprintln!("{name}: decoded East Indies replay matches the complete legacy report");
+        }
+        result.map(|(report, _)| report)
+    }
+
+    fn verify_east_initial(path: &str, actual: &Initial<'_>) {
+        let text = crate::capture::read(path);
+        let log = Log::parse(&text);
+        let mut expected = log.initial().expect("legacy replay initial");
+        expected.frame_bodies.clear();
+        assert!(
+            *actual == expected,
+            "bounded East Indies setup changed an Initial field: {path}"
+        );
+    }
+
+    fn build_east_initial<'a>(
+        loaded: &crate::load::Loaded,
+        mut init: Initial<'a>,
+        sibling: &Initial<'a>,
+        trace: &crate::trace::Trace,
+    ) -> Built {
+        borrow_from_siblings(&mut init, &[sibling]);
+        borrow_pasture(&mut init, trace);
+        build_sim(loaded, &init, Tuning::RON)
+    }
+
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "Existing replay inputs plus differential reader selection"
+    )]
+    fn widen_east_indies_walk(
+        (base, base_trace): (&str, &str),
+        name: &str,
+        capture: &str,
+        window: (i64, i64),
+        near: &[i64],
+        gaia: bool,
+        records: bool,
+        reuse: bool,
+    ) -> Option<(Widened, usize)> {
+        let reuse = reuse && std::env::var_os("RON_DISABLE_EAST_REUSE").is_none();
+        let mut oracle_store = crate::diff::oracle::Store::new(reuse).with_regions();
         let inst = install()?;
         let (Some(path), Some(sib), Some(tr), Some(r143)) = (
             dump(base),
@@ -6872,15 +6923,35 @@ pub(crate) mod tests {
         let (first_block, tail) = window;
         let mut ix = crate::capture::indexed::IndexedCapture::open(&r143).unwrap();
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::capture::read(&path);
-        let sib_text = crate::capture::read(&sib);
-        let log = Log::parse(&text);
-        let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &[&sib_init]);
-        borrow_pasture(&mut init, &tr);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut built = if reuse {
+            let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+            let mut sibling = crate::capture::indexed::IndexedCapture::open(&sib).unwrap();
+            sibling
+                .with_replay_initial(|sib_init| {
+                    if std::env::var_os("RON_VERIFY_EAST_REUSE").is_some() {
+                        verify_east_initial(&sib, &sib_init);
+                    }
+                    source
+                        .with_replay_initial(|init| {
+                            if std::env::var_os("RON_VERIFY_EAST_REUSE").is_some() {
+                                verify_east_initial(&path, &init);
+                            }
+                            build_east_initial(&loaded, init, &sib_init, &tr)
+                        })
+                        .unwrap()
+                })
+                .unwrap()
+        } else {
+            let text = crate::capture::read(&path);
+            let sib_text = crate::capture::read(&sib);
+            let log = Log::parse(&text);
+            let sib_log = Log::parse(&sib_text);
+            let sib_init = sib_log.initial().expect("run38 is a start dump");
+            let mut init = log.initial().unwrap();
+            borrow_from_siblings(&mut init, &[&sib_init]);
+            borrow_pasture(&mut init, &tr);
+            build_sim(&loaded, &init, Tuning::RON)
+        };
         let players = built.sim.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
@@ -6913,7 +6984,16 @@ pub(crate) mod tests {
             let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
                 continue;
             };
-            let frame = ix.frame_state(at).unwrap();
+            let cached = oracle_store
+                .enabled()
+                .then(|| oracle_store.read(&mut ix, at));
+            let fresh_frame;
+            let frame = if let Some(value) = &cached {
+                &value.frame
+            } else {
+                fresh_frame = ix.frame_state(at).unwrap();
+                &fresh_frame
+            };
             blocks += 1;
             debug_watch(&built, n);
             // `RON_CITIZENS=<lo>-<hi>`: player 1's peasant census and every
@@ -6962,27 +7042,66 @@ pub(crate) mod tests {
                 }
             }
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
-            let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);
+            let (fr, rows) = widen_block(&built, frame, players, n, &mut here);
             compared += rows;
             housed += fr.inside_housed;
             // **Every unit's container** (item 592) is `compare`'s own
             // row since item 620 (parked 598): `widen_block` notes it as
             // `inside`, the key this walk wrote.
-            let raw = ix.read_frame(at).unwrap();
-            let flog = Log::parse(&raw);
+            let raw = cached.is_none().then(|| ix.read_frame(at).unwrap());
+            let flog = raw.as_deref().map(Log::parse);
+            let fresh_groups;
+            let groups = if let Some(value) = &cached {
+                &value.groups
+            } else {
+                fresh_groups = if records || near.iter().any(|b| (b - 2..=b + 2).contains(&n)) {
+                    flog.as_ref()
+                        .unwrap()
+                        .frames()
+                        .into_iter()
+                        .find(|(k, _)| *k == n)
+                        .map(|(_, block)| crate::gamelog::groups(block))
+                        .unwrap_or_default()
+                } else {
+                    Vec::new()
+                };
+                &fresh_groups
+            };
             // **The group record and the attack order's row** (items 1061
             // and 1106), on the windows that ask for them.
-            if records && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n) {
-                compared += crate::diff::second::widen_records(
-                    &built, &frame, block, players, n, &mut here,
-                );
+            if records {
+                if cached.is_some() {
+                    compared += crate::diff::second::widen_records_from_groups(
+                        &built, frame, groups, players, n, &mut here,
+                    );
+                } else if let Some((_, block)) = flog
+                    .as_ref()
+                    .unwrap()
+                    .frames()
+                    .into_iter()
+                    .find(|(k, _)| *k == n)
+                {
+                    compared += crate::diff::second::widen_records(
+                        &built, frame, block, players, n, &mut here,
+                    );
+                }
             }
             for who in 0..2usize {
-                let Some(block) = flog.leader_block(n, who as i64) else {
-                    continue;
+                let fresh_leader;
+                let t = if let Some(value) = &cached {
+                    let Some(t) = &value.leaders[who] else {
+                        continue;
+                    };
+                    t
+                } else {
+                    let Some(block) = flog.as_ref().unwrap().leader_block(n, who as i64) else {
+                        continue;
+                    };
+                    let mut rows = crate::diff::leader::theirs(&block);
+                    rows.extend(crate::diff::leader::region_theirs(&block));
+                    fresh_leader = rows;
+                    &fresh_leader
                 };
-                let mut t = crate::diff::leader::theirs(&block);
-                t.extend(crate::diff::leader::region_theirs(&block));
                 let mut mine = crate::diff::leader::rows(&loaded, &built, who);
                 mine.extend(crate::diff::leader::region_rows(&built, who));
                 // `RON_MAKE=<lo>-<hi>`: the make list slot for slot, both
@@ -7008,7 +7127,10 @@ pub(crate) mod tests {
                     }
                 }
                 for (k, v) in &mine {
-                    let Some(&y) = t.get(k) else {
+                    let region = cached
+                        .as_ref()
+                        .and_then(|value| value.regions[who].as_ref());
+                    let Some(&y) = region.and_then(|rows| rows.get(k)).or_else(|| t.get(k)) else {
                         missing.insert(k.clone());
                         continue;
                     };
@@ -7021,7 +7143,7 @@ pub(crate) mod tests {
             }
             // **Gaia's animals** (parked 577): [`widen_gaia`].
             if gaia {
-                compared += widen_gaia(&built, &frame, players, n, &mut here, &mut missing);
+                compared += widen_gaia(&built, frame, players, n, &mut here, &mut missing);
             }
             for &(w, o) in &row_walk {
                 let now: Vec<String> = here
@@ -7053,8 +7175,8 @@ pub(crate) mod tests {
                 );
                 // The armies' lists, on what the slot holds (item 800).
                 let mut lists: BTreeMap<(i64, i64), (Vec<i64>, Vec<i64>)> = BTreeMap::new();
-                if let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n) {
-                    for g in crate::gamelog::groups(block) {
+                {
+                    for g in groups {
                         if g.army < 0 || g.members.is_empty() || g.who >= players as i64 {
                             continue;
                         }
@@ -7139,16 +7261,19 @@ pub(crate) mod tests {
                 eprintln!("  f{f}: {} keys", rows.len());
             }
         }
-        Some(Widened {
-            firsts,
-            missing,
-            blocks,
-            leader_rows,
-            changed,
-            housed,
-            standing,
-            army_lists,
-        })
+        Some((
+            Widened {
+                firsts,
+                missing,
+                blocks,
+                leader_rows,
+                changed,
+                housed,
+                standing,
+                army_lists,
+            },
+            compared,
+        ))
     }
 
     /// **Gaia's animals, both sides, on one block** (parked 577: `compare`

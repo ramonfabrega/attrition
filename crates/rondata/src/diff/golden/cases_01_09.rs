@@ -1973,17 +1973,26 @@ pub(super) fn chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame() {
         .expect("a finalized golden trace")
         .expect("missing RONT header");
     let loaded = crate::load::load(&inst).unwrap();
-    let text = crate::capture::read(&dump);
-    let log = Log::parse(&text);
-    let texts = sibling_texts();
-    let logs = siblings(&texts);
-    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-    let refs: Vec<&Initial> = inits.iter().collect();
-    if refs.is_empty() {
-        eprintln!("skipping: no sibling dumps");
-        return;
-    }
-    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let legacy = std::env::var_os("RON_DISABLE_GOLDEN_NEAR_INDEX").is_some();
+    let verify = std::env::var_os("RON_VERIFY_GOLDEN_NEAR").is_some();
+    let text = (legacy || verify).then(|| crate::capture::read(&dump));
+    let (mut built, mut ix) = if legacy {
+        let log = Log::parse(text.as_ref().unwrap());
+        let texts = sibling_texts();
+        let logs = siblings(&texts);
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        if refs.is_empty() {
+            eprintln!("skipping: no sibling dumps");
+            return;
+        }
+        (stand_up(&loaded, &log, &refs, &trace), None)
+    } else {
+        let Some((built, ix)) = build_golden("ch2", &dump, &loaded, &trace, false) else {
+            return;
+        };
+        (built, Some(ix))
+    };
     let mut script = chapter(2);
     let mut read = 0usize;
     let mut agree = 0usize;
@@ -1996,7 +2005,20 @@ pub(super) fn chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame() {
         if n < FIRST {
             continue;
         }
-        for ((who, o), pair) in ch2_dump_near(&text, n) {
+        let pairs = if let Some(ix) = &mut ix {
+            let pairs = indexed_ch2_near(ix, n);
+            if verify {
+                assert_eq!(
+                    pairs,
+                    ch2_dump_near(text.as_ref().unwrap(), n),
+                    "whole near map at frame {n}"
+                );
+            }
+            pairs
+        } else {
+            ch2_dump_near(text.as_ref().unwrap(), n)
+        };
+        for ((who, o), pair) in pairs {
             let Some(mine) = i16::try_from(o)
                 .ok()
                 .and_then(|x| built.sim.unit_by_o(who as sim::Player, x))
