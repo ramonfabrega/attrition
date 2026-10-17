@@ -72,6 +72,8 @@ mod unit_data_get_packer_stance;
 mod unit_data_get_stance_type;
 #[path = "unit_data_get_worker_stance.rs"]
 mod unit_data_get_worker_stance;
+#[path = "unit_data_good_merchant_spot.rs"]
+mod unit_data_good_merchant_spot;
 #[path = "unit_data_has_damage.rs"]
 mod unit_data_has_damage;
 #[path = "unit_data_has_stance_type.rs"]
