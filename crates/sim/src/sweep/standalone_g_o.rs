@@ -456,6 +456,8 @@ mod misc_access_coord_vis_4;
 mod misc_access_find_global_render_z;
 #[path = "mountain_range_validate_tcoord.rs"]
 mod mountain_range_validate_tcoord;
+#[path = "mountains_data_total_gather_size.rs"]
+mod mountains_data_total_gather_size;
 #[path = "mountains_out_mnt_locs.rs"]
 mod mountains_out_mnt_locs;
 #[path = "mountains_out_mnt_ranges.rs"]
