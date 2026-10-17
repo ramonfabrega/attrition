@@ -234,6 +234,8 @@ mod supply_walk_data;
 mod surf_get_name;
 #[path = "surf_wave_section_load_old_bh3.rs"]
 mod surf_wave_section_load_old_bh3;
+#[path = "syllable_parse.rs"]
+mod syllable_parse;
 #[path = "sync_point_on_player_deleted.rs"]
 mod sync_point_on_player_deleted;
 #[path = "target_order_get_target.rs"]
