@@ -7083,9 +7083,10 @@ orders agree at equality); `lo < 60000` → `lo < 59999` survives 6000 rows, the
 
 ## Parked by item 3018, 2026-10-17 — Sabotage on a vehicle
 
-- (3018) **An armed vehicle target is unstageable as a Sabotage victim**: a who=1 Tank shot the lone Commando dead before the cast's 150 frames ended; only an unarmed
-  vehicle (Supply Wagon) was staged. A Tank-class target and the caster's counters stay unestablished (GOLDEN §117).
-- (3018) **`waitrun.sh` missed the click-free lane's receipt**: it kept waiting 90 minutes after the run exited (receipt JSON is the log's last line); the commander noticed.
+(3065) **An armed vehicle target is unstageable as a Sabotage victim**: a who=1 Tank shot the lone Commando dead before the cast's 150 frames ended; only an unarmed
+vehicle (Supply Wagon) was staged. A Tank-class target and the caster's counters stay unestablished (GOLDEN §117).
+
+(3066) **`waitrun.sh` missed the click-free lane's receipt**: it kept waiting 90 minutes after the run exited (receipt JSON is the log's last line); the commander noticed. Filed as Loop 3063.
 
 ## Parked by item 3024, 2026-10-17 — the sweep's third harvest batch
 
