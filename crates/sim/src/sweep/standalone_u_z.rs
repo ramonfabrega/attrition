@@ -318,6 +318,8 @@ mod wall_data_hits;
 mod wall_data_is_defensive;
 #[path = "wall_data_is_neutralized.rs"]
 mod wall_data_is_neutralized;
+#[path = "wall_data_is_now_seen.rs"]
+mod wall_data_is_now_seen;
 #[path = "wall_data_is_sea_trade.rs"]
 mod wall_data_is_sea_trade;
 #[path = "wall_data_is_trade.rs"]
