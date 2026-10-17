@@ -3397,8 +3397,13 @@ impl Sim {
     /// target now stands. run880's `0/7` on 1177, five frames after its
     /// approach began.
     ///
-    /// SEAM: the arm's `is_seen` is `target_is_seen`'s fog half; the
-    /// building target's `+0x8` is not asked.
+    /// The listing's `+0x8 & 1` is the target object's `flags & 1`
+    /// (`obj_alive` here), and the `is_moving` test sits behind the
+    /// object's own vslot `+0x8` (is a unit), so a building target is
+    /// never `repath`ed — the arm as written (run889, `docs/GOLDEN.md`
+    /// §112: the kill on 1258, backed by a mutation that parts there).
+    ///
+    /// SEAM: the arm's `is_seen` is `target_is_seen`'s fog half.
     fn check_cast_target_path(&mut self, u: usize, c: CastOrder) {
         let Some(t) = c.target else { return };
         if !self.target_is_seen(Obj::Unit(u), t) {

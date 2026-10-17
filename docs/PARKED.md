@@ -6703,13 +6703,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GC — reserved
+## Parked by item 2915, 2026-10-17 — chapter 88, the kill arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2915, first) **A cast's completion on an unseen target** — §111 (3) still open: run885's Spy did not reach range in 400 frames, so whether range-arrival
+  asks `is_seen` is untested. Names no score; a staging with the Hoplite ~14 tiles out would reach it.
+- (2915, second) **A building target killed mid-approach** — the same `is_valid_target` branch as the unit kill (§112), no capture drives it; a Spy sent at a
+  Barracks that who=1 loses first. Names no score.
 
 ## Parked by the next landing, slot GD — reserved
 

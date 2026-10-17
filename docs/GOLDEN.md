@@ -13039,12 +13039,28 @@ arm §110 left (3).
 return is reached, never an invalid seen target; (2) a building target; (3) the cast's completion on an unseen target (the Spy did not reach range
 in 400 frames, so whether range-arrival itself asks `is_seen` is untested).
 
-## 112. Reserved for the next item on the rules track
+## 112. Chapter eighty-eight — a cast whose target turns invalid on the approach (run889)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 2894, 2912: `check_cast_target_path`'s kill arm (`repath` + `kill_current_order`) and its building half. **Disk could
+not answer the kill**: no dump on disk held a *seen* cast target that stopped being valid mid-approach (run880, 884, 885's targets stayed valid).
+
+**The building half is the listing's, no capture.** `check_target_path@005e22d0`'s action-`0xe` arm tests the target object's `flags & 1`
+(`+0x8`, `obj_alive` here) then `SpellTypeData::is_valid_target`; the `is_moving` test follows behind the object's own vslot `+0x8` (is a
+unit) and then the unit's vslot `+0xd8`, so a building target is never `repath`ed. This crate's `Obj::Unit` guard is that. The SEAM in
+`orders.rs` was a misreading of `+0x8` and is struck. Chapter 19's Infiltrate on a Barracks (`2006`) reaches the arm and agrees.
+
+**Staging** (`tools/gamelog/golden/chapter88.cmd`, `RON_STAGE=ch76:chapter88:1500`): two who=0 Spies `0/6` (8 tiles from the target) and
+`0/7` (28 tiles) both Bribe the one who=1 Hoplite `1/6` at 1112. **What the original does** (run889): `0/6` arrives and converts the Hoplite on
+1250 (it is `0/8`); `0/7`'s `CASTORDER` and its move are gone at 1258 (`(1257 + 7) & 0xf == 0`, the review after the conversion), `idle 1`.
+
+**Diff**: ours agrees on every block of 1100–1500 but the standing 24 rows (`WANT_CH88`, the same as `WANT_CH87`). Word 1500, `ch88` closed.
+**No sim change** — the arm was built and was right.
+
+**The kill is diff-backed, by mutation**: with `kill_current_order` removed (the `repath` kept) the widening parts on **1258** — `0/7 idle` ours 0
+theirs 1 — and later (1406) on who=1's side. Coverage window 1254–1260.
+
+**Not established**: the cast's *completion* on an unseen target (§111 (3)); a building target that goes invalid mid-approach (killed
+buildings: the same `is_valid_target` branch, but no capture drives it).
 
 ## 113. Reserved for the next item on the rules track
 
