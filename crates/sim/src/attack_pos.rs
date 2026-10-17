@@ -129,7 +129,31 @@ impl crate::Sim {
     /// with exactly that point. The one `return 0` of the building half,
     /// the guard's refusal, is also `None`, and `fight` tells it apart with
     /// [`Sim::attack_pos_refused`] (item 1519).
+    ///
+    /// **The asker cannot ride while it searches** (`6014ef`–`601505`,
+    /// `docs/COMBAT.md` §17.8, item 2845): a set `unit_masks & 0x800000`
+    /// ([`crate::Unit::auto_transport`]) is cleared for the whole call and
+    /// OR-ed back on every exit (`60160a`, `60193e`, `6027a8`, `602aa8`,
+    /// `602b3f`, `602d65`, `602d77`). `invalid_loc`'s land arm admits
+    /// water only with the bit, so the ring, the open slots and the sweep
+    /// refuse a water spot a computer's unit could otherwise sail to. The
+    /// peace pair's Rocket Artillery `1/63` walks its bombard ring past
+    /// four water candidates on 6808 and draws eleven times, not fifteen.
     pub(crate) fn find_attack_pos(
+        &mut self,
+        u: usize,
+        target: Obj,
+        from: Pos,
+        site: &'static str,
+    ) -> Option<Pos> {
+        let held = std::mem::replace(&mut self.units[u].auto_transport, false);
+        let spot = self.find_attack_pos_grounded(u, target, from, site);
+        self.units[u].auto_transport |= held;
+        spot
+    }
+
+    /// [`Self::find_attack_pos`] with the asker's `0x800000` held clear.
+    fn find_attack_pos_grounded(
         &mut self,
         u: usize,
         target: Obj,
@@ -818,6 +842,78 @@ mod tests {
             (p.y - t.y).abs() <= 0x60,
             "the spot is {} from level with the centre: {p:?}",
             p.y - t.y
+        );
+    }
+
+    /// **The asker cannot ride while it searches** (§17.8, item 2845): a
+    /// land unit carrying `unit_masks & 0x800000` may stand on water as
+    /// far as `invalid_loc` is concerned, but `find_attack_pos` clears the
+    /// bit for the call (`601505`) and OR-s it back on every exit. So the
+    /// ring refuses the water face it would otherwise stand on, and the
+    /// bit is still set afterwards. The peace pair's Rocket Artillery
+    /// `1/63` refuses four water candidates of its bombard ring on 6808
+    /// (run882's packet, `invalid_loc` answering 2 at `607f28`).
+    ///
+    /// Made to fail on purpose by keeping the bit through the call: the
+    /// spot is then on the water east of the target.
+    #[test]
+    fn an_asker_s_auto_transport_is_held_clear_while_it_searches() {
+        use crate::combat::Profile;
+        use crate::world::{World, tile};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 70,
+            combat: Profile {
+                attack: 15,
+                max_range: 6,
+                uber_size: 1,
+                block_radius: 48,
+                big_radius: 48,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let t = Pos::new(20 * 0x300, 20 * 0x300);
+        let city = sim.add_building(0, t, 0);
+        sim.buildings[city].hits = 1200;
+        sim.buildings[city].health = 1200;
+        sim.buildings[city].combat = Some(Profile {
+            x_size: 7,
+            y_size: 7,
+            ..Profile::default()
+        });
+        // Everything east of the footprint's face is open sea.
+        let face = t.tile().x + 4;
+        for y in 0..sim.world.height() * 4 {
+            for x in face..sim.world.width() * 4 {
+                sim.world.set_tile_field(Pos::new(x, y), tile::SURFACE, tile::SURFACE_OCEAN);
+            }
+        }
+        let mut u = crate::Unit::new(1, 0, Pos::new(t.x + 0x1800, t.y), 70);
+        u.ty = Some(ty);
+        u.on_map = true;
+        u.auto_transport = true;
+        let me = sim.add_unit(u);
+        let from = Pos::new(t.x + 0x900, t.y);
+        let p = sim
+            .find_attack_pos(
+                me,
+                Obj::Building(city),
+                from,
+                crate::fight::SITE_ATTACK_POS_FIGHT,
+            )
+            .expect("a spot on the ring");
+        assert_ne!(
+            sim.world.tile_mask(p.tile()) & tile::SURFACE,
+            tile::SURFACE_OCEAN,
+            "the ring stands on land while the bit is held clear: {p:?}"
+        );
+        assert!(
+            sim.units[me].auto_transport,
+            "the bit is OR-ed back on the way out"
         );
     }
 
