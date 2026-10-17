@@ -7135,7 +7135,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2780: 1678 -> 1864, the walk past 5564 to the word 5982.
     // Item 2779: 1864 -> 1870, the walk past 5982 to the word 5985.
     // Item 2808: 1870 -> 2227, the walk past 5985 to the word 6452.
-    ("lakota_pair_first_parting", 2227),
+    // Item 2825: 2227 -> 2341, the walk past 6452 to the word 6808.
+    ("lakota_pair_first_parting", 2341),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
@@ -9424,7 +9425,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // same window (block 5986). **Item 2808 moved it 5985 → 6452** with
     // `think_carry`'s attack arm, past run879's last block (6232):
     // run879's test keeps 5985's value diff (block 5986, `1/225` from
-    // 5976), and 6452's widening is owed a capture (item 2825).
+    // 5976), and 6452 is widened on run881 over 6446..6701 (block 6453,
+    // item 2825). **Item 2825 moved it 6452 → 6808** with `max_range`'s
+    // CEO term, past run881's last block (6701): run881's test keeps
+    // 6452's value diff (block 6453, `1/137`'s `recharging`), and 6808's
+    // widening is owed a capture by item 2825's parked row (the commander
+    // writes its number here).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
