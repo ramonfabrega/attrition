@@ -5488,21 +5488,6 @@ impl Sim {
                 std::fs::write(format!("{dir}/ours-seen2-{frame}.txt"), out).unwrap();
             }
         }
-        if std::env::var_os("RON_PROBE_NEAR").is_some() && (4859..=5564).contains(&frame) {
-            for (i, un) in self.units.iter().enumerate() {
-                if un.owner != 1 || !un.alive() || !un.on_map {
-                    continue;
-                }
-                let (hx, hy) = (un.pos.x / 384, un.pos.y / 384);
-                let r = (un.mylos * 0xc0 / 0x180).min(0x40);
-                for (tx, ty) in [(33, 13), (43, 15)] {
-                    let d = crate::world::vector_dist((hx - tx).abs(), (hy - ty).abs());
-                    if d <= r + 2 {
-                        eprintln!("probe near f{frame} u{i} ti {} at ({hx},{hy}) r {r} to ({tx},{ty}) d {d}", un.type_index);
-                    }
-                }
-            }
-        }
         let mut events = Vec::new();
         // The staged input's marks, taken before the clear and put back at
         // the head of the frame's own — `do_frame`'s entry, which is where
