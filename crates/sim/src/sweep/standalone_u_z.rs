@@ -234,6 +234,60 @@ mod unit_update_gpiece;
 mod unit_update_order;
 #[path = "units_make_valid.rs"]
 mod units_make_valid;
+#[path = "valid_filter_case0.rs"]
+mod valid_filter_case0;
+#[path = "valid_filter_case1.rs"]
+mod valid_filter_case1;
+#[path = "valid_filter_case10.rs"]
+mod valid_filter_case10;
+#[path = "valid_filter_case11.rs"]
+mod valid_filter_case11;
+#[path = "valid_filter_case12.rs"]
+mod valid_filter_case12;
+#[path = "valid_filter_case13.rs"]
+mod valid_filter_case13;
+#[path = "valid_filter_case14.rs"]
+mod valid_filter_case14;
+#[path = "valid_filter_case15.rs"]
+mod valid_filter_case15;
+#[path = "valid_filter_case16.rs"]
+mod valid_filter_case16;
+#[path = "valid_filter_case17.rs"]
+mod valid_filter_case17;
+#[path = "valid_filter_case18.rs"]
+mod valid_filter_case18;
+#[path = "valid_filter_case19.rs"]
+mod valid_filter_case19;
+#[path = "valid_filter_case2.rs"]
+mod valid_filter_case2;
+#[path = "valid_filter_case20.rs"]
+mod valid_filter_case20;
+#[path = "valid_filter_case21.rs"]
+mod valid_filter_case21;
+#[path = "valid_filter_case22.rs"]
+mod valid_filter_case22;
+#[path = "valid_filter_case23.rs"]
+mod valid_filter_case23;
+#[path = "valid_filter_case24.rs"]
+mod valid_filter_case24;
+#[path = "valid_filter_case25.rs"]
+mod valid_filter_case25;
+#[path = "valid_filter_case26.rs"]
+mod valid_filter_case26;
+#[path = "valid_filter_case3.rs"]
+mod valid_filter_case3;
+#[path = "valid_filter_case4.rs"]
+mod valid_filter_case4;
+#[path = "valid_filter_case5.rs"]
+mod valid_filter_case5;
+#[path = "valid_filter_case6.rs"]
+mod valid_filter_case6;
+#[path = "valid_filter_case7.rs"]
+mod valid_filter_case7;
+#[path = "valid_filter_case8.rs"]
+mod valid_filter_case8;
+#[path = "valid_filter_case9.rs"]
+mod valid_filter_case9;
 #[path = "vector_dist_coords.rs"]
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
@@ -454,3 +508,7 @@ mod world_set_tocean;
 mod world_set_was_seen;
 #[path = "world_set_waterhalf.rs"]
 mod world_set_waterhalf;
+#[path = "world_to_screen_a.rs"]
+mod world_to_screen_a;
+#[path = "world_to_screen_b.rs"]
+mod world_to_screen_b;

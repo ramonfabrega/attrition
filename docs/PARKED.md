@@ -6252,13 +6252,34 @@ units (it is) and ours to agree on the mask of an inside unit. Names no score.
 
 Struck: (2759) closed by item 2798 — the field is compared and both clears are diff-backed.
 
-## Parked by the next landing, slot FC — reserved
+## Parked by item 2801, 2026-10-17 — valid_filter's arms, the clock and the register pointer
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**`Search::valid_filter` 0x67dbb0 is swept, as 27 `--name valid_filter_caseK` modules at once** (parked 2664's rule), composed from
+flags that existed: no `--jump` change was wanted, `--argrange 3:K:K` pins the index. What the listing says that the
+decompile does not: the first table at 0x67e57c is **23 entries**, not 27 — entries 23–26 (`e425`, `dc38`, `e3c4`, `e442`) are
+the *second* table's targets (0x67e5d8, a byte table at 0x67e5e8 maps `p1 - 0x275` onto them, arm 19's inner dispatch), so
+cases 23–26 are reachable from outside only by an out-of-range index and read `ebx` — the caller's, which the harness holds
+zero (cases 23 and 25 index slot 0). The ports spell them as that, and arm 19 reaches them with `ebx = p0`. Layout lessons: the
+objects tables are `--ptrtab 0xc0ab84:4:SIZE[:vt]` and `+0x1c`, the type tables `0xc0aec0`, each place and bias by window
+number (`5*who + 1 + idx`; the first `--ptrtab` is `p0`..); **a `--seq` stub also has a single answer first**, so run values
+start after the singles; the players table (stride 0x6eec) and the per-player lists (stride 0x1c, `+0x10`) are `--sparse`
+tables whose slices come row-major, their lists and objects `--place`s after the ptrtab places (arm 17: 73 windows); arm 17's
+player loop runs eight players, not nine (`0x10 + 0x1c b < 0xf0`, found by a failed row). **A `--regen` with `--name` merged
+another arm's kept line** (the first script holding the function's token): fixed in `merged_with_kept`, its test made to fail
+first; and `--regen`'s merge drops every kept use of a flag the new line names, so a redraw passes the whole flag set.
+**Starved, not killed**: arm 10's two `a == 0` null tests on a stub's answered pointer (`--answer-win` never answers null; no
+break reaches them); `0x63637 → 0x63636` in arms 14 and 15's log helper is an equivalent mutant (`>> 6`).
+
+**`--edx-win WIN`** built (`edx` the address of window WIN, for `MiscAccess::world_to_screen`'s `in_EDX`, both overloads),
+its test made to fail first. `Game::clock_init` and `TurnControl::get_delta_percent` needed no shape: `--stub iat:0xac5460:0`
+(item 2336) answers `timeGetTime`, and `--ret xmm0` with `--answer-range` for the divisor (a zero divisor traps) holds the float.
+Parked 2791's "unhookable IAT cell" rows are stale for these. Five functions, `Census:` 1164 → 1169; slot EY was empty at this
+base again, and the next-shortest never-backed rows are render, editor and terraform bodies (`RiverDoober::add_for_render`,
+`Game::run_unit_editor`, `NukeOut::setup_terrain_terraforming`, `get_float_z`).
+
+**For the Loop: a scratch `gen.sh` per item is still the shape** (this lane wrote one that reads `fK` flags and `pK.rs` port per
+arm and redraws with `FRESH=1`): `--from-file`/`--port-file` (parked 2796) and a `--regen` that replaces a port block are the
+builds; without them a port edit is delete-both-and-regenerate.
 
 ## Parked by the next landing, slot FD — reserved
 

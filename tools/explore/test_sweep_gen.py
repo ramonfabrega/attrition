@@ -408,7 +408,7 @@ class Shapes(unittest.TestCase):
             at=['0xed89ce:0xf68'], ecx_int='0..0x1ec', edx='0..7', port='i64::from(a[a.len() - 1])')
         compile(script, str(sp), 'exec')
         self.assertIn("EDX = ('range', 0, 7)", script)
-        self.assertIn('edx=0 if EDX is None else edx', script)
+        self.assertIn('edxa = 0 if EDX is None else edx', script)
         self.assertIn('+ ([] if EDX is None else [str(edx)])', script)
         self.assertIn('`edx` an integer in 0..7', test)
         # Beside the object in `ecx` as well, and from a list.
@@ -618,6 +618,23 @@ class Shapes(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=2797, win=8, bias=[], places=['m+0:0:16'],
                                        alias=bad, port='0')
+
+    def test_edx_may_name_a_window(self):
+        # Item 2801 (parked 2791): `MiscAccess::world_to_screen` is entered with a pointer in `edx` (the decompiler's
+        # `in_EDX`) and adds a word to the int it points at; `--edx` draws an integer, so `--edx-win WIN` lays `edx`
+        # as the address of window WIN (m, cN or pN), whose bytes the row prints before and after.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2801, win=8, bias=[], own=1, ptrargs=['0:8'], edx_win='p0', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("EDXWIN = 'p0'", script)
+        self.assertIn('`edx` the address of window `p0`', test)
+        for bad in ('q0', 'p', '0'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2801, win=8, bias=[], own=1, ptrargs=['0:8'],
+                                       edx_win=bad, port='0')
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2801, win=8, bias=[], own=1, ptrargs=['0:8'],
+                                   edx_win='p0', edx='0..3', port='0')
 
     def test_a_stub_may_answer_a_placed_record(self):
         # Item 2241: `CityData::get_pop_value` calls slot +0x3c of
@@ -1529,6 +1546,27 @@ class Shapes(unittest.TestCase):
                 self.assertEqual(kept.count('--item'), 1)
                 self.assertEqual(sweep_gen.main(line + ['--cell-win', '0x600000:0x40', '--regen']), 0)
                 kept = sweep_gen.kept_line(Path(tmp) / 'sweep_x_y.py')
+                self.assertIn('0x600000:0x40', kept)
+                self.assertNotIn('0x500000:0x40', kept)
+                self.assertIn('--argrange', kept)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_regen_merges_the_named_sweep_s_line_not_another_arm_s(self):
+        # Item 2801 (`Search::valid_filter`'s 27 arms, `--name valid_filter_caseK`): `--regen` with a whole line
+        # found the kept line by the function's token and took the first script that held it, so arm 3's redraw
+        # merged arm 0's stubs and port. With `--name` the sweep is that name's script, no other.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
+                self.assertEqual(sweep_gen.main(line + ['--name', 'x_y_a', '--cell-win', '0x500000:0x40', '--write-mod']), 0)
+                self.assertEqual(sweep_gen.main(line + ['--name', 'x_y_b', '--cell-win', '0x600000:0x40', '--write-mod']), 0)
+                self.assertEqual(sweep_gen.main(line + ['--name', 'x_y_b', '--argrange', '0:0:2', '--regen']), 0)
+                kept = sweep_gen.kept_line(Path(tmp) / 'sweep_x_y_b.py')
                 self.assertIn('0x600000:0x40', kept)
                 self.assertNotIn('0x500000:0x40', kept)
                 self.assertIn('--argrange', kept)

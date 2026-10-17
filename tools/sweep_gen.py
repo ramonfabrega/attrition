@@ -131,6 +131,15 @@ Three shapes, each a `__thiscall` on `ecx`:
           the port cannot see addresses, so it recovers the target from a
           pointer array's entry, as that sweep's does.
 
+          `--edx-win WIN` (item 2801, parked 2791): `edx` the address of
+          window WIN (m, cN or pN) rather than an integer, for a register
+          argument that is a pointer (`MiscAccess::world_to_screen`'s
+          `in_EDX`); `--record-edx` names it by the window. A function
+          swept as several modules (`Search::valid_filter`'s arms, one
+          `--argrange IDX:K:K` and `--name` each) redraws with `--regen`
+          from its own `--name`'s line only; pass the whole flag set,
+          since a flag the line names replaces every kept use of it.
+
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
           (parked 1889).
@@ -1421,6 +1430,7 @@ ARGRANGE = {argrange!r}
 SLOTBASE = {slotbase!r}
 ECXINT = {ecxint!r}
 EDX = {edx!r}
+EDXWIN = {edxwin!r}
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = {wild!r}
 ANSWERS = {answers!r}
@@ -1915,10 +1925,14 @@ def main(argv):
         ecx = None if ECXINT is None else draw_reg(rng, ECXINT, WILD, rand32)
         # `--edx` (item 2346): an integer in `edx` beside `ecx`, after it on the row.
         edx = None if EDX is None else draw_reg(rng, EDX, WILD, rand32)
+        # `--edx-win` (item 2801): `edx` the address of a window, not an integer.
+        edxa = 0 if EDX is None else edx
+        if EDXWIN is not None:
+            edxa = this if EDXWIN == "m" else wins[(0 if EDXWIN[0] == "c" else nc) + int(EDXWIN[1:])][0]
         h.calls.clear()
         h.edxs.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
-                   edx=0 if EDX is None else edx, ret=RET)  # Harness.call signs eax; signed() again would double a negative
+                   edx=edxa, ret=RET)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
         # A `__cdecl` function leaves its arguments for the caller (item 2181).
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
@@ -2138,7 +2152,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, tame=False, stub_write=(), deref=(), ecx_answer=(), ring=(), gtab=()):
+                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, tame=False, stub_write=(), deref=(), ecx_answer=(), ring=(), gtab=()):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2351,10 +2365,15 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
             pedx = ('range', int(lo, 0), int(hi, 0))
         else:
             pedx = ('set', [int(v, 0) for v in edx.split(',')])
+    if edx_win is not None:
+        if not re.fullmatch(r'm|c\d+|p\d+', edx_win):
+            raise ValueError(f'--edx-win is m, cN or pN, not {edx_win!r}')
+        if pedx is not None:
+            raise ValueError('--edx-win and --edx both fill `edx`: name one')
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or psparse or pgtab or plinks or pout or pcdecl or pwrite):
+            or pseq or pansr or pthis or palso or phalf or palias or edx_win or psparse or pgtab or plinks or pout or pcdecl or pwrite):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2435,11 +2454,12 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + ([f'`edx` an integer in {pedx[1]}..{pedx[2]}, after `ecx` on the row'
             if pedx[0] == 'range' else f'`edx` an integer in {pedx[1]}, after `ecx` on the row']
            if pedx else [])
+        + ([f'`edx` the address of window `{edx_win}`'] if edx_win else [])
         + (['`ecx` and `edx` held to their draw every row, no wild word'] if tame else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
                                    cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
-                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, wild=0.0 if tame else 0.1,
+                                   wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
@@ -2594,7 +2614,11 @@ def merged_with_kept(argv):
         return argv
     fn = next((a for a in argv if '::' in a and '@' in a), None)
     kept = None
-    for p in sorted(EMU.glob('sweep_*.py')) if fn else ():
+    # `--name M` (a function swept as several modules, `valid_filter`'s arms; item 2801): that module's script.
+    named = argv[argv.index('--name') + 1] if '--name' in argv[:-1] else None
+    for p in ([EMU / f'sweep_{named}.py'] if named else sorted(EMU.glob('sweep_*.py'))) if fn else ():
+        if not p.exists():
+            continue
         line = kept_line(p)
         if line and fn in line:
             kept = line
@@ -3172,6 +3196,8 @@ def main(argv=None):
                     'the list (90%%), not the object; printed last on the row (parked 2141)')
     ap.add_argument('--edx', metavar='LO..HI|V,V,..', help='obj: `edx` an integer drawn from the range or the '
                     'list (90%%), beside `ecx`; printed after `ecx` on the row (item 2346, parked 2338)')
+    ap.add_argument('--edx-win', metavar='WIN', help='obj: `edx` the address of window WIN (m, cN or pN) rather than an '
+                    'integer -- a register argument that is a pointer (`world_to_screen`\'s `in_EDX`; item 2801, parked 2791)')
     ap.add_argument('--deref', action='append', default=[], metavar='IDX:K:N',
                     help='obj: stub IDX prints the N bytes its argument K points at, read when it is called '
                          '(a caller\'s local the record names only by depth; item 2379, parked 2348); K `@VA` reads '
@@ -3421,7 +3447,7 @@ def main(argv=None):
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
-                                                    edx=args.edx, tame=args.tame, stub_write=args.stub_write,
+                                                    edx=args.edx, edx_win=args.edx_win, tame=args.tame, stub_write=args.stub_write,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
