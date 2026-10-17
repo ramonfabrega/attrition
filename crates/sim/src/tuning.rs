@@ -783,6 +783,8 @@ pub struct Tuning {
     pub indians_city_radius: i32,
     /// Distinct completed building kinds a city needs, besides itself, to become a Large City.
     pub city_buildings: i32,
+    /// `COMMANDO_MIN_DAMAGE`: the floor of a Sabotage blow on a building (`SpellType::cast_sabotage@006720e0`).
+    pub commando_min_damage: i32,
     /// The same for a Major City.
     pub metro_buildings: i32,
     /// Minimum distance between cities, in tiles; a city at exactly this distance is refused.
@@ -1331,6 +1333,7 @@ impl Tuning {
         city_center_pop_radius: 4,
         indians_city_radius: 4,
         city_buildings: 5,
+        commando_min_damage: 200,
         metro_buildings: 9,
         city_spacing: 24,
         relax_city_spacing: 6,
@@ -1440,7 +1443,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 391] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 392] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -2011,6 +2014,7 @@ impl Tuning {
             ),
             ("INDIANS_CITY_RADIUS", Slot::Value(T.indians_city_radius)),
             ("CITY_BUILDINGS", Slot::Value(T.city_buildings)),
+            ("COMMANDO_MIN_DAMAGE", Slot::Value(T.commando_min_damage)),
             ("METRO_BUILDINGS", Slot::Value(T.metro_buildings)),
             ("CITY_SPACING", Slot::Value(T.city_spacing)),
             ("RELAX_CITY_SPACING", Slot::Value(T.relax_city_spacing)),

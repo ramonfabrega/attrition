@@ -2790,17 +2790,33 @@ impl Sim {
     /// SEAM: the caster's leader counters (`+0xa58`, `+0xa5a`, `+0x80c`)
     /// and the score `+0x44 += cost / 5` for a squad captain, and the
     /// message and sound.
-    pub(crate) fn cast_sniper_unit(&mut self, v: usize) {
+    pub(crate) fn cast_sniper_unit(&mut self, v: usize, dtype: i32) {
         let frame = self.frame;
         self.units[v].health = 0;
         self.close_count(v);
         self.relink_squad(v);
-        self.close_unit(v, 2, frame);
+        self.close_unit(v, dtype, frame);
         self.kremlin_spy_closed(v);
         self.close_dead_orders(v);
         self.hold_dead_slot(v);
         self.close_supply(v);
         self.forget(Obj::Unit(v));
+    }
+
+    /// `SpellType::cast_sabotage@006720e0`'s building arm (item 2994,
+    /// `docs/GOLDEN.md` §116): half the building's `hits_left`, floored at
+    /// `COMMANDO_MIN_DAMAGE`, taken as `take_damage(dmg, 0, dtype 3, -1,
+    /// attrition 1, ..)` — no attacker, so no latch and no first-wound
+    /// draws. (The `this->field_4 == 0x4d / 0x4b` tests name a Type index
+    /// no craft carries, so the Commando's floor stands.)
+    ///
+    /// SEAM: the caster's leader counters and score (`+0xa58`, `+0xa5a`,
+    /// `+0x80c`; `+0x818` and `+0x44 += cost / 5` on the razed building),
+    /// the message and the sound; the dead-target refund arm.
+    pub(crate) fn cast_sabotage_building(&mut self, b: usize) {
+        let frame = self.frame;
+        let dmg = (self.buildings[b].health / 2).max(self.tuning.commando_min_damage);
+        self.damage_building(b, Sixteenths { whole: dmg, frac: 0 }, None, frame, true);
     }
 
     /// The **first wound**'s draws (§7.2 step 3), spent before the

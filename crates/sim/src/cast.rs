@@ -31,6 +31,8 @@ const MEMNON: crate::tech::TypeId = 0x16c;
 pub mod craft {
     /// `b`, `c`, `d`: a unit, a building, an area — the targeted craft.
     pub const TARGETED: u32 = 0xe;
+    /// `b`: a unit may be the target.
+    pub const UNIT: u32 = 0x2;
     /// `c`: a building may be the target.
     pub const BUILDING: u32 = 0x4;
     /// `d`: the target is a point, not an object.
@@ -322,7 +324,22 @@ impl Sim {
                 Obj::Unit(v) => self.sniper_valid_unit(v),
                 Obj::Building(_) => false,
             },
-            0x276 | 0x280 => false,
+            // `is_valid_target@006763c0`'s Pilfer arm: an active building
+            // with object flag `0x20` (a city).
+            0x276 => match t {
+                Obj::Building(b) => self.buildings[b].active && self.building_is_city(b),
+                Obj::Unit(_) => false,
+            },
+            // Its Sabotage arm (item 2994): a unit target needs the
+            // `VEHICLE` objmask (`has_objmask(0x200000)`) when the craft
+            // lacks `b`; a building passes on `c`.
+            0x280 => match t {
+                Obj::Unit(_) => {
+                    d.flags & craft::UNIT != 0
+                        || self.profile(t).obj_masks & crate::combat::mask::VEHICLE != 0
+                }
+                Obj::Building(_) => true,
+            },
             _ => true,
         }
     }
@@ -804,7 +821,14 @@ impl Sim {
             && let Obj::Unit(v) = t
             && self.spell_castable(s, u)
         {
-            self.cast_sniper_unit(v);
+            self.cast_sniper_unit(v, 2);
+            return;
+        }
+        if s == 0x280 && self.spell_castable(s, u) {
+            match t {
+                Obj::Unit(v) => self.cast_sniper_unit(v, 3),
+                Obj::Building(b) => self.cast_sabotage_building(b),
+            }
             return;
         }
         if s != spell::INFORMER || !self.spell_castable(s, u) {
