@@ -154,6 +154,8 @@ mod build_data_get_garrison_arrows;
 mod build_data_get_most_shots;
 #[path = "build_data_get_packer_stance.rs"]
 mod build_data_get_packer_stance;
+#[path = "build_data_get_queue.rs"]
+mod build_data_get_queue;
 #[path = "build_data_get_shot.rs"]
 mod build_data_get_shot;
 #[path = "build_data_get_worker_stance.rs"]

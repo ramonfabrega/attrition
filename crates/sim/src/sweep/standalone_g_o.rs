@@ -68,6 +68,8 @@ mod game_get_patch_version;
 mod game_get_time_limit;
 #[path = "game_info_default_setting.rs"]
 mod game_info_default_setting;
+#[path = "game_info_get_map_size_name.rs"]
+mod game_info_get_map_size_name;
 #[path = "game_info_load_from_playback.rs"]
 mod game_info_load_from_playback;
 #[path = "game_is_cooperative.rs"]
