@@ -303,8 +303,8 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(800):
-        h.brk = base  # the bump heap is reused a row; 800 rows of windows outgrow it
+    for i in range(3000):
+        h.brk = base  # the bump heap is reused a row; 3000 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Doober::remove_cover_doober@00846a30", "--item", "3008", "--win", "0x200", "--own", "5", "--rows", "800", "--argrange", "0:0:2", "--argrange", "1:0:2", "--argrange", "2:0:2", "--argrange", "3:0:2", "--argrange", "4:0:2", "--wbias", "m+0x13c:1..6", "--wbias", "m+0x158:7..9", "--wbias", "m+0x174:7..9", "--wbias", "m+0x190:7..9", "--wbias", "m+0x1ac:7..9", "--wbias", "m+0x1c8:7..9", "--place", "m+0x148:0:0x40", "--place", "m+0x164:0:0x80", "--place", "m+0x180:0:0x40", "--place", "m+0x19c:0:0x40", "--place", "m+0x1b8:0:0x40", "--place", "m+0x1d4:0:0x40", "--wbias", "p0+*:0,0,0,0,0,0,0,1", "--wbias", "p1+*:0,0,0,0,0,0,0,1", "--wbias", "p2+*:0,0,0,0,0,0,0,1", "--wbias", "p3+*:0,0,0,0,0,0,0,1", "--wbias", "p4+*:0,0,0,0,0,0,0,1", "--wbias", "p5+*:0,0,0,0,0,0,0,1"]
+# sweep_gen: ["obj", "Doober::remove_cover_doober@00846a30", "--item", "3008", "--win", "0x200", "--own", "5", "--rows", "3000", "--argrange", "0:0:2", "--argrange", "1:0:2", "--argrange", "2:0:2", "--argrange", "3:0:2", "--argrange", "4:0:2", "--wbias", "m+0x13c:1..6", "--wbias", "m+0x158:7..9", "--wbias", "m+0x174:7..9", "--wbias", "m+0x190:7..9", "--wbias", "m+0x1ac:7..9", "--wbias", "m+0x1c8:7..9", "--place", "m+0x148:0:0x40", "--place", "m+0x164:0:0x80", "--place", "m+0x180:0:0x40", "--place", "m+0x19c:0:0x40", "--place", "m+0x1b8:0:0x40", "--place", "m+0x1d4:0:0x40", "--wbias", "p0+*:0,0,0,0,0,0,0,1", "--wbias", "p1+*:0,0,0,0,0,0,0,1", "--wbias", "p2+*:0,0,0,0,0,0,0,1", "--wbias", "p3+*:0,0,0,0,0,0,0,1", "--wbias", "p4+*:0,0,0,0,0,0,0,1", "--wbias", "p5+*:0,0,0,0,0,0,0,1"]
