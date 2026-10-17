@@ -68,6 +68,8 @@ mod game_get_patch_version;
 mod game_get_time_limit;
 #[path = "game_info_default_setting.rs"]
 mod game_info_default_setting;
+#[path = "game_info_get_map_size_name.rs"]
+mod game_info_get_map_size_name;
 #[path = "game_info_load_from_playback.rs"]
 mod game_info_load_from_playback;
 #[path = "game_is_cooperative.rs"]
@@ -114,6 +116,8 @@ mod game_run_unit_editor;
 mod game_teams_locked;
 #[path = "game_unload_net_lib.rs"]
 mod game_unload_net_lib;
+#[path = "game_walk_rules_data.rs"]
+mod game_walk_rules_data;
 #[path = "game_war_allowed.rs"]
 mod game_war_allowed;
 #[path = "game_wonder_timer.rs"]
@@ -252,6 +256,10 @@ mod group_dbg_jump_to_waypoint;
 mod group_equals_group;
 #[path = "group_find_role.rs"]
 mod group_find_role;
+#[path = "group_get_num.rs"]
+mod group_get_num;
+#[path = "group_get_num_cap.rs"]
+mod group_get_num_cap;
 #[path = "group_get_speed.rs"]
 mod group_get_speed;
 #[path = "group_kill_group_order.rs"]
@@ -330,10 +338,14 @@ mod group_report_speed;
 mod group_set_ordered;
 #[path = "group_toggle.rs"]
 mod group_toggle;
+#[path = "group_walk_data.rs"]
+mod group_walk_data;
 #[path = "groupmoveorder_is_fleeing.rs"]
 mod groupmoveorder_is_fleeing;
 #[path = "groupmoveorder_is_pathed.rs"]
 mod groupmoveorder_is_pathed;
+#[path = "groups_copy_group.rs"]
+mod groups_copy_group;
 #[path = "groups_data_find_group_const.rs"]
 mod groups_data_find_group_const;
 #[path = "groups_walk_data.rs"]
@@ -392,6 +404,8 @@ mod herds_start_herds;
 mod herds_walk_data;
 #[path = "hero_walk_data.rs"]
 mod hero_walk_data;
+#[path = "heroes_data_find_hero.rs"]
+mod heroes_data_find_hero;
 #[path = "is_air.rs"]
 mod is_air;
 #[path = "is_move.rs"]
@@ -414,10 +428,14 @@ mod land_walk_data;
 mod lands_find_key;
 #[path = "lands_walk_data.rs"]
 mod lands_walk_data;
+#[path = "link_vert_append.rs"]
+mod link_vert_append;
 #[path = "map_calc_bonus.rs"]
 mod map_calc_bonus;
 #[path = "map_calc_bonus2.rs"]
 mod map_calc_bonus2;
+#[path = "map_conquest_check_sea_map.rs"]
+mod map_conquest_check_sea_map;
 #[path = "map_fairness_apply_distances.rs"]
 mod map_fairness_apply_distances;
 #[path = "map_fairness_enable_team_mode.rs"]
@@ -432,6 +450,12 @@ mod map_fairness_unapply_distances;
 mod map_get_player_overage;
 #[path = "map_get_player_underage.rs"]
 mod map_get_player_underage;
+#[path = "map_invert_land.rs"]
+mod map_invert_land;
+#[path = "map_is_near_ocean.rs"]
+mod map_is_near_ocean;
+#[path = "map_land_dist.rs"]
+mod map_land_dist;
 #[path = "map_scale_by_area.rs"]
 mod map_scale_by_area;
 #[path = "map_scale_by_axis.rs"]
@@ -452,6 +476,12 @@ mod misc_access_coord_vis_4;
 mod misc_access_find_global_render_z;
 #[path = "mountain_range_validate_tcoord.rs"]
 mod mountain_range_validate_tcoord;
+#[path = "mountains_data_mnt_loc_x.rs"]
+mod mountains_data_mnt_loc_x;
+#[path = "mountains_data_mnt_loc_y.rs"]
+mod mountains_data_mnt_loc_y;
+#[path = "mountains_data_total_gather_size.rs"]
+mod mountains_data_total_gather_size;
 #[path = "mountains_out_mnt_locs.rs"]
 mod mountains_out_mnt_locs;
 #[path = "mountains_out_mnt_ranges.rs"]
@@ -460,6 +490,8 @@ mod mountains_out_mnt_ranges;
 mod mountains_out_mnt_types;
 #[path = "mountains_tileset_texture_load.rs"]
 mod mountains_tileset_texture_load;
+#[path = "mountains_walk_data.rs"]
+mod mountains_walk_data;
 #[path = "move_order_get_move_order_vtordisp.rs"]
 mod move_order_get_move_order_vtordisp;
 #[path = "move_order_is_fleeing_vtordisp.rs"]
@@ -498,8 +530,12 @@ mod object_data_attack_dist_at;
 mod object_data_can_carry;
 #[path = "object_data_cargo_inside.rs"]
 mod object_data_cargo_inside;
+#[path = "object_data_get_inside.rs"]
+mod object_data_get_inside;
 #[path = "object_data_get_wonder_value.rs"]
 mod object_data_get_wonder_value;
+#[path = "object_data_has_general.rs"]
+mod object_data_has_general;
 #[path = "object_data_has_objmask.rs"]
 mod object_data_has_objmask;
 #[path = "object_data_health_level.rs"]
@@ -558,6 +594,8 @@ mod object_kill_contents;
 mod object_los;
 #[path = "object_must_walk.rs"]
 mod object_must_walk;
+#[path = "object_poor_target.rs"]
+mod object_poor_target;
 #[path = "object_repair_damage.rs"]
 mod object_repair_damage;
 #[path = "object_support_cost.rs"]
@@ -600,6 +638,10 @@ mod object_type_walk_rules_data;
 mod object_update_los;
 #[path = "objects_data_count_nukes_in_flight.rs"]
 mod objects_data_count_nukes_in_flight;
+#[path = "objects_data_find_city.rs"]
+mod objects_data_find_city;
+#[path = "objects_data_find_city_at.rs"]
+mod objects_data_find_city_at;
 #[path = "objects_data_find_good_at.rs"]
 mod objects_data_find_good_at;
 #[path = "objects_data_find_good_at_tcoord.rs"]
@@ -612,6 +654,8 @@ mod objects_data_find_goody_at_tile;
 mod objects_data_find_town;
 #[path = "objects_data_find_village.rs"]
 mod objects_data_find_village;
+#[path = "objects_data_make_tree_mask.rs"]
+mod objects_data_make_tree_mask;
 #[path = "objects_out_sort_objects.rs"]
 mod objects_out_sort_objects;
 #[path = "objects_remove_item.rs"]

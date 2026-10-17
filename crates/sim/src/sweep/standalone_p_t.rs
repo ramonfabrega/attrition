@@ -78,10 +78,14 @@ mod region_is_coast;
 mod region_num_coasts;
 #[path = "region_release.rs"]
 mod region_release;
+#[path = "region_walk_data.rs"]
+mod region_walk_data;
 #[path = "regions_concat.rs"]
 mod regions_concat;
 #[path = "regions_fix_all_borders.rs"]
 mod regions_fix_all_borders;
+#[path = "regions_get_num_sea.rs"]
+mod regions_get_num_sea;
 #[path = "regions_walk_data.rs"]
 mod regions_walk_data;
 #[path = "repair_order_get_type.rs"]
@@ -136,6 +140,10 @@ mod roads_pieces_rot_byte;
 mod roads_road_added;
 #[path = "roads_road_cleared.rs"]
 mod roads_road_cleared;
+#[path = "roads_scan_and_kill_straggled_tcoord.rs"]
+mod roads_scan_and_kill_straggled_tcoord;
+#[path = "search_valid_search.rs"]
+mod search_valid_search;
 #[path = "search_walk_data.rs"]
 mod search_walk_data;
 #[path = "setup_build_leader.rs"]
@@ -144,6 +152,8 @@ mod setup_build_leader;
 mod setup_get_starting_citizens;
 #[path = "setup_init_wild_life.rs"]
 mod setup_init_wild_life;
+#[path = "signposts_add.rs"]
+mod signposts_add;
 #[path = "signposts_cur_name.rs"]
 mod signposts_cur_name;
 #[path = "signposts_cur_x.rs"]
@@ -162,6 +172,8 @@ mod special_anim_order_walk_data;
 mod special_data_get_radius;
 #[path = "special_walk_data.rs"]
 mod special_walk_data;
+#[path = "specials_data_find_special.rs"]
+mod specials_data_find_special;
 #[path = "spell_type_cast_blow_tread.rs"]
 mod spell_type_cast_blow_tread;
 #[path = "spell_type_cast_depopulate.rs"]
@@ -338,6 +350,8 @@ mod tribe_set_pseudonym;
 mod tribe_walk_data;
 #[path = "tribe_walk_rules_data.rs"]
 mod tribe_walk_rules_data;
+#[path = "tribes_find.rs"]
+mod tribes_find;
 #[path = "tribes_walk_data.rs"]
 mod tribes_walk_data;
 #[path = "turn_control_compute_next_turn_solo.rs"]
@@ -376,10 +390,16 @@ mod type_build;
 mod type_data_avail;
 #[path = "type_data_can_pay_cost.rs"]
 mod type_data_can_pay_cost;
+#[path = "type_data_count_discovered.rs"]
+mod type_data_count_discovered;
+#[path = "type_data_get_abbrev_parsed.rs"]
+mod type_data_get_abbrev_parsed;
 #[path = "type_data_get_kill_value.rs"]
 mod type_data_get_kill_value;
 #[path = "type_data_get_limiting_resource.rs"]
 mod type_data_get_limiting_resource;
+#[path = "type_data_get_score_value.rs"]
+mod type_data_get_score_value;
 #[path = "type_data_is.rs"]
 mod type_data_is;
 #[path = "type_data_is_age_type.rs"]

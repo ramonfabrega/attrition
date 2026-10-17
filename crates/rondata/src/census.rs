@@ -137,12 +137,24 @@
 /// (`Unit::execute_events`, `do_idle`, `Supplies::find_supply`, `WorldData::was_seen_wcoord` and six more).
 /// item 2990: 1339 -> 1349 on the merged tree, the sweep's hundred-and-thirty-second batch, ten more
 /// `CommandPackage::process_*` bodies (`board_ship`, `siege_attack`, `attack`, `build`, `move_near` and five more).
+/// item 3004: 1349 -> 1359 on the merged tree, the sweep's hundred-and-thirty-third batch, ten harvested
+/// (`Balance::lookup_absolute_name`, `CityData::count_farms`, `BuildData::get_queue` and seven more).
+/// item 3014: 1359 -> 1369 on the merged tree, the sweep's hundred-and-thirty-fourth batch, ten more
+/// `CommandPackage::process_*` bodies (`ping`, `sell`, `trade`, `quit`, `speed_set` and five more).
+/// item 3008: 1369 -> 1379 on the merged tree, the sweep's hundred-and-thirty-fifth batch, ten world and table bodies
+/// (`Borders::check_border_blocked`, `Map::is_near_ocean`, `Map::land_dist` and seven more).
+/// item 3024: 1379 -> 1389 on the merged tree, the sweep's hundred-and-thirty-sixth batch, ten type and group bodies
+/// (`Region::walk_data`, `TypeData::count_discovered`, `ObjectData::get_inside` and seven more).
+/// item 3038: 1389 -> 1399 on the merged tree, the sweep's hundred-and-thirty-seventh batch, ten world and map bodies
+/// (`Doober::remove_hold_doobers`, `World::set_seen2`, `Fractal::get_height` and seven more).
+/// item 3030: 1399 -> 1407 on the merged tree, the sweep's hundred-and-thirty-eighth batch, eight shapes
+/// (`CommandPackage::process_rename_city`, `Tribes::find`, `Object::poor_target`, `Wall::swap_team` and four more).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1349;
+pub const SIMULATION_BACKED: usize = 1407;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
