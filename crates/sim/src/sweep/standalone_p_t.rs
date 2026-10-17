@@ -278,6 +278,8 @@ mod terrain_vis_set_base_source_pool;
 mod terrain_vis_set_extra_source_pool;
 #[path = "terrain_vis_wcoord_was_cached.rs"]
 mod terrain_vis_wcoord_was_cached;
+#[path = "terrain_walk_coord_data.rs"]
+mod terrain_walk_coord_data;
 #[path = "think_order_get_type.rs"]
 mod think_order_get_type;
 #[path = "time_sync_get_best_ping_time.rs"]
