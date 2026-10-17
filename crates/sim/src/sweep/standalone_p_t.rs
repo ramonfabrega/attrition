@@ -358,6 +358,8 @@ mod tribe_walk_rules_data;
 mod tribes_find;
 #[path = "tribes_walk_data.rs"]
 mod tribes_walk_data;
+#[path = "turn_control_check_new_frame_playback.rs"]
+mod turn_control_check_new_frame_playback;
 #[path = "turn_control_compute_next_turn_solo.rs"]
 mod turn_control_compute_next_turn_solo;
 #[path = "turn_control_get_delta_percent.rs"]
