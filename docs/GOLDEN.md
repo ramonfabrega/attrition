@@ -12914,12 +12914,27 @@ target stays with its owner. (2) The ally arm, `teams_locked`, and `has_general`
 upgrade ranges (`get_range`'s SEAM). **No staging was run and no capture taken**: a staged Bribe would diff the target's swap, which
 (1) leaves unbuilt, so the staging is the next chapter after `Unit::swap_team`. Census rows: none moved.
 
-## 107. Reserved for the next item on the rules track
+## 107. Chapter eighty-four — Bribe's conversion built; the staging parked (reading alone)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Booked** (item 2823): build `cast_bribe`'s unit arm and `Unit::swap_team@006118d0`, then stage a cloaked Spy's Bribe. The
+conversion alone is the item; the staging is parked (parked 2823 first), per Loop 2824's shape.
+
+**Read** from the two decompiled bodies. `cast_bribe`'s unit arm ends `leaders[caster] +0x8f4 += 1; target.vslot(+0x94)` — vslot
+`+0x94` of the unit vtable is `Unit::swap_team` (`vtables.txt`). `swap_team(this, a)`: a non-captain hands the swap to its captain; a
+captain gets `Objects::init_unit(a, current_upgrade(a, type), pos)` — **a copy, not an owner write** — and the two squads are walked
+down `o_down` together, each figure copying `damage` (`+0x24`), `damage_frac` (`+0x3b`), angle (`+0x50`), `form` (`+0xaa`),
+`recharging` (`+0xae`), `guy_mark` (`+0xb5`), `unit_masks` (the new unit's `0x40000`, the old one's other bits), the flags byte's
+active and on-map bits, and per guy `stopped`, `x`/`y`/`z`, `angle` and the turrets, then `update_gpiece`. The old squad is
+closed through vslot `+0x150` (`Unit::close(0, −1, 0)`): the loop closes the captain, and whoever leads after the relink, until the
+one closed is a captain — so a whole squad goes, with no death roll and `Object::close`'s thirty-frame hold.
+
+**Built**: `crate::bribe` (`Sim::cast_bribe_unit`, `Sim::unit_swap_team`), called from `cast_on` for Bribe; the counter is
+`PlayerTech::bribes`. Test `cast::tests::bribe_swaps_a_unit_s_team_and_closes_the_old_one`, made to fail with the counter dropped.
+
+**Not established, no diff backs any of it**: (1) the `inside_down` chain (`+0x28`, carried units re-created and `go_inside`d) —
+none for a Land unit Bribe admits; (2) the `unit_masks` bits this crate keeps as separate fields, copied only for four; (3) the
+messages and sounds; (4) `cast_bribe`'s building and city arms and the territory refusal (parked 2822); (5) the cloaked Spy's
+Bribe in a scout's sight, `unit_masks` and the owner across the cast — **no staging was run and no capture taken**.
 
 ## 108. Reserved for the next item on the rules track
 

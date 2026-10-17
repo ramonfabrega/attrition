@@ -707,6 +707,13 @@ impl Sim {
     /// target's line of sight for every leader in `infiltrated`); the
     /// captain re-read of a squad target; the selection hand-over.
     fn cast_on(&mut self, u: usize, s: i32, t: Obj) {
+        if s == spell::BRIBE
+            && let Obj::Unit(v) = t
+            && self.spell_castable(s, u)
+        {
+            self.cast_bribe_unit(u, v);
+            return;
+        }
         if s != spell::INFORMER || !self.spell_castable(s, u) {
             return;
         }
@@ -876,7 +883,7 @@ impl Sim {
     }
 
     /// `LeaderData::current_upgrade(who, ti)` as a unit record.
-    fn upgrade_record(&self, who: Player, ti: i32) -> Option<usize> {
+    pub(crate) fn upgrade_record(&self, who: Player, ti: i32) -> Option<usize> {
         let t = self.unit_types[self.unit_rec_of_index(ti)?].tree?;
         let up = self
             .tech_tree
@@ -1356,6 +1363,39 @@ mod tests {
             !s.spell_valid_target(spell::BRIBE, 1, Obj::Unit(spy)),
             "its own"
         );
+    }
+
+    /// **Bribe's conversion** (`SpellType::cast_bribe@00672d00`'s unit arm,
+    /// `Unit::swap_team@006118d0`, item 2823): a copy is born under the
+    /// caster's owner carrying the damage and the facing, the old unit is
+    /// closed without a death and held thirty frames, and the caster's
+    /// leader counts one. Made to fail with the counter dropped, with the
+    /// old unit left standing, and with the damage not carried.
+    #[test]
+    fn bribe_swaps_a_unit_s_team_and_closes_the_old_one() {
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        let target = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[filler].ty;
+            u
+        });
+        s.units[spy].owner = 1;
+        s.units[target].health = 15;
+        s.units[target].max_health = 20;
+        let bribes = s.tech[1].bribes;
+        let before = s.units.len();
+        let n = s.cast_bribe_unit(spy, target).expect("a copy is born");
+        assert!(s.units.len() > before || n < before, "a unit is made");
+        assert_eq!(s.units[n].owner, 1, "under the caster's owner");
+        assert_eq!(
+            s.units[n].max_health - s.units[n].health,
+            5,
+            "damage carried"
+        );
+        assert!(!s.units[target].alive(), "the old one is closed");
+        assert_eq!(s.units[target].hold_frames, Sim::CLOSE_HOLD);
+        assert_eq!(s.tech[1].bribes, bribes + 1, "the leader's +0x8f4");
+        assert!(s.cast_bribe_unit(spy, n).is_none(), "its own: nothing");
     }
 
     /// What one frame of each parity takes back from a `mana_burn` of 100.
