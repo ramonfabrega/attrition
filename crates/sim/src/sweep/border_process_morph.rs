@@ -45,7 +45,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // record (the window it was laid as, `p[1 + origin]`) has bit 2 at +0x4c, is pushed back to its recycler,
             // and is replaced in the array by the last pointer, which is cleared, the count falling by one; the
             // slot is not looked at again (item 2852).
-            let mut origin: Vec<usize> = (0..4).collect();
+            let origin: Vec<usize> = (0..4).collect();
             let mut next = 2;
             let mut i = 0;
             while (i as i32) < rd(m, 0x40) {
@@ -61,7 +61,6 @@ fn the_emulated_original_agrees_on_every_row() {
                     let last = rd(&p[0], 4 * (n - 1));
                     wr(&mut p[0], 4 * i, last);
                     wr(&mut p[0], 4 * (n - 1), 0);
-                    origin[i] = origin[n - 1];
                     wr(m, 0x40, n as i32 - 1);
                 } else {
                     log.push(format!("s0:p{}+0x0", 1 + w));
