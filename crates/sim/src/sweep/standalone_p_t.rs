@@ -270,6 +270,8 @@ mod time_sync_get_best_ping_time;
 mod time_sync_on_player_deleted;
 #[path = "time_sync_test_accept_ping.rs"]
 mod time_sync_test_accept_ping;
+#[path = "time_sync_update.rs"]
+mod time_sync_update;
 #[path = "trade_order_walk_data.rs"]
 mod trade_order_walk_data;
 #[path = "trade_order_walk_data_vtordisp.rs"]
