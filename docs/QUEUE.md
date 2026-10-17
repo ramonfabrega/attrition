@@ -87,9 +87,10 @@ shared-helper CPU flat. Combined validation: source guards corrected on `a30a36b
 after full run on `e8404b99`; all original checks/3276 fixture requests retained,
 one guard added. See [journal](journal/2026-10-16-replay-boundary.md).
 Harness follow-up:85 exact bodies in nine groups; measured case rebuild19.52→15.30s,
-CPU52.64→20.95s, sampled tree1566→1209MiB. Focused checks and failure probes pass;
-full committed-tree validation pending. See [journal](journal/2026-10-16-harness-boundary.md).
-Next: measure remaining admission/runtime costs; finer harness groups give little benefit.
+CPU52.64→20.95s, sampled tree1566→1209MiB. Full required-fixture gate passes on
+`5491fe87`:271.28s/1472.54CPU/8864MiB; exact3276 requests retained. No whole-suite
+gain. See [journal](journal/2026-10-16-harness-boundary.md). Next: profile repeated
+golden/harness replay work (47% of rondata CPU); finer harness groups plateau.
 Each revision keeps its own test verdict.
 Independent review of earlier landed optimizations remains owed.
 Pins/scoreboard unchanged; 10× remains unmet. See

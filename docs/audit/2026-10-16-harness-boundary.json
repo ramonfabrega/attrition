@@ -50,7 +50,95 @@
     "restored_pin_hold_exit": 0,
     "ledger_output_identical": true
   },
-  "full_gate": "pending committed-tree validation",
+  "full_gate": {
+    "commit": "5491fe87e4fdc367f89323b4f1c3fa11c51d90cb",
+    "exit": 0,
+    "phases": 6,
+    "wall_seconds": 271.28,
+    "cpu_seconds": 1472.54,
+    "sampled_tree_peak_mib": 8864,
+    "exact_fixture_requests_preserved": true,
+    "requests": 3276,
+    "unique_fixtures": 419,
+    "missing_fixtures": 0,
+    "all_original_test_names_preserved": true,
+    "added_guard": "testenv::source::nested_case_expansion_preserves_exact_body_and_rejects_missing_guard: test",
+    "ignored_names_preserved": true,
+    "summary": {
+      "schema": 1,
+      "release_completed": true,
+      "binaries": [
+        {
+          "name": "sweep_g_o",
+          "result": "ok",
+          "passed": 270,
+          "failed": 0
+        },
+        {
+          "name": "sweep_a_f",
+          "result": "ok",
+          "passed": 251,
+          "failed": 0
+        },
+        {
+          "name": "sweep_u_z",
+          "result": "ok",
+          "passed": 221,
+          "failed": 0
+        },
+        {
+          "name": "sweep_p_t",
+          "result": "ok",
+          "passed": 190,
+          "failed": 0
+        },
+        {
+          "name": "sim",
+          "result": "ok",
+          "passed": 1654,
+          "failed": 0
+        },
+        {
+          "name": "fixed",
+          "result": "ok",
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "name": "rondata",
+          "result": "ok",
+          "passed": 0,
+          "failed": 0
+        },
+        {
+          "name": "rondata",
+          "result": "ok",
+          "passed": 892,
+          "failed": 0
+        },
+        {
+          "name": "doc-tests fixed",
+          "result": "ok",
+          "passed": 0,
+          "failed": 0
+        },
+        {
+          "name": "doc-tests rondata",
+          "result": "ok",
+          "passed": 3,
+          "failed": 0
+        },
+        {
+          "name": "doc-tests sim",
+          "result": "ok",
+          "passed": 0,
+          "failed": 0
+        }
+      ],
+      "failed_tests": [],
+      "binaries_failed": 0
+    }
+  },
   "scores": "unchanged; no sim or comparison changes",
   "independent_review": "owed",
   "initial_gate": {
@@ -60,5 +148,22 @@
     "release_tests_ran": false,
     "cause": "Clippy eq_op on unchanged run90 constant assertion after extraction",
     "correction": "function-scoped expected lint; assertion unchanged"
+  },
+  "runtime_ranking_cpu_seconds": {
+    "diff::golden": 298.56,
+    "diff::harness": 242.02,
+    "diff::second": 118.54,
+    "diff::third_pair": 75.25,
+    "diff::coverage": 72.79,
+    "diff::world": 46.76,
+    "diff::unit": 40.79,
+    "diff::build": 39.17
+  },
+  "full_gate_comparison": {
+    "reference_commit": "f4e683b6",
+    "reference_wall_seconds": 255.0,
+    "reference_cpu_seconds": 1396.42,
+    "reference_sampled_tree_mib": 8369,
+    "claim": "No full-suite speedup or memory reduction; unpaired complete gate rose in all three measures."
   }
 }

@@ -513,6 +513,8 @@ duplicate and misdirected cases. Add tests with a same-named wrapper and body.
 The measured run57 diagnostic edit rebuild goes19.52→15.30s, CPU52.64→20.95s,
 sampled tree1566→1209MiB. Seventeen and85 groups do not materially beat nine.
 This reduces build pressure; no shared-helper, concurrent-worktree or whole-suite
-speedup is inferred. Full required-fixture validation is pending the implementation
-commit. See the [harness journal](journal/2026-10-16-harness-boundary.md) and
+speedup is inferred. The complete required-fixture gate passes on `5491fe87`:
+271.28s/1472.54CPU/8864MiB,892 rondata and2586 sim tests, exact3276 fixture
+requests retained. Whole-gate cost rises versus the previous successful run;
+this is a rebuild improvement, not a suite-runtime gain. See the [harness journal](journal/2026-10-16-harness-boundary.md) and
 [audit](audit/2026-10-16-harness-boundary.json). Independent review remains owed.

@@ -99,3 +99,31 @@ with the coordinate-check rationale; the assertion and all body bytes remain
 unchanged. This is not combined validation: a complete six-phase gate will run
 again on the correction commit. Original receipts remain at `gate/` and
 `gate.log`; the rerun uses `gate-final/` and `gate-final.log`.
+
+## Complete verdict
+
+All six required-fixture gate phases pass on `5491fe87`, exit0. Tree stayed clean
+and frozen throughout. `gate-final.log`, `gate-final.exit`, `gate-final/` and
+`gate-equivalence.json` hold the actual receipts. This is a complete gate, not
+combined validation of the earlier interrupted attempt.
+
+-502 offline tests, three unchanged skips; Clippy, formatting and survey pass.
+-Rondata892 pass, six unchanged ignored; sim2586, fixed13, doctests3 pass.
+-All original workspace names preserved exactly, plus the one source guard.
+-Exact3276 fixture-request multiset equals the previous full replay run;
+ 419 unique fixtures, zero missing. Original ignored names preserved.
+-Whole gate271.28s/1472.54CPU/8864MiB sampled tree peak, versus the last successful
+ six-phase pre-golden gate255.00s/1396.42CPU/8369MiB. These are unpaired complete
+ runs with different compile work: all three measures rise, so no full-suite
+ speedup or memory reduction is claimed.
+-Rondata execution161.22s/1158.05CPU versus160.34s/1149.77CPU in the preceding
+ golden run (whose three source guards failed). Runtime remains roughly flat.
+-Score/pins, draw-stream and value comparisons: no movement; no fidelity change.
+
+The new runtime ranking (`runtime-ranking.json`) attributes298.56CPU to golden,
+242.02 to harness,118.54 to second-pair and72.79 to coverage. Golden+harness are
+47% of rondata CPU. Next investigate repeated golden/harness replay work, beginning
+with profiling and equivalence evidence; additional harness file splitting has
+not earned further complexity. This ranking does not prove replay reuse is safe
+or predict a particular gain. Independent review and the global10× target remain
+open.
