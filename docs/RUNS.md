@@ -17262,6 +17262,29 @@ frames, 303 s, kept in `~/ron-golden/ch80/map-14/`; block 1204 is not in the dum
 after a Scout's disc; ours agrees on both. The word is `1198 world:danger` (cell 235, ours 60, theirs 120: the 1000 pass,
 undumped).
 
+## run879 — the peace pair: the word 5982's widening, blocks 5976..6232 (2026-10-17, item 2779, `att-2779`)
+
+`docs/AI.md` §234. **What the disk could not answer**: run867 ends at 5657, and run847 has checksums and the closing
+block only, so no dump of this lobby held a record on 5982. This is run867's recipe with the window moved to the word,
+through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run879`: `--map 18 --end-frame 6238 --timeout 7200
+--log-window 5976 6233 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10`.
+- It ran on click-free lane 1 from the pool: `success`, 6239 frames, 1977 s from launch to exit. The first take exited
+  5, and the runner retook it 4.7 s later.
+- The dump holds 258 `BEGIN FRAME`s (5976..6232 and the closing block).
+- `rngcmp.py rontrace-run847.log rontrace-run879.log`: **6239 identical, 0 differing**.
+- Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run879-eastindies-lakota-peace-window-5976-6233.txt`, 705,229,001 bytes,
+SHA-256 `6825083849c737bd09ba68369c125bde1497155abf0eaf3613d6ed67443c656f`.
+
+Archive `rontrace-run879.log`, 269,208,480 bytes,
+SHA-256 `5ea5d8d11469a9daf18201e94b95b9d09bff9166a409fffc9155117d09c0a1e4`.
+
+**What it holds**: `diff::lakota_pair::run879_s_word_frame_is_widened_whole`, 4745 keys as captured. From the window's
+first block, who=1's oil parts: `resources[oil]` ours 8366 against theirs 9966, over its 8800 cap in theirs alone. On
+block 5982 `MAKE[4]` reads ours' Oil Well against theirs' Woodcutter's Camp. With item 2779's Capitalism oil built,
+2854 keys remain. The window is in the coverage driver's slice, and its walk reads 2222 heights at inexact corners.
 ## run878 — chapter eighty: the 1000 pass's own blocks (2026-10-17, item 2785, `att-2785`)
 
 `docs/GOLDEN.md` §103. **What the disk could not answer**: run877's first block is 1198, so the `calc_danger` pass of 1000 that

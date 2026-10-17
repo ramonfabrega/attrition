@@ -230,7 +230,8 @@ sixteenths.
 7. **Refineries**: `oil = oil * (refineries * REFINERY_BONUS + 100) / 100`.
    `REFINERY_BONUS` is `33% per refinery` and this is where "per refinery"
    lives; every other enhancer is a per-city percentage.
-8. **Capitalism** adds `CAPITALISM_OIL_PROD * 16` to oil.
+8. **Capitalism** adds `CAPITALISM_OIL_PROD * 16` to oil, after the refineries, while `has_preq(CAPITALISM_1)`
+   holds (`006cf454`–`006cf47f`). Built in `economy::assemble`, and diff-backed by run879 (`docs/AI.md` §234).
 9. **Conquest rares** — one `LeaderData::calc_rare` per bit of
    `rare_conquest`, and only when no other in-game leader exists. See below.
 10. **Coffee** scales all six.

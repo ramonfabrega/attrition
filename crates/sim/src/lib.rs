@@ -4597,6 +4597,17 @@ impl Sim {
             .tech_tree
             .gain_tech(&self.setup, &mut self.tech[who as usize], t, frame);
         self.pay_arriving_goods(who, &had_preq, &events);
+        // Step 9's government arm (`006de29e`–`006de2e4`): with `gov`
+        // written, a gained `is(0x274, 0)` — Capitalism — after frame 0
+        // takes `CAPITALISM_OIL_GIFT` into the oil bucket (`bucket_add`, a
+        // plain add). `0x274` is `gov_bonuses`' second row's government.
+        if frame != 0
+            && matches!(self.tech_tree.kind(t), tech::Kind::Gov { .. })
+            && self.tech_tree.roles.gov_bonuses.get(1).map(|g| g.1) == Some(t)
+        {
+            self.ledgers[who as usize].bucket[economy::Resource::Oil.index()] +=
+                self.tuning.capitalism_oil_gift;
+        }
         // `*this |= 0x2000000` at line 319, on every gain: the economy is
         // reassembled at the next dirty-grid frame, which is what reads a
         // Commerce level into the caps.

@@ -269,6 +269,14 @@ pub struct Tuning {
     /// Percentage bonus to oil per refinery, applied at the player level
     /// rather than per city — the only enhancer written that way.
     pub refinery_bonus: i32,
+    /// `CAPITALISM_OIL_PROD` (100 income): the oil `Leader::calc_gather`
+    /// adds, `× 16`, after the refinery multiply while `has_preq
+    /// (CAPITALISM_1)` holds (`006cf454`–`006cf47f`; `docs/ECONOMY.md` step 8).
+    pub capitalism_oil_prod: i32,
+    /// `CAPITALISM_OIL_GIFT` (500 oil gift): `Leader::gain_tech`'s
+    /// `bucket_add(5, ·)` on gaining Capitalism after frame 0 (`006de2ac`
+    /// –`006de2e4`; `docs/TECH.md` step 9).
+    pub capitalism_oil_gift: i32,
     /// Wealth per city per period, unconditionally. Ships as zero.
     pub village_taxes: i32,
     /// Wealth per building in a city. Ships as zero.
@@ -1102,6 +1110,8 @@ impl Tuning {
         lumbermill_bonus: [20, 50, 100, 200, 250],
         smelter_bonus: [50, 100, 150, 200, 250],
         refinery_bonus: 33,
+        capitalism_oil_prod: 100,
+        capitalism_oil_gift: 500,
         village_taxes: 0,
         building_taxes: 0,
         market_taxes: 10,
@@ -1417,7 +1427,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 386] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 388] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1656,6 +1666,8 @@ impl Tuning {
                 Slot::Value(T.german_completion_bonus),
             ),
             ("REFINERY_BONUS", Slot::Value(T.refinery_bonus)),
+            ("CAPITALISM_OIL_PROD", Slot::Value(T.capitalism_oil_prod)),
+            ("CAPITALISM_OIL_GIFT", Slot::Value(T.capitalism_oil_gift)),
             ("VILLAGE_TAXES", Slot::Value(T.village_taxes)),
             ("BUILDING_TAXES", Slot::Value(T.building_taxes)),
             ("MARKET_TAXES", Slot::Value(T.market_taxes)),

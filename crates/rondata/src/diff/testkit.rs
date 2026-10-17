@@ -7133,7 +7133,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // word 5315.
     // Item 2638: 1672 -> 1678, the walk past 5315 to the word 5407.
     // Item 2780: 1678 -> 1864, the walk past 5564 to the word 5982.
-    ("lakota_pair_first_parting", 1864),
+    // Item 2779: 1864 -> 1870, the walk past 5982 to the word 5985.
+    ("lakota_pair_first_parting", 1870),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
@@ -7144,6 +7145,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run866_s_word_frame_is_widened_whole", 1678),
     // And run867 (item 2677): the word 5407's window, 1699 reads.
     ("run867_s_word_frame_is_widened_whole", 1699),
+    // And run879 (item 2779): the word 5982's window, 2222 reads.
+    ("run879_s_word_frame_is_widened_whole", 2222),
     // And its closing state (item 2293): the same walk to the closing block.
     ("run775_mongol_pair_closing_state", 923),
     // run844 (item 2293): the pair's last blocks, 4940..5057.
@@ -7326,9 +7329,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // President arm, as that window's own. Item 2554's run866 window: 1673,
     // as that window's own; 1678 with item 2609's crash round, as run866's
     // own walk. Item 2677's run867 window: 1699, as that window's own.
+    // Item 2779's run879 window: 2222, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        1699,
+        2222,
     ),
 ];
 
@@ -9411,13 +9415,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // with `Unit::close`'s count, in the same window (block 5565).
     // **Item 2780 moved it 5564 → 5982** with `was_really_seen`'s leader
     // exits, past run867's last block (5657): run867's test keeps 5564's
-    // value diff (block 5565), and 5982's widening is owed by parked 2779.
+    // value diff (block 5565), and 5982 is widened on run879 over
+    // 5976..6232 (block 5983, item 2779). **Item 2779 moved it 5982 →
+    // 5985** with Capitalism's oil (`calc_gather`'s `006cf454`), in the
+    // same window (block 5986).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        None,
+        Some("run879_s_word_frame_is_widened_whole"),
         2779,
-        None,
+        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_5982),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
