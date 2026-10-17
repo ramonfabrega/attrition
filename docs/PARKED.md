@@ -6616,13 +6616,11 @@ words and edits nothing here; a refill lands when two remain.
 building target have no capture; parked 2879 (a target outside the caster's sight) is unchanged and wants a Spy sent to range on a
 target that stays outside its owner's fog, and the review's `is_seen` gate is the arm to watch there.
 
-## Parked by the next landing, slot FW — reserved
+## Parked by item 2887, 2026-10-17 — the void shape's gaps
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2887) **No function swept.** The void gaps' functions (`Player::end_game`, `TerrainOil::remove_rocky_patch`) were already backed by hand-patched lines; the harvest lane (2877) had parked none for a shape when this landed. The remaining `census.py --unbacked` ports are 1–3.5 kB walks (`Unit::do_idle`, `Build::process_ejection`…) and the shortest rest are renderer-bound (`Nuke::setup` calls the graphics system), so each is its own item, not a tail.
+
+(2887, second) **`--place-null K` past the first place was not a generator gap.** K indexes the places on the line from 0 and the draw tests `k in NULLS`; `replace_form_id` already runs `--place-null 0,3,4,5`. What 2885 reports is a *correlation*, not an index: a null `m+0xdc` with a live `m+0xcc` crashes the original, so `m+0xcc` is forced 0 and the arm `0xdc == 0 && 0xd8 != 0` is reached only with `cc == 0`. A place-null that also forces another word on its null rows (`--place-null K:WORD=0`) is the shape the arm wants; not built.
 
 ## Parked by the next landing, slot FX — reserved
 
