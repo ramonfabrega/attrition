@@ -36,7 +36,7 @@ STUBS = []
 PLACES = [('m', '4', '0', 128)]
 NULLS = []
 NULLFORCE = {}
-WBIAS = [('m', 0, ('range', 0, 6)), ('p0', None, ('set', [0, 0, 0, 1, 5, 74565, 2147483647]))]
+WBIAS = [('m', 0, ('range', 0, 6)), ('p0', None, ('set', [0, 0, 0, 1, 5, -5, 74565, 2147483647, 2147483648]))]
 FILLS = []
 ARGRANGE = [(0, 0, 7)]
 SLOTBASE = []
@@ -684,4 +684,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "BuildQueue::set_queue@006309f0", "--item", "3008", "--win", "8", "--ret", "none", "--own", "4", "--rows", "400", "--ptrarg", "2:0x18", "--ptrarg-null", "2", "--argrange", "0:0:7", "--argset", "3:0,1", "--wbias", "m+0:0..6", "--place", "m+4:0:0x80", "--wbias", "p0+*:0,0,0,1,5,0x12345,0x7fffffff", "--port", "{\n    let (idx, s, q) = (a[0], a[1] as i16, a[3]);\n    if idx < rd(m, 0) {\n        let rec = (idx * 0x14) as usize;\n        let put16 = |w: &mut Vec<u8>, off: usize, v: i16| w[off..off + 2].copy_from_slice(&v.to_le_bytes());\n        put16(&mut p[1], rec + 4, s);\n        if q == 0 {\n            p[1][rec..rec + 4].copy_from_slice(&0i32.to_le_bytes());\n        }\n        if a[2] != 0 {\n            let mut n = 0usize;\n            let mut done = false;\n            for k in 0..6usize {\n                let v = rd(&p[0], 4 * k);\n                if v != 0 {\n                    put16(&mut p[1], rec + 6 + 2 * n, k as i16);\n                    put16(&mut p[1], rec + 0xc + 2 * n, v as i16);\n                    n += 1;\n                    if n > 2 {\n                        done = true;\n                        break;\n                    }\n                }\n            }\n            if !done {\n                for k in n..3 {\n                    put16(&mut p[1], rec + 6 + 2 * k, -1);\n                    put16(&mut p[1], rec + 0xc + 2 * k, 0);\n                }\n            }\n        }\n    }\n    0\n}"]
+# sweep_gen: ["obj", "BuildQueue::set_queue@006309f0", "--item", "3008", "--win", "8", "--ret", "none", "--own", "4", "--rows", "400", "--ptrarg", "2:0x18", "--ptrarg-null", "2", "--argrange", "0:0:7", "--argset", "3:0,1", "--wbias", "m+0:0..6", "--place", "m+4:0:0x80", "--wbias", "p0+*:0,0,0,1,5,-5,0x12345,0x7fffffff,0x80000000"]
