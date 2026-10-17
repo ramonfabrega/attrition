@@ -3748,7 +3748,10 @@ line, filed at its merge): `--regen` with a whole line and `--port-file` rewrite
 <name>` keeps the line's old port string, so an edit made only in the `.rs` returns at the next whole-line regen (once, in
 2863); and `Harness`'s unmapped-read hook answers zeros, so a vtable read through a mis-placed pointer shows as a call to 0,
 not a fault at the read. Candidate: a regen that would overwrite a port differing from its `--port-file` refuses, naming
-both; an unmapped read under a sweep faults with its address. One reach.
+both; an unmapped read under a sweep faults with its address. One reach. **A second reach** (2900's "for the Loop"
+line, filed at its merge): `--regen` with a new `@FILE`, on a script whose `--table` flag was in the old kept line, merged the
+old line's flags into the new (`PLACES` grew a second copy of the table); the lane deleted both generated files and generated
+fresh. The same candidate: a regen whose flags changed refuses or starts clean, never merges.
 
 (2892) **The generated `.rs` header does not say how `--sparse` and `--place` number the `p` windows** (2877's "for the
 Loop" line, filed at its merge): sparse windows come first, so a `--wbias p0+*` meant for the first place biased a sparse
@@ -6679,13 +6682,26 @@ target, and range-arrival on an unseen target (the Spy did not arrive in 400 fra
 
 (2913) **Loop 2654's print was not built**: every staged line reached its unit (`staged: 6 ran, 4 unit(s)`).
 
-## Parked by the next landing, slot FZ — reserved
+## Parked by item 2900, 2026-10-17 — the sweep's hundred-and-twenty-third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2916) **`CityData::count_farms` 0x7368c0 was not swept**: `census.py --never`, `--unbacked` and `--all` print no row for it; the crate
+has it as `city_count_farms` (`farms.rs`), no sweep file spells it. If it is a census row under another name, a sweep of it is the
+vtable-compare arm 2888 named; I did not chase the row. One reach.
+
+(2917) **`--vtat-keep` is `--slotbase` without the stub-slot check**: the generated script is the same (`SLOTBASE`, the 0/1 flag
+after the answers); the two flags could be one. A compare of a *record word* with a function (`AnimalData::walk_data` reads the slot of
+the vtable, `UnitData::get_gpiece` the same) is a slot, so both reached; a compare of a word of the record itself (`*(this+0x78)` in
+2888's note) is `--wbias m+0x78:0,VA`, which already works.
+
+(2918) **A `__thiscall` stub the function calls with a pointer into its own frame prints as `sp-0x1` for the first and as the raw
+stack constant (`2147483392`) for the second**: `walk_data`'s `(&flag, ebp+0xc)` pair. The port spells both tokens as literals
+(`wall_data_walk_data_vt.rs`, `animal_data_walk_data_vt.rs`); a row token for "the caller's argument slot" (`sp+0xN`) would let a port
+spell it, and a change of the harness's `STACK_BASE` would fail both for no reason in the function.
+
+(2919) **The walkers' flag byte at `[ebp+0xb]` is the top byte of the walker pointer when `input != 0` on the kept arm**: the
+sweep draws the walker at `0x2000....`, so the byte is `0x20` and the final walker call is always made; a real walker on a heap
+whose addresses start below `0x01000000` would not make it. The sweep cannot say which the game has (a frame-time fact); the rule is
+in the port's comment. Not a mismatch, an input the emulator fixes.
 
 ## Parked by the next landing, slot GA — reserved
 

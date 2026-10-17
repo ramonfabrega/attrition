@@ -42,6 +42,8 @@ mod ammo_process;
 mod angle_diff;
 #[path = "animal_data_valid_target_const.rs"]
 mod animal_data_valid_target_const;
+#[path = "animal_data_walk_data_vt.rs"]
+mod animal_data_walk_data_vt;
 #[path = "animal_update_los.rs"]
 mod animal_update_los;
 #[path = "armies_diplo_change.rs"]

@@ -598,8 +598,8 @@ mod objects_data_find_good_at;
 mod objects_data_find_good_at_tcoord;
 #[path = "objects_data_find_goody_at.rs"]
 mod objects_data_find_goody_at;
-#[path = "objects_data_find_goody_at_leaf.rs"]
-mod objects_data_find_goody_at_leaf;
+#[path = "objects_data_find_goody_at_tile.rs"]
+mod objects_data_find_goody_at_tile;
 #[path = "objects_data_find_town.rs"]
 mod objects_data_find_town;
 #[path = "objects_data_find_village.rs"]

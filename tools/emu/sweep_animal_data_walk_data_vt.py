@@ -3,12 +3,12 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_unit_data_get_gpiece_0.py — `UnitData::get_gpiece@00616d70` under unicorn (item 2910, tools/sweep_gen.py, obj with windows).
+"""sweep_animal_data_walk_data_vt.py — `AnimalData::walk_data@005d7ea0` under unicorn (item 2900, tools/sweep_gen.py, obj with windows).
 
-    uv run tools/emu/sweep_unit_data_get_gpiece_0.py <install>/riseofnations.exe
+    uv run tools/emu/sweep_animal_data_walk_data_vt.py <install>/riseofnations.exe
 
-`__thiscall`, `ecx` = a 256-byte object of random bytes (no bias), 0 stack argument(s);
-vtable slot +0xb8 (2 args) stubbed; vtable slot +0x60 (0 args) stubbed; callee 0x0090c030 (7 args) stubbed; the word at `0xc0aec0` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 32 random bytes less `0` (placed); the word at `p0+4` points at 32 random bytes less `0` (placed); the word at `p0+8` points at 32 random bytes less `0` (placed); the word at `p0+12` points at 32 random bytes less `0` (placed); the word at `0xc0aedc` points at 16 random bytes less `0` (placed); the word at `p5+0` points at 32 random bytes less `0` (placed); the word at `p5+4` points at 32 random bytes less `0` (placed); the word at `p5+8` points at 32 random bytes less `0` (placed); the word at `p5+12` points at 32 random bytes less `0` (placed); the word at `0xc0aef8` points at 16 random bytes less `0` (placed); the word at `p10+0` points at 32 random bytes less `0` (placed); the word at `p10+4` points at 32 random bytes less `0` (placed); the word at `p10+8` points at 32 random bytes less `0` (placed); the word at `p10+12` points at 32 random bytes less `0` (placed); the word at `p1+0x18` points at 16 random bytes less `0` (placed); the word at `p2+0x18` points at 16 random bytes less `0` (placed); the word at `p3+0x18` points at 16 random bytes less `0` (placed); the word at `p4+0x18` points at 16 random bytes less `0` (placed); the word at `p6+0x18` points at 16 random bytes less `0` (placed); the word at `p7+0x18` points at 16 random bytes less `0` (placed); the word at `p8+0x18` points at 16 random bytes less `0` (placed); the word at `p9+0x18` points at 16 random bytes less `0` (placed); the word at `p11+0x18` points at 16 random bytes less `0` (placed); the word at `p12+0x18` points at 16 random bytes less `0` (placed); the word at `p13+0x18` points at 16 random bytes less `0` (placed); the word at `p14+0x18` points at 16 random bytes less `0` (placed); the word at `m+0xf4` points at 16 random bytes less `0` (placed); the word at `p27+0` points at 144 random bytes less `0` (placed); the word at `p27+4` points at 144 random bytes less `0` (placed); the word at `p27+8` points at 144 random bytes less `0` (placed); the word at `p27+12` points at 144 random bytes less `0` (placed); the word at `m+0x18` points at 16 random bytes less `0` (placed); slot +0xb8 laid as 0x00653790 or its stub, a flag after the answers; stub 0 answered from [0, 1, 5] (90%); stub 1 answered from [0, 1, 7] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p32+0` as well as at `this`.
+`__thiscall`, `ecx` = a 384-byte object of random bytes (no bias), 1 stack argument(s);
+argument 0 names 16 random bytes; callee 0x0060cf40 (1 args) stubbed; vtable slot +0x0 (2 args) stubbed; vtable slot +0x4 (1 args) stubbed; vtable slot +0x78 (1 args) stubbed; slot +0x78 laid as 0x0060d040 or its stub, a flag after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); the stubbed vtable laid at `p0+0` as well as at `this`.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -22,30 +22,31 @@ from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 from sweeplib import link_value  # noqa: E402
 from sweeplib import draw_reg, xmm_bits  # noqa: E402
 
-ENTRY = 0x00616d70
-WIN = 256
-OWN = 0
+ENTRY = 0x005d7ea0
+WIN = 384
+OWN = 1
 BIAS = []
 ARGSET = []
 ARGFROM = []
 CELLS = []
 AT = []
-PTRARGS = []
+PTRARGS = [(0, 16)]
 PNULLS = []
-STUBS = [('slot', 184, 2), ('slot', 96, 0), ('call', 9486384, 7)]
-PLACES = [(None, '0xc0aec0', '0', 16), ('p0', '0', '0', 32), ('p0', '4', '0', 32), ('p0', '8', '0', 32), ('p0', '12', '0', 32), (None, '0xc0aedc', '0', 16), ('p5', '0', '0', 32), ('p5', '4', '0', 32), ('p5', '8', '0', 32), ('p5', '12', '0', 32), (None, '0xc0aef8', '0', 16), ('p10', '0', '0', 32), ('p10', '4', '0', 32), ('p10', '8', '0', 32), ('p10', '12', '0', 32), ('p1', '0x18', '0', 16), ('p2', '0x18', '0', 16), ('p3', '0x18', '0', 16), ('p4', '0x18', '0', 16), ('p6', '0x18', '0', 16), ('p7', '0x18', '0', 16), ('p8', '0x18', '0', 16), ('p9', '0x18', '0', 16), ('p11', '0x18', '0', 16), ('p12', '0x18', '0', 16), ('p13', '0x18', '0', 16), ('p14', '0x18', '0', 16), ('m', '0xf4', '0', 16), ('p27', '0', '0', 144), ('p27', '4', '0', 144), ('p27', '8', '0', 144), ('p27', '12', '0', 144), ('m', '0x18', '0', 16)]
+STUBS = [('call', 6344512, 1), ('slot', 0, 2), ('slot', 4, 1), ('slot', 120, 1)]
+PLACES = []
 NULLS = []
-WBIAS = [('m', 232, ('set', [0, 0, 0, 1])), ('m', 8, ('set', [0, 65536, 131072, 196608, 256, 65792, 131328, 196864, 512, 66048, 131584, 197120]))]
+NULLFORCE = {}
+WBIAS = [('p0', 4, ('set', [0, 1])), ('m', 24, ('set', [0, 0, 0, 90])), ('m', 48, ('set', [0, 0, 0, 65536])), ('m', 140, ('set', [0, -65536])), ('m', 8, ('set', [0, 2, 4, 1]))]
 FILLS = []
 ARGRANGE = []
-SLOTBASE = [(184, 6633360)]
+SLOTBASE = [(120, 6344768)]
 ECXINT = None
 EDX = None
 EDXWIN = None
 XMM = []
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = 0.1
-ANSWERS = [(0, [0, 1, 5]), (1, [0, 1, 7])]
+ANSWERS = []
 VTAT = None
 VTATHALF = []
 VTIMAGE = []
@@ -57,14 +58,15 @@ ARGEQ = []
 SEQ = []
 ANSRANGE = []
 CELLTHIS = []
-VTALSO = [('p32', 0)]
+VTALSO = [('p0', 0)]
 SPARSE = []
 GTAB = []
-RECORD = [0, 1, 2]
-RECORDORDER = False
+RECORD = [0, 1, 2, 3]
+RECORDORDER = True
 RECORDEDX = False
 ROWSPLIT = {}
 LINKS = []
+LINKHI = []
 OUTARG = []
 CDECLSTUBS = []
 STUBWRITE = []
@@ -256,7 +258,7 @@ def shape(rng, name, buf):
 
 def main(argv):
     from hooks import Harness
-    rng = random.Random(2910)
+    rng = random.Random(2900)
     # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
     h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"})
@@ -385,6 +387,7 @@ def main(argv):
         # with the answers so a place may index by one (`o`, item 2325).
         outs = [wdraw(rng, vals) for _, _, vals in OUTARG]
         k = -1
+        forced = []
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
@@ -403,6 +406,7 @@ def main(argv):
             # index (item 2253; a guarded null ran one arm).
             if k in NULLS and rng.random() < 1 / 3:
                 ptr = bytes(4)
+                forced += NULLFORCE.get(k, [])
             at = eval(loc, env)
             if win is None:
                 uc.mem_write(at & 0xFFFFFFFF, ptr)
@@ -413,6 +417,11 @@ def main(argv):
             else:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[at:at + 4] = ptr
+        for win, off, v in forced:
+            # `--place-null K:WIN+OFF=V`: on a null row of place K, the word at WIN+OFF is V, written after every
+            # window is drawn, so a guard word beside the null pointer is held (item 2900, Loop 2899).
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
         callwins = {}
         for idx, size in ANSWERWIN:
             # A stub that answers a record: the address of SIZE random bytes,
@@ -466,6 +475,11 @@ def main(argv):
             for k in range(n):
                 v = link_value(rng, n, k, d, terms)
                 p[lo + k][off:off + size] = (v & ((1 << 8 * size) - 1)).to_bytes(size, "little")
+        for lo, hi, off, vals in LINKHI:
+            # `--link-hi pA..B+OFF:V,V,..|LO..HI`: the short beside a link (the player half of `obj+0x2c`'s word),
+            # drawn from the list or range every figure after the links, so a word that reads it is never clobbered.
+            for k in range(hi - lo + 1):
+                p[lo + k][off:off + 2] = (wdraw(rng, vals) & 0xFFFF).to_bytes(2, "little")
         for idx, win, off in ARGEQ:
             # An argument the function compares with a word of a window laid
             # after the arguments were drawn: the word copied (item 2200).
@@ -641,4 +655,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "2910", "obj", "UnitData::get_gpiece@00616d70", "--own", "0", "--win", "0x100", "--ret", "eax", "--name", "unit_data_get_gpiece_0", "--ptrtab", "0xc0aec0:4:0x20", "--ptrtab", "0xc0aedc:4:0x20", "--ptrtab", "0xc0aef8:4:0x20", "--place", "p1+0x18:0:0x10", "--place", "p2+0x18:0:0x10", "--place", "p3+0x18:0:0x10", "--place", "p4+0x18:0:0x10", "--place", "p6+0x18:0:0x10", "--place", "p7+0x18:0:0x10", "--place", "p8+0x18:0:0x10", "--place", "p9+0x18:0:0x10", "--place", "p11+0x18:0:0x10", "--place", "p12+0x18:0:0x10", "--place", "p13+0x18:0:0x10", "--place", "p14+0x18:0:0x10", "--place", "m+0xf4:0:0x10", "--place", "p27+0:0:0x90", "--place", "p27+4:0:0x90", "--place", "p27+8:0:0x90", "--place", "p27+12:0:0x90", "--place", "m+0x18:0:0x10", "--stub", "slot:0xb8:2", "--stub", "slot:0x60:0", "--stub", "0x90c030:7", "--slotbase", "0xb8:0x653790", "--vtat-also", "p32+0", "--answers", "0:0,1,5", "--answers", "1:0,1,7", "--record", "0", "--record", "1", "--record", "2", "--wbias", "m+0xe8:0,0,0,1", "--wbias", "m+8:0x0,0x10000,0x20000,0x30000,0x100,0x10100,0x20100,0x30100,0x200,0x10200,0x20200,0x30200", "--port", "todo!()"]
+# sweep_gen: ["void", "AnimalData::walk_data@005d7ea0", "--item", "2900", "--win", "0x180", "--own", "1", "--ptrarg", "0:0x10", "--stub", "0x60cf40:1", "--stub", "slot:0:2", "--stub", "slot:4:1", "--stub", "slot:0x78:1", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--record-order", "--vtat-also", "p0+0", "--vtat-keep", "0x78:0x60d040", "--wbias", "p0+4:0,1", "--wbias", "m+0x18:0,0,0,0x5a", "--wbias", "m+0x30:0,0,0,0x10000", "--name", "animal_data_walk_data_vt", "--wbias", "m+0x8c:0,-65536", "--wbias", "m+8:0,2,4,1", "--port", "// Object::walk_data(this, walker), then the walker's slot 4 handed the string at the global + 0x22ccc. The kept arm\n// (this's slot 0x78 is Object::must_walk, `a[5]`) tests a flag byte at [ebp+0xb] -- the top byte of the walker\n// pointer when `input != 0`, else set from this+0x18, this+8 bit 0, the u16 at this+0x32 and a non-negative i16 at this+0x8e -- and calls the walker's\n// slot 0 with (&flag, ebp+0xc); the other arm calls this's slot 0x78 and tests that call's whole `eax` (the listing\n// jumps to the `test eax` past the byte load; the decompile's `>> 0x18` is not it). A set flag hands the walker\n// (this+0x150, this+0x155).\nlet _ = (&c, &p);\nlog.push(\"s0:m+0x0,p0+0x0\".into());\nlog.push(\"s2:p0+0x0,2640\".into());\nlet mut flag = ((a[0] as u32) >> 24) as u8;\nlet r16 = |w: &[u8], o: usize| u16::from_le_bytes([w[o], w[o + 1]]);\nif a[5] != 0 {\n    if rd(&p[0], 4) == 0 {\n        flag = u8::from(rd(m, 0x18) != 0 || m[8] & 1 != 0 || r16(m, 0x32) != 0 || (r16(m, 0x8e) as i16) >= 0);\n    }\n    log.push(\"s1:p0+0x0,sp-0x1,2147483392\".into());\n} else {\n    log.push(\"s3:m+0x0,p0+0x0\".into());\n    flag = u8::from(a[4] != 0);\n}\nif flag != 0 {\n    log.push(\"s1:p0+0x0,m+0x150,m+0x155\".into());\n}\n0"]

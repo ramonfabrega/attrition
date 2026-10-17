@@ -143,6 +143,51 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1, slotbase=['0xc:0x401000'])
 
+    def test_vtat_keep_lays_an_image_function_at_an_unstubbed_slot(self):
+        # Item 2900 (parked 2888): `--vtat-keep SLOT:VA` lays the image function at VA at vtable slot SLOT half the rows
+        # (a flag after the answers), the slot a stub or not; it needs a stubbed vtable.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, stubs=['slot:0x3c:0'],
+            vtat_keep=['0x78:0x642510'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('SLOTBASE = [(120, %d)]' % 0x642510, script)
+        self.assertIn('slot +0x78 laid as 0x00642510', test)
+        for kw in ({'vtat_keep': ['0x78']}, {'vtat_keep': ['0x78:0x642510'], 'stubs': []}):
+            kw = {'stubs': ['slot:0x3c:0'], **kw}
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, port='0', **kw)
+
+    def test_link_hi_draws_the_short_beside_a_link(self):
+        # Item 2900 (parked 2889): `--link-hi pA..B+OFF:V,..|LO..HI` writes the short at OFF after the links.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, ptrargs=['0:4'],
+            places=['m+4:0:0x40', 'p1+0:0:0x40', 'p2+0:0:0x40'], links=['p1..2+0x2c:2:<'], link_hi=['p1..2+0x2e:0..2'],
+            port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("LINKHI = [(1, 2, 46, ('range', 0, 2))]", script)
+        self.assertLess(script.index('for lo, hi, off, size, d, terms in LINKS:'),
+                        script.index('for lo, hi, off, vals in LINKHI:'))
+        self.assertIn('p[lo + k][off:off + 2] = (wdraw(rng, vals) & 0xFFFF)', script)
+        self.assertIn('hold a short at +0x2e drawn from 0..2, after the links', test)
+        for bad in ('p2..1+0x2e:0..2', 'p1+0x2e:0..2', 'p1..2+0x2e'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2900, win=0x40, bias=[], own=1, port='0', link_hi=[bad])
+
+    def test_place_null_may_force_a_guard_word_on_its_null_rows(self):
+        # Item 2900 (Loop 2899): `--place-null K:WIN+OFF=V` sets the word on K's null rows, after every window is drawn.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2900, win=0x100, bias=[], own=0,
+            places=['m+0xd8:0:8', 'p0+0:0:8'], place_null=['1:m+0xdc=0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("NULLFORCE = {1: [('m', 220, 0)]}", script)
+        self.assertIn('NULLS = [1]', script)
+        self.assertLess(script.index('forced += NULLFORCE.get(k, [])'), script.index('for win, off, v in forced:'))
+        self.assertLess(script.index('for win, off, v in forced:'), script.index('callwins = {}'))
+        for bad in ('0:m+0xdc', '0:q+0xdc=0', '5:m+0xdc=0'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2900, win=0x100, bias=[], own=0,
+                                       places=['m+0xd8:0:8'], place_null=[bad], port='0')
+
     def test_a_range_bias_draws_its_own_edges(self):
         # Loop 2003's sixteenth reach (item 2170's "for the Loop", built by
         # item 2181): a `--wbias LO..HI` range was drawn uniformly, so a

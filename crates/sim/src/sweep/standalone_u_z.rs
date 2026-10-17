@@ -60,10 +60,10 @@ mod unit_data_get_capture_value;
 mod unit_data_get_caster_stance;
 #[path = "unit_data_get_combat_stance.rs"]
 mod unit_data_get_combat_stance;
-#[path = "unit_data_get_gpiece_0.rs"]
-mod unit_data_get_gpiece_0;
 #[path = "unit_data_get_gpiece_2.rs"]
 mod unit_data_get_gpiece_2;
+#[path = "unit_data_get_gpiece_vt.rs"]
+mod unit_data_get_gpiece_vt;
 #[path = "unit_data_get_order.rs"]
 mod unit_data_get_order;
 #[path = "unit_data_get_packer_stance.rs"]
@@ -328,6 +328,8 @@ mod wall_data_los;
 mod wall_data_support_cost;
 #[path = "wall_data_valid_buildmask.rs"]
 mod wall_data_valid_buildmask;
+#[path = "wall_data_walk_data_vt.rs"]
+mod wall_data_walk_data_vt;
 #[path = "wall_die.rs"]
 mod wall_die;
 #[path = "wall_is_active.rs"]

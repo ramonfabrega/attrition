@@ -3,12 +3,12 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_objects_data_find_goody_at_leaf.py — `ObjectsData::find_goody_at@0065c040` under unicorn (item 2910, tools/sweep_gen.py, obj with windows).
+"""sweep_wall_data_walk_data_vt.py — `WallData::walk_data@00642510` under unicorn (item 2900, tools/sweep_gen.py, obj with windows).
 
-    uv run tools/emu/sweep_objects_data_find_goody_at_leaf.py <install>/riseofnations.exe
+    uv run tools/emu/sweep_wall_data_walk_data_vt.py <install>/riseofnations.exe
 
-`__thiscall`, `ecx` = a 16-byte object of random bytes (no bias), 1 stack argument(s);
-argument 0 names 4 random bytes; the word at `0xc061d0` points at 320 random bytes less `0` (placed); the word at `p1+0x134` points at 448 random bytes less `0` (placed); the word at `0xc0ab84` points at 16 random bytes less `0` (placed); the word at `0xc0aba0` points at 16 random bytes less `0` (placed); the word at `0xc0abbc` points at 16 random bytes less `0` (placed); the word at `0xc0a110` points at 16 random bytes less `0` (placed); the word at `p3+0` points at 48 random bytes less `0` (placed); the word at `p3+4` points at 48 random bytes less `0` (placed); the word at `p3+8` points at 48 random bytes less `0` (placed); the word at `p3+12` points at 48 random bytes less `0` (placed); the word at `p4+0` points at 48 random bytes less `0` (placed); the word at `p4+4` points at 48 random bytes less `0` (placed); the word at `p4+8` points at 48 random bytes less `0` (placed); the word at `p4+12` points at 48 random bytes less `0` (placed); the word at `p5+0` points at 48 random bytes less `0` (placed); the word at `p5+4` points at 48 random bytes less `0` (placed); the word at `p5+8` points at 48 random bytes less `0` (placed); the word at `p5+12` points at 48 random bytes less `0` (placed); the word at `p6+0` points at 16 random bytes less `0` (placed); the word at `p6+4` points at 16 random bytes less `0` (placed); the word at `p6+8` points at 16 random bytes less `0` (placed); the word at `p6+12` points at 16 random bytes less `0` (placed).
+`__thiscall`, `ecx` = a 128-byte object of random bytes (no bias), 1 stack argument(s);
+argument 0 names 16 random bytes; callee 0x00647830 (1 args) stubbed; vtable slot +0x0 (2 args) stubbed; vtable slot +0x4 (1 args) stubbed; vtable slot +0x78 (1 args) stubbed; slot +0x78 laid as 0x00647930 or its stub, a flag after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); the stubbed vtable laid at `p0+0` as well as at `this`.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -22,23 +22,24 @@ from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 from sweeplib import link_value  # noqa: E402
 from sweeplib import draw_reg, xmm_bits  # noqa: E402
 
-ENTRY = 0x0065c040
-WIN = 16
+ENTRY = 0x00642510
+WIN = 128
 OWN = 1
 BIAS = []
 ARGSET = []
 ARGFROM = []
 CELLS = []
 AT = []
-PTRARGS = [(0, 4)]
+PTRARGS = [(0, 16)]
 PNULLS = []
-STUBS = []
-PLACES = [(None, '0xc061d0', '0', 320), ('p1', '0x134', '0', 448), (None, '0xc0ab84', '0', 16), (None, '0xc0aba0', '0', 16), (None, '0xc0abbc', '0', 16), (None, '0xc0a110', '0', 16), ('p3', '0', '0', 48), ('p3', '4', '0', 48), ('p3', '8', '0', 48), ('p3', '12', '0', 48), ('p4', '0', '0', 48), ('p4', '4', '0', 48), ('p4', '8', '0', 48), ('p4', '12', '0', 48), ('p5', '0', '0', 48), ('p5', '4', '0', 48), ('p5', '8', '0', 48), ('p5', '12', '0', 48), ('p6', '0', '0', 16), ('p6', '4', '0', 16), ('p6', '8', '0', 16), ('p6', '12', '0', 16)]
+STUBS = [('call', 6584368, 1), ('slot', 0, 2), ('slot', 4, 1), ('slot', 120, 1)]
+PLACES = []
 NULLS = []
-WBIAS = [('m', 0, ('range', 0, 3)), ('p0', 0, ('range', 0, 3)), ('p1', 0, ('range', 1, 4)), ('p2', 8, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 36, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 64, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 92, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 120, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 148, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 176, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 204, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 232, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 260, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 288, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 316, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 344, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 372, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 400, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p2', 428, ('set', [0, 65536, 131072, 1, 65537, 131073, 2, 65538, 131074, 3, 65539, 131075, 65533, 131069, 196605, 65534, 131070, 196606, 65535, 131071, 196607])), ('p7', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 1, 2, 3, 65536, 65537, 65538, 65539, 131072, 131073, 131074, 131075])), ('p8', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 2, 3, 65536, 65537, 65538, 65539, 131072, 131073, 131074, 131075])), ('p9', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 3, 65536, 65537, 65538, 65539, 131072, 131073, 131074, 131075])), ('p10', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 65536, 65537, 65538, 65539, 131072, 131073, 131074, 131075])), ('p11', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 65537, 65538, 65539, 131072, 131073, 131074, 131075])), ('p12', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 65538, 65539, 131072, 131073, 131074, 131075])), ('p13', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 65539, 131072, 131073, 131074, 131075])), ('p14', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 131072, 131073, 131074, 131075])), ('p15', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 131073, 131074, 131075])), ('p16', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 131074, 131075])), ('p17', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607, 131075])), ('p18', 44, ('set', [65533, 65534, 65535, 131069, 131070, 131071, 196605, 196606, 196607]))]
+NULLFORCE = {}
+WBIAS = [('p0', 4, ('set', [0, 1])), ('m', 24, ('set', [0, 90])), ('m', 48, ('set', [0, 65536]))]
 FILLS = []
 ARGRANGE = []
-SLOTBASE = []
+SLOTBASE = [(120, 6584624)]
 ECXINT = None
 EDX = None
 EDXWIN = None
@@ -57,14 +58,15 @@ ARGEQ = []
 SEQ = []
 ANSRANGE = []
 CELLTHIS = []
-VTALSO = []
+VTALSO = [('p0', 0)]
 SPARSE = []
 GTAB = []
-RECORD = []
-RECORDORDER = False
+RECORD = [0, 1, 2, 3]
+RECORDORDER = True
 RECORDEDX = False
 ROWSPLIT = {}
 LINKS = []
+LINKHI = []
 OUTARG = []
 CDECLSTUBS = []
 STUBWRITE = []
@@ -256,7 +258,7 @@ def shape(rng, name, buf):
 
 def main(argv):
     from hooks import Harness
-    rng = random.Random(2910)
+    rng = random.Random(2900)
     # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
     h = Harness(argv[1], {a: (f"{a:x}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"})
@@ -385,6 +387,7 @@ def main(argv):
         # with the answers so a place may index by one (`o`, item 2325).
         outs = [wdraw(rng, vals) for _, _, vals in OUTARG]
         k = -1
+        forced = []
         for win, loc, expr, size in PLACES:
             # A table pointer laid as `buffer - (the offset the function adds)`,
             # so its read lands in a buffer of SIZE random bytes (parked 2113).
@@ -403,6 +406,7 @@ def main(argv):
             # index (item 2253; a guarded null ran one arm).
             if k in NULLS and rng.random() < 1 / 3:
                 ptr = bytes(4)
+                forced += NULLFORCE.get(k, [])
             at = eval(loc, env)
             if win is None:
                 uc.mem_write(at & 0xFFFFFFFF, ptr)
@@ -413,6 +417,11 @@ def main(argv):
             else:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[at:at + 4] = ptr
+        for win, off, v in forced:
+            # `--place-null K:WIN+OFF=V`: on a null row of place K, the word at WIN+OFF is V, written after every
+            # window is drawn, so a guard word beside the null pointer is held (item 2900, Loop 2899).
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
         callwins = {}
         for idx, size in ANSWERWIN:
             # A stub that answers a record: the address of SIZE random bytes,
@@ -466,6 +475,11 @@ def main(argv):
             for k in range(n):
                 v = link_value(rng, n, k, d, terms)
                 p[lo + k][off:off + size] = (v & ((1 << 8 * size) - 1)).to_bytes(size, "little")
+        for lo, hi, off, vals in LINKHI:
+            # `--link-hi pA..B+OFF:V,V,..|LO..HI`: the short beside a link (the player half of `obj+0x2c`'s word),
+            # drawn from the list or range every figure after the links, so a word that reads it is never clobbered.
+            for k in range(hi - lo + 1):
+                p[lo + k][off:off + 2] = (wdraw(rng, vals) & 0xFFFF).to_bytes(2, "little")
         for idx, win, off in ARGEQ:
             # An argument the function compares with a word of a window laid
             # after the arguments were drawn: the word copied (item 2200).
@@ -641,4 +655,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "2910", "obj", "ObjectsData::find_goody_at@0065c040", "--own", "1", "--win", "0x10", "--ptrarg", "0:4", "--place", "0xc061d0:0:0x140", "--place", "p1+0x134:0:448", "--place", "0xc0ab84:0:0x10", "--place", "0xc0aba0:0:0x10", "--place", "0xc0abbc:0:0x10", "--place", "0xc0a110:0:0x10", "--place", "p3+0:0:48", "--place", "p3+4:0:48", "--place", "p3+8:0:48", "--place", "p3+12:0:48", "--place", "p4+0:0:48", "--place", "p4+4:0:48", "--place", "p4+8:0:48", "--place", "p4+12:0:48", "--place", "p5+0:0:48", "--place", "p5+4:0:48", "--place", "p5+8:0:48", "--place", "p5+12:0:48", "--place", "p6+0:0:16", "--place", "p6+4:0:16", "--place", "p6+8:0:16", "--place", "p6+12:0:16", "--wbias", "m+0:0..3", "--wbias", "p0+0:0..3", "--wbias", "p1+0:1..4", "--wbias", "p2+8:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+36:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+64:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+92:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+120:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+148:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+176:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+204:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+232:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+260:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+288:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+316:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+344:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+372:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+400:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p2+428:0x0,0x10000,0x20000,0x1,0x10001,0x20001,0x2,0x10002,0x20002,0x3,0x10003,0x20003,0xfffd,0x1fffd,0x2fffd,0xfffe,0x1fffe,0x2fffe,0xffff,0x1ffff,0x2ffff", "--wbias", "p7+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x1,0x2,0x3,0x10000,0x10001,0x10002,0x10003,0x20000,0x20001,0x20002,0x20003", "--wbias", "p8+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x2,0x3,0x10000,0x10001,0x10002,0x10003,0x20000,0x20001,0x20002,0x20003", "--wbias", "p9+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x3,0x10000,0x10001,0x10002,0x10003,0x20000,0x20001,0x20002,0x20003", "--wbias", "p10+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x10000,0x10001,0x10002,0x10003,0x20000,0x20001,0x20002,0x20003", "--wbias", "p11+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x10001,0x10002,0x10003,0x20000,0x20001,0x20002,0x20003", "--wbias", "p12+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x10002,0x10003,0x20000,0x20001,0x20002,0x20003", "--wbias", "p13+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x10003,0x20000,0x20001,0x20002,0x20003", "--wbias", "p14+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x20000,0x20001,0x20002,0x20003", "--wbias", "p15+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x20001,0x20002,0x20003", "--wbias", "p16+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x20002,0x20003", "--wbias", "p17+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff,0x20003", "--wbias", "p18+0x2c:0xfffd,0xfffe,0xffff,0x1fffd,0x1fffe,0x1ffff,0x2fffd,0x2fffe,0x2ffff", "--name", "objects_data_find_goody_at_leaf", "--port", "todo!()"]
+# sweep_gen: ["void", "WallData::walk_data@00642510", "--item", "2900", "--win", "0x80", "--own", "1", "--ptrarg", "0:0x10", "--stub", "0x647830:1", "--stub", "slot:0:2", "--stub", "slot:4:1", "--stub", "slot:0x78:1", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--record-order", "--vtat-also", "p0+0", "--vtat-keep", "0x78:0x647930", "--wbias", "p0+4:0,1", "--wbias", "m+0x18:0,0x5a", "--wbias", "m+0x30:0,0x10000", "--name", "wall_data_walk_data_vt", "--port", "// Object::walk_data(this, walker), then the walker's slot 4 handed the string at the global + 0x22ccc. The kept arm\n// (this's slot 0x78 is Object::must_walk, `a[5]`) tests a flag byte at [ebp+0xb] -- the top byte of the walker\n// pointer when `input != 0`, else set from this+0x18, this+8 bit 0 and the u16 at this+0x32 -- and calls the walker's\n// slot 0 with (&flag, ebp+0xc); the other arm calls this's slot 0x78 and tests that call's whole `eax` (the listing\n// jumps to the `test eax` past the byte load; the decompile's `>> 0x18` is not it). A set flag hands the walker\n// (this+0x48, this+0x66).\nlet _ = (&c, &p);\nlog.push(\"s0:m+0x0,p0+0x0\".into());\nlog.push(\"s2:p0+0x0,142540\".into());\nlet mut flag = ((a[0] as u32) >> 24) as u8;\nlet r16 = |w: &[u8], o: usize| u16::from_le_bytes([w[o], w[o + 1]]);\nif a[5] != 0 {\n    if rd(&p[0], 4) == 0 {\n        flag = u8::from(rd(m, 0x18) != 0 || m[8] & 1 != 0 || r16(m, 0x32) != 0);\n    }\n    log.push(\"s1:p0+0x0,sp-0x1,2147483392\".into());\n} else {\n    log.push(\"s3:m+0x0,p0+0x0\".into());\n    flag = u8::from(a[4] != 0);\n}\nif flag != 0 {\n    log.push(\"s1:p0+0x0,m+0x48,m+0x66\".into());\n}\n0"]
