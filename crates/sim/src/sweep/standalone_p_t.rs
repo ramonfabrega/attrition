@@ -156,6 +156,8 @@ mod spell_type_cast_rally;
 mod project_c;
 #[path = "project_d.rs"]
 mod project_d;
+#[path = "terrain_map_remove_feature.rs"]
+mod terrain_map_remove_feature;
 #[path = "spell_type_cast_research_project.rs"]
 mod spell_type_cast_research_project;
 #[path = "spell_type_cast_supplies.rs"]
