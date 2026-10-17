@@ -116,6 +116,8 @@ mod border_spline_get_name;
 mod border_spline_on_field_change;
 #[path = "border_spline_render_is_visible.rs"]
 mod border_spline_render_is_visible;
+#[path = "border_spline_render_make_bbox.rs"]
+mod border_spline_render_make_bbox;
 #[path = "borders_check_border_blocked.rs"]
 mod borders_check_border_blocked;
 #[path = "borders_get_who.rs"]
