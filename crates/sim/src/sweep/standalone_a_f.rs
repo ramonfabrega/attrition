@@ -518,6 +518,10 @@ mod command_package_add_command;
 mod command_package_begin_process;
 #[path = "command_package_process_alarm.rs"]
 mod command_package_process_alarm;
+#[path = "command_package_process_cheat_ai_speed_normal.rs"]
+mod command_package_process_cheat_ai_speed_normal;
+#[path = "command_package_process_cheat_ai_toggle.rs"]
+mod command_package_process_cheat_ai_toggle;
 #[path = "command_package_process_cheat_give_techs.rs"]
 mod command_package_process_cheat_give_techs;
 #[path = "command_package_process_cheat_increase_buckets.rs"]
