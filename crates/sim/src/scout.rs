@@ -829,7 +829,6 @@ impl Sim {
                     self.ai.get(who as usize).map_or(0, |a| a.census.ally_mask) | (1 << who),
                     here.x, here.y
                 );
-                eprintln!("probe scout sees_every_unit {} wonders {:#x}", self.sees_every_unit(who), self.wonders_held(who));
             }
             let mut score = vector_dist(here.x - c.x, here.y - c.y) * 16 + self.rng.roll() % 8;
             let owner = self.world.owner(c).player().unwrap_or(who);
