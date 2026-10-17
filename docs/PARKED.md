@@ -6421,13 +6421,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FK — reserved
+## Parked by item 2831, 2026-10-17 — `Map::stamp`, and why the batch is one
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2831) **`Map::stamp` 0x69cf80 built** (`obj --own 3 --stub 0x69d5a0:3 --record-order --record 0 --seq 0:5:0,1,5`): five
+`Map::point` calls (the centre, then x+1, x-1, y-1, y+1) ending at the first zero answer. The draw lesson: a plain `--seq 0:5:0`
+draws its last value from the terminator list `0` alone, so the all-nonzero arm (eax 1) is starved; `0,1,5` reaches it (44 of 220
+rows). Breaks 3/3 (an offset's sign, the early-exit result, the answer index).
+
+(2831, second) **`NukeOut::draw_underlays` 0x9269d0 is a renderer body with no simulation effect and no statics guard in the
+export**: `if nuke_effect.+0x10c in {0,7,9} { draw_char_earth(...) }` and nothing else, the `float` arguments only forwarded. The
+"statics guard and TLS" of (2830) is not in the decompile; if the listing has one it is in the prologue of a different function. Not built (Loop 2819).
+
+(2831, third) **The rest of the shortest unbacked rows** are renderer, UI or singleton bodies: `TerrainMap::on_mouse_move`,
+`Game::post_game_screens`, `Syllable::say`, `debug_say`, the two `setup_render_window`s, `Player::end_game` (camera, scene and
+options singletons), `TerrainOil::remove_rocky_patch` (a heap free through `operator delete`, which the emulator's bump heap
+cannot witness), `CityData::num_city_buildings` (a virtual-slot list walk on a global object table: wants `walk` + `vcall` together,
+not a generator shape yet). No new shape was needed by `Map::stamp`; this batch is one function, not ten, for want of simulation-effect rows a built shape holds.
 
 ## Parked by the next landing, slot FL — reserved
 

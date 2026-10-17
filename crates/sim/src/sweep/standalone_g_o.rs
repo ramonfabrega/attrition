@@ -416,6 +416,8 @@ mod map_scale_by_axis;
 mod map_script_run_map_script;
 #[path = "map_set_file.rs"]
 mod map_set_file;
+#[path = "map_stamp.rs"]
+mod map_stamp;
 #[path = "mining_list_clear.rs"]
 mod mining_list_clear;
 #[path = "misc_access_coord_vis_3.rs"]
