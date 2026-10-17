@@ -52,6 +52,8 @@ the whole gate runs the caches' verifiers, and `touch ~/Library/Caches/attrition
 every worktree at once. **The trial's two numbers**, read at the thirty-eighth pass: waiting a landing (`tools/tranche.py`)
 against 36.5 on four lanes, and the gates' `Admission wait:` line — a rise with the admission wait near zero is the box's
 cost and the fourth lane goes again; a rise with it high is the admission's and the marker is the answer.
+Whole gate green on `946393a4`: 6 of 6, 422 s at eight threads, rondata 900 in 275 s with the verifiers on (128 s without, at
+four, on the branch's tip), 4080 fixture requests and none missing, admission wait 3.9 s over 917 leases.
 
 ## The queue
 
