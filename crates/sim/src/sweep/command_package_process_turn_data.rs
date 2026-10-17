@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(5);
@@ -48,10 +53,12 @@ fn the_emulated_original_agrees_on_every_row() {
             // the byte at +0x168 and the five u16s in the sender's word of five arrays: forced loads at +0x114, frame
             // average at +0xb4, ping at +0xd4, wait at +0x74, game lag at +0x94.
             let u16_at = |p: &[u8], at: usize| u16::from_le_bytes([p[at], p[at + 1]]);
-            let file = if a[1] == 0 { 11516480 } else { a[1].wrapping_add(1) };
-            log.push(format!(
-                "0,{file},0,0,0,p0+0x3,p0+0x1,p0+0x5,p0+0x7,p0+0x9"
-            ));
+            let file = if a[1] == 0 {
+                11516480
+            } else {
+                a[1].wrapping_add(1)
+            };
+            log.push(format!("0,{file},0,0,0,p0+0x3,p0+0x1,p0+0x5,p0+0x7,p0+0x9"));
             let (average, ping, wait, lag, loads) = (
                 u16_at(&p[0], 3),
                 u16_at(&p[0], 1),
@@ -82,14 +89,25 @@ fn the_emulated_original_agrees_on_every_row() {
             11
         };
         assert_eq!(got, want_eax, "process_turn_data — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_turn_data — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "process_turn_data — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "process_turn_data — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_turn_data — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_turn_data — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[6 + i], "process_turn_data — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[6 + i],
+                "process_turn_data — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

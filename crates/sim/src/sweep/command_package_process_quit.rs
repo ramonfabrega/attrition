@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(5);
@@ -46,7 +51,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // bit 7, its flags word (+0x81c) is 2 for an instant and ends 0, byte +0x822 gains bit 2; then
             // `Player::quit(0)` on the player row (0x8c apart from +0x44); then, for that player with `system_quit` set
             // and the game's byte +0x820 bit 4 clear, the quit word is set and the console's virtual slot +0xc4 called.
-            let file = if a[1] == 0 { 11516796 } else { a[1].wrapping_add(1) };
+            let file = if a[1] == 0 {
+                11516796
+            } else {
+                a[1].wrapping_add(1)
+            };
             log.push(format!("0,{file},0,0,0,p0+0x1,p0+0x5,p0+0x6"));
             let (play, replay, system_quit) = (rd(&p[0], 1), p[0][5], p[0][6]);
             log.push(format!(
@@ -72,14 +81,25 @@ fn the_emulated_original_agrees_on_every_row() {
             7
         };
         assert_eq!(got, want_eax, "process_quit — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_quit — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "process_quit — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "process_quit — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_quit — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_quit — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[6 + i], "process_quit — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[6 + i],
+                "process_quit — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

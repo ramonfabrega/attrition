@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -46,7 +51,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // null -- which the row marks by the word 12345678 at the start of the buffer it would have named -- the
             // mouse x and y go to +0x518 and +0x51c of it, a second string is built, `parse_cmd(string, 1, 1)`
             // called and it is closed.
-            let file = if a[1] == 0 { 11516060 } else { a[1].wrapping_add(1) };
+            let file = if a[1] == 0 {
+                11516060
+            } else {
+                a[1].wrapping_add(1)
+            };
             log.push(format!("0,{file},0,0,0,p0+0x9,p0+0x1,p0+0x5"));
             let null = rd(&p[1], 0) == 12345678;
             let mut ctor = vec!["sp-0x30,p0+0x9,0".to_string()];
@@ -75,14 +84,28 @@ fn the_emulated_original_agrees_on_every_row() {
             521
         };
         assert_eq!(got, want_eax, "process_console_cmd — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_console_cmd — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "process_console_cmd — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "process_console_cmd — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "process_console_cmd — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_console_cmd — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_console_cmd — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "process_console_cmd — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[3 + i],
+                "process_console_cmd — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

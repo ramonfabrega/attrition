@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(8);
@@ -47,7 +52,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // timings table's entry (the table at 0xafc4a4), the message string `msg` (0xed6730) set from the
             // localised string and added the game speeds' entry (0x58 apart), `MessageWin::add_message` with it in red,
             // and the speed-change sound 0x156.
-            let file = if a[1] == 0 { 11511164 } else { a[1].wrapping_add(1) };
+            let file = if a[1] == 0 {
+                11511164
+            } else {
+                a[1].wrapping_add(1)
+            };
             log.push(format!("0,{file},1928,{file},11511056,p0+0x1,c1+0x550"));
             let speed = rd(&p[0], 1);
             log.push(format!(
@@ -77,14 +86,25 @@ fn the_emulated_original_agrees_on_every_row() {
             5
         };
         assert_eq!(got, want_eax, "process_speed_set — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_speed_set — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "process_speed_set — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "process_speed_set — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_speed_set — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_speed_set — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[9 + i], "process_speed_set — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[9 + i],
+                "process_speed_set — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -46,7 +51,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // word at 0xe85f20 holds) -- when each of the two units `objects[whom][ox]` and `objects[whose][oxx]` (the
             // table at +0x14 of the record the word at 0xc0618c points at, 0x1c apart) is vacuous (an index negative)
             // or has flags bit 0.
-            let file = if a[1] == 0 { 11504540 } else { a[1].wrapping_add(1) };
+            let file = if a[1] == 0 {
+                11504540
+            } else {
+                a[1].wrapping_add(1)
+            };
             log.push(format!(
                 "0,{file},0,0,0,p0+0x1,p0+0x5,p0+0x9,p0+0xd,p0+0x11,c1+0x550"
             ));
@@ -80,14 +89,25 @@ fn the_emulated_original_agrees_on_every_row() {
             21
         };
         assert_eq!(got, want_eax, "process_trade — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_trade — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "process_trade — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "process_trade — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_trade — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_trade — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[5 + i], "process_trade — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[5 + i],
+                "process_trade — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
