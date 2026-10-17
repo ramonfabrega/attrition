@@ -6222,7 +6222,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 2797, 2026-10-17 — the Group argument's slot, and the alias pointer
 
-(2797) **Two shapes built, two functions; the batch is not ten.** `GroupData::group_air` 0x70b160 fell to flags that already
+**Two shapes built, two functions; the batch is not ten.** `GroupData::group_air` 0x70b160 fell to flags that already
 existed, composed: two `--ptrtab`s (the objects tables at `0xc0ab84` and `+0x1c`, `vt`), `--ptrarg 0:16` with the stubbed
 vtable laid at it (`--vtat-also p0+0`: the Group's slot `+0xc`, four arguments, `--record 0` printing every call as
 `p0+0x0,index,table,0,0` joined by `/`), the type records laid by `--place pR+0x18` with the same vtable (`--vtat-also`) and
@@ -6240,7 +6240,7 @@ its own address; the port cannot see addresses and recovers the target from the 
 shape are 257-byte rendering or editor bodies (`RiverDoober::add_for_render`, `Game::run_unit_editor`) and `Search::valid_filter`
 (an indexed jump over a table of arms, `--jump` over the arms' own addresses would hold it, each arm its own function).
 
-(2797, for the Loop) **A scratch driver per function is still the shape** (`gen_*.sh` with a `--port` read from a file: sixty flags and a 40-line
+**For the Loop: a scratch driver per function is still the shape** (`gen_*.sh` with a `--port` read from a file: sixty flags and a 40-line
 port do not fit a shell line, 2796): `--from-file`/`--port-file` on `sweep_gen.py` are still unbuilt. This lane wrote two.
 
 ## Parked by the next landing, slot FB — reserved
