@@ -22176,7 +22176,14 @@ French arm: the same nation's aircraft (`+0x218 == 2`) take `GERMAN_AIR_SPEED` a
 
 **The new word, 12815.**
 - Ours 9 draws, theirs 8. At index 1 ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-- It is past run893c's last block (6836). NEWWORD
+- It is past run893c's last block (6836). Its widening is run910 over 12809..13066 (`run910_s_word_frame_is_widened_whole`,
+  967 keys; `rngcmp` against run643 13073 of 13073 identical), and **the state parts before the window**.
+  - On its first block 12809 positions already differ: `0/0` at (4680, 9362) in ours against (4674, 9396), `1/65` at
+    (6394, 11516) against (6392, 11520), and `1/60`'s heading.
+  - Up to the word: `1/44`'s and `1/47`'s move targets on 12810 (`orders_y` 9240/9288 and 8904/8952), `1/28`'s on
+    12814, and on 12815 `1/44`'s order kind 10 in ours against 1 in theirs.
+  - The first position parting lies in 6837..12808. No dump of this lobby covers it, so the next item's walk back
+    books a window there first.
 
 **Coverage.**
 - Diff-backed: the cost arm on the Fire Raft (6581's list and 6583's queue cost) and the submarine-speed arm on the Fire

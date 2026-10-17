@@ -9687,3 +9687,8 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #   run893c --map 18 --end-frame 6842 --log-window 6579 6837 (same detail)   (the word 6585's window)
 # Checks: `rngcmp.py` run643 vs run893 -> 0 differing in 4184; vs run893c -> 0 differing in 6843.
 # ==== TAKEN 2026-10-17, one take each, 12:35-13:33, pool lane 1 ====
+# ==== item 2974: the battery word's widening at 12815 (`docs/AI.md` §242; `docs/RUNS.md` run910) ====
+#   run910  --map 18 --end-frame 13072 --log-window 12809 13067 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#           --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3   (the word 12815's window)
+# Checks: `rngcmp.py` run643 vs run910 -> 0 differing in 13073.
+# ==== TAKEN 2026-10-17, one take, 15:14-15:38, pool lane 2 ====

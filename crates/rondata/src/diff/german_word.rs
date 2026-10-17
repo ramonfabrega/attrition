@@ -388,7 +388,7 @@ fn run910_s_word_frame_is_widened_whole() {
     let Some(w) = german_frame_12815_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 258, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -396,6 +396,18 @@ fn run910_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "initial run910 baseline");
-    // Item 2974: WIDENING_COMMENT
+    pin_eq!(w.firsts.len(), 967, "initial run910 baseline");
+    // Item 2974: 967 keys part on blocks 12809..13066, the word's own block
+    // being 12816 (frame 12815: ours 9 draws, theirs 8, index 1 — ours
+    // `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`). **The state parts before the window**: on its
+    // first block 12809 positions already differ — `0/0` at (4680, 9362) in
+    // ours against (4674, 9396) (`orders_x` 4680/4632), `1/65` at (6394,
+    // 11516) against (6392, 11520) (`orders_y` 9672/9720), `1/60`'s
+    // heading — beside the control's standing set and `g.angle[0]`
+    // 1431655765/0 on `1/83` and `1/86`. Up to the word: `1/44` and `1/47`
+    // move targets on 12810, `1/28`'s on 12814, and on 12815 `1/44`'s
+    // order kind 10 in ours against 1 in theirs. The first position
+    // parting lies in 6837..12808, which no dump of this lobby covers
+    // (`docs/AI.md` §242).
 }

@@ -17556,3 +17556,28 @@ SHA-256 `8c51852c807b56ae212d8792ce5800a0f72d21dc7d242c778dc610d127be825c`.
 **What it holds**: `diff::german_word::run893c_s_word_frame_is_widened_whole`, 436 keys over 258 blocks. Before the word's
 block 6586 who=1's make list parts on 6581 (head type 340 in ours against 334) and its queue `1/2010` on 6583. The window is
 in the coverage driver's slice.
+
+## run910 — the battery word: East Indies, Germans at difficulty 3, the word 12815's widening, blocks 12809..13066 (2026-10-17, item 2974, `att-2974`)
+
+`docs/AI.md` §242. **What the disk could not answer**: item 2974 moved the word 6585 → 12815, past run893c's last block
+(6836); run643 is `cover=0` with its setup and closing blocks only, so no dump of this lobby held a record on 12815.
+run891's recipe with the window moved to the word, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run910`: `--map 18 --end-frame 13072 --timeout 7200 --log-window 12809 13067 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 2: `success`, `settings_restored`, 13073 frames, `map_style 18`, seed 12345, players `(0,4,7),(1,12,1)`; 1471 s
+  from launch to exit (15:14:07 to 15:38:38).
+- The dump holds 259 `BEGIN FRAME`s (12809..13066 and the closing block). Filed by `filerun.py run910
+  eastindies-german-diff3-window-12809-13067`.
+- `rngcmp.py rontrace-run643.log rontrace-run910.log`: **13073 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run910-eastindies-german-diff3-window-12809-13067.txt`, 503,683,586 bytes,
+SHA-256 `f1826b4445dea0146ca423b062066a96a5ecf81d037da4adda67d4f1be4cea9f`.
+
+Archive `rontrace-run910.log`, 84,691,168 bytes,
+SHA-256 `6aa2c9400a2f8e55a8a033691e7494a3f841a7c14e63a1361678ff6d1d7ec957`.
+
+**What it holds**: `diff::german_word::run910_s_word_frame_is_widened_whole`, 967 keys over 258 blocks. Positions part
+already on the window's first block (`0/0` at (4680, 9362) in ours against (4674, 9396), `1/65` at (6394, 11516) against
+(6392, 11520)), so the state parted somewhere in 6837..12808, which no dump covers. The window is in the coverage driver's
+slice.
