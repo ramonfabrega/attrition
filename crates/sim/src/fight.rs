@@ -382,7 +382,7 @@ impl Sim {
     /// SEAM: the siege arm below it (`TURK_SIEGE_RANGE`, the Liberty and
     /// Eiffel wonders, Napoleon), Ptolemy's general, the rum naval range
     /// and the obsidian archers are not carried; `is(0x165)` is taken as
-    /// the type itself, as [`Self::hero_radius`] takes the patriot tests.
+    /// the type itself, as the patriot tests of the radius are.
     fn ceo_unit_range(&self, o: Obj) -> i32 {
         const CEO: i32 = 0x165;
         let Obj::Unit(u) = o else {
