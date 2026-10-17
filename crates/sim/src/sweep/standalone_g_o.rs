@@ -104,6 +104,8 @@ mod game_on_find_leaderboard;
 mod game_popwin_timer;
 #[path = "game_teams_locked.rs"]
 mod game_teams_locked;
+#[path = "game_unload_net_lib.rs"]
+mod game_unload_net_lib;
 #[path = "game_war_allowed.rs"]
 mod game_war_allowed;
 #[path = "game_wonder_timer.rs"]
