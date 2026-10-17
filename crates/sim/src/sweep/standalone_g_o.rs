@@ -388,6 +388,8 @@ mod is_air;
 mod is_move;
 #[path = "item_data_get_gpiece.rs"]
 mod item_data_get_gpiece;
+#[path = "item_data_is_seen.rs"]
+mod item_data_is_seen;
 #[path = "item_out_draw_overlays.rs"]
 mod item_out_draw_overlays;
 #[path = "item_type_data_snap_center.rs"]
