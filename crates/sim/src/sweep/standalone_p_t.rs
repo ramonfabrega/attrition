@@ -78,6 +78,8 @@ mod region_is_coast;
 mod region_num_coasts;
 #[path = "region_release.rs"]
 mod region_release;
+#[path = "region_walk_data.rs"]
+mod region_walk_data;
 #[path = "regions_concat.rs"]
 mod regions_concat;
 #[path = "regions_fix_all_borders.rs"]
