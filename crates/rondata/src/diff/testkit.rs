@@ -7134,7 +7134,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2638: 1672 -> 1678, the walk past 5315 to the word 5407.
     // Item 2780: 1678 -> 1864, the walk past 5564 to the word 5982.
     // Item 2779: 1864 -> 1870, the walk past 5982 to the word 5985.
-    ("lakota_pair_first_parting", 1870),
+    // Item 2808: 1870 -> 2227, the walk past 5985 to the word 6452.
+    ("lakota_pair_first_parting", 2227),
     // And run855 (item 2423): the word 4544's window, 1122 reads.
     ("run855_s_word_frame_is_widened_whole", 1122),
     // And run861 (item 2460): the word 4859's window, 1552 reads; 1553
@@ -9418,13 +9419,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // value diff (block 5565), and 5982 is widened on run879 over
     // 5976..6232 (block 5983, item 2779). **Item 2779 moved it 5982 →
     // 5985** with Capitalism's oil (`calc_gather`'s `006cf454`), in the
-    // same window (block 5986).
+    // same window (block 5986). **Item 2808 moved it 5985 → 6452** with
+    // `think_carry`'s attack arm, past run879's last block (6232):
+    // run879's test keeps 5985's value diff (block 5986, `1/225` from
+    // 5976), and 6452's widening is owed a capture (parked by item 2808).
     (
         "LAKOTA_PAIR_WORD",
         crate::diff::lakota_pair::LAKOTA_PAIR_WORD,
-        Some("run879_s_word_frame_is_widened_whole"),
-        2779,
-        Some(crate::diff::lakota_pair::WIDENING_LAKOTA_FRAME_5982),
+        None,
+        2808,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
