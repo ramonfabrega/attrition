@@ -6848,7 +6848,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GO — reserved
+## Parked by item 2975, 2026-10-17 — five held-out lobbies minted
+
+- **`GreatLakesIroquoisTier3` parts at frame 0** (ours 121 draws, theirs 122; at draw 30 ours `Unit::think_scout+0x436`, theirs
+  `Unit::think_scout+0x64c`) — the first battery lobby to part on the first frame. Same callsite pair as `GreatSaharaAztecTier2`
+  at 9130. Names no score (the battery is a floor, never debugged against): a `think_scout` branch (a scout's target choice) that
+  differs for the Aztecs and Iroquois (both have a nation scout rule: `IROQUOIS_FREE_SCOUT`, `AZTEC` ...) is the supposition,
+  unread. The booking is the frame and the draw delta.
+- **The Spanish and Romans part on 576, as the Germans did** (§125); the AI word's lane (2974) may move all three if it is one cause.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GO renames this heading `## Parked by item N, <date> — <title>`

@@ -139,8 +139,8 @@ pub(crate) const BATTERY: &[Lobby] = &[
             "rontrace-run895b.log",
         ),
         length: 17554,
-        count: 0,
-        sequence: 0,
+        count: 9130,
+        sequence: 9130,
     },
     Lobby {
         name: "GreatSaharaSpanishTier3",
@@ -153,8 +153,8 @@ pub(crate) const BATTERY: &[Lobby] = &[
             "rontrace-run896b.log",
         ),
         length: 22700,
-        count: 0,
-        sequence: 0,
+        count: 576,
+        sequence: 576,
     },
     Lobby {
         name: "GreatLakesIroquoisTier3",
@@ -181,8 +181,8 @@ pub(crate) const BATTERY: &[Lobby] = &[
             "rontrace-run898b.log",
         ),
         length: 15503,
-        count: 0,
-        sequence: 0,
+        count: 1440,
+        sequence: 1440,
     },
     Lobby {
         name: "EastIndiesRomanTier2",
@@ -195,8 +195,8 @@ pub(crate) const BATTERY: &[Lobby] = &[
             "rontrace-run899b.log",
         ),
         length: 18620,
-        count: 0,
-        sequence: 0,
+        count: 576,
+        sequence: 576,
     },
 ];
 

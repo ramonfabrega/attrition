@@ -9687,3 +9687,12 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #   run893c --map 18 --end-frame 6842 --log-window 6579 6837 (same detail)   (the word 6585's window)
 # Checks: `rngcmp.py` run643 vs run893 -> 0 differing in 4184; vs run893c -> 0 differing in 6843.
 # ==== TAKEN 2026-10-17, one take each, 12:35-13:33, pool lane 1 ====
+# ==== item 2975: five held-out lobbies (`docs/AI.md` §243; `docs/RUNS.md` run895..899b) ====
+#   run895/895b  map 7  Aztecs (0)  DIFFICULTY=2     run896/896b  map 7  Spanish (9)  DIFFICULTY=3
+#   run897/897b  map 14 Iroquois (18) DIFFICULTY=3   run898/898b  map 14 Turks (8)    DIFFICULTY=4
+#   run899/899b  map 18 Romans (6)  DIFFICULTY=2
+#   start (runN):  --map M --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe T --profile DIFFICULTY=D
+#   long (runNb):  --map M --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#                  --ai-tribe T --allow-early-end --profile DIFFICULTY=D (run643's four --detail lines)
+# Checks: `rngcmp.py` runN vs runNb -> 0 differing in 37 frames, each. Every game ended itself (17554, 22700, 12658, 15503, 18620).
+# ==== TAKEN 2026-10-17, one take each, 15:02-15:32, pool lanes 1, 2, 3 ====
