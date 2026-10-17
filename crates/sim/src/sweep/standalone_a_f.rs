@@ -56,6 +56,8 @@ mod armies_leader_defeated;
 mod armies_num_armies;
 #[path = "armies_send_navy.rs"]
 mod armies_send_navy;
+#[path = "army_charge.rs"]
+mod army_charge;
 #[path = "army_count.rs"]
 mod army_count;
 #[path = "army_member.rs"]
