@@ -674,6 +674,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch78 = golden_dump("ch78");
     let ch79 = golden_dump("ch79");
     let ch80 = golden_dump("ch80");
+    let ch85 = golden_dump("ch85");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2495,6 +2496,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_EIGHTY;
         let n = drive_capture(p, 1198, 1204, &mut paths);
         assert_eq!(n, 6, "chapter eighty carries six blocks in the window");
+        frames += n;
+    }
+    // **Chapter eighty-five, on run880** (item 2832): the swapped squad's
+    // first blocks and the control Spy's chase.
+    if let Some(p) = &ch85 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_EIGHTY_FIVE;
+        let n = drive_capture(p, 1210, 1216, &mut paths);
+        assert_eq!(n, 6, "chapter eighty-five carries six blocks in the window");
         frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first

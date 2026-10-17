@@ -6429,13 +6429,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FL — reserved
+## Parked by item 2832, 2026-10-17 — the cloaked Spy's Bribe staged (run880)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **(2832, first) The control Spy's chase re-target, run880 frame 1178.** A Spy casting Bribe on a *walking* target out of
+  range pushes a `MOVEORDER` to a ring spot on 1172 (both sides agree: `(23256, 19128)`) and the original **re-issues** it on
+  1178 to `(23304, 19032)` (`off_x/off_y` 264/600, a fresh `find_nearby_spot` for the target's new square); ours keeps the
+  first. Then 1183 the original has two orders and ours one cast, 1184–1185 the heading follows. The booking is the frame (1178)
+  and the first parted field (`order:move.dest_x/y`, ours 23256/19128, theirs 23304/19032); the mechanism is the approach's
+  re-target interval in `do_cast_targeted`'s out-of-range arm, **a hypothesis**. It is not Bribe's: any targeted craft on a
+  moving target takes it. `WANT_CH85` holds the rows.
+- **(2832, second) The added Scout's first disc, run880 block 1103, `world:seen2`**: 7 cells, first (59, 54), ours 3 theirs 1,
+  the frame after a who=1 Scout is added at 1101 (ch80's `seen3` residue, same family; item 2785 left the walk-path cells).
+- **(2832, third) The take stopped at 1219, not 1260**: with `WORLD=6,CITIES=5` in the `end:` set the lane's hour ran out at
+  frame 1219 (1.2 GB, `subprocess.TimeoutExpired`, settings restored, no receipt). Nothing after 1219 is dumped: the conversion
+  (1212) and 6 frames after are, and the **control's cast never reached range** by then, so "a target out of sight is refused"
+  is **not** established — the control spy chases and the Hoplite walks away. A control wants a stationary target (an
+  `add hoplite` that is ordered to stay) or a longer take at `UNITS=3` alone.
 
 ## Parked by the next landing, slot FM — reserved
 

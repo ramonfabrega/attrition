@@ -1382,6 +1382,7 @@ mod tests {
         s.units[spy].owner = 1;
         s.units[target].health = 15;
         s.units[target].max_health = 20;
+        s.units[target].movement.facing = crate::movement::Angle(0x1200_0000);
         let bribes = s.tech[1].bribes;
         let before = s.units.len();
         let n = s.cast_bribe_unit(spy, target).expect("a copy is born");
@@ -1392,6 +1393,11 @@ mod tests {
             5,
             "damage carried"
         );
+        assert_eq!(
+            s.units[n].movement.heading, s.units[n].movement.facing,
+            "the figure is settled: `dest_angle` equals `angle` (run880)"
+        );
+        assert_eq!(s.units[n].movement.facing, crate::movement::Angle(0x1200_0000));
         assert!(!s.units[target].alive(), "the old one is closed");
         assert_eq!(s.units[target].hold_frames, Sim::CLOSE_HOLD);
         assert_eq!(s.tech[1].bribes, bribes + 1, "the leader's +0x8f4");

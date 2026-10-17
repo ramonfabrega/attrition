@@ -107,6 +107,8 @@ impl Sim {
         n.health = n.max_health - damage;
         n.damage_frac = frac;
         n.movement.facing = facing;
+        // `update_gpiece` leaves the figure's `des_angle` on its angle (the dump's `dest_angle` equals `angle` on every swapped figure, run880).
+        n.movement.heading = facing;
         n.form = form;
         n.combat.recharging = recharging;
         n.in_danger = in_danger;

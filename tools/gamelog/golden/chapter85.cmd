@@ -10,7 +10,9 @@
 #
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch85 \
 #       --map 14 --end-frame 1260 --log-window 1100 1260 --timeout 3600 \
-#       --detail end:UNITS=3,LEADERS=2,DEATHS=1,BUILDS=7 --detail start:MISC,UNITS=3,BUILDS=7,LEADERS=9 --cmd-file tools/gamelog/golden/chapter85.cmd
+#       --detail end:WORLD=6,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1 \
+#       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+#       --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter85.cmd
 #
 0 !ai off
 600 library who=0 2
