@@ -490,6 +490,8 @@ mod world_is_tree_at;
 mod world_map_fog_add_update;
 #[path = "world_map_fog_get_fog_lookup.rs"]
 mod world_map_fog_get_fog_lookup;
+#[path = "world_map_fog_set_fog_lookup.rs"]
+mod world_map_fog_set_fog_lookup;
 #[path = "world_map_on_right_down.rs"]
 mod world_map_on_right_down;
 #[path = "world_map_reinit_all.rs"]
