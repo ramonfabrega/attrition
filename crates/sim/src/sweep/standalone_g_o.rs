@@ -200,6 +200,8 @@ mod group_attack_to_order_get_group_attack_to_order;
 mod group_attack_to_order_walk_data;
 #[path = "group_attack_to_order_walk_data_vtordisp.rs"]
 mod group_attack_to_order_walk_data_vtordisp;
+#[path = "group_can_activate.rs"]
+mod group_can_activate;
 #[path = "group_compute_speed.rs"]
 mod group_compute_speed;
 #[path = "group_data_can_transport.rs"]
