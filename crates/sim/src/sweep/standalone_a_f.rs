@@ -610,6 +610,8 @@ mod command_package_process_ping;
 mod command_package_process_propose_attack;
 #[path = "command_package_process_queue_up.rs"]
 mod command_package_process_queue_up;
+#[path = "command_package_process_quit.rs"]
+mod command_package_process_quit;
 #[path = "command_package_process_recall.rs"]
 mod command_package_process_recall;
 #[path = "command_package_process_reject.rs"]
