@@ -700,3 +700,40 @@ fn run879_s_word_frame_is_widened_whole() {
     // `1/164`'s `attrition` (ours 6, theirs 0) and then its `hits`.
     pin_eq!(w.firsts.len(), 191, "initial run879 baseline");
 }
+
+/// run881: the word 6452's window, blocks 6446..6701 at the long's detail (item 2825).
+pub(crate) const RUN881: &str = "gamelog-run881-eastindies-lakota-peace-window-6446-6702.txt";
+
+/// The window: block 6446 through 6701; the word 6452's own block is 6453.
+pub(crate) const WIDENING_LAKOTA_FRAME_6452: (i64, i64) = (6446, 6701);
+
+pub(crate) fn lakota_frame_6452_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA.start],
+        true,
+        LAKOTA.long,
+        "run881",
+        &[(RUN881, WIDENING_LAKOTA_FRAME_6452.0)],
+        WIDENING_LAKOTA_FRAME_6452,
+        1,
+        &[6453],
+        true,
+    )
+}
+
+#[test]
+fn run881_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_frame_6452_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "initial run881 baseline");
+}
