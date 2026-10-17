@@ -119,7 +119,7 @@ fn run886_s_word_frame_is_widened_whole() {
     let Some(w) = german_frame_576_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 257, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -127,5 +127,19 @@ fn run886_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "initial run886 baseline");
+    pin_eq!(w.firsts.len(), 262, "initial run886 baseline");
+    // Item 2904: 262 keys part on blocks 570..826, the word's own block
+    // being 577 (frame 576: ours 52 draws, theirs 36, index 4 — theirs one
+    // round of `Leader::compute_sites+0x4ac`/`+0x50a` and
+    // `Leader::make_stuff+0x221` ×2, ours five, then the same birds,
+    // objects, herd and farms). On 577 theirs holds who=1's Village `1/2007`
+    // (type 414, a foundation at (34656, 36192), `constr_time` 60000) and
+    // ours none (`build:unlinked`); who=1's Citizen `1/2` holds theirs'
+    // `BUILDORDER` on it (`orders.len` 1/2, `orders_x` 40632/35400,
+    // `path` 0/5); who=1's `SITE[1].wx` 51/0 (theirs' site taken) and the
+    // table below it shifted by one; `gatherers` 8/7. 35 stand on 570:
+    // who=1's `income` and `resources` (food 800/880, timber 640/720),
+    // `leftover` (food 5280/480, timber 800/3200), `bucket` (food 73/80,
+    // timber 58/64), both leaders' `aggression` 0/1, and the control's
+    // `SITE[n].reg`, `form` and groups' `held` (`docs/AI.md` §239).
 }
