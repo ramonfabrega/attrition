@@ -370,6 +370,8 @@ mod wall_out_make_options;
 mod wall_set_type;
 #[path = "wall_set_type_dispatch.rs"]
 mod wall_set_type_dispatch;
+#[path = "wall_swap_team.rs"]
+mod wall_swap_team;
 #[path = "wcoord_data_walk_data.rs"]
 mod wcoord_data_walk_data;
 #[path = "wcoord_get_tcorner.rs"]
