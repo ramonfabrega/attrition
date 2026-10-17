@@ -632,6 +632,8 @@ mod command_package_process_speed_up;
 mod command_package_process_stop_spell;
 #[path = "command_package_process_swarm_around.rs"]
 mod command_package_process_swarm_around;
+#[path = "command_package_process_trade.rs"]
+mod command_package_process_trade;
 #[path = "command_package_process_transport.rs"]
 mod command_package_process_transport;
 #[path = "command_package_process_treaty.rs"]
