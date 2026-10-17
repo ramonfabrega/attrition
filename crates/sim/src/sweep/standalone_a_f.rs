@@ -314,6 +314,8 @@ mod city_data_depop_can_queue;
 mod city_data_enhancer_amount;
 #[path = "city_data_enhancer_level.rs"]
 mod city_data_enhancer_level;
+#[path = "city_data_get_building.rs"]
+mod city_data_get_building;
 #[path = "city_data_get_farm_limit.rs"]
 mod city_data_get_farm_limit;
 #[path = "city_data_get_level.rs"]

@@ -1437,6 +1437,7 @@ WILD = {wild!r}
 ANSWERS = {answers!r}
 VTAT = {vtat!r}
 VTATHALF = {vtathalf!r}
+VTIMAGE = {vtimage!r}
 ALIAS = {alias!r}
 ANSWERBY = {answerby!r}
 ANSWERWIN = {answerwin!r}
@@ -1661,6 +1662,11 @@ def main(argv):
         if i in CDECLSTUBS:
             h.hooked[sa] = h.hooked[sa][:3] + (True,)
     stubbed = {{off: h.r32(vt + off) & 0xFFFFFFFF for off, _ in SLOTBASE}}
+    # `--vtat-image WIN+OFF:VA` (item 2863): the stub slots copied into the image's own vtable at VA,
+    # so a record whose vtable word is compared with VA (`Build::vftable`) still answers its slots.
+    for va_ in sorted({{va for _, _, va in VTIMAGE}}):
+        for off in slots:
+            uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
     for i in range({rows}):
         h.brk = base  # the bump heap is reused a row; {rows} rows of windows outgrow it
@@ -1823,6 +1829,10 @@ def main(argv):
             # a record the function reaches whose slots it asks too (item 2217).
             w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
             w[off:off + 4] = vt.to_bytes(4, "little")
+        for win, off, va_ in VTIMAGE:
+            # The image's vtable at VA (stubbed above) laid half the rows, the stubbed vtable otherwise.
+            w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+            w[off:off + 4] = (va_ if rng.random() < 0.5 else vt).to_bytes(4, "little")
         for win, off in VTATHALF:
             # The stubbed vtable laid half the rows at a record the function
             # compares with a class's vtable, the other half left as drawn
@@ -2192,7 +2202,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(),
+                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
                  rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=()):
     name, va = parse(spec)
@@ -2370,6 +2380,15 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if not (colon and plus and re.fullmatch(r'm|c\d+|p\d+', awin) and re.fullmatch(r'm|c\d+|p\d+', twin)):
             raise ValueError(f'--alias is WIN+OFF:TARGET[+K] over m, cN or pN, not {al!r}')
         palias.append((awin, int(aoff, 0), twin, int(toff, 0) if tplus else 0))
+    pimg = []
+    for vi in vtat_image:
+        loc, colon, va_ = vi.partition(':')
+        iwin, plus, ioff = loc.partition('+')
+        if not (colon and plus and re.fullmatch(r'm|c\d+|p\d+', iwin)):
+            raise ValueError(f'--vtat-image is WIN+OFF:VA over m, cN or pN, not {vi!r}')
+        pimg.append((iwin, int(ioff, 0), int(va_, 0)))
+    if pimg and not any(k == 'slot' for k, _, _ in pstubs):
+        raise ValueError('--vtat-image copies the stubbed vtable: it needs a --stub slot:OFF:N')
     pby = []
     for ab in answer_by:
         parts = ab.split(':')
@@ -2440,7 +2459,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or pby or edx_win or pxmm or psparse or pgtab or plinks or pout or pcdecl or pwrite or pecxout):
+            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or pout or pcdecl or pwrite or pecxout):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2473,6 +2492,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            and idx not in [i for i, _ in pansw[:k]]]
         + ([f'the stubbed vtable laid at `{vtat}`'] if pvtat else [])
         + [f'the stubbed vtable laid at `{vh}` half the rows' for vh in vtat_half]
+        + [f'the word at `{vi.partition(":")[0]}` laid as the image vtable at {vi.partition(":")[2]} (the stub slots copied there) half the rows' for vi in vtat_image]
         + [f'the word at `{al.partition(":")[0]}` laid as the address of `{al.partition(":")[2]}` half the rows'
            for al in alias]
         + [f'stub {i} answers `p{d}+j`, the data of the object its `ecx` is in `p{f}+j` (j < {n}), linked at `+{o:#x}`'
@@ -2535,7 +2555,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, xmm=pxmm, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
-                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby,
+                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
@@ -3377,6 +3397,10 @@ def main(argv=None):
                     help='obj: the word at this window offset laid as the address of window TARGET (plus K) half the '
                          'rows, the other half left as drawn (a pointer that must name another window, or its own: '
                          '`check_last_connect`; item 2797, parked 2791)')
+    ap.add_argument('--vtat-image', action='append', default=[], metavar='WIN+OFF:VA',
+                    help='obj: the stub slots copied into the image\'s vtable at VA, and the word at WIN+OFF laid VA half '
+                         'the rows, the stubbed vtable otherwise (a record compared with a class\'s vtable that is '
+                         'asked its slots either way: `get_building`\'s `Build::vftable`; item 2863)')
     ap.add_argument('--answer-by', action='append', default=[], metavar='IDX:OBJ0:DAT0:N:LINKOFF',
                     help='obj: stub IDX answers by its `ecx` — the object in `p<OBJ0+j>` gets the window `p<DAT0+j>` '
                          '(of N), whose short at LINKOFF is a later object\'s index or -1 (a chain that '
@@ -3567,7 +3591,7 @@ def main(argv=None):
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
-                                                    vtat_half=args.vtat_half, alias=args.alias, answer_by=args.answer_by, place_null=args.place_null,
+                                                    vtat_half=args.vtat_half, alias=args.alias, answer_by=args.answer_by, vtat_image=args.vtat_image, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
