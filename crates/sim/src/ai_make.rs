@@ -165,6 +165,15 @@ impl Sim {
         self.use_market(who);
         let paid = self.can_pay_slot(who, &head);
         let cost = self.make_cost(who, head.t);
+        if std::env::var("RON_PROBE_2931").is_ok() {
+            eprintln!(
+                "PROBE f{} who{} make_stuff head t{} val{} num{} esc{} wx{} wy{} paid{} cost{:?} bucket{:?} afford{} slots{:?}",
+                self.frame, who, head.t, head.val, head.num, head.escrow, head.wx, head.wy, paid, cost,
+                self.ledgers[w].bucket,
+                usize::try_from(head.t).map(|t| self.type_affordable(who, t, head.escrow != 0)).unwrap_or(-9),
+                self.ai[w].make_list.list.iter().map(|m| (m.t, m.val, m.wx, m.wy)).collect::<Vec<_>>()
+            );
+        }
         let head_t = usize::try_from(head.t).unwrap_or(usize::MAX);
         let valid_head = head_t < self.tech_tree.types.len();
 
@@ -394,9 +403,16 @@ impl Sim {
             // A city site: `wx, wy` are world cells.
             let reg = self.world.region_of(crate::Cell::new(m.wx, m.wy));
             if !self.region_has_workers(who, reg) {
+                if std::env::var("RON_PROBE_2931").is_ok() {
+                    eprintln!("PROBE f{} who{} city: no workers in reg {:?}", self.frame, who, reg);
+                }
                 return false;
             }
-            return self.produce_city(who, t, m.wx, m.wy, m.escrow);
+            let r = self.produce_city(who, t, m.wx, m.wy, m.escrow);
+            if std::env::var("RON_PROBE_2931").is_ok() {
+                eprintln!("PROBE f{} who{} produce_city -> {}", self.frame, who, r);
+            }
+            return r;
         }
         // An ordinary building or a wonder, placed near a city of mine.
         let Some(c) = city.filter(|&c| c < self.cities.len() && self.cities[c].alive) else {
