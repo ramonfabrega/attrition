@@ -1002,7 +1002,16 @@ impl Sim {
         // which is exactly what the probe's `− 0x180` then means.
         let toff = self.toff(u).unwrap_or((0, 0));
         let no_danger = m.no_danger;
-        let m = Modes { no_danger, ..*m };
+        // §4.1: `iroquois` is the unit's own `unit_masks2 & 0x4000`, taken
+        // at the entry for every wrapper (item 3117: run918b's block 894,
+        // the Iroquois Scout `1/0`'s ten-leg explore path, legs 6..8 one
+        // cell east in ours while it priced forest by `blocked`).
+        let iroquois = self.units[u].unit_masks2 & crate::combat::umask2::FOREST_WALKER != 0;
+        let m = Modes {
+            no_danger,
+            iroquois: m.iroquois || iroquois,
+            ..*m
+        };
 
         // **The resume.** `00683a2d` takes the five containers and the nine
         // scalars off the unit and jumps straight to the loop; the open
@@ -1718,7 +1727,7 @@ impl Sim {
                     .ty
                     .is_some_and(|t| self.unit_types[t].worker != Worker::None),
             no_danger: self.no_danger_mode(u),
-            iroquois: false, // SEAM: `unit_masks2 & 0x4000`.
+            // `iroquois` is `astar_path`'s own, from the unit (§4.1).
             ..Modes::default()
         };
         let centre = |c: crate::world::Cell| {

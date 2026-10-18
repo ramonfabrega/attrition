@@ -385,6 +385,7 @@ def capture(args, output, style):
                                            detail=getattr(args, 'detail', None),
                                            cover=getattr(args, 'cover', None),
                                            callwin=getattr(args, 'callwin', None),
+                                           stride=getattr(args, 'stride', None),
                                            cmd_file=getattr(args, 'cmd_file', None)))
         # The receipt carries what was staged, so a run's window and detail are
         # read back from the run rather than from the command that asked for it.
@@ -396,6 +397,7 @@ def capture(args, output, style):
                             'check_all_level': 14 if full_start else None,
                             'cover': getattr(args, 'cover', None) or 'cover=0',
                             'callwin': staged_callwin(output),
+                            'stride': getattr(args, 'stride', None),
                             'tracer_defs': getattr(args, 'tracer_defs', None),
                             'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
                                             if (output/'rontrace.cmd').is_file() else None}
@@ -498,7 +500,7 @@ def capture(args, output, style):
                                   args.recording_seed if playback else args.seed,
                                   detail=getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL,
                                   ai_tribe=report['ai_tribe_requested'],
-                                  log_window=getattr(args, 'log_window', None),
+                                  log_window=None if getattr(args, 'stride', None) else getattr(args, 'log_window', None),
                                   allow_early_end=early))
         if playback and sha(recording) != report['recording']['sha256']:
             raise ValueError('recording changed during playback')
@@ -783,6 +785,9 @@ def main():
     ap.add_argument('--log-window',type=int,nargs=2,metavar=('START','END'))
     ap.add_argument('--detail',action='append',metavar='SECTION:CAT[=N],...')
     ap.add_argument('--cover')
+    ap.add_argument('--stride', type=int, metavar='N',
+                    help='dump one block in N of --log-window, a long gap at a fraction of its cost '
+                         '(the tracer rewrites the engine window each frame; Loop 3085)')
     ap.add_argument('--callwin', type=int, nargs=2, metavar=('LO', 'HI'),
                     help='sim-frames the call proxies log over; default 0-END')
     ap.add_argument('--tracer-def', action='append', dest='tracer_defs', metavar='NAME',

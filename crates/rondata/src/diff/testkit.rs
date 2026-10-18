@@ -6653,6 +6653,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FOUR: i64 = 1200;
 /// 605 to 1199.
 pub(crate) const WIDENING_CHAPTER_NINETY_FOUR: (i64, i64) = (604, 1201);
 
+/// **Chapter ninety-five** (item 3126, `docs/GOLDEN.md` §121, run920):
+/// Sabotage on a firing Tank. **The word is 629, open** (draws part there);
+/// the widening's first parted field is the who=1 Tank `1/7`'s `order:target`
+/// on 624 — ours the decoy Hoplite `0/16`, theirs the Commando `0/7`.
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 629;
+
+/// `chapter_ninety_five_s_window_is_widened_whole`'s window: run920.
+pub(crate) const WIDENING_CHAPTER_NINETY_FIVE: (i64, i64) = (604, 1201);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9244,6 +9253,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3067,
         Some(WIDENING_CHAPTER_NINETY_FOUR),
     ),
+    // Item 3126: run920, chapter ninety-five, Sabotage on a firing Tank.
+    (
+        "GOLDEN_WORD_CHAPTER_NINETY_FIVE",
+        GOLDEN_WORD_CHAPTER_NINETY_FIVE,
+        Some("chapter_ninety_five_s_window_is_widened_whole"),
+        3126,
+        Some(WIDENING_CHAPTER_NINETY_FIVE),
+    ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
     // The widening is run576 whole.
@@ -9677,12 +9694,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // its value diff). **Item 3107 moved it 0 → 1120** with the Iroquois
     // Scout's forest walker, past the start dump's blocks (1, 36, 37) and
     // into run897b's `cover=0` stream, which dumps no block there: 1120's
-    // widening is owed, a capture of the lobby's 1114..1370 (item 3117).
+    // widening was run918's, 1114..1370, and run918b's stride-4 gap 38..1114
+    // walked it back to block 894 (item 3117, `run918_s_word_frame_is_
+    // widened_whole`, `run918b_s_gap_is_widened_whole`). **Item 3117 moved
+    // it 1120 → 1496**, past run918's last block (1370): 1496's widening is
+    // owed, a capture of the lobby's 1490..1746, item 3140's (run 921).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3117,
+        3140,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

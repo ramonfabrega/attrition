@@ -3742,6 +3742,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3139) **`seams.py --item` missed the word's live SEAM** (3117's "for the Loop" row, filed at its merge): the brief's run named `explore_goody`, `think_bird`,
+`WIDENINGS`, `IROQUOIS_WORD`, and `path.rs`'s `iroquois: false, // SEAM: unit_masks2 & 0x4000` was found by grepping
+`iroquois` after the widening named the path. A `--item` that also takes the parted unit's nation and the fields the
+previous item built (`FOREST_WALKER`) would have printed it before the capture.
+One reach.
+
 (3133) **A shape parked "unstarted" three batches running was four flag sets the generator already had** (3120's "for the
 Loop" line, filed at its merge): 3078, 3104 and 3112 each read `num_aircraft_here`, `get_wonder_value`, `find_dock` and
 `new_danger` and parked them; 3120 built all four on existing flags plus `--tib`. Candidate: a sweep park names the
@@ -7444,13 +7450,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HQ — reserved
+## Parked by item 3117, 2026-10-18 — the Iroquois word's widening
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3138) **who=1's food and `known_rares` part between the start dump's block 37 and run918b's 38** on
+  `GreatLakesIroquoisTier3`: `income`/`resources[0:food]` 640 against 672, `bucket` 4/5, `leftover` 6560/352, and
+  `known_rares` 0 against 1 — theirs knows a rare on 38. No dump holds 37..38 densely beyond run897's 37 (which holds no
+  such row); the word 1496's index-30 draw is a who=1 `do_non_flat_gather`, so this is the nearest standing row on that
+  player. Names the word 1496 only as a hypothesis (`docs/AI.md` §247).
 
 ## Parked by item 3120, 2026-10-18 — the four shapes built
 
@@ -7490,13 +7496,11 @@ words and edits nothing here; a refill lands when two remain.
 - (3136) **German metal/industry blocks** (`german_metal_upgrades`,
   `german_industry_upgrades`, both 0 as shipped) are inert and unloaded.
 
-## Parked by the next landing, slot HU — reserved
+## Parked by item 3126, 2026-10-18 — chapter ninety-five, a Tank's target pick
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3126a) **A computer Tank picks the Commando, ours a Hoplite** (run920, 624, `1/7 order:target`; `1/6` at 635): chapter 95's word, 629. Frame and delta are the booking; the `ai` arm of
+`compare_target` (`v / dmg`) and the candidate rings of `find_nearby_target` are the item before's hypothesis (GOLDEN §121). Next: `RON_DEBUG_UNIT=1/7@622-626` both sides and a
+packet at 623 if the ranking reads a value no dump prints.
 
 ## Parked by the next landing, slot HV — reserved
 

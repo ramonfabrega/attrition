@@ -53,6 +53,28 @@ class SessionTest(unittest.TestCase):
         module.restore(self.output)
         self.assert_restored()
 
+    def test_a_stride_is_staged_in_the_tracer_cfg_over_a_window(self):
+        # Loop 3085 (item 3117): one block in N of the window, kept by the
+        # tracer rewriting the engine's window at each frame (`stride.h`).
+        self.args.end_frame = 1200
+        self.args.log_window = [37, 1114]
+        self.args.detail = ['end:UNITS=3']
+        self.args.stride = 16
+        module.stage(self.args)
+        self.assertEqual((self.output/'rontrace.cfg').read_text(), 'cover=0\ncallwin=0-1200\nstride=16\n')
+        self.assertIn('LogStartFrame=37', (self.profile/'rise2.ini').read_text())
+        module.restore(self.output)
+        self.assert_restored()
+
+    def test_a_stride_needs_a_window_and_a_step_past_one(self):
+        self.args.end_frame = 1200
+        for window, stride in ((None, 16), ([37, 1114], 1), ([37, 1114], 0)):
+            self.args.log_window, self.args.stride = window, stride
+            with self.assertRaisesRegex(ValueError, 'stride'):
+                module.stage(self.args)
+            self.assertFalse(self.output.exists())
+            self.assert_restored()
+
     def test_full_start_is_bounded_and_restores_the_profile(self):
         self.args.dump_all_start = True
         module.stage(self.args)
