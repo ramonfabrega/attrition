@@ -12,17 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the fortieth pass (Fable, the session): twenty landings from `c6fd292e` scored, DECISIONS 78** — 4 h 49 on
-five lanes, 6.22 USD and 41.9 min waiting a landing against 5.20 / 23.6 on four: run912's 2 h 23 window, a receipt the waiter
-would not read (81 min, mended), lane gates at twice their length under a 32-slot budget on sixteen cores, the booking gate
-serial (128 of 326 min; its scope no longer widens on `blind.rs`). Last whole gate `ffd4c2d1`. **The commander waits on the steer.***
+*2026-10-17, **the forty-first tranche (commander, Opus): 1 landing from `0efdf09d`** — four lanes under the 20-slot
+budget (DECISIONS 78 amended): 3086 Opus 5.5 medium, 3067, 3078 and the nations lane Sonnet 5.5 medium. Last whole gate
+`f696f69b`.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 → 6585 → 12815 (2974) → 12836 (2997), as 3086, on its lobby until it closes (DECISIONS 77 (vii)).
-  Chapters 86–93 closed; 94 is 3067. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), median 1008, a gate floor.
-- **Lanes: none live.** 3086 the AI word's, 3067 the rules track's, 3078 shape and 3092 nations, unstarted — **four
-  lanes, Ramon's word (DECISIONS 78 amended), the CPU budget at 20; the harvest lane's 3068 parked**. Next 3096,
-  run 915 (Astra 900–909). Pools: GOLDEN §119–124, AI §246–251, park HG–HL. The commander is cleared.
+  Chapters 86–93 closed; 94 is 3067. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), median 1008 → 2207 (3092,
+  the Chinese citizens' arm: `GreatLakesChineseTier1` 176 → 5663), a gate floor.
+- **Lanes: four live** — 3086 the AI word's (run 915), 3067 the rules track's (run 914), 3078 shape, 3096 nations (§7.2).
+  Landings: 3092. Next 3097, run 916 (Astra 900–909). Pools: GOLDEN §119–124, AI §246–251, park HK–HL.
 - **Fable backlog: 24 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -45,7 +44,7 @@ book, refill while landings plus live lanes are under twenty, stop at twenty, an
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3086 the AI word's (Opus); 3067, 3078 and 3092 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — East Indies (Germans), at 12836. Take the first unstarted item unless a better
+3086 the AI word's (Opus); 3067, 3078 and 3096 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — East Indies (Germans), at 12836. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3086. **The battery word, 12836 of 13519 (`EastIndiesGermanTier3`, East Indies):
@@ -74,13 +73,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     (recursive), `Group::set_up_insert`; `UnitData::get_attrition`'s `f32`
     as the original's exact rational, never a float. Unstarted. `--kind sweep`.
 
-3092. **The nations' unmodelled arms, NATIONS §7's order** (Ramon, the fortieth steer, DECISIONS 78; the
-    score: the held-out battery's median first try, 1008 over eight, `battery_measure`, `battery_floors` never
-    lowered): the Chinese citizens' `train_time` arm (§7.1; `GreatLakesChineseTier1` parts at 176), the Egyptian
-    wonders cost (§7.2), the Russian oil and spy terms (§7.3), `gain_tech`'s nation arms (§7.4), then the
-    `get_cost`/`train_time` rest, the Romans' legions first (§7.5; `EastIndiesRomanTier2` parts at 576) — each from
-    the rules and the original's function, never a held-out dump (DECISIONS 54), its NATIONS.md row flipped, the
-    battery measured after; one arm a landing, or one function's family. Unstarted. NATIONS §7.
+3096. **The nations' unmodelled arms, NATIONS §7's order, from §7.2** (Ramon, the fortieth steer, DECISIONS 78;
+    the score: the held-out battery's median first try, 2207 over eight after 3092, `battery_measure`,
+    `battery_floors` never lowered): the Egyptian wonders cost (§7.2, `TypeData::get_cost@00664090:906`), the
+    Russian oil and spy terms (§7.3), `gain_tech`'s nation arms (§7.4), then the `get_cost`/`train_time` rest,
+    the Romans' legions first (§7.5; `EastIndiesRomanTier2` parts at 576) — each from the rules and the
+    original's function, never a held-out dump (DECISIONS 54), its NATIONS.md row flipped, the battery measured
+    after; one arm a landing, or one function's family. Unstarted. NATIONS §7.
 
 ## How to maintain this file
 
