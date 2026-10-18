@@ -147,6 +147,10 @@ pub struct Loaded {
     /// between an idle variant with its own length and one silently
     /// played as the default (`docs/ANIM.md` §3.2).
     pub piece_lengths: crate::artdata::PieceLengths,
+    /// The pieces whose `<UNIT>` names a skeleton — a death object's
+    /// corpse fade (`crate::artdata::piece_skeletons`, `docs/GOLDEN.md`
+    /// §127).
+    pub piece_skeletons: std::collections::BTreeSet<i32>,
     /// Every unit graphic piece's follow offset, `gpiece → (track_dx,
     /// track_dy)`, read from `unit_graphics.xml`'s `trackoffsetx` /
     /// `trackoffsety` / `scale` (`crate::artdata::piece_tracks`). Empty
@@ -473,6 +477,7 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
         .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
         .collect();
     loaded.piece_lengths = crate::artdata::piece_lengths(install, &graphs);
+    loaded.piece_skeletons = crate::artdata::piece_skeletons(install, &graphs);
     loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs);
     loaded.piece_releases = crate::artdata::piece_releases(install, &graphs);
     loaded.pivot_restrictions = crate::artdata::pivot_restrictions(install, &graphs);
@@ -2089,6 +2094,7 @@ pub fn load_tables(
         scripts: Vec::new(),
         gaia_lengths: Default::default(),
         piece_lengths: Default::default(),
+        piece_skeletons: Default::default(),
         piece_tracks: Default::default(),
         piece_releases: Default::default(),
         pivot_restrictions: Default::default(),
@@ -2871,6 +2877,7 @@ mod tests {
             scripts: vec![],
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),
+            piece_skeletons: Default::default(),
             piece_tracks: Default::default(),
             piece_releases: Default::default(),
             pivot_restrictions: Default::default(),

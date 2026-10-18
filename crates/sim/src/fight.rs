@@ -3160,13 +3160,55 @@ impl Sim {
         if self.crashes(i) {
             return;
         }
+        let life = self.death_life(i, cur_anim);
         let u = &self.units[i];
         self.deaths.push(combat::Death {
             who: i32::from(u.owner),
             o: i32::from(u.index),
             first_frame: frame,
             cur_anim,
+            life,
         });
+    }
+
+    /// `DeathObj body_fade_end`, in frames: a land unit whose death piece
+    /// has no skeleton lives its animation and this (`DeathObj::inc_time
+    /// @008d5240`, `.rdata` `0002:378732`; `docs/GOLDEN.md` §127).
+    pub(crate) const BODY_FADE_END: i64 = 135;
+    /// `corpse_fade_end`, `.rdata` `0002:378740`: the same, for a piece
+    /// with a skeleton (a corpse).
+    pub(crate) const CORPSE_FADE_END: i64 = 627;
+
+    /// How many frames the death object `close_unit` makes lives
+    /// (`DeathObj::inc_time@008d5240`): the death piece's animation packet
+    /// length for `cur_anim`, plus [`Self::CORPSE_FADE_END`] when the piece
+    /// has a skeleton (`DeathObj +0x44`, `RData::unit_data +0x20`),
+    /// [`Self::BODY_FADE_END`] when it has none, and nothing for a sea
+    /// unit (`type +0x218 == 1`). `None` when the install does not name
+    /// the piece's slot.
+    fn death_life(&self, i: usize, cur_anim: i32) -> Option<i64> {
+        let anim = i8::try_from(cur_anim).ok()?;
+        let sea = self.units[i].kind.domain == crate::attrition::Domain::Sea;
+        // One `DeathObj` per guy, each on its own `gpiece` (ch94's four-man
+        // crew prints four, `gpiece` 219, 12891, 25563, 38235): the unit's
+        // number is held by the last to end.
+        let mut life = None;
+        for g in &self.units[i].guys {
+            let gpiece = g.gpiece;
+            if gpiece < 0 || !self.art.piece_lengths.contains_key(&gpiece) {
+                return None;
+            }
+            let frames = i64::from(self.slot_length(i, gpiece, anim)?);
+            let fade = if sea {
+                0
+            } else if self.art.piece_skeletons.contains(&gpiece) {
+                Self::CORPSE_FADE_END
+            } else {
+                Self::BODY_FADE_END
+            };
+            life = life.max(Some(frames + fade));
+        }
+        life
     }
 
     /// **`Object::die@00647080`'s tail** — `hold_frames = max(hold_frames,
@@ -3236,6 +3278,7 @@ impl Sim {
                 self.units[u].hold_frames += 1;
             }
         }
+        self.cull_deaths();
         for k in 0..self.projectiles.len() {
             // A crash round bumps its own plane's slot in its step
             // ([`Sim::process_projectiles`]).
@@ -3247,6 +3290,41 @@ impl Sim {
             };
             if !self.active(Obj::Unit(s)) {
                 self.units[s].hold_frames += 1;
+            }
+        }
+    }
+
+    /// **The death object's end** (`DeathObj::inc_time@008d5240`, item
+    /// 3205, `docs/GOLDEN.md` §127): its counter, one per call and zero at
+    /// `init`, reaches `life`, the record is zeroed and — for a type whose
+    /// `blocks_while_dead` kept the disc — `clear_blocking` takes the disc
+    /// out of the occupancy index. The bump above has already run, as the
+    /// listing's first statement does.
+    fn cull_deaths(&mut self) {
+        let frame = self.frame;
+        let mut k = 0;
+        while k < self.deaths.len() {
+            let d = self.deaths[k];
+            let ended = d.life.is_some_and(|l| frame - d.first_frame + 1 >= l);
+            if !ended {
+                k += 1;
+                continue;
+            }
+            self.deaths.remove(k);
+            if let Some(u) = self
+                .units
+                .iter()
+                .rposition(|u| i32::from(u.owner) == d.who && i32::from(u.index) == d.o)
+            {
+                let blocks = !self.units[u].alive()
+                    && self.units[u].ty.is_some_and(|t| {
+                        self.unit_types[t].cols.unit_flags
+                            & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                            != 0
+                    });
+                if blocks && self.units[u].coll_at.is_none() {
+                    self.coll_remove(u);
+                }
             }
         }
     }
@@ -8688,6 +8766,7 @@ mod tests {
             o: 0,
             first_frame: 0,
             cur_anim: 17,
+            life: None,
         });
         for _ in 0..40 {
             sim.tick();

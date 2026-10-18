@@ -7600,13 +7600,9 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IN — reserved
+## Parked by item 3205, 2026-10-18 — the death object's cull
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3205a) **A sea unit's end** (GOLDEN §127). The arm (`type +0x218 == 1`: the animation alone, no fade) is read from `inc_time`, not diffed. What names the score: a capture where a ship dies and its record's end is printed. Check: `DEATH_OBJS` of a dead ship across its lifetime.
 
 ## Parked by the next landing, slot IO — reserved
 

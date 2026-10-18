@@ -618,7 +618,7 @@ fn run867_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 183, "initial run867 baseline");
+    pin_eq!(w.firsts.len(), 169, "initial run867 baseline");
     // Item 2677: the word 5407's own block is 5408, widened at 3418 keys.
     // Every who=1 Strategic Bomber (`TypeIndex` 305, air) on its
     // `AIRPATROLORDER` round the human's capital `0/2000` (6240, 7008)
@@ -734,7 +734,7 @@ fn run879_s_word_frame_is_widened_whole() {
     // freighter's idle draws shifted after it; `1/225` keeps only its
     // standing `form`. Left: the standing keys from 5976, and from 6045
     // `1/164`'s `attrition` (ours 6, theirs 0) and then its `hits`.
-    pin_eq!(w.firsts.len(), 191, "initial run879 baseline");
+    pin_eq!(w.firsts.len(), 177, "initial run879 baseline");
 }
 
 /// run881: the word 6452's window, blocks 6446..6701 at the long's detail (item 2825).
@@ -786,7 +786,7 @@ fn run881_s_word_frame_is_widened_whole() {
     // 6446, the `attrition`/`sheltered` rows from 6453 (`1/44` ours 6,
     // theirs 0, as run879's `1/164` on 6045), the `form` and
     // `dest_angle` rows.
-    pin_eq!(w.firsts.len(), 252, "initial run881 baseline");
+    pin_eq!(w.firsts.len(), 238, "initial run881 baseline");
 }
 
 /// run882: the word 6808's window, blocks 6802..6821 at the long's detail (item 2845).
@@ -837,7 +837,7 @@ fn run882_s_word_frame_is_widened_whole() {
     // `attack[0].mandatory` on 6821, the new word's frame.
     // Item 2864: 248 → 247, `1/124`'s `attack[0].mandatory` goes with
     // `think`'s army shortcut (`docs/AI.md` §238).
-    pin_eq!(w.firsts.len(), 247, "initial run882 baseline");
+    pin_eq!(w.firsts.len(), 233, "initial run882 baseline");
 }
 
 /// run883: the word 6821's window, blocks 6815..6822 and the closing block
@@ -890,7 +890,7 @@ fn run883_s_closing_frame_is_widened_whole() {
     // 260 → 246: block 6822 keeps one row, the Armored Cavalry `1/106`'s
     // `cavarch_o` (ours −1, theirs 2000 — its fire-on-the-move target,
     // no draw, no order).
-    pin_eq!(w.firsts.len(), 246, "run883 baseline");
+    pin_eq!(w.firsts.len(), 232, "run883 baseline");
 }
 
 /// **The pair's closing state** (item 2864, DECISIONS 55): run883's
