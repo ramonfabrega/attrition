@@ -191,6 +191,53 @@ pub(crate) fn air_turn_speed(base: u32, roll: Single, sign: i32) -> u32 {
     if rate < MIN_TURN { MIN_TURN } else { rate }
 }
 
+/// `Unit::find_new_air_target`'s selection over answered callees (item 3250,
+/// `docs/GOLDEN.md` §50): the walk of [`Sim::find_new_air_target`] with the
+/// two `find_units` result lists, `valid_target` and `compare_target` handed
+/// in, so a sweep can answer them from a row. `range` is
+/// `AIRCRAFT_RESPOND_RANGE`; `near` the air-domain enemies round the plane,
+/// `ring` the enemies round the point (both in `find_units`' order, each with
+/// its position), `at` the point already replaced by the plane's own where
+/// the plane is a computer's. Best starts at −1 and a strictly greater
+/// `cmp` replaces it.
+pub(crate) fn pick_air_target<T: Copy>(
+    range: i32,
+    me: Pos,
+    at: Pos,
+    near: impl FnOnce() -> Vec<(T, Pos)>,
+    ring: impl FnOnce() -> Vec<(T, Pos)>,
+    mut valid: impl FnMut(T) -> bool,
+    mut cmp: impl FnMut(T) -> i32,
+) -> Option<T> {
+    let r = range * 0xc0;
+    let mut best: Option<(i32, T)> = None;
+    let mut take = |o: T, p: Pos, from: Pos, best: &mut Option<(i32, T)>| {
+        if !valid(o) {
+            return;
+        }
+        if vector_dist(p.x - from.x, p.y - from.y) > r {
+            return;
+        }
+        let v = cmp(o);
+        if v > best.map_or(-1, |(w, _)| w) {
+            *best = Some((v, o));
+        }
+    };
+    for (o, p) in near() {
+        take(o, p, me, &mut best);
+    }
+    if let Some((_, t)) = best {
+        return Some(t);
+    }
+    if vector_dist(at.x - me.x, at.y - me.y) > range * 0x3c0 {
+        return None;
+    }
+    for (o, p) in ring() {
+        take(o, p, at, &mut best);
+    }
+    best.map(|(_, t)| t)
+}
+
 impl Sim {
     /// A bird's [`Flight`], which starts at a zero bank and no turn.
     pub fn flight(&self, u: usize) -> Flight {
@@ -992,46 +1039,38 @@ impl Sim {
     /// SEAM: the `param_3 ≥ 0` arm between them (a search round a current
     /// target), which the patrol never asks.
     pub(crate) fn find_new_air_target(&self, u: usize, at: Pos) -> Option<crate::combat::Obj> {
-        let r = self.tuning.aircraft_respond_range * 0xc0;
         let me = self.units[u].pos;
         let who = self.units[u].owner;
         let at = if self.ai_driven(who) { me } else { at };
         let plane = crate::combat::Obj::Unit(u);
-        let mut best: Option<(i32, crate::combat::Obj)> = None;
-        let take = |s: &Self, o: usize, from: Pos, best: &mut Option<(i32, crate::combat::Obj)>| {
-            let t = crate::combat::Obj::Unit(o);
+        let r = self.tuning.aircraft_respond_range * 0xc0;
+        pick_air_target(
+            self.tuning.aircraft_respond_range,
+            me,
+            at,
+            || {
+                self.find_units_round(me, r, who)
+                    .into_iter()
+                    .filter(|&o| {
+                        matches!(
+                            self.profile(crate::combat::Obj::Unit(o)).domain,
+                            crate::attrition::Domain::Air
+                        )
+                    })
+                    .map(|o| (o, self.units[o].pos))
+                    .collect()
+            },
+            || {
+                self.find_units_round(at, r, who)
+                    .into_iter()
+                    .map(|o| (o, self.units[o].pos))
+                    .collect()
+            },
             // Unit targets only: the capture arm is a building's.
-            if !s.valid_target_const(plane, t) {
-                return;
-            }
-            let p = s.units[o].pos;
-            if vector_dist(p.x - from.x, p.y - from.y) > r {
-                return;
-            }
-            let v = s.compare_target(plane, t, true, false);
-            if v > best.map_or(-1, |(w, _)| w) {
-                *best = Some((v, t));
-            }
-        };
-        for o in self.find_units_round(me, r, who) {
-            if matches!(
-                self.profile(crate::combat::Obj::Unit(o)).domain,
-                crate::attrition::Domain::Air
-            ) {
-                take(self, o, me, &mut best);
-            }
-        }
-        if let Some((_, t)) = best {
-            return Some(t);
-        }
-        let range = self.tuning.aircraft_respond_range;
-        if vector_dist(at.x - me.x, at.y - me.y) > range * 0x3c0 {
-            return None;
-        }
-        for o in self.find_units_round(at, r, who) {
-            take(self, o, at, &mut best);
-        }
-        best.map(|(_, t)| t)
+            |o| self.valid_target_const(plane, crate::combat::Obj::Unit(o)),
+            |o| self.compare_target(plane, crate::combat::Obj::Unit(o), true, false),
+        )
+        .map(crate::combat::Obj::Unit)
     }
 
     /// `Objects::find_units@0065a620(at, SEARCH_ENEMY, who, range, …)`'s
