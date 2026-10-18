@@ -1743,6 +1743,16 @@ impl Sim {
     /// How far beyond its own range an attacker's target would still be
     /// from the proposed point — `max(0, attack_dist − range × 0xc0)`, 0
     /// when the action is not an attack.
+    ///
+    /// **And 0 when the target no longer stands**: the original asks the
+    /// action's `TargetOrder` its vslot `+4`, `TargetOrder::target_exists@0072ff10`
+    /// (the slot's live bit and its `uid`), before it measures
+    /// (`detect_unit_collision@00617060:103-119`), and leaves `local_20` at
+    /// 0 when it fails. The battery word 12836 (`docs/AI.md` §245): the
+    /// Scout `0/0` dies on 12835, and on 12836 four of who=1's attackers
+    /// marching on it collide **hard** with their group-mates in the
+    /// original, where this crate still measured to the dead Scout, passed
+    /// `0x300` and called them soft.
     fn attack_overreach(&self, u: usize, at: Pos) -> i32 {
         let Some(a) = self.action_of(u) else { return 0 };
         let Body::Attack(_) = self.units[u].orders[a].body else {
@@ -1751,6 +1761,9 @@ impl Sim {
         let Some(t) = self.units[u].combat.target else {
             return 0;
         };
+        if !self.obj_alive(t) {
+            return 0;
+        }
         let range = self.max_range_of(Obj::Unit(u));
         let ext = crate::combat::extent(&self.profile(t), matches!(t, Obj::Building(_)));
         let mine = crate::combat::extent(&self.profile(Obj::Unit(u)), false);
