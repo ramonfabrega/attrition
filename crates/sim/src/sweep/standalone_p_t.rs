@@ -16,6 +16,8 @@ mod path_finder_calc_river_cost;
 mod path_finder_data_find_node_closed;
 #[path = "path_finder_data_find_node_open.rs"]
 mod path_finder_data_find_node_open;
+#[path = "path_finder_data_valid_roadcoord.rs"]
+mod path_finder_data_valid_roadcoord;
 #[path = "path_finder_empty_lists.rs"]
 mod path_finder_empty_lists;
 #[path = "path_finder_find_road_restore.rs"]

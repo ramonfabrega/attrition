@@ -204,6 +204,30 @@ pub(crate) fn max_gatherers_steps<L>(
     calc(city, Some(list())).max(0)
 }
 
+/// `Build::find_gather_tiles@00623350`'s list step: the found tiles appended
+/// to the list, then — if the list grew — `4 × length` rounds of "draw an
+/// index, move that entry to the back" (`rnd(n)` is `Random::get(0, 0xffff) %
+/// n`, and `0` without a draw for `n <= 1`). The original removes the picked
+/// entry by value and the list holds each tile once, so removing by index is
+/// the same operation. The tile marking sits between append and shuffle in
+/// the original and changes nothing the draws read, so it follows here.
+pub fn extend_and_shuffle_gather_list(
+    list: &mut Vec<Pos>,
+    found: Vec<Pos>,
+    mut rnd: impl FnMut(i32) -> i32,
+) {
+    let before = list.len();
+    list.extend(found);
+    let n = list.len();
+    if before < n {
+        for _ in 0..4 * n {
+            let k = rnd(n as i32) as usize;
+            let e = list.remove(k);
+            list.push(e);
+        }
+    }
+}
+
 /// What a gather building's slot count is being computed for: an existing
 /// building, which reads its own `MiningList`, or a prospective site, which
 /// surveys the map (`max_gatherers`' `o < 0 || who < 0` branch).
@@ -529,22 +553,18 @@ impl Sim {
             return;
         };
         let corner = self.tile_corner(ty, pos);
-        let before = self.buildings[b].gather_from.len();
         let found = self.gather_tcoords(ty, who, corner);
-        self.buildings[b].gather_from.extend(found);
-        for i in 0..self.buildings[b].gather_from.len() {
-            let t = self.buildings[b].gather_from[i];
+        // The shuffle's site marks the stream only when the list grew.
+        if !found.is_empty() {
+            self.mark(SITE_SHUFFLE);
+        }
+        // The list is taken out for the draws, which borrow the whole sim.
+        let mut list = std::mem::take(&mut self.buildings[b].gather_from);
+        extend_and_shuffle_gather_list(&mut list, found, |n| self.rnd(n));
+        for &t in &list {
             self.world.set_tile_bits(t, GATHERED_FROM);
         }
-        let n = self.buildings[b].gather_from.len();
-        if before < n {
-            self.mark(SITE_SHUFFLE);
-            for _ in 0..4 * n {
-                let k = self.rnd(n as i32) as usize;
-                let e = self.buildings[b].gather_from.remove(k);
-                self.buildings[b].gather_from.push(e);
-            }
-        }
+        self.buildings[b].gather_from = list;
         self.buildings[b].gather_max = Some(self.max_gatherers(b));
     }
 

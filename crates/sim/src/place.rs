@@ -98,7 +98,7 @@ const REAL_SEA_CELLS: i32 = 24;
 /// original — less half of each size, `sar`. Item 2122's sweep holds it
 /// against the original on the real `div_3_table` for coordinates in
 /// `0..=16000`.
-pub(crate) fn tile_corner_of(x_size: i32, y_size: i32, pos: Pos) -> Pos {
+pub fn tile_corner_of(x_size: i32, y_size: i32, pos: Pos) -> Pos {
     let t = pos.tile();
     let snap = |v: i32, size: i32| v * UNITS_PER_TILE + if size & 1 == 1 { 96 } else { 0 };
     let c = Pos::new(snap(t.x, x_size), snap(t.y, y_size)).tile();

@@ -7743,13 +7743,48 @@ read unguarded, as parked 3216). `check_ever_seen`: `|| param_1 != 0` on the tai
 - **The disc release (3190) and the wreck on the chain (3235) are untouched**: the squads crossing the Tank's cell (1903..) are past the word; they wait on 917 closing.
 - **A better staging for the release alone**: the Tank in a quiet corner of who=1's land (no citizens to shoot) would keep combat out of the way; the same file with the Tank elsewhere and a retake would reach 1890 on draws.
 
-## Parked by the next landing, slot JB — reserved
+## Parked by item 3238, 2026-10-18 — the sweep's fourteenth batch (six port bodies against the crate)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+3238 (a). **Which sweeps call the crate's method.** `valid_roadcoord` (`Sim::valid_roadcoord`), `find_unit_ordered_with_radius`
+(`Sim::find_unit_ordered_with_radius`), `end_trade_route` (`Sim::end_trade_route`) and `add_cast_order` (`Sim::add_cast_order_at`
+plus inline patches of the point, the action bit and `unit_masks & 0x4000000`) drive the crate. `find_gather_tiles` drives only an
+extracted helper (`extend_and_shuffle_gather_list`); `do_marching` drives `do_marching_steps` over a test `MarchView`, not
+`Sim::do_marching`. Four methods became `pub` (or `pub fn` helpers were extracted) so the standalone integration crates can call
+them; `gather.rs`'s `find_gather_tiles` was refactored (the 0x1000 tile marking now follows the shuffle; no draw reads tiles).
+
+3238 (b). **`end_trade_route` parts from the original in three fields, found by the sweep and pinned as known partings:** the
+original clears `caravan_flags & 4` (the crate keeps `delivered`); the original leaves the city pair `+0..+7` (the crate sets
+`city_a`/`city_b` None); the original leaves `reset_road` `+0x24` (the crate clears it). The Unit `+0x68 & 0x200` clear has no
+crate state. Unswept: the `playing`/`loading` gate, the order arm (`get_action` stubbed null; needs the crate's `CaravanLink` list),
+the parked-search tree arm. Names no score; parks until a frame shows it.
+
+3238 (c). **`find_unit_ordered_with_radius`:** the crate returns a bool, not the index/distance (the port copies `+0x1fc`/`+0x200`);
+`param_4` fits `r_coll` only for `r >= 0`; `CHANGE_FORM` (18) is a SEAM; `who >= 8` takes the original's error path, the crate has no
+guard; the `valid_filter` arm (filter 1..=0x17) is not drawn; alive is `+8 & 1` against the crate's `health > 0`; `Sim::new(.., 2)`
+leaves players 2..7 unexercised.
+
+3238 (d). **`find_gather_tiles`:** the crate method itself is not diffed end to end. Wanted: a `--stub-grow IDX:COUNTOFF:DATAOFF:LO..HI`
+generator flag (a stub appending a drawn number of unique tcoords) and a way to drive `Sim::rnd` from the stub's `Random::get`
+answers. The crate has no university/vftable gate and stores `gather_max` as `i32` where the original stores a byte. `--stub-write`
+is a constant, so the final list is always six tiles. The `div_3_table` is a pointer cell: any sweep calling `tile_corner` needs
+`--cell-win=0xcae5fc:0x1000 --fill=c1:i//3`.
+
+3238 (e). **`do_marching`:** the crate's "under attack" is always false (the original keeps a non-enemy unit target when vslot
+`0x188` is non-zero); weak/strong/tribute are seams (weak clear, strong set, tribute false); a building without a city is treated
+as a city centre; `Sim::find_target` can close the army where the original's never does. Two modules because `--stub-write` is a
+fixed value (a drawn value is the generator's wanted flag). A sweep using `crate::` internals sits in `sweep/mod.rs`, not a
+`standalone_*.rs`.
+
+3238 (f). **`add_cast_order`:** `Sim::add_cast_order_on` (cast.rs) is `pub(crate)`, and the crate has no single entry combining the
+pack/unpack rewrite with the point and action bit; targeted orders are unmodelled (`param_1/2` fixed at -1 by `--argrange`);
+`path::Search` has no public constructor so the `clear_partial_path` effect is unobserved. **The sweep's call-log check is weak:**
+the port builds the expected sequence from `pos`, strips the stub calls and compares, then copies the original's raw log over so the
+generated assertion passes. Call order is therefore checked against the port's own reconstruction, not the crate's.
+
+3238 (g). **Generator notes:** `--sparse @VA:...` lays the slice at the image address, not a pointer to a window (a pointer word needs a
+4-byte slice plus `--place pK+0`); `--place pK+off` reads only already-placed windows, stub-answer windows go `--place sN:...` and
+index after the other places; `--nargs` is for `vcall`, `--own` is the argument count for `obj`; `--stub-write` has a fixed value.
+`valid_roadcoord`: players fixed at 0, so the player-1 array path is untested (`--answer-by` needs contiguous object windows).
 
 ## Parked by the next landing, slot JC — reserved
 

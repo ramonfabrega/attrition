@@ -570,7 +570,7 @@ impl Sim {
     /// which is the only thing that makes `calc_road_cost`'s ocean arm
     /// reachable — and East Indies' caravan has it, so its route walks
     /// straight over the water between two coasts.
-    fn valid_roadcoord(
+    pub fn valid_roadcoord(
         &self,
         p: Pos,
         from: Pos,
