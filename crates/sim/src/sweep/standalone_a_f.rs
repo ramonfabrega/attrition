@@ -356,6 +356,8 @@ mod caravans_new_danger;
 mod cast_order_walk_data;
 #[path = "cast_order_walk_data_vtordisp.rs"]
 mod cast_order_walk_data_vtordisp;
+#[path = "caster_process_spells.rs"]
+mod caster_process_spells;
 #[path = "caster_walk_data.rs"]
 mod caster_walk_data;
 #[path = "categories_find_data.rs"]
