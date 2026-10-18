@@ -3364,7 +3364,7 @@ impl Sim {
         if self.is_fleeing(responder) {
             return;
         }
-        if st.target.is_some() {
+        if st.target.is_some() && !self.attack_action_yields(responder, attacker) {
             return;
         }
         // **The flee arm** (`docs/COMBAT.md` §34), and it is reached only
@@ -3485,6 +3485,57 @@ impl Sim {
                 }
             }
         }
+    }
+
+    /// **`Unit::target_opportunity@005fffc0`'s attack-action arm**
+    /// (`600118`..`6004e7`, `docs/GOLDEN.md` §123): a unit whose action is an
+    /// ATTACK on someone else drops it for the new attacker unless the
+    /// order is mandatory, the held target is a combat-role unit, the new
+    /// attacker is a building, the stance is Raid or Raze, or — when the
+    /// attacker's type has an attack at all — the held target is in range
+    /// or the attacker is not. Returns whether the old order is killed and
+    /// the retaliation goes on to the tail.
+    ///
+    /// SEAMs: the siege/bombard/explosive shields (`has_objmask(0x840002)`)
+    /// and a DEFENSIVE order's `find_def_pos` write.
+    fn attack_action_yields(&mut self, u: usize, attacker: Obj) -> bool {
+        let Some(k) = self.action_of(u) else {
+            return false;
+        };
+        let crate::orders::Body::Attack(_) = self.units[u].orders[k].body else {
+            return false;
+        };
+        let Some(held) = self.units[u].combat.target else {
+            return false;
+        };
+        if held == attacker || self.units[u].combat.mandatory {
+            return false;
+        }
+        let me = Obj::Unit(u);
+        if self.profile(me).has(
+            crate::combat::mask::SIEGE
+                | crate::combat::mask::BOMBARD
+                | crate::combat::mask::EXPLOSIVE,
+        ) {
+            return false;
+        }
+        if matches!(held, Obj::Unit(_)) && self.profile(held).combat_role {
+            return false;
+        }
+        if matches!(attacker, Obj::Building(_)) {
+            return false;
+        }
+        if matches!(self.units[u].combat.stance, Stance::Raid | Stance::Raze) {
+            return false;
+        }
+        if self.profile(attacker).attack != 0
+            && (self.is_in_range(me, held) || !self.is_in_range(me, attacker))
+        {
+            return false;
+        }
+        self.repath(u);
+        self.kill_current_order(u);
+        true
     }
 
     /// **`Unit::on_duty@005fff70`**: a combat-role type (`+0x2c8 &
