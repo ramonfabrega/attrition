@@ -162,12 +162,14 @@
 /// (`ObjectData::num_aircraft_here`, `ObjectTypeData::get_wonder_value`, `ObjectsData::find_dock`, `Caravans::new_danger`).
 /// item 3134: 1454 -> 1459 on the merged tree, the shape lane's seventh batch
 /// (`ObjectsData::find_town_at`, `ObjectsData::find_good_at`, `Build::process_ejection`, `Unit::cavarch_fight`, `Army::send_here`).
+/// item 3182: 1469 -> 1471 on the merged tree, the shape lane's tenth batch
+/// (`Unit::check_idle`, `ObjectData::is_in_range@006486b0`).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1469;
+pub const SIMULATION_BACKED: usize = 1471;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
@@ -175,8 +177,8 @@ pub const SIMULATION_BACKED: usize = 1469;
 /// 1725: Ramon's answer at the fortieth steer; the forty-first pass
 /// measured 293 of 1459 on this tree). `tools/census.py --layers` prints
 /// both, the `Census:` line carries both, and the commander re-pins both at
-/// booking.
-pub const SIMULATION_PORT_BACKED: usize = 303;
+/// booking. Item 3182: 303 -> 305 (both of its bodies have a port consumer).
+pub const SIMULATION_PORT_BACKED: usize = 305;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
