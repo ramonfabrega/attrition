@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -38,44 +43,62 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // `a`: 0 and 1 the answers of slots +0x1c (is_wonder_type) and +0x34 (is_age_type), 2..5 the String and Error::report stubs'
-    // (report answers 0 every row: a nonzero answer is the original's own `int3`), 6 and 7 the base flags of +0x1c and +0x34.
-    // Windows: c0 the gamec record, c1 the two `ignore_always` bytes, p0 the buildtypes array, p1..p5 its records at this+4 in
-    // {0x20d, 0x20e, 0x214, 0x21e, 0x21f}, p6 the types list's block, p7..p10 its entries (ebx -1..2).
-    let rd = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
-    let ty = rd(m, 4);
-    let wonder = if a[6] != 0 { (0x20e..0x21f).contains(&ty) } else { a[0] != 0 };
-    if !wonder {
-        0
-    } else {
-        let ebx = rd(m, 0x30);
-        if ebx < 0 && (c[0][0x821] & 0x10 != 0 || c[0][0x822] & 2 != 0) {
-            0
-        } else {
-            // the first `Error::report` arm (ebx < 0, `ignore_always` clear) and the second (the prerequisite is not an age
-            // type) report through stubs and fall through either way.
-            let age = rd(&p[7 + (ebx + 1) as usize], 4);
-            let _is_age = if a[7] != 0 { (0x220..0x227).contains(&age) } else { a[1] != 0 };
-            let at = match ty {
-                0x20d => 1,
-                0x20e => 2,
-                0x214 => 3,
-                0x21e => 4,
-                _ => 5,
-            };
-            i64::from(rd(&p[at], 0x2d0))
-        }
-    }
-}
+                // `a`: 0 and 1 the answers of slots +0x1c (is_wonder_type) and +0x34 (is_age_type), 2..5 the String and Error::report stubs'
+                // (report answers 0 every row: a nonzero answer is the original's own `int3`), 6 and 7 the base flags of +0x1c and +0x34.
+                // Windows: c0 the gamec record, c1 the two `ignore_always` bytes, p0 the buildtypes array, p1..p5 its records at this+4 in
+                // {0x20d, 0x20e, 0x214, 0x21e, 0x21f}, p6 the types list's block, p7..p10 its entries (ebx -1..2).
+                let rd = |w: &[u8], o: usize| {
+                    i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+                };
+                let ty = rd(m, 4);
+                let wonder = if a[6] != 0 {
+                    (0x20e..0x21f).contains(&ty)
+                } else {
+                    a[0] != 0
+                };
+                if !wonder {
+                    0
+                } else {
+                    let ebx = rd(m, 0x30);
+                    if ebx < 0 && (c[0][0x821] & 0x10 != 0 || c[0][0x822] & 2 != 0) {
+                        0
+                    } else {
+                        // the first `Error::report` arm (ebx < 0, `ignore_always` clear) and the second (the prerequisite is not an age
+                        // type) report through stubs and fall through either way.
+                        let age = rd(&p[7 + (ebx + 1) as usize], 4);
+                        let _is_age = if a[7] != 0 {
+                            (0x220..0x227).contains(&age)
+                        } else {
+                            a[1] != 0
+                        };
+                        let at = match ty {
+                            0x20d => 1,
+                            0x20e => 2,
+                            0x214 => 3,
+                            0x21e => 4,
+                            _ => 5,
+                        };
+                        i64::from(rd(&p[at], 0x2d0))
+                    }
+                }
+            }
         };
         assert_eq!(got, want_eax, "get_wonder_value — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "get_wonder_value — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_wonder_value — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_wonder_value — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "get_wonder_value — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[3 + i],
+                "get_wonder_value — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

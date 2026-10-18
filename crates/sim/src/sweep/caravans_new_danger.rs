@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -41,54 +46,62 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // `a`: 0 and 1 the coordinates, 2 `param_3` (a leader), 3 and 4 the stubs' singles (unused). Windows: p[4r..4r+3] leader r's
-    // image row (flags, +8, the relations at +0x74, the caravan count at +0x438), p[32+r] its row of the `leadersc` table's
-    // relations (+0x74), p[43+3k+j] leader k's caravan j, p[52+3k+j] that caravan's positions; `vector_dist` is the original's own
-    // code (stub 1), `Caravan::restart_trade_route` (stub 0) is logged by its caravan's window.
-    let rd = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
-    let p3 = a[2] as usize;
-    let mut calls: Vec<String> = Vec::new();
-    for r in 0..8usize {
-        if rd(&p[4 * r], 0) & 3 != 3 {
-            continue;
-        }
-        let who = rd(&p[4 * r + 1], 0);
-        if a[2] != who && !(rd(&p[4 * r + 2], 4 * p3) == 2 && rd(&p[32 + p3], 4 * who as usize) == 2) {
-            continue;
-        }
-        for j in 0..rd(&p[4 * r + 3], 0).max(0) as usize {
-            let cv = &p[43 + 3 * r + j];
-            if cv[0xc] & 3 != 3 {
-                continue;
-            }
-            let tok = || format!("p{}+0x0", 43 + 3 * r + j);
-            if rd(cv, 0x20) == 0 && rd(cv, 0x18) != 0 {
-                let pos = &p[52 + 3 * r + j];
-                for i in 0..rd(cv, 0x18).max(0) as usize {
-                    let d = crate::world::vector_dist(
-                        rd(pos, 16 * i).wrapping_sub(a[0]).wrapping_abs(),
-                        rd(pos, 16 * i + 4).wrapping_sub(a[1]).wrapping_abs(),
-                    );
-                    if d < 0x601 {
-                        calls.push(tok());
-                        break;
+                // `a`: 0 and 1 the coordinates, 2 `param_3` (a leader), 3 and 4 the stubs' singles (unused). Windows: p[4r..4r+3] leader r's
+                // image row (flags, +8, the relations at +0x74, the caravan count at +0x438), p[32+r] its row of the `leadersc` table's
+                // relations (+0x74), p[43+3k+j] leader k's caravan j, p[52+3k+j] that caravan's positions; `vector_dist` is the original's own
+                // code (stub 1), `Caravan::restart_trade_route` (stub 0) is logged by its caravan's window.
+                let rd = |w: &[u8], o: usize| {
+                    i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+                };
+                let p3 = a[2] as usize;
+                let mut calls: Vec<String> = Vec::new();
+                for r in 0..8usize {
+                    if rd(&p[4 * r], 0) & 3 != 3 {
+                        continue;
+                    }
+                    let who = rd(&p[4 * r + 1], 0);
+                    if a[2] != who
+                        && !(rd(&p[4 * r + 2], 4 * p3) == 2
+                            && rd(&p[32 + p3], 4 * who as usize) == 2)
+                    {
+                        continue;
+                    }
+                    for j in 0..rd(&p[4 * r + 3], 0).max(0) as usize {
+                        let cv = &p[43 + 3 * r + j];
+                        if cv[0xc] & 3 != 3 {
+                            continue;
+                        }
+                        let tok = || format!("p{}+0x0", 43 + 3 * r + j);
+                        if rd(cv, 0x20) == 0 && rd(cv, 0x18) != 0 {
+                            let pos = &p[52 + 3 * r + j];
+                            for i in 0..rd(cv, 0x18).max(0) as usize {
+                                let d = crate::world::vector_dist(
+                                    rd(pos, 16 * i).wrapping_sub(a[0]).wrapping_abs(),
+                                    rd(pos, 16 * i + 4).wrapping_sub(a[1]).wrapping_abs(),
+                                );
+                                if d < 0x601 {
+                                    calls.push(tok());
+                                    break;
+                                }
+                            }
+                        } else {
+                            calls.push(tok());
+                        }
                     }
                 }
-            } else {
-                calls.push(tok());
+                log.push(if calls.is_empty() {
+                    "-".into()
+                } else {
+                    calls.join("/")
+                });
+                0
             }
-        }
-    }
-    log.push(if calls.is_empty() {
-        "-".into()
-    } else {
-        calls.join("/")
-    });
-    0
-}
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "new_danger — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "new_danger — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "new_danger — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
