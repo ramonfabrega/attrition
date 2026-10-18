@@ -853,9 +853,11 @@ impl Sim {
         let Some(pool) = self.pushed.get(i).and_then(|e| e.state.pool) else {
             return false;
         };
-        self.armies
-            .get(g.who as usize)
-            .is_some_and(|x| x.list.iter().any(|a| a.valid && a.num_units != 0 && a.group.pool == Some(pool)))
+        self.armies.get(g.who as usize).is_some_and(|x| {
+            x.list
+                .iter()
+                .any(|a| a.valid && a.num_units != 0 && a.group.pool == Some(pool))
+        })
     }
 
     /// The seat whose record pool slot `s` of `who` is — the army whose
