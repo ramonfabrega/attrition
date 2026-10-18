@@ -548,3 +548,46 @@ fn run923_s_food_row_is_widened_whole() {
     );
     pin_eq!(w.firsts.len(), 0, "initial run923 baseline");
 }
+
+/// PROBE 3170 (reverted whole): who=1's rares on block 1, ours.
+#[test]
+fn probe_3170_rares_block_1() {
+    if std::env::var("RON_PROBE_3170").is_err() {
+        return;
+    }
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(start), Some(tr)) = (dump(IROQUOIS.start), trace(IROQUOIS.long.1)) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let start_text = crate::capture::read(start);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    for who in 0..2 {
+        eprintln!("before tick who={who} new_rares {:?}", built.sim.ai[who].new_rares);
+    }
+    built.tick();
+    let s = &built.sim;
+    for who in 0..2 {
+        eprintln!(
+            "who={who} new_rares {:?} reg_known_rares {:?}",
+            s.ai[who].new_rares,
+            s.ai[who].census.reg_known_rares.iter().enumerate().filter(|(_, v)| **v != 0).collect::<Vec<_>>()
+        );
+    }
+    for (gi, g) in s.world.goods().iter().enumerate() {
+        let c = g.pos.cell();
+        let half = |v: i32| v.div_euclid(sim::world::UNITS_PER_CELL / 2);
+        let seen = s.world.seen2(half(g.pos.x), half(g.pos.y)).unwrap_or(0);
+        eprintln!(
+            "good {gi} ty {} pos ({}, {}) cell {:?} region {:?} owner {:?} seen2 {seen:#x}",
+            g.ty, g.pos.x, g.pos.y, c, s.world.region_of(c), s.world.owner(c)
+        );
+    }
+}
