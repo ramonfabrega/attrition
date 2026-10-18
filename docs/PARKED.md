@@ -3740,6 +3740,19 @@ for: it cost one run rather than an item.
 
 (3068) **A harvest batch: the order-adders' family** — held off the queue at the fortieth steer (Ramon: the harvest lane becomes the nations lane, 3092; DECISIONS 78 amended), its text as booked: the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,     `add_cast_order`, `add_trade_order`, `add_repair_order`,     `add_build_order` by 3064's recipe (parked 3070), then ten more off     `--claimed` the live sweep lanes' trees; never a `process_*`.     Unstarted. `--kind sweep`. It returns when a pass books a sweep lane on it; the shape sweep (3078) keeps the generator.
 
+## Loop, filed 2026-10-18 — the forty-third tranche's
+
+(3226) **`tools/brief.py` has no nations kind** (the commander, at 3221's merge): the nations lane's briefs go out as
+`--kind residue`, and the frame tells the worker it is "on the AI track" (`TRACKS`, brief.py:52) — 3207's, 3221's and
+3225's all read so, beside a note that says the nations lane. Candidate: a `nations` kind whose track line, reading
+list and default filters are the lane's (`battery_floors`, `nations`, `first_parting`), made to fail first on a
+nations brief that names the AI track. One reach.
+
+(3227) **A lane gate's `--tests` filter can name an `#[ignore]` test** (3221's done line, filed at its merge): the
+commander's briefs for 3194, 3207 and 3221 named `battery_measure`, which is `#[ignore]`, and 3221's lane gate exited 2
+on it and was rerun without it; the battery was measured by hand. Candidate: `brief.py --tests` refuses a filter whose
+only matches are ignored tests, or the lane gate runs an ignored match with `--ignored` and says so. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-second tranche's
 
 (3224) **A lane gate's minutes are not in its receipt** (the forty-second pass's measurement): the lane gate is 21.6
