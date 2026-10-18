@@ -3742,6 +3742,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-second tranche's
 
+(3188) **The nations lane's named family is spent for the battery's leaders** (the commander, at 3172's merge, for the
+pass and for Ramon): 3145, 3160 and 3172 audited `get_cost`'s and `train_time`'s national arms against the eight
+battery leaders — 3160's Citizen arms moved the median 2270 → 4770; 3172's audit of `train_time` is negative and its
+Sulphur arm moved no lobby. What the lane takes next is NATIONS §7's sixth candidate (the tiers' arms, booked 3187); whether a
+nations lane stays on the roster is Ramon's (DECISIONS 78). One reach.
+
 (3181) **`--answer-win` cannot answer null** (3166's "for the Loop" line, filed at its merge): `UnitData::find_def_pos`'s
 `get_action() == 0` arm is unreached because the window answer is never null. Candidate: an `--answer-win` null a third
 of the rows, as `--place-null` does, made to fail first on the starved arm. One reach.
@@ -7369,11 +7375,11 @@ needs `--sparse` over a 225 KB image table plus a pointer array of caravan recor
 
 ## Parked by item 3170, 2026-10-18 — the Iroquois food row
 
-- (3177) **The Iroquois word 5144 is owed its widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §250): ours 36 draws,
+- (3184; the lane's 3177, booked as item 3186) **The Iroquois word 5144 is owed its widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §250): ours 36 draws,
   theirs 37, index 0 — ours `Animal::think_bird+0x82`, theirs `Unit::think_spellcaster+0x413`. run922 ends at 2022 and
   run897b is `cover=0`, so no dump holds a block between 2022 and 12658: a window of 5138..5394 at run918's detail,
   every dumped record on block 5145 both directions, `WIDENINGS`' `IROQUOIS_WORD` then names its test.
-- (3178) **An Iroquois timber site's food slots and the cap they put on its timber gatherers are not carried.**
+- (3185; the lane's 3178) **An Iroquois timber site's food slots and the cap they put on its timber gatherers are not carried.**
   `BuildTypeData::calc_gather@00639e40` counts the camp's food slots in the same survey (`aiStack_108[0] += local_8c`
   under `has_tribe_bonus(0x12)`), takes `min(gatherers, slots, 2 × access)` for the food pass, and carries that minimum
   into the timber pass as `param_11`; a slot count of 0 breaks out with `−1`. `economy::iroquois_food` admits every
@@ -7525,16 +7531,10 @@ no score today.
 
 ## Parked by item 3172, 2026-10-18 — the Sulphur siege arm and the train_time audit
 
-- The Turkish lobby (`GreatLakesTurkishTier4`, 6982) now parts on `Leader::use_market+0x1ed` (ours) against
+- (3183) The Turkish lobby (`GreatLakesTurkishTier4`, 6982) now parts on `Leader::use_market+0x1ed` (ours) against
   `Leader::make_stuff+0x221` (theirs), 7 draws against 8, index 0: a market-use decision, not a price. No
   nations term; names no score until a widening reads it (the battery is never debugged against).
 
-
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
 
 ## Parked by the next landing, slot IF — reserved
 
@@ -7572,6 +7572,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot IJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IP renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

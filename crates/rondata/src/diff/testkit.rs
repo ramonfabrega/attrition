@@ -9722,12 +9722,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // → 5144** (`IROQUOIS_FOOD`, and setup's border fixes leaving frame
     // 0's rares count standing; run923 over 1..40 dated both to block 8,
     // `run923_s_food_row_is_widened_whole`), past run922's last block
-    // (2022): 5144's widening is owed, item 3177.
+    // (2022): 5144's widening is owed, item 3186.
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3177,
+        3186,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
