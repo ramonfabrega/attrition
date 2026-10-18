@@ -542,6 +542,8 @@ mod world_is_tocean;
 mod world_is_tree_at;
 #[path = "world_map_fog_add_update.rs"]
 mod world_map_fog_add_update;
+#[path = "world_map_fog_fill_colors.rs"]
+mod world_map_fog_fill_colors;
 #[path = "world_map_fog_get_fog_lookup.rs"]
 mod world_map_fog_get_fog_lookup;
 #[path = "world_map_fog_set_fog_lookup.rs"]
@@ -550,6 +552,8 @@ mod world_map_fog_set_fog_lookup;
 mod world_map_on_right_down;
 #[path = "world_map_reinit_all.rs"]
 mod world_map_reinit_all;
+#[path = "world_new_coll_block.rs"]
+mod world_new_coll_block;
 #[path = "world_scale_by_area.rs"]
 mod world_scale_by_area;
 #[path = "world_scale_by_axis.rs"]

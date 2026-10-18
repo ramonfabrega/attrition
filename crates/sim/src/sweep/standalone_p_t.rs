@@ -128,6 +128,8 @@ mod river_section_out_compute_vert_height;
 mod rivers_out_get_name;
 #[path = "rivers_walk_data.rs"]
 mod rivers_walk_data;
+#[path = "roads_generate.rs"]
+mod roads_generate;
 #[path = "roads_out_fill_cache.rs"]
 mod roads_out_fill_cache;
 #[path = "roads_out_get_name.rs"]
@@ -166,6 +168,10 @@ mod signposts_get_num;
 mod signposts_head;
 #[path = "signposts_next.rs"]
 mod signposts_next;
+#[path = "sort_b.rs"]
+mod sort_b;
+#[path = "sort_c.rs"]
+mod sort_c;
 #[path = "special_anim_order_walk_data.rs"]
 mod special_anim_order_walk_data;
 #[path = "special_data_get_radius.rs"]
@@ -290,6 +296,8 @@ mod terrain_list_walk_data;
 mod terrain_map_cancel_button_enable;
 #[path = "terrain_map_get_terrain_type.rs"]
 mod terrain_map_get_terrain_type;
+#[path = "terrain_map_map_change_river.rs"]
+mod terrain_map_map_change_river;
 #[path = "terrain_map_on_left_up.rs"]
 mod terrain_map_on_left_up;
 #[path = "terrain_map_on_mouse_leave.rs"]

@@ -114,12 +114,16 @@ mod border_nodes_find;
 mod border_process;
 #[path = "border_process_morph.rs"]
 mod border_process_morph;
+#[path = "border_rebuild_visible_list.rs"]
+mod border_rebuild_visible_list;
 #[path = "border_spline_get_name.rs"]
 mod border_spline_get_name;
 #[path = "border_spline_on_field_change.rs"]
 mod border_spline_on_field_change;
 #[path = "border_spline_render_is_visible.rs"]
 mod border_spline_render_is_visible;
+#[path = "border_spline_render_make_bbox.rs"]
+mod border_spline_render_make_bbox;
 #[path = "borders_check_border_blocked.rs"]
 mod borders_check_border_blocked;
 #[path = "borders_get_who.rs"]
@@ -130,6 +134,8 @@ mod borders_is_border_hidden;
 mod borders_out_no_border;
 #[path = "borders_process_all.rs"]
 mod borders_process_all;
+#[path = "borders_remove_border_region.rs"]
+mod borders_remove_border_region;
 #[path = "borders_save_last_who.rs"]
 mod borders_save_last_who;
 #[path = "build_add_attack_order.rs"]
@@ -704,6 +710,8 @@ mod doober_has_doobers;
 mod doober_inc_time;
 #[path = "doober_remove_cover_doober.rs"]
 mod doober_remove_cover_doober;
+#[path = "doober_remove_doobers.rs"]
+mod doober_remove_doobers;
 #[path = "doober_remove_hold_doobers.rs"]
 mod doober_remove_hold_doobers;
 #[path = "draw_thick_diamond.rs"]
