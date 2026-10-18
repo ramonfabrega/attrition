@@ -89,6 +89,7 @@ mod build_find_city;
 mod build_type_data_check_land_adjacent;
 mod build_type_data_count_water;
 mod build_type_data_gathers;
+mod build_type_data_is_dock_tile;
 mod build_type_data_get_enhancing_good;
 mod build_type_data_get_town;
 mod build_type_data_in_enemy_territory;
