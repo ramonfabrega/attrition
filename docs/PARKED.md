@@ -7520,7 +7520,7 @@ no score today.
 ## Parked by item 3175, 2026-10-18 — the dead Tank's disc, and the death-object cull
 
 - (3189) **The death object's cull and the disc's release** (GOLDEN §125). Theirs ends `1/6`'s record (Tank, piece 194, anim 20) 152 frames after the death — block 946 is the first without it — where this crate's list is grow-only, so ch95's `1/6` `death:extra` on 946 stands, and a kept disc (`blocks_while_dead`) is never released here. What names the score: the chapter's last standing non-`form` row; a unit of such a type dying early in a longer capture would hold its cells for ever. Check: where the original clears the disc when the record ends (`DeathObj::inc_time@008d5240`'s end, `remove_from_world`), and the length of the packet (`gpiece` 194's animation).
-- (3190) **Which types carry `unit_flags & 0x800000`**, and the non-combat death sites (`cast_sniper_unit`, air crash, bribe, attrition) which still clear the disc: `Unit::close`'s `param_1` reset arms were not read per site.
+- (booked as item 3228) **Which types carry `unit_flags & 0x800000`**, and the non-combat death sites (`cast_sniper_unit`, air crash, bribe, attrition) which still clear the disc: `Unit::close`'s `param_1` reset arms were not read per site.
 
 ## Parked by item 3182, 2026-10-18 — the shape lane's tenth batch: check_idle and is_in_range@006486b0 swept, Census 1469 → 1471
 
@@ -7558,7 +7558,7 @@ Two built of the six; four not attempted past reading, each with the flag it wou
 ## Parked by item 3191, 2026-10-18 — chapter 96: the cull measured, closed at 1500
 
 - (3203; the lane's 3191a) ~~**The death object's cull**~~ built, item 3205 (GOLDEN §127): (GOLDEN §126; supersedes 3189's open check). The original's lifetime by death piece and animation: piece 194 anim 20 152 frames, anim 17 143, piece 375 anim 18 650, piece 434 anim 17 644 (piece 434 anim 18 is at least 564). It is the death piece's animation packet run by `DeathObj::inc_time@008d5240`; this crate does not load the packet, so `Sim::deaths` is grow-only and four `death:extra` rows stand in ch96 (946, 1235, 1395, 1476), two in ch95. What names the score: the standing rows on both golden chapters, and slot reuse (`Objects::find_free`) in any capture where a long-dead unit's number would be recycled. Check: where `DeathObj::inc_time` ends the record (`remove_from_world`, which slot is freed and when `hold_frames` stops), and the anim packet length source for piece 194/375/434 in the `.bha` data; a loader would read the install at runtime.
-- (3204) **Which late hoplites cross a released disc** — ch96's two hoplites added at 1000 agree through 1500 with the Tank's disc standing; no staging yet crosses it after the cull, so the disc's release (3190) is still unexercised. Needs the cull built first.
+- (3204) ~~**Which late hoplites cross a released disc**~~ diffed, item 3223 (GOLDEN §129, run931): both late captains cross the released Tank cell in the original and in ours, through 1500; the non-combat sites (3190) stay unreached.
 
 ## Parked by item 3194, 2026-10-18 — the wonder-gated free-tech blocks
 
