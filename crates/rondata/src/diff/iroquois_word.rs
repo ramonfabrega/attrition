@@ -72,11 +72,13 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // index 0: ours `Animal::think_bird+0x82`, theirs
     // `Unit::think_spellcaster+0x413`. **Item 3186 moved it 5144 → 5576**
     // with `Army::use_scouts@006f49a0` (and `use_spies`), the army's
-    // spellcaster turn this crate left a seam: on 5144 who=1's army holds
-    // its Scout `1/0` (TI 69), `Army::process`'s
-    // `count(COUNT_NON_DECOY_TYPE, 0x45)` is non-zero, and the Scout's
-    // special arm throws its coin at `+0x413`; run926's widening of 5145
-    // (`docs/AI.md` §251). At 5576 ours 35 draws, theirs 37, index 30:
+    // spellcaster turn this crate left a seam: on 5144 who=1's army 1
+    // holds `1/22` (TY 29 `takohs`, TI 79, land, the Scout's lineage), so
+    // `Army::process`'s `count(COUNT_NON_DECOY_TYPE, 0x45)` is non-zero and
+    // its special arm throws the coin at `+0x413`. run926 widens 5145: the
+    // coin writes nothing, so the block is quiet; without the turn the
+    // shifted stream first parts on 5156, `1/4`'s move order (41016,
+    // 17016) against (40824, 17592) (`docs/AI.md` §251). At 5576 ours 35 draws, theirs 37, index 30:
     // ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271`.
     count: 5576,
@@ -639,5 +641,15 @@ fn run926_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3186, on base 954b4359 with `Army::use_scouts` built: 32 keys,
+    // the standing set alone — both leaders' `SITE[n].reg`, `aggression`,
+    // `form`, the groups' `held`, the pools, `1/22`'s `blown` (parked
+    // 3114). The word's block 5145 parts nothing on either side: theirs'
+    // extra draw on 5144 is `1/22`'s special coin (`Unit::think_spellcaster
+    // +0x413` under `Army::use_scouts`), which writes no state. With the
+    // scouts' turn left out (a probe, reverted whole) the window parts 425
+    // keys, the first on block 5156: `1/4`'s move order `x`/`y` 41016/17016
+    // against 40824/17592 (`off_x`/`off_y` 312/120 against 120/696) — the
+    // stream one draw behind. The word moved 5144 → 5576, past the window.
     pin_eq!(w.firsts.len(), 32, "initial run926 baseline");
 }

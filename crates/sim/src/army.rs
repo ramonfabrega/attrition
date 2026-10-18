@@ -4264,7 +4264,8 @@ mod tests {
     /// `Army::use_scouts@006f49a0`, item 3186, `docs/AI.md` §251): on the
     /// 128-frame turn the Scout (`is_special`) is offered
     /// `think_spellcaster`, whose special arm throws its coin at `+0x413` —
-    /// run897b's frame 5144, index 0, who=1's Scout `1/0`. A decoy Scout is
+    /// run897b's frame 5144, index 0, who=1's `1/22` (TI 79, `takohs`, of
+    /// the Scout's lineage) in its army 1. A decoy Scout is
     /// not counted and throws nothing. Made to fail with the scouts' turn
     /// not called.
     #[test]
