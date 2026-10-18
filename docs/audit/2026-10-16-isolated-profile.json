@@ -348,7 +348,7 @@
     },
     "diff::battery::battery_captures_are_complete_and_say_their_lobby": {
       "elapsed": 0.5923000000038883,
-      "rss_bytes": 346603520
+      "rss_bytes": 889978880
     },
     "diff::build::tests::a_british_barracks_pays_one_bowmen_as_three_chained_units": {
       "elapsed": 0.29466979099379387,

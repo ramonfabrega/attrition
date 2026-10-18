@@ -55,7 +55,12 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // original, a `GATHERORDER` on 2001 in ours, and agrees whole with
     // the mark (`docs/AI.md` §248). At 1772 ours 3 draws, theirs 4,
     // index 0: ours `Guy::set_anim+0x104b`, theirs
-    // `Unit::do_non_flat_gather+0x54b`.
+    // `Unit::do_non_flat_gather+0x54b`. **Item 3156 widened 1772 on
+    // run922** (1620..2022): theirs' extra draw is who=1's `1/6` taking
+    // the camp 1/2008's gather on frame 1770, which ours' commerce cap
+    // refuses — Barter, queued by `defensive.bhs` step 15 on 1576 in the
+    // original and unaffordable in ours (food 46 against the 54 it
+    // costs), the food row standing from block 38 (`docs/AI.md` §249).
     count: 1772,
     sequence: 1772,
 };
@@ -428,4 +433,74 @@ fn run921_s_word_frame_is_widened_whole() {
     // `tech_cat_frame[2]` 1 against 1576, the Library 1/2005's `queued`
     // 0/1 and timber `bucket` 133 against 79 — the original queues a
     // tech on 1576 that ours does not.
+}
+
+/// run922: the word 1772's window, blocks 1620..2022 at run918's detail
+/// (item 3156) — from six blocks before run921's last (1626, Loop 3155),
+/// so the two windows overlap, through 250 past the word's own block 1773.
+pub(crate) const RUN922: &str = "gamelog-run922-greatlakes-iroquois-diff3-window-1620-2023.txt";
+
+/// The window: block 1620 through 2022.
+pub(crate) const WIDENING_IROQUOIS_FRAME_1772: (i64, i64) = (1620, 2022);
+
+pub(crate) fn iroquois_frame_1772_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run922",
+        &[(RUN922, WIDENING_IROQUOIS_FRAME_1772.0)],
+        WIDENING_IROQUOIS_FRAME_1772,
+        1,
+        &[1773],
+        true,
+    )
+}
+
+#[test]
+fn run922_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_1772_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 403, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // The capture's `GUYS=2` prints two gaia animation keys nothing reads
+    // (item 1496's pattern): the animals' clocks.
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 408, "initial run922 baseline");
+    // Item 3156, on base b0758479: 408 keys part over the window. The
+    // word's own record is block 1771 (frame 1770): who=1's citizen `1/6`
+    // (TI 50, the builder of the Woodcutter's Camp 1/2008, idle beside it
+    // at (40488, 23160)) reaches `idle` 12, `think_peasant`'s `(idle − 2)
+    // % 5` gate, and in the original takes a `GATHERORDER` on 2008 (uid
+    // 20, `build_type` 418, `orders.len` 1 against 0; the camp's
+    // `gather_down` 6 against 7); in ours `find_gather_spot` finds
+    // nothing. Theirs' `+0x54b` on 1772 is that order's tile pick (block
+    // 1773's `tx`/`ty` 206/123), and the camp's tile list and `1/6`'s walk
+    // part from there (1773..1777). Walked back: the spot is scored on the
+    // headroom under the commerce cap, and who=1's timber `income` stands
+    // at 1120 on both sides, which is ours' cap and under theirs' —
+    // `resource_cap` 1120 against 1600 from block 1758, `epoch[2]` 0
+    // against 1 from 1757: **Barter** completing in the original. It was
+    // queued on 1576 (`tech_frame` 1 against 1576, the Library 1/2005's
+    // `queued` 0/1, `script_step` 15 against 18, standing from 1620):
+    // `defensive.bhs` step 15's `research_tech_with_cost(who, "Barter")`,
+    // whose `6f/6t` the original pays (food `bucket` 67 → 13, timber 133
+    // → 79) and ours cannot — food 46. The food row stands from run918b's
+    // block 38 (parked 3138; `bucket` 51/20, `income`/`resources` 960
+    // against 1120, `leftover` 6240/1440 on 1620). The rest: the control's
+    // 30 from 1620, the Scout's `blown` 1/0 (parked 3114), and what Barter
+    // moves downstream (`gather_stamp`, `known_rares` on 1760, the
+    // gatherers from 1776, the City Center's queue from 1777).
 }
