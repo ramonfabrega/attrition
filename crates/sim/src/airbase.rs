@@ -267,7 +267,7 @@ impl Sim {
     /// time. It answers 1 for an active building with a missile type in its
     /// queue, and for any live missile of its player on a `STRAFE` (order
     /// 16) homed at it or standing inside it.
-    pub(crate) fn has_nuke(&self, b: usize) -> bool {
+    pub fn has_nuke(&self, b: usize) -> bool {
         let bd = &self.buildings[b];
         let missile =
             |t: usize| self.unit_types[t].combat.obj_masks & crate::combat::mask::MISSILE != 0;
