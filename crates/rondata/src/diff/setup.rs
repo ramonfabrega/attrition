@@ -866,6 +866,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             None => kind.map_or(0, |t| sim.init_stance(u.who as sim::Player, t)),
         };
         let idx = sim.add_unit(unit);
+        // `Unit::init`'s Iroquois Scout mask (item 3107): the forest walker
+        // `invalid_loc` reads on frame 0's explore.
+        if (0..players as i64).contains(&u.who) {
+            sim.init_iroquois_masks(idx);
+        }
         // The figures' clocks and pieces (`docs/ANIM.md` §1, §3). A
         // `DUMP_ALL` start dump carries both; any other carries neither,
         // and a sibling's clocks land here through `borrow_from_siblings`.

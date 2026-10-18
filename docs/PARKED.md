@@ -7366,13 +7366,15 @@ needs the gamec semaphore offset and `Error::report`'s arm walled off by bias. T
 
 The lane's third row (`--regen` drops the empty-log line) is filed as Loop 3111 at the merge.
 
-## Parked by the next landing, slot HM — reserved
+## Parked by item 3107, 2026-10-17 — the Iroquois Scout's masks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **`Unit::process_cloak@005e1c20` is not modelled, and the Iroquois Scout carries its cloak by block 1.** run897's
+  Scout `1/0` prints `unit_masks2` 49280 on block 1: `Unit::init`'s `0x4080` (built, `docs/AI.md` §246) and
+  `0x8000`, which `process_cloak:58` raises; the function has an Iroquois arm (`has_tribe_bonus(0x12)`, `:98`). The
+  harness compares `unit_masks2` for `0x10` alone, so the bit parts no key. Names no score until a draw or a detection
+  on the word's frame reads it (`UnitData::is_cloaked@0060a6a0`).
+- (3107, second) **`Unit::init@00612100:341`'s first half, `unit_masks2 |= 0x80`** on an Iroquois land unit whose type
+  lacks objmask 4, is not carried: no reader of `0x80` in this crate, and run897's citizens print 0.
 
 ## Parked by the next landing, slot HN — reserved
 

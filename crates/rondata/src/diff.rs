@@ -44,6 +44,8 @@ mod german_word;
 mod golden;
 mod harness;
 #[cfg(test)]
+mod iroquois_word;
+#[cfg(test)]
 mod lakota_pair;
 #[cfg(test)]
 mod leader;

@@ -9711,3 +9711,9 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #                  --ai-tribe T --allow-early-end --profile DIFFICULTY=D (run643's four --detail lines)
 # Checks: `rngcmp.py` runN vs runNb -> 0 differing in 37 frames, each. Every game ended itself (17554, 22700, 12658, 15503, 18620).
 # ==== TAKEN 2026-10-17, one take each, 15:02-15:32, pool lanes 1, 2, 3 ====
+# ==== item 3107: the battery's ninth held-out lobby (`docs/AI.md` §246; `docs/RUNS.md` run915, run917) ====
+#   run915  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 22 --profile DIFFICULTY=4   (East Indies, Dutch; start)
+#   run917  --map 18 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#           --ai-tribe 22 --allow-early-end --profile DIFFICULTY=4 (run643's four --detail lines)
+# Checks: `rngcmp.py` run915 vs run917 -> 0 differing in 37. run917 runs to 24000.
+# ==== TAKEN 2026-10-17, one take each, 22:20-22:32, pool lanes 1, 2 ====

@@ -9668,6 +9668,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3086,
         Some(crate::diff::german_word::WIDENING_GERMAN_CLOSING),
     ),
+    // **The battery's second word** (item 3107, DECISIONS 72): frame 0,
+    // the Iroquois lobby's first try, widened on run897's own block 1 (the
+    // state frame 0 writes; `run897_s_word_frame_is_widened_whole` keeps
+    // its value diff). **Item 3107 moved it 0 → 1120** with the Iroquois
+    // Scout's forest walker, past the start dump's blocks (1, 36, 37) and
+    // into run897b's `cover=0` stream, which dumps no block there: 1120's
+    // widening is owed, a capture of the lobby's 1114..1370.
+    (
+        "IROQUOIS_WORD",
+        crate::diff::iroquois_word::IROQUOIS_WORD,
+        None,
+        3107,
+        None,
+    ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
     // item 1538's build and **720** on the merged tree, widened on run680
@@ -9978,10 +9992,26 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 /// closed at its game's end on item 2293 (DECISIONS 61 §6). **The
 /// battery's word since item 2904** (DECISIONS 72): the peace pair closed at
 /// its end on item 2864, every pair is closed, and the battery's lowest
-/// lobby is promoted; it is one game, so its line holds one row.
+/// lobby is promoted; it is one game, so its line holds one row. **Two
+/// since item 3107**: the Germans closed at 13519 on item 3086 and the
+/// battery's next lowest lobby, the Iroquois, joins the line first; the
+/// closed row chooses nothing.
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's second word** (DECISIONS 72; item 3107): Great
+    // Lakes, the Iroquois at Difficulty 3 — the held-out battery's lowest
+    // lobby once the Germans closed, which ends itself at 12658. It shares
+    // the `Battery word` line with the closed German row, first.
+    AiWord {
+        line: "Battery word",
+        map: "GreatLakesIroquoisTier3",
+        named: "Great Lakes (Iroquois)",
+        word: crate::diff::iroquois_word::IROQUOIS_WORD,
+        length: 12_658,
+        endpoint: None,
+        window: Some("iroquois_start_window"),
+    },
     // **The battery's word** (DECISIONS 72; item 2904): East Indies, the
     // Germans at Difficulty 3 — the held-out battery's lowest lobby, which
     // ends itself at 13519.

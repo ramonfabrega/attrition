@@ -14643,6 +14643,7 @@ British at 0 on map 9. Difficulties 1–4 and the other twenty-one nations appea
 | `GreatLakesIroquoisTier3` | 14 | Iroquois (18) | 3 | run897 | run897b | 12658 | **0 / 0** |
 | `GreatLakesTurkishTier4` | 14 | Turks (8) | 4 | run898 | run898b | 15503 | **1440 / 1440** |
 | `EastIndiesRomanTier2` | 18 | Romans (6) | 2 | run899 | run899b | 18620 | **576 / 576** |
+| `EastIndiesDutchTier4` | 18 | Dutch (22) | 4 | run915 | run917 | runs to 24000 | **1567 / 1567** |
 
 **Amended by item 2904** (§239, DECISIONS 72): `EastIndiesGermanTier3` left the battery for the AI word
 (`diff::german_word`, a `SCORED_LOBBIES` row) when every pair had closed. `GreatLakesChineseTier1` was minted beside it
@@ -14651,6 +14652,11 @@ so three stay held out: its first try is 176 (ours 12 draws, theirs 14, at draw 
 
 **Amended by item 2975** (§243): five more held-out lobbies, runs 895–899, are in the table above (the battery is eight lobbies
 and a gate floor, `battery_floors_hold`).
+
+**Amended by item 3107** (§246, DECISIONS 72): `GreatLakesIroquoisTier3` left the battery for the AI word
+(`diff::iroquois_word`, a `SCORED_LOBBIES` row) when the Germans closed, and **`EastIndiesDutchTier4`** (map 18, the Dutch
+(22) at Difficulty 4, run915 and run917) was minted beside it, so the battery stays eight. Its first try is 1567 of 24000;
+its game does not end itself by 24000.
 
 Every nation and every difficulty is new for its map, and no two lobbies share either. The
 click-free lane sets both (`--ai-tribe`, `--profile DIFFICULTY=`), so each is a
@@ -22362,12 +22368,77 @@ word's row in `WIDENINGS` (`WIDENING_GERMAN_CLOSING`, block 13520): **the batter
 - The `order:target` rows: whether theirs' `TargetOrder` keeps the dead Scout's slot until something else rewrites it,
   and what retargets ours (parked, slot HG).
 
-## 246. Reserved for the next item on the AI track
+## 246. The battery's second word: the Iroquois promoted, their Scout's hits and forest walk, 0 → 1120; the Dutch minted (2026-10-17, item 3107)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: DECISIONS 72. `EastIndiesGermanTier3` closed at 13519 (§245), and its successor on the AI word is the
+battery's lowest lobby, **`GreatLakesIroquoisTier3`** (§243): map 14, the Iroquois (18) at Difficulty 3, first try 0 of
+12658 — ours 121 draws on frame 0, theirs 122, at draw 30 ours `Unit::think_scout+0x436`, theirs `+0x64c`.
+
+**The promotion.** `diff::iroquois_word` (`IROQUOIS`, `IROQUOIS_WORD`, `iroquois_word_first_parting`,
+`iroquois_word_is_no_other_lobby`); the lobby leaves `BATTERY` for `SCORED_LOBBIES` as `(14, 18, 3)`; its `AI_WORDS` row
+heads the `Battery word` line, beside the closed German row (the line's lower open word is the Iroquois', and
+`NEWEST_PAIR` stays `Battery word`); the coverage driver walks `iroquois_start_window()`.
+
+**The frame, widened.** run897 is the lobby's `DUMP_ALL` start (blocks 1, 36, 37) and run897b its `cover=0` stream (setup
+and closing blocks only), so frame 0's record is run897's block 1. `run897_s_word_frame_is_widened_whole` walks it whole
+(the coverage pair's `run651` shape), every key read: **45 keys part**. 31 are the control's that every lobby's block 1
+parts on (both leaders' `SITE[n].reg` 1/0, `aggression` 0/1, the starting units' `form` −1/9). The 14 the lobby adds are
+all who=1's Scout `1/0` (TI 69) and its group 65:
+
+| field | ours | theirs |
+|---|---:|---:|
+| `myhits`, `hits_left`, `hits:myhits` | 60 | 63 |
+| `orders_y`, `order:move.y` | 19704 | 12792 |
+| `dest_angle`, `order:move.angle`, group 65 `o_angle` | 1913782272 | 120324096 |
+| `order:move.facing` | 0 | 1 |
+| `path:length` (legs to (45024, …)) | 3 | 6 |
+| group 65 `oy` | 19680 | 12768 |
+
+**1. The hits — `IROQUOIS_EXTRA_HITS`.** `Unit::update_hits@0060e930`, after the American, Copper and Bananas terms
+(`0060ea36`..`0060eab4`): a leader with `has_tribe_bonus(0x12)` and a non-zero `iroquois_extra_hits` (5), a unit whose
+trainer (`UnitTypeData +0x40`) is the Barracks `0x1ab` and whose type is armed (`+0x1e8`, `attack`) — or, unarmed, `is(0x45)`,
+a Scout — takes `(5 + 100) × hits / 100`. 60 × 105 / 100 = 63. **Built**: `Sim::unit_hits`'s Iroquois arm (`cast.rs`,
+`iroquois_barracks_unit`) and `Tuning::iroquois_extra_hits` on the constants table. Block 1: 45 → 42.
+
+**2. The explore target — the Scout walks forest.** The draws place it: theirs' ring 5 around who=1's city draws
+`+0x64c` twice, ours once (a probe of `scout_cell`'s filters, reverted whole). Ours drew (58, 25) and refused (58, 16) with
+`invalid_loc` 2, the land arm's terrain refusal; theirs' destination (45024, 12768) is tile (234, 66), **cell (58, 16)**.
+The fog plane is not the cause: `run897_s_block_1_fog_plane_is_ours` holds block 1's `seen2` whole, 0 of 14,400 half-cells
+apart. `invalid_loc`'s land arm passes forest for `unit_masks2 & 0x4000` (`UnitData::invalid_loc@00607c30:121`, `:134`,
+`:152`), and this crate's `forest_walker` was a SEAM, false. The writer is `Unit::init@00612100:341-357`: an Iroquois unit
+that `is(SCOUT)` takes `unit_masks2 |= 0x4080` (and a land unit whose type lacks objmask 4 takes `0x80`). run897's Scout
+prints `unit_masks2` 49280 on block 1 — these two and `0x8000`, `Unit::process_cloak@005e1c20:58`'s cloak — and
+every other unit 0. **Built**: `Sim::init_iroquois_masks` (`umask2::IROQUOIS_SCOUT`), called at a trained unit's birth and
+by the harness's `build_sim` for a unit stood up from the dump; `invalid_loc` reads `umask2::FOREST_WALKER`. Block 1:
+42 → 31, the control's set alone; **the word 0 → 1120**.
+
+**The value diff, block 1**: who=1's Scout `1/0` at `myhits` 63 on both (ours 60 before), its explore move to
+`orders_y` 12792 on both (ours 19704), its path six legs on both (ours three), group 65's `oy` 12768 on both.
+
+**Mutations** (`tools/mutate.py`, each `mutation: held`, exit 101): `forest_walker` back to false →
+`iroquois_word_first_parting` (0 against 1120) and the widening fail; the hits arm gated off → the widening fails (34).
+
+**The new word, 1120.** Ours 36 draws, theirs 33, index 0: ours `Unit::explore_goody+0x27c`, theirs
+`Animal::think_bird+0x82`. No dump of this lobby holds a block there (run897 ends on 37, run897b prints its setup and
+closing blocks only), so its widening is owed: a capture of the lobby's 1114..1370 at the long's detail.
+
+**The held-out lobby minted beside it** (DECISIONS 72, §125): **`EastIndiesDutchTier4`** — map 18, the Dutch (22) at
+Difficulty 4. No dump on the disk held the Dutch, and no battery lobby on East Indies has tier 4 (the Romans are 2).
+run915 is its start (`--dump-all-start`, pool lane 1, 418 s) and run917 its long (`cover=0`, pool lane 2, 167 s), which
+runs to 24000 without the game ending; `rngcmp` 37 of 37 identical. **First try 1567 / 1567 of 24000**: ours 6 draws,
+theirs 5, at draw 2 ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Farms::inc_time+0x1ae`. Measured, never
+debugged against. The battery stays eight: 576, 576, 1440, 1567, 2974, 5663, 6563, 9130 — **median 2270** (2207 before:
+the Iroquois' 0 left, the Dutch' 1567 came in); none of the other seven moved on this tree.
+
+**Coverage.** *Diff-backed*: the Scout's 63 and its destination on block 1 (the widening), the fog plane (block 1 whole),
+the word 1120 (the draw walk), the Dutch first try (`battery_measure`). *Listing-backed, no run reaches it*: the hits arm
+on an armed Barracks unit (no Iroquois Barracks unit is born before 1120); the `0x80` half of `init`'s arm.
+
+**What is not established.**
+- What `unit_masks2 & 0x80` does: no reader in this crate; run897's citizens print 0, so the objmask-4 test excludes them.
+- `Unit::process_cloak@005e1c20`, which raises the Scout's `0x8000` and has an Iroquois arm (`:98`): not modelled
+  (parked, slot HM). `unit_masks2` is compared only for `0x10` (`harness.rs`), so the dump's 49280 parts no key.
+- The word 1120's records.
 
 ## 247. Reserved for the next item on the AI track
 

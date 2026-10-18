@@ -518,8 +518,8 @@ impl Sim {
                 crate::attrition::Domain::Air => 2,
             },
             attack_nonzero: self.profile(crate::combat::Obj::Unit(u)).attack != 0,
-            // SEAM: `unit_masks2 & 0x4000` (Iroquois) is not carried.
-            forest_walker: false,
+            // `unit_masks2 & 0x4000`, an Iroquois Scout's (item 3107).
+            forest_walker: unit.unit_masks2 & crate::combat::umask2::FOREST_WALKER != 0,
             // The raw bit `unit_masks & 0x800000`, neither the veto nor the
             // type flag (`00607f19`).
             auto_transport: unit.auto_transport,

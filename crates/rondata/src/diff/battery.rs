@@ -71,6 +71,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The battery's first lobby, promoted to the AI word (item 2904,
     // DECISIONS 72): the Germans at Difficulty 3, East Indies.
     (18, 12, 3),
+    // The battery's lowest lobby after the Germans closed, promoted to the
+    // AI word (item 3107, DECISIONS 72): the Iroquois at Difficulty 3,
+    // Great Lakes.
+    (14, 18, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -159,20 +163,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 576,
         sequence: 576,
     },
-    Lobby {
-        name: "GreatLakesIroquoisTier3",
-        map_style: 14,
-        ai_tribe: 18,
-        difficulty: 3,
-        start: "gamelog-run897-greatlakes-iroquois-diff3-start.txt",
-        long: (
-            "gamelog-run897b-greatlakes-iroquois-diff3-24k-trace.txt",
-            "rontrace-run897b.log",
-        ),
-        length: 12658,
-        count: 0,
-        sequence: 0,
-    },
+    // `GreatLakesIroquoisTier3` (Iroquois 18, Difficulty 3, map 14; run897
+    // and run897b, 0 of 12658) left the battery on item 3107 for the AI
+    // word (`diff::iroquois_word`, DECISIONS 72).
     Lobby {
         name: "GreatLakesTurkishTier4",
         map_style: 14,
@@ -200,6 +193,28 @@ pub(crate) const BATTERY: &[Lobby] = &[
         length: 18620,
         count: 576,
         sequence: 576,
+    },
+    // The lobby minted by item 3107 (DECISIONS 72, `docs/AI.md` §125,
+    // §246; runs 915 and 917) when the Iroquois left for the AI word, so
+    // the held-out set stays replenished: East Indies, the Dutch at
+    // Difficulty 4 — a nation no dump held and a tier no lobby on the map
+    // has. The game does not end itself: the long runs to 24000.
+    Lobby {
+        name: "EastIndiesDutchTier4",
+        map_style: 18,
+        ai_tribe: 22,
+        difficulty: 4,
+        start: "gamelog-run915-eastindies-dutch-diff4-start.txt",
+        long: (
+            "gamelog-run917-eastindies-dutch-diff4-24k-trace.txt",
+            "rontrace-run917.log",
+        ),
+        length: 24000,
+        // Item 3107, the first try: ours 6 draws, theirs 5, at 2 ours
+        // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+        // `Farms::inc_time+0x1ae`.
+        count: 1567,
+        sequence: 1567,
     },
 ];
 

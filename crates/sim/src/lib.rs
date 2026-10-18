@@ -2292,6 +2292,27 @@ impl Sim {
         self.price_with(who, ty, &m)
     }
 
+    /// `Unit::init@00612100:341-357` (item 3107, `docs/AI.md` §246): an
+    /// Iroquois unit (`has_tribe_bonus(0x12)`) that `is(SCOUT, 0)` takes
+    /// `unit_masks2 |= 0x4080`, the forest walker among them. A trained
+    /// unit takes it in the spawn, and a unit stood up from a start dump
+    /// takes it from the harness, since both are born through `init`.
+    ///
+    /// SEAM: the arm's first half, `0x80` on an Iroquois land unit whose
+    /// type lacks objmask 4 — no reader in this crate, and run897's
+    /// citizens print `unit_masks2` 0.
+    pub fn init_iroquois_masks(&mut self, u: usize) {
+        let who = self.units[u].owner;
+        if self.unit_line_is(u, 0x45)
+            && self.tech.get(who as usize).is_some_and(|p| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
+            })
+        {
+            self.units[u].unit_masks2 |= crate::combat::umask2::IROQUOIS_SCOUT;
+        }
+    }
+
     /// `TypeData::get_cost@00664090`'s **Monarchy arm** (`:657`–`665`, the
     /// train arm, after `MILITARY_UNIT_DISCOUNT`): a unit whose trainer
     /// (`UnitTypeData +0x40`) is the Stable, by equality, of a player for
@@ -4133,6 +4154,7 @@ impl Sim {
                     self.units[u].combat.stance = crate::combat::Stance::Raid;
                 }
             }
+            self.init_iroquois_masks(u);
             // `Unit::init@00612100:613-626` (item 2351, `docs/AI.md` §219):
             // a Lakota unit the food term counts — a citizen (`TypeIndex`
             // `0x32`, `0x33`), a scout (`is(SCOUT, 0)`) or a Stable type

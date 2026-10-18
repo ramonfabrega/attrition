@@ -203,13 +203,23 @@ impl Sim {
     /// (`0060ec72`..`0060ecab`). run492's Merchant `0/6` is 135 from its
     /// birth block 603, the type's 90 × 150 % (`docs/GOLDEN.md` §54).
     ///
+    /// **The Iroquois'** (item 3107, `0060ea36`..`0060eab4`): a unit of a
+    /// leader with tribe bonus 0x12 whose trainer (`UnitTypeData +0x40`) is
+    /// the Barracks (0x1ab), by equality, and whose type is armed
+    /// (`attack`, `+0x1e8`) or a Scout (`is(0x45)`), takes
+    /// `(IROQUOIS_EXTRA_HITS + 100) × hits / 100`, truncated — run897's
+    /// Scout `1/0` is 63 on block 1, the type's 60 × 105 %.
+    ///
     /// SEAM: the other terms — the American marines, Copper and Bananas,
-    /// the Iroquois, the Dutch — which no staged nation or holding takes.
+    /// the Dutch — which no scored nation or holding takes.
     /// The Spy's upgrades are carried (item 1585), and the General's
     /// (item 1614).
     pub fn unit_hits(&self, who: Player, rec: usize) -> i32 {
         let mut hits = self.type_hits(who, rec);
         let t = &self.unit_types[rec];
+        if self.tuning.iroquois_extra_hits != 0 && self.iroquois_barracks_unit(who, rec) {
+            hits = (self.tuning.iroquois_extra_hits + 100) * hits / 100;
+        }
         // A Spy's hit points are the upgrade table's entry, not the type's
         // plus a term (`0060eb98`..`0060ebd8`, `docs/AI.md` §160).
         if self.is_spy_type(rec) {
@@ -245,6 +255,22 @@ impl Sim {
             hits += self.tuning.supply_hp_upgrade[level];
         }
         hits
+    }
+
+    /// `Unit::update_hits`'s Iroquois predicate (`0060ea36`): tribe bonus
+    /// 0x12, the trainer the Barracks, and the type armed or a Scout.
+    fn iroquois_barracks_unit(&self, who: Player, rec: usize) -> bool {
+        let t = &self.unit_types[rec];
+        let trainer = t
+            .tree
+            .and_then(|i| self.tech_tree.types.get(i))
+            .and_then(|d| d.where_);
+        trainer == Some(crate::nations::ty::BARRACKS)
+            && (t.combat.attack != 0 || t.cols.is(crate::ai_load::role::SCOUT))
+            && self.tech.get(who as usize).is_some_and(|p| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
+            })
     }
 
     /// The unit record whose `TypeIndex` is `ti`, the first when a nation's
