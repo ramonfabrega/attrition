@@ -6404,20 +6404,41 @@ impl Sim {
         // chapter four's hoplites took a whole point a tick against the
         // original's 6/16 until this read the chain.
         let sixteenths = attrition::damage(self.curr_uber_size(i));
+        // **A figure falls at its share of the squad's hit points** — the same
+        // threshold `Object::take_damage` applies to a combat hit
+        // (`docs/COMBAT.md` §7.2 step 8): a Hoplite squad of three at 120
+        // hits falls at 40, not at 120 (`docs/GOLDEN.md` §135, run936: `0/12`
+        // dies on 2544 at its fortieth point).
+        let (uber, alone) = {
+            let u = &self.units[i];
+            (
+                self.profile(combat::Obj::Unit(i)).uber_size,
+                u.combat.captain == i32::from(u.index) && u.squad_size == 1,
+            )
+        };
         let unit = &mut self.units[i];
-        let (lost, frac) = attrition::take_damage(unit.damage_frac, sixteenths);
+        let share = combat::share(unit.max_health, uber, alone);
+        let (taken, _, frac) = combat::take(
+            unit.max_health - unit.health,
+            unit.damage_frac,
+            share,
+            combat::Sixteenths {
+                whole: sixteenths / 16,
+                frac: sixteenths % 16,
+            },
+        );
+        let (combat::Taken::Alive { lost } | combat::Taken::Died { lost, .. }) = taken;
         unit.damage_frac = frac;
         unit.health -= lost;
-        let killed = !unit.alive();
+        let killed = matches!(taken, combat::Taken::Died { .. });
         if killed {
-            self.close_count(i);
-            self.relink_squad(i);
-            // `Object::take_damage`'s `die`: `Unit::close`'s orders, and
-            // `close`'s thirty-frame hold on the number (`docs/COMBAT.md`
-            // §59.3).
-            self.close_dead_orders(i);
-            self.hold_dead_slot(i);
-            self.close_supply(i);
+            unit.health = unit.health.min(0);
+        }
+        if killed {
+            // `Object::take_damage`'s `die` with `dtype` 1 — the whole combat
+            // tail, `Unit::close`'s draw and orders and the thirty-frame hold
+            // on the number (`docs/COMBAT.md` §59.3, `docs/GOLDEN.md` §135).
+            self.die_by_attrition(i, frame);
         }
         Some(Tick {
             unit: i,

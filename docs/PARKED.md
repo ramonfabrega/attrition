@@ -7837,13 +7837,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JI — reserved
+## Parked by item 3252, 2026-10-18 — chapter one hundred closes at 2600
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The Tank `0/6`'s `near` from 1227** (GOLDEN §135): ours `(2001, 1)`, theirs `(5, 1)`; no draw parts through the trace's end. Standing in `WANT_CH100`; names no score, so parked. Who is the nearest thing in the original at 1227 (a unit `1/5` where this crate names a building `1/2001`) is for a value read of `near`'s writer.
+- **A building shooter's near-face gate** (`Ammo::init`'s `+0x10c`/`+0x110` pair is read on the shooter's *type*): this crate asks only `Obj::Unit` for the Tank flag; a building shooter reads the type vslots too, unverified.
+- **Attrition's `Unit::suffer_attrition` has no `in_danger`/`frame_attacked` stamps** (the `attrition` flag skips them in `take_damage`, so the omission is right); the other `take_damage` consequences of dtype 1 beyond `die` (score, messages) are unread.
 
 ## Parked by the next landing, slot JJ — reserved
 
