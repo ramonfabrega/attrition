@@ -12,18 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the forty-first tranche (commander, Opus): 12 landings from `0efdf09d`**, four lanes under the 20-slot
+*2026-10-17, **the forty-first tranche (commander, Opus): 13 landings from `0efdf09d`**, four lanes under the 20-slot
 budget (DECISIONS 78 amended), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `34d6b7d6` (the twelfth's runs whole).*
 
 - **Words**: every pair closed. The battery word `EastIndiesGermanTier3` **closed at 13519 of 13519** (3086; run643's
   closing block whole). Its successor by DECISIONS 72, **`GreatLakesIroquoisTier3`, promoted and moved 0 → 1120 of 12658**
   (3107: the Iroquois Scout's hits and forest walker), as 3117; `EastIndiesDutchTier4` minted held out at 1567. Chapters
-  86–94 closed (3123: a push onto an emptied army slot writes the army's list, 1117 → 1200 on run914); 95 is 3126. Census 1224 → 1450 (3078, 3104, 3112). Battery eight lobbies, median 1008 → 2207 (3092, the Chinese
+  86–94 closed (3123: a push onto an emptied army slot writes the army's list, 1117 → 1200 on run914); 95 is 3126. Census 1224 → 1454 (3078, 3104, 3112, 3120). Battery eight lobbies, median 1008 → 2207 (3092, the Chinese
   citizens) → 2270 (3107's swap); `GreatLakesChineseTier1` 176 → 5663 → 12712 (3092, 3113); 3096 and 3108 moved nothing.
-- **Lanes: four live** — 3117 the AI word's (run 918), 3126 the rules track's (run 920, GOLDEN §121, park HU), 3120
-  shape, 3124 nations (§7.4's rest). Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108, 3107, 3112, 3113, 3099, 3123.
-  Next 3128, run 921 (Astra 900–909; 919 unused). Pools: GOLDEN §122–124, AI §248–251, park HV–HZ.
-- **Fable backlog: 32 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111, 3116, 3118, 3122, 3125, 3127).
+- **Lanes: four live** — 3117 the AI word's (run 918), 3126 the rules track's (run 920, GOLDEN §121, park HU), 3134
+  shape (park HV), 3124 nations (§7.4's rest). Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108, 3107, 3112, 3113, 3099, 3123, 3120.
+  Next 3135, run 921 (Astra 900–909; 919 unused). Pools: GOLDEN §122–124, AI §248–251, park HW–HZ.
+- **Fable backlog: 33 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111, 3116, 3118, 3122, 3125, 3127, 3133).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,19 +33,19 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w1120 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1450 of 3611
+Census: simulation backed 1454 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed · ch94 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-first tranche (commander, Opus) at twelve landings from `0efdf09d`: four lanes live
-(3117 Opus 5.5 medium; 3120, 3124, 3126 Sonnet 5.5 medium) — wait on them with `lanewait.py`, merge, book, refill while
+**Opener: continue the forty-first tranche (commander, Opus) at thirteen landings from `0efdf09d`: four lanes live
+(3117 Opus 5.5 medium; 3124, 3126, 3134 Sonnet 5.5 medium) — wait on them with `lanewait.py`, merge, book, refill while
 landings plus live lanes are under twenty, stop at twenty, and clear `steer` into the forty-first pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3117 the AI word's (Opus); 3126, 3120 and 3124 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1120. Take the first unstarted item unless a better
+3117 the AI word's (Opus); 3126, 3134 and 3124 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1120. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3117. **The battery word, 1120 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 36 draws against
@@ -59,12 +59,11 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     family's next unreached arm by what a failure would teach — Sabotage on a *firing* armed vehicle (parked 3065, 3098:
     a Tank beside a Commando staged out of its reach) or another arm the census names — run 920. Unstarted. GOLDEN §121.
 
-3120. **The four shapes three batches read and did not build** (DECISIONS 63 (iv); the score `Census:` 1450 of
-    3611; parked 3101, 3110, 3119): `ObjectData::num_aircraft_here` (one cell both count and `home_base`'s
-    out-pointer), `ObjectTypeData::get_wonder_value` (the gamec semaphore offset), `ObjectsData::find_dock`
-    (`vector_dist` by `--stub run:0x46cff0:0`, `valid_search`/`valid_filter` stubs), `Caravans::new_danger`
-    (`--sparse` over the leaders table at stride 0x6eec, caravan lists at stride 0x1c) — built or each refused
-    with the measured reason. Unstarted. `--kind sweep`.
+3134. **The sweep's next shape batch: the shortest never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
+    score `Census:` 1454 of 3611; 3120 built the four parked shapes on existing flags plus `--tib`, parked 3128–3132,
+    Loop 3133): `Build::process_ejection`, `Unit::cavarch_fight`, `ObjectsData::find_town_at`, `Army::send_here`,
+    `ObjectsData::find_good_at` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each
+    built, or parked naming the generator flag it could not spell. Unstarted. `--kind sweep`.
 
 3124. **The nations' unmodelled arms: §7.4's other range blocks, then §7.5** (Ramon, the fortieth steer, DECISIONS
     78; the score: the held-out battery's median first try, 2270 over eight, `battery_measure`, `battery_floors`

@@ -3742,6 +3742,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3133) **A shape parked "unstarted" three batches running was four flag sets the generator already had** (3120's "for the
+Loop" line, filed at its merge): 3078, 3104 and 3112 each read `num_aircraft_here`, `get_wonder_value`, `find_dock` and
+`new_danger` and parked them; 3120 built all four on existing flags plus `--tib`. Candidate: a sweep park names the
+flag it could not spell (the frame's sweep row and `tools/brief/frame.md`), so the next batch reads the gap and not
+the verdict. One reach.
+
 (3127) **`RON_DEBUG_ARMIES` is not wired into `widen_civilians_walk`** (3123's "for the Loop" line, filed at its
 merge): the lane added the call as a probe commit and reverted it whole, so the next army-slot question re-wires it.
 Candidate: leave the one line behind its env guard in the walk, so the army dump is a flag rather than a probe commit.
@@ -7448,21 +7454,21 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3120, 2026-10-18 — the four shapes built
 
-- (3120) **`sweep_gen.py` had no `fs:`**: an SEH-framed function (`mov eax, fs:[0]` ... `mov fs:[0], ecx`, `ObjectTypeData::get_wonder_value@00661ba0`)
+- (3128) **`sweep_gen.py` had no `fs:`**: an SEH-framed function (`mov eax, fs:[0]` ... `mov fs:[0], ecx`, `ObjectTypeData::get_wonder_value@00661ba0`)
   faulted at once with `UC_ERR_EXCEPTION` and `fault=None`. `--tib` (new) maps a guest TIB and loads a flat GDT through
   `sweeplib.set_tib`, as `tools/recomp/step4.py` does. For the Loop: the next SEH-framed function needs only the flag; the `--cmd-seh`
   shape (issue_treaty) is a different thing, the frame's *arms* and not its prologue.
-- (3120, second) **An `Error::report` stub must answer 0**: the original's arm is `test esi, esi; je +1; int3`, so a nonzero answer is the
+- (3129) **An `Error::report` stub must answer 0**: the original's arm is `test esi, esi; je +1; int3`, so a nonzero answer is the
   original's own `int3` and the emulator reports `UC_ERR_EXCEPTION`, not a sweep disagreement. The first `get_wonder_value` run died on
   it; `--answer-range IDX:0:0` pins the answer. Neither of its two error arms is observable in the result, so they are `equivalent` in the
   breaks (the return is `buildtypes[this+4]+0x2d0` on every path that is not an early 0).
-- (3120, third) **`find_dock`'s two `.min(N-1)` clamps are the harness's, not the function's**: the port reads a stub's `--seq` run with the
+- (3130) **`find_dock`'s two `.min(N-1)` clamps are the harness's, not the function's**: the port reads a stub's `--seq` run with the
   last repeated; breaking the clamp passes when fewer than N+1 calls are made (five live leaders reach five `valid_search` calls, and a
   sixth `valid_filter` call needs six docks passing the distance test). Not a gap in the draw; the clamp is not the function's text.
-- (3120, fourth) **A wild coordinate leaves `vector_dist`'s domain**: `new_danger` with `--argset` coordinates (10% wild) parted from the
+- (3131) **A wild coordinate leaves `vector_dist`'s domain**: `new_danger` with `--argset` coordinates (10% wild) parted from the
   original on `|dx|, |dy|` near 2^31 — `crate::world::vector_dist` holds inside ±2^30 (`vector_dist_ints.rs` says why), the original's
   octagon overflows beyond it. The sweep draws `--argrange` coordinates; no play reaches the domain edge.
-- (3120, fifth) **`--regen` keeps the old line's flags beside new ones** (it said so: "kept from the old line"): editing an `@FILE` and
+- (3132) **`--regen` keeps the old line's flags beside new ones** (it said so: "kept from the old line"): editing an `@FILE` and
   regenerating left both the old `--argset` and the new `--argrange`, and the old one won; `--fresh` was the cure. A sed over an
   `@FILE` is the second way to lose a draw (it rewrote the relation windows' bias along with the positions'): rebuild the file from its
   script and `--regen --fresh`.
