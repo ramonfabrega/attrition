@@ -2072,9 +2072,6 @@ impl Sim {
             };
             if std::env::var("RON_PROBE_UP").is_ok() && w == 1 && (7978..=7981).contains(&self.frame) {
                 eprintln!("PROBE_UP f{} make t{} val {} cat {cat} price {:?} avail {:?} aff {}", self.frame, t, wm(aff, v / 256), self.type_price(who, t), self.holdings[w].available, self.type_affordable(who, t, true));
-                if let Some(r) = self.unit_record(t) {
-                    eprintln!("PROBE_UP f{} t{} research {:?} mil_epoch {} level {} base {:?}", self.frame, t, self.research_modifiers(who, r), self.tech[w].epoch[tech::Line::Military.index()], self.tech_tree.military_level_in(&self.setup, t), self.unit_types[r].price.base);
-                }
             }
             self.ai[w]
                 .make_list
