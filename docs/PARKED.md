@@ -7354,6 +7354,10 @@ needs `--sparse` over a 225 KB image table plus a pointer array of caravan recor
 
 ## Parked by item 3170, 2026-10-18 — the Iroquois food row
 
+- (3177) **The Iroquois word 5144 is owed its widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §250): ours 36 draws,
+  theirs 37, index 0 — ours `Animal::think_bird+0x82`, theirs `Unit::think_spellcaster+0x413`. run922 ends at 2022 and
+  run897b is `cover=0`, so no dump holds a block between 2022 and 12658: a window of 5138..5394 at run918's detail,
+  every dumped record on block 5145 both directions, `WIDENINGS`' `IROQUOIS_WORD` then names its test.
 - (3178) **An Iroquois timber site's food slots and the cap they put on its timber gatherers are not carried.**
   `BuildTypeData::calc_gather@00639e40` counts the camp's food slots in the same survey (`aiStack_108[0] += local_8c`
   under `has_tribe_bonus(0x12)`), takes `min(gatherers, slots, 2 × access)` for the food pass, and carries that minimum
