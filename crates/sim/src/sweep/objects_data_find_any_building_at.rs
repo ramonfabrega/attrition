@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -77,7 +82,9 @@ fn the_emulated_original_agrees_on_every_row() {
                         let mut ty = sh(&p[40], to + 10);
                         while cur >= 0 {
                             // type -1 reads the table before type 0's (0xc0ab84 - 0x1c): the last `--ptrtab`, `p37..`.
-                            let oi = usize::try_from(if ty < 0 { 37 + cur } else { 4 * ty + 1 + cur }).expect("object");
+                            let oi =
+                                usize::try_from(if ty < 0 { 37 + cur } else { 4 * ty + 1 + cur })
+                                    .expect("object");
                             let (nxt, nty) = (sh(&p[oi], 0x2c), sh(&p[oi], 0x2e));
                             let name = format!("p{oi}+0x0");
                             let mut ok = ty < 8;
@@ -98,9 +105,12 @@ fn the_emulated_original_agrees_on_every_row() {
                                 let wall = &p[42];
                                 let (xs, ys) = (rd(wall, 0x234), rd(wall, 0x238));
                                 // `WallData::tile_corner`'s arithmetic inline: the table behind the cell 0xcae5fc (`c1`).
-                                let dv = |k: i32| rd(&c[1], 4 * usize::try_from(k).expect("table index"));
+                                let dv = |k: i32| {
+                                    rd(&c[1], 4 * usize::try_from(k).expect("table index"))
+                                };
                                 let corner = |v: i32, size: i32| {
-                                    let q = dv((v ^ 0x63637) >> 6) * 0xc0 + if size & 1 != 0 { 0x60 } else { 0 };
+                                    let q = dv((v ^ 0x63637) >> 6) * 0xc0
+                                        + if size & 1 != 0 { 0x60 } else { 0 };
                                     dv(q >> 6) - (size >> 1)
                                 };
                                 let c0 = (corner(rd(wall, 0x10), xs), corner(rd(wall, 0x14), ys));
@@ -121,20 +131,38 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                 }
                 for v in l {
-                    log.push(if v.is_empty() { "-".to_string() } else { v.join("/") });
+                    log.push(if v.is_empty() {
+                        "-".to_string()
+                    } else {
+                        v.join("/")
+                    });
                 }
                 res
             }
         };
         assert_eq!(got, want_eax, "find_any_building_at — eax, row `{line}`");
-        assert_eq!(log, want_log, "find_any_building_at — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "find_any_building_at — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "find_any_building_at — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "find_any_building_at — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "find_any_building_at — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "find_any_building_at — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[5 + i], "find_any_building_at — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[5 + i],
+                "find_any_building_at — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
