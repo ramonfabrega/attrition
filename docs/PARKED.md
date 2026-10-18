@@ -3742,6 +3742,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3122) **A `calc_cost` record diff by `(from, to, dir)` is a third-use tool** (3099's "for the Loop" line, filed at
+its merge): diffing the original's `calc_cost` records against ours by key, grouped by ours' cell flags, found the
+army-mode flag behind chapter 94's 847 parting in ten minutes after four sessions of fog and danger reading; and
+`unitaddr.py` prints decimal and accepts unaligned hits (`0xe3f58e` was a false hit on run916b). Candidate: graduate
+the diff into `tools/` (CLAUDE.md's third-use rule) and make `unitaddr.py` print hex and refuse unaligned pairs, each a
+test made to fail first. One reach.
+
 (3118) **The captures are not silent** (Ramon, 2026-10-17, during the forty-first tranche, for the steer): sound is
 heard while captures run, though the click-free lane was meant to be muted (parked 343, DECISIONS 40's list). What the
 tree does: `unattended_capture.py`'s `mute()` zeroes `MUSIC_VOL`, `SOUND_VOL` and `TAUNT_VOL` in the lane profile's
@@ -7358,10 +7365,9 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3099, 2026-10-17 — chapter ninety-four's 1021 order
 
-- **`1/0` `f1021`, order kind (ours EXPLORE_TO, theirs ATTACK_TO)**, the ch94 widening's first parted field and the draw word's neighbour (1117): the Scout sits on slot 64, which
-  the original's army 0 still counts, so army 0's tick commands it. Names the headline's chapter-94 frame; the item is a successor of 3099. Run the ch41 floor first (row 9).
-- **Loop**: a `calc_cost` record diff by `(from,to,dir)` with the cell flag beside it found a mode flag in ten minutes where four sessions of fog reading did not (a tool on the
-  third use); `unitaddr.py` prints decimal and accepts unaligned hits.
+(3121) **`1/0` `f1021`, order kind (ours EXPLORE_TO, theirs ATTACK_TO)**, the ch94 widening's first parted field and the draw word's neighbour (1117): the Scout sits on slot 64, which
+  the original's army 0 still counts, so army 0's tick commands it. Names the headline's chapter-94 frame; the item is a successor of 3099, booked as 3123. Run the ch41 floor first (row 9).
+The lane's Loop line (a `calc_cost` record diff tool; `unitaddr.py`'s decimal print) is filed as Loop 3122 at the merge.
 
 ## Parked by item 3104, 2026-10-17 — three can_carry overloads swept, Census 1446 → 1448
 
@@ -7455,6 +7461,46 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot HU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HZ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
