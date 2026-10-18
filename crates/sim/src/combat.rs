@@ -75,6 +75,15 @@ pub mod umask2 {
     /// reads it for its captain's re-search predicate ([`crate::Sim`]'s
     /// `fight`, parked 2100).
     pub const BARK: u32 = 0x4;
+    /// **`0x80` and `0x4000` — an Iroquois Scout** (`Unit::init@00612100:
+    /// 341-357`, item 3107, `docs/AI.md` §246): a unit of a leader with
+    /// tribe bonus 0x12 that `is(SCOUT)` takes `0x4080` at birth.
+    /// `0x4000` is the forest walker `UnitData::invalid_loc@00607c30`
+    /// reads (`:121`, `:134`, `:152`): forest does not refuse it. run897's
+    /// Scout `1/0` prints `unit_masks2` 49280 on block 1, these two and the
+    /// cloak `0x8000` frame 0's idle adds.
+    pub const IROQUOIS_SCOUT: u32 = 0x4080;
+    pub const FOREST_WALKER: u32 = 0x4000;
     /// **`0x10` — "still ordered to attack, reload open, and not firing
     /// this frame"** (`docs/COMBAT.md` §43.2).
     ///
