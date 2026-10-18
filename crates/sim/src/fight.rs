@@ -2813,13 +2813,7 @@ impl Sim {
                     self.kremlin_spy_closed(i);
                     self.close_dead_orders(i);
                     self.hold_dead_slot(i);
-                    let keep = dtype != 0
-                        && self.units[i].on_map
-                        && self.units[i].ty.is_some_and(|t| {
-                            self.unit_types[t].cols.unit_flags
-                                & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
-                                != 0
-                        });
+                    let keep = self.keeps_disc(i, dtype);
                     self.close_supply_in(i, keep);
                     self.forget(Obj::Unit(i));
                 }
@@ -2846,8 +2840,22 @@ impl Sim {
         self.kremlin_spy_closed(v);
         self.close_dead_orders(v);
         self.hold_dead_slot(v);
-        self.close_supply(v);
+        let keep = self.keeps_disc(v, dtype);
+        self.close_supply_in(v, keep);
         self.forget(Obj::Unit(v));
+    }
+
+    /// `Object::close@00647160`'s `blocks_while_dead` arm: any death with a
+    /// non-zero `param_1` (`dtype`) of a type carrying `x` leaves its
+    /// occupancy disc standing until the death object's cull — a combat
+    /// death or a Sabotage's boom alike (item 3228, `docs/GOLDEN.md` §130);
+    /// attrition's `dtype` 0 releases it.
+    fn keeps_disc(&self, i: usize, dtype: i32) -> bool {
+        dtype != 0
+            && self.units[i].on_map
+            && self.units[i].ty.is_some_and(|t| {
+                self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+            })
     }
 
     /// `SpellType::cast_sabotage@006720e0`'s building arm (item 2994,

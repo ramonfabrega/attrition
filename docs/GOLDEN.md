@@ -13362,12 +13362,19 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Not established**: the non-combat death sites that still clear the disc (parked 3190: `cast_sniper_unit`, air crash, bribe, attrition) and which types carry `0x800000` besides the Tank; whether the crossing would part had the disc been kept (no mutation was run: the unit paths over the cell with it released, and a kept disc would route round).
 
-## 130. Reserved for the next item on the rules track
+## 130. Chapter ninety-nine — a Tank blown up by Sabotage keeps its disc; the word is 845 (item 3228, run933)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 3190 (§129): the non-combat death sites that still clear the disc. **Which types carry `0x800000`**: the install's `unitrules.xml` carries flag `x` ("continues to block movement when dead") on the Tank line alone: Light Tank, Tank, Main Battle Tank, Tiger, Leopard, T80 (every one also `t`). So the staging dies a Tank. **Which sites**: `Unit::close@0060ee50`'s `param_1` is the death type; `Object::close@00647160` keeps the disc for any non-zero one (the else-arm of `Unit::close` zeroes it only when the death is not drawn). A Sniper cannot target a vehicle, a bribe converts and an air crash is no Tank; attrition passes 0 (disc released, as here). What reaches a Tank with a non-zero type is **Sabotage on a vehicle** (`cast_sabotage`, `dtype` 3, §117). `cast_sniper_unit` called `close_supply` and so always released the disc: the one site this crate did not carry.
+
+**Staging** (`tools/gamelog/golden/chapter99.cmd`, 17 lines, `RON_STAGE=ch76:chapter99:1500`, walked by `stage_walk`): chapter 93's recipe with a who=1 Tank `1/6` at (72,83) beside the Barracks and four Commandos `0/6`..`0/9` ringed adjacent (a lone Commando is shot dead first, §117), all `@spell 640` on the Tank (620–623); the Tank dies on 770, the Commandos at 90 hp. Two squads added at 790/791 and their captains `0/10`, `0/13` ordered west on 793 across the Tank's cell.
+
+**What the original does** (run933, 1,501 frames, seed 12345, pool lane 1, `~/ron-golden/ch99/map-14/`): the late hoplite `0/11` goes **round** the wreck from 808 (path length 9 against our 5): the disc stands after a Sabotage death.
+
+**Built.** `Sim::keeps_disc(i, dtype)` (`fight.rs`), the combat death's predicate (`dtype != 0`, on the map, type flag `x`) now shared with `cast_sniper_unit`, which keeps the disc through `close_supply_in`. The word moves **842 → 845** and the 808–832 path rows of `0/11` and `0/15` go (`chapter_ninety_nine_s_window_is_widened_whole` fails without it).
+
+**The word, 845, open.** Draw delta: ours 5, theirs 6 draws; theirs' extra is draw 0, `Guy::set_anim+0x97a < Unit::move_step+0x823`, the hoplite captain `0/10`'s animation roll. **Value diff** (the widening, 604..851): on 846 `0/10` (at (13749,16021), this crate's position agrees) has `collide_o` 6 in the original and −1 here: it walks into the idle Commando `0/6` at (13752,16056), 35 units off, which this crate's collision does not register (and `0/11`'s `collide` 1 against 0 follows on 846). Everything after 846 (`0/10`'s order list, `1/0`'s path on 847) is that collision's cascade; the window pins the 52 rows (`WANT_CH99`: the eleven `form` rows and 41 from 846).
+
+**Not established**: why this crate registers no collision between a walking Hoplite and a Commando standing after its cast (parked, slot IQ); a Tank killed by Sabotage whose cull ends (the record, `life`, ends after the hoplites cross); attrition's release (`dtype` 0) is read, not diff-backed here.
 
 ## 131. Reserved for the next item on the rules track
 

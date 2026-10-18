@@ -7610,13 +7610,10 @@ All six built, none parked for a missing flag. The unreached arms, numbered at t
 - (3208) ~~**A sea unit's end**~~ diffed, item 3209 (GOLDEN §128, run929): both Barks' records end at 69 and 79 frames with the animation alone; the cull agrees with no row standing.
 - (3204, still open) **Which late hoplites cross a released disc** — chapter 97 does not touch it; it still needs a staging where a unit paths over a dead blocking-while-dead corpse's cell after the cull. Names no score until a capture shows a part.
 
-## Parked by the next landing, slot IQ — reserved
+## Parked by item 3228, 2026-10-18 — chapter 99: the Sabotaged Tank's disc, and a collision with a standing Commando
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3228) **Chapter 99's word, 845 (run933, GOLDEN §130): ours 5 draws, theirs 6** — the extra is `Guy::set_anim+0x97a < Unit::move_step+0x823`, captain `0/10` (Hoplite) walking at (13749,16021) onto the idle Commando `0/6` at (13752,16056): `collide_o` 6 on 846 in the original, −1 here. Book by frame and delta; what this crate's collision test lacks for a walker meeting a unit standing after a cast is the hypothesis, not the booking.
+- (3190) Narrowed by §130: only the Tank line carries `x`; `cast_sniper_unit` (Sabotage, `dtype` 3) now keeps the disc. Attrition (`dtype` 0) releases it, read and not diff-backed (a Tank's attrition death is ~1500 frames at 187 hits).
 
 ## Parked by the next landing, slot IR — reserved
 
