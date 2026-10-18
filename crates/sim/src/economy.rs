@@ -145,6 +145,9 @@ pub const WHALES: usize = 31;
 pub const HORSES: usize = 14;
 /// `TypeIndex::RUBBER` — the same arm's second rare, byte 1 bit 1.
 pub const RUBBER: usize = 15;
+/// `TypeIndex::SULPHUR` — the same arm's third rare, byte 1 bit 2 (`& 4`);
+/// it discounts a Siege Factory unit (`0x1ae`/`0x1af`), not a Stable's.
+pub const SULPHUR: usize = 16;
 /// `TypeIndex::WINE` — the rare `TypeData::get_cost@00664090`'s **research**
 /// arm reads: `testb $0x4, 0x6da4(%ecx)`, else the same at `0x6dcc`
 /// (`00664edd`), byte 0 bit 2 of `rare` or of `rare_conquest`, which is bit

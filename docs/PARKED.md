@@ -7492,7 +7492,12 @@ citizen one: `trainer 0x1ae/0x1af` with rare bit 4 — uncarried for any leader,
 one that could reach it, so it is the next candidate if `GreatLakesTurkishTier4` parts on a price). Names
 no score today.
 
-## Parked by the next landing, slot IE — reserved
+## Parked by item 3172, 2026-10-18 — the Sulphur siege arm and the train_time audit
+
+- The Turkish lobby (`GreatLakesTurkishTier4`, 6982) now parts on `Leader::use_market+0x1ed` (ours) against
+  `Leader::make_stuff+0x221` (theirs), 7 draws against 8, index 0: a market-use decision, not a price. No
+  nations term; names no score until a widening reads it (the battery is never debugged against).
+
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot IE renames this heading `## Parked by item N, <date> — <title>`

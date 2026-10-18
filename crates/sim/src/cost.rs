@@ -232,12 +232,12 @@ pub struct Modifiers {
     pub citizens: [i32; 2],
     /// Percentage off the scaled base, before the ramp.
     pub discount: i32,
-    /// Horses' and then Rubber's percentage off a Stable or Auto Plant
+    /// Horses', Rubber's and then Sulphur's (a Siege Factory unit's) percentage off a Stable or Auto Plant
     /// unit, each applied as its own `(100 − x) × cost / 100` right after
     /// [`Modifiers::discount`], so each truncates where the original's does
     /// (`get_cost`'s pre-ramp tail, before the research arm and the ramp;
     /// `docs/AI.md` §62). Zero is the identity.
-    pub stable_rares: [i32; 2],
+    pub stable_rares: [i32; 3],
     /// The **Statue of Liberty**'s percentage (`get_cost`'s pre-ramp tail,
     /// listing `00664da7`..`00664e1e`): with `has_wonder(0x219)`, a missile
     /// type (`UnitTypeData::is_missile`, vslot `+0x114`) takes
@@ -1496,10 +1496,12 @@ mod tests {
             };
             cost_of(&T, &lh, r, Counts::default(), &m)
         };
-        assert_eq!(at(Resource::Food, [0, 0]), 60);
-        assert_eq!(at(Resource::Food, [15, 0]), 51);
-        assert_eq!(at(Resource::Timber, [15, 0]), 34);
-        assert_eq!(at(Resource::Food, [15, 15]), 43);
+        assert_eq!(at(Resource::Food, [0, 0, 0]), 60);
+        assert_eq!(at(Resource::Food, [15, 0, 0]), 51);
+        assert_eq!(at(Resource::Timber, [15, 0, 0]), 34);
+        assert_eq!(at(Resource::Food, [15, 15, 0]), 43);
+        // Sulphur is its own third step: 15% then 20% off 60.
+        assert_eq!(at(Resource::Food, [15, 0, 20]), 40);
     }
 
     /// **Monarchy takes its quarter after `MILITARY_UNIT_DISCOUNT`, in a
