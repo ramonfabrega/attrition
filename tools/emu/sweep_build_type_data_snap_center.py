@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_build_type_data_snap_center.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 576-byte object of random bytes (no bias), 5 stack argument(s);
-`p` windows in order: p0..p1 pointed argument(s), p2 the place; the global cell 0x00c061d0 points at 1024 random bytes; the global cell 0x00cae5fc points at 2048 random bytes; 324 random bytes at 0x00adc400 (each word in -2..2); 324 random bytes at 0x00adcaf0 (each word in -2..2); argument 2 names 4 random bytes; argument 3 names 4 random bytes; vtable slot +0x60 (2 args) stubbed; callee 0x006b54f0 (3 args) stubbed; callee 0x00636a50 (5 args) stubbed; the word at `c0+0x134` points at 1024 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1, 1, 1, 1, 1, 1, 1] (90%); stub 0 answers 5 values in call order, printed after the answers; stub 1 answers 8 values in call order, printed after the answers; stub 2 answers 81 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 1 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call).
+`p` windows in order: p0..p1 pointed argument(s), p2 the place; the global cell 0x00c061d0 points at 1024 random bytes; the global cell 0x00cae5fc points at 2048 random bytes; 324 random bytes at 0x00adc400 (each word in -2..2); 324 random bytes at 0x00adcaf0 (each word in -2..2); argument 2 names 4 random bytes; argument 3 names 4 random bytes; vtable slot +0x60 (2 args) stubbed; callee 0x006b54f0 (3 args) stubbed; callee 0x00636a50 (5 args) stubbed; the word at `c0+0x134` points at 1024 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 0, 0, 0, 0, 0, 0, 1] (90%); stub 2 answered from [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] (90%); stub 0 answers 5 values in call order, printed after the answers; stub 1 answers 8 values in call order, printed after the answers; stub 2 answers 81 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 1 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -37,9 +37,9 @@ STUBS = [('slot', 96, 2), ('call', 7034096, 3), ('call', 6515280, 5)]
 PLACES = [('c0', '0x134', '0', 1024)]
 NULLS = []
 NULLFORCE = {}
-WBIAS = [('c0', 0, ('range', 3, 6)), ('c0', 4, ('range', 3, 6)), ('c0', 24, ('range', 12, 44)), ('c0', 28, ('range', 12, 44))]
+WBIAS = [('c0', 0, ('range', 5, 6)), ('c0', 4, ('range', 5, 6)), ('c0', 24, ('range', 20, 44)), ('c0', 28, ('range', 20, 44)), ('p2', None, ('set', [2048, 2048, 2048, 2048, 2048, 0]))]
 FILLS = [('c1', 'i//3')]
-ARGRANGE = [(0, 400, 7680), (1, 400, 7680), (4, -2, 3)]
+ARGRANGE = [(0, 400, 4608), (1, 0, 4608), (4, -2, 3)]
 SLOTBASE = []
 ECXINT = None
 EDX = None
@@ -47,7 +47,7 @@ EDXWIN = None
 XMM = []
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = 0.1
-ANSWERS = [(0, [0, 1]), (1, [0, 1]), (2, [0, 1, 1, 1, 1, 1, 1, 1])]
+ANSWERS = [(0, [0, 1]), (1, [0, 0, 0, 0, 0, 0, 0, 1]), (2, [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
 VTAT = None
 VTATHALF = []
 VTIMAGE = []
@@ -308,8 +308,8 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(1500):
-        h.brk = base  # the bump heap is reused a row; 1500 rows of windows outgrow it
+    for i in range(6000):
+        h.brk = base  # the bump heap is reused a row; 6000 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -693,4 +693,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["--item", "3239", "obj", "BuildTypeData::snap_center@00636190", "--win", "0x240", "--own", "5", "--ret", "none", "--cell-win", "0xc061d0:0x400", "--cell-win", "0xcae5fc:0x800", "--fill", "c1:i//3", "--at", "0xadc400:324:-2..2", "--at", "0xadcaf0:324:-2..2", "--ptrarg", "2:4", "--ptrarg", "3:4", "--place", "c0+0x134:0:1024", "--stub", "slot:0x60:2", "--stub", "0x6b54f0:3", "--stub", "0x636a50:5", "--answers", "0:0,1", "--seq", "0:5", "--answers", "1:0,1", "--seq", "1:8", "--answers", "2:0,1,1,1,1,1,1,1", "--seq", "2:81", "--argrange", "0:400:0x1e00", "--argrange", "1:400:0x1e00", "--argrange", "4:-2:3", "--wbias", "c0+0:3..6", "--wbias", "c0+4:3..6", "--wbias", "c0+0x18:12..44", "--wbias", "c0+0x1c:12..44", "--record", "0", "--record", "1", "--record", "2", "--deref", "1:0:4", "--deref", "1:1:4", "--rows", "1500"]
+# sweep_gen: ["--item", "3239", "obj", "BuildTypeData::snap_center@00636190", "--win", "0x240", "--own", "5", "--ret", "none", "--cell-win", "0xc061d0:0x400", "--cell-win", "0xcae5fc:0x800", "--fill", "c1:i//3", "--at", "0xadc400:324:-2..2", "--at", "0xadcaf0:324:-2..2", "--ptrarg", "2:4", "--ptrarg", "3:4", "--place", "c0+0x134:0:1024", "--stub", "slot:0x60:2", "--stub", "0x6b54f0:3", "--stub", "0x636a50:5", "--answers", "0:0,1", "--seq", "0:5", "--answers", "1:0,0,0,0,0,0,0,1", "--seq", "1:8", "--answers", "2:0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1", "--seq", "2:81", "--argrange", "0:400:0x1200", "--argrange", "1:0:0x1200", "--argrange", "4:-2:3", "--wbias", "c0+0:5..6", "--wbias", "c0+4:5..6", "--wbias", "c0+0x18:20..44", "--wbias", "c0+0x1c:20..44", "--wbias", "p2+*:2048,2048,2048,2048,2048,0", "--record", "0", "--record", "1", "--record", "2", "--deref", "1:0:4", "--deref", "1:1:4", "--rows", "6000"]
