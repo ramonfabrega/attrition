@@ -2071,7 +2071,7 @@ impl Sim {
                 0x40
             };
             if std::env::var("RON_PROBE_UP").is_ok() && w == 1 && (7978..=7981).contains(&self.frame) {
-                eprintln!("PROBE_UP f{} make t{} val {} cat {cat}", self.frame, t, wm(aff, v / 256));
+                eprintln!("PROBE_UP f{} make t{} val {} cat {cat} price {:?} avail {:?} aff {}", self.frame, t, wm(aff, v / 256), self.type_price(who, t), self.holdings[w].available, self.type_affordable(who, t, true));
             }
             self.ai[w]
                 .make_list
