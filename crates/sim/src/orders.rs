@@ -1453,9 +1453,6 @@ impl Sim {
     /// The walk is [`update_action_steps`] (item 2341), which the sweep
     /// `sweep::unit_update_action` holds to the original.
     pub fn update_action(&mut self, u: usize) -> Option<usize> {
-        if std::env::var("RON_PROBE_3269").is_ok_and(|v| v == format!("{}/{}", self.units[u].owner, self.units[u].index)) && (10842..=10845).contains(&self.frame) {
-            eprintln!("PROBE3269 f{} {}", self.frame, std::backtrace::Backtrace::force_capture());
-        }
         let unit = &mut self.units[u];
         let n = unit.orders.len();
         update_action_steps(
