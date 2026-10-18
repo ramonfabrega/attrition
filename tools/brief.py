@@ -114,13 +114,37 @@ def open_items(queue):
     return out
 
 
+TEST_FN = re.compile(r'^(\s*#\[ignore[^\n]*\n(?:\s*#\[[^\n]*\n)*)?\s*(?:pub(?:\([^)]*\))?\s+)?fn\s+([a-z_][a-z0-9_]*)\s*\(', re.M)
+
+
+def test_fns(crates=('crates/rondata/src', 'crates/sim/src')):
+    """`{fn name: ignored?}` over the crates' sources — the names a lane
+    gate's `--tests` filter matches as a substring, and whether each is
+    `#[ignore]` (Loop 3227: three briefs named `battery_measure`, which is,
+    and a lane gate exited 2 on it)."""
+    out = {}
+    for crate in crates:
+        for path in (ROOT / crate).rglob('*.rs'):
+            for m in TEST_FN.finditer(path.read_text(errors='replace')):
+                name = m.group(2)
+                out[name] = out.get(name, False) or bool(m.group(1))
+    return out
+
+
 def filters(kind, tests):
     """The lane gate's `--tests` for a brief: what the commander names,
     and the kind's own always among them (1623: 1611's lane gate never ran
-    the coverage pins its widening moved, and the booking gate was red)."""
+    the coverage pins its widening moved, and the booking gate was red).
+    A filter whose every matching `fn` is `#[ignore]` is refused (3227)."""
     tests = [t for t in (tests or ()) if t]
     if kind != 'sweep' and not tests:
         raise ValueError("a word's brief names its lane gate's filters: --tests FILTER [FILTER ...]")
+    fns = test_fns()
+    for t in tests:
+        hits = [n for n in fns if t in n]
+        if hits and all(fns[n] for n in hits):
+            raise ValueError(f"--tests {t} matches only #[ignore] tests ({', '.join(sorted(hits))}): "
+                             "the lane gate exits 2 on it; name a live test, or say the measurement is by hand")
     return tests + [t for t in ALWAYS_TESTS[kind] if t not in tests]
 
 

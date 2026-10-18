@@ -12,19 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-third tranche (commander, Opus): 20 landings from `1a15c80f` in 6 h 08, drained**, four lanes
-(DECISIONS 78 (i), 80), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `ea82a057`, at
-the drain (green, 6 of 6; rondata 972, sim 1713; release 8.8 minutes; `b1f20492` red on one pin, Loop 3264).*
+*2026-10-18, **the forty-third pass (steer, Fable): the forty-third tranche measured — 20 landings from `1a15c80f` in
+6 h 02, 92.89 USD, 52.0 minutes waiting a landing against 33.6** (DECISIONS 81; the sweep lanes' fan-outs, two to four
+lane gates a landing). **The forty-fourth tranche's base is the pass's commit**, named with its whole gate in its second.*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10695 of 12658 (3211, 3231, 3242,
-  3248: four Iroquois arms, a Despot's Barracks discount, Cotton's training speed), its widening owed as 3255;
-  `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed (3223, 3233, 3252, 3253), 90 → 94. Census 1477 →
-  1512, **port 311 → 347** (3219, 3234, 3229, 3238, 3239, 3250). The held-out battery's median 4770.
-- **Lanes: none live** — drained at twenty; unspawned: 3255 AI (run 943, AI §257, JK), 3263 rules (run 944, GOLDEN
-  §137, JN), 3261 shape (JM), 3259 the nations seat (JL). Landings: 3221, 3223, 3225, 3211, 3228, 3219, 3233, 3234,
-  3229, 3231, 3236, 3244, 3242, 3238, 3246, 3252, 3248, 3239, 3250, 3253. Next 3265, run 945. Pools: GOLDEN §138–140, AI §258–259, park JO–JR.
-  **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
-- **Fable backlog: 22 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227, 3237, 3240, 3249, 3256, 3257, 3258, 3260, 3264).
+  3248), its widening owed as 3255; `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
+  1477 → 1512, **port 311 → 347**; the battery's median 4770. Built, red first: six tools and guards (DECISIONS 81).
+- **Lanes: none live** — the forty-fourth tranche opens on four unspawned: 3255 AI (run 943, AI §257, JK), 3263 rules
+  (run 944, GOLDEN §137, JN), 3261 shape (JM), 3259 the nations seat (JL). Next 3266, run 945. Pools: GOLDEN §138–140,
+  AI §258–259, park JO–JR. **Ramon's**: three stray `agent-*` worktrees (`git worktree remove --force`, refused the
+  pass), the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
+- **Fable backlog: 10 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,9 +38,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 94 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the forty-third pass (steer, Fable): measure the forty-third tranche (twenty landings from `1a15c80f`,
-drained), ratify the marked rows, rule the 22 Loop items (3143, 3188, 3118 and 1570 are Ramon's), then clear
-`commander` into the forty-fourth tranche on the queue's four unspawned items (3255, 3263, 3261, 3259).**
+**Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — spawn the four unspawned items on four
+lanes (3255 the AI word's on `--model 'claude-opus-5-5[1m]' --effort medium`; 3263, 3261 and 3259 on `--model
+'claude-sonnet-5-5[1m]' --effort medium`) off the pass's commit, DECISIONS 78 (i); twenty landings, then the forty-fourth pass.**
 
 ## The queue
 
@@ -55,7 +54,8 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `081000`): ours 12 draws against theirs 11 at index 10 — ours `Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`.
     No dump of this lobby holds 8665..12658 (run100 spans 9340..10900 on Great Lakes, run53's game): the
     capture over 10689..10945 at run940's detail (`LEADERS=9`, `GUYS=4`, run 943), widened whole on the word's frame
-    both directions. Standing: run940's 61 keys, `1/24`'s figure snap (parked 3254 (a)). AI §257.
+    both directions; and the rare masks read — `bits`/`bit_values`, `rares_collected` — beside `leader.rs`'s `resources`
+    compare, their key leaving `coverage.rs`'s unread pin (3254 (b), Loop 3256). Standing: run940's 61 keys (3254 (a)). AI §257.
 
 3263. **Chapter one hundred and two, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
     chapter; run 944 minted here): 3253 closed chapter 101 at 1500 on its first take, no sim change (two idle hoplite

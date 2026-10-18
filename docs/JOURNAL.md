@@ -21268,3 +21268,44 @@ frame rows and a guard that every journal's "for the Loop" line is
 filed or says `none`; 3085 closed built by the lane, two folded,
 fourteen closed unreached, two filed; 37 → 13. **DECISIONS 79.**
 `docs/audit/2026-10-18-fable-pass-41.md`.
+
+**2026-10-18 — the forty-second Fable pass: four lanes held the price,
+the lane gate was named the bottleneck and given a clock, the gate
+table graduated.** (Written by the forty-third pass; the forty-second
+left no entry here.) Twenty landings on four lanes in 4 h 52: 99.90 USD
+in all against 100.67, 4.20 USD and 33.6 minutes waiting a landing
+against 4.25 / 34.0; the Iroquois word 1772 → 5576 of 12,658, widened
+at both ends; chapters ninety-five to ninety-seven closed, 87 → 90;
+the census 1459 → 1477, port 293 → 311; the battery's median 2270 →
+4770. Fifteen booking gates, one red (a stale memory row, which the
+runner names now); the lane gate 21.6 of the 33.6 minutes a landing,
+11–51 a gate on a box under its cores, so the gate prints `Gate
+minutes:` by step and `tools/gates.py` tables a tranche's gates. Built,
+red first: the stale-row line (3167), the run-number reservation
+(3176), the `@FILE` reader (3180, 3102), the nations tool's round trip
+(3222), the gate's clock (3224) and the gate table; one closed on the
+measurement, four unreached, twelve stay. **DECISIONS 80.**
+`docs/audit/2026-10-18-fable-pass-42.md`.
+
+**2026-10-18 — the forty-third Fable pass: four lanes cost less and
+waited longer, the sweep lanes' fan-outs were read as their own, the
+lane gate runs two to four times a landing, and a regen keeps every
+hand item.** Twenty landings on four lanes in 6 h 02: 92.89 USD in all
+against 99.90, 3.70 USD and 52.0 minutes waiting a landing against 4.20
+/ 33.6 — the two sweep lanes' sequential subagent fan-outs (14.3 a
+landing, which the clock had read as messages) and two to four lane
+gates a landing. The Iroquois word 5576 → 10695 of 12,658 in four
+landings, each widened on its own run; chapters ninety-eight to one
+hundred and one closed, 90 → 94; the census 1477 → 1512, port 311 →
+347; the nations seat found its last two arms built and became a sweep
+lane. Seventeen booking gates, one red at the drain on a renumbered
+row's pin; the orphan gone. The four Opus journals quoted `Gate
+minutes:` (release 4.9–7.5 of 6–9 a gate) and the sixteen Sonnet ones
+quoted nothing, so the quote is a guard from item 3265. Built, red
+first: the clock's subagent class, the owed-widening guard's item
+check, the journal guard, the brief's refusal of an ignored-only
+filter, the regen's kept items (3013's fourth reach, reproduced on
+3250's `think_peasant`), the frame's sweep fence; two closed on
+readings, four folded into the ledger, one moved to the AI word's
+booking, four unreached, one filed; 22 → 10. **DECISIONS 81.**
+`docs/audit/2026-10-18-fable-pass-43.md`.

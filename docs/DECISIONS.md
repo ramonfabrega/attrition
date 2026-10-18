@@ -92,6 +92,7 @@ is append-only and amended in place, as it always was.
 - 78 standing — The fortieth tranche is scored on five lanes, the booking gate is named the chain's bottleneck and its scope stops widening on the blind residue, the waiter reads a finished log under another lane's runner, and nine Loop items become tools, rows or closes
 - 79 standing — The forty-first tranche is scored on four lanes at the loop's cheapest, the census splits port-backed from layout-backed, the Golden line is counted, the whole gate counts widening landings, and twenty-six Loop items become tools, rows or closes
 - 80 standing — The forty-second tranche is scored on four lanes at the loop's price, the lane gate is named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, and twenty-one Loop items become tools, rows, closes or Ramon's
+- 81 standing — The forty-third tranche is scored on four lanes at less and slower, the sweep lanes' fan-outs are read as their own, the lane gate is two to four runs a landing and its quote is guarded, a regen keeps every hand item, and twenty-two Loop items become tools, guards, rows, closes or Ramon's
 
 ## 1. Fidelity before divergence
 
@@ -6562,3 +6563,99 @@ them. The commander is cleared into the forty-third tranche on the
 queue's four unspawned items (3211, 3223, 3219, 3221), four lanes, the
 roster of entry 78 (i).
 
+## 81. The forty-third tranche is scored on four lanes at less and slower, the sweep lanes' fan-outs are read as their own, the lane gate is two to four runs a landing and its quote is guarded, a regen keeps every hand item, and twenty-two Loop items become tools, guards, rows, closes or Ramon's
+
+*2026-10-18, the forty-third Fable pass, the `steer` session, cleared
+into by the commander at the drain (`484a695a`), unattended under entry
+61's fence. The record is `docs/audit/2026-10-18-fable-pass-43.md`.*
+
+**The tranche.** Twenty landings on four lanes in **6 h 02** from the
+pass's third commit (`9e0fa5ee` 08:21 to 3253's booking and handoff
+`b1f20492` 14:23), the drain gate red on one pin at 14:34 and green at
+14:45 — against 4 h 52 on four the tranche before. `tools/tranche.py`
+over the twenty (20 sessions): working 216 minutes, **waiting 1041 —
+52.0 a landing** (33.6), of which **the lane gate 23.9** (21.6) and
+**the subagent 14.3** (2.8): the two sweep lanes fan one subagent a
+function out in sequence, 2–36 minutes each, and the clock had read a
+gap that ends at a relay turn as a message even after an `Agent` call,
+so 3239's 85 minutes on five subagents stood as `message` until this
+pass fixed the tool (red first) and re-ran it. **The price fell as the
+clock rose**: 92.89 USD in all (99.90), 3.70 a landing for the workers
+(4.20). **Seventeen booking gates**: six whole (four on widening
+landings and the drain's two), eleven scoped and every one widened,
+**one red** — the drain's, on `the_widening_behind_each_pinned_word_exists`,
+whose owed row's pin named 3253 after the parked row was renumbered 3254
+and booked 3255 (Loop 3264); 155.5 minutes of gate on the commander's
+383. The admission waited **1357.1 s summed, longest 168.3 s** (1351.8 /
+134.8); the host load at a gate's end past the sixteen cores at **five
+of seventeen**. No `DEEP` (one session at 301 k, uncleared), one
+`STALLED` (3239: 31 minutes on a finished gate until the line), one
+`LANDED` after the lane's own line, no `UNCLEARED`; no kill rule, no
+blocked ending, no merge backed out. The orphan 51257 is gone.
+
+**The words.** The battery word `GreatLakesIroquoisTier3` **5576 →
+10695** of 12,658 in four landings (3211, 3231, 3242, 3248: four
+Iroquois arms, the Senate's cost and build time, Despotism's Barracks
+discount, Cotton's training speed), each widened on its own run
+(932, 934, 937, 940), the widening at 10695 owed as 3255. Chapters
+**98, 99, 100 and 101 closed** (3223; 3228, 3233; 3236, 3244, 3246,
+3252; 3253), 90 → 94. The census **1477 → 1512, port 311 → 347**
+(six sweep batches). The nations seat found its two remaining arms
+already built or loaded (3221, 3225; the median stayed at 4770) and was
+refilled as a sweep lane at 3229 under the rules' "no word of its own";
+3229 and 3239 are its first two batches.
+
+**The lane gate, read.** Entry 80 owed the step: the four Opus journals
+quote `Gate minutes:` — release 4.9–7.5 of 6.0–8.7 minutes a gate — and
+**none of the sixteen Sonnet journals quotes `Lane verdict:` or `Gate
+minutes:`** at all, so the step was readable on four. And the gate class
+a landing is not one slow gate: 3229 ran four lane gates, 3239 and 3250
+three, 3234 two, each Opus lane a red then a green. **The number of
+runs a landing is the lever, not the build**; a shared build is not the
+next item, Loop 3265 is. The rule that was prose becomes a guard:
+`docs_guard::a_journal_quotes_its_lane_verdict_and_gate_minutes`, from
+item 3265 on, red first on the sixteen.
+
+**A regen keeps every hand item** (Loop 3013's fourth reach, 3260,
+reproduced on the tree): a `--regen` of 3250's `think_peasant` with one
+more row kept the port *block* — a one-line call — and dropped the 160
+lines of `fn think_peasant_port` and two helpers between the generated
+`wr` and `hex4`, so Loop 2792's refusal never fired. `sweep_gen.py`'s
+`kept_items` carries every top-level item the old test holds and the new
+lacks over, in place (red first). A hand block inside the generated
+test's loop is still not kept; a fenced region is the next shape.
+
+**Two more refusals, one fence** (Loops 3227, 3264, 3258): `brief.py
+--tests` refuses a filter whose every matching `fn` is `#[ignore]`
+(three briefs named `battery_measure` and a lane gate exited 2); the
+owed-widening guard asks that the item an owed row names be about the
+word (its paragraph names the word's value); the frame's sweep section
+says a subagent's scratch is its own subdirectory and a lane removes
+only the `agent-*` worktrees its own subagents named (five of another
+lane's went).
+
+**Twenty-two Loop items ruled.** Built, red first: 3264, 3227, 3258,
+3224's guard, 3013 in part (3260 with it), the clock's class. Closed on
+a measurement or a reading: 3224, 3226. Folded into 2003's ledger: 3249,
+3257, 3260's flags, 3240's flags. Moved to the AI word's booking: 3256.
+Closed unreached under entry 54 §7: 3158, 3165, 3181, 3218. Stay, each
+with its reach: 3013 (the in-body block), 3139 (one more), 3240 (two
+bugs), 2003 the ledger, and Ramon's five — 1570, 3118, 3143 (with the
+measurement), 3188 (with the recommendation), 3237 (with the
+measurement: 35 of 1,421 sweep modules call the crate's method). Filed:
+3265. Ten stay.
+
+**What is not established.** Why a lane's first gate is red as a rule
+(each Opus lane's was) and what a second run would need beyond the
+failed tests and the guards — 3265 measures before the frame row moves;
+whether the stray `agent-*` worktrees stand because the harness's lock
+or the lane's exit left them; whether the nations seat's median moves
+again on any family (3188).
+
+**For Ramon, held by the fence** (entry 61 §4): the three stray
+worktrees' removal, which the classifier refused the pass; the nations
+seat; the port score's witnesses (3237); 3118's sound, with the check
+named; 1570; the roster stands at four. The pass recommends in its
+record and moves none of them. The commander is cleared into the
+forty-fourth tranche on the queue's four unspawned items (3255, 3263,
+3261, 3259), four lanes, the roster of entry 78 (i).

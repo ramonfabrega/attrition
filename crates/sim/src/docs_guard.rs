@@ -2157,6 +2157,50 @@ fn a_journal_carries_no_tool_call_markup() {
 /// not `none` names its item in `docs/PARKED.md` or a pass's record under
 /// `docs/audit/` as `N's "for the Loop"`. Made to fail first on the three
 /// unfiled lines of 2026-10-18.
+/// **A worker's journal quotes its lane gate** (the forty-third pass):
+/// the frame's landing row asks for `Lane verdict:`, `Gate steps:` and
+/// `Gate minutes:` in the journal (969, 3224), and in the forty-third
+/// tranche the four Opus journals quoted them and none of the sixteen
+/// Sonnet ones did — so the pass that was to read the lane gates' minutes
+/// by step off the journals could read four. A rule that is only prose is
+/// broken within the week; this is the row with teeth, from the first
+/// item booked after that pass.
+const JOURNAL_QUOTES_THE_GATE_FROM: u32 = 3265;
+
+#[test]
+fn a_journal_quotes_its_lane_verdict_and_gate_minutes() {
+    let mut silent = Vec::new();
+    for entry in std::fs::read_dir(docs().join("journal")).expect("docs/journal/") {
+        let path = entry.expect("entry").path();
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+        let Some((_, rest)) = name.split_once("-item-") else {
+            continue;
+        };
+        let Some(item) = rest.strip_suffix(".md").and_then(|n| n.parse::<u32>().ok()) else {
+            continue;
+        };
+        if item < JOURNAL_QUOTES_THE_GATE_FROM {
+            continue;
+        }
+        let text = std::fs::read_to_string(&path).expect("read");
+        let missing: Vec<&str> = ["Lane verdict:", "Gate minutes:"]
+            .into_iter()
+            .filter(|k| !text.contains(k))
+            .collect();
+        if !missing.is_empty() {
+            silent.push(format!("{name}: no {}", missing.join(", no ")));
+        }
+    }
+    assert!(
+        silent.is_empty(),
+        "a worker's journal quotes its lane gate's `Lane verdict:` and `Gate minutes:` lines \
+         (tools/brief/frame.md, landing; 969, 3224) — the pass reads the lane gates' minutes by \
+         step off the journals, and in the forty-third tranche only the four Opus journals carried \
+         them:\n{}",
+        silent.join("\n")
+    );
+}
+
 #[test]
 fn a_journal_s_loop_line_is_filed_or_says_none() {
     // The parked file wraps its rows, so the phrase is matched with its

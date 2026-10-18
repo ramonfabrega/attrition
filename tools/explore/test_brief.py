@@ -247,6 +247,18 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertNotIn('--claimed', residue)
         self.assertTrue(brief.lane_worktree(7).endswith('/att-7'))
 
+    def test_a_filter_whose_only_matches_are_ignored_tests_is_refused(self):
+        # Loop 3227: three briefs named `battery_measure`, an `#[ignore]`
+        # test, and 3221's lane gate exited 2 on it.
+        with self.assertRaises(ValueError) as e:
+            brief.filters('residue', ['battery_measure'])
+        self.assertIn('battery_measure', str(e.exception))
+        self.assertIn('#[ignore]', str(e.exception))
+        # A filter with a live match composes; one that matches no `fn` is
+        # a module path (`coverage::`) and composes too.
+        self.assertIn('battery_floors', brief.filters('residue', ['battery_floors']))
+        self.assertIn('nations::', brief.filters('residue', ['nations::']))
+
     def test_a_run_number_goes_through_runs_and_is_reserved_once(self):
         # Loop 3176 (the commander, at 3162's merge): two notes offered run
         # 923 "if needed" and a third brief reserved it with `--runs`; two

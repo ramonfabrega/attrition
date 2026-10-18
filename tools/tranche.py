@@ -140,7 +140,11 @@ def fold(tr: dict, gap_s: int, deep_k: int) -> dict:
             if c != "other":
                 cls = c
                 break
-        if opened_by.get(b["ts"]) == "relay":
+        # A gap that ends at a relay turn was a wait on another session's
+        # message — unless the wait was on the Agent tool: a subagent's
+        # answer arrives as a relay too, and 3239's 85 minutes on five
+        # subagents read as `message` (the forty-third pass).
+        if opened_by.get(b["ts"]) == "relay" and cls != "subagent":
             cls = "message"
         waiting += secs / 60
         on[cls] = on.get(cls, 0.0) + secs / 60

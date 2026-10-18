@@ -95,6 +95,23 @@ class Fold(unittest.TestCase):
         row = tranche.fold(trace, gap_s=90, deep_k=300)
         self.assertEqual(row['on'], {'message': 120.0})
 
+    def test_a_gap_after_an_agent_call_is_the_subagent_s_even_when_its_answer_arrives_as_a_relay(self):
+        # The forty-third pass: a sweep lane's subagent answers as a relay
+        # turn, and 3239's 85 minutes on five subagents read as `message`
+        # (the shape lanes' message class 1.8 -> 13.3 minutes a session).
+        trace = {'transactions': [
+            {'ts': '2026-10-18T10:00:00.000Z', 'kind': 'prompt',
+             'requests': [req('2026-10-18T10:00:00.000Z')],
+             'instructions': [{'ts': '2026-10-18T10:00:01.000Z', 'tool': 'Agent',
+                               'input': '{"description":"Sweep Unit::find_goody_box","subagent_type":"lean"}',
+                               'turn': '2026-10-18T10:00:00.000Z'}]},
+            {'ts': '2026-10-18T10:30:00.000Z', 'kind': 'relay',
+             'requests': [req('2026-10-18T10:30:00.000Z')],
+             'instructions': []},
+        ]}
+        row = tranche.fold(trace, gap_s=90, deep_k=300)
+        self.assertEqual(row['on'], {'subagent': 30.0})
+
 
 if __name__ == '__main__':
     unittest.main()

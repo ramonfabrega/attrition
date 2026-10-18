@@ -197,7 +197,9 @@ Before any reading, in order:
   `census::SIMULATION_BACKED` — the commander pins it at booking, and
   the lane gate forgives its red** (2367). **A subagent's report is
   taken by its SHA**, never by the branch it names (1692); **its scratch
-  goes under the job's tmp, named by function, never `/tmp`** (2373).
+  is its own subdirectory of the job's tmp, named by function, never
+  `/tmp` and never a sibling's** (2373, 3258: two overwrote one
+  `breaks.tsv`).
   **The batch is `tools/census.py --unbacked`'s, re-read on the base
   at every `ccc update` before a fan-out** (1703, 1725, 2856): the
   functions a built shape holds first, shortest of the rest after
@@ -220,8 +222,10 @@ Before any reading, in order:
   (2875), **and a subagent never ends its turn on a background wait**:
   it is not re-invoked, and the lane sat 1 h 50 on one that did (2820). **A float return's register is the
   listing's last write before `ret`, never the export's `in_ST0`**
-  (2552). **Your subagents' `agent-*` worktrees go with your landing**,
-  `git worktree remove` each once merged (three stood a day).
+  (2552). **Your subagents' `agent-*` worktrees go with your landing**:
+  `git worktree remove` each one your subagents' answers named, once
+  merged, and no other lane's (3258: five of another lane's went; three
+  stood a day).
 - **A break is `tools/mutate.py --edit <file> 'old' 'new' -- cargo test
   -p sim <test>`** (784, 907), never a hand script: it restores
   from git and `touch`es (2442), and its verdict is the command's exit,

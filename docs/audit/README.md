@@ -315,6 +315,34 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the forty-third pass
+
+The forty-third tranche (DECISIONS 81): twenty landings on four lanes in
+6 h 02 from the pass's commit, 3.70 USD and 52.0 minutes waiting a
+landing (4.20 / 33.6); one red booking gate (a renumbered row's pin),
+no kill rule, no `DEEP`, one `STALLED`, no merge backed out. The pass
+added these rows, each from the tranche's own receipts; the sweep kind
+took the two sentences, the chapter kind stands at 12,998 of 13,000.
+
+- **A sweep lane's subagent has its own scratch, and the lane removes
+  only the worktrees its subagents named** (3258; 3239's parked (c)
+  and done line): two sibling subagents overwrote one `breaks.tsv`
+  under a shared tmp, and a lane's closing loop over every `agent-*`
+  worktree removed five of another lane's; the frame's sweep section
+  says a subdirectory a function and a cleanup by the lane's own
+  answers.
+- A journal quotes its lane gate's `Lane verdict:` and `Gate minutes:`
+  lines, or the paperwork guard fails the booking gate (Loop 3224 and
+  969, the forty-third pass's guard, from item 3265 on): the four Opus
+  journals of the forty-third tranche quoted them and none of the
+  sixteen Sonnet ones did, and the pass that was to read the lane gates'
+  minutes by step could read four. The frame's landing row stands as
+  written; the row with teeth is `docs_guard`'s.
+- A `--tests` filter names a live test (Loop 3227, the commander's rule,
+  built in `brief.py`): a filter whose every matching `fn` is `#[ignore]`
+  is refused with the names; three briefs named `battery_measure` and a
+  lane gate exited 2 on it.
+
 ## The brief checklist, from the forty-second pass
 
 The forty-second tranche (DECISIONS 80): twenty landings on four lanes in

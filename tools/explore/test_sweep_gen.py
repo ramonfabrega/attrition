@@ -1799,6 +1799,66 @@ class Shapes(unittest.TestCase):
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_regen_keeps_a_hand_item_outside_the_port_block(self):
+        # Loop 3013's fourth reach (3260, the forty-third pass): 3250's
+        # `think_peasant` carried its port as `fn think_peasant_port` and two
+        # helpers between the generated `wr` and `hex4`, and a `--regen` with
+        # one more row kept the port *block* (a one-line call) and dropped
+        # the 160 lines it called — reproduced on the tree with `--rows`.
+        old = '''//! header (item 1).
+
+#[allow(dead_code)]
+fn rd(m: &[u8]) -> i32 {
+    1
+}
+
+use crate::Sim;
+
+/// The port, hand-written.
+fn x_port(a: &[i32]) -> i64 {
+    let v = {
+        a[0] as i64
+    };
+    v
+}
+
+fn hex4(v: i32) -> String {
+    format!("{v:04x}")
+}
+
+#[test]
+fn the_emulated_original_agrees_on_every_row() {
+    for row in OLD_ROWS {
+        let got: i64 = {
+            x_port(&[row])
+        };
+    }
+}
+'''
+        new = old.replace('OLD_ROWS', 'NEW_ROWS').replace('x_port(&[row])', 'todo!("the port of X::y")')
+        new = new.replace('''use crate::Sim;
+
+/// The port, hand-written.
+fn x_port(a: &[i32]) -> i64 {
+    let v = {
+        a[0] as i64
+    };
+    v
+}
+
+''', '')
+        self.assertNotIn('fn x_port', new)
+        kept = sweep_gen.kept_items(old, new)
+        self.assertIn('use crate::Sim;', kept)
+        self.assertIn('/// The port, hand-written.\nfn x_port', kept)
+        self.assertIn('NEW_ROWS', kept)
+        self.assertNotIn('OLD_ROWS', kept)
+        # In place: after `rd`, before `hex4`.
+        self.assertLess(kept.index('fn rd('), kept.index('fn x_port'))
+        self.assertLess(kept.index('fn x_port'), kept.index('fn hex4('))
+        # Nothing to keep leaves the new test as it is.
+        self.assertEqual(sweep_gen.kept_items(new, new), new)
+
     def test_regen_replaces_an_option_given_in_equals_form_and_never_takes_the_kept_port(self):
         # Loop 2886 (five reaches, the thirty-ninth pass). 2946: `--rows=2400`
         # on the new line left the kept `--rows 1200` merged in after it,

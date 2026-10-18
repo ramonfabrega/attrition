@@ -2968,6 +2968,51 @@ def kept_port(old, new, todo):
     return new[:at] + old[i:j] + new[at + len(todo):]
 
 
+def _items(text):
+    """A test file as top-level items: `(head, block)` per item, where the
+    block is the item's lines with the attributes and doc comments above
+    it, and the head its first line of code (`fn x(`, `use y;`, …). The
+    `//!` header and blank lines between items are items of their own."""
+    items = []
+    pending = []
+    for line in text.split('\n'):
+        if line.startswith(('#[', '///')):
+            pending.append(line)
+            continue
+        if line and not line[0].isspace() and line != '}':
+            items.append([line, pending + [line]])
+            pending = []
+        elif items and not pending and (line == '}' or (line and line[0].isspace())):
+            items[-1][1].append(line)
+        else:
+            items.append([None, pending + [line]])
+            pending = []
+    if pending:
+        items.append([None, pending])
+    return [(h, '\n'.join(b)) for h, b in items]
+
+
+def kept_items(old, new):
+    """Loop 3013's fourth reach (3260): `--regen` kept the port *block* and
+    dropped every hand-written item outside it — 3250's `fn
+    think_peasant_port` and two helpers between the generated `wr` and
+    `hex4`, 160 lines. Every top-level item the old test holds and the
+    new one lacks (by its head line) is carried over, in place: before
+    the first item after it that the new test still has, or at the end."""
+    old_items = _items(old)
+    new_items = _items(new)
+    new_heads = {h for h, _ in new_items if h}
+    out = list(new_items)
+    for i, (head, block) in enumerate(old_items):
+        if not head or head in new_heads:
+            continue
+        anchor = next((h for h, _ in old_items[i + 1:] if h and h in new_heads), None)
+        at = next((k for k, (h, _) in enumerate(out) if h == anchor), len(out)) if anchor else len(out)
+        # The blank line that separated the item from its neighbour.
+        out.insert(at, (head, block if block.endswith('\n') else block + '\n'))
+    return '\n'.join(b for _, b in out)
+
+
 SWEEP_FAMILIES = ('a_f', 'g_o', 'p_t', 'u_z')
 REGISTRY_MARKER = '// Registered standalone sweeps.\n'
 REGISTRATION = re.compile(r'#\[path = "([a-z][a-z0-9_]*)\.rs"\]\nmod \1;\n')
@@ -3885,7 +3930,7 @@ def main(argv=None):
         todo = f'todo!("the port of {parse(args.function)[0]}")'
         kept = kept_port(old_test, test, todo)
         if kept is not None:
-            test = kept
+            test = kept_items(old_test, kept)
         elif todo not in old_test and not args.reset_port:
             # Loop 2792: four hand ports in one batch went back to todo!()
             # in silence; a regen that cannot keep one refuses instead.

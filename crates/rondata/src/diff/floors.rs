@@ -1313,13 +1313,29 @@ mod tests {
                          word (item 456's lesson) rather than leaving the row reading as pinned"
                     );
                 }
-                None => assert!(
-                    queue.contains(&format!("\n{item}. "))
-                        || parked.contains(&format!("({item}) **")),
-                    "{name} = {word} has no widening on file and names item {item}, which \
-                     neither docs/QUEUE.md books (`{item}. `) nor docs/PARKED.md holds \
-                     (`({item}) **`). Widen the word's frame whole, or book it"
-                ),
+                None => {
+                    // The item must be about this word (Loop 3264, the
+                    // forty-third pass): a renumbered parked row left the
+                    // pin on 3253, which was then chapter 101's queue item,
+                    // and the guard passed four gates on the wrong item.
+                    // The item's own text names the word's value.
+                    let about = |text: &str, head: &str| {
+                        text.find(head).is_some_and(|a| {
+                            let body = &text[a..];
+                            let end = body[1..].find("\n\n").map_or(body.len(), |e| e + 1);
+                            body[..end].contains(&word.to_string())
+                        })
+                    };
+                    let booked = about(&queue, &format!("\n{item}. "));
+                    let parked_row = about(&parked, &format!("({item}) **"));
+                    assert!(
+                        booked || parked_row,
+                        "{name} = {word} has no widening on file and names item {item}, which \
+                         neither docs/QUEUE.md books (`{item}. `) nor docs/PARKED.md holds \
+                         (`({item}) **`) as an item whose text names {word}. Widen the word's \
+                         frame whole, or book it — and if the row was renumbered, re-pin the item"
+                    );
+                }
             }
         }
     }
