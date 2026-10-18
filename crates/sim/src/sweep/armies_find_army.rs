@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -40,7 +45,9 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            let rd = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
+            let rd = |w: &[u8], o: usize| {
+                i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+            };
             // c0 the world cell, c1 `find_dist`; p1..p16 the armies, p18..p21 the units and p23..p26 their data;
             // a[6] the region `get_tregion` answers, a[7] `vector_dist`, a[8] `Army::count`, a[9] and a[10] the
             // slot +0xcc / +0xc4 answers, a[11] and a[12] the flags laying `is_supply` / `is_hero`.
@@ -65,12 +72,20 @@ fn the_emulated_original_agrees_on_every_row() {
                 if !take {
                     let u = a[5] as usize;
                     let flags = rd(&p[23 + u], 0x2b8);
-                    let supply = if a[11] != 0 { flags & 0x40 != 0 } else { a[9] != 0 };
+                    let supply = if a[11] != 0 {
+                        flags & 0x40 != 0
+                    } else {
+                        a[9] != 0
+                    };
                     if supply {
                         l2.push(format!("p{}+0x0,{},17,63", 1 + k, a[5]));
                         take = a[8] <= 2;
                     } else {
-                        let hero = if a[12] != 0 { flags & 0x20 != 0 } else { a[10] != 0 };
+                        let hero = if a[12] != 0 {
+                            flags & 0x20 != 0
+                        } else {
+                            a[10] != 0
+                        };
                         if hero {
                             l2.push(format!("p{}+0x0,{},17,54", 1 + k, a[5]));
                             take = a[8] <= 1;
@@ -85,13 +100,22 @@ fn the_emulated_original_agrees_on_every_row() {
                     c[1][..4].copy_from_slice(&near.to_le_bytes());
                 }
             }
-            let j = |l: Vec<String>| if l.is_empty() { "-".to_string() } else { l.join("/") };
+            let j = |l: Vec<String>| {
+                if l.is_empty() {
+                    "-".to_string()
+                } else {
+                    l.join("/")
+                }
+            };
             log.push(j(l1));
             log.push(j(l2));
             i64::from(best)
         };
         assert_eq!(got, want_eax, "find_army — eax, row `{line}`");
-        assert_eq!(log, want_log, "find_army — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "find_army — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "find_army — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

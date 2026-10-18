@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(3);
@@ -40,7 +45,9 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            let rd = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
+            let rd = |w: &[u8], o: usize| {
+                i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+            };
             // c0 the objects cell, c1 the div_3_table, c2 the leaders; p1..p4 the units, p5 the orders' array, p6
             // the slot +0xb0 answer; a[1] the building search, a[3] slot +0x90, a[6..8] the two `invalid_loc`
             // answers, a[8..10] the two `is_enemy` answers.
@@ -79,19 +86,34 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
             }
             for x in l {
-                log.push(if x.is_empty() { "-".to_string() } else { x.join("/") });
+                log.push(if x.is_empty() {
+                    "-".to_string()
+                } else {
+                    x.join("/")
+                });
             }
             eax
         };
         assert_eq!(got, want_eax, "resolve_block — eax, row `{line}`");
-        assert_eq!(log, want_log, "resolve_block — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "resolve_block — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "resolve_block — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "resolve_block — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "resolve_block — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[4 + i], "resolve_block — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[4 + i],
+                "resolve_block — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -40,7 +45,9 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            let rd = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
+            let rd = |w: &[u8], o: usize| {
+                i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+            };
             let wr = |w: &mut [u8], o: usize, v: i32| w[o..o + 4].copy_from_slice(&v.to_le_bytes());
             // p0 the type-0 array (six records p1..p6), p7..p9 the order list's head, node and order, p10 the
             // `update_action` answer, p11 the target record its slot +0x3c answers, p12 the slot +0xa8 answer;
@@ -63,18 +70,33 @@ fn the_emulated_original_agrees_on_every_row() {
                     k += 1;
                 }
             }
-            log.push(if kills.is_empty() { "-".to_string() } else { kills.join("/") });
+            log.push(if kills.is_empty() {
+                "-".to_string()
+            } else {
+                kills.join("/")
+            });
             0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "change_target — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "change_target — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "change_target — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "change_target — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "change_target — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "change_target — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "change_target — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
