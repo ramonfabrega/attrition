@@ -44,6 +44,8 @@ mod unit_add_attack_ground_order;
 mod unit_add_await_board_order;
 #[path = "unit_add_board_order.rs"]
 mod unit_add_board_order;
+#[path = "unit_add_build_order.rs"]
+mod unit_add_build_order;
 #[path = "unit_add_garrison_order.rs"]
 mod unit_add_garrison_order;
 #[path = "unit_add_patrol_order.rs"]
@@ -438,6 +440,8 @@ mod wonder_get_timer;
 mod wonder_walk_data;
 #[path = "world_adjust_fog.rs"]
 mod world_adjust_fog;
+#[path = "world_compute_all_territory.rs"]
+mod world_compute_all_territory;
 #[path = "world_compute_all_vals.rs"]
 mod world_compute_all_vals;
 #[path = "world_data_buildings_allowed.rs"]

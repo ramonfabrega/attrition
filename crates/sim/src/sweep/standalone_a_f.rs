@@ -34,8 +34,12 @@ mod air_patrol_order_walk_data_vtordisp;
 mod airattackgroundorder_get_air_order;
 #[path = "airpatrolorder_get_air_patrol_order.rs"]
 mod airpatrolorder_get_air_patrol_order;
+#[path = "ammo_check_hit.rs"]
+mod ammo_check_hit;
 #[path = "ammo_data_walk_data.rs"]
 mod ammo_data_walk_data;
+#[path = "ammo_hit_target.rs"]
+mod ammo_hit_target;
 #[path = "ammo_out_set_shooter_vis.rs"]
 mod ammo_out_set_shooter_vis;
 #[path = "ammo_process.rs"]
@@ -82,6 +86,8 @@ mod army_is_engaged;
 mod army_member;
 #[path = "army_member_by_unit.rs"]
 mod army_member_by_unit;
+#[path = "army_release_mustering.rs"]
+mod army_release_mustering;
 #[path = "army_remove_group.rs"]
 mod army_remove_group;
 #[path = "army_send_here.rs"]

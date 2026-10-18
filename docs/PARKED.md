@@ -3748,6 +3748,8 @@ battery leaders — 3160's Citizen arms moved the median 2270 → 4770; 3172's a
 Sulphur arm moved no lobby. What the lane takes next is NATIONS §7's sixth candidate (the tiers' arms, booked 3187); whether a
 nations lane stays on the roster is Ramon's (DECISIONS 78). One reach.
 
+Item 3200 — **`sweep_gen.py obj`'s `--wbias` offsets print decimal** (3200's "for the Loop" line, filed at its merge): a hand-built line spelling `m+0x18` and then `str.replace`d by the hex spelling replaces nothing, and a `--regen` of unchanged flags reads as a draw that did not move. Candidate: the header names the offset in the spelling it was given (parked under 3200, row f).
+
 (3181) **`--answer-win` cannot answer null** (3166's "for the Loop" line, filed at its merge): `UnitData::find_def_pos`'s
 `get_action() == 0` arm is unreached because the window answer is never null. Candidate: an `--answer-win` null a third
 of the rows, as `--place-null` does, made to fail first on the starved arm. One reach.
@@ -7584,13 +7586,16 @@ Two built of the six; four not attempted past reading, each with the flag it wou
 (3206) **Item 3135's wonder blocks are built** (the lane's 3195, renumbered: 3195 was 3182's): the battery is unmoved; the German pair (3136) stays inert and unloaded. Names no score; parked.
 
 
-## Parked by the next landing, slot IL — reserved
+## Parked by item 3200, 2026-10-18 — the shape lane's eleventh batch: six port bodies swept, Census 1471 → 1477
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+All six built, none parked for a missing flag. The unreached arms, numbered at the merge:
+
+- (a) **`Army::release_mustering@006f87c0` `a[4 + seen.min(7)]`** (the eighth existing leader's `is_ally` answer): starved — it needs all eight leaders' flags set, the last one's answer to differ from the seventh's, and a city of that leader at `& 3 == 3` ahead of every other exit; 4000 rows did not reach it. A `--seq` that names the leader a call is for, or `--wbias` on every flag word at once, would.
+- (b) **`release_mustering`'s `n > 0x14` against `n >= 0x14`** (kind 1, tier 3..4): starved by the same depth (the army's size 20, the record's tier in 3..4, the three `get_diff` answers off their thresholds).
+- (c) **`release_mustering`'s `city[0x5e] as i8`** is equivalent: the leader index is 0..2, so a byte at or above 0x80 parts either way.
+- (d) **`Group::action_buildmask`'s `r60 | mask` against `r60 ^ mask`** is equivalent: the set arm is only reached when `mask & r60 == 0`.
+- (e) **`Unit::add_build_order`'s negative-index arm** (`param_1 < 0 || param_2 < 0`, the `0xffff` short) is unreachable under the emulator: the original reads the object table again at `5e52e9` with no guard, so the sweep draws `0..1` only.
+- (f) **`sweep_gen.py obj`'s `--wbias` OFF is decimal on the line the generator prints** (`m+148`, `c0+48`): a hand-built line that spells `m+0x18` in its flags and then `str.replace`s them by the hex spelling replaces nothing, and a `--regen` of the unchanged flags reads as a draw that did not move. Flag wanted: the header names the offset in the spelling it was given.
 
 ## Parked by item 3202, 2026-10-18 — the Slinger squad's start on 5564
 
