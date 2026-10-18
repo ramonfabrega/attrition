@@ -7913,13 +7913,9 @@ words and edits nothing here; a refill lands when two remain.
 
 - (booked as item 3267) (3266) **A shooter that takes damage beside the wreck (`alarm`), and a building shooter's near-face gate (3252)**: chapter 102 shows stance-0 hoplites take no order from a Tank wreck (GOLDEN §137); the two remaining arms of the wreck on the chain (3235) are an armed unit struck beside it and a Tower/Fort shooter. Names no score until a frame shows it.
 
-## Parked by the next landing, slot JO — reserved
+## Parked by item 3267, 2026-10-18 — chapter 103, a bowman strikes a squad beside a wreck
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **`0/10`'s second wound lands a block earlier here than in the original (run945, 934/935; GOLDEN §138)**: `damage` 27 and 10 sixteenths ours at 934 against 19 theirs, theirs reaching 27/10 at 935; `hits_left` 93 against 101, then `dest_angle` and `orders_y` on 935. No draw parts through 1500. The shooters' rounds agree: run945b's `AMMO=5` (920..940) prints `1/8`'s round at `(15935,16010)` → `(15719,15979)`, `total_time` 2, exactly ours, and `1/9`'s at `(15853,16135)` → `(15722,16033)`, `total_time` 2, launched at the 934 block; this crate's `RON_DEBUG_AMMO=925-936` shows `1/8`'s round alone and no `1/9`. The booking is the frame and the value (934, `0/10`'s `damage`); which round this crate lands on 933/934 is for `RON_DEBUG_AMMO` over 929–935 beside run945b's rows (cur_time 1 at 932 for `1/8`, 934 for `1/9`), and the original's lingering `who 1 o 9` ground round (`cur_time` 67..88, `total_time` 7, `whom -1`, from 855) which this crate does not print in flight.
 
 ## Parked by the next landing, slot JP — reserved
 
