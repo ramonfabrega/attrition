@@ -98,6 +98,8 @@ mod unit_data_has_damage;
 mod unit_data_has_stance_type;
 #[path = "unit_data_hits.rs"]
 mod unit_data_hits;
+#[path = "unit_data_home_base.rs"]
+mod unit_data_home_base;
 #[path = "unit_data_in_supply.rs"]
 mod unit_data_in_supply;
 #[path = "unit_data_is_attacking.rs"]
