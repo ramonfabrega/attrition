@@ -61,8 +61,18 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // refuses — Barter, queued by `defensive.bhs` step 15 on 1576 in the
     // original and unaffordable in ours (food 46 against the 54 it
     // costs), the food row standing from block 38 (`docs/AI.md` §249).
-    count: 1772,
-    sequence: 1772,
+    // **Item 3170 moved it 1772 → 5144** with run923, the lobby's blocks
+    // 1..40 dense: the food row parts on block 8, the first `calc_gather`
+    // recompute — ours 640, theirs 672, the Iroquois woodcutter's
+    // `IROQUOIS_FOOD × 16` (`BuildTypeData::calc_gather@00639e40`'s
+    // `has_tribe_bonus(0x12)` food arm, not carried) — and `known_rares`
+    // 0/1 beside it, a setup border fix ours left pending into frame 0's
+    // `check_borders`. With both, Barter is paid on 1576 and 1/6's gather
+    // on 1770 agrees (`docs/AI.md` §250). At 5144 ours 36 draws, theirs 37,
+    // index 0: ours `Animal::think_bird+0x82`, theirs
+    // `Unit::think_spellcaster+0x413`.
+    count: 5144,
+    sequence: 5144,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -279,7 +289,11 @@ fn run918_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 37, "initial run918 baseline");
+    pin_eq!(w.firsts.len(), 33, "initial run918 baseline");
+    // Item 3170: 37 → 33. who=1's food row (`income`, `resources`,
+    // `bucket`, `leftover`) leaves with `IROQUOIS_FOOD`, the woodcutter's
+    // two food (`docs/AI.md` §250). What stands is the control's set and the
+    // Scout's `blown`.
     // Item 3117, on base 808fe40c: the word 1120's window (ours 36 draws,
     // theirs 33, index 0: ours `Unit::explore_goody+0x27c` ×3, theirs the
     // same three on 1121 — who=1's Scout `1/0` entering its goody cell a
@@ -342,7 +356,10 @@ fn run918b_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 43, "initial run918b baseline");
+    pin_eq!(w.firsts.len(), 38, "initial run918b baseline");
+    // Item 3170: 43 → 38. who=1's food row and `known_rares` leave
+    // (`IROQUOIS_FOOD`; setup's border fixes no longer zero frame 0's
+    // census count, `docs/AI.md` §250).
     // Item 3117, on base 808fe40c: 60 keys part over the gap. The first
     // that is the word's: block 894, who=1's Scout `1/0` reaching
     // (45792, 18912) and taking `EXPLORETO` (39672, 22776) on both sides,
@@ -407,7 +424,10 @@ fn run921_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 40, "initial run921 baseline");
+    pin_eq!(w.firsts.len(), 32, "initial run921 baseline");
+    // Item 3170: 40 → 32. The food row, and with it Barter's queue on
+    // 1576 (`tech_frame`, the Library's `queued`, `script_step`): ours now
+    // pays its 54 food (`docs/AI.md` §250).
     // Item 3140, on base ca8f3d8a: 448 keys part over the window. The
     // first that is the word's: block 1378, who=1's citizen `1/7`, its
     // build on the Woodcutter's Camp 1/2008 (uid 18, placed and closed on
@@ -478,7 +498,17 @@ fn run922_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 408, "initial run922 baseline");
+    pin_eq!(w.firsts.len(), 32, "initial run922 baseline");
+    // **Item 3170: 408 → 32**, the word's own frame closed. The value diff
+    // on block 1771 (frame 1770): who=1's `1/6` takes the `GATHERORDER` on
+    // the camp 1/2008 on both sides (`orders.len` 1 and 1, the camp's
+    // `gather_down` 6 and 6), because Barter completes on 1757 on both
+    // (`epoch[2]` 1 and 1, `resource_cap` 1600 and 1600 from 1758). It was
+    // the food row: from block 8 ours paid 640 food against 672, the Iroquois
+    // woodcutter's `IROQUOIS_FOOD × 16` (`BuildTypeData::calc_gather@00639e40`'s
+    // `has_tribe_bonus(0x12)` food arm), and on 1576 ours held 46 food
+    // against Barter's 54. What stands: the control's 30, the groups'
+    // `held`, the pools, the Scout's `blown` (parked 3114).
     // Item 3156, on base b0758479: 408 keys part over the window. The
     // word's own record is block 1771 (frame 1770): who=1's citizen `1/6`
     // (TI 50, the builder of the Woodcutter's Camp 1/2008, idle beside it
@@ -546,5 +576,16 @@ fn run923_s_food_row_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "initial run923 baseline");
+    // Item 3170, on base 12c51ebe: 41 keys over blocks 1..40 before. Two
+    // rows part past the control's set, both on block 8 — the first
+    // `calc_gather` recompute (`gather_stamp` 0 → 7): who=1's food `income`
+    // 640 against 672 (`resources`, `leftover` with it; `bucket` 3/4 from
+    // 27) and `known_rares` 0 against 1. The first is `IROQUOIS_FOOD`,
+    // which this crate did not carry; the second is frame 0's census count
+    // of the Silk at (40320, 14208), which ours' `check_borders` zeroed on
+    // frame 0 for a fix `build_sim`'s stand-up `activate`s raised — the
+    // original's setup ends in `World::compute_all_territory`, so no pass
+    // is pending (`docs/AI.md` §250). Both closed: 41 → 36, the control's
+    // set, the groups' `held`, the pool, and the Scout's `blown`.
+    pin_eq!(w.firsts.len(), 36, "initial run923 baseline");
 }

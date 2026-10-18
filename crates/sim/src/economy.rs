@@ -792,7 +792,9 @@ pub fn iroquois_food(t: &Tuning, city: Option<&City>, sites: &[Site]) -> i32 {
         return 0;
     }
     let rate = t.iroquois_food * RATE_SCALE;
-    let rate = city.map_or(rate, |c| c.enhancer_amount(Resource::Food.index() as i32, rate));
+    let rate = city.map_or(rate, |c| {
+        c.enhancer_amount(Resource::Food.index() as i32, rate)
+    });
     sites
         .iter()
         .filter(|s| s.resource == Resource::Timber)

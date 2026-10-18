@@ -9713,13 +9713,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // builder mark, `unit_masks |= 0x400`), past run921's last block:
     // 1772 is widened on run922 over 1620..2022 (block 1771, who=1's
     // `1/6` taking the camp's gather in the original; item 3156,
-    // `run922_s_word_frame_is_widened_whole`).
+    // `run922_s_word_frame_is_widened_whole`). **Item 3170 moved it 1772
+    // → 5144** (`IROQUOIS_FOOD`, and setup's border fixes leaving frame
+    // 0's rares count standing; run923 over 1..40 dated both to block 8,
+    // `run923_s_food_row_is_widened_whole`), past run922's last block
+    // (2022): 5144's widening is owed, item 3171.
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
-        Some("run922_s_word_frame_is_widened_whole"),
-        3156,
-        Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_FRAME_1772),
+        None,
+        3171,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

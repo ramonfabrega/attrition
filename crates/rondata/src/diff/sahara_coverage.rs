@@ -402,7 +402,11 @@ fn run677_s_word_frame_is_widened_whole() {
     // Item 2384: +2, `leader:aggression[i]` ours 0 theirs 1, standing
     // from the window's first block (both leaders): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
-    pin_eq!(w.firsts.len(), 47, "initial run677 baseline");
+    // Item 3170: 47 → 46, leader 1's `known_rares` on block 8 (ours 0,
+    // theirs 1) closed: setup's border fixes no longer leave a zero pending
+    // for frame 0's `check_borders`, so frame 0's census count of the rare
+    // stands to the first recompute (`docs/AI.md` §250).
+    pin_eq!(w.firsts.len(), 46, "initial run677 baseline");
     // **The word's value diff, block 12** (item 1538): the Oil Well `1/2013`
     // (`TypeIndex` 421, `OILWELL`) stood at (34944, 10368) in ours — the
     // patch at cell (45, 13) — and at (44928, 8832) in theirs, cell (58, 11):
@@ -422,15 +426,16 @@ fn run677_s_word_frame_is_widened_whole() {
         );
     }
     // **What parts first past the standing block**: leader 1's `known_rares`
-    // on block 8 (ours 0, theirs 1), read by `civilian_value`.
+    // on block 8 (ours 0, theirs 1) until item 3170; nothing past block 6
+    // parts now (`docs/AI.md` §250).
     let first = w.firsts.values().map(|(f, _)| *f).filter(|f| *f > 6).min();
-    pin_eq!(first, Some(8), "the first parting past the standing block");
+    pin_eq!(first, None, "the first parting past the standing block");
     pin_eq!(
         w.firsts
             .get(&(1, -1, "leader:known_rares".to_string()))
             .map(|(f, _)| *f),
-        Some(8),
-        "leader 1's known rares part on block 8"
+        None,
+        "leader 1's known rares agree on every block"
     );
 }
 

@@ -317,7 +317,7 @@ left out; a constant with no reader in the export is dead there too.
 | constant | rules | the export reads it in | status | witness |
 |---|---:|---|---|---|
 | `IROQUOIS_LOS` | 0 | CheckSums::check_constants, Game::walk_rules_data, GameLog::say_checksum +3 | not carried | `iroquois_los` |
-| `IROQUOIS_FOOD` | 2 | BuildTypeData::calc_gather, BuildTypeOut::draw_template | not carried | `iroquois_food` |
+| `IROQUOIS_FOOD` | 2 | BuildTypeData::calc_gather, BuildTypeOut::draw_template | modelled at economy.rs | `iroquois_food` |
 | `IROQUOIS_SENATE` | 0 | Setup::build_civ_specific | not carried | `iroquois_senate` |
 | `IROQUOIS_HEAL_RATE` | [20 frames, ...] | Unit::process_healing | not carried | `iroquois_heal_rate` |
 | `IROQUOIS_FREE_SCOUT` | 1 | Build::activate | modelled at nations.rs | `iroquois_free_scout` |
