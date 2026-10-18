@@ -1379,79 +1379,29 @@ impl Sim {
     // ---- marching (§9) ----
 
     /// `Army::do_marching`: validate the target, retarget, then
-    /// `march_to_target`.
+    /// `march_to_target`. The steps are [`do_marching_steps`]'s (item 3238's
+    /// sweep, `Army::do_marching@006f3df0`); this crate's view of the army
+    /// and its target is [`MarchSim`].
+    ///
+    /// **No target is the retarget branch, not the march.** The
+    /// original opens on `iVar4 = field_0x30; if (iVar4 < 0) goto
+    /// LAB_006f3fb2` (`006f3df0`+0x1d), so an army that reaches
+    /// `do_marching` holding nothing goes straight to `find_target` —
+    /// and it reaches it holding nothing on the very tick
+    /// `do_mustering` releases it, because `Army::process` re-reads
+    /// `status` between its dispatch `if`s and `status = 2` leaves the
+    /// target at `-1` (§9, §11). Modelling only the "target present but
+    /// stale" arm cost Great Lakes' word 7930: the original spends
+    /// `find_target`'s coin once and its per-candidate score twice
+    /// there and this crate spent nothing (item 317).
     fn do_marching(&mut self, who: Player, slot: usize) {
-        let w = who as usize;
-        if self.army_count_attack(who, slot) < 1 {
-            self.close_army(who, slot);
-            return;
-        }
-        // **No target is the retarget branch, not the march.** The
-        // original opens on `iVar4 = field_0x30; if (iVar4 < 0) goto
-        // LAB_006f3fb2` (`006f3df0`+0x1d), so an army that reaches
-        // `do_marching` holding nothing goes straight to `find_target` —
-        // and it reaches it holding nothing on the very tick
-        // `do_mustering` releases it, because `Army::process` re-reads
-        // `status` between its dispatch `if`s and `status = 2` leaves the
-        // target at `-1` (§9, §11). Modelling only the "target present but
-        // stale" arm cost Great Lakes' word 7930: the original spends
-        // `find_target`'s coin once and its per-candidate score twice
-        // there and this crate spent nothing (item 317).
-        let mut retarget = self.armies[w].list[slot].target.is_none();
-        if let Some(t) = self.armies[w].list[slot].target {
-            let tw = self.owner_of(t);
-            if self.active(t) {
-                match t {
-                    Obj::Unit(_) => {
-                        if !self.is_enemy(who, tw) {
-                            retarget = true;
-                        }
-                    }
-                    Obj::Building(b) => {
-                        if let Some(c) = self.buildings[b].city {
-                            let cd = &self.cities[c];
-                            let navy = self.armies[w].list[slot].navy;
-                            if !cd.alive || (navy && !self.is_enemy(who, tw) && !cd.no_heal) {
-                                retarget = true;
-                            } else if !self.is_enemy(who, tw) && !cd.no_heal && !cd.unassimilated {
-                                let bd = &self.buildings[b];
-                                // `weak`/`strong`/tribute are seams: the
-                                // ally test alone decides.
-                                if bd.hits - bd.health < bd.hits * 3 / 4 && self.is_ally(who, tw) {
-                                    retarget = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if retarget {
-            self.armies[w].list[slot].target = None;
-            if self.armies[w].list[slot].status & status::DEFENDING != 0 {
-                self.armies[w].list[slot].status = status::DEFENDING | status::FORMING;
-                return;
-            }
-            self.find_target(who, slot);
-            if !self.armies[w].list[slot].valid {
-                return;
-            }
-            if self.armies[w].list[slot].target.is_some() {
-                // **The arm forms the army itself** (`006f3df0`: `status |=
-                // 0x10; do_forming(this); return`), and `process`'s dispatch
-                // reads `& 0x10` and forms it again on the same tick — two
-                // moves, the second planned from the first's `(ox, oy)`
-                // (§21, item 811: East Indies 17404, army 0).
-                self.armies[w].list[slot].status |= status::FORMING;
-                self.do_forming(who, slot);
-                return;
-            }
-            self.armies[w].list[slot].status = status::NO_TARGET;
-            return;
-        }
-        if self.armies[w].list[slot].status & status::MARCHING != 0 {
-            self.march_to_target(who, slot);
-        }
+        let t = self.armies[who as usize].list[slot].target;
+        do_marching_steps(&mut MarchSim {
+            sim: self,
+            who,
+            slot,
+            t,
+        });
     }
 
     /// `Army::march_to_target` (§9): not engaged → forming and marching;
@@ -3332,6 +3282,219 @@ pub(crate) fn set_stance_steps<C>(
             action(cx, g, s);
         }
         i += 1;
+    }
+}
+
+/// What `Army::do_marching@006f3df0` asks of the army and its target (item
+/// 3238): the swept steps [`do_marching_steps`] read the world only through
+/// this, so the sweep's port is a view over the emulated original's windows
+/// and the crate's is [`MarchSim`].
+pub(crate) trait MarchView {
+    /// `Army::count(COUNT_ATTACK, 0)@006f9120`.
+    fn attack_count(&mut self) -> i32;
+    /// `Army::close@006f8ea0`.
+    fn close(&mut self);
+    /// `field_0x30 >= 0`: the army holds a target.
+    fn has_target(&self) -> bool;
+    /// `field_0x30 = field_0x34 = -1`.
+    fn clear_target(&mut self);
+    fn status(&self) -> i32;
+    fn set_status(&mut self, s: i32);
+    /// The target's data record `flags & 1` (`vslot 0xac`, `+8`).
+    fn target_valid(&mut self) -> bool;
+    /// The target's data record `flags & 0x20`: a city centre.
+    fn target_city_centre(&mut self) -> bool;
+    /// `LeaderData::is_enemy@006ebaa0(target_who)`.
+    fn target_enemy(&mut self) -> bool;
+    /// `Build::vftable ? build_masks & 0x20 : vslot 0x188()`.
+    fn target_under_attack(&mut self) -> bool;
+    /// The city record's `flags` (`+4`) of the target's `+0x72` city, or
+    /// `None` for a negative city number.
+    fn target_city_flags(&mut self) -> Option<i32>;
+    /// `field_0x24 != 0`.
+    fn navy(&self) -> bool;
+    /// `CityData::is_unassimilated@00738030`.
+    fn city_unassimilated(&mut self) -> bool;
+    /// `vslot 0x11c(0)` of the target's data: its hits.
+    fn target_hits(&mut self) -> i32;
+    /// The target's data `+0x24`: its damage.
+    fn target_damage(&mut self) -> i32;
+    /// `LeaderData::is_ally@006edb50`.
+    fn ally(&mut self) -> bool;
+    /// `leaders.list[me].+0x250[target_who] != 0`.
+    fn weak(&mut self) -> bool;
+    /// `leaders.list[me].+0x230[target_who] != 0`.
+    fn strong(&mut self) -> bool;
+    /// `LeaderData::is_tribute_period@006d5b90`.
+    fn tribute(&mut self) -> bool;
+    /// `Army::find_target@006f69b0`; `false` when the army is gone after it
+    /// (this crate's `find_target` can close it; the original's does not).
+    fn find_target(&mut self) -> bool;
+    /// `Army::do_forming@006f43c0`.
+    fn do_forming(&mut self);
+    /// `Army::march_to_target@006f4d80`.
+    fn march_to_target(&mut self);
+}
+
+/// **`Army::do_marching@006f3df0`'s steps** (item 3238): nothing that can
+/// attack closes the army; a target that is missing, or fails the
+/// validation (a non-enemy that is not "under attack", a city that is
+/// gone, a navy's non-enemy city that is not attacked, a damaged
+/// assimilated one the army may not bleed), is cleared and `find_target`
+/// retried (a defending army is parked at `0x30` instead; a hit forms
+/// the army, a miss sets `status = 8`); otherwise a marching army
+/// marches. A target whose data record is not valid is *kept* (§9).
+pub(crate) fn do_marching_steps<V: MarchView>(v: &mut V) {
+    if v.attack_count() < 1 {
+        v.close();
+        return;
+    }
+    let mut retarget = !v.has_target();
+    if !retarget && v.target_valid() {
+        if !v.target_city_centre() {
+            if !v.target_enemy() && !v.target_under_attack() {
+                retarget = true;
+            }
+        } else if let Some(flags) = v.target_city_flags() {
+            if flags & 1 == 0 || (v.navy() && !v.target_enemy() && flags & 2 == 0) {
+                retarget = true;
+            } else if !v.target_enemy() && flags & 2 == 0 && !v.city_unassimilated() {
+                let h3 = v.target_hits().wrapping_mul(3);
+                if v.target_damage() < h3.wrapping_add((h3 >> 31) & 3) >> 2
+                    && (v.ally() || v.weak() || !v.strong() || v.tribute())
+                {
+                    retarget = true;
+                }
+            }
+        }
+    }
+    if retarget {
+        v.clear_target();
+        if v.status() & status::DEFENDING != 0 {
+            v.set_status(status::DEFENDING | status::FORMING);
+            return;
+        }
+        if !v.find_target() {
+            return;
+        }
+        if v.has_target() {
+            let s = v.status();
+            v.set_status(s | status::FORMING);
+            v.do_forming();
+            return;
+        }
+        v.set_status(status::NO_TARGET);
+        return;
+    }
+    if v.status() & status::MARCHING != 0 {
+        v.march_to_target();
+    }
+}
+
+/// This crate's [`MarchView`]: the army `slot` of `who`, and the target it
+/// held when `do_marching` began. Where the crate models less than the
+/// original, the answer is the crate's rule: no "under attack" slot (a
+/// non-enemy unit is always dropped), a building is a city centre (with no
+/// city when it has none), and the weak/strong/tribute tests are seams
+/// (`weak` clear, `strong` set, no tribute: the ally test decides).
+struct MarchSim<'a> {
+    sim: &'a mut Sim,
+    who: Player,
+    slot: usize,
+    t: Option<Obj>,
+}
+
+impl MarchSim<'_> {
+    fn tw(&self) -> Player {
+        self.sim.owner_of(self.t.expect("a target"))
+    }
+    fn city(&self) -> Option<usize> {
+        match self.t {
+            Some(Obj::Building(b)) => self.sim.buildings[b].city,
+            _ => None,
+        }
+    }
+}
+
+impl MarchView for MarchSim<'_> {
+    fn attack_count(&mut self) -> i32 {
+        self.sim.army_count_attack(self.who, self.slot)
+    }
+    fn close(&mut self) {
+        self.sim.close_army(self.who, self.slot);
+    }
+    fn has_target(&self) -> bool {
+        self.sim.armies[self.who as usize].list[self.slot]
+            .target
+            .is_some()
+    }
+    fn clear_target(&mut self) {
+        self.sim.armies[self.who as usize].list[self.slot].target = None;
+    }
+    fn status(&self) -> i32 {
+        self.sim.armies[self.who as usize].list[self.slot].status
+    }
+    fn set_status(&mut self, s: i32) {
+        self.sim.armies[self.who as usize].list[self.slot].status = s;
+    }
+    fn target_valid(&mut self) -> bool {
+        self.t.is_some_and(|t| self.sim.active(t))
+    }
+    fn target_city_centre(&mut self) -> bool {
+        matches!(self.t, Some(Obj::Building(_)))
+    }
+    fn target_enemy(&mut self) -> bool {
+        self.sim.is_enemy(self.who, self.tw())
+    }
+    fn target_under_attack(&mut self) -> bool {
+        false
+    }
+    fn target_city_flags(&mut self) -> Option<i32> {
+        self.city().map(|c| {
+            let cd = &self.sim.cities[c];
+            i32::from(cd.alive) | i32::from(cd.no_heal) << 1
+        })
+    }
+    fn navy(&self) -> bool {
+        self.sim.armies[self.who as usize].list[self.slot].navy
+    }
+    fn city_unassimilated(&mut self) -> bool {
+        self.city()
+            .is_some_and(|c| self.sim.cities[c].unassimilated)
+    }
+    fn target_hits(&mut self) -> i32 {
+        match self.t {
+            Some(Obj::Building(b)) => self.sim.buildings[b].hits,
+            _ => 0,
+        }
+    }
+    fn target_damage(&mut self) -> i32 {
+        match self.t {
+            Some(Obj::Building(b)) => self.sim.buildings[b].hits - self.sim.buildings[b].health,
+            _ => 0,
+        }
+    }
+    fn ally(&mut self) -> bool {
+        self.sim.is_ally(self.who, self.tw())
+    }
+    fn weak(&mut self) -> bool {
+        false
+    }
+    fn strong(&mut self) -> bool {
+        true
+    }
+    fn tribute(&mut self) -> bool {
+        false
+    }
+    fn find_target(&mut self) -> bool {
+        self.sim.find_target(self.who, self.slot);
+        self.sim.armies[self.who as usize].list[self.slot].valid
+    }
+    fn do_forming(&mut self) {
+        self.sim.do_forming(self.who, self.slot);
+    }
+    fn march_to_target(&mut self) {
+        self.sim.march_to_target(self.who, self.slot);
     }
 }
 
