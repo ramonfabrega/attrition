@@ -360,6 +360,43 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **The Javelineers' piece 34** (item 2997, `docs/AI.md` §244): run912e's
+    // `RON_STATE_FRAME=12753` packet holds its three `AttachPos` rows, and
+    // `tools/recomp/get_position.py`'s sweep of each is reproduced by these
+    // at all 361 headings, x, y and z. who=1's Elite Javelineers `1/42`
+    // threw at the Scout `0/0` on 12754 from (6466, 8872) in run912d where
+    // this crate threw from the figure's own (6504, 8904): 13 frames
+    // against 14, and the lead at (5184, 8682) against (5159, 8707).
+    (
+        34,
+        11,
+        12,
+        Bay {
+            right: 39258,
+            fwd: 59130,
+            dz: 166,
+        },
+    ),
+    (
+        34,
+        12,
+        6,
+        Bay {
+            right: 1121,
+            fwd: 50544,
+            dz: 173,
+        },
+    ),
+    (
+        34,
+        13,
+        27,
+        Bay {
+            right: 21620,
+            fwd: 35314,
+            dz: 159,
+        },
+    ),
     // King's Yeomanry: run586 get_position sweep, checked against
     // run587's actual arrows (COMBAT §87, item 1436).
     (
@@ -1426,6 +1463,26 @@ mod tests {
                 bay(129, anim, time, 0).is_some(),
                 "every measured release event"
             );
+        }
+    }
+
+    /// run912d's javelin from who=1's Elite Javelineers `1/42` on 12754
+    /// (item 2997), independent of run912e's packet sweep the bays were
+    /// fitted to: the figure at (6504, 8904), angle −600637440, `ATTACK2`
+    /// at frame 6; the dump's `AMMO` leaves from (6466, 8872).
+    #[test]
+    fn run912d_s_javelin_leaves_the_throwing_hand() {
+        let at = launch_point(
+            Pos::new(6504, 8904),
+            Angle(-600_637_440),
+            34,
+            crate::anim::ATTACK2,
+            6,
+            0,
+        );
+        assert_eq!((at.x, at.y), (6466, 8872));
+        for (anim, time) in [(11, 12), (12, 6), (13, 27)] {
+            assert!(bay(34, anim, time, 0).is_some(), "every AttachPos row");
         }
     }
 
