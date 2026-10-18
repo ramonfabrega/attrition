@@ -816,6 +816,8 @@ pub struct Tuning {
     /// Percentage off a city's price for a leader holding the Pyramids
     /// (`get_cost`).
     pub pyramids_city_discount: i32,
+    /// Percentage off a wonder's price for an Egyptian leader (`get_cost`).
+    pub egyptian_wonders: i32,
     /// Whether a Dutch fort may stand on unowned ground anywhere. Ships off.
     pub dutch_fort_placement: i32,
     /// Radius in tiles within which units and buildings are counted for a city capture.
@@ -1364,6 +1366,7 @@ impl Tuning {
         pyramids_city_limit: 1,
         bantu_city_cost: 75,
         pyramids_city_discount: 33,
+        egyptian_wonders: 25,
         dutch_fort_placement: 0,
         city_capture_radius: 10,
         city_plunder_per_level: 100,
@@ -1464,7 +1467,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 397] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 398] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -2061,6 +2064,7 @@ impl Tuning {
             ("BANTU_CITY_LIMIT", Slot::Value(T.bantu_city_limit)),
             ("PYRAMIDS_CITY_LIMIT", Slot::Value(T.pyramids_city_limit)),
             ("BANTU_CITY_COST", Slot::Value(T.bantu_city_cost)),
+            ("EGYPTIAN_WONDERS", Slot::Value(T.egyptian_wonders)),
             (
                 "PYRAMIDS_CITY_DISCOUNT",
                 Slot::Value(T.pyramids_city_discount),
