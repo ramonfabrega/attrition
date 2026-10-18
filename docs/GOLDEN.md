@@ -13274,12 +13274,15 @@ term that makes the Commando outrank the Hoplite (a Commando-class stealth/unit-
 **What the diff backs.** `chapter_ninety_five_s_window_is_widened_whole`, `chapter_ninety_five_holds_to_the_golden_word` (629). Coverage window 622–628. **Not established**: the Tank pick's mechanism; the cast
 on a firing target (reached only after 629); the Commando's wound at 666.
 
-## 122. Reserved for the next item on the rules track
+## 122. Chapter ninety-five — a caster is weighed by what it is doing: the word 629 → 634 (item 3142, run920)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The value diff.** `1/7`'s `order:target` on 624: ours the Hoplite `0/16`, theirs the Commando `0/7`. A probe of `find_nearby_target_as`'s candidates on 623 (the Tank `1/7`, `ai` true) scored the Commando `0/7` at 1001 (333 after distance) and the decoy Hoplites at about 10,100 (up to 3,410): the Commando is no combat-role unit, so ours never lifted it. `Object::compare_target@0064e5c0` lines 297–335 carry an arm this crate lacked, read in the decompile and cited in `docs/COMBAT.md` §12.3 ("spellcasters casting at me `+10,000,000`, spies `+6,000,000`") but never built: a unit target whose type has `unit_flags2 & 2` (spellcaster) and whose `get_action` is not a `CAST_SPELL` (14) order takes `+6,000,000` if it `is(SPY)`; with a cast as its action it takes `x20`, and `+10,000,000` more if the cast's target is this very searcher.
+
+**Built** in `fight.rs::compare_target`. With it `1/7` takes the Commando on 624 and the word moves 629 → 634 (`GOLDEN_WORD_CHAPTER_NINETY_FIVE`). `1/6`'s 635 pick, the item's second half, agrees too (ours `0/6`, a Commando casting at it). The other golden chapters did not move (`golden::` 258 passed, only the ch95 widening re-pinned).
+
+**What parts now.** `635 1/7 order:target`, ours `0/7` (kept since 624), theirs `0/6`: the original re-targets a Tank that already holds an in-range attack onto the Commando casting at its squad-mate. Ours runs no search for `1/7` between 633 and 636. Hypothesis only: the group's mirror / `target_opportunity` hands the captain's (`1/6`'s) fresh target to members, overriding an in-range one; `1/6` picks `0/6` on 635. The draw delta at 634 is not yet read. Parked.
+
+**Not established**: the arm's `Spy` half (`+6,000,000`) and the building-spellcaster branch (`vslot +0xc`) are unreached by any capture; `0x3a` is `army.rs`'s `SPY`, read through `unit_line_is`.
 
 ## 123. Reserved for the next item on the rules track
 
