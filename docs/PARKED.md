@@ -7608,13 +7608,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IO — reserved
+## Parked by item 3207, 2026-10-18 — AnimalData::is_seen
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The herd's good** (`HerdData::good_o`, +0x14) is not carried on `gaia::Herd`, so
+  `AnimalData::is_seen`'s first herd arm (the good's `ever_seen` bit for the viewer → 1) and
+  its kind exemption (`6`, `0x1f`) are not read (`Sim::animal_is_seen`, fight.rs). Names no
+  score: the battery is unmoved. Files when a capture's hunter targets a herd the viewer's
+  fog has not seen.
+- **`Unit::plunder@00605b00` (Aztec 0), `Object::disband@006455c0` (Aztec 0),
+  `Wall::do_construct@006434d0` (Egyptian 7)** remain 3207's unbuilt family members: one
+  function a landing.
 
 ## Parked by the next landing, slot IP — reserved
 
