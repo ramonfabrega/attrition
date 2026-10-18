@@ -72,6 +72,8 @@ mod animal_process;
 mod armies_find_aggressive_army;
 mod army_set_stance;
 mod army_use_generals;
+mod army_use_scouts;
+mod army_use_spies;
 mod build_all_gathering;
 mod build_check_gatherers;
 mod build_data_calc_gather;

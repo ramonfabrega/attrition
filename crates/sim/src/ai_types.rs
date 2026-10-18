@@ -223,3 +223,60 @@ impl Sim {
         self.world.sea_map()
     }
 }
+
+/// **`City::count_gather_slots@00737dc0`'s walk** (item 3219): from the
+/// head building `head` (the city's short `+8`; negative ends it), each
+/// building's next is `next(i)` (the record's short `+0x74`). A building
+/// the type asks `is_gatherer` (vslot `+0x90`) is placed by its type's
+/// ident (`+4`): `0x1a1` good 0, `0x1a2` 1, `0x1a3` 4, `0x1a4` 3, `0x1a5`
+/// and `0x1a6` 5, any other unplaced. A placed one's `max` (the signed
+/// byte `+0x80`) is added to `slots[good]`, to the return unless the good
+/// is 3, and `max - num_gatherers` to `open[good]` — **unclamped**, an
+/// `int` that may go negative — asked only when `open` is given. Both
+/// arrays are zeroed first, when given.
+#[allow(clippy::too_many_arguments)]
+pub fn gather_slots_walk(
+    head: i32,
+    next: impl Fn(usize) -> i32,
+    mut is_gatherer: impl FnMut(usize) -> bool,
+    ident: impl Fn(usize) -> i32,
+    max: impl Fn(usize) -> i32,
+    mut num_gatherers: impl FnMut(usize) -> i32,
+    mut slots: Option<&mut [i32; 6]>,
+    mut open: Option<&mut [i32; 6]>,
+) -> i32 {
+    for o in [slots.as_deref_mut(), open.as_deref_mut()]
+        .into_iter()
+        .flatten()
+    {
+        *o = [0; 6];
+    }
+    let mut total = 0i32;
+    let mut at = head;
+    while at >= 0 {
+        let i = at as usize;
+        at = next(i);
+        if !is_gatherer(i) {
+            continue;
+        }
+        let good = match ident(i) {
+            0x1a1 => 0,
+            0x1a2 => 1,
+            0x1a3 => 4,
+            0x1a4 => 3,
+            0x1a5 | 0x1a6 => 5,
+            _ => continue,
+        };
+        let m = max(i);
+        if let Some(s) = slots.as_deref_mut() {
+            s[good] = s[good].wrapping_add(m);
+        }
+        if good != 3 {
+            total = total.wrapping_add(m);
+        }
+        if let Some(o) = open.as_deref_mut() {
+            o[good] = o[good].wrapping_add(m.wrapping_sub(num_gatherers(i)));
+        }
+    }
+    total
+}
