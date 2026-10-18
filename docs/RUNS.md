@@ -18155,3 +18155,7 @@ piece 1545 are `~/ron-data/lab-experiments/2026-10-18-item-3255/pivot-1545-a<ani
 
 **What it holds**: `launch::BAYS` for pieces 1529 and 1441, `pivot::RELEASES` and `pivot::NODES` for 1545
 (`tools/recomp/get_position.py … entries`, `sweep`, `pivot`); `launch::tests::run943c_s_arrow_leaves_the_bow_hand`.
+## run944 — chapter one hundred and two: stance-0 hoplites beside a Tank wreck (2026-10-18, item 3263, `att-3263`)
+
+`docs/GOLDEN.md` §137. **What the disk could not answer**: run942 held the same units but its recipe's premise (idle stance) was wrong; whether a stance-0 squad's search takes the wreck needed the dump read by stance. Recipe `tools/gamelog/golden/chapter102.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 2, kept in `~/ron-golden/ch102/map-14/`, 1,501 frames, seed 12345, 532 s. Waited on another lane: none.
+**What it holds**: `golden::chapter_one_hundred_and_two_holds_to_the_golden_word` (1500, closed) and `chapter_one_hundred_and_two_s_window_is_widened_whole` (11 standing `form` rows); its window 1496..1500 (four blocks) is in the coverage driver's slice.
