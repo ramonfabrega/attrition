@@ -662,6 +662,12 @@ mod object_type_restore;
 mod object_type_walk_rules_data;
 #[path = "object_update_los.rs"]
 mod object_update_los;
+#[path = "object_update_seen.rs"]
+mod object_update_seen;
+#[path = "object_update_seen_build.rs"]
+mod object_update_seen_build;
+#[path = "object_update_seen_small.rs"]
+mod object_update_seen_small;
 #[path = "objects_array_get_data_type.rs"]
 mod objects_array_get_data_type;
 #[path = "objects_data_count_nukes_in_flight.rs"]

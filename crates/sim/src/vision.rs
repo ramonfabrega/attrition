@@ -506,6 +506,14 @@ impl Sim {
         let detect = self.units[u].ty.is_some_and(|t| {
             self.unit_types[t].combat.obj_masks & crate::combat::mask::DETECT != 0
         });
+        // **A detector's ring pass at radius 32 lights nothing** (`651d91`–`651dac`): the
+        // `seen3` cutoff test clamps `r` to `0x1f` *in place* (`cmpl $0x20; cmovge`, stored back
+        // to the local the range's end is read from), so the ring's last slice `[ring_radius[31],
+        // ring_radius[32])` becomes `[ring_radius[31], ring_radius[31])`. Reached only by a
+        // `DETECT` unit of `LOS` 64 tiles or more (item 3268's sweep; none in the data).
+        if detect && sw.ring && sw.radius >= RING_LAST {
+            return 0;
+        }
         self.write_sweep(&sw, who, detect)
     }
 
@@ -822,7 +830,7 @@ impl Sim {
     /// looked at becomes first contact (`docs/VISION.md` §6.4).
     /// Returns how many half-cells changed, which nothing but the tests
     /// reads.
-    pub(crate) fn update_local_seen_build(&mut self, b: usize) -> usize {
+    pub fn update_local_seen_build(&mut self, b: usize) -> usize {
         if !self.world.has_fog() || !self.buildings[b].alive {
             return 0;
         }
