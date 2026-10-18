@@ -2271,6 +2271,7 @@ fn widen_civilians_walk(
         s.built.tick();
         let n = f + 1;
         crate::diff::harness::debug_leader(&s.built, n);
+        crate::diff::harness::debug_armies(&s.built, n);
         crate::diff::harness::debug_builds(&s.built, n);
         crate::diff::harness::debug_watch(&s.built, n);
         crate::diff::harness::debug_ammo(&s.built, n);
