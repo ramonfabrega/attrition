@@ -7878,6 +7878,10 @@ the crate's, so this is unpinned); `FormSim`'s own methods are covered only by t
 (`$CLAUDE_JOB_DIR`-scratch `mask.py`). A city number of 3 or more faults the original and is excluded. Not exercised: more than four
 groups, target owner above 2.
 
+3250 (h). **3250's "for the Loop"** (the journal's line, for the commander to file): `sweep_gen.py --regen` with a changed
+`--rows` or `--answer-range` resets a hand-written port to `todo!()`; wanted flags `--init ADDR`, a per-stub `--record-edx`, and an
+argument mask for a recorded stub (3250 (f), (g)).
+
 ## Parked by the next landing, slot JI — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
