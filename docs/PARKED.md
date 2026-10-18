@@ -7480,14 +7480,14 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3124, 2026-10-17 — gain_tech's nation range blocks
 
-- **The wonder-gated free-tech blocks are unwired** (3124, unnumbered): Red Fort
+- (3135) **The wonder-gated free-tech blocks are unwired**: Red Fort
   (`has_wonder(0x216)`: `FORTIFICATION` `0x251`..`0x253`, `END_FINALTYPES`
   `0x247`..`0x249`), Colosseum, Tikal (`RELIGION`) and Hanging Gardens
   (`CARPENTRY`/`METAL_ALLOYS`/`AGRICULTURE`) are `Gate::Wonder` in `tech.rs`, but
   `PlayerTech::wonders` is never fed (the sim holds wonders as a `wonders_held`
   bitmask), so loading the rules would be inert. Red Fort's two constants are 1 as
   shipped; Colosseum, Tikal and Hanging Gardens are 0. Names no score; parked.
-- **German metal/industry blocks** (`german_metal_upgrades`,
+- (3136) **German metal/industry blocks** (`german_metal_upgrades`,
   `german_industry_upgrades`, both 0 as shipped) are inert and unloaded.
 
 ## Parked by the next landing, slot HU — reserved
