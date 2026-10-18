@@ -186,6 +186,8 @@ mod unit_do_spec_unit_anim;
 mod unit_execute_events;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
+#[path = "unit_find_repair_spot.rs"]
+mod unit_find_repair_spot;
 #[path = "unit_get_speed.rs"]
 mod unit_get_speed;
 #[path = "unit_go_to_city.rs"]
