@@ -1871,14 +1871,24 @@ def main(argv):
             w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
             w[off:off + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
         callwins = {{}}
+        nullflags = []
         for idx, size in ANSWERWIN:
             # A stub that answers a record: the address of SIZE random bytes,
             # a new `p` window after the places (parked 2151, item 2170).
+            # A negative SIZE is |SIZE| bytes whose call answers null a third
+            # of the time (a lookup that may find nothing; item 3268).
+            nullable = size < 0
+            size = abs(size)
             buf = h.alloc(size + 0x20)
             b = bytearray(rng.randrange(256) for _ in range(size))
             p.append(b)
             wins.append((buf, b))
             shape(rng, f"p{{len(p) - 1}}", b)
+            if nullable:
+                # Each nullable call's flag (1 = null) is printed after the other numbers on the row.
+                nullflags.append(int(rng.random() < 1 / 3))
+                if nullflags[-1]:
+                    buf = 0
             answers[idx] = buf
             callwins.setdefault(idx, []).append(buf)
         for idx, ofirst, dfirst, nobj, loff in ANSWERBY:
@@ -2073,7 +2083,7 @@ def main(argv):
         after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
         shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
-                 + [str(v) for s in seqs for v in s] + [str(f) for f in based]
+                 + [str(v) for s in seqs for v in s] + [str(f) for f in based] + [str(f) for f in nullflags]
                  + ([] if ECXINT is None else [str(ecx)]) + ([] if EDX is None else [str(edx)])
                  + [str(v) for v in xmmv] + [str(v) for v in ecxo])
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
@@ -3636,7 +3646,8 @@ def main(argv=None):
     ap.add_argument('--answer-win', action='append', default=[], metavar='IDX:SIZE',
                     help='obj: stub IDX answers the address of SIZE random bytes, a new `p` window after the '
                          'places (a callee that answers a record; parked 2151); repeated for one IDX, '
-                         'one window a call in call order, the last repeated (parked 2623)')
+                         'one window a call in call order, the last repeated (parked 2623); a negative SIZE '
+                         'answers null a third of the calls (item 3268)')
     ap.add_argument('--tib', action='store_true', help='obj: the function opens an SEH frame (`mov eax, fs:[0]`): '
                     'a guest TIB page is mapped and `fs` pointed at it (item 3120)')
     ap.add_argument('--cdecl', action='store_true', help='obj: the function is `__cdecl` (a bare `ret`), so '

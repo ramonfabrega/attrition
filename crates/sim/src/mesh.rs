@@ -880,39 +880,130 @@ impl Sim {
         mine
     }
 
-    /// `Roads::redo_changed_roads@0088e670` — the three passes over one of
-    /// the two lists: drop the support links, re-derive the directions from
-    /// scratch, then take each road neighbour's answering claim
-    /// (`leech_codes`) and run `set_diags` again. Anything it touches goes on
-    /// the *other* list, which is what the ping-pong walks next.
+    /// `Roads::redo_changed_roads@0088e670` — the passes over one of the two
+    /// lists; see [`redo_changed_roads_steps`], which this runs over the
+    /// list `which` names.
     fn redo_changed_roads(&mut self, which: usize, list: i32, param: i32) {
         let work = self.mesh.redo[which].clone();
-        for &index in &work {
-            let at = tile_of(&self.world, index);
-            self.mesh.at = at;
-            self.clear_support(at, 1);
+        redo_changed_roads_steps(&mut SimRedo { sim: self }, &work, list, param);
+    }
+}
+
+/// What `Roads::redo_changed_roads@0088e670` asks of the road mesh (item
+/// 3268): the steps read and write the roads only through this, so the
+/// sweep's port is a view over the emulated original's windows and the
+/// crate's is [`SimRedo`]. The cursor is the original's `Roads +0x120` /
+/// `+0x124` (the tile `tile` names).
+pub trait RedoView {
+    /// The cursor goes to the tile whose packed index is `index`.
+    fn tile(&mut self, index: i32);
+    /// `Roads::clear_support(x, y, 1)`.
+    fn clear_support(&mut self);
+    /// `TerrainOut::get_road_data(x, y, 0, 0, 0)` — whether the tile has an
+    /// element; the cursor's element is the answer's.
+    fn road_data(&mut self) -> bool;
+    /// The element's `flags = 0`.
+    fn clear_flags(&mut self);
+    /// `RoadsOut::fill_cache(x, y)`.
+    fn fill_cache(&mut self);
+    /// `RoadsOut::mark_and_trim_directions(list)`.
+    fn trim_directions(&mut self, list: i32);
+    /// `RoadsOut::leech_codes`.
+    fn leech_codes(&mut self);
+    /// `Roads::set_diags(list, param)`; zero sends the original on to the
+    /// texture marks.
+    fn set_diags(&mut self, list: i32, param: i32) -> i32;
+    /// The cache refilled for the texture marks (rendering only).
+    fn refill_for_marks(&mut self);
+    /// `mark_splits`, `mark_white_lines`, `mark_yellow_lines`,
+    /// `mark_intersections`, `fixup_lines` — texture picking, which this
+    /// crate does not have (`docs/ROADS.md` §9.4).
+    fn texture_marks(&mut self, list: i32);
+    /// The fourth pass: `fixup_lines`, `delete_straglers`, `find_piece` —
+    /// rendering only.
+    fn finish_pieces(&mut self, list: i32);
+}
+
+/// **`Roads::redo_changed_roads@0088e670`'s steps** (item 3268): four passes
+/// over `work`, the tiles of one change list in order — drop the support
+/// links; clear each element's flags and re-derive its directions; take each
+/// neighbour's answering claim and run `set_diags` (a zero answer goes on to
+/// the texture marks); and the fourth pass, texture only. A tile with no
+/// element is skipped by the last three.
+pub fn redo_changed_roads_steps<V: RedoView>(v: &mut V, work: &[i32], list: i32, param: i32) {
+    for &index in work {
+        v.tile(index);
+        v.clear_support();
+    }
+    for &index in work {
+        v.tile(index);
+        if !v.road_data() {
+            continue;
         }
-        for &index in &work {
-            let at = tile_of(&self.world, index);
-            self.mesh.at = at;
-            if !self.mesh.get_road_data(&self.world, at, false, 0, false) {
-                continue;
-            }
-            self.mesh.set_flags(&self.world, at, 0);
-            self.mesh.fill_cache(&self.world, at);
-            self.mesh.trim_directions(&self.world, list);
+        v.clear_flags();
+        v.fill_cache();
+        v.trim_directions(list);
+    }
+    for &index in work {
+        v.tile(index);
+        if !v.road_data() {
+            continue;
         }
-        for &index in &work {
-            let at = tile_of(&self.world, index);
-            self.mesh.at = at;
-            if !self.mesh.get_road_data(&self.world, at, false, 0, false) {
-                continue;
-            }
-            self.mesh.fill_cache(&self.world, at);
-            self.mesh.leech_codes(&self.world);
-            self.set_diags(list, param);
+        v.fill_cache();
+        v.leech_codes();
+        if v.set_diags(list, param) == 0 {
+            v.refill_for_marks();
+            v.texture_marks(list);
         }
     }
+    for &index in work {
+        v.tile(index);
+        if !v.road_data() {
+            continue;
+        }
+        v.finish_pieces(list);
+    }
+}
+
+/// [`RedoView`] over the simulation: the mesh's own passes.
+struct SimRedo<'a> {
+    sim: &'a mut Sim,
+}
+
+impl RedoView for SimRedo<'_> {
+    fn tile(&mut self, index: i32) {
+        self.sim.mesh.at = tile_of(&self.sim.world, index);
+    }
+    fn clear_support(&mut self) {
+        let at = self.sim.mesh.at;
+        self.sim.clear_support(at, 1);
+    }
+    fn road_data(&mut self) -> bool {
+        let at = self.sim.mesh.at;
+        self.sim
+            .mesh
+            .get_road_data(&self.sim.world, at, false, 0, false)
+    }
+    fn clear_flags(&mut self) {
+        let at = self.sim.mesh.at;
+        self.sim.mesh.set_flags(&self.sim.world, at, 0);
+    }
+    fn fill_cache(&mut self) {
+        let at = self.sim.mesh.at;
+        self.sim.mesh.fill_cache(&self.sim.world, at);
+    }
+    fn trim_directions(&mut self, list: i32) {
+        self.sim.mesh.trim_directions(&self.sim.world, list);
+    }
+    fn leech_codes(&mut self) {
+        self.sim.mesh.leech_codes(&self.sim.world);
+    }
+    fn set_diags(&mut self, list: i32, param: i32) -> i32 {
+        self.sim.set_diags(list, param)
+    }
+    fn refill_for_marks(&mut self) {}
+    fn texture_marks(&mut self, _list: i32) {}
+    fn finish_pieces(&mut self, _list: i32) {}
 }
 
 #[cfg(test)]
