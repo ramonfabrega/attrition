@@ -1965,9 +1965,6 @@ impl Sim {
     /// slots 1 and 2, and the first to come down on 683 takes `1/8` while
     /// the second finds it dead and rolls on.
     pub(crate) fn add_ammo(&mut self, mut p: combat::Projectile) {
-        if std::env::var_os("RON_PROBE_3271").is_some() {
-            eprintln!("PROBE3271 add_ammo f{} shooter {:?} target {:?} launch {:?} land {:?} total {} cur {}", self.frame, p.shooter, p.target, p.launch, p.landing, p.total_time, p.cur_time);
-        }
         let live: Vec<u32> = self.projectiles.iter().map(|q| q.slot).collect();
         let slot = lowest_free_slot(&live);
         p.slot = slot;
@@ -5094,9 +5091,6 @@ impl Sim {
     /// `Object::do_damage` on what was hit — the target, or whatever stood
     /// there instead — and the splash around it.
     fn land(&mut self, p: combat::Projectile, frame: i64) {
-        if std::env::var_os("RON_PROBE_3271").is_some() {
-            eprintln!("PROBE3271 land f{} frame {} shooter {:?} target {:?} cur {} total {}", self.frame, frame, p.shooter, p.target, p.cur_time, p.total_time);
-        }
         let mut target = p.target.filter(|&t| self.struck(t));
         if !self.hit_target(&p) {
             target = self.check_hit(&p);
