@@ -7871,13 +7871,35 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JL — reserved
+## Parked by item 3259, 2026-10-18 — the nations seat's fourth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3259a) `Sim::march_to_target` no longer sets Aggressive before the move order: the listing calls `set_stance` only for
+Raid (`push 3` at `6f4ed1`); the port had copied `do_forming`'s. If a `rondata::diff` pin moves, here is why.
+(3259b) `MarchToSim::find_angle` still stores into `Army::angle`; the original writes no such field here and nothing reads
+it — a crate-only field removal, left alone.
+(3259c) `Sim::do_transporting` ignores `find_muster_spot`'s return: the original, on a zero answer in the city arm,
+overwrites the muster point (`this+0x48/0x4c`) with the city centre's cell one row down (up on the last row). The steps
+carry the fallback; `TransSim::muster_fallback` is a deliberate SEAM no-op, since wiring it is a sim change needing a run
+against the floors.
+(3259d) `TransSim::regions` walks `world.regions()` filtered to Land (region 0 and ids above 63 included); the original
+walks 1..63 with no terrain test and no `Land` filter, and dereferences a missing first cell where the port gives 0.
+Whether the port's ids are 0- or 1-based is unchecked.
+(3259e) `place.rs:419` `blocked_site_slots` has `LostCity` where the listing returns `0x2d` (`frame - 0x4b <
+leader.+0x410`, `semaphore[1] & 8`, `leader[i].w74[f8] == 2`); `build_type_data_blocked_site` is inline (the crate's
+method takes a whole `Sim` and three stubbed callees), so the crate body is unchecked there.
+(3259f) `Animal::think_bird` port fixes (`gaia.rs`): the 16-bit counter wraps (`wrapping_add`) and the landing refusal is
+`counter <= 1`; the sweep parted on `spell_time` 32766/32767. Unreached in play.
+(3259g) Generator gaps: `--regen` drops hand-written setup before the row loop (think_bird's `World`/`Sim` build) and a
+hand-edited assertion block (march_to_target); no flag renumbers a port's answer indices after a seq change; `--ret none`
+for a void function with garbage exit `eax` wants a line in `--help`; `--ret` has no per-path expression. A sweep that
+calls a `pub(crate)` crate method cannot sit in `standalone_*` (external test crates): has_nuke and think_farm_animal
+widened to `pub`, think_bird to `pub`; do_transporting and march_to_target register in `sweep/mod.rs` through a view
+trait (the 3250 pattern). A census `called` column would need one of the two.
+(3259h) Process: a foreground `mutate.py --batch` killed by the tool timeout (exit 144) leaves its mutation in the tree
+and the next run refuses a dirty tree; `pgrep -f "mutate.py --batch"` matches siblings' batches. Boundary draws need both
+sides of a comparison from overlapping narrow ranges; a `div_3_table` fill must be non-monotone.
+(3259i) `think_farm_animal`: `close_orders` is unreached (the harness clears the order list; prime a prior order); the
+farm-covers-itself failure is realised as `buildings[b].ty = None`, a state the game never makes.
 
 ## Parked by the next landing, slot JM — reserved
 
@@ -7919,6 +7941,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot JR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JV renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
