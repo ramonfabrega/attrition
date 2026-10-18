@@ -3748,6 +3748,8 @@ battery leaders — 3160's Citizen arms moved the median 2270 → 4770; 3172's a
 Sulphur arm moved no lobby. What the lane takes next is NATIONS §7's sixth candidate (the tiers' arms, booked 3187); whether a
 nations lane stays on the roster is Ramon's (DECISIONS 78). One reach.
 
+Item 3200 — **`sweep_gen.py obj`'s `--wbias` offsets print decimal** (3200's "for the Loop" line, filed at its merge): a hand-built line spelling `m+0x18` and then `str.replace`d by the hex spelling replaces nothing, and a `--regen` of unchanged flags reads as a draw that did not move. Candidate: the header names the offset in the spelling it was given (parked under 3200, row f).
+
 (3181) **`--answer-win` cannot answer null** (3166's "for the Loop" line, filed at its merge): `UnitData::find_def_pos`'s
 `get_action() == 0` arm is unreached because the window answer is never null. Candidate: an `--answer-win` null a third
 of the rows, as `--place-null` does, made to fail first on the starved arm. One reach.
