@@ -653,3 +653,58 @@ fn run926_s_word_frame_is_widened_whole() {
     // stream one draw behind. The word moved 5144 → 5576, past the window.
     pin_eq!(w.firsts.len(), 32, "initial run926 baseline");
 }
+
+/// run928: the word 5576's window, blocks 5570..5826 at run918's detail
+/// (item 3202) — six blocks before the word's own block 5577, 250 past it;
+/// run926 ends at 5394 and run897b is `cover=0`.
+pub(crate) const RUN928: &str = "gamelog-run928-greatlakes-iroquois-diff3-window-5570-5827.txt";
+
+/// The window: block 5570 through 5826.
+pub(crate) const WIDENING_IROQUOIS_FRAME_5576: (i64, i64) = (5570, 5826);
+
+pub(crate) fn iroquois_frame_5576_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run928",
+        &[(RUN928, WIDENING_IROQUOIS_FRAME_5576.0)],
+        WIDENING_IROQUOIS_FRAME_5576,
+        1,
+        &[5577],
+        true,
+    )
+}
+
+#[test]
+fn run928_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_5576_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3202, on base 128293bb: 622 keys. The standing set (both
+    // leaders' `SITE[n].reg`, `aggression`, `form`, the groups' `held`,
+    // the pools) and, from the window's first block 5570, who=1's Slinger
+    // squad `1/25`..`1/27` (TI 82, born on 5563 at the Barracks, an
+    // `ATTACKTO` to (36552, 21960) in group 64): `1/26`'s `off_x`/`off_y`
+    // ours 456/600 against theirs 408/552, `1/27`'s 456/312 against
+    // 408/360 — the followers one `guy_spacing` 144 off the captain in
+    // ours, (−48, ±96) in theirs — and every squad member's `pos` one
+    // walking frame behind. The word's own block 5577 parts nothing new:
+    // theirs' extra index-30 draw is an idle roll (`Guy::set_anim+0x97a`)
+    // whose guy the capture's `GUYS=2` cannot name (`docs/AI.md` §252).
+    pin_eq!(w.firsts.len(), 622, "initial run928 baseline");
+}
