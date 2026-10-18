@@ -7987,13 +7987,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JU — reserved
+## Parked by item 3279, 2026-10-18 — The Despot's plunder built, the Iroquois word at 10917
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The battery word 10917** (`GreatLakesIroquoisTier3`, `docs/AI.md` §259). Item 3279 built The Despot's
+  `Unit::plunder` and moved the word 10852 → 10917: ours 285 draws against theirs 296, index 272, ours
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. run943's widening (174 keys)
+  still first parts on **10853**: `1/25` (TI 83 → 84, Javelineers upgraded to Peltasts on 10852 on both sides) has
+  `g.cur_anim[0]` ours 1 against theirs 2 and `g.end_time[0]` 96 against 36. It was under an `ATTACK` on `0/2000`
+  (`in_range` 1) when its type changed. Then `0/2000`'s `build:damage` 41 against 44 and `city:raid_stamp` 10863 against
+  10869 part on 10870. The booking is the frame (10853) and the field. Which arm of the upgrade's `set_type` resets a
+  figure mid-attack is a hypothesis.
+- **`Unit::plunder`'s other arms** (`docs/AI.md` §259, not established): the General, caravan and supply-wagon victims
+  (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`), the Aztec slay bonus (`AZTEC_SLAY_BONUS`, `AZTEC_SLAY_CAP`), the Inca refund
+  (`INCA_REFUND`) and `take_damage`'s victim redirect (`+0x2b4 & 0x10`). No capture on disk has been shown to reach them.
 
 ## Parked by the next landing, slot JV — reserved
 
