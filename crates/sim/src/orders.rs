@@ -4230,7 +4230,7 @@ impl Sim {
     /// `GATHERORDER` queued under it, so it never has the single order
     /// [`Self::arrive`] needs to face the order's angle, and the frame the
     /// original spends in `do_idle` it spends walking away.
-    pub(crate) fn think_peasant(&mut self, u: usize, forced: bool) -> bool {
+    pub fn think_peasant(&mut self, u: usize, forced: bool) -> bool {
         let unit = &self.units[u];
         let ai = self.ai_driven(unit.owner);
         if !forced {
