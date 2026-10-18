@@ -7426,14 +7426,14 @@ Five shapes built (find_town_at, find_good_at@0065bec0, process_ejection, cavarc
 
 ## Parked by item 3156, 2026-10-18 — the Iroquois word 1772 widened
 
-- (3159) **The Iroquois word 1772 is who=1's food row** (`docs/AI.md` §249, run922): the original's `1/6` takes the
+- (3161) **The Iroquois word 1772 is who=1's food row** (`docs/AI.md` §249, run922): the original's `1/6` takes the
   camp 1/2008's gather on frame 1770 under a commerce cap of 1600, which Barter raised on 1757; ours' cap is 1120, the
   timber income already at it, so ours' `find_gather_spot` scores nothing. Barter was queued on 1576 by `defensive.bhs`
   step 15, and ours cannot pay its 54 food (bucket 46 against the original's 67). The food row is parked 3138's: `income`
   640 against 672 by run897's block 37, while block 1 agrees, so it parts in 2..36, which no dump holds. **The next word's item
   books a dense capture of 1..40 at run918's detail** (`LEADERS=9`, `UNITS=3`, `BUILDS=7`), walks the food and
   `known_rares` rows to their first block, and names the writer. The frame stays 1772 (ours 3 draws, theirs 4, index 0).
-- (3160) **who=1's script is read as `defensive.bhs` from its steps, not from its name.** The 15 → 18 step on 1576 and the
+- (3162) **who=1's script is read as `defensive.bhs` from its steps, not from its name.** The 15 → 18 step on 1576 and the
   commerce queue fit `defensive.bhs`'s steps 15–18 and not `economic.bhs`'s, but no row printed here names the script.
   `RON_DEBUG_LEADER` could print `ai[w].script` beside `sstep`. That is a one-line probe, and it names no score.
 
