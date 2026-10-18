@@ -29,9 +29,17 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // Item 2975: the battery's first try, count and sequence both at 0
     // (ours 121 draws, theirs 122, index 30: ours `Unit::think_scout+0x436`,
     // theirs `Unit::think_scout+0x64c`). Item 3107 promoted it to the AI
-    // word unmoved (`docs/AI.md` §246).
-    count: 0,
-    sequence: 0,
+    // word unmoved (`docs/AI.md` §246). **Item 3107 moved it 0 → 1120**
+    // with the Iroquois Scout's forest walker (`Unit::init@00612100:341`,
+    // `unit_masks2 |= 0x4080`; `UnitData::invalid_loc` passes forest for
+    // `& 0x4000`): on frame 0 who=1's Scout `1/0` (TI 69) draws a second
+    // ring-5 cell, (58, 16), a forest cell ours refused (`invalid_loc` 2),
+    // and goes there — block 1's `orders_y` 12792 on both sides (ours 19704
+    // before), the path six legs on both. At 1120 ours 36 draws, theirs 33,
+    // index 0: ours `Unit::explore_goody+0x27c`, theirs
+    // `Animal::think_bird+0x82`.
+    count: 1120,
+    sequence: 1120,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -140,7 +148,7 @@ fn run897_s_word_frame_is_widened_whole() {
         }
     }
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 45, "initial run897 baseline");
+    pin_eq!(w.firsts.len(), 31, "initial run897 baseline");
     // Item 3107, on base 8d08a485: 45 keys part on block 1 (frame 0: ours
     // 121 draws, theirs 122, index 30 — ours `Unit::think_scout+0x436`,
     // theirs `Unit::think_scout+0x64c`). The control's 31 (both leaders'
@@ -151,14 +159,24 @@ fn run897_s_word_frame_is_widened_whole() {
     // against 12792 (`orders_y`, the path's three legs against six, its
     // `angle` 1913782272 against 120324096, `facing` 0/1), and group 65's
     // `oy` 19680/12768 and `o_angle` with it (`docs/AI.md` §246).
+    //
+    // **Item 3107: 45 → 42 → 31.** The Iroquois' `IROQUOIS_EXTRA_HITS`
+    // (`Unit::update_hits@0060e930`'s `has_tribe_bonus(0x12)` arm, a
+    // Barracks unit armed or a Scout) makes the Scout 63 on both (42); its
+    // forest walker sends it to (58, 16) on both — `orders_y` 12792,
+    // `dest_angle` 120324096, the path's six legs, group 65's `oy` 12768
+    // (31). What stands is the control's 31 alone. The word moved to 1120,
+    // past the start dump's blocks (1, 36, 37).
 }
 
-/// PROBE (item 3107): run897's block 1 fog plane against ours after frame 0.
+/// **run897's block 1 fog plane is ours** (item 3107): `seen2`, every
+/// half-cell, after frame 0. `Unit::think_scout`'s cell filter reads it
+/// (`was_really_seen`) before `invalid_loc`, so the frame-0 parting — the
+/// Scout `1/0`'s ring-5 cell (58, 16), drawn in theirs and refused in ours —
+/// was the forest test's and not the fog's.
 #[test]
-fn probe_iroquois_fog_block_1() {
-    if std::env::var_os("RON_PROBE_3107").is_none() {
-        return;
-    }
+fn run897_s_block_1_fog_plane_is_ours() {
+    let _pins = Pins::hold();
     let Some(inst) = crate::testenv::install() else {
         return;
     };
@@ -173,12 +191,6 @@ fn probe_iroquois_fog_block_1() {
     borrow_from_siblings(&mut init, &[&sibling]);
     borrow_pasture(&mut init, &tr);
     let mut built = build_sim(&loaded, &init, Tuning::RON);
-    let w0 = &built.sim.world;
-    let (fw, fh) = (w0.fog_xs(), w0.fog_ys());
-    let before: Vec<u8> = (0..fh)
-        .flat_map(|y| (0..fw).map(move |x| (x, y)))
-        .map(|(x, y)| w0.seen2(x, y).unwrap_or(0))
-        .collect();
     built.tick();
     let block = start_log
         .frames()
@@ -190,30 +202,14 @@ fn probe_iroquois_fog_block_1() {
         .kid("FULL DUMP")
         .unwrap_or(block)
         .kid("WORLD")
-        .expect("WORLD");
+        .expect("block 1 has no WORLD record");
     let theirs = crate::gamelog::world_fog(&world.fields().to_vec());
     let w = &built.sim.world;
-    eprintln!("fog {fw}x{fh}, theirs {}", theirs.len());
-    let mut n = 0;
-    for y in 0..fh {
-        for x in 0..fw {
-            let t = theirs[(y * fw + x) as usize];
-            let o = w.seen2(x, y).unwrap_or(0);
-            if o != t {
-                n += 1;
-                if n < 200 {
-                    eprintln!(
-                        "  ({x},{y}) cell ({},{}) ours {o:#x} theirs {t:#x} before {:#x}",
-                        x / 2,
-                        y / 2,
-                        before[(y * fw + x) as usize]
-                    );
-                }
-            }
-        }
-    }
-    eprintln!("{n} half-cells part");
-    for u in built.sim.units.iter().filter(|u| u.owner == 1) {
-        eprintln!("  unit 1 ty {:?} pos {:?}", u.ty, u.pos);
-    }
+    let (fw, fh) = (w.fog_xs(), w.fog_ys());
+    pin_eq!(theirs.len(), (fw * fh) as usize, "block 1's fog plane");
+    let parted = (0..fh)
+        .flat_map(|y| (0..fw).map(move |x| (x, y)))
+        .filter(|&(x, y)| w.seen2(x, y).unwrap_or(0) != theirs[(y * fw + x) as usize])
+        .count();
+    pin_eq!(parted, 0, "half-cells parted on block 1");
 }

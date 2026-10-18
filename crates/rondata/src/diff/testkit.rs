@@ -9670,13 +9670,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The battery's second word** (item 3107, DECISIONS 72): frame 0,
     // the Iroquois lobby's first try, widened on run897's own block 1 (the
-    // state frame 0 writes).
+    // state frame 0 writes; `run897_s_word_frame_is_widened_whole` keeps
+    // its value diff). **Item 3107 moved it 0 → 1120** with the Iroquois
+    // Scout's forest walker, past the start dump's blocks (1, 36, 37) and
+    // into run897b's `cover=0` stream, which dumps no block there: 1120's
+    // widening is owed, a capture of the lobby's 1114..1370.
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
-        Some("run897_s_word_frame_is_widened_whole"),
+        None,
         3107,
-        Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_START),
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
