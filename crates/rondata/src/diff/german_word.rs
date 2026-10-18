@@ -65,8 +65,8 @@ pub(crate) const GERMAN: Lobby = Lobby {
     // Unit::move_step+0x823`; on block 12837 who=1's `1/31` is `collide` 1
     // (`collide_o` 68) at (6545, 12999) in theirs against 0 at (6524,
     // 12980), and `1/32`, `1/64` and `1/68` beside it.
-    count: 13054,
-    sequence: 13054,
+    count: 13519,
+    sequence: 13519,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -409,7 +409,7 @@ fn run910_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 77, "initial run910 baseline");
+    pin_eq!(w.firsts.len(), 59, "initial run910 baseline");
     // Item 2974: 967 keys part on blocks 12809..13066, the word's own block
     // being 12816 (frame 12815: ours 9 draws, theirs 8, index 1 — ours
     // `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <
