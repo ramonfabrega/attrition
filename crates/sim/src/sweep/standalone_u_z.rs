@@ -60,6 +60,8 @@ mod unit_data_can_ever_transport;
 mod unit_data_can_garrison;
 #[path = "unit_data_can_gather.rs"]
 mod unit_data_can_gather;
+#[path = "unit_data_get_attrition.rs"]
+mod unit_data_get_attrition;
 #[path = "unit_data_get_captain.rs"]
 mod unit_data_get_captain;
 #[path = "unit_data_get_capture_value.rs"]
