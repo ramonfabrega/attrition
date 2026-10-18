@@ -1012,7 +1012,7 @@ impl Sim {
 
     /// `Unit::end_trade_route@005e3bd0`: the route is given up — the pair
     /// forgotten, the plan and any parked search with it.
-    pub(crate) fn end_trade_route(&mut self, u: usize) {
+    pub fn end_trade_route(&mut self, u: usize) {
         let Some(v) = self.units[u].caravan else {
             return;
         };

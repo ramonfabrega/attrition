@@ -679,10 +679,10 @@ pub(super) fn chapter_one_hundred_s_window_is_widened_whole() {
     let Some(firsts) = widen_civilians(
         "ch100",
         "chapter100",
-        (605, 921),
+        (605, 978),
         0,
         0,
-        (606, 921),
+        (606, 978),
         false,
         92,
     ) else {
