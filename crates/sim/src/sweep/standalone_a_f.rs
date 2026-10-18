@@ -256,6 +256,8 @@ mod build_queue_set_queue;
 mod build_queue_un_queue;
 #[path = "build_queue_walk_data.rs"]
 mod build_queue_walk_data;
+#[path = "build_remove_from_city.rs"]
+mod build_remove_from_city;
 #[path = "build_remove_gatherer.rs"]
 mod build_remove_gatherer;
 #[path = "build_repair_damage.rs"]
