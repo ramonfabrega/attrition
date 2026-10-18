@@ -4767,6 +4767,19 @@ impl Sim {
                     .has_preq(&self.setup, &self.tech[who as usize], x)
             })
         });
+        // `LeaderData::has_wonder` is asked live by the wonder-gated blocks
+        // at the end of `gain_tech` (`docs/NATIONS.md` §7, item 4): feed the
+        // player's set off the buildings first.
+        let held = self.wonders_held(who);
+        self.tech[who as usize].wonders = self
+            .tech_tree
+            .roles
+            .wonder_line
+            .iter()
+            .enumerate()
+            .filter(|&(k, _)| held & (1 << k) != 0)
+            .map(|(_, &w)| w)
+            .collect();
         let events = self
             .tech_tree
             .gain_tech(&self.setup, &mut self.tech[who as usize], t, frame);
