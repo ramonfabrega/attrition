@@ -6654,13 +6654,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FOUR: i64 = 1200;
 pub(crate) const WIDENING_CHAPTER_NINETY_FOUR: (i64, i64) = (604, 1201);
 
 /// **Chapter ninety-five** (item 3126, `docs/GOLDEN.md` §121, run920):
-/// Sabotage on a firing Tank. **The word is 634, open** (draws part there;
+/// Sabotage on a firing Tank. **The word is 1118, open** (634 under item
+/// 3142; item 3152 moved it 634 → 1118 with `Unit::target_opportunity`'s
+/// attack-action arm, `docs/GOLDEN.md` §123: `1/7` yields its held attack on
+/// the Commando `0/7` to the Commando `0/6` that struck its squad-mate; the
+/// first parted field is now `1/7`'s `hits:damage` on 766, and the draws
+/// part on 1118 at `0/15`'s damage). Earlier: the word was 634 (draws part there;
 /// 629 under item 3126): the first parted field was the who=1 Tank `1/7`'s
 /// `order:target` on 624 — ours the decoy Hoplite `0/16`, theirs the Commando
 /// `0/7` — and item 3142 closed it: `compare_target` weighs a spellcaster by
 /// its action (×20, +10,000,000 casting at the searcher). The first parted
 /// field is now `1/7`'s `order:target` on 635, ours `0/7`, theirs `0/6`.
-pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 634;
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 1118;
 
 /// `chapter_ninety_five_s_window_is_widened_whole`'s window: run920.
 pub(crate) const WIDENING_CHAPTER_NINETY_FIVE: (i64, i64) = (604, 1201);
