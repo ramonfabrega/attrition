@@ -2591,7 +2591,20 @@ impl Sim {
                 self.action_of(o)
                     .is_some_and(|a| self.units[o].orders[a].index() == index::ATTACK)
             });
+        let probe = std::env::var("RON_PROBE3175").is_ok() && self.units[u].owner == 0 && self.units[u].index == 12;
+        if probe {
+            self.trace_costs = true;
+            self.cost_marks.clear();
+            eprintln!("P3175 f{} pre pos {:?} path {:?}", self.frame, self.units[u].pos, self.units[u].path);
+        }
         let r = self.find_upath(u, anti);
+        if probe {
+            for m in self.cost_marks.iter().take(40) {
+                eprintln!("P3175   cost {:?}->{:?} dir {} step {} depth {} = {}", m.from, m.to, m.dir, m.step, m.depth, m.cost);
+            }
+            self.trace_costs = false;
+            self.cost_marks.clear();
+        }
         if std::env::var("RON_PROBE3175").is_ok() && self.units[u].owner == 0 && self.units[u].index == 12 {
             eprintln!("P3175 f{} find_upath anti {} -> {} path {}", self.frame, anti, r, self.units[u].path.len());
         }
