@@ -19,10 +19,10 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   on run922 (3156), the food row's capture owed as 3170 (run 923); `EastIndiesGermanTier3` closed at 13519
   (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–94 closed; 95 at 1118 (3126, 3142, 3152), as 3162. Census
   1463, **port 297 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
-  median 2270 (`GreatLakesChineseTier1` 12712; 3096, 3108, 3124, 3137, 3145 moved none).
-- **Lanes: four live, landings 4 of 20** (3145 battery unmoved; 3152 ch95 → 1118; 3150 port 293 → 297; 3156 the
-  word's widening, run922): 3170 AI (run 923, AI §250, park HP), 3162 rules (GOLDEN §124, HJ), 3166 shape (HN), 3160
-  nations (ID, regating). Next 3171, run 924. Pools: GOLDEN §125–128, AI §251–255, park IE–IJ. Last whole gate: the pass's.
+  median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
+- **Lanes: four live, landings 5 of 20** (3145, 3152, 3150, 3156, 3160): 3170 AI (run 923, AI §250, park HP), 3162
+  rules (GOLDEN §124, HJ), 3166 shape (HN), 3172 nations (IE). Next 3173, run 924. Pools: GOLDEN §125–128, AI
+  §251–255, park IF–IJ. Last whole gate: the pass's.
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
 - **Fable backlog: 15 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167).
 
@@ -46,7 +46,7 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3170 the AI word's (Opus); 3162, 3166 and 3160 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
+3170 the AI word's (Opus); 3162, 3166 and 3172 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3170. **The battery word, 1772 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 3 draws against theirs 4,
@@ -68,13 +68,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `Unit::do_air_attack_ground` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each
     built, or parked naming the generator flag it could not spell. `--kind sweep`.
 
-3160. **The battery lobbies' own uncarried `get_cost` and `train_time` terms: the Turkish first** (NATIONS §7.5;
-    Ramon, the fortieth steer, DECISIONS 78; the score: the held-out battery's median first try, 2270 over eight,
-    `battery_measure`, `battery_floors` never lowered): 3137 built the Roman legion pair and 3145 the Dutch
-    ship-upgrade discount (`DUTCH_SHIP_DISCOUNT`), neither moving a lobby; parked 3144's list holds the Wool/Turkish
-    citizens arm, the one term a battery lobby's leader (`GreatLakesTurkishTier4`) reaches; then the Aztec, Spanish,
-    Egyptian and Russian arms of both functions audited against what `cost.rs` and `lib.rs` carry. The American
-    twin is parked (3159). One function's family a landing; never a held-out dump (DECISIONS 54). NATIONS §7.
+3172. **The battery's partings read for a nations term: `train_time`'s arms for the eight battery leaders, and the
+    Turkish siege arm** (NATIONS §7.5; Ramon, the fortieth steer, DECISIONS 78; the score: the held-out battery's
+    median first try, 4770 over eight, `battery_measure`, `battery_floors` never lowered): 3160 built `get_cost`'s
+    Citizen arms (`TURK_CITIZEN`, `WOOL_CITIZENS_COST`), `GreatLakesTurkishTier4` 1440 → 6982, and audited the rest
+    of `get_cost`'s tail for the battery leaders (parked 3171: only `SULPHUR_SIEGE_COST` is reachable, by the Turks).
+    Read where each lobby now parts; audit `train_time` as 3160 did `get_cost`; build the term a parting names. One
+    function's family a landing; never a held-out dump (DECISIONS 54). NATIONS §7.
 
 ## How to maintain this file
 

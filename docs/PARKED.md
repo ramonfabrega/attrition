@@ -7485,7 +7485,7 @@ parked 3144 listed them; none belongs to a battery lobby's leader.
 
 ## Parked by item 3160, 2026-10-18 — the Citizen cost arms
 
-- (3160) The rest of `get_cost`'s tail stays unaudited for any battery leader: no lobby's nation reaches the
+- (3171; the lane wrote 3160, its own item's number) The rest of `get_cost`'s tail stays unaudited for any battery leader: no lobby's nation reaches the
 Mongol stable, Japanese, American aircraft, British AA, Nubian, Angkor/aluminum/space ship-air terms or
 `CHARLES_UNIT_COST` (`num_units[0x13f]`) / `SULPHUR_SIEGE_COST` (the Turkish siege arm sits beside the
 citizen one: `trainer 0x1ae/0x1af` with rare bit 4 — uncarried for any leader, and the Turkish lobby is the
