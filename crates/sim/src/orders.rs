@@ -4293,15 +4293,6 @@ impl Sim {
         // **103**. `Unit::init` and `Build::train` between them make an
         // AI's trained citizen **0**, so the arm now asks who the original
         // asks (`crate::stance`, §5.10).
-        if std::env::var_os("RON_PROBE_3140").is_some() && self.units[u].owner == 1 && self.units[u].index == 7 {
-            let range = self.tuning.unit_build_respond_range * TILE;
-            let here = self.units[u].pos;
-            let sites = self.find_construct_sites(u, range);
-            eprintln!("PROBE3140 think_peasant f{} was_builder {} stance {stance} range {range} region {:?} sites {sites:?}", self.frame, self.units[u].was_builder, self.world.region_of(here.cell()));
-            for (b, bd) in self.buildings.iter().enumerate().filter(|(_, bd)| bd.alive && !bd.active && bd.owner == 1) {
-                eprintln!("PROBE3140   cand {b} {}/{} at {:?} cell {:?} region {:?} dist {}", bd.owner, bd.index, bd.pos, bd.pos.cell(), self.world.region_of(bd.pos.cell()), vector_dist(bd.pos.x - here.x, bd.pos.y - here.y));
-            }
-        }
         if !matches!(self.units[u].type_index, 0x34 | 0x35)
             && (self.units[u].was_builder || stance == 1 || stance == 2)
             && self.find_build_spot(u)
