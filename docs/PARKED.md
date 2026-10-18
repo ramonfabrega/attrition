@@ -7335,6 +7335,7 @@ Six built (do_mustering, cast_pack, find_def_pos, home_base, add_patrol_order, d
   `get_inside >= 0` returns before the order list on 40% of rows. Flag wanted: an `--answer-win` that is null a third of the rows (as `--place-null`).
 - (3166-c) **Equivalent breaks** (not gaps): `add_patrol_order`'s `slot`, `need > slot` and `sh >= 1` (an arm where both operands agree for every drawn `len`, `sh`),
   `do_air_attack_ground`'s `local > 0x80000000` → `>=` (`~0x80000000 = 0x7fffffff` fails every threshold the same), `find_def_pos`'s `^ 0x63636` (bit 0 shifted out by `>> 4`).
+- (3166-e) 3166's "for the Loop": `--answer-win` that is null a third of the rows (as `--place-null`), so `get_action() == 0` is reachable.
 - (3166-d) **Loop**: `@FILE` flags are one *token* a line, not one flag with its value (`--place x` on one line is read as a single argument and fails with "invalid choice");
   the help says "one a line". A `--regen` of a hand port rewrites the file's formatting (rustfmt restores it) — fine, but it shows 60 lines of diff.
 
