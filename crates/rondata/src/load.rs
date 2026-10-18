@@ -3323,8 +3323,8 @@ mod tests {
         let t = &l.tree;
         assert_eq!(
             t.free_rules.len(),
-            9,
-            "the five predicate blocks, the French range block and item 3113's three"
+            20,
+            "the five predicate blocks, the French range block, item 3113's three and item 3124's eleven"
         );
         let by_gate = |power: usize| {
             t.free_rules
