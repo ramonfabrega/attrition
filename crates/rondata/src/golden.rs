@@ -2322,6 +2322,7 @@ mod tests {
         ("chapter91.cmd", &[]),
         ("chapter92.cmd", &[]),
         ("chapter93.cmd", &[]),
+        ("chapter94.cmd", &[]),
     ];
 
     /// The chapter directory as the tree has it, sorted.
