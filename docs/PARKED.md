@@ -3742,6 +3742,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
+(3240) **`sweep_gen.py`'s five gaps from one batch** (3229's "for the Loop" line, its parked (3229c), filed at its
+merge): `--regen` keeps a flag dropped from an `@FILE` (the kept `# sweep_gen:` line merges with the new flags); a
+32-bit `--wbias` zeroes neighbouring bytes; a void function returning a loaded window pointer in eax has no spelling
+(a `--eax-win cN`); a cell a callee reads indirectly shows only as starved hits (a hint listing the callee's cells);
+and (3229a) a stack-local `SimpleArray` filled by a callee has no stub (`--stub-array`). Candidate: the first two are
+bugs, made to fail first; the last three are flags, each built when a batch's body needs it. One reach.
+
 (3237) **The port count rises on a sweep that diffs an inline copy, not the crate** (3234's parked (a), filed at its
 merge): five of 3234's six sweeps assert logic inlined in the test, and `Sim::same_damage`, `Sim::do_patrol`,
 `Sim::add_trade_order`, `Sim::check_ever_seen` and `Sim::find_new_bomber_target` are not diffed; the census marks all
