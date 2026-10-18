@@ -1088,13 +1088,15 @@ pub fn ungroup_move_order_steps<V: UngroupView>(v: &mut V, this: V::U, id: i64, 
     let mut at = this;
     let mut skip = skip_walk;
     loop {
-        while !skip {
-            if v.is_captain(at) {
-                break;
-            }
-            match v.up(at) {
-                Some(n) => at = n,
-                None => break,
+        if !skip {
+            loop {
+                if v.is_captain(at) {
+                    break;
+                }
+                match v.up(at) {
+                    Some(n) => at = n,
+                    None => break,
+                }
             }
         }
         ungroup_unit_steps(v, at, id);
