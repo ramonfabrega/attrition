@@ -109,8 +109,8 @@ says in its doc comment that only the British and Mongol arms are built,
 | Russians | attrition upgrades applied on tech gain | `Leader::gain_tech@006dcb60` | carried, unread | `russian_attrition_upgrades` |
 | Russians | market prices pinned at 100 after the fifth age (gate is 0) | `LeaderData::calc_market_prices@006dc2a0` | carried, unread | `russian_communism` |
 | Chinese | science techs 20% cheaper | `TypeData::get_cost@00664090` | modelled at lib.rs | `chinese_science_discount` |
-| Chinese | citizens train twice as fast | `ObjectData::train_time@006508c0` | not modelled | `chinese_citizen_creation` |
-| Chinese | citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1) | `ObjectData::train_time@006508c0` | not modelled | `chinese_citizen_instant` |
+| Chinese | citizens train twice as fast | `ObjectData::train_time@006508c0` | modelled at lib.rs | `chinese_citizen_creation` |
+| Chinese | citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1) | `ObjectData::train_time@006508c0` | modelled at lib.rs | `chinese_citizen_instant` |
 | Chinese | a large-city building on a new city | `Build::activate@00623e20` | modelled at city.rs | `chinese_large_cities` |
 | Chinese | a large-city building on assimilation | `City::assimilate@00738e90` | modelled at city.rs | `chinese_large_cities` |
 | Chinese | herbal lore applied on tech gain | `Leader::gain_tech@006dcb60` | carried, unread | `chinese_herbal_lore` |
@@ -281,8 +281,8 @@ left out; a constant with no reader in the export is dead there too.
 | `CHINESE_KNOWLEDGE_UPGRADES` | 0 | Leader::gain_tech | carried, unread | `chinese_knowledge_upgrades` |
 | `CHINESE_HERBAL_LORE` | 1 | Leader::gain_tech | carried, unread | `chinese_herbal_lore` |
 | `CHINESE_SCIENCE_DISCOUNT` | 20 | TypeData::get_cost | modelled at lib.rs | `chinese_science_discount` |
-| `CHINESE_CITIZEN_INSTANT` | 1 | ObjectData::train_time | not carried | `chinese_citizen_instant` |
-| `CHINESE_CITIZEN_CREATION` | 100 | ObjectData::train_time | not carried | `chinese_citizen_creation` |
+| `CHINESE_CITIZEN_INSTANT` | 1 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_instant` |
+| `CHINESE_CITIZEN_CREATION` | 100 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_creation` |
 | `CHINESE_LARGE_CITY` | 1 | ConquestGame::build_cities, Setup::build_cities | not carried | `chinese_large_city` |
 | `CHINESE_LARGE_CITIES` | 1 | Build::activate, City::assimilate, ConquestGame::build_cities +1 | modelled at city.rs | `chinese_large_cities` |
 | `JAPANESE_DAMAGE` | -5 | ObjectData::get_damage | modelled at combat.rs | `japanese_damage` |
@@ -545,18 +545,22 @@ with the frame its lobby parts on** (`docs/AI.md` §125); the battery is
 never debugged against, so a candidate is a row for the successor item that
 a pass books against a word, not a fix for the lobby that exposed it.
 
-1. **Chinese citizens (`ObjectData::train_time@006508c0`, arm 0xe).**
-   `CHINESE_CITIZEN_CREATION` (100) halves a citizen's train time and
-   `CHINESE_CITIZEN_INSTANT` (1) makes the arm *return 1* straight after:
-   with the rules as shipped the Chinese citizens that pass the arm's
-   type filter train at once. The sim's `train_tail` has no Chinese arm
-   (its doc comment says so). Lobby: `GreatLakesChineseTier1`, whose first
-   parting is frame **176** (ours 12 draws, theirs 14) — the earliest of
-   the battery, in the frames where the first citizens would complete.
-   Highest-value candidate: it is on the lobby's first economic action.
-   Not yet read: which unit types the arm's
-   `is_merchant`/`BASE_UNITTYPES`/`PEASANTSKOREAN` filter spares, and
-   whether the `return 1` skips the tail that follows.
+1. ~~**Chinese citizens (`ObjectData::train_time@006508c0`, arm 0xe).**~~
+   **Built, item 3092** (`train_tail`, `lib.rs`). The arm sits after the
+   Japanese arms and before the British, and applies when the unit's type
+   index is `BASE_UNITTYPES`/`PEASANTSKOREAN` (0x32/0x33, unit types 0 and
+   1), or `TypeData::is_merchant` (the three exact ids), or the type has
+   `unit_flags2 & 8` (the caravan bit, `+0x2b8` — read off the listing at
+   `00650d1a`: `ecx` is still the type record across `is_merchant`).
+   Where it applies it divides by `CREATION + 100`, and under `INSTANT`
+   returns 1: nothing after it — the British, French, German arms, the
+   speed-upgrade step, the spy and wool arms — runs, and `train_tail`
+   returns a lone scale to zero that `MIN_TIME` clamps to 1. The earlier
+   steps (ramp, handicap, President, Mongol, Japanese) are discarded by the
+   return too. Not diff-backed: no capture on disk has a Chinese leader
+   with a queue; the reading and the listing carry it, and the sim test
+   `a_chinese_citizen_trains_at_once` fails without the arm. Lobby
+   `GreatLakesChineseTier1` (176): see the journal for the battery measure.
 2. **Egyptian wonders cost (`TypeData::get_cost@00664090:906`).** 25%
    off a wonder's price; `EGYPTIAN_WONDERS` is not carried. Lobby
    `GreatSaharaEgyptianTier4` (2974 of 20380): an AI at tier 4 prices

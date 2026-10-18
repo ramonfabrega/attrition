@@ -3400,8 +3400,8 @@ impl Sim {
     /// original's own order — as far as it is built — and the
     /// speed-upgrade step after it (item 1365).
     ///
-    /// **Of the national arms only the British, the German (item 2974) and
-    /// the Mongol are here**, and that is a scope claim rather
+    /// **Of the national arms only the British, the German (item 2974), the
+    /// Chinese citizen (item 3092) and the Mongol are here**, and that is a scope claim rather
     /// than an oversight: the block's nine other arms are inert in every
     /// capture on disk, so each would be a predicate no diff could check,
     /// and the audit's standing lesson is that predicates are exactly where
@@ -3432,6 +3432,29 @@ impl Sim {
                 .is_some_and(|w| self.tech_tree.is(w, nations::ty::STABLES[0], false))
         {
             tail.push(production::Adjust::Faster(self.tuning.mongol_stable_speed));
+        }
+        // **The Chinese citizen arm** (`train_time@006508c0:140`–`159`,
+        // after the Japanese arms and before the British): a Chinese
+        // leader's unit that is a `BASE_UNITTYPES`/`PEASANTSKOREAN` citizen
+        // (types 0 and 1), a merchant by id, or a caravan (`unit_flags2 &
+        // 8`) takes `CHINESE_CITIZEN_CREATION` percent off, and under
+        // `CHINESE_CITIZEN_INSTANT` the function returns 1 there — nothing
+        // after it, the whole remaining tail included, is applied. The
+        // result is clamped at `MIN_TIME` (1), so a lone scale to zero is
+        // the return.
+        if self.nation[who as usize].chinese {
+            let t = &self.unit_types[ty];
+            let spared = matches!(ty, 0 | 1)
+                || t.tree.is_some_and(|tr| [0x3d, 0x3e, 0x190].contains(&tr))
+                || t.cols.flag2(ai_load::uflags2::CARAVAN);
+            if spared {
+                if self.tuning.chinese_citizen_instant != 0 {
+                    return vec![production::Adjust::Scale(0)];
+                }
+                tail.push(production::Adjust::Faster(
+                    self.tuning.chinese_citizen_creation,
+                ));
+            }
         }
         // `has_tribe_bonus(0xb)`, cached — the lobby's "No Nation Powers"
         // and the no-city gate apply through it (`crate::nations`).
