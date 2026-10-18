@@ -39,10 +39,9 @@ Golden: every chapter closed · 92 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — four lanes live (3242 the AI word's on
-`--model 'claude-opus-5-5[1m]' --effort medium`; 3236, 3238 and 3239 on `'claude-sonnet-5-5[1m]' --effort medium`), ten
-landed; re-arm `tools/lanewait.py` on the four, merge each landing at its gate's exit, refill its lane by
-`tools/brief.py`, the model said in user-visible text; count landings from the pass's commit `1a15c80f`; the chain is
-`CLAUDE.md`'s; at twenty the handoff, the drain and `ccc clear steer`.**
+`--model 'claude-opus-5-5[1m]' --effort medium`; the rest on `'claude-sonnet-5-5[1m]' --effort medium`); re-arm
+`tools/lanewait.py`, merge each landing at its gate's exit, refill by `tools/brief.py`, the model said in user-visible
+text; count landings from `1a15c80f`; the chain is `CLAUDE.md`'s; at twenty the handoff, the drain and `ccc clear steer`.**
 
 ## The queue
 
