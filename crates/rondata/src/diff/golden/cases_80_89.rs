@@ -638,9 +638,16 @@ pub(super) fn chapter_ninety_nine_holds_to_the_golden_word() {
 
 pub(super) fn chapter_ninety_nine_s_window_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) =
-        widen_civilians("ch99", "chapter99", (605, 850), 0, 0, (606, 850), false, 92)
-    else {
+    let Some(firsts) = widen_civilians(
+        "ch99",
+        "chapter99",
+        (605, 1500),
+        0,
+        0,
+        (606, 1500),
+        false,
+        92,
+    ) else {
         return;
     };
     for ((w, o, what), (f, row)) in &firsts {

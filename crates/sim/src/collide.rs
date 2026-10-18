@@ -1704,6 +1704,46 @@ impl Sim {
                     return (Some(o), soft, will);
                 }
             }
+            // **A wreck still on the original's chain** (item 3233,
+            // `docs/GOLDEN.md` §131): a type with `blocks_while_dead`
+            // keeps `remove_from_world` unrun until its death object's
+            // cull, so the scan reaches it and names it a hard collider
+            // (run933's Tank `1/6` on `0/10`'s `collide_o`). This crate
+            // unlinks the unit at its death and keeps the disc beside it,
+            // so the wrecks are walked from the death list.
+            for d in &self.deaths {
+                let Some(w) = self
+                    .units
+                    .iter()
+                    .rposition(|x| i32::from(x.owner) == d.who && i32::from(x.index) == d.o)
+                else {
+                    continue;
+                };
+                if self.units[w].alive()
+                    || !self.units[w].on_map
+                    || self.units[w].coll_at.is_some()
+                    || self.units[w].pos.cell() != p.cell()
+                    || !self.units[w].ty.is_some_and(|t| {
+                        self.unit_types[t].cols.unit_flags
+                            & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                            != 0
+                    })
+                    || !self.unit_is_here(w, cell)
+                {
+                    continue;
+                }
+                let theirs = self.guy_corner(w, cell);
+                rec(Candidate {
+                    who: self.units[w].owner as i32,
+                    o: i32::from(self.units[w].index),
+                    is_here: true,
+                    soft: false,
+                    is_corner: Some(theirs),
+                });
+                if will == 0 || (will - theirs).abs() != 4 {
+                    return (Some(w), soft, will);
+                }
+            }
         }
         (None, soft, will)
     }

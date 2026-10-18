@@ -6710,10 +6710,10 @@ pub(crate) const WIDENING_CHAPTER_NINETY_EIGHT: (i64, i64) = (604, 1501);
 /// **Chapter ninety-nine** (item 3228, `docs/GOLDEN.md` §130, run933):
 /// a Tank blown up by Sabotage (`dtype` 3) with two late captains ordered
 /// across its cell.
-pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_NINE: i64 = 845;
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_NINE: i64 = 1500;
 
 /// `chapter_ninety_nine_s_window_is_widened_whole`'s window: run933.
-pub(crate) const WIDENING_CHAPTER_NINETY_NINE: (i64, i64) = (604, 851);
+pub(crate) const WIDENING_CHAPTER_NINETY_NINE: (i64, i64) = (604, 1501);
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).

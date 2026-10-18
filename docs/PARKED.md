@@ -7612,7 +7612,7 @@ All six built, none parked for a missing flag. The unreached arms, numbered at t
 
 ## Parked by item 3228, 2026-10-18 — chapter 99: the Sabotaged Tank's disc, and a collision with a standing Commando
 
-- (booked as item 3233) (3232) **Chapter 99's word, 845 (run933, GOLDEN §130): ours 5 draws, theirs 6** — the extra is `Guy::set_anim+0x97a < Unit::move_step+0x823`, captain `0/10` (Hoplite) walking at (13749,16021) onto the idle Commando `0/6` at (13752,16056): `collide_o` 6 on 846 in the original, −1 here. Book by frame and delta; what this crate's collision test lacks for a walker meeting a unit standing after a cast is the hypothesis, not the booking.
+- (3232, closed by item 3233: the collider was the Tank wreck `1/6`, not the Commando) **Chapter 99's word, 845 (run933, GOLDEN §130): ours 5 draws, theirs 6** — the extra is `Guy::set_anim+0x97a < Unit::move_step+0x823`, captain `0/10` (Hoplite) walking at (13749,16021) onto the idle Commando `0/6` at (13752,16056): `collide_o` 6 on 846 in the original, −1 here. Book by frame and delta; what this crate's collision test lacks for a walker meeting a unit standing after a cast is the hypothesis, not the booking.
 - (3190) Narrowed by §130: only the Tank line carries `x`; `cast_sniper_unit` (Sabotage, `dtype` 3) now keeps the disc. Attrition (`dtype` 0) releases it, read and not diff-backed (a Tank's attrition death is ~1500 frames at 187 hits).
 
 ## Parked by item 3211, 2026-10-18 — the Iroquois word 6982
@@ -7677,10 +7677,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IY — reserved
+## Parked by item 3233, 2026-10-18 — chapter 99 closed: a Tank wreck is a collider
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IY renames this heading `## Parked by item N, <date> — <title>`
+- (3234) **A wreck on the original's chain, other readers**: the crate unlinks a dead unit from the object chain at its death and keeps the disc beside it; `scan_colliders` alone now walks the wrecks (from the death list). The original leaves a `blocks_while_dead` unit on the chain until the death object's cull, so every chain reader that does not test `alive` (`find_nearby_target`, `find_units`, `alarm`) would see the wreck there; none of the captures on file reaches one, and the death list is the only seat this crate has for the wreck. A capture with a Tank wreck beside an idle unit's search would say.
+- Attrition's release (`dtype` 0) is still read, not diff-backed (3190, §130).
+
+## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

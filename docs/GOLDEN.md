@@ -13372,16 +13372,21 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Built.** `Sim::keeps_disc(i, dtype)` (`fight.rs`), the combat death's predicate (`dtype != 0`, on the map, type flag `x`) now shared with `cast_sniper_unit`, which keeps the disc through `close_supply_in`. The word moves **842 → 845** and the 808–832 path rows of `0/11` and `0/15` go (`chapter_ninety_nine_s_window_is_widened_whole` fails without it).
 
-**The word, 845, open.** Draw delta: ours 5, theirs 6 draws; theirs' extra is draw 0, `Guy::set_anim+0x97a < Unit::move_step+0x823`, the hoplite captain `0/10`'s animation roll. **Value diff** (the widening, 604..851): on 846 `0/10` (at (13749,16021), this crate's position agrees) has `collide_o` 6 in the original and −1 here: it walks into the idle Commando `0/6` at (13752,16056), 35 units off, which this crate's collision does not register (and `0/11`'s `collide` 1 against 0 follows on 846). Everything after 846 (`0/10`'s order list, `1/0`'s path on 847) is that collision's cascade; the window pins the 52 rows (`WANT_CH99`: the eleven `form` rows and 41 from 846).
+**The word, 845, open — closed by §131.** Draw delta: ours 5, theirs 6 draws; theirs' extra is draw 0, `Guy::set_anim+0x97a < Unit::move_step+0x823`, the hoplite captain `0/10`'s animation roll. **Value diff** (the widening, 604..851): on 846 `0/10` (at (13749,16021), this crate's position agrees) has `collide_o` 6 in the original and −1 here: it walks into the idle Commando `0/6` at (13752,16056), 35 units off, which this crate's collision does not register (and `0/11`'s `collide` 1 against 0 follows on 846). Everything after 846 (`0/10`'s order list, `1/0`'s path on 847) is that collision's cascade; the window pins the 52 rows (`WANT_CH99`: the eleven `form` rows and 41 from 846).
 
 **Not established**: why this crate registers no collision between a walking Hoplite and a Commando standing after its cast (parked, slot IQ); a Tank killed by Sabotage whose cull ends (the record, `life`, ends after the hoplites cross); attrition's release (`dtype` 0) is read, not diff-backed here.
 
-## 131. Reserved for the next item on the rules track
+## 131. Chapter ninety-nine, closed at 1500 — the wreck is a hard collider (item 3233, run933)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking's unit was wrong, and the dump said so.** §130 read the 846 row as `0/10` walking into the idle Commando `0/6`. The original's row is `collide_o` 6, **`collide_who` 1**: the dead Tank `1/6`, at (13944,16056), whose kept disc (§130) covers unit cells 288..292 × 332..336. **Draw delta** (845): ours 5, theirs 6, the extra the captain's `Guy::set_anim+0x97a < Unit::move_step+0x823` roll, on the frame the step is refused.
+
+**What parted.** `0/10`'s step to (13776,16016) enters unit cell (287,333); `collide_here` finds the wreck's disc at (288,332) in both. The scan that names the owner then walks the 3×3 world cells' object chain, and here the dead Tank is not on it (`close_supply_in` unlinks every death), so the hit named nobody and the step went through. The original's `Object::close@00647160` `blocks_while_dead` arm skips `remove_from_world` — chain and disc — so the wreck is found, `is_here` holds, and the collision is hard (not a group-mate, no suspended search).
+
+**Built.** `scan_colliders` (`collide.rs`) walks, after each world cell's chain, the wrecks of the death list (`Sim::deaths`) whose type carries `x`, whose disc was kept (`coll_at` empty on a dead unit) and which stand in that cell; the candidate's `is_here`, corner rule and hard verdict are the chain's own. SEAM: the crate does not relink the wreck onto the chain, so other chain readers still miss it (parked 3234).
+
+**Value diff.** 846 `0/10` `collide_o`/`collide_who`: ours −1/−1 → 6/1, agreeing; `pos` (13749,16021) held, `orders` kept, `path` kept. The word moves **845 → 1500**, the chapter's whole length; the widening runs 605..1500 and parts only on the eleven standing `form` rows. No retake (run 935 unused): the capture on disk answered it.
+
+**Coverage.** Diff-backed: the wreck as a hard collider on a walker's step (run933, 846 and after). Reading only: the cull removing the wreck from the scan (the death list drops the record, so the wreck leaves the scan with it), and attrition's release.
 
 ## 132. Reserved for the next item on the rules track
 
