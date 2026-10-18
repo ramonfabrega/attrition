@@ -7444,13 +7444,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HQ — reserved
+## Parked by item 3117, 2026-10-18 — the Iroquois word's widening
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3117, first) **who=1's food and `known_rares` part between the start dump's block 37 and run918b's 38** on
+  `GreatLakesIroquoisTier3`: `income`/`resources[0:food]` 640 against 672, `bucket` 4/5, `leftover` 6560/352, and
+  `known_rares` 0 against 1 — theirs knows a rare on 38. No dump holds 37..38 densely beyond run897's 37 (which holds no
+  such row); the word 1496's index-30 draw is a who=1 `do_non_flat_gather`, so this is the nearest standing row on that
+  player. Names the word 1496 only as a hypothesis (`docs/AI.md` §247).
+- (3117, second) **`seams.py --item` missed the word's live SEAM**: the brief's run named `explore_goody`, `think_bird`,
+  `WIDENINGS`, `IROQUOIS_WORD`, and `path.rs`'s `iroquois: false, // SEAM: unit_masks2 & 0x4000` was found by grepping
+  `iroquois` after the widening named the path. A `--item` that also takes the parted unit's nation and the fields the
+  previous item built (`FOREST_WALKER`) would have printed it before the capture. For the Loop.
 
 ## Parked by item 3120, 2026-10-18 — the four shapes built
 

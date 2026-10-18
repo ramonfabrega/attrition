@@ -2728,9 +2728,12 @@ Under the tile-only rule it fails on its first assertion.
 
 - **The `0x40` bit.** Nothing names it (`crate::world::cell`). No cell a
   run226 search reaches carries it without forest or mountain beside it.
-- **The forest-walker exemption.** It is read from the listing.
+- ~~**The forest-walker exemption.** It is read from the listing.
   `forest_walker` is still this crate's seam (`unit_masks2 & 0x4000`,
-  the Iroquois), so the exemption never fires here.
+  the Iroquois), so the exemption never fires here.~~ The bit is raised
+  since item 3107 (`docs/AI.md` §246), and `astar_path` takes it as its
+  `iroquois` mode since item 3117 (§4.1, `docs/AI.md` §247, run918b's
+  block 894).
 - **The other callers under a transport-flagged top.** Such a caller
   passes `ignore_buildings` and a forced `param_6`. No capture on disk
   plans a transport leg across a forest cell.

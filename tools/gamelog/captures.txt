@@ -9717,3 +9717,9 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #           --ai-tribe 22 --allow-early-end --profile DIFFICULTY=4 (run643's four --detail lines)
 # Checks: `rngcmp.py` run915 vs run917 -> 0 differing in 37. run917 runs to 24000.
 # ==== TAKEN 2026-10-17, one take each, 22:20-22:32, pool lanes 1, 2 ====
+# ==== item 3117: the battery word 1120's widening and its gap (`docs/AI.md` §247; `docs/RUNS.md` run918, run918b) ====
+#   run918   --map 14 --end-frame 1376 --timeout 7200 --log-window 1114 1371 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#            --ai-tribe 18 --cover cover=0 --profile DIFFICULTY=3
+#   run918b  --map 14 --end-frame 1120 --timeout 7200 --log-window 37 1114 --stride 4 (run918's --detail, --ai-tribe, --cover, --profile)
+# Checks: `rngcmp.py` run897b vs run918 -> 0 differing in 1377; vs run918b -> 0 differing in 1121.
+# ==== TAKEN 2026-10-17/18, one take each, 23:20-00:00, pool lane 1 ====

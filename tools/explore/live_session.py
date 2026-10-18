@@ -165,6 +165,7 @@ def stage(args):
     callwin = getattr(args, 'callwin', None)
     cmd_file = getattr(args, 'cmd_file', None)
     minute = getattr(args, 'ffwd_minute', None)
+    stride = getattr(args, 'stride', None)
     if not 36 <= end <= 24000 or (fast and end <= 37):
         raise ValueError('end-frame must be 36..24000; fast-forward requires at least 38')
     if args.hide_scene and end != 36:
@@ -173,6 +174,10 @@ def stage(args):
     # frames past its !quit gets a short window and no warning, so refuse here.
     if not 0 <= window[0] <= window[1] <= end + 1:
         raise ValueError(f'log window {window} must satisfy 0 <= start <= end <= quit frame + 1 ({end + 1})')
+    # Loop 3085 (item 3117): `stride=N` keeps one block in N of the window
+    # (`tools/trace/stride.h`); without a window it has nothing to thin.
+    if stride is not None and (stride < 2 or not getattr(args, 'log_window', None)):
+        raise ValueError('--stride takes N >= 2 and an explicit --log-window')
     if fast and minute is not None:
         raise ValueError('fast-forward and ffwd-minute both schedule frame 37; pick one')
     if minute is not None and not 1 <= minute <= 27:
@@ -241,7 +246,8 @@ def stage(args):
         # The proxies log every call in the window, so a probe that only needs
         # a few frames says so rather than paying for the whole run.
         cw = f'{callwin[0]}-{callwin[1]}' if callwin else f'0-{end}'
-        (output / 'rontrace.cfg').write_text(f'{cover}\ncallwin={cw}\n')
+        (output / 'rontrace.cfg').write_text(f'{cover}\ncallwin={cw}\n'
+                                             + (f'stride={stride}\n' if stride else ''))
         if fast:
             minute = (end + 899) // 900
         # The channel runs lines in file order and clamps a frame below its
@@ -279,6 +285,8 @@ def main():
     s.add_argument('--detail', action='append', metavar='SECTION:CAT[=N],...',
                    help="setlog.py's spelling, repeatable; default " + ' '.join(DEFAULT_DETAIL))
     s.add_argument('--cover', help="rontrace.cfg's first line; default cover=0")
+    s.add_argument('--stride', type=int, metavar='N',
+                   help='dump one block in N of --log-window (the tracer rewrites the window; Loop 3085)')
     s.add_argument('--callwin', type=int, nargs=2, metavar=('LO', 'HI'),
                    help='sim-frames the call proxies log over; default 0-END')
     s.add_argument('--cmd-file', type=Path,
