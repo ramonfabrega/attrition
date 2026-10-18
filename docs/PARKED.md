@@ -7613,13 +7613,9 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IS — reserved
+## Parked by item 3223, 2026-10-18 — a late unit crosses a released disc
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3204) Answered for a Tank's combat death by GOLDEN §129 (run931): both captains cross the released cell in the original and in ours. Not answered: the non-combat death sites (3190) that still clear the disc; no capture reaches one, so it names no score.
 
 ## Parked by the next landing, slot IT — reserved
 
