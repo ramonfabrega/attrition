@@ -3755,6 +3755,10 @@ step not reached; the booking gate carries the check. Candidate: the frame row t
 the worker's own" re-runs the guard step alone (`tools/guard.sh`) before its done line and quotes it, or the gate's
 journal check moved ahead of the release step so a missing quote fails in the first minute. One reach.
 
+(3280) **`tools/recomp/step4.py --watch VA+N` reads N as a byte count, not an offset** (3269's "for the Loop" line,
+filed at its merge): the first watch of `unit+0x58` covered `+0..+0x57` and missed the field, which cost a run.
+Candidate: a `VA+OFF:LEN` spelling, or a refusal when N is under 8 and no length is given, made to fail first. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
 (3240) **`sweep_gen.py`'s five gaps from one batch** (3229's "for the Loop" line, its parked (3229c), filed at its
@@ -7944,7 +7948,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3269, 2026-10-18 — The Despot's plunder on the Iroquois word 10852
 
-- **The battery word 10852's cause: The Despot's `Unit::plunder@00605b00`** (`GreatLakesIroquoisTier3`, `docs/AI.md`
+- (booked as item 3279) (3278) **The battery word 10852's cause: The Despot's `Unit::plunder@00605b00`** (`GreatLakesIroquoisTier3`, `docs/AI.md`
   §258). Item 3269 closed run943's 10843 and left the word at 10852: ours 25 draws against theirs 30 at index 3, ours
   `Unit::close+0xcb6`, theirs `605fe5` = `Unit::plunder+0x4e5`. run943's widening (455 keys) now first parts on the
   word's own block **10853**: the Citizen `0/3` (TI 50) dies on frame 10852 on both sides, `death:extra` ours 1 against
@@ -7958,7 +7962,7 @@ words and edits nothing here; a refill lands when two remain.
   `Unit::plunder@00605b00` "not modelled", and the crate carries no `thedespot_unit_plunder`. Owed first: grep the
   caller (`Object::die`/`take_damage`) for the killer's arguments, `max`'s and the `+0x914` multiplier's value on the
   dump, and `RON_STACKS` on 10852 if the draws' order is in doubt.
-- **3269's "for the Loop"**: `tools/recomp/step4.py --watch VA+N` reads N as a byte count, not an offset. The first
+- **3269's "for the Loop"**, filed as Loop 3280: `tools/recomp/step4.py --watch VA+N` reads N as a byte count, not an offset. The first
   watch of `unit+0x58` covered `+0..+0x57` and missed the field, which cost a run. A `VA+OFF:LEN` spelling, or a
   warning when N is under 8, would have saved it.
 
