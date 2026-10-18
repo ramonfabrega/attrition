@@ -4259,6 +4259,65 @@ mod tests {
     /// reached by a unit that has a job. The implementation used to join
     /// "an attacker that is not a scout or a caravan" here, which
     /// conscripted run10's woodcutters.
+    /// **A computer army holding a Scout gives it the spellcaster's turn**
+    /// (`Army::process@006f93d0`'s `count(COUNT_NON_DECOY_TYPE, 0x45)` →
+    /// `Army::use_scouts@006f49a0`, item 3186, `docs/AI.md` §251): on the
+    /// 128-frame turn the Scout (`is_special`) is offered
+    /// `think_spellcaster`, whose special arm throws its coin at `+0x413` —
+    /// run897b's frame 5144, index 0, who=1's Scout `1/0`. A decoy Scout is
+    /// not counted and throws nothing. Made to fail with the scouts' turn
+    /// not called.
+    #[test]
+    fn an_army_s_scout_throws_the_special_coin_on_the_spellcaster_turn() {
+        use crate::spellcaster::SITE_SPECIAL_COIN;
+        let (mut sim, c) = sim_with_city();
+        sim.lobby.difficulty = 3;
+        // A tree whose `0x45` is a type, so the lineage test answers.
+        let mut tree = crate::tech::TechTree::new();
+        for _ in 0..=SCOUT {
+            tree.add(crate::tech::TypeDef::unit(
+                "Scout",
+                crate::tech::UnitTraits::default(),
+            ));
+        }
+        sim.set_tech_tree(tree);
+        let scout = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            tree: Some(SCOUT),
+            type_index: 0x45,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: uflags2::SCOUT,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let soldier = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let s = put(&mut sim, 1, scout, Pos::new(0x1000, 0x1000));
+        let f = put(&mut sim, 1, soldier, Pos::new(0x1000, 0x1000));
+        sim.army_add_unit(1, slot, f);
+        sim.army_add_unit(1, slot, s);
+        sim.army_normalize(1, slot);
+        assert_ne!(sim.armies[1].list[slot].num_captains, 0);
+        let phase = sim.armies[1].list[slot].phase();
+        // The 128-frame turn and not the 256-frame tick.
+        let frame = (30 - phase).rem_euclid(128) + 128;
+        assert_ne!((frame + phase) % 256, 0);
+        sim.frame = frame;
+        sim.trace_phases = true;
+        let seed = sim.rng.seed;
+        sim.army_process(1, slot, false);
+        assert_ne!(sim.rng.seed, seed, "the coin is thrown");
+        assert!(
+            sim.phase_marks.iter().any(|(m, _)| m == SITE_SPECIAL_COIN),
+            "at the special arm's site"
+        );
+        sim.units[s].decoy = true;
+        let seed = sim.rng.seed;
+        sim.army_process(1, slot, false);
+        assert_eq!(sim.rng.seed, seed, "a decoy Scout is not counted");
+    }
+
     #[test]
     fn only_a_supply_wagon_or_a_hero_joins_an_army_from_the_think_tail() {
         let (mut sim, _c) = sim_with_city();
