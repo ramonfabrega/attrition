@@ -1055,7 +1055,11 @@ fn run943_s_word_frame_is_widened_whole() {
     // keys**: the 47 standing, and the state first parts on 10843 (`1/32`'s
     // `dest_angle`), the word's own block 10853 after it. (The widening's
     // block; the word's delta is in `IROQUOIS`'s comment.)
-    pin_eq!(w.firsts.len(), 456, "run943 with pieces 1529, 1441 and 1545");
+    pin_eq!(
+        w.firsts.len(),
+        456,
+        "run943 with pieces 1529, 1441 and 1545"
+    );
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at
