@@ -51,9 +51,22 @@ pub(crate) const GERMAN: Lobby = Lobby {
     // against a wealth bucket of 39 — theirs 15/31), and its Dock `1/2010`
     // finishes the Fire Raft on 6718 on both. At 12815 ours 9 draws, theirs
     // 8, index 1: ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <
-    // Guy::inc_time+0x271` (`docs/AI.md` §242).
-    count: 12815,
-    sequence: 12815,
+    // Guy::inc_time+0x271` (`docs/AI.md` §242). **Item 2997 moved it 12815
+    // → 12836** (`docs/AI.md` §244): run912 widens the gap 6837..12809 and
+    // the state first parts on block 12563, who=1's thirty Citizens'
+    // `myhits` 50 in ours against 40 (the Militia's pool reaches them at
+    // the next leader pass); then the Scout `0/0`'s `damage` 16/0 against
+    // 17/10 on 12767, the Elite Javelineers `1/42`'s javelin thrown from
+    // the figure's point (6504, 8904) where theirs leaves the hand at
+    // (6466, 8872), 14 frames against 13 (run912d); then the Horse Archer
+    // `1/60`'s arrow, which kills the Scout on 12835 in theirs. At 12836
+    // ours 7 draws, theirs 11, index 0: ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823`; on block 12837 who=1's `1/31` is `collide` 1
+    // (`collide_o` 68) at (6545, 12999) in theirs against 0 at (6524,
+    // 12980), and `1/32`, `1/64` and `1/68` beside it.
+    count: 12836,
+    sequence: 12836,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -396,7 +409,7 @@ fn run910_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 967, "initial run910 baseline");
+    pin_eq!(w.firsts.len(), 932, "initial run910 baseline");
     // Item 2974: 967 keys part on blocks 12809..13066, the word's own block
     // being 12816 (frame 12815: ours 9 draws, theirs 8, index 1 — ours
     // `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <
@@ -410,4 +423,72 @@ fn run910_s_word_frame_is_widened_whole() {
     // order kind 10 in ours against 1 in theirs. The first position
     // parting lies in 6837..12808, which no dump of this lobby covers
     // (`docs/AI.md` §242).
+    //
+    // **Item 2997: 967 → 932, and the word 12815 → 12836** (`docs/AI.md`
+    // §244). Positions agree on the window's first block now: the gap's
+    // three partings are built (run912). The Scout `0/0` dies on 12835 on
+    // both sides (its `death:extra` row is the DEATHS record this
+    // window's detail does not print). The word's own block 12837 is the
+    // first that parts a position: who=1's `1/31` `collide` 0 in ours
+    // against 1 (`collide_o` 68), at (6524, 12980) against (6545, 12999),
+    // `half_step` 1 against 0, and `1/32`, `1/64`, `1/68` the same; the
+    // count rose because the window's tail now runs past more agreeing
+    // state into the new word's cast.
+}
+
+/// run912: the gap between run893c and run910, blocks 6837..12809 at
+/// `UNITS=3,GUYS=2` only (item 2997), to find the block the state first
+/// parts on before the word 12815.
+pub(crate) const RUN912: &str = "gamelog-run912-eastindies-german-diff3-window-6837-12810.txt";
+
+/// The window: block 6837 through 12809.
+pub(crate) const WIDENING_GERMAN_GAP_912: (i64, i64) = (6837, 12809);
+
+pub(crate) fn german_gap_912_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GERMAN.start],
+        true,
+        GERMAN.long,
+        "run912",
+        &[(RUN912, WIDENING_GERMAN_GAP_912.0)],
+        WIDENING_GERMAN_GAP_912,
+        1,
+        &[12816],
+        true,
+    )
+}
+
+#[test]
+fn run912_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_gap_912_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 5973, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 97, "initial run912 baseline");
+    // Item 2997: the gap between run893c (ends 6836) and run910 (starts
+    // 12809), at `UNITS=3,GUYS=2` only, so every `build:extra` row (the
+    // buildings this crate holds and the dump does not print) is the
+    // detail's, not a parting. Beside them only the control's standing set
+    // (`form`, `group:*.held`, `pool:*`, `g.angle[0]`) parts until **block
+    // 12563**, where who=1's thirty Citizens (TypeIndex 50) carry `myhits`
+    // 50 in ours against 40 in theirs. The Tower `1/2014`'s Militia
+    // research (TypeIndex 66) runs alike on both sides — queued on 12383
+    // at 100 a frame (run912b), 18000 on 12562 and the slot empty on 12563
+    // (run912c) — and the original raises the Citizens on 12564, at the
+    // next `Leader::process`'s `calc_unit_stats`, where this crate raised
+    // them inside `gain_tech` (`docs/AI.md` §244). The next rows are the
+    // Scout `0/0`'s `damage_frac` on 12767 (ours 0, theirs 10) and its
+    // `FLEETOORDER` on 12803, which theirs issues and ours does not.
+    // 232 before item 2997's builds; **97** after them: the Militia's pool
+    // at the next leader pass (12563), and the Javelineers' piece 34 bays
+    // (12767), leave the standing set and the detail's `build:extra` rows
+    // alone.
 }

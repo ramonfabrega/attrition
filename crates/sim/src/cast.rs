@@ -247,23 +247,6 @@ impl Sim {
         hits
     }
 
-    /// A gain of a Militia-line bit re-reads every Citizen's `myhits`, as
-    /// `update_hits` would: the damage is kept, the pool is the new one
-    /// (run422's `0/1`..`0/5` at 50 on block 605, the block after the line).
-    pub(crate) fn refresh_citizen_hits(&mut self, who: Player) {
-        for u in 0..self.units.len() {
-            let unit = &self.units[u];
-            if unit.owner != who || !unit.alive() || !matches!(unit.type_index, PEASANTS | 0x33) {
-                continue;
-            }
-            let Some(rec) = unit.ty else { continue };
-            let hits = self.unit_hits(who, rec);
-            let damage = self.units[u].max_health - self.units[u].health;
-            self.units[u].max_health = hits;
-            self.units[u].health = hits - damage;
-        }
-    }
-
     /// The unit record whose `TypeIndex` is `ti`, the first when a nation's
     /// twin shares it.
     pub(crate) fn unit_rec_of_index(&self, ti: i32) -> Option<usize> {

@@ -17600,6 +17600,55 @@ SHA-256 `6aa2c9400a2f8e55a8a033691e7494a3f841a7c14e63a1361678ff6d1d7ec957`.
 already on the window's first block (`0/0` at (4680, 9362) in ours against (4674, 9396), `1/65` at (6394, 11516) against
 (6392, 11520)), so the state parted somewhere in 6837..12808, which no dump covers. The window is in the coverage driver's
 slice.
+
+## run912 — the battery word: East Indies, Germans at difficulty 3, the gap 6837..12810 before the word 12815 (2026-10-17, item 2997, `att-2997`)
+
+`docs/AI.md` §244. **What the disk could not answer**: run893c ends on 6836 and run910 starts on 12809 with positions
+already parted; the draw stream agrees to 12815 by definition, so no dump on disk placed the first position parting.
+Through `tools/explore/unattended_capture.py`: `--map 18 --end-frame 12812 --timeout 10800 --log-window 6837 12810
+--detail end:UNITS=3,GUYS=2 --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1: `success`, `settings_restored`; 8584 s from launch to exit (16:26:11 to 18:49:14). The banner's 112 s
+  estimate was the pace before the window; logging ran at about 44 blocks a minute.
+- `rngcmp.py rontrace-run643.log rontrace-run912.log`: **12813 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run912-eastindies-german-diff3-window-6837-12810.txt`, 1,948,481,550 bytes,
+SHA-256 `9e87c368a2f1a3953b91ef2614dc8ee86990e5e74ce15e78f9d3c26041b77243`.
+
+Archive `rontrace-run912.log`, 82,605,216 bytes,
+SHA-256 `f22a7feb101965841dd3e4f72a42057a4cae6c687cd815a59cdceeadc9deeb7b`.
+
+**What it holds**: `diff::german_word::run912_s_gap_is_widened_whole`, 5973 blocks; 232 keys before item 2997's builds
+and 97 after (standing kinds and the detail's `build:extra`, BUILDS not being dumped). Its first non-standing row was
+block 12563, who=1's Citizens at `myhits` 50 in ours against 40. The window is in the coverage driver's slice.
+
+## run912b–e — the gap's three detail windows and a packet at 12753 (2026-10-17, item 2997, `att-2997`)
+
+`docs/AI.md` §244. **What the disk could not answer**: run912's `UNITS=3,GUYS=2` holds neither the leader's research
+queue (12563's Militia) nor the rounds in flight (12767's javelin), nor any piece's `AttachPos` rows. Same recipe as
+run912, pool lane 1, each `success`, `settings_restored`, one take:
+- **run912b** `--log-window 12376 12393 --end-frame 12396 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9`:
+  109 s. The Tower `1/2014` queues the Militia on 12383 at 100 a frame.
+  Archive `gamelog-run912b-eastindies-german-diff3-window-12376-12393.txt`, 33,181,230 bytes,
+  SHA-256 `e1fe16decbf0ffc4d1b69d4eb6ac25f6a274e17f2e19e02cd069751242607999`; `rontrace-run912b.log`, 81,212,480 bytes,
+  SHA-256 `778056e8b8a8e57af4d0cd5580b922f9919f20f0535917a6c5a8eb9ba00f2966`.
+- **run912c** `--log-window 12556 12567 --end-frame 12570` (run912b's detail): 85 s. `job_counter` 18000 on 12562, the
+  slot empty on 12563; the Citizens at 40 on 12563 and 50 on 12564.
+  Archive `gamelog-run912c-eastindies-german-diff3-window-12556-12567.txt`, 21,416,388 bytes,
+  SHA-256 `bb20dde6f46e080d7524978dd6a09f43e125d89da111f6fb404c9db3e78db5de`; `rontrace-run912c.log`, 82,222,528 bytes,
+  SHA-256 `42f1ac1326f06cecb4fd599086f3d131322db90926886901418436232783b399`.
+- **run912d** `--log-window 12750 12770 --end-frame 12772 --detail
+  end:MISC,UNITS=3,BUILDS=7,GUYS=4,AMMO=5,DEATHS=1,LEADERS=2`: 146 s. `1/42`'s javelin launch (6466, 8872, 408), landing
+  (5184, 8682), `total_time` 13.
+  Archive `gamelog-run912d-eastindies-german-diff3-window-12750-12770.txt`, 16,570,854 bytes,
+  SHA-256 `afb40d574246438546d2e9228f4f9a7c769d74fc36968fe9fd51fab46a94d066`; `rontrace-run912d.log`, 82,863,168 bytes,
+  SHA-256 `7dda15fbf8f9ad134794a57d9658f2cc1e04b7f27c02c9b0f88c3599ed0772fa`.
+- **run912e** `--log-window 12752 12756 --end-frame 12758` (run912d's detail) `--tracer-def RON_STATE_FRAME=12753
+  --tracer-def RON_STATE_PLAN=<item 597's plan.h>`: 55 s. Kept as `~/ron-golden/run912e/map-18/frame-snapshot.bin`,
+  839,335,132 bytes, SHA-256 `2e1477336da8b948308e203d50cbddfbcdad79f72af8d35e5e8729e45c2097be`: pieces 34's and 137's
+  rows (`tools/recomp/get_position.py`).
+- `rngcmp.py` against run643: run912b, c and d each **identical, 0 differing**.
+- Minutes waited on another lane: none.
 ## run895, run895b — held-out lobby Great Sahara, Aztecs (0) at difficulty 2: the `DUMP_ALL` start and the long trace (2026-10-17, item 2975, `att-2975`)
 
 `docs/AI.md` §125, §243. Map 7, human Nubians (4) against Aztecs (0), `DIFFICULTY 2`, seed 12345. Start (run895), run595's recipe through

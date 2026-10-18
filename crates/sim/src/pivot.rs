@@ -72,6 +72,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (145, 4, Node { px: 0, py: 2464 }),
     (296, 4, Node { px: 0, py: -2945 }),
     (491, 4, Node { px: 0, py: -148 }),
+    (137, 4, Node { px: -6, py: -148 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -226,11 +227,73 @@ pub struct Release {
 /// the pivot node's and the release node's. `CHAR_ATTACK1` and `3` share
 /// the pivot's `−29.576756`; `2`'s is `−29.555523`.
 ///
-/// SEAM: every other pivot piece that releases (the horse archers, the
-/// camel archers, the Mameluke's line, the machine-gun ships). A packet
+/// **Piece 137, the Horse Archer** (item 2997): run912e's packet (frame
+/// 12753 of the battery's German lobby) holds its nine entries — the
+/// `(4, 0, 0)` [`NODES`] reads and, for each of its four `<RELEASEEVENT>`s
+/// (node 0; 833, 899, 1266 and 866 ms on `CHAR_ATTACK1`..`3` and
+/// `CHAR_ATTACKWALK`: frames 18, 16, 18 and 18), the pivot node's and the
+/// release node's. who=1's `1/60` threw from its own point here and the
+/// Scout `0/0` died on 12835 in the original, a frame before this crate's
+/// round arrived (`docs/AI.md` §244).
+///
+/// SEAM: every other pivot piece that releases (the camel archers, the
+/// Mameluke's line, the machine-gun ships). A packet
 /// from a game that fields the type reads each row in a minute
 /// (`tools/recomp/get_position.py … entries <piece>`).
 const RELEASES: &[(i32, i8, u32, Release)] = &[
+    (
+        137,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 137,
+            node: 0,
+            pivot: [-60_000, -2_676_834, 34_506_775],
+            at: [479_090, -15_615_540, 16_108_955],
+            float_lands: &[],
+        },
+    ),
+    (
+        137,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            piece: 137,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [1_223_768, -16_729_307, 14_252_346],
+            float_lands: &[],
+        },
+    ),
+    (
+        137,
+        crate::anim::ATTACK2,
+        16,
+        Release {
+            piece: 137,
+            node: 0,
+            pivot: [-60_000, -919_060, 31_409_014],
+            at: [1_516_343, -18_837_709, 12_125_257],
+            float_lands: &[],
+        },
+    ),
+    (
+        137,
+        crate::anim::ATTACK3,
+        18,
+        Release {
+            piece: 137,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [3_239_868, -16_143_440, 15_273_258],
+            float_lands: &[
+                (9, 3, -2, 86),
+                (99, 3, -86, -2),
+                (189, 3, 2, -86),
+                (279, 3, 86, 2),
+            ],
+        },
+    ),
     (
         145,
         crate::anim::ATTACKWALK,
@@ -679,6 +742,62 @@ mod tests {
         assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
         eprintln!("{rows} cells agree");
+    }
+
+    /// **The original's pivot branch on every reachable cell, for the Horse
+    /// Archer** (item 2997): `tools/recomp/get_position.py … pivot 137 0
+    /// <anim> <time> 1` on run912e's packet for its four rows, `d₁ =
+    /// 0..=360` and each of the 256 turret steps; and its non-pivot sweep
+    /// of node 4 at `(anim 0, time 0)`, which [`offset_at`] reproduces.
+    /// `$RON_RELEASE_TABLE_137` is the directory holding
+    /// `pivot-137-a<anim>-t<time>.txt` (`d₁ i t x y z`) and
+    /// `node-137-n4.txt` (`d 0 x y z …`), outside git
+    /// (`~/ron-data/lab-experiments/2026-10-17-item-2997/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_the_horse_archer() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_137") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_137 (item 2997's oracle, run912e)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 18),
+            (crate::anim::ATTACK1, 18),
+            (crate::anim::ATTACK2, 16),
+            (crate::anim::ATTACK3, 18),
+        ] {
+            let path = format!("{dir}/pivot-137-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_137");
+            let r = release(137, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!("{slot} {} {} {} {}", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+        let table = std::fs::read_to_string(format!("{dir}/node-137-n4.txt")).expect("node table");
+        let mut degrees = 0;
+        for line in table.lines() {
+            let f: Vec<i32> = line
+                .split_whitespace()
+                .take(4)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            // The sweep's argument is the degree `get_position` is handed,
+            // which is [`rotation`]'s answer.
+            assert_eq!(offset_at(137, 4, f[0]), (f[2], f[3]), "node 4 at {}", f[0]);
+            degrees += 1;
+        }
+        assert_eq!(degrees, 361);
+        eprintln!("{rows} cells and {degrees} degrees agree");
     }
 
     /// **The original on every degree.** `get_position(145, node 4, anim

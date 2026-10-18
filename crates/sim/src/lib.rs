@@ -4652,13 +4652,13 @@ impl Sim {
         // Commerce level into the caps.
         self.economy_changed(who);
         // `Object::update_hits`'s Citizen arm reads the Militia line's bits
-        // (`docs/GOLDEN.md` §48).
-        if self
-            .unit_record(t)
-            .is_some_and(|r| matches!(self.unit_types[r].type_index, 0x42..=0x44))
-        {
-            self.refresh_citizen_hits(who);
-        }
+        // (`docs/GOLDEN.md` §48), and **it is not called here**:
+        // `gain_tech@006dcb60:661` raises `0x4000000` for a unit type, and
+        // the Citizens' pools move at the next `Leader::process`'s
+        // `calc_unit_stats` ([`Sim::apply_gained`]'s flag). run912c: who=1's
+        // Tower `1/2014` finishes the Militia on block 12562 (`job_counter`
+        // 18000, the slot empty on 12563) and the thirty Citizens are at 40
+        // on 12563 and at 50 on 12564 (`docs/AI.md` §244).
         // Step 7's **object** half, in the order the cascade set the bits:
         // every standing unit of the line converts in place.
         for e in &events {

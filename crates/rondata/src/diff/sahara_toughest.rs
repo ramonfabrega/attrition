@@ -840,7 +840,8 @@ mod tests {
         // 23 Citizens' `mylos` of block 5544, ours 4 against 2 a frame
         // ahead of the original's refresh.
         // Item 1457: 140 → 136; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 103, "every key parted on run471");
+        // Item 2997: 103 → 34; a gained Militia reaches the Citizens' pool at the next leader pass (`docs/AI.md` §244).
+        pin_eq!(w.firsts.len(), 34, "every key parted on run471");
     }
 
     /// **The third map's word at Toughest, 5782, widened whole** (item

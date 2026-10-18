@@ -1976,7 +1976,7 @@ axis (GOLDEN §13).
 
 ## Parked by item 673, 2026-09-23 — under Great Lakes' 12897
 
-(679) **who=1's citizens hold `myhits` 40 against 50 and `mylos` 2
+(679) closed 2026-10-17 by item 2997 (AI §244; `mylos` by item 1354): **who=1's citizens hold `myhits` 40 against 50 and `mylos` 2
 against 4 from block 12564**, and the newborn `1/69` on 12566 the same.
 No draw; it reads as an upgrade the original applies and this crate does
 not (`docs/journal/2026-09-23-item-673.md`). **850**: the same citizens'
@@ -7007,13 +7007,16 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
 - (3017) **A Stockade's border bleeds a lone Commando dead mid-cast** (150-frame job, 12 hp / 25 frames): the walk found it before the capture; Sabotage on a
   vehicle (`dtype` 3, the boom) needs a staged vehicle for who=1 and is not covered. **Booked as chapter 93 (3018) at the merge.**
 
-## Parked by the next landing, slot GU — reserved
+## Parked by item 2997, 2026-10-17 — the battery word's gap walked
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The javelin's launch `sz`** (`docs/AI.md` §244). run912d prints `1/42`'s launch z 408; the figure's z 228 plus
+  piece 34's bay dz 173 is 401, and ours' `sz` was never printed. Names no score yet: the round's x, y, frames and
+  landing agree, and the Scout's damage with them. A value row for the word that next reads a round's height.
+- **Parked 2995** (`g.angle[0]` `0x55555555` against 0) is unchanged by this item and standing on run912's and
+  run910's windows; it is not the word 12836's cause.
+- **For the Loop**: run912 took 8584 s (2 h 23 m, 1.9 GB) at `UNITS=3,GUYS=2` over a 5973-block gap, and only its first
+  non-standing row (block 12563) was needed. A `--stride N`, or a positions-only category, on
+  `unattended_capture.py` would have named that block in a fraction of the time.
 
 ## Parked by item 3004, 2026-10-17 — the second harvest batch
 
