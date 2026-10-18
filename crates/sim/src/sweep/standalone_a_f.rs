@@ -368,6 +368,8 @@ mod circle_render_on_field_change;
 mod city_calc_gather;
 #[path = "city_could_queue.rs"]
 mod city_could_queue;
+#[path = "city_count_gather_slots.rs"]
+mod city_count_gather_slots;
 #[path = "city_data_count_farms.rs"]
 mod city_data_count_farms;
 #[path = "city_data_depop_can_queue.rs"]
