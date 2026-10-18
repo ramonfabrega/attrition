@@ -1900,9 +1900,6 @@ impl Sim {
         self.units[u].movement.dest = None;
         self.clear_partial_path(u);
         self.update_action(u);
-        if std::env::var("RON_PROBE_3274").is_ok() && self.units[u].owner == 0 && self.units[u].index == 10 {
-            eprintln!("PROBE3274 kill_order pos {:?}\n{}", self.units[u].pos, std::backtrace::Backtrace::force_capture());
-        }
     }
 
     /// Remove the order the cursor sits on, `i` places behind the current
