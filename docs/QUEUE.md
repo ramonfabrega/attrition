@@ -21,7 +21,7 @@ budget (DECISIONS 78 amended): 3086 Opus 5.5 medium, 3067, 3078 and the nations 
   Chapters 86–93 closed; 94 open at 1178 of 1200 (3067, Sabotage on Artillery, run914), as 3099. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), median 1008 → 2207 (3092,
   the Chinese citizens' arm: `GreatLakesChineseTier1` 176 → 5663), a gate floor.
 - **Lanes: four live** — 3086 the AI word's (run 915), 3099 the rules track's (run 916), 3078 shape, 3096 nations (§7.2).
-  Landings: 3092, 3067. Next 3100, run 917 (Astra 900–909). Pools: GOLDEN §119–124, AI §246–251, park HK–HL.
+  Landings: 3092, 3067. Next 3100, run 917 (Astra 900–909). Pools: GOLDEN §120–124, AI §246–251, park HL–HQ.
 - **Fable backlog: 24 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
