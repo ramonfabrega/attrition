@@ -242,6 +242,48 @@ pub struct Release {
 /// from a game that fields the type reads each row in a minute
 /// (`tools/recomp/get_position.py … entries <piece>`).
 const RELEASES: &[(i32, i8, u32, Release)] = &[
+    // **The Tank** (item 3244): run938b's packet (logger frame 630, ch100's
+    // lobby) holds piece 194's seven entries — the `(4, 0, 0)` pivot, and for
+    // each of its three `<RELEASEEVENT>`s (node 0; `CHAR_ATTACK1` frame 4,
+    // `CHAR_ATTACK2` 21, `CHAR_ATTACK3` 1) the pivot node's and the release
+    // node's. `float_lands` is empty: the unicorn sweep of the cells has not
+    // been run for this piece (`tools/recomp/get_position.py … pivot`).
+    (
+        194,
+        crate::anim::ATTACK1,
+        4,
+        Release {
+            piece: 194,
+            node: 0,
+            pivot: [0, -960_000, 31_920_000],
+            at: [-350_481, -42_303_066, 1_908_175],
+            float_lands: &[],
+        },
+    ),
+    (
+        194,
+        crate::anim::ATTACK2,
+        21,
+        Release {
+            piece: 194,
+            node: 0,
+            pivot: [0, -899_394, 31_920_000],
+            at: [-318_564, -34_339_527, 1_908_175],
+            float_lands: &[],
+        },
+    ),
+    (
+        194,
+        crate::anim::ATTACK3,
+        1,
+        Release {
+            piece: 194,
+            node: 0,
+            pivot: [0, -960_000, 31_920_000],
+            at: [-351_471, -42_550_259, 1_908_175],
+            float_lands: &[],
+        },
+    ),
     (
         137,
         crate::anim::ATTACKWALK,
