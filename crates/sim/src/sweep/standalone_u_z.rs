@@ -158,6 +158,8 @@ mod unit_data_turn_speed;
 mod unit_data_will_be_corner;
 #[path = "unit_die.rs"]
 mod unit_die;
+#[path = "unit_do_air_attack_ground.rs"]
+mod unit_do_air_attack_ground;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
 #[path = "unit_do_explore_to.rs"]
