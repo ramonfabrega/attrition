@@ -19,6 +19,7 @@ fn unhex(s: &str) -> Vec<u8> {
 /// `Unit::find_goody_box@005f2540`, run by `tools/emu/sweep_unit_find_goody_box.py` under unicorn
 /// (tools/emu): 128 random bytes of object, 0 argument(s), `p` windows in order: p0..p7 the place(s), in flag order; the global cell 0x00c06188 points at 320 random bytes; the global cell 0x00c061d0 points at 320 random bytes; the global cell 0x00cae5fc points at 2048 random bytes; 196 random bytes at 0x00adc400 (each word in -3..3); 196 random bytes at 0x00adcaf0 (each word in -3..3); callee 0x006b53f0 (3 args) stubbed; callee 0x0065c040 (1 args) stubbed; callee 0x005f7690 (2 args) stubbed; vtable slot +0x48 (2 args) stubbed; the word at `0xc0a110` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 32 random bytes less `0` (placed); the word at `p0+4` points at 32 random bytes less `0` (placed); the word at `p0+8` points at 32 random bytes less `0` (placed); the word at `p0+12` points at 32 random bytes less `0` (placed); the word at `c0+0x134` points at 2048 random bytes less `0` (placed); the word at `c1+0x134` points at 2048 random bytes less `0` (placed); the word at `m+0x18` points at 560 random bytes less `0` (placed); stub 0 answered from [0, 0, 0, 1] (90%); stub 3 answered from [0, 1] (90%); stub 0 answers 8 values in call order, printed after the answers; stub 1 answers 6 values in call order, printed after the answers; stub 3 answers 6 values in call order, printed after the answers; stub 1 answers -1..3 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 0 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); stub 1 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); the stubbed vtable laid at `p1+0` as well as at `this`; the stubbed vtable laid at `p2+0` as well as at `this`; the stubbed vtable laid at `p3+0` as well as at `this`; the stubbed vtable laid at `p4+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1500 rows (an arm few rows reach).
 #[test]
+#[allow(clippy::type_complexity)]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_unit_find_goody_box.py") else {
         return;
@@ -27,10 +28,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(5);
@@ -50,10 +56,26 @@ fn the_emulated_original_agrees_on_every_row() {
                 // type 1 or 2, else `find_goody_at` (stub 1) names an item whose slot 0x48 (stub 3) must
                 // answer. The cell the unit already walks to ends the sweep; any other `get_goody_box`es.
                 let sh = |w: &[u8], o: usize| i32::from(i16::from_le_bytes([w[o], w[o + 1]]));
-                let hexw = |v: i32| v.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect::<String>();
-                let col = |v: &Vec<String>| if v.is_empty() { "-".to_string() } else { v.join("/") };
-                let (mut l_gb, mut l_it, mut l_wx, mut l_wy, mut l_fy): (Vec<String>, Vec<String>, Vec<String>, Vec<String>, Vec<String>) =
-                    (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
+                let hexw = |v: i32| {
+                    v.to_le_bytes()
+                        .iter()
+                        .map(|b| format!("{b:02x}"))
+                        .collect::<String>()
+                };
+                let col = |v: &Vec<String>| {
+                    if v.is_empty() {
+                        "-".to_string()
+                    } else {
+                        v.join("/")
+                    }
+                };
+                let (mut l_gb, mut l_it, mut l_wx, mut l_wy, mut l_fy): (
+                    Vec<String>,
+                    Vec<String>,
+                    Vec<String>,
+                    Vec<String>,
+                    Vec<String>,
+                ) = (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
                 let mut res: i64 = 0;
                 if rd(&p[7], 0x218) == 0 {
                     let div = |v: i32| rd(&c[2], 4 * usize::try_from(v).expect("table index"));
@@ -75,7 +97,12 @@ fn the_emulated_original_agrees_on_every_row() {
                             continue;
                         }
                         let mut seen = false;
-                        for (px, py) in [(2 * x + 1, 2 * y + 1), (2 * x, 2 * y + 1), (2 * x + 1, 2 * y), (2 * x, 2 * y)] {
+                        for (px, py) in [
+                            (2 * x + 1, 2 * y + 1),
+                            (2 * x, 2 * y + 1),
+                            (2 * x + 1, 2 * y),
+                            (2 * x, 2 * y),
+                        ] {
                             l_wx.push(hexw(px));
                             l_wy.push(hexw(py));
                             let ans = a[4 + k0.min(7)];
@@ -129,14 +156,25 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         assert_eq!(got, want_eax, "find_goody_box — eax, row `{line}`");
-        assert_eq!(log, want_log, "find_goody_box — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "find_goody_box — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "find_goody_box — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "find_goody_box — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "find_goody_box — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[6 + i], "find_goody_box — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[6 + i],
+                "find_goody_box — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
