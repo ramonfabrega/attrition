@@ -187,7 +187,7 @@ fn the_emulated_original_agrees_on_every_row() {
                         let n = rd16(&self.p[18], 0x72);
                         (n >= 0).then(|| i32::from(self.p[13 + n as usize][4]))
                     }
-                    fn move_to(
+                    fn form_move_to(
                         &mut self,
                         g: i32,
                         to: Pos,

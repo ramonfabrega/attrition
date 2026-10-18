@@ -3316,7 +3316,7 @@ pub(crate) trait FormView {
     fn sin_table(&mut self, folded: i32, d: i32) -> i32;
     /// `Group::action_move_to@0070fba0`.
     #[allow(clippy::too_many_arguments)]
-    fn move_to(
+    fn form_move_to(
         &mut self,
         g: i32,
         to: Pos,
@@ -3370,7 +3370,7 @@ pub(crate) fn do_forming_steps<V: FormView>(v: &mut V) -> bool {
                     && v.target_city_flags().is_some_and(|f| f & 3 == 3)));
         if mv {
             v.set_stance(Stance::Aggressive);
-            v.move_to(g, at, QueuePos::New, true, ang, MoveKind::AttackTo, true);
+            v.form_move_to(g, at, QueuePos::New, true, ang, MoveKind::AttackTo, true);
         } else {
             v.siege_attack_to(g, at, ang);
         }
@@ -3500,7 +3500,7 @@ impl FormView for FormSim<'_> {
     fn sin_table(&mut self, folded: i32, d: i32) -> i32 {
         movement::sin_component(Angle(folded), d)
     }
-    fn move_to(
+    fn form_move_to(
         &mut self,
         _: i32,
         to: Pos,
