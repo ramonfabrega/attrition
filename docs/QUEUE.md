@@ -23,8 +23,7 @@ Last whole gate `ebe325dc`, the pass's (green, 6 of 6; rondata 960, sim 1699; re
   §129, IS), 3219 shape (IT), 3225 nations (IV). Next 3228, run 933. Pools: GOLDEN §130–132, AI §254–255, park IQ, IW–JB.
 - **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
   table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
-- **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226,
-  3227).
+- **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
