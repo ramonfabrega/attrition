@@ -6641,6 +6641,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_THREE: i64 = 1200;
 /// 605 to 1199.
 pub(crate) const WIDENING_CHAPTER_NINETY_THREE: (i64, i64) = (604, 1201);
 
+/// **Chapter ninety-four** (item 3067, `docs/GOLDEN.md` §118, run914):
+/// Sabotage on an armed vehicle. **The word is 1178**, the draw stream agreeing to there;
+/// the widening's first parted field is the scout `1/0`'s path on 847.
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FOUR: i64 = 1178;
+
+/// `chapter_ninety_four_s_window_is_widened_whole`'s window: run914, blocks
+/// 605 to 1199.
+pub(crate) const WIDENING_CHAPTER_NINETY_FOUR: (i64, i64) = (604, 1201);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9222,6 +9231,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_ninety_three_s_window_is_widened_whole"),
         3018,
         Some(WIDENING_CHAPTER_NINETY_THREE),
+    ),
+    // Item 3067: run914, chapter ninety-four, Sabotage on an armed vehicle;
+    // open at 1178 (the scout `1/0`'s path from 847).
+    (
+        "GOLDEN_WORD_CHAPTER_NINETY_FOUR",
+        GOLDEN_WORD_CHAPTER_NINETY_FOUR,
+        Some("chapter_ninety_four_s_window_is_widened_whole"),
+        3067,
+        Some(WIDENING_CHAPTER_NINETY_FOUR),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

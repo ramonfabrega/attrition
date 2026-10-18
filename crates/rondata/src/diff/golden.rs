@@ -5752,6 +5752,61 @@ const WANT_CH93: &[&str] = &[
     "605 1/5 form",
 ];
 
+/// **Chapter ninety-four** (item 3067, `docs/GOLDEN.md` §118, run914):
+/// Sabotage on an armed vehicle (Artillery).
+#[test]
+fn chapter_ninety_four_holds_to_the_golden_word() {
+    cases_80_89::chapter_ninety_four_holds_to_the_golden_word();
+}
+
+/// **run914 whole, both directions** (item 3067, `docs/GOLDEN.md` §118).
+#[test]
+fn chapter_ninety_four_s_window_is_widened_whole() {
+    cases_80_89::chapter_ninety_four_s_window_is_widened_whole();
+}
+
+/// What parts in run914's window, blocks 605–1200.
+const WANT_CH94: &[&str] = &[
+    "1021 1/0 dest_angle",
+    "1021 1/0 order:kind",
+    "1021 1/0 orders_x",
+    "1021 1/0 orders_y",
+    "1021 1/0 path[0].to",
+    "1123 1/0 tolerance",
+    "1178 1/0 order:length",
+    "1178 1/0 orders.len",
+    "1179 1/0 idle",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "847 1/0 path:length",
+    "847 1/0 path[10].to",
+    "847 1/0 path[11].to",
+    "847 1/0 path[1].to",
+    "847 1/0 path[2].to",
+    "847 1/0 path[3].to",
+    "847 1/0 path[4].to",
+    "847 1/0 path[5].to",
+    "847 1/0 path[6].to",
+    "847 1/0 path[7].to",
+    "847 1/0 path[8].to",
+    "847 1/0 path[9].to",
+    "848 1/0 heading",
+    "848 1/0 mirror",
+    "848 1/0 order:move.dest_y",
+    "848 1/0 pos",
+    "859 1/0 order:move.dest",
+    "861 1/0 order:move.dest_x",
+];
+
 /// What parts in run890's window, blocks 1100–1500.
 const WANT_CH89: &[&str] = &[
     "1100 0/0 form",
