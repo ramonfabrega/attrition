@@ -7761,13 +7761,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JD — reserved
+## Parked by item 3242, 2026-10-18 — the Iroquois word 8415's widening
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3243) **The Iroquois word 8415's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §255). Item 3242 moved the word
+  7982 → 8415 with `get_cost`'s Despotism arm on a Barracks unit: ours 8 draws against theirs 14 at index 3, ours
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`. That is past run937's last block (8232),
+  and no dump of this lobby holds 8232..12658. Owed: the capture over 8409..8665 at run937's detail (`LEADERS=9`,
+  `GUYS=4`), widened whole on the word's frame in both directions; theirs' `Guy::init_real` is a birth, so
+  `RON_DEBUG_BUILDS` over 8414–8415 names the queue (2319). The lane minted 3243 for `WIDENINGS`' owed row; the
+  commander renumbers it if another lane took it.
 
 ## Parked by the next landing, slot JE — reserved
 

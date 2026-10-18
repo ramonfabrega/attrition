@@ -18043,3 +18043,28 @@ them standing rows. The window is in the coverage driver's slice.
 ## run935 — not taken (item 3233)
 
 Reserved for chapter 99's retake; the capture on disk (run933) answered the word, so no run was made.
+
+## run937 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 7982's widening (7976..8232) at `LEADERS=9`, `GUYS=4` (2026-10-18, item 3242, `att-3242`)
+
+`docs/AI.md` §255. **What the disk could not answer**: the word moved to 7982 (item 3231), and run934 ends at block
+7232. No dump of the lobby held a block between 7232 and 12658: run94, run115, run79 and run84 are Great Lakes in
+run53's game, another lobby. The window is six blocks before the word's block 7983 and 250 after it, at run934's
+detail. The recipe is run934's: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run937 --map 14 --end-frame
+8238 --timeout 10800 --log-window 7976 8233 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 18
+--cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1. Launched 11:11:33 and the game exited at 11:33:18 (1,306 s launch to exit). `success`,
+  `settings_restored`, 8239 frames, `map_style 14`, seed 12345, players `(0,4,7),(1,18,1)`. `rngcmp.py
+  rontrace-run897b.log rontrace-run937.log`: **8239 identical, 0 differing**. Filed with `filerun.py run937
+  greatlakes-iroquois-diff3-window-7976-8233-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run937-greatlakes-iroquois-diff3-window-7976-8233-guys4.txt`, 490,510,666 bytes,
+SHA-256 `9165aeaccc83f7a822aac6d17e607d953e7269d8661d256ce04135a531ed9fdd`.
+
+Archive `rontrace-run937.log`, 35,281,792 bytes,
+SHA-256 `3de7ac2fa918821a0068c8c460e4a4c711db60386caf49f30c621759831f8522`.
+
+**What it holds**: `diff::iroquois_word::run937_s_word_frame_is_widened_whole` (257 blocks). Block 7980's `MAKE[7]` is
+theirs' Javelineers upgrade (83, val 251904) where ours lists the Mohawk spear (167). Block 7983 holds theirs' buy at
+68/68. With the Despotism arm on a Barracks unit the window has 51 keys, all of them standing rows. The window is in
+the coverage driver's slice.

@@ -2267,6 +2267,7 @@ impl Sim {
         let uranium = self.uranium_discount(who, ty);
         let citizens = self.citizen_discounts(who, ty);
         let liberty = self.liberty_discount(who, ty);
+        let despotism = self.despotism_unit_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
@@ -2274,6 +2275,7 @@ impl Sim {
                 roman_legion,
                 discount,
                 stable_rares,
+                despotism,
                 liberty,
                 uranium,
                 citizens,
@@ -2289,6 +2291,7 @@ impl Sim {
                 roman_legion,
                 discount,
                 stable_rares,
+                despotism,
                 liberty,
                 uranium,
                 citizens,
@@ -2316,6 +2319,24 @@ impl Sim {
             })
         {
             self.units[u].unit_masks2 |= crate::combat::umask2::IROQUOIS_SCOUT;
+        }
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Despotism arm** (`:382`–`404`, the
+    /// shared pre-ramp tail, after the Citizen arms and before the Statue
+    /// of Liberty): a unit whose trainer (`UnitTypeData +0x40`) is the
+    /// Barracks, by equality, takes the highest Despotism tier the player
+    /// holds — `has_preq(DESPOTISM_3)`, else `_2`, else `_1` — as
+    /// `DESPOTISM_MILITARY_CHEAPER{,2,3}`; on the research arm too, so an
+    /// Iroquois Despot's Javelineers upgrade is 68/68 where the list price
+    /// is 80/80 (run937, block 7983; item 3242, `docs/AI.md` §255).
+    pub fn despotism_unit_discount(&self, who: Player, ty: usize) -> i32 {
+        if self.trainer_where(ty) != Some(nations::ty::BARRACKS) {
+            return 0;
+        }
+        match self.government_bonus_level(who, &self.tech_tree.roles.despotism_preq) {
+            0 => 0,
+            n => self.tuning.despotism_military_cheaper[n - 1],
         }
     }
 

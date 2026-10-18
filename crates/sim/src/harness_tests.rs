@@ -2508,6 +2508,71 @@ fn a_government_speeds_its_trainer_lines_by_equality() {
 }
 
 #[test]
+fn a_despot_s_barracks_unit_costs_less_to_train_and_to_research() {
+    // `get_cost@00664090:382`–`404`, the shared pre-ramp tail: a unit whose
+    // trainer is the Barracks (`+0x40 == 0x1ab`, by equality) takes the
+    // highest held `DESPOTISM_MILITARY_CHEAPER` tier before the research
+    // arm splits off, so the research is cheaper as well as the training.
+    // run937's Iroquois Javelineers upgrade is 68/68 on block 7983 where the
+    // list price is 80/80 (item 3242, `docs/AI.md` §255).
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    let despotism = tree.add(TypeDef::epoch("Despotism", crate::tech::Line::Civic, 0));
+    while tree.types.len() < 0x1ab {
+        tree.add(TypeDef::building("pad"));
+    }
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let stable = tree.add(TypeDef::building("Stable"));
+    assert_eq!((barracks, stable), (0x1ab, 0x1ac));
+    let jav_t = tree.add(TypeDef::unit("Javelineers", UnitTraits::default()).at(barracks));
+    let horse_t = tree.add(TypeDef::unit("Light Cavalry", UnitTraits::default()).at(stable));
+    tree.roles.despotism_preq = [Some(despotism), None, None];
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    let typ = |t| UnitType {
+        tree: Some(t),
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free()
+                .with_base(economy::Resource::Food, 4)
+                .with_base(economy::Resource::Timber, 4)
+        },
+        cols: crate::ai_load::UnitCols {
+            research_premium_cost: 512,
+            ..crate::ai_load::UnitCols::default()
+        },
+        ..citizen_type()
+    };
+    let jav = sim.add_unit_type(typ(jav_t));
+    let horse = sim.add_unit_type(typ(horse_t));
+    let (food, timber) = (
+        economy::Resource::Food.index(),
+        economy::Resource::Timber.index(),
+    );
+    let paid = |s: &Sim, ty| {
+        let p = s.price_of(0, ty);
+        (p[food], p[timber])
+    };
+    sim.tech[0].tech[despotism] = false;
+    assert_eq!(sim.despotism_unit_discount(0, jav), 0, "no government yet");
+    assert_eq!(paid(&sim, jav), (80, 80), "the research at list price");
+    sim.tech[0].tech[despotism] = true;
+    assert_eq!(sim.despotism_unit_discount(0, jav), 15);
+    assert_eq!(
+        sim.despotism_unit_discount(0, horse),
+        0,
+        "the Stable's unit"
+    );
+    assert_eq!(paid(&sim, jav), (68, 68), "run937's Javelineers upgrade");
+    assert_eq!(paid(&sim, horse), (80, 80));
+    // Owned, the same step on the train arm: 40 → 34.
+    sim.tech[0].tech[jav_t] = true;
+    assert_eq!(sim.research_modifiers(0, jav), None);
+    assert_eq!(paid(&sim, jav), (34, 34));
+}
+
+#[test]
 fn a_research_is_charged_for_the_army_it_refits() {
     // `get_cost:438`–`505`: researching a type charges for every unit of
     // its own `FROM` (and of any type whose `JUMP` chain reaches it), per
