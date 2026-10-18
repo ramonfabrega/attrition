@@ -7942,13 +7942,25 @@ words and edits nothing here; a refill lands when two remain.
 (3268f) `Unit::ungroup_move_order`: sim change in `orders.rs` — `SimUngroup` scans the order ring head-first (back of the deque to front), where the old `ungroup_one` scanned front to back; differs only for duplicate group ids on one unit; no test moved. The neither-kind (not 0x13/0x15) arm runs `kill_current_path` in the steps but the crate never produces it. `docs/ORDERS.md` §20.2's "prepends" omits the `head = head->next` fix-up that leaves the new order at the ring's last link. Only the first units-table cell (player 0) is exercised; `SimUngroup` itself is unmutated. Generator: `--regen` drops the hand-written view struct (wants a `--view-file`); the recorder's inclusive window-span rule prints an end-address as that window; `--ring` cannot couple head to `next`.
 (3268g) `Object::update_seen`: port fix in `vision.rs` — a `DETECT` unit on a ring pass with radius >= 32 (`mylos` >= 64) lights nothing in the original (radius clamped to 0x1f, an empty range); the crate lit the whole last ring. Unreached in play. Held inputs: `m+0x68 & 1` (VISION §7), infiltrated `m+0x3a` (cast.rs:818 SEAM), building `flags & 0x40`, `started`; Domain::Air untested; `is_city`/`is_fort` inside `update_local_seen_build` need a `Wall::update_local_seen` sweep (two breaks pass). Generator: `--init-call VA` and `--max-insns N` added; `--regen` drops a hand port helper.
 
-## Parked by the next landing, slot JQ — reserved
+## Parked by item 3269, 2026-10-18 — The Despot's plunder on the Iroquois word 10852
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The battery word 10852's cause: The Despot's `Unit::plunder@00605b00`** (`GreatLakesIroquoisTier3`, `docs/AI.md`
+  §258). Item 3269 closed run943's 10843 and left the word at 10852: ours 25 draws against theirs 30 at index 3, ours
+  `Unit::close+0xcb6`, theirs `605fe5` = `Unit::plunder+0x4e5`. run943's widening (455 keys) now first parts on the
+  word's own block **10853**: the Citizen `0/3` (TI 50) dies on frame 10852 on both sides, `death:extra` ours 1 against
+  theirs 0, and who=1's `leader:bucket[4:metal]` ours 44 against theirs **59**. The reading, not yet a diff:
+  `Unit::plunder`'s EE arm (`get_patch_version >= 9`) sets `local_14` when `thedespot_unit_plunder != 0`, the killer
+  is not the victim's owner, `param_4 == 0`, and `HeroesData::find_hero` finds the killer's Despot within `0x160` of
+  the victim (`leaders[who] +0x59be` / `+0x59d8`, hero types `0x160` and `0x16d`); The Despot `1/46` (TI 352) stands
+  in who=1's group 64 beside it. Then it draws one `Random::get(0, 0xffff)` per available good other than knowledge
+  (five draws, 25 → 30), picks the stock with the least `amount + draw % 25`, and adds `thedespot_unit_plunder`
+  (`THEDESPOT_UNIT_PLUNDER` 15 in `rules.xml`: 44 → 59, before `leaders[who] +0x914`'s `f32` multiplier) to it. `docs/NATIONS.md` lists
+  `Unit::plunder@00605b00` "not modelled", and the crate carries no `thedespot_unit_plunder`. Owed first: grep the
+  caller (`Object::die`/`take_damage`) for the killer's arguments, `max`'s and the `+0x914` multiplier's value on the
+  dump, and `RON_STACKS` on 10852 if the draws' order is in doubt.
+- **3269's "for the Loop"**: `tools/recomp/step4.py --watch VA+N` reads N as a byte count, not an offset. The first
+  watch of `unit+0x58` covered `+0..+0x57` and missed the field, which cost a run. A `VA+OFF:LEN` spelling, or a
+  warning when N is under 8, would have saved it.
 
 ## Parked by item 3271, 2026-10-18 — chapter 103's wound closed on a bay refit, the order's write point parts
 
