@@ -3742,6 +3742,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3111) **`sweep_gen.py --regen` drops a hand edit outside the port** (3104's "for the Loop" line, parked at its
+merge): the `if log.is_empty() { log.push("-") }` a recorded-stub sweep with no-call rows needs sits above the eax
+assert, and a `--regen` removed it silently three times in one item; and the row's print order (singles, `--outarg`
+values, `--seq` runs, then the slotbase flag) is nowhere in the generated header. Candidate: emit the line when
+`--record` is on and write the order into the header comment, a test made to fail first. One reach.
+
 (3102) **`mutate.py`/`sweep_gen.py`'s `--port-file` is not expanded inside an `@FILE`** (3078's "for the Loop" line, parked
 at its merge): it reads as an unrecognised argument; and a port that returns early must be wrapped in a closure
 (`(|| -> i64 { … })()`) because the generated test is a `()` function. Candidate: expand `--port-file` wherever the
@@ -7344,7 +7350,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3104, 2026-10-17 — three can_carry overloads swept, Census 1446 → 1448
 
-(3104) **Swept: `ObjectData::can_carry@00645e00` (TypeIndex) and `@006483c0` (index, player), plus `@00646c40` (DomainIndex).**
+(3109) **Swept: `ObjectData::can_carry@00645e00` (TypeIndex) and `@006483c0` (index, player), plus `@00646c40` (DomainIndex).**
 `@00646c40` was already counted backed at the base (a sibling sweep names it), so it moved nothing: the census is 1446 → 1448 for the other two.
 Both use the is-slot compare by `--slotbase 0xb8:0x653790` and a second `--slotbase 0xc:0x4707e0` (two slotbases on one line work).
 `@006483c0`: the objects table is `0xc0ab84+0x1c*p`, **not** `0xc0618c` (that cell is another global; a fetch of address 0 through a
@@ -7352,15 +7358,13 @@ zeroed page is the symptom); `home_base`'s `&param_1` is `--outarg 3:0:0,1`, its
 singles, then the `--outarg` values, then each `--seq` run, then the slotbase flag — the order counts. 12 of 12 breaks held on each of the
 last two (after drawing `p3+0x218` past 2 for `@00645e00`), 8 of 8 on the first.
 
-(3104, second) **Not built, read**: `ObjectData::num_aircraft_here@00645330` aliases its `local_8` as both the running count and the
+(3110) **Not built, read**: `ObjectData::num_aircraft_here@00645330` aliases its `local_8` as both the running count and the
 out-pointer `home_base` writes through (`&local_8`), so the port must carry one cell for both; `ObjectsData::find_dock@0065cfd0`
 needs `vector_dist`'s register convention as a callee and `Search::valid_search`/`valid_filter`; `ObjectTypeData::get_wonder_value@00661ba0`
 needs the gamec semaphore offset and `Error::report`'s arm walled off by bias. The two generator flags (`vector_dist` callee convention,
 `--ptrring`) are untouched.
 
-(3104, third) **`--regen` drops a hand edit outside the port**: the `if log.is_empty() { log.push("-") }` a sweep with a recorded stub and
-rows that call nothing needs sits above the eax assert, and a `--regen` removes it silently (three times in this item). The generator should
-emit it when `--record` is on.
+The lane's third row (`--regen` drops the empty-log line) is filed as Loop 3111 at the merge.
 
 ## Parked by the next landing, slot HM — reserved
 
@@ -7398,6 +7402,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot HQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HU renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
