@@ -196,6 +196,8 @@ mod unit_end_trade_route;
 mod unit_execute_events;
 #[path = "unit_find_garrison_build.rs"]
 mod unit_find_garrison_build;
+#[path = "unit_find_goody_box.rs"]
+mod unit_find_goody_box;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
 #[path = "unit_find_new_bomber_target.rs"]
@@ -204,6 +206,8 @@ mod unit_find_new_bomber_target;
 mod unit_find_repair_spot;
 #[path = "unit_get_speed.rs"]
 mod unit_get_speed;
+#[path = "unit_go_inside.rs"]
+mod unit_go_inside;
 #[path = "unit_go_to_city.rs"]
 mod unit_go_to_city;
 #[path = "unit_has_repeat_air.rs"]

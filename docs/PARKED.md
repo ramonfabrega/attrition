@@ -7800,13 +7800,13 @@ generated assertion passes. Call order is therefore checked against the port's o
 index after the other places; `--nargs` is for `vcall`, `--own` is the argument count for `obj`; `--stub-write` has a fixed value.
 `valid_roadcoord`: players fixed at 0, so the player-1 array path is untested (`--answer-by` needs contiguous object windows).
 
-## Parked by the next landing, slot JC — reserved
+## Parked by item 3239, 2026-10-18 — the nations seat's third shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+All six swept (`Roads::scan_and_kill_stray_roads`, `Army::engagement`, `Unit::go_inside`, `BuildTypeData::snap_center`, `ObjectsData::find_any_building_at`, `Unit::find_goody_box`), every one a byte-window port of the original: the crate's methods take a whole `Sim` and cannot be driven from windows.
+
+- **(3239a) Crate follow-ups the sweeps raised, none checked.** `scan_and_kill_stray_roads`: in the out-of-bounds arm the original writes 0 to `roads+0x128+4k` and leaves `road[k]` stale; the crate's `sweep_road` was not compared. `Army::engagement`: the crate's uses `army_stance_rule` / `group_action_attack`, not the leader-flag, `count == 0`, `set_stance(3)` gate the sweep checks. `go_inside`: the crate lacks the captain climb, plane gate, `>= 2` gate and recursive link. `snap_center`: the crate does not model the oil-well/platform or Woodcutter's/Mine arms.
+- **(3239b) Generator gaps (Loop; 3239's "for the Loop" line, filed).** No self-recursion stub (`--stub ENTRY:N` swallows the first call); `--stub slot:OFF:NARGS` is global, so two vtables with one offset and different arg counts collide (`--stub slot:0x18:3@WIN`); no joint draw of an index and a table length; `--sparse`/`--wbias` have no "later index only" form and no `WIN+OFF/STRIDE` form (find_goody_box generated 108 flags by a shell loop); `--deref IDX:ecx+OFF:N` would replace the hard-coded `@0x20000794` in the roads sweep (stale if allocation order changes); `--regen` leaves a kept port unformatted and refuses it when windows are renumbered.
+- **(3239c) Brief omission (Loop).** Sibling subagents share `$CLAUDE_JOB_DIR/tmp`; two overwrote one another's `breaks.tsv`. A brief gives each agent its own scratch subdirectory.
 
 ## Parked by item 3242, 2026-10-18 — the Iroquois word 8415's widening
 
