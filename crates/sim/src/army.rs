@@ -1405,72 +1405,15 @@ impl Sim {
     }
 
     /// `Army::march_to_target` (§9): not engaged → forming and marching;
-    /// engaged, and only on the first tick of the fight, the orders.
+    /// engaged, and only on the first tick of the fight, the orders. The
+    /// steps are [`march_to_target_steps`]'s (item 3259's sweep), over this
+    /// crate's [`MarchToSim`].
     fn march_to_target(&mut self, who: Player, slot: usize) {
-        let w = who as usize;
-        if self.armies[w].list[slot].target.is_none() {
-            return;
-        }
-        if !self.army_is_engaged(who, slot) {
-            let a = &mut self.armies[w].list[slot];
-            a.status = (a.status & !status::MARCHED) | status::FORMING | status::MARCHING;
-            return;
-        }
-        if self.armies[w].list[slot].status & status::MARCHED != 0 {
-            return;
-        }
-        // The formation origin: the army's point stepped one cell **back**
-        // along the muster angle — `muster_angle − 0x80000000`, away from
-        // the target — and the facing from the target to it.
-        //
-        // `6f4daa`–`6f4e2b` open on `sub $0x80000000` and only then fold
-        // (`jns`; `−0x300` and `& 0x7fffffff` on the far half), where the
-        // plain fold is `sinx@0092d100`'s `test; jns`. The sub moves which
-        // half negates, so the step is `−0x300 · sin(muster_angle)`: a
-        // reversal, not the fold (`docs/ARMY.md` §23, item 1052). Great
-        // Lakes' army 0 on 4860: stepped forward, the leader's first move
-        // hands `get_loc` a start one cell west and the second plans one
-        // leg more than the original.
-        let (pos, ang, target, hurry) = {
-            let a = &self.armies[w].list[slot];
-            (a.pos, a.muster_angle, a.target, a.hurry)
-        };
-        let origin = march_origin(pos, ang);
-        let Some(t) = target else { return };
-        let tp = self.pos_of(t);
-        let angle = find_angle(origin.x - tp.x, origin.y - tp.y);
-        self.armies[w].list[slot].angle = angle;
-        self.army_stance_rule(who, slot);
-        let siege = self.army_siege_here(who, slot, origin);
-        let g = self.army_group(who, slot);
-        // A **city-centre** target that has lost nine tenths of its hits is
-        // walked to directly (`damage < hits × 9/10` false, `6f5007`);
-        // anything else takes the move-or-siege choice at the origin.
-        let nearly_dead = match t {
-            Obj::Building(b) => {
-                let bd = &self.buildings[b];
-                let centre = bd.city.is_some_and(|c| self.cities[c].building == b);
-                centre && bd.hits - bd.health >= bd.hits * 9 / 10
-            }
-            Obj::Unit(_) => false,
-        };
-        if nearly_dead {
-            self.group_action_move_to(&g, tp, QueuePos::New, true, angle, MoveKind::AttackTo, true);
-        } else if !siege && (hurry != 0 || self.army_target_is_a_friend_under_attack(who, slot)) {
-            self.army_set_stance(who, slot, Stance::Aggressive);
-            self.group_action_move_to(
-                &g,
-                origin,
-                QueuePos::New,
-                true,
-                angle,
-                MoveKind::AttackTo,
-                true,
-            );
-        } else {
-            self.group_action_siege_attack_to(&g, origin, angle);
-        }
-        self.armies[w].list[slot].status |= status::MARCHED;
+        march_to_target_steps(&mut MarchToSim {
+            sim: self,
+            who,
+            slot,
+        });
     }
 
     // ---- forming (§8) ----
@@ -1484,23 +1427,6 @@ impl Sim {
             who,
             slot,
         });
-    }
-
-    /// §8.4's second half of the move-or-siege choice, shared with
-    /// `march_to_target` (`6f4559`, `6f4f55`): the target is **mine or an
-    /// ally's** — `is_ally`, so a leader merely at peace does not count —
-    /// and the building's city is active and attacked.
-    fn army_target_is_a_friend_under_attack(&self, who: Player, slot: usize) -> bool {
-        let Some(t) = self.armies[who as usize].list[slot].target else {
-            return false;
-        };
-        let tw = self.owner_of(t);
-        if tw != who && !self.is_ally(who, tw) {
-            return false;
-        }
-        matches!(t, Obj::Building(b) if self.buildings[b]
-            .city
-            .is_some_and(|c| self.cities[c].alive && self.cities[c].no_heal))
     }
 
     /// §8.2's stance rule, shared by `do_forming`, `march_to_target` and
@@ -1522,21 +1448,6 @@ impl Sim {
         {
             self.army_set_stance(who, slot, Stance::Raid);
         }
-    }
-
-    /// §8.3's siege test: an enemy combat building within a cell of the
-    /// formation's origin, and I have siege.
-    fn army_siege_here(&self, who: Player, slot: usize, origin: Pos) -> bool {
-        if self.army_count_siege(who, slot) == 0 {
-            return false;
-        }
-        self.buildings.iter().any(|b| {
-            b.alive
-                && b.active
-                && self.is_enemy(who, b.owner)
-                && b.ty.is_some_and(|t| self.build_types[t].attack != 0)
-                && dist(b.pos, origin) <= UNITS_PER_CELL
-        })
     }
 
     /// `Army::set_stance(s)` (§6): `Group::action_stance` on the one group,
@@ -2789,84 +2700,15 @@ impl Sim {
     }
 
     /// `Army::do_transporting`: a one-shot retarget to the best land region
-    /// the census wants; hands the army to marching.
+    /// the census wants; hands the army to marching. The steps are
+    /// [`do_transporting_steps`]' (item 3259's sweep), over this crate's
+    /// [`TransSim`].
     fn do_transporting(&mut self, who: Player, slot: usize) {
-        let w = who as usize;
-        let (pos, reg) = {
-            let a = &self.armies[w].list[slot];
-            (a.pos, a.reg)
-        };
-        let here = self.world.region_of(pos.cell());
-        if here != reg {
-            return;
-        }
-        let Some(my_reg) = reg else { return };
-        let my_first = self.world.cells_in(my_reg).next();
-        let mut best: Option<(i32, u16, Option<usize>)> = None;
-        let regions: Vec<u16> = self
-            .world
-            .regions()
-            .filter(|&(r, t)| t == Terrain::Land && r != my_reg)
-            .map(|(r, _)| r)
-            .collect();
-        for r in regions {
-            let size = self.world.region_size(r);
-            if size <= 0 {
-                continue;
-            }
-            let s = self.strategy_of(who, Some(r));
-            let g = self.go_here(r, who);
-            if !(s & 2 != 0 || g & 2 != 0 || g & 4 != 0) {
-                continue;
-            }
-            let mut v = size
-                * if g & 4 != 0 {
-                    3
-                } else if s & 2 != 0 {
-                    2
-                } else {
-                    1
-                };
-            let their_first = self.world.cells_in(r).next();
-            let d = match (my_first, their_first) {
-                (Some(a), Some(b)) => vector_dist((a.x - b.x).abs(), (a.y - b.y).abs()),
-                _ => 0,
-            };
-            v /= d / 4 + 1;
-            let mut city = None;
-            for c in self.cities_of(who) {
-                if self.cities[c].reg == Some(r) && self.cities[c].no_heal {
-                    v *= self.city_level_of(c);
-                    city = Some(c);
-                }
-            }
-            if best.is_none_or(|(bv, _, _)| bv < v) {
-                best = Some((v, r, city));
-            }
-        }
-        let Some((v, r, city)) = best else { return };
-        if v <= 0 {
-            return;
-        }
-        self.armies[w].list[slot].reg = Some(r);
-        match city {
-            None => {
-                self.find_target(who, slot);
-                if !self.armies[w].list[slot].valid {
-                    return;
-                }
-                if self.armies[w].list[slot].target.is_none() {
-                    self.armies[w].list[slot].reg = here;
-                    return;
-                }
-            }
-            Some(c) => {
-                let target = Obj::Building(self.cities[c].building);
-                self.armies[w].list[slot].target = Some(target);
-                self.find_muster_spot(who, slot, target, true);
-            }
-        }
-        self.armies[w].list[slot].status = status::MARCHING;
+        do_transporting_steps(&mut TransSim {
+            sim: self,
+            who,
+            slot,
+        });
     }
 
     // ---- the Armies queries (§15) ----
@@ -3520,6 +3362,313 @@ impl FormView for FormSim<'_> {
     }
 }
 
+/// What `Army::march_to_target@006f4d80` asks of the army, its groups and
+/// the world (item 3259): the swept steps [`march_to_target_steps`] read the
+/// world only through this, so the sweep's port is a view over the emulated
+/// original's windows and the crate's is [`MarchToSim`]. A group is the id
+/// the army's slot `i` (`+0x54 + 4i`) names; this crate has the one.
+pub(crate) trait MarchToView {
+    /// `+0x30 >= 0`: the army holds a target object.
+    fn has_target_obj(&self) -> bool;
+    /// `Army::is_engaged@006f56d0`.
+    fn engaged(&mut self) -> bool;
+    /// `+4`.
+    fn status(&self) -> i32;
+    fn set_status(&mut self, s: i32);
+    /// `+0x50`.
+    fn muster_angle(&self) -> Angle;
+    /// The army's point (`+0x38`, `+0x3c`).
+    fn pos(&self) -> Pos;
+    /// `sin_table@00a46a00(folded, d)`.
+    fn sin_table(&mut self, folded: i32, d: i32) -> i32;
+    /// The target object's point (`+0x10`, `+0x14`, each `^ 0x63637`).
+    fn target_pos(&self) -> Pos;
+    /// `find_angle@0092d130(dx, dy)`.
+    fn find_angle(&mut self, dx: i32, dy: i32) -> Angle;
+    /// `LeaderData::is_enemy@006ebaa0(target_who)`.
+    fn target_enemy(&mut self) -> bool;
+    /// `+0x2c != 0`.
+    fn hurry(&self) -> bool;
+    /// The Military age's rule: `(age ^ 0x63187) < 4`.
+    fn young(&mut self) -> bool;
+    /// `Army::count(COUNT_SIEGE, 0)@006f9120`.
+    fn siege_count(&mut self) -> i32;
+    /// `Army::set_stance@006f8750`.
+    fn set_stance(&mut self, s: Stance);
+    /// `ObjectsData::find_building(.., SEARCH_ENEMY, me, 0x300, 0x200,
+    /// FILTER_COMBAT) >= 0` at `p`.
+    fn enemy_combat_building_near(&mut self, p: Pos) -> bool;
+    /// `+0x34 == me` (the short at `+0x94`).
+    fn target_is_me(&self) -> bool;
+    /// `LeaderData::is_ally@006edb50(+0x34)`.
+    fn target_ally(&mut self) -> bool;
+    /// The target's city record `flags` (`+4`), or `None` for a negative
+    /// city number.
+    fn target_city_flags(&mut self) -> Option<i32>;
+    /// The short at `+0x96`: the army's group slots.
+    fn group_count(&self) -> i32;
+    /// The group id in slot `i` (`+0x54 + 4i`); negative is empty.
+    fn group_id(&self, i: i32) -> i32;
+    /// The group record's `+0xc` is nonzero (it has units).
+    fn group_populated(&mut self, g: i32) -> bool;
+    /// The group record's `+8` = the army's id (the short at `+2`).
+    fn group_claim(&mut self, g: i32);
+    /// The target object's `flags & 0x20`: a city centre.
+    fn target_city_centre(&mut self) -> bool;
+    /// `vslot 0x11c(0)` of the target object: its hits.
+    fn target_hits(&mut self) -> i32;
+    /// The target object's `+0x24`: its damage.
+    fn target_damage(&mut self) -> i32;
+    /// `Group::action_move_to@0070fba0`.
+    #[allow(clippy::too_many_arguments)]
+    fn march_move_to(
+        &mut self,
+        g: i32,
+        to: Pos,
+        queue: QueuePos,
+        set_angle: bool,
+        angle: Angle,
+        kind: MoveKind,
+        action: bool,
+    );
+    /// `Group::action_siege_attack_to@0070d830`.
+    fn siege_attack_to(&mut self, g: i32, to: Pos, angle: Angle);
+}
+
+/// **`Army::march_to_target@006f4d80`'s steps** (item 3259): no target does
+/// nothing. An army that is not engaged is forming and marching
+/// (`status = (status & ~4) | 0x12`). An engaged one that has already
+/// ordered (`status & 4`) does nothing. Otherwise the formation origin is
+/// the army's point stepped `0x300` along `muster_angle - 0x80000000`
+/// (inline fold ahead of `sin_table`, `x + sin`, `y - sin` a quarter turn
+/// on); the facing is `find_angle(origin - target)`; the stance rule (an
+/// enemy owner, no hurry, before Gunpowder, no siege: raid); and the
+/// move-or-siege choice at the origin (an enemy combat building within a
+/// cell with siege forces the siege order, else `hurry` or an attacked
+/// friendly city picks the move). Every populated group is claimed and
+/// ordered: a city-centre target with nine tenths of its hits lost is walked
+/// to directly, else the move or siege order at the origin, which then steps
+/// `0x180` back for the next group. `status |= 4`. The move order carries no
+/// stance change (`do_forming`'s does).
+pub(crate) fn march_to_target_steps<V: MarchToView>(v: &mut V) {
+    if !v.has_target_obj() {
+        return;
+    }
+    if !v.engaged() {
+        let s = v.status();
+        v.set_status((s & !4) | 0x12);
+        return;
+    }
+    if v.status() & 4 != 0 {
+        return;
+    }
+    // The fold ahead of `sin_table`: a negative angle negates the distance
+    // and drops its sign bit; the second quarter mirrors.
+    let fold = |a: i32, d0: i32| -> (i32, i32) {
+        let (mut a, mut d) = (a, d0);
+        if a < 0 {
+            d = -d0;
+            a &= 0x7fff_ffff;
+        }
+        (
+            if a & 0x4000_0000 != 0 {
+                0x7fff_ffff - a
+            } else {
+                a
+            },
+            d,
+        )
+    };
+    let ang = v.muster_angle();
+    let back = ang.0.wrapping_add(i32::MIN);
+    let here = v.pos();
+    let (e, d) = fold(back, 0x300);
+    let dx = v.sin_table(e, d);
+    let (e, d) = fold(back.wrapping_add(0x4000_0000), 0x300);
+    let dy = v.sin_table(e, d);
+    let mut at = Pos::new(here.x.wrapping_add(dx), here.y.wrapping_sub(dy));
+    let tp = v.target_pos();
+    let angle = v.find_angle(at.x.wrapping_sub(tp.x), at.y.wrapping_sub(tp.y));
+    if v.target_enemy() && !v.hurry() && v.young() && v.siege_count() == 0 {
+        v.set_stance(Stance::Raid);
+    }
+    let siege = v.enemy_combat_building_near(at) && v.siege_count() != 0;
+    let mv = !siege
+        && (v.hurry()
+            || ((v.target_is_me() || v.target_ally())
+                && v.target_city_flags().is_some_and(|f| f & 3 == 3)));
+    let n = v.group_count();
+    for i in 0..n {
+        let g = v.group_id(i);
+        if g < 0 || !v.group_populated(g) {
+            continue;
+        }
+        v.group_claim(g);
+        if v.target_city_centre() && {
+            let h = v.target_hits().wrapping_mul(9) / 10;
+            v.target_damage() >= h
+        } {
+            v.march_move_to(g, tp, QueuePos::New, true, angle, MoveKind::AttackTo, true);
+        } else if mv {
+            v.march_move_to(g, at, QueuePos::New, true, angle, MoveKind::AttackTo, true);
+        } else {
+            v.siege_attack_to(g, at, angle);
+        }
+        let (e, d) = fold(back, 0x180);
+        let dx = v.sin_table(e, d);
+        let (e, d) = fold(back.wrapping_add(0x4000_0000), 0x180);
+        let dy = v.sin_table(e, d);
+        at = Pos::new(at.x.wrapping_add(dx), at.y.wrapping_sub(dy));
+    }
+    let s = v.status();
+    v.set_status(s | 4);
+}
+
+/// This crate's [`MarchToView`]: the army `slot` of `who`, whose one group
+/// carries every unit. Where the crate models less than the original, the
+/// answer is the crate's rule: the group's id is the slot, a target building
+/// that is its city's centre is the city-centre object, its damage is
+/// `hits - health`, and the hostile and ally tests are on the target
+/// object's owner.
+struct MarchToSim<'a> {
+    sim: &'a mut Sim,
+    who: Player,
+    slot: usize,
+}
+
+impl MarchToSim<'_> {
+    fn army(&self) -> &Army {
+        &self.sim.armies[self.who as usize].list[self.slot]
+    }
+    fn tw(&self) -> Option<Player> {
+        self.army().target.map(|t| self.sim.owner_of(t))
+    }
+}
+
+impl MarchToView for MarchToSim<'_> {
+    fn has_target_obj(&self) -> bool {
+        self.army().target.is_some()
+    }
+    fn engaged(&mut self) -> bool {
+        self.sim.army_is_engaged(self.who, self.slot)
+    }
+    fn status(&self) -> i32 {
+        self.army().status
+    }
+    fn set_status(&mut self, s: i32) {
+        self.sim.armies[self.who as usize].list[self.slot].status = s;
+    }
+    fn muster_angle(&self) -> Angle {
+        self.army().muster_angle
+    }
+    fn pos(&self) -> Pos {
+        self.army().pos
+    }
+    fn sin_table(&mut self, folded: i32, d: i32) -> i32 {
+        movement::sin_component(Angle(folded), d)
+    }
+    fn target_pos(&self) -> Pos {
+        self.army()
+            .target
+            .map_or(Pos::new(0, 0), |t| self.sim.pos_of(t))
+    }
+    fn find_angle(&mut self, dx: i32, dy: i32) -> Angle {
+        let angle = find_angle(dx, dy);
+        self.sim.armies[self.who as usize].list[self.slot].angle = angle;
+        angle
+    }
+    fn target_enemy(&mut self) -> bool {
+        self.tw()
+            .is_some_and(|tw| tw != self.who && self.sim.is_enemy(self.who, tw))
+    }
+    fn hurry(&self) -> bool {
+        self.army().hurry != 0
+    }
+    fn young(&mut self) -> bool {
+        (self.sim.tech[self.who as usize].military_level() as i32) < 4
+    }
+    fn siege_count(&mut self) -> i32 {
+        self.sim.army_count_siege(self.who, self.slot)
+    }
+    fn set_stance(&mut self, s: Stance) {
+        self.sim.army_set_stance(self.who, self.slot, s);
+    }
+    fn enemy_combat_building_near(&mut self, p: Pos) -> bool {
+        let who = self.who;
+        self.sim.buildings.iter().any(|b| {
+            b.alive
+                && b.active
+                && self.sim.is_enemy(who, b.owner)
+                && b.ty.is_some_and(|t| self.sim.build_types[t].attack != 0)
+                && dist(b.pos, p) <= UNITS_PER_CELL
+        })
+    }
+    fn target_is_me(&self) -> bool {
+        self.tw() == Some(self.who)
+    }
+    fn target_ally(&mut self) -> bool {
+        self.tw().is_some_and(|tw| self.sim.is_ally(self.who, tw))
+    }
+    fn target_city_flags(&mut self) -> Option<i32> {
+        match self.army().target? {
+            Obj::Building(b) => self.sim.buildings[b].city.map(|c| {
+                let cd = &self.sim.cities[c];
+                i32::from(cd.alive) | i32::from(cd.no_heal) << 1
+            }),
+            Obj::Unit(_) => None,
+        }
+    }
+    fn group_count(&self) -> i32 {
+        self.army().num_groups()
+    }
+    fn group_id(&self, i: i32) -> i32 {
+        i
+    }
+    fn group_populated(&mut self, _: i32) -> bool {
+        true
+    }
+    fn group_claim(&mut self, _: i32) {}
+    fn target_city_centre(&mut self) -> bool {
+        match self.army().target {
+            Some(Obj::Building(b)) => {
+                let bd = &self.sim.buildings[b];
+                bd.city.is_some_and(|c| self.sim.cities[c].building == b)
+            }
+            _ => false,
+        }
+    }
+    fn target_hits(&mut self) -> i32 {
+        match self.army().target {
+            Some(Obj::Building(b)) => self.sim.buildings[b].hits,
+            _ => 0,
+        }
+    }
+    fn target_damage(&mut self) -> i32 {
+        match self.army().target {
+            Some(Obj::Building(b)) => self.sim.buildings[b].hits - self.sim.buildings[b].health,
+            _ => 0,
+        }
+    }
+    fn march_move_to(
+        &mut self,
+        _: i32,
+        to: Pos,
+        queue: QueuePos,
+        set_angle: bool,
+        angle: Angle,
+        kind: MoveKind,
+        action: bool,
+    ) {
+        let g = self.sim.army_group(self.who, self.slot);
+        self.sim
+            .group_action_move_to(&g, to, queue, set_angle, angle, kind, action);
+    }
+    fn siege_attack_to(&mut self, _: i32, to: Pos, angle: Angle) {
+        let g = self.sim.army_group(self.who, self.slot);
+        self.sim.group_action_siege_attack_to(&g, to, angle);
+    }
+}
+
 /// What `Army::do_marching@006f3df0` asks of the army and its target (item
 /// 3238): the swept steps [`do_marching_steps`] read the world only through
 /// this, so the sweep's port is a view over the emulated original's windows
@@ -3730,6 +3879,213 @@ impl MarchView for MarchSim<'_> {
     }
     fn march_to_target(&mut self) {
         self.sim.march_to_target(self.who, self.slot);
+    }
+}
+
+/// What `Army::do_transporting@006f4690` asks of the army and the world
+/// (item 3259): the swept steps [`do_transporting_steps`] read the world
+/// only through this, so the sweep's port is a view over the emulated
+/// original's windows and the crate's is [`TransSim`].
+pub(crate) trait TransView {
+    /// The region the army's cell lies in is the army's `reg` (`field_0x8`).
+    fn at_home(&mut self) -> bool;
+    /// The army's `reg`.
+    fn my_region(&self) -> Option<u16>;
+    /// The regions the loop visits, in order, `my` left out: the original's
+    /// `1..64` with `my` skipped.
+    fn regions(&mut self, my: u16) -> Vec<u16>;
+    fn region_size(&mut self, r: u16) -> i32;
+    /// The leader's census strategy word for `r`.
+    fn strategy(&mut self, r: u16) -> i32;
+    /// `Region::go_here@006810f0(who)`.
+    fn go_here(&mut self, r: u16) -> i32;
+    /// `vector_dist` of the two regions' first cells.
+    fn distance(&mut self, my: u16, r: u16) -> i32;
+    /// The leader's cities, in the original's `0..count` order.
+    fn cities(&mut self) -> Vec<usize>;
+    /// City `c` is alive (`flags & 1`), in region `r`, and `flags & 2`.
+    fn city_in(&mut self, c: usize, r: u16) -> bool;
+    /// `CityData::get_level@00739340`.
+    fn city_level(&mut self, c: usize) -> i32;
+    fn set_region(&mut self, r: Option<u16>);
+    /// `Army::find_target@006f69b0`; `false` when the army is gone after it
+    /// (this crate's `find_target` can close it; the original's does not).
+    fn find_target(&mut self) -> bool;
+    fn has_target(&self) -> bool;
+    /// `reg` back to the region the army's cell lies in.
+    fn region_home(&mut self);
+    /// The target becomes city `c`'s centre building (the original also
+    /// writes `field_0x34 = who`, `field_0x20 = c`).
+    fn target_city(&mut self, c: usize);
+    /// `Army::find_muster_spot(target, who, 1)`.
+    fn find_muster_spot(&mut self, c: usize) -> bool;
+    /// A muster spot that was not found leaves the muster at the city
+    /// centre's cell, one row down (up on the last row).
+    fn muster_fallback(&mut self, c: usize);
+    fn set_marching(&mut self);
+}
+
+/// **`Army::do_transporting@006f4690`'s steps** (item 3259): from the
+/// army's own region, the best other region the census or `go_here` wants
+/// by `size * (3 | 2 | 1) / (distance / 4 + 1)`, times the level of each of
+/// the leader's no-heal cities there; the army is retargeted at it once and
+/// handed to marching. Returns the original's 1 when it acted.
+pub(crate) fn do_transporting_steps<V: TransView>(v: &mut V) -> bool {
+    if !v.at_home() {
+        return false;
+    }
+    let Some(my) = v.my_region() else {
+        return false;
+    };
+    let (mut best_v, mut best_r, mut best_city) = (-1i32, 0u16, None::<usize>);
+    for r in v.regions(my) {
+        let size = v.region_size(r);
+        if size <= 0 {
+            continue;
+        }
+        let s = v.strategy(r);
+        let g = v.go_here(r);
+        if !(s & 2 != 0 || g & 2 != 0 || g & 4 != 0) {
+            continue;
+        }
+        let mut val = if g & 4 != 0 {
+            size.wrapping_mul(3)
+        } else if s & 2 != 0 {
+            size.wrapping_mul(2)
+        } else {
+            size
+        };
+        let d = v.distance(my, r);
+        val /= ((d + ((d >> 31) & 3)) >> 2) + 1;
+        let mut city = None;
+        for c in v.cities() {
+            if v.city_in(c, r) {
+                val = val.wrapping_mul(v.city_level(c));
+                city = Some(c);
+            }
+        }
+        if best_v < val {
+            best_v = val;
+            best_r = r;
+            best_city = city;
+        }
+    }
+    if best_v <= 0 {
+        return false;
+    }
+    v.set_region(Some(best_r));
+    match best_city {
+        None => {
+            if !v.find_target() {
+                return true;
+            }
+            if !v.has_target() {
+                v.region_home();
+                return true;
+            }
+        }
+        Some(c) => {
+            v.target_city(c);
+            if !v.find_muster_spot(c) {
+                v.muster_fallback(c);
+            }
+        }
+    }
+    v.set_marching();
+    true
+}
+
+/// This crate's [`TransView`]: the army `slot` of `who`. **Where the crate
+/// models less than the original**: the regions visited are the land ones
+/// (the original has no terrain test and stops at 63), a missing first cell
+/// is a zero distance, and `muster_fallback` is a no-op (SEAM: the crate's
+/// `find_muster_spot` already leaves its own muster; the original overwrites
+/// it with the city centre's cell, one row down, when it answers 0).
+struct TransSim<'a> {
+    sim: &'a mut Sim,
+    who: Player,
+    slot: usize,
+}
+
+impl TransSim<'_> {
+    fn army(&mut self) -> &mut Army {
+        &mut self.sim.armies[self.who as usize].list[self.slot]
+    }
+}
+
+impl TransView for TransSim<'_> {
+    fn at_home(&mut self) -> bool {
+        let a = &self.sim.armies[self.who as usize].list[self.slot];
+        self.sim.world.region_of(a.pos.cell()) == a.reg
+    }
+    fn my_region(&self) -> Option<u16> {
+        self.sim.armies[self.who as usize].list[self.slot].reg
+    }
+    fn regions(&mut self, my: u16) -> Vec<u16> {
+        self.sim
+            .world
+            .regions()
+            .filter(|&(r, t)| t == Terrain::Land && r != my)
+            .map(|(r, _)| r)
+            .collect()
+    }
+    fn region_size(&mut self, r: u16) -> i32 {
+        self.sim.world.region_size(r)
+    }
+    fn strategy(&mut self, r: u16) -> i32 {
+        self.sim.strategy_of(self.who, Some(r))
+    }
+    fn go_here(&mut self, r: u16) -> i32 {
+        self.sim.go_here(r, self.who)
+    }
+    fn distance(&mut self, my: u16, r: u16) -> i32 {
+        match (
+            self.sim.world.cells_in(my).next(),
+            self.sim.world.cells_in(r).next(),
+        ) {
+            (Some(a), Some(b)) => vector_dist((a.x - b.x).abs(), (a.y - b.y).abs()),
+            _ => 0,
+        }
+    }
+    fn cities(&mut self) -> Vec<usize> {
+        self.sim.cities_of(self.who)
+    }
+    fn city_in(&mut self, c: usize, r: u16) -> bool {
+        self.sim.cities[c].reg == Some(r) && self.sim.cities[c].no_heal
+    }
+    fn city_level(&mut self, c: usize) -> i32 {
+        self.sim.city_level_of(c)
+    }
+    fn set_region(&mut self, r: Option<u16>) {
+        self.army().reg = r;
+    }
+    fn find_target(&mut self) -> bool {
+        self.sim.find_target(self.who, self.slot);
+        self.sim.armies[self.who as usize].list[self.slot].valid
+    }
+    fn has_target(&self) -> bool {
+        self.sim.armies[self.who as usize].list[self.slot]
+            .target
+            .is_some()
+    }
+    fn region_home(&mut self) {
+        let here = {
+            let a = &self.sim.armies[self.who as usize].list[self.slot];
+            self.sim.world.region_of(a.pos.cell())
+        };
+        self.army().reg = here;
+    }
+    fn target_city(&mut self, c: usize) {
+        let target = Obj::Building(self.sim.cities[c].building);
+        self.army().target = Some(target);
+    }
+    fn find_muster_spot(&mut self, c: usize) -> bool {
+        let target = Obj::Building(self.sim.cities[c].building);
+        self.sim.find_muster_spot(self.who, self.slot, target, true)
+    }
+    fn muster_fallback(&mut self, _c: usize) {}
+    fn set_marching(&mut self) {
+        self.army().status = status::MARCHING;
     }
 }
 

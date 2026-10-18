@@ -50,6 +50,10 @@ mod angle_diff;
 mod animal_data_valid_target_const;
 #[path = "animal_data_walk_data_vt.rs"]
 mod animal_data_walk_data_vt;
+#[path = "animal_think_bird.rs"]
+mod animal_think_bird;
+#[path = "animal_think_farm_animal.rs"]
+mod animal_think_farm_animal;
 #[path = "animal_update_los.rs"]
 mod animal_update_los;
 #[path = "armies_diplo_change.rs"]
@@ -254,6 +258,8 @@ mod build_queue_set_queue;
 mod build_queue_un_queue;
 #[path = "build_queue_walk_data.rs"]
 mod build_queue_walk_data;
+#[path = "build_remove_from_city.rs"]
+mod build_remove_from_city;
 #[path = "build_remove_gatherer.rs"]
 mod build_remove_gatherer;
 #[path = "build_repair_damage.rs"]
@@ -270,6 +276,8 @@ mod build_type_data_already_built;
 mod build_type_data_area;
 #[path = "build_type_data_basic_type.rs"]
 mod build_type_data_basic_type;
+#[path = "build_type_data_blocked_site.rs"]
+mod build_type_data_blocked_site;
 #[path = "build_type_data_blocked_town.rs"]
 mod build_type_data_blocked_town;
 #[path = "build_type_data_can_capture.rs"]

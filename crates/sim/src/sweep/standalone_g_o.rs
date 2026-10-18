@@ -554,6 +554,8 @@ mod object_data_get_inside;
 mod object_data_get_wonder_value;
 #[path = "object_data_has_general.rs"]
 mod object_data_has_general;
+#[path = "object_data_has_nuke.rs"]
+mod object_data_has_nuke;
 #[path = "object_data_has_objmask.rs"]
 mod object_data_has_objmask;
 #[path = "object_data_health_level.rs"]
@@ -660,6 +662,14 @@ mod object_type_restore;
 mod object_type_walk_rules_data;
 #[path = "object_update_los.rs"]
 mod object_update_los;
+#[path = "object_update_seen.rs"]
+mod object_update_seen;
+#[path = "object_update_seen_build.rs"]
+mod object_update_seen_build;
+#[path = "object_update_seen_small.rs"]
+mod object_update_seen_small;
+#[path = "object_update_seen_wide.rs"]
+mod object_update_seen_wide;
 #[path = "objects_array_get_data_type.rs"]
 mod objects_array_get_data_type;
 #[path = "objects_data_count_nukes_in_flight.rs"]
@@ -690,6 +700,8 @@ mod objects_data_find_town;
 mod objects_data_find_town_at;
 #[path = "objects_data_find_unit_ordered_with_radius.rs"]
 mod objects_data_find_unit_ordered_with_radius;
+#[path = "objects_data_find_unit_with_radius.rs"]
+mod objects_data_find_unit_with_radius;
 #[path = "objects_data_find_village.rs"]
 mod objects_data_find_village;
 #[path = "objects_data_make_tree_mask.rs"]

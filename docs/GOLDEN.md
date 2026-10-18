@@ -13454,28 +13454,81 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the whole 605..1500 window, both directions. Reading only: the wreck's chain readers.
 
-## 137. Reserved for the next item on the rules track
+## 137. Chapter one hundred and two — stance-0 hoplites beside a Tank wreck; closed at 1500 on the first take, no code (item 3263, run944)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3262, 3235): chapter 101's journal read its hoplites as idle-stance and so never searching. **The dump says otherwise**: the six hoplites (`0/10`..`0/15`) are born `stance 0` (the commandos `0/6`..`0/9` are `stance 1`), and they stay idle, `orders none`, from their birth at 791 to 1000, six tiles' reach from the who=1 Tank's wreck.
 
-## 138. Reserved for the next item on the rules track
+**Staging** (`tools/gamelog/golden/chapter102.cmd`, 15 lines, `RON_STAGE=ch76:chapter102:1500`): chapter 101's recipe plus `800 @stance 0 0 6 7 9`. **That line set the Commandos** (the ids were guessed before the dump was read), not the hoplites; the dump shows `stance 0` on `0/6`.. at 1000 and no change in what any unit does. Kept as captured; the hoplites were already the aggressive arm. Run944 on lane 2 (pool), 1,501 frames, seed 12345, chapter 94's detail sets.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What the original does and this crate agrees with.** Window 605..1500 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_TWO` (604, 1501)) parts on the same eleven standing `form` rows as run942 and nothing else; golden word 1500, closed on the first run. No code moved.
 
-## 139. Reserved for the next item on the rules track
+**What it teaches.** Aggressive-stance units (stance 0) with a `blocks_while_dead` wreck as the only enemy object in reach take no order: either the original's idle search tests `alive` before it takes a candidate, or it never reaches the wreck. This crate keeps the wreck off the chain and agrees; a divergence would need a shooter whose search *takes* the wreck, and none appears. The "idle stance never searched" reading of §136 is struck: stance 0 is the aggressive default.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Not established.** That the wreck stays on the original's chain across 800..1500 (nothing dumped prints the chain), and so whether the search *saw* it. `alarm` (a unit that takes damage there) and a building shooter's near-face gate (3252's park) remain unread: the next arms.
+
+**Coverage.** Diff-backed: the whole 605..1500 window, both directions. Reading only: the wreck's chain readers.
+
+## 138. Chapter one hundred and three — a bowman strikes a squad beside a Tank wreck; the draws close at 1500 and a wound parts at 934 (item 3267, run945)
+
+**The booking** (parked 3266, 3235): chapter 102 left two arms of the wreck on the chain: an armed unit struck beside it (so `alarm` runs) and a Tower/Fort shooter. This chapter is the first.
+
+**Staging** (`tools/gamelog/golden/chapter103.cmd`, 15 lines, `RON_STAGE=ch76:chapter103:1500`): chapter 102's recipe without its `@stance` line, plus `800 add bowmen who=1 82,83` east of the six stance-0 hoplites; the Sabotaged Tank's wreck stays between the Commandos and the squad. Run945 on the pool's lane 1, 1,501 frames, seed 12345, chapter 94's detail sets. The bowmen shoot, the hoplites close and fight (`0/10` is wounded from 930).
+
+**What the original does and this crate agrees with.** The golden word is the trace's end, 1500, on the first take: no draw or order part, so the wreck on the chain changed nothing here either, whether or not `alarm` saw it. Window 605..1500 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_THREE` (604, 1501)) parts on the eleven standing `form` rows and on **one value, not a draw**.
+
+**The value diff** (the dump's own coordinates): hoplite `0/10` (uid 17) — `damage_frac` ours 10, theirs 0; `hits:damage` ours 27, theirs 19; `hits:damage_frac` ours 10, theirs 0; `hits_left` ours 93, theirs 101, all on **934**; on **935** theirs reaches 27 and 10 sixteenths (so the original lands the same hit a block later) and `dest_angle` (ours −2147483648, theirs 1181417472) and `orders_y` (15984 against 16008) part. `damage_frame` 932 and `damage_o` 8 (`who` 1) agree on both sides. The cause is open (parked, slot JO).
+
+**Run945b** (`~/ron-golden/ch103b/`, `--log-window 920 940`, `AMMO=5`, not wired): `1/8`'s round `(15935,16010)` → `(15719,15979)`, `total_time` 2, cur_time 1 at 932 — this crate's `RON_DEBUG_AMMO` print, field for field. `1/9`'s round `(15853,16135)` → `(15722,16033)`, `total_time` 2, cur_time 1 at 934. This crate's print shows no `1/9` round in 925–936.
+
+**Not established.** Which round makes the 934 wound here and which makes the 935 one there; whether the wreck is involved (nothing in the window names it — `near` of every unit is a living one). The Tower/Fort arm is untouched.
+
+**Coverage.** Diff-backed: the draws and orders to 1500; the wound's frame (the widening pins it). Reading only: the wreck's chain readers.
+
+## 139. Chapter one hundred and three's wound at 934 — the bowman's bay one unit short (item 3271)
+
+**The booking** (parked 3270): `0/10`'s second wound landed a block before the original's (`damage` 27 and 10 sixteenths at 934 against 19, theirs at 935), with no draw and the shooters' rounds agreeing in run945b.
+
+**Which round lands which wound.** `RON_DEBUG_AMMO` showed only `1/8`'s round (launched 931, lands 932, `damage_frame` 932, the first wound — 19). A temporary probe on `add_ammo` and `land` showed the second wound is **`1/9`'s round**, which this crate launched on 933 with `total_time 1` — launch `(15853, 16134)`, landing `(15722, 16008)` — and landed in the same step, so no round was ever in flight to print. The original's (run945b's `AMMO` at block 934) launches from `(15853, 16135)`, `total_time 2`, landing `(15722, 16033)`, and lands a frame later. The direction: ours acted a frame early, on a launch point one unit off in y.
+
+**Why.** `1/9` is a bowman (piece 120, `ATTACK1`, starttime 12) at `(15912, 16200)` facing 319°. The `launch::BAYS` row for that key, `right −1.706, fwd 88.958`, was solved from run256's two arrows alone and gave offset `(−59, −66)`; the original's is `(−59, −65)`. The flight time is `(int)(sqrt(dx²+dy²) / (proj_speed × unit_move_speed))`, and the 1-unit y difference carries the distance across the 2-frame boundary (≈ 201.4 against 200.8 over a divisor of ≈ 100.5). Nothing else part: the unit's position, facing, `gpiece`, `anim` and clock agree.
+
+**What was built.** The row refitted to all three arrows of the key: `right −1.830, fwd 88.800` (the centre of the 2,398 grid points in (−2.11…−1.40, 88.66…89.02) that reproduce `(−86, −21)`, `(−88, −7)` and `(−59, −65)` at 285°, 276° and 319°), and the third arrow added to `run256_s_bowman_arrows_leave_from_the_measured_bays`. The wound now lands at 935 and the four 934 rows leave the widening (`WANT_CH103`).
+
+**Not established.** The row is a fit, not a reading: it is one of a family of vectors that agree with three arrows, and a fourth facing may part it again (the `Bay` model is a planar rotation; the original's `get_position` is float trigonometry). Run945b's `AMMO` rows are the only other bowman arrows on disk with these keys.
+
+**What remains** (parked slot JR): on 935 `0/10`'s `orders_y` (ours 15984, theirs 16008) and `dest_angle` (ours −2147483648, theirs 1181417472) part. Both sides agree on the Attack order that replaces the move on 935 and on the unit's position (16008) on that block; ours writes `orders_x/orders_y` from the position before the frame's step, theirs after it. The unit is moving when its order changes, which the stationary hoplites `0/11`, `0/12` never are.
+
+**Coverage.** Diff-backed: the wound's frame and values (the widening). Reading only: nothing new.
 
 ## 140. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 141. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 142. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 143. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 144. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

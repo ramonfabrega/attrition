@@ -700,7 +700,7 @@ impl Sim {
     /// The order is `MOVE_TO` on an emptied list, appended after
     /// `close_orders`, `clear_partial_path` and `update_action` — the
     /// listing's own sequence at `5d78c5`–`5d79d4`.
-    pub(crate) fn think_farm_animal(&mut self, u: usize) {
+    pub fn think_farm_animal(&mut self, u: usize) {
         let Some(fa) = self.units[u].farm_animal else {
             return;
         };

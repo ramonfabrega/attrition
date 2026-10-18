@@ -134,9 +134,16 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // 15000) was not carried. With it, 10695: ours 12 draws, theirs 11,
     // index 10, ours `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, theirs
     // `Farms::inc_time+0x1ae`; past run940's last block (8665), its
-    // widening owed.
-    count: 10695,
-    sequence: 10695,
+    // widening owed. **Item 3255 widened it on run943 and moved it 10695
+    // → 10852** (`docs/AI.md` §257): the Scout `0/0` was struck a frame
+    // late (10692 against 10691) by the Archers `1/32`'s arrow, which
+    // ours loosed from the figure's own square; with the bays of pieces
+    // 1529 and 1441 and the Horse Archers' (1545) pivot releases, 10852:
+    // ours 25 draws, theirs 30, index 3, ours `Unit::close+0xcb6`, theirs
+    // `605fe5`; run943's state first parts on 10843 (`1/32`'s
+    // `dest_angle`, ours −786038784 against theirs −792788992).
+    count: 10852,
+    sequence: 10852,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -992,6 +999,73 @@ fn run940_s_word_frame_is_widened_whole() {
     // `dest_angle`s (8453, 8463). The word moved past the window to 10695
     // (`docs/AI.md` §256). The move's value diff is block 8416.
     pin_eq!(w.firsts.len(), 61, "initial run940 baseline");
+}
+
+/// run943: the word 10695's window, blocks 10689..10945 at run940's detail
+/// (`LEADERS=9`, `GUYS=4`; item 3255) — six blocks before the word's own
+/// block 10696, 250 after; no earlier dump of this lobby holds 8666..12658.
+pub(crate) const RUN943: &str =
+    "gamelog-run943-greatlakes-iroquois-diff3-window-10689-10946-guys4.txt";
+
+/// The window: block 10689 through 10945.
+pub(crate) const WIDENING_IROQUOIS_FRAME_10695: (i64, i64) = (10689, 10945);
+
+pub(crate) fn iroquois_frame_10695_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run943",
+        &[(RUN943, WIDENING_IROQUOIS_FRAME_10695.0)],
+        WIDENING_IROQUOIS_FRAME_10695,
+        1,
+        &[10696],
+        true,
+    )
+}
+
+#[test]
+fn run943_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_10695_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3255, on base 37884575: 2032 keys, 47 of them the standing set
+    // on 10689 (the forms, the `SITE` regs, pools 64 and 66, `0/-1`'s
+    // `aggression[1]`, `1/23`'s and `1/24`'s second figures). **The state
+    // first parts on block 10692**: the Scout `0/0` is struck on frame
+    // 10691 in theirs (`damage_frame` 10691, `hits_left` 46 against ours'
+    // 50, its `FLEE_TO` to (1992, 32280) on the block) and on 10692 in
+    // ours — the Archers `1/32`'s arrow, fired on 10674 on both sides,
+    // flies 19 frames in ours and 18 in theirs, and every row after is
+    // that frame's lag (`docs/AI.md` §257). **With the release rows, 456
+    // keys**: the 47 standing, and the state first parts on 10843 (`1/32`'s
+    // `dest_angle`), the word's own block 10853 after it. (The widening's
+    // block; the word's delta is in `IROQUOIS`'s comment.) **Item 3269,
+    // 455**: 10843 closes — a follower's `check_target` reads its squad
+    // captain's action through `update_action`, which copies `1/32`'s new
+    // heading into its `dest_angle` the frame it turns (run946's packet,
+    // `docs/AI.md` §258); the state now first parts on the word's own
+    // block 10853 (`0/3`'s `death:extra`, who=1's metal 44 against 59:
+    // The Despot's `Unit::plunder`, not modelled).
+    pin_eq!(
+        w.firsts.len(),
+        455,
+        "run943 with the captain's update_action in check_target"
+    );
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at

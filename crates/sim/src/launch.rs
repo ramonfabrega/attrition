@@ -397,6 +397,79 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 159,
         },
     ),
+    // **The Native American Archers' piece 1529** (item 3255, `docs/AI.md`
+    // §257): run943c's `RON_STATE_FRAME=10674` packet holds its four
+    // `AttachPos` rows (`ARCHERS-NA-AGE0`'s three attack releases and a
+    // group idle's), and `tools/recomp/get_position.py`'s sweep of each
+    // attack row is reproduced by these at all 361 headings, x and y.
+    // who=1's Archers `1/32` loosed at the Scout `0/0` on 10674 from
+    // (5316, 31436) in run943c where this crate loosed from the figure's
+    // own (5400, 31416): 18 frames against 19.
+    (
+        1529,
+        11,
+        12,
+        Bay {
+            right: -1826,
+            fwd: 88748,
+            dz: 163,
+        },
+    ),
+    (
+        1529,
+        12,
+        9,
+        Bay {
+            right: 335,
+            fwd: 87407,
+            dz: 164,
+        },
+    ),
+    (
+        1529,
+        13,
+        15,
+        Bay {
+            right: 9711,
+            fwd: 66507,
+            dz: 164,
+        },
+    ),
+    // **The Native American Javelineers' piece 1441** (item 3255,
+    // `docs/AI.md` §257): the same packet's three attack `AttachPos` rows,
+    // swept and reproduced at all 361 headings, x and y. who=1's
+    // Javelineers `1/27` threw on 10726 from (4820, 31215) in run943b
+    // where this crate threw from the figure's own (4872, 31272).
+    (
+        1441,
+        11,
+        12,
+        Bay {
+            right: 42732,
+            fwd: 64492,
+            dz: 167,
+        },
+    ),
+    (
+        1441,
+        12,
+        6,
+        Bay {
+            right: -241,
+            fwd: 56838,
+            dz: 174,
+        },
+    ),
+    (
+        1441,
+        13,
+        27,
+        Bay {
+            right: 20479,
+            fwd: 35674,
+            dz: 162,
+        },
+    ),
     // King's Yeomanry: run586 get_position sweep, checked against
     // run587's actual arrows (COMBAT §87, item 1436).
     (
@@ -555,8 +628,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK1,
         12,
         Bay {
-            right: -1_706,
-            fwd: 88_958,
+            right: -1_830,
+            fwd: 88_800,
             dz: 163,
         },
     ),
@@ -1242,6 +1315,21 @@ mod tests {
                 32753,
                 255,
             ),
+            // Chapter 103's bowman `1/9` on block 933 (run945b, item
+            // 3271, `docs/GOLDEN.md` §139): facing 319°, offset (−59,
+            // −65), where the two rows above alone gave (−59, −66) and
+            // flew the arrow one frame short.
+            (
+                crate::anim::ATTACK1,
+                12,
+                15912,
+                16200,
+                -483_196_928,
+                82,
+                15853,
+                16135,
+                245,
+            ),
             (
                 crate::anim::ATTACK3,
                 15,
@@ -1483,6 +1571,52 @@ mod tests {
         assert_eq!((at.x, at.y), (6466, 8872));
         for (anim, time) in [(11, 12), (12, 6), (13, 27)] {
             assert!(bay(34, anim, time, 0).is_some(), "every AttachPos row");
+        }
+    }
+
+    /// run943c's arrow from who=1's Archers `1/32` on 10674 (item 3255),
+    /// independent of the packet sweep the bays were fitted to: the
+    /// figure at (5400, 31416), angle −1239220224, `ATTACK2` at frame 9;
+    /// the dump's `AMMO` leaves from (5316, 31436), `total_time` 18.
+    #[test]
+    fn run943c_s_arrow_leaves_the_bow_hand() {
+        let at = launch_point(
+            Pos::new(5400, 31416),
+            Angle(-1_239_220_224),
+            1529,
+            crate::anim::ATTACK2,
+            9,
+            0,
+        );
+        assert_eq!((at.x, at.y), (5316, 31436));
+        for (anim, time) in [(11, 12), (12, 9), (13, 15)] {
+            assert!(
+                bay(1529, anim, time, 0).is_some(),
+                "every attack AttachPos row"
+            );
+        }
+    }
+
+    /// run943b's javelin from who=1's Javelineers `1/27` (item 3255),
+    /// independent of the packet sweep: the figure at (4872, 31272),
+    /// angle −895811584, `ATTACK1` at frame 12; the dump's `AMMO` leaves
+    /// from (4820, 31215) on block 10727, `total_time` 18.
+    #[test]
+    fn run943b_s_javelin_leaves_the_throwing_hand() {
+        let at = launch_point(
+            Pos::new(4872, 31272),
+            Angle(-895_811_584),
+            1441,
+            crate::anim::ATTACK1,
+            12,
+            0,
+        );
+        assert_eq!((at.x, at.y), (4820, 31215));
+        for (anim, time) in [(11, 12), (12, 6), (13, 27)] {
+            assert!(
+                bay(1441, anim, time, 0).is_some(),
+                "every attack AttachPos row"
+            );
         }
     }
 

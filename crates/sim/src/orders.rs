@@ -1011,6 +1011,290 @@ pub(crate) fn kill_garrison_order_steps<C, K: Copy>(
     }
 }
 
+/// What `Unit::ungroup_move_order@005fd140` reads and does, one method a
+/// step of the original's own order (item 3268's sweep,
+/// `crate::sweep::unit_ungroup_move_order`). The original keeps each
+/// unit's orders in a circular list whose **head** is the order at the
+/// *back* of this crate's deque and whose last link is the front, a
+/// cursor walking `next` from the head; every method here is one read or
+/// write of that list or one callee of the function.
+pub trait UngroupView {
+    /// A unit.
+    type U: Copy;
+    /// An order object on a unit's list.
+    type O: Copy;
+    /// The group order's record (`get_group_move_order`'s answer).
+    type G: Copy;
+    /// A fresh order object (`OrdersMemManager::get_obj`'s answer).
+    type N: Copy;
+    /// `UnitData::is_captain` (vslot `+0xe8`).
+    fn is_captain(&mut self, u: Self::U) -> bool;
+    /// `units[player][o_up]`; `None` is the port's guard, never the
+    /// original's (it walks whatever the table holds).
+    fn up(&mut self, u: Self::U) -> Option<Self::U>;
+    /// `units[player][o_down]` when `o_down >= 0` and that unit's `+8`
+    /// bit 0 is set, else the walk ends.
+    fn down(&mut self, u: Self::U) -> Option<Self::U>;
+    /// With a head (`+0xdc`) the cursor moves onto it (`+0xd4`, data
+    /// `+0xcc`, metric `+0xd0`).
+    fn start_cursor(&mut self, u: Self::U);
+    /// The list's count (`+0xd8`) is not zero.
+    fn has_orders(&mut self, u: Self::U) -> bool;
+    /// The cursor's data (`+0xcc`), `None` when null.
+    fn cursor_order(&mut self, u: Self::U) -> Option<Self::O>;
+    /// vslot `+0x110` is non-null and its record's `+0x5c` is `id` —
+    /// asked twice (null test, then the value) when the first is non-null.
+    fn carries(&mut self, o: Self::O, id: i64) -> bool;
+    /// The list has a head (`+0xdc` non-null).
+    fn has_head(&mut self, u: Self::U) -> bool;
+    /// `d4 = [d4]` and the cursor's data and metric follow.
+    fn advance(&mut self, u: Self::U);
+    /// The cursor node is the head (`+0xd4 == +0xdc`).
+    fn at_head(&mut self, u: Self::U) -> bool;
+    /// vslot `+0x98`: the group order's record.
+    fn group_record(&mut self, o: Self::O) -> Self::G;
+    /// The record names `u` itself (`+0x54` the unit's id, `+0x58` its
+    /// player).
+    fn is_leader(&mut self, u: Self::U, g: Self::G) -> bool;
+    /// vslot `+0x10` of the record: its `OrderIndex`.
+    fn kind(&mut self, g: Self::G) -> i32;
+    /// `OrdersMemManager::get_obj(kind)`.
+    fn get_obj(&mut self, kind: i32) -> Self::N;
+    /// The `GROUP_ATTACK_TO` arm's casts and `MoveOrder::operator=`.
+    fn assign_attack(&mut self, n: Self::N, g: Self::G);
+    /// The `GROUP_MOVE` arm's cast and `MoveOrder::operator=`.
+    fn assign_move(&mut self, n: Self::N, g: Self::G);
+    /// A non-leader's new order loses `PATHED` (when `!leader`), then
+    /// `dest = 0` and `orig = (x, y)`.
+    fn finish(&mut self, n: Self::N, leader: bool);
+    /// `LinkListBase::remove_current` on the cursor.
+    fn remove_current(&mut self, u: Self::U);
+    /// `OrdersMemManager::give_obj(old)`.
+    fn give_obj(&mut self, o: Self::O);
+    /// `LinkListBase::add(new)`.
+    fn add(&mut self, u: Self::U, n: Self::N);
+    /// `head = head->next`: the fix-up after the add.
+    fn head_next(&mut self, u: Self::U);
+    /// `Unit::kill_current_path`.
+    fn kill_current_path(&mut self, u: Self::U);
+}
+
+/// The whole of `Unit::ungroup_move_order@005fd140` (item 3268). `skip_walk`
+/// is the second argument (every caller passes 0): non-zero skips the walk
+/// up to the captain. The walk goes up while `is_captain` is false, runs
+/// [`ungroup_unit_steps`], and goes down `o_down` while the next unit
+/// lives, the later units skipping the walk up.
+pub fn ungroup_move_order_steps<V: UngroupView>(v: &mut V, this: V::U, id: i64, skip_walk: bool) {
+    let mut at = this;
+    let mut skip = skip_walk;
+    loop {
+        if !skip {
+            loop {
+                if v.is_captain(at) {
+                    break;
+                }
+                match v.up(at) {
+                    Some(n) => at = n,
+                    None => break,
+                }
+            }
+        }
+        ungroup_unit_steps(v, at, id);
+        match v.down(at) {
+            Some(d) => {
+                at = d;
+                skip = true;
+            }
+            None => return,
+        }
+    }
+}
+
+/// One unit of the walk (`005fd19b`-`005fd3c6`): the cursor goes to the
+/// head; while the list has a count and the cursor a datum, the orders
+/// are asked from the head round (`005fd1e0`-`005fd230`) until one carries
+/// `id`, or the cursor is back on the head, whose datum is asked once more
+/// (`005fd235`). The record's kind `GROUP_ATTACK_TO` (`0x15`) or
+/// `GROUP_MOVE` (`0x13`) builds the plain order in a fresh object, takes
+/// the old one off the list, gives it back, and **adds** the new one
+/// (which makes it the head and the cursor) and then sets the head to the
+/// head's `next` — so the net is the new order at the list's **last**
+/// link (this crate's front) with the head where it was
+/// (`005fd3ab`). A non-leader loses its path whatever the kind.
+pub fn ungroup_unit_steps<V: UngroupView>(v: &mut V, u: V::U, id: i64) {
+    v.start_cursor(u);
+    if !v.has_orders(u) {
+        return;
+    }
+    let Some(mut o) = v.cursor_order(u) else {
+        return;
+    };
+    let o = loop {
+        if v.carries(o, id) {
+            break o;
+        }
+        if v.has_head(u) {
+            v.advance(u);
+        }
+        let at_head = v.at_head(u);
+        let next = v.cursor_order(u);
+        if at_head {
+            match next {
+                Some(x) => break x,
+                None => return,
+            }
+        }
+        match next {
+            Some(x) => o = x,
+            None => return,
+        }
+    };
+    if !v.carries(o, id) {
+        return;
+    }
+    let g = v.group_record(o);
+    let leader = v.is_leader(u, g);
+    if v.kind(g) == i32::from(index::GROUP_ATTACK_TO) {
+        let n = v.get_obj(i32::from(index::ATTACK_TO));
+        v.assign_attack(n, g);
+        v.finish(n, leader);
+        v.remove_current(u);
+        v.give_obj(o);
+        v.add(u, n);
+        v.head_next(u);
+    } else if v.kind(g) == i32::from(index::GROUP_MOVE) {
+        let n = v.get_obj(i32::from(index::MOVE_TO));
+        v.assign_move(n, g);
+        v.finish(n, leader);
+        v.remove_current(u);
+        v.give_obj(o);
+        v.add(u, n);
+        v.head_next(u);
+    }
+    if !leader {
+        v.kill_current_path(u);
+    }
+}
+
+/// [`UngroupView`] over this crate's own lists. The ring's head is the
+/// deque's back and its last link the front, so the cursor walks the deque
+/// from the back towards the front and wraps; the matched order is
+/// taken off in [`UngroupView::remove_current`] and pushed on the front
+/// in [`UngroupView::add`] (`docs/ORDERS.md` §20.2).
+struct SimUngroup<'a> {
+    sim: &'a mut Sim,
+    /// The unit being walked (the trait's `u` is passed where the
+    /// original reads it, but the order-level methods carry none).
+    unit: usize,
+    cursor: usize,
+    pending: Option<Order>,
+}
+
+impl SimUngroup<'_> {
+    /// The order at deque index `o`: its `OrderIndex` and group.
+    fn group_of(&self, o: usize) -> Option<(i32, GroupMove)> {
+        let order = self.sim.units[self.unit].orders.get(o)?;
+        match order.body {
+            Body::Move(m) => m.group.map(|g| (i32::from(order.index()), g)),
+            _ => None,
+        }
+    }
+}
+
+impl UngroupView for SimUngroup<'_> {
+    type U = usize;
+    type O = usize;
+    type G = (i32, usize);
+    type N = ();
+    fn is_captain(&mut self, u: usize) -> bool {
+        self.sim.units[u].captain
+    }
+    fn up(&mut self, u: usize) -> Option<usize> {
+        match self.sim.units[u].o_up {
+            Some(c) if c != u && self.sim.units[c].alive() => Some(c),
+            _ => None,
+        }
+    }
+    fn down(&mut self, u: usize) -> Option<usize> {
+        match self.sim.units[u].o_down {
+            Some(d) if self.sim.units[d].alive() => Some(d),
+            _ => None,
+        }
+    }
+    fn start_cursor(&mut self, u: usize) {
+        self.unit = u;
+        self.cursor = self.sim.units[u].orders.len().saturating_sub(1);
+    }
+    fn has_orders(&mut self, u: usize) -> bool {
+        !self.sim.units[u].orders.is_empty()
+    }
+    fn cursor_order(&mut self, _u: usize) -> Option<usize> {
+        Some(self.cursor)
+    }
+    fn carries(&mut self, o: usize, id: i64) -> bool {
+        self.group_of(o).is_some_and(|(_, x)| x.id == id)
+    }
+    fn has_head(&mut self, u: usize) -> bool {
+        !self.sim.units[u].orders.is_empty()
+    }
+    fn advance(&mut self, u: usize) {
+        let n = self.sim.units[u].orders.len();
+        self.cursor = if self.cursor == 0 {
+            n - 1
+        } else {
+            self.cursor - 1
+        };
+    }
+    fn at_head(&mut self, u: usize) -> bool {
+        self.cursor + 1 == self.sim.units[u].orders.len()
+    }
+    fn group_record(&mut self, o: usize) -> (i32, usize) {
+        let (k, g) = self.group_of(o).expect("the order just matched");
+        (k, g.leader)
+    }
+    fn is_leader(&mut self, u: usize, g: (i32, usize)) -> bool {
+        g.1 == u
+    }
+    fn kind(&mut self, g: (i32, usize)) -> i32 {
+        g.0
+    }
+    fn get_obj(&mut self, _kind: i32) {}
+    fn assign_attack(&mut self, _n: (), _g: (i32, usize)) {}
+    fn assign_move(&mut self, _n: (), _g: (i32, usize)) {}
+    fn finish(&mut self, _n: (), leader: bool) {
+        let (u, i) = (self.unit, self.cursor);
+        let order = &mut self.sim.units[u].orders[i];
+        if !leader {
+            order.flags &= !flag::PATHED;
+        }
+        if let Some(m) = order.move_mut() {
+            m.group = None;
+            m.has_waypoint = false;
+            // `orig_x`/`orig_y` take the order's own `x`/`y` here
+            // (`MoveOrder +0x44`/`+0x48`): `1/29`'s go `(39133, 21131)` →
+            // `(38952, 21048)` across run100's ungroup. `finish_insert`
+            // replays a copy to this point (item 738).
+            m.orig = Some(m.dest);
+        }
+    }
+    fn remove_current(&mut self, u: usize) {
+        self.pending = self.sim.units[u].orders.remove(self.cursor);
+    }
+    fn give_obj(&mut self, _o: usize) {}
+    fn add(&mut self, u: usize, _n: ()) {
+        // `add@0046d5a0` prepends and the fix-up hands the head back; the
+        // new order is the list's last link, the deque's front, and the
+        // unit's head order changes (item 487, `docs/ORDERS.md` §20).
+        let order = self.pending.take().expect("the order just removed");
+        self.sim.units[u].orders.push_front(order);
+        self.sim.new_head(u);
+    }
+    fn head_next(&mut self, _u: usize) {}
+    fn kill_current_path(&mut self, u: usize) {
+        self.sim.kill_current_path(u);
+    }
+}
+
 /// What `Unit::do_move` reports back to `work`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Did {
@@ -1890,46 +2174,19 @@ impl Sim {
         self.enqueue(u, order, pos);
     }
 
-    /// `Unit::add_gather_order(o, pos, action)` (§6.2): the unit joins the
-    /// building's chain **now**, before it has moved, if the type is a
-    /// gatherer; the non-flat fields are set for wood and ore.
+    /// `Unit::add_gather_order@0061a5c0(o, pos, action)` (§6.2): the unit
+    /// joins the building's chain **now**, before it has moved, if the type
+    /// is a gatherer; the non-flat fields are set for wood and ore. The
+    /// steps are [`add_gather_order_steps`], which the sweep also drives
+    /// over the emulated original's windows (item 3268).
     pub fn add_gather_order(&mut self, u: usize, b: usize, pos: QueuePos, action: bool) {
-        if pos == QueuePos::New {
-            self.units[u].path.clear();
-            self.close_orders(u);
-            self.clear_partial_path(u);
-            self.update_action(u);
-        }
-        let mut dist_mod = 0;
-        if self.is_gather_type(b) {
-            self.add_gatherer(b, u);
-            if !self.is_flat(b) && self.building_ident(b) != Ident::University {
-                dist_mod = if self.building_ident(b) == Ident::Mine {
-                    10
-                } else {
-                    4
-                };
-            }
-        }
-        let order = Order {
-            flags: if action { flag::ACTION } else { 0 },
-            body: Body::Gather(GatherOrder {
-                building: b,
-                tile: None,
-                wait: 0,
-                goto_build: true,
-                dist_mod,
-                been_there: false,
-            }),
+        let mut v = GatherSim {
+            sim: self,
+            u,
+            b,
+            order: None,
         };
-        self.units[u].orders.push_back(order);
-        if pos == QueuePos::First {
-            let o = self.units[u].orders.pop_back().expect("just pushed");
-            self.clear_partial_path(u);
-            self.units[u].orders.push_front(o);
-            self.new_head(u);
-        }
-        self.update_action(u);
+        add_gather_order_steps(&mut v, b, pos, action);
     }
 
     /// `Unit::add_attack_order(o, who, pos, mandatory, action)` (§7.1). The
@@ -5932,69 +6189,18 @@ impl Sim {
     /// that is **not** the leader also loses [`flag::PATHED`] and its
     /// path — so the group's shared plan dies with the formation and each
     /// unit re-plans for itself.
+    ///
+    /// The control flow is [`ungroup_move_order_steps`] (item 3268's
+    /// sweep, `crate::sweep::unit_ungroup_move_order`), run over this
+    /// crate's own order lists through [`SimUngroup`].
     pub(crate) fn ungroup_move_order(&mut self, u: usize, id: i64) {
-        let mut at = self.squad_captain(u);
-        loop {
-            self.ungroup_one(at, id);
-            match self.units[at].o_down {
-                Some(d) if self.units[d].alive() => at = d,
-                _ => return,
-            }
-        }
-    }
-
-    fn ungroup_one(&mut self, u: usize, id: i64) {
-        let Some(i) = self.units[u].orders.iter().position(|o| match o.body {
-            Body::Move(m) => m.group.is_some_and(|x| x.id == id),
-            _ => false,
-        }) else {
-            return;
+        let mut view = SimUngroup {
+            sim: self,
+            unit: u,
+            cursor: 0,
+            pending: None,
         };
-        let leader = match self.units[u].orders[i].body {
-            Body::Move(m) => m.group.is_some_and(|x| x.leader == u),
-            _ => false,
-        };
-        let order = &mut self.units[u].orders[i];
-        if !leader {
-            order.flags &= !flag::PATHED;
-        }
-        if let Some(m) = order.move_mut() {
-            m.group = None;
-            m.has_waypoint = false;
-            // `orig_x`/`orig_y` take the order's own `x`/`y` here
-            // (`MoveOrder +0x44`/`+0x48`): `1/29`'s go `(39133, 21131)` →
-            // `(38952, 21048)` across run100's ungroup. `finish_insert`
-            // replays a copy to this point (item 738).
-            m.orig = Some(m.dest);
-        }
-        // **The plain move is a *new* order at the head of the list, not
-        // the old one rewritten where it stood** (item 487,
-        // `docs/ORDERS.md` §20). `005fd2e2`-`005fd3a6`:
-        // `OrdersMemManager::get_obj(MOVE_TO)`, `MoveOrder::operator=` off
-        // the group order, then `remove_current` on the list, `give_obj`
-        // on the node just removed, and
-        // `LinkListBase<UnitOrder *, …>::add@0046d5a0` — which **prepends**
-        // (`head_node = new`) and leaves the cursor on it. So the
-        // conversion also *promotes*: whatever was current before the
-        // ungroup is now one place back.
-        //
-        // In place and at the head are the same thing for a unit whose
-        // group move is already the head order, which is every unit any
-        // capture on disk had reached until run100's `1/29`. That one has
-        // an `ATTACK` above its group move — on a farm that died on
-        // sim-frame 10230, kept alive by `do_attack`'s reload gate — so
-        // the two readings come apart: the original walks home from
-        // block 10241 and this crate stood still.
-        //
-        let order = self.units[u]
-            .orders
-            .remove(i)
-            .expect("the order just matched");
-        self.units[u].orders.push_front(order);
-        self.new_head(u);
-        if !leader {
-            self.kill_current_path(u);
-        }
+        ungroup_move_order_steps(&mut view, u, id, false);
     }
 
     /// `Unit::kill_group_move@005e3400` over the group
@@ -11031,6 +11237,137 @@ pub(crate) fn add_air_patrol_steps<C, O>(
         *f &= !flag::ACTION;
     }
     link(cx, o);
+}
+
+/// What `Unit::add_gather_order@0061a5c0` asks of the unit, the order and
+/// the building, in the order it asks (item 3268). [`GatherSim`] answers
+/// from this crate's state; the sweep answers from the emulated original's
+/// windows.
+pub trait GatherOrderView {
+    /// `QUEUE_NEW`'s opening: the path dropped (`+0x68 &= ~0x4000000`,
+    /// `+0xc0 = 0`), `close_orders(0)`, `clear_partial_path`,
+    /// `update_action`.
+    fn restart(&mut self);
+    /// `+0x68 &= ~0x400`, then `OrdersMemManager::get_obj(GATHER)` and its
+    /// slot `+0x6c` (a fresh order, its building, player, type short and
+    /// the node's `+4` of the building's data laid). SEAM: this crate's order
+    /// carries none of those bytes; the sweep's view lays them.
+    fn take_order(&mut self);
+    /// The building's data record, vslot `+0x90`: `build_flags & 0x40`.
+    fn is_gather_type(&mut self) -> bool;
+    /// `Build::add_gatherer(unit id, player)` on the building.
+    fn add_gatherer(&mut self);
+    /// The type's vslot `+0x94`: `build_flags & FLAT`.
+    fn is_flat(&mut self) -> bool;
+    /// `building_ident == University` (`Build::vftable`'s slot `+0x60`, else
+    /// the object's `+0xb8(0x1a4, 0)`).
+    fn is_university(&mut self) -> bool;
+    /// `building_ident == Mine` (`0x1a3`).
+    fn is_mine(&mut self) -> bool;
+    /// The order finished: `+0x25` set from `order.dist_mod != 0`, `+0x26`
+    /// `dist_mod`, the action bit by `action`.
+    fn lay(&mut self, order: GatherOrder, action: bool);
+    /// `LinkListBase::add` of the finished order (after the transport arm).
+    fn link(&mut self);
+    /// The tail: both ends' `div_3_table` tiles through
+    /// `WorldData::get_tregion`; when the regions differ and the leader's
+    /// transport level reaches the type's `transport_type` and the type can
+    /// ever transport, `+0x68 |= 0x800000`. SEAM: this crate has no such
+    /// flag, so [`GatherSim`] does nothing.
+    fn transport_arm(&mut self);
+    /// `Unit::update_action`.
+    fn update_action(&mut self);
+}
+
+/// **`Unit::add_gather_order@0061a5c0`'s steps** (item 3268): the head of
+/// `QUEUE_NEW`, the order's fields, the gather-type arm (`add_gatherer`,
+/// and for a non-flat non-University building `dist_mod` 10 for a Mine, 4
+/// otherwise), the tail and `update_action`.
+///
+/// **There is no `QUEUE_FIRST` arm.** The original appends the order with
+/// `LinkListBase::add` for every position but `QUEUE_NEW`'s opening and
+/// does not rotate the list as `add_garrison_order` does; this crate used to
+/// push it to the front and bump the head serial. No caller passes `First`
+/// (every call is `New` or `Last`), so no run could see it.
+pub fn add_gather_order_steps<V: GatherOrderView>(
+    v: &mut V,
+    b: usize,
+    pos: QueuePos,
+    action: bool,
+) {
+    if pos == QueuePos::New {
+        v.restart();
+    }
+    v.take_order();
+    let mut dist_mod = 0;
+    if v.is_gather_type() {
+        v.add_gatherer();
+        if !v.is_flat() && !v.is_university() {
+            dist_mod = if v.is_mine() { 10 } else { 4 };
+        }
+    }
+    v.lay(
+        GatherOrder {
+            building: b,
+            tile: None,
+            wait: 0,
+            goto_build: true,
+            dist_mod,
+            been_there: false,
+        },
+        action,
+    );
+    v.transport_arm();
+    v.link();
+    v.update_action();
+}
+
+/// [`GatherOrderView`] over this crate's state.
+struct GatherSim<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    b: usize,
+    order: Option<Order>,
+}
+
+impl GatherOrderView for GatherSim<'_> {
+    fn restart(&mut self) {
+        let u = self.u;
+        self.sim.units[u].path.clear();
+        self.sim.close_orders(u);
+        self.sim.clear_partial_path(u);
+        self.sim.update_action(u);
+    }
+    fn take_order(&mut self) {}
+    fn is_gather_type(&mut self) -> bool {
+        self.sim.is_gather_type(self.b)
+    }
+    fn add_gatherer(&mut self) {
+        self.sim.add_gatherer(self.b, self.u);
+    }
+    fn is_flat(&mut self) -> bool {
+        self.sim.is_flat(self.b)
+    }
+    fn is_university(&mut self) -> bool {
+        self.sim.building_ident(self.b) == Ident::University
+    }
+    fn is_mine(&mut self) -> bool {
+        self.sim.building_ident(self.b) == Ident::Mine
+    }
+    fn lay(&mut self, order: GatherOrder, action: bool) {
+        self.order = Some(Order {
+            flags: if action { flag::ACTION } else { 0 },
+            body: Body::Gather(order),
+        });
+    }
+    fn link(&mut self) {
+        let order = self.order.take().expect("laid before it is linked");
+        self.sim.units[self.u].orders.push_back(order);
+    }
+    fn transport_arm(&mut self) {}
+    fn update_action(&mut self) {
+        self.sim.update_action(self.u);
+    }
 }
 
 /// **`Unit::update_action@0060a870`'s steps** (item 2341), over a list of

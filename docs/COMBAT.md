@@ -10830,7 +10830,10 @@ both `vector_dist`s' operands):
 - `k` = 2, or 3 against a unit that is not a worker (`is_worker@0046fa10`,
   type `0x32`–`0x35`) when the guard has `unit_masks & 0x40000`;
 - a **follower** whose captain's action is an `ATTACK` on this target is
-  accepted at once, with `check_target` answering 1 (`0064a0eb`);
+  accepted at once, with `check_target` answering 1 (`0064a0eb`). The
+  captain's action is read through `Unit::update_action(captain)`
+  (`0064a0d4`) whenever it is an `ATTACK`, so the read rewrites the
+  captain's `orders_x/y` and `dest_angle` (`docs/AI.md` §258, run946);
 - `r = unit_guard_respond_range × k × 0x60`, with `constants +0x20`, 8
   tiles on both sides (`rules.xml`), so **1536** for a human;
 - `vector_dist(target − post) > r` → 0, then `vector_dist(me − post) > r`

@@ -140,6 +140,8 @@ mod roads_out_get_name;
 mod roads_out_set_neighbor;
 #[path = "roads_pieces_rot_byte.rs"]
 mod roads_pieces_rot_byte;
+#[path = "roads_redo_changed_roads.rs"]
+mod roads_redo_changed_roads;
 #[path = "roads_road_added.rs"]
 mod roads_road_added;
 #[path = "roads_road_cleared.rs"]

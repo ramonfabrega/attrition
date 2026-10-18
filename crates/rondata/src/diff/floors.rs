@@ -940,6 +940,16 @@ mod tests {
             WIDENING_CHAPTER_ONE_HUNDRED_AND_ONE,
         ),
         (
+            "ch102",
+            GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWO,
+            WIDENING_CHAPTER_ONE_HUNDRED_AND_TWO,
+        ),
+        (
+            "ch103",
+            GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THREE,
+            WIDENING_CHAPTER_ONE_HUNDRED_AND_THREE,
+        ),
+        (
             "restage",
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
             WIDENING_CHAPTER_THREE_RESTAGE,

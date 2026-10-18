@@ -23044,21 +23044,130 @@ fail), and the trainer widened to 0x1ad (the unit test fails).
 **Not established.** The Stable and Dock arms are read, not diffed: no capture on file holds a Cotton player's Stable
 or Dock unit in training. `rare_conquest`'s half of the gate is this crate's union in `Ledger::rare`, as for Wool.
 
-## 257. Reserved for the next item on the AI track
+## 257. The word 10695 → 10852: three Native American missile pieces leave from their bow hands (2026-10-18, item 3255)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 10695 (§256), ours 12 draws against theirs 11 at index
+10, ours `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`. No dump held a block past 8665,
+so the word's widening was owed (parked 3254).
 
-## 258. Reserved for the next item on the AI track
+**The widening** (run943, blocks 10689..10945 at run940's detail, `iroquois_frame_10695_window`,
+`run943_s_word_frame_is_widened_whole`): 2032 keys on base `37884575`, 47 of them the standing set on 10689 (the forms,
+the `SITE` regs, pools 64 and 66, `0/-1`'s `aggression[1]`, `1/23`'s and `1/24`'s second figures). It also put the
+leader's rare masks (`rare`, `rare_owned`, `rare_conquest`, the first three `bits 44`) and `rares_collected[0..44]` in
+the leader compare (`economy::Holdings::rares_collected`, filled by `rares::gather_rares`); run940 holds all 61 keys
+quiet, and two mutations held (ours' `rare` zeroed, the count +2).
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The direction: theirs' arrow left the bow hand.** The state first parts on block **10692**, three frames before the
+word: the Scout `0/0` (type 69) is struck on 10691 in theirs (`damage_frame` 10691, `hits_left` 46 against 50, its
+`FLEE_TO` (1992, 32280) on the block) and on 10692 in ours, for the same 4 damage. Every later row of `0/0`, and the
+word's `1/32` idle roll, is that frame's lag. The round is the Archers `1/32`'s (type 171, piece 1529), loosed on 10674
+on both sides with the same `Ammo::init` draws. run943c's `AMMO=5` record leaves from **(5316, 31436)**, `total_time`
+18; ours left from the figure's own (5400, 31416), 1975.7 units to the same landing, which is 19 frames at `PROJ_SPEED`
+100 against theirs' 1889.4 and 18. `launch::launch_point` had no row for piece 1529, so it took the module's own seam
+and launched from the figure.
+
+**Built.**
+
+- `launch::BAYS`, piece 1529 (`ARCHERS-NA-AGE0`): `(11, 12)`, `(12, 9)` and `(13, 15)`, read from run943c's
+  `RON_STATE_FRAME=10674` packet (`tools/recomp/get_position.py … entries 1529`, then `sweep`) and reproducing every
+  one of the 361 headings in x and y. `run943c_s_arrow_leaves_the_bow_hand` puts 10674's arrow at (5316, 31436).
+- `launch::BAYS`, piece 1441 (the Native American Javelineers, `1/27`): `(11, 12)`, `(12, 6)` and `(13, 27)` from the
+  same packet. `run943b_s_javelin_leaves_the_throwing_hand` puts run943b's javelin on 10727 at (4820, 31215) from the
+  figure's (4872, 31272).
+- `pivot::RELEASES`, piece 1545 (`HORSEARCHER-NA-AGE0`, the Horse Archers `1/51`, type 187, whose `HORSEARCHER`
+  `<RESTRICTION>` row the crate already loads), all four releases (`CHAR_ATTACKWALK` 18, `CHAR_ATTACK1` 18,
+  `CHAR_ATTACK2` 16, `CHAR_ATTACK3` 18), and `pivot::NODES` `(1545, 4)` at `(−6, −148)` hundredths. The rider looses
+  through the pivot arm of `GraphicPieces::get_position@0090b750`, which `GraphicEvents::execute_game_events@008e48e0`
+  takes when the piece has restrictions: the pivot node's vector at the facing, plus the release node's at the facing
+  **and** the turret's step. run943b prints `1/51`'s `turret_angles[0]` as 291307520 on 10687, 24° by
+  `fast_angle_to_degrees`, and at 24° both of its rounds reproduce: the `CHAR_ATTACKWALK` shot on 10687 at (4944,
+  31073) and the `CHAR_ATTACK3` shot on 10739 at (4928, 31089) (`run943b_s_horse_archer_looses_through_its_pivot`).
+  The emulator's own pivot arm over all 92,416 cells of each release parts from the integer form on nine; those are the
+  rows' `float_lands`, and `the_original_s_release_agrees_on_every_cell_for_piece_1545` holds every cell against the
+  tables in `~/ron-data/lab-experiments/2026-10-18-item-3255/` (made to fail by moving one land a unit).
+
+**The value diff, on the word's frames.** With the Archers' bays alone the word went 10695 → 10700 (ours 11 draws,
+theirs 12, index 10, ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`): the Scout is struck on 10691 on
+both sides, and run943 next parts on 10701, `0/2000` `build:damage` ours 0 against theirs 1 (`raid_stamp` 10700),
+which is the Horse Archers' 10687 round still leaving from the figure (5034, 31074). With all three pieces, **10852**:
+ours 25 draws, theirs 30, index 3, ours `Unit::close+0xcb6`, theirs `605fe5`. run943's widening holds **456** keys: the
+47 standing, then the state first parts on block **10843**, the Archers `1/32`'s `dest_angle` ours −786038784 against
+theirs −792788992. The word's own block 10853 follows it (`0/3`'s `death:extra`, who=1's metal bucket 44 against 59,
+and the clocks of `1/25`..`1/57`).
+
+**Not established.** Why `1/32` turns to a different angle on 10843: that is the next item's frame, and its widening is
+run943's own window. The 1441 bays are diffed on one round (10727) and the 1545 releases on two (10687, 10739); the
+other rows of each are the packet's and the emulator's, not a dump's.
+
+## 258. The Iroquois 10843: a follower's `check_target` reads its captain through `update_action` (2026-10-18, item 3269)
+
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 10852 (§257), ours 25 draws against theirs 30 at index
+3, ours `Unit::close+0xcb6`, theirs `605fe5`; run943's widening (456 keys) first parting on block 10843, the Archers
+`1/32`'s `dest_angle` ours −786038784 against theirs −792788992.
+
+**The widening on 10843, both directions.** One row on the block, and every other key of every unit agrees. `1/32`
+(TI 171, `ARCHERS`, land, the squad captain of `1/33` and `1/34` by `o_up`) took the Citizen `0/3` (TI 50) as its
+target on 10842 on both sides (`new_ord` 1, `in_range` 0), and on 10843 both sides turn it to −792788992 in `fight`'s
+`Unit::set_angle`: the figure's `angle` and `des_angle` and the unit's `heading` agree. Only the unit's `dest_angle`
+(`UnitData +0x58`) differs. Ours catches up on 10844 (`RON_DEBUG_UNIT` now prints `des`), so the row is a one-frame lag
+of the copy, not a different angle. The control is `1/33`: it turns on 10844 and its `dest_angle` follows on 10845, on
+both sides.
+
+**Who copies it: `1/34`.** `dest_angle` has one writer of note, `Unit::update_action@0060a870` (`+0x58 = +0x50` when no
+move step leads). In ours the frame's only call for `1/32` is `work`'s own, before the dispatch (a backtrace probe,
+reverted whole). run946 is a packet on 10842. `step4.py --entry 0065dce0` (`Objects::process_all`, this `c0ab70`)
+reproduces the frame: `set_angle` writes −792788992 at instruction 132618, and an `update_action` on `1/32` at 137487
+copies it. Its caller is **`Object::check_target+0x2d9`** (`0064a0d4`), called by **`1/34`'s** `fight+0x841` on the
+same target `0/3`. Running `1/32`'s own `Unit::process` alone puts every `update_action` before the turn.
+
+**The mechanism.** It is `check_target`'s guarding arm (`param_5`; COMBAT §63.1). When the asker is not a captain
+(vslot `+0xe8`), it takes its squad captain (vslot `+0xe4`). If the captain's `action_type` is `ATTACK`, it reads that
+action **through `Unit::update_action(captain)`**, and only then compares the target. The read writes the captain's
+`orders_x/y` and `dest_angle`, whatever the target. Ours' `Sim::guard_leash` read the action bare.
+
+**Built.** `guard_leash` calls `update_action` on the captain when the captain's action is an attack, before the
+target test; it and `guard_check_target` take `&mut self`. run943's widening goes **456 → 455** keys and first parts
+on the word's own block 10853. The mutation (the call dropped) fails `run943_s_word_frame_is_widened_whole` (exit 101,
+`tools/mutate.py`).
+
+**The word does not move**: 10852, ours 25 against theirs 30, index 3. Its block 10853 is the Citizen `0/3`'s death on
+frame 10852 on both sides, with `death:extra` ours 1 against theirs 0 and who=1's metal ours 44 against theirs 59.
+Theirs' index-3 draw is `Unit::plunder+0x4e5`: the read is The Despot's unit plunder (`THEDESPOT_UNIT_PLUNDER` 15),
+"not modelled" in `docs/NATIONS.md`, and it is parked under item 3269's heading as the next word's frame.
+
+**Not established.** The other callers of `check_target` with `param_5` set reach the same `update_action`. This item
+diffs one of them, `fight`'s guard call, on one frame; `find_nearby_target`'s calls for a follower are the same code
+path and are not separately diffed. The plunder is read, not built.
 
 ## 259. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 260. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 261. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 262. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 263. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

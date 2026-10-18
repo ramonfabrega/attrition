@@ -16,14 +16,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 6 h 02, 92.89 USD, 52.0 minutes waiting a landing against 33.6** (DECISIONS 81; the sweep lanes' fan-outs, two to four
 lane gates a landing). **The forty-fourth tranche's base is `6db69429`**; last whole gate `d58dc7c7` (green, 6 of 6; rondata 972, sim 1714; release 9.0 minutes).*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10695 of 12658 (3211, 3231, 3242,
-  3248), its widening owed as 3255; `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10852 of 12658 (3211, 3231, 3242,
+  3248, 3255: run943 widened whole); `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
   1477 → 1512, **port 311 → 347**; the battery's median 4770. Built, red first: six tools and guards (DECISIONS 81).
-- **Lanes: none live** — the forty-fourth tranche opens on four unspawned: 3255 AI (run 943, AI §257, JK), 3263 rules
-  (run 944, GOLDEN §137, JN), 3261 shape (JM), 3259 the nations seat (JL). Next 3266, run 945. Pools: GOLDEN §138–140,
-  AI §258–259, park JO–JR. **Ramon's**: three stray `agent-*` worktrees (`git worktree remove --force`, refused the
-  pass), the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
-- **Fable backlog: 10 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265).
+- **Lanes: four live, landings 7 of 20** (3263, 3259, 3255, 3267, 3268, 3271, 3269): 3279 AI (run 948, AI §259, JU),
+  3274 rules (run 947, GOLDEN §140, JT), 3261 shape (JM), 3272 the nations seat (JS). Next 3281, run 949. Pools: GOLDEN
+  §141–144, AI §260–263, park JV–JZ. The stray `agent-*` worktrees are gone (one by the gate's own remedy, two by Ramon, 2026-10-18).
+  **Ramon's**: the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
+- **Fable backlog: 13 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265, 3276, 3277, 3280).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -32,10 +32,10 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: GreatLakesIroquoisTier3 w10695 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1512 of 3611 · port 347 · layout 1165
+Battery word: GreatLakesIroquoisTier3 w10852 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
+Census: simulation backed 1525 of 3611 · port 359 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · 94 closed
+Golden: every chapter closed · 96 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — spawn the four unspawned items on four
@@ -45,24 +45,23 @@ lanes (3255 the AI word's on `--model 'claude-opus-5-5[1m]' --effort medium`; 32
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3255 the AI word's (Opus); 3263, 3261 and 3259 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10695. Take the first unstarted item unless a better
+3279 the AI word's (Opus); 3274, 3261 and 3272 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10852. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3255. **The battery word, 10695 of 12658 (`GreatLakesIroquoisTier3`), its widening owed** (parked 3254; 3248 moved it
-    8415 → 10695 with `train_time`'s Cotton arm, a Barracks, Stable or Dock unit 25% faster, AI §256, run940; value diff
-    on 8416: theirs' Javelineers `1/48`..`1/50` born at a clock of 16200 against ours' target 18750, rare mask `080000` →
-    `081000`): ours 12 draws against theirs 11 at index 10 — ours `Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`.
-    No dump of this lobby holds 8665..12658 (run100 spans 9340..10900 on Great Lakes, run53's game): the
-    capture over 10689..10945 at run940's detail (`LEADERS=9`, `GUYS=4`, run 943), widened whole on the word's frame
-    both directions; and the rare masks read — `bits`/`bit_values`, `rares_collected` — beside `leader.rs`'s `resources`
-    compare, their key leaving `coverage.rs`'s unread pin (3254 (b), Loop 3256). Standing: run940's 61 keys (3254 (a)). AI §257.
+3279. **The battery word, 10852 of 12658 (`GreatLakesIroquoisTier3`), on its own block** (parked 3278; 3269 closed
+    run943's 10843 — theirs' `1/32` `dest_angle` is `Object::check_target+0x2d9`'s `update_action` on the squad
+    captain, from `1/34`'s fight; `guard_leash` now makes the call; run943's widening 456 → 455 keys, AI §258): ours 25
+    draws against theirs 30 at index 3 — ours `Unit::close+0xcb6`, theirs `Unit::plunder+0x4e5`. The widening first
+    parts on 10853: the Citizen `0/3` dies on 10852 on both sides, `death:extra` ours 1 against theirs 0, who=1's
+    `leader:bucket[4:metal]` ours 44 against theirs 59 (`THEDESPOT_UNIT_PLUNDER` 15). The reading names The Despot's
+    `Unit::plunder@00605b00`, "not modelled" in `docs/NATIONS.md`; build what the 10853 diff proves. AI §259.
 
-3263. **Chapter one hundred and two, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
-    chapter; run 944 minted here): 3253 closed chapter 101 at 1500 on its first take, no sim change (two idle hoplite
-    squads beside a Sabotaged Tank's wreck, run942, GOLDEN §136): the idle stance never searched, so the wreck on the
-    chain stays unread (parked 3262, 3235). Candidates by what a failure would teach: a unit that must search beside
-    the wreck (a shooter on an aggressive stance, or one that takes damage there so `alarm` runs), and a building
-    shooter's near-face gate (3252's park). Stage it, capture it, open it at its first word. GOLDEN §137.
+3274. **Chapter one hundred and three's order at 935, a value with no draw** (parked 3273; 3271 closed the 934 wound
+    with a refit of the bowman bay `120/ATTACK1/12`, the launch y one short, GOLDEN §139): on run945's 935 the Attack
+    order that replaces hoplite `0/10`'s move agrees in flags, `in_range` and position, but ours writes `orders_y`
+    15984 (the position before the frame's step) and `dest_angle` −2147483648 against theirs 16008 and 1181417472
+    (after it); the stationary `0/11`, `0/12` agree. Name which caller adds the Attack on 935 on each side and whether
+    the original's thinks run before or after the step for a unit with a path; build only what that proves. GOLDEN §140.
 
 3261. **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 347; 3250 built all six of its
     batch, four against the crate's own method and two against extracted helpers, parked 3250 (a)–(h), Loop 3260):
@@ -71,12 +70,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `--claimed` the nations seat's tree) — each built against the crate's own method where it has one, or parked naming
     the generator flag it could not spell. `--kind sweep`.
 
-3259. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 340; 3239 built
-    all six of its batch, every one inline because the crate's methods take a whole `Sim`, parked 3239a–c, Loop 3257,
-    3258): `Animal::think_farm_animal`, `ObjectData::has_nuke`, `Army::do_transporting`, `BuildTypeData::blocked_site`,
-    `Animal::think_bird`, `Army::march_to_target` (`census.py --unbacked`, the `port` mark, `--claimed ../att-3250`) —
-    each built against the crate's own method where it has one, or parked naming the generator flag it could not
-    spell. `--kind sweep`.
+3272. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 359; 3268 built
+    all six of its batch, with three sim fixes the sweeps forced — `add_gather_order`'s first rotation, `ungroup`'s
+    head-first scan, `update_seen`'s DETECT ring — parked 3268a–g): `City::check_upgrade`, `World::gather_at`,
+    `Build::add_gather_point`, `Unit::bank_aircraft`, `TechType::is_ultimate_preq`, `ObjectData::valid_target_const`
+    (`census.py --unbacked`, the `port` mark, `--claimed ../att-3261`) — each built against the crate's own method
+    where it has one, or parked naming the generator flag it could not spell. `--kind sweep`.
 
 ## How to maintain this file
 

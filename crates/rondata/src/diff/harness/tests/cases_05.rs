@@ -39,7 +39,8 @@ mod bodies {
         };
         pin_eq!(
             leader_rows,
-            624720,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            636000,
             "120 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
@@ -242,7 +243,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            1785658,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1817900,
             "343 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -423,7 +425,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            3670230,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            3736500,
             "705 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -617,7 +620,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            2665472,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            2713600,
             "512 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -878,7 +882,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            1337942,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1362100,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1003,7 +1008,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            1337942,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1362100,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1150,7 +1156,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            1337942,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1362100,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1387,7 +1394,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            1337942,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1362100,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1530,7 +1538,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            1337942,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1362100,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
