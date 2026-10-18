@@ -18,13 +18,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 of 12658 (3107, 3117, 3140), widened
   on run922 (3156), the food row's capture owed as 3170 (run 923); `EastIndiesGermanTier3` closed at 13519
   (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–94 closed; 95 at 1174 (3126, 3142, 3152, 3162), as 3175. Census
-  1463, **port 297 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
+  1469, **port 303 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
   median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
-- **Lanes: four live, landings 6 of 20** (3145, 3152, 3150, 3156, 3160, 3162): 3170 AI (run 923, AI §250, park HP),
-  3175 rules (GOLDEN §125, IF), 3166 shape (HN), 3172 nations (IE). Next 3177, run 925 (924 the `ch95pkt` packet).
-  Pools: GOLDEN §126–128, AI §251–255, park IG–IJ. Last whole gate: `dab91773`.
+- **Lanes: four live, landings 7 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166): 3170 AI (run 923, AI §250, park
+  HP), 3175 rules (run 925, GOLDEN §125, IF), 3182 shape (IG), 3172 nations (IE). Next 3183, run 926 (924 `ch95pkt`).
+  Pools: GOLDEN §126–128, AI §251–255, park IH–IJ. Last whole gate: `dab91773`.
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
-- **Fable backlog: 16 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176).
+- **Fable backlog: 18 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -34,7 +34,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w1772 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1463 of 3611 · port 297 · layout 1166
+Census: simulation backed 1469 of 3611 · port 303 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: ch95 w1174 of 1,200 · 87 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +46,7 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3170 the AI word's (Opus); 3175, 3166 and 3172 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
+3170 the AI word's (Opus); 3175, 3182 and 3172 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3170. **The battery word, 1772 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 3 draws against theirs 4,
@@ -61,11 +61,11 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     reads the target's heading, and the Tank's pivot node from the `ch95pkt` packet, run 924; parked 3173–3174). The
     frame first — `RON_DEBUG_UNIT=1/6@944-947` both sides, the whole cast on 945–947 — then the draw word. GOLDEN §125.
 
-3166. **The sweep's next shape batch: the next never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
-    score `Census:` port 297; 3150 built four, parked 3163–3164, Loop 3165): `Army::do_mustering`,
-    `UnitData::find_def_pos`, `Unit::add_patrol_order`, `SpellType::cast_pack`, `UnitData::home_base`,
-    `Unit::do_air_attack_ground` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each
-    built, or parked naming the generator flag it could not spell. `--kind sweep`.
+3182. **The sweep's next shape batch: the next never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
+    score `Census:` port 303; 3166 built six, parked 3177–3179, Loop 3180–3181): `ObjectsData::find_building_placed_at`,
+    `Group::is_attacking_near`, `Unit::check_idle`, `Unit::find_garrison_build`, `Caster::process_spells`,
+    `ObjectData::is_in_range` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each built,
+    or parked naming the generator flag it could not spell. `--kind sweep`.
 
 3172. **The battery's partings read for a nations term: `train_time`'s arms for the eight battery leaders, and the
     Turkish siege arm** (NATIONS §7.5; Ramon, the fortieth steer, DECISIONS 78; the score: the held-out battery's

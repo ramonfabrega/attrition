@@ -3742,6 +3742,14 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-second tranche's
 
+(3181) **`--answer-win` cannot answer null** (3166's "for the Loop" line, filed at its merge): `UnitData::find_def_pos`'s
+`get_action() == 0` arm is unreached because the window answer is never null. Candidate: an `--answer-win` null a third
+of the rows, as `--place-null` does, made to fail first on the starved arm. One reach.
+
+(3180) **An `@FILE` flag file is one token a line, not one flag with its value** (3166, filed at its merge): `--place x`
+on one line is read as a single argument and fails "invalid choice"; the help says "one a line". Candidate: the reader
+splits a line as the shell would, or the help names the token rule, made to fail first. One reach.
+
 (3176) **A run number reserved in a commander's note is not a reservation `brief.py` sees** (the commander, at 3162's
 merge): 3152's and 3162's notes offered run 923 "if needed", and 3170's brief reserved it with `--runs 923`; 3170's
 capture took `~/ron-golden/run923/` and 3162's packet landed under `ch95pkt` (settled as run 924, parked 3173).
@@ -7336,17 +7344,16 @@ The lane's third row (`--regen` drops the empty-log line) is filed as Loop 3111 
 
 Six built (do_mustering, cast_pack, find_def_pos, home_base, add_patrol_order, do_air_attack_ground); none parked as unbuildable. Numbered at the merge.
 
-- (3166-a) **The generator took every shape; the flags were already there.** `do_air_attack_ground` is `--vtat-keep 0xb8:0x653790` and `--vtat-keep 0x158:0x60eda0`
+- (3177) **The generator took every shape; the flags were already there.** `do_air_attack_ground` is `--vtat-keep 0xb8:0x653790` and `--vtat-keep 0x158:0x60eda0`
   (two, repeated), the stubs' flags after the answers `a[13]`/`a[14]` (1 = the image function stands in the slot); a recorded `edx` (`--record-edx`) is
   `y - my` after `find_angle` and `0` before it, the stubs leave it alone. `add_patrol_order` is `--place s4:0:0x80` (a stub's answer laid as a *place*,
   so later places may name it): a `--place pN` cannot name an `--answer-win` window, those are numbered after the places (IndexError in the script at line 449).
-- (3166-b) **Starved arms**: `find_def_pos`'s `get_action` is answered by `--answer-win`, which cannot answer null, so `get_action() == 0` is unreached; `home_base`'s
+- (3178) **Starved arms**: `find_def_pos`'s `get_action` is answered by `--answer-win`, which cannot answer null, so `get_action() == 0` is unreached; `home_base`'s
   `get_inside >= 0` returns before the order list on 40% of rows. Flag wanted: an `--answer-win` that is null a third of the rows (as `--place-null`).
-- (3166-c) **Equivalent breaks** (not gaps): `add_patrol_order`'s `slot`, `need > slot` and `sh >= 1` (an arm where both operands agree for every drawn `len`, `sh`),
+- (3179) **Equivalent breaks** (not gaps): `add_patrol_order`'s `slot`, `need > slot` and `sh >= 1` (an arm where both operands agree for every drawn `len`, `sh`),
   `do_air_attack_ground`'s `local > 0x80000000` → `>=` (`~0x80000000 = 0x7fffffff` fails every threshold the same), `find_def_pos`'s `^ 0x63636` (bit 0 shifted out by `>> 4`).
-- (3166-e) 3166's "for the Loop": `--answer-win` that is null a third of the rows (as `--place-null`), so `get_action() == 0` is reachable.
-- (3166-d) **Loop**: `@FILE` flags are one *token* a line, not one flag with its value (`--place x` on one line is read as a single argument and fails with "invalid choice");
-  the help says "one a line". A `--regen` of a hand port rewrites the file's formatting (rustfmt restores it) — fine, but it shows 60 lines of diff.
+- 3166's "for the Loop" line is Loop 3181 (filed at the merge).
+- The `@FILE` one-token-a-line finding is Loop 3180 (filed at the merge).
 
 ## Parked by item 3112, 2026-10-17 — the generator flags were already there; is_engaged and set_up_insert swept, Census 1448 → 1450
 

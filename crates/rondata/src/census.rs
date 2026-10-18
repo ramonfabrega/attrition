@@ -167,7 +167,7 @@
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1463;
+pub const SIMULATION_BACKED: usize = 1469;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
@@ -176,7 +176,7 @@ pub const SIMULATION_BACKED: usize = 1463;
 /// measured 293 of 1459 on this tree). `tools/census.py --layers` prints
 /// both, the `Census:` line carries both, and the commander re-pins both at
 /// booking.
-pub const SIMULATION_PORT_BACKED: usize = 297;
+pub const SIMULATION_PORT_BACKED: usize = 303;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
