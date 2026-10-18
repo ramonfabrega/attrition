@@ -190,6 +190,8 @@ mod spell_type_cast_depopulate;
 mod spell_type_cast_jam_radar;
 #[path = "spell_type_cast_lock_gate.rs"]
 mod spell_type_cast_lock_gate;
+#[path = "spell_type_cast_pack.rs"]
+mod spell_type_cast_pack;
 #[path = "spell_type_cast_rally.rs"]
 mod spell_type_cast_rally;
 #[path = "spell_type_cast_research_project.rs"]
