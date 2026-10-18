@@ -900,6 +900,9 @@ impl Sim {
     /// move to.
     pub(crate) fn coll_remove(&mut self, u: usize) {
         let at = self.units[u].coll_at.take().unwrap_or(self.units[u].pos);
+        if std::env::var("RON_EXP3175").is_ok() {
+            eprintln!("X3175 f{} remove {}/{} coll_at {:?} pos {:?} body {:?}", self.frame, self.units[u].owner, self.units[u].index, at, self.units[u].pos, self.units[u].movement.body.pos);
+        }
         self.coll_paint(u, at, false);
     }
 
