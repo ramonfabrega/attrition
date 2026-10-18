@@ -513,6 +513,11 @@ pub struct Death {
     pub o: i32,
     pub first_frame: i64,
     pub cur_anim: i32,
+    /// `DeathObj::inc_time@008d5240`'s end: the frames the record lives,
+    /// `get_game_frames(cur_anim)` of the death piece plus the fade
+    /// (`docs/GOLDEN.md` §127). `None` where the install does not describe
+    /// the piece — the record is then never culled, as before.
+    pub life: Option<i64>,
 }
 
 /// One delivery of damage, for tests and logs.

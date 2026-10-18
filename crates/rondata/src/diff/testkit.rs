@@ -9747,14 +9747,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (block 5145 quiet: theirs' extra draw is `1/22`'s special coin under
     // `Army::use_scouts`, which writes nothing; `run926_s_word_frame_is_
     // widened_whole`). **Item 3186 moved it 5144 → 5576** (the scouts' and
-    // spies' turn), past run926's last block: 5576's widening is owed,
-    // parked 3201 (the lane's 3189), booked as item 3202 (run 928).
+    // spies' turn), past run926's last block: 5576's widening is item
+    // 3202's, run928 over 5570..5826 (`run928_s_word_frame_is_widened_
+    // whole`), whose first block already parts; run930 over 5556..5578 at
+    // `GUYS=4` walks it back to block 5564, the Slinger squad's
+    // `ATTACKTO` (the followers' offsets, the figures' speed 28 against
+    // 35), and names the word's drawer, `1/26`'s figure stopping on 5574
+    // and wrapping into its idle roll on 5576 (`run930_s_squad_is_
+    // widened_whole`).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
-        None,
+        Some("run930_s_squad_is_widened_whole"),
         3202,
-        None,
+        Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_SQUAD_930),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

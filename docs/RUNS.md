@@ -17931,6 +17931,48 @@ SHA-256 `086832113e9837cc97ff6119411217faeb589a836fd777f18d0b08586d1a1132`.
 **What it holds**: `diff::iroquois_word::run926_s_word_frame_is_widened_whole` (257 blocks, 32 keys, the standing set).
 Block 5145 is quiet on both sides; without `Army::use_scouts` the window first parts on 5156 (`1/4`'s move order). The
 window is in the coverage driver's slice.
+
+## run928 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 5576's widening (5570..5826) (2026-10-18, item 3202, `att-3202`)
+
+`docs/AI.md` §252. **What the disk could not answer**: run926 ends at block 5394 and run897b is `cover=0`, so no dump of
+the lobby held a block between 5394 and 12658. Six blocks before the word's block 5577, 250 after. run926's recipe:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run928 --map 14 --end-frame 5832 --timeout 10800
+--log-window 5570 5827 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 18 --cover cover=0
+--profile DIFFICULTY=3`.
+- Pool lane 1, 05:54:47–06:10:40 (953 s), `success`, `settings_restored`, 5833 frames, `map_style 14`, seed 12345,
+  players `(0,4,7),(1,18,1)`; 258 `BEGIN FRAME`s. `rngcmp.py rontrace-run897b.log rontrace-run928.log`: **5833
+  identical, 0 differing**. Filed `filerun.py run928 greatlakes-iroquois-diff3-window-5570-5827`.
+- Minutes waited on another lane: none (the lane was `free` at launch).
+
+Archive `gamelog-run928-greatlakes-iroquois-diff3-window-5570-5827.txt`, 430,617,776 bytes,
+SHA-256 `90d11946d28491e9e4dcbdcd6001a02a1cc9c408f0c7439590375761fb60be33`.
+
+Archive `rontrace-run928.log`, 26,282,688 bytes,
+SHA-256 `c9582429134667905770753fecc869ac1874c7b46317667f76caad0063ef9b58`.
+
+**What it holds**: `diff::iroquois_word::run928_s_word_frame_is_widened_whole` (257 blocks, 622 keys). The window's
+first block already parts (the Slinger squad `1/25`..`1/27`), and `GUYS=2` prints no figure clock, so run930 walks it
+back. The window is in the coverage driver's slice.
+
+## run930 — the battery word: Great Lakes, Iroquois at difficulty 3, run928's walk-back at `GUYS=4` (5556..5578) (2026-10-18, item 3202, `att-3202`)
+
+`docs/AI.md` §252. Run 929 is 3205's (the commander's word). **What the disk could not answer**: run928's first block,
+5570, already parts, and its `GUYS=2` prints no `cur_anim`/`cur_time`, which the word's idle roll needs. Recipe as
+run928 with `--end-frame 5584 --log-window 5556 5579` and `GUYS=4`.
+- Pool lane 1 (`free` at launch), 06:17:43–06:19:14 (101 s), `success`, 5585 frames; 24 `BEGIN FRAME`s.
+  `rngcmp.py rontrace-run897b.log rontrace-run930.log`: **5585 identical, 0 differing**. Filed `filerun.py run930
+  greatlakes-iroquois-diff3-window-5556-5579-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run930-greatlakes-iroquois-diff3-window-5556-5579-guys4.txt`, 41,393,980 bytes,
+SHA-256 `11ab943ae1ea56cf440c97fe12b770e8d9cf711375bd51fcb047d92769d311ed`.
+
+Archive `rontrace-run930.log`, 25,591,712 bytes,
+SHA-256 `347e5a2543aa96733f04dfde860f55d879c16a2603e81d903e563812f9610bc4`.
+
+**What it holds**: `diff::iroquois_word::run930_s_squad_is_widened_whole` (23 blocks, 115 keys). The state first parts
+on block 5564, the squad's `ATTACKTO`: the followers' offsets, and the figures' speed 28 against 35. The word's drawer
+is `1/26`'s figure, which stops on 5574 and rolls its idle on 5576. The window is in the coverage driver's slice.
 ## run927 — chapter ninety-six: the death object's cull (2026-10-18, item 3191, `att-3191`)
 
 `docs/GOLDEN.md` §126. **What the disk could not answer**: no dump held a death object's cull measured against the piece and animation (ch95 ended before the second Tank's record did). Recipe `tools/gamelog/golden/chapter96.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch96/map-14/`, 1,501 frames, seed 12345. About twenty minutes waited on run926's hold of the lane.

@@ -7578,7 +7578,7 @@ Two built of the six; four not attempted past reading, each with the flag it wou
 
 ## Parked by item 3191, 2026-10-18 — chapter 96: the cull measured, closed at 1500
 
-- (3203; the lane's 3191a, booked as item 3205) **The death object's cull** (GOLDEN §126; supersedes 3189's open check). The original's lifetime by death piece and animation: piece 194 anim 20 152 frames, anim 17 143, piece 375 anim 18 650, piece 434 anim 17 644 (piece 434 anim 18 is at least 564). It is the death piece's animation packet run by `DeathObj::inc_time@008d5240`; this crate does not load the packet, so `Sim::deaths` is grow-only and four `death:extra` rows stand in ch96 (946, 1235, 1395, 1476), two in ch95. What names the score: the standing rows on both golden chapters, and slot reuse (`Objects::find_free`) in any capture where a long-dead unit's number would be recycled. Check: where `DeathObj::inc_time` ends the record (`remove_from_world`, which slot is freed and when `hold_frames` stops), and the anim packet length source for piece 194/375/434 in the `.bha` data; a loader would read the install at runtime.
+- (3203; the lane's 3191a) ~~**The death object's cull**~~ built, item 3205 (GOLDEN §127): (GOLDEN §126; supersedes 3189's open check). The original's lifetime by death piece and animation: piece 194 anim 20 152 frames, anim 17 143, piece 375 anim 18 650, piece 434 anim 17 644 (piece 434 anim 18 is at least 564). It is the death piece's animation packet run by `DeathObj::inc_time@008d5240`; this crate does not load the packet, so `Sim::deaths` is grow-only and four `death:extra` rows stand in ch96 (946, 1235, 1395, 1476), two in ch95. What names the score: the standing rows on both golden chapters, and slot reuse (`Objects::find_free`) in any capture where a long-dead unit's number would be recycled. Check: where `DeathObj::inc_time` ends the record (`remove_from_world`, which slot is freed and when `hold_frames` stops), and the anim packet length source for piece 194/375/434 in the `.bha` data; a loader would read the install at runtime.
 - (3204) **Which late hoplites cross a released disc** — ch96's two hoplites added at 1000 agree through 1500 with the Tank's disc standing; no staging yet crosses it after the cull, so the disc's release (3190) is still unexercised. Needs the cull built first.
 
 ## Parked by item 3194, 2026-10-18 — the wonder-gated free-tech blocks
@@ -7597,21 +7597,23 @@ All six built, none parked for a missing flag. The unreached arms, numbered at t
 - (e) **`Unit::add_build_order`'s negative-index arm** (`param_1 < 0 || param_2 < 0`, the `0xffff` short) is unreachable under the emulator: the original reads the object table again at `5e52e9` with no guard, so the sweep draws `0..1` only.
 - (f) **`sweep_gen.py obj`'s `--wbias` OFF is decimal on the line the generator prints** (`m+148`, `c0+48`): a hand-built line that spells `m+0x18` in its flags and then `str.replace`s them by the hex spelling replaces nothing, and a `--regen` of the unchanged flags reads as a draw that did not move. Flag wanted: the header names the offset in the spelling it was given.
 
-## Parked by the next landing, slot IM — reserved
+## Parked by item 3202, 2026-10-18 — the Slinger squad's start on 5564
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3210; the lane's number, the commander's to confirm) **The Iroquois word 5576's state parts on block 5564: the
+  Slinger squad's first move** (`GreatLakesIroquoisTier3`, `docs/AI.md` §252; run930, `run930_s_squad_is_widened_whole`).
+  who=1's squad `1/25` (captain), `1/26`, `1/27` (TI 82, born on 5563 at the Barracks, group 64) takes an `ATTACKTO` to
+  (36552, 21960). Two fields part on that block. (a) The followers' formation offsets: `1/26`'s `off_x`/`off_y`
+  ours 456/600 against theirs 408/552, and `1/27`'s 456/312 against 408/360, i.e. the captain's (0, ±144) in ours
+  and (−48, ±96) in theirs. (b) The figures' `last_speed`: ours 28 (`myspeed`) against theirs 35, which is one
+  `UNIT_MOVE_SPEED` step more. The hypothesis for (b), unproven: an arm of `UnitData::speed@0060aae0` this crate
+  leaves a SEAM in `cast.rs`'s `unit_speed`. The Iroquois spear arm's `iroquois_spear_speed` is 1 in `rules.xml`,
+  but its `is` tests read the Spearmen line (TI 166..169), so the Slingers' entry to it is not shown; a packet at
+  `RON_STATE_FRAME=5564` that runs `UnitData::speed` on `1/26` settles it. The word stays at 5576: theirs' idle
+  roll is `1/26`'s figure stopping on 5574 and wrapping on 5576.
 
-## Parked by the next landing, slot IN — reserved
+## Parked by item 3205, 2026-10-18 — the death object's cull
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3208; the lane's 3205a, booked into item 3209) **A sea unit's end** (GOLDEN §127). The arm (`type +0x218 == 1`: the animation alone, no fade) is read from `inc_time`, not diffed. What names the score: a capture where a ship dies and its record's end is printed. Check: `DEATH_OBJS` of a dead ship across its lifetime.
 
 ## Parked by the next landing, slot IO — reserved
 
