@@ -22,9 +22,9 @@ budget (DECISIONS 78 amended), the AI word's on Opus 5.5 medium and three on Son
   bucket), as 3123. Census 1224 → 1450 (3078, 3104, 3112). Battery eight lobbies, median 1008 → 2207 (3092, the Chinese
   citizens) → 2270 (3107's swap); `GreatLakesChineseTier1` 176 → 5663 → 12712 (3092, 3113); 3096 and 3108 moved nothing.
 - **Lanes: four live** — 3117 the AI word's (run 918), 3123 the rules track's (run 919), 3120 shape, 3124 nations (§7.4's
-  rest). Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108, 3107, 3112, 3113, 3099. Next 3125, run 920 (Astra 900–909).
+  rest). Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108, 3107, 3112, 3113, 3099. Next 3126, run 920 (Astra 900–909).
   Pools: GOLDEN §121–124, AI §248–251, park HU–HZ.
-- **Fable backlog: 30 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111, 3116, 3118, 3122).
+- **Fable backlog: 31 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111, 3116, 3118, 3122, 3125).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

@@ -3742,6 +3742,14 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3125) **The `Golden:` line is a ninety-part list where one fact is news** (Ramon, 2026-10-17, for the steer): the
+line names every chapter `chN closed` in order — ninety-one parts, about 1,400 characters — and the one open word
+(`ch94 w1117 of 1,200`) sits at its end. `golden_line_verdict` (`rondata::diff::floors`) holds it part by part against
+`GOLDEN_WORDS`, which is why it grew: every chapter a guard can see must be on the line. Candidate: the line carries the
+open words and a count (`Golden: ch94 w1117 of 1,200 · 90 closed (ch1–ch93, gaps named)`), the verdict reads the count
+and the closed set from `GOLDEN_WORDS` itself, made to fail first on a closed chapter left off and on a stale open word.
+Ramon's to discuss at the steer.
+
 (3122) **A `calc_cost` record diff by `(from, to, dir)` is a third-use tool** (3099's "for the Loop" line, filed at
 its merge): diffing the original's `calc_cost` records against ours by key, grouped by ours' cell flags, found the
 army-mode flag behind chapter 94's 847 parting in ten minutes after four sessions of fog and danger reading; and
