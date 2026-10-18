@@ -128,6 +128,8 @@ mod borders_get_who;
 mod borders_is_border_hidden;
 #[path = "borders_out_no_border.rs"]
 mod borders_out_no_border;
+#[path = "borders_remove_border_region.rs"]
+mod borders_remove_border_region;
 #[path = "borders_save_last_who.rs"]
 mod borders_save_last_who;
 #[path = "build_add_attack_order.rs"]
