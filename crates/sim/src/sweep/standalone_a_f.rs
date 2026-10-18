@@ -52,6 +52,8 @@ mod animal_update_los;
 mod armies_diplo_change;
 #[path = "armies_emergency.rs"]
 mod armies_emergency;
+#[path = "armies_find_army.rs"]
+mod armies_find_army;
 #[path = "armies_find_city.rs"]
 mod armies_find_city;
 #[path = "armies_find_useful_army.rs"]
