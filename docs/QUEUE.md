@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-first pass (steer, Fable) done; the forty-second tranche (commander, Opus) opens from
-`75ccea37`**, four lanes (DECISIONS 78 (i), 79): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.*
+*2026-10-18, **the forty-second tranche (commander, Opus): 20 landings from `75ccea37`, drained**, four lanes (DECISIONS
+78 (i), 79), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate at the drain.*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 of 12658 (3140, 3156, 3170, 3186), widened
-  by 3202 (runs 928, 930: the state parts on 5564), owed as 3211; `EastIndiesGermanTier3` closed at 13519
-  (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–96 closed (3191: 96 at 1500); the death object's cull built (3205); 97 owed as 3209. Census
-  1477, **port 311 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
-  median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
-- **Lanes: one live, landings 19 of 20, draining** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186, 3191, 3194, 3205, 3202, 3200, 3207): 3211 AI, 3219 shape and 3221 nations unspawned (the drain), 3209 rules (run 929, GOLDEN §128, IP). Next 3223, run
-  931 (925 unused). Pools: GOLDEN §129–132, AI §253–255, park IQ–IV. Last whole gate: `b6ad1cc2` (green).
-- **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 → 5144 → 5576 of 12658 (3170, 3186),
+  widened by 3202 (runs 928, 930: the state first parts on 5564), owed as 3211; `EastIndiesGermanTier3` closed at 13519.
+  Chapters 95–97 closed (3175, 3191, 3209), 87 → 90; the death object's cull built (3205). Census 1459 → 1477, **port
+  293 → 311** (3150, 3166, 3182, 3200). Battery median 2270 → 4770 (3160); the nations lane's other five moved none (Loop 3188).
+- **Lanes: none live** — drained at twenty; unspawned: 3211 AI (AI §253), 3223 rules (run 931, GOLDEN §129), 3219
+  shape, 3221 nations. Landings: 3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186, 3191,
+  3194, 3205, 3202, 3200, 3207, 3209. Next 3224, run 932. Pools: GOLDEN §130–132, AI §254–255, park IR–IV.
+- **DECISIONS 79**: the whole gate every third *widening* landing. **Ramon's**: `kill 51257` (3143), the budget, the nations lane.
 - **Fable backlog: 21 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181, 3188, 3218, 3222).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -35,17 +35,17 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w5576 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1477 of 3611 · port 311 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · 89 closed
+Golden: every chapter closed · 90 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-second tranche from docs/QUEUE.md's handoff — spawn 3156 (Opus 5.5 medium), 3152, 3150
-and 3145 (Sonnet 5.5 medium) off `75ccea37`; merge, book, refill, gate, push, reap; count landings from `75ccea37`
-and stop at twenty with the handoff written and the pass cleared in.**
+**Opener: the forty-second pass (steer, Fable): measure the forty-second tranche (twenty landings from `75ccea37`,
+drained), ratify the marked rows, rule the 21 Loop items (3143 and the nations lane, 3188, are Ramon's), then clear
+`commander` into the forty-third tranche on the queue's four unspawned items (3211, 3223, 3219, 3221).**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3211 the AI word's (Opus); 3209, 3219 and 3221 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
+3211 the AI word's (Opus); 3223, 3219 and 3221 (Sonnet); all four unspawned at the drain, four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5576. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3211. **The battery word, 5576 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes), widened: its state first parts on
@@ -56,12 +56,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     arm of `UnitData::speed@0060aae0` left a SEAM in `cast.rs`; a packet at `RON_STATE_FRAME=5564` running it on `1/26`
     settles it (run 931 if taken). The word's extra draw is `1/26`'s idle roll on 5576. AI §253.
 
-3209. **Chapter ninety-seven, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
-    929 minted here): 3205 built the death object's cull (`DeathObj::inc_time@008d5240`'s end: the death piece's
-    animation plus the body or corpse fade, by the type's skeleton), clearing chapters 95 and 96's standing
-    `death:extra` rows. Candidates by what a failure would teach: a ship's death (parked 3208: the sea arm, animation
-    alone, read and not diffed) and a late unit crossing a released disc (parked 3204). Stage it, capture it, open it
-    at its first word. GOLDEN §128.
+3223. **Chapter ninety-eight, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
+    931 minted here): 3209 closed chapter 97 at 1500 on run929 with no sim change (a ship's death object ends on its
+    animation alone; 3208 diffed). Candidates by what a failure would teach: a late unit crossing a released disc
+    (parked 3204, which needs a staging that paths over a dead blocking-while-dead corpse's cell after the cull), and
+    the non-combat death sites that still clear the disc (parked 3190). Stage it, capture it, open it at its first
+    word. GOLDEN §129.
 
 3219. **The sweep's next shape batch: the next never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
     score `Census:` port 311; 3200 built all six of its batch, parked 3212–3216 and Loop 3218): `Army::use_spies`,
