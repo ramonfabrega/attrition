@@ -1,5 +1,7 @@
 //! Independent sweep partition; test bodies keep their original paths.
 
+#[path = "caster_process_spells.rs"]
+mod caster_process_spells;
 #[path = "support.rs"]
 mod support;
 #[allow(unused_imports)]

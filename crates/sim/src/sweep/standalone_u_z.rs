@@ -182,6 +182,8 @@ mod unit_do_idle;
 mod unit_do_spec_unit_anim;
 #[path = "unit_execute_events.rs"]
 mod unit_execute_events;
+#[path = "unit_find_garrison_build.rs"]
+mod unit_find_garrison_build;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
 #[path = "unit_get_speed.rs"]

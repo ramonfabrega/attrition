@@ -1,5 +1,11 @@
 //! Independent sweep partition; test bodies keep their original paths.
 
+#[path = "group_is_attacking_near.rs"]
+mod group_is_attacking_near;
+#[path = "guy_update_gpiece.rs"]
+mod guy_update_gpiece;
+#[path = "objects_data_find_building_placed_at.rs"]
+mod objects_data_find_building_placed_at;
 #[path = "support.rs"]
 mod support;
 #[allow(unused_imports)]
