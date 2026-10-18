@@ -5308,9 +5308,7 @@ impl Sim {
                 self.merchant_footprint(unit, false);
             }
         }
-        if std::env::var("RON_EXP3175").map_or(true, |v| v != format!("{}/{}", self.units[unit].owner, self.units[unit].index)) {
-            self.coll_remove(unit);
-        }
+        self.coll_remove(unit);
         self.chain_remove(unit);
     }
 

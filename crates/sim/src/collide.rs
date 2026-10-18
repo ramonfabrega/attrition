@@ -900,9 +900,6 @@ impl Sim {
     /// move to.
     pub(crate) fn coll_remove(&mut self, u: usize) {
         let at = self.units[u].coll_at.take().unwrap_or(self.units[u].pos);
-        if std::env::var("RON_EXP3175").is_ok() {
-            eprintln!("X3175 f{} remove {}/{} coll_at {:?} pos {:?} body {:?}", self.frame, self.units[u].owner, self.units[u].index, at, self.units[u].pos, self.units[u].movement.body.pos);
-        }
         self.coll_paint(u, at, false);
     }
 
@@ -2275,9 +2272,6 @@ impl Sim {
 
         let who = self.units[u].owner;
         let other = self.collider_of(u);
-        if std::env::var("RON_PROBE3175").is_ok() && who == 0 && self.units[u].index == 12 {
-            eprintln!("P3175 f{} resolve 0/12 collide_o {} collide_who {} collide {} other {:?} path {} repaths {} waiting {}", self.frame, self.units[u].collide_o, self.units[u].collide_who, self.units[u].collide, other.map(|o| (self.units[o].owner, self.units[o].index, self.units[o].waiting_on, self.units[o].collide, self.order_type(o))), self.units[u].path.len(), self.repaths[0], self.units[u].waiting_on);
-        }
         // `005f9d30:96`: `update_action` runs on every path past step 0
         // (step 1, the suicide attacker, is not modelled), and its
         // `orders_x/y` and `dest_angle` writes are the original's own.
@@ -2531,9 +2525,6 @@ impl Sim {
     /// §6 step 6: unwind the path stack to something worth walking, snap
     /// onto the cell centre, and plan on the 48-grid.
     fn collide_repath(&mut self, u: usize, other: Option<usize>) {
-        if std::env::var("RON_PROBE3175").is_ok() && self.units[u].owner == 0 && self.units[u].index == 12 {
-            eprintln!("P3175 f{} repath enter path {} repaths {} collide {}", self.frame, self.units[u].path.len(), self.repaths[0], self.units[u].collide);
-        }
         if self.units[u].path.is_empty() {
             return;
         }
@@ -2594,38 +2585,7 @@ impl Sim {
                 self.action_of(o)
                     .is_some_and(|a| self.units[o].orders[a].index() == index::ATTACK)
             });
-        let probe = std::env::var("RON_PROBE3175").is_ok() && self.units[u].owner == 0 && self.units[u].index == 12;
-        if probe {
-            self.trace_costs = true;
-            self.cost_marks.clear();
-            eprintln!("P3175 f{} pre pos {:?} path {:?}", self.frame, self.units[u].pos, self.units[u].path);
-        }
         let r = self.find_upath(u, anti);
-        if probe {
-            for m in self.cost_marks.iter().take(40) {
-                eprintln!("P3175   cost {:?}->{:?} dir {} step {} depth {} = {}", m.from, m.to, m.dir, m.step, m.depth, m.cost);
-            }
-            self.trace_costs = false;
-            self.cost_marks.clear();
-            for q in [Pos::new(14328, 16872), Pos::new(14328, 16920), Pos::new(14328, 16824)] {
-                let il = self.invalid_loc(u, q.tile(), false, true, false, true, false);
-                let dq = self.detect_quick(u, q, true);
-                eprintln!("P3175 cell {:?} invalid_loc {} detect_quick {}", q, il, dq);
-            }
-            for (k, v) in self.units.iter().enumerate() {
-                if (v.pos.x - 14328).abs() < 400 && (v.pos.y - 16900).abs() < 400 {
-                    eprintln!("P3175 near unit {} {}/{} at {:?} alive {}", k, v.owner, v.index, v.pos, v.alive());
-                }
-            }
-            for (k, b) in self.buildings.iter().enumerate() {
-                if (b.pos.x - 14328).abs() < 1500 && (b.pos.y - 16900).abs() < 1500 {
-                    eprintln!("P3175 near build {} {}/{} at {:?}", k, b.owner, b.index, b.pos);
-                }
-            }
-        }
-        if std::env::var("RON_PROBE3175").is_ok() && self.units[u].owner == 0 && self.units[u].index == 12 {
-            eprintln!("P3175 f{} find_upath anti {} -> {} path {}", self.frame, anti, r, self.units[u].path.len());
-        }
         // **`dest = 0`, on both arms** — `005f9d30`'s last two blocks are
         // the same store through `update_order()->get_move_order()`, and
         // the only thing the non-zero one adds is the pause roll. The
