@@ -87,9 +87,25 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // (0, ±144) off the captain in ours against (−48, ±96), and the
     // figures' speed 28 against 35 — and theirs' extra draw is `1/26`'s
     // figure, stopped on 5574, rolling its idle on 5576 (`docs/AI.md`
-    // §252). Unmoved.
-    count: 5576,
-    sequence: 5576,
+    // §252). **Item 3211 moved it 5576 → 5843** with
+    // `UnitData::is_modern_infantry@00607b40`'s tribe arm: an Iroquois
+    // player (`has_tribe_bonus(0x12)`) asks the type's `0x100` alone, so
+    // the Slingers (TI 82) take `do_move`'s × 5 / 4 — 28 → 35 — and
+    // `Form::compute_dests`' follower scatter, `1/26` (408, 552) and
+    // `1/27` (408, 360) on block 5564 on both sides. At 5843 ours 2
+    // draws, theirs 3, index 0: ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823` — the second squad's `1/28` (TI 166
+    // `IRQSPEAR`) stopping on its collision with `1/9` — widened on run932
+    // over 5826..6094. **The same item moved it 5843 → 6982** with
+    // `UnitData::speed`'s Iroquois spear arm (`IROQUOIS_SPEAR_SPEED`, +1
+    // on allied ground for the Spearmen line): that squad, born on 5809,
+    // stepped one point short from 5810. At 6982 ours 10 draws, theirs 15,
+    // index 5: ours `Guy::set_anim+0x97a < Animal::do_idle+0x19`, theirs
+    // `Leader::produce_building+0x1805`; past run932's last block, its
+    // widening owed (`docs/AI.md` §253).
+    count: 6982,
+    sequence: 6982,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -713,7 +729,68 @@ fn run928_s_word_frame_is_widened_whole() {
     // walking frame behind. The word's own block 5577 parts nothing new:
     // theirs' extra index-30 draw is an idle roll (`Guy::set_anim+0x97a`)
     // whose guy the capture's `GUYS=2` cannot name (`docs/AI.md` §252).
-    pin_eq!(w.firsts.len(), 622, "initial run928 baseline");
+    // Item 3211, on base 9e0fa5ee: 622 → 52 with the Iroquois arm of
+    // `is_modern_infantry`, the squad quiet; then the second squad
+    // `1/28`..`1/30` (TI 166, born on 5809) parted one point on 5810
+    // (`1/29` ours (45117, 22713) theirs (45116, 22712)), and 52 → 35 with
+    // `UnitData::speed`'s spear arm. Past the standing set what remains
+    // first parts on 5627 (`1/22`'s `blown`, ours 1 theirs 0) and 5673
+    // (`1/23`'s figure 1, ours (40682, 14692) theirs (40512, 14592)),
+    // neither a draw (`docs/AI.md` §253).
+    pin_eq!(w.firsts.len(), 35, "initial run928 baseline");
+}
+
+/// run932: the word 5843's window, blocks 5826..6094 at run918's detail
+/// with `GUYS=4` (item 3211) — from run928's last block, 250 past the
+/// word's own block 5844, with the figure clocks the word's
+/// `Guy::set_anim+0x97a` rolls need.
+pub(crate) const RUN932: &str =
+    "gamelog-run932-greatlakes-iroquois-diff3-window-5826-6095-guys4.txt";
+
+/// The window: block 5826 through 6094.
+pub(crate) const WIDENING_IROQUOIS_FRAME_5843: (i64, i64) = (5826, 6094);
+
+pub(crate) fn iroquois_frame_5843_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run932",
+        &[(RUN932, WIDENING_IROQUOIS_FRAME_5843.0)],
+        WIDENING_IROQUOIS_FRAME_5843,
+        1,
+        &[5844],
+        true,
+    )
+}
+
+#[test]
+fn run932_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_5843_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 269, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3211, on base 9e0fa5ee, with `is_modern_infantry`'s Iroquois
+    // arm: 734 keys, the word 5843's block 5844 holding `1/28` (TI 166)
+    // colliding with `1/9` in theirs (`collide_o` 9, `stopped` 1 on 5845)
+    // after the squad's start parted one point on 5810. With the spear
+    // arm, 41: the standing set, `1/22`'s `blown` (5883), the camp pool
+    // (5896) and `SITE[3].reg` (5976). The word moved past the window to
+    // 6982 (`docs/AI.md` §253). The move's value diff is this block.
+    pin_eq!(w.firsts.len(), 41, "initial run932 baseline");
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at
@@ -772,6 +849,10 @@ fn run930_s_squad_is_widened_whole() {
     // `cur_anim` 0, `end_time` 75 — which is the word's index-30
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`; theirs' third wing
     // beat is a bird's re-throw on the shifted stream (`docs/AI.md`
-    // §252).
-    pin_eq!(w.firsts.len(), 115, "initial run930 baseline");
+    // §252). Item 3211, on base 9e0fa5ee: 115 → 31, the standing set
+    // alone. With `is_modern_infantry`'s Iroquois arm the squad agrees on
+    // 5564 — `1/26` `off_x`/`off_y` 408/552, `1/27` 408/360, every
+    // figure's `last_speed` 35 on both sides — and through the window's
+    // end (`docs/AI.md` §253). The word's block in this widening.
+    pin_eq!(w.firsts.len(), 31, "initial run930 baseline");
 }

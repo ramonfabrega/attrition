@@ -1282,22 +1282,55 @@ impl Sim {
     /// (`0060add1`–`0060addc`) — or `myspeed` when that is larger
     /// (`cmovle`, `0060ae0e`): a march never slows a unit.
     ///
-    /// SEAM: the Iroquois spear bonus in allied ground; Alexander's arm
+    /// **The Iroquois spear** (`0060ab0x`–`0060ad0x`, item 3211): a unit
+    /// of the Spearmen line (`is(0xa6, 0)`) standing in a cell whose owner
+    /// its leader `is_ally` adds `IROQUOIS_SPEAR_SPEED[k]`, `k` the first
+    /// of `is(0xa6..0xa9, 1)` it answers, and nothing when it answers none.
+    /// run932's `1/28`..`1/30` (TI 166, born on 5809) step one point past
+    /// the squad before them in their own ground. The march arm compares
+    /// against `myspeed`, not this sum, and so replaces it.
+    ///
+    /// SEAM: Alexander's arm
     /// (the hero or the unit `is(0x166)`/`is(0x167)`, `× 384 >> 8`); and
     /// the hero auras below it — Spitamenes, Blucher, Porus, Charles,
     /// Napoleon — each behind a leader's power (`+0x59cc`..`+0x59e8`);
     /// none is carried.
     pub(crate) fn unit_speed(&self, u: usize) -> i32 {
-        let speed = self.units[u].movement.speed;
-        if self.units[u].is_gaia()
-            || self.unit_domain_of(u) != crate::attrition::Domain::Land
-            || !self.leader_marching(u)
-            || !self.near_marching_hero(u)
-        {
+        let base = self.units[u].movement.speed;
+        if self.units[u].is_gaia() || self.unit_domain_of(u) != crate::attrition::Domain::Land {
+            return base;
+        }
+        let speed = base + self.iroquois_spear_speed(u);
+        if !self.leader_marching(u) || !self.near_marching_hero(u) {
             return speed;
         }
         let march = self.tuning.forced_march_speed * crate::combat::UNIT_MOVE_SPEED;
-        march.max(speed)
+        march.max(base)
+    }
+
+    /// [`Sim::unit_speed`]'s spear term: zero off the line or off allied
+    /// ground.
+    fn iroquois_spear_speed(&self, u: usize) -> i32 {
+        const SPEAR: [crate::tech::TypeId; 4] = [0xa6, 0xa7, 0xa8, 0xa9];
+        let Some(tree) = self.unit_tree(u) else {
+            return 0;
+        };
+        let is = |x: crate::tech::TypeId, strict: bool| {
+            self.tech_tree.types.get(x).is_some() && self.tech_tree.is(tree, x, strict)
+        };
+        if !is(SPEAR[0], false) {
+            return 0;
+        }
+        let Some(o) = self.world.owner_at(self.units[u].pos).player() else {
+            return 0;
+        };
+        if !self.is_ally(self.units[u].owner, o) {
+            return 0;
+        }
+        SPEAR
+            .iter()
+            .position(|&x| is(x, true))
+            .map_or(0, |k| self.tuning.iroquois_spear_speed[k])
     }
 
     /// **The tank** — `Unit::process@00610bc0`'s air arm, taken for a type
@@ -1366,6 +1399,50 @@ mod tests {
     use crate::tech::{TypeDef, UnitTraits};
     use crate::world::{Cell, Terrain, World};
     use crate::{Pos, Sim, Tuning, Unit, UnitType};
+
+    /// **The Iroquois spear** (item 3211; `UnitData::speed@0060aae0`): a
+    /// unit of the line `is(0xa6, 0)` on a cell its leader is allied to
+    /// steps `IROQUOIS_SPEAR_SPEED[k]` more, `k` its strict `is(0xa6 +
+    /// k, 1)`; off allied ground, or off the line, nothing. run932's
+    /// `1/28`..`1/30` (TI 166). Made to fail with the term dropped and
+    /// with the ally test dropped.
+    #[test]
+    fn an_iroquois_spearman_steps_faster_on_allied_ground() {
+        use crate::world::Owner;
+        let mut world = World::new(8, 8);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+        let mut tuning = Tuning::RON;
+        tuning.iroquois_spear_speed = [1, 2, 3, 4];
+        let mut s = Sim::new(tuning, world, 2);
+        let mut t = crate::tech::TechTree::new();
+        while t.types.len() <= 0xaa {
+            t.add(TypeDef::unit("filler", UnitTraits::default()));
+        }
+        t.types[0xa7].from = Some(0xa6);
+        s.set_tech_tree(t);
+        let unit = |s: &mut Sim, row: usize| {
+            let ty = s.add_unit_type(UnitType {
+                tree: Some(row),
+                type_index: i32::try_from(row).unwrap(),
+                ..UnitType::default()
+            });
+            let mut u = Unit::new(1, 0, Pos::new(3 * 768 + 10, 3 * 768 + 10), 20);
+            u.ty = Some(ty);
+            u.movement.speed = 25;
+            s.add_unit(u)
+        };
+        let spear = unit(&mut s, 0xa6);
+        let pike = unit(&mut s, 0xa7);
+        let other = unit(&mut s, 0xaa);
+        let cell = Cell::new(3, 3);
+        assert_eq!(s.unit_speed(spear), 25, "unowned ground");
+        s.world.set_owner(cell, Owner::Player(1), Owner::None);
+        assert_eq!(s.unit_speed(spear), 26, "its own ground, entry0");
+        assert_eq!(s.unit_speed(pike), 27, "of the line from 0xa6, entry1");
+        assert_eq!(s.unit_speed(other), 25, "off the line");
+        s.world.set_owner(cell, Owner::Player(0), Owner::None);
+        assert_eq!(s.unit_speed(spear), 25, "another leader's, not allied");
+    }
 
     /// A tree whose rows are `TypeIndex`'s, up to Memnon, and one unit of
     /// player 1 for each of the General, the Spy, Memnon and a filler row,

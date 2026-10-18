@@ -193,6 +193,11 @@ pub struct Tuning {
     /// `ALEXANDER_FORCED_MARCH_SPEED`, `3/2` loaded as 8.8: the same
     /// march under Alexander (`0060ade2`–`0060ae04`); no capture has him.
     pub alexander_forced_march_speed: i32,
+    /// `IROQUOIS_SPEAR_SPEED`, four `entryN` of `1`: the `MOVES` points a
+    /// unit of the Spearmen line (`is(0xa6, 0)`) adds on ground its leader
+    /// is allied to, indexed by the strict `is(0xa6..0xa9, 1)` it answers
+    /// (`UnitData::speed@0060aae0`, item 3211).
+    pub iroquois_spear_speed: [i32; 4],
     /// Period, in frames, at which supply repairs damage. Zero means never,
     /// which is what ships.
     pub supply_heal_rate: i32,
@@ -1146,6 +1151,7 @@ impl Tuning {
         theceo_unit_range: 2,
         forced_march_speed: 42,
         alexander_forced_march_speed: 384,
+        iroquois_spear_speed: [1, 1, 1, 1],
         supply_heal_rate: 0,
         french_supply_heal_rate: 20,
         french_special_craft: 0,
@@ -1600,6 +1606,10 @@ impl Tuning {
             ),
             ("THECEO_UNIT_RANGE", Slot::Value(T.theceo_unit_range)),
             ("FORCED_MARCH_SPEED", Slot::Value(T.forced_march_speed)),
+            (
+                "IROQUOIS_SPEAR_SPEED",
+                Slot::Entries(&T.iroquois_spear_speed),
+            ),
             (
                 "ALEXANDER_FORCED_MARCH_SPEED",
                 Slot::Ratio256(T.alexander_forced_march_speed),

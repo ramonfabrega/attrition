@@ -7618,13 +7618,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IR — reserved
+## Parked by item 3211, 2026-10-18 — the Iroquois word 6982
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3229) **The Iroquois word 6982's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §253). Item 3211 moved the word
+  5576 → 5843 → 6982 with `is_modern_infantry`'s Iroquois arm and `UnitData::speed`'s spear arm. At 6982 ours 10
+  draws, theirs 15, index 5: ours `Guy::set_anim+0x97a < Animal::do_idle+0x19`, theirs
+  `Leader::produce_building+0x1805`, so theirs acted, in the AI's building turn. It is past run932's last block, 6094,
+  and no dump of the lobby holds a block between 6094 and 12658. The word owes a capture over 6976..7232, with
+  `LEADERS=9` for the make list. Two rows that are not draws stand before it: `1/22`'s `blown` (ours 1 against 0, from
+  5627 in run928 and 5883 in run932) and `1/23`'s second figure (from 5673).
 
 ## Parked by item 3223, 2026-10-18 — a late unit crosses a released disc
 
