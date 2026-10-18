@@ -17806,3 +17806,37 @@ SHA-256 `670ab03876bdda71f720cc352da75fcce66f103e2dd718dc4c779f9387080b3e`.
 
 Archive `rontrace-run917.log`, 280,195,520 bytes,
 SHA-256 `1fa5d1ea8a8153682b6006c478c5453a4444cc91222a3d3b620bf60e61f3a9b9`.
+
+## run918, run918b — the battery word: Great Lakes, Iroquois at difficulty 3, the word 1120's widening (1114..1370) and the gap behind it at a stride of 4 (38..1114) (2026-10-17, item 3117, `att-3117`)
+
+`docs/AI.md` §247. **What the disk could not answer**: run897 is the lobby's start (blocks 1, 36 and 37) and run897b its
+`cover=0` stream (setup and closing blocks only), so no dump of this lobby held a record between 37 and 12658. run886's
+windowed recipe on the lobby, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run918`: `--map 14
+--end-frame 1376 --timeout 7200 --log-window 1114 1371 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 18 --cover cover=0 --profile DIFFICULTY=3`. Its first block held the Scout `1/0` already parted, and run897's 37
+did not, so the gap took **run918b**, the first capture under `--stride` (Loop 3085, built by this item): the same recipe
+with `--end-frame 1120 --log-window 37 1114 --stride 4`, into `~/ron-golden/run918b`.
+- run918: pool lane 1, 23:20:41–23:36:48 (967 s), `success`, `settings_restored`, 1377 frames, `map_style 14`, seed 12345,
+  players `(0,4,7),(1,18,1)`; 258 `BEGIN FRAME`s (1114..1370 and the closing 1377). `rngcmp.py rontrace-run897b.log
+  rontrace-run918.log`: **1377 identical, 0 differing**.
+- run918b: pool lane 1, 23:44:17–00:00:24 (967 s), `success`, 1121 frames, receipt `staged.stride` 4; 271 `BEGIN FRAME`s
+  (38, 42, …, 1114 and the closing 1121). `rngcmp` against run897b: **1121 identical, 0 differing**. The same wall clock as
+  run918's: at these frames the game's pace bounds it, not the logger.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run918-greatlakes-iroquois-diff3-window-1114-1371.txt`, 410,991,566 bytes,
+SHA-256 `30f96db6af429af188ee124a3bb188ec79b4e02800c52642892ec07b9e3b0904`.
+
+Archive `rontrace-run918.log`, 11,414,144 bytes,
+SHA-256 `9c8593b1ca7c717a903bb8d9ffaa507f7e7ed60f9dc58100f750009c3f7bb1a4`.
+
+Archive `gamelog-run918b-greatlakes-iroquois-diff3-stride4-38-1114.txt`, 430,106,031 bytes,
+SHA-256 `7a927aa4b3c23da219a890a8a735a07b61a646b43fc02dcc33db9e55593e9ddd`.
+
+Archive `rontrace-run918b.log`, 10,527,840 bytes,
+SHA-256 `5173e06b7abc265656782cf40e95bd016b995afc4bdd3599b8a2b26fc742689f`.
+
+**What it holds**: `diff::iroquois_word::run918_s_word_frame_is_widened_whole` (257 blocks, 37 keys) and
+`run918b_s_gap_is_widened_whole` (270 blocks, 43 keys). On run918b's block 894 who=1's Scout `1/0` takes a ten-leg path to
+(39672, 22776) whose legs 6..8 were one cell east in ours; with `astar_path`'s `iroquois` mode from the unit they agree, and
+the word moved 1120 → 1496. Both windows are in the coverage driver's slice.

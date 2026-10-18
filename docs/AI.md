@@ -22440,12 +22440,77 @@ on an armed Barracks unit (no Iroquois Barracks unit is born before 1120); the `
   (parked, slot HM). `unit_masks2` is compared only for `0x10` (`harness.rs`), so the dump's 49280 parts no key.
 - The word 1120's records.
 
-## 247. Reserved for the next item on the AI track
+## 247. The Iroquois word's widening: the Scout's explore path prices forest as a forest walker's, 1120 → 1496 (2026-10-18, item 3117)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: §246's word, 1120 of 12658 (`GreatLakesIroquoisTier3`), ours 36 draws against 33, at index 0 ours
+`Unit::explore_goody+0x27c`, theirs `Animal::think_bird+0x82`; its widening owed (no block of the lobby spanned it).
+
+**The frame, both directions.** Theirs' 33 are nine birds (`think_bird` `+0x82`/`+0xa6`/`+0x1f8`), `Objects::process_all`
+×2 and `Farms::inc_time` ×4; ours' 36 are the same 33 behind three `explore_goody+0x27c`. **Theirs draws the same three on
+1121** (`report.py … when Unit::explore_goody`: 1121, 1313, 2594, …, under `Unit::set_new_location+0x3cc`): a goody entered
+a frame early in ours, not an extra one. The finder, ours (`RON_DEBUG_UNIT='*/*@1115-1121'`): who=1's Scout `1/0`
+(`IRQSCOUT`, TI 79) on `EXPLORETO` (41112, 25752), crossing y 25344 into cell row 33 on tick 1120; no other moving
+non-gaia unit changes cell on it. Ours acted first: the Scout was ahead.
+
+**run918** (`docs/RUNS.md`): the window 1114..1370 at the long's detail. Its first block already holds the Scout parted —
+`pos` ours (41445, 25153) theirs (41483, 25113), `heading` −1767309312 against −1757216768, `dest_angle` −1750335488
+against −1749155840 on one `orders_x`/`orders_y` — and run897's blocks 36 and 37 hold no Scout row, with the draw stream
+agreeing through 1119: a parting of movement, somewhere in 37..1114.
+
+**run918b — the stride** (Loop 3085). The gap is 1077 blocks, so `--stride N` was built first: `rontrace.cfg`'s `stride=N`
+makes the tracer rewrite `game_log.log_start_frame`/`log_end_frame` (VA `0xeb13d4`/`0xeb13d8`) at every `Game::do_frame`
+entry. `do_frame` F calls `GameLog::begin_frame@00932a70` at F and `GameLog::end_frame@009329d0` at F+1 (`frame` steps
+between, `Game::do_frame@00591ef0:293`), both gated on `start <= frame < end`; a kept F (`lo <= F < hi`,
+`(F − lo) % N == 0`) gets `[F, F+2)` and every other frame `0x7fffffff` twice (never a negative start, which the engine
+reads as every frame). `tools/trace/stride.h` is the decision, host-tested (`blind::the_log_stride_opens_one_block_in_n`).
+run918b is 38..1114 at a stride of 4: 270 blocks, `rngcmp` 1121 of 1121 identical against run897b. **It cost the same
+967 s as run918's 257 dense blocks**: at this lobby's early frames the game's pace, not the logger, bounds the wall clock
+(its 430 MB against 411 MB), so the stride buys reach, not minutes, on a window this short.
+
+**The first parting, block 894** (`run918b_s_gap_is_widened_whole`): the Scout reaches (45792, 18912) and takes
+`EXPLORETO` (39672, 22776) on both sides, with a ten-leg path whose legs 0..5 and 9 agree and 6..8 do not:
+
+| leg | ours | theirs |
+|---|---|---|
+| 9 | (45048, 19704) — cell (58, 25) | (45048, 19704) — (58, 25) |
+| 8 | (45048, 20472) — (58, 26) | (44280, 20472) — (57, 26) |
+| 7 | (44280, 21240) — (57, 27) | (43512, 21240) — (56, 27) |
+| 6 | (43512, 22008) — (56, 28) | (42744, 22008) — (55, 28) |
+| 5 | (42744, 22776) — (55, 29) | (42744, 22776) — (55, 29) |
+
+Four cell steps from (58, 25) to (55, 29) either way, three diagonal and one straight: ours steps south first, theirs
+diagonally first. By 918 the Scout's `pos` reads (45204, 19537) against (45202, 19535), and the two units' ends drift into
+the frame at 1120.
+
+**The cause — a SEAM on the path's own entry.** `docs/PATHFINDER.md` §4.1: `astar_path` takes `iroquois = unit_masks2 &
+0x4000` at its entry, for every wrapper; the terrain term then reads the signed `WData.solid` (`+0x13`) where any other
+unit reads `WData.blocked` (`+0x11`), and the corner probes run on every step (§5.1). This crate had the arm built and
+tested (`path.rs`'s `Modes::iroquois`, `cost` and `cuts_a_corner` tests) and the `wpath` builder set it `false` under a
+`SEAM`; §246 raised the bit on the Scout (`umask2::FOREST_WALKER`) and nothing read it here. **Built**: `astar_path` ORs the
+unit's bit into its modes at the entry (the wrapper's own `false` stands for every other unit), and the SEAM is gone.
+
+**The value diff, block 894 and on**: the ten legs agree — leg 8 (44280, 20472), 7 (43512, 21240), 6 (42744, 22008) on
+both — and the Scout's `pos`, `heading`, `dest_angle` and path agree on every block of run918b and run918.
+`run918b_s_gap_is_widened_whole` 60 → 43, `run918_s_word_frame_is_widened_whole` → 37; **the word 1120 → 1496**.
+
+**Mutation** (`tools/mutate.py`, `mutation: held`, exit 101): the entry's `|| iroquois` dropped →
+`iroquois_word_first_parting`, `run918_s_word_frame_is_widened_whole` and `run918b_s_gap_is_widened_whole` fail.
+
+**What stands on both windows**: the control's set (`SITE[n].reg`, `aggression`, `form`, groups' `held`, the pool); the
+Scout's `blown` 1/0 from 38 (`unit_masks & 0x1000`: `Unit::work`'s stealth arm skips `unit_masks2 & 0x8000`, which theirs'
+Scout carries as `0xc080` and ours does not — parked 3114's cloak bit; no reader this crate has moves on it); and who=1's
+food from block 38 — `income`/`resources` 640 against 672 (896 against 800 by 1114), `bucket` 4/5, `leftover` 6560/352 —
+with **`known_rares` 0 against 1** on 38: theirs knows a rare by block 38 and ours none (run897's block 37 holds no such row).
+
+**The new word, 1496.** Ours 37 draws, theirs 36, index 30: ours `Unit::do_non_flat_gather+0xcc3`, theirs
+`Farms::inc_time+0x1ae` (theirs draws `do_non_flat_gather` on 1439 and 1527). Past run918's last block: its widening is
+owed, a capture of the lobby's 1490..1746. The who=1 food row is the frame's nearest standing row on the gatherers'
+player — the item before's hypothesis, never this section's.
+
+**Coverage.** *Diff-backed*: the frame-1120 draw delta and its finder (the draw walk, the unit watch), the path legs on 894
+and the Scout's state on every block of 38..1370 (both widenings), the stride's blocks (run918b's 270, keyed as stated).
+*Not established*: what parts who=1's food and `known_rares` between 37 and 38; whether the stride's `[F, F+2)` and a
+dense window agree on a block's `MISC` start-frame half (no dense block of this lobby overlaps run918b).
 
 ## 248. Reserved for the next item on the AI track
 
