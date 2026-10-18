@@ -290,6 +290,8 @@ mod terrain_list_walk_data;
 mod terrain_map_cancel_button_enable;
 #[path = "terrain_map_get_terrain_type.rs"]
 mod terrain_map_get_terrain_type;
+#[path = "terrain_map_map_change_river.rs"]
+mod terrain_map_map_change_river;
 #[path = "terrain_map_on_left_up.rs"]
 mod terrain_map_on_left_up;
 #[path = "terrain_map_on_mouse_leave.rs"]
