@@ -1156,7 +1156,7 @@ pub fn load_tables(
                 shape: tech::Shape::PreqMatchUnowned,
             });
         }
-        // **The wonder-gated blocks** (item 3194, `docs/NATIONS.md` §7.4),
+        // **The wonder-gated blocks** (item 3194, `docs/NATIONS.md` §7, item 4),
         // `gain_tech@006dcb60`'s `has_wonder` ranges, each the same
         // `PreqMatch` shape. `Gate::Wonder` names the wonder's tree type,
         // [`Sim::gain_tech`](sim) feeding `PlayerTech::wonders` off

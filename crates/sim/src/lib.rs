@@ -4768,7 +4768,7 @@ impl Sim {
             })
         });
         // `LeaderData::has_wonder` is asked live by the wonder-gated blocks
-        // at the end of `gain_tech` (`docs/NATIONS.md` §7.4): feed the
+        // at the end of `gain_tech` (`docs/NATIONS.md` §7, item 4): feed the
         // player's set off the buildings first.
         let held = self.wonders_held(who);
         self.tech[who as usize].wonders = self
