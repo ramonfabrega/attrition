@@ -1057,7 +1057,9 @@ mod tests {
                             .collect::<Vec<_>>()
                             .join("\n");
                         if !holds(&code, w) {
-                            bad.push(format!("line {line}: `{status}` but {f} does not read `{w}`"));
+                            bad.push(format!(
+                                "line {line}: `{status}` but {f} does not read `{w}`"
+                            ));
                         }
                     }
                 }
