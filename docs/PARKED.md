@@ -7285,7 +7285,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HH — reserved
+## Parked by item 3067, 2026-10-17 — Sabotage on Artillery, and the scout's path
+
+(3067, first) **The who=1 Scout `1/0`'s explore path parts from 847 on run914** (GOLDEN §118): 12 steps against 50, `dest_y` 12792 against 11256 on 848, no draw delta
+through 1178. Chapter 93 agrees on the same frame; the difference staged is the Artillery dead by 824 against wagons dead on 853. Unchecked hypothesis: `think_scout`'s
+candidate read (seen cells or a block a dead vehicle leaves). Relates to parked 635/275 (the scout's 847 `facing`). The headline of chapter 94 is this frame: widen every
+dumped record on 846–848 first.
+
+(3067, second) **Sabotage's armed-vehicle arm adds nothing the cast reads**: the Artillery never fired, so a *firing* armed target (a Tank beside an out-of-reach Commando) stays unstaged (3065 still open for that).
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot HH renames this heading `## Parked by item N, <date> — <title>`

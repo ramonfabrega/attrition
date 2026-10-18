@@ -17763,3 +17763,9 @@ SHA-256 `8598dafcd020cd5540d0f1ed5f6c7246d628720522cfe3977e707e2929bdf917`.
 Archive `rontrace-run899b.log`, 91,916,320 bytes,
 SHA-256 `21507a6ee575ac4b05997f596bffce76e584d2e46219175c182abef5fdd81106`.
 
+
+## run914 — chapter ninety-four: Sabotage blows up two Artillery (2026-10-17, item 3067, `att-3067`)
+
+`docs/GOLDEN.md` §118. **What the disk could not answer**: no dump held a Sabotage cast on an armed unit. Recipe `tools/gamelog/golden/chapter94.cmd` (`--map 14 --end-frame 1200
+--log-window 605 1200`, chapter 93's `end:`/`start:` sets). Pool lane 1, 266 s, kept in `~/ron-golden/ch94/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane.
+**What it holds**: Artillery `1/6`, `1/7` dead by the Commandos' casts (794, 824); ours agrees through 1178, and the who=1 Scout `1/0`'s explore path parts from 847.

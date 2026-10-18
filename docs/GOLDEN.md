@@ -13185,12 +13185,27 @@ Walked: the wagons die on 794 and 853, the Commandos at 90 hp.
 **Not established**: the caster's leader counters and score on a killed captain (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x44 += cost/5`), the message and sound, a Tank-class target
 (the Commando did not live to cast), the dead-target refund arm.
 
-## 118. Reserved for the next item on the rules track
+## 118. Chapter ninety-four — Sabotage on an armed vehicle, and a scout's path that parts (run914)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 3065 (item 3018): an armed vehicle as a Sabotage victim, unstageable beside a Tank, which shoots the lone Commando first. **Chosen over another
+order arm** because the cast code is the same `dtype` 3 arm as §117, and the open question was only whether an armed target changes anything the cast reads; the cheapest
+way to a *different* vehicle was one whose weapon cannot reach a Commando at the foot of it. **Disk could not answer**: no dump held a Sabotage cast on an armed unit.
+
+**Staging** (`tools/gamelog/golden/chapter94.cmd`, chapter 93's recipe with `artillery` for `supply_wagon`, `RON_STAGE=ch76:chapter94:1200`, walked by `stage_walk` on the
+first try): the Artillery (`jr`, armed, a minimum range) never fires at the Commando beside it; both die, on 794 and 824, the Commandos at 90 hp.
+
+**What the original does** (run914, 1,201 frames, seed 12345, 266 s): ours agrees on every unit, order and draw through **1178** (draw stream and draw values; `walk_script`'s
+word), so the cast, both deaths and the Commandos' state are the original's. **The word is 1178, open**; the widening's first parted key is earlier: **the who=1 Scout
+`1/0`'s `path` on 847** (ours 12 steps, theirs 50: its fresh `EXPLORETOORDER` goes round to `(33528, 21240)` where ours goes straight), then its heading, mirror and
+`order:move.dest_y` on 848 (12792 against 11256), `order:kind` and the order point on 1021, `tolerance` on 1123, and the order list on 1178 (0 against 1). 38 rows in all,
+the 11 standing `form` rows among them (`WANT_CH94`). The draws agree through the frame, so the explore pick is not a different roll; what it reads differs. Chapter 93, the
+same scout, the same frame (847) and the second kill 29 frames later, parts nothing here: **the two Artillery were dead by 824, the two wagons not until 853**. Hypothesis
+only, unchecked: the scout's candidate evaluation reads state a dead vehicle leaves or clears (seen cells, a wreck, a pathing block) and 847 is the first scout pick after both.
+
+**What the diff backs, by mutation** (`tools/mutate.py`): `is_valid_target`'s `0x280` unit arm made `&&` fails `chapter_ninety_four_s_window_is_widened_whole`. Coverage
+window 821–827 (the second death).
+
+**Not established**: why the scout's path parts (parked); the caster's leader counters and score, the message and sound, the dead-target refund arm; a Tank-class target.
 
 ## 119. Reserved for the next item on the rules track
 
