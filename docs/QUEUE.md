@@ -24,7 +24,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   922, AI §249, park HZ), 3162 rules (GOLDEN §124, HJ), 3166 shape (HN), 3160 nations (ID). Next 3167, run 923.
   Pools: GOLDEN §125–128, AI §250–255, park HP. Last whole gate: the pass's.
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
-- **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165).
+- **Fable backlog: 15 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

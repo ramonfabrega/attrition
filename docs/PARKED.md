@@ -3742,6 +3742,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-second tranche's
 
+(3167) **An isolated test's memory row goes stale as the test grows** (the commander, the booking gate on `e183b2e5`):
+`battery_captures_are_complete_and_say_their_lobby` reserved from its 2026-10-16 row (346 MB) and was stopped at 849 MiB
+against its 768 MiB limit (137) — the battery gained lobbies since the profile (3107's Dutch pair); alone it passes. The
+row was raised to the measured 890 MB in the second commit. Candidate: the gate refreshes a row whose measured RSS beat
+its reservation and still passed, or names the test as stale rather than 137, made to fail first. One reach.
+
 (3165) **`--seq` draws from `--answers`' list** (3150's "for the Loop" line, filed at its merge): the seq draw goes
 through `--answers` 90% of the time, so a loop's first and last answers come from one set, and `Unit::resolve_block`'s
 arms starved until the list was mostly the exit value. Candidate: `--seq` takes its own value list, as `--answers` does
