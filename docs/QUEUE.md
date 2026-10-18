@@ -15,14 +15,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-18, **the forty-first pass (steer, Fable) done; the forty-second tranche (commander, Opus) opens from
 `75ccea37`**, four lanes (DECISIONS 78 (i), 79): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5144 of 12658 (3140, 3156, 3170), its
-  widening owed as 3186 (run 926); `EastIndiesGermanTier3` closed at 13519
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 of 12658 (3140, 3156, 3170, 3186), its
+  widening owed as 3202 (run 928); `EastIndiesGermanTier3` closed at 13519
   (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–95 closed (3175: 95 at 1200); 96 owed as 3191. Census
   1471, **port 305 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
   median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
-- **Lanes: four live, landings 12 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182): 3186 AI (run
-  926, AI §251, park IH), 3191 rules (run 927, GOLDEN §126, IJ), 3200 shape (IL), 3194 nations (IK). Next 3201, run
-  928 (925 unused). Pools: GOLDEN §127–128, AI §252–255, park IM–IP. Last whole gate: `5b9f621e` (green).
+- **Lanes: four live, landings 13 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186): 3202 AI (run
+  928, AI §252, park IM), 3191 rules (run 927, GOLDEN §126, IJ), 3200 shape (IL), 3194 nations (IK). Next 3203, run
+  929 (925 unused). Pools: GOLDEN §127–128, AI §253–255, park IN–IP. Last whole gate: `5b9f621e` (green).
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
 - **Fable backlog: 19 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181, 3188).
 
@@ -33,7 +33,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: GreatLakesIroquoisTier3 w5144 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
+Battery word: GreatLakesIroquoisTier3 w5576 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1471 of 3611 · port 305 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 88 closed
@@ -46,14 +46,14 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3186 the AI word's (Opus); 3191, 3200 and 3194 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
+3202 the AI word's (Opus); 3191, 3200 and 3194 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3186. **The battery word, 5144 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 36 draws against theirs 37,
-    index 0, ours `Animal::think_bird+0x82` where theirs draws `Unit::think_spellcaster+0x413`** (3170 moved it
-    1772 → 5144: `IROQUOIS_FOOD`, `economy::iroquois_food`, and setup's border fix; run923, AI §250; parked 3184–3185).
-    Its widening is owed (`WIDENINGS`' `IROQUOIS_WORD` names this item): run922 ends at 2022 and run897b is `cover=0`,
-    so a window of 5138..5394 at run918's detail (run 926), every dumped record on 5145 both directions. AI §251.
+3202. **The battery word, 5576 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 35 draws against theirs 37,
+    index 30, ours `Guy::set_anim+0x104b` where theirs draws `Guy::set_anim+0x97a < Guy::inc_time+0x271`** (3186 moved it
+    5144 → 5576: `Army::use_scouts`, `Army::use_spies` in `army_process`; run926, AI §251; parked 3201). Its widening is
+    owed (`WIDENINGS`' `IROQUOIS_WORD` names this item): run926 ends at 5394 and run897b is `cover=0`, so a window of
+    5570..5826 at run918's detail (run 928), every dumped record on 5577 both directions. AI §252.
 
 3191. **Chapter ninety-six, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
     927 minted here): chapter 95 closed at 1200 (3175: `Object::close` keeps a `blocks_while_dead` type's disc, built as

@@ -22741,7 +22741,7 @@ and returns 0.
 
 — an offset pick one draw behind. With the build every one closes. **The word moved 5144 → 5576**: ours 35 draws, theirs
 37, index 30, ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271` (theirs' index 30 a sound
-draw on its own stream); past run926's window, its widening parked as 3189.
+draw on its own stream); past run926's window, its widening parked as 3201 (the lane's 3189) and booked as item 3202 (run 928).
 
 **What is not established.** Whether `count(COUNT_NON_DECOY_TYPE, t)` is the lineage `is(t, 0)` this crate's
 `unit_line_is` asks (the generals' count reads it so, and TI 79 counted as `0x45` here agrees with the trace); the human

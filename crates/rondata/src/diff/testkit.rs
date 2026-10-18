@@ -9731,12 +9731,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `Army::use_scouts`, which writes nothing; `run926_s_word_frame_is_
     // widened_whole`). **Item 3186 moved it 5144 → 5576** (the scouts' and
     // spies' turn), past run926's last block: 5576's widening is owed,
-    // parked 3189.
+    // parked 3201 (the lane's 3189), booked as item 3202 (run 928).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3189,
+        3202,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
