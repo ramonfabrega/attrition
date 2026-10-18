@@ -7687,13 +7687,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IZ — reserved
+## Parked by item 3234, 2026-10-18 — the sweep's thirteenth batch (six port bodies)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+3234 (a). **Five of the six sweeps back the logic inlined in the test, not the crate's method.** `Sim::same_damage`
+(transport.rs, a single-figure approximation under a SEAM), `Sim::do_patrol` (orders.rs, grouped arm only),
+`Sim::add_trade_order` (caravan.rs, the QUEUE_NEW wrapper), `Sim::check_ever_seen` (vision.rs) and
+`Sim::find_new_bomber_target` (air.rs) are entangled with `Sim` state or model less than the original. The swept logic
+agrees with the original on every drawn row; the crate methods are not diffed. Unmodelled in `add_trade_order`: the
+`0x800000` transport flag, the `|= 0x4` order flag from `param_6`, and the trade record's far-city fields (the same
+family as parked 3219 (b)). Names no score; parks until a frame shows it.
+
+3234 (b). **`--port-file` takes two tokens** (`--port-file PATH`), never `--port-file=PATH`; and a hand edit of a
+generated test (add_trade_order's two `s6` stack tokens) is lost by a `--regen` with the old port file.
+
+3234 (c). **Equivalent breaks, read against the draw.** `add_trade_order`: `a[2]>=0 && a[1]>=0` vs `a[3]` (both drawn
+0..1), and the `0xffff` short on the `param_1<0 || param_2<0` arm (unreachable under the emulator, the objects table
+read unguarded, as parked 3216). `check_ever_seen`: `|| param_1 != 0` on the tail gate is unobservable at the outputs.
+`find_local_army`: `tgt >= 0` vs `> 0` with `who` fixed at 0. `check_ever_seen` reaches its meet arm on ~18% of rows.
 
 ## Parked by the next landing, slot JA — reserved
 

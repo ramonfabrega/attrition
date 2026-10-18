@@ -60,6 +60,8 @@ mod armies_emergency;
 mod armies_find_army;
 #[path = "armies_find_city.rs"]
 mod armies_find_city;
+#[path = "armies_find_local_army.rs"]
+mod armies_find_local_army;
 #[path = "armies_find_useful_army.rs"]
 mod armies_find_useful_army;
 #[path = "armies_leader_defeated.rs"]
