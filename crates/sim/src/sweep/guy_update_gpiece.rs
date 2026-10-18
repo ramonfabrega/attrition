@@ -84,7 +84,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let art = rd(&p[rec], 0x94) != 0;
             // cvttss2si: the indefinite integer for NaN and out of range
             let cvt = |x: f32| -> i32 {
-                if x.is_nan() || x >= 2147483648.0 || x < -2147483648.0 {
+                if x.is_nan() || !(-2147483648.0..2147483648.0).contains(&x) {
                     i32::MIN
                 } else {
                     x as i32
