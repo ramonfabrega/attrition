@@ -31,7 +31,10 @@ import time
 CPU = 20
 MEMORY_MIB = 98304
 QUANTUM_MIB = 256
-DEFAULT = Path.home() / 'Library/Caches/attrition/resources-v2'
+# A changed budget is a new directory: a worktree on the old code keeps its own
+# policy and never shares leases with this one (the second gate of the fortieth
+# pass refused `resources-v2`'s 32 by design).
+DEFAULT = Path.home() / 'Library/Caches/attrition/resources-v3'
 OFF_MARKER = Path.home() / 'Library/Caches/attrition/admission-off'
 
 

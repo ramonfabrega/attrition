@@ -598,7 +598,10 @@ sampled peak7184→7813MiB (no full-suite memory win). Nearby original-binary co
 
 The branch above is on trial for the thirty-eighth tranche, adapted at four
 points: the host budget is 32 CPU slots and 96 GiB in `resources-v2` (three
-heavy phases coexist; the budget bites on a fourth); `tools/guard.sh` reserves
+heavy phases coexist; the budget bites on a fourth) — **20 slots in
+`resources-v3` since the fortieth steer** (DECISIONS 78: at 32, five lanes'
+gates all ran at half speed and the door never waited; a booking gate and
+three lane gates fit, the fourth queues); `tools/guard.sh` reserves
 2 slots / 4 GiB (3 GiB measured) under a 16 GiB ceiling; a test the committed profile does not
 know reserves 8 GiB under a 32 GiB ceiling; the whole gate sets
 `RON_VERIFY_ORACLE=1` and `RON_VERIFY_SETUP_OBSERVATIONS=1`. Every gate ends

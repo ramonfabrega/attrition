@@ -6287,8 +6287,10 @@ its record and moves none of them.
 (i) **four lanes for the forty-first tranche** — the AI word (Opus 5.5
 medium), the rules track, the shape sweep and the harvest sweep (Sonnet
 5.5 medium), the queue's four items; (ii) **the host budget admits 20
-CPU slots** (`tools/resource_budget.py`, from 32): a booking gate and
-three lane gates together, the fourth queued, so contention becomes a
+CPU slots** (`tools/resource_budget.py`, from 32; the policy directory
+rotates to `resources-v3`, since a changed budget is refused in the old
+one by design): a booking gate and three lane gates together, the
+fourth queued, so contention becomes a
 wait the receipt can show instead of a dilation it cannot; (iii) Loop
 3088's orphaned process had ended on its own before Ramon's kill (`no
 such process`); the row stays for its candidate. The other
