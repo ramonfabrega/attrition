@@ -3742,6 +3742,10 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3149) **`--stub-write` takes one fixed value** (3134's "for the Loop" line, filed at its merge): `Unit::cavarch_fight`
+needed two modules for two written values, and its clamp and pre-fight copy stayed starved. Candidate: `--stub-write`
+takes a list drawn per row, as `--answers` does, made to fail first on a break the one-value form starves. One reach.
+
 (3143) **The host at saturation, and a runaway the budget cannot see** (Ramon, 2026-10-18, for the steer): at 01:12
 during the forty-first tranche's whole gate, with four lanes live and 3140's run921 capture under Wine, the load was 32 on
 16 cores at 0% idle; the admission budget held 16 leases (16 CPU slots of the v2 policy's 32, 16 GiB reserved), so it was
@@ -7518,14 +7522,14 @@ packet at 623 if the ranking reads a value no dump prints.
 
 Five shapes built (find_town_at, find_good_at@0065bec0, process_ejection, cavarch_fight twice, send_here); none unbuildable.
 
-- **`Unit::cavarch_fight` clamp and pre-fight copy are starved, not equivalent.** `--stub-write` writes one fixed value, so a
+- (3146) **`Unit::cavarch_fight` clamp and pre-fight copy are starved, not equivalent.** `--stub-write` writes one fixed value, so a
   stubbed `fight` leaves the target either alone (`unit_cavarch_fight`) or at (1, 0) (`unit_cavarch_fight_written`). Starved:
   the pre-fight `+0x2d0 → +0x1fc` copy (overwritten after `fight`; only a real `fight` reads it), the `(idx as u16) >= 0x8000`
   and `< 0` predicates (need a final negative index with an original in 0x4000..0x7fff, or a final 0). Flag it could not spell:
   `--stub-write` with a drawn VAL (a list, as `--answers`).
-- **`Build::process_ejection`**: one break starved (the captain chain's inner `p[u][9]`; chain targets are array 0, whose byte 9 is 0 by construction so chains stay acyclic).
+- (3147) **`Build::process_ejection`**: one break starved (the captain chain's inner `p[u][9]`; chain targets are array 0, whose byte 9 is 0 by construction so chains stay acyclic).
   Flag it could not spell: `--link` across several arrays (a global window index mapped to array × slot).
-- **`Army::send_here`**: `find_angle` and `sin_table` are stubbed and recorded (their tables build at boot and read as zeros), so their own arithmetic is not
+- (3148) **`Army::send_here`**: `find_angle` and `sin_table` are stubbed and recorded (their tables build at boot and read as zeros), so their own arithmetic is not
   exercised here; `find_angle` is pinned elsewhere.
 
 ## Parked by item 3137, 2026-10-18 — the Roman legion pair, and what the nations family still lacks
