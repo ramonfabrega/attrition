@@ -7818,7 +7818,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3246, 2026-10-18 — chapter one hundred's flee route
 
-- (3248) **Chapter one hundred's word 977 of 2600** (GOLDEN §134): values agree through 978, the draw sequences part at draw 0 — ours `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`; ours 6 draws, theirs 5. Booked by its frame and draw; who takes damage in ours (`RON_STACKS` both sides, `RON_DEBUG_AMMO`) is the first read.
+- (booked as item 3252) (3251) **Chapter one hundred's word 977 of 2600** (GOLDEN §134): values agree through 978, the draw sequences part at draw 0 — ours `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`; ours 6 draws, theirs 5. Booked by its frame and draw; who takes damage in ours (`RON_STACKS` both sides, `RON_DEBUG_AMMO`) is the first read.
 
 
 ## Parked by the next landing, slot JG — reserved
@@ -7849,6 +7849,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot JJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JN renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
