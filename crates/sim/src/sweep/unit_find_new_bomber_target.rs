@@ -86,7 +86,7 @@ fn the_emulated_original_agrees_on_every_row() {
                         let r = &p[7 + 5 * t + i];
                         (rd(r, 0x10) ^ K, rd(r, 0x14) ^ K)
                     };
-                    let mut sep = |t: &mut String, s: String| {
+                    let sep = |t: &mut String, s: String| {
                         if t != "-" {
                             t.push('/');
                             t.push_str(&s);
@@ -158,11 +158,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     if a[4] != 0 {
                         wr(&mut p[0], 0, if best >= 0 { rt } else { -1 });
                     }
-                    if best >= 0 {
-                        i64::from(ri)
-                    } else {
-                        -1
-                    }
+                    if best >= 0 { i64::from(ri) } else { -1 }
                 };
                 log.extend(toks);
                 res
