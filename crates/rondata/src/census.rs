@@ -170,12 +170,15 @@
 /// item 3219: 1477 -> 1483 on the merged tree, the shape lane's twelfth batch (`Army::use_scouts`,
 /// `Army::use_spies`, `City::count_gather_slots`, `Unit::add_repair_order`, `Unit::find_repair_spot`,
 /// `Unit::build_done`).
+/// item 3234: 1483 -> 1489 on the merged tree, the shape lane's thirteenth batch (`Armies::find_local_army`,
+/// `Wall::check_ever_seen`, `Unit::find_new_bomber_target`, `Unit::do_patrol`, `Unit::add_trade_order`,
+/// `Unit::same_damage`).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1483;
+pub const SIMULATION_BACKED: usize = 1489;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
@@ -184,8 +187,8 @@ pub const SIMULATION_BACKED: usize = 1483;
 /// measured 293 of 1459 on this tree). `tools/census.py --layers` prints
 /// both, the `Census:` line carries both, and the commander re-pins both at
 /// booking. Item 3182: 303 -> 305 (both of its bodies have a port consumer); item
-/// 3200: 305 -> 311 (all six); item 3219: 311 -> 317 (all six).
-pub const SIMULATION_PORT_BACKED: usize = 317;
+/// 3200: 305 -> 311 (all six); item 3219: 311 -> 317 (all six); item 3234: 317 -> 323 (all six).
+pub const SIMULATION_PORT_BACKED: usize = 323;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

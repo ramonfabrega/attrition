@@ -18,12 +18,12 @@ first commit**, four lanes (DECISIONS 78 (i), 80): the AI word's on Opus 5.5 med
 Last whole gate `ebe325dc`, the pass's (green, 6 of 6; rondata 960, sim 1699; release 7.0 of its 8 minutes).*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 6982 of 12658 (3211: 5576 → 6982, two Iroquois
-  arms), its widening owed as 3231; `EastIndiesGermanTier3` closed at 13519. Chapters 95–99 closed, 92 closed; census 1483, **port 317**; the held-out battery's median 4770.
-- **Lanes: four live, landings 7 of 20** (3221, 3223, 3225, 3211, 3228, 3219, 3233): 3231 AI (run 934, AI §254, park IX), 3236
-  rules (run 936, GOLDEN §132, JA), 3234 shape (IZ), 3229 shape, the nations seat (IW). Next 3237, run 937. Pools: GOLDEN §133–136, AI §255–259, park JB–JF.
+  arms), its widening owed as 3231; `EastIndiesGermanTier3` closed at 13519. Chapters 95–99 closed, 92 closed; census 1489, **port 323**; the held-out battery's median 4770.
+- **Lanes: four live, landings 8 of 20** (3221, 3223, 3225, 3211, 3228, 3219, 3233, 3234): 3231 AI (run 934, AI §254, park IX), 3236
+  rules (run 936, GOLDEN §132, JA), 3238 shape (JB), 3229 shape, the nations seat (IW). Next 3239, run 937. Pools: GOLDEN §133–136, AI §255–259, park JC–JF.
 - **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
   table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
-- **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227).
+- **Fable backlog: 15 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227, 3237).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,7 +33,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w6982 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1483 of 3611 · port 317 · layout 1166
+Census: simulation backed 1489 of 3611 · port 323 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 92 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +46,7 @@ landings from the pass's commit; the chain is `CLAUDE.md`'s; at twenty the hando
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3231 the AI word's (Opus); 3236, 3234 and 3229 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 6982. Take the first unstarted item unless a better
+3231 the AI word's (Opus); 3236, 3238 and 3229 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 6982. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3231. **The battery word, 6982 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes), its widening owed** (parked 3230;
@@ -65,11 +65,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     leaves it linked), and attrition's disc release (`dtype` 0, parked 3190, read and not diffed). Stage it, capture
     it, open it at its first word. GOLDEN §132.
 
-3234. **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 317; 3219 built all six of its
-    batch, parked 3219 (a)–(d)): `Armies::find_local_army`, `Wall::check_ever_seen`, `Unit::find_new_bomber_target`,
-    `Unit::do_patrol`, `Unit::add_trade_order`, `Unit::same_damage` (`census.py --unbacked`, the `port` mark,
-    `--claimed ../att-3229` hides the nations seat's six) — each built, or parked naming the generator flag it could
-    not spell. `--kind sweep`.
+3238. **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 323; 3234 built all six of its
+    batch, five against an inline copy, parked 3234 (a)–(c), Loop 3237): `PathFinderData::valid_roadcoord`,
+    `ObjectsData::find_unit_ordered_with_radius`, `Build::find_gather_tiles`, `Army::do_marching`,
+    `Unit::end_trade_route`, `Unit::add_cast_order` (`census.py --unbacked`, the `port` mark, `--claimed ../att-3229`)
+    — each built against the crate's own method where it has one, or parked naming the generator flag it could not
+    spell. `--kind sweep`.
 
 3229. **A second shape batch, the nations seat's** (DECISIONS 63 (iv), `CLAUDE.md`: a lane with no word of its own is a
     sweep lane; the battery's `has_tribe_bonus` and `gain_tech` families are spent, 3221 and 3225; Loop 3188; the score

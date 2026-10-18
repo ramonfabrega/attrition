@@ -3742,6 +3742,14 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
+(3237) **The port count rises on a sweep that diffs an inline copy, not the crate** (3234's parked (a), filed at its
+merge): five of 3234's six sweeps assert logic inlined in the test, and `Sim::same_damage`, `Sim::do_patrol`,
+`Sim::add_trade_order`, `Sim::check_ever_seen` and `Sim::find_new_bomber_target` are not diffed; the census marks all
+six `port` because the crate spells each `Class::method` outside `sweep/`, so `Census:` port moved 317 → 323 with
+five of the crate's own bodies unchecked against the original. Candidate: `census.py --layers` counts a function
+`port` only when a sweep test calls the crate's method (the call site is greppable), and the rest `layout`; the
+first run says how many of the 323 are inline. One reach.
+
 (3226) **`tools/brief.py` has no nations kind** (the commander, at 3221's merge): the nations lane's briefs go out as
 `--kind residue`, and the frame tells the worker it is "on the AI track" (`TRACKS`, brief.py:52) — 3207's, 3221's and
 3225's all read so, beside a note that says the nations lane. Candidate: a `nations` kind whose track line, reading
