@@ -188,8 +188,6 @@ mod unit_do_idle;
 mod unit_do_patrol;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
-#[path = "unit_end_trade_route.rs"]
-mod unit_end_trade_route;
 #[path = "unit_execute_events.rs"]
 mod unit_execute_events;
 #[path = "unit_find_nearby_spot.rs"]
