@@ -1263,7 +1263,8 @@ mod tests {
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
             compared,
-            171_520, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            179_040, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1367,7 +1368,8 @@ mod tests {
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
             compared,
-            184_384, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            192_468, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1562,7 +1564,8 @@ mod tests {
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
             compared,
-            38_592, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            40_284, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1701,7 +1704,8 @@ mod tests {
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
             compared,
-            278_720, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            290_940, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1840,7 +1844,8 @@ mod tests {
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
             compared,
-            64_320, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            67_140, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -2938,7 +2943,8 @@ mod tests {
         assert_eq!(blocks, 490, "245 blocks, two leaders");
         assert_eq!(
             compared,
-            525_280, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            548_310, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
