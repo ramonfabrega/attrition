@@ -73,6 +73,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (296, 4, Node { px: 0, py: -2945 }),
     (491, 4, Node { px: 0, py: -148 }),
     (137, 4, Node { px: -6, py: -148 }),
+    (194, 4, Node { px: 0, py: -96 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -82,7 +83,7 @@ const SCALE: (i64, i64) = (48, 10);
 /// `guy_scale` by (`90b7ad`; `local_28` in the decompile), as a rational:
 /// 1.0 for the Chariot's piece 145 and **0.8** for the Bomb Vessel's 296
 /// (`0x3f4ccccd`, run486's packet). A piece with no row is 1.0.
-const RDATA_SCALE: &[(i32, (i64, i64))] = &[(296, (4, 5))];
+const RDATA_SCALE: &[(i32, (i64, i64))] = &[(296, (4, 5)), (194, (9, 10))];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
 fn scale(piece: i32) -> (i64, i64) {
