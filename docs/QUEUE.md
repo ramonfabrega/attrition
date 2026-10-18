@@ -17,10 +17,10 @@ in 4 h 52, 99.90 USD, 33.6 minutes waiting a landing — and the forty-third tra
 first commit**, four lanes (DECISIONS 78 (i), 80): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.
 Last whole gate `953d35ca`, at 3236's booking (green, 6 of 6; rondata 968, sim 1705; release 10.7 minutes).*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 7982 of 12658 (3211, 3231: 5576 → 7982, four
-  Iroquois arms), its widening owed as 3242; `EastIndiesGermanTier3` closed at 13519. Chapters 95–99 closed, 92 closed, ch100 open at 917 (3244 moved no score); census 1494, **port 328**; the held-out battery's median 4770.
-- **Lanes: four live, landings 12 of 20** (3221, 3223, 3225, 3211, 3228, 3219, 3233, 3234, 3229, 3231, 3236, 3244): 3242 AI (run 937, AI §255, park JD), 3246
-  rules (run 939, GOLDEN §134, JF), 3238 shape (JB), 3239 shape, the nations seat (JC). Next 3247, run 940. Pools: GOLDEN §135–140, AI §256–259, park JG–JJ.
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 8415 of 12658 (3211, 3231, 3242: 5576 → 8415, four
+  Iroquois arms and a Despot's Barracks discount), its widening owed as 3248; `EastIndiesGermanTier3` closed at 13519. Chapters 95–99 closed, 92 closed, ch100 open at 917 (3244 moved no score); census 1494, **port 328**; the held-out battery's median 4770.
+- **Lanes: four live, landings 13 of 20** (3221, 3223, 3225, 3211, 3228, 3219, 3233, 3234, 3229, 3231, 3236, 3244, 3242): 3248 AI (run 940, AI §256, park JG), 3246
+  rules (run 939, GOLDEN §134, JF), 3238 shape (JB), 3239 shape, the nations seat (JC). Next 3249, run 941. Pools: GOLDEN §135–140, AI §257–259, park JH–JJ.
 - **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
   table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
 - **Fable backlog: 16 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227, 3237, 3240).
@@ -32,13 +32,13 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: GreatLakesIroquoisTier3 w7982 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
+Battery word: GreatLakesIroquoisTier3 w8415 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1494 of 3611 · port 328 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: 92 closed · ch100 w917 of 2,600
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — four lanes live (3242 the AI word's on
+**Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — four lanes live (3248 the AI word's on
 `--model 'claude-opus-5-5[1m]' --effort medium`; the rest on `'claude-sonnet-5-5[1m]' --effort medium`); re-arm
 `tools/lanewait.py`, merge each landing at its gate's exit, refill by `tools/brief.py`, the model said in user-visible
 text; count landings from `1a15c80f`; the chain is `CLAUDE.md`'s; at twenty the handoff, the drain and `ccc clear steer`.**
@@ -46,17 +46,17 @@ text; count landings from `1a15c80f`; the chain is `CLAUDE.md`'s; at twenty the 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3242 the AI word's (Opus); 3246, 3238 and 3239 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 7982. Take the first unstarted item unless a better
+3248 the AI word's (Opus); 3246, 3238 and 3239 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 8415. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3242. **The battery word, 7982 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes), its widening owed** (parked 3241;
-    3231 moved it 6982 → 7033 → 7982 with `get_cost`'s and `construct_time`'s `IROQUOIS_QUICK_SENATE` arms, an
-    Iroquois leader's first Senate free and instant; AI §254, run934): ours 12 draws against theirs 14 at index 5 —
-    ours `Animal::do_idle+0x83`, theirs `Leader::make_stuff+0x63d`, so theirs acted, in the make list's turn. Past
-    run934's last block (7232); no dump of this lobby holds 7232..12658 (run94 and run115 span 7982, and run79 and run84
-    6982, on Great Lakes in run53's game, the first pair's lobby): the capture over 7976..8232 at run934's detail (`LEADERS=9`, `GUYS=4`, run 937),
-    widened whole on the word's frame both directions. Standing rows before it: `1/22`'s `blown`, `1/23`'s second
-    figure, the newborn figures' `g.angle[0]` and `SITE[1].reg`. AI §255.
+3248. **The battery word, 8415 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes), its widening owed** (parked 3247;
+    3242 moved it 7982 → 8415 with `get_cost`'s Despotism arm on a Barracks unit, 15% off the unit and its research,
+    AI §255, run937; value diff: block 7980 `MAKE[7].t` ours 167 against theirs 83, block 7983 food/timber ours 87/75
+    against theirs 19/7, quiet after): ours 8 draws against theirs 14 at index 3 — ours `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`, a birth. Past run937's last block (8232); no dump of this lobby
+    holds 8232..12658 (run97 spans 8030..9350 on Great Lakes in run53's game, the first pair's lobby): the capture over 8409..8665 at run937's detail (`LEADERS=9`, `GUYS=4`, `RON_DEBUG_BUILDS` over
+    8414–8415 to name the queue, run 940), widened whole on the word's frame both directions. Standing rows before it:
+    run937's 51 keys (the set on 7976, pools 65 and 66, `SITE[2].reg` on 8176). AI §256.
 
 3246. **Chapter one hundred's word, 917 of 2600** (parked 3245; 3244 found the Tank's gun releasing 187 units ahead,
     `pivot::RELEASES` for piece 194 from run938b's packet, GOLDEN §133: ch100's 630/712/796/875 rows gone, the word
