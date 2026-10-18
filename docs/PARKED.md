@@ -7633,13 +7633,10 @@ words and edits nothing here; a refill lands when two remain.
 
 - **`Unit::plunder@00605b00` (436 lines, floats; `AZTEC_SLAY_BONUS`/`AZTEC_SLAY_CAP`/`INCA_REFUND`) and `Object::disband@006455c0`'s arm calling it (`field_0x68 & 0x4000`, the unit's recorded killer `+0xa9`/`+0xa4`, `flags & 3 == 3`, tribe bonus 0).** Not built: the arm needs a unit's killer record this crate does not carry, and no score names its frame (the Aztec lobby's first parting is elsewhere). Names no score, so it parks; a lobby whose first parting is a kill by an Aztec unit books it.
 
-## Parked by the next landing, slot IV — reserved
+## Parked by item 3225, 2026-10-18 — the gain_tech free-tech blocks were already built
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked. The queue's three arms (Russian 13, Egyptian 7, Chinese 14) were built by items 3113 and 3124 as
+`FreeRule`s loaded in `rondata::load`; the NATIONS rows read "carried, unread" because the census scanned `sim` only.
 
 ## Parked by the next landing, slot IW — reserved
 

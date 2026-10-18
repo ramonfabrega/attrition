@@ -30,6 +30,7 @@ PREFIX = [
 
 src_raw = {os.path.basename(p): open(p, errors="replace").read()
            for p in glob.glob(SIM + "/**/*.rs", recursive=True)}
+load_code = re.sub(r"//[^\n]*", "", open("crates/rondata/src/load.rs", errors="replace").read())
 src_code = {k: re.sub(r"//[^\n]*", "", v) for k, v in src_raw.items()}
 
 
@@ -124,6 +125,8 @@ def const_row(n, v):
         f = best_file(r"\b" + fld + r"\b")
         if f:
             st, wit = f"modelled at {f}", fld
+        elif re.search(r"\b" + fld + r"\b", load_code):
+            st, wit = "loaded at load.rs", fld
         else:
             st, wit = "carried, unread", fld
     return f"| `{n}` | {num(v)} | {where} | {st} | `{wit}` |"
@@ -140,7 +143,7 @@ HAND = [
     ("Egyptians", "the same limit enforced at construction", "Wall::do_construct@006434d0", "modelled at city.rs", "006434d0"),
     ("Egyptians", "farm limit per city", "LeaderData::get_farm_limit@006db270", "modelled at city.rs", "egyptian_farms_per_city_base"),
     ("Egyptians", "food commerce bonus", "Leader::calc_resource_caps@006ce900", "modelled at economy.rs", "egyptian_food_commerce"),
-    ("Egyptians", "granary upgrades applied on tech gain", "Leader::gain_tech@006dcb60", "carried, unread", "egyptian_granary_upgrades"),
+    ("Egyptians", "granary upgrades applied on tech gain", "Leader::gain_tech@006dcb60", "loaded at load.rs", "egyptian_granary_upgrades"),
     ("Russians", "attrition doubled", "Leader::calc_attrition@006cdea0", "modelled at attrition.rs", "russian_attrition"),
     ("Russians", "oil +20% in the rate pass", "LeaderData::calc_resource_bonuses@006db030", "modelled at economy.rs", "russian_oil"),
     ("Russians", "spy cost 50% less", "TypeData::get_cost@00664090", "modelled at cost.rs", "russian_spy_cost"),
@@ -149,14 +152,14 @@ HAND = [
     ("Russians", "plunder steals from the plundered", "Build::plunder@00623660", "modelled at city.rs", "russian_plunder_steal"),
     ("Russians", "a free civic at start", "Leader::init@006e3930", "modelled at tech.rs", "russian_free_civic"),
     ("Russians", "oil well counts as held (has_preq)", "LeaderData::has_preq@006db810", "modelled at tech.rs", "has_tribe_bonus(setup, p, 13)"),
-    ("Russians", "attrition upgrades applied on tech gain", "Leader::gain_tech@006dcb60", "carried, unread", "russian_attrition_upgrades"),
+    ("Russians", "attrition upgrades applied on tech gain", "Leader::gain_tech@006dcb60", "loaded at load.rs", "russian_attrition_upgrades"),
     ("Russians", "market prices pinned at 100 after the fifth age (gate is 0)", "LeaderData::calc_market_prices@006dc2a0", "carried, unread", "russian_communism"),
     ("Chinese", "science techs 20% cheaper", "TypeData::get_cost@00664090", "modelled at lib.rs", "chinese_science_discount"),
     ("Chinese", "citizens train twice as fast", "ObjectData::train_time@006508c0", "modelled at lib.rs", "chinese_citizen_creation"),
     ("Chinese", "citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1)", "ObjectData::train_time@006508c0", "modelled at lib.rs", "chinese_citizen_instant"),
     ("Chinese", "a large-city building on a new city", "Build::activate@00623e20", "modelled at city.rs", "chinese_large_cities"),
     ("Chinese", "a large-city building on assimilation", "City::assimilate@00738e90", "modelled at city.rs", "chinese_large_cities"),
-    ("Chinese", "herbal lore applied on tech gain", "Leader::gain_tech@006dcb60", "carried, unread", "chinese_herbal_lore"),
+    ("Chinese", "herbal lore applied on tech gain", "Leader::gain_tech@006dcb60", "loaded at load.rs", "chinese_herbal_lore"),
     ("Chinese", "knowledge upgrades applied on tech gain (0 in the rules)", "Leader::gain_tech@006dcb60", "carried, unread", "chinese_knowledge_upgrades"),
 ]
 
