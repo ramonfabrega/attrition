@@ -2319,7 +2319,10 @@ fn a_chinese_citizen_trains_at_once() {
     assert!(!instant(&sim, citizen), "not Chinese");
     sim.nation[0].chinese = true;
     assert!(instant(&sim, citizen), "Chinese: a Citizen is instant");
-    assert!(!instant(&sim, other), "only a Citizen, a merchant, a caravan");
+    assert!(
+        !instant(&sim, other),
+        "only a Citizen, a merchant, a caravan"
+    );
     sim.tuning.chinese_citizen_instant = 0;
     assert!(
         sim.train_tail(0, citizen)
