@@ -392,6 +392,12 @@ mod valid_filter_case7;
 mod valid_filter_case8;
 #[path = "valid_filter_case9.rs"]
 mod valid_filter_case9;
+#[path = "valid_target_const_neg_i.rs"]
+mod valid_target_const_neg_i;
+#[path = "valid_target_const_p_high.rs"]
+mod valid_target_const_p_high;
+#[path = "valid_target_const_p_low.rs"]
+mod valid_target_const_p_low;
 #[path = "vector_dist_coords.rs"]
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
