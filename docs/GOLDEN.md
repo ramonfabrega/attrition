@@ -13284,12 +13284,15 @@ on a firing target (reached only after 629); the Commando's wound at 666.
 
 **Not established**: the arm's `Spy` half (`+6,000,000`) and the building-spellcaster branch (`vslot +0xc`) are unreached by any capture; `0x3a` is `army.rs`'s `SPY`, read through `unit_line_is`.
 
-## 123. Reserved for the next item on the rules track
+## 123. Chapter ninety-five — a held attack yields to a new attacker: the word 634 → 1118 (item 3152, run920)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The value diff.** `1/7`'s `order:target` on 635: ours the Commando `0/7` (held since 624), theirs the Commando `0/6`. Both sides on 633–636 (`RON_DEBUG_UNIT=1/7@633-636`): the Tank `1/7` (`TI 244`, `army 0`, a captain of its own) holds `Attack(in_range, ever_in_range)` on `0/7` throughout; `1/6` (Tank, `TI 244`) has no order until its 635 `think_attack` find takes `0/6`, which is a Commando casting at it. The find is handed to `Group::target_opportunity(…, param_4 = 1)` (`Unit::think_attack`'s tail), whose arm 3 reaches `1/7` through `Unit::target_opportunity@005fffc0(member, 0/6, 1)`.
+
+**The mechanism.** Ours returned at `st.target.is_some()` — any held target. The listing's attack-action arm (`600118`..`6004e7`) is not that: a unit whose action is an ATTACK on someone else drops it for the new attacker unless the order is mandatory, the held target is a combat-role unit, the new attacker is a building, the stance is Raid or Raze (`get_combat_stance` 3/4), the unit is siege/bombard/explosive (`has_objmask(0x840002)`), or — when the attacker's type has an attack (`+0x1e8 != 0`) — the held target is in range or the attacker is not. The Commando `0/7` is no combat-role unit and `0/6` is a Commando with no `attack`, so the range test is skipped and the Tank repaths, kills its order and takes `0/6`.
+
+**Built** in `fight.rs::attack_action_yields`, called from `target_opportunity_in` in place of the bare return. The word moves 634 → 1118 (`GOLDEN_WORD_CHAPTER_NINETY_FIVE`): the first parted field is now `1/7`'s `hits:damage` on 766 (ours 20, theirs 19), the draws part on 1118 at `0/15`'s damage (ours 30, theirs 0). The window's 600-odd rows fell to about 190. The other golden chapters did not move (`golden::` 258 passed, only the ch95 widening re-pinned).
+
+**Not established**: the siege/bombard/explosive shield is modelled by the profile's masks and no capture reaches it; a DEFENSIVE order's `find_def_pos` write (`+0x1d`) is a SEAM; the `unit_masks |= 0x10` in the move-front arm is not carried here.
 
 ## 124. Reserved for the next item on the rules track
 
