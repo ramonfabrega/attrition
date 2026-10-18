@@ -715,7 +715,13 @@ impl Sim {
     /// take `target`?
     ///
     /// A follower whose captain's action is an `ATTACK` on `target` may,
-    /// and the whole of `check_target` answers 1 there (`0064a0eb`).
+    /// and the whole of `check_target` answers 1 there (`0064a0eb`). The
+    /// captain's action is read through **`Unit::update_action(captain)`**
+    /// (`0064a0d4`), whatever its target, so the read rewrites the
+    /// captain's `orders_x/y` and `dest_angle` (`+0x58`) from its current
+    /// heading: a captain that turned to a new target earlier in the frame
+    /// has its `dest_angle` follow the same frame (item 3269, `docs/AI.md`
+    /// §258: run946's packet, `1/34`'s `fight` on 10843 copies `1/32`'s).
     /// Otherwise the radius is `unit_guard_respond_range × k × 0x60`,
     /// `k` 3 against a unit that is not a worker (`is_worker@0046fa10`,
     /// type `0x32`–`0x35`) when the guard carries `unit_masks & 0x40000`
@@ -724,7 +730,7 @@ impl Sim {
     /// order's `+0x1c/+0x20` (`0064a100`–`0064a186`, the listing: the
     /// decompiler lost both `vector_dist`s' operands).
     pub(crate) fn guard_leash(
-        &self,
+        &mut self,
         u: usize,
         g: &crate::orders::GuardOrder,
         target: Obj,
@@ -734,9 +740,11 @@ impl Sim {
             let cap = self.squad_captain(u);
             if let Some(a) = self.action_of(cap)
                 && matches!(self.units[cap].orders[a].body, Body::Attack(_))
-                && self.units[cap].combat.target == Some(target)
             {
-                return Leash::Captain;
+                self.update_action(cap);
+                if self.units[cap].combat.target == Some(target) {
+                    return Leash::Captain;
+                }
             }
         }
         let worker = match target {
@@ -773,7 +781,7 @@ impl Sim {
     /// SEAM: the tail's building-cell test is not carried; a guard here
     /// is on land and its target a unit.
     pub(crate) fn guard_check_target(
-        &self,
+        &mut self,
         u: usize,
         g: &crate::orders::GuardOrder,
         target: Obj,
