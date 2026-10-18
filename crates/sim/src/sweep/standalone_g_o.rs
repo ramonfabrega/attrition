@@ -660,6 +660,8 @@ mod objects_data_count_nukes_in_flight;
 mod objects_data_find_city;
 #[path = "objects_data_find_city_at.rs"]
 mod objects_data_find_city_at;
+#[path = "objects_data_find_dock.rs"]
+mod objects_data_find_dock;
 #[path = "objects_data_find_good_at.rs"]
 mod objects_data_find_good_at;
 #[path = "objects_data_find_good_at_tcoord.rs"]
