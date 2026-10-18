@@ -84,10 +84,11 @@ fn the_emulated_original_agrees_on_every_row() {
                         a[5] != 0
                     }
                 };
-                if rec(p, 0x1e4) & 0x8000000 == 0 && local >= 0xaaaaaaa {
-                    if !is(&mut t, 0x127) || local > 0x2aaaaaaa {
-                        break 'body;
-                    }
+                if rec(p, 0x1e4) & 0x8000000 == 0
+                    && local >= 0xaaaaaaa
+                    && (!is(&mut t, 0x127) || local > 0x2aaaaaaa)
+                {
+                    break 'body;
                 }
                 t[5].push(format!("m+0x0,{edx},-1,-1"));
                 let mut anim = true;
