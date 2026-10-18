@@ -14,7 +14,7 @@
 #       --map 14 --end-frame 850 --log-window 845 850 --timeout 3600 \
 #       --detail end:WORLD=6,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1 \
 #       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
-#       --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter94w.cmd
+#       --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/window/chapter94w.cmd
 #
 0 !ai off
 600 library who=0 2

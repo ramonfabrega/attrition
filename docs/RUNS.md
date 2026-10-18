@@ -17769,3 +17769,10 @@ SHA-256 `21507a6ee575ac4b05997f596bffce76e584d2e46219175c182abef5fdd81106`.
 `docs/GOLDEN.md` §118. **What the disk could not answer**: no dump held a Sabotage cast on an armed unit. Recipe `tools/gamelog/golden/chapter94.cmd` (`--map 14 --end-frame 1200
 --log-window 605 1200`, chapter 93's `end:`/`start:` sets). Pool lane 1, 266 s, kept in `~/ron-golden/ch94/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane.
 **What it holds**: Artillery `1/6`, `1/7` dead by the Commandos' casts (794, 824); ours agrees through 1178, and the who=1 Scout `1/0`'s explore path parts from 847.
+
+
+## run916, run916b — chapter ninety-four's window and its packet at 846 (2026-10-17, item 3099, `att-3099`)
+
+`docs/GOLDEN.md` §119. **What the disk could not answer**: the pathfinder's per-cell prices and a group record's `+0x8` on 846. Recipe `tools/gamelog/window/chapter94w.cmd`
+(chapter 94's with `--end-frame 850 --log-window 845 850`), `~/ron-golden/ch94w/map-14/`, pool lane 1, 164 s; its `rontrace.log` holds the `calc_cost` records. The packet (run916b,
+`~/ron-golden/ch94p/map-14/`, `--tracer-def RON_STATE_FRAME=846`) is `frame-snapshot.bin`, 836,926,300 bytes, logger frame 846. No minutes waited on another lane.

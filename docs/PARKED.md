@@ -7310,13 +7310,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HK — reserved
+## Parked by item 3099, 2026-10-17 — chapter ninety-four's 1021 order
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **`1/0` `f1021`, order kind (ours EXPLORE_TO, theirs ATTACK_TO)**, the ch94 widening's first parted field and the draw word's neighbour (1117): the Scout sits on slot 64, which
+  the original's army 0 still counts, so army 0's tick commands it. Names the headline's chapter-94 frame; the item is a successor of 3099. Run the ch41 floor first (row 9).
+- **Loop**: a `calc_cost` record diff by `(from,to,dir)` with the cell flag beside it found a mode flag in ten minutes where four sessions of fog reading did not (a tool on the
+  third use); `unitaddr.py` prints decimal and accepts unaligned hits.
 
 ## Parked by the next landing, slot HL — reserved
 

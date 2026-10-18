@@ -840,6 +840,14 @@ impl Sim {
     /// army 0's group 64 empties with the Artillery (824), the Scout's lone
     /// group is pushed onto 64, and its explore search prices every
     /// `NEARBLOCK` cell at `base << 5` (`docs/GOLDEN.md` §119).
+    ///
+    /// **Only while the army's `num_units` is still non-zero** — the count
+    /// the army's own recount (`army_normalize`) clears. Chapter ninety-four's
+    /// army 0 still reads 2 on 846 (the Artillery died on 824, no recount
+    /// since); chapter sixty-two's same slot on 846 reads 0 and its Scout
+    /// keeps the plain search, which a diff pins (`ch62` word frame). That
+    /// the recount is what resets the link in the original is an assumption
+    /// this discriminator stands on, not a reading (`docs/GOLDEN.md` §119).
     pub(crate) fn slot_keeps_army_link(&self, g: &Group) -> bool {
         let Some(i) = g.pushed else { return false };
         let Some(pool) = self.pushed.get(i).and_then(|e| e.state.pool) else {
@@ -847,7 +855,7 @@ impl Sim {
         };
         self.armies
             .get(g.who as usize)
-            .is_some_and(|x| x.list.iter().any(|a| a.valid && a.group.pool == Some(pool)))
+            .is_some_and(|x| x.list.iter().any(|a| a.valid && a.num_units != 0 && a.group.pool == Some(pool)))
     }
 
     /// The seat whose record pool slot `s` of `who` is — the army whose

@@ -13207,12 +13207,34 @@ window 821–827 (the second death).
 
 **Not established**: why the scout's path parts (parked); the caster's leader counters and score, the message and sound, the dead-target refund arm; a Tank-class target.
 
-## 119. Reserved for the next item on the rules track
+## 119. Chapter ninety-four's scout path: an army's emptied slot keeps its army link (run916, 916b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Item 3099: §118's first parted key, the who=1 Scout `1/0`'s `path` on 847 (ours 12 steps, theirs 50). **Disk could not answer**: the dump prints no `calc_cost`
+price and no group record's `+0x8`; run916 (`tools/gamelog/window/chapter94w.cmd`, chapter 94's recipe with `--log-window 845 850`) printed the fog and danger planes and the
+trace's `PathFinder::calc_cost` records on 846, and run916b the process's state at 846 (`~/ron-golden/ch94p`, `RON_STATE_FRAME=846`).
+
+**What the widening showed.** Fog (`seen2`) and who=1's danger plane agree on 846 and 847, so neither prices the route. The original's `calc_cost` records against ours, key
+for key (191 common `(from, to, dir)`): every disagreement is a cell flagged `0x200` (NEARBLOCK), theirs 4096 against ours 128, which is the pathfinder's **`army` mode**
+(`base <<= 5`); cells without the flag agree to the unit. Chapter 93's same scout prices the flagged cells at 128. The scout is no army member (attack 0, `flags2` 0x12;
+`pathfinder+0x70` is 0 before the tick); the search is `Group::action_move_near@00704990`, which sets the mode from the **group record's `+0x8`** (`706178`..`70619f`).
+
+**Cause.** Army 0's group 64 empties with the Artillery (824), the army not yet recounted (`num_units` still 2); the Scout's lone group is pushed, `get_open_slot` hands it
+slot 64, and `copy_group` never writes `+0x8` (§28), so the pushed group reads `army ≥ 0`. In chapter 93 the free slot is 67, with no army link.
+
+**Built** (`Sim::slot_keeps_army_link`, read by `grouppath.rs`'s `find_wpath_from`): a push onto a pool slot some valid army owns, **whose `num_units` is still non-zero**, takes
+army mode. The second clause is what separates golden chapter 62 (same slot, same frame, army already recounted to 0: its Scout keeps the plain search, and the word-frame
+widening moves 1 pin without it). That `army_normalize` (`(frame − 30 + s) % 128`) is what resets the link in the original is **an assumption** the discriminator rests on,
+not a reading.
+
+**Result.** The 847 path and rows 848, 859 and 861 agree. **The draw word goes 1178 → 1117** (value row at 1118: `1/-1 leader:bucket[4:metal]`, ours 175, theirs 100). A lower
+number, from the same cause as before: the correct scout positions uncover a draw the wrong ones hid. The widening's first parted field is now **`1/0` `f1021`**: order kind
+(ours EXPLORE_TO, theirs ATTACK_TO to (38664, 13320)), path 43 steps against 14.
+
+**Hypothesis for 1021 (unchecked).** The Scout still sits in slot 64, which the original's army 0 counts (list `+0xc`), so army 0's tick (frame ≡ 252 mod 256) commands it
+ATTACK_TO; ours seats the push in a `Pushed` entry and army 0's group stays empty. Parked row 9 (24th pass) warns that unifying the *equal* arm parted chapter 41 at 732.
+
+**What the diff backs.** `chapter_ninety_four_s_window_is_widened_whole` (`WANT_CH94`) and `chapter_sixty_two_s_word_frame_is_widened_whole`. **Not established**: the reset of
+`+0x8` by the recount; the 1021 order.
 
 ## 120. Reserved for the next item on the rules track
 
