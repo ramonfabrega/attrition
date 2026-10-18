@@ -13,7 +13,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-18, **the forty-second tranche (commander, Opus): 20 landings from `75ccea37`, drained**, four lanes (DECISIONS
-78 (i), 79), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate at the drain.*
+78 (i), 79), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `a17f673c`, at the drain (green).*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 → 5144 → 5576 of 12658 (3170, 3186),
   widened by 3202 (runs 928, 930: the state first parts on 5564), owed as 3211; `EastIndiesGermanTier3` closed at 13519.
