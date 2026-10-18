@@ -164,6 +164,16 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         // object number over a window, with the dead slots' holds — the
         // allocator's view, for a word that is a numbering (item 1594).
         debug_slots(&built.sim, at);
+        // PROBE 3140 (reverted whole): who=1's 2008 slots as they change.
+        if std::env::var_os("RON_PROBE_3140_B").is_some() {
+            let now: Vec<String> = built.sim.buildings.iter().enumerate()
+                .filter(|(_, b)| b.owner == 1 && b.index == 2008)
+                .map(|(i, b)| format!("slot {i} alive {} active {} at {:?} hp {:?} jc {}", b.alive, b.active, b.pos, b.construct_hits, b.job_counter))
+                .collect();
+            let line = now.join(" | ");
+            thread_local!(static LAST: std::cell::RefCell<String> = const { std::cell::RefCell::new(String::new()) });
+            LAST.with(|l| if *l.borrow() != line { eprintln!("PROBE3140B f{at} {line}"); *l.borrow_mut() = line; });
+        }
         if let Some((sf, _, _)) = sweep
             && sf == at
             && let Some(rec) = built.sim.sweep_watch.take()
