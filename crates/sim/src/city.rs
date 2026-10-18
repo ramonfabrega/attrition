@@ -992,6 +992,11 @@ impl Sim {
     /// `reg_known_rares[7]` and `[11]` go to 0 on block 16529, one after
     /// the fix's own.
     pub(crate) fn fix_borders(&mut self) {
+        if std::env::var("RON_PROBE_3170").is_ok() {
+            let bt = std::backtrace::Backtrace::force_capture().to_string();
+            let fr: Vec<_> = bt.lines().filter(|l| l.contains("sim::") || l.contains("rondata::")).take(12).collect();
+            eprintln!("probe3170 fix_borders frame {} {:#?}", self.frame, fr);
+        }
         self.borders_fixed = true;
     }
 
