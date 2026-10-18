@@ -7516,6 +7516,20 @@ impl Sim {
         if let Some((spot, facing)) = self.swarm_spot(u, b, building) {
             self.add_move_facing_order(u, spot, kind, QueuePos::First, false, facing, None, false);
         }
+        // **The builder's mark.** `action_swarm_around@0070fbe0` has one
+        // arm for `QUEUE_NEW` and `QUEUE_LAST` (`QUEUE_FIRST` re-enters
+        // it at `QUEUE_NEW`, `70fd40`), and that arm queues the order
+        // through `Unit::add_build_order@005e5210` (`710797`) or
+        // `add_repair_order@005e4ff0` (`7106fb`), each of which sets
+        // `unit_masks |= 0x400` (`5e5247`) — the "has been a builder" bit
+        // `think_peasant`'s build arm reads. This shape inserted the order itself and left it
+        // unset, so the AI's builder sent through `produce_building`'s
+        // `QUEUE_NEW` arm, its site re-placed under it, went idle without
+        // it and took a gather where the original took the new site
+        // (run921's `1/7` on 1378, `docs/AI.md` §248).
+        if matches!(body, Body::Build(_) | Body::Repair(_)) {
+            self.units[u].was_builder = true;
+        }
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
             body,
@@ -10468,6 +10482,33 @@ mod loose_tests {
 mod all_gathering_tests {
     use super::*;
     use crate::world::World;
+
+    /// **A swarmed builder is marked a builder** (item 3140,
+    /// `Group::action_swarm_around@0070fbe0`'s one arm queues through
+    /// `Unit::add_build_order@005e5210`, which sets `unit_masks |= 0x400`):
+    /// `think_peasant`'s build arm reads the bit, and an AI citizen sent
+    /// by `produce_building`'s `QUEUE_NEW` swarm that comes back idle asks
+    /// for a site before a gather. Made to fail by taking the mark out of
+    /// [`Sim::swarm_around`]: both asserts fall.
+    #[test]
+    fn a_swarmed_builder_is_marked_a_builder() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let citizen = sim.add_unit_type(crate::UnitType {
+            hits: 10,
+            worker: Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        let site = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
+        let mut u = crate::Unit::new(1, 0, Pos::new(0x1400, 0x1000), 10);
+        u.ty = Some(citizen);
+        u.on_map = true;
+        let u = sim.add_unit(u);
+        sim.swarm_around(u, site, Body::Build(site), true);
+        assert!(sim.units[u].was_builder, "a build swarm marks it");
+        sim.units[u].was_builder = false;
+        sim.swarm_around(u, site, Body::Repair(site), true);
+        assert!(sim.units[u].was_builder, "a repair swarm marks it");
+    }
 
     /// **`Build::all_gathering` prunes the chain before it walks it**
     /// (`62f573`: `check_gatherers` first; item 1248, `docs/GOLDEN.md`

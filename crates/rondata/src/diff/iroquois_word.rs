@@ -45,8 +45,19 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // leg 6), agrees whole, and with it the Scout's `pos` on every block to
     // 1370 (`docs/AI.md` §247). At 1496 ours 37 draws, theirs 36, index 30:
     // ours `Unit::do_non_flat_gather+0xcc3`, theirs `Farms::inc_time+0x1ae`.
-    count: 1496,
-    sequence: 1496,
+    // **Item 3140 moved it 1496 → 1772** with `action_swarm_around`'s
+    // builder mark (`Unit::add_build_order@005e5210`'s `unit_masks |=
+    // 0x400`, which this crate's `swarm_around` never set): 1496's extra
+    // draw was the woodcutter `1/2`'s chop reroll, `all_gathering` false
+    // in ours because `1/7` was walking to the camp 1/2001; run921's
+    // block 1378 has `1/7` taking the re-placed camp 1/2008's
+    // `BUILDORDER` (uid 20) behind an `EXPLORETO` (40248, 23160) in the
+    // original, a `GATHERORDER` on 2001 in ours, and agrees whole with
+    // the mark (`docs/AI.md` §248). At 1772 ours 3 draws, theirs 4,
+    // index 0: ours `Guy::set_anim+0x104b`, theirs
+    // `Unit::do_non_flat_gather+0x54b`.
+    count: 1772,
+    sequence: 1772,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -345,4 +356,76 @@ fn run918b_s_gap_is_widened_whole() {
     // food from block 38 — `income`/`resources` 640 against 672, `bucket`
     // 4/5, `leftover` 6560/352 — with `known_rares` 0 against 1: theirs
     // knows a rare on 38 and ours none (run897's block 37 holds no such row).
+}
+
+/// run921: the word 1496's window, blocks 1371..1626 at run918's detail
+/// (item 3140) — run918's last block is 1370, so it starts there, and
+/// it holds the frame the state parted on (block 1378) as well as the
+/// word's own (1497).
+pub(crate) const RUN921: &str = "gamelog-run921-greatlakes-iroquois-diff3-window-1371-1627.txt";
+
+/// The window: block 1371 through 1626.
+pub(crate) const WIDENING_IROQUOIS_FRAME_1496: (i64, i64) = (1371, 1626);
+
+pub(crate) fn iroquois_frame_1496_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run921",
+        &[(RUN921, WIDENING_IROQUOIS_FRAME_1496.0)],
+        WIDENING_IROQUOIS_FRAME_1496,
+        1,
+        &[1378, 1497],
+        true,
+    )
+}
+
+#[test]
+fn run921_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_1496_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // The capture's `GUYS=2` prints two gaia animation keys nothing reads
+    // (item 1496's pattern): the animals' clocks.
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 40, "initial run921 baseline");
+    // Item 3140, on base ca8f3d8a: 448 keys part over the window. The
+    // first that is the word's: block 1378, who=1's citizen `1/7`, its
+    // build on the Woodcutter's Camp 1/2008 (uid 18, placed and closed on
+    // 1176) killed on 1377 when the script re-placed the camp under the
+    // same number on 1376 (uid 20) — on both sides — and then, idle,
+    // `1/7` takes in the original the new site's `BUILDORDER` behind an
+    // `EXPLORETO` (40248, 23160) (`order:kind` 3, `orders.len` 2,
+    // `orders_x`/`orders_y` 40248/23160) and in ours a `GATHERORDER` on
+    // the camp 1/2001 (kind 7, one order, 40220/22597). `think_peasant`'s
+    // build arm reads `unit_masks & 0x400`, which ours' `swarm_around`
+    // never set.
+    //
+    // **Item 3140: 448 → 40**, with the mark (`action_swarm_around@
+    // 0070fbe0` queues through `add_build_order@005e5210`, `orl $0x400`
+    // at `5e5247`): `1/7` agrees on every block, and with it the camp
+    // 2001's chain and `1/2`'s chop reroll on 1496. What stands (40): the
+    // control's 30 from 1371 (`SITE[n].reg`, `aggression`, `form`,
+    // groups 65/66 `held`, pool 66), who=1's food from 1371 —
+    // `bucket` 89 against 107, `income`/`resources` 800 against 928,
+    // `leftover` 4640 against 5600, standing from run918b's block 38 —
+    // the Scout's `blown` 1/0 from 1537 (parked 3114's cloak bit), and
+    // who=1 on 1577: `script_step` 15 against 18, `tech_frame` and
+    // `tech_cat_frame[2]` 1 against 1576, the Library 1/2005's `queued`
+    // 0/1 and timber `bucket` 133 against 79 — the original queues a
+    // tech on 1576 that ours does not.
 }

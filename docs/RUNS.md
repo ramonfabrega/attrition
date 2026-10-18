@@ -17846,6 +17846,24 @@ the word moved 1120 → 1496. Both windows are in the coverage driver's slice.
 (chapter 94's with `--end-frame 850 --log-window 845 850`), `~/ron-golden/ch94w/map-14/`, pool lane 1, 164 s; its `rontrace.log` holds the `calc_cost` records. The packet (run916b,
 `~/ron-golden/ch94p/map-14/`, `--tracer-def RON_STATE_FRAME=846`) is `frame-snapshot.bin`, 836,926,300 bytes, logger frame 846. No minutes waited on another lane.
 
+## run921 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 1496's widening (1371..1626) (2026-10-18, item 3140, `att-3140`)
+
+`docs/AI.md` §248. **What the disk could not answer**: run918 ends at block 1370 and run897b is `cover=0`, so no dump of
+the lobby held a block between 1370 and 12658 — and the walk named 1376–1378 (the camp 1/2008 re-placed, `1/7`'s orders
+killed and re-issued) as well as the word's 1497, so the window starts where run918's ends rather than at the booked 1490.
+run918's recipe, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run921`: `--map 14 --end-frame 1632
+--timeout 7200 --log-window 1371 1627 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 18 --cover
+cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1, 00:57:23–01:17:20 (1196 s), `success`, `settings_restored`, 1633 frames, `map_style 14`, seed 12345,
+  players `(0,4,7),(1,18,1)`; 257 `BEGIN FRAME`s (1371..1626 and the closing 1633). `rngcmp.py rontrace-run897b.log
+  rontrace-run921.log`: **1633 identical, 0 differing**. Filed `filerun.py run921 greatlakes-iroquois-diff3-window-1371-1627`.
+- Minutes waited on another lane: none (the lane was `free` at launch).
+
+Archive `gamelog-run921-greatlakes-iroquois-diff3-window-1371-1627.txt`, 410,776,472 bytes,
+SHA-256 `691196dd297577323eb88d683a30cf1895da778ff1565fa2c52c2247a938efc6`.
+
+Archive `rontrace-run921.log`, 12,207,872 bytes,
+SHA-256 `548987e62b3ecf02397d4dcea368291e2e0d00a6755b7759f36c80cd76afdc2f`.
 ## run920 — chapter ninety-five: Sabotage on firing Tanks (2026-10-18, item 3126, `att-3126`)
 
 `docs/GOLDEN.md` §121. **What the disk could not answer**: no dump held a Sabotage cast on a firing armed unit. Recipe `tools/gamelog/golden/chapter95.cmd` (`--map 14 --end-frame 1200

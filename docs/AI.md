@@ -22512,12 +22512,60 @@ and the Scout's state on every block of 38..1370 (both widenings), the stride's 
 *Not established*: what parts who=1's food and `known_rares` between 37 and 38; whether the stride's `[F, F+2)` and a
 dense window agree on a block's `MISC` start-frame half (no dense block of this lobby overlaps run918b).
 
-## 248. Reserved for the next item on the AI track
+## 248. The Iroquois word on 1496: a swarmed builder is marked a builder, 1496 → 1772 (2026-10-18, item 3140)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: §247's word, 1496 of 12658 (`GreatLakesIroquoisTier3`), ours 37 draws against 36, at index 30 ours
+`Unit::do_non_flat_gather+0xcc3`, theirs `Farms::inc_time+0x1ae`; its widening owed (run918 ends at 1370). The item
+before's hypothesis was who=1's food; the frame named something else.
+
+**The frame, both directions.** Theirs' 36 on 1496 are ten birds' thirty draws and six `Farms::inc_time+0x1ae`; ours' 37
+are the same with one `do_non_flat_gather+0xcc3` at 30 (`RON_DEBUG_SITES=1380-1496`): **ours acted**, the woodcutter
+`1/2` (`TI` 50, a citizen, `GATHERORDER` on the Woodcutter's Camp 1/2001, `wait` 127 on run918's block 1370 on both
+sides). `+0xcc3` is the chop branch's `300 + rnd % 100`, taken only when `Build::all_gathering` answers false (§6.4 of
+`docs/ORDERS.md`): theirs set `wait = −1` and drew nothing. Ours' camp chain held a member not at its tile — `1/7`,
+walking in from (40220, 22597) under a `GATHERORDER` on 2001 that it took on 1378.
+
+**Walked back, and the capture.** Ours' `1/7` held `[EXPLORETO (40248, 23160), BUILDORDER 2008]` from 1176, the frame the
+script placed the Woodcutter's Camp 1/2008 (uid 18) at (40320, 23424) and closed it — the shape item 644 named on
+run157 — and both sides' run918 blocks agree on that list to 1370. Ours re-placed the camp under the same number on 1376
+(a second slot, `produce_building` under `place_orphan`), so `work`'s target-uid arm killed the explore and the build on
+1376, and `think_peasant` gave the idle `1/7` a gather on 1377 (`find_gather_spot`). No dump held 1371..1489, so **run921**
+is the window 1371..1626 rather than the booked 1490..1746: it holds both 1376 and the word's 1497 (`docs/RUNS.md`).
+run921 has, on both sides, the camp 1/2008 re-placed on 1376 (block 1377's `BUILDDATA`) and `1/7`'s orders empty on 1377;
+**on block 1378 it parts**: the original's `1/7` holds `BUILDORDER 2008 uid 20` behind an `EXPLORETO` (40248, 23160)
+(`order:kind` 3, `orders.len` 2, `orders_x`/`orders_y` 40248/23160), ours a `GATHERORDER` on 2001 (kind 7, one order,
+40220/22597). 448 keys part over the window.
+
+**The cause.** `think_peasant`'s build arm asks `unit_masks & 0x400` (or worker stance 1 or 2) before
+`find_build_spot`; `1/7` is stance 0 on both sides, and ours' `was_builder` was false — `find_construct_sites` found the
+new camp (833 away) and the arm never asked it. `Group::action_swarm_around@0070fbe0` has one arm for `QUEUE_NEW` and
+`QUEUE_LAST` (`QUEUE_FIRST` re-enters it at `QUEUE_NEW`, `70fd40`), and that arm queues the order through
+`Unit::add_build_order@005e5210` (`710797`) or `add_repair_order@005e4ff0` (`7106fb`); both set `unit_masks |= 0x400`
+(`5e5247`'s `orl $0x400, 0x68(%ebx)`). This crate's `swarm_around` — the shape `produce_building`'s `QUEUE_NEW` arm,
+`find_build_spot` and `do_build`'s re-swarm take — inserted the order itself and left the bit unset;
+`swarm_around_last` called the adders and set it.
+
+**The build.** `Sim::swarm_around` sets `was_builder` for a build or a repair (`orders.rs`). **The value diff**: run921's
+block 1378 agrees on `1/7` (both sides `EXPLORETO` (40248, 23160) and the build), and with it the camp chain and `1/2`'s
+reroll on 1496; run921 **448 → 40** keys, **the word 1496 → 1772**. Mutation (`tools/mutate.py`, `mutation: held`, exit
+101): the mark dropped → `iroquois_word_first_parting`, `run921_s_word_frame_is_widened_whole` (40 → 448) and
+`a_swarmed_builder_is_marked_a_builder` fail. Every other lobby's `first_parting` and the battery's floors hold.
+
+**What stands on run921** (40): the control's 30 from 1371; who=1's food from 1371 — `bucket` 89 against 107,
+`income`/`resources` 800 against 928, `leftover` 4640 against 5600 — standing from run918b's block 38 (parked 3138);
+the Scout's `blown` 1/0 from 1537 (parked 3114); and **block 1577**: who=1's `script_step` 15 against 18,
+`tech_frame` and `tech_cat_frame[2]` 1 against 1576, the Library 1/2005's `queued` 0 against 1, and timber `bucket` 133
+against 79 — the original queues a tech on 1576 that ours does not (parked under item 3140).
+
+**The new word, 1772.** Ours 3 draws, theirs 4, index 0: ours `Guy::set_anim+0x104b`, theirs
+`Unit::do_non_flat_gather+0x54b`. Past run921's last block (1626): its widening is owed, a capture of 1766..2022. The
+1577 script parting is the nearest standing row — the item before's hypothesis, never this section's.
+
+**Coverage.** *Diff-backed*: the 1496 draw delta and its finder (the site walk), run921's 1376–1378 on both sides, the
+mark (run921's widening, the mutation). *Reading only*: the call addresses above, read off the listing.
+*Not established*: `add_build_order`'s other half that `swarm_around` still skips — the civilian transport request
+(`unit_masks |= 0x800000` for a target in another tile region, `docs/ORDERS.md` §3.1) — which no capture of this lobby
+reaches (parked under item 3140).
 
 ## 249. Reserved for the next item on the AI track
 
