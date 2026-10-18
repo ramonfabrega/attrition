@@ -7496,13 +7496,11 @@ words and edits nothing here; a refill lands when two remain.
 - (3136) **German metal/industry blocks** (`german_metal_upgrades`,
   `german_industry_upgrades`, both 0 as shipped) are inert and unloaded.
 
-## Parked by the next landing, slot HU — reserved
+## Parked by item 3126, 2026-10-18 — chapter ninety-five, a Tank's target pick
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3126a) **A computer Tank picks the Commando, ours a Hoplite** (run920, 624, `1/7 order:target`; `1/6` at 635): chapter 95's word, 629. Frame and delta are the booking; the `ai` arm of
+`compare_target` (`v / dmg`) and the candidate rings of `find_nearby_target` are the item before's hypothesis (GOLDEN §121). Next: `RON_DEBUG_UNIT=1/7@622-626` both sides and a
+packet at 623 if the ranking reads a value no dump prints.
 
 ## Parked by the next landing, slot HV — reserved
 

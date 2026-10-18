@@ -17845,3 +17845,9 @@ the word moved 1120 → 1496. Both windows are in the coverage driver's slice.
 `docs/GOLDEN.md` §119. **What the disk could not answer**: the pathfinder's per-cell prices and a group record's `+0x8` on 846. Recipe `tools/gamelog/window/chapter94w.cmd`
 (chapter 94's with `--end-frame 850 --log-window 845 850`), `~/ron-golden/ch94w/map-14/`, pool lane 1, 164 s; its `rontrace.log` holds the `calc_cost` records. The packet (run916b,
 `~/ron-golden/ch94p/map-14/`, `--tracer-def RON_STATE_FRAME=846`) is `frame-snapshot.bin`, 836,926,300 bytes, logger frame 846. No minutes waited on another lane.
+
+## run920 — chapter ninety-five: Sabotage on firing Tanks (2026-10-18, item 3126, `att-3126`)
+
+`docs/GOLDEN.md` §121. **What the disk could not answer**: no dump held a Sabotage cast on a firing armed unit. Recipe `tools/gamelog/golden/chapter95.cmd` (`--map 14 --end-frame 1200
+--log-window 605 1200`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch95/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane.
+**What it holds**: the who=1 Tanks `1/6`, `1/7` pick the Commandos where ours picks the decoy Hoplites (624, 635); the word is 629.
