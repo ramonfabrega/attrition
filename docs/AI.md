@@ -23034,7 +23034,7 @@ figure 0 at its cast's end: `g.x[1]` 1622 against 1536, `g.gpiece` 11/14091 agai
 8416, pools 65 (8416) and 67 (8497), and `dest_angle` on `1/26`, `1/29` (8453) and `1/27` (8463). **The word moved
 8415 → 10695**: ours 12 draws against theirs 11, index 10, ours `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, theirs
 `Farms::inc_time+0x1ae` — one more figure clock roll on ours' side, the hypothesis the next item tests. It is past
-run940's last block, so its widening is owed (parked 3249). No other lobby's first parting moved.
+run940's last block, so its widening is owed (parked 3253). No other lobby's first parting moved.
 
 **Test**: `a_barracks_stable_or_dock_unit_trains_faster_for_a_player_holding_cotton` (`harness_tests.rs`): a Barracks,
 a Stable and a Dock unit take 25%, a unit of the second Stable (0x1ad) and a Citizen do not, and 18750 → 15000.

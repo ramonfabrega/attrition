@@ -7823,13 +7823,13 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3248, 2026-10-18 — the Iroquois word 10695's widening
 
-- (3249) **The Iroquois word 10695's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §256). Item 3248 moved the
+- (3253) **The Iroquois word 10695's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §256). Item 3248 moved the
   word 8415 → 10695 with `train_time`'s Cotton arm: ours 12 draws against theirs 11 at index 10, ours
   `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`. That is past run940's last block
   (8665), and no dump of this lobby holds 8665..12658. Owed: the capture over 10689..10945 at run940's detail
   (`LEADERS=9`, `GUYS=4`), widened whole on the word's frame in both directions; ours' extra roll is a figure's clock
   (`inc_time+0x1ed`), so the unit it names is placed by `Unit::inc_time`'s callers in theirs' trace (2639). The lane
-  minted 3249 for `WIDENINGS`' owed row; the commander renumbers it if another lane took it.
+  minted 3253 for `WIDENINGS`' owed row (3249 was a Loop item, 3250–3252 the base's at the update); the commander renumbers it if another lane took it.
   - (a) Run940's `1/24`, theirs' Merchant, snaps its second figure onto figure 0 (`g.x[1]` 1536, `g.gpiece` 50690 on
     both) at its `CASTORDER`'s end on 8415, the cast that takes the Cotton; ours walks it on (1622, 19789). No draw parts
     on it and its rows are quiet after 8416. Names no score: the value row, kept here for the next widening that reaches a
