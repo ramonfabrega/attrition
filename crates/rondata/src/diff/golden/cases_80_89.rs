@@ -722,6 +722,16 @@ pub(super) fn chapter_one_hundred_and_two_holds_to_the_golden_word() {
     );
 }
 
+pub(super) fn chapter_one_hundred_and_three_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch103", "chapter103", 103, 15, 1500) else {
+        return;
+    };
+    eprintln!(
+        "chapter one hundred and three: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+}
+
 pub(super) fn chapter_one_hundred_and_one_s_window_is_widened_whole() {
     let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(

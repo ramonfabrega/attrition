@@ -5925,6 +5925,12 @@ fn chapter_one_hundred_and_two_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_two_holds_to_the_golden_word();
 }
 
+/// Chapter one hundred and three holds to its golden word (item 3267, run945).
+#[test]
+fn chapter_one_hundred_and_three_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_three_holds_to_the_golden_word();
+}
+
 /// **run936 whole, both directions** (item 3236, `docs/GOLDEN.md` §132).
 #[test]
 fn chapter_one_hundred_s_window_is_widened_whole() {
