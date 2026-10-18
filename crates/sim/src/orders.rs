@@ -1851,7 +1851,6 @@ impl Sim {
 
     /// `Unit::add_build_order`.
     pub fn add_build_order(&mut self, u: usize, b: usize, pos: QueuePos, action: bool) {
-        self.probe_3140("add_build_order", u);
         self.units[u].was_builder = true;
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
@@ -7532,7 +7531,6 @@ impl Sim {
     /// an `EXPLORE_TO` here; the AI repairs on both long captures, so the
     /// change is held until both words are measured with it.
     pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
-        self.probe_3140("swarm_around", u);
         let building = matches!(body, Body::Build(_));
         let kind = if self.nation[self.units[u].owner as usize].human {
             MoveKind::MoveTo
