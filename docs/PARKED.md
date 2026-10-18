@@ -7187,13 +7187,23 @@ the generator says nothing of it; and a `--place` whose location is a stub's ans
 second `--wbias` window is the way to give a callee-returned record a field (`Wall::mask_me`'s
 `+0x72`). Worth a line in `sweep_gen.py`'s help (Loop 3062).
 
-## Parked by the next landing, slot HD — reserved
+## Parked by item 3049, 2026-10-17 — the fourth harvest batch: ten small bodies, Census +10 on its own tree
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3049, first) **Draw gaps, said plainly.** `Doober::remove_doobers`: the two long-leg arms (shorter leg of 60000 or
+more) change a distance no row can remove with a threshold of 40, so `b < 60000` and the `>> 1` branch survive their
+breaks; reaching them needs `--argrange 2` past 60000, which starves the arms a small threshold exercises (one draw,
+one range). `World::new_coll_block`: the allocator stub answers a window every row, so the null arm (block 0 stored)
+is not drawn, and the CRT `memset` is a stub (its call is recorded; the cleared bytes are not). `Border::rebuild_visible_list`
+and `TerrainMap::map_change_river` have no equivalents beyond the transposed index (`h*x+y` over a `w*h` rectangle is
+a bijection) and `<=` for `<` on equal bounds in `BorderSplineRender::make_bbox`.
+
+(3049, second) **`WorldMapFog::fill_colors` is swept at `who` 0 only**: the leader table's base (`0xc061e0`'s pointer)
+is recorded as a window token, and a window large enough for `who * 0x6eec` makes every row 56 KB of hex. A `sweep_gen`
+option to record `ecx` relative to a cell's pointer (not its window) would lift it.
+
+(3049, third) **`sweep_gen.py obj` stub answers**: `--seq IDX:N` prints two leading answers (one per stub) before the N
+sequence values; the row's `a` indices are `stubs + k`, which the generated header does not say (it said "printed after
+the answers"). One line in the header would save a probe per use.
 
 ## Parked by item 3058, 2026-10-17 — the shape batch: `update_armor` and 3030's tails, Census 1407 → 1412 on its own tree
 
