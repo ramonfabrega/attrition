@@ -49,7 +49,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let scale = a[0] as f32 / 4.0;
             let cvt = |f: f32| -> i32 {
                 let t = f.trunc();
-                if t.is_nan() || t >= 2147483648.0 || t < -2147483648.0 {
+                if t.is_nan() || !(-2147483648.0..2147483648.0).contains(&t) {
                     i32::MIN
                 } else {
                     t as i32

@@ -51,7 +51,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // the slot.
             let cvt = |w: i32| -> i32 {
                 let f = f32::from_bits(w as u32).trunc();
-                if f.is_nan() || f >= 2147483648.0 || f < -2147483648.0 {
+                if f.is_nan() || !(-2147483648.0..2147483648.0).contains(&f) {
                     i32::MIN
                 } else {
                     f as i32
