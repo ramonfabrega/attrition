@@ -7663,6 +7663,7 @@ Nothing parked. The queue's three arms (Russian 13, Egyptian 7, Chinese 14) were
   a void function that returns a loaded window pointer in eax has no spelling (`caster_process_spells` hard-codes the guest
   address; a `--eax-win cN` would compare window-relative); a cell a callee reads indirectly (`tile_corner`'s `div_3_table` heap
   cell at `0xcae5fc`) shows only as starved hits — a hint listing the callee's cells would help.
+- 3229's "for the Loop" line is (3229c) above, filed here.
 - (3229d) Decompile errors found: `find_building_placed_at` — `move_x`/`move_y` are swapped against the asm (`0xadcaf0` is added to
   x, `0xadc400` to y) and the type compare `< 8` is signed; `find_garrison_build` — `vector_dist`'s coordinates come from the
   object record (+0x10/+0x14 ^ 0x63637), not the data record, and `num_inside` returns in eax. The crate's `world::vector_dist`
