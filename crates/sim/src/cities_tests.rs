@@ -7338,6 +7338,42 @@ fn a_citizen_is_ramped_by_the_militia_too() {
     assert_eq!(sim.worker_support(1, scholar), 1);
 }
 
+/// **A gained Militia raises a Citizen's pool at the next leader pass, not
+/// on its own frame** (item 2997, `docs/AI.md` §244): `Leader::gain_tech
+/// @006dcb60:661` raises `0x4000000` for a unit type and nothing calls
+/// `update_hits` there; `Leader::process`'s `calc_unit_stats` does, on the
+/// frame after. run912c: who=1's Tower finishes the Militia on block 12562
+/// and the thirty Citizens are 40 on 12563 and 50 on 12564.
+#[test]
+fn a_gained_militia_reaches_a_citizen_s_hits_at_the_next_leader_pass() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+    let mut sim = world_sim();
+    let mut tree = TechTree::new().with_tuning(&Tuning::RON);
+    let militia_id = tree.add(TypeDef::unit("Militia", UnitTraits::default()));
+    sim.set_tech_tree(tree);
+    let citizen = sim.add_unit_type(UnitType {
+        hits: 40,
+        type_index: 0x32,
+        ..UnitType::default()
+    });
+    sim.add_unit_type(UnitType {
+        hits: 50,
+        type_index: 0x42,
+        tree: Some(militia_id),
+        ..UnitType::default()
+    });
+    let mut u = Unit::new(1, 0, tile_pos(3, 3), 40);
+    u.ty = Some(citizen);
+    u.type_index = 0x32;
+    let u = sim.add_unit(u);
+    sim.gain_tech(1, militia_id);
+    assert_eq!(sim.units[u].max_health, 40, "not on the gain's own frame");
+    assert!(sim.unit_stats_dirty[1], "the tail raised 0x4000000");
+    sim.tick();
+    assert_eq!(sim.units[u].max_health, 50, "the next leader pass");
+    assert_eq!(sim.units[u].health, 50);
+}
+
 /// **A French Siege Factory unit moves a fifth faster** (item 1455,
 /// `Unit::update_speed@006055c0`, `docs/MOVEMENT.md`): a type whose
 /// `WHERE` is `0x1ae` or `0x1af` takes `FRENCH_SIEGE_MOVE` for a French
