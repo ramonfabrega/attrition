@@ -7423,7 +7423,7 @@ needs `--sparse` over a 225 KB image table plus a pointer array of caravan recor
 
 ## Parked by item 3124, 2026-10-17 — gain_tech's nation range blocks
 
-- (3135) **The wonder-gated free-tech blocks are unwired**: Red Fort
+- (3135) ~~**The wonder-gated free-tech blocks are unwired**~~ built, item 3194:: Red Fort
   (`has_wonder(0x216)`: `FORTIFICATION` `0x251`..`0x253`, `END_FINALTYPES`
   `0x247`..`0x249`), Colosseum, Tikal (`RELIGION`) and Hanging Gardens
   (`CARPENTRY`/`METAL_ALLOYS`/`AGRICULTURE`) are `Gate::Wonder` in `tech.rs`, but
@@ -7574,21 +7574,15 @@ Two built of the six; four not attempted past reading, each with the flag it wou
 - **No battery lobby reaches the arm before its parting** (all eight at their pins, median 4770). Whether a
   long capture at difficulty 5 reaches it is the booking gate's: see the journal.
 
-## Parked by the next landing, slot IJ — reserved
+## Parked by item 3191, 2026-10-18 — chapter 96: the cull measured, closed at 1500
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3203; the lane's 3191a) ~~**The death object's cull**~~ built, item 3205 (GOLDEN §127): (GOLDEN §126; supersedes 3189's open check). The original's lifetime by death piece and animation: piece 194 anim 20 152 frames, anim 17 143, piece 375 anim 18 650, piece 434 anim 17 644 (piece 434 anim 18 is at least 564). It is the death piece's animation packet run by `DeathObj::inc_time@008d5240`; this crate does not load the packet, so `Sim::deaths` is grow-only and four `death:extra` rows stand in ch96 (946, 1235, 1395, 1476), two in ch95. What names the score: the standing rows on both golden chapters, and slot reuse (`Objects::find_free`) in any capture where a long-dead unit's number would be recycled. Check: where `DeathObj::inc_time` ends the record (`remove_from_world`, which slot is freed and when `hold_frames` stops), and the anim packet length source for piece 194/375/434 in the `.bha` data; a loader would read the install at runtime.
+- (3204) **Which late hoplites cross a released disc** — ch96's two hoplites added at 1000 agree through 1500 with the Tank's disc standing; no staging yet crosses it after the cull, so the disc's release (3190) is still unexercised. Needs the cull built first.
 
-## Parked by the next landing, slot IK — reserved
+## Parked by item 3194, 2026-10-18 — the wonder-gated free-tech blocks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3206) **Item 3135's wonder blocks are built** (the lane's 3195, renumbered: 3195 was 3182's): the battery is unmoved; the German pair (3136) stays inert and unloaded. Names no score; parked.
+
 
 ## Parked by the next landing, slot IL — reserved
 
@@ -7612,13 +7606,9 @@ words and edits nothing here; a refill lands when two remain.
   `RON_STATE_FRAME=5564` that runs `UnitData::speed` on `1/26` settles it. The word stays at 5576: theirs' idle
   roll is `1/26`'s figure stopping on 5574 and wrapping on 5576.
 
-## Parked by the next landing, slot IN — reserved
+## Parked by item 3205, 2026-10-18 — the death object's cull
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3208; the lane's 3205a, booked into item 3209) **A sea unit's end** (GOLDEN §127). The arm (`type +0x218 == 1`: the animation alone, no fade) is read from `inc_time`, not diffed. What names the score: a capture where a ship dies and its record's end is printed. Check: `DEATH_OBJS` of a dead ship across its lifetime.
 
 ## Parked by the next landing, slot IO — reserved
 
@@ -7632,6 +7622,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot IP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IV renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

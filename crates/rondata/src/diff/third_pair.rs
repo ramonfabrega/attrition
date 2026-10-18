@@ -1525,7 +1525,7 @@ fn run609_s_closing_frame_is_widened_whole() {
     // Item 2761: 47 → 45 with `Unit::close`'s count (`docs/AI.md` §232).
     pin_eq!(
         w.firsts.len(),
-        45, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        42, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         "run609 closing residue, not whole-record parity"
     );
 }

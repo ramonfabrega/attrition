@@ -2621,6 +2621,32 @@ fn a_held_tikal_raises_a_templed_city_s_hit_points() {
     assert_eq!(sim.buildings[b].hits, (k + 100) * 1200 / 100, "and Tikal's");
 }
 
+/// **`gain_tech` feeds the player's wonder set** (item 3194): the blocks
+/// at the end of `Leader::gain_tech@006dcb60` ask `has_wonder` live.
+#[test]
+fn gain_tech_feeds_the_players_held_wonders() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    let other = tree.add(tech::TypeDef::building("OTHER"));
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let t = install_types(&mut sim);
+    let mut tikal = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+    tikal.ident = Ident::default();
+    tikal.tree = Some(line[tech::wonder::TIKAL]);
+    let tikal = sim.add_build_type(tikal);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    sim.gain_tech(0, other);
+    assert!(sim.tech[0].wonders.is_empty());
+    let w = sim.place_building(0, tikal, tile_pos(32, 25)).unwrap();
+    finish(&mut sim, w);
+    sim.gain_tech(0, other);
+    assert_eq!(sim.tech[0].wonders, vec![line[tech::wonder::TIKAL]]);
+}
+
 /// **A held Space Program halves an aircraft's time** (item 2526,
 /// `docs/AI.md` §226): `train_time@006508c0:316`–`340`'s unit wonders'
 /// arm, by the type's domain (`+0x218`) — `SPACE_AIR_SPEED` 100 % on an

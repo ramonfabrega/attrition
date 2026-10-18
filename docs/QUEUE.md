@@ -17,12 +17,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 of 12658 (3140, 3156, 3170, 3186), its
   widening owed as 3202 (run 928); `EastIndiesGermanTier3` closed at 13519
-  (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–95 closed (3175: 95 at 1200); 96 owed as 3191. Census
+  (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–96 closed (3191: 96 at 1500); the death object's cull built (3205); 97 owed as 3209. Census
   1471, **port 305 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
   median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
-- **Lanes: four live, landings 13 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186): 3202 AI (run
-  928, AI §252, park IM), 3191 rules (run 927, GOLDEN §126, IJ), 3200 shape (IL), 3194 nations (IK). Next 3203, run
-  929 (925 unused). Pools: GOLDEN §127–128, AI §253–255, park IN–IP. Last whole gate: `5b9f621e` (green).
+- **Lanes: four live, landings 16 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186, 3191, 3194, 3205): 3202 AI (runs
+  928 and 930, AI §252, park IM), 3209 rules (run 929, GOLDEN §128, IP), 3200 shape (IL), 3207 nations (IO). Next 3210, run
+  931 (925 unused). Pools: GOLDEN §129–132, AI §253–255, park IQ–IV. Last whole gate: `b6ad1cc2` (green).
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
 - **Fable backlog: 19 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181, 3188).
 
@@ -36,7 +36,7 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w5576 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1471 of 3611 · port 305 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · 88 closed
+Golden: every chapter closed · 89 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-second tranche from docs/QUEUE.md's handoff — spawn 3156 (Opus 5.5 medium), 3152, 3150
@@ -46,7 +46,7 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3202 the AI word's (Opus); 3191, 3200 and 3194 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
+3202 the AI word's (Opus); 3209, 3200 and 3207 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3202. **The battery word, 5576 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 35 draws against theirs 37,
@@ -55,12 +55,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     owed (`WIDENINGS`' `IROQUOIS_WORD` names this item): run926 ends at 5394 and run897b is `cover=0`, so a window of
     5570..5826 at run918's detail (run 928), every dumped record on 5577 both directions. AI §252.
 
-3191. **Chapter ninety-six, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
-    927 minted here): chapter 95 closed at 1200 (3175: `Object::close` keeps a `blocks_while_dead` type's disc, built as
-    `close_supply_in`'s `keep_disc` in this crate), its twelve standing rows kept; parked 3189 (the death object's cull at
-    152 frames, `1/6` `death:extra` on 946) and 3190 (which types carry `0x800000`). Choose the chapter by what a
-    failure would teach — the death-object cull and the non-combat death sites are candidates; stage it, capture it,
-    open it at its first word. GOLDEN §126.
+3209. **Chapter ninety-seven, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
+    929 minted here): 3205 built the death object's cull (`DeathObj::inc_time@008d5240`'s end: the death piece's
+    animation plus the body or corpse fade, by the type's skeleton), clearing chapters 95 and 96's standing
+    `death:extra` rows. Candidates by what a failure would teach: a ship's death (parked 3208: the sea arm, animation
+    alone, read and not diffed) and a late unit crossing a released disc (parked 3204). Stage it, capture it, open it
+    at its first word. GOLDEN §128.
 
 3200. **The sweep's next shape batch: the next never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
     score `Census:` port 305; 3182 built two, `Unit::check_idle` and `ObjectData::is_in_range@006486b0`, and parked
@@ -69,12 +69,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each built, or parked naming the
     generator flag it could not spell. `--kind sweep`.
 
-3194. **The wonder-gated free-tech blocks** (parked 3135; NATIONS §7.4's remainder — §7's six candidates are built, 3187
-    the last: `find_repair_spot`, battery unmoved at 4770; the score: the held-out battery's median first try,
-    `battery_measure`, `battery_floors` never lowered): this crate's `PlayerTech` wonder set is never fed (the sim holds `wonders_held`),
-    so Red Fort (`has_wonder(0x216)`), Colosseum, Tikal and Hanging Gardens stand as `Gate::Wonder` in `tech.rs`, unloaded —
-    feed it and load the blocks off `Leader::gain_tech@006dcb60`, or park naming which battery lobby holds a wonder before
-    its parting. One function's family; never a held-out dump (DECISIONS 54). NATIONS §7.
+3207. **The `has_tribe_bonus` callers a battery tribe reaches and the crate does not model** (NATIONS §5's
+    `not modelled` rows; §7's candidates are spent — 3187 and 3194 built the tier repair arm and the wonder blocks, the
+    battery unmoved at 4770; the score: the held-out battery's median first try, `battery_measure`, `battery_floors`
+    never lowered): `AnimalData::is_seen@005d8160` (Spanish 9, the battery's lowest lobby at 576), `Unit::plunder@00605b00`
+    and `Object::disband@006455c0` (Aztec 0), `Wall::do_construct@006434d0` (Egyptian 7). One function's family a
+    landing, `is_seen` first; never a held-out dump (DECISIONS 54). NATIONS §5, §7.
 
 ## How to maintain this file
 

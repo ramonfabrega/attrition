@@ -499,6 +499,49 @@ pub const fn release_frame(ms: u32) -> u32 {
     if f == 0 { 1 } else { f }
 }
 
+/// Every player unit piece whose `<UNIT>` names a `skeleton` — the
+/// corpse test `DeathObj::init@008d4c60` keeps at `+0x44`
+/// (`RData::unit_data +0x20`, `UnitRDataStruct::skeleton`, `-1` when the
+/// attribute is absent), which picks the death object's fade
+/// (`docs/GOLDEN.md` §127). `graphs` is the `GRAPH` column
+/// [`piece_lengths`] takes.
+pub fn piece_skeletons(install: &Install, graphs: &[String]) -> std::collections::BTreeSet<i32> {
+    let mut out = std::collections::BTreeSet::new();
+    let upath = install.data("unit_graphics.xml");
+    let Ok(utext) = crate::read(&upath) else {
+        return out;
+    };
+    let Ok(udoc) = crate::parse(&upath, &utext) else {
+        return out;
+    };
+    let mut by_graph: BTreeMap<&str, Vec<i32>> = BTreeMap::new();
+    for (i, g) in graphs.iter().enumerate() {
+        let ty = 0x32 + i as i32;
+        if ty >= 0x192 {
+            break;
+        }
+        by_graph.entry(g.trim()).or_default().push(ty);
+    }
+    for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
+        let Some(name) = u.attribute("name") else {
+            continue;
+        };
+        if u.attribute("skeleton").is_none() {
+            continue;
+        }
+        let Some(p) = PieceName::parse(name.trim()) else {
+            continue;
+        };
+        let Some(types) = by_graph.get(p.graph) else {
+            continue;
+        };
+        for &ty in types {
+            out.insert(p.piece(ty));
+        }
+    }
+    out
+}
+
 /// Every player unit piece's [`PieceReleases`] entry, read from the
 /// install.
 ///

@@ -5776,11 +5776,40 @@ fn chapter_ninety_five_holds_to_the_golden_word() {
     cases_80_89::chapter_ninety_five_holds_to_the_golden_word();
 }
 
+/// **run927 whole, both directions** (item 3191, `docs/GOLDEN.md` §126).
+#[test]
+fn chapter_ninety_six_s_window_is_widened_whole() {
+    cases_80_89::chapter_ninety_six_s_window_is_widened_whole();
+}
+
+/// Chapter ninety-six holds to its golden word (item 3191, run927).
+#[test]
+fn chapter_ninety_six_holds_to_the_golden_word() {
+    cases_80_89::chapter_ninety_six_holds_to_the_golden_word();
+}
+
+/// What parts in run927's window, blocks 605–1500: the eleven standing `form`
+/// rows alone — item 3205's cull ended the four `death:extra` rows (946, 1235,
+/// 1395, 1476) the grow-only list stood on.
+const WANT_CH96: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
 /// What parts in run920's window, blocks 605–1200: the word, closed at 1200 by
 /// item 3175 (the dead Tank's disc stands; it took `0/12`'s path rows from 1175 away),
 /// 1174 (1118
 /// under 3152, 634 under 3142, 629 under 3126). The rows are the eleven standing
-/// `form` rows, `1/6`'s `death:extra` on 946 and, from 1175, `0/12`'s path and
+/// `form` rows and, from 1175, `0/12`'s path and
 /// what follows; item 3162 took `1/7`'s 766 `hits:damage` rows (a flank reads the
 /// target's heading, not its guy facing) and the 1119 `0/15` damage (the Tank's
 /// pivot node, piece 194) away.
@@ -5796,7 +5825,6 @@ const WANT_CH95: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "946 1/6 death:extra",
 ];
 
 /// What parts in run914's window, blocks 605–1200.
@@ -6482,16 +6510,14 @@ const WANT_CH42: &[&str] = &[
 /// (parked 1183), the trireme's attack `order:target`, which this crate
 /// keeps on the unit rather than the order — and three of the chapter's
 /// own: `1/2000`'s `raid_stamp` on 671 (closed by item 2235, a citizen's gather); the
-/// `group` numbers from 902, which this crate hands out in another order;
-/// and the death-object cull (`docs/COMBAT.md` §59.7), which this crate
-/// does not have — the original clears `0/7`'s record 643 frames after
-/// its death and `0/8`'s 656 after, and here both stay.
+/// `group` numbers from 902, which this crate hands out in another order.
+/// The death-object cull (`docs/COMBAT.md` §59.7) is built (item 3205,
+/// `docs/GOLDEN.md` §127): `0/7`'s `death:extra` on 1622 and `0/8`'s on
+/// 1725 left.
 const WANT_CH41: &[&str] = &[
     // Item 1502: an attack's `order:target` on a building the start dump did
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
     // §131.4); these rows agree and leave: 632 0/6 order:target.
-    "1622 0/7 death:extra",
-    "1725 0/8 death:extra",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",

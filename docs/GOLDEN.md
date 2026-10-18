@@ -13310,21 +13310,67 @@ on a firing target (reached only after 629); the Commando's wound at 666.
 
 **Not established**: which unit types carry `0x800000` (the Tank does; no census was run); when the disc is released — the original presumably clears it when the death object ends, and this crate has no cull, so a kept disc stands for ever here (`1/6`'s `death:extra` on 946 is that cull: theirs ends the record after 152 frames, piece 194, anim 20); `Unit::close`'s other arms that zero `param_1` (the non-combat deaths) are taken as `dtype == 0`; the non-combat death sites (`cast_sniper_unit`, air crash, bribe) still clear the disc.
 
-## 126. Reserved for the next item on the rules track
+## 126. Chapter ninety-six — the death object's cull, measured: closed at 1500 on the first run (item 3191, run927)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Staging.** `tools/gamelog/golden/chapter96.cmd`: chapter 95's staging (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets), run to 1500 so both dead Tanks' records end inside the window, with two who=0 hoplites added at 1000 beside the first Tank's cell to cross the disc once it is released. Run927, pool lane 1, `~/ron-golden/ch96/map-14/`, 1,501 frames, seed 12345. The `add` coordinates for the hoplites were chosen from chapter 95's unit positions and are not otherwise justified.
 
-## 127. Reserved for the next item on the rules track
+**The word is 1500, the capture's end: no draw parts**, including the two late hoplites. The widening is whole (895 blocks, both directions): fifteen rows, the eleven standing `form` rows and four `death:extra` rows, one per death object the original ended in the window.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The measurement (the finding).** The original's death records leave `DEATH_OBJS` after a lifetime fixed by the death piece and animation, not by the unit type:
+
+| unit | `gpiece` | `cur_anim` | `first_frame` | gone from | lifetime |
+|---|---|---|---|---|---|
+| `1/6` Tank | 194 | 20 | 794 | 946 | 152 |
+| `1/7` Tank | 194 | 17 | 1092 | 1235 | 143 |
+| `0/7` | 375 | 18 | 745 | 1395 | 650 |
+| `0/14` | 434 | 17 | 832 | 1476 | 644 |
+| `0/13`, `0/10` | 434 | 18 | 936, 1017 | not reached by 1500 | at least 564, 483 |
+
+Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing `death:extra`. **Not built**: the length is `DeathObj::inc_time@008d5240` running the animation packet of the death piece, which this crate does not load (`docs/COMBAT.md` §42.5); a five-point table of observed lengths would cull those pairs and nothing else, and the cull also changes `hold_frames` and slot reuse, so building it from the table would move every longer capture on a guess. Parked.
+
+**Not established**: the packet lengths themselves (piece 194 anims 17, 20; piece 375 anim 18; piece 434 anims 17, 18); whether the lifetime is the packet length exactly or plus a constant; whether a released disc (the Tank's, `blocks_while_dead`) matters to the late hoplites — they agree through 1500 with the disc standing, which says only that nothing in this staging crossed it.
+
+## 127. The death object's cull, built: the six standing `death:extra` rows gone (item 3205)
+
+**The reading** (`DeathObj::inc_time@008d5240`, `DeathObj::init@008d4c60`). The record's counter (`+0x40`) is zero at `init` and gains one at every `inc_time`; the record is zeroed when the counter reaches `get_game_frames(piece packet, cur_anim)` plus a fade: `corpse_fade_end` (627) when the death piece has a corpse (`+0x44 != -1`), `body_fade_end` (135) when it has none, and nothing for a sea unit (`type +0x218 == 1`). `+0x44` is `RData::unit_data +0x20`, `UnitRDataStruct::skeleton`, which is `-1` for a `<UNIT>` with no `skeleton` attribute. The death piece (`+0x20`) is the dying guy's own `gpiece` (`UnitData::get_gpiece@0060dd80`, vslot `+0x178`). A type with `blocks_while_dead` also calls `clear_blocking` at the end, which takes the kept disc out of the occupancy index.
+
+**Built.** `combat::Death::life` is, over every guy of the unit, the longest `slot_length(that guy's gpiece, cur_anim)` plus the fade (the original makes one record per guy: chapter 94's four-man crew prints four, pieces 219, 12891, 25563, 38235, and the unit stands in the list while any lives — a first build on guy 0 alone culled it at 959 and 989 and parted `death:missing`), taken at `close_unit`; `Sim::cull_deaths` (from `hold_frames_tick`, after the bump, as the listing orders them) ends a record when `frame − first_frame + 1 >= life` and, for a `blocks_while_dead` type, `coll_remove`s the disc. The skeleton set is `rondata::artdata::piece_skeletons`, read from the install's `unit_graphics.xml` at load into `Art::piece_skeletons`; nothing from the install is in the repo. A piece the install does not describe has `life: None` and is never culled, as before.
+
+**Value check.** The cull lands on §126's measured lifetimes (152, 143, 650, 644) with the install's packet lengths: the diff is the check, no row goes `missing` and none stands. The per-piece frame counts behind them (by subtraction, 17 and 8 for the Tank under 135; 23 and 17 for the other two under 627) were not printed separately. The off-by-one is the diff's: the rows clear on `first_frame + life − 1`'s tick and none goes `missing` early.
+
+**What moved.** Chapter 41's loses `0/7` on 1622 and `0/8` on 1725 (run437's culls, §59.7). Chapter 96's widening loses all four `death:extra` rows (946, 1235, 1395, 1476) and keeps the eleven `form` rows; chapter 95's loses `1/6`'s on 946. Both words are the captures' ends, unchanged.
+
+**Not established**: a sea unit's end (no capture reaches one; the arm is read from `inc_time`'s `+0x218 == 1` test alone); whether every guy of a squad dies with one `cur_anim` (the dump's four records agree); the cull's effect on slot reuse in a capture where a recycled number is born inside the window (none on disk).
 
 ## 128. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 129. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 130. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 131. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 132. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

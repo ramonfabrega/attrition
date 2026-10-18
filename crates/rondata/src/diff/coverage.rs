@@ -685,6 +685,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch93 = golden_dump("ch93");
     let ch94 = golden_dump("ch94");
     let ch95 = golden_dump("ch95");
+    let ch96 = golden_dump("ch96");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2636,6 +2637,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
         let n = drive_capture(p, 764, 768, &mut paths);
         assert_eq!(n, 5, "chapter ninety-five carries the 766 blocks");
+        frames += n;
+    }
+    // **Chapter ninety-six, on run927** (item 3191): the death object's cull;
+    // the window takes the first Tank's last record block and its neighbours.
+    if let Some(p) = &ch96 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINETY_SIX;
+        let n = drive_capture(p, 944, 948, &mut paths);
+        assert_eq!(n, 5, "chapter ninety-six carries five blocks in the window");
         frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
