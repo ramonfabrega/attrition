@@ -2611,7 +2611,7 @@ impl Sim {
             }
             for (k, v) in self.units.iter().enumerate() {
                 if (v.pos.x - 14328).abs() < 400 && (v.pos.y - 16900).abs() < 400 {
-                    eprintln!("P3175 near unit {} {}/{} at {:?} alive {}", k, v.owner, v.index, v.pos, v.alive);
+                    eprintln!("P3175 near unit {} {}/{} at {:?} alive {}", k, v.owner, v.index, v.pos, v.alive());
                 }
             }
             for (k, b) in self.buildings.iter().enumerate() {
