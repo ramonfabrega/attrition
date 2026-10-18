@@ -1883,6 +1883,18 @@ impl Sim {
         let pop = self.ai[w].census.pop;
 
         for t in units {
+            let pr = std::env::var("RON_PROBE_UP").is_ok()
+                && w == 1
+                && (7978..=7981).contains(&self.frame)
+                && (t == 83 || t == 167 || t == 82 || t == 66);
+            if pr {
+                eprintln!(
+                    "PROBE_UP f{} t{} avail {}",
+                    self.frame,
+                    t,
+                    self.type_avail(who, t)
+                );
+            }
             if self.type_avail(who, t) != tech::RESEARCHABLE {
                 continue;
             }
@@ -1943,6 +1955,9 @@ impl Sim {
                     &self.tech[w],
                     self.tech_tree.types[x].from,
                 );
+            }
+            if pr {
+                eprintln!("PROBE_UP f{} t{} owned {owned} avail {avail} age_p {age_p} siege {}", self.frame, t, f.siege);
             }
             if !(owned != 0 || !avail || f.siege) || self.named_is(t, "Merchant Fleet") {
                 continue;
@@ -2055,6 +2070,9 @@ impl Sim {
             } else {
                 0x40
             };
+            if std::env::var("RON_PROBE_UP").is_ok() && w == 1 && (7978..=7981).contains(&self.frame) {
+                eprintln!("PROBE_UP f{} make t{} val {} cat {cat}", self.frame, t, wm(aff, v / 256));
+            }
             self.ai[w]
                 .make_list
                 .make_me(t as i32, wm(aff, v / 256), 1, cat, -1, 0, 1, 0, 0);
