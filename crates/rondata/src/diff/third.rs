@@ -565,7 +565,8 @@ mod tests {
         // **What run10's detail does not print** is a key unprinted, never
         // a parting: the leader's long record (`LEADERS=1` prints the short
         // one) and gaia's clocks (`GUYS=2` prints no `cur_anim`).
-        pin_eq!(w.missing.len(), 1073, "the keys run382 does not print");
+        // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+        pin_eq!(w.missing.len(), 1120, "the keys run382 does not print");
         pin!(
             w.missing.contains("gaia:cur_anim") && w.missing.contains("resources[0:food]"),
             "gaia's clocks and the long leader record are unprinted"

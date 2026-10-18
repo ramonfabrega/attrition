@@ -117,6 +117,7 @@ impl Sim {
     pub(crate) fn gather_rares(&mut self, who: Player) -> ([i32; RESOURCES], u64) {
         let mut out = [0; RESOURCES];
         let mut owned = 0u64;
+        let mut collected = vec![0; economy::RARES];
         let candidates: Vec<usize> = (0..self.units.len())
             .filter(|&u| {
                 let unit = &self.units[u];
@@ -162,7 +163,12 @@ impl Sim {
             }
             if good >= economy::BASE_RARE && good - economy::BASE_RARE < economy::RARES {
                 owned |= 1 << (good - economy::BASE_RARE);
+                collected[good - economy::BASE_RARE] += 1;
             }
+        }
+        // `rares_collected`, cleared and refilled by the same walk.
+        if let Some(h) = self.holdings.get_mut(who as usize) {
+            h.rares_collected = collected;
         }
         (out, owned)
     }

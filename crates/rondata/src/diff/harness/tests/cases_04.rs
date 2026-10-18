@@ -1842,7 +1842,8 @@ mod bodies {
         // and 1,059 before item 1147, which compares `pop_cap`, and 1,060
         // before item 1209, which compares `agendas[·]`, and 1,062 before
         // item 1293, which compares `flock_stamp`.
-        pin_eq!(leader_rows, 85760, "40 blocks x 2 leaders x 1,065 keys");
+        // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+        pin_eq!(leader_rows, 89520, "40 blocks x 2 leaders x 1,065 keys");
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -1914,7 +1915,8 @@ mod bodies {
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         pin_eq!(
             leader_rows,
-            1301500,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1325000,
             "250 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -2041,7 +2043,8 @@ mod bodies {
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         pin_eq!(
             leader_rows,
-            3279780,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            3339000,
             "630 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(

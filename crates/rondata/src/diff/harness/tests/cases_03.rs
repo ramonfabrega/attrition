@@ -1606,7 +1606,8 @@ mod bodies {
         // they are named here rather than read as agreeing.
         pin_eq!(
             missing.len(),
-            1071,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1118,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -1682,8 +1683,9 @@ mod bodies {
         pin_eq!(
             missing.len(),
             // Item 2384: +7, `aggression[1..8]`, which the short form
-            // does not print.
-            1_071 + 1_531 + 2,
+            // does not print. Item 3255: +47, the rare masks and
+            // `rares_collected`.
+            1_118 + 1_531 + 2,
             "the keys run96's records do not carry"
         );
         pin_eq!(

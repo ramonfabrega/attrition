@@ -33,7 +33,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            1337942,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1362100,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -151,7 +152,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            1337942,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1362100,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -656,7 +658,8 @@ mod bodies {
         );
         pin_eq!(
             leader_rows,
-            1337942,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1362100,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -761,7 +764,8 @@ mod bodies {
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         pin_eq!(
             leader_rows,
-            885020,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            901000,
             "170 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -896,7 +900,8 @@ mod bodies {
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         pin_eq!(
             leader_rows,
-            780900,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            795000,
             "150 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -1043,7 +1048,8 @@ mod bodies {
         // 1,531 keys a leader), which no widening had read.
         pin_eq!(
             leader_rows,
-            1874160,
+            // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
+            1908000,
             "360 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");
