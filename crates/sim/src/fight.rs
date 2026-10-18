@@ -2773,7 +2773,14 @@ impl Sim {
                     self.kremlin_spy_closed(i);
                     self.close_dead_orders(i);
                     self.hold_dead_slot(i);
-                    self.close_supply(i);
+                    let keep = dtype != 0
+                        && self.units[i].on_map
+                        && self.units[i].ty.is_some_and(|t| {
+                            self.unit_types[t].cols.unit_flags
+                                & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                                != 0
+                        });
+                    self.close_supply_in(i, keep);
                     self.forget(Obj::Unit(i));
                 }
                 taken

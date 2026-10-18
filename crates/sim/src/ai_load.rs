@@ -108,6 +108,12 @@ pub mod uflags {
     /// it under `CHAR_ATTACKWALK` while it is aimed (`docs/AI.md` §134,
     /// [`crate::cavarch`]).
     pub const FIRES_ON_MOVE: u32 = 0x20_0000;
+    /// `UnitTypeData::blocks_while_dead` (`unit_flags & 0x800000`, the type's
+    /// vslot `+0x120`): a combat death of such a type leaves its occupancy
+    /// disc in the world (`Object::close@00647160`'s arm that skips
+    /// `remove_from_world`), so the Tank's wreck is something to walk
+    /// around (`docs/GOLDEN.md` §125).
+    pub const BLOCKS_WHILE_DEAD: u32 = 0x80_0000;
     /// `t` — `unitrules.xml`'s own legend: "Unit is a tank".
     /// `UnitTypeData::is_tank@00470450` reads it, the type's vslot `+0x110`
     /// (the PDB's `ObjectTypeData` method list), and a land pusher will not
