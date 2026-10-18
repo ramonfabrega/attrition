@@ -22848,12 +22848,74 @@ run928: `1/22`'s `blown` (ours 1 against 0, from 5627) and `1/23`'s second figur
 (run930); the spear arm's entry 0 on own ground (run928, run932). *Reading only*: `is_modern_infantry`'s other two
 consumers under the arm, the spear's entries 1..3, and its ally test against another leader's ground.
 
-## 254. Reserved for the next item on the AI track
+## 254. The word 6982 → 7033 → 7982: an Iroquois leader's first Senate is free and instant (2026-10-18, item 3231)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 6982 (§253), ours 10 draws against theirs 15 at index 5,
+theirs `Leader::produce_building+0x1805` (a placement's jitter, §2.20). No dump of the lobby held a block past 6094.
+
+**run934** widens it over 6976..7232 at run932's detail with `LEADERS=9` and `GUYS=4` (`docs/RUNS.md`), with `rngcmp`
+7239 of 7239. On the base it parts on 1105 keys. Below the word's block only the standing set parts (§253's, plus the
+newborn figures' `g.angle[0]` on `1/35` and `1/36`). **The first other row is block 6982's make list**, written on
+frame 6981:
+
+| block 6982, who=1 | `t` | `val` | `escrow` | `city` | `cat` |
+|---|---:|---:|---:|---:|---:|
+| `MAKE[3]`, ours | 171 | 62976 | 1 | −1 | 7 |
+| `MAKE[3]`, theirs | **438**, the Senate | 80000 | 0 | 1 | 8 |
+
+Slots 0..2 agree (52, 50, 573). Theirs listed a Senate in city 1, ours did not, and on frame 6982 theirs placed it
+(`1/2023`), which is the word's draw.
+
+**Direction, by probe** (env-guarded, committed and reverted whole). Ours' `create_buildings` ran on 6981 and valued
+the Senate at 80000 in both cities (`building_value`'s `Some((80000, 0, 4))`), like theirs. Then `check_income`
+answered **0**, because ours' `type_affordable` was below one, so the offer's `val` was 0 and `make_me` dropped it.
+Theirs' 80000 is `l.val` unchanged, a factor of exactly `0x100`. Without escrow that factor needs the type to be
+affordable and every good it costs to have no price, and the stockpiles agree on the block. So the price differs.
+
+**The arm**: `TypeData::get_cost@00664090`'s building branch. After the scenario's `buildings_free` test
+(`006656f5`..`00665713`), it returns 0 when `has_tribe_bonus(0x12)` (`0066572b`), the type `is(0x1b6, 0)`, the
+Senate by lineage (vslot `+0x60`, `0066573f`), `IROQUOIS_QUICK_SENATE` is set (`cmpl $0, 0x834(%eax)`, `0066574b`),
+and the leader's short at `0x5324 + type × 2` is zero (`00665762`). That short is `high_buildings` (`+0x5660`) at
+slot `type − 414`, so for the Senate it is `high_buildings[24]`. The decompile names the index `param_1`, which the
+listing's `edi` and the bit test after it (`00665776`) confirm is the type. So an Iroquois leader whose Senate has
+never stood pays nothing for one. The crate had only `construct_time`'s twin of this arm, and it never set its flag.
+
+**Built**: `Sim::iroquois_free_senate` (`city.rs`), read by `building_price` (an all-zero price). With it the word
+moved to **7033** and run934 fell to 986 keys. The next parting is block 6983's `1/2023` `construct_hits`, ours 1
+against theirs 1200. Theirs' site holds full hits from its first block, `job_counter` 0 and `frame_started` −1 until
+its first builder arrives on 7024. It completes on block 7025 (`ever_seen_completed` 2, `build_masks` 5376), moves
+`city_flags & 0x10` from `1/2000` to `1/2007`, sets every building's `regen_roads`, and on 7033 runs the road search
+(theirs 208 draws in `PathFinder::calc_road_cost`). That is `BuildData::construct_time@0062d5c0`'s last arm, on the
+same predicate (`0062d8b8` the constant, `0062d8d8` the short): the clock is 0, floored at 1. `construct_time_of` now
+sets `ClockMods::iroquois_first_senate` from the same function, read live, so the second Senate is clocked again
+once `Build::activate` raises the mark.
+
+| run934 | keys | the word |
+|---|---:|---|
+| base `5b18de8c` | 1105 | 6982 |
+| `get_cost`'s arm | 986 | 7033 |
+| and `construct_time`'s | 41 | **7982** |
+
+The 41 are run932's standing set (the `SITE` regs, the forms, pools 64 and 66, `1/22`'s `blown`, `1/23`'s second
+figure's nine), the three newborn figures' `g.angle[0]` (`Unit::init`'s 0x55555555 against 0, a family that stands
+in other lobbies, §54.3) and `SITE[1].reg` on 7176. **The word moved 6982 → 7982**: ours 12 draws, theirs 14, index
+5, ours `Animal::do_idle+0x83` against theirs `Leader::make_stuff+0x63d`. It is past run934's last block, so its
+widening is owed (parked 3232). No other lobby's first parting and no other pin moved.
+
+**The two rows the booking named** (`1/22`'s `blown`, `1/23`'s second figure) stand on run934's first block, as they
+did on run932's. They parted at 5627/5883 and 5673, which this window does not reach, so this capture cannot read
+them. Neither is on the word's frame.
+
+**Test**: `an_iroquois_leader_s_first_senate_is_free_and_instant` (`cities_tests.rs`). Mutations: each arm dropped, and
+the `high_buildings` test dropped.
+
+**Not established.** The decompile's `param_1` is settled by the listing only at this branch. The arm's reach to a
+Senate upgrade is read, not diffed, because the crate's `building_high` is written at the lineage root and the
+listing reads the type's own slot, which agree for the Senate. The scenario `buildings_free` test before it is not
+carried.
+
+**Coverage.** *Diff-backed*: both arms on the first Senate (run934, blocks 6982, 6983 and 7025). *Reading only*: the
+mark's index for a type that is not a lineage root.
 
 ## 255. Reserved for the next item on the AI track
 
