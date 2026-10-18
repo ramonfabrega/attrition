@@ -698,6 +698,8 @@ mod doober_has_doobers;
 mod doober_inc_time;
 #[path = "doober_remove_cover_doober.rs"]
 mod doober_remove_cover_doober;
+#[path = "doober_remove_doobers.rs"]
+mod doober_remove_doobers;
 #[path = "doober_remove_hold_doobers.rs"]
 mod doober_remove_hold_doobers;
 #[path = "draw_thick_diamond.rs"]
