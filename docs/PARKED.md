@@ -3742,6 +3742,11 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3127) **`RON_DEBUG_ARMIES` is not wired into `widen_civilians_walk`** (3123's "for the Loop" line, filed at its
+merge): the lane added the call as a probe commit and reverted it whole, so the next army-slot question re-wires it.
+Candidate: leave the one line behind its env guard in the walk, so the army dump is a flag rather than a probe commit.
+One reach.
+
 (3125) **The `Golden:` line is a ninety-part list where one fact is news** (Ramon, 2026-10-17, for the steer): the
 line names every chapter `chN closed` in order — ninety-one parts, about 1,400 characters — and the one open word
 (`ch94 w1117 of 1,200`) sits at its end. `golden_line_verdict` (`rondata::diff::floors`) holds it part by part against
