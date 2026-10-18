@@ -915,6 +915,11 @@ mod tests {
             WIDENING_CHAPTER_NINETY_SIX,
         ),
         (
+            "ch97",
+            GOLDEN_WORD_CHAPTER_NINETY_SEVEN,
+            WIDENING_CHAPTER_NINETY_SEVEN,
+        ),
+        (
             "restage",
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
             WIDENING_CHAPTER_THREE_RESTAGE,
