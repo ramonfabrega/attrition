@@ -874,6 +874,12 @@ pub struct Tuning {
     /// Percentage faster for a German leader's aircraft (`+0x218 == 2`) —
     /// `ObjectData::train_time`'s German arm, after the French.
     pub german_air_speed: i32,
+    /// `ROMAN_LEGION_CHEAP` — percentage off a Roman leader's unit of the
+    /// Legion's lineage (`is(0x84, 0)`), `TypeData::get_cost:306`–`311`.
+    pub roman_legion_cheap: i32,
+    /// `ROMAN_LEGION_FAST` — percentage faster for the same unit,
+    /// `ObjectData::train_time@006508c0:208`–`213`, after the German arms.
+    pub roman_legion_fast: i32,
     /// `CHINESE_CITIZEN_CREATION` — percentage faster for a Chinese
     /// leader's citizen, merchant or caravan (`train_time@006508c0`, arm
     /// `0xe`, between the Japanese arms and the British).
@@ -1399,6 +1405,8 @@ impl Tuning {
         indians_caravan: 15,
         british_ship_speed: 33,
         german_air_speed: 33,
+        roman_legion_cheap: 10,
+        roman_legion_fast: 10,
         chinese_citizen_creation: 100,
         chinese_citizen_instant: 1,
         german_submarine_speed: 33,
@@ -1477,7 +1485,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 401] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 403] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -2119,6 +2127,8 @@ impl Tuning {
             ("INDIANS_CARAVAN", Slot::Value(T.indians_caravan)),
             ("BRITISH_SHIP_SPEED", Slot::Value(T.british_ship_speed)),
             ("GERMAN_AIR_SPEED", Slot::Value(T.german_air_speed)),
+            ("ROMAN_LEGION_CHEAP", Slot::Value(T.roman_legion_cheap)),
+            ("ROMAN_LEGION_FAST", Slot::Value(T.roman_legion_fast)),
             (
                 "CHINESE_CITIZEN_CREATION",
                 Slot::Value(T.chinese_citizen_creation),

@@ -7510,13 +7510,9 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HW — reserved
+## Parked by item 3137, 2026-10-18 — the Roman legion pair, and what the nations family still lacks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3137a.** The remaining uncarried national terms of `get_cost` (Mongol stable, Japanese barracks and ships, American aircraft, British AA, Nubian merchants, Angkor ships, Wool/Turkish citizens, Korean towers, Colosseum forts) and `train_time` (the French arm, `TROOPS_FASTER`, cotton and wool) are unaudited by this item; it took the Roman pair only. No score named them; a lobby with that nation's leader would. Battery unmoved by the pair (no held-out lobby holds a Roman leader).
 
 ## Parked by the next landing, slot HX — reserved
 

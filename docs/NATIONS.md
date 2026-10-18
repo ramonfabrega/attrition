@@ -116,7 +116,7 @@ says in its doc comment that only the British and Mongol arms are built,
 | Chinese | herbal lore applied on tech gain | `Leader::gain_tech@006dcb60` | carried, unread | `chinese_herbal_lore` |
 | Chinese | knowledge upgrades applied on tech gain (0 in the rules) | `Leader::gain_tech@006dcb60` | carried, unread | `chinese_knowledge_upgrades` |
 | Greeks | research faster (train_time's research tail) | `ObjectData::train_time@006508c0` | not modelled | `greek_research_speed` |
-| Romans | legions train faster | `ObjectData::train_time@006508c0` | not modelled | `roman_legion_fast` |
+| Romans | legions train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `roman_legion_fast` |
 | French | siege units train faster | `ObjectData::train_time@006508c0` | not modelled | `french_siege_speed` |
 | French | special (general) units train faster, 0 in the rules | `ObjectData::train_time@006508c0` | not modelled | `french_special_speed` |
 | Germans | aircraft train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_air_speed` |
@@ -192,8 +192,8 @@ left out; a constant with no reader in the export is dead there too.
 | `ROMAN_AGE_FOR_3_LEGIONS` | 5 | Build::activate | modelled at nations.rs | `roman_age_for_3_legions` |
 | `ROMAN_MAX_LEGION` | 3 | Build::activate | modelled at nations.rs | `roman_max_legion` |
 | `ROMAN_CITY_GATHER` | 10 | LeaderData::calc_city_resources | modelled at economy.rs | `roman_city_gather` |
-| `ROMAN_LEGION_CHEAP` | 10 | TypeData::get_cost | not carried | `roman_legion_cheap` |
-| `ROMAN_LEGION_FAST` | 10 | ObjectData::train_time | not carried | `roman_legion_fast` |
+| `ROMAN_LEGION_CHEAP` | 10 | TypeData::get_cost | modelled at lib.rs | `roman_legion_cheap` |
+| `ROMAN_LEGION_FAST` | 10 | ObjectData::train_time | modelled at lib.rs | `roman_legion_fast` |
 | `ROMAN_FREE_MILITARY` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `roman_free_military` |
 | `EGYPTIAN_WONDERS` | 25 | TypeData::get_cost | modelled at city.rs | `egyptian_wonders` |
 | `EGYPTIAN_GRANARY_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `egyptian_granary_early` |
@@ -624,6 +624,18 @@ a pass books against a word, not a fix for the lobby that exposed it.
    air and submarine speeds and costs~~ — built by item 2974 at `lib.rs`
    (`docs/AI.md` §242; the submarine pair diff-backed by the battery
    word, the air speed by the sim test alone).
+   **Built, item 3137 (§7.5): the Roman legion pair.** `get_cost:306`–`311`:
+   a Roman leader (`has_tribe_bonus(6)`) and a unit that `is(0x84, 0)` (the
+   Legion, by lineage) take `ROMAN_LEGION_CHEAP` (10%) off in a truncating step
+   after the Russian spy's and before the Terra Cotta Army's
+   (`Sim::roman_legion_discount` → `cost::Modifiers::roman_legion`).
+   `train_time@006508c0:208`–`213`: the same predicate divides by
+   `ROMAN_LEGION_FAST + 100`, after the German arms and before `TROOPS_FASTER`
+   (`train_tail`). Test `a_roman_legion_line_costs_a_tenth_less_and_trains_faster`,
+   made to fail by disabling both arms. Not diff-backed: no capture holds a
+   Roman leader. **Not established**: the crate applies the Russian-spy step
+   before the French discount where the listing has it after; the two nations
+   are disjoint, so no leader sees the difference.
 6. **The tiers' unbuilt arms** (§6): `Unit::do_gather`'s and
    `Build::process`'s AI repair arms (H12), `get_econ_mod` (no caller
    in the export, so it is dead there too). Tier 1–4 parts have not been
