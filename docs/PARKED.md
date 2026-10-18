@@ -3740,6 +3740,21 @@ for: it cost one run rather than an item.
 
 (3068) **A harvest batch: the order-adders' family** — held off the queue at the fortieth steer (Ramon: the harvest lane becomes the nations lane, 3092; DECISIONS 78 amended), its text as booked: the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,     `add_cast_order`, `add_trade_order`, `add_repair_order`,     `add_build_order` by 3064's recipe (parked 3070), then ten more off     `--claimed` the live sweep lanes' trees; never a `process_*`.     Unstarted. `--kind sweep`. It returns when a pass books a sweep lane on it; the shape sweep (3078) keeps the generator.
 
+## Loop, filed 2026-10-18 — the forty-fourth tranche's
+
+(3276) **`tools/mutate.py` has no per-mutant timeout** (the commander, at att-3261's `STALLED` exit): a mutant of
+`objects_find_ordered_collision` that never terminates held one `cargo test` at 100% CPU for 100 minutes, and the lane
+sat on its batch with nothing to wake it until `lanewait.py` named the child. Candidate: a `--timeout` per mutant
+(the unmutated run's time times a factor, a floor of a minute), a timed-out mutant counted as caught and printed as
+`hung`, made to fail first on a mutant that loops. One reach.
+
+(3277) **A lane lands with its own gate red on its own line, fixed after and not re-run** (the commander, at 3267's
+and 3271's merges): both Sonnet rules lanes' lane gates were red on the journal-quote guard
+(`a_journal_quotes_its_lane_verdict_and_gate_minutes`), fixed in a later commit, the gate not re-run and its guard
+step not reached; the booking gate carries the check. Candidate: the frame row that a lane whose verdict is "red on
+the worker's own" re-runs the guard step alone (`tools/guard.sh`) before its done line and quotes it, or the gate's
+journal check moved ahead of the release step so a missing quote fails in the first minute. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
 (3240) **`sweep_gen.py`'s five gaps from one batch** (3229's "for the Loop" line, its parked (3229c), filed at its
@@ -7937,8 +7952,8 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3271, 2026-10-18 — chapter 103's wound closed on a bay refit, the order's write point parts
 
-- (3271) **`0/10`'s `orders_y` and `dest_angle` on 935 (run945, GOLDEN §139)**: the Attack order that replaces the move on 935 agrees on both sides (flags, `in_range`, position 16008), but ours writes `orders_x/orders_y` at 15984 (the position before the frame's step) and `dest_angle` −2147483648, theirs 16008 and 1181417472 (the position after it). The unit is moving when the order changes; the stationary `0/11`, `0/12` agree. Booking is the frame (935) and the value (`orders_y` 15984 against 16008): which caller adds the Attack on 935 (`RON_STACKS`, `kill_current_order`) and whether the original's thinks run before or after the step for a unit with a path.
-- (3271) **The bowman bay `120/ATTACK1/12` is a fit** (`right −1830, fwd 88800`): one point of a 2,398-point family that matches three arrows; a fourth facing on disk or in a later capture would narrow it. `get_position` is float trigonometry in the original and `Bay::point` an integer rotation by a whole degree.
+- (booked as item 3274) (3273) **`0/10`'s `orders_y` and `dest_angle` on 935 (run945, GOLDEN §139)**: the Attack order that replaces the move on 935 agrees on both sides (flags, `in_range`, position 16008), but ours writes `orders_x/orders_y` at 15984 (the position before the frame's step) and `dest_angle` −2147483648, theirs 16008 and 1181417472 (the position after it). The unit is moving when the order changes; the stationary `0/11`, `0/12` agree. Booking is the frame (935) and the value (`orders_y` 15984 against 16008): which caller adds the Attack on 935 (`RON_STACKS`, `kill_current_order`) and whether the original's thinks run before or after the step for a unit with a path.
+- (3275) **The bowman bay `120/ATTACK1/12` is a fit** (`right −1830, fwd 88800`): one point of a 2,398-point family that matches three arrows; a fourth facing on disk or in a later capture would narrow it. `get_position` is float trigonometry in the original and `Bay::point` an integer rotation by a whole degree.
 
 ## Parked by the next landing, slot JS — reserved
 
@@ -7968,6 +7983,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot JV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JZ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
