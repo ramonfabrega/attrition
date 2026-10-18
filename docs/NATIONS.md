@@ -89,7 +89,7 @@ says in its doc comment that only the British and Mongol arms are built,
 <!-- GENERATED:hand -->
 | nation | arm | original | status | witness |
 |---|---|---|---|---|
-| Egyptians | wonders cost 25% less | `TypeData::get_cost@00664090` | not modelled | `egyptian_wonders` |
+| Egyptians | wonders cost 25% less | `TypeData::get_cost@00664090` | modelled at city.rs | `egyptian_wonders` |
 | Egyptians | scholars swap food and wealth (gate is 0 in the rules) | `TypeData::get_cost@00664090` | not modelled | `egyptian_scholars_food` |
 | Egyptians | granary available early | `LeaderData::has_preq@006db810` | modelled at tech.rs | `egyptian_granary_early` |
 | Egyptians | wonders one age early | `LeaderData::special_preq@006d7030` | modelled at tech.rs | `egyptian_wonders_early` |
@@ -195,7 +195,7 @@ left out; a constant with no reader in the export is dead there too.
 | `ROMAN_LEGION_CHEAP` | 10 | TypeData::get_cost | not carried | `roman_legion_cheap` |
 | `ROMAN_LEGION_FAST` | 10 | ObjectData::train_time | not carried | `roman_legion_fast` |
 | `ROMAN_FREE_MILITARY` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `roman_free_military` |
-| `EGYPTIAN_WONDERS` | 25 | TypeData::get_cost | not carried | `egyptian_wonders` |
+| `EGYPTIAN_WONDERS` | 25 | TypeData::get_cost | modelled at city.rs | `egyptian_wonders` |
 | `EGYPTIAN_GRANARY_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `egyptian_granary_early` |
 | `EGYPTIAN_GRANARY_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `egyptian_granary_upgrades` |
 | `EGYPTIAN_SCHOLARS_FOOD` | 0 | TypeData::get_cost | not carried | `egyptian_scholars_food` |
@@ -561,11 +561,16 @@ a pass books against a word, not a fix for the lobby that exposed it.
    with a queue; the reading and the listing carry it, and the sim test
    `a_chinese_citizen_trains_at_once` fails without the arm. Lobby
    `GreatLakesChineseTier1` (176): see the journal for the battery measure.
-2. **Egyptian wonders cost (`TypeData::get_cost@00664090:906`).** 25%
-   off a wonder's price; `EGYPTIAN_WONDERS` is not carried. Lobby
-   `GreatSaharaEgyptianTier4` (2974 of 20380): an AI at tier 4 prices
-   wonders every offer. Also `Wall::do_construct@006434d0`'s second
-   enforcement of the two-wonders limit (placement is built).
+2. ~~**Egyptian wonders cost (`TypeData::get_cost@00664090:906`).**~~
+   **Built, item 3096** (`city.rs` `building_price` → `cost::Modifiers::egyptian_wonders`,
+   applied once after the city tail as `(100 - 25) * cost / 100`). The
+   decompile's wonder tail (`LAB_00665ced`, `0x20d < type < 0x21f`) takes
+   the marble term first (`marble_wonder_cost`, **not carried**: no marble
+   holder has been priced) and then this one; the Korean tower term follows.
+   Not diff-backed; the cost test `an_egyptian_wonder_costs_a_quarter_less`
+   carries it. Lobby `GreatSaharaEgyptianTier4`: see the journal. Still
+   open: `Wall::do_construct@006434d0`'s second enforcement of the
+   two-wonders limit (placement is built).
 3. **Russian oil +20% (`calc_resource_bonuses@006db030`) and spy −50%
    (`get_cost:299`).** Both uncarried; the oil term is a named SEAM in
    `economy.rs` (`resource_bonuses`). Lobby `GreatLakesRussianTier2`
