@@ -86,6 +86,8 @@ mod army_is_engaged;
 mod army_member;
 #[path = "army_member_by_unit.rs"]
 mod army_member_by_unit;
+#[path = "army_release_mustering.rs"]
+mod army_release_mustering;
 #[path = "army_remove_group.rs"]
 mod army_remove_group;
 #[path = "army_send_here.rs"]
