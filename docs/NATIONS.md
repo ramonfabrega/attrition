@@ -382,7 +382,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Setup::build_civ_specific@005ab760` | 4 5 7 10 16 18 22 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
 | `Setup::build_cities@005ab910` | 14 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
 | `Setup::build_empire@005abb80` | 9 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
-| `AnimalData::is_seen@005d8160` | 4 9 | not modelled | `005d8160` |
+| `AnimalData::is_seen@005d8160` | 4 9 | carried at fight.rs | `005d8160` |
 | `Unit::process_healing@005e0670` | 10 18 | carried at heal.rs | `005e0670` |
 | `Unit::process_cloak@005e1c20` | 18 | carried at lib.rs | `005e1c20` |
 | `Unit::do_build@005eebf0` | 16 | carried at orders.rs | `005eebf0` |

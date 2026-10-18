@@ -1714,4 +1714,46 @@ mod tests {
             "no ring is thickened, so `ring_init`'s patch never fires"
         );
     }
+
+    /// `AnimalData::is_seen@005d8160` (NATIONS §5.1): an animal is seen
+    /// through the **ever-seen** plane, not the current line of sight; a
+    /// herdless one and a Spanish viewer's read `was_seen`, which
+    /// `reveal_map == 2` opens and `was_really_seen` does not.
+    ///
+    /// **Made to fail on purpose**: through `UnitData::is_seen`'s current
+    /// fog, the first row answers false.
+    #[test]
+    fn an_animal_is_seen_through_the_ever_seen_plane() {
+        let (mut s, _) = fog_sim(4, 0);
+        let at = Pos::new(10 * 0x300 + 0x180, 10 * 0x300 + 0x180);
+        let mut a = crate::Unit::new(8, 0, at, 20);
+        a.herd = Some(0);
+        let a = s.add_unit(a);
+        let (fx, fy) = (at.x / UNITS_PER_FOG, at.y / UNITS_PER_FOG);
+        let t = crate::combat::Obj::Unit(a);
+        assert!(!s.target_seen_by(1, t), "never seen");
+        s.world.set_seen2_only(fx, fy, 0b10);
+        assert!(s.target_seen_by(1, t), "ever seen, no line of sight now");
+        s.world.clear_seen();
+        s.world.set_seen2_only(fx, fy, 0);
+        s.world.set_seen(fx, fy, 0);
+        // a fresh plane for the reveal rows
+        let (mut s, _) = fog_sim(4, 0);
+        let mut a = crate::Unit::new(8, 0, at, 20);
+        a.herd = Some(0);
+        let a = s.add_unit(a);
+        let t = crate::combat::Obj::Unit(a);
+        s.lobby.reveal_map = 2;
+        assert!(
+            !s.target_seen_by(1, t),
+            "a herd animal reads was_really_seen"
+        );
+        s.units[a].herd = None;
+        assert!(s.target_seen_by(1, t), "a herdless one reads was_seen");
+        s.units[a].herd = Some(0);
+        s.setup.starting_town = true;
+        s.tech[1].has_city = true;
+        s.tech[1].power = Some(9);
+        assert!(s.target_seen_by(1, t), "a Spanish viewer reads was_seen");
+    }
 }
