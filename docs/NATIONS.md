@@ -325,7 +325,7 @@ left out; a constant with no reader in the export is dead there too.
 | `IROQUOIS_GOVS_EARLY` | 0 | TypeData::get_preq | modelled at tech.rs | `iroquois_govs_early` |
 | `IROQUOIS_EXTRA_HITS` | 5 | Unit::update_hits | modelled at cast.rs | `iroquois_extra_hits` |
 | `IROQUOIS_QUICK_SENATE` | 1 | BuildData::construct_time, TypeData::get_cost | modelled at build.rs | `iroquois_quick_senate` |
-| `IROQUOIS_SPEAR_SPEED` | [1, ...] | UnitData::speed | not carried | `iroquois_spear_speed` |
+| `IROQUOIS_SPEAR_SPEED` | [1, ...] | UnitData::speed | modelled at cast.rs | `iroquois_spear_speed` |
 | `LAKOTA_FOOD` | 4 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | modelled at economy.rs | `lakota_food` |
 | `LAKOTA_HERBAL_LORE` | 1 | no reader in the export | not carried | `lakota_herbal_lore` |
 | `LAKOTA_RAZE_SPEED` | 100 | ObjectData::train_time | not carried | `lakota_raze_speed` |

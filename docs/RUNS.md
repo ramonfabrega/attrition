@@ -17954,6 +17954,29 @@ SHA-256 `c9582429134667905770753fecc869ac1874c7b46317667f76caad0063ef9b58`.
 first block already parts (the Slinger squad `1/25`..`1/27`), and `GUYS=2` prints no figure clock, so run930 walks it
 back. The window is in the coverage driver's slice.
 
+## run932 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 5843's widening (5826..6094) at `GUYS=4` (2026-10-18, item 3211, `att-3211`)
+
+`docs/AI.md` §253. **What the disk could not answer**: the word moved to 5843 with `is_modern_infantry`'s Iroquois
+arm, and run928 ends at block 5826. The window runs from that last dumped block (3155) to 250 past the word's
+block 5844. It is at `GUYS=4` because the word is a `Guy::set_anim+0x97a` idle roll. The recipe is run928's with
+`--end-frame 6100 --log-window 5826 6095` and `GUYS=4`.
+- Pool lane 2, launched 08:32:31 and exited 08:50:38 (1,087 s), `success`, `settings_restored`, 6101 frames,
+  `map_style 14`, seed 12345, players `(0,4,7),(1,18,1)`; 270 `BEGIN FRAME`s. `rngcmp.py rontrace-run897b.log
+  rontrace-run932.log`: **6101 identical, 0 differing**. Filed with `filerun.py run932
+  greatlakes-iroquois-diff3-window-5826-6095-guys4`.
+- Minutes waited on another lane: none. Lane 1 was held by the pool and the pool gave lane 2.
+
+Archive `gamelog-run932-greatlakes-iroquois-diff3-window-5826-6095-guys4.txt`, 492,178,195 bytes,
+SHA-256 `0c635dea0611fdca58108dd43a0216702de18fedb52a4270c1b892d72b650aaf`.
+
+Archive `rontrace-run932.log`, 27,550,400 bytes,
+SHA-256 `6471039e088871b61bd5413b1c5a7b2536476596582de976e1d9e3b785fea5bb`.
+
+**What it holds**: `diff::iroquois_word::run932_s_word_frame_is_widened_whole` (269 blocks). On block 5844 the second
+squad's `1/28` (TI 166 `IRQSPEAR`) collides with `1/9` in theirs and stops. That stop is the word's drawer, after the
+squad's start parted by one point on 5810. With the spear arm the window has 41 keys, the standing set and three rows
+that are not draws. The window is in the coverage driver's slice.
+
 ## run930 — the battery word: Great Lakes, Iroquois at difficulty 3, run928's walk-back at `GUYS=4` (5556..5578) (2026-10-18, item 3202, `att-3202`)
 
 `docs/AI.md` §252. Run 929 is 3205's (the commander's word). **What the disk could not answer**: run928's first block,

@@ -22795,12 +22795,58 @@ and are not read.
 **Coverage.** *Diff-backed*: the draw delta's drawer (run930's figure clocks); the parting's block and fields
 (run930). *Reading only*: nothing new.
 
-## 253. Reserved for the next item on the AI track
+## 253. The word 5576 → 5843 → 6982: an Iroquois foot soldier's two speeds (2026-10-18, item 3211)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: §252's parting, block 5564 of `GreatLakesIroquoisTier3`: who=1's Slinger squad `1/25`..`1/27`
+(TI 82) takes its `ATTACKTO`, the followers' `off_x`/`off_y` ours (456, 600)/(456, 312) against theirs (408, 552)/
+(408, 360), and every figure's `last_speed` ours 28 against theirs 35. The hypothesis for the speed was
+`UnitData::speed@0060aae0`'s Iroquois spear arm.
+
+**The spear arm cannot make 35, by arithmetic.** `IROQUOIS_SPEAR_SPEED` loads raw (`Constants::init@00569a90`,
+`String::num` of each `entryN`), 1 in the rules, and its gate is `is(0xa6, 0)`: plus one, on the Spearmen line. No packet
+was needed. 35 is 28 × 5 / 4, and theirs' step on 5564 shows it: `1/26` (45144, 22728) → (45115, 22709), a step of
+(−29, −19), length 35, where ours stepped (−24, −15).
+
+**The arm that does it is `UnitData::is_modern_infantry@00607b40`.** Its first test is `has_tribe_bonus(0x12)`, the
+Iroquois. When that holds it returns the type's `unit_flags & 0x100` and does not read the age. Only when it fails
+does the age test (> 5) apply, and that is all this crate modelled (`form.rs`). The predicate has three consumers in
+this crate, and run930 shows two of them: `Unit::do_move`'s × 5 / 4 step (`5f88cb`, `orders.rs`) and
+`Form::compute_dests`' follower scatter (`72d454`–`72d50f`, `form.rs`'s `form_scatter`), which takes the followers
+to (408, 552) and (408, 360). The other two are `Group::action_move_near` (`grouppath.rs`) and `Form::categorize`.
+`get_speed`'s order scale, the other candidate (`0xc` with `unit_masks & 0x40000`, × 10 / 8), is ruled out because
+the unit's only order is the `ATTACKTO`, type 2.
+
+| block 5564, run930 | before | after | theirs |
+|---|---:|---:|---:|
+| `1/26` `order:move.off_x`, `off_y` | 456, 600 | 408, 552 | 408, 552 |
+| `1/27` `order:move.off_x`, `off_y` | 456, 312 | 408, 360 | 408, 360 |
+| `1/26`, `1/27` `g.last_speed` | 28 | 35 | 35 |
+
+run930 goes from 115 keys to 31, which is the standing set alone, and run928 from 622 to 52. **The word moved 5576 →
+5843**: ours 2 draws, theirs 3, index 0, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` against theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+
+**run932** widens 5843 over 5826..6094 at `GUYS=4` (`docs/RUNS.md`), with `rngcmp` 6101 of 6101. Its block 5844
+names the drawer. It is theirs' `1/28`, of the *second* squad `1/28`..`1/30` born on 5809, **TI 166 `IRQSPEAR`**,
+the Spearmen line. It collides with the Citizen `1/9` (`collide_o` 9, `order:coll` (44157, 22125)) and stops
+(`stopped` 1 on 5845, `cur_anim` 0), and the stop throws `move_step`'s idle roll. In run928 the squad's state first
+parted on 5810. `1/29` stood at ours (45117, 22713) against theirs (45116, 22712), one point off on its first step,
+which is the spear arm's size.
+
+**So the spear arm is built too.** In `cast.rs`'s `unit_speed`, a unit with `is(0xa6, 0)` adds `IROQUOIS_SPEAR_SPEED[k]`
+when it stands in a cell whose owner its leader `is_ally`, with `k` the first strict `is(0xa6 + k, 1)` it answers.
+The march arm compares against `myspeed`, not against that sum, so a march replaces the bonus rather than adding to
+it. run932 goes from 734 keys to 41: the standing set, `1/22`'s `blown` (5883), the camp pool (5896) and `SITE[3].reg`
+(5976). run928 goes from 52 to 35. **The word moved 5843 → 6982**: ours 10 draws, theirs 15, index 5, ours
+`Guy::set_anim+0x97a < Animal::do_idle+0x19` against theirs `Leader::produce_building+0x1805`. That is the AI's
+building turn, past run932's last block, so its widening is owed (parked 3225, the lane's number).
+
+**Not established.** `IROQUOIS_SPEAR_SPEED`'s entries 1..3 (`is(0xa7..0xa9, 1)`) and the march's replacement of the
+bonus are read, not diffed, because no capture has a pike or a march. Two rows that are not draws remain standing in
+run928: `1/22`'s `blown` (ours 1 against 0, from 5627) and `1/23`'s second figure (from 5673).
+
+**Coverage.** *Diff-backed*: the Iroquois arm of `is_modern_infantry` in its `do_move` step and its follower scatter
+(run930); the spear arm's entry 0 on own ground (run928, run932). *Reading only*: `is_modern_infantry`'s other two
+consumers under the arm, the spear's entries 1..3, and its ally test against another leader's ground.
 
 ## 254. Reserved for the next item on the AI track
 
