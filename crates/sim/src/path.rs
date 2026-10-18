@@ -677,6 +677,12 @@ impl Sim {
                     }
                     eprintln!("PLANE danger1 {}", o);
                 }
+                {
+                    let pos = self.units[u].pos;
+                    let ty = self.units[u].ty.map(|t| (self.unit_types[t].combat.attack, self.unit_types[t].worker != Worker::None));
+                    eprintln!("ARMYTY {} {:?}", self.units[u].type_index, self.units[u].ty.map(|t| (self.unit_types[t].combat.attack, self.unit_types[t].cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO))));
+                    eprintln!("ARMY u{} pos {:?} ty(attack,worker) {:?} flags {:#x} army {}", u, pos, ty, self.world.cell_data(pos.cell()).flags, self.army_mode(u));
+                }
                 for (name, path) in [("theirs", &THEIRS[..]), ("ours", &OURS[..])] {
                     let mut tot = 0i64;
                     for w in path.windows(2) {
@@ -1327,7 +1333,7 @@ impl Sim {
                     avoid_sea,
                 );
                 if step == STEP_WORLD && self.frame == 846 && std::env::var("RON_DEBUG_FOGPATH").is_ok() && self.units[u].owner == 1 {
-                    eprintln!("OURS {},{} {},{} {} {}", cur.x, cur.y, nx, ny, d, cost);
+                    eprintln!("OURS {},{} {},{} {} {} {:#x}", cur.x, cur.y, nx, ny, d, cost, self.world.cell_data(p.cell()).flags);
                 }
                 if self.trace_costs {
                     self.cost_marks.push(CostMark {
@@ -2194,6 +2200,7 @@ impl Sim {
         let river = self.world.cell_data(self.units[u].pos.cell()).flags
             & crate::world::cell::HALFLAND
             != 0;
+        let armed = armed || std::env::var("RON_FORCE_ARMY").is_ok();
         armed && !worker && !attacking && !river
     }
 
