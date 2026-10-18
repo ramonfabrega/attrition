@@ -518,6 +518,8 @@ mod world_is_tocean;
 mod world_is_tree_at;
 #[path = "world_map_fog_add_update.rs"]
 mod world_map_fog_add_update;
+#[path = "world_map_fog_fill_colors.rs"]
+mod world_map_fog_fill_colors;
 #[path = "world_map_fog_get_fog_lookup.rs"]
 mod world_map_fog_get_fog_lookup;
 #[path = "world_map_fog_set_fog_lookup.rs"]
