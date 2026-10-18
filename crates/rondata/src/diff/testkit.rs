@@ -6654,10 +6654,13 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FOUR: i64 = 1200;
 pub(crate) const WIDENING_CHAPTER_NINETY_FOUR: (i64, i64) = (604, 1201);
 
 /// **Chapter ninety-five** (item 3126, `docs/GOLDEN.md` §121, run920):
-/// Sabotage on a firing Tank. **The word is 629, open** (draws part there);
-/// the widening's first parted field is the who=1 Tank `1/7`'s `order:target`
-/// on 624 — ours the decoy Hoplite `0/16`, theirs the Commando `0/7`.
-pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 629;
+/// Sabotage on a firing Tank. **The word is 634, open** (draws part there;
+/// 629 under item 3126): the first parted field was the who=1 Tank `1/7`'s
+/// `order:target` on 624 — ours the decoy Hoplite `0/16`, theirs the Commando
+/// `0/7` — and item 3142 closed it: `compare_target` weighs a spellcaster by
+/// its action (×20, +10,000,000 casting at the searcher). The first parted
+/// field is now `1/7`'s `order:target` on 635, ours `0/7`, theirs `0/6`.
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 634;
 
 /// `chapter_ninety_five_s_window_is_widened_whole`'s window: run920.
 pub(crate) const WIDENING_CHAPTER_NINETY_FIVE: (i64, i64) = (604, 1201);

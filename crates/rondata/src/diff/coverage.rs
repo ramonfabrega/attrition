@@ -2616,10 +2616,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
     }
     // **Chapter ninety-five, on run920** (item 3126): Sabotage on firing
-    // Tanks; the window takes the 624 target pick and its neighbours.
+    // Tanks; the window takes the 635 target pick (item 3142 moved it from
+    // 624) and its neighbours.
     if let Some(p) = &ch95 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINETY_FIVE;
-        let n = drive_capture(p, 622, 628, &mut paths);
+        let n = drive_capture(p, 632, 638, &mut paths);
         assert_eq!(
             n, 7,
             "chapter ninety-five carries seven blocks in the window"
