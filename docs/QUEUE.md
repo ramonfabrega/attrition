@@ -15,14 +15,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-18, **the forty-first pass (steer, Fable) done; the forty-second tranche (commander, Opus) opens from
 `75ccea37`**, four lanes (DECISIONS 78 (i), 79): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 of 12658 (3107, 3117, 3140), its
-  widening owed as 3156 (run 922, from run921's last dumped block 1626); `EastIndiesGermanTier3` closed at 13519
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 of 12658 (3107, 3117, 3140), widened
+  on run922 (3156), the food row's capture owed as 3170 (run 923); `EastIndiesGermanTier3` closed at 13519
   (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–94 closed; 95 at 1118 (3126, 3142, 3152), as 3162. Census
   1463, **port 297 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
   median 2270 (`GreatLakesChineseTier1` 12712; 3096, 3108, 3124, 3137, 3145 moved none).
-- **Lanes: four live, landings 3 of 20** (3145 battery unmoved; 3152 ch95 → 1118; 3150 port 293 → 297): 3156 AI (run
-  922, AI §249, park HZ), 3162 rules (GOLDEN §124, HJ), 3166 shape (HN), 3160 nations (ID). Next 3167, run 923.
-  Pools: GOLDEN §125–128, AI §250–255, park HP. Last whole gate: the pass's.
+- **Lanes: four live, landings 4 of 20** (3145 battery unmoved; 3152 ch95 → 1118; 3150 port 293 → 297; 3156 the
+  word's widening, run922): 3170 AI (run 923, AI §250, park HP), 3162 rules (GOLDEN §124, HJ), 3166 shape (HN), 3160
+  nations (ID, regating). Next 3171, run 924. Pools: GOLDEN §125–128, AI §251–255, park IE–IJ. Last whole gate: the pass's.
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
 - **Fable backlog: 15 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167).
 
@@ -46,15 +46,15 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3156 the AI word's (Opus); 3162, 3166 and 3160 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
+3170 the AI word's (Opus); 3162, 3166 and 3160 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3156. **The battery word, 1772 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 3 draws against theirs 4**
-    (3140 moved it 1496 → 1772 by `swarm_around`'s builder mark, `unit_masks |= 0x400`): at index 0 ours draws
-    `Guy::set_anim+0x104b` where theirs draws `Unit::do_non_flat_gather+0x54b`. Its widening is owed (`WIDENINGS`'
-    `IROQUOIS_WORD` row): run921 ends at 1626, so a capture from 1626 that spans 1772 (run 922; Loop 3155: from the
-    last dumped block when it is near). Hypotheses only: who=1's script and tech queue part on 1577 (parked 3153), the
-    food row (3138). Unstarted, unspawned (the drain). AI §249.
+3170. **The battery word, 1772 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 3 draws against theirs 4,
+    index 0** — widened by 3156 on run922 (1620..2022, 408 keys; `WIDENINGS`' `IROQUOIS_WORD`): on 1771 theirs' `1/6`
+    takes camp 1/2008's gather under a commerce cap of 1600 (Barter, done 1757), ours' cap is 1120 and timber already
+    at it; Barter was queued on 1576 and ours cannot pay its 54 food (46 against 67). The food row (parked 3138, 3168)
+    parts in blocks 2..36, which no dump holds: a dense capture of 1..40 at run918's detail (run 923; `LEADERS=9`,
+    `UNITS=3`, `BUILDS=7`), the food and `known_rares` rows walked to their first block, the writer named. AI §250.
 
 3162. **Chapter ninety-five's word, 1118 of 1200 (run920): the draws part on 1118 at `0/15`'s damage (ours 30,
     theirs 0); the state parts first on 766, `1/7`'s `hits:damage` ours 20 theirs 19** (3152 moved it 634 → 1118 with
