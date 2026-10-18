@@ -23,7 +23,9 @@ struct Lay {
     owner: u8,
     idx: i32,
     active: bool,
-    queue: Vec<bool>,
+    /// Each entry: whether it names a missile, and whether it is a tech (a type outside the unit range), a decoy
+    /// of a missile type the crate must pass over.
+    queue: Vec<(bool, bool)>,
     units: Vec<LayUnit>,
 }
 
@@ -59,12 +61,12 @@ impl Lay {
         }
         let b = usize::try_from(self.idx).expect("building number");
         sim.buildings[b].active = self.active;
-        for &hit in &self.queue {
+        for &(hit, tech) in &self.queue {
             let mut it = Item::queued(
-                if hit { missile } else { plain },
+                if hit || tech { missile } else { plain },
                 &[0; crate::economy::RESOURCES],
             );
-            it.tech = None;
+            it.tech = tech.then_some(0);
             sim.buildings[b].queue.items.push(it);
         }
         let strafe = |home: Option<i32>| Order {
@@ -85,6 +87,10 @@ impl Lay {
             u.inside = inside.map(|i| usize::try_from(i).expect("inside"));
             if home.is_some() {
                 u.orders.push_back(strafe(home));
+                if home != Some(self.idx) {
+                    // Behind the current order, one homed at the building: only the front counts.
+                    u.orders.push_back(strafe(Some(self.idx)));
+                }
             }
             sim.add_unit(u);
         };
@@ -148,7 +154,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     lay.active = active != 0;
                     if active == 0 {
                         // A missile queued in a building that is not active: the crate must not see it.
-                        lay.queue.push(true);
+                        lay.queue.push((true, false));
                     }
                     if active != 0 {
                         let bd = &p[41];
@@ -180,7 +186,7 @@ fn the_emulated_original_agrees_on_every_row() {
                                 };
                                 hit = missile;
                             }
-                            lay.queue.push(hit);
+                            lay.queue.push((hit, !unit_type));
                             if hit {
                                 res = 1;
                                 break 'f;
