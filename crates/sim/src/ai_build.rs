@@ -319,9 +319,6 @@ impl Sim {
     /// valued per city and offered to the make list.
     pub fn create_buildings(&mut self, who: Player) {
         let w = who as usize;
-        if std::env::var("RON_PROBE_CB").is_ok() && (6975..=6990).contains(&self.frame) {
-            eprintln!("PROBE CB enter f{} who={}", self.frame, who);
-        }
         if w >= self.ai.len() {
             return;
         }
@@ -332,22 +329,7 @@ impl Sim {
                     continue;
                 };
                 for rec in 0..self.build_types.len() {
-                    let probe_l = self.building_value(who, &f, rec, pass);
-                    if std::env::var("RON_PROBE_CB").is_ok()
-                        && (6975..=6990).contains(&self.frame)
-                        && self.build_types[rec].ident == Ident::Senate
-                    {
-                        let n = (self.build_types[rec].x_size.max(self.build_types[rec].y_size) - 2).clamp(0, 2) as usize;
-                        eprintln!(
-                            "PROBE CB f{} who={} pass={} c={} senate avail={:?} fit={} open={} level={} nb={} line={} queued={} -> {:?}",
-                            self.frame, who, pass, c,
-                            self.build_types[rec].tree.map(|t| self.type_avail(who, t)),
-                            f.space[n], f.open, f.level, f.nb,
-                            self.buildings_of_line(who, rec), self.queued_of(who, rec),
-                            probe_l.as_ref().map(|l| (l.val, l.escrow, l.mult))
-                        );
-                    }
-                    let Some(l) = probe_l else {
+                    let Some(l) = self.building_value(who, &f, rec, pass) else {
                         continue;
                     };
                     let Some(t) = self.build_types[rec].tree else {
