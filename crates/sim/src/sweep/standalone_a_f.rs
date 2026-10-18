@@ -80,6 +80,8 @@ mod army_member;
 mod army_member_by_unit;
 #[path = "army_remove_group.rs"]
 mod army_remove_group;
+#[path = "army_send_here.rs"]
+mod army_send_here;
 #[path = "army_walk_data.rs"]
 mod army_walk_data;
 #[path = "attack_ground_order_get_type.rs"]
@@ -210,6 +212,8 @@ mod build_finished;
 mod build_order_get_type;
 #[path = "build_order_get_type_vtordisp.rs"]
 mod build_order_get_type_vtordisp;
+#[path = "build_process_ejection.rs"]
+mod build_process_ejection;
 #[path = "build_queue_data_get_job_counter.rs"]
 mod build_queue_data_get_job_counter;
 #[path = "build_queue_data_get_next_helicopter.rs"]
