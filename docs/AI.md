@@ -15395,8 +15395,8 @@ get_radius × 0xc0` — the shape `near_marching_hero` already carries
 **Built.** `Sim::president_near_building` (`crates/sim/src/city.rs`), read by
 `construct_time_of` into `ClockMods::president` — which nothing had written
 since the field was added (`ClockMods` is still `bd.clock`'s other three
-clauses: the free first wonder, the Hanging Gardens and the Iroquois Senate stay
-`false`; no capture reaches them). Test
+clauses: the free first wonder, the Hanging Gardens ~~and the Iroquois Senate~~ stay
+`false`; no capture reaches them; the Iroquois Senate is set since item 3231, §254). Test
 `the_president_near_a_site_shortens_its_clock_by_a_quarter`.
 
 **Value diff** (`RON_DEBUG_BUILDS`, `1/2053`, this crate against the dump):
