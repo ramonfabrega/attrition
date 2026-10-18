@@ -37,7 +37,7 @@ STUBS = [('slot', 8, 0), ('slot', 188, 0), ('call', 6588656, 4), ('slot', 300, 0
 PLACES = [('c0', '0', '0', 64), ('c0', '4', '0', 64), ('c0', '8', '0', 64), ('c0', '12', '0', 64), ('c1', '0', '0', 256), ('c1', '4', '0', 256), ('c1', '8', '0', 256), ('c1', '12', '0', 256), ('p5', '0x18', '0', 768), ('p6', '0x18', '0', 768), ('p7', '0x18', '0', 768), ('p8', '0x18', '0', 768), ('c3', '0x138', '0', 17408), ('m', '0x18', '0', 768)]
 NULLS = []
 NULLFORCE = {}
-WBIAS = [('c3', 24, ('range', 1, 100)), ('m', 8, ('set', [0, 65536, 131072, 196608]))]
+WBIAS = [('c3', 24, ('range', 1, 100)), ('p14', 508, ('set', [0, 1, 2])), ('m', 8, ('set', [0, 65536, 131072, 196608]))]
 FILLS = [('c2', 'i//3')]
 ARGRANGE = [(0, 0, 3), (1, 0, 0), (2, 0, 16000), (3, 0, 16000), (5, 0, 1)]
 SLOTBASE = [(184, 6633360), (188, 4640304)]
@@ -308,8 +308,8 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(220):
-        h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
+    for i in range(1200):
+        h.brk = base  # the bump heap is reused a row; 1200 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -693,4 +693,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "ObjectData::is_in_range@006486b0", "--win", "512", "--own", "7", "--argrange", "0:0:3", "--argrange", "1:0:0", "--argrange", "2:0:16000", "--argrange", "3:0:16000", "--argrange", "5:0:1", "--ptrarg", "6:4", "--ptrarg-null", "6", "--cell-win", "0xc0ab84:16", "--cell-win", "0xc0aec0:16", "--cell-win", "0xcae5fc:0x1000", "--cell-win", "0xc061d0:0x200", "--fill", "c2:i//3", "--place", "c0+0:0:0x40", "--place", "c0+4:0:0x40", "--place", "c0+8:0:0x40", "--place", "c0+12:0:0x40", "--place", "c1+0:0:0x100", "--place", "c1+4:0:0x100", "--place", "c1+8:0:0x100", "--place", "c1+12:0:0x100", "--place", "p5+0x18:0:0x300", "--place", "p6+0x18:0:0x300", "--place", "p7+0x18:0:0x300", "--place", "p8+0x18:0:0x300", "--place", "c3+0x138:0:0x4400", "--place", "m+0x18:0:0x300", "--wbias", "c3+0x18:1..100", "--stub", "slot:0x8:0", "--stub", "slot:0xbc:0", "--stub", "0x6488f0:4", "--stub", "slot:0x12c:0", "--stub", "slot:0x130:0", "--stub", "slot:0x18:0", "--stub", "slot:0xb8:2", "--stub", "slot:0x60:0", "--vtat-keep", "0xb8:0x653790", "--vtat-keep", "0xbc:0x46ce30", "--seq", "5:2", "--seq", "3:2", "--answers", "0:1,1,1,0", "--answers", "1:1,1,1,0", "--answers", "3:0,1,2,3", "--answers", "4:0,1,2,3", "--answers", "5:1,1,0", "--answers", "6:1,1,0", "--answers", "7:1,1,0", "--answer-range", "2:0:800", "--vtat-also", "p1+0", "--vtat-also", "p2+0", "--vtat-also", "p3+0", "--vtat-also", "p4+0", "--vtat-also", "p5+0", "--vtat-also", "p6+0", "--vtat-also", "p7+0", "--vtat-also", "p8+0", "--vtat-also", "p14+0", "--record", "2", "--item", "3182", "--name", "object_data_is_in_range_at", "--wbias", "m+8:0,65536,131072,196608"]
+# sweep_gen: ["obj", "ObjectData::is_in_range@006486b0", "--win", "512", "--own", "7", "--argrange", "0:0:3", "--argrange", "1:0:0", "--argrange", "2:0:16000", "--argrange", "3:0:16000", "--argrange", "5:0:1", "--ptrarg", "6:4", "--ptrarg-null", "6", "--cell-win", "0xc0ab84:16", "--cell-win", "0xc0aec0:16", "--cell-win", "0xcae5fc:0x1000", "--cell-win", "0xc061d0:0x200", "--fill", "c2:i//3", "--place", "c0+0:0:0x40", "--place", "c0+4:0:0x40", "--place", "c0+8:0:0x40", "--place", "c0+12:0:0x40", "--place", "c1+0:0:0x100", "--place", "c1+4:0:0x100", "--place", "c1+8:0:0x100", "--place", "c1+12:0:0x100", "--place", "p5+0x18:0:0x300", "--place", "p6+0x18:0:0x300", "--place", "p7+0x18:0:0x300", "--place", "p8+0x18:0:0x300", "--place", "c3+0x138:0:0x4400", "--place", "m+0x18:0:0x300", "--wbias", "c3+0x18:1..100", "--stub", "slot:0x8:0", "--stub", "slot:0xbc:0", "--stub", "0x6488f0:4", "--stub", "slot:0x12c:0", "--stub", "slot:0x130:0", "--stub", "slot:0x18:0", "--stub", "slot:0xb8:2", "--stub", "slot:0x60:0", "--vtat-keep", "0xb8:0x653790", "--vtat-keep", "0xbc:0x46ce30", "--seq", "5:2", "--seq", "3:2", "--answers", "0:1,1,1,0", "--answers", "1:1,1,1,0", "--answers", "3:0,1,2,3", "--answers", "4:0,1,2,3", "--answers", "5:1,1,0", "--answers", "6:1,1,0", "--answers", "7:1,1,0", "--answer-range", "2:0:800", "--vtat-also", "p1+0", "--vtat-also", "p2+0", "--vtat-also", "p3+0", "--vtat-also", "p4+0", "--vtat-also", "p5+0", "--vtat-also", "p6+0", "--vtat-also", "p7+0", "--vtat-also", "p8+0", "--vtat-also", "p14+0", "--record", "2", "--item", "3182", "--wbias", "p14+0x1fc:0,1,2", "--rows", "1200", "--name", "object_data_is_in_range_at", "--wbias", "m+8:0,65536,131072,196608"]
