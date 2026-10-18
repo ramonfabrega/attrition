@@ -7546,7 +7546,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3142, 2026-10-18 — a caster is weighed by its action
 
-(3143) **Chapter 95's word 634: `635 1/7 order:target`, ours `0/7`, theirs `0/6`** (run920). `1/7` already holds an in-range attack on the Commando `0/7` casting at it; the original re-targets it onto `0/6` (casting at `1/6`) on the frame `1/6` picks `0/6`, ours runs no search for `1/7` on 633–636. Hypothesis only: the captain's target handed down by the group (`Group::target_opportunity`, the mirror). Frame and delta are the booking: the draw delta on 634 first, `RON_DEBUG_UNIT=1/7@633-636` both sides, `RON_DEBUG_ARMIES`.
+(3151; the lane's journal says 3143, a number Loop 3143 already held) **Chapter 95's word 634: `635 1/7 order:target`, ours `0/7`, theirs `0/6`** (run920). `1/7` already holds an in-range attack on the Commando `0/7` casting at it; the original re-targets it onto `0/6` (casting at `1/6`) on the frame `1/6` picks `0/6`, ours runs no search for `1/7` on 633–636. Hypothesis only: the captain's target handed down by the group (`Group::target_opportunity`, the mirror). Frame and delta are the booking: the draw delta on 634 first, `RON_DEBUG_UNIT=1/7@633-636` both sides, `RON_DEBUG_ARMIES`.
 
 ## Parked by the next landing, slot HZ — reserved
 
