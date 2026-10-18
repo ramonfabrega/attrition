@@ -5790,9 +5790,9 @@ fn chapter_ninety_six_holds_to_the_golden_word() {
 
 /// What parts in run927's window, blocks 605–1500.
 const WANT_CH96: &[&str] = &[
-    "1235 1/7 death",
-    "1395 0/7 death",
-    "1476 0/14 death",
+    "1235 1/7 death:extra",
+    "1395 0/7 death:extra",
+    "1476 0/14 death:extra",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
@@ -5804,7 +5804,7 @@ const WANT_CH96: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "946 1/6 death",
+    "946 1/6 death:extra",
 ];
 
 /// What parts in run920's window, blocks 605–1200: the word, closed at 1200 by
