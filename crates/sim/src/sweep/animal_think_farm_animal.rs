@@ -111,8 +111,25 @@ fn the_emulated_original_agrees_on_every_row() {
                     go.been_there = true;
                     sim.units[g].orders[i].body = crate::orders::Body::Gather(go);
                     assert_eq!(sim.num_gatherers(b, true, false), 1, "arrived, row `{line}`");
-                } else if cov == 0 {
-                    sim.buildings[b].ty = None;
+                } else {
+                    // Half the zero-count rows hold a citizen still *walking* to the farm (`been_there` clear):
+                    // on the chain by length, not counted as arrived, and standing off the farm's footprint.
+                    if (o + idx as i16) % 2 == 0 {
+                        let citizen = sim.add_unit_type(crate::UnitType {
+                            hits: 10,
+                            worker: crate::orders::Worker::Citizen,
+                            ..crate::UnitType::default()
+                        });
+                        let mut g = crate::Unit::new(0, 99, Pos::new(far(ref_pos.x), far(ref_pos.y)), 10);
+                        g.ty = Some(citizen);
+                        let g = sim.add_unit(g);
+                        sim.add_gather_order(g, b, crate::orders::QueuePos::New, false);
+                        assert_eq!(sim.num_gatherers(b, false, false), 1, "on the chain, row `{line}`");
+                        assert_eq!(sim.num_gatherers(b, true, false), 0, "not arrived, row `{line}`");
+                    }
+                    if cov == 0 {
+                        sim.buildings[b].ty = None;
+                    }
                 }
                 sim.frame = frame;
                 sim.units[u].orders.clear();
