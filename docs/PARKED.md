@@ -3742,6 +3742,20 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
+(3257) **`sweep_gen.py`'s gaps from the nations seat's batch** (3239's "for the Loop" line, its parked (3239b),
+filed at its merge): no self-recursion stub (`--stub ENTRY:N` swallows the first call); `--stub slot:OFF:NARGS` is
+global, so two vtables with one offset and different argument counts collide; no joint draw of an index and a table
+length; `--sparse`/`--wbias` have no later-index or `WIN+OFF/STRIDE` form (`find_goody_box` generated 108 flags by a
+shell loop); a `--deref IDX:ecx+OFF:N` would replace the roads sweep's hard-coded `@0x20000794`. Candidate: folds with
+3240 and 3249 at the pass, each flag built when a batch's body needs it. One reach.
+
+(3258) **A brief gives a lane's subagents no scratch of their own, and no fence on the cleanup** (3239's parked
+(3239c) and its done line, filed at its merge): sibling subagents share `$CLAUDE_JOB_DIR/tmp`, and two overwrote one
+another's `breaks.tsv`; and the lane's closing `git worktree remove --force` loop over every `agent-*` worktree removed
+five of another lane's (3238's, merged, their branches kept). Candidate: the frame's sweep kind names a per-agent
+scratch subdirectory and says a lane removes only the worktrees its own subagents' answers named, made to fail first
+on a sweep brief that lacks either. One reach.
+
 (3256) **The rare masks are on the coverage's unread list** (3248's "for the Loop", its parked 3254 (b), filed at its
 merge): `bits`/`bit_values` and `rares_collected` are printed by the leaders' dump and parsed by nothing, so a rare
 one side gains alone parts no key; run940's Cotton (block 8416, mask `080000` → `081000`) was read off the dump by
