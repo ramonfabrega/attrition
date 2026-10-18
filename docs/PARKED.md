@@ -7620,7 +7620,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3211, 2026-10-18 — the Iroquois word 6982
 
-- (3225) **The Iroquois word 6982's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §253). Item 3211 moved the word
+- (3229) **The Iroquois word 6982's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §253). Item 3211 moved the word
   5576 → 5843 → 6982 with `is_modern_infantry`'s Iroquois arm and `UnitData::speed`'s spear arm. At 6982 ours 10
   draws, theirs 15, index 5: ours `Guy::set_anim+0x97a < Animal::do_idle+0x19`, theirs
   `Leader::produce_building+0x1805`, so theirs acted, in the AI's building turn. It is past run932's last block, 6094,
