@@ -7532,13 +7532,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IG — reserved
+## Parked by item 3182, 2026-10-18 — the shape lane's tenth batch: check_idle and is_in_range@006486b0 swept, Census 1469 → 1471
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Two built of the six; four not attempted past reading, each with the flag it would need. Numbered at the merge.
+
+- (a) **`ObjectData::is_in_range@006486b0` is a second overload** of the name an earlier sweep holds (`@0064e4a0`, item 2683): `--name object_data_is_in_range_at`, and a
+  `--regen` without `--name` (or with `--fresh` on the plain name) rewrites the other overload's files — one was overwritten and restored from git. Flag wanted: `--regen`/generation refusing a function address that differs from the file's header.
+- (b) **`--regen` keeps the old line's `--answer-range`** beside a new `--answers` for the same stub, so the list never took (the first three break batches read a starved arm that was the old range); `--regen --fresh` is the cure. Flag wanted: `--answers IDX` replacing an `--answer-range IDX` on the kept line, or `--regen` saying it kept one.
+- (c) **Starved, not equivalent**: `is_in_range@006486b0`'s `dist < k*0xc0 - 6` (three breaks: `<=`, `-5` on the first compare, `<=` on the second) needs `dist` equal to the threshold *and* `k2 > k1` from `slot +0x12c`'s two calls; one answer list serves both arms and 1200 rows reach it rarely. Flag wanted: `--answers IDX` per call of a `--seq` stub (a list a call), or a per-arm weight.
+- (d) **`Caster::process_spells@00739ad0` not built**: the shockwave arm calls `Underlays::add@008e1410` with float arguments in `xmm0/xmm2/xmm3` and on the stack (`cvtdq2ps` of `unit+0xc ^ 0x63637`), and `Array<ActiveSpell>::remove@0048a960` takes a 12-byte struct by value; `--record` prints `ecx` and stack words only. Flag wanted: a recorded `--record-xmm IDX:N,..` (registers read at the stub's entry).
+- (e) **`Group::is_attacking_near@00710e40`, `Unit::find_garrison_build@00605040`, `ObjectsData::find_building_placed_at@00658c80` not built**: the first two read `vector_dist` with register arguments (`--stub run:0x46cff0:0` exists, 3119) and walk the 3-level units/objects table by `player*0x1c` (the cells work for player 0 only — `--argrange 1:0:0`); `find_building_placed_at` walks nine `move_x/move_y` neighbours into a linked list of `(index, class)` shorts through eight per-class object tables (`0xc0ab84 + cls*0x1c`), the class a *drawn* short: a `--place` names one cell. Flag wanted: `--table`-style eight pointer cells (`--cell-row VA:STRIDE:N:SIZE`) and a `--link` that ends on a negative short at `+0x2c/+0x2e`.
+- Breaks: `check_idle` 29 of 30 (the `& 0x8000000f` → `& 0xf` is equivalent: zero iff the low nibble is zero either way); `is_in_range@006486b0` 27 of 30 (c).
 
 ## Parked by the next landing, slot IH — reserved
 

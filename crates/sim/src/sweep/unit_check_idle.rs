@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -45,8 +50,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // a[3] get_order, a[5] the slot +0xb8 stub's answer, a[6] the type record's slot +0x60, a[7] 1
             // when the image's `ObjectData::is` stands in slot +0xb8. Recorded: set_angle, add_entrench,
             // emit_cloak_particles, in that order.
-            let rdw = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
-            let wrw = |w: &mut [u8], o: usize, v: i32| w[o..o + 4].copy_from_slice(&v.to_le_bytes());
+            let rdw = |w: &[u8], o: usize| {
+                i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+            };
+            let wrw =
+                |w: &mut [u8], o: usize, v: i32| w[o..o + 4].copy_from_slice(&v.to_le_bytes());
             let mut t: Vec<Vec<String>> = vec![Vec::new(); 3];
             let pl = m[9] as i32;
             let sh = i16::from_le_bytes([m[0xa], m[0xb]]) as i32;
@@ -59,7 +67,11 @@ fn the_emulated_original_agrees_on_every_row() {
                 bump = true;
                 if dl >= 2 {
                     let x = (sh.wrapping_add(rdw(&c[0], 0x550)) as u32 & 0x8000_000f) as i32;
-                    let x = if x < 0 { (x.wrapping_sub(1) | -16).wrapping_add(1) } else { x };
+                    let x = if x < 0 {
+                        (x.wrapping_sub(1) | -16).wrapping_add(1)
+                    } else {
+                        x
+                    };
                     if x != 0 {
                         bump = false;
                     }
@@ -113,12 +125,19 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
             }
             for v in t {
-                log.push(if v.is_empty() { "-".to_string() } else { v.join("/") });
+                log.push(if v.is_empty() {
+                    "-".to_string()
+                } else {
+                    v.join("/")
+                });
             }
             0
         };
         assert_eq!(got, want_eax, "check_idle — eax, row `{line}`");
-        assert_eq!(log, want_log, "check_idle — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "check_idle — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "check_idle — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

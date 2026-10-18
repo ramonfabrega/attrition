@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -47,7 +52,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // `UnitData::is_on_map` stand in slots +0xb8 / +0xbc. p0 the out word, p1..p4 the objects,
             // p5..p8 the units, p9..p12 their types, p13 the tiles, p14 this's type record; c2 the
             // div_3_table, c3 the world.
-            let rdw = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
+            let rdw = |w: &[u8], o: usize| {
+                i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+            };
             let idx = a[0] as usize;
             let d3 = |v: i32| rdw(&c[2], (v as usize) * 4);
             let mut t: Vec<String> = Vec::new();
@@ -65,7 +72,9 @@ fn the_emulated_original_agrees_on_every_row() {
                         break 'body 0;
                     }
                 }
-                let tile = d3(a[3] >> 6).wrapping_mul(rdw(&c[3], 0x18)).wrapping_add(d3(a[2] >> 6));
+                let tile = d3(a[3] >> 6)
+                    .wrapping_mul(rdw(&c[3], 0x18))
+                    .wrapping_add(d3(a[2] >> 6));
                 if p[13][tile as usize * 2] & 0x30 == 0x30 {
                     break 'body 0;
                 }
@@ -97,17 +106,26 @@ fn the_emulated_original_agrees_on_every_row() {
                     if a[16] != 0 {
                         theirs = rdw(&p[9 + idx], 0x244);
                     }
-                    if mine.wrapping_add(dist).wrapping_add(theirs) < a[18].wrapping_mul(0xc0).wrapping_sub(6) {
+                    if mine.wrapping_add(dist).wrapping_add(theirs)
+                        < a[18].wrapping_mul(0xc0).wrapping_sub(6)
+                    {
                         break 'body 0;
                     }
                 }
                 (margin.wrapping_add(dist) <= a[11].wrapping_mul(0xc0).wrapping_add(6)) as i64
             };
-            log.push(if t.is_empty() { "-".to_string() } else { t.join("/") });
+            log.push(if t.is_empty() {
+                "-".to_string()
+            } else {
+                t.join("/")
+            });
             r
         };
         assert_eq!(got, want_eax, "is_in_range — eax, row `{line}`");
-        assert_eq!(log, want_log, "is_in_range — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "is_in_range — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "is_in_range — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
