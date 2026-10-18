@@ -7554,8 +7554,8 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3186, 2026-10-18 — the army's scouts' turn
 
-- (3189, the commander's to confirm) **The Iroquois word 5576 is owed its widening** (`GreatLakesIroquoisTier3`,
-  `docs/AI.md` §251): ours 35 draws, theirs 37, index 30 — ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a <
+- (3189) **The Iroquois word 5576 is owed its widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §251; the number
+  the commander's to confirm): ours 35 draws, theirs 37, index 30 — ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a <
   Guy::inc_time+0x271 < Unit::inc_time+0x3e` (theirs' 30 is a sound draw on another stream, `SoundType::play+0x2d`, and
   the game stream's 31 the first one ours does not make). run926 ends at 5394 and run897b is `cover=0`: a window of
   5570..5826 at run918's detail, every dumped record on block 5577 both directions; `WIDENINGS`' `IROQUOIS_WORD` names
