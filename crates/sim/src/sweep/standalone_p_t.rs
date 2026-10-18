@@ -428,6 +428,8 @@ mod type_data_get_abbrev_parsed;
 mod type_data_get_kill_value;
 #[path = "type_data_get_limiting_resource.rs"]
 mod type_data_get_limiting_resource;
+#[path = "type_data_get_preq.rs"]
+mod type_data_get_preq;
 #[path = "type_data_get_score_value.rs"]
 mod type_data_get_score_value;
 #[path = "type_data_is.rs"]
