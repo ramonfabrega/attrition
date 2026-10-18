@@ -7457,10 +7457,12 @@ no score; the next American lobby's term. The remaining uncarried arms (Mongol s
 barracks and ships, American aircraft, British AA, Nubian merchants, French `train_time`) stand as
 parked 3144 listed them; none belongs to a battery lobby's leader.
 
-## Parked by the next landing, slot ID — reserved
+## Parked by item 3160, 2026-10-18 — the Citizen cost arms
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ID renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3160) The rest of `get_cost`'s tail stays unaudited for any battery leader: no lobby's nation reaches the
+Mongol stable, Japanese, American aircraft, British AA, Nubian, Angkor/aluminum/space ship-air terms or
+`CHARLES_UNIT_COST` (`num_units[0x13f]`) / `SULPHUR_SIEGE_COST` (the Turkish siege arm sits beside the
+citizen one: `trainer 0x1ae/0x1af` with rare bit 4 — uncarried for any leader, and the Turkish lobby is the
+one that could reach it, so it is the next candidate if `GreatLakesTurkishTier4` parts on a price). Names
+no score today.
+

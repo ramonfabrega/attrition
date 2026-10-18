@@ -225,6 +225,11 @@ pub struct Modifiers {
     /// The Romans' Legion percentage (`get_cost:306`–`311`), its own
     /// truncating step right after the Russian spy's.
     pub roman_legion: i32,
+    /// The Citizen arms (`get_cost`, `TypeIndex` `0x32`/`0x33`): Wool's
+    /// `WOOL_CITIZENS_COST` then a Turkish leader's `TURK_CITIZEN`, each its
+    /// own truncating step after the Spy/General arm ([`Modifiers::discount`])
+    /// and the stable rares, before the Statue of Liberty.
+    pub citizens: [i32; 2],
     /// Percentage off the scaled base, before the ramp.
     pub discount: i32,
     /// Horses' and then Rubber's percentage off a Stable or Auto Plant
@@ -507,6 +512,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     cost = cost * (100 - m.discount) / 100;
     for pct in m.stable_rares {
+        cost = (100 - pct) * cost / 100;
+    }
+    for pct in m.citizens {
         cost = (100 - pct) * cost / 100;
     }
     if m.liberty != 0 {
@@ -1314,6 +1322,30 @@ mod tests {
         assert_eq!(
             price(T.russian_spy_cost, 50),
             (100 - 50) * ((100 - 50) * plain / 100) / 100
+        );
+    }
+
+    /// `get_cost`'s Citizen arms: Wool's 15% then the Turks' 33%, each its
+    /// own truncating step.
+    #[test]
+    fn a_turkish_citizen_costs_a_third_less() {
+        let citizen = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Food, 5)
+        };
+        let price = |citizens: [i32; 2]| {
+            let m = Modifiers {
+                citizens,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &citizen, Resource::Food, owned(0), &m)
+        };
+        let plain = price([0, 0]);
+        assert!(plain > 0);
+        assert_eq!(price([0, 33]), (100 - 33) * plain / 100);
+        assert_eq!(
+            price([15, 33]),
+            (100 - 33) * ((100 - 15) * plain / 100) / 100
         );
     }
 

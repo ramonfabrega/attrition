@@ -7570,6 +7570,39 @@ fn a_roman_legion_line_costs_a_tenth_less_and_trains_faster() {
     assert_eq!(faster(&sim, other), 0, "not the line");
 }
 
+/// **A Turkish Citizen costs a third less, and Wool takes its fifteen first**
+/// (item 3160, `docs/NATIONS.md` §7.5): `get_cost`'s `TURK_CITIZEN` and
+/// `WOOL_CITIZENS_COST` arms, on `TypeIndex` 0 and 1 only.
+#[test]
+fn a_turkish_citizen_costs_a_third_less() {
+    let mut sim = world_sim();
+    let mut ty = |sim: &mut Sim| {
+        sim.add_unit_type(UnitType {
+            price: cost::Price::free().with_base(economy::Resource::Wealth, 4),
+            ..UnitType::default()
+        })
+    };
+    let citizen = 0;
+    let mut other = ty(&mut sim);
+    while other < 2 {
+        other = ty(&mut sim);
+    }
+    let _ = &mut ty;
+    let wealth = economy::Resource::Wealth.index();
+    sim.holdings[1].available[wealth] = true;
+    let plain = sim.price_of(1, citizen)[wealth];
+    let plain_other = sim.price_of(1, other)[wealth];
+    assert!(plain > 0);
+    sim.nation[1].turks = true;
+    assert_eq!(sim.price_of(1, citizen)[wealth], (100 - 33) * plain / 100);
+    assert_eq!(sim.price_of(1, other)[wealth], plain_other, "not a citizen");
+    sim.ledgers[1].rare |= 1 << (economy::WOOL - economy::BASE_RARE);
+    assert_eq!(
+        sim.price_of(1, citizen)[wealth],
+        (100 - 33) * ((100 - 15) * plain / 100) / 100
+    );
+}
+
 /// **`path_recursion` survives a recycled object slot** (item 1458,
 /// `docs/GROUPS.md` §37.2): `Unit::init` never writes `UnitData +0xaf`,
 /// so a unit born into a dead unit's object number keeps its count. A
