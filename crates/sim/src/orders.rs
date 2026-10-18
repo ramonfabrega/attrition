@@ -1890,46 +1890,19 @@ impl Sim {
         self.enqueue(u, order, pos);
     }
 
-    /// `Unit::add_gather_order(o, pos, action)` (§6.2): the unit joins the
-    /// building's chain **now**, before it has moved, if the type is a
-    /// gatherer; the non-flat fields are set for wood and ore.
+    /// `Unit::add_gather_order@0061a5c0(o, pos, action)` (§6.2): the unit
+    /// joins the building's chain **now**, before it has moved, if the type
+    /// is a gatherer; the non-flat fields are set for wood and ore. The
+    /// steps are [`add_gather_order_steps`], which the sweep also drives
+    /// over the emulated original's windows (item 3268).
     pub fn add_gather_order(&mut self, u: usize, b: usize, pos: QueuePos, action: bool) {
-        if pos == QueuePos::New {
-            self.units[u].path.clear();
-            self.close_orders(u);
-            self.clear_partial_path(u);
-            self.update_action(u);
-        }
-        let mut dist_mod = 0;
-        if self.is_gather_type(b) {
-            self.add_gatherer(b, u);
-            if !self.is_flat(b) && self.building_ident(b) != Ident::University {
-                dist_mod = if self.building_ident(b) == Ident::Mine {
-                    10
-                } else {
-                    4
-                };
-            }
-        }
-        let order = Order {
-            flags: if action { flag::ACTION } else { 0 },
-            body: Body::Gather(GatherOrder {
-                building: b,
-                tile: None,
-                wait: 0,
-                goto_build: true,
-                dist_mod,
-                been_there: false,
-            }),
+        let mut v = GatherSim {
+            sim: self,
+            u,
+            b,
+            order: None,
         };
-        self.units[u].orders.push_back(order);
-        if pos == QueuePos::First {
-            let o = self.units[u].orders.pop_back().expect("just pushed");
-            self.clear_partial_path(u);
-            self.units[u].orders.push_front(o);
-            self.new_head(u);
-        }
-        self.update_action(u);
+        add_gather_order_steps(&mut v, b, pos, action);
     }
 
     /// `Unit::add_attack_order(o, who, pos, mandatory, action)` (§7.1). The
@@ -11031,6 +11004,137 @@ pub(crate) fn add_air_patrol_steps<C, O>(
         *f &= !flag::ACTION;
     }
     link(cx, o);
+}
+
+/// What `Unit::add_gather_order@0061a5c0` asks of the unit, the order and
+/// the building, in the order it asks (item 3268). [`GatherSim`] answers
+/// from this crate's state; the sweep answers from the emulated original's
+/// windows.
+pub trait GatherOrderView {
+    /// `QUEUE_NEW`'s opening: the path dropped (`+0x68 &= ~0x4000000`,
+    /// `+0xc0 = 0`), `close_orders(0)`, `clear_partial_path`,
+    /// `update_action`.
+    fn restart(&mut self);
+    /// `+0x68 &= ~0x400`, then `OrdersMemManager::get_obj(GATHER)` and its
+    /// slot `+0x6c` (a fresh order, its building, player, type short and
+    /// the node's `+4` of the building's data laid). SEAM: this crate's order
+    /// carries none of those bytes; the sweep's view lays them.
+    fn take_order(&mut self);
+    /// The building's data record, vslot `+0x90`: `build_flags & 0x40`.
+    fn is_gather_type(&mut self) -> bool;
+    /// `Build::add_gatherer(unit id, player)` on the building.
+    fn add_gatherer(&mut self);
+    /// The type's vslot `+0x94`: `build_flags & FLAT`.
+    fn is_flat(&mut self) -> bool;
+    /// `building_ident == University` (`Build::vftable`'s slot `+0x60`, else
+    /// the object's `+0xb8(0x1a4, 0)`).
+    fn is_university(&mut self) -> bool;
+    /// `building_ident == Mine` (`0x1a3`).
+    fn is_mine(&mut self) -> bool;
+    /// The order finished: `+0x25` set from `order.dist_mod != 0`, `+0x26`
+    /// `dist_mod`, the action bit by `action`.
+    fn lay(&mut self, order: GatherOrder, action: bool);
+    /// `LinkListBase::add` of the finished order (after the transport arm).
+    fn link(&mut self);
+    /// The tail: both ends' `div_3_table` tiles through
+    /// `WorldData::get_tregion`; when the regions differ and the leader's
+    /// transport level reaches the type's `transport_type` and the type can
+    /// ever transport, `+0x68 |= 0x800000`. SEAM: this crate has no such
+    /// flag, so [`GatherSim`] does nothing.
+    fn transport_arm(&mut self);
+    /// `Unit::update_action`.
+    fn update_action(&mut self);
+}
+
+/// **`Unit::add_gather_order@0061a5c0`'s steps** (item 3268): the head of
+/// `QUEUE_NEW`, the order's fields, the gather-type arm (`add_gatherer`,
+/// and for a non-flat non-University building `dist_mod` 10 for a Mine, 4
+/// otherwise), the tail and `update_action`.
+///
+/// **There is no `QUEUE_FIRST` arm.** The original appends the order with
+/// `LinkListBase::add` for every position but `QUEUE_NEW`'s opening and
+/// does not rotate the list as `add_garrison_order` does; this crate used to
+/// push it to the front and bump the head serial. No caller passes `First`
+/// (every call is `New` or `Last`), so no run could see it.
+pub fn add_gather_order_steps<V: GatherOrderView>(
+    v: &mut V,
+    b: usize,
+    pos: QueuePos,
+    action: bool,
+) {
+    if pos == QueuePos::New {
+        v.restart();
+    }
+    v.take_order();
+    let mut dist_mod = 0;
+    if v.is_gather_type() {
+        v.add_gatherer();
+        if !v.is_flat() && !v.is_university() {
+            dist_mod = if v.is_mine() { 10 } else { 4 };
+        }
+    }
+    v.lay(
+        GatherOrder {
+            building: b,
+            tile: None,
+            wait: 0,
+            goto_build: true,
+            dist_mod,
+            been_there: false,
+        },
+        action,
+    );
+    v.transport_arm();
+    v.link();
+    v.update_action();
+}
+
+/// [`GatherOrderView`] over this crate's state.
+struct GatherSim<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    b: usize,
+    order: Option<Order>,
+}
+
+impl GatherOrderView for GatherSim<'_> {
+    fn restart(&mut self) {
+        let u = self.u;
+        self.sim.units[u].path.clear();
+        self.sim.close_orders(u);
+        self.sim.clear_partial_path(u);
+        self.sim.update_action(u);
+    }
+    fn take_order(&mut self) {}
+    fn is_gather_type(&mut self) -> bool {
+        self.sim.is_gather_type(self.b)
+    }
+    fn add_gatherer(&mut self) {
+        self.sim.add_gatherer(self.b, self.u);
+    }
+    fn is_flat(&mut self) -> bool {
+        self.sim.is_flat(self.b)
+    }
+    fn is_university(&mut self) -> bool {
+        self.sim.building_ident(self.b) == Ident::University
+    }
+    fn is_mine(&mut self) -> bool {
+        self.sim.building_ident(self.b) == Ident::Mine
+    }
+    fn lay(&mut self, order: GatherOrder, action: bool) {
+        self.order = Some(Order {
+            flags: if action { flag::ACTION } else { 0 },
+            body: Body::Gather(order),
+        });
+    }
+    fn link(&mut self) {
+        let order = self.order.take().expect("laid before it is linked");
+        self.sim.units[self.u].orders.push_back(order);
+    }
+    fn transport_arm(&mut self) {}
+    fn update_action(&mut self) {
+        self.sim.update_action(self.u);
+    }
 }
 
 /// **`Unit::update_action@0060a870`'s steps** (item 2341), over a list of

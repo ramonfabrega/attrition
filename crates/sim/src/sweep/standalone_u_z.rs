@@ -50,6 +50,8 @@ mod unit_add_build_order;
 mod unit_add_cast_order;
 #[path = "unit_add_garrison_order.rs"]
 mod unit_add_garrison_order;
+#[path = "unit_add_gather_order.rs"]
+mod unit_add_gather_order;
 #[path = "unit_add_patrol_order.rs"]
 mod unit_add_patrol_order;
 #[path = "unit_add_repair_order.rs"]
