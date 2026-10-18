@@ -2272,6 +2272,9 @@ impl Sim {
 
         let who = self.units[u].owner;
         let other = self.collider_of(u);
+        if std::env::var("RON_PROBE3175").is_ok() && who == 0 && self.units[u].index == 12 {
+            eprintln!("P3175 f{} resolve 0/12 collide_o {} collide_who {} collide {} other {:?} path {} repaths {} waiting {}", self.frame, self.units[u].collide_o, self.units[u].collide_who, self.units[u].collide, other.map(|o| (self.units[o].owner, self.units[o].index, self.units[o].waiting_on, self.units[o].collide, self.order_type(o))), self.units[u].path.len(), self.repaths[0], self.units[u].waiting_on);
+        }
         // `005f9d30:96`: `update_action` runs on every path past step 0
         // (step 1, the suicide attacker, is not modelled), and its
         // `orders_x/y` and `dest_angle` writes are the original's own.
@@ -2525,6 +2528,9 @@ impl Sim {
     /// §6 step 6: unwind the path stack to something worth walking, snap
     /// onto the cell centre, and plan on the 48-grid.
     fn collide_repath(&mut self, u: usize, other: Option<usize>) {
+        if std::env::var("RON_PROBE3175").is_ok() && self.units[u].owner == 0 && self.units[u].index == 12 {
+            eprintln!("P3175 f{} repath enter path {} repaths {} collide {}", self.frame, self.units[u].path.len(), self.repaths[0], self.units[u].collide);
+        }
         if self.units[u].path.is_empty() {
             return;
         }
