@@ -662,6 +662,8 @@ mod objects_data_find_city;
 mod objects_data_find_city_at;
 #[path = "objects_data_find_dock.rs"]
 mod objects_data_find_dock;
+#[path = "objects_data_find_good_at_wcoord.rs"]
+mod objects_data_find_good_at_wcoord;
 #[path = "objects_data_find_town_at.rs"]
 mod objects_data_find_town_at;
 #[path = "objects_data_find_good_at.rs"]
