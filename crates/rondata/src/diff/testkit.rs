@@ -9839,12 +9839,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 8409..8665 (`run940_s_word_frame_is_widened_whole`): block 8416's
     // birth, theirs' Javelineers finished under Cotton. **Item 3248 moved
     // it 8415 → 10695** (`train_time`'s Cotton arm), past run940's last
-    // block: owed as 3253 (`docs/PARKED.md`).
+    // block: owed as 3255 (`docs/QUEUE.md`; parked 3254, renumbered from
+    // the lane's 3253 at the merge).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3253,
+        3255,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
