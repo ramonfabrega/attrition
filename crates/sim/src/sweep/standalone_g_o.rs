@@ -554,6 +554,8 @@ mod object_data_get_inside;
 mod object_data_get_wonder_value;
 #[path = "object_data_has_general.rs"]
 mod object_data_has_general;
+#[path = "object_data_has_nuke.rs"]
+mod object_data_has_nuke;
 #[path = "object_data_has_objmask.rs"]
 mod object_data_has_objmask;
 #[path = "object_data_health_level.rs"]
