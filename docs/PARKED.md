@@ -7941,6 +7941,9 @@ words and edits nothing here; a refill lands when two remain.
   `Unit::plunder@00605b00` "not modelled", and the crate carries no `thedespot_unit_plunder`. Owed first: grep the
   caller (`Object::die`/`take_damage`) for the killer's arguments, `max`'s and the `+0x914` multiplier's value on the
   dump, and `RON_STACKS` on 10852 if the draws' order is in doubt.
+- **3269's "for the Loop"**: `tools/recomp/step4.py --watch VA+N` reads N as a byte count, not an offset. The first
+  watch of `unit+0x58` covered `+0..+0x57` and missed the field, which cost a run. A `VA+OFF:LEN` spelling, or a
+  warning when N is under 8, would have saved it.
 
 ## Parked by the next landing, slot JR — reserved
 
