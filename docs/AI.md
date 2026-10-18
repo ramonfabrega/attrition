@@ -22674,8 +22674,9 @@ food enhancer) and over the sites outside cities; `Holdings::iroquois` from `has
 - The lobby's other windows: run918 37 → 33, run918b 43 → 38, run921 40 → 32, run923 41 → 36 — the food and
   `known_rares` rows.
 - **Great Sahara's coverage lobby**, run677: leader 1's `known_rares` on block 8 (ours 0, theirs 1, `civilian_value`'s
-  input) closes — the same setup zero; 47 → 46, and nothing past block 6 parts there now. Every other lobby's
-  `first_parting` holds.
+  input) closes — the same setup zero; 47 → 46, and nothing past block 6 parts there now. The second pair's run350
+  loses its one block-8 key (the first recompute's, by its block the same row). Every other lobby's `first_parting`
+  holds.
 
 ### 250.4 What this has *not* established
 
