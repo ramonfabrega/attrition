@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -46,7 +51,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // slot +0x60 (stub 3) run shared by the based `is` and the unit type's own asks, 14 the
                 // slot-+0xb8-based flag, 15 the slot-+0xc-based flag (the range test `0x32..=0x19d` of
                 // `p[1]`'s +4 instead of the stub). `p[3]` the unit type, `p[7]` the unit's record.
-                let w4 = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
+                let w4 = |w: &[u8], o: usize| {
+                    i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+                };
                 let based = a[14] != 0;
                 let mut own_turn = 0usize;
                 let mut slot_turn = 0usize;
@@ -89,13 +96,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     } else {
                         // The unit type's own slot +0x60 (stub 3), asked (0x134, 0).
                         let k = slot_turn.min(3);
-                        slot_turn += 1;
                         log.push("s3:p3+0x0,308,0".into());
                         i64::from(a[10 + k] != 0)
                     }
                 } else if w4(&p[3], 0x218) == 2 && w4(&p[3], 0x1e4) as u32 & 0x8000000 == 0 {
                     let k = slot_turn.min(3);
-                    slot_turn += 1;
                     log.push("s3:p3+0x0,308,0".into());
                     i64::from(a[10 + k] == 0)
                 } else {
@@ -107,7 +112,10 @@ fn the_emulated_original_agrees_on_every_row() {
             log.push("-".into());
         }
         assert_eq!(got, want_eax, "can_carry — eax, row `{line}`");
-        assert_eq!(log, want_log, "can_carry — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "can_carry — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "can_carry — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -46,7 +51,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // `home_base` writes through its pointer, 10..=11 slot +0x18's run (the object, then `this`),
                 // 12..=17 the own is-slot's run, 18..=23 the types' slot +0x60's run, 24 the based flag. Windows: p0 `this`'s type, p2/p3 the objects, p4/p5 their types, p7/p8 the units,
                 // p9/p10 their records.
-                let w4 = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
+                let w4 = |w: &[u8], o: usize| {
+                    i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+                };
                 let short = i16::from_le_bytes([m[10], m[11]]);
                 let player = m[9] as i32;
                 if (a[0] == i32::from(short) && a[1] == player) || a[1] != player {
@@ -62,12 +69,18 @@ fn the_emulated_original_agrees_on_every_row() {
                         if based {
                             let k = t2.min(5);
                             t2 += 1;
-                            log.push(format!("s2:{}+0x0,{id},{flag}", if obj { &ty_w[..] } else { "p0" }));
+                            log.push(format!(
+                                "s2:{}+0x0,{id},{flag}",
+                                if obj { &ty_w[..] } else { "p0" }
+                            ));
                             a[18 + k] != 0
                         } else {
                             let k = t1.min(5);
                             t1 += 1;
-                            log.push(format!("s1:{}+0x0,{id},{flag}", if obj { &obj_w[..] } else { "m" }));
+                            log.push(format!(
+                                "s1:{}+0x0,{id},{flag}",
+                                if obj { &obj_w[..] } else { "m" }
+                            ));
                             a[12 + k] != 0
                         }
                     };
@@ -81,9 +94,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     let bit = w4(&p[4 + idx], 0x1e4) as u32 & 0x8000000;
                     let unit_of = |i: usize| format!("p{}", 7 + i);
                     if dom != 2 {
-                        if dom == 1 || !s0(&mut log, &obj_w) || !s0(&mut log, "m") {
-                            0
-                        } else if ask(&mut log, false, 0x15f) {
+                        if dom == 1
+                            || !s0(&mut log, &obj_w)
+                            || !s0(&mut log, "m")
+                            || ask(&mut log, false, 0x15f)
+                        {
                             0
                         } else {
                             log.push(format!("s4:{}+0x0", unit_of(short as usize)));
@@ -130,7 +145,10 @@ fn the_emulated_original_agrees_on_every_row() {
             log.push("-".into());
         }
         assert_eq!(got, want_eax, "can_carry — eax, row `{line}`");
-        assert_eq!(log, want_log, "can_carry — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "can_carry — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "can_carry — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
