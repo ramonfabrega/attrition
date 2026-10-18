@@ -9823,11 +9823,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Senate theirs listed and ours priced. **Item 3231 moved it 6982 →
     // 7033 → 7982** (`get_cost`'s and `construct_time`'s Iroquois Senate
     // arms), past run934's last block: owed as 3241 (the lane's 3232, renumbered at the merge; `docs/PARKED.md`).
+    // 7982 was widened by item 3242 on run937 over 7976..8232
+    // (`run937_s_word_frame_is_widened_whole`): block 7980's `MAKE[7].t`,
+    // the Javelineers' upgrade ours priced 80/80 and theirs 68/68. **Item
+    // 3242 moved it 7982 → 8415** (`get_cost`'s Despotism arm on a
+    // Barracks unit), past run937's last block: owed as 3247
+    // (`docs/PARKED.md`).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3241,
+        3247,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

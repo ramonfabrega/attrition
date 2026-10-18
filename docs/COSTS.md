@@ -524,7 +524,9 @@ shape carries no information and the predicates do:
 - **Rare resources that are not.** Salt on barracks units does not read
   `SALT_BARRACKS_COST`, which ships as 15%. The code multiplies by a literal
   nine tenths, so Salt is worth 10% and the constant is decoration.
-- **Governments.** Despotism has three tiers on barracks units, Monarchy two on
+- **Governments.** Despotism has three tiers on barracks units (built as of item 3242, `docs/AI.md` §255: the shared
+  pre-ramp tail, so it prices a Barracks unit's research as well as its training; run937's Javelineers upgrade is
+  68/68 where the list price is 80/80), Monarchy two on
   stable units (**one** `MONARCHY_UNIT_PROD` on either tier; `..._PROD2` is never read, A1 row 56), Socialism one on the Siege Factory's, the Airbase's and the Dock's units (each trainer by equality; the higher docks are not on it), Democracy two on
   research. Each uses the highest held tier, not compounded tiers.
   Monarchy's is built and diff-backed (item 2331, `docs/GOLDEN.md` §84: run845's

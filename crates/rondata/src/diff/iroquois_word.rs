@@ -114,9 +114,20 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // against theirs 1200, `construct_time`'s twin arm (the first Senate
     // is instant). With both, 7982: ours 12 draws, theirs 14, index 5,
     // ours `Animal::do_idle+0x83`, theirs `Leader::make_stuff+0x63d`;
-    // past run934's last block (7232), its widening owed.
-    count: 7982,
-    sequence: 7982,
+    // past run934's last block (7232), its widening owed. **Item 3242
+    // widened it on run937 and moved it 7982 → 8415** (`docs/AI.md` §255):
+    // block 7980's `MAKE[7].t` was ours 167 (`IRQMOSPEAR`) against theirs
+    // 83 (`JAVELINEERS`) — ours offered the Javelineers' upgrade at a
+    // quarter of theirs' value (62976 against 251904, `aff` 0x40), because
+    // ours priced its research 80/80 against a timber bucket of 74 and
+    // theirs 68/68: `get_cost`'s Despotism arm on a Barracks unit
+    // (`DESPOTISM_MILITARY_CHEAPER`, 15%) was carried for library techs
+    // only. With it, 8415: ours 8 draws, theirs 14, index 3, ours
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Guy::init_real+0x52`; past run937's last block (8232), its
+    // widening owed.
+    count: 8415,
+    sequence: 8415,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -858,6 +869,62 @@ fn run934_s_word_frame_is_widened_whole() {
     // `1/37` (`Unit::init`'s 0x55555555 against 0, a family standing in
     // other lobbies) and `SITE[1].reg` on 7176. The move's value diff is these two blocks.
     pin_eq!(w.firsts.len(), 41, "initial run934 baseline");
+}
+
+/// run937: the word 7982's window, blocks 7976..8232 at run934's detail
+/// (`LEADERS=9` for the make list, `GUYS=4` for the figure clocks; item
+/// 3242) — six blocks before the word's own block 7983, 250 after; no
+/// earlier dump of this lobby holds 7232..12658.
+pub(crate) const RUN937: &str =
+    "gamelog-run937-greatlakes-iroquois-diff3-window-7976-8233-guys4.txt";
+
+/// The window: block 7976 through 8232.
+pub(crate) const WIDENING_IROQUOIS_FRAME_7982: (i64, i64) = (7976, 8232);
+
+pub(crate) fn iroquois_frame_7982_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run937",
+        &[(RUN937, WIDENING_IROQUOIS_FRAME_7982.0)],
+        WIDENING_IROQUOIS_FRAME_7982,
+        1,
+        &[7983],
+        true,
+    )
+}
+
+#[test]
+fn run937_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_7982_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3242, on base 160f3033: 631 keys. The first non-standing row is
+    // block 7980's `leader:MAKE[7].t`, ours 167 (`IRQMOSPEAR`) against
+    // theirs 83 (`JAVELINEERS`), both val 251904, cat 7: ours offered the
+    // Javelineers at 62976, unaffordable at 80/80 against 74 timber, and
+    // block 7983 is theirs' buy (`MAKE[7].val` 2519, `bucket[0]` 19 and
+    // `bucket[1]` 7, ours 87 and 75: 68/68). With `get_cost`'s Despotism
+    // arm on a Barracks unit, 51: the standing set on 7976, pools 65 (7994)
+    // and 66 (8031), `SITE[2].reg` on 8176. The word moved past the window
+    // to 8415 (`docs/AI.md` §255). The move's value diff is blocks 7980 and
+    // 7983.
+    pin_eq!(w.firsts.len(), 51, "initial run937 baseline");
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at

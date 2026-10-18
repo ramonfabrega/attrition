@@ -238,6 +238,15 @@ pub struct Modifiers {
     /// (`get_cost`'s pre-ramp tail, before the research arm and the ramp;
     /// `docs/AI.md` §62). Zero is the identity.
     pub stable_rares: [i32; 3],
+    /// `get_cost`'s **Despotism arm** on a Barracks unit
+    /// (`TypeData::get_cost@00664090:382`–`404`, the shared pre-ramp tail,
+    /// so the train and research arms alike): a unit whose trainer is the
+    /// Barracks (`+0x40 == 0x1ab`, by equality) takes the highest held
+    /// tier's `DESPOTISM_MILITARY_CHEAPER{,2,3}` — `has_preq(DESPOTISM_3)`,
+    /// then `_2`, then `_1` — one `(100 − x) × cost / 100` after the Citizen
+    /// arms and before the Statue of Liberty. Zero is the identity (item
+    /// 3242, `docs/AI.md` §255).
+    pub despotism: i32,
     /// The **Statue of Liberty**'s percentage (`get_cost`'s pre-ramp tail,
     /// listing `00664da7`..`00664e1e`): with `has_wonder(0x219)`, a missile
     /// type (`UnitTypeData::is_missile`, vslot `+0x114`) takes
@@ -516,6 +525,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     for pct in m.citizens {
         cost = (100 - pct) * cost / 100;
+    }
+    if m.despotism != 0 {
+        cost = (100 - m.despotism) * cost / 100;
     }
     if m.liberty != 0 {
         cost = (100 - m.liberty) * cost / 100;

@@ -22917,12 +22917,69 @@ carried.
 **Coverage.** *Diff-backed*: both arms on the first Senate (run934, blocks 6982, 6983 and 7025). *Reading only*: the
 mark's index for a type that is not a lineage root.
 
-## 255. Reserved for the next item on the AI track
+## 255. The word 7982 → 8415: a Despot's Barracks unit costs less, its upgrade too (2026-10-18, item 3242)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 7982 (§254), ours 12 draws against theirs 14 at index 5,
+ours `Animal::do_idle+0x83`, theirs `Leader::make_stuff+0x63d` (§41's slot expiry, the make list's turn). No dump of the
+lobby held a block past 7232.
+
+**run937** widens it over 7976..8232 at run934's detail (`LEADERS=9`, `GUYS=4`; `docs/RUNS.md`), `rngcmp` 8239 of 8239.
+On the base it parts on 631 keys. Block 7976 holds only the standing set. **The first other row is block 7980's make
+list**, written on frame 7979 (step 6, `upgrade_units`):
+
+| block 7980, who=1 | `MAKE[3]` | `MAKE[7]` |
+|---|---|---|
+| ours | 167 `IRQMOSPEAR`, 251904, cat 7 | **167** `IRQMOSPEAR`, 251904, cat 7 |
+| theirs | 167 `IRQMOSPEAR`, 251904, cat 7 | **83** `JAVELINEERS`, 251904, cat 7 |
+
+On block 7983 theirs buys slot 7: its `val` falls 251904 → 2519 (§2.6's `val /= 100`), `1/2016` (the Barracks)
+queues the research, and `bucket[0]`/`bucket[1]` are 19/7 against ours' 87/75. Theirs paid **68 food and 68
+timber**, and the Mercenaries' 85 food and 85 knowledge, bought on both sides, agree. The next block's moves, `1/14`'s
+`ATTACKTO` offsets and the gull's `cur_anim`, follow from the stream that buy shifted.
+
+**Direction, by probe** (`RON_PROBE_UP`, three commits reverted whole). Ours' `upgrade_units` offered the Javelineers too,
+at **62976**, a quarter of theirs: `aff` was 0x40, not 0x100, because `type_affordable` answered 0. Ours priced the
+research at **80/80** (base 4/4 × `UNIT_COST_FACTOR` 10 × `RESEARCH_PREMIUM_COST` 512 / 256), and on frame 7979 the
+timber bucket held 74. The Mohawk spear (100 food, 60 knowledge) was affordable on both sides, so it wrote both slots
+in ours. Theirs' 68 is 40 × 85 / 100 = 34, then × 2: a 15% cut **before** the research arm.
+
+**The arm**: `TypeData::get_cost@00664090`'s shared pre-ramp tail. The listing: the trainer test
+`cmpl $0x1ab, 0x40(%eax)` (`00664d0d`, the Barracks by equality), `has_preq` on `DESPOTISM_3`, `_2` and `_1` in that
+order (`00664d28`, `00664d51`, `00664d7a`), the tier's `DESPOTISM_MILITARY_CHEAPER{3,2,}` subtracted from 100, and one
+truncating `(100 − x) × cost / 100` (`00664d93`..`00664da5`). It sits after the Citizen and sea/air arms and before the
+Statue of Liberty's `has_wonder` (`00664da7`), so it runs ahead of the fork at `get_cost:425` and prices the research as
+well as the training. All three tiers ship at 15%. This crate carried Despotism only on the military library line
+(`line_discounts`, §99.8).
+
+**Built**: `Sim::despotism_unit_discount` (`lib.rs`), the trainer by `trainer_where` and the tier by
+`government_bonus_level` on `despotism_preq` (the `has_preq` gate the library-line arm already uses), carried as
+`cost::Modifiers::despotism` on both arms, applied after the Citizen arms and before Liberty.
+
+| run937 | keys | the word |
+|---|---:|---|
+| base `160f3033` | 631 | 7982 |
+| the Despotism arm | 51 | **8415** |
+
+The 51 are the standing set on 7976 (the `SITE` regs, the forms, pools 64 and 67, `aggression[1]`, `1/22`'s `blown`,
+`1/23`'s second figure, the newborn figures' `g.angle[0]` on `1/35`..`1/44`), pools 65 (7994) and 66 (8031), and
+`SITE[2].reg` on 8176. **The word moved 7982 → 8415**: ours 8 draws, theirs 14, index 3, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`, a figure's init on theirs' side (the hypothesis the next item tests). It is past
+run937's last block, so its widening is owed (parked 3247). No other lobby's first parting and no other pin moved.
+
+**The standing rows the booking named** stand on run937's first block, as on run934's: `1/22`'s `blown` (1 against 0),
+`1/23`'s second figure (`g.x[1]` 40682 against 40512, `g.end_time[1]` 60 against 3, `g.gpiece` 11/14091 against
+50690), `SITE[1].reg` and the newborn figures' `g.angle[0]` (0x55555555 against 0), now on seven figures. None parts
+on the word's frame, and none is newly parted inside the window.
+
+**Test**: `a_despot_s_barracks_unit_costs_less_to_train_and_to_research` (`harness_tests.rs`): the research 80/80 →
+68/68, the training 40 → 34, a Stable unit untouched. Mutations: the arm dropped, and the trainer test dropped.
+
+**Not established.** The second and third tiers are read, not diffed: no capture holds a leader past `DESPOTISM_1`,
+and the constants are equal, so a wrong tier order would price the same. The arm's place against the sea and air arms
+before it is read from the listing, and no capture has a Despot's ship or aircraft.
+
+**Coverage.** *Diff-backed*: the first tier on a Barracks unit's research (run937, blocks 7980 and 7983). *Reading
+only*: the train arm on a capture (the test holds it), and tiers two and three.
 
 ## 256. Reserved for the next item on the AI track
 
