@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(3);
@@ -120,7 +125,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 let grp = &c[2][rec..];
                 let flag = p[(if who == 0 { 42 } else { 46 }) + 1 + o as usize][8] & 1 != 0;
                 let count = (rd(grp, 0xc).max(0) as usize).min(8);
-                let list: Vec<usize> = (0..count).map(|i| rd16(grp, 0x8cc + 2 * i) as usize).collect();
+                let list: Vec<usize> = (0..count)
+                    .map(|i| rd16(grp, 0x8cc + 2 * i) as usize)
+                    .collect();
                 let open = g >= 0 && flag && grp[0x49] == 0;
                 crate::collide::ordered_group_steps(
                     open.then_some((grp[0x4a], &list[..])),
@@ -143,12 +150,23 @@ fn the_emulated_original_agrees_on_every_row() {
         };
         assert_eq!(got, want_eax, "find_ordered_collision — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "find_ordered_collision — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "find_ordered_collision — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "find_ordered_collision — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "find_ordered_collision — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[4 + i], "find_ordered_collision — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[4 + i],
+                "find_ordered_collision — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
