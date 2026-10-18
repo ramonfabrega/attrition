@@ -18043,3 +18043,8 @@ them standing rows. The window is in the coverage driver's slice.
 ## run935 — not taken (item 3233)
 
 Reserved for chapter 99's retake; the capture on disk (run933) answered the word, so no run was made.
+
+## run936 — chapter one hundred: a Tank bled by attrition (2026-10-18, item 3236, `att-3236`)
+
+`docs/GOLDEN.md` §132. **What the disk could not answer**: no dump held a `blocks_while_dead` Tank killed by attrition (`dtype` 0) or the Tank's fire on a town's citizens. Recipe `tools/gamelog/golden/chapter100.cmd` (`--map 14 --end-frame 2600 --log-window 605 2600`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch100/map-14/`, 2,601 frames, seed 12345, 768 s. No minutes waited on another lane.
+**What it holds**: `golden::chapter_one_hundred_holds_to_the_golden_word` (917) and `chapter_one_hundred_s_window_is_widened_whole` (87 rows to 921); its window 917..921 is in the coverage driver's slice.
