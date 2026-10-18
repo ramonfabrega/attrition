@@ -3740,6 +3740,13 @@ for: it cost one run rather than an item.
 
 (3068) **A harvest batch: the order-adders' family** — held off the queue at the fortieth steer (Ramon: the harvest lane becomes the nations lane, 3092; DECISIONS 78 amended), its text as booked: the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,     `add_cast_order`, `add_trade_order`, `add_repair_order`,     `add_build_order` by 3064's recipe (parked 3070), then ten more off     `--claimed` the live sweep lanes' trees; never a `process_*`.     Unstarted. `--kind sweep`. It returns when a pass books a sweep lane on it; the shape sweep (3078) keeps the generator.
 
+## Loop, filed 2026-10-18 — the forty-second tranche's
+
+(3165) **`--seq` draws from `--answers`' list** (3150's "for the Loop" line, filed at its merge): the seq draw goes
+through `--answers` 90% of the time, so a loop's first and last answers come from one set, and `Unit::resolve_block`'s
+arms starved until the list was mostly the exit value. Candidate: `--seq` takes its own value list, as `--answers` does
+for the base answer, made to fail first on a break the shared list starves. One reach.
+
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
 (3158) **A term a document cites and the code lacks has no row in `seams.py`** (3142's "for the Loop" line, filed by
@@ -7438,20 +7445,18 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3150, 2026-10-18 — the shape lane's eighth batch
 
-Four shapes built (change_target, find_army, cast_civilian, resolve_block); two parked below, unnumbered — the commander numbers them.
+Four shapes built (change_target, find_army, cast_civilian, resolve_block); two parked below, numbered at the merge.
 
-- **`Unit::find_melee_pos@006010b0`** (unbuilt). It fills a stack-local `SimpleArray<CoordData>` through `find_open_slots` and then reads
+- (3163) **`Unit::find_melee_pos@006010b0`** (unbuilt). It fills a stack-local `SimpleArray<CoordData>` through `find_open_slots` and then reads
   the array's count and data pointer, frees it (`free`), and runs under an SEH frame. Flag it could not spell: a stub that writes **a
   window's address** (and a count) through a stack-local argument — `--outarg IDX:K:VALS` writes integers from a list, `--stub-write`
   writes into a window, neither lays a pointer to a window in the caller's local. Also needs `--tib` with an imported `free`
   (`--stub-cdecl` hooks it, the array's `0x1000`-style allocation is not modelled).
-- **`Guy::update_gpiece@005d8530`** (unbuilt). Float arithmetic (`guy_scale`, the piece's `+0x88`/`+0x10`/`+0xc` floats, truncated by `(int)`):
+- (3164) **`Guy::update_gpiece@005d8530`** (unbuilt). Float arithmetic (`guy_scale`, the piece's `+0x88`/`+0x10`/`+0xc` floats, truncated by `(int)`):
   `--wbias` and `--fill` draw integer words, so a window word that is a float, and a global float cell (`guy_scale`) have no spelling;
   `xmm_bits` is for arguments only. The `get_unit_gpiece` and `verify_load` callees are stubbable. Flag it could not spell:
   a float-valued `--wbias` (a list of f32 bit patterns) and `--at` for the `guy_scale` cell.
-- Filed as 3150's "for the Loop": `--seq` should take its own value list (as `--answers` does for the base answer), so a loop's first and last
-  answers are drawn from different sets; the seq draw goes through `--answers` 90% of the time and starved `resolve_block`'s arms until
-  the list was mostly the exit value.
+- 3150's "for the Loop" line is Loop 3165 (filed at the merge).
 - Starved arms, built shapes: `change_target` — the walk's second pass (`this = next`, the callee's `+8 & 1` set) is not reached
   (`--wbias p12+8` is even only; the next unit would need its own list laid, a `--link`-style window per hop), and the objects
   array is fixed at type 0 (`m[9] = 0`, `a3 = 0`). `find_army` — `who` is fixed at 0. `cast_civilian` — `who` is 0 and the
