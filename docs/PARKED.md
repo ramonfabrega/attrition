@@ -7963,13 +7963,10 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JT — reserved
+## Parked by item 3274, 2026-10-18 — chapter 103's 935 order, a hit's `update_action`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3278) **`Unit::target_opportunity`'s other `update_action`s** (lines 121 and 405 of `funcs/Unit/target_opportunity@005fffc0.c`): the move-front proximity arm and the tail's `action_is_attack` gate; neither runs in chapter 103, so neither is built or tested. Booking is a capture whose victim has a move front within `type +0x244` sums of the attacker (`unit_masks |= 0x10`, line 129), diffed on `orders_x/y`.
+- (3279) **Chapter 103's Tower/Fort arm** (GOLDEN §138, §140): the wreck's chain readers for a building shooter remain unread; the chapter now closes on forms alone, so a new chapter is the next word.
 
 ## Parked by the next landing, slot JU — reserved
 

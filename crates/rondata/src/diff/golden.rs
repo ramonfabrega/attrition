@@ -5932,10 +5932,9 @@ fn chapter_one_hundred_and_three_s_window_is_widened_whole() {
 }
 
 /// What parts in run945's window, blocks 605–1500 (item 3267): the eleven
-/// standing `form` rows, and the hoplite `0/10`'s two order fields on 935
-/// (`dest_angle`, `orders_y`: the Attack order's write point, parked slot JR).
-/// Item 3271 closed the wound's own four rows at 934: the bowman `1/9`'s
-/// launch y was one short, so the round flew in 1 frame, not 2 (§139).
+/// standing `form` rows. Item 3271 closed the wound's own four rows at 934 (the bowman `1/9`'s
+/// launch y was one short, §139); item 3274 closed `0/10`'s `orders_y` and `dest_angle` on 935:
+/// `Unit::target_opportunity`'s `update_action` after the `is_fleeing` return (§140).
 const WANT_CH103: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -5948,8 +5947,6 @@ const WANT_CH103: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "935 0/10 dest_angle",
-    "935 0/10 orders_y",
 ];
 
 /// Chapter one hundred and three holds to its golden word (item 3267, run945).

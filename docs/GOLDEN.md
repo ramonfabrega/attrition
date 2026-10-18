@@ -13500,12 +13500,19 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the wound's frame and values (the widening). Reading only: nothing new.
 
-## 140. Reserved for the next item on the rules track
+## 140. Chapter one hundred and three's order at 935 — a hit rewrites the victim's `orders_x/y` and `dest_angle` (item 3274)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3273): on 935 hoplite `0/10`'s Attack order agreed in flags, `in_range` and position (16008), but ours wrote `orders_y` 15984 and `dest_angle` −2147483648 against theirs 16008 and 1181417472.
+
+**Which caller adds the Attack, and the direction.** None adds it on 935: the Attack (`new_ord 1`, `targetorder.ox 8`) sits under the move from 933. On the frame that makes block 935 (tick 934, the review phase `(frame + o) & 15 == 0`) `check_target_path`'s first arm finds the target in reach and `repath`s: the move dies, `kill_current_order`'s own `update_action` writes the position **before** the step (15984, heading −2147483648), then `Unit::work`'s `update_action` does the same. Both sides agree to here. `fight`'s in-range arm then turns the unit and snaps it a cell on, to the tile centre (16008; `set_new_location`, `fight@005fd4d0:755`) — and the original writes `orders_x/y` and `dest_angle` **again after that**; ours never did, so the dump's 16008 and the new heading were only ever written on the next frame.
+
+**What writes it.** `Unit::target_opportunity@005fffc0`, `LAB_006002cf` (decompile line 138): `update_action(this)` is the first thing past the `is_fleeing` return, ahead of every later gate. `0/10` is struck on 935 by `1/9`'s round (§139), after its own step in the frame, and the call rewrites its `orders_x/y` and `dest_angle` from where it stands and faces now. Its other callers' `update_action`s sit in `fight` (after an `add_move_order`), `find_new_target`, `resolve_unit_collision` and the `add_*_order` tails; none runs here.
+
+**What was built.** [`Sim::target_opportunity_in`] calls `update_action(responder)` after the `is_fleeing` return and before the attack-action and flee gates, except for a `STRAFE`, `AIR_PATROL` or `AIR_ATTACK_GROUND` front order, which return above it in the original. The two 935 rows leave `WANT_CH103`: the window now parts on the eleven standing `form` rows alone.
+
+**Not established.** The call's other callers in `Unit::target_opportunity` (lines 121, 405) are not built: line 121 sits in the move-front proximity arm (`unit_masks |= 0x10`), and 405 is the tail's. The `update_action` return value (the action order) is not read here either, as in the original's line 138 it is used for the `is_attack` test that only the later gates read. Whether any other lobby's victim carries a stale `orders_x/y` the dump now exposes is for the gate's `first_parting` lines.
+
+**Coverage.** Diff-backed: both rows on 935 (the widening pins their absence). Reading only: the air-order exemption.
 
 ## 141. Reserved for the next item on the rules track
 
