@@ -7323,13 +7323,20 @@ The lane's third row (`--regen` drops the empty-log line) is filed as Loop 3111 
 (3115) **`Unit::init@00612100:341`'s first half, `unit_masks2 |= 0x80`** on an Iroquois land unit whose type
   lacks objmask 4, is not carried: no reader of `0x80` in this crate, and run897's citizens print 0.
 
-## Parked by the next landing, slot HN — reserved
+## Parked by item 3166, 2026-10-18 — the shape lane's ninth batch: six port bodies swept, Census 1463 → 1469
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Six built (do_mustering, cast_pack, find_def_pos, home_base, add_patrol_order, do_air_attack_ground); none parked as unbuildable. Numbered at the merge.
+
+- (3166-a) **The generator took every shape; the flags were already there.** `do_air_attack_ground` is `--vtat-keep 0xb8:0x653790` and `--vtat-keep 0x158:0x60eda0`
+  (two, repeated), the stubs' flags after the answers `a[13]`/`a[14]` (1 = the image function stands in the slot); a recorded `edx` (`--record-edx`) is
+  `y - my` after `find_angle` and `0` before it, the stubs leave it alone. `add_patrol_order` is `--place s4:0:0x80` (a stub's answer laid as a *place*,
+  so later places may name it): a `--place pN` cannot name an `--answer-win` window, those are numbered after the places (IndexError in the script at line 449).
+- (3166-b) **Starved arms**: `find_def_pos`'s `get_action` is answered by `--answer-win`, which cannot answer null, so `get_action() == 0` is unreached; `home_base`'s
+  `get_inside >= 0` returns before the order list on 40% of rows. Flag wanted: an `--answer-win` that is null a third of the rows (as `--place-null`).
+- (3166-c) **Equivalent breaks** (not gaps): `add_patrol_order`'s `slot`, `need > slot` and `sh >= 1` (an arm where both operands agree for every drawn `len`, `sh`),
+  `do_air_attack_ground`'s `local > 0x80000000` → `>=` (`~0x80000000 = 0x7fffffff` fails every threshold the same), `find_def_pos`'s `^ 0x63636` (bit 0 shifted out by `>> 4`).
+- (3166-d) **Loop**: `@FILE` flags are one *token* a line, not one flag with its value (`--place x` on one line is read as a single argument and fails with "invalid choice");
+  the help says "one a line". A `--regen` of a hand port rewrites the file's formatting (rustfmt restores it) — fine, but it shows 60 lines of diff.
 
 ## Parked by item 3112, 2026-10-17 — the generator flags were already there; is_engaged and set_up_insert swept, Census 1448 → 1450
 
