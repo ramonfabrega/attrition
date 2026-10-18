@@ -68,11 +68,13 @@ fn the_emulated_original_agrees_on_every_row() {
                 if rd(&p[0], 0x2b4) & 0x400 != 0 {
                     p[0][0x1fc..0x200].copy_from_slice(&0i32.to_le_bytes());
                 }
-                if idx >= 0 && pl >= 0 && (rd16(m, 0xa2) != idx || m[0xa8] as i8 as i32 != pl) {
-                    if m[0xa8] as i8 as i32 != pl || a[1] != rd16(m, 0xa2) {
-                        let v = rd(m, 0x6c) & !0x100;
-                        m[0x6c..0x70].copy_from_slice(&v.to_le_bytes());
-                    }
+                if idx >= 0
+                    && pl >= 0
+                    && (rd16(m, 0xa2) != idx || m[0xa8] as i8 as i32 != pl)
+                    && (m[0xa8] as i8 as i32 != pl || a[1] != rd16(m, 0xa2))
+                {
+                    let v = rd(m, 0x6c) & !0x100;
+                    m[0x6c..0x70].copy_from_slice(&v.to_le_bytes());
                 }
                 if rd16(m, 0xa2) < 0 && (idx as u16) >= 0x8000 {
                     m[0xa2..0xa4].copy_from_slice(&(-2i16).to_le_bytes());

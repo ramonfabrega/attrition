@@ -56,7 +56,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let (x, y, who, want_idx, by_good) = (a[0], a[1], a[2], a[3], a[4]);
                 // a[5] the type_avail stub's answer; windows: c0 the world, c2 the good count, p0 the div_3_table,
                 // p1 the world's cells, p2.. the goods, p6.. a good's type record, p14+4*pl+j the object arrays.
-                let mut avail = |ty: i32, log: &mut Vec<String>| {
+                let avail = |ty: i32, log: &mut Vec<String>| {
                     log.push(format!(
                         "{},{},1",
                         0x00e3_a390 + who.wrapping_mul(0x6eec),
