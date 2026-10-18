@@ -13426,12 +13426,21 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the flee route of 876 and the rows to 921, and the nothing-parts through 978 (the widening). Reading only: the triple's reach on branches the chapter does not walk.
 
-## 135. Reserved for the next item on the rules track
+## 135. Chapter one hundred — a Tank aims at a building's centre; attrition kills with `dtype` 1 at the figure's share; the word 977 → 2600, the trace's end (item 3252, no new capture)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3251): the word 977, a draw delta at draw 0 — ours `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`. The disk answered it (run936's trace and this crate's `RON_DEBUG_AMMO`, `RON_GOLDEN_SITES`): no capture, run 941 unused.
+
+**Three causes, one after another.**
+
+1. **A Tank's round at a building is not aimed at the near face.** Theirs fires `Ammo::init` on 971 and explodes on 978 (`Object::take_damage+0xe1 < Ammo::do_damage`, the first wound of the building `1/2005`); ours flew six frames, `total_time` 7 against a seventh flight frame. `Ammo::init@0067bbf0`'s projection of the aim point `x_size × 0x30` back along the shooter's angle is gated on the shooter type's vslots `+0x10c` (`ObjectTypeData::is_siege`) **and** `+0x110` (`UnitTypeData::is_tank`, `unit_flags & 0x80000`) both answering zero. This crate asked `is_siege` alone, so the Tank's landing sat 336 units short and the flight one frame short. `fight.rs` now asks the Tank flag too. Word 977 → 1890.
+2. **Attrition kills with `dtype` 1, not 0.** `Unit::suffer_attrition@005e1a10` calls the unit's `take_damage` (vslot `+0x16c`) with `(whole, sixteenths, 1, -1, 1, 0x55555555, ...)`: the third argument is `dtype`. The original therefore draws `Unit::close+0xcb6` (the death animation), plays the sound (`Objects::kill_guy+0x35d`) and prints a `DEATH_OBJS` record with `cur_anim` 15 (= `1 × 2 + 0xd + roll % 2`, run936 block 2545). This crate's attrition death was a thinner tail with no draw. It now goes through `Sim::die_by_attrition` — `close_count`, `relink_squad`, `close_unit(dtype 1)`, `kremlin_spy_closed`, the orders and slot hold, and `close_supply_in` with `keeps_disc(i, 1)`, so **a Tank bled by attrition leaves its disc standing** like a combat death (§130's reading that "attrition's `dtype` 0 releases it" was wrong; `keeps_disc`'s comment is amended). Word 1890 → 2544.
+3. **Attrition took its damage against the whole squad's hit points.** A combat hit falls a figure at its share (`myhits / uber`, §7.2 step 8); attrition's tick subtracted from the full 120. `0/12` of the hoplite squad at 39 whole and 12 sixteenths dies on the next tick (2544) in the original; this crate's lived to 120. The tick now uses `combat::take` with `combat::share`, as the combat path does. Word 2544 → **2600, the trace's last frame**.
+
+**What moved.** The window (605..2600, `WIDENING_CHAPTER_ONE_HUNDRED` (604, 2601)) parts on the eleven `form` rows and one new standing row, the Tank `0/6`'s `near` from 1227 (ours `(2001, 1)`, theirs `(5, 1)`, no draw; parked). Golden: ch100 closed at 2600.
+
+**Not established.** `near`'s writer (parked); a building shooter's gate; the disc release the chapter was staged for is now **read-closed as a non-case for attrition** — the squads cross the wreck, which the original keeps as a collider, and this crate's walk agrees to the end (diff-backed by the lockstep run, not by a dedicated row). Other consequences of `take_damage` with `dtype` 1 (score, message) are unread.
+
+**Coverage.** Diff-backed: the Tank's round on the building (971 → 978), the Tank's death draws and `DEATH_OBJS` (1890) and `0/12`'s share death (2544), the whole run to 2600. Reading only: the `is_tank` gate on a building shooter, `+0x110`'s other readers.
 
 ## 136. Reserved for the next item on the rules track
 

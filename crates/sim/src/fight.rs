@@ -2878,7 +2878,7 @@ impl Sim {
     /// non-zero `param_1` (`dtype`) of a type carrying `x` leaves its
     /// occupancy disc standing until the death object's cull — a combat
     /// death or a Sabotage's boom alike (item 3228, `docs/GOLDEN.md` §130);
-    /// attrition's `dtype` 0 releases it.
+    /// attrition (`dtype` 1, `Unit::suffer_attrition`) keeps it like any other (item 3252, `docs/GOLDEN.md` §135).
     fn keeps_disc(&self, i: usize, dtype: i32) -> bool {
         dtype != 0
             && self.units[i].on_map
