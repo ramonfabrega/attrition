@@ -2065,6 +2065,7 @@ mod tests {
         // Chapter ten (sorted as the directory is): two `@patrol` issuer lines, the patrol line (item
         // 693, `docs/GOLDEN.md` §18).
         ("chapter10.cmd", &[]),
+        ("chapter100.cmd", &[]),
         // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
         // line (item 696, `docs/GOLDEN.md` §19).
         ("chapter11.cmd", &[]),
@@ -2328,7 +2329,6 @@ mod tests {
         ("chapter97.cmd", &[]),
         ("chapter98.cmd", &[]),
         ("chapter99.cmd", &[]),
-        ("chapter100.cmd", &[]),
     ];
 
     /// The chapter directory as the tree has it, sorted.
