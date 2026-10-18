@@ -584,6 +584,8 @@ mod object_data_is_siege;
 mod object_data_is_visible_wonder;
 #[path = "object_data_isnt.rs"]
 mod object_data_isnt;
+#[path = "object_data_num_aircraft_here.rs"]
+mod object_data_num_aircraft_here;
 #[path = "object_data_num_aircraft_limit.rs"]
 mod object_data_num_aircraft_limit;
 #[path = "object_data_say_name.rs"]
