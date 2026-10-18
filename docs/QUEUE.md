@@ -20,7 +20,7 @@ Last whole gate `ebe325dc`, the pass's (green, 6 of 6; rondata 960, sim 1699; re
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 of 12658, widened (3202: the state first
   parts on 5564), owed as 3211; `EastIndiesGermanTier3` closed at 13519. Chapters 95–98 closed, 91 closed; census 1477, **port 311**; the held-out battery's median 4770.
 - **Lanes: four live, landings 3 of 20** (3221, 3223, 3225): 3211 AI (run 932, AI §253, park IR), 3228 rules (run
-  933, GOLDEN §130, IQ), 3219 shape (IT), 3229 shape, the nations seat (IW). Next 3230, run 934. Pools: GOLDEN §131–136, AI §254–255, park IX–JB.
+  933, GOLDEN §130, IQ), 3219 shape (IT), 3229 shape, the nations seat (IW). Next 3231, run 934 (3230 is 3211's). Pools: GOLDEN §131–136, AI §254–255, park IX–JB.
 - **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
   table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
 - **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227).
