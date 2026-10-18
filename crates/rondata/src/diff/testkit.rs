@@ -9716,14 +9716,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // taking a gather where the original took the re-placed camp's
     // build. **Item 3140 moved it 1496 → 1772** (`action_swarm_around`'s
     // builder mark, `unit_masks |= 0x400`), past run921's last block:
-    // 1772's widening is owed, a capture from run921's last block, item
-    // 3156's (run 922).
+    // 1772 is widened on run922 over 1620..2022 (block 1771, who=1's
+    // `1/6` taking the camp's gather in the original; item 3156,
+    // `run922_s_word_frame_is_widened_whole`).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
-        None,
+        Some("run922_s_word_frame_is_widened_whole"),
         3156,
-        None,
+        Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_FRAME_1772),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

@@ -2265,6 +2265,7 @@ impl Sim {
         let russian_spy = self.russian_spy_discount(who, ty);
         let roman_legion = self.roman_legion_discount(who, ty);
         let uranium = self.uranium_discount(who, ty);
+        let citizens = self.citizen_discounts(who, ty);
         let liberty = self.liberty_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
@@ -2275,6 +2276,7 @@ impl Sim {
                 stable_rares,
                 liberty,
                 uranium,
+                citizens,
                 ..cost::Modifiers::default()
             },
             None => cost::Modifiers {
@@ -2289,6 +2291,7 @@ impl Sim {
                 stable_rares,
                 liberty,
                 uranium,
+                citizens,
                 ..cost::Modifiers::default()
             },
         };
@@ -2577,6 +2580,29 @@ impl Sim {
         self.unit_types[ty].tree.is_some_and(|t| {
             self.tech_tree.types.get(0x84).is_some() && self.tech_tree.is(t, 0x84, false)
         })
+    }
+
+    /// `get_cost`'s Citizen arms (`TypeIndex` `0x32`/`0x33`, the Citizen
+    /// and the Korean one): `WOOL_CITIZENS_COST` for a player holding Wool,
+    /// then `TURK_CITIZEN` for a Turkish leader (`has_tribe_bonus(8)`), two
+    /// truncating steps after the Spy/General arm and before the Statue of
+    /// Liberty, on the train and research arms alike.
+    pub fn citizen_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
+        if !matches!(ty, 0 | 1) {
+            return [0, 0];
+        }
+        [
+            if self.has_rare(who, economy::WOOL) {
+                self.tuning.wool_citizens_cost
+            } else {
+                0
+            },
+            if self.nation[who as usize].turks {
+                self.tuning.turk_citizen
+            } else {
+                0
+            },
+        ]
     }
 
     /// `get_cost:306`–`311`: a Roman leader's Legion-line unit takes

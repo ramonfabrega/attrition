@@ -22567,12 +22567,50 @@ mark (run921's widening, the mutation). *Reading only*: the call addresses above
 (`unit_masks |= 0x800000` for a target in another tile region, `docs/ORDERS.md` §3.1) — which no capture of this lobby
 reaches (parked under item 3140).
 
-## 249. Reserved for the next item on the AI track
+## 249. The Iroquois word 1772 widened: a citizen the commerce cap turns away, and Barter the food cannot buy (2026-10-18, item 3156)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: §248's word, 1772 of 12658 (`GreatLakesIroquoisTier3`), ours 3 draws against 4, index 0 ours
+`Guy::set_anim+0x104b`, theirs `Unit::do_non_flat_gather+0x54b`; its widening owed (run921 ends at 1626). Hypotheses
+only: who=1's script and tech on 1577 (parked 3153), the food row (parked 3138).
+
+**The frame, both directions.** Theirs' four on 1772 (`report.py rontrace-run897b.log draws 1772`): `do_non_flat_gather
++0x54b` (seed `e8b2220e`), then the animal's `Guy::set_anim+0x104b` and two `Farms::inc_time+0x1ae`. Ours' three
+(`RON_DEBUG_SITES=1770-1773`) are the same last three, the set_anim being gaia `9/6`'s. **Theirs acted**: a citizen's
+`SITE_TILE_WAIT`, the tile pick of a fresh gather at a site, which ours never issued.
+
+**run922** (`docs/RUNS.md`): blocks 1620..2022, six of overlap with run921, `rngcmp` 2029 of 2029 against run897b. 408
+keys part over the window (`run922_s_word_frame_is_widened_whole`). **The word's own record is block 1771** (frame
+1770): who=1's citizen `1/6` (`TI` 50, uid 13), the builder of the Woodcutter's Camp 1/2008 (the camp's `up` 6), idle at
+(40488, 23160) since it finished, reaches `idle` 12 — `think_peasant`'s `(idle − 2) % 5 == 0` gate — and in the original
+takes a `GATHERORDER` on 2008 (uid 20, `build_type` 418, `non_flat_gather` 1; `orders.len` 1 against 0, the camp's
+`gather_down` 6 against 7). Ours' `1/6` stays orderless to the window's end (`RON_DEBUG_UNIT='1/6@1760-1773'`). Block
+1773 has theirs' tile pick (`tx`/`ty` 206/123, `wait` 516) and the camp's tile list parted; `1/6`'s walk (1774..1775),
+the gatherers' counts (1776) and the City Center's queue (1777) follow.
+
+**Walked back.** `find_gather_spot` scores a site by `resource_cap[g] − income[g]` and skips one at zero
+(`gather_spot_value`, §5.9 of `docs/ORDERS.md`). who=1's timber `income` is 1120 on both sides at 1771 — ours' cap, under
+theirs': `resource_cap` 1120 against 1600 on every good from block 1758, after `epoch[2]` (commerce) 0 against 1 and
+`epochs` 2 against 3 on 1757. That is **Barter** completing in the original. It was queued on frame 1576 (run921's block
+1577, standing on run922 from 1620): `tech_frame` and `tech_cat_frame[2]` 1 against 1576, the Library 1/2005's `queued`
+0 against 1, `script_step` 15 against 18. who=1 runs `defensive.bhs`, whose step 15 is
+`research_tech_with_cost(who, "Barter")`; on success at age 0 it goes `step += 2`, step 17 trains citizens and goes on, and step 18
+returns `SCRIPT_DONE` with fewer than two cities — 15 → 18 in one call, as the dump has it. Barter's `COST` is `6f/6t`.
+The original pays 54 of each on 1576 (food `bucket` 67 → 13, timber 133 → 79), and ours, at food 46 and timber 133
+(`RON_DEBUG_LEADER=1574-1577`), cannot: `can_pay` refuses, the host returns `NO` and the step stays 15.
+
+**So the word is the food row.** who=1's food has stood apart since run918b's block 38 (parked 3138): `income`
+640 against 672 there. On run922's 1620 it is `bucket` 51 against 20, `income`/`resources` 960 against 1120 and `leftover` 6240 against 1440. The
+start dump's block 37 already has the original's 672 and `known_rares` 1, and its block 1 agrees, so the
+parting lies in 2..36, which no dump holds (run897's block 36 is empty). The next item's first act is that capture.
+
+**What stands on run922** (408): the control's 30 from 1620, who=1's food and the 1577 script row from 1620, the Scout's
+`blown` 1/0 (parked 3114), and everything Barter moves downstream: the caps from 1758, `gather_stamp` 1527 against
+1759 and `known_rares` on 1760, `1/6`'s gather from 1771, and the economy that follows.
+
+**Coverage.** *Diff-backed*: the draw delta and its unit, `1/6`'s order on block 1771, the cap and epoch rows, the
+1576 queue and its payment (both sides' buckets). *Reading only*: that `defensive.bhs` is who=1's script (inferred from
+the 15 → 18 step and the commerce-category queue, not read off the leader's script name), and that the price is 54
+(`6f/6t` scaled, measured as theirs' spend rather than derived from `tech_price`).
 
 ## 250. Reserved for the next item on the AI track
 

@@ -182,6 +182,8 @@ mod special_walk_data;
 mod specials_data_find_special;
 #[path = "spell_type_cast_blow_tread.rs"]
 mod spell_type_cast_blow_tread;
+#[path = "spell_type_cast_civilian.rs"]
+mod spell_type_cast_civilian;
 #[path = "spell_type_cast_depopulate.rs"]
 mod spell_type_cast_depopulate;
 #[path = "spell_type_cast_jam_radar.rs"]

@@ -15,16 +15,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-18, **the forty-first pass (steer, Fable) done; the forty-second tranche (commander, Opus) opens from
 `75ccea37`**, four lanes (DECISIONS 78 (i), 79): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 of 12658 (3107, 3117, 3140), its
-  widening owed as 3156 (run 922, from run921's last dumped block 1626); `EastIndiesGermanTier3` closed at 13519
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 of 12658 (3107, 3117, 3140), widened
+  on run922 (3156), the food row's capture owed as 3170 (run 923); `EastIndiesGermanTier3` closed at 13519
   (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–94 closed; 95 at 1118 (3126, 3142, 3152), as 3162. Census
-  1459, **port 293 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
-  median 2270 (`GreatLakesChineseTier1` 12712; 3096, 3108, 3124, 3137, 3145 moved none).
-- **Lanes: four live, landings 2 of 20** (3145 the Dutch ship discount, battery unmoved; 3152 ch95 634 → 1118):
-  3156 the AI word's (run 922, AI §249, park HZ), 3162 the rules track's (GOLDEN §124, HJ), 3150 shape (IB), 3160
-  nations (ID). Next 3163, run 923. Pools: GOLDEN §125–128, AI §250–255, park HN, HP. Last whole gate: the pass's.
+  1463, **port 297 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
+  median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
+- **Lanes: four live, landings 5 of 20** (3145, 3152, 3150, 3156, 3160): 3170 AI (run 923, AI §250, park HP), 3162
+  rules (GOLDEN §124, HJ), 3166 shape (HN), 3172 nations (IE). Next 3173, run 924. Pools: GOLDEN §125–128, AI
+  §251–255, park IF–IJ. Last whole gate: the pass's.
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
-- **Fable backlog: 13 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158).
+- **Fable backlog: 15 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -34,7 +34,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w1772 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1459 of 3611 · port 293 · layout 1166
+Census: simulation backed 1463 of 3611 · port 297 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: ch95 w1118 of 1,200 · 87 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,15 +46,15 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3156 the AI word's (Opus); 3162, 3150 and 3160 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
+3170 the AI word's (Opus); 3162, 3166 and 3172 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3156. **The battery word, 1772 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 3 draws against theirs 4**
-    (3140 moved it 1496 → 1772 by `swarm_around`'s builder mark, `unit_masks |= 0x400`): at index 0 ours draws
-    `Guy::set_anim+0x104b` where theirs draws `Unit::do_non_flat_gather+0x54b`. Its widening is owed (`WIDENINGS`'
-    `IROQUOIS_WORD` row): run921 ends at 1626, so a capture from 1626 that spans 1772 (run 922; Loop 3155: from the
-    last dumped block when it is near). Hypotheses only: who=1's script and tech queue part on 1577 (parked 3153), the
-    food row (3138). Unstarted, unspawned (the drain). AI §249.
+3170. **The battery word, 1772 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 3 draws against theirs 4,
+    index 0** — widened by 3156 on run922 (1620..2022, 408 keys; `WIDENINGS`' `IROQUOIS_WORD`): on 1771 theirs' `1/6`
+    takes camp 1/2008's gather under a commerce cap of 1600 (Barter, done 1757), ours' cap is 1120 and timber already
+    at it; Barter was queued on 1576 and ours cannot pay its 54 food (46 against 67). The food row (parked 3138, 3168)
+    parts in blocks 2..36, which no dump holds: a dense capture of 1..40 at run918's detail (run 923; `LEADERS=9`,
+    `UNITS=3`, `BUILDS=7`), the food and `known_rares` rows walked to their first block, the writer named. AI §250.
 
 3162. **Chapter ninety-five's word, 1118 of 1200 (run920): the draws part on 1118 at `0/15`'s damage (ours 30,
     theirs 0); the state parts first on 766, `1/7`'s `hits:damage` ours 20 theirs 19** (3152 moved it 634 → 1118 with
@@ -62,19 +62,19 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `damage_frac` 1 against 12 says a fractional hit differs (hypothesis only: the Commando's sabotage). The frame
     first — `RON_DEBUG_UNIT=1/7@764-767` both sides, the whole cast on 765–767 — then the draw word. GOLDEN §124.
 
-3150. **The sweep's next shape batch: the next never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
-    score `Census:` 1459 of 3611; 3134 built five, parked 3146–3148, Loop 3149): `Unit::change_target`,
-    `SpellType::cast_civilian`, `Guy::update_gpiece`, `Unit::find_melee_pos`, `Unit::resolve_block`,
-    `Armies::find_army` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each built, or
-    parked naming the generator flag it could not spell. Unstarted, unspawned (the drain). `--kind sweep`.
+3166. **The sweep's next shape batch: the next never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
+    score `Census:` port 297; 3150 built four, parked 3163–3164, Loop 3165): `Army::do_mustering`,
+    `UnitData::find_def_pos`, `Unit::add_patrol_order`, `SpellType::cast_pack`, `UnitData::home_base`,
+    `Unit::do_air_attack_ground` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each
+    built, or parked naming the generator flag it could not spell. `--kind sweep`.
 
-3160. **The battery lobbies' own uncarried `get_cost` and `train_time` terms: the Turkish first** (NATIONS §7.5;
-    Ramon, the fortieth steer, DECISIONS 78; the score: the held-out battery's median first try, 2270 over eight,
-    `battery_measure`, `battery_floors` never lowered): 3137 built the Roman legion pair and 3145 the Dutch
-    ship-upgrade discount (`DUTCH_SHIP_DISCOUNT`), neither moving a lobby; parked 3144's list holds the Wool/Turkish
-    citizens arm, the one term a battery lobby's leader (`GreatLakesTurkishTier4`) reaches; then the Aztec, Spanish,
-    Egyptian and Russian arms of both functions audited against what `cost.rs` and `lib.rs` carry. The American
-    twin is parked (3159). One function's family a landing; never a held-out dump (DECISIONS 54). NATIONS §7.
+3172. **The battery's partings read for a nations term: `train_time`'s arms for the eight battery leaders, and the
+    Turkish siege arm** (NATIONS §7.5; Ramon, the fortieth steer, DECISIONS 78; the score: the held-out battery's
+    median first try, 4770 over eight, `battery_measure`, `battery_floors` never lowered): 3160 built `get_cost`'s
+    Citizen arms (`TURK_CITIZEN`, `WOOL_CITIZENS_COST`), `GreatLakesTurkishTier4` 1440 → 6982, and audited the rest
+    of `get_cost`'s tail for the battery leaders (parked 3171: only `SULPHUR_SIEGE_COST` is reachable, by the Turks).
+    Read where each lobby now parts; audit `train_time` as 3160 did `get_cost`; build the term a parting names. One
+    function's family a landing; never a held-out dump (DECISIONS 54). NATIONS §7.
 
 ## How to maintain this file
 

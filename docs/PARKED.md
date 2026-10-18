@@ -3740,6 +3740,19 @@ for: it cost one run rather than an item.
 
 (3068) **A harvest batch: the order-adders' family** — held off the queue at the fortieth steer (Ramon: the harvest lane becomes the nations lane, 3092; DECISIONS 78 amended), its text as booked: the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,     `add_cast_order`, `add_trade_order`, `add_repair_order`,     `add_build_order` by 3064's recipe (parked 3070), then ten more off     `--claimed` the live sweep lanes' trees; never a `process_*`.     Unstarted. `--kind sweep`. It returns when a pass books a sweep lane on it; the shape sweep (3078) keeps the generator.
 
+## Loop, filed 2026-10-18 — the forty-second tranche's
+
+(3167) **An isolated test's memory row goes stale as the test grows** (the commander, the booking gate on `e183b2e5`):
+`battery_captures_are_complete_and_say_their_lobby` reserved from its 2026-10-16 row (346 MB) and was stopped at 849 MiB
+against its 768 MiB limit (137) — the battery gained lobbies since the profile (3107's Dutch pair); alone it passes. The
+row was raised to the measured 890 MB in the second commit. Candidate: the gate refreshes a row whose measured RSS beat
+its reservation and still passed, or names the test as stale rather than 137, made to fail first. One reach.
+
+(3165) **`--seq` draws from `--answers`' list** (3150's "for the Loop" line, filed at its merge): the seq draw goes
+through `--answers` 90% of the time, so a loop's first and last answers come from one set, and `Unit::resolve_block`'s
+arms starved until the list was mostly the exit value. Candidate: `--seq` takes its own value list, as `--answers` does
+for the base answer, made to fail first on a break the shared list starves. One reach.
+
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
 (3158) **A term a document cites and the code lacks has no row in `seams.py`** (3142's "for the Loop" line, filed by
@@ -7427,25 +7440,42 @@ Five shapes built (find_town_at, find_good_at@0065bec0, process_ejection, cavarc
 
 (3151; the lane's journal says 3143, a number Loop 3143 already held) **Chapter 95's word 634: `635 1/7 order:target`, ours `0/7`, theirs `0/6`** (run920). `1/7` already holds an in-range attack on the Commando `0/7` casting at it; the original re-targets it onto `0/6` (casting at `1/6`) on the frame `1/6` picks `0/6`, ours runs no search for `1/7` on 633–636. Hypothesis only: the captain's target handed down by the group (`Group::target_opportunity`, the mirror). Frame and delta are the booking: the draw delta on 634 first, `RON_DEBUG_UNIT=1/7@633-636` both sides, `RON_DEBUG_ARMIES`.
 
-## Parked by the next landing, slot HZ — reserved
+## Parked by item 3156, 2026-10-18 — the Iroquois word 1772 widened
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3168; the lane's journal says 3161, a number the booking of 3152 already held) **The Iroquois word 1772 is who=1's food row** (`docs/AI.md` §249, run922): the original's `1/6` takes the
+  camp 1/2008's gather on frame 1770 under a commerce cap of 1600, which Barter raised on 1757; ours' cap is 1120, the
+  timber income already at it, so ours' `find_gather_spot` scores nothing. Barter was queued on 1576 by `defensive.bhs`
+  step 15, and ours cannot pay its 54 food (bucket 46 against the original's 67). The food row is parked 3138's: `income`
+  640 against 672 by run897's block 37, while block 1 agrees, so it parts in 2..36, which no dump holds. **The next word's item
+  books a dense capture of 1..40 at run918's detail** (`LEADERS=9`, `UNITS=3`, `BUILDS=7`), walks the food and
+  `known_rares` rows to their first block, and names the writer. The frame stays 1772 (ours 3 draws, theirs 4, index 0).
+- (3169; the journal's 3162) **who=1's script is read as `defensive.bhs` from its steps, not from its name.** The 15 → 18 step on 1576 and the
+  commerce queue fit `defensive.bhs`'s steps 15–18 and not `economic.bhs`'s, but no row printed here names the script.
+  `RON_DEBUG_LEADER` could print `ai[w].script` beside `sstep`. That is a one-line probe, and it names no score.
 
 ## Parked by item 3152, 2026-10-18 — chapter 95's word 1118
 
 (3161; the lane's journal says 3159, a number the commander's booking of 3145 already held) **Chapter 95's word 1118: `1/7`'s `hits:damage` on 766, ours 20 theirs 19; draws part on 1118 at `0/15`'s damage (ours 30, theirs 0).** The first parted field after item 3152's attack-action arm (`fight.rs::attack_action_yields`). Frame and delta are the booking: `RON_DEBUG_UNIT=1/7@764-767` both sides, the whole cast on 765–767; `1/7`'s damage_frac 1 vs 12 says a fractional hit differs (the Commando's sabotage?).
 
-## Parked by the next landing, slot IB — reserved
+## Parked by item 3150, 2026-10-18 — the shape lane's eighth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Four shapes built (change_target, find_army, cast_civilian, resolve_block); two parked below, numbered at the merge.
+
+- (3163) **`Unit::find_melee_pos@006010b0`** (unbuilt). It fills a stack-local `SimpleArray<CoordData>` through `find_open_slots` and then reads
+  the array's count and data pointer, frees it (`free`), and runs under an SEH frame. Flag it could not spell: a stub that writes **a
+  window's address** (and a count) through a stack-local argument — `--outarg IDX:K:VALS` writes integers from a list, `--stub-write`
+  writes into a window, neither lays a pointer to a window in the caller's local. Also needs `--tib` with an imported `free`
+  (`--stub-cdecl` hooks it, the array's `0x1000`-style allocation is not modelled).
+- (3164) **`Guy::update_gpiece@005d8530`** (unbuilt). Float arithmetic (`guy_scale`, the piece's `+0x88`/`+0x10`/`+0xc` floats, truncated by `(int)`):
+  `--wbias` and `--fill` draw integer words, so a window word that is a float, and a global float cell (`guy_scale`) have no spelling;
+  `xmm_bits` is for arguments only. The `get_unit_gpiece` and `verify_load` callees are stubbable. Flag it could not spell:
+  a float-valued `--wbias` (a list of f32 bit patterns) and `--at` for the `guy_scale` cell.
+- 3150's "for the Loop" line is Loop 3165 (filed at the merge).
+- Starved arms, built shapes: `change_target` — the walk's second pass (`this = next`, the callee's `+8 & 1` set) is not reached
+  (`--wbias p12+8` is even only; the next unit would need its own list laid, a `--link`-style window per hop), and the objects
+  array is fixed at type 0 (`m[9] = 0`, `a3 = 0`). `find_army` — `who` is fixed at 0. `cast_civilian` — `who` is 0 and the
+  `0x11c` slot always answers from the stub or `0x610890` (both arms are drawn). `resolve_block` — `who` is 0, so the `is_enemy`
+  arm's `leaders + who * 0x6eec` is one row.
 
 ## Parked by item 3145, 2026-10-18 — the Dutch ship-upgrade discount, and its twin
 
@@ -7456,10 +7486,59 @@ no score; the next American lobby's term. The remaining uncarried arms (Mongol s
 barracks and ships, American aircraft, British AA, Nubian merchants, French `train_time`) stand as
 parked 3144 listed them; none belongs to a battery lobby's leader.
 
-## Parked by the next landing, slot ID — reserved
+## Parked by item 3160, 2026-10-18 — the Citizen cost arms
+
+- (3171; the lane wrote 3160, its own item's number) The rest of `get_cost`'s tail stays unaudited for any battery leader: no lobby's nation reaches the
+Mongol stable, Japanese, American aircraft, British AA, Nubian, Angkor/aluminum/space ship-air terms or
+`CHARLES_UNIT_COST` (`num_units[0x13f]`) / `SULPHUR_SIEGE_COST` (the Turkish siege arm sits beside the
+citizen one: `trainer 0x1ae/0x1af` with rare bit 4 — uncarried for any leader, and the Turkish lobby is the
+one that could reach it, so it is the next candidate if `GreatLakesTurkishTier4` parts on a price). Names
+no score today.
+
+## Parked by the next landing, slot IE — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ID renames this heading `## Parked by item N, <date> — <title>`
+names slot IE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot II — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot II renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IJ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

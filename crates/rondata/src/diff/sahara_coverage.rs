@@ -1106,7 +1106,11 @@ fn run766_s_word_frame_is_widened_whole() {
     // Item 2677: −1 with the city clamp's kept fraction and the crash
     // round's strike (`docs/AI.md` §230).
     // Item 2761: 79 → 75 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 75, "initial run766 baseline");
+    // Item 3160: 75 → 66 with `get_cost`'s Citizen arms (`WOOL_CITIZENS_COST`):
+    // `1/2000` `queue[0..5].cost[0]` (ours 57 theirs 54 on 2634), `1/2032`
+    // (62/59), `1/2028` (63/60 on 2783) and `1/-1 bucket[0:food]` (18949
+    // against 18967) now agree.
+    pin_eq!(w.firsts.len(), 66, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1156,7 +1160,11 @@ fn run767_s_word_frame_is_widened_whole() {
     // Item 2677: −1 with the city clamp's kept fraction and the crash
     // round's strike (`docs/AI.md` §230).
     // Item 2761: 79 → 75 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 75, "initial run767 baseline");
+    // Item 3160: 75 → 68 with `get_cost`'s Citizen arms (`WOOL_CITIZENS_COST`):
+    // `1/2000`, `1/2028`, `1/2032`, `1/2039` `queue[n].cost[0]` (ours 60 theirs
+    // 57 on 2928, 67/64 on 3183) and `1/-1 bucket[0:food]` (18688 against 18712)
+    // now agree.
+    pin_eq!(w.firsts.len(), 68, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
