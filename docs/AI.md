@@ -22407,7 +22407,7 @@ The fog plane is not the cause: `run897_s_block_1_fog_plane_is_ours` holds block
 apart. `invalid_loc`'s land arm passes forest for `unit_masks2 & 0x4000` (`UnitData::invalid_loc@00607c30:121`, `:134`,
 `:152`), and this crate's `forest_walker` was a SEAM, false. The writer is `Unit::init@00612100:341-357`: an Iroquois unit
 that `is(SCOUT)` takes `unit_masks2 |= 0x4080` (and a land unit whose type lacks objmask 4 takes `0x80`). run897's Scout
-prints `unit_masks2` 49280 = `0xc080` on block 1 — these two and `0x8000`, `Unit::process_cloak@005e1c20:58`'s cloak — and
+prints `unit_masks2` 49280 on block 1 — these two and `0x8000`, `Unit::process_cloak@005e1c20:58`'s cloak — and
 every other unit 0. **Built**: `Sim::init_iroquois_masks` (`umask2::IROQUOIS_SCOUT`), called at a trained unit's birth and
 by the harness's `build_sim` for a unit stood up from the dump; `invalid_loc` reads `umask2::FOREST_WALKER`. Block 1:
 42 → 31, the control's set alone; **the word 0 → 1120**.

@@ -323,7 +323,7 @@ left out; a constant with no reader in the export is dead there too.
 | `IROQUOIS_FREE_SCOUT` | 1 | Build::activate | modelled at nations.rs | `iroquois_free_scout` |
 | `IROQUOIS_SCOUT_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `iroquois_scout_upgrades` |
 | `IROQUOIS_GOVS_EARLY` | 0 | TypeData::get_preq | modelled at tech.rs | `iroquois_govs_early` |
-| `IROQUOIS_EXTRA_HITS` | 5 | Unit::update_hits | modelled at cast.rs (item 3107) | `iroquois_extra_hits` |
+| `IROQUOIS_EXTRA_HITS` | 5 | Unit::update_hits | modelled at cast.rs | `iroquois_extra_hits` |
 | `IROQUOIS_QUICK_SENATE` | 1 | BuildData::construct_time, TypeData::get_cost | modelled at build.rs | `iroquois_quick_senate` |
 | `IROQUOIS_SPEAR_SPEED` | [1, ...] | UnitData::speed | not carried | `iroquois_spear_speed` |
 | `LAKOTA_FOOD` | 4 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | modelled at economy.rs | `lakota_food` |

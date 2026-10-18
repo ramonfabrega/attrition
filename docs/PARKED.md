@@ -7353,7 +7353,7 @@ words and edits nothing here; a refill lands when two remain.
 ## Parked by item 3107, 2026-10-17 — the Iroquois Scout's masks
 
 - **`Unit::process_cloak@005e1c20` is not modelled, and the Iroquois Scout carries its cloak by block 1.** run897's
-  Scout `1/0` prints `unit_masks2` 49280 (`0xc080`) on block 1: `Unit::init`'s `0x4080` (built, `docs/AI.md` §246) and
+  Scout `1/0` prints `unit_masks2` 49280 on block 1: `Unit::init`'s `0x4080` (built, `docs/AI.md` §246) and
   `0x8000`, which `process_cloak:58` raises; the function has an Iroquois arm (`has_tribe_bonus(0x12)`, `:98`). The
   harness compares `unit_masks2` for `0x10` alone, so the bit parts no key. Names no score until a draw or a detection
   on the word's frame reads it (`UnitData::is_cloaked@0060a6a0`).
