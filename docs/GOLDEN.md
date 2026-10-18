@@ -13468,12 +13468,21 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the whole 605..1500 window, both directions. Reading only: the wreck's chain readers.
 
-## 138. Reserved for the next item on the rules track
+## 138. Chapter one hundred and three — a bowman strikes a squad beside a Tank wreck; the draws close at 1500 and a wound parts at 934 (item 3267, run945)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3266, 3235): chapter 102 left two arms of the wreck on the chain: an armed unit struck beside it (so `alarm` runs) and a Tower/Fort shooter. This chapter is the first.
+
+**Staging** (`tools/gamelog/golden/chapter103.cmd`, 15 lines, `RON_STAGE=ch76:chapter103:1500`): chapter 102's recipe without its `@stance` line, plus `800 add bowmen who=1 82,83` east of the six stance-0 hoplites; the Sabotaged Tank's wreck stays between the Commandos and the squad. Run945 on the pool's lane 1, 1,501 frames, seed 12345, chapter 94's detail sets. The bowmen shoot, the hoplites close and fight (`0/10` is wounded from 930).
+
+**What the original does and this crate agrees with.** The golden word is the trace's end, 1500, on the first take: no draw or order part, so the wreck on the chain changed nothing here either, whether or not `alarm` saw it. Window 605..1500 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_THREE` (604, 1501)) parts on the eleven standing `form` rows and on **one value, not a draw**.
+
+**The value diff** (the dump's own coordinates): hoplite `0/10` (uid 17) — `damage_frac` ours 10, theirs 0; `hits:damage` ours 27, theirs 19; `hits:damage_frac` ours 10, theirs 0; `hits_left` ours 93, theirs 101, all on **934**; on **935** theirs reaches 27 and 10 sixteenths (so the original lands the same hit a block later) and `dest_angle` (ours −2147483648, theirs 1181417472) and `orders_y` (15984 against 16008) part. `damage_frame` 932 and `damage_o` 8 (`who` 1) agree on both sides. The cause is open (parked, slot JO).
+
+**Run945b** (`~/ron-golden/ch103b/`, `--log-window 920 940`, `AMMO=5`, not wired): `1/8`'s round `(15935,16010)` → `(15719,15979)`, `total_time` 2, cur_time 1 at 932 — this crate's `RON_DEBUG_AMMO` print, field for field. `1/9`'s round `(15853,16135)` → `(15722,16033)`, `total_time` 2, cur_time 1 at 934. This crate's print shows no `1/9` round in 925–936.
+
+**Not established.** Which round makes the 934 wound here and which makes the 935 one there; whether the wreck is involved (nothing in the window names it — `near` of every unit is a living one). The Tower/Fort arm is untouched.
+
+**Coverage.** Diff-backed: the draws and orders to 1500; the wound's frame (the widening pins it). Reading only: the wreck's chain readers.
 
 ## 139. Reserved for the next item on the rules track
 
@@ -13483,6 +13492,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 140. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 141. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 142. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 143. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 144. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

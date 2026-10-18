@@ -18175,3 +18175,7 @@ Kept in place: `~/ron-golden/run946/map-14/frame-snapshot.bin`, 840,195,088 byte
 **What it holds**: `step4.py --entry 0065dce0 --this c0ab70` (`Objects::process_all`) reproduces 10843's turn and copy.
 `1/32` is at `155f9fe4`, so `dest_angle` is `155fa03c` and `angle` is `155fa034`. The copy is `update_action` from
 `Object::check_target+0x2d9`, called by `1/34`'s `fight+0x841`. Not wired to a test.
+## run945 — chapter one hundred and three: a bowman strikes a squad beside a Tank wreck (2026-10-18, item 3267, `att-3267`)
+
+`docs/GOLDEN.md` §138. **What the disk could not answer**: no dump held an armed unit struck beside a `blocks_while_dead` wreck. Recipe `tools/gamelog/golden/chapter103.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch103/map-14/`, 1,501 frames, seed 12345, 580 s. Waited on another lane: none. **run945b**: the same recipe to 940 with `--log-window 920 940` and `AMMO=5` on both sets, kept in `~/ron-golden/ch103b/map-14/`, not wired.
+**What it holds**: `golden::chapter_one_hundred_and_three_holds_to_the_golden_word` (1500, closed) and `chapter_one_hundred_and_three_s_window_is_widened_whole` (eleven standing `form` rows and `0/10`'s wound at 934/935); its window 1496..1500 (four blocks) is in the coverage driver's slice.

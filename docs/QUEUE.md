@@ -19,9 +19,9 @@ lane gates a landing). **The forty-fourth tranche's base is `6db69429`**; last w
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10852 of 12658 (3211, 3231, 3242,
   3248, 3255: run943 widened whole); `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
   1477 → 1512, **port 311 → 347**; the battery's median 4770. Built, red first: six tools and guards (DECISIONS 81).
-- **Lanes: four live, landings 3 of 20** (3263, 3259, 3255): 3269 AI (run 946, AI §258, JQ), 3267 rules (run 945,
-  GOLDEN §138, JO), 3261 shape (JM), 3268 the nations seat (JP). Next 3270, run 947. Pools: GOLDEN §139–140, AI
-  §259–263, park JR–JV. **Ramon's**: three stray `agent-*` worktrees (`git worktree remove --force`, refused the
+- **Lanes: four live, landings 4 of 20** (3263, 3259, 3255, 3267): 3269 AI (run 946, AI §258, JQ), 3271 rules (run
+  947, GOLDEN §139, JR), 3261 shape (JM), 3268 the nations seat (JP). Next 3272, run 948. Pools: GOLDEN §140–144, AI
+  §259–263, park JS–JV. **Ramon's**: three stray `agent-*` worktrees (`git worktree remove --force`, refused the
   pass) and a fourth, 3259's locked `agent-af31de55716845cfa`, the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
 - **Fable backlog: 10 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265).
 
@@ -35,7 +35,7 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w10852 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1518 of 3611 · port 353 · layout 1165
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · 95 closed
+Golden: every chapter closed · 96 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — spawn the four unspawned items on four
@@ -45,7 +45,7 @@ lanes (3255 the AI word's on `--model 'claude-opus-5-5[1m]' --effort medium`; 32
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3269 the AI word's (Opus); 3267, 3261 and 3268 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10852. Take the first unstarted item unless a better
+3269 the AI word's (Opus); 3271, 3261 and 3268 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10852. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3269. **The battery word, 10852 of 12658 (`GreatLakesIroquoisTier3`)** (3255 moved it 10695 → 10852 with the bays of
@@ -55,11 +55,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     run943's window on `GreatLakesIroquoisTier3`, which the disk holds (run 946 reserved). Widen 10843 whole both
     directions, name who turned `1/32` and why, build only what it proves. AI §258.
 
-3267. **Chapter one hundred and three, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
-    chapter; run 945 minted here): 3263 closed chapter 102 at 1500 on its first take, no sim change (stance-0 hoplites
-    beside a Tank wreck took no order from it, run944, GOLDEN §137, §136's idle-stance reading struck). Candidates by
-    what a failure would teach (parked 3266): a shooter struck beside the wreck so `alarm` runs, and a building
-    shooter's near-face gate (3252's park). Stage it, capture it, open it at its first word. GOLDEN §138.
+3271. **Chapter one hundred and three's wound at 934, a value with no draw** (parked 3270; 3267 closed chapter 103's
+    draws at 1500 on run945's first take, no sim change, GOLDEN §138): the widening `WIDENING_CHAPTER_ONE_HUNDRED_AND_THREE`
+    parts on hoplite `0/10`'s `hits:damage` ours 27 and 10 sixteenths on 934 against theirs 19, theirs reaching 27/10
+    on 935 (`hits_left` 93 against 101; `dest_angle`, `orders_y` on 935). run945b's `AMMO=5` (920..940) prints `1/8`'s
+    round field for field as ours and `1/9`'s launched at the 934 block, which this crate's `RON_DEBUG_AMMO` does not
+    show. Name which round lands which wound on each side and why ours lands it a block early; build only what that
+    proves. GOLDEN §139.
 
 3261. **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 347; 3250 built all six of its
     batch, four against the crate's own method and two against extracted helpers, parked 3250 (a)–(h), Loop 3260):
