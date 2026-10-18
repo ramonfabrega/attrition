@@ -7520,13 +7520,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HX — reserved
+## Parked by item 3140, 2026-10-18 — the Iroquois word on 1496
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **who=1's script on 1577** (`docs/AI.md` §248, run921): `script_step` 15 against 18, `tech_frame` and
+  `tech_cat_frame[2]` 1 against 1576, the Library 1/2005's `queued` 0 against 1, timber `bucket` 133 against 79 — the
+  original queues a tech on 1576 that ours does not. A standing row on the gatherers' player before the new word 1772;
+  a hypothesis for 1772's item, which names its own frame (ours 3 draws, theirs 4, index 0: ours
+  `Guy::set_anim+0x104b`, theirs `Unit::do_non_flat_gather+0x54b`). The food row (parked 3138) stands beside it.
+- **`swarm_around` still skips `add_build_order`'s civilian transport request** (`unit_masks |= 0x800000` when the
+  target's tile region differs and the leader can transport, `docs/ORDERS.md` §3.1): item 3140 took only the `0x400`
+  half. No capture of this lobby reaches a swarm across regions; names no score yet.
+- **For the Loop**: the booking's "1490..1746" window was sized to the word, and the walk named 1376–1378 — 126 blocks
+  before it — as the parting; a window that starts at the last dumped block (run918's 1370) when the gap is under 256
+  would have been the same capture with no second one owed. A booking that sizes a window could name "from the last
+  dumped block when it is near" as the default.
 
 ## Parked by the next landing, slot HY — reserved
 
