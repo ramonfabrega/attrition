@@ -18159,6 +18159,22 @@ piece 1545 are `~/ron-data/lab-experiments/2026-10-18-item-3255/pivot-1545-a<ani
 
 `docs/GOLDEN.md` §137. **What the disk could not answer**: run942 held the same units but its recipe's premise (idle stance) was wrong; whether a stance-0 squad's search takes the wreck needed the dump read by stance. Recipe `tools/gamelog/golden/chapter102.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 2, kept in `~/ron-golden/ch102/map-14/`, 1,501 frames, seed 12345, 532 s. Waited on another lane: none.
 **What it holds**: `golden::chapter_one_hundred_and_two_holds_to_the_golden_word` (1500, closed) and `chapter_one_hundred_and_two_s_window_is_widened_whole` (11 standing `form` rows); its window 1496..1500 (four blocks) is in the coverage driver's slice.
+## run946 — the Iroquois word's 10843: a state packet on 10842 (2026-10-18, item 3269, `att-3269`)
+
+`docs/AI.md` §258. **What the disk could not answer**: which call writes `1/32`'s `dest_angle` on 10843 in theirs. No
+dump prints a call's order or its caller, and `1/32`'s own `Unit::process` puts every `update_action` before its turn.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run946 --map 14 --end-frame 10846 --timeout 10800
+--log-window 10840 10845 --detail end:MISC,UNITS=3,GUYS=4 --ai-tribe 18 --cover cover=0 --profile DIFFICULTY=3
+--tracer-def RON_STATE_FRAME=10842 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 17:25:58 and exited 17:27:11 (73 s). `success`, 10847 frames, seed 12345. The dump's `1/32`
+  matches run943 on 10841..10844.
+- Minutes waited on another lane: none.
+
+Kept in place: `~/ron-golden/run946/map-14/frame-snapshot.bin`, 840,195,088 bytes, logger frame 10842.
+
+**What it holds**: `step4.py --entry 0065dce0 --this c0ab70` (`Objects::process_all`) reproduces 10843's turn and copy.
+`1/32` is at `155f9fe4`, so `dest_angle` is `155fa03c` and `angle` is `155fa034`. The copy is `update_action` from
+`Object::check_target+0x2d9`, called by `1/34`'s `fight+0x841`. Not wired to a test.
 ## run945 — chapter one hundred and three: a bowman strikes a squad beside a Tank wreck (2026-10-18, item 3267, `att-3267`)
 
 `docs/GOLDEN.md` §138. **What the disk could not answer**: no dump held an armed unit struck beside a `blocks_while_dead` wreck. Recipe `tools/gamelog/golden/chapter103.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch103/map-14/`, 1,501 frames, seed 12345, 580 s. Waited on another lane: none. **run945b**: the same recipe to 940 with `--log-window 920 940` and `AMMO=5` on both sets, kept in `~/ron-golden/ch103b/map-14/`, not wired.

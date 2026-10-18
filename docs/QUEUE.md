@@ -19,11 +19,11 @@ lane gates a landing). **The forty-fourth tranche's base is `6db69429`**; last w
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10852 of 12658 (3211, 3231, 3242,
   3248, 3255: run943 widened whole); `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
   1477 → 1512, **port 311 → 347**; the battery's median 4770. Built, red first: six tools and guards (DECISIONS 81).
-- **Lanes: four live, landings 5 of 20** (3263, 3259, 3255, 3267, 3268): 3269 AI (run 946, AI §258, JQ), 3271 rules
-  (run 947, GOLDEN §139, JR), 3261 shape (JM), 3272 the nations seat (JS). Next 3273, run 948. Pools: GOLDEN §140–144,
-  AI §259–263, park JT–JV. The stray `agent-*` worktrees are gone (one by the gate's own remedy, two by Ramon, 2026-10-18).
+- **Lanes: four live, landings 7 of 20** (3263, 3259, 3255, 3267, 3268, 3271, 3269): 3279 AI (run 948, AI §259, JU),
+  3274 rules (run 947, GOLDEN §140, JT), 3261 shape (JM), 3272 the nations seat (JS). Next 3281, run 949. Pools: GOLDEN
+  §141–144, AI §260–263, park JV–JZ. The stray `agent-*` worktrees are gone (one by the gate's own remedy, two by Ramon, 2026-10-18).
   **Ramon's**: the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
-- **Fable backlog: 10 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265).
+- **Fable backlog: 13 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265, 3276, 3277, 3280).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -45,23 +45,23 @@ lanes (3255 the AI word's on `--model 'claude-opus-5-5[1m]' --effort medium`; 32
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3269 the AI word's (Opus); 3271, 3261 and 3272 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10852. Take the first unstarted item unless a better
+3279 the AI word's (Opus); 3274, 3261 and 3272 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10852. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3269. **The battery word, 10852 of 12658 (`GreatLakesIroquoisTier3`)** (3255 moved it 10695 → 10852 with the bays of
-    pieces 1529 and 1441 and the Horse Archers' (1545) pivot releases, from run943c's packet, AI §257): ours 25 draws
-    against theirs 30 at index 3 — ours `Unit::close+0xcb6`, theirs `605fe5`. run943's widening (2032 → 456 keys)
-    first parts on block 10843: the Archers `1/32`'s `dest_angle`, ours −786038784 against theirs −792788992, inside
-    run943's window on `GreatLakesIroquoisTier3`, which the disk holds (run 946 reserved). Widen 10843 whole both
-    directions, name who turned `1/32` and why, build only what it proves. AI §258.
+3279. **The battery word, 10852 of 12658 (`GreatLakesIroquoisTier3`), on its own block** (parked 3278; 3269 closed
+    run943's 10843 — theirs' `1/32` `dest_angle` is `Object::check_target+0x2d9`'s `update_action` on the squad
+    captain, from `1/34`'s fight; `guard_leash` now makes the call; run943's widening 456 → 455 keys, AI §258): ours 25
+    draws against theirs 30 at index 3 — ours `Unit::close+0xcb6`, theirs `Unit::plunder+0x4e5`. The widening first
+    parts on 10853: the Citizen `0/3` dies on 10852 on both sides, `death:extra` ours 1 against theirs 0, who=1's
+    `leader:bucket[4:metal]` ours 44 against theirs 59 (`THEDESPOT_UNIT_PLUNDER` 15). The reading names The Despot's
+    `Unit::plunder@00605b00`, "not modelled" in `docs/NATIONS.md`; build what the 10853 diff proves. AI §259.
 
-3271. **Chapter one hundred and three's wound at 934, a value with no draw** (parked 3270; 3267 closed chapter 103's
-    draws at 1500 on run945's first take, no sim change, GOLDEN §138): the widening `WIDENING_CHAPTER_ONE_HUNDRED_AND_THREE`
-    parts on hoplite `0/10`'s `hits:damage` ours 27 and 10 sixteenths on 934 against theirs 19, theirs reaching 27/10
-    on 935 (`hits_left` 93 against 101; `dest_angle`, `orders_y` on 935). run945b's `AMMO=5` (920..940) prints `1/8`'s
-    round field for field as ours and `1/9`'s launched at the 934 block, which this crate's `RON_DEBUG_AMMO` does not
-    show. Name which round lands which wound on each side and why ours lands it a block early; build only what that
-    proves. GOLDEN §139.
+3274. **Chapter one hundred and three's order at 935, a value with no draw** (parked 3273; 3271 closed the 934 wound
+    with a refit of the bowman bay `120/ATTACK1/12`, the launch y one short, GOLDEN §139): on run945's 935 the Attack
+    order that replaces hoplite `0/10`'s move agrees in flags, `in_range` and position, but ours writes `orders_y`
+    15984 (the position before the frame's step) and `dest_angle` −2147483648 against theirs 16008 and 1181417472
+    (after it); the stationary `0/11`, `0/12` agree. Name which caller adds the Attack on 935 on each side and whether
+    the original's thinks run before or after the step for a unit with a path; build only what that proves. GOLDEN §140.
 
 3261. **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 347; 3250 built all six of its
     batch, four against the crate's own method and two against extracted helpers, parked 3250 (a)–(h), Loop 3260):

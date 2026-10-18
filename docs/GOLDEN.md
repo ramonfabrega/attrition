@@ -13484,12 +13484,21 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the draws and orders to 1500; the wound's frame (the widening pins it). Reading only: the wreck's chain readers.
 
-## 139. Reserved for the next item on the rules track
+## 139. Chapter one hundred and three's wound at 934 — the bowman's bay one unit short (item 3271)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3270): `0/10`'s second wound landed a block before the original's (`damage` 27 and 10 sixteenths at 934 against 19, theirs at 935), with no draw and the shooters' rounds agreeing in run945b.
+
+**Which round lands which wound.** `RON_DEBUG_AMMO` showed only `1/8`'s round (launched 931, lands 932, `damage_frame` 932, the first wound — 19). A temporary probe on `add_ammo` and `land` showed the second wound is **`1/9`'s round**, which this crate launched on 933 with `total_time 1` — launch `(15853, 16134)`, landing `(15722, 16008)` — and landed in the same step, so no round was ever in flight to print. The original's (run945b's `AMMO` at block 934) launches from `(15853, 16135)`, `total_time 2`, landing `(15722, 16033)`, and lands a frame later. The direction: ours acted a frame early, on a launch point one unit off in y.
+
+**Why.** `1/9` is a bowman (piece 120, `ATTACK1`, starttime 12) at `(15912, 16200)` facing 319°. The `launch::BAYS` row for that key, `right −1.706, fwd 88.958`, was solved from run256's two arrows alone and gave offset `(−59, −66)`; the original's is `(−59, −65)`. The flight time is `(int)(sqrt(dx²+dy²) / (proj_speed × unit_move_speed))`, and the 1-unit y difference carries the distance across the 2-frame boundary (≈ 201.4 against 200.8 over a divisor of ≈ 100.5). Nothing else part: the unit's position, facing, `gpiece`, `anim` and clock agree.
+
+**What was built.** The row refitted to all three arrows of the key: `right −1.830, fwd 88.800` (the centre of the 2,398 grid points in (−2.11…−1.40, 88.66…89.02) that reproduce `(−86, −21)`, `(−88, −7)` and `(−59, −65)` at 285°, 276° and 319°), and the third arrow added to `run256_s_bowman_arrows_leave_from_the_measured_bays`. The wound now lands at 935 and the four 934 rows leave the widening (`WANT_CH103`).
+
+**Not established.** The row is a fit, not a reading: it is one of a family of vectors that agree with three arrows, and a fourth facing may part it again (the `Bay` model is a planar rotation; the original's `get_position` is float trigonometry). Run945b's `AMMO` rows are the only other bowman arrows on disk with these keys.
+
+**What remains** (parked slot JR): on 935 `0/10`'s `orders_y` (ours 15984, theirs 16008) and `dest_angle` (ours −2147483648, theirs 1181417472) part. Both sides agree on the Attack order that replaces the move on 935 and on the unit's position (16008) on that block; ours writes `orders_x/orders_y` from the position before the frame's step, theirs after it. The unit is moving when its order changes, which the stationary hoplites `0/11`, `0/12` never are.
+
+**Coverage.** Diff-backed: the wound's frame and values (the widening). Reading only: nothing new.
 
 ## 140. Reserved for the next item on the rules track
 

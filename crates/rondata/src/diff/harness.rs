@@ -2559,7 +2559,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} #{} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} \
+        "  f{frame} {who}/{o} #{} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} des {} \
          danger {} stance {}/{:?} coll {}@{} tgt {:?} reach {:?} path {:?} orders {:?} {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
@@ -2600,6 +2600,9 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         u.on_map,
         u.movement.facing.0,
         u.movement.heading.0,
+        // `UnitData::dest_angle` (`+0x58`), `Unit::update_action`'s copy
+        // (item 3269).
+        u.movement.des_angle.0,
         // `unit_masks & 4` and `UnitData::stance`, which this crate keeps
         // in two places: the worker byte and the combat stance (item 530).
         u8::from(u.in_danger),

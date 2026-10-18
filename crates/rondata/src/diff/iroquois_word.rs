@@ -1054,11 +1054,17 @@ fn run943_s_word_frame_is_widened_whole() {
     // that frame's lag (`docs/AI.md` §257). **With the release rows, 456
     // keys**: the 47 standing, and the state first parts on 10843 (`1/32`'s
     // `dest_angle`), the word's own block 10853 after it. (The widening's
-    // block; the word's delta is in `IROQUOIS`'s comment.)
+    // block; the word's delta is in `IROQUOIS`'s comment.) **Item 3269,
+    // 455**: 10843 closes — a follower's `check_target` reads its squad
+    // captain's action through `update_action`, which copies `1/32`'s new
+    // heading into its `dest_angle` the frame it turns (run946's packet,
+    // `docs/AI.md` §258); the state now first parts on the word's own
+    // block 10853 (`0/3`'s `death:extra`, who=1's metal 44 against 59:
+    // The Despot's `Unit::plunder`, not modelled).
     pin_eq!(
         w.firsts.len(),
-        456,
-        "run943 with pieces 1529, 1441 and 1545"
+        455,
+        "run943 with the captain's update_action in check_target"
     );
 }
 
