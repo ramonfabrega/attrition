@@ -1143,6 +1143,11 @@ impl Sim {
             },
             &cost::Modifiers {
                 wonder,
+                egyptian_wonders: if wonder && self.nation[who as usize].egyptians {
+                    self.tuning.egyptian_wonders
+                } else {
+                    0
+                },
                 city: if is_city {
                     self.city_discounts(who)
                 } else {

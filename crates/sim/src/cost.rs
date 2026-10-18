@@ -313,6 +313,11 @@ pub struct Modifiers {
     /// (`docs/COSTS.md`, "The Pyramids take a third off a city"). Zero is
     /// the identity.
     pub city: [i32; 2],
+    /// `get_cost`'s wonder tail (`00665ced`..): `EGYPTIAN_WONDERS` off a wonder
+    /// (`0x20d < type < 0x21f`) for a leader with the Egyptian bonus
+    /// (`has_tribe_bonus(7)`), after the city tail and the (uncarried) marble
+    /// term. Zero is the identity.
+    pub egyptian_wonders: i32,
     /// `get_cost`'s **research** arm: the type is not yet available to the
     /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
     /// research, and it takes the place of the ramp. `None` is the train arm.
@@ -548,6 +553,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
 
     for pct in m.city {
         cost = (100 - pct) * cost / 100;
+    }
+    if m.egyptian_wonders != 0 {
+        cost = (100 - m.egyptian_wonders) * cost / 100;
     }
     if m.democracy != 0 {
         cost = cost.wrapping_mul(100 - m.democracy) / 100;
@@ -1235,6 +1243,33 @@ mod tests {
             of_group: 0,
         };
         assert_eq!(plain(&wonder, Resource::Wealth, counts), 200 + 45 * 9);
+    }
+
+    /// `get_cost`'s Egyptian wonder tail (`00665ced`..): a quarter off the
+    /// whole wonder price, one `(100 - x) * cost / 100` after the ramp.
+    #[test]
+    fn an_egyptian_wonder_costs_a_quarter_less() {
+        let wonder = Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free()
+                .with_base(Resource::Wealth, 20)
+                .with_support(Resource::Wealth, 45)
+        };
+        let price = |egyptian_wonders: i32| {
+            let m = Modifiers {
+                wonder: true,
+                egyptian_wonders,
+                ..Modifiers::default()
+            };
+            let counts = Counts {
+                of_type: wonder_count(4, SpaceRace::None),
+                of_group: 0,
+            };
+            cost_of(&T, &wonder, Resource::Wealth, counts, &m)
+        };
+        assert_eq!(price(0), 402);
+        assert_eq!(price(T.egyptian_wonders), (100 - 25) * 402 / 100);
     }
 
     #[test]
