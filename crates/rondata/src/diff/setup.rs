@@ -604,6 +604,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // files — which is what stops an idle variant nothing has played from
     // being handed the default's length (`docs/ANIM.md` §3.2).
     sim.art.piece_lengths = loaded.piece_lengths.clone();
+    sim.art.piece_skeletons = loaded.piece_skeletons.clone();
     if !loaded.piece_lengths.is_empty() {
         notes.push(format!(
             "anim: {} unit pieces' slot lists from the install",

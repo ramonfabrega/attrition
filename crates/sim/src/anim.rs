@@ -610,6 +610,12 @@ pub struct Art {
     /// install says `WILDBIRD` plays *Bird Soar* for `CHAR_WALK` and
     /// *Bird Flap* for `CHAR_JOG`, 31 frames and 23 (`docs/SYNC.md` §3.9).
     pub gaia_lengths: BTreeMap<(i32, u8, i8), u32>,
+    /// The graphic pieces whose `<UNIT>` names a `skeleton` — a corpse
+    /// (`RData::unit_data +0x20 != -1`), which `DeathObj::init` keeps at
+    /// `+0x44`: the death object of such a piece lives
+    /// [`Sim::CORPSE_FADE_END`] past its animation, and one without
+    /// [`Sim::BODY_FADE_END`] (`docs/GOLDEN.md` §127).
+    pub piece_skeletons: BTreeSet<i32>,
     /// `gpiece → (track_dx, track_dy)`: the offset a **crew** guy is held
     /// at behind and beside the guy it follows —
     /// `GuyData::track_dx / track_dy` (`+0x54` / `+0x58`), which
