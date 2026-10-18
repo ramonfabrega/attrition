@@ -6642,10 +6642,12 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_THREE: i64 = 1200;
 pub(crate) const WIDENING_CHAPTER_NINETY_THREE: (i64, i64) = (604, 1201);
 
 /// **Chapter ninety-four** (item 3067, `docs/GOLDEN.md` §118, run914):
-/// Sabotage on an armed vehicle. **The word is 1117** (item 3099, from 1178: the scout
-/// `1/0`'s 847 path now agrees, which uncovers the draw at 1117 that the wrong positions hid);
-/// the widening's first parted field is the scout `1/0`'s order kind on 1021.
-pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FOUR: i64 = 1117;
+/// Sabotage on an armed vehicle. **The word is the capture's end, 1200**
+/// (item 3123, from 1117, itself from 1178 under item 3099: the push onto
+/// an army's emptied pool slot writes the army's own list, so army 0
+/// commands the Scout on 1021 and the 1118 metal bucket agrees; the
+/// widening keeps only the eleven standing `form` rows).
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FOUR: i64 = 1200;
 
 /// `chapter_ninety_four_s_window_is_widened_whole`'s window: run914, blocks
 /// 605 to 1199.
@@ -9234,7 +9236,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_NINETY_THREE),
     ),
     // Item 3067: run914, chapter ninety-four, Sabotage on an armed vehicle;
-    // open at 1117 (item 3099: the scout `1/0`'s order kind on 1021).
+    // closed at the capture's end (item 3123: army 0's list takes the Scout's push).
     (
         "GOLDEN_WORD_CHAPTER_NINETY_FOUR",
         GOLDEN_WORD_CHAPTER_NINETY_FOUR,

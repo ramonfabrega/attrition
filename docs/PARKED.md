@@ -7449,13 +7449,10 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HS — reserved
+## Parked by item 3123, 2026-10-17 — chapter ninety-four closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3123) The `slot_keeps_army_link` and list-write discriminator (`num_units != 0`, empty list) rests on `army_normalize` resetting the link; a capture where a push
+  takes an emptied army slot **after** a recount, with a unit that then outlives the army tick, would test it. Names no score; parked.
 
 ## Parked by the next landing, slot HT — reserved
 
