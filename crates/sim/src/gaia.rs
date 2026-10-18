@@ -273,10 +273,10 @@ impl Sim {
     /// is why this models the counter exactly and the flight loosely. The
     /// search's sixty are the exception: they are a tenth of run39's frame
     /// 576 and were what parted the second map's word there.
-    pub(crate) fn think_bird(&mut self, u: usize, frame: i64) {
+    pub fn think_bird(&mut self, u: usize, frame: i64) {
         let counter = self.units[u].spell_time;
         if counter >= 0 {
-            self.units[u].spell_time = counter.saturating_add(1);
+            self.units[u].spell_time = counter.wrapping_add(1);
             if frame & 7 != 0 {
                 return;
             }
@@ -305,9 +305,11 @@ impl Sim {
         if counter <= 0 {
             return;
         }
-        let counter = counter.saturating_add(1);
+        // Both steps are 16-bit stores (`mov [+0x98], ax`), so 32767 wraps to -32768, and the landing roll
+        // is refused unless the stored counter is at least 2 (`iVar6 != 1 && -1 < iVar6 - 1`, signed).
+        let counter = counter.wrapping_add(1);
         self.units[u].spell_time = counter;
-        if counter == 1 {
+        if counter <= 1 {
             return;
         }
         self.mark(SITE_BIRD_LAND);
