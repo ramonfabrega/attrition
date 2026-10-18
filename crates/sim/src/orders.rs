@@ -2700,12 +2700,23 @@ impl Sim {
         // `Animal::work@005d7330` is `do_job` on the front order and the
         // herd's sighting, and a flock's bird leaves `recharging` at 1 on
         // every frame it flies (`crate::flock`).
-        if let Some(o) = self.current_order(u).copied()
+        //
+        // **And an orderless one steps nothing at all** — `if (order == 0)
+        // return;` is the gate's first arm (`Unit::work@0060d180:79-86`),
+        // so a recharging melee unit with no order reaches neither
+        // `do_idle` nor its `check_idle` until the countdown ends. The
+        // battery word 13054 (`docs/AI.md` §245): the Knight `1/65` ends
+        // its `ATTACK_TO` on 13053 at `recharging` 21 and the original
+        // leaves it standing orderless at `idle` 0, where this crate rolled
+        // its idle and found it a target on 13054.
+        let held = match self.current_order(u).copied() {
+            None => true,
+            Some(o) => o.index() != index::ATTACK && !o.has(flag::ACTION),
+        };
+        if held
             && !self.units[u].is_gaia()
-            && o.index() != index::ATTACK
             && self.units[u].combat.recharging != 0
             && self.max_range_of(Obj::Unit(u)) == 0
-            && !o.has(flag::ACTION)
         {
             return;
         }
