@@ -1715,7 +1715,7 @@ mod tests {
         );
     }
 
-    /// `AnimalData::is_seen@005d8160` (NATIONS §5): an animal is seen
+    /// `AnimalData::is_seen@005d8160` (NATIONS §5.1): an animal is seen
     /// through the **ever-seen** plane, not the current line of sight; a
     /// herdless one and a Spanish viewer's read `was_seen`, which
     /// `reveal_map == 2` opens and `was_really_seen` does not.
