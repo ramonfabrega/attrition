@@ -194,6 +194,28 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 576,
         sequence: 576,
     },
+    // The lobby minted by item 3107 (DECISIONS 72, `docs/AI.md` §125,
+    // §246; runs 915 and 917) when the Iroquois left for the AI word, so
+    // the held-out set stays replenished: East Indies, the Dutch at
+    // Difficulty 4 — a nation no dump held and a tier no lobby on the map
+    // has. The game does not end itself: the long runs to 24000.
+    Lobby {
+        name: "EastIndiesDutchTier4",
+        map_style: 18,
+        ai_tribe: 22,
+        difficulty: 4,
+        start: "gamelog-run915-eastindies-dutch-diff4-start.txt",
+        long: (
+            "gamelog-run917-eastindies-dutch-diff4-24k-trace.txt",
+            "rontrace-run917.log",
+        ),
+        length: 24000,
+        // Item 3107, the first try: ours 6 draws, theirs 5, at 2 ours
+        // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+        // `Farms::inc_time+0x1ae`.
+        count: 1567,
+        sequence: 1567,
+    },
 ];
 
 /// **The measure, read at every pass** (`--ignored`): each lobby walked
