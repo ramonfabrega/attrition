@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-18, **the forty-third pass (steer, Fable): the forty-third tranche measured — 20 landings from `1a15c80f` in
 6 h 02, 92.89 USD, 52.0 minutes waiting a landing against 33.6** (DECISIONS 81; the sweep lanes' fan-outs, two to four
-lane gates a landing). **The forty-fourth tranche's base is `6db69429`**; the last whole gate is the pass's, on its second commit, named in its third.*
+lane gates a landing). **The forty-fourth tranche's base is `6db69429`**; last whole gate `d58dc7c7` (green, 6 of 6; rondata 972, sim 1714; release 9.0 minutes).*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10695 of 12658 (3211, 3231, 3242,
   3248), its widening owed as 3255; `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
