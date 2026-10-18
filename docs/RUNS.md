@@ -17931,3 +17931,7 @@ SHA-256 `086832113e9837cc97ff6119411217faeb589a836fd777f18d0b08586d1a1132`.
 **What it holds**: `diff::iroquois_word::run926_s_word_frame_is_widened_whole` (257 blocks, 32 keys, the standing set).
 Block 5145 is quiet on both sides; without `Army::use_scouts` the window first parts on 5156 (`1/4`'s move order). The
 window is in the coverage driver's slice.
+## run927 — chapter ninety-six: the death object's cull (2026-10-18, item 3191, `att-3191`)
+
+`docs/GOLDEN.md` §126. **What the disk could not answer**: no dump held a death object's cull measured against the piece and animation (ch95 ended before the second Tank's record did). Recipe `tools/gamelog/golden/chapter96.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch96/map-14/`, 1,501 frames, seed 12345. About twenty minutes waited on run926's hold of the lane.
+**What it holds**: the word is 1500, the capture's end; four `death:extra` rows are the cull (lifetimes 152, 143, 650, 644 frames by piece and animation).
