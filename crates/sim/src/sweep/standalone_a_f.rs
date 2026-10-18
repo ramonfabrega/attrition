@@ -386,6 +386,8 @@ mod circle_render_get_name;
 mod circle_render_on_field_change;
 #[path = "city_calc_gather.rs"]
 mod city_calc_gather;
+#[path = "city_check_upgrade.rs"]
+mod city_check_upgrade;
 #[path = "city_could_queue.rs"]
 mod city_could_queue;
 #[path = "city_count_gather_slots.rs"]

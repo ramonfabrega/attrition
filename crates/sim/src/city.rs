@@ -847,21 +847,14 @@ impl Sim {
         }
     }
 
-    /// `City::check_upgrade`: the automatic level-up.
+    /// `City::check_upgrade`: the automatic level-up, [`check_upgrade_steps`]
+    /// over this simulation.
     pub fn check_upgrade(&mut self, c: usize) {
-        let Some(next) = self.ready_to_upgrade(c) else {
-            return;
-        };
-        let b = self.cities[c].building;
-        let owner = self.cities[c].owner;
-        self.set_type(b, next);
-        self.mask_city(c, true);
-        // `leader_flags |= 0x8000000`: the Senate bonus and the new hits
-        // arrive through `calc_wall_stats` on the next frame.
-        self.wall_stats_dirty[owner as usize] = true;
-        self.find_buildings(c);
-        self.sync_pop_cities();
-        self.sync_territory();
+        check_upgrade_steps(&mut SimUpgrade {
+            sim: self,
+            c,
+            next: None,
+        });
     }
 
     /// `Wall::set_type`: the building becomes another type of the same
@@ -3557,4 +3550,96 @@ pub(crate) fn wall_start_seen_steps(
         }
     }
     out
+}
+
+/// What `City::check_upgrade@00738b20` asks of the world, in the order it
+/// asks it (item 3272): the sweep's emulated original answers the same
+/// questions from its windows, [`Sim`] from its records.
+pub trait CheckUpgradeView {
+    /// `CityData::ready_to_upgrade`.
+    fn ready_to_upgrade(&mut self) -> bool;
+    /// `CityData::get_pop_value`: 1, 3 or 5 by the city building's level.
+    fn pop_value(&mut self) -> i32;
+    /// `CityData::upgrades_to`: the type the building becomes.
+    fn upgrades_to(&mut self) -> usize;
+    /// The building's `set_type` (slot `+0x80`, keeping its damage).
+    fn set_type(&mut self, next: usize);
+    /// `Wall::mask_me(1)` on the building.
+    fn mask_city(&mut self);
+    /// `leader_flags |= 0x8000000`.
+    fn flag_wall_stats(&mut self);
+    /// `find_buildings`.
+    fn find_buildings(&mut self);
+    /// The leader's population (`+0x95c`), the world's, the region's and
+    /// `Leader::calc_pop_cap`, moved by the new value less `before`.
+    fn repop(&mut self, before: i32);
+    /// `Region::fix_borders`.
+    fn fix_borders(&mut self);
+    /// The local player's message and `S_CITY_UPGRADED`.
+    fn announce(&mut self);
+}
+
+/// `City::check_upgrade@00738b20`: when the city is ready, its building
+/// becomes the next level, is re-masked, the leader's wall stats are marked,
+/// the city re-sweeps its buildings, the population and borders follow and
+/// the local player is told.
+pub fn check_upgrade_steps(v: &mut impl CheckUpgradeView) {
+    if !v.ready_to_upgrade() {
+        return;
+    }
+    let before = v.pop_value();
+    let next = v.upgrades_to();
+    v.set_type(next);
+    v.mask_city();
+    v.flag_wall_stats();
+    v.find_buildings();
+    v.repop(before);
+    v.fix_borders();
+    v.announce();
+}
+
+struct SimUpgrade<'a> {
+    sim: &'a mut Sim,
+    c: usize,
+    next: Option<usize>,
+}
+
+impl CheckUpgradeView for SimUpgrade<'_> {
+    fn ready_to_upgrade(&mut self) -> bool {
+        self.next = self.sim.ready_to_upgrade(self.c);
+        self.next.is_some()
+    }
+    fn pop_value(&mut self) -> i32 {
+        2 * self.sim.city_level_of(self.c) - 1
+    }
+    fn upgrades_to(&mut self) -> usize {
+        self.next.expect("ready_to_upgrade answered a type")
+    }
+    fn set_type(&mut self, next: usize) {
+        let b = self.sim.cities[self.c].building;
+        self.sim.set_type(b, next);
+    }
+    fn mask_city(&mut self) {
+        self.sim.mask_city(self.c, true);
+    }
+    fn flag_wall_stats(&mut self) {
+        // The Senate bonus and the new hits arrive through `calc_wall_stats`
+        // on the next frame.
+        let owner = self.sim.cities[self.c].owner as usize;
+        self.sim.wall_stats_dirty[owner] = true;
+    }
+    fn find_buildings(&mut self) {
+        self.sim.find_buildings(self.c);
+    }
+    fn repop(&mut self, _before: i32) {
+        // A recount over the live cities is the original's running delta
+        // (`sync_leader_pop`).
+        self.sim.sync_pop_cities();
+    }
+    fn fix_borders(&mut self) {
+        self.sim.sync_territory();
+    }
+    fn announce(&mut self) {
+        // SEAM: the message and the sound are the renderer's; no sim state.
+    }
 }
