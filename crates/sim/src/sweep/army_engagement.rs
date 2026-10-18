@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -52,12 +57,13 @@ fn the_emulated_original_agrees_on_every_row() {
                 const KEY: i32 = 0x63637;
                 let sh = |w: &[u8], o: usize| i32::from(i16::from_le_bytes([w[o], w[o + 1]]));
                 let count = rd(m, 0x10);
-                let (mut l9, mut l10, mut l11, mut l12, mut l13): (Vec<String>, Vec<String>, Vec<String>, Vec<String>, Vec<String>) =
+                let (mut l9, mut l10, mut l11, mut l12, mut l13) =
                     (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
                 let player = sh(m, 0x94);
                 if count > 0 {
                     let (mut ox, mut whom) = (-1i32, -1i32);
-                    let (mut k0, mut k1, mut k2, mut k4, mut k9, mut slot3c) = (0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
+                    let (mut k0, mut k1, mut k2, mut k4, mut k9, mut slot3c) =
+                        (0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
                     let mut cog = false;
                     for _ in 0..count {
                         let u = a[16 + k0.min(3)] as usize;
@@ -88,8 +94,16 @@ fn the_emulated_original_agrees_on_every_row() {
                         }
                         cog = true;
                         let d2 = crate::world::vector_dist(
-                            a[14].wrapping_mul(0x300).wrapping_sub(ry).wrapping_add(0x180).wrapping_abs(),
-                            a[15].wrapping_mul(0x300).wrapping_sub(rx).wrapping_add(0x180).wrapping_abs(),
+                            a[14]
+                                .wrapping_mul(0x300)
+                                .wrapping_sub(ry)
+                                .wrapping_add(0x180)
+                                .wrapping_abs(),
+                            a[15]
+                                .wrapping_mul(0x300)
+                                .wrapping_sub(rx)
+                                .wrapping_add(0x180)
+                                .wrapping_abs(),
                         );
                         if d2 > 0xc00 {
                             continue;
@@ -116,8 +130,12 @@ fn the_emulated_original_agrees_on_every_row() {
                             if tl != l8 {
                                 let ta = usize::try_from(tl).expect("leader");
                                 let a_zero = rd(&p[2 * pl + 1], 4 * ta) == 0;
-                                let b_zero = rd(&p[4 + ta], 4 * usize::try_from(l8).expect("eight")) == 0;
-                                if (a_zero || b_zero) && rd(m, 0x2c) == 0 && (rd(&c[2 + pl], 0xe8) ^ 0x63187) <= 3 {
+                                let b_zero =
+                                    rd(&p[4 + ta], 4 * usize::try_from(l8).expect("eight")) == 0;
+                                if (a_zero || b_zero)
+                                    && rd(m, 0x2c) == 0
+                                    && (rd(&c[2 + pl], 0xe8) ^ 0x63187) <= 3
+                                {
                                     l10.push("m+0x0,4,0".to_string());
                                     if a[10] == 0 {
                                         l11.push("m+0x0,3".to_string());
@@ -142,13 +160,20 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                 }
                 for l in [l9, l10, l11, l12, l13] {
-                    log.push(if l.is_empty() { "-".to_string() } else { l.join("/") });
+                    log.push(if l.is_empty() {
+                        "-".to_string()
+                    } else {
+                        l.join("/")
+                    });
                 }
                 0
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "engagement — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "engagement — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "engagement — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
