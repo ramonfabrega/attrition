@@ -7647,13 +7647,26 @@ words and edits nothing here; a refill lands when two remain.
 Nothing parked. The queue's three arms (Russian 13, Egyptian 7, Chinese 14) were built by items 3113 and 3124 as
 `FreeRule`s loaded in `rondata::load`; the NATIONS rows read "carried, unread" because the census scanned `sim` only.
 
-## Parked by the next landing, slot IW — reserved
+## Parked by item 3229, 2026-10-18 — the nations seat's second shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3229a) **`Unit::find_melee_pos@006010b0`** stays unbuilt (3163 stands). Re-read for this batch: it builds a stack-local
+  `SimpleArray<CoordData>` at `ebp-0x30` (count at +4, data pointer at +0x10), `find_open_slots@00600e30` fills it, and the
+  function frees it through the import at `0xac5500`. Flag it could not spell: a stub that writes a count at one stack-local
+  offset and a pointer to a drawn window of N (x, y) pairs at another, exposed to the port as a `p` window — e.g.
+  `--stub-array IDX:K:COUNT_OFF:DATA_OFF:MAXN[:LO..HI]`, or `--outarg` taking `K+OFF` and a `winaddr(pN)` value. Without it the
+  nearest-slot arm (`vector_dist`, strict `<`) is never reached. Also `free` wants `--stub-cdecl 0xac5500`.
+- (3229b) **3164 is built**: `Guy::update_gpiece@005d8530` was spelled with existing flags (`--at 0xc06244:4:<f32 bit range>` for
+  `guy_scale`, `--wbias` with f32 bit patterns on the piece words); 3164's "flag it could not spell" is wrong.
+- (3229c) Generator notes from the five builds (Loop candidates): `--regen` merges the kept `# sweep_gen:` line with the new flags,
+  so a flag dropped from an `@FILE` silently survives (delete both files to drop one); `--wbias` is never wild but unbiased words
+  get a 10 % wild draw, and a 32-bit `--wbias` zeroes neighbouring bytes (a separately read byte field wants values with it set);
+  a void function that returns a loaded window pointer in eax has no spelling (`caster_process_spells` hard-codes the guest
+  address; a `--eax-win cN` would compare window-relative); a cell a callee reads indirectly (`tile_corner`'s `div_3_table` heap
+  cell at `0xcae5fc`) shows only as starved hits — a hint listing the callee's cells would help.
+- (3229d) Decompile errors found: `find_building_placed_at` — `move_x`/`move_y` are swapped against the asm (`0xadcaf0` is added to
+  x, `0xadc400` to y) and the type compare `< 8` is signed; `find_garrison_build` — `vector_dist`'s coordinates come from the
+  object record (+0x10/+0x14 ^ 0x63637), not the data record, and `num_inside` returns in eax. The crate's `world::vector_dist`
+  differs from the original's on near-2^31 inputs (`+` overflow, `.abs()`): the sweeps re-implement the original's own wraps.
 
 ## Parked by the next landing, slot IX — reserved
 
