@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(18);
@@ -40,7 +45,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-                        // `a[0..4]` the point's `x`, `y`, `action` (the low byte is stored) and the queue position (2 `QUEUE_NEW`,
+            // `a[0..4]` the point's `x`, `y`, `action` (the low byte is stored) and the queue position (2 `QUEUE_NEW`,
             // 0 `QUEUE_FIRST`, 1 `QUEUE_LAST`); `a[4 + i]` stub `i`'s answer, `a[18]` the player stub 3 writes through its
             // argument. Stubs: 0 `clear_gather`, 1 `malloc` (always the point at `0xe91100`, `c[17]`), 2 `LinkListBase::add`
             // (run, not hooked: with `Recycler::pop` over `c[1]`, `c[2]`), 3 `UnitData::home_base`, 4 `get_order`, 5
@@ -267,14 +272,25 @@ fn the_emulated_original_agrees_on_every_row() {
             0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "add_gather_point — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "add_gather_point — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "add_gather_point — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "add_gather_point — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "add_gather_point — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[19 + i], "add_gather_point — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[19 + i],
+                "add_gather_point — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
