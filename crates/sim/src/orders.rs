@@ -1538,7 +1538,17 @@ impl Sim {
     /// `Unit::kill_current_order(0)` (§3.2): the per-kind teardown, then the
     /// pop, the path segment, `update_action`.
     pub fn kill_current_order(&mut self, u: usize) {
+        self.probe_3140("kill", u);
         self.kill_order(u, false);
+    }
+
+    /// PROBE 3140 (reverted whole): who removes `RON_PROBE_3140=<who>/<o>@<frame>`'s orders.
+    fn probe_3140(&self, what: &str, u: usize) {
+        let Ok(v) = std::env::var("RON_PROBE_3140") else { return };
+        let un = &self.units[u];
+        if v == format!("{}/{}@{}", un.owner, un.index, self.frame) {
+            eprintln!("PROBE3140 {what} {v} {:?}\n{}", un.orders.front().map(|o| o.body), std::backtrace::Backtrace::force_capture());
+        }
     }
 
     /// A different order object now heads `u`'s list ([`Unit::head_serial`]).
@@ -1681,6 +1691,7 @@ impl Sim {
 
     /// `Unit::clear_orders`: the `QUEUE_NEW` clear without the add.
     pub fn clear_orders(&mut self, u: usize) {
+        self.probe_3140("clear", u);
         self.units[u].path.clear();
         self.close_orders(u);
         self.clear_partial_path(u);
