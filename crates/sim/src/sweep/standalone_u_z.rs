@@ -54,6 +54,8 @@ mod unit_add_patrol_order;
 mod unit_add_repair_order;
 #[path = "unit_add_spec_anim_order.rs"]
 mod unit_add_spec_anim_order;
+#[path = "unit_add_trade_order.rs"]
+mod unit_add_trade_order;
 #[path = "unit_air_alt_speed.rs"]
 mod unit_air_alt_speed;
 #[path = "unit_build_done.rs"]
