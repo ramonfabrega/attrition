@@ -7769,7 +7769,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3244, 2026-10-18 — the Tank's gun, found at its release point
 
-- (3246) **`1/3`'s flee on 876** (run936, GOLDEN §133): with the Tank's rounds landing on the dump's frames, `1/3` is hit on 875 in both and flees differently — heading ours −632750080 against theirs 1305346048, `order:move.dest` (41400, 16776) against (42936, 17544), path legs 1..3 and the position (41955, 17193) against (41999, 17217) on 876; no draw parts there. Booked by its frame and values, not by a mechanism; the Tank's heading on 901 and the 917 death (ours 919) follow it.
+- (booked as item 3246) (3245) **`1/3`'s flee on 876** (run936, GOLDEN §133): with the Tank's rounds landing on the dump's frames, `1/3` is hit on 875 in both and flees differently — heading ours −632750080 against theirs 1305346048, `order:move.dest` (41400, 16776) against (42936, 17544), path legs 1..3 and the position (41955, 17193) against (41999, 17217) on 876; no draw parts there. Booked by its frame and values, not by a mechanism; the Tank's heading on 901 and the 917 death (ours 919) follow it.
 - **`float_lands` for piece 194** (GOLDEN §133): run `tools/recomp/get_position.py … pivot 194 0 <anim> <time> 1` on `~/ron-golden/run938b/map-14/frame-snapshot.bin` and add the cells where the exact form parts; rows for the Tank's other two anims came from the packet but only `CHAR_ATTACK1`/`3` fire in the chapter.
 
 ## Parked by the next landing, slot JF — reserved
