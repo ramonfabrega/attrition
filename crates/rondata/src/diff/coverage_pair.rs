@@ -1150,7 +1150,8 @@ fn run710_s_word_frame_is_widened_whole() {
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
     // Item 2761: 106 → 100 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 100, "initial run710 baseline");
+    // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
+    pin_eq!(w.firsts.len(), 86, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1280,7 +1281,8 @@ fn run711_s_word_frame_is_widened_whole() {
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
     // Item 2761: 106 → 102 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 102, "initial run711 baseline");
+    // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
+    pin_eq!(w.firsts.len(), 88, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1401,7 +1403,8 @@ fn run714_s_word_frame_is_widened_whole() {
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
     // Item 2761: 109 → 105 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 105, "initial run714 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
+    pin_eq!(w.firsts.len(), 91, "initial run714 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
     pin_eq!(
         w.firsts
             .iter()

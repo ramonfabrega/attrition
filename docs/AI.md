@@ -23157,7 +23157,7 @@ agrees once the four are spent.
 (`param_7 >= 0`) that is a unit (vslot `+0x8`), no splash (`param_9`, `do_damage`'s `param_7`) and not the victim's
 ally: an Aztec killer from a barracks-line trainer (`+0x40` in `0x1ab`, `0x1ac`, `0x1b0`) calls `plunder(v, k, who, 1,
 0)`; a victim that `is` GENERAL (`0x36`), CARA (`0x3b`) or SUPPLYWAGON (`0x3f`) calls `plunder(v, k, who, 0, 0)`; any
-other calls `plunder(v, k, who, 0, 1)` only when the killer's leader counts a THEDESPOT (`0x160`, `num_units[0x12e]`) and
+other calls `plunder(v, k, who, 0, 1)` only when the killer's leader counts a THEDESPOT (`0x160`, by its per-type count) and
 `HeroesData::find_hero` finds one within its `get_radius × 0xc0` of the victim, or else a SPITAMENES (`0x16d`), and
 `THEDESPOT_UNIT_PLUNDER` is non-zero. The plunder runs before `die` (vslot `+0x158`), which is why its draws come before
 `Unit::close`'s.
@@ -23180,8 +23180,11 @@ fail the sim test (exit 101).
 `DeathObjData::log_data`'s and is written at `DEATHS=1` and above. run943's detail (`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,
 LEADERS=2`) prints none, so every death this crate holds read as ours alone. The widening now keeps the row only once a
 block of its walk has printed a `DEATH_OBJS`. Before that, a death this crate invents still parts as the dump's `unlinked`
-unit. Three Great Sahara coverage windows (run702, run718, run766) print no `DEATH_OBJS` either, and each loses 14 such rows
-(76 → 62, 61 → 47, 66 → 52). A probe with the gate off restores all three.
+unit. Fourteen other windows print no `DEATH_OBJS` either, and lose their rows: run702, run718 and run766 (Great Sahara
+coverage), run710, run711 and run714 (the coverage pair), run855, run861 and run866 (the peace pair) and run780 (the
+successor pair) 14 each; run910 (the German word) 1; and the second pair's run373 (2, `0/2` on 5001 and `0/3` on 4997,
+which its own comment already called the capture's), run396 (4) and run403 (1). A probe with the gate off restores
+run702, run718 and run766.
 
 **The word moves 10852 → 10917.** The value diff is who=1's `leader:bucket[4:metal]` on block 10853: 59 on both sides,
 44 in ours before. run943's widening goes **455 → 174** keys. At 10917, ours 285 draws against theirs 296, index 272,

@@ -3688,7 +3688,9 @@ mod tests {
         // same way. Both sides now lose `0/2` on 5000: the original's own
         // `DEATH_OBJS`, printed only in the quit block 5111, has its
         // `first_frame` 5000 (and `0/3`'s 4996), so `death:extra` on 5001
-        // (4997 for `0/3`) is the capture's, not a parting.
+        // (4997 for `0/3`) is the capture's, not a parting. Item 3279
+        // drops `death:extra` until a block of the walk prints a
+        // `DEATH_OBJS`, and this window's do not, so neither row stands.
         for what in [
             "hits:damage",
             "hits:damage_frac",
@@ -3706,11 +3708,8 @@ mod tests {
         }
         pin_eq!(
             (first(0, 2, "death:extra"), first(0, 3, "death:extra")),
-            (
-                Some((5_001, "ours 1 theirs 0".to_string())),
-                Some((4_997, "ours 1 theirs 0".to_string()))
-            ),
-            "the two deaths, on the original's own frames"
+            (None, None),
+            "the two deaths: no row on a window that prints no DEATH_OBJS"
         );
         // **The old word, 5042, agrees** (item 1081, `docs/COMBAT.md` §74):
         // `Ammo::init`'s lead asks the target's order (`is_move`, then
@@ -3813,7 +3812,8 @@ mod tests {
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 1502: (4841, 72) → (4841, 59) on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            [(4841, 28), (4997, 1), (5001, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            // Item 3279: −2, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
+            [(4841, 28)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first three ((4841, 102), \
              (4909, 2) until item 1330 took the births' `form`; (4841, 104), \
              (4853, 3), (4868, 2) until item 1099 added the re-search's order \
@@ -3854,7 +3854,8 @@ mod tests {
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 1502: 79 → 66 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            30, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            // Item 3279: −2, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
+            28, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every key parted on run373"
         );
     }
@@ -3975,7 +3976,8 @@ mod tests {
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1502: (5100, 57), (5149, 1) → (5100, 57), (5176, 2) on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            [(5100, 25), (5147, 1), (5176, 2)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            // Item 3279: −4, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
+            [(5100, 23), (5176, 2)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first three ((5100, 79) \
              until item 1330 took the births' `form`; (5100, 92), \
              (5105, 2), (5128, 1) until item 1099; (5100, 90), (5147, 2) \
@@ -3991,7 +3993,8 @@ mod tests {
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 1502: 77 → 62 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            29, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            // Item 3279: −4, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
+            25, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every key parted on run396"
         );
     }
@@ -4065,7 +4068,8 @@ mod tests {
             by.into_iter().collect::<Vec<_>>(),
             // Item 1330: 96 → 79, the births' `form` (`docs/GROUPS.md` §24.3).
             // Item 1502: 71 → 53 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            [(5925, 22)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            // Item 3279: −1, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
+            [(5925, 21)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, and how many"
         );
         pin!(
@@ -4079,7 +4083,8 @@ mod tests {
         // Item 1457: 80 → 78; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1502: 71 → 53 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 2761: 28 → 26 with `Unit::close`'s count (`docs/AI.md` §232).
-        pin_eq!(w.firsts.len(), 22, "every key parted on run403"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 3279: −1, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
+        pin_eq!(w.firsts.len(), 21, "every key parted on run403"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the
