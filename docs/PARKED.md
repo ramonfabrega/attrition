@@ -7453,6 +7453,9 @@ Four shapes built (change_target, find_army, cast_civilian, resolve_block); two 
   `--wbias` and `--fill` draw integer words, so a window word that is a float, and a global float cell (`guy_scale`) have no spelling;
   `xmm_bits` is for arguments only. The `get_unit_gpiece` and `verify_load` callees are stubbable. Flag it could not spell:
   a float-valued `--wbias` (a list of f32 bit patterns) and `--at` for the `guy_scale` cell.
+- Filed as 3150's "for the Loop": `--seq` should take its own value list (as `--answers` does for the base answer), so a loop's first and last
+  answers are drawn from different sets; the seq draw goes through `--answers` 90% of the time and starved `resolve_block`'s arms until
+  the list was mostly the exit value.
 - Starved arms, built shapes: `change_target` — the walk's second pass (`this = next`, the callee's `+8 & 1` set) is not reached
   (`--wbias p12+8` is even only; the next unit would need its own list laid, a `--link`-style window per hop), and the objects
   array is fixed at type 0 (`m[9] = 0`, `a3 = 0`). `find_army` — `who` is fixed at 0. `cast_civilian` — `who` is 0 and the
