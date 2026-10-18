@@ -7343,21 +7343,23 @@ fields from node 0). So (3101)'s `--ptrring` is not needed for a fixed-length ri
 needs `--sparse` over a 225 KB image table plus a pointer array of caravan records — an hour of windows), `ObjectsData::find_dock`,
 `ObjectData::num_aircraft_here`, `ObjectTypeData::get_wonder_value` (as (3110)).
 
-## Parked by the next landing, slot HP — reserved
+## Parked by item 3170, 2026-10-18 — the Iroquois food row
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3172) **An Iroquois timber site's food slots and the cap they put on its timber gatherers are not carried.**
+  `BuildTypeData::calc_gather@00639e40` counts the camp's food slots in the same survey (`aiStack_108[0] += local_8c`
+  under `has_tribe_bonus(0x12)`), takes `min(gatherers, slots, 2 × access)` for the food pass, and carries that minimum
+  into the timber pass as `param_11`; a slot count of 0 breaks out with `−1`. `economy::iroquois_food` admits every
+  timber gatherer. A camp whose food slots fall under its gatherers would part on timber `income`; no block of run923
+  shows one (`docs/AI.md` §250). Names no score.
 
 ## Parked by item 3117, 2026-10-18 — the Iroquois word's widening
 
-- (3138) **who=1's food and `known_rares` part between the start dump's block 37 and run918b's 38** on
+- ~~(3138) **who=1's food and `known_rares` part between the start dump's block 37 and run918b's 38** on
   `GreatLakesIroquoisTier3`: `income`/`resources[0:food]` 640 against 672, `bucket` 4/5, `leftover` 6560/352, and
   `known_rares` 0 against 1 — theirs knows a rare on 38. No dump holds 37..38 densely beyond run897's 37 (which holds no
   such row); the word 1496's index-30 draw is a who=1 `do_non_flat_gather`, so this is the nearest standing row on that
-  player. Names the word 1496 only as a hypothesis (`docs/AI.md` §247).
+  player. Names the word 1496 only as a hypothesis (`docs/AI.md` §247).~~ **Closed by item 3170** (`docs/AI.md` §250):
+  both rows part on block 8; `IROQUOIS_FOOD` and a setup border fix left pending into frame 0.
 
 ## Parked by item 3120, 2026-10-18 — the four shapes built
 
@@ -7439,13 +7441,14 @@ Five shapes built (find_town_at, find_good_at@0065bec0, process_ejection, cavarc
 
 ## Parked by item 3156, 2026-10-18 — the Iroquois word 1772 widened
 
-- (3168; the lane's journal says 3161, a number the booking of 3152 already held) **The Iroquois word 1772 is who=1's food row** (`docs/AI.md` §249, run922): the original's `1/6` takes the
+- ~~(3168; the lane's journal says 3161, a number the booking of 3152 already held) **The Iroquois word 1772 is who=1's food row** (`docs/AI.md` §249, run922): the original's `1/6` takes the
   camp 1/2008's gather on frame 1770 under a commerce cap of 1600, which Barter raised on 1757; ours' cap is 1120, the
   timber income already at it, so ours' `find_gather_spot` scores nothing. Barter was queued on 1576 by `defensive.bhs`
   step 15, and ours cannot pay its 54 food (bucket 46 against the original's 67). The food row is parked 3138's: `income`
   640 against 672 by run897's block 37, while block 1 agrees, so it parts in 2..36, which no dump holds. **The next word's item
   books a dense capture of 1..40 at run918's detail** (`LEADERS=9`, `UNITS=3`, `BUILDS=7`), walks the food and
-  `known_rares` rows to their first block, and names the writer. The frame stays 1772 (ours 3 draws, theirs 4, index 0).
+  `known_rares` rows to their first block, and names the writer. The frame stays 1772 (ours 3 draws, theirs 4, index 0).~~
+  **Closed by item 3170** (`docs/AI.md` §250, run923): the word moved 1772 → 5144.
 - (3169; the journal's 3162) **who=1's script is read as `defensive.bhs` from its steps, not from its name.** The 15 → 18 step on 1576 and the
   commerce queue fit `defensive.bhs`'s steps 15–18 and not `economic.bhs`'s, but no row printed here names the script.
   `RON_DEBUG_LEADER` could print `ai[w].script` beside `sstep`. That is a one-line probe, and it names no score.
