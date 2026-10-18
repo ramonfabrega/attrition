@@ -38,6 +38,14 @@ mod unbuilt_wonder_walk_data;
 mod unbuilt_wonders_add_unbuilt_wonder;
 #[path = "unbuilt_wonders_remove_unbuilt_wonder.rs"]
 mod unbuilt_wonders_remove_unbuilt_wonder;
+#[path = "unit_add_attack_ground_order.rs"]
+mod unit_add_attack_ground_order;
+#[path = "unit_add_await_board_order.rs"]
+mod unit_add_await_board_order;
+#[path = "unit_add_board_order.rs"]
+mod unit_add_board_order;
+#[path = "unit_add_garrison_order.rs"]
+mod unit_add_garrison_order;
 #[path = "unit_add_spec_anim_order.rs"]
 mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
@@ -146,6 +154,8 @@ mod unit_do_flee_to;
 mod unit_do_form_change;
 #[path = "unit_do_gather.rs"]
 mod unit_do_gather;
+#[path = "unit_do_group_attack_to.rs"]
+mod unit_do_group_attack_to;
 #[path = "unit_do_idle.rs"]
 mod unit_do_idle;
 #[path = "unit_do_spec_unit_anim.rs"]
@@ -556,6 +566,8 @@ mod world_set_cliff_at;
 mod world_set_coastal;
 #[path = "world_set_down.rs"]
 mod world_set_down;
+#[path = "world_set_edge_flags.rs"]
+mod world_set_edge_flags;
 #[path = "world_set_gather_edge.rs"]
 mod world_set_gather_edge;
 #[path = "world_set_gathered_at.rs"]

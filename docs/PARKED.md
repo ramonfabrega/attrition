@@ -7197,13 +7197,38 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HF — reserved
+## Parked by item 3064, 2026-10-17 — the fifth harvest batch: eleven order-adders, clocks and records
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3064) **Starved draws accepted, said plainly.** `TurnControl::check_new_frame_solo`: the three boundary
+equalities (`now < due_at`, `now > bound`, the `0x7d0` margin) survive an off-by-one break — the draw
+(clock and time-sync words in -30..60, bases and counters small) reaches `now == due_at` and
+`now == bound` on no row; the strict-versus-equal compare is not covered. `Terrain::object_placed`: the
+flag argument is drawn 0/1, so `a[4] != 0` against `a[4] == 1` is an equivalent mutant.
+`Type::backup`: a name length of 0 and the copy of 2 bytes then zeroed are the same bytes, so dropping
+the `len != 0` test is an equivalent mutant (the guard is the original's cheap exit).
+`Types::object_key`: the error report (`Error::key` after two `String` constructions, `int3` when it
+answers non-zero) is not reached — the `ignore_always` byte is drawn always set, as in 3044's
+`ObjectsArray::get_data_type`; the arm needs the `String` constructors and `Error::key`'s argument
+count stubbed, and a `--wbias` that leaves the byte zero a third of the rows.
+
+(3064, second) **Shapes that held, for the next lane.** The order-adders (`Unit::add_*_order`) are one
+shape: a pool object from `OrdersMemManager::get_obj` (`--stub 0x730ac0:1`), a vtable slot of that object
+stubbed with `--vtat pN+0` on the `--answer-win` window, the order record laid as `--place sK`, its inner
+pointer `--place pK+4` with `--wbias +4:0..0x30`, and the objects table through `c0+0x14` / `c0+0x30`
+rows with `--argrange` **inclusive** (`0:-1:1`, not `-1:2`: the first generation read one past the table
+and faulted at `0x5e4cbd`). `Unit::add_patrol_order` (2577 bytes, `port`), `add_cast_order`,
+`add_trade_order`, `add_repair_order` and `add_build_order` are the same family and larger; the family's
+`add_*` pairs with the unit's order list, so one batch can take them with this recipe.
+
+(3064, third) `sweep_gen.py`'s help does not say that a `--cell-this VA` replaces the
+`--cell-win VA` (naming both is refused: "names a cell --cell-win gives a record of its own"), that
+`--argrange` bounds are inclusive, or that an `iat:0xADDR:N` stub (`timeGetTime`, 0 args) records
+`ecx` as the *stale* register — `m+0x0` for the first call, the previous clock for the second
+(`TurnControl::check_new_frame_playback`'s `m+0x0/<now>` token). Worth a line (Loop).
+
+(3064, fourth) `mutate.py --batch`'s file refused a row whose OLD held a newline ("2 field(s) split
+on '\t'"); the break was dropped. Known (parked 3046); the tab-separated rows cannot carry a multi-line
+OLD, and the batch has no escape for it.
 
 ## Parked by the next landing, slot HG — reserved
 

@@ -300,6 +300,8 @@ mod terrain_map_remove_feature;
 mod terrain_map_river_point;
 #[path = "terrain_map_start_river.rs"]
 mod terrain_map_start_river;
+#[path = "terrain_object_placed.rs"]
+mod terrain_object_placed;
 #[path = "terrain_oil_gain_tech.rs"]
 mod terrain_oil_gain_tech;
 #[path = "terrain_oil_lose_tech.rs"]
@@ -356,6 +358,10 @@ mod tribe_walk_rules_data;
 mod tribes_find;
 #[path = "tribes_walk_data.rs"]
 mod tribes_walk_data;
+#[path = "turn_control_check_new_frame_playback.rs"]
+mod turn_control_check_new_frame_playback;
+#[path = "turn_control_check_new_frame_solo.rs"]
+mod turn_control_check_new_frame_solo;
 #[path = "turn_control_compute_next_turn_solo.rs"]
 mod turn_control_compute_next_turn_solo;
 #[path = "turn_control_get_delta_percent.rs"]
@@ -384,6 +390,8 @@ mod turn_control_speed_down;
 mod turn_control_speed_up;
 #[path = "turn_control_walk_data.rs"]
 mod turn_control_walk_data;
+#[path = "type_backup.rs"]
+mod type_backup;
 #[path = "type_bonus.rs"]
 mod type_bonus;
 #[path = "type_build.rs"]
@@ -478,6 +486,8 @@ mod type_unpay_cost;
 mod type_walk_rules_data;
 #[path = "type_wonder.rs"]
 mod type_wonder;
+#[path = "types_object_key.rs"]
+mod types_object_key;
 #[path = "types_walk_data.rs"]
 mod types_walk_data;
 #[path = "types_walk_rules_data.rs"]
