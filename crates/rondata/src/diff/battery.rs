@@ -71,6 +71,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The battery's first lobby, promoted to the AI word (item 2904,
     // DECISIONS 72): the Germans at Difficulty 3, East Indies.
     (18, 12, 3),
+    // The battery's lowest lobby after the Germans closed, promoted to the
+    // AI word (item 3107, DECISIONS 72): the Iroquois at Difficulty 3,
+    // Great Lakes.
+    (14, 18, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -159,20 +163,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 576,
         sequence: 576,
     },
-    Lobby {
-        name: "GreatLakesIroquoisTier3",
-        map_style: 14,
-        ai_tribe: 18,
-        difficulty: 3,
-        start: "gamelog-run897-greatlakes-iroquois-diff3-start.txt",
-        long: (
-            "gamelog-run897b-greatlakes-iroquois-diff3-24k-trace.txt",
-            "rontrace-run897b.log",
-        ),
-        length: 12658,
-        count: 0,
-        sequence: 0,
-    },
+    // `GreatLakesIroquoisTier3` (Iroquois 18, Difficulty 3, map 14; run897
+    // and run897b, 0 of 12658) left the battery on item 3107 for the AI
+    // word (`diff::iroquois_word`, DECISIONS 72).
     Lobby {
         name: "GreatLakesTurkishTier4",
         map_style: 14,
