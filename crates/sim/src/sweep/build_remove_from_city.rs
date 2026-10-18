@@ -254,5 +254,7 @@ fn the_emulated_original_agrees_on_every_row() {
         n += 1;
     }
     assert!(n >= 1500, "only {n} rows");
-    eprintln!("Build::remove_from_city@00622030: {n} rows agree ({off_chain_rows} off the chain: the port leaves them; {consistent_rows} on the chain with this+0x74 = the record link)");
+    eprintln!(
+        "Build::remove_from_city@00622030: {n} rows agree ({off_chain_rows} off the chain: the port leaves them; {consistent_rows} on the chain with this+0x74 = the record link)"
+    );
 }
