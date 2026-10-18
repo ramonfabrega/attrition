@@ -182,12 +182,15 @@
 /// item 3239: 1500 -> 1506 on the merged tree, the nations seat's third shape batch
 /// (`Roads::scan_and_kill_stray_roads`, `Army::engagement`, `Unit::go_inside`, `BuildTypeData::snap_center`,
 /// `ObjectsData::find_any_building_at`, `Unit::find_goody_box`).
+/// item 3250: 1506 -> 1512 on the merged tree, the shape lane's fifteenth batch (`UnitTypeData::can_garrison`,
+/// `Group::target_opportunity`, `Unit::find_new_air_target`, `Build::add_to_city`, `Army::do_forming`,
+/// `Unit::think_peasant`).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1506;
+pub const SIMULATION_BACKED: usize = 1512;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
@@ -196,8 +199,8 @@ pub const SIMULATION_BACKED: usize = 1506;
 /// measured 293 of 1459 on this tree). `tools/census.py --layers` prints
 /// both, the `Census:` line carries both, and the commander re-pins both at
 /// booking. Item 3182: 303 -> 305 (both of its bodies have a port consumer); item
-/// 3200: 305 -> 311 (all six); item 3219: 311 -> 317 (all six); item 3234: 317 -> 323 (all six); item 3229: 323 -> 328 (five of six); item 3238: 328 -> 334 (all six); item 3239: 334 -> 340 (all six).
-pub const SIMULATION_PORT_BACKED: usize = 340;
+/// 3200: 305 -> 311 (all six); item 3219: 311 -> 317 (all six); item 3234: 317 -> 323 (all six); item 3229: 323 -> 328 (five of six); item 3238: 328 -> 334 (all six); item 3239: 334 -> 340 (all six); item 3250: 340 -> 347 (all six, and one backed function the crate now spells).
+pub const SIMULATION_PORT_BACKED: usize = 347;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

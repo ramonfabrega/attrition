@@ -3742,6 +3742,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
+(3260) **`sweep_gen.py --regen` resets a hand-written port to `todo!()`** (3250's "for the Loop" line, its parked
+(3250) (f) and (g), filed at its merge): a `--regen` with a changed `--rows` or `--answer-range` overwrote
+`think_peasant`'s and `target_opportunity`'s hand-written ports; and three flags were wanted — `--init ADDR`, a
+per-stub `--record-edx`, an argument mask for recorded stubs. Candidate: the first is a bug, made to fail first on a
+regen over a kept port; the flags fold with 3240, 3249 and 3257 at the pass. One reach.
+
 (3257) **`sweep_gen.py`'s gaps from the nations seat's batch** (3239's "for the Loop" line, its parked (3239b),
 filed at its merge): no self-recursion stub (`--stub ENTRY:N` swallows the first call); `--stub slot:OFF:NARGS` is
 global, so two vtables with one offset and different argument counts collide; no joint draw of an index and a table
@@ -7951,6 +7957,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot JN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JR renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
