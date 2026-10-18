@@ -884,6 +884,12 @@ pub struct Tuning {
     /// upgrade, `TypeData::get_cost@00664090:530`–`533` (the research arm,
     /// inside the Military-level discount's block).
     pub dutch_ship_discount: i32,
+    /// `WOOL_CITIZENS_COST` — percentage off a Citizen for a player holding
+    /// Wool, `TypeData::get_cost@00664090` (the Citizen arms of the pre-ramp tail, both arms).
+    pub wool_citizens_cost: i32,
+    /// `TURK_CITIZEN` — percentage off a Turkish leader's Citizen,
+    /// `get_cost`, the line after the wool one.
+    pub turk_citizen: i32,
     /// `CHINESE_CITIZEN_CREATION` — percentage faster for a Chinese
     /// leader's citizen, merchant or caravan (`train_time@006508c0`, arm
     /// `0xe`, between the Japanese arms and the British).
@@ -1416,6 +1422,8 @@ impl Tuning {
         roman_legion_cheap: 10,
         roman_legion_fast: 10,
         dutch_ship_discount: 10,
+        wool_citizens_cost: 15,
+        turk_citizen: 33,
         chinese_citizen_creation: 100,
         chinese_citizen_instant: 1,
         german_submarine_speed: 33,
@@ -2140,6 +2148,8 @@ impl Tuning {
             ("ROMAN_LEGION_CHEAP", Slot::Value(T.roman_legion_cheap)),
             ("ROMAN_LEGION_FAST", Slot::Value(T.roman_legion_fast)),
             ("DUTCH_SHIP_DISCOUNT", Slot::Value(T.dutch_ship_discount)),
+            ("WOOL_CITIZENS_COST", Slot::Value(T.wool_citizens_cost)),
+            ("TURK_CITIZEN", Slot::Value(T.turk_citizen)),
             (
                 "CHINESE_CITIZEN_CREATION",
                 Slot::Value(T.chinese_citizen_creation),

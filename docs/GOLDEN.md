@@ -13294,12 +13294,13 @@ on a firing target (reached only after 629); the Commando's wound at 666.
 
 **Not established**: the siege/bombard/explosive shield is modelled by the profile's masks and no capture reaches it; a DEFENSIVE order's `find_def_pos` write (`+0x1d`) is a SEAM; the `unit_masks |= 0x10` in the move-front arm is not carried here.
 
-## 124. Reserved for the next item on the rules track
+## 124. Chapter ninety-five — a flank reads the heading, and the Tank's turret node: the word 1118 → 1174 (item 3162, run920, packet `ch95pkt`)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The value diff.** `1/7` (Tank, `TI 244`) `hits:damage` on 766: ours 20, theirs 19 (`damage_frac` 1 against 12). Ours: the Hoplite `0/14` struck it on 765 for `dmg 8` (2+10/16 after `uber_size` 3); theirs 7 (37/16). `get_damage`'s flank term reads `T.angle`; the dump's `UNITDATA angle` for `1/7` is 297926656 from block 765 — this crate's `movement.heading`, set at once by `Unit::set_angle` — while the guy's `facing` was still turning (−713181696). **Built**: `fight.rs::target_side` hands `heading` as the flank's `facing` (the trench angle keeps `facing`). The 766 rows go, and so do `1/8`'s four 841 rows in chapter 62's widening (`WANT_CH62` loses them, nothing added).
+
+**The draw word.** Ours launched the Tank's round at 1118 (`Ammo::init+0xcd9`/`+0xd0b`) with `Guy::set_anim+0xf2f < Guy::move+0x166`; theirs set the animation and launched none, nor any until 1200. The release gate (`execute_game_events`, `has_restrictions` → `node_flags` bit) needs the turret at its desire. At that call the turret stood exactly `0xaaaaaaa` (15°) from its desire — `turret_near` is strict, so in the original the bit stays clear — but ours bore from the unit's point with no node vector and sat 11.5° away from the bearing the heading took. **The packet** (run923's slot, `~/ron-golden/ch95pkt`, `RON_STATE_FRAME=1117`, `get_position.py … entries 194`) reads piece 194's `(4, 0, 0)` entry as `(0.0, −0.96, 31.92)` and `RData +0x88` 0.9: `pivot.rs::NODES` `(194, 4, py −96)`, `RDATA_SCALE` `(194, 9/10)`. With it the round is held on 1118 and the word moves **1118 → 1174** (`GOLDEN_WORD_CHAPTER_NINETY_FIVE`), the ch95 window falling from about 190 rows to 23 (the eleven `form` rows, `1/6`'s `death:extra` on 946, and `0/12`'s path from 1175).
+
+**Not established**: whether the missing release is the bit alone or the turret's later aim (the dump prints no turret); the next word, 1174 — ours spends `0/12`'s `Unit::move_step+0x823` stop draw (`Guy::set_anim+0x97a`) where theirs spends none; `1/6`'s `death:extra` on 946 stands.
 
 ## 125. Reserved for the next item on the rules track
 

@@ -480,7 +480,7 @@ impl Sim {
                     moving: self.is_moving(i),
                     attacks: self.attack_of(o) != 0,
                     entrenched: u.combat.entrenched,
-                    facing: u.movement.facing,
+                    facing: u.movement.heading,
                     trench_facing: u.movement.facing,
                     // The object's own `z` (`+0xc`), which `Unit::update_z`
                     // writes as `find_tcoord_z` at its tile, clamped at zero

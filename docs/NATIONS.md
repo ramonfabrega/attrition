@@ -206,7 +206,7 @@ left out; a constant with no reader in the export is dead there too.
 | `TURK_SIEGE_RANGE` | 3 | UnitData::max_range | not carried | `turk_siege_range` |
 | `TURK_SIEGE_LOS` | 3 | Unit::update_los | not carried | `turk_siege_los` |
 | `TURK_ASSIMILATE` | 200 | Build::process, IFaceSelected::update_progress | modelled at city.rs | `turk_assimilate` |
-| `TURK_CITIZEN` | 33 | TypeData::get_cost | not carried | `turk_citizen` |
+| `TURK_CITIZEN` | 33 | TypeData::get_cost | modelled at lib.rs | `turk_citizen` |
 | `TURK_FREE_SIEGE` | 2 | Build::activate | modelled at nations.rs | `turk_free_siege` |
 | `TURK_FREE_SIEGE_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `turk_free_siege_upgrades` |
 | `TURK_PACK` | 100 | SpellTypeData::get_job_time | not carried | `turk_pack` |
@@ -644,6 +644,16 @@ a pass books against a word, not a fix for the lobby that exposed it.
    `a_dutch_ship_upgrade_costs_a_tenth_less`. Not diff-backed. **Battery unmoved**: the Dutch lobby
    (`EastIndiesDutchTier4`) stays at 1567 and all eight lobbies at their pins, median 2270.
    The American twin (`+0x218 == 0`) is unbuilt (parked).
+   **Built, item 3160: the Citizen cost arms.** `get_cost`'s tail, after the Spy/General arm and
+   the stable rares and before the Statue of Liberty, on the train and research arms alike: for
+   `TypeIndex` `0x32`/`0x33`, `WOOL_CITIZENS_COST` (15) for a player holding Wool (`rare` or
+   `rare_conquest`), then `TURK_CITIZEN` (33) for `has_tribe_bonus(8)`, each its own truncating step
+   (`cost::Modifiers::citizens`, `Sim::citizen_discounts`). Tests `a_turkish_citizen_costs_a_third_less`
+   (cost and sim). **Moved the battery**: `GreatLakesTurkishTier4` 1440 → 6982 (count and sequence), floor
+   raised; median 2270 → 4770. Audit of the other lobbies' leaders (Russian, Egyptian, Aztec, Spanish,
+   Chinese, Roman, Dutch): their `get_cost` arms (Russian spy, Egyptian wonders, Roman legion, Dutch ship)
+   are built; the Aztec and Spanish have none in `get_cost`/`train_time`. Not diff-backed by a dump of a
+   Turkish leader's citizen price; the lobby's parting later is the evidence.
 6. **The tiers' unbuilt arms** (§6): `Unit::do_gather`'s and
    `Build::process`'s AI repair arms (H12), `get_econ_mod` (no caller
    in the export, so it is dead there too). Tier 1–4 parts have not been
