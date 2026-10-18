@@ -7423,7 +7423,7 @@ needs `--sparse` over a 225 KB image table plus a pointer array of caravan recor
 
 ## Parked by item 3124, 2026-10-17 — gain_tech's nation range blocks
 
-- (3135) **The wonder-gated free-tech blocks are unwired**: Red Fort
+- (3135) ~~**The wonder-gated free-tech blocks are unwired**~~ built, item 3194:: Red Fort
   (`has_wonder(0x216)`: `FORTIFICATION` `0x251`..`0x253`, `END_FINALTYPES`
   `0x247`..`0x249`), Colosseum, Tikal (`RELIGION`) and Hanging Gardens
   (`CARPENTRY`/`METAL_ALLOYS`/`AGRICULTURE`) are `Gate::Wonder` in `tech.rs`, but
@@ -7553,13 +7553,14 @@ Two built of the six; four not attempted past reading, each with the flag it wou
 - (3199) **`Group::is_attacking_near@00710e40`, `Unit::find_garrison_build@00605040`, `ObjectsData::find_building_placed_at@00658c80` not built**: the first two read `vector_dist` with register arguments (`--stub run:0x46cff0:0` exists, 3119) and walk the 3-level units/objects table by `player*0x1c` (the cells work for player 0 only — `--argrange 1:0:0`); `find_building_placed_at` walks nine `move_x/move_y` neighbours into a linked list of `(index, class)` shorts through eight per-class object tables (`0xc0ab84 + cls*0x1c`), the class a *drawn* short: a `--place` names one cell. Flag wanted: `--table`-style eight pointer cells (`--cell-row VA:STRIDE:N:SIZE`) and a `--link` that ends on a negative short at `+0x2c/+0x2e`.
 - Breaks: `check_idle` 29 of 30 (the `& 0x8000000f` → `& 0xf` is equivalent: zero iff the low nibble is zero either way); `is_in_range@006486b0` 27 of 30 (c).
 
-## Parked by the next landing, slot IH — reserved
+## Parked by item 3186, 2026-10-18 — the army's scouts' turn
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3201; the lane's 3189, booked as item 3202) **The Iroquois word 5576 is owed its widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §251; the number
+  the commander's to confirm): ours 35 draws, theirs 37, index 30 — ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271 < Unit::inc_time+0x3e` (theirs' 30 is a sound draw on another stream, `SoundType::play+0x2d`, and
+  the game stream's 31 the first one ours does not make). run926 ends at 5394 and run897b is `cover=0`: a window of
+  5570..5826 at run918's detail, every dumped record on block 5577 both directions; `WIDENINGS`' `IROQUOIS_WORD` names
+  3202.
 
 ## Parked by item 3187, 2026-10-18 — find_repair_spot and the tiers' arms
 
@@ -7573,21 +7574,15 @@ words and edits nothing here; a refill lands when two remain.
 - **No battery lobby reaches the arm before its parting** (all eight at their pins, median 4770). Whether a
   long capture at difficulty 5 reaches it is the booking gate's: see the journal.
 
-## Parked by the next landing, slot IJ — reserved
+## Parked by item 3191, 2026-10-18 — chapter 96: the cull measured, closed at 1500
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3203; the lane's 3191a, booked as item 3205) **The death object's cull** (GOLDEN §126; supersedes 3189's open check). The original's lifetime by death piece and animation: piece 194 anim 20 152 frames, anim 17 143, piece 375 anim 18 650, piece 434 anim 17 644 (piece 434 anim 18 is at least 564). It is the death piece's animation packet run by `DeathObj::inc_time@008d5240`; this crate does not load the packet, so `Sim::deaths` is grow-only and four `death:extra` rows stand in ch96 (946, 1235, 1395, 1476), two in ch95. What names the score: the standing rows on both golden chapters, and slot reuse (`Objects::find_free`) in any capture where a long-dead unit's number would be recycled. Check: where `DeathObj::inc_time` ends the record (`remove_from_world`, which slot is freed and when `hold_frames` stops), and the anim packet length source for piece 194/375/434 in the `.bha` data; a loader would read the install at runtime.
+- (3204) **Which late hoplites cross a released disc** — ch96's two hoplites added at 1000 agree through 1500 with the Tank's disc standing; no staging yet crosses it after the cull, so the disc's release (3190) is still unexercised. Needs the cull built first.
 
-## Parked by the next landing, slot IK — reserved
+## Parked by item 3194, 2026-10-18 — the wonder-gated free-tech blocks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3206) **Item 3135's wonder blocks are built** (the lane's 3195, renumbered: 3195 was 3182's): the battery is unmoved; the German pair (3136) stays inert and unloaded. Names no score; parked.
+
 
 ## Parked by the next landing, slot IL — reserved
 
@@ -7625,6 +7620,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot IP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IV renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

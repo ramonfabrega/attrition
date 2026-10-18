@@ -17909,3 +17909,29 @@ SHA-256 `548987e62b3ecf02397d4dcea368291e2e0d00a6755b7759f36c80cd76afdc2f`.
 `docs/GOLDEN.md` §121. **What the disk could not answer**: no dump held a Sabotage cast on a firing armed unit. Recipe `tools/gamelog/golden/chapter95.cmd` (`--map 14 --end-frame 1200
 --log-window 605 1200`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch95/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane.
 **What it holds**: the who=1 Tanks `1/6`, `1/7` pick the Commandos where ours picks the decoy Hoplites (624, 635); the word is 629.
+
+## run926 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 5144's widening (5138..5394) (2026-10-18, item 3186, `att-3186`)
+
+`docs/AI.md` §251. **What the disk could not answer**: run922 ends at block 2022 and run897b is `cover=0`, so no dump of
+the lobby held a block between 2022 and 12658. Six blocks before the word's block 5145, 250 after. run922's recipe,
+through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run926`: `--map 14 --end-frame 5400 --timeout 10800
+--log-window 5138 5395 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 18 --cover cover=0
+--profile DIFFICULTY=3`.
+- Pool lane 1, 04:55:56–05:15:51 (1196 s), `success`, `settings_restored`, 5401 frames, `map_style 14`, seed 12345,
+  players `(0,4,7),(1,18,1)`; 258 `BEGIN FRAME`s (5138..5394 and the closing 5401). `rngcmp.py rontrace-run897b.log
+  rontrace-run926.log`: **5401 identical, 0 differing**. Filed `filerun.py run926 greatlakes-iroquois-diff3-window-5138-5395`.
+- Minutes waited on another lane: none (the lane was `free` at launch).
+
+Archive `gamelog-run926-greatlakes-iroquois-diff3-window-5138-5395.txt`, 426,168,693 bytes,
+SHA-256 `bdb41f88f4961bac209b0a1ec7ec8860f2f3b66b996e3e74ce6b74ff5726a35c`.
+
+Archive `rontrace-run926.log`, 25,092,672 bytes,
+SHA-256 `086832113e9837cc97ff6119411217faeb589a836fd777f18d0b08586d1a1132`.
+
+**What it holds**: `diff::iroquois_word::run926_s_word_frame_is_widened_whole` (257 blocks, 32 keys, the standing set).
+Block 5145 is quiet on both sides; without `Army::use_scouts` the window first parts on 5156 (`1/4`'s move order). The
+window is in the coverage driver's slice.
+## run927 — chapter ninety-six: the death object's cull (2026-10-18, item 3191, `att-3191`)
+
+`docs/GOLDEN.md` §126. **What the disk could not answer**: no dump held a death object's cull measured against the piece and animation (ch95 ended before the second Tank's record did). Recipe `tools/gamelog/golden/chapter96.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch96/map-14/`, 1,501 frames, seed 12345. About twenty minutes waited on run926's hold of the lane.
+**What it holds**: the word is 1500, the capture's end; four `death:extra` rows are the cull (lifetimes 152, 143, 650, 644 frames by piece and animation).

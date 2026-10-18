@@ -3054,6 +3054,30 @@ mod tests {
     }
 
     #[test]
+    fn a_wonder_gated_free_rule_waits_for_the_wonder() {
+        let f = fixture();
+        let s = Setup::STANDARD;
+        let mut t = f.tree.clone();
+        let wonder = f.catapult; // any type id stands for the wonder here
+        t.free_rules.push(FreeRule {
+            gate: Gate::Wonder(wonder),
+            enabled: 1,
+            candidates: vec![f.herbal_lore],
+            shape: Shape::PreqMatch,
+        });
+        let sci = f.epochs[Line::Science.index()][0];
+        let mut p = PlayerTech::new(&t);
+        t.start(&s, &Tuning::RON, &mut p);
+        t.gain_tech(&s, &mut p, sci, 1);
+        assert!(!p.tech[f.herbal_lore], "no wonder, no block");
+        let mut q = PlayerTech::new(&t);
+        q.wonders.push(wonder);
+        t.start(&s, &Tuning::RON, &mut q);
+        t.gain_tech(&s, &mut q, sci, 1);
+        assert!(q.tech[f.herbal_lore], "the held wonder opens it");
+    }
+
+    #[test]
     fn a_free_starting_epoch_is_owned_before_frame_zero() {
         let f = fixture();
         let s = Setup::STANDARD;

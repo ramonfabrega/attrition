@@ -13310,12 +13310,25 @@ on a firing target (reached only after 629); the Commando's wound at 666.
 
 **Not established**: which unit types carry `0x800000` (the Tank does; no census was run); when the disc is released — the original presumably clears it when the death object ends, and this crate has no cull, so a kept disc stands for ever here (`1/6`'s `death:extra` on 946 is that cull: theirs ends the record after 152 frames, piece 194, anim 20); `Unit::close`'s other arms that zero `param_1` (the non-combat deaths) are taken as `dtype == 0`; the non-combat death sites (`cast_sniper_unit`, air crash, bribe) still clear the disc.
 
-## 126. Reserved for the next item on the rules track
+## 126. Chapter ninety-six — the death object's cull, measured: closed at 1500 on the first run (item 3191, run927)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Staging.** `tools/gamelog/golden/chapter96.cmd`: chapter 95's staging (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets), run to 1500 so both dead Tanks' records end inside the window, with two who=0 hoplites added at 1000 beside the first Tank's cell to cross the disc once it is released. Run927, pool lane 1, `~/ron-golden/ch96/map-14/`, 1,501 frames, seed 12345. The `add` coordinates for the hoplites were chosen from chapter 95's unit positions and are not otherwise justified.
+
+**The word is 1500, the capture's end: no draw parts**, including the two late hoplites. The widening is whole (895 blocks, both directions): fifteen rows, the eleven standing `form` rows and four `death:extra` rows, one per death object the original ended in the window.
+
+**The measurement (the finding).** The original's death records leave `DEATH_OBJS` after a lifetime fixed by the death piece and animation, not by the unit type:
+
+| unit | `gpiece` | `cur_anim` | `first_frame` | gone from | lifetime |
+|---|---|---|---|---|---|
+| `1/6` Tank | 194 | 20 | 794 | 946 | 152 |
+| `1/7` Tank | 194 | 17 | 1092 | 1235 | 143 |
+| `0/7` | 375 | 18 | 745 | 1395 | 650 |
+| `0/14` | 434 | 17 | 832 | 1476 | 644 |
+| `0/13`, `0/10` | 434 | 18 | 936, 1017 | not reached by 1500 | at least 564, 483 |
+
+Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing `death:extra`. **Not built**: the length is `DeathObj::inc_time@008d5240` running the animation packet of the death piece, which this crate does not load (`docs/COMBAT.md` §42.5); a five-point table of observed lengths would cull those pairs and nothing else, and the cull also changes `hold_frames` and slot reuse, so building it from the table would move every longer capture on a guess. Parked.
+
+**Not established**: the packet lengths themselves (piece 194 anims 17, 20; piece 375 anim 18; piece 434 anims 17, 18); whether the lifetime is the packet length exactly or plus a constant; whether a released disc (the Tank's, `blocks_while_dead`) matters to the late hoplites — they agree through 1500 with the disc standing, which says only that nothing in this staging crossed it.
 
 ## 127. Reserved for the next item on the rules track
 
@@ -13325,6 +13338,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 128. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 129. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 130. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 131. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 132. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

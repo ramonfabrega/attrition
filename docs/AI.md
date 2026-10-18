@@ -22693,12 +22693,62 @@ food enhancer) and over the sites outside cities; `Holdings::iroquois` from `has
 (run921), run677's `known_rares`. *Reading only*: that `compute_all_territory` is what leaves frame 0 clean (the dump shows
 frame 0's count standing, which is all the diff needs) and the slot cap of §250.4.
 
-## 251. Reserved for the next item on the AI track
+## 251. The army's scouts' turn: `Army::use_scouts` and `use_spies` — the word 5144 → 5576 (2026-10-18, item 3186)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: §250's word, 5144 of 12658 (`GreatLakesIroquoisTier3`), ours 36 draws against theirs 37, index 0, ours
+`Animal::think_bird+0x82`, theirs `Unit::think_spellcaster+0x413`; its widening owed (run922 ends at 2022, run897b is
+`cover=0`).
+
+**The draw delta** (`report.py rontrace-run897b.log draws 5144`): theirs' index 0 is `Unit::think_spellcaster+0x413 <
+Army::use_scouts+0xfc < Army::process+0xb9`; its 1..37 are ours' 0..36, the birds, two `Guy::set_anim` pairs, the Farms
+and `Surf`. One side acted: the original's army gave a member the spellcaster's turn, and ours' `army_process` stops
+after `use_generals` — `army.rs`'s seam table carried "`use_spies` / `use_scouts` … no spy's or scout's turn".
+
+**The arm** (`Army::process@006f93d0`, `6f9441`–`6f9489`): on the army's 128-frame turn, after `normalize` and a
+non-zero `num_captains`,
+
+```text
+num_standard != 0 && count(COUNT_NON_DECOY_TYPE, 0x36)  -> use_generals   (built, §99.13)
+count(COUNT_NON_DECOY_TYPE, 0x3a)                       -> use_spies
+count(COUNT_NON_DECOY_TYPE, 0x45)                       -> use_scouts
+```
+
+each behind its own count and none returning the others. `Army::use_spies@006f4af0` and `Army::use_scouts@006f49a0`
+walk the army's groups' members exactly as `use_generals` does (vslot `+8` for "in use"), and differ in the member test:
+`is(0x3a, 0)` (vslot `0xb8`) for the spies, `is_special` (vslot `0xd4`, `UnitData::is_special`'s `TypeData +0x2b8 &
+0x10`) for the scouts; the first `think_spellcaster` that casts ends the walk.
+
+**Whose turn**: who=1's army 1 holds one member on 5144, `1/22` (TY 29 `takohs`, TI 79, land; `RON_DEBUG_UNIT=
+'1/**@5144-5144'`), of the Scout's lineage and special. `think_spellcaster`'s special arm (§80.5, built) throws the coin
+at `+0x413`; the unit has an army, so it goes on to Counterintelligence, whose target search is a seam and finds none,
+and returns 0.
+
+**Built**: `Sim::use_spies` and `Sim::use_scouts` (`army.rs`), the counts in `army_process`;
+`army::tests::an_army_s_scout_throws_the_special_coin_on_the_spellcaster_turn` (a decoy Scout is not counted). A Spy's
+`think_spellcaster` draws nothing (the cloak seam), so `use_spies` moves no draw yet.
+
+**run926** (`docs/RUNS.md`): blocks 5138..5394 at run918's detail, `rngcmp` 5401 of 5401 against run897b.
+`run926_s_word_frame_is_widened_whole` parts 32 keys, the standing set alone (both leaders' `SITE[n].reg`,
+`aggression`, `form`, the groups' `held`, the pools, `1/22`'s `blown`, parked 3114). **The value diff**: the word's block
+5145 parts nothing on either side, with or without the build — the coin writes no state. With the scouts' turn left out
+(a probe, reverted whole) the window parts 425 keys, the first on **block 5156**: `1/4`'s move order
+
+| who=1 `1/4`, block 5156 | ours (no turn) | theirs |
+|---|---:|---:|
+| `orders_x`, `orders_y` | 41016, 17016 | 40824, 17592 |
+| `order:move.off_x`, `off_y` | 312, 120 | 120, 696 |
+| `dest_angle` | 186843136 | −541917184 |
+
+— an offset pick one draw behind. With the build every one closes. **The word moved 5144 → 5576**: ours 35 draws, theirs
+37, index 30, ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271` (theirs' index 30 a sound
+draw on its own stream); past run926's window, its widening parked as 3201 (the lane's 3189) and booked as item 3202 (run 928).
+
+**What is not established.** Whether `count(COUNT_NON_DECOY_TYPE, t)` is the lineage `is(t, 0)` this crate's
+`unit_line_is` asks (the generals' count reads it so, and TI 79 counted as `0x45` here agrees with the trace); the human
+arm; what a cast Counterintelligence does.
+
+**Coverage.** *Diff-backed*: the scouts' turn on 5144 (the draw stream, run897b; block 5156's closing, run926). *Reading
+only*: `use_spies`, whose member's `think_spellcaster` draws nothing in this crate.
 
 ## 252. Reserved for the next item on the AI track
 

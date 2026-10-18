@@ -6679,6 +6679,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 1200;
 /// `chapter_ninety_five_s_window_is_widened_whole`'s window: run920.
 pub(crate) const WIDENING_CHAPTER_NINETY_FIVE: (i64, i64) = (604, 1201);
 
+/// **Chapter ninety-six** (item 3191, `docs/GOLDEN.md` §126, run927): chapter
+/// ninety-five's staging run to 1500, two hoplites added at 1000. **The word is
+/// 1500, the capture's end, on the first run**: no draw parts. The widening's
+/// four non-`form` rows are the death object's cull (parked 3189).
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_SIX: i64 = 1500;
+
+/// `chapter_ninety_six_s_window_is_widened_whole`'s window: run927.
+pub(crate) const WIDENING_CHAPTER_NINETY_SIX: (i64, i64) = (604, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9278,6 +9287,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3126,
         Some(WIDENING_CHAPTER_NINETY_FIVE),
     ),
+    // Item 3191: run927, chapter ninety-six, the death object's cull.
+    (
+        "GOLDEN_WORD_CHAPTER_NINETY_SIX",
+        GOLDEN_WORD_CHAPTER_NINETY_SIX,
+        Some("chapter_ninety_six_s_window_is_widened_whole"),
+        3191,
+        Some(WIDENING_CHAPTER_NINETY_SIX),
+    ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
     // The widening is run576 whole.
@@ -9726,12 +9743,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // → 5144** (`IROQUOIS_FOOD`, and setup's border fixes leaving frame
     // 0's rares count standing; run923 over 1..40 dated both to block 8,
     // `run923_s_food_row_is_widened_whole`), past run922's last block
-    // (2022): 5144's widening is owed, item 3186.
+    // (2022): 5144's widening was item 3186's, run926 over 5138..5394
+    // (block 5145 quiet: theirs' extra draw is `1/22`'s special coin under
+    // `Army::use_scouts`, which writes nothing; `run926_s_word_frame_is_
+    // widened_whole`). **Item 3186 moved it 5144 → 5576** (the scouts' and
+    // spies' turn), past run926's last block: 5576's widening is owed,
+    // parked 3201 (the lane's 3189), booked as item 3202 (run 928).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3186,
+        3202,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

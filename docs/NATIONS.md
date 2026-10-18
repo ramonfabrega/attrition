@@ -616,6 +616,21 @@ a pass books against a word, not a fix for the lobby that exposed it.
    made to fail by narrowing the Persian run. **Battery unmoved** (every
    lobby at its pin, median 2270). **Still unloaded**: the wonder-gated blocks
    (`PlayerTech::wonders` is never fed; parked) and the inert German pair.
+   **Built, item 3194**: the wonder-gated blocks, `PreqMatch` behind
+   `Gate::Wonder`; `Sim::gain_tech` feeds `PlayerTech::wonders` off
+   `wonders_held` before the call. Red Fort `0x216`: `red_fort_fortification`
+   (1) `FORTIFICATION` `0x251`..`0x253` and `red_fort_tactics` (1)
+   `END_FINALTYPES` `0x247`..`0x249`; Hanging Gardens `0x210`
+   (`hanging_gardens_upgrades`, 0) `CARPENTRY` `0x261`..`0x263`,
+   `METAL_ALLOYS` `0x26c`..`0x26e`, `AGRICULTURE` `0x264`..`0x266`; Colosseum
+   `0x212` (`colosseum_fort_upgrades`, 0) `FORTIFICATION`; Tikal `0x214`
+   (`tikal_temple_upgrades`, 0) `RELIGION` `0x24a`..`0x24c`. Tests
+   `gain_tech_feeds_the_players_held_wonders` (fails with the feed off),
+   `a_wonder_gated_free_rule_waits_for_the_wonder`,
+   `the_wonder_gated_free_tech_blocks_are_loaded` (fails with Tikal's range
+   narrowed). Only Red Fort's blocks are live as shipped, and no battery lobby
+   is known to hold one before its parting: **battery unmoved** (median 4770).
+   Not diff-backed. **Still unloaded**: the inert German pair.
 5. **The remaining national `get_cost` and `train_time` arms** (§3,
    §4): about forty percentage terms, of which `cost.rs` carries the
    French siege and the Spy/General arms and `lib.rs` the Chinese, Dutch,

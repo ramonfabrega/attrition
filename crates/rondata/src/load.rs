@@ -1156,6 +1156,63 @@ pub fn load_tables(
                 shape: tech::Shape::PreqMatchUnowned,
             });
         }
+        // **The wonder-gated blocks** (item 3194, `docs/NATIONS.md` §7, item 4),
+        // `gain_tech@006dcb60`'s `has_wonder` ranges, each the same
+        // `PreqMatch` shape. `Gate::Wonder` names the wonder's tree type,
+        // [`Sim::gain_tech`](sim) feeding `PlayerTech::wonders` off
+        // `wonders_held` before the call.
+        //
+        // | wonder | constant | range |
+        // | --- | --- | --- |
+        // | Red Fort `0x216` | `red_fort_fortification` (1) | `FORTIFICATION` `0x251`..`0x253` |
+        // | Red Fort `0x216` | `red_fort_tactics` (1) | `END_FINALTYPES` `0x247`..`0x249` |
+        // | Hanging Gardens `0x210` | `hanging_gardens_upgrades` (0) | `CARPENTRY` `0x261`..`0x263`, `METAL_ALLOYS` `0x26c`..`0x26e`, `AGRICULTURE` `0x264`..`0x266` |
+        // | Colosseum `0x212` | `colosseum_fort_upgrades` (0) | `FORTIFICATION` `0x251`..`0x253` |
+        // | Tikal `0x214` | `tikal_temple_upgrades` (0) | `RELIGION` `0x24a`..`0x24c` |
+        let wline = tree.roles.wonder_line.clone();
+        for (w, enabled, lo, hi) in [
+            (
+                tech::wonder::RED_FORT,
+                t.red_fort_fortification,
+                0x251,
+                0x253,
+            ),
+            (tech::wonder::RED_FORT, t.red_fort_tactics, 0x247, 0x249),
+            (
+                tech::wonder::HANGING_GARDENS,
+                t.hanging_gardens_upgrades,
+                0x261,
+                0x263,
+            ),
+            (
+                tech::wonder::HANGING_GARDENS,
+                t.hanging_gardens_upgrades,
+                0x26c,
+                0x26e,
+            ),
+            (
+                tech::wonder::HANGING_GARDENS,
+                t.hanging_gardens_upgrades,
+                0x264,
+                0x266,
+            ),
+            (
+                tech::wonder::COLOSSEUM,
+                t.colosseum_fort_upgrades,
+                0x251,
+                0x253,
+            ),
+            (tech::wonder::TIKAL, t.tikal_temple_upgrades, 0x24a, 0x24c),
+        ] {
+            if let Some(&wt) = wline.get(w) {
+                tree.free_rules.push(tech::FreeRule {
+                    gate: tech::Gate::Wonder(wt),
+                    enabled,
+                    candidates: range(lo, hi),
+                    shape: tech::Shape::PreqMatch,
+                });
+            }
+        }
         // **The unit-line blocks** (`TwoPreq`): the Lakota cavalry
         // (`HORSEARCHERS` `0xbb`..`0xd0` and `ARMOREDCAR` `0xd8`..`0xdf`),
         // the Iroquois scouts (`0x45`..`0x51`), the Indian elephants
@@ -3312,6 +3369,34 @@ mod tests {
         assert_eq!(l.type_index(l.unit_tree[0]), BASE_UNITTYPES);
     }
 
+    #[test]
+    fn the_wonder_gated_free_tech_blocks_are_loaded() {
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        let t = &l.tree;
+        let wonder = |k: usize| t.roles.wonder_line[k];
+        let on = |k: usize| -> Vec<_> {
+            t.free_rules
+                .iter()
+                .filter(|r| r.gate == sim::tech::Gate::Wonder(wonder(k)))
+                .collect()
+        };
+        // Red Fort: both constants ship at 1; the other three ship at 0.
+        let red = on(sim::tech::wonder::RED_FORT);
+        assert_eq!(red.len(), 2);
+        assert!(
+            red.iter()
+                .all(|r| r.enabled == 1 && r.candidates.len() == 3)
+        );
+        assert_eq!(on(sim::tech::wonder::HANGING_GARDENS).len(), 3);
+        assert_eq!(on(sim::tech::wonder::COLOSSEUM).len(), 1);
+        assert_eq!(on(sim::tech::wonder::TIKAL).len(), 1);
+        assert!(
+            on(sim::tech::wonder::TIKAL)[0].candidates.len() == 3
+                && on(sim::tech::wonder::TIKAL)[0].enabled == 0
+        );
+    }
+
     /// **`Leader::gain_tech` step 13's five unit blocks, from the install**
     /// (`docs/TECH.md` §13). The one that matters is the British: on
     /// gaining the Classical Age a British player is handed **Archers**
@@ -3323,8 +3408,8 @@ mod tests {
         let t = &l.tree;
         assert_eq!(
             t.free_rules.len(),
-            20,
-            "the five predicate blocks, the French range block, item 3113's three and item 3124's eleven"
+            27,
+            "the five predicate blocks, the French range block, item 3113's three, item 3124's eleven and item 3194's seven wonder blocks"
         );
         let by_gate = |power: usize| {
             t.free_rules
