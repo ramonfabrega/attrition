@@ -20,10 +20,10 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–96 closed (3191: 96 at 1500); the death object's cull built (3205); 97 owed as 3209. Census
   1477, **port 311 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
   median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
-- **Lanes: two live, landings 18 of 20, draining** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186, 3191, 3194, 3205, 3202, 3200): 3211 AI and 3219 shape unspawned (the drain), 3209 rules (run 929, GOLDEN §128, IP), 3207 nations (IO). Next 3220, run
+- **Lanes: one live, landings 19 of 20, draining** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186, 3191, 3194, 3205, 3202, 3200, 3207): 3211 AI, 3219 shape and 3221 nations unspawned (the drain), 3209 rules (run 929, GOLDEN §128, IP). Next 3223, run
   931 (925 unused). Pools: GOLDEN §129–132, AI §253–255, park IQ–IV. Last whole gate: `b6ad1cc2` (green).
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
-- **Fable backlog: 20 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181, 3188, 3218).
+- **Fable backlog: 21 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181, 3188, 3218, 3222).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -45,7 +45,7 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3211 the AI word's (Opus); 3209, 3219 and 3207 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
+3211 the AI word's (Opus); 3209, 3219 and 3221 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3211. **The battery word, 5576 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes), widened: its state first parts on
@@ -69,12 +69,11 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `Unit::add_repair_order` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each built,
     or parked naming the generator flag it could not spell. `--kind sweep`.
 
-3207. **The `has_tribe_bonus` callers a battery tribe reaches and the crate does not model** (NATIONS §5's
-    `not modelled` rows; §7's candidates are spent — 3187 and 3194 built the tier repair arm and the wonder blocks, the
-    battery unmoved at 4770; the score: the held-out battery's median first try, `battery_measure`, `battery_floors`
-    never lowered): `AnimalData::is_seen@005d8160` (Spanish 9, the battery's lowest lobby at 576), `Unit::plunder@00605b00`
-    and `Object::disband@006455c0` (Aztec 0), `Wall::do_construct@006434d0` (Egyptian 7). One function's family a
-    landing, `is_seen` first; never a held-out dump (DECISIONS 54). NATIONS §5, §7.
+3221. **The `has_tribe_bonus` callers a battery tribe reaches and the crate does not model, the rest of the family**
+    (NATIONS §5's `not modelled` rows; 3207 built `AnimalData::is_seen` (Spanish 9) and the battery stayed at 4770, as
+    3187's and 3194's did; the score: the held-out battery's median first try, `battery_measure`, `battery_floors`
+    never lowered): `Unit::plunder@00605b00` and `Object::disband@006455c0` (Aztec 0), `Wall::do_construct@006434d0`
+    (Egyptian 7). One function a landing; never a held-out dump (DECISIONS 54). NATIONS §5, §7.
 
 ## How to maintain this file
 

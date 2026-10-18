@@ -3742,6 +3742,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-second tranche's
 
+(3222) **`tools/nations_census.py --write` drifts from NATIONS §5's guarded witnesses** (3207's done line, filed at its
+merge): run to regenerate §5.1 after building `AnimalData::is_seen`, it rewrote fifteen unrelated rows that
+`the_audit_table_s_witnesses_hold` rejects, so the lane hand-edited the one row and kept nothing the tool wrote. The
+documented regeneration path no longer round-trips. Candidate: make the tool's output pass the guard on an unchanged
+tree first (the fifteen rows say which side drifted), then land it. One reach.
+
 (3188) **The nations lane's named family is spent for the battery's leaders** (the commander, at 3172's merge, for the
 pass and for Ramon): 3145, 3160 and 3172 audited `get_cost`'s and `train_time`'s national arms against the eight
 battery leaders — 3160's Citizen arms moved the median 2270 → 4770; 3172's audit of `train_time` is negative and its
@@ -7617,12 +7623,12 @@ All six built, none parked for a missing flag. The unreached arms, numbered at t
 
 ## Parked by item 3207, 2026-10-18 — AnimalData::is_seen
 
-- **The herd's good** (`HerdData::good_o`, +0x14) is not carried on `gaia::Herd`, so
+- (3220) **The herd's good** (`HerdData::good_o`, +0x14) is not carried on `gaia::Herd`, so
   `AnimalData::is_seen`'s first herd arm (the good's `ever_seen` bit for the viewer → 1) and
   its kind exemption (`6`, `0x1f`) are not read (`Sim::animal_is_seen`, fight.rs). Names no
   score: the battery is unmoved. Files when a capture's hunter targets a herd the viewer's
   fog has not seen.
-- **`Unit::plunder@00605b00` (Aztec 0), `Object::disband@006455c0` (Aztec 0),
+- (booked as item 3221) **`Unit::plunder@00605b00` (Aztec 0), `Object::disband@006455c0` (Aztec 0),
   `Wall::do_construct@006434d0` (Egyptian 7)** remain 3207's unbuilt family members: one
   function a landing.
 
