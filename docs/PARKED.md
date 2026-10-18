@@ -3738,6 +3738,11 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3085) **A windowed capture over a long gap pays for every block when one is needed** (2997's "for the Loop" line,
+parked 3084, filed at its merge): run912 took 8584 s and 1.9 GB at `UNITS=3,GUYS=2` over a 5973-block gap, and only
+its first non-standing row (block 12563) was used. Candidate: `unattended_capture.py --stride N`, or a positions-only
+category, a test made to fail first. One reach.
+
 (3077) **A `sweep_gen.py` run during a `mutate.py --batch` dirties the tree under it** (3058's "for the Loop" line, parked
 3076, filed at its merge): every later break is refused ("the tree is dirty; commit first"), twice in one batch. Candidate:
 `sweep_gen.py` refuses while a batch holds the tree, or the batch works in a worktree copy, a test made to fail first. One
@@ -7009,14 +7014,16 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
 
 ## Parked by item 2997, 2026-10-17 — the battery word's gap walked
 
-- **The javelin's launch `sz`** (`docs/AI.md` §244). run912d prints `1/42`'s launch z 408; the figure's z 228 plus
-  piece 34's bay dz 173 is 401, and ours' `sz` was never printed. Names no score yet: the round's x, y, frames and
-  landing agree, and the Scout's damage with them. A value row for the word that next reads a round's height.
-- **Parked 2995** (`g.angle[0]` `0x55555555` against 0) is unchanged by this item and standing on run912's and
-  run910's windows; it is not the word 12836's cause.
-- **For the Loop**: run912 took 8584 s (2 h 23 m, 1.9 GB) at `UNITS=3,GUYS=2` over a 5973-block gap, and only its first
-  non-standing row (block 12563) was needed. A `--stride N`, or a positions-only category, on
-  `unattended_capture.py` would have named that block in a fraction of the time.
+(3082) **The javelin's launch `sz`** (`docs/AI.md` §244). run912d prints `1/42`'s launch z 408; the figure's z 228 plus
+piece 34's bay dz 173 is 401, and ours' `sz` was never printed. Names no score yet: the round's x, y, frames and
+landing agree, and the Scout's damage with them. A value row for the word that next reads a round's height.
+
+(3083) **Parked 2995** (`g.angle[0]` `0x55555555` against 0) is unchanged by this item and standing on run912's and
+run910's windows; it is not the word 12836's cause.
+
+(3084) **For the Loop**: run912 took 8584 s (2 h 23 m, 1.9 GB) at `UNITS=3,GUYS=2` over a 5973-block gap, and only its first
+non-standing row (block 12563) was needed. A `--stride N`, or a positions-only category, on
+`unattended_capture.py` would have named that block in a fraction of the time. Filed as Loop 3085.
 
 ## Parked by item 3004, 2026-10-17 — the second harvest batch
 

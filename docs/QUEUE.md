@@ -12,18 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the thirty-ninth pass (Fable), steered with Ramon: five lanes, the battery a gate floor, five lobbies to mint,
-the nations audited** (DECISIONS 77). Twenty landings from `31eb3a05` in 3 h 53 (21 in 4 h 44 with the drain's), 23.6 min
-waiting a landing (35.2), every gate green, two `DEEP`, no kill rule, no merge backed out; 13 Loop items built or closed,
-seven stay; `docs/audit/2026-10-17-fable-pass-39.md`.*
+*2026-10-17, **the fortieth tranche at twenty (commander, Opus): 20 landings from `c6fd292e` in 5 h 15, drained**; last whole
+gate `87f47c1b`; two red booking gates, each a second commit; one gate killed (144) and rerun; two `DEEP` (3030, 2997), two
+`STALLED` (run912's 2 h 23 window; run913's lost receipt, Loop 3063); one merge backed out (3044, resolved in-lane); no kill rule.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
-  (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956) → 12815 (2974), as 2997; it stays on its lobby until it closes (DECISIONS 77 (vii)).
-  Chapters 86–93 closed; 94 is 3067. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), 0 to 9130, median 1008, a gate floor.
-- **Lanes: nineteen landings** (2976 NATIONS.md; 2959, 2966, 2990, 3004, 3008, 3014, 3024, 3030, 3038, 3044, 3049, 3058,
-  3064 Census → 1444; 2971, 2994, 3018 ch91–93; 2974 6585 → 12815; 2975 five lobbies). 2997 the AI word's (Opus 5.5 medium,
-  run 912; cleared at DEEP, 12836 in-lane); twenty with it; 3067, 3068, 3078 wait for the next tranche. Next 3082, run 915 (Astra 900–909). Pools: GOLDEN §119–120, AI §245–247, park HG–HJ.
-- **Fable backlog: 25 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003, 3007, 3012, 3013, 3022, 3023, 3037, 3043, 3048, 3057, 3062, 3063, 3077).
+  (DECISIONS 72): 576 → 5577 → 6585 → 12815 (2974) → 12836 (2997), as 3086, on its lobby until it closes (DECISIONS 77 (vii)).
+  Chapters 86–93 closed; 94 is 3067. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), median 1008, a gate floor.
+- **Lanes: twenty landings, drained** (2976; 2959, 2966, 2990, 3004, 3008, 3014, 3024, 3030, 3038, 3044, 3049, 3058, 3064
+  Census; 2971, 2994, 3018 ch91–93; 2974, 2997 the AI word; 2975 five lobbies). None live; 3086 the AI word's, 3067 the
+  rules track's, 3078 shape and 3068 harvest, unstarted. Next 3087, run 915 (Astra 900–909). Pools: GOLDEN §119–120, AI §246–247, park HG–HJ.
+- **Fable backlog: 26 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003, 3007, 3012, 3013, 3022, 3023, 3037, 3043, 3048, 3057, 3062, 3063, 3077, 3085).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -32,30 +31,31 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: EastIndiesGermanTier3 w12815 of 13,519
+Battery word: EastIndiesGermanTier3 w12836 of 13,519
 Census: simulation backed 1444 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the fortieth tranche from `docs/QUEUE.md`'s handoff (commander, Opus): nineteen landings booked; one
-lane live — `att-2997` (Opus 5.5); arm `lanewait.py` on them;
-merge, book, refill while landings + live lanes < 20; the whole gate every third landing; stop at twenty.**
+**Opener: the fortieth pass (Fable, the session): twenty landings from `c6fd292e` to the drain's commit; score the
+roster lane by lane for Ramon (Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rules track, harvest, shape and
+minting lanes), rule the 26 Loop items, and clear `commander` into the forty-first tranche with the queue's four items
+(3086, 3067, 3078, 3068).**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2997 the AI word's (Opus); 3067, 3068 and 3078 the next tranche's. The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
+3086 the AI word's (Opus); 3067, 3078 and 3068 (Sonnet), the pass's to roster. The battery word is the AI's — lower map first — East Indies (Germans), at 12836. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-2997. **The battery word, 12815 of 13519 (`EastIndiesGermanTier3`, East Indies):
-    ours 9 draws against theirs 8** (2974 moved it from 6585 with the
-    Germans' Fire Raft costs and speed; run910 widens it, 967 keys): at
-    index 1 ours draws `Unit::fight+0x9b0` where theirs draws
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Positions part already
-    on 12809 (`0/0` (4680, 9362) against (4674, 9396)), so the state first
-    parts in 6837..12808, which no dump holds: a windowed capture or a
-    bisection, run 912. Unstarted. AI §244.
+3086. **The battery word, 12836 of 13519 (`EastIndiesGermanTier3`, East Indies):
+    ours 7 draws against theirs 11** (2997 moved it from 12815 with the
+    Militia's pool at the next leader pass, the Javelineers' bays and the
+    Horse Archer's release; run910 widens it, 932 keys): at index 0 ours
+    draws `Guy::set_anim+0x97a < Guy::inc_time+0x271` where theirs draws
+    `… < Unit::move_step+0x823`. The value diff is block 12837: `1/31`'s
+    `collide` 0 against 1 (`half_step` 1 against 0, `order:coll` None),
+    `1/32`, `1/64`, `1/68` the same. Unstarted. AI §245.
 
 3067. **Chapter ninety-four: the next chapter no capture reaches**
     (DECISIONS 56 §3; GOLDEN §13, §14a; 3018 closed chapter 93 on run913
