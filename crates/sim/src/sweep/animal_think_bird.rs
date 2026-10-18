@@ -88,32 +88,33 @@ fn the_emulated_original_agrees_on_every_row() {
             let run = st < 0 || frame & 7 == 0;
             let mut called = false;
             let mut done = false;
+            let ty = rd(&p[1], 4);
             if run {
                 m[0x96] = 0;
                 m[0x97] = 0;
-                match rd(&p[1], 4) {
-                    0x192 => {
-                        // `-1 < spell_time` after the gate's own increment.
-                        let post = if st >= 0 { st.wrapping_add(1) } else { st };
-                        if post >= 0 {
-                            wr(&mut p[4], 0x44, -1);
-                            wr(&mut p[4], 0x48, -1);
-                        }
-                        sim.units[u].spell_time = st;
-                        sim.gaia.bird_goals = vec![(u, Pos::new(rd(&p[5], 0), rd(&p[6], 0)))];
-                        sim.gaia.bird_landings.clear();
-                        sim.rng.seed = rd(&c[1], 0) as u32;
-                        sim.think_bird(u, i64::from(frame));
-                        let g = sim.bird_goal(u);
-                        wr(&mut p[5], 0, g.x);
-                        wr(&mut p[6], 0, g.y);
-                        wr(&mut c[1], 0, sim.rng.seed as i32);
-                        m[0x98..0x9a].copy_from_slice(&sim.units[u].spell_time.to_le_bytes());
-                        done = true;
-                    }
-                    0x194 => called = true,
-                    _ => {}
+                if ty == 0x194 {
+                    called = true;
                 }
+            }
+            if ty == 0x192 {
+                // The crate owns the gate: it is handed every row of a bird, a skipped frame included.
+                // `-1 < spell_time` after the gate's own increment.
+                let post = if st >= 0 { st.wrapping_add(1) } else { st };
+                if run && post >= 0 {
+                    wr(&mut p[4], 0x44, -1);
+                    wr(&mut p[4], 0x48, -1);
+                }
+                sim.units[u].spell_time = st;
+                sim.gaia.bird_goals = vec![(u, Pos::new(rd(&p[5], 0), rd(&p[6], 0)))];
+                sim.gaia.bird_landings.clear();
+                sim.rng.seed = rd(&c[1], 0) as u32;
+                sim.think_bird(u, i64::from(frame));
+                let g = sim.bird_goal(u);
+                wr(&mut p[5], 0, g.x);
+                wr(&mut p[6], 0, g.y);
+                wr(&mut c[1], 0, sim.rng.seed as i32);
+                m[0x98..0x9a].copy_from_slice(&sim.units[u].spell_time.to_le_bytes());
+                done = true;
             }
             if !done && st >= 0 {
                 m[0x98..0x9a].copy_from_slice(&st.wrapping_add(1).to_le_bytes());
