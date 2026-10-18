@@ -270,6 +270,8 @@ mod unit_type_backup;
 mod unit_type_blocks_while_dead;
 #[path = "unit_type_data_can_entrench.rs"]
 mod unit_type_data_can_entrench;
+#[path = "unit_type_data_can_garrison.rs"]
+mod unit_type_data_can_garrison;
 #[path = "unit_type_data_get_circle_radius.rs"]
 mod unit_type_data_get_circle_radius;
 #[path = "unit_type_data_get_kill_value.rs"]
