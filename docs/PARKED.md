@@ -7795,6 +7795,9 @@ words and edits nothing here; a refill lands when two remain.
     both) at its `CASTORDER`'s end on 8415, the cast that takes the Cotton; ours walks it on (1622, 19789). No draw parts
     on it and its rows are quiet after 8416. Names no score: the value row, kept here for the next widening that reaches a
     merchant's cast.
+  - (b) 3248's "for the Loop": the rare masks (`bits`/`bit_values`) and `rares_collected` are on `coverage.rs`'s unread
+    list, so a rare one side gains alone parts no key; run940's Cotton was read off the dump, the compared
+    `resources`/`income` standing in. For the commander to carry to the Loop section at the merge.
 
 ## Parked by the next landing, slot JH — reserved
 
