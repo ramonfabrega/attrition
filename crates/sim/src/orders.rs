@@ -8146,10 +8146,11 @@ impl Sim {
         let Some((_, b)) = best else {
             return false;
         };
-        if let crate::Owner::Player(p) = self.world.owner_at(self.buildings[b].pos) {
-            if p != who && !self.is_ally(who, p) {
-                return false;
-            }
+        if let crate::Owner::Player(p) = self.world.owner_at(self.buildings[b].pos)
+            && p != who
+            && !self.is_ally(who, p)
+        {
+            return false;
         }
         let kind = MoveKind::MoveTo;
         self.swarm_around_last(u, b, Body::Repair(b), false, kind, QueuePos::Last);
