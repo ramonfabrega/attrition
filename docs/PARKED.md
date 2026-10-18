@@ -7428,13 +7428,26 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HR — reserved
+## Parked by item 3120, 2026-10-18 — the four shapes built
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3120) **`sweep_gen.py` had no `fs:`**: an SEH-framed function (`mov eax, fs:[0]` ... `mov fs:[0], ecx`, `ObjectTypeData::get_wonder_value@00661ba0`)
+  faulted at once with `UC_ERR_EXCEPTION` and `fault=None`. `--tib` (new) maps a guest TIB and loads a flat GDT through
+  `sweeplib.set_tib`, as `tools/recomp/step4.py` does. For the Loop: the next SEH-framed function needs only the flag; the `--cmd-seh`
+  shape (issue_treaty) is a different thing, the frame's *arms* and not its prologue.
+- (3120, second) **An `Error::report` stub must answer 0**: the original's arm is `test esi, esi; je +1; int3`, so a nonzero answer is the
+  original's own `int3` and the emulator reports `UC_ERR_EXCEPTION`, not a sweep disagreement. The first `get_wonder_value` run died on
+  it; `--answer-range IDX:0:0` pins the answer. Neither of its two error arms is observable in the result, so they are `equivalent` in the
+  breaks (the return is `buildtypes[this+4]+0x2d0` on every path that is not an early 0).
+- (3120, third) **`find_dock`'s two `.min(N-1)` clamps are the harness's, not the function's**: the port reads a stub's `--seq` run with the
+  last repeated; breaking the clamp passes when fewer than N+1 calls are made (five live leaders reach five `valid_search` calls, and a
+  sixth `valid_filter` call needs six docks passing the distance test). Not a gap in the draw; the clamp is not the function's text.
+- (3120, fourth) **A wild coordinate leaves `vector_dist`'s domain**: `new_danger` with `--argset` coordinates (10% wild) parted from the
+  original on `|dx|, |dy|` near 2^31 — `crate::world::vector_dist` holds inside ±2^30 (`vector_dist_ints.rs` says why), the original's
+  octagon overflows beyond it. The sweep draws `--argrange` coordinates; no play reaches the domain edge.
+- (3120, fifth) **`--regen` keeps the old line's flags beside new ones** (it said so: "kept from the old line"): editing an `@FILE` and
+  regenerating left both the old `--argset` and the new `--argrange`, and the old one won; `--fresh` was the cure. A sed over an
+  `@FILE` is the second way to lose a draw (it rewrote the relation windows' bias along with the positions'): rebuild the file from its
+  script and `--regen --fresh`.
 
 ## Parked by the next landing, slot HS — reserved
 
