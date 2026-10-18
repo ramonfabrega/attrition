@@ -37,9 +37,16 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // and goes there — block 1's `orders_y` 12792 on both sides (ours 19704
     // before), the path six legs on both. At 1120 ours 36 draws, theirs 33,
     // index 0: ours `Unit::explore_goody+0x27c`, theirs
-    // `Animal::think_bird+0x82`.
-    count: 1120,
-    sequence: 1120,
+    // `Animal::think_bird+0x82`. **Item 3117 moved it 1120 → 1496** with
+    // `astar_path`'s `iroquois` mode taken from the unit (`unit_masks2 &
+    // 0x4000`, `docs/PATHFINDER.md` §4.1; a SEAM, false, before): run918b's
+    // block 894, the Scout's ten-leg explore path to (39672, 22776), legs
+    // 6..8 one cell east in ours ((43512, 22008) against (42744, 22008) for
+    // leg 6), agrees whole, and with it the Scout's `pos` on every block to
+    // 1370 (`docs/AI.md` §247). At 1496 ours 37 draws, theirs 36, index 30:
+    // ours `Unit::do_non_flat_gather+0xcc3`, theirs `Farms::inc_time+0x1ae`.
+    count: 1496,
+    sequence: 1496,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -249,6 +256,93 @@ fn run918_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 0, "initial run918 baseline");
+    // The capture's `GUYS=2` prints two gaia animation keys nothing reads
+    // (item 1496's pattern): the animals' clocks.
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 37, "initial run918 baseline");
+    // Item 3117, on base 808fe40c: the word 1120's window (ours 36 draws,
+    // theirs 33, index 0: ours `Unit::explore_goody+0x27c` ×3, theirs the
+    // same three on 1121 — who=1's Scout `1/0` entering its goody cell a
+    // frame early). Block 1114 already held the Scout parted: `pos` ours
+    // (41445, 25153) theirs (41483, 25113), `heading` −1767309312 against
+    // −1757216768, `dest_angle` −1750335488 against −1749155840 on one
+    // `orders_x`/`orders_y`, and its walk on to 1133 (`orders`, `path`,
+    // `idle`, the next explore's `x`/`y` 38904/22776 against 41112/25752).
+    //
+    // **Item 3117: the word 1120 → 1496**, with `astar_path`'s `iroquois`
+    // mode (`unit_masks2 & 0x4000`, `docs/PATHFINDER.md` §4.1) taken from
+    // the unit — before, a SEAM, false. The Scout agrees on every block of
+    // the window but one bit. What stands (37): the control's 32
+    // (`SITE[n].reg`, `aggression`, `form`, groups' `held`, the pool), the
+    // Scout's `blown` 1/0 (`unit_masks & 0x1000`: theirs' `0xc080` cloak bit
+    // skips `Unit::work`'s stealth arm, parked 3114), and who=1's food from
+    // 1114 — `income`/`resources` 800 against 896, `bucket` 31/45,
+    // `leftover` 640/4320 — standing from run918b's block 38.
+}
+
+/// run918b: the gap 37..1114 at a stride of 4 (item 3117, Loop 3085's
+/// `--stride`): blocks 38, 42, …, 1114, at run918's detail.
+pub(crate) const RUN918B: &str = "gamelog-run918b-greatlakes-iroquois-diff3-stride4-38-1114.txt";
+
+/// The window: block 38 through 1114, one in four.
+pub(crate) const WIDENING_IROQUOIS_GAP_918B: (i64, i64) = (38, 1114);
+
+pub(crate) fn iroquois_gap_918b_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run918b",
+        &[(RUN918B, WIDENING_IROQUOIS_GAP_918B.0)],
+        WIDENING_IROQUOIS_GAP_918B,
+        1,
+        &[1114],
+        true,
+    )
+}
+
+#[test]
+fn run918b_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_gap_918b_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 270, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // The capture's `GUYS=2` prints two gaia animation keys nothing reads
+    // (item 1496's pattern): the animals' clocks.
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 43, "initial run918b baseline");
+    // Item 3117, on base 808fe40c: 60 keys part over the gap. The first
+    // that is the word's: block 894, who=1's Scout `1/0` reaching
+    // (45792, 18912) and taking `EXPLORETO` (39672, 22776) on both sides,
+    // with a ten-leg path whose legs 6..8 are ours (43512, 22008),
+    // (44280, 21240), (45048, 20472) against theirs (42744, 22008),
+    // (43512, 21240), (44280, 20472): from cell (58, 25) to (55, 29) ours
+    // steps south first and theirs diagonally first, and from 918 its `pos`
+    // (45204, 19537) against (45202, 19535) — the parting that put ours a
+    // frame ahead at 1120.
+    //
+    // **Item 3117: 60 → 43**, with `astar_path`'s `iroquois` mode from the
+    // unit (`docs/PATHFINDER.md` §4.1; a SEAM, false, before): the path's
+    // terrain term reads the signed `WData.solid` for a forest walker, and
+    // the ten legs agree. What stands (43): the control's 37 from 38, the
+    // Scout's `blown` 1/0 from 38 (parked 3114's cloak bit), and who=1's
+    // food from block 38 — `income`/`resources` 640 against 672, `bucket`
+    // 4/5, `leftover` 6560/352 — with `known_rares` 0 against 1: theirs
+    // knows a rare on 38 and ours none (run897's block 37 holds no such row).
 }

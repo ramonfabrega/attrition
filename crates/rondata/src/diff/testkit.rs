@@ -9674,7 +9674,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // its value diff). **Item 3107 moved it 0 → 1120** with the Iroquois
     // Scout's forest walker, past the start dump's blocks (1, 36, 37) and
     // into run897b's `cover=0` stream, which dumps no block there: 1120's
-    // widening is owed, a capture of the lobby's 1114..1370 (item 3117).
+    // widening was run918's, 1114..1370, and run918b's stride-4 gap 38..1114
+    // walked it back to block 894 (item 3117, `run918_s_word_frame_is_
+    // widened_whole`, `run918b_s_gap_is_widened_whole`). **Item 3117 moved
+    // it 1120 → 1496**, past run918's last block (1370): 1496's widening is
+    // owed, a capture of the lobby's 1490..1746; the item number is the
+    // commander's to re-point at the booking.
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
