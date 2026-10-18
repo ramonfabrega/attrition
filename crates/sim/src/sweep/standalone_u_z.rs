@@ -54,6 +54,8 @@ mod unit_air_alt_speed;
 mod unit_cavarch_fight;
 #[path = "unit_cavarch_fight_written.rs"]
 mod unit_cavarch_fight_written;
+#[path = "unit_change_target.rs"]
+mod unit_change_target;
 #[path = "unit_data_action_type.rs"]
 mod unit_data_action_type;
 #[path = "unit_data_activity_type.rs"]
