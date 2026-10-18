@@ -668,6 +668,8 @@ mod object_update_seen;
 mod object_update_seen_build;
 #[path = "object_update_seen_small.rs"]
 mod object_update_seen_small;
+#[path = "object_update_seen_wide.rs"]
+mod object_update_seen_wide;
 #[path = "objects_array_get_data_type.rs"]
 mod objects_array_get_data_type;
 #[path = "objects_data_count_nukes_in_flight.rs"]

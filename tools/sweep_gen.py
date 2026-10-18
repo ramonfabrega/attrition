@@ -1492,6 +1492,7 @@ STUBWRITE = {stubwrite!r}
 STUBCOPY = {stubcopy!r}
 STACKCLEAN = {stackclean!r}
 INITCALLS = {initcalls!r}
+MAXINSNS = {maxinsns!r}
 ECXANSWER = {ecxanswer!r}
 ECXOUT = {ecxout!r}
 RING = {ring!r}
@@ -2071,7 +2072,7 @@ def main(argv):
         h.calls.clear()
         h.edxs.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
-                   edx=edxa, xmm=xmm, ret=RET)  # Harness.call signs eax; signed() again would double a negative
+                   edx=edxa, xmm=xmm, ret=RET, max_insns=MAXINSNS)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
         # A `__cdecl` function leaves its arguments for the caller (item 2181).
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
@@ -2338,7 +2339,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, tib=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), clean_stack=0, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=()):
+                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), clean_stack=0, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=(), max_insns=200_000):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2746,7 +2747,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, tib=tib, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stackclean=clean_stack, initcalls=[int(v, 0) for v in init_call], deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
+                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stackclean=clean_stack, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
@@ -3623,6 +3624,9 @@ def main(argv=None):
                     help='obj: an argument-less function run once before the rows, so a table the startup builds '
                          '(`circle_init`, `ring_init`) is the original\'s own; its `memcpy` is a --stub-copy stub '
                          '(item 3268, Object::update_seen)')
+    ap.add_argument('--max-insns', type=lambda v: int(v, 0), default=200_000, metavar='N',
+                    help='obj: the instruction budget of one row (default 200000): a function that loops over a '
+                         'table of thousands of points (`Object::update_seen`, radius 64; item 3268)')
     ap.add_argument('--clean-stack', type=lambda v: int(v, 0), default=0, metavar='N',
                     help='obj: zero N bytes of stack under the entry esp before each row, so a byte of a caller\'s '
                          'local the function did not write reads 00 and not the last row\'s (item 2921, parked 2906)')
@@ -3899,7 +3903,7 @@ def main(argv=None):
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link, link_hi=args.link_hi,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
-                                                    edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write, stub_copy=args.stub_copy, clean_stack=args.clean_stack, init_call=args.init_call,
+                                                    edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write, stub_copy=args.stub_copy, clean_stack=args.clean_stack, init_call=args.init_call, max_insns=args.max_insns,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
             sp, script, tp, test, mod = generate_vcallbase(args.function, item=args.item, slot=args.slot,
