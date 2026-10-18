@@ -80,7 +80,14 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // shifted stream first parts on 5156, `1/4`'s move order (41016,
     // 17016) against (40824, 17592) (`docs/AI.md` §251). At 5576 ours 35 draws, theirs 37, index 30:
     // ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a <
-    // Guy::inc_time+0x271`.
+    // Guy::inc_time+0x271`. **Item 3202 widened 5576** on run928
+    // (5570..5826, whose first block already parts) and run930 (5556..5578
+    // at `GUYS=4`): the state first parts on block 5564, who=1's Slinger
+    // squad `1/25`..`1/27` taking its `ATTACKTO` — the followers' offsets
+    // (0, ±144) off the captain in ours against (−48, ±96), and the
+    // figures' speed 28 against 35 — and theirs' extra draw is `1/26`'s
+    // figure, stopped on 5574, rolling its idle on 5576 (`docs/AI.md`
+    // §252). Unmoved.
     count: 5576,
     sequence: 5576,
 };
@@ -707,4 +714,64 @@ fn run928_s_word_frame_is_widened_whole() {
     // theirs' extra index-30 draw is an idle roll (`Guy::set_anim+0x97a`)
     // whose guy the capture's `GUYS=2` cannot name (`docs/AI.md` §252).
     pin_eq!(w.firsts.len(), 622, "initial run928 baseline");
+}
+
+/// run930: the walk-back behind run928's first block, blocks 5556..5578 at
+/// run918's detail with `GUYS=4` (item 3202) — the Slinger squad's birth on
+/// 5563 and the figures' clocks on the word's block 5577, which run928's
+/// `GUYS=2` does not print.
+pub(crate) const RUN930: &str =
+    "gamelog-run930-greatlakes-iroquois-diff3-window-5556-5579-guys4.txt";
+
+/// The window: block 5556 through 5578.
+pub(crate) const WIDENING_IROQUOIS_SQUAD_930: (i64, i64) = (5556, 5578);
+
+pub(crate) fn iroquois_squad_930_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run930",
+        &[(RUN930, WIDENING_IROQUOIS_SQUAD_930.0)],
+        WIDENING_IROQUOIS_SQUAD_930,
+        1,
+        &[5577],
+        true,
+    )
+}
+
+#[test]
+fn run930_s_squad_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_squad_930_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 23, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3202, on base 128293bb: 115 keys, 29 of them the standing set
+    // on the window's first block. **The state first parts on block
+    // 5564**, the frame the Slinger squad born on 5563 (`1/25` captain,
+    // `1/26`, `1/27` down its `o_down` chain, TI 82, group 64) takes its
+    // `ATTACKTO` to (36552, 21960): the followers' `off_x`/`off_y` ours
+    // 456/600 and 456/312 against theirs 408/552 and 408/360, and their
+    // figures' `last_speed` ours 28 (`myspeed`) against theirs 35, the
+    // captain's on 5565. At 35 theirs' figures jog (`cur_anim` 9, from
+    // 5574); `1/26`'s stops on frame 5574 (`stopped` 1, `cur_anim` 23,
+    // `end_time` 3) and wraps on 5576 into the idle roll — block 5577's
+    // `cur_anim` 0, `end_time` 75 — which is the word's index-30
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`; theirs' third wing
+    // beat is a bird's re-throw on the shifted stream (`docs/AI.md`
+    // §252).
+    pin_eq!(w.firsts.len(), 115, "initial run930 baseline");
 }

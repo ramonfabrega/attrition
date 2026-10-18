@@ -7598,13 +7598,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IM — reserved
+## Parked by item 3202, 2026-10-18 — the Slinger squad's start on 5564
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3210; the lane's number, the commander's to confirm) **The Iroquois word 5576's state parts on block 5564: the
+  Slinger squad's first move** (`GreatLakesIroquoisTier3`, `docs/AI.md` §252; run930, `run930_s_squad_is_widened_whole`).
+  who=1's squad `1/25` (captain), `1/26`, `1/27` (TI 82, born on 5563 at the Barracks, group 64) takes an `ATTACKTO` to
+  (36552, 21960). Two fields part on that block. (a) The followers' formation offsets: `1/26`'s `off_x`/`off_y`
+  ours 456/600 against theirs 408/552, and `1/27`'s 456/312 against 408/360, i.e. the captain's (0, ±144) in ours
+  and (−48, ±96) in theirs. (b) The figures' `last_speed`: ours 28 (`myspeed`) against theirs 35, which is one
+  `UNIT_MOVE_SPEED` step more. The hypothesis for (b), unproven: an arm of `UnitData::speed@0060aae0` this crate
+  leaves a SEAM in `cast.rs`'s `unit_speed`. The Iroquois spear arm's `iroquois_spear_speed` is 1 in `rules.xml`,
+  but its `is(0xa6..0xa9)` tests read the Spearmen line, so the Slingers' entry to it is not shown; a packet at
+  `RON_STATE_FRAME=5564` that runs `UnitData::speed` on `1/26` settles it. The word stays at 5576: theirs' idle
+  roll is `1/26`'s figure stopping on 5574 and wrapping on 5576.
 
 ## Parked by the next landing, slot IN — reserved
 

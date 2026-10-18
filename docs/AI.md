@@ -22750,12 +22750,50 @@ arm; what a cast Counterintelligence does.
 **Coverage.** *Diff-backed*: the scouts' turn on 5144 (the draw stream, run897b; block 5156's closing, run926). *Reading
 only*: `use_spies`, whose member's `think_spellcaster` draws nothing in this crate.
 
-## 252. Reserved for the next item on the AI track
+## 252. The word 5576's widening: the Slinger squad's first move on 5564 (2026-10-18, item 3202)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: §251's word, 5576 of 12658 (`GreatLakesIroquoisTier3`), ours 35 draws against theirs 37, index 30,
+ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`; its widening owed (run926 ends at
+5394, run897b is `cover=0`).
+
+**The draw delta** (`report.py rontrace-run897b.log draws 5576`; ours `RON_DEBUG_SITES=5576-5576`): both sides spend
+the same thirty `Animal::think_bird` draws first. Theirs' game stream then runs `+0x97a` (an idle roll under the clock's
+wrap), three `+0x104b` wing beats and the three Farms. Ours runs two wing beats, by the Wild Birds `9/7` and `9/8` (TI
+402, gaia), and the Farms. Theirs acted: an extra idle roll, and a third coin that is a bird's re-throw on the stream
+the roll shifted (`docs/SYNC.md`, "The wing beat": one wrap can spend several coins).
+
+**run928** (`docs/RUNS.md`): blocks 5570..5826 at run918's detail, `rngcmp` 5833 of 5833. `run928_s_word_frame_is_widened_whole`
+parts 622 keys, and **the window's first block already parts**: the standing set, plus who=1's Slinger squad
+`1/25`..`1/27`'s orders, paths and positions. Its `GUYS=2` prints no figure clock, so the word's own block 5577 parts
+nothing new, and the drawer cannot be named from it.
+
+**run930**: blocks 5556..5578 at `GUYS=4`, `rngcmp` 5585 of 5585. `run930_s_squad_is_widened_whole` parts 115 keys.
+**The state first parts on block 5564**. The squad was born on 5563 at the Barracks, `1/25` the captain and `1/26`,
+`1/27` down its `o_down` chain, all in group 64 with the army's `1/22`. On 5564 it takes an `ATTACKTO` to (36552,
+21960); the captain's own `off_x`/`off_y` is 456/456 on both sides:
+
+| who=1, block 5564 | ours | theirs |
+|---|---:|---:|
+| `1/26` `order:move.off_x`, `off_y` | 456, 600 | 408, 552 |
+| `1/27` `order:move.off_x`, `off_y` | 456, 312 | 408, 360 |
+| `1/26`, `1/27` `g.last_speed` | 28 | 35 |
+| `1/25` `g.last_speed` (block 5565) | 28 | 35 |
+
+The followers stand (0, ±144) off the captain in ours and (−48, ±96) in theirs. Theirs' figures move at 35 against
+the type's `MOVES` 28 (`myspeed` 28 on both sides), so above eleven tenths of the base they jog (`cur_anim` 9 from
+block 5574, §4.3's walk variant). **The word's drawer** is `1/26`'s figure in theirs. It stops on frame 5574 (block
+5575: `stopped` 1, `cur_anim` 23, `end_time` 3), reaches its end on 5576, and rolls the idle (block 5577: `cur_anim`
+0, `end_time` 75). Ours walks it on (`cur_anim` 8, `cur_time` 12 of 30).
+
+**Not built.** The two partings are this item's successor (parked 3210, the lane's number). The speed's hypothesis is
+written as one: 35 is 28 plus one `UNIT_MOVE_SPEED` step, the size of `UnitData::speed@0060aae0`'s Iroquois arm
+(`iroquois_spear_speed` 1, a SEAM in `cast.rs`'s `unit_speed`). But that arm's `is(0xa6..0xa9)` tests read the Spearmen
+line (TI 166..169), so the Slingers' way into it is not shown. A packet at `RON_STATE_FRAME=5564` that runs `speed` on
+`1/26` decides it. The offsets are `Form::compute_dests`' follower arm, or a squad formation that arm does not take,
+and are not read.
+
+**Coverage.** *Diff-backed*: the draw delta's drawer (run930's figure clocks); the parting's block and fields
+(run930). *Reading only*: nothing new.
 
 ## 253. Reserved for the next item on the AI track
 
