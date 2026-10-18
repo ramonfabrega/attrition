@@ -9655,13 +9655,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 12815** with the Germans' Fire Raft line, past run893c's last block
     // (6836): run893c's test keeps 6585's value diff (block 6581, who=1's
     // make list heading the Fire Raft), and 12815 is widened on run910 over
-    // 12809..13066 (block 12816, item 2974).
+    // 12809..13066 (block 12816, item 2974). **Item 3086 moved it 12836 →
+    // 13519, the game's last frame**, with the attackers' overreach on a
+    // dead target and the orderless recharging gate: run910's test keeps
+    // 12836's value diff (block 12837, `1/31`'s `collide`) and 13054's
+    // (block 13055, `1/65`'s `idle`), and the close is compared whole on
+    // run643's own closing block 13520 by `run643_german_closing_state`.
     (
         "GERMAN_WORD",
         crate::diff::german_word::GERMAN_WORD,
-        Some("run910_s_word_frame_is_widened_whole"),
-        2974,
-        Some(crate::diff::german_word::WIDENING_GERMAN_FRAME_12815),
+        Some("run643_german_closing_state"),
+        3086,
+        Some(crate::diff::german_word::WIDENING_GERMAN_CLOSING),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -9986,7 +9991,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (Germans)",
         word: crate::diff::german_word::GERMAN_WORD,
         length: 13_519,
-        endpoint: None,
+        // Closed by item 3086: the draw stream agrees to 13519, and
+        // run643's closing block 13520 scores the end itself.
+        endpoint: Some("run643_german_closing_state"),
         window: Some("german_frame_12815_window"),
     },
     // **The peace pair** (DECISIONS 53 §2, 61 §6; item 2320): East Indies,

@@ -22302,12 +22302,65 @@ widening.
 - The new word's `collide` rows: not walked.
 - The `g.angle[0]` standing row (parked 2995, `0x55555555` against 0) is unchanged and is not this word's cause.
 
-## 245. Reserved for the next item on the AI track
+## 245. The battery word to the game's last frame: an attacker's overreach on a dead target, and a recharging melee unit's orderless frame, 12836 → 13054 → 13519 (2026-10-17, item 3086)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: 12836 of 13519 (`EastIndiesGermanTier3`), ours 7 draws against theirs 11, index 0 ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` where theirs draws `… < Unit::move_step+0x823`; the value diff block 12837,
+who=1's `1/31` `collide` 0 against 1. No capture was taken: run910 (12809..13066) holds both words.
+
+**1. Frame 12836 — four attackers on a dead target collide hard.**
+- **The draws** (`RON_DEBUG_SITES`, `report.py rontrace-run910.log draws 12836`): ours' seven are theirs' indices 4..10
+  exactly. Theirs' 0..3 are four `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::move_step+0x823` (seeds
+  `83aca668`, `f6a8d6a7`, `fed763da`, `bf71e171`): the stand a blocked step plays.
+- **The units** (`unitat.py` 12835..12837): `1/31`, `1/32`, `1/64` (TI 155, `ELITEBARBARIANS`) and `1/68` (TI 84,
+  `PELTASTS`), land, all of group 70, each under `MOVE` over `ATTACK` (target `uid` 7) over `ATTACK_TO`. `uid` 7 is the
+  Scout `0/0` (TI 69), killed on 12835 by `1/60`'s arrow (§244) and absent from block 12836.
+- **The direction**: theirs acted. On block 12837 theirs' four stand where they stood on 12836 with `coll_x/y` at the
+  point ours stepped onto — `1/31` at (6545, 12999), `coll` (6524, 12980), `collide_o` 68; `1/32` `collide_o` 28;
+  `1/64` 30; `1/68` 31 (and it sidesteps on a 14-leg path). Ours stepped all four through at `half_step` 1: a soft
+  collision.
+- **Why soft**: both are acting `ATTACK`, so the group arm declines and only the attackers' row can make it soft — its
+  last term `0x300 < local_20`, the overreach. `detect_unit_collision@00617060:103-119` measures it only when the
+  action's `TargetOrder` answers vslot `+4`, `TargetOrder::target_exists@0072ff10` (the slot's live bit and its
+  `uid`), and leaves it 0 otherwise. Ours measured to `combat.target`, which still named the dead Scout (§7.12 of
+  `docs/ORDERS.md`: the target outlives the object), so the four passed `0x300` and walked through.
+- **Built**: `Sim::attack_overreach` returns 0 when the target fails `obj_alive`. Test
+  `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other` (soft with a live far target, hard once it dies).
+- run910 932 → 77 keys; the word 12836 → 13054.
+
+**2. Frame 13054 — a recharging melee unit with no order does not idle.**
+- **The draws**: ours 8 against theirs 4, index 3. Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` for the
+  Knight `1/65` (TI 228) and three `Guy::set_anim+0x104b` after it; theirs' first `Unit::do_idle+0x7d` draws come on
+  13055.
+- **The value diff**, block 13055: `1/65` `idle` 1 in ours against 0, `orders.len` 1 against 0. Ours' order is an
+  `ATTACK` on `0/2005`, found by `think` inside `do_idle` (`RON_DEBUG_UNIT=1/65@13052-13056`).
+- **The direction**: ours acted. The Knight ends its `ATTACK_TO` on 13053 at (5598, 7509) on both sides with
+  `recharging` 21 (20 on 13054, 19 on 13055 in the dump). `idle` is `+0xb0`, which only `Unit::check_idle@006032c0`
+  raises, so theirs ran no `do_idle` for it on 13054.
+- **Why**: `Unit::work@0060d180:79-86`. A unit whose order is not `ATTACK`, with `recharging` (`+0xae`) above nought,
+  type `+0x1fc` (range) 0 and no `+0x2b4 & 0x400`, returns before the dispatch **when it has no order**, and when its
+  order lacks the action bit. This crate's gate had only the second arm (it opened on `if let Some(order)`).
+- **Built**: the gate takes the orderless case. Test
+  `fight::tests::a_recharging_melee_unit_with_no_order_does_not_idle`.
+- run910 77 → 59 keys; **the word 13054 → 13519, the game's last frame** — the lobby's draws agree end to end.
+
+**The value diff at the close.** run910 is the only dump past 6836 and ends on 13066. Over its window nothing parts
+after 12926 but the standing set (the control's `form`, `group:*.held`, `pool:*`, `leader:SITE[*].reg`,
+`leader:aggression[1]`, `g.angle[0]` on two units — parked 2995 unchanged) and two `order:target` rows, `1/64` on 12865
+and `1/28` on 12926: ours' attack order names the Town Center `0/2000` where theirs' still names the dead Scout's
+`(0, 0)`. Neither moves a position in the window. Blocks 13067..13519 are in no windowed dump, but **the long itself
+closes the game**: run643 (`cover=0`) prints its closing block 13520 whole, and `run643_german_closing_state` walks to
+it and compares it — 90 units, every count 0, no closing field parted. It is the lobby's endpoint in `AI_WORDS` and the
+word's row in `WIDENINGS` (`WIDENING_GERMAN_CLOSING`, block 13520): **the battery lobby closes** (DECISIONS 55).
+
+**Coverage.** *Diff-backed*: `german_word_first_parting` (13519 of 13519), `run910_s_word_frame_is_widened_whole`
+(59 keys) and `run643_german_closing_state` (90 units). *Listing-backed, no run reaches it*: the gate's `+0x2b4 & 0x400` term, which this crate does not read
+(the flag is unnamed in `uflags`); a type carrying it would idle while recharging in the original.
+
+**What is not established.**
+- The blocks between 13067 and 13519, which only the draws compare.
+- The `order:target` rows: whether theirs' `TargetOrder` keeps the dead Scout's slot until something else rewrites it,
+  and what retargets ours (parked, slot HG).
 
 ## 246. Reserved for the next item on the AI track
 

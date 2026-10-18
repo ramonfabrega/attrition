@@ -7288,13 +7288,16 @@ and faulted at `0x5e4cbd`). `Unit::add_patrol_order` (2577 bytes, `port`), `add_
 on '\t'"); the break was dropped. Known (parked 3046); the tab-separated rows cannot carry a multi-line
 OLD, and the batch has no escape for it (Loop 3048).
 
-## Parked by the next landing, slot HG — reserved
+## Parked by item 3086, 2026-10-17 — the battery lobby's draws close
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3086, first) **`order:target` on who=1's attackers after the Scout's death**: run910's `1/64` on 12865 and `1/28` on
+  12926 carry an attack order on the Town Center `0/2000` in ours against the dead Scout's `(0, 0)` in theirs. No
+  position parts in the window. Which writer retargets ours, and whether theirs' `TargetOrder` keeps the dead slot
+  until `fight`'s reload ends (`docs/ORDERS.md` §7.12), is not read.
+- (3086, second) **`Unit::work@0060d180:79-86`'s `+0x2b4 & 0x400` term is not read** by the recharging gate
+  (`orders.rs`'s `work`); the flag has no name in `uflags`. A melee type carrying it idles while recharging in the
+  original. No capture on file is known to reach one.
+- Parked 2995 (`g.angle[0]` `0x55555555` against 0) stands on run910's two units and is unchanged by this item.
 
 ## Parked by item 3067, 2026-10-17 — Sabotage on Artillery, and the scout's path
 

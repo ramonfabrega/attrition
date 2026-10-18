@@ -12,7 +12,7 @@
 use super::battery::{self, Lobby};
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const GERMAN: Lobby = Lobby {
     name: "EastIndiesGermanTier3",
@@ -64,9 +64,20 @@ pub(crate) const GERMAN: Lobby = Lobby {
     // Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
     // Unit::move_step+0x823`; on block 12837 who=1's `1/31` is `collide` 1
     // (`collide_o` 68) at (6545, 12999) in theirs against 0 at (6524,
-    // 12980), and `1/32`, `1/64` and `1/68` beside it.
-    count: 12836,
-    sequence: 12836,
+    // 12980), and `1/32`, `1/64` and `1/68` beside it. **Item 3086 moved
+    // it 12836 → 13054 → 13519, the game's last frame** (`docs/AI.md`
+    // §245): the four are attackers whose target, the Scout, died on
+    // 12835, and the original measures no overreach to a target that
+    // fails `TargetOrder::target_exists`, so they collide hard; then at
+    // 13054 (ours 8, theirs 4, index 3: ours `Guy::set_anim+0x97a <
+    // Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x104b`; block 13055's
+    // `1/65` `idle` 1 against 0, `orders.len` 1 against 0) the Knight
+    // `1/65`, orderless at `recharging` 20, steps nothing in the original
+    // (`Unit::work@0060d180:79-86`) where ours idled and found it a
+    // target. The draws agree to the end; run910 (to 13066) is the last
+    // dump, so the close is not value-compared.
+    count: 13519,
+    sequence: 13519,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -409,7 +420,7 @@ fn run910_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 932, "initial run910 baseline");
+    pin_eq!(w.firsts.len(), 59, "initial run910 baseline");
     // Item 2974: 967 keys part on blocks 12809..13066, the word's own block
     // being 12816 (frame 12815: ours 9 draws, theirs 8, index 1 — ours
     // `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <
@@ -434,6 +445,73 @@ fn run910_s_word_frame_is_widened_whole() {
     // `half_step` 1 against 0, and `1/32`, `1/64`, `1/68` the same; the
     // count rose because the window's tail now runs past more agreeing
     // state into the new word's cast.
+    //
+    // **Item 3086: 932 → 77 → 59, and the word 12836 → 13054 → 13519**
+    // (`docs/AI.md` §245). The attackers' overreach on the dead Scout
+    // (block 12837's four collisions) takes it to 77, with block 13055's
+    // `1/65` `idle` 1 against 0 and `orders.len` 1 against 0 the first
+    // non-standing parting; the orderless recharging gate takes it to 59.
+    // Past the standing set only `order:target` on `1/64` (12865) and
+    // `1/28` (12926) part — ours' `0/2000` against theirs' dead `(0, 0)` —
+    // and no position parts in the window.
+}
+
+/// The closing state's window: run643's closing block 13520 alone, the
+/// game's last frame 13519 writing it (item 3086).
+pub(crate) const WIDENING_GERMAN_CLOSING: (i64, i64) = (13518, 13521);
+
+/// **The lobby's closing state** (item 3086, DECISIONS 55): the draws
+/// agree to the game's last frame, 13519, and run643 — the draw stream's
+/// own capture, `cover=0` — prints the closing block 13520 whole. Walked
+/// to it and compared whole, as the peace pair's
+/// `run883_lakota_pair_closing_state` is.
+#[test]
+fn run643_german_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(GERMAN.long.0),
+        dump(GERMAN.start),
+        trace(GERMAN.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "German closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 13520, "the closing block");
+    pin_eq!(e.compared, 90, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3086, the first walk: 90 units compared on block 13520, none
+    // apart, no building or city field-row, and no closing field parted.
 }
 
 /// run912: the gap between run893c and run910, blocks 6837..12809 at
