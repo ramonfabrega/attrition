@@ -13,7 +13,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-17, **the fortieth tranche at twenty (commander, Opus): 20 landings from `c6fd292e` in 5 h 15, drained**; last whole
-gate `87f47c1b`; two red booking gates, each a second commit; one gate killed (144) and rerun; two `DEEP` (3030, 2997), two
+gate `ffd4c2d1`, the drain's; two red booking gates, each a second commit; one gate killed (144) and rerun; two `DEEP` (3030, 2997), two
 `STALLED` (run912's 2 h 23 window; run913's lost receipt, Loop 3063); one merge backed out (3044, resolved in-lane); no kill rule.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
