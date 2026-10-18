@@ -70,8 +70,6 @@ fn a_row_is_its_arguments_and_its_result() {
 mod animal_data_get_speed;
 mod animal_process;
 mod armies_find_aggressive_army;
-mod army_do_marching;
-mod army_do_marching_found;
 mod army_set_stance;
 mod army_use_generals;
 mod army_use_scouts;
