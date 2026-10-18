@@ -605,6 +605,17 @@ a pass books against a word, not a fix for the lobby that exposed it.
    taxation, Korean temple/militia, Indian elephant, Lakota and Iroquois
    blocks, the Red Fort pair, Colosseum, Tikal, Hanging Gardens, German
    metal/industry — each its own reading of the same listing.
+   **Built, item 3124**: the Egyptian granary (power 7, `AGRICULTURE`
+   `0x264`..`0x266`), Korean temple (16, `0x24a`..`0x24c`) and temple tax
+   (16, `0x24d`..`0x250`, 0 as shipped), Persian taxation (23, same run),
+   Mongol forage (17, `0x25e`..`0x260`), the Roman fort block (6; techs whose
+   `+0x40` is `0x1bb` the Fort, unowned: `Shape::PreqMatchUnowned`) and the
+   unit-line blocks as `TwoPreq` (Lakota 19: `0xbb`..`0xd0`, `0xd8`..`0xdf`;
+   Iroquois 18: `0x45`..`0x51`; Indian 21: `0x105`..`0x108`; Korean militia
+   16: `0x42`..`0x44`). Test `the_other_nation_free_tech_blocks_are_loaded`,
+   made to fail by narrowing the Persian run. **Battery unmoved** (every
+   lobby at its pin, median 2270). **Still unloaded**: the wonder-gated blocks
+   (`PlayerTech::wonders` is never fed; parked) and the inert German pair.
 5. **The remaining national `get_cost` and `train_time` arms** (§3,
    §4): about forty percentage terms, of which `cost.rs` carries the
    French siege and the Spy/General arms and `lib.rs` the Chinese, Dutch,

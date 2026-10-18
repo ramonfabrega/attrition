@@ -7478,13 +7478,17 @@ words and edits nothing here; a refill lands when two remain.
 - (3123) The `slot_keeps_army_link` and list-write discriminator (`num_units != 0`, empty list) rests on `army_normalize` resetting the link; a capture where a push
   takes an emptied army slot **after** a recount, with a unit that then outlives the army tick, would test it. Names no score; parked.
 
-## Parked by the next landing, slot HT — reserved
+## Parked by item 3124, 2026-10-17 — gain_tech's nation range blocks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The wonder-gated free-tech blocks are unwired** (3124, unnumbered): Red Fort
+  (`has_wonder(0x216)`: `FORTIFICATION` `0x251`..`0x253`, `END_FINALTYPES`
+  `0x247`..`0x249`), Colosseum, Tikal (`RELIGION`) and Hanging Gardens
+  (`CARPENTRY`/`METAL_ALLOYS`/`AGRICULTURE`) are `Gate::Wonder` in `tech.rs`, but
+  `PlayerTech::wonders` is never fed (the sim holds wonders as a `wonders_held`
+  bitmask), so loading the rules would be inert. Red Fort's two constants are 1 as
+  shipped; Colosseum, Tikal and Hanging Gardens are 0. Names no score; parked.
+- **German metal/industry blocks** (`german_metal_upgrades`,
+  `german_industry_upgrades`, both 0 as shipped) are inert and unloaded.
 
 ## Parked by the next landing, slot HU — reserved
 
