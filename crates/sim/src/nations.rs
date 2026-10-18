@@ -1137,7 +1137,7 @@ mod tests {
         assert!(holds(&city.2, "chinese_large_cities"));
         // Spelled in halves, so that this file does not hold a witness the
         // table says is absent.
-        assert!(!holds(&city.2, &["chinese_citizen", "_instant"].concat()));
+        assert!(!holds(&city.2, &["egyptian", "_wonders"].concat()));
         assert!(
             !holds("egyptian_wonders_early", &["egyptian", "_wonders"].concat()),
             "whole words only"

@@ -121,9 +121,12 @@ pub(crate) const BATTERY: &[Lobby] = &[
         ),
         length: 24000,
         // Item 2904, the first try: ours 12 draws, theirs 14, at 6 ours
-        // `Farms::inc_time+0x1ae`, theirs `Guy::init_real+0x52`.
-        count: 176,
-        sequence: 176,
+        // `Farms::inc_time+0x1ae`, theirs `Guy::init_real+0x52`. Item 3092,
+        // the Chinese citizen arm of `train_time` (NATIONS §7, first candidate): 176 →
+        // 5663, ours 6 draws, theirs 8, at 0 ours `Guy::set_anim+0x97a <
+        // Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`.
+        count: 5663,
+        sequence: 5663,
     },
     // The five lobbies minted by item 2975 (DECISIONS 77 (ii), `docs/AI.md`
     // §125, §243; runs 895–899): a nation no dump holds, a tier of 2, 3 or 4,

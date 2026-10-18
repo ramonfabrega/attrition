@@ -868,6 +868,12 @@ pub struct Tuning {
     /// Percentage faster for a German leader's aircraft (`+0x218 == 2`) —
     /// `ObjectData::train_time`'s German arm, after the French.
     pub german_air_speed: i32,
+    /// `CHINESE_CITIZEN_CREATION` — percentage faster for a Chinese
+    /// leader's citizen, merchant or caravan (`train_time@006508c0`, arm
+    /// `0xe`, between the Japanese arms and the British).
+    pub chinese_citizen_creation: i32,
+    /// `CHINESE_CITIZEN_INSTANT` — nonzero makes that arm `return 1`.
+    pub chinese_citizen_instant: i32,
     /// Percentage faster for a German leader's unit of the Fire Raft line
     /// (`is(0x14e, 0)`), the same arm's second test.
     pub german_submarine_speed: i32,
@@ -1381,6 +1387,8 @@ impl Tuning {
         indians_caravan: 15,
         british_ship_speed: 33,
         german_air_speed: 33,
+        chinese_citizen_creation: 100,
+        chinese_citizen_instant: 1,
         german_submarine_speed: 33,
         british_tower_range: 2,
         british_archer_speed: 0,
@@ -1456,7 +1464,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 395] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 397] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -2095,6 +2103,14 @@ impl Tuning {
             ("INDIANS_CARAVAN", Slot::Value(T.indians_caravan)),
             ("BRITISH_SHIP_SPEED", Slot::Value(T.british_ship_speed)),
             ("GERMAN_AIR_SPEED", Slot::Value(T.german_air_speed)),
+            (
+                "CHINESE_CITIZEN_CREATION",
+                Slot::Value(T.chinese_citizen_creation),
+            ),
+            (
+                "CHINESE_CITIZEN_INSTANT",
+                Slot::Value(T.chinese_citizen_instant),
+            ),
             (
                 "GERMAN_SUBMARINE_SPEED",
                 Slot::Value(T.german_submarine_speed),

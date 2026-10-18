@@ -2300,6 +2300,39 @@ fn a_spy_trains_in_half_the_time_under_the_created_faster_bonus() {
 }
 
 #[test]
+fn a_chinese_citizen_trains_at_once() {
+    // `ObjectData::train_time@006508c0`'s arm 0xe (item 3092): a Chinese
+    // leader's Citizen (unit type 0 or 1) takes `CHINESE_CITIZEN_CREATION`
+    // off and, under `CHINESE_CITIZEN_INSTANT`, the function returns 1 with
+    // the rest of the tail unapplied.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    assert!(citizen < 2, "the Citizen's own slot");
+    let _second = sim.add_unit_type(citizen_type());
+    let other = sim.add_unit_type(citizen_type());
+    assert!(other >= 2);
+    let instant = |s: &Sim, ty| {
+        s.train_tail(0, ty)
+            .iter()
+            .any(|a| matches!(a, production::Adjust::Scale(0)))
+    };
+    assert!(!instant(&sim, citizen), "not Chinese");
+    sim.nation[0].chinese = true;
+    assert!(instant(&sim, citizen), "Chinese: a Citizen is instant");
+    assert!(
+        !instant(&sim, other),
+        "only a Citizen, a merchant, a caravan"
+    );
+    sim.tuning.chinese_citizen_instant = 0;
+    assert!(
+        sim.train_tail(0, citizen)
+            .iter()
+            .any(|a| matches!(a, production::Adjust::Faster(100))),
+        "without the instant flag: the creation percentage"
+    );
+}
+
+#[test]
 fn a_citizen_trains_faster_for_a_player_holding_wool() {
     // `ObjectData::train_time@006508c0`'s wool arm: a Citizen (unit type 0
     // or 1) of a player whose `rare` mask holds Wool takes
