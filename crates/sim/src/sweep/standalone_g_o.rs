@@ -680,6 +680,8 @@ mod objects_data_find_goody_at_tile;
 mod objects_data_find_town;
 #[path = "objects_data_find_town_at.rs"]
 mod objects_data_find_town_at;
+#[path = "objects_data_find_unit_ordered_with_radius.rs"]
+mod objects_data_find_unit_ordered_with_radius;
 #[path = "objects_data_find_village.rs"]
 mod objects_data_find_village;
 #[path = "objects_data_make_tree_mask.rs"]
