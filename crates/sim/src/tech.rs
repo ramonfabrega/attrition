@@ -585,6 +585,9 @@ pub enum Shape {
     /// of the candidate's two prerequisites is the tech just gained and the
     /// other is owned.
     TwoPreq,
+    /// The Roman fort block: [`Shape::PreqMatch`] behind `!has_tech(c)`
+    /// (`gain_tech@006dcb60`'s `0x1bb` arm tests it before `has_preq`).
+    PreqMatchUnowned,
 }
 
 /// One of the nation and wonder free-tech blocks at the end of `gain_tech`:
@@ -1935,8 +1938,9 @@ impl TechTree {
             }
             for &c in &rule.candidates {
                 let hit = match rule.shape {
-                    Shape::PreqMatch => {
-                        self.has_preq(setup, p, c)
+                    Shape::PreqMatch | Shape::PreqMatchUnowned => {
+                        (rule.shape == Shape::PreqMatch || !self.has_tech(setup, p, c))
+                            && self.has_preq(setup, p, c)
                             && (0..self.num_preq(c))
                                 .any(|i| self.get_preq(setup, Some(p), c, i) == Preq::Of(t))
                     }

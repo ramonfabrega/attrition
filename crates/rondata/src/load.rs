@@ -1116,6 +1116,69 @@ pub fn load_tables(
                 shape: tech::Shape::PreqMatch,
             });
         }
+        // **The remaining nation range blocks** (item 3124, `docs/NATIONS.md`
+        // §7.4), each read off `gain_tech@006dcb60`: the start is the
+        // enum's value, the end the loop's `<` bound minus one.
+        //
+        // | block | power | constant | range |
+        // | --- | --- | --- | --- |
+        // | Egyptian granary | 7 | `egyptian_granary_upgrades` | `AGRICULTURE` `0x264`..`0x266` |
+        // | Korean temple | 16 | `korean_temple_upgrades` | `RELIGION` `0x24a`..`0x24c` |
+        // | Korean temple tax | 16 | `korean_temple_tax_upgrades` (0) | `TAXATION` `0x24d`..`0x250` |
+        // | Persian taxation | 23 | `persians_taxation` | `0x24d`..`0x250` |
+        // | Mongol forage | 17 | `mongol_free_forage` | `FORAGE` `0x25e`..`0x260` |
+        for (power, enabled, lo, hi) in [
+            (7, t.egyptian_granary_upgrades, 0x264, 0x266),
+            (16, t.korean_temple_upgrades, 0x24a, 0x24c),
+            (16, t.korean_temple_tax_upgrades, 0x24d, 0x250),
+            (23, t.persians_taxation, 0x24d, 0x250),
+            (17, t.mongol_free_forage, 0x25e, 0x260),
+        ] {
+            tree.free_rules.push(tech::FreeRule {
+                gate: tech::Gate::Power(power),
+                enabled,
+                candidates: range(lo, hi),
+                shape: tech::Shape::PreqMatch,
+            });
+        }
+        // **The Roman fort block**: every age and tech (`0x220`..`0x274`)
+        // whose `+0x40` (the building it is researched at) is `0x1bb`, the
+        // Fort, and that the player does not own — `PreqMatchUnowned`.
+        if let Some(fort) = bname("Fort").map(|i| build_tree[i]) {
+            let cands: Vec<TypeId> = range(0x220, 0x274)
+                .into_iter()
+                .filter(|&c| tree.types[c].where_ == Some(fort))
+                .collect();
+            tree.free_rules.push(tech::FreeRule {
+                gate: tech::Gate::Power(6),
+                enabled: t.roman_fort_upgrades,
+                candidates: cands,
+                shape: tech::Shape::PreqMatchUnowned,
+            });
+        }
+        // **The unit-line blocks** (`TwoPreq`): the Lakota cavalry
+        // (`HORSEARCHERS` `0xbb`..`0xd0` and `ARMOREDCAR` `0xd8`..`0xdf`),
+        // the Iroquois scouts (`0x45`..`0x51`), the Indian elephants
+        // (`0x105`..`0x108`) and the Korean militia (`0x42`..`0x44`).
+        let urange = |lo: i32, hi: i32| -> Vec<TypeId> {
+            (lo..=hi)
+                .filter_map(|x| unit_ids.get((x - BASE_UNITTYPES) as usize).copied())
+                .collect()
+        };
+        for (power, enabled, cands) in [
+            (19, t.lakota_cav_upgrades, urange(0xbb, 0xd0)),
+            (19, t.lakota_cav_upgrades, urange(0xd8, 0xdf)),
+            (18, t.iroquois_scout_upgrades, urange(0x45, 0x51)),
+            (21, t.indians_elephant_upgrades, urange(0x105, 0x108)),
+            (16, t.korean_militia_upgrades, urange(0x42, 0x44)),
+        ] {
+            tree.free_rules.push(tech::FreeRule {
+                gate: tech::Gate::Power(power),
+                enabled,
+                candidates: cands,
+                shape: tech::Shape::TwoPreq,
+            });
+        }
     }
     tree.finalize();
 
@@ -2602,6 +2665,43 @@ mod tests {
         assert_eq!(rule(14, 0x267).candidates.len(), 5);
         assert_eq!(rule(13, 0x254).enabled, 1);
         assert_eq!(rule(14, 0x267).enabled, 0);
+    }
+
+    /// The other nation range blocks of `gain_tech@006dcb60` (item 3124):
+    /// the power, the run and the shape of each, and the Roman block's
+    /// Fort-researched techs.
+    #[test]
+    fn the_other_nation_free_tech_blocks_are_loaded() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let loaded = load(&inst).unwrap();
+        let rules = &loaded.tree.free_rules;
+        let find = |power: usize, first: tech::TypeId| {
+            rules
+                .iter()
+                .find(|r| r.gate == tech::Gate::Power(power) && r.candidates.first() == Some(&first))
+                .unwrap_or_else(|| panic!("no rule for power {power}"))
+        };
+        let tech_at = |x: i32| loaded.tech_tree[(x - BASE_TECHTYPES) as usize];
+        let unit_at = |x: i32| loaded.unit_tree[(x - BASE_UNITTYPES) as usize];
+        assert_eq!(find(7, tech_at(0x264)).candidates.len(), 3);
+        assert_eq!(find(16, tech_at(0x24a)).candidates.len(), 3);
+        assert_eq!(find(23, tech_at(0x24d)).candidates.len(), 4);
+        assert_eq!(find(17, tech_at(0x25e)).candidates.len(), 3);
+        assert_eq!(find(16, tech_at(0x24d)).enabled, 0);
+        let lakota = find(19, unit_at(0xbb));
+        assert_eq!(lakota.candidates.len(), 22);
+        assert_eq!(lakota.shape, tech::Shape::TwoPreq);
+        assert_eq!(find(18, unit_at(0x45)).candidates.len(), 13);
+        assert_eq!(find(21, unit_at(0x105)).candidates.len(), 4);
+        assert_eq!(find(16, unit_at(0x42)).candidates.len(), 3);
+        let roman = rules
+            .iter()
+            .find(|r| r.gate == tech::Gate::Power(6))
+            .expect("the Roman block");
+        assert_eq!(roman.shape, tech::Shape::PreqMatchUnowned);
+        assert!(!roman.candidates.is_empty(), "the Fort researches techs");
     }
 
     #[test]
