@@ -9773,13 +9773,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `ATTACKTO` (the followers' offsets, the figures' speed 28 against
     // 35), and names the word's drawer, `1/26`'s figure stopping on 5574
     // and wrapping into its idle roll on 5576 (`run930_s_squad_is_
-    // widened_whole`).
+    // widened_whole`). **Item 3211 moved it 5576 → 5843 → 6982**
+    // (`is_modern_infantry`'s Iroquois arm, then `UnitData::speed`'s spear
+    // arm); 5843 was widened on run932 over 5826..6094
+    // (`run932_s_word_frame_is_widened_whole`), and 6982 is past it, owed
+    // as 3225 (the lane's number, `docs/PARKED.md`).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
-        Some("run930_s_squad_is_widened_whole"),
-        3202,
-        Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_SQUAD_930),
+        None,
+        3225,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

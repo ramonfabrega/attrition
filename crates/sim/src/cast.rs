@@ -1282,22 +1282,55 @@ impl Sim {
     /// (`0060add1`–`0060addc`) — or `myspeed` when that is larger
     /// (`cmovle`, `0060ae0e`): a march never slows a unit.
     ///
-    /// SEAM: the Iroquois spear bonus in allied ground; Alexander's arm
+    /// **The Iroquois spear** (`0060ab0x`–`0060ad0x`, item 3211): a unit
+    /// of the Spearmen line (`is(0xa6, 0)`) standing in a cell whose owner
+    /// its leader `is_ally` adds `IROQUOIS_SPEAR_SPEED[k]`, `k` the first
+    /// of `is(0xa6..0xa9, 1)` it answers, and nothing when it answers none.
+    /// run932's `1/28`..`1/30` (TI 166, born on 5809) step one point past
+    /// the squad before them in their own ground. The march arm compares
+    /// against `myspeed`, not this sum, and so replaces it.
+    ///
+    /// SEAM: Alexander's arm
     /// (the hero or the unit `is(0x166)`/`is(0x167)`, `× 384 >> 8`); and
     /// the hero auras below it — Spitamenes, Blucher, Porus, Charles,
     /// Napoleon — each behind a leader's power (`+0x59cc`..`+0x59e8`);
     /// none is carried.
     pub(crate) fn unit_speed(&self, u: usize) -> i32 {
-        let speed = self.units[u].movement.speed;
-        if self.units[u].is_gaia()
-            || self.unit_domain_of(u) != crate::attrition::Domain::Land
-            || !self.leader_marching(u)
-            || !self.near_marching_hero(u)
-        {
+        let base = self.units[u].movement.speed;
+        if self.units[u].is_gaia() || self.unit_domain_of(u) != crate::attrition::Domain::Land {
+            return base;
+        }
+        let speed = base + self.iroquois_spear_speed(u);
+        if !self.leader_marching(u) || !self.near_marching_hero(u) {
             return speed;
         }
         let march = self.tuning.forced_march_speed * crate::combat::UNIT_MOVE_SPEED;
-        march.max(speed)
+        march.max(base)
+    }
+
+    /// [`Sim::unit_speed`]'s spear term: zero off the line or off allied
+    /// ground.
+    fn iroquois_spear_speed(&self, u: usize) -> i32 {
+        const SPEAR: [crate::tech::TypeId; 4] = [0xa6, 0xa7, 0xa8, 0xa9];
+        let Some(tree) = self.unit_tree(u) else {
+            return 0;
+        };
+        let is = |x: crate::tech::TypeId, strict: bool| {
+            self.tech_tree.types.get(x).is_some() && self.tech_tree.is(tree, x, strict)
+        };
+        if !is(SPEAR[0], false) {
+            return 0;
+        }
+        let Some(o) = self.world.owner_at(self.units[u].pos).player() else {
+            return 0;
+        };
+        if !self.is_ally(self.units[u].owner, o) {
+            return 0;
+        }
+        SPEAR
+            .iter()
+            .position(|&x| is(x, true))
+            .map_or(0, |k| self.tuning.iroquois_spear_speed[k])
     }
 
     /// **The tank** — `Unit::process@00610bc0`'s air arm, taken for a type
