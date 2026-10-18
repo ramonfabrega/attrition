@@ -17806,3 +17806,9 @@ SHA-256 `670ab03876bdda71f720cc352da75fcce66f103e2dd718dc4c779f9387080b3e`.
 
 Archive `rontrace-run917.log`, 280,195,520 bytes,
 SHA-256 `1fa5d1ea8a8153682b6006c478c5453a4444cc91222a3d3b620bf60e61f3a9b9`.
+
+## run916, run916b — chapter ninety-four's window and its packet at 846 (2026-10-17, item 3099, `att-3099`)
+
+`docs/GOLDEN.md` §119. **What the disk could not answer**: the pathfinder's per-cell prices and a group record's `+0x8` on 846. Recipe `tools/gamelog/window/chapter94w.cmd`
+(chapter 94's with `--end-frame 850 --log-window 845 850`), `~/ron-golden/ch94w/map-14/`, pool lane 1, 164 s; its `rontrace.log` holds the `calc_cost` records. The packet (run916b,
+`~/ron-golden/ch94p/map-14/`, `--tracer-def RON_STATE_FRAME=846`) is `frame-snapshot.bin`, 836,926,300 bytes, logger frame 846. No minutes waited on another lane.
