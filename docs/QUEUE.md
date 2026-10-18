@@ -17,12 +17,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 of 12658 (3140, 3156, 3170, 3186), its
   widening owed as 3202 (run 928); `EastIndiesGermanTier3` closed at 13519
-  (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–96 closed (3191: 96 at 1500); the death object's cull owed as 3205. Census
+  (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–96 closed (3191: 96 at 1500); the death object's cull built (3205); 97 owed as 3209. Census
   1471, **port 305 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
   median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
-- **Lanes: four live, landings 15 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186, 3191, 3194): 3202 AI (run
-  928, AI §252, park IM), 3205 rules (run 929, GOLDEN §127, IN), 3200 shape (IL), 3207 nations (IO). Next 3208, run
-  930 (925 unused). Pools: GOLDEN §128–132, AI §253–255, park IP–IV. Last whole gate: `5b9f621e` (green).
+- **Lanes: four live, landings 16 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186, 3191, 3194, 3205): 3202 AI (runs
+  928 and 930, AI §252, park IM), 3209 rules (run 929, GOLDEN §128, IP), 3200 shape (IL), 3207 nations (IO). Next 3210, run
+  931 (925 unused). Pools: GOLDEN §129–132, AI §253–255, park IQ–IV. Last whole gate: `5b9f621e` (green).
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
 - **Fable backlog: 19 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181, 3188).
 
@@ -46,7 +46,7 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3202 the AI word's (Opus); 3205, 3200 and 3207 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
+3202 the AI word's (Opus); 3209, 3200 and 3207 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3202. **The battery word, 5576 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 35 draws against theirs 37,
@@ -55,13 +55,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     owed (`WIDENINGS`' `IROQUOIS_WORD` names this item): run926 ends at 5394 and run897b is `cover=0`, so a window of
     5570..5826 at run918's detail (run 928), every dumped record on 5577 both directions. AI §252.
 
-3205. **The death object's cull: the standing `death:extra` rows of chapters 95 and 96** (parked 3203, superseding
-    3189's open check; 3191 closed chapter 96 at 1500 on run927 and measured the cull by death piece and animation —
-    piece 194 anim 20 152 frames, anim 17 143, piece 375 anim 18 650, piece 434 anim 17 644; GOLDEN §126): this crate's
-    death list is grow-only, so four rows stand on 96 (946, 1235, 1395, 1476) and two on 95. Read where
-    `DeathObj::inc_time@008d5240` ends the record and what length it runs (the death piece's animation packet), load
-    that length from the install, cull, and clear the standing rows on both chapters; run 929 if a capture is owed.
-    GOLDEN §127.
+3209. **Chapter ninety-seven, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
+    929 minted here): 3205 built the death object's cull (`DeathObj::inc_time@008d5240`'s end: the death piece's
+    animation plus the body or corpse fade, by the type's skeleton), clearing chapters 95 and 96's standing
+    `death:extra` rows. Candidates by what a failure would teach: a ship's death (parked 3208: the sea arm, animation
+    alone, read and not diffed) and a late unit crossing a released disc (parked 3204). Stage it, capture it, open it
+    at its first word. GOLDEN §128.
 
 3200. **The sweep's next shape batch: the next never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
     score `Census:` port 305; 3182 built two, `Unit::check_idle` and `ObjectData::is_in_range@006486b0`, and parked
