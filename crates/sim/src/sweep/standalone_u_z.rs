@@ -182,6 +182,8 @@ mod unit_do_gather;
 mod unit_do_group_attack_to;
 #[path = "unit_do_idle.rs"]
 mod unit_do_idle;
+#[path = "unit_do_patrol.rs"]
+mod unit_do_patrol;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
 #[path = "unit_execute_events.rs"]
