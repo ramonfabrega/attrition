@@ -4503,6 +4503,14 @@ pub(crate) mod tests {
         let (mut blocks, mut compared, mut leader_rows, mut pool_lists) =
             (0usize, 0usize, 0usize, 0usize);
         let mut housed = 0usize;
+        // **A capture that logs no `DEATHS` cannot part on `death:extra`**
+        // (item 3279): `DEATH_OBJS` is `DeathObjData::log_data`'s, written
+        // at `DEATHS=1` and above, and run943's detail has no `DEATHS` —
+        // its 0/3, dead on 10852 on both sides, read as ours alone. The
+        // row is kept once any block of the walk has printed a
+        // `DEATH_OBJS`; before that, a death this crate invents still
+        // parts as the dump's `unlinked` unit.
+        let mut deaths_logged = false;
         let row_walk: Vec<(i64, i64)> = std::env::var("RON_ROW_WALK")
             .map(|w| {
                 w.split(',')
@@ -4592,6 +4600,10 @@ pub(crate) mod tests {
             let (fr, rows) = widen_block(&built, frame, players, n, &mut here);
             compared += rows;
             housed += fr.inside_housed;
+            deaths_logged |= !frame.deaths.is_empty();
+            if !deaths_logged {
+                here.retain(|(_, _, what), _| what != "death:extra");
+            }
             if let Some(t) = stage {
                 stages[1] += t.elapsed();
             }
