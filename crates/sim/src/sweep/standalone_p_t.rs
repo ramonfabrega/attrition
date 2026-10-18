@@ -508,3 +508,5 @@ mod types_object_key;
 mod types_walk_data;
 #[path = "types_walk_rules_data.rs"]
 mod types_walk_rules_data;
+#[path = "path_finder_data_valid_roadcoord.rs"]
+mod path_finder_data_valid_roadcoord;
