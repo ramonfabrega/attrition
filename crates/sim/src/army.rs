@@ -3738,7 +3738,7 @@ pub(crate) fn do_transporting_steps<V: TransView>(v: &mut V) -> bool {
             size
         };
         let d = v.distance(my, r);
-        val /= (d + ((d >> 31) & 3) >> 2) + 1;
+        val /= ((d + ((d >> 31) & 3)) >> 2) + 1;
         let mut city = None;
         for c in v.cities() {
             if v.city_in(c, r) {
