@@ -1548,9 +1548,6 @@ impl Sim {
         let un = &self.units[u];
         if v == format!("{}/{}@{}", un.owner, un.index, self.frame) {
             eprintln!("PROBE3140 {what} {v} {:?}\n{}", un.orders.front().map(|o| o.body), std::backtrace::Backtrace::force_capture());
-            for (i, b) in self.buildings.iter().enumerate().filter(|(_, b)| b.owner == un.owner && b.index >= 2007) {
-                eprintln!("PROBE3140 slot {i} {}/{} alive {} active {} at {:?} ty {:?}", b.owner, b.index, b.alive, b.active, b.pos, b.orig_ty);
-            }
         }
     }
 
