@@ -7293,13 +7293,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HI — reserved
+## Parked by item 3078, 2026-10-17 — two shapes swept, Census 1444 → 1446
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3078, first) **Swept: `BuildData::show_later_tech@0062d920` and `UnitData::get_attrition@00608fd0`.**
+`show_later_tech`: the stubs ride `--seq 0..3:4` (a constant answer makes every `has_tech == 0` path end at 0), the
+tech table is `--place 0xc0aabc:-4:0x30` plus nine `--place p0+4k` records so that `get_preq`'s `-1` reads a valid
+record (a `--ptrtab` put index -1 on a neighbouring window and faulted at 0x1000); 11 of 12 breaks held, `go(preq,
+depth)` for `go(preq, depth - 1)` passes (the descent needs a fourth nested miss). `get_attrition`: `anti_att` is
+biased to the f32 bit patterns of 0, 1/8, 1/2, 1, 3/2, 2, 3, 4 and the port is the integer mantissa/exponent
+product (no float); 22 of 24 breaks held, the two that pass (`diff > 0`, `+98`) are equivalent at the drawn constants.
+
+(3078, second) **Not built, read**: `Army::is_engaged` and `Caravans::new_danger` need `vector_dist` with its
+register convention (the export's `unaff_*`) as a generator callee; `Group::set_up_insert` needs a *pointer*-linked
+circular node list inside a unit record (`--ring` is c-window only, `--link` is index-linked) — a `--ptrring` flag;
+`ObjectData::num_aircraft_here`, `can_carry` (x2), `ObjectsData::find_dock` and `ObjectTypeData::get_wonder_value`
+unstarted.
+
+(3078, third) **For the Loop**: `--port-file` is expanded only on the command line, never inside an `@FILE`
+(it reads as an unrecognised argument); a port that returns early needs the body wrapped in a closure
+(`(|| -> i64 { … })()`), the generated test is a `()` function.
 
 ## Parked by the next landing, slot HJ — reserved
 
