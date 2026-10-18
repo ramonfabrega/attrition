@@ -548,35 +548,3 @@ fn run923_s_food_row_is_widened_whole() {
     );
     pin_eq!(w.firsts.len(), 0, "initial run923 baseline");
 }
-
-/// PROBE 3170 (reverted whole): who=1's holdings at the frame-7 recompute.
-#[test]
-fn probe_3170_food() {
-    if std::env::var("RON_PROBE_3170").is_err() {
-        return;
-    }
-    let Some(inst) = crate::testenv::install() else {
-        return;
-    };
-    let (Some(start), Some(tr)) = (dump(IROQUOIS.start), trace(IROQUOIS.long.1)) else {
-        return;
-    };
-    let loaded = crate::load::load(&inst).unwrap();
-    let start_text = crate::capture::read(start);
-    let start_log = Log::parse(&start_text);
-    let mut init = start_log.initial().unwrap();
-    let sibling = start_log.initial().unwrap();
-    borrow_from_siblings(&mut init, &[&sibling]);
-    borrow_pasture(&mut init, &tr);
-    let mut built = build_sim(&loaded, &init, Tuning::RON);
-    for _ in 0..8 {
-        built.tick();
-    }
-    eprintln!("{:#?}", built.sim.holdings[1]);
-    for u in 0..built.sim.units.len() {
-        let x = &built.sim.units[u];
-        if x.owner == 1 {
-            eprintln!("unit {u} ti {} pos {:?} order {:?}", x.type_index, x.pos, built.sim.current_order(u).map(|o| o.body));
-        }
-    }
-}
