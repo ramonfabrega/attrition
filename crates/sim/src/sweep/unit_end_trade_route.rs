@@ -56,12 +56,18 @@ fn the_emulated_original_agrees_on_every_row() {
         return;
     };
     let mut n = 0;
-    let (mut parted_city, mut parted_reset, mut parted_delivered) = (0, 0, 0);
+    let (mut parted_city_a, mut parted_city_b, mut parted_reset, mut parted_delivered) =
+        (0, 0, 0, 0);
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -75,7 +81,10 @@ fn the_emulated_original_agrees_on_every_row() {
                 // the port has no state for a game that is not playing), p`4w` the `caravans` array of
                 // leader `w` (`0xe3a2a0 + 28w`, three records), p`4w+1+v` its record `v` (0x44 bytes).
                 // The port is `Sim::end_trade_route` itself, on a `Sim` laid from the row's windows.
-                let (who, v) = (usize::from(m[9]), i16::from_le_bytes([m[0x86], m[0x87]]) as usize);
+                let (who, v) = (
+                    usize::from(m[9]),
+                    i16::from_le_bytes([m[0x86], m[0x87]]) as usize,
+                );
                 let rec = 4 * who + 1 + v;
                 let mut sim = Sim::new(Tuning::RON, World::new(8, 8), 4);
                 for w in 0..4 {
@@ -99,10 +108,12 @@ fn the_emulated_original_agrees_on_every_row() {
                     r[0xc] = (r[0xc] & !4) | (u8::from(after.delivered) << 2);
                 }
                 if after.city_a != before.city_a {
-                    r[0..2].copy_from_slice(&after.city_a.map_or(-1i16, |c| c as i16).to_le_bytes());
+                    r[0..2]
+                        .copy_from_slice(&after.city_a.map_or(-1i16, |c| c as i16).to_le_bytes());
                 }
                 if after.city_b != before.city_b {
-                    r[4..6].copy_from_slice(&after.city_b.map_or(-1i16, |c| c as i16).to_le_bytes());
+                    r[4..6]
+                        .copy_from_slice(&after.city_b.map_or(-1i16, |c| c as i16).to_le_bytes());
                 }
                 if after.road.len() != before.road.len() {
                     wr(r, 0x18, after.road.len() as i32);
@@ -127,7 +138,11 @@ fn the_emulated_original_agrees_on_every_row() {
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "end_trade_route — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "end_trade_route — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "end_trade_route — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
             if w == &want[2 + i] {
@@ -139,10 +154,15 @@ fn the_emulated_original_agrees_on_every_row() {
             let diffs: Vec<usize> = (0..w.len()).filter(|&o| w[o] != want[2 + i][o]).collect();
             for &o in &diffs {
                 match o {
-                    0 | 1 | 4 | 5 => parted_city += 1,
+                    0 | 1 => parted_city_a += 1,
+                    4 | 5 => parted_city_b += 1,
                     0x24..=0x27 => parted_reset += 1,
                     0xc => {
-                        assert_eq!(w[o] ^ want[2 + i][o], 4, "only `delivered` parts, row `{line}`");
+                        assert_eq!(
+                            w[o] ^ want[2 + i][o],
+                            4,
+                            "only `delivered` parts, row `{line}`"
+                        );
                         parted_delivered += 1;
                     }
                     _ => panic!("end_trade_route — window p[{i}] byte {o:#x}, row `{line}`"),
@@ -153,7 +173,9 @@ fn the_emulated_original_agrees_on_every_row() {
     }
     assert!(n >= 1000, "only {n} rows");
     // Each cause must be in the rows, so the row set still reaches it.
-    assert!(parted_city > 0 && parted_reset > 0 && parted_delivered > 0);
-    eprintln!("parts: city {parted_city} reset {parted_reset} delivered {parted_delivered}");
+    assert!(parted_city_a > 0 && parted_city_b > 0 && parted_reset > 0 && parted_delivered > 0);
+    eprintln!(
+        "parts: city {parted_city_a}/{parted_city_b} reset {parted_reset} delivered {parted_delivered}"
+    );
     eprintln!("Unit::end_trade_route@005e3bd0: {n} rows agree");
 }
