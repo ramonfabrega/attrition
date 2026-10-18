@@ -1400,6 +1400,50 @@ mod tests {
     use crate::world::{Cell, Terrain, World};
     use crate::{Pos, Sim, Tuning, Unit, UnitType};
 
+    /// **The Iroquois spear** (item 3211; `UnitData::speed@0060aae0`): a
+    /// unit of the line `is(0xa6, 0)` on a cell its leader is allied to
+    /// steps `IROQUOIS_SPEAR_SPEED[k]` more, `k` its strict `is(0xa6 +
+    /// k, 1)`; off allied ground, or off the line, nothing. run932's
+    /// `1/28`..`1/30` (TI 166). Made to fail with the term dropped and
+    /// with the ally test dropped.
+    #[test]
+    fn an_iroquois_spearman_steps_faster_on_allied_ground() {
+        use crate::world::Owner;
+        let mut world = World::new(8, 8);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+        let mut tuning = Tuning::RON;
+        tuning.iroquois_spear_speed = [1, 2, 3, 4];
+        let mut s = Sim::new(tuning, world, 2);
+        let mut t = crate::tech::TechTree::new();
+        while t.types.len() <= 0xaa {
+            t.add(TypeDef::unit("filler", UnitTraits::default()));
+        }
+        t.types[0xa7].from = Some(0xa6);
+        s.set_tech_tree(t);
+        let unit = |s: &mut Sim, row: usize| {
+            let ty = s.add_unit_type(UnitType {
+                tree: Some(row),
+                type_index: i32::try_from(row).unwrap(),
+                ..UnitType::default()
+            });
+            let mut u = Unit::new(1, 0, Pos::new(3 * 768 + 10, 3 * 768 + 10), 20);
+            u.ty = Some(ty);
+            u.movement.speed = 25;
+            s.add_unit(u)
+        };
+        let spear = unit(&mut s, 0xa6);
+        let pike = unit(&mut s, 0xa7);
+        let other = unit(&mut s, 0xaa);
+        let cell = Cell::new(3, 3);
+        assert_eq!(s.unit_speed(spear), 25, "unowned ground");
+        s.world.set_owner(cell, Owner::Player(1), Owner::None);
+        assert_eq!(s.unit_speed(spear), 26, "its own ground, entry0");
+        assert_eq!(s.unit_speed(pike), 27, "of the line from 0xa6, entry1");
+        assert_eq!(s.unit_speed(other), 25, "off the line");
+        s.world.set_owner(cell, Owner::Player(0), Owner::None);
+        assert_eq!(s.unit_speed(spear), 25, "another leader's, not allied");
+    }
+
     /// A tree whose rows are `TypeIndex`'s, up to Memnon, and one unit of
     /// player 1 for each of the General, the Spy, Memnon and a filler row,
     /// each holding a full pool (`MANA` 1000).
