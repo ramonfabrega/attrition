@@ -2391,9 +2391,6 @@ impl Sim {
             frame,
             &self.mods_of(owner),
         );
-        if std::env::var("RON_PROBE_HIT").is_ok() {
-            eprintln!("PROBE f{frame} {attacker:?}->{target:?} dmg {dmg} ammo {ammo} count {count}");
-        }
         // Step 2: the target's captain reacts, and the overkill record.
         if let Obj::Unit(t) = target
             && !quiet
