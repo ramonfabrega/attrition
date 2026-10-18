@@ -7971,13 +7971,17 @@ words and edits nothing here; a refill lands when two remain.
 - (booked as item 3274) (3273) **`0/10`'s `orders_y` and `dest_angle` on 935 (run945, GOLDEN §139)**: the Attack order that replaces the move on 935 agrees on both sides (flags, `in_range`, position 16008), but ours writes `orders_x/orders_y` at 15984 (the position before the frame's step) and `dest_angle` −2147483648, theirs 16008 and 1181417472 (the position after it). The unit is moving when the order changes; the stationary `0/11`, `0/12` agree. Booking is the frame (935) and the value (`orders_y` 15984 against 16008): which caller adds the Attack on 935 (`RON_STACKS`, `kill_current_order`) and whether the original's thinks run before or after the step for a unit with a path.
 - (3275) **The bowman bay `120/ATTACK1/12` is a fit** (`right −1830, fwd 88800`): one point of a 2,398-point family that matches three arrows; a fourth facing on disk or in a later capture would narrow it. `get_position` is float trigonometry in the original and `Bay::point` an integer rotation by a whole degree.
 
-## Parked by the next landing, slot JS — reserved
+## Parked by item 3272, 2026-10-18 — the nations seat's sixth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircraft`, `is_ultimate_preq`, `valid_target_const`).
+
+- **3272a** `World::gather_at`'s non-Type-vtable goodtype arm (vslot +0x94) is unswept: sweep_gen's slot stubs answer per call, not per object; a per-record slot stub is the missing flag. All goodtypes use vtable 0xb44b70, so it is defensive code.
+- **3272b** `Sim::valid_target_const` (`fight.rs`) is an older partial port, unrouted onto `valid_target_const_steps` (it lacks the type-flag, fog-cell, vslot, helicopter and `is(0x132)`/`can_carry` arms and the domain-1 arm). Routing needs a `SimView` and the golden diffs; booked when a capture parts on one of those arms. Its stub arguments and per-vslot objects are unheld (`--record` on stubs 0, 8, 9, 12).
+- **3272c** `bank_plane` callers (`do_air_physics`, the `air.rs` call ~846, `flock`) do not pass `is_helicopter`; `bank_plane_as` has the arms, `pitch_plane` has none. Wiring moves helicopter flight in the goldens; needs a diff run.
+- **3272d** `Single`: `sqrtss` and `from_millionths` still assume finite inputs (add/sub/mul/div/to_i32 now carry the IEEE specials).
+- **3272e** `add_gather_point`: the crate keeps a `Vec`, no list cursor (+0xbc/+0xc0/+0xc4) or length (+0xc8); `add_air_patrol_order`'s sixth argument is a stale register the crate does not model (SEAMs, the sweep's view tracks both).
+- **3272f** Generator: `--ecx-answer` replaces `--outarg` on the same stub (one value per row, not per unit); `--answers` is a 90% draw, so a fixed answer needs `--answer-range IDX:V:V`; a placed-table shape for sparse index tables (is_ultimate_preq lays 42 records through 860 flags); `sweep_gen` registers a `mod` line in `sweep/mod.rs` unless the module is standalone, reverted by hand; `--regen` needs the whole line plus `--port-file`.
+- **3272g** `check_upgrade`: the message arm is swept as a log of stubbed calls only (no message/sound in the crate, SEAM `announce`); a negative `who` is unswept.
 
 ## Parked by the next landing, slot JT — reserved
 
