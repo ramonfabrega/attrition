@@ -597,3 +597,47 @@ fn run923_s_food_row_is_widened_whole() {
     // set, the groups' `held`, the pool, and the Scout's `blown`.
     pin_eq!(w.firsts.len(), 36, "initial run923 baseline");
 }
+
+/// run926: the word 5144's window, blocks 5138..5394 at run918's detail
+/// (item 3186) — six blocks before the word's own block 5145, 250 past it;
+/// run922 ends at 2022 and run897b is `cover=0`.
+pub(crate) const RUN926: &str = "gamelog-run926-greatlakes-iroquois-diff3-window-5138-5395.txt";
+
+/// The window: block 5138 through 5394.
+pub(crate) const WIDENING_IROQUOIS_FRAME_5144: (i64, i64) = (5138, 5394);
+
+pub(crate) fn iroquois_frame_5144_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run926",
+        &[(RUN926, WIDENING_IROQUOIS_FRAME_5144.0)],
+        WIDENING_IROQUOIS_FRAME_5144,
+        1,
+        &[5145],
+        true,
+    )
+}
+
+#[test]
+fn run926_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_5144_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "initial run926 baseline");
+}
