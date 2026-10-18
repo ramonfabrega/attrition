@@ -7440,13 +7440,24 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IB — reserved
+## Parked by item 3150, 2026-10-18 — the shape lane's eighth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Four shapes built (change_target, find_army, cast_civilian, resolve_block); two parked below, unnumbered — the commander numbers them.
+
+- **`Unit::find_melee_pos@006010b0`** (unbuilt). It fills a stack-local `SimpleArray<CoordData>` through `find_open_slots` and then reads
+  the array's count and data pointer, frees it (`free`), and runs under an SEH frame. Flag it could not spell: a stub that writes **a
+  window's address** (and a count) through a stack-local argument — `--outarg IDX:K:VALS` writes integers from a list, `--stub-write`
+  writes into a window, neither lays a pointer to a window in the caller's local. Also needs `--tib` with an imported `free`
+  (`--stub-cdecl` hooks it, the array's `0x1000`-style allocation is not modelled).
+- **`Guy::update_gpiece@005d8530`** (unbuilt). Float arithmetic (`guy_scale`, the piece's `+0x88`/`+0x10`/`+0xc` floats, truncated by `(int)`):
+  `--wbias` and `--fill` draw integer words, so a window word that is a float, and a global float cell (`guy_scale`) have no spelling;
+  `xmm_bits` is for arguments only. The `get_unit_gpiece` and `verify_load` callees are stubbable. Flag it could not spell:
+  a float-valued `--wbias` (a list of f32 bit patterns) and `--at` for the `guy_scale` cell.
+- Starved arms, built shapes: `change_target` — the walk's second pass (`this = next`, the callee's `+8 & 1` set) is not reached
+  (`--wbias p12+8` is even only; the next unit would need its own list laid, a `--link`-style window per hop), and the objects
+  array is fixed at type 0 (`m[9] = 0`, `a3 = 0`). `find_army` — `who` is fixed at 0. `cast_civilian` — `who` is 0 and the
+  `0x11c` slot always answers from the stub or `0x610890` (both arms are drawn). `resolve_block` — `who` is 0, so the `is_enemy`
+  arm's `leaders + who * 0x6eec` is one row.
 
 ## Parked by the next landing, slot IC — reserved
 
