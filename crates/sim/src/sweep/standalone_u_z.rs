@@ -38,6 +38,14 @@ mod unbuilt_wonder_walk_data;
 mod unbuilt_wonders_add_unbuilt_wonder;
 #[path = "unbuilt_wonders_remove_unbuilt_wonder.rs"]
 mod unbuilt_wonders_remove_unbuilt_wonder;
+#[path = "unit_add_attack_ground_order.rs"]
+mod unit_add_attack_ground_order;
+#[path = "unit_add_await_board_order.rs"]
+mod unit_add_await_board_order;
+#[path = "unit_add_board_order.rs"]
+mod unit_add_board_order;
+#[path = "unit_add_garrison_order.rs"]
+mod unit_add_garrison_order;
 #[path = "unit_add_spec_anim_order.rs"]
 mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
@@ -146,6 +154,8 @@ mod unit_do_flee_to;
 mod unit_do_form_change;
 #[path = "unit_do_gather.rs"]
 mod unit_do_gather;
+#[path = "unit_do_group_attack_to.rs"]
+mod unit_do_group_attack_to;
 #[path = "unit_do_idle.rs"]
 mod unit_do_idle;
 #[path = "unit_do_spec_unit_anim.rs"]
@@ -258,12 +268,20 @@ mod unit_type_num_preq;
 mod unit_type_restore;
 #[path = "unit_type_walk_rules_data.rs"]
 mod unit_type_walk_rules_data;
+#[path = "unit_update_armor.rs"]
+mod unit_update_armor;
+#[path = "unit_update_ceo_position.rs"]
+mod unit_update_ceo_position;
 #[path = "unit_update_gpiece.rs"]
 mod unit_update_gpiece;
+#[path = "unit_update_local_seen.rs"]
+mod unit_update_local_seen;
 #[path = "unit_update_order.rs"]
 mod unit_update_order;
 #[path = "unit_update_patrol_order.rs"]
 mod unit_update_patrol_order;
+#[path = "unit_update_z.rs"]
+mod unit_update_z;
 #[path = "units_make_valid.rs"]
 mod units_make_valid;
 #[path = "valid_filter_case0.rs"]
@@ -358,8 +376,12 @@ mod wall_die;
 mod wall_is_active;
 #[path = "wall_is_started.rs"]
 mod wall_is_started;
+#[path = "wall_kill_competing_buildings.rs"]
+mod wall_kill_competing_buildings;
 #[path = "wall_mask_city.rs"]
 mod wall_mask_city;
+#[path = "wall_mask_me.rs"]
+mod wall_mask_me;
 #[path = "wall_out_draw.rs"]
 mod wall_out_draw;
 #[path = "wall_out_get_gpiece.rs"]
@@ -370,6 +392,8 @@ mod wall_out_make_options;
 mod wall_set_type;
 #[path = "wall_set_type_dispatch.rs"]
 mod wall_set_type_dispatch;
+#[path = "wall_swap_team.rs"]
+mod wall_swap_team;
 #[path = "wcoord_data_walk_data.rs"]
 mod wcoord_data_walk_data;
 #[path = "wcoord_get_tcorner.rs"]
@@ -548,6 +572,8 @@ mod world_set_cliff_at;
 mod world_set_coastal;
 #[path = "world_set_down.rs"]
 mod world_set_down;
+#[path = "world_set_edge_flags.rs"]
+mod world_set_edge_flags;
 #[path = "world_set_gather_edge.rs"]
 mod world_set_gather_edge;
 #[path = "world_set_gathered_at.rs"]

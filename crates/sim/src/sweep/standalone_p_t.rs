@@ -154,6 +154,8 @@ mod setup_build_leader;
 mod setup_get_starting_citizens;
 #[path = "setup_init_wild_life.rs"]
 mod setup_init_wild_life;
+#[path = "signposts_add.rs"]
+mod signposts_add;
 #[path = "signposts_cur_name.rs"]
 mod signposts_cur_name;
 #[path = "signposts_cur_x.rs"]
@@ -236,6 +238,8 @@ mod sub_object_refresh_z;
 mod sub_object_set_new_location;
 #[path = "sub_object_set_type.rs"]
 mod sub_object_set_type;
+#[path = "sub_object_swap_team.rs"]
+mod sub_object_swap_team;
 #[path = "sub_object_time.rs"]
 mod sub_object_time;
 #[path = "subobject_is_active.rs"]
@@ -306,6 +310,8 @@ mod terrain_map_remove_feature;
 mod terrain_map_river_point;
 #[path = "terrain_map_start_river.rs"]
 mod terrain_map_start_river;
+#[path = "terrain_object_placed.rs"]
+mod terrain_object_placed;
 #[path = "terrain_oil_gain_tech.rs"]
 mod terrain_oil_gain_tech;
 #[path = "terrain_oil_lose_tech.rs"]
@@ -314,6 +320,8 @@ mod terrain_oil_lose_tech;
 mod terrain_oil_remove_rocky_patch;
 #[path = "terrain_out_get_name.rs"]
 mod terrain_out_get_name;
+#[path = "terrain_refresh_good_z.rs"]
+mod terrain_refresh_good_z;
 #[path = "terrain_vis_get_verts_per_bucket.rs"]
 mod terrain_vis_get_verts_per_bucket;
 #[path = "terrain_vis_invalidate_fog_wcoord.rs"]
@@ -356,10 +364,18 @@ mod tribe_set_pseudonym;
 mod tribe_walk_data;
 #[path = "tribe_walk_rules_data.rs"]
 mod tribe_walk_rules_data;
+#[path = "tribes_find.rs"]
+mod tribes_find;
 #[path = "tribes_walk_data.rs"]
 mod tribes_walk_data;
+#[path = "turn_control_check_new_frame_playback.rs"]
+mod turn_control_check_new_frame_playback;
+#[path = "turn_control_check_new_frame_solo.rs"]
+mod turn_control_check_new_frame_solo;
 #[path = "turn_control_compute_next_turn_solo.rs"]
 mod turn_control_compute_next_turn_solo;
+#[path = "turn_control_end_cannon_time.rs"]
+mod turn_control_end_cannon_time;
 #[path = "turn_control_get_delta_percent.rs"]
 mod turn_control_get_delta_percent;
 #[path = "turn_control_get_frame_timing.rs"]
@@ -386,6 +402,8 @@ mod turn_control_speed_down;
 mod turn_control_speed_up;
 #[path = "turn_control_walk_data.rs"]
 mod turn_control_walk_data;
+#[path = "type_backup.rs"]
+mod type_backup;
 #[path = "type_bonus.rs"]
 mod type_bonus;
 #[path = "type_build.rs"]
@@ -480,6 +498,8 @@ mod type_unpay_cost;
 mod type_walk_rules_data;
 #[path = "type_wonder.rs"]
 mod type_wonder;
+#[path = "types_object_key.rs"]
+mod types_object_key;
 #[path = "types_walk_data.rs"]
 mod types_walk_data;
 #[path = "types_walk_rules_data.rs"]

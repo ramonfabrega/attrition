@@ -2508,6 +2508,33 @@ class FamilyRegistrations(unittest.TestCase):
         self.assertIn('the word at `m+0xdc` points at 8 random bytes less `0` (placed, null a third of the rows)', test + script)
         self.assertNotIn('the word at `m+0xd8` points at 8 random bytes less `0` (placed, null', test + script)
 
+    def test_an_at_table_may_be_drawn_from_a_range_words_or_signed_bytes(self):
+        # Item 3030 (parked 2998): `Unit::update_local_seen` reads `circle_radius`
+        # (the loop bound), `circle_x` and `circle_y` (signed bytes), image tables the
+        # boot builds; random bytes there index out of every table. `--at VA:SIZE:LO..HI`
+        # draws each 32-bit word from the range, `/b` each signed byte.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=3030, win=0x20, bias=[], own=0,
+            at=['0xcbe330:64:0..24', '0xcb7e90:64:-4..4/b', '0xcbb0e0:16'], ret='none', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn(f'AT = [({0xcbe330}, 64), ({0xcb7e90}, 64), ({0xcbb0e0}, 16)]', script)
+        self.assertIn(f'ATRANGE = {{{0xcbe330}: (0, 24, 4), {0xcb7e90}: (-4, 4, 1)}}', script)
+        self.assertIn('(each word in 0..24)', test + script)
+        self.assertIn('(each byte in -4..4)', test + script)
+        # The draw is the generated loop: words and signed bytes land in range.
+        import random
+        ns = {'rng': random.Random(1), 'ATRANGE': {1: (0, 24, 4), 2: (-4, 4, 1)}}
+        body = script[script.index('            if va in ATRANGE:'):]
+        body = body[:body.index('            uc.mem_write(va, bytes(buf))')]
+        import textwrap
+        for va, size, esz in ((1, 64, 4), (2, 64, 1)):
+            loc = {'va': va, 'size': size, 'rng': ns['rng'], 'ATRANGE': ns['ATRANGE'], 'buf': bytearray(size)}
+            exec(textwrap.dedent(body), loc)
+            vals = [int.from_bytes(loc['buf'][k:k + esz], 'little', signed=True) for k in range(0, size, esz)]
+            lo, hi = ns['ATRANGE'][va][:2]
+            self.assertTrue(all(lo <= v <= hi for v in vals), vals)
+            self.assertGreater(len(set(vals)), 3)
+
 
 if __name__ == '__main__':
     unittest.main()

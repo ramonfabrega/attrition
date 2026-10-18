@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -46,8 +51,16 @@ fn the_emulated_original_agrees_on_every_row() {
             // zeroes `+0x5e4`.
             let n = rd(&c[0], 0x5c4).max(0);
             let clears: Vec<String> = (0..n).map(|k| format!("p0+{:#x}", k * 0x13c)).collect();
-            log.push(if clears.is_empty() { "-".to_string() } else { clears.join("/") });
-            log.push(if rd(&c[0], 0xe4) != 0 { "c0+0x0,0".to_string() } else { "-".to_string() });
+            log.push(if clears.is_empty() {
+                "-".to_string()
+            } else {
+                clears.join("/")
+            });
+            log.push(if rd(&c[0], 0xe4) != 0 {
+                "c0+0x0,0".to_string()
+            } else {
+                "-".to_string()
+            });
             if rd(&c[0], 0x5d8) != 0 {
                 log.push("c0+0x5e0".to_string());
                 wr(&mut c[0], 0x5e4, 0);

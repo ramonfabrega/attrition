@@ -34,6 +34,8 @@ mod air_patrol_order_walk_data_vtordisp;
 mod airattackgroundorder_get_air_order;
 #[path = "airpatrolorder_get_air_patrol_order.rs"]
 mod airpatrolorder_get_air_patrol_order;
+#[path = "ammo_data_walk_data.rs"]
+mod ammo_data_walk_data;
 #[path = "ammo_out_set_shooter_vis.rs"]
 mod ammo_out_set_shooter_vis;
 #[path = "ammo_process.rs"]
@@ -58,6 +60,8 @@ mod armies_find_useful_army;
 mod armies_leader_defeated;
 #[path = "armies_num_armies.rs"]
 mod armies_num_armies;
+#[path = "armies_process_all.rs"]
+mod armies_process_all;
 #[path = "armies_send_navy.rs"]
 mod armies_send_navy;
 #[path = "armies_update_city.rs"]
@@ -128,6 +132,8 @@ mod borders_get_who;
 mod borders_is_border_hidden;
 #[path = "borders_out_no_border.rs"]
 mod borders_out_no_border;
+#[path = "borders_process_all.rs"]
+mod borders_process_all;
 #[path = "borders_remove_border_region.rs"]
 mod borders_remove_border_region;
 #[path = "borders_save_last_who.rs"]
@@ -224,6 +230,8 @@ mod build_queue_walk_data;
 mod build_remove_gatherer;
 #[path = "build_repair_damage.rs"]
 mod build_repair_damage;
+#[path = "build_swap_team.rs"]
+mod build_swap_team;
 #[path = "build_type_backup.rs"]
 mod build_type_backup;
 #[path = "build_type_corner_tile.rs"]
@@ -330,6 +338,8 @@ mod cast_order_walk_data_vtordisp;
 mod caster_walk_data;
 #[path = "categories_find_data.rs"]
 mod categories_find_data;
+#[path = "categories_find_key.rs"]
+mod categories_find_key;
 #[path = "circle_render_get_name.rs"]
 mod circle_render_get_name;
 #[path = "circle_render_on_field_change.rs"]
@@ -638,6 +648,8 @@ mod command_package_process_quit;
 mod command_package_process_recall;
 #[path = "command_package_process_reject.rs"]
 mod command_package_process_reject;
+#[path = "command_package_process_rename_city.rs"]
+mod command_package_process_rename_city;
 #[path = "command_package_process_repair.rs"]
 mod command_package_process_repair;
 #[path = "command_package_process_resign.rs"]
@@ -716,6 +728,8 @@ mod farms_data_get_wheat_status;
 mod farms_grow;
 #[path = "farms_out_get_name.rs"]
 mod farms_out_get_name;
+#[path = "farms_remove.rs"]
+mod farms_remove;
 #[path = "farms_snip.rs"]
 mod farms_snip;
 #[path = "farms_walk_data.rs"]

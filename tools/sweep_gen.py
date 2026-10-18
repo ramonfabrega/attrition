@@ -1446,6 +1446,7 @@ ARGSET = {argset!r}
 ARGFROM = {argfrom!r}
 CELLS = {cells!r}
 AT = {at!r}
+ATRANGE = {atrange!r}
 PTRARGS = {ptrargs!r}
 PNULLS = {pnulls!r}
 STUBS = {stubs!r}
@@ -1746,6 +1747,10 @@ def main(argv):
             wins.append((rec, buf))
         for va, size in AT:
             buf = bytearray(rng.randrange(256) for _ in range(size))
+            if va in ATRANGE:
+                lo, hi, esz = ATRANGE[va]
+                for k in range(0, size - esz + 1, esz):
+                    buf[k:k + esz] = rng.randint(lo, hi).to_bytes(esz, "little", signed=True)
             uc.mem_write(va, bytes(buf))
             wins.append((va, buf))
         gelems = []
@@ -2352,7 +2357,20 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     else:
         raise ValueError(f'obj --ret is eax, xmm0, al, none or arg:N (N a stack argument), not {ret!r}')
     pcells = [_window(c, 0x400) for c in cells]
-    pat = [_window(t, None) for t in at]
+    # `--at VA:SIZE:LO..HI[/b]` (item 3030, parked 2998): every element of the table drawn from
+    # LO..HI — 32-bit words, or signed bytes with `/b` — for an image table the boot builds and
+    # the loop bound or index reads (`circle_radius`, `circle_x`, `circle_y`).
+    atrange = {}
+    at_plain = []
+    for t in at:
+        parts = t.split(':')
+        if len(parts) == 3:
+            rng_, _, esz = parts[2].partition('/')
+            lo_, _, hi_ = rng_.partition('..')
+            atrange[int(parts[0], 0)] = (int(lo_, 0), int(hi_, 0), 1 if esz == 'b' else 4)
+            t = ':'.join(parts[:2])
+        at_plain.append(t)
+    pat = [_window(t, None) for t in at_plain]
     if any(size is None for _, size in pat):
         raise ValueError('--at VA:SIZE names the table\'s size')
     pptr = [_window(p, 0x100) for p in ptrargs]
@@ -2627,7 +2645,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     windoc = '; '.join(
         [window_order(pptr, pgtab, psparse, pplaces, pansw)]
         + [f'the global cell 0x{va:08x} points at {size} random bytes' for va, size in pcells]
-        + [f'{size} random bytes at 0x{va:08x}' for va, size in pat]
+        + [f'{size} random bytes at 0x{va:08x}' + (f' (each {"byte" if atrange[va][2] == 1 else "word"} in {atrange[va][0]}..{atrange[va][1]})' if va in atrange else '') for va, size in pat]
         + [f'argument {idx} names {size} random bytes' + (' (null a third of the rows)' if idx in ppnull else '')
            for idx, size in pptr]
         + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot'
@@ -2709,7 +2727,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + (['`ecx` and `edx` held to their draw every row, no wild word'] if tame else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
-                                   cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull, nullforce=pforce,
+                                   cells=pcells, at=pat, atrange=atrange, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull, nullforce=pforce,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, xmm=pxmm, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
@@ -3433,8 +3451,8 @@ def main(argv=None):
     ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk', 'mix', 'obj', 'void'))
     ap.add_argument('--cell-win', action='append', default=[], dest='cells', metavar='VA[:SIZE]',
                     help='obj: the global cell at VA points at SIZE (default 0x400) random bytes a row')
-    ap.add_argument('--at', action='append', default=[], metavar='VA:SIZE',
-                    help='obj: SIZE random bytes written at VA itself (a table in the image\'s data)')
+    ap.add_argument('--at', action='append', default=[], metavar='VA:SIZE[:LO..HI[/b]]',
+                    help='obj: SIZE random bytes written at VA itself (a table in the image\'s data); with LO..HI every 32-bit word (signed byte with /b) is drawn from the range')
     ap.add_argument('--ptrarg', action='append', default=[], metavar='IDX[:SIZE]',
                     help='obj: argument IDX names SIZE (default 0x100) random bytes')
     ap.add_argument('--ptrarg-null', action='append', default=[], metavar='IDX',

@@ -116,6 +116,8 @@ mod game_run_unit_editor;
 mod game_teams_locked;
 #[path = "game_unload_net_lib.rs"]
 mod game_unload_net_lib;
+#[path = "game_walk_data.rs"]
+mod game_walk_data;
 #[path = "game_walk_rules_data.rs"]
 mod game_walk_rules_data;
 #[path = "game_war_allowed.rs"]
@@ -200,6 +202,8 @@ mod group_attack_to_order_get_group_attack_to_order;
 mod group_attack_to_order_walk_data;
 #[path = "group_attack_to_order_walk_data_vtordisp.rs"]
 mod group_attack_to_order_walk_data_vtordisp;
+#[path = "group_can_activate.rs"]
+mod group_can_activate;
 #[path = "group_compute_speed.rs"]
 mod group_compute_speed;
 #[path = "group_data_can_transport.rs"]
@@ -594,6 +598,8 @@ mod object_kill_contents;
 mod object_los;
 #[path = "object_must_walk.rs"]
 mod object_must_walk;
+#[path = "object_poor_target.rs"]
+mod object_poor_target;
 #[path = "object_repair_damage.rs"]
 mod object_repair_damage;
 #[path = "object_support_cost.rs"]
@@ -634,8 +640,14 @@ mod object_type_restore;
 mod object_type_walk_rules_data;
 #[path = "object_update_los.rs"]
 mod object_update_los;
+#[path = "objects_array_get_data_type.rs"]
+mod objects_array_get_data_type;
 #[path = "objects_data_count_nukes_in_flight.rs"]
 mod objects_data_count_nukes_in_flight;
+#[path = "objects_data_find_city.rs"]
+mod objects_data_find_city;
+#[path = "objects_data_find_city_at.rs"]
+mod objects_data_find_city_at;
 #[path = "objects_data_find_good_at.rs"]
 mod objects_data_find_good_at;
 #[path = "objects_data_find_good_at_tcoord.rs"]
