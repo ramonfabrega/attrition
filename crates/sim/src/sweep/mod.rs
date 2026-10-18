@@ -18,6 +18,7 @@ mod build_type_get_good;
 mod city_get_empty_trade_routes;
 mod farms_add_animals;
 mod group_target_opportunity;
+mod guy_set_all_pivots;
 mod object_has_range;
 mod object_is_peasant;
 mod object_is_scholar;
