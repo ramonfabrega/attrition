@@ -181,8 +181,10 @@ pub(crate) const BATTERY: &[Lobby] = &[
             "rontrace-run898b.log",
         ),
         length: 15503,
-        count: 1440,
-        sequence: 1440,
+        // 1440 → 6982 on item 3160 (`get_cost`'s `TURK_CITIZEN` and
+        // `WOOL_CITIZENS_COST` arms, `cost::Modifiers::citizens`).
+        count: 6982,
+        sequence: 6982,
     },
     Lobby {
         name: "EastIndiesRomanTier2",
