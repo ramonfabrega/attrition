@@ -4077,9 +4077,6 @@ impl Sim {
                         dist += (targeted + 8) * 0x30;
                         let value = self.compare_target(attacker, o, in_range, ai);
                         let mut score = value / (dist / 0xc0 + 1);
-                        if std::env::var("RON_DEBUG_TGT").is_ok() && self.frame >= 622 && self.frame <= 625 {
-                            eprintln!("TGT f{} {:?} -> {:?} dist {} targeted {} value {} score {} ai {}", self.frame, attacker, o, dist, targeted, value, score, ai);
-                        }
                         // **The `flags` preferences** (`00649766`–
                         // `006497b2`): `0x10` halves what is not a unit,
                         // else `0x20` what is not a `Build` (a wall
@@ -4365,6 +4362,33 @@ impl Sim {
         } else {
             if tp.combat_role {
                 v *= 20;
+            }
+            // **A caster is weighed by what it is doing** (`0064ec6f`–`0064ed7b`,
+            // `docs/COMBAT.md` §12.3, item 3142): a unit target whose type is
+            // a spellcaster (`unit_flags2 & 2`) with no cast in its action
+            // (`get_action`, order index `CAST_SPELL`) is `+6,000,000` if it
+            // is a Spy; with a cast as its action it is `×20`, and `+10,000,000`
+            // more when that cast's target is this very attacker. Run920's
+            // Commando `0/7` sabotaging the Tank `1/7` outranks every decoy.
+            if let Obj::Unit(u) = target
+                && self.units[u].ty.is_some_and(|t| {
+                    self.unit_types[t].cols.unit_flags2 & crate::ai_load::uflags2::CASTER != 0
+                })
+            {
+                let action = self.action_of(u).map(|i| &self.units[u].orders[i]);
+                match action.map(|o| (o.index(), o.body)) {
+                    Some((crate::orders::index::CAST_SPELL, crate::orders::Body::Cast(c))) => {
+                        v *= 20;
+                        if c.target == Some(attacker) {
+                            v += 10_000_000;
+                        }
+                    }
+                    _ => {
+                        if self.unit_line_is(u, 0x3a) {
+                            v += 6_000_000;
+                        }
+                    }
+                }
             }
             // **The raid weights** (`0064edc4`–`0064eff9`): a raider wants
             // the economy. A peasant — exactly `PEASANTS`/`PEASANTSKOREAN`,
