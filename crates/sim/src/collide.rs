@@ -4673,6 +4673,61 @@ mod tests {
         }
     }
 
+    /// §4.3's **attackers' row** asks the action's `TargetOrder` whether
+    /// its target still stands (`TargetOrder::target_exists@0072ff10`)
+    /// before it measures the overreach (`detect_unit_collision@00617060:
+    /// 103-119`): two attackers of one player marching on a target far
+    /// beyond their range are soft to each other, and once the target is
+    /// dead they are hard. The battery word 12836 (`docs/AI.md` §245),
+    /// where the Scout `0/0` dies on 12835 and four of who=1's marchers
+    /// collide hard on 12836. Made to fail on purpose by dropping the
+    /// `obj_alive` gate in `attack_overreach`.
+    #[test]
+    fn attackers_on_a_dead_target_are_hard_to_each_other() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, y) = pair(a, b);
+        let mut e = sim.units[y].clone();
+        e.owner = 1;
+        e.index = 0;
+        e.pos = Pos::new(4 * 0x30 + 0x18, 4 * 0x30 + 0x18);
+        let t = sim.add_unit(e);
+        for (u, to) in [(x, b), (y, a)] {
+            let order = Order {
+                flags: 0,
+                body: Body::Attack(crate::orders::AttackOrder {
+                    defensive: false,
+                    def: None,
+                    in_range: false,
+                    ever_in_range: false,
+                    new_ord: true,
+                }),
+            };
+            sim.enqueue_order(u, order, QueuePos::New);
+            sim.add_move_order(
+                u,
+                to,
+                crate::orders::MoveKind::MoveTo,
+                QueuePos::First,
+                false,
+            );
+            sim.units[u].combat.target = Some(crate::combat::Obj::Unit(t));
+        }
+        assert!(sim.attack_overreach(x, b) > 0x300, "the target is far");
+        assert_eq!(sim.detect_unit_collision(x, b), None, "so the pair is soft");
+        assert!(sim.units[x].half_step);
+        let (mut sim2, x2) = (sim.clone(), x);
+        sim2.units[x2].half_step = false;
+        sim2.units[t].health = 0;
+        assert_eq!(sim2.attack_overreach(x2, b), 0, "a dead target is no reach");
+        assert_eq!(
+            sim2.detect_unit_collision(x2, b),
+            Some(y),
+            "and the pair is hard"
+        );
+        assert!(!sim2.units[x2].half_step);
+    }
+
     #[test]
     fn a_hard_hit_leaves_no_half_step_whatever_soft_it_passed() {
         let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
