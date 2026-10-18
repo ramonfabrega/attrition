@@ -183,12 +183,26 @@ pub(crate) const fn owed(from: Angle, to: Angle) -> u32 {
 /// written — so a frame that reverses the bank turns at the floor rather
 /// than at the old rate, which is the `(u ^ sign) < 0` arm.
 pub(crate) fn air_turn_speed(base: u32, roll: Single, sign: i32) -> u32 {
-    let v = roll.to_i32().wrapping_neg();
+    air_turn_speed_as(base, roll, sign, false)
+}
+
+/// [`air_turn_speed`] with the type's helicopter bit (`unit_flags & 0x20`,
+/// item 3272): the bank is read five times as large, and the rate is not
+/// floored (the reversed-bank answer is the floor's own constant either way).
+pub(crate) fn air_turn_speed_as(base: u32, roll: Single, sign: i32, heli: bool) -> u32 {
+    let mut v = roll.to_i32().wrapping_neg();
+    if heli {
+        v = v.wrapping_mul(5);
+    }
     if (v ^ sign) < 0 {
         return MIN_TURN;
     }
     let rate = (base / 0x37).wrapping_mul(v.unsigned_abs());
-    if rate < MIN_TURN { MIN_TURN } else { rate }
+    if rate < MIN_TURN && !heli {
+        MIN_TURN
+    } else {
+        rate
+    }
 }
 
 /// `Unit::find_new_air_target`'s selection over answered callees (item 3250,
@@ -2004,14 +2018,38 @@ impl Sim {
     /// frame (`frame & 7`, the game's own), and the ground test is an
     /// owner-under-eight's (`(byte)+0x9 > 7` goes straight to the clamp).
     pub(crate) fn bank_plane(&mut self, u: usize, des: Angle, speed: &mut i32, returning: bool) {
+        let animal = self.units[u].is_gaia();
+        self.bank_plane_as(u, des, speed, returning, animal, false);
+    }
+
+    /// [`Sim::bank_plane`] with the two answers it reads off the unit made
+    /// arguments (item 3272, the sweep of `Unit::bank_aircraft@005e9520`):
+    /// `animal` is the `is_animal` slot (`+0x30`), the owner byte's own
+    /// `< 8` test staying the unit's; `heli` the type's helicopter bit,
+    /// whose arms the plane's caller does not yet ask for (parked 3272a).
+    ///
+    /// **A helicopter** reads its bank five times over (`roll × 5` before the
+    /// work, `÷ 5` before the store) when it is not an animal, takes no
+    /// floor on the divisor, never doubles the wanted bank on a return (it
+    /// goes the ground-clearance way instead), and [`air_turn_speed_as`]
+    /// reads its bank times five too.
+    pub fn bank_plane_as(
+        &mut self,
+        u: usize,
+        des: Angle,
+        speed: &mut i32,
+        returning: bool,
+        animal: bool,
+        heli: bool,
+    ) {
         let stored = self.units[u].airframe.bank;
         let mut roll = stored.neg();
-        if self.units[u].is_gaia()
-            && roll.is_zero()
-            && self.units[u].spell_time >= 0
-            && self.frame & 7 == 0
-        {
-            return;
+        if animal {
+            if roll.is_zero() && self.units[u].spell_time >= 0 && self.frame & 7 == 0 {
+                return;
+            }
+        } else if heli {
+            roll = roll.mulss(F5);
         }
         let heading = self.units[u].movement.heading;
         let d = (des.0 as u32).wrapping_sub(heading.0 as u32);
@@ -2019,7 +2057,11 @@ impl Sim {
         let sign_in = if d > 0x8000_0000 { -1i32 } else { 1 };
         let raw = ((self.units[u].movement.turning.type_turn_speed as u32) >> 8)
             .wrapping_mul(self.tuning.unit_turn_speed as u32);
-        let divisor = if raw < MIN_TURN { MIN_TURN } else { raw };
+        let divisor = if raw < MIN_TURN && !heli {
+            MIN_TURN
+        } else {
+            raw
+        };
         let mut want = Single::from_u32(adelta)
             .divss(Single::from_i32(divisor as i32))
             .mulss(F55)
@@ -2027,7 +2069,7 @@ impl Sim {
         if F5.gt(want.abs()) {
             want = want.mulss(F_HALF);
         }
-        if returning {
+        if returning && !heli {
             // The returning arm: doubled, then the upper clamp.
             want = want.addss(want);
             if !F55.gt(want) {
@@ -2077,7 +2119,7 @@ impl Sim {
             }
         }
         if !snapped {
-            let rate = air_turn_speed(raw, stored, sign_out) as i32;
+            let rate = air_turn_speed_as(raw, stored, sign_out, heli) as i32;
             let h = self.units[u].movement.heading;
             self.units[u].movement.heading = Angle(h.0.wrapping_add(rate.wrapping_mul(sign_out)));
         }
@@ -2089,7 +2131,7 @@ impl Sim {
             if d2 < RETURN_SNAP {
                 self.units[u].movement.heading = des;
             } else {
-                let rate = air_turn_speed(raw, stored, sign_out) as i32;
+                let rate = air_turn_speed_as(raw, stored, sign_out, heli) as i32;
                 let h2 = Angle(h.0.wrapping_add(rate.wrapping_mul(sign_out)));
                 if fold((h2.0 as u32).wrapping_sub(des.0 as u32)) < d2 {
                     self.units[u].movement.heading = h2;
@@ -2099,7 +2141,10 @@ impl Sim {
         // `(s·3 + (s·3 >> 31 & 3)) >> 2`: three quarters, toward zero —
         // returning only.
         if returning && !roll.eq_value(Single::ZERO) {
-            *speed = *speed * 3 / 4;
+            *speed = speed.wrapping_mul(3) / 4;
+        }
+        if heli {
+            roll = roll.divss(F5);
         }
         let af = &mut self.units[u].airframe;
         af.last_bank = af.bank;
