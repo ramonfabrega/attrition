@@ -198,6 +198,8 @@ mod build_data_most_shots;
 mod build_data_num_gather;
 #[path = "build_data_num_scholars.rs"]
 mod build_data_num_scholars;
+#[path = "build_data_show_later_tech.rs"]
+mod build_data_show_later_tech;
 #[path = "build_find_target.rs"]
 mod build_find_target;
 #[path = "build_finished.rs"]
