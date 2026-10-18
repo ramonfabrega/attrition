@@ -162,6 +162,8 @@ mod borders_remove_border_region;
 mod borders_save_last_who;
 #[path = "build_add_attack_order.rs"]
 mod build_add_attack_order;
+#[path = "build_add_gather_point.rs"]
+mod build_add_gather_point;
 #[path = "build_add_gatherer.rs"]
 mod build_add_gatherer;
 #[path = "build_add_to_city.rs"]

@@ -18,6 +18,148 @@ pub struct GatherPoint {
     pub action: u8,
 }
 
+/// What `Build::add_gather_point@00622e70` asks of the world, in the order
+/// it asks it (item 3272; the sweep's emulated windows are the other
+/// implementor). `i` counts the owner's unit slots, as the original's loop.
+pub trait GatherPointView {
+    /// `Build::clear_gather`, the `QUEUE_NEW` arm.
+    fn clear_gather(&mut self);
+    /// `LinkListBase::add`: the point enters the list, at its head for
+    /// `QUEUE_FIRST` and at its end otherwise.
+    fn add(&mut self, p: GatherPoint, pos: QueuePos);
+    /// `build_masks & 8` and `is(0x1bf)`: the hangar arm's gate.
+    fn hangar(&mut self) -> bool;
+    /// How many unit slots the owner has.
+    fn planes(&mut self) -> usize;
+    /// Slot `i` is a live air unit homed at this building.
+    fn homed_plane(&mut self, i: usize) -> bool;
+    /// The front air order's `cruising_alt` and `sharp_turn`.
+    fn heights(&mut self, i: usize) -> Option<(i32, i32)>;
+    /// The list, walked from its head (one lap).
+    fn points(&mut self) -> Vec<GatherPoint>;
+    /// `add_strafe_order(unit, point, this, 1, QUEUE_NEW, 0)`.
+    fn strafe(&mut self, i: usize, q: GatherPoint);
+    /// `add_air_patrol_order(unit, point, this, 1)`; whether the unit then
+    /// has a patrol in front.
+    fn air_patrol(&mut self, i: usize, q: GatherPoint) -> bool;
+    /// The point appended to that patrol's arrays.
+    fn patrol_push(&mut self, i: usize, q: GatherPoint);
+    /// The patrol's `cruising_alt` and `sharp_turn` set.
+    fn patrol_heights(&mut self, i: usize, alt: i32, sharp: i32);
+}
+
+/// `Build::add_gather_point@00622e70`: the list, then the hangar arm.
+pub fn add_gather_point_steps<V: GatherPointView>(v: &mut V, p: GatherPoint, pos: QueuePos) {
+    if pos == QueuePos::New {
+        v.clear_gather();
+    }
+    v.add(p, pos);
+    if !v.hangar() {
+        return;
+    }
+    for i in 0..v.planes() {
+        if !v.homed_plane(i) {
+            continue;
+        }
+        let (alt, sharp) = v.heights(i).unwrap_or((0, 0));
+        let mut patrol = false;
+        for q in v.points() {
+            if q.action == 3 {
+                v.strafe(i, q);
+            } else if !patrol {
+                patrol = v.air_patrol(i, q);
+            } else {
+                v.patrol_push(i, q);
+            }
+        }
+        if patrol && (alt != 0 || sharp != 0) {
+            v.patrol_heights(i, alt, sharp);
+        }
+    }
+}
+
+/// [`GatherPointView`] over a [`Sim`](crate::Sim).
+struct GatherSim<'a> {
+    sim: &'a mut crate::Sim,
+    b: usize,
+    /// The owner's units in index order, drawn at `planes`.
+    planes: Vec<usize>,
+}
+
+impl GatherPointView for GatherSim<'_> {
+    fn clear_gather(&mut self) {
+        self.sim.clear_gather(self.b);
+    }
+    fn add(&mut self, p: GatherPoint, pos: QueuePos) {
+        let list = &mut self.sim.buildings[self.b].gather;
+        if pos == QueuePos::First {
+            list.insert(0, p);
+        } else {
+            list.push(p);
+        }
+    }
+    fn hangar(&mut self) -> bool {
+        self.sim.gather_hangar(self.b)
+    }
+    fn planes(&mut self) -> usize {
+        let who = self.sim.buildings[self.b].owner;
+        let mut v: Vec<usize> = (0..self.sim.units.len())
+            .filter(|&u| self.sim.units[u].owner == who)
+            .collect();
+        v.sort_by_key(|&u| self.sim.units[u].index);
+        self.planes = v;
+        self.planes.len()
+    }
+    fn homed_plane(&mut self, i: usize) -> bool {
+        let u = self.planes[i];
+        self.sim.units[u].alive()
+            && matches!(
+                self.sim.profile(crate::combat::Obj::Unit(u)).domain,
+                crate::attrition::Domain::Air
+            )
+            && self.sim.home_base(u) == Some(self.b)
+    }
+    fn heights(&mut self, i: usize) -> Option<(i32, i32)> {
+        self.sim.air_order_heights(self.planes[i])
+    }
+    fn points(&mut self) -> Vec<GatherPoint> {
+        self.sim.buildings[self.b].gather.clone()
+    }
+    fn strafe(&mut self, i: usize, q: GatherPoint) {
+        let target = self.sim.gather_object(q.pos);
+        let b = Some(self.b);
+        self.sim
+            .add_strafe_order(self.planes[i], target, b, true, QueuePos::New, false);
+    }
+    fn air_patrol(&mut self, i: usize, q: GatherPoint) -> bool {
+        let u = self.planes[i];
+        self.sim.add_air_patrol_order(u, q.pos, Some(self.b), true);
+        matches!(
+            self.sim.units[u].orders.front().map(|o| &o.body),
+            Some(crate::orders::Body::AirPatrol(_))
+        )
+    }
+    fn patrol_push(&mut self, i: usize, q: GatherPoint) {
+        if let Some(crate::orders::Body::AirPatrol(ap)) = self.sim.units[self.planes[i]]
+            .orders
+            .front_mut()
+            .map(|o| &mut o.body)
+        {
+            ap.push(q.pos);
+        }
+    }
+    fn patrol_heights(&mut self, i: usize, alt: i32, sharp: i32) {
+        if let Some(crate::orders::Body::AirPatrol(ap)) = self.sim.units[self.planes[i]]
+            .orders
+            .front_mut()
+            .map(|o| &mut o.body)
+        {
+            ap.cruising_alt = alt;
+            ap.sharp_turn = sharp;
+        }
+    }
+}
+
 use crate::Sim;
 use crate::build::{self, Ident};
 use crate::movement::{Angle, find_angle};
@@ -190,40 +332,13 @@ impl Sim {
     /// SEAM: a point after an action-3 one is appended to a patrol the
     /// strike has closed; nothing here lays that list.
     pub fn add_gather_point(&mut self, b: usize, p: GatherPoint, new: bool) {
-        if new {
-            self.clear_gather(b);
-        }
-        self.buildings[b].gather.push(p);
-        if !self.gather_hangar(b) {
-            return;
-        }
-        let list = self.buildings[b].gather.clone();
-        for u in self.homed_planes(b) {
-            let heights = self.air_order_heights(u);
-            let mut patrol = false;
-            for q in &list {
-                if q.action == 3 {
-                    let target = self.gather_object(q.pos);
-                    self.add_strafe_order(u, target, Some(b), true, QueuePos::New, false);
-                } else if !patrol {
-                    self.add_air_patrol_order(u, q.pos, Some(b), true);
-                    patrol = true;
-                } else if let Some(crate::orders::Body::AirPatrol(ap)) =
-                    self.units[u].orders.front_mut().map(|o| &mut o.body)
-                {
-                    ap.push(q.pos);
-                }
-            }
-            if patrol
-                && let Some((alt, sharp)) = heights
-                && (alt != 0 || sharp != 0)
-                && let Some(crate::orders::Body::AirPatrol(ap)) =
-                    self.units[u].orders.front_mut().map(|o| &mut o.body)
-            {
-                ap.cruising_alt = alt;
-                ap.sharp_turn = sharp;
-            }
-        }
+        let pos = if new { QueuePos::New } else { QueuePos::Last };
+        let mut v = GatherSim {
+            sim: self,
+            b,
+            planes: Vec::new(),
+        };
+        add_gather_point_steps(&mut v, p, pos);
     }
 
     /// `Build::clear_gather@00623180`: the list emptied. **At an Airbase**
