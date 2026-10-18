@@ -50,10 +50,14 @@ mod unit_add_build_order;
 mod unit_add_garrison_order;
 #[path = "unit_add_patrol_order.rs"]
 mod unit_add_patrol_order;
+#[path = "unit_add_repair_order.rs"]
+mod unit_add_repair_order;
 #[path = "unit_add_spec_anim_order.rs"]
 mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
 mod unit_air_alt_speed;
+#[path = "unit_build_done.rs"]
+mod unit_build_done;
 #[path = "unit_cavarch_fight.rs"]
 mod unit_cavarch_fight;
 #[path = "unit_cavarch_fight_written.rs"]
@@ -184,6 +188,8 @@ mod unit_do_spec_unit_anim;
 mod unit_execute_events;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
+#[path = "unit_find_repair_spot.rs"]
+mod unit_find_repair_spot;
 #[path = "unit_get_speed.rs"]
 mod unit_get_speed;
 #[path = "unit_go_to_city.rs"]

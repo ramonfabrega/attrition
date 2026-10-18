@@ -7629,13 +7629,28 @@ All six built, none parked for a missing flag. The unreached arms, numbered at t
 
 - (3204) Answered for a Tank's combat death by GOLDEN §129 (run931): both captains cross the released cell in the original and in ours. Not answered: the non-combat death sites (3190) that still clear the disc; no capture reaches one, so it names no score.
 
-## Parked by the next landing, slot IT — reserved
+## Parked by item 3219, 2026-10-18 — the sweep's twelfth batch (six port bodies)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+3219 (a). **`Sim::count_gather_slots` parts from the original on two points the sweep's helper does not share.** The
+swept walk (`ai_types::gather_slots_walk`, unclamped, no liveness test) agrees with `City::count_gather_slots@00737dc0`
+on 600 rows; the Sim method clamps each good's open slots with `.max(0)` and skips a dead building, where the original
+adds `max - num_gatherers` unclamped and tests only the type. Reaches the AI when `num_gatherers` exceeds
+`gather_max` (a University with seated scholars past its max). No score named; parks until a frame shows it.
+
+3219 (b). **`Sim::add_repair_order` (and `add_build_order`) carry no transport flag.** The original's tail sets
+`unit_flags |= 0x800000` when the target's tregion differs from the unit's, the leader's transport tier is at least
+`UnitData::transport_type` and `can_ever_transport` holds; `add_repair_order` also requires the world tile's `& 0x30`
+not to read `0x20` (`world+0x138`, stride `world+0x18`). The sweep ports it in the test (21 breaks held) and the crate
+does not. Names no score; first frame that shows `0x800000` unit-flag disagreement books it.
+
+3219 (c). **`find_repair_spot`'s stance arms are swept with the real `get_worker_stance` run** (`--slotbase 0xf8` and
+`0x104`; it returns `WORKER_STAND` = 3 without a stance type, the listing's `movl $3, %eax`), the leadersc table is
+the cell's own inline array (`--cell-win`, not a `--place`). Two breaks passed until the leadersc words were biased
+(`--wbias c5+*:2,2,2,0,1`): a table the draw leaves random never answers 2.
+
+3219 (d). **`build_done`'s `find_gather_spot` third argument is stack residue** (the last call's return address:
+`0x603c22` on the AI arm, `0x603c82` / `0x603c91` on the other); `--clean-stack 64` zeroed the rest. No generator
+flag was missing.
 
 ## Parked by item 3221, 2026-10-18 — the Aztec `has_tribe_bonus(0)` callers
 
@@ -7692,6 +7707,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot JB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JF renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
