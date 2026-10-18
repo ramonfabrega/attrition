@@ -7859,13 +7859,55 @@ All six swept (`Roads::scan_and_kill_stray_roads`, `Army::engagement`, `Unit::go
     list, so a rare one side gains alone parts no key; run940's Cotton was read off the dump, the compared
     `resources`/`income` standing in. For the commander to carry to the Loop section at the merge.
 
-## Parked by the next landing, slot JH — reserved
+## Parked by item 3250, 2026-10-18 — the sweep's fifteenth batch (six more port bodies against the crate)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+3250 (a). **What each sweep drives.** `can_garrison` calls `Sim::can_garrison` (3000 rows, 31 of 32 breaks; the survivor, the
+University exclusion, needs build-table entries past 0x1a4). `add_to_city` calls `Sim::add_to_city` with the chain write, the four
+city-flag bits and the `Wall::increment_stats` call inline (29 of 30; one equivalent). `target_opportunity` calls
+`Sim::group_target_opportunity` (`target_opportunity_in` made `pub(crate)`; 29 of 34, five equivalent or by-draw). `find_new_air_target`
+drives an extracted `air::pick_air_target` (the walk, with the lists and callees as closures; `Sim::find_new_air_target` calls it;
+35 of 36, one equivalent). `think_peasant` is a hand-ported dispatch plus the real `Sim::think_peasant` on the idle gate (now `pub`;
+56 of 57, the survivor starved at ~1 row in 1600). `do_forming` drives `do_forming_steps` over a test `FormView`
+(extracted from `army.rs`, as `MarchView`; two modules, 48 of 48).
+
+3250 (b). **`can_garrison`:** patch version <= 3 arms are unmodelled (the crate assumes > 3); the original's first arm is exact index
+equality, the crate's is lineage (`build::is`), unseen by the sweep; param -1 (`usize` cannot express it) is checked inline; the
+University exclusion wants `--ptrtab` aliasing (`--ptrtab LOC:N:SIZE:alias=K`) to reach 0x1a5+. Stub slots answer in call order, not by id.
+
+3250 (c). **`add_to_city`:** the crate has no alive gate (the original does nothing when `city.flags & 1` is clear, not even `+0x72`);
+pinned as a known parting. Unmodelled: city flag bits `+4 & 0x80/0x400/0x200/0x800`, the `Wall::increment_stats` call, the building's
+`+0x74` link (the crate's `members` dedups where the original appends); the crate's temple `sync_territory` has no original
+counterpart and is undrawn. Unswept: an empty city (`objects[-1]`), `who >= 2`.
+
+3250 (d). **`target_opportunity`:** `squad_captain` (orders.rs) stops at a dead `o_up` where `UnitData::get_captain@610ab0` walks on
+(92 of 3000 rows; field `Unit.o_up` with `health > 0`). The crate has no order of index NONE, so a null action and a NONE-typed one collapse.
+A unit twice in the member list is skipped (406 rows). Generator: `--answers` gives one `get_action` window a row, so action presence
+is constant across a row's members (wanted: a `--seq`-like per-call null for a placed pointer). `--regen` on the `.rs` wipes the
+helpers outside the port block.
+
+3250 (e). **`find_new_air_target`:** the `param_3 >= 0` arm is a SEAM in the crate (the sweep draws `--argrange 2:-1:-1`); the
+crate's "computer's plane" swap reads `ai_driven(owner)` where the original reads the unit's `unit_masks & 0x40000` (`unit_ai_bit`
+is neither); `find_units`' candidate sets and `valid_target`/`compare_target` are stubbed, not diffed; the crate returns only `Obj::Unit`.
+
+3250 (f). **`think_peasant`:** the crate has one `stance` where the original calls the slot up to three times with independent answers;
+the production `get_worker_stance` inline arm is unswept (wanted `--vtat-keep 0xf8:0x6109f0` plus a `+0x134` type slot stub); the gate
+reads `ai_driven(owner)` against the unit's bit; `deselect` (slot `+0x10`) is a crate SEAM; `find_gather_spot`'s two stale stack words
+are not compared. **`--regen` with a changed `--rows`/`--answer-range` resets a hand-written port to `todo!()`** (restored from git by
+hand): a generator bug, Loop. A 57-break batch took hours at host load ~18.
+
+3250 (g). **`do_forming`:** the crate has one group, the original loops group slots (`+0x96`, ids `+0x54`); the original's stance rule
+and its friend test compare different fields (leaders `+8` against the short `+0x94`), the crate uses `tw != who` for both; the age
+test is signed `(age ^ 0x63187) < 4`, the crate's `military_level() < 4` is another function (the sweep runs the view's version, not
+the crate's, so this is unpinned); `FormSim`'s own methods are covered only by the army tests. Generator flags it could not spell:
+`--init ADDR` (run a function before the rows: `sine_table` is zero until `trig_init@00a46980`, so `project`/`sin_table` are stubbed),
+`--record-edx IDX,...` (it is global), and an argument mask for a recorded stub whose words the callee never writes
+(`action_siege_attack_to`, two); the masks live in the test outside the port block and are lost on `--regen`
+(`$CLAUDE_JOB_DIR`-scratch `mask.py`). A city number of 3 or more faults the original and is excluded. Not exercised: more than four
+groups, target owner above 2.
+
+3250 (h). **3250's "for the Loop"** (the journal's line, for the commander to file): `sweep_gen.py --regen` with a changed
+`--rows` or `--answer-range` resets a hand-written port to `todo!()`; wanted flags `--init ADDR`, a per-stub `--record-edx`, and an
+argument mask for a recorded stub (3250 (f), (g)).
 
 ## Parked by item 3252, 2026-10-18 — chapter one hundred closes at 2600
 

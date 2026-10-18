@@ -3476,7 +3476,7 @@ impl Sim {
     /// [`Sim::target_opportunity`] with the original's `param_3`: `true`
     /// when `Group::target_opportunity` is the caller, which skips the
     /// group arm below (`005fffc0`'s `param_3 == 0` test).
-    fn target_opportunity_in(&mut self, victim: usize, attacker: Obj, from_group: bool) {
+    pub(crate) fn target_opportunity_in(&mut self, victim: usize, attacker: Obj, from_group: bool) {
         let (a, b) = (self.units[victim].owner, self.owner_of(attacker));
         if !self.at_war_with(a, b) && !self.at_war_with(b, a) {
             return;

@@ -1476,36 +1476,14 @@ impl Sim {
     // ---- forming (§8) ----
 
     /// `Army::do_forming`: the muster cell's centre, projected a tile per
-    /// group, and one order per group.
+    /// group, and one order per group. The steps are [`do_forming_steps`]'s
+    /// (item 3250's sweep), over this crate's [`FormSim`].
     fn do_forming(&mut self, who: Player, slot: usize) {
-        if self.army_is_engaged(who, slot) {
-            return;
-        }
-        let w = who as usize;
-        let (muster, ang, hurry) = {
-            let a = &self.armies[w].list[slot];
-            (a.muster, a.muster_angle, a.hurry)
-        };
-        let groups = self.armies[w].list[slot].num_groups();
-        let origin = step_along(cell_centre(muster), ang, groups * 0xc0);
-        self.army_stance_rule(who, slot);
-        let siege = self.army_siege_here(who, slot, origin);
-        let friendly_attacked = self.army_target_is_a_friend_under_attack(who, slot);
-        let g = self.army_group(who, slot);
-        if !siege && (hurry != 0 || friendly_attacked) {
-            self.army_set_stance(who, slot, Stance::Aggressive);
-            self.group_action_move_to(
-                &g,
-                origin,
-                QueuePos::New,
-                true,
-                ang,
-                MoveKind::AttackTo,
-                true,
-            );
-        } else {
-            self.group_action_siege_attack_to(&g, origin, ang);
-        }
+        do_forming_steps(&mut FormSim {
+            sim: self,
+            who,
+            slot,
+        });
     }
 
     /// §8.4's second half of the move-or-siege choice, shared with
@@ -3282,6 +3260,263 @@ pub(crate) fn set_stance_steps<C>(
             action(cx, g, s);
         }
         i += 1;
+    }
+}
+
+/// What `Army::do_forming@006f43c0` asks of the army, its groups and the
+/// world (item 3250): the swept steps [`do_forming_steps`] read the world
+/// only through this, so the sweep's port is a view over the emulated
+/// original's windows and the crate's is [`FormSim`]. A group is the id the
+/// army's slot `i` (`+0x54 + 4i`) names; this crate has the one.
+pub(crate) trait FormView {
+    /// `Army::is_engaged@006f56d0`.
+    fn engaged(&mut self) -> bool;
+    /// The short at `+0x96`: the army's group slots.
+    fn group_count(&self) -> i32;
+    /// The muster cell (`+0x48`, `+0x4c`).
+    fn muster(&self) -> Cell;
+    /// `+0x50`.
+    fn muster_angle(&self) -> Angle;
+    /// The group id in slot `i` (`+0x54 + 4i`); negative is empty.
+    fn group_id(&self, i: i32) -> i32;
+    /// The group record's `+0xc` is nonzero (it has units).
+    fn group_populated(&mut self, g: i32) -> bool;
+    /// The group record's `+8` = the army's id (the short at `+2`).
+    fn group_claim(&mut self, g: i32);
+    /// `+0x2c != 0`.
+    fn hurry(&self) -> bool;
+    /// `+0x34 >= 0`: the army holds a target's owner.
+    fn has_target_who(&self) -> bool;
+    /// `+0x34 != leaders.list[me].+8`, the stance rule's own test.
+    fn target_who_differs(&self) -> bool;
+    /// The stance rule's war test on the target's owner.
+    fn target_enemy(&mut self) -> bool;
+    /// The Military age's rule: `(age ^ 0x63187) < 4`.
+    fn young(&mut self) -> bool;
+    /// `Army::count(COUNT_SIEGE, 0)@006f9120`.
+    fn siege_count(&mut self) -> i32;
+    /// `Army::set_stance@006f8750`.
+    fn set_stance(&mut self, s: Stance);
+    /// `ObjectsData::find_building(.., SEARCH_ENEMY, me, 0x300, 0x200,
+    /// FILTER_COMBAT) >= 0` at `p`.
+    fn enemy_combat_building_near(&mut self, p: Pos) -> bool;
+    /// `+0x34 == me` (the short at `+0x94`), the friend test's own.
+    fn target_is_me(&self) -> bool;
+    /// `LeaderData::is_ally@006edb50(+0x34)`.
+    fn target_ally(&mut self) -> bool;
+    /// `+0x30 >= 0`: the army holds a target object.
+    fn has_target_obj(&self) -> bool;
+    /// The target's city record `flags` (`+4`), or `None` for a negative
+    /// city number.
+    fn target_city_flags(&mut self) -> Option<i32>;
+    /// `project@0092cf40(p, angle, d)`: the point `d` along `angle`.
+    fn project(&mut self, p: Pos, angle: Angle, d: i32) -> Pos;
+    /// `sin_table@00a46a00(folded, d)`: the sine component of the folded
+    /// angle (`ecx`) and signed distance (`edx`).
+    fn sin_table(&mut self, folded: i32, d: i32) -> i32;
+    /// `Group::action_move_to@0070fba0`.
+    #[allow(clippy::too_many_arguments)]
+    fn form_move_to(
+        &mut self,
+        g: i32,
+        to: Pos,
+        queue: QueuePos,
+        set_angle: bool,
+        angle: Angle,
+        kind: MoveKind,
+        action: bool,
+    );
+    /// `Group::action_siege_attack_to@0070d830`.
+    fn siege_attack_to(&mut self, g: i32, to: Pos, angle: Angle);
+}
+
+/// **`Army::do_forming@006f43c0`'s steps** (item 3250): an engaged army
+/// does nothing (returns `false`). Otherwise the muster cell's centre is
+/// projected `num_groups x 0xc0` along the muster angle, and every
+/// populated group is claimed, gets the stance rule (a hostile target before
+/// Gunpowder with no hurry and no siege: raid), and one order at the
+/// current point: the siege order when an enemy combat building stands
+/// within a cell and the army has siege, or when neither hurry nor an
+/// attacked friendly city asks for the move; the attack-move otherwise
+/// (stance Aggressive first). The point then steps half a cell back along
+/// `muster_angle - 0x80000000` for the next group.
+pub(crate) fn do_forming_steps<V: FormView>(v: &mut V) -> bool {
+    if v.engaged() {
+        return false;
+    }
+    let n = v.group_count();
+    let ang = v.muster_angle();
+    let mut at = v.project(cell_centre(v.muster()), ang, n * 0xc0);
+    for i in 0..n {
+        let g = v.group_id(i);
+        if g < 0 || !v.group_populated(g) {
+            continue;
+        }
+        v.group_claim(g);
+        if v.has_target_who()
+            && v.target_who_differs()
+            && v.target_enemy()
+            && !v.hurry()
+            && v.young()
+            && v.siege_count() == 0
+        {
+            v.set_stance(Stance::Raid);
+        }
+        let siege = v.enemy_combat_building_near(at) && v.siege_count() != 0;
+        let mv = !siege
+            && (v.hurry()
+                || ((v.target_is_me() || v.target_ally())
+                    && v.has_target_obj()
+                    && v.target_city_flags().is_some_and(|f| f & 3 == 3)));
+        if mv {
+            v.set_stance(Stance::Aggressive);
+            v.form_move_to(g, at, QueuePos::New, true, ang, MoveKind::AttackTo, true);
+        } else {
+            v.siege_attack_to(g, at, ang);
+        }
+        // The half-cell step back along `ang - 0x80000000`: the inline fold
+        // (a negative angle negates the distance and drops its sign bit; the
+        // second quarter mirrors) ahead of `sin_table`, once for x and once,
+        // a quarter turn on, for y.
+        let back = ang.0.wrapping_add(i32::MIN);
+        let fold = |a: i32| -> (i32, i32) {
+            let (mut a, mut d) = (a, 0x180);
+            if a < 0 {
+                d = -0x180;
+                a &= 0x7fff_ffff;
+            }
+            (
+                if a & 0x4000_0000 != 0 {
+                    0x7fff_ffff - a
+                } else {
+                    a
+                },
+                d,
+            )
+        };
+        let (e, d) = fold(back);
+        let dx = v.sin_table(e, d);
+        let (e, d) = fold(back.wrapping_add(0x4000_0000));
+        let dy = v.sin_table(e, d);
+        at = Pos::new(at.x.wrapping_add(dx), at.y.wrapping_sub(dy));
+    }
+    true
+}
+
+/// This crate's [`FormView`]: the army `slot` of `who`, whose one group
+/// carries every unit. Where the crate models less than the original, the
+/// answer is the crate's rule: the group's id is the slot, the hostile and
+/// ally tests are on the target object's owner, and a target building's
+/// city is the friend test's record.
+struct FormSim<'a> {
+    sim: &'a mut Sim,
+    who: Player,
+    slot: usize,
+}
+
+impl FormSim<'_> {
+    fn tw(&self) -> Option<Player> {
+        self.sim.armies[self.who as usize].list[self.slot]
+            .target
+            .map(|t| self.sim.owner_of(t))
+    }
+}
+
+impl FormView for FormSim<'_> {
+    fn engaged(&mut self) -> bool {
+        self.sim.army_is_engaged(self.who, self.slot)
+    }
+    fn group_count(&self) -> i32 {
+        self.sim.armies[self.who as usize].list[self.slot].num_groups()
+    }
+    fn muster(&self) -> Cell {
+        self.sim.armies[self.who as usize].list[self.slot].muster
+    }
+    fn muster_angle(&self) -> Angle {
+        self.sim.armies[self.who as usize].list[self.slot].muster_angle
+    }
+    fn group_id(&self, i: i32) -> i32 {
+        i
+    }
+    fn group_populated(&mut self, _: i32) -> bool {
+        true
+    }
+    fn group_claim(&mut self, _: i32) {}
+    fn hurry(&self) -> bool {
+        self.sim.armies[self.who as usize].list[self.slot].hurry != 0
+    }
+    fn has_target_who(&self) -> bool {
+        self.tw().is_some()
+    }
+    fn target_who_differs(&self) -> bool {
+        self.tw().is_some_and(|tw| tw != self.who)
+    }
+    fn target_enemy(&mut self) -> bool {
+        self.tw().is_some_and(|tw| self.sim.is_enemy(self.who, tw))
+    }
+    fn young(&mut self) -> bool {
+        (self.sim.tech[self.who as usize].military_level() as i32) < 4
+    }
+    fn siege_count(&mut self) -> i32 {
+        self.sim.army_count_siege(self.who, self.slot)
+    }
+    fn set_stance(&mut self, s: Stance) {
+        self.sim.army_set_stance(self.who, self.slot, s);
+    }
+    fn enemy_combat_building_near(&mut self, p: Pos) -> bool {
+        let who = self.who;
+        self.sim.buildings.iter().any(|b| {
+            b.alive
+                && b.active
+                && self.sim.is_enemy(who, b.owner)
+                && b.ty.is_some_and(|t| self.sim.build_types[t].attack != 0)
+                && dist(b.pos, p) <= UNITS_PER_CELL
+        })
+    }
+    fn target_is_me(&self) -> bool {
+        self.tw() == Some(self.who)
+    }
+    fn target_ally(&mut self) -> bool {
+        self.tw().is_some_and(|tw| self.sim.is_ally(self.who, tw))
+    }
+    fn has_target_obj(&self) -> bool {
+        self.sim.armies[self.who as usize].list[self.slot]
+            .target
+            .is_some()
+    }
+    fn target_city_flags(&mut self) -> Option<i32> {
+        let t = self.sim.armies[self.who as usize].list[self.slot].target?;
+        match t {
+            Obj::Building(b) => self.sim.buildings[b].city.map(|c| {
+                let cd = &self.sim.cities[c];
+                i32::from(cd.alive) | i32::from(cd.no_heal) << 1
+            }),
+            _ => None,
+        }
+    }
+    fn project(&mut self, p: Pos, angle: Angle, d: i32) -> Pos {
+        step_along(p, angle, d)
+    }
+    fn sin_table(&mut self, folded: i32, d: i32) -> i32 {
+        movement::sin_component(Angle(folded), d)
+    }
+    fn form_move_to(
+        &mut self,
+        _: i32,
+        to: Pos,
+        queue: QueuePos,
+        set_angle: bool,
+        angle: Angle,
+        kind: MoveKind,
+        action: bool,
+    ) {
+        let g = self.sim.army_group(self.who, self.slot);
+        self.sim
+            .group_action_move_to(&g, to, queue, set_angle, angle, kind, action);
+    }
+    fn siege_attack_to(&mut self, _: i32, to: Pos, angle: Angle) {
+        let g = self.sim.army_group(self.who, self.slot);
+        self.sim.group_action_siege_attack_to(&g, to, angle);
     }
 }
 
