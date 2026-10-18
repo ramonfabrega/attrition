@@ -7295,7 +7295,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3078, 2026-10-17 — two shapes swept, Census 1444 → 1446
 
-(3078, first) **Swept: `BuildData::show_later_tech@0062d920` and `UnitData::get_attrition@00608fd0`.**
+(3078, first) **Swept: `BuildData::show_later_tech` and `UnitData::get_attrition@00608fd0`.**
 `show_later_tech`: the stubs ride `--seq 0..3:4` (a constant answer makes every `has_tech == 0` path end at 0), the
 tech table is `--place 0xc0aabc:-4:0x30` plus nine `--place p0+4k` records so that `get_preq`'s `-1` reads a valid
 record (a `--ptrtab` put index -1 on a neighbouring window and faulted at 0x1000); 11 of 12 breaks held, `go(preq,
