@@ -2391,19 +2391,6 @@ impl Sim {
             frame,
             &self.mods_of(owner),
         );
-        if std::env::var("RON_PROBE_HIT").is_ok() {
-            for fa in [-904069120i32, -713181696, -522294272, 297926656] {
-                let mut t2 = tt;
-                t2.facing = Angle(fa);
-                let d2 = combat::get_damage(
-                    &self.tuning, &ap, at, &tp, t2, self.attack_of(attacker), self.armor_of(target), pct, angle, splash, frame, &self.mods_of(owner),
-                );
-                eprintln!("PROBE alt facing {fa} -> {d2}");
-            }
-            eprintln!("PROBE armor {} pct {pct} ap {ap:?}", self.armor_of(target));
-            let tgt_ang = if let Obj::Unit(t) = target { self.units[t].movement.facing } else { Angle(0) };
-            eprintln!("PROBE f{frame} {attacker:?}->{target:?} ang {angle:?} tang {tgt_ang:?} dmg {dmg:?} quiet {quiet} count {count} ammo {ammo} splash {splash}");
-        }
         // Step 2: the target's captain reacts, and the overkill record.
         if let Obj::Unit(t) = target
             && !quiet
@@ -2428,7 +2415,6 @@ impl Sim {
             ap.ammo_per_att,
             ap.uber_size,
         );
-        if std::env::var("RON_PROBE_HIT").is_ok() { eprintln!("PROBE dealt f{frame} {dealt:?}"); }
         // Step 6: `dtype`, which is the death animation's gate (§42.1).
         // `get_damage` leaves 2, or 3 for an EXPLOSIVE/BOMBARD attacker;
         // `do_damage` then overrides it to **4** for an ammo whose graphic
