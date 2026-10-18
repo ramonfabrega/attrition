@@ -530,13 +530,18 @@ impl Sim {
     }
 
     /// `UnitData::is_modern_infantry@00607b40`: `unit_flags & 0x100` and a
-    /// type age past 5 — or, for a player with tribe bonus `0x12`, the flag
-    /// alone. The simulation has no tribe bonuses, so it is the flag and the
-    /// age.
+    /// type age past 5 — or, for a player with tribe bonus `0x12` (the
+    /// Iroquois), the flag alone, asked first and in place of the age
+    /// (item 3211: run930's Slingers, TI 82, step 35 on a speed of 28 and
+    /// take the follower scatter from block 5564, `docs/AI.md` §253).
     pub(crate) fn is_modern_infantry(&self, u: usize) -> bool {
+        let iroquois = self.tech.get(self.units[u].owner as usize).is_some_and(|p| {
+            self.tech_tree
+                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
+        });
         self.units[u].ty.is_some_and(|t| {
             let ty = &self.unit_types[t];
-            ty.cols.unit_flags & 0x100 != 0 && ty.combat.age > 5
+            ty.cols.unit_flags & 0x100 != 0 && (iroquois || ty.combat.age > 5)
         })
     }
 
