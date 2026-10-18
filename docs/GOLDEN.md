@@ -13302,12 +13302,13 @@ on a firing target (reached only after 629); the Commando's wound at 666.
 
 **Not established**: whether the missing release is the bit alone or the turret's later aim (the dump prints no turret); the next word, 1174 — ours spends `0/12`'s `Unit::move_step+0x823` stop draw (`Guy::set_anim+0x97a`) where theirs spends none; `1/6`'s `death:extra` on 946 stands.
 
-## 125. Reserved for the next item on the rules track
+## 125. Chapter ninety-five — a dead Tank's disc stands: the word 1174 → 1200, closed (item 3175, run920)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The frame.** The booking's draw wording was stale: both sides draw `0/12`'s `Unit::move_step+0x823` stop at index 0 on 1174. The draws part at index 1: theirs `PathFinder::astar_path+0x1697` (the open-list-exhausted tail's retry roll, `% 3 + 6` = 7, and `safe += 30`), from `find_upath` inside `resolve_unit_collision`'s repath (`anti = 1`, the collider `0/8` also attacking), ours none. The trace's `calc_cost` list for the call (`report.py … calls 1174`) is four priced cells down column 14328 (rows 16776–16872) and then nothing; ours prices the same four and goes on through `(14328,16920)` to an 11-step path. Everything before it agrees (position, `coll`, the stop draw).
+
+**The mechanism.** `(14328,16920)` is refused in the original by the occupancy index. The one unit whose disc covers it is the dead Tank `1/7` (died 1144, at (14328,17064), unit cell 355, `coll_size` 3): skipping `coll_remove` for `1/7` alone moves the chapter to 1200, for `0/7`, `0/11`, `0/14` it moves nothing, and skipping it for every death breaks chapters 1 and 2. `Object::close@00647160` has the arm: for a death (`param_1 != 0`) of a type whose vslot `+0x120` answers (`UnitTypeData::blocks_while_dead`, `unit_flags & 0x800000`, `docs/COMBAT.md` §59.3) the `remove_from_world` clear is skipped, the object stays in the world. **Built**: `Sim::close_supply_in(unit, keep_disc)`, called from `take_damage`'s death arm with `dtype != 0 && on_map && uflags::BLOCKS_WHILE_DEAD`. `golden::` 258 passed, only chapter 95's widening re-pinned: the word is the capture's end, 1200, and the widening keeps the eleven `form` rows and `1/6`'s `death:extra` on 946.
+
+**Not established**: which unit types carry `0x800000` (the Tank does; no census was run); when the disc is released — the original presumably clears it when the death object ends, and this crate has no cull, so a kept disc stands for ever here (`1/6`'s `death:extra` on 946 is that cull: theirs ends the record after 152 frames, piece 194, anim 20); `Unit::close`'s other arms that zero `param_1` (the non-combat deaths) are taken as `dtype == 0`; the non-combat death sites (`cast_sniper_unit`, air crash, bribe) still clear the disc.
 
 ## 126. Reserved for the next item on the rules track
 

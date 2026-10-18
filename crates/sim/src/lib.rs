@@ -5284,6 +5284,14 @@ impl Sim {
     /// out of both collision indices, which is `Object::remove_from_world`
     /// (`docs/COLLISION.md` §2, §3). This is every death path's tail.
     pub(crate) fn close_supply(&mut self, unit: usize) {
+        self.close_supply_in(unit, false);
+    }
+
+    /// [`Sim::close_supply`], with `keep_disc` for `Object::close@00647160`'s
+    /// `blocks_while_dead` arm: a combat death of a type that carries
+    /// `uflags::BLOCKS_WHILE_DEAD` skips `remove_from_world`, and its
+    /// occupancy disc stands (`docs/GOLDEN.md` §125).
+    pub(crate) fn close_supply_in(&mut self, unit: usize, keep_disc: bool) {
         let owner = self.units[unit].owner as usize;
         if let Some(slot) = self.units[unit].supply_slot.take() {
             self.supply[owner].list.close(slot);
@@ -5308,7 +5316,11 @@ impl Sim {
                 self.merchant_footprint(unit, false);
             }
         }
-        self.coll_remove(unit);
+        if keep_disc {
+            self.units[unit].coll_at = None;
+        } else {
+            self.coll_remove(unit);
+        }
         self.chain_remove(unit);
     }
 
