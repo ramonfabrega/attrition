@@ -1744,7 +1744,10 @@ mod tests {
         let a = s.add_unit(a);
         let t = crate::combat::Obj::Unit(a);
         s.lobby.reveal_map = 2;
-        assert!(!s.target_seen_by(1, t), "a herd animal reads was_really_seen");
+        assert!(
+            !s.target_seen_by(1, t),
+            "a herd animal reads was_really_seen"
+        );
         s.units[a].herd = None;
         assert!(s.target_seen_by(1, t), "a herdless one reads was_seen");
         s.units[a].herd = Some(0);
