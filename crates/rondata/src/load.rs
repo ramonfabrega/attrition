@@ -2584,7 +2584,9 @@ mod tests {
     /// the nation's power, with the run of tech types the listing walks.
     #[test]
     fn the_russian_and_chinese_free_tech_blocks_are_loaded() {
-        let Some(inst) = crate::testenv::install() else { return };
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
         let loaded = load(&inst).unwrap();
         let rule = |power: usize, first: i32| {
             let id = loaded.tech_tree[(first - BASE_TECHTYPES) as usize];
