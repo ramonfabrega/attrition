@@ -213,3 +213,42 @@ fn run897_s_block_1_fog_plane_is_ours() {
         .count();
     pin_eq!(parted, 0, "half-cells parted on block 1");
 }
+
+/// run918: the word 1120's window, blocks 1114..1370 at the long's detail
+/// (item 3117); run897 dumps blocks 1, 36 and 37 and run897b is `cover=0`.
+pub(crate) const RUN918: &str = "gamelog-run918-greatlakes-iroquois-diff3-window-1114-1371.txt";
+
+/// The window: block 1114 through 1370; the word 1120's own block is 1121.
+pub(crate) const WIDENING_IROQUOIS_FRAME_1120: (i64, i64) = (1114, 1370);
+
+pub(crate) fn iroquois_frame_1120_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run918",
+        &[(RUN918, WIDENING_IROQUOIS_FRAME_1120.0)],
+        WIDENING_IROQUOIS_FRAME_1120,
+        1,
+        &[1121],
+        true,
+    )
+}
+
+#[test]
+fn run918_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_1120_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 0, "initial run918 baseline");
+}

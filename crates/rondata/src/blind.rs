@@ -885,6 +885,35 @@ mod tests {
         assert!(out.status.success(), "the issuer guard:\n{text}");
     }
 
+    /// **The log stride** (Loop 3085, item 3117): `rontrace.cfg`'s
+    /// `stride=N` rewrites the engine's log window at every `do_frame` entry
+    /// so one block in `N` of `--log-window` is dumped. `stride.h` is the
+    /// decision, compiled here as the DLL compiles it.
+    #[test]
+    fn the_log_stride_opens_one_block_in_n() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tools/trace");
+        let exe = std::env::temp_dir().join(format!("stride_test-{}", std::process::id()));
+        let built = std::process::Command::new("cc")
+            .args(["-Wall", "-Wextra", "-Werror", "-o"])
+            .arg(&exe)
+            .arg(format!("{root}/stride_test.c"))
+            .output();
+        match built {
+            Ok(o) if o.status.success() => {}
+            Ok(o) => panic!("stride_test.c: {}", String::from_utf8_lossy(&o.stderr)),
+            Err(e) => {
+                eprintln!("skipping: no host C compiler ({e})");
+                return;
+            }
+        }
+        let out = std::process::Command::new(&exe)
+            .output()
+            .expect("stride_test runs");
+        let _ = std::fs::remove_file(&exe);
+        let text = String::from_utf8_lossy(&out.stdout);
+        assert!(out.status.success(), "the log stride:\n{text}");
+    }
+
     /// The grammar: a split citation is joined, a bare address is not a
     /// citation, and a name's template brackets are part of it.
     #[test]

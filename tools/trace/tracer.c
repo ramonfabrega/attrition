@@ -199,6 +199,7 @@ enum {
                        * part 1: 4..7). src 0 = the world's live block, 1 = the
                        * pathfinder's copy (`fill_slots`); src 2 = no live block,
                        * b = the pointer WData holds (0 or ~0), one record only. */
+    I_STRIDE = 19, /* `stride=N` took the engine's log window: a = N, b = lo, c = hi */
 };
 
 typedef struct {
@@ -469,6 +470,12 @@ static i32 g_frame = -1; /* -1 until the first do_frame */
 static i32 g_win_lo = -1, g_win_hi = -2; /* re-arm when lo <= frame <= hi */
 static i32 g_cover = 1;
 static i32 g_cw_lo = -1, g_cw_hi = -2; /* the call proxies log when lo <= frame <= hi */
+/* `stride=N` (Loop 3085, item 3117): one frame in N of the engine's log
+ * window is dumped (`stride.h`). The engine's own window is read once, at
+ * the first `do_frame` that finds it set, and rewritten at every entry. */
+static i32 g_stride = 0, g_stride_lo = -1, g_stride_hi = -1, g_stride_read = 0;
+#define RVA_LOG_START_FRAME 0xab13d4u /* game_log.log_start_frame, VA 0xeb13d4 */
+#define RVA_LOG_END_FRAME 0xab13d8u /* game_log.log_end_frame (+0x78) */
 static i32 g_calls = 0; /* proxies installed (only when a callwin was given) */
 
 /* The coverage table, one record per listed function (`funcs.py`). */
@@ -811,6 +818,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_UNITS 0x80aeb0u /* units: per player, stride 0x1c: +4 length, +0x10 slots */
 #define RVA_COMMAND_MANAGER 0xa8ff60u /* command_manager, VA 0xe8ff60 */
 #include "issue_guard.h"
+#include "stride.h"
 #define RVA_OBJECTS 0x80618cu /* GameAccess::objects, VA 0xc0618c (ObjectsData *):
                                * lists[who] at +4 + who * 0x1c, length +4, slots +0x10 */
 #define RVA_BUILD_VFTABLE 0x742174u /* Build::vftable, VA 0xb42174 */
@@ -1453,6 +1461,14 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         }
         emit(K_FRAME, (u32)frame, seed, armed, caller, 0, 0);
         flush();
+        if (g_stride > 1) {
+            i32 *ls = (i32 *)(g_base + RVA_LOG_START_FRAME), *le = (i32 *)(g_base + RVA_LOG_END_FRAME);
+            if (!g_stride_read && *ls >= 0 && *ls != STRIDE_CLOSED) {
+                g_stride_lo = *ls, g_stride_hi = *le, g_stride_read = 1;
+                emit(K_INFO, I_STRIDE, (u32)g_stride, (u32)g_stride_lo, (u32)g_stride_hi, 0, 0);
+            }
+            if (g_stride_read) stride_window(frame, g_stride_lo, g_stride_hi, g_stride, ls, le);
+        }
 #ifdef RON_HIDE_SCENE
         /* Experimental unsupported display mode skips both Scene::render
          * branches in Game::loop_render while retaining its service work.
@@ -1856,6 +1872,9 @@ static void read_cfg(void) {
             g_cw_lo = parse_int(&p);
             if (*p == '-') p++;
             g_cw_hi = parse_int(&p);
+        } else if (key_is(p, "stride")) {
+            p += 7;
+            g_stride = parse_int(&p);
         } else if (key_is(p, "cover")) {
             p += 6;
             g_cover = parse_int(&p);

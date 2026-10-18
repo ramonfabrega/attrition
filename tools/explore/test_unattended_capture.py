@@ -299,7 +299,7 @@ class RunnerTest(unittest.TestCase):
         (output/'rontrace.cmd').write_text('0 !ai off\n2000 !quit\n')
         args=SimpleNamespace(install=self.root,profile=self.root,end_frame=2000,
                              log_window=[1900,2000],detail=['end:BUILDS=7'],
-                             cover='cover=0',cmd_file=Path('chapter.cmd'),ffwd_minute=2)
+                             cover='cover=0',cmd_file=Path('chapter.cmd'),ffwd_minute=2,stride=4)
         staged={}
         with patch.object(runner.live_session,'require_closed'), \
              patch.object(runner.live_session,'stage',side_effect=lambda a:staged.update(vars(a))), \
@@ -310,11 +310,13 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual(staged['log_window'],[1900,2000])
         self.assertEqual(staged['detail'],['end:BUILDS=7'])
         self.assertEqual(staged['ffwd_minute'],2)
+        self.assertEqual(staged['stride'],4)
         # A caller-supplied ffwd minute must not also trip the blanket one.
         self.assertFalse(staged['fast_forward'])
         receipt=json.loads((output/'receipt.json').read_text())
         self.assertEqual(receipt['map_requested'],26)
         self.assertEqual(receipt['staged']['log_window'],[1900,2000])
+        self.assertEqual(receipt['staged']['stride'],4)
         self.assertEqual(receipt['staged']['rontrace.cmd'],['0 !ai off','2000 !quit'])
 
     def test_the_receipt_stamps_the_launch_and_the_exit_by_the_wall_clock(self):
