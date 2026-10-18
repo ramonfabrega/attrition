@@ -2700,84 +2700,15 @@ impl Sim {
     }
 
     /// `Army::do_transporting`: a one-shot retarget to the best land region
-    /// the census wants; hands the army to marching.
+    /// the census wants; hands the army to marching. The steps are
+    /// [`do_transporting_steps`]' (item 3259's sweep), over this crate's
+    /// [`TransSim`].
     fn do_transporting(&mut self, who: Player, slot: usize) {
-        let w = who as usize;
-        let (pos, reg) = {
-            let a = &self.armies[w].list[slot];
-            (a.pos, a.reg)
-        };
-        let here = self.world.region_of(pos.cell());
-        if here != reg {
-            return;
-        }
-        let Some(my_reg) = reg else { return };
-        let my_first = self.world.cells_in(my_reg).next();
-        let mut best: Option<(i32, u16, Option<usize>)> = None;
-        let regions: Vec<u16> = self
-            .world
-            .regions()
-            .filter(|&(r, t)| t == Terrain::Land && r != my_reg)
-            .map(|(r, _)| r)
-            .collect();
-        for r in regions {
-            let size = self.world.region_size(r);
-            if size <= 0 {
-                continue;
-            }
-            let s = self.strategy_of(who, Some(r));
-            let g = self.go_here(r, who);
-            if !(s & 2 != 0 || g & 2 != 0 || g & 4 != 0) {
-                continue;
-            }
-            let mut v = size
-                * if g & 4 != 0 {
-                    3
-                } else if s & 2 != 0 {
-                    2
-                } else {
-                    1
-                };
-            let their_first = self.world.cells_in(r).next();
-            let d = match (my_first, their_first) {
-                (Some(a), Some(b)) => vector_dist((a.x - b.x).abs(), (a.y - b.y).abs()),
-                _ => 0,
-            };
-            v /= d / 4 + 1;
-            let mut city = None;
-            for c in self.cities_of(who) {
-                if self.cities[c].reg == Some(r) && self.cities[c].no_heal {
-                    v *= self.city_level_of(c);
-                    city = Some(c);
-                }
-            }
-            if best.is_none_or(|(bv, _, _)| bv < v) {
-                best = Some((v, r, city));
-            }
-        }
-        let Some((v, r, city)) = best else { return };
-        if v <= 0 {
-            return;
-        }
-        self.armies[w].list[slot].reg = Some(r);
-        match city {
-            None => {
-                self.find_target(who, slot);
-                if !self.armies[w].list[slot].valid {
-                    return;
-                }
-                if self.armies[w].list[slot].target.is_none() {
-                    self.armies[w].list[slot].reg = here;
-                    return;
-                }
-            }
-            Some(c) => {
-                let target = Obj::Building(self.cities[c].building);
-                self.armies[w].list[slot].target = Some(target);
-                self.find_muster_spot(who, slot, target, true);
-            }
-        }
-        self.armies[w].list[slot].status = status::MARCHING;
+        do_transporting_steps(&mut TransSim {
+            sim: self,
+            who,
+            slot,
+        });
     }
 
     // ---- the Armies queries (§15) ----
@@ -3948,6 +3879,213 @@ impl MarchView for MarchSim<'_> {
     }
     fn march_to_target(&mut self) {
         self.sim.march_to_target(self.who, self.slot);
+    }
+}
+
+/// What `Army::do_transporting@006f4690` asks of the army and the world
+/// (item 3259): the swept steps [`do_transporting_steps`] read the world
+/// only through this, so the sweep's port is a view over the emulated
+/// original's windows and the crate's is [`TransSim`].
+pub(crate) trait TransView {
+    /// The region the army's cell lies in is the army's `reg` (`field_0x8`).
+    fn at_home(&mut self) -> bool;
+    /// The army's `reg`.
+    fn my_region(&self) -> Option<u16>;
+    /// The regions the loop visits, in order, `my` left out: the original's
+    /// `1..64` with `my` skipped.
+    fn regions(&mut self, my: u16) -> Vec<u16>;
+    fn region_size(&mut self, r: u16) -> i32;
+    /// The leader's census strategy word for `r`.
+    fn strategy(&mut self, r: u16) -> i32;
+    /// `Region::go_here@006810f0(who)`.
+    fn go_here(&mut self, r: u16) -> i32;
+    /// `vector_dist` of the two regions' first cells.
+    fn distance(&mut self, my: u16, r: u16) -> i32;
+    /// The leader's cities, in the original's `0..count` order.
+    fn cities(&mut self) -> Vec<usize>;
+    /// City `c` is alive (`flags & 1`), in region `r`, and `flags & 2`.
+    fn city_in(&mut self, c: usize, r: u16) -> bool;
+    /// `CityData::get_level@00739340`.
+    fn city_level(&mut self, c: usize) -> i32;
+    fn set_region(&mut self, r: Option<u16>);
+    /// `Army::find_target@006f69b0`; `false` when the army is gone after it
+    /// (this crate's `find_target` can close it; the original's does not).
+    fn find_target(&mut self) -> bool;
+    fn has_target(&self) -> bool;
+    /// `reg` back to the region the army's cell lies in.
+    fn region_home(&mut self);
+    /// The target becomes city `c`'s centre building (the original also
+    /// writes `field_0x34 = who`, `field_0x20 = c`).
+    fn target_city(&mut self, c: usize);
+    /// `Army::find_muster_spot(target, who, 1)`.
+    fn find_muster_spot(&mut self, c: usize) -> bool;
+    /// A muster spot that was not found leaves the muster at the city
+    /// centre's cell, one row down (up on the last row).
+    fn muster_fallback(&mut self, c: usize);
+    fn set_marching(&mut self);
+}
+
+/// **`Army::do_transporting@006f4690`'s steps** (item 3259): from the
+/// army's own region, the best other region the census or `go_here` wants
+/// by `size * (3 | 2 | 1) / (distance / 4 + 1)`, times the level of each of
+/// the leader's no-heal cities there; the army is retargeted at it once and
+/// handed to marching. Returns the original's 1 when it acted.
+pub(crate) fn do_transporting_steps<V: TransView>(v: &mut V) -> bool {
+    if !v.at_home() {
+        return false;
+    }
+    let Some(my) = v.my_region() else {
+        return false;
+    };
+    let (mut best_v, mut best_r, mut best_city) = (-1i32, 0u16, None::<usize>);
+    for r in v.regions(my) {
+        let size = v.region_size(r);
+        if size <= 0 {
+            continue;
+        }
+        let s = v.strategy(r);
+        let g = v.go_here(r);
+        if !(s & 2 != 0 || g & 2 != 0 || g & 4 != 0) {
+            continue;
+        }
+        let mut val = if g & 4 != 0 {
+            size.wrapping_mul(3)
+        } else if s & 2 != 0 {
+            size.wrapping_mul(2)
+        } else {
+            size
+        };
+        let d = v.distance(my, r);
+        val /= ((d + ((d >> 31) & 3)) >> 2) + 1;
+        let mut city = None;
+        for c in v.cities() {
+            if v.city_in(c, r) {
+                val = val.wrapping_mul(v.city_level(c));
+                city = Some(c);
+            }
+        }
+        if best_v < val {
+            best_v = val;
+            best_r = r;
+            best_city = city;
+        }
+    }
+    if best_v <= 0 {
+        return false;
+    }
+    v.set_region(Some(best_r));
+    match best_city {
+        None => {
+            if !v.find_target() {
+                return true;
+            }
+            if !v.has_target() {
+                v.region_home();
+                return true;
+            }
+        }
+        Some(c) => {
+            v.target_city(c);
+            if !v.find_muster_spot(c) {
+                v.muster_fallback(c);
+            }
+        }
+    }
+    v.set_marching();
+    true
+}
+
+/// This crate's [`TransView`]: the army `slot` of `who`. **Where the crate
+/// models less than the original**: the regions visited are the land ones
+/// (the original has no terrain test and stops at 63), a missing first cell
+/// is a zero distance, and `muster_fallback` is a no-op (SEAM: the crate's
+/// `find_muster_spot` already leaves its own muster; the original overwrites
+/// it with the city centre's cell, one row down, when it answers 0).
+struct TransSim<'a> {
+    sim: &'a mut Sim,
+    who: Player,
+    slot: usize,
+}
+
+impl TransSim<'_> {
+    fn army(&mut self) -> &mut Army {
+        &mut self.sim.armies[self.who as usize].list[self.slot]
+    }
+}
+
+impl TransView for TransSim<'_> {
+    fn at_home(&mut self) -> bool {
+        let a = &self.sim.armies[self.who as usize].list[self.slot];
+        self.sim.world.region_of(a.pos.cell()) == a.reg
+    }
+    fn my_region(&self) -> Option<u16> {
+        self.sim.armies[self.who as usize].list[self.slot].reg
+    }
+    fn regions(&mut self, my: u16) -> Vec<u16> {
+        self.sim
+            .world
+            .regions()
+            .filter(|&(r, t)| t == Terrain::Land && r != my)
+            .map(|(r, _)| r)
+            .collect()
+    }
+    fn region_size(&mut self, r: u16) -> i32 {
+        self.sim.world.region_size(r)
+    }
+    fn strategy(&mut self, r: u16) -> i32 {
+        self.sim.strategy_of(self.who, Some(r))
+    }
+    fn go_here(&mut self, r: u16) -> i32 {
+        self.sim.go_here(r, self.who)
+    }
+    fn distance(&mut self, my: u16, r: u16) -> i32 {
+        match (
+            self.sim.world.cells_in(my).next(),
+            self.sim.world.cells_in(r).next(),
+        ) {
+            (Some(a), Some(b)) => vector_dist((a.x - b.x).abs(), (a.y - b.y).abs()),
+            _ => 0,
+        }
+    }
+    fn cities(&mut self) -> Vec<usize> {
+        self.sim.cities_of(self.who)
+    }
+    fn city_in(&mut self, c: usize, r: u16) -> bool {
+        self.sim.cities[c].reg == Some(r) && self.sim.cities[c].no_heal
+    }
+    fn city_level(&mut self, c: usize) -> i32 {
+        self.sim.city_level_of(c)
+    }
+    fn set_region(&mut self, r: Option<u16>) {
+        self.army().reg = r;
+    }
+    fn find_target(&mut self) -> bool {
+        self.sim.find_target(self.who, self.slot);
+        self.sim.armies[self.who as usize].list[self.slot].valid
+    }
+    fn has_target(&self) -> bool {
+        self.sim.armies[self.who as usize].list[self.slot]
+            .target
+            .is_some()
+    }
+    fn region_home(&mut self) {
+        let here = {
+            let a = &self.sim.armies[self.who as usize].list[self.slot];
+            self.sim.world.region_of(a.pos.cell())
+        };
+        self.army().reg = here;
+    }
+    fn target_city(&mut self, c: usize) {
+        let target = Obj::Building(self.sim.cities[c].building);
+        self.army().target = Some(target);
+    }
+    fn find_muster_spot(&mut self, c: usize) -> bool {
+        let target = Obj::Building(self.sim.cities[c].building);
+        self.sim.find_muster_spot(self.who, self.slot, target, true)
+    }
+    fn muster_fallback(&mut self, _c: usize) {}
+    fn set_marching(&mut self) {
+        self.army().status = status::MARCHING;
     }
 }
 

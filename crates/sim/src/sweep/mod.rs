@@ -77,6 +77,7 @@ mod army_do_forming_untargeted;
 mod army_do_marching;
 mod army_do_marching_found;
 mod army_march_to_target;
+mod army_do_transporting;
 mod army_set_stance;
 mod army_use_generals;
 mod army_use_scouts;
