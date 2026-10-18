@@ -6656,7 +6656,7 @@ pub(crate) const WIDENING_CHAPTER_NINETY_FOUR: (i64, i64) = (604, 1201);
 /// **Chapter ninety-five** (item 3126, `docs/GOLDEN.md` §121, run920):
 /// Sabotage on a firing Tank. **The word is 1174, open** (item 3162 moved it
 /// 1118 → 1174: a flank reads the target's heading, and the Tank's pivot node,
-/// piece 194, is carried from run923's packet, so `1/7` releases no round on
+/// piece 194, is carried from the `ch95pkt` packet (run 924), so `1/7` releases no round on
 /// 1118 as the original; ours spends `0/12`'s `Unit::move_step+0x823` stop
 /// draw on 1174 where theirs spends none; the first parted field is now
 /// `1/6`'s `death:extra` on 946, then `0/12`'s path on 1175); 1118 under item

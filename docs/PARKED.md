@@ -3742,6 +3742,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-second tranche's
 
+(3176) **A run number reserved in a commander's note is not a reservation `brief.py` sees** (the commander, at 3162's
+merge): 3152's and 3162's notes offered run 923 "if needed", and 3170's brief reserved it with `--runs 923`; 3170's
+capture took `~/ron-golden/run923/` and 3162's packet landed under `ch95pkt` (settled as run 924, parked 3173).
+Candidate: `brief.py` reads the live lanes' briefs and refuses a run number another one names, and a note's run goes
+through `--runs`, made to fail first. One reach.
+
 (3167) **An isolated test's memory row goes stale as the test grows** (the commander, the booking gate on `e183b2e5`):
 `battery_captures_are_complete_and_say_their_lobby` reserved from its 2026-10-16 row (346 MB) and was stopped at 849 MiB
 against its 768 MiB limit (137) — the battery gained lobbies since the profile (3107's Dutch pair); alone it passes. The
@@ -7283,11 +7289,11 @@ The lane's "for the Loop" line is filed as Loop 3102 at the merge (the forty-fir
 
 ## Parked by item 3162, 2026-10-18 — chapter ninety-five's second word
 
-(3163) **Run number collision**: `~/ron-golden/run923/` already held another lane's 46-frame capture (receipt
+(3173; the lane's 3163) **Run number collision** — settled at the merge: the packet is run 924, kept at `~/ron-golden/ch95pkt/` (the commander had reserved 923 to both 3162 and 3170; 3170's capture holds it). `~/ron-golden/run923/` already held another lane's 46-frame capture (receipt
   03:46) when this item's run 923 launched; the packet was kept as `~/ron-golden/ch95pkt/map-14/frame-snapshot.bin`
   (RON_STATE_FRAME=1117, plan from `2026-09-23-item-597`). File it under a free run number when the commander settles it.
   Names no score.
-(3164) **Other pivot pieces still bear from the unit's point** (`pivot.rs::NODES` SEAM): a one-node entry changed a
+(3174; the lane's 3164) **Other pivot pieces still bear from the unit's point** (`pivot.rs::NODES` SEAM): a one-node entry changed a
   15°-boundary release here (the turret sat at exactly `0xaaaaaaa` from its desire, `turret_near` strict), so any
   restricted type's missing row can part a round. The packet's `get_position.py … entries <piece>` reads a row; the
   next lobby that fields a restricted type without a row books it. Names no score until one parts.
