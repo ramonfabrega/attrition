@@ -880,6 +880,10 @@ pub struct Tuning {
     /// `ROMAN_LEGION_FAST` — percentage faster for the same unit,
     /// `ObjectData::train_time@006508c0:208`–`213`, after the German arms.
     pub roman_legion_fast: i32,
+    /// `DUTCH_SHIP_DISCOUNT` — percentage off a Dutch leader's sea-unit
+    /// upgrade, `TypeData::get_cost@00664090:530`–`533` (the research arm,
+    /// inside the Military-level discount's block).
+    pub dutch_ship_discount: i32,
     /// `CHINESE_CITIZEN_CREATION` — percentage faster for a Chinese
     /// leader's citizen, merchant or caravan (`train_time@006508c0`, arm
     /// `0xe`, between the Japanese arms and the British).
@@ -1407,6 +1411,7 @@ impl Tuning {
         german_air_speed: 33,
         roman_legion_cheap: 10,
         roman_legion_fast: 10,
+        dutch_ship_discount: 10,
         chinese_citizen_creation: 100,
         chinese_citizen_instant: 1,
         german_submarine_speed: 33,
@@ -2129,6 +2134,7 @@ impl Tuning {
             ("GERMAN_AIR_SPEED", Slot::Value(T.german_air_speed)),
             ("ROMAN_LEGION_CHEAP", Slot::Value(T.roman_legion_cheap)),
             ("ROMAN_LEGION_FAST", Slot::Value(T.roman_legion_fast)),
+            ("DUTCH_SHIP_DISCOUNT", Slot::Value(T.dutch_ship_discount)),
             (
                 "CHINESE_CITIZEN_CREATION",
                 Slot::Value(T.chinese_citizen_creation),

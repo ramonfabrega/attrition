@@ -360,6 +360,10 @@ pub struct Research {
     /// `MILITARY_UPGRADE_DISCOUNT`'s percentage, already scaled for a short
     /// scenario.
     pub discount: i32,
+    /// `DUTCH_SHIP_DISCOUNT` for a Dutch leader's sea unit, set only where
+    /// the Military discount applied (`get_cost:530`–`533`, inside its
+    /// block): its own `(100 − x) × cost / 100` after it.
+    pub dutch_ship: i32,
 }
 
 /// The count after the progression has shaped it.
@@ -528,6 +532,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
         cost += rs.refit[r.index()];
         if rs.discount != 0 {
             cost = ((100 - rs.discount) * cost / 100).max(0);
+        }
+        if rs.dutch_ship != 0 {
+            cost = (100 - rs.dutch_ship) * cost / 100;
         }
     } else {
         let raw = counts.for_progression(price.progression);
@@ -1329,6 +1336,31 @@ mod tests {
         assert!(plain > 0);
         assert_eq!(price(T.roman_legion_cheap), (100 - 10) * plain / 100);
         assert!(price(T.roman_legion_cheap) < plain);
+    }
+
+    /// `get_cost:530`: a Dutch ship upgrade loses `DUTCH_SHIP_DISCOUNT`
+    /// percent in a truncating step after the Military discount.
+    #[test]
+    fn a_dutch_ship_upgrade_costs_a_tenth_less() {
+        let upgrade = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Food, 5)
+        };
+        let price = |dutch_ship: i32| {
+            let m = Modifiers {
+                research: Some(Research {
+                    premium_cost: 256,
+                    discount: 20,
+                    dutch_ship,
+                    ..Research::default()
+                }),
+                ..Modifiers::default()
+            };
+            cost_of(&T, &upgrade, Resource::Food, owned(0), &m)
+        };
+        let plain = price(0);
+        assert!(plain > 0);
+        assert_eq!(price(T.dutch_ship_discount), (100 - 10) * plain / 100);
     }
 
     #[test]

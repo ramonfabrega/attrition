@@ -356,7 +356,7 @@ left out; a constant with no reader in the export is dead there too.
 | `DUTCH_FORT_SPEED` | 0 | Wall::update_construct_time | modelled at build.rs | `dutch_fort_speed` |
 | `DUTCH_ATTACK_BONUS` | 1 | ObjectData::armor, ObjectData::attack | not carried | `dutch_attack_bonus` |
 | `DUTCH_HP_BONUS` | 10 | Unit::update_hits | not carried | `dutch_hp_bonus` |
-| `DUTCH_SHIP_DISCOUNT` | 10 | TypeData::get_cost | not carried | `dutch_ship_discount` |
+| `DUTCH_SHIP_DISCOUNT` | 10 | TypeData::get_cost | modelled at lib.rs | `dutch_ship_discount` |
 | `PERSIANS_DESPOTISM` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `persians_despotism` |
 | `PERSIANS_BONUS_FOOD` | 50 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at lib.rs | `persians_bonus_food` |
 | `PERSIANS_CIVIC_DISCOUNT` | 30 | TypeData::get_cost | modelled at lib.rs | `persians_civic_discount` |
