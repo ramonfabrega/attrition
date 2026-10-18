@@ -35,6 +35,11 @@ enum Held {
     AttackTo,
     GroupAttackTo,
     Think,
+    /// An action under a transit `ATTACK_TO`: the original asks `order_type` only when there is no
+    /// action, so on an action row its answer is free, and these two give the crate a front order the
+    /// `no_action` gate must still refuse.
+    ThinkUnderAttackTo,
+    ThinkUnderGroupAttackTo,
 }
 
 /// One member's visit in the original's call log: the window it was handed, what its stubs answered and
@@ -51,10 +56,14 @@ struct Visit {
 
 impl Visit {
     /// The order list that reproduces the stubs' answers; `None` for arm 1, which asks nothing.
-    fn held(&self) -> Option<Held> {
+    fn held(&self, pick: usize) -> Option<Held> {
         let action = self.action?;
         Some(if action && self.get_type != Some(0) {
-            Held::Think
+            [
+                Held::Think,
+                Held::ThinkUnderAttackTo,
+                Held::ThinkUnderGroupAttackTo,
+            ][pick % 3]
         } else {
             match self.order_type {
                 Some(0) => Held::Empty,
@@ -251,10 +260,10 @@ fn build(s: &Scene, held: &[Option<Held>; 8]) -> Sim {
             Some(Held::MoveTo) => {
                 sim.add_move_order(id, at, MoveKind::MoveTo, QueuePos::New, false);
             }
-            Some(Held::AttackTo) => {
+            Some(Held::AttackTo | Held::ThinkUnderAttackTo) => {
                 sim.add_move_order(id, at, MoveKind::AttackTo, QueuePos::New, false);
             }
-            Some(Held::GroupAttackTo) => {
+            Some(Held::GroupAttackTo | Held::ThinkUnderGroupAttackTo) => {
                 sim.add_move_order(id, at, MoveKind::AttackTo, QueuePos::New, false);
                 sim.units[id].orders[0].move_mut().expect("a move").group = Some(GroupMove {
                     leader: id,
@@ -265,10 +274,16 @@ fn build(s: &Scene, held: &[Option<Held>; 8]) -> Sim {
                     orig: at,
                 });
             }
-            Some(Held::Think) => sim.units[id].orders.push_back(Order {
+            Some(Held::Think) => {}
+        }
+        if matches!(
+            h,
+            Some(Held::Think | Held::ThinkUnderAttackTo | Held::ThinkUnderGroupAttackTo)
+        ) {
+            sim.units[id].orders.push_back(Order {
                 flags: 0,
                 body: Body::Think,
-            }),
+            });
         }
     }
     for &mem in &s.members {
@@ -347,7 +362,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let mut conflict = false;
             for (i, v) in visits.iter().enumerate() {
                 conflict |= visits[..i].iter().any(|w| w.win == v.win);
-                if let Some(h) = v.held() {
+                if let Some(h) = v.held(v.win + a[2] as usize) {
                     held[crate_id(v.win)] = Some(h);
                 }
             }
