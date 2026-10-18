@@ -7402,7 +7402,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3112, 2026-10-17 — the generator flags were already there; is_engaged and set_up_insert swept, Census 1448 → 1450
 
-(3112) **Neither flag was needed.** `vector_dist` as a generator callee is `--stub run:0x46cff0:0` (item 2731): the original's own code runs, `ecx`/`edx` set by the
+(3119) **Neither flag was needed.** `vector_dist` as a generator callee is `--stub run:0x46cff0:0` (item 2731): the original's own code runs, `ecx`/`edx` set by the
 function under test, and the port calls `crate::world::vector_dist`; `Army::is_engaged@006f56d0` is swept on it (8 of 9 breaks held, the ninth —
 `hits != 0 &&` dropped — is equivalent since `hits > count/4 >= 0` implies it). A pointer-linked ring is `--place` for the chain and `--alias WIN+OFF:TARGET!` for the
 closing edge: `Group::set_up_insert@0070e520` is swept on a fixed three-node ring (`p3`..`p5`, orders `p6`..`p8`) with the port reading the node
