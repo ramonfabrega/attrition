@@ -496,6 +496,10 @@ impl Sim {
             };
             // `div_3_table[c >> 7]`: the half-cell, `c / 0x180`.
             let half = |c: i32| c.div_euclid(crate::world::UNITS_PER_CELL / 2);
+            let probe = std::env::var("RON_PROBE_3170").is_ok();
+            if probe {
+                eprintln!("probe3170 census_rares frame {} who {who} gi {gi} seen {} owner {:?} region {:?} len {}", self.frame, self.was_really_seen_fog(half(pos.x), half(pos.y), who), self.world.owner(pos.cell()), self.world.region_of(pos.cell()), self.ai[w].census.reg_known_rares.len());
+            }
             if !self.was_really_seen_fog(half(pos.x), half(pos.y), who) {
                 continue;
             }
