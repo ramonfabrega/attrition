@@ -7698,13 +7698,16 @@ Nothing parked. The queue's three arms (Russian 13, Egyptian 7, Chinese 14) were
   object record (+0x10/+0x14 ^ 0x63637), not the data record, and `num_inside` returns in eax. The crate's `world::vector_dist`
   differs from the original's on near-2^31 inputs (`+` overflow, `.abs()`): the sweeps re-implement the original's own wraps.
 
-## Parked by the next landing, slot IX — reserved
+## Parked by item 3231, 2026-10-18 — the Iroquois word 7982
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3232) **The Iroquois word 7982's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §254). Item 3231 moved the word
+  6982 → 7033 → 7982 with `get_cost`'s and `construct_time`'s `IROQUOIS_QUICK_SENATE` arms (an Iroquois leader's first
+  Senate is free and instant). At 7982 ours 12 draws, theirs 14, index 5: ours `Animal::do_idle+0x83`, theirs
+  `Leader::make_stuff+0x63d`, so theirs acted, in the make list's turn. It is past run934's last block, 7232, and no
+  dump of the lobby holds a block between 7232 and 12658. The word owes a capture over 7976..8232 at run934's detail
+  (`LEADERS=9`, `GUYS=4`). Standing before it, all from earlier windows: `1/22`'s `blown`, `1/23`'s second figure,
+  the newborn figures' `g.angle[0]` (`1/35`..`1/37`, `Unit::init`'s 0x55555555 against 0) and `SITE[1].reg` (7176).
+  The lane minted 3232 for `WIDENINGS`' owed row; the commander renumbers it if another lane took it.
 
 ## Parked by item 3233, 2026-10-18 — chapter 99 closed: a Tank wreck is a collider
 

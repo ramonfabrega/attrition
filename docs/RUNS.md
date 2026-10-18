@@ -18011,6 +18011,30 @@ is `1/26`'s figure, which stops on 5574 and rolls its idle on 5576. The window i
 `docs/GOLDEN.md` §129. **What the disk could not answer**: no dump held a unit pathing over a released `blocks_while_dead` disc (chapter 96's two late hoplites were ordered nowhere and never crossed). Recipe `tools/gamelog/golden/chapter98.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch98/map-14/`, 1,501 frames, seed 12345. No minutes waited on another lane.
 **What it holds**: `golden::chapter_ninety_eight_holds_to_the_golden_word` (1500) and `chapter_ninety_eight_s_window_is_widened_whole` (eleven `form` rows); its window 1040..1044 is in the coverage driver's slice.
 
+## run934 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 6982's widening (6976..7232) at `LEADERS=9`, `GUYS=4` (2026-10-18, item 3231, `att-3231`)
+
+`docs/AI.md` §254. **What the disk could not answer**: the word moved to 6982 (item 3211), and run932 ends at block
+6094. No dump of the lobby held a block between 6094 and 12658. The window is six blocks before the word's block
+6983 and 250 after it, with `LEADERS=9` for the make list (theirs' draw was `Leader::produce_building`). The recipe
+is run932's: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run934 --map 14 --end-frame 7238 --timeout
+10800 --log-window 6976 7233 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 18 --cover cover=0
+--profile DIFFICULTY=3`.
+- Pool lane 1. Launched 09:39 and the game exited at 10:04:58 (1,211 s launch to exit). `success`, `settings_restored`,
+  7239 frames, `map_style 14`, seed 12345, players `(0,4,7),(1,18,1)`; 258 `BEGIN FRAME`s. `rngcmp.py
+  rontrace-run897b.log rontrace-run934.log`: **7239 identical, 0 differing**. Filed with `filerun.py run934
+  greatlakes-iroquois-diff3-window-6976-7233-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run934-greatlakes-iroquois-diff3-window-6976-7233-guys4.txt`, 479,064,790 bytes,
+SHA-256 `13615ba8100a54278193a14ca55dd11360a5ec82b952e708d185995f9de1b4f2`.
+
+Archive `rontrace-run934.log`, 32,281,376 bytes,
+SHA-256 `3c2a606dbfff9b6f048ed2539e036a49782fdd33247feb0ca6e639c1a139f42c`.
+
+**What it holds**: `diff::iroquois_word::run934_s_word_frame_is_widened_whole` (257 blocks). Block 6982's `MAKE[3]` is
+theirs' Senate (438, val 80000) where ours lists 171. Block 6983 holds the Senate's site `1/2023` at full
+`construct_hits`, and block 7025 holds its completion. With both Iroquois Senate arms the window has 41 keys, all of
+them standing rows. The window is in the coverage driver's slice.
 ## run933 — chapter ninety-nine: a Tank blown up by Sabotage keeps its disc (2026-10-18, item 3228, `att-3228`)
 
 `docs/GOLDEN.md` §130. **What the disk could not answer**: no dump held a unit pathing round a `blocks_while_dead` Tank wreck after a non-combat death (Sabotage, `dtype` 3). Recipe `tools/gamelog/golden/chapter99.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch99/map-14/`, 1,501 frames, seed 12345. No minutes waited on another lane.
