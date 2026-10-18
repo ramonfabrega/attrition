@@ -37,7 +37,6 @@ use crate::{Player, Sim};
 /// | `is(SUPPLYWAGON)` | the lineage test behind `num_standard` and the caps | `unit_flags2 & 0x40` without `0x20` — the supply-or-hero bit less the generals; a government patriot `FROM General` (The Despot) carries both and is not counted, as the lineage would not count it. The *joiner's* arm in the caps is `is_supply` alone (`army_admits`, §213 of `docs/AI.md`) |
 /// | `leader_flags & 8`, `leader_flags2 & 8` | the two stop bits (§18) | never set |
 /// | `Region::flags & 8` | `go_here`'s resource-region bit | bit 1 never set; `do_transporting` does not read it |
-/// | `use_spies` / `use_scouts` | the 128-frame spellcaster turn (§5); `use_generals` is built | no spy's or scout's turn |
 pub mod seams {}
 
 pub const SLOTS: usize = 16;
@@ -51,6 +50,9 @@ const SUPPLYWAGON: crate::tech::TypeId = 0x3f;
 /// `TypeIndex` `0x36`, the General — the lineage `Army::process` counts
 /// before its generals' turn; a government patriot `FROM General` is one.
 const GENERAL: crate::tech::TypeId = 0x36;
+/// `TypeIndex` `0x45`, the Scout — the lineage `Army::process` counts
+/// before its scouts' turn.
+const SCOUT: crate::tech::TypeId = 0x45;
 
 /// `Unit::come_out+0x25ca` — the scout arm's coin, `% 2`.
 /// `find_target`'s two draw sites, under the original's own offsets
@@ -1035,14 +1037,27 @@ impl Sim {
                 }
                 // The spellcasters' turn (`6f9441`–`6f9489`): the
                 // generals behind `num_standard` and a non-decoy
-                // `is(GENERAL)`. SEAM: `use_spies` and `use_scouts`, each
-                // behind its own count, are not built.
+                // `is(GENERAL)`, then the spies behind a non-decoy
+                // `is(SPY)` and the scouts behind a non-decoy
+                // `is(SCOUT)`, each behind its own count (item 3186).
                 if self.armies[w].list[slot].num_standard != 0
                     && self.army_count(who, slot, |s, u| {
                         !s.units[u].decoy && s.unit_line_is(u, GENERAL)
                     }) != 0
                 {
                     self.use_generals(who, slot);
+                }
+                if self.army_count(who, slot, |s, u| {
+                    !s.units[u].decoy && s.unit_line_is(u, SPY)
+                }) != 0
+                {
+                    self.use_spies(who, slot);
+                }
+                if self.army_count(who, slot, |s, u| {
+                    !s.units[u].decoy && s.unit_line_is(u, SCOUT)
+                }) != 0
+                {
+                    self.use_scouts(who, slot);
                 }
             }
             if (frame + s) % 256 != 0 {
@@ -1066,6 +1081,35 @@ impl Sim {
             members,
             |s, u| s.units[u].alive(),
             |s, u| s.is_hero_unit(u),
+            |s, u| s.think_spellcaster(u),
+        );
+    }
+
+    /// `Army::use_spies@006f4af0`: as [`Self::use_generals`], with the
+    /// member's `is(SPY)` (vslot `0xb8`) for the hero test. A Spy's
+    /// [`Sim::think_spellcaster`] draws nothing (its cloak is a seam).
+    fn use_spies(&mut self, who: Player, slot: usize) {
+        let members = self.armies[who as usize].list[slot].units.clone();
+        generals_walk(
+            self,
+            members,
+            |s, u| s.units[u].alive(),
+            |s, u| s.unit_line_is(u, SPY),
+            |s, u| s.think_spellcaster(u),
+        );
+    }
+
+    /// `Army::use_scouts@006f49a0`: as [`Self::use_generals`], with the
+    /// member's `is_special` (vslot `0xd4`, `UnitData::is_special`'s
+    /// `TypeData +0x2b8 & 0x10`) for the hero test — the Scout's turn,
+    /// whose special arm throws the coin at `+0x413`.
+    fn use_scouts(&mut self, who: Player, slot: usize) {
+        let members = self.armies[who as usize].list[slot].units.clone();
+        generals_walk(
+            self,
+            members,
+            |s, u| s.units[u].alive(),
+            |s, u| s.unit_is_special(u),
             |s, u| s.think_spellcaster(u),
         );
     }
