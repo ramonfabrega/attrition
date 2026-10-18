@@ -288,6 +288,8 @@ mod tcoord_less;
 mod tech_type_add_preq_ai;
 #[path = "tech_type_backup.rs"]
 mod tech_type_backup;
+#[path = "tech_type_is_ultimate_preq.rs"]
+mod tech_type_is_ultimate_preq;
 #[path = "tech_type_restore.rs"]
 mod tech_type_restore;
 #[path = "tech_type_set_disabled.rs"]

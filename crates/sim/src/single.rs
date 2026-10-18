@@ -35,6 +35,10 @@
 pub struct Single(pub u32);
 
 const SIGN: u32 = 0x8000_0000;
+const INF: u32 = 0x7f80_0000;
+const QUIET: u32 = 0x0040_0000;
+/// The "real indefinite" an invalid operation answers (`0/0`, `inf - inf`).
+const DEFAULT_NAN: Single = Single(0xffc0_0000);
 const MANT: u32 = 0x007f_ffff;
 /// The implicit bit of a normal significand.
 const HIDDEN: u64 = 1 << 23;
@@ -70,6 +74,26 @@ impl Single {
         self.0 & SIGN != 0
     }
 
+    const fn is_nan(self) -> bool {
+        self.0 & !SIGN > INF
+    }
+
+    const fn is_inf(self) -> bool {
+        self.0 & !SIGN == INF
+    }
+
+    /// The SSE rule for a NaN operand (item 3272): the first NaN, quieted —
+    /// the destination operand's when both are.
+    const fn nan_operand(self, other: Single) -> Option<Single> {
+        if self.is_nan() {
+            Some(Single(self.0 | QUIET))
+        } else if other.is_nan() {
+            Some(Single(other.0 | QUIET))
+        } else {
+            None
+        }
+    }
+
     /// The value as `mant × 2^exp` with `mant` under 2^24 — exact, and zero
     /// for either zero. An infinity or a NaN cannot arise from the
     /// arithmetic this module is used for, and is decoded as if finite.
@@ -91,16 +115,20 @@ impl Single {
 
     /// `comiss` with `ja` — strictly greater, both operands ordered.
     pub const fn gt(self, other: Single) -> bool {
-        self.key() > other.key()
+        // Unordered (a NaN either side) is not greater: `ja` needs CF = ZF = 0.
+        !self.is_nan() && !other.is_nan() && self.key() > other.key()
     }
 
     /// `ucomiss` with the equality test: `+0 == -0`.
     pub const fn eq_value(self, other: Single) -> bool {
-        self.key() == other.key()
+        !self.is_nan() && !other.is_nan() && self.key() == other.key()
     }
 
-    /// `cvttss2si` — truncation toward zero. Saturating rather than the
-    /// original's `0x80000000` on overflow, which the banking cannot reach.
+    /// `cvttss2si` — truncation toward zero, and the instruction's own
+    /// "integer indefinite" `0x80000000` for anything that does not fit:
+    /// 2^31 and up in magnitude, an infinity, a NaN (item 3272: the sweep of
+    /// `Unit::bank_aircraft` hands `air_turn_speed` such a bank; the crate
+    /// saturated before).
     pub const fn to_i32(self) -> i32 {
         let (m, e) = self.parts();
         if m == 0 {
@@ -113,11 +141,10 @@ impl Single {
         } else {
             m >> -e
         };
-        let v = if v > i32::MAX as u64 {
-            i32::MAX
-        } else {
-            v as i32
-        };
+        if v >= 1 << 31 {
+            return i32::MIN;
+        }
+        let v = v as i32;
         if self.negative() { -v } else { v }
     }
 
@@ -136,6 +163,18 @@ impl Single {
 
     /// `addss`.
     pub fn addss(self, other: Single) -> Single {
+        if let Some(n) = self.nan_operand(other) {
+            return n;
+        }
+        if self.is_inf() || other.is_inf() {
+            return if self.is_inf() && other.is_inf() && self.negative() != other.negative() {
+                DEFAULT_NAN
+            } else if self.is_inf() {
+                self
+            } else {
+                other
+            };
+        }
         let (m1, e1) = self.parts();
         let (m2, e2) = other.parts();
         if m1 == 0 {
@@ -179,27 +218,53 @@ impl Single {
 
     /// `subss`.
     pub fn subss(self, other: Single) -> Single {
+        // A NaN subtrahend keeps its sign; only the number is negated.
+        if let Some(n) = self.nan_operand(other) {
+            return n;
+        }
         self.addss(other.neg())
     }
 
     /// `mulss`.
     pub fn mulss(self, other: Single) -> Single {
+        if let Some(n) = self.nan_operand(other) {
+            return n;
+        }
         let (m1, e1) = self.parts();
         let (m2, e2) = other.parts();
         let sign = self.negative() != other.negative();
+        if self.is_inf() || other.is_inf() {
+            return if self.is_zero() || other.is_zero() {
+                DEFAULT_NAN
+            } else {
+                Single(INF | if sign { SIGN } else { 0 })
+            };
+        }
         if m1 == 0 || m2 == 0 {
             return Single(if sign { SIGN } else { 0 });
         }
         round(sign, u128::from(m1) * u128::from(m2), e1 + e2, false)
     }
 
-    /// `divss`. A zero divisor cannot arise here — the only divisor is a
-    /// turn rate floored at `0x5b05b0` — and answers zero rather than an
-    /// infinity.
+    /// `divss`, the IEEE special cases included (item 3272: a helicopter's
+    /// divisor is not floored, so a type with no turn speed divides by zero).
     pub fn divss(self, other: Single) -> Single {
+        if let Some(n) = self.nan_operand(other) {
+            return n;
+        }
         let (m1, e1) = self.parts();
         let (m2, e2) = other.parts();
         let sign = self.negative() != other.negative();
+        let inf = Single(INF | if sign { SIGN } else { 0 });
+        if (self.is_inf() && other.is_inf()) || (self.is_zero() && other.is_zero()) {
+            return DEFAULT_NAN;
+        }
+        if self.is_inf() || other.is_zero() {
+            return inf;
+        }
+        if other.is_inf() {
+            return Single(if sign { SIGN } else { 0 });
+        }
         if m1 == 0 || m2 == 0 {
             return Single(if sign { SIGN } else { 0 });
         }

@@ -1962,15 +1962,19 @@ impl TechTree {
 
     /// `TechType::is_ultimate_preq(t, y)`: does `t` appear in `y`'s
     /// prerequisite closure.
-    fn is_ultimate_preq(&self, setup: &Setup, t: TypeId, y: TypeId, depth: usize) -> bool {
+    pub fn is_ultimate_preq(&self, setup: &Setup, t: TypeId, y: TypeId, depth: usize) -> bool {
         if depth > 64 {
             return false;
         }
         for i in 0..self.num_preq(y) {
-            if let Preq::Of(q) = self.get_preq(setup, None, y, i)
-                && (q == t || self.is_ultimate_preq(setup, t, q, depth + 1))
-            {
-                return true;
+            match self.get_preq(setup, None, y, i) {
+                // `TYPE_ANY_BUILDING` ends the whole walk at this level with
+                // no, whatever a later slot holds (item 3272's sweep).
+                Preq::Disabled => return false,
+                Preq::Of(q) if q == t || self.is_ultimate_preq(setup, t, q, depth + 1) => {
+                    return true;
+                }
+                _ => {}
             }
         }
         false

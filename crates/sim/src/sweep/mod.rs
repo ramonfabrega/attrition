@@ -152,6 +152,7 @@ mod unit_update_action;
 mod wall_data_in_unfriendly_territory;
 mod wall_data_tile_corner;
 mod world_data_check_building_wcoord;
+mod world_gather_at;
 mod world_set_bad_path;
 mod world_set_road_at;
 mod world_set_seen;

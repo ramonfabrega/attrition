@@ -162,6 +162,8 @@ mod borders_remove_border_region;
 mod borders_save_last_who;
 #[path = "build_add_attack_order.rs"]
 mod build_add_attack_order;
+#[path = "build_add_gather_point.rs"]
+mod build_add_gather_point;
 #[path = "build_add_gatherer.rs"]
 mod build_add_gatherer;
 #[path = "build_add_to_city.rs"]
@@ -386,6 +388,8 @@ mod circle_render_get_name;
 mod circle_render_on_field_change;
 #[path = "city_calc_gather.rs"]
 mod city_calc_gather;
+#[path = "city_check_upgrade.rs"]
+mod city_check_upgrade;
 #[path = "city_could_queue.rs"]
 mod city_could_queue;
 #[path = "city_count_gather_slots.rs"]
