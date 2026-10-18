@@ -65,6 +65,10 @@ pub struct Node {
 /// 31.05)` (`0xbfbd70a3`), `RData +0x88` 1.0. The bow-side pivot sits a
 /// hair behind the figure's centre.
 ///
+/// **Piece 1545, the Native American Horse Archers** (item 3255): run943c's
+/// packet reads its `(4, 0, 0)` entry as `(−0.06, −1.48, 32.63)`
+/// (`0xbd75c28f`, `0xbfbd70a3`), `RData +0x88` 1.0.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -74,6 +78,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (491, 4, Node { px: 0, py: -148 }),
     (137, 4, Node { px: -6, py: -148 }),
     (194, 4, Node { px: 0, py: -96 }),
+    (1545, 4, Node { px: -6, py: -148 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -476,6 +481,60 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: &[],
         },
     ),
+    // **The Native American Horse Archers, piece 1545** (item 3255,
+    // `docs/AI.md` §257): run943c's packet (frame 10674), the piece's nine
+    // entries, anims 10 (`CHAR_ATTACKWALK`) to 13 and the pivot's
+    // `(4, 0, 0)`. `float_lands` are the cells where `get_position.py
+    // pivot 1545 0 <anim> <time> 1`'s 92,416 rows part from the integer
+    // form; every other cell agrees.
+    (
+        1545,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 1545,
+            node: 0,
+            pivot: [-60_000, -2_676_834, 34_506_775],
+            at: [577_225, -16_320_717, 15_752_338],
+            float_lands: &[(82, 186, 65, -4), (308, 321, 88, 4)],
+        },
+    ),
+    (
+        1545,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            piece: 1545,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [1_322_394, -17_432_364, 13_891_037],
+            float_lands: &[(176, 155, 45, 63)],
+        },
+    ),
+    (
+        1545,
+        crate::anim::ATTACK2,
+        16,
+        Release {
+            piece: 1545,
+            node: 0,
+            pivot: [-60_000, -919_060, 31_409_014],
+            at: [1_600_198, -19_470_568, 11_654_627],
+            float_lands: &[(11, 295, 79, 52), (191, 295, -79, -52), (281, 295, 52, -79)],
+        },
+    ),
+    (
+        1545,
+        crate::anim::ATTACK3,
+        18,
+        Release {
+            piece: 1545,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [3_391_179, -16_833_715, 14_928_272],
+            float_lands: &[(129, 155, 77, 0), (219, 155, 0, 77), (309, 155, -77, 0)],
+        },
+    ),
 ];
 
 /// The release row for `(piece, anim, starttime frame)`, if the piece
@@ -592,6 +651,67 @@ mod tests {
         };
         assert_eq!(turret(1512, 7944), -496_063_829);
         assert_eq!(turret(1828, 8040), -382_227_797);
+    }
+
+    /// **The original's pivot branch on every cell, for piece 1545** (item
+    /// 3255): `tools/recomp/get_position.py … pivot 1545 0 <anim> <time> 1`
+    /// on run943c's packet for its four rows. `$RON_RELEASE_TABLE_1545` is
+    /// the directory holding `pivot-1545-a<anim>-t<time>.txt` (`d₁ i t x y
+    /// z`), outside git (`~/ron-data/lab-experiments/2026-10-18-item-3255/`).
+    /// The nine cells that part are the rows' `float_lands`; made to fail
+    /// by emptying one.
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_1545() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_1545") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_1545 (item 3255's oracle, run943c)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 18),
+            (crate::anim::ATTACK1, 18),
+            (crate::anim::ATTACK2, 16),
+            (crate::anim::ATTACK3, 18),
+        ] {
+            let path = format!("{dir}/pivot-1545-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_1545");
+            let r = release(1545, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!("{slot} {} {} {} {}", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **run943b's Horse Archers `1/51`** (item 3255, `docs/AI.md` §257):
+    /// two rounds at the figure's own `turret_angles[0]` 291307520 (24°
+    /// by the top byte), facing −1280966656 — `CHAR_ATTACKWALK` at frame
+    /// 18 on 10687 from (5034, 31074) to the dump's `AMMO` (4944, 31073),
+    /// and `CHAR_ATTACK3` at 18 on 10739 from (5016, 31080) to (4928,
+    /// 31089). Made to fail with the rows out of `RELEASES`: the rounds
+    /// leave from the figure.
+    #[test]
+    fn run943b_s_horse_archer_looses_through_its_pivot() {
+        use crate::anim::{ATTACK3, ATTACKWALK};
+        let (facing, turret) = (Angle(-1_280_966_656), 291_307_520);
+        for (slot, (fx, fy), (sx, sy)) in [
+            (ATTACKWALK, (5034, 31074), (4944, 31073)),
+            (ATTACK3, (5016, 31080), (4928, 31089)),
+        ] {
+            let r = release(1545, slot, 18).expect("the Horse Archers' row");
+            let (x, y, _) = release_offset(&r, facing, turret);
+            assert_eq!((fx + x, fy + y), (sx, sy), "slot {slot}");
+        }
+        assert_eq!(node(1545, 4), Some(Node { px: -6, py: -148 }));
     }
 
     /// The table is the sine: a quarter turn, the thirty and the axes.
