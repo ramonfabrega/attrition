@@ -91,6 +91,7 @@ is append-only and amended in place, as it always was.
 - 77 standing — The thirty-ninth tranche is scored at the loop's fastest, the fourth lane holds while the fifth goes to a steer, the sweep lanes get a claim mark, and thirteen Loop items become tools, rows or closes
 - 78 standing — The fortieth tranche is scored on five lanes, the booking gate is named the chain's bottleneck and its scope stops widening on the blind residue, the waiter reads a finished log under another lane's runner, and nine Loop items become tools, rows or closes
 - 79 standing — The forty-first tranche is scored on four lanes at the loop's cheapest, the census splits port-backed from layout-backed, the Golden line is counted, the whole gate counts widening landings, and twenty-six Loop items become tools, rows or closes
+- 80 standing — The forty-second tranche is scored on four lanes at the loop's price, the lane gate is named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, and twenty-one Loop items become tools, rows, closes or Ramon's
 
 ## 1. Fidelity before divergence
 
@@ -6439,3 +6440,125 @@ lane is judged on the port count; 3118's sound, with the check named;
 commander is cleared into the forty-second tranche on the queue's four
 unspawned items (3156, 3152, 3150, 3145), four lanes, the roster of
 entry 78 (i).
+
+## 80. The forty-second tranche is scored on four lanes at the loop's price, the lane gate is named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, and twenty-one Loop items become tools, rows, closes or Ramon's
+
+*2026-10-18, the forty-second Fable pass, the `steer` session, cleared
+into by the commander at the drain (`e4215581`), unattended under entry
+61's fence. The record is `docs/audit/2026-10-18-fable-pass-42.md`.*
+
+**The tranche.** Twenty landings on four lanes in **4 h 52** from the
+pass's commit (`b0758479` 02:45 to 3209's booking and handoff `a17f673c`
+07:37), the drain gate green at 07:46 — against 4 h 44 on four the
+tranche before. `tools/tranche.py` over the twenty (22 sessions):
+working 258 minutes, **waiting 739 — 33.6 a landing** (34.0), of which
+**the lane gate is 21.6**, capture 4.3, the rest under five. **Fifteen
+booking gates**: four whole, each on a widening landing or the drain
+(entry 79's rule held), **eleven scoped and every one widened to every
+timed test**, **one red** — `e183b2e5` stopped a battery test at 849 MiB
+against a 768 MiB limit from a 346 MB profile row (Loop 3167); 110.5
+minutes of gate on the commander's 292. The admission waited **1351.8 s
+summed, longest 134.8 s** (1375.6 / 83.8), and the host load at a
+gate's end was past the sixteen cores at **four of fifteen** — the
+lane gates still ran **11–51 minutes**, so the slot count is not what
+the receipts name as the ceiling. Two `DEEP` (3162 at 313 k, 3200 at
+301 k, both cleared into sessions under 0.70 USD), one `STALLED` (3172
+on the commander), two `LANDED` after the lane's own line, no
+`UNCLEARED`; no kill rule, no blocked ending, no merge backed out.
+
+**The words.** The battery word `GreatLakesIroquoisTier3` **1772 → 5144
+→ 5576** of 12,658 (3170 the Iroquois food term and setup's border fix,
+3186 the army's scouts and spies), widened at 1772 (3156, run922) and at
+5576 (3202, runs 928 and 930: the state first parts on 5564, a Slinger
+squad's `ATTACKTO` offsets and `last_speed` 28 against 35; the speed's
+hypothesis left for a packet, AI §253). Chapter **95 closed at 1200**
+(3152, 3162, 3175), **96 opened and closed at 1500 on its first run**
+(3191), **97 opened and closed at 1500 with no sim change** (3209); 87
+→ 90 closed; the death object's cull built (3205). The census **1459 →
+1477, port 293 → 311**, every batch port-marked. The held-out battery's
+median **2270 → 4770** (3160, the Citizen cost arms); the nations lane's
+other five moved none.
+
+**The roster, lane by lane** (every session's model read from its
+transcript; every spawn line `--effort medium`; lore's list price at
+2026-10-18's rates; USD and minutes waiting a landing against the
+tranche before): the AI word on Opus 5.5 medium, four landings, **6.87
+/ 42.6** (8.59 / 40.0); the rules track on Sonnet 5.5 medium, six, **3.95
+/ 32.5** (3.67 / 37.9); the shape sweep on Sonnet, four, **5.23 / 43.7**
+(4.52 / 30.9); the nations lane on Sonnet, six, **1.98 / 33.2** (1.60 /
+29.4). Workers **84.00 USD, 4.20 a landing** (4.25); the commander
+15.90; **99.90** in all (100.67). The roster stands; no pass changes it
+(entry 61). The one-lane-a-tranche rule (entry 61) would add a lane on
+a waiting that held; the lane count past that rule is Ramon's (entry 78,
+the fortieth steer: five lanes cost 18 minutes a landing), and the pass
+recommends four.
+
+**The lane gate is the bottleneck, and it has a clock** (Loop 3224,
+filed and built this pass). Two thirds of a landing's waiting is its
+own lane gate, which ran 11–51 minutes on a box under its cores at
+eleven of fifteen booking-gate ends, and no receipt said which step
+took the minutes. `release_gate.py` prints `Gate minutes: offline 0.3,
+clippy 1.9, fmt 0.0, survey 0.2, release 12.4, guard 0.5` before `Gate
+steps:` (`minutes_line`, red first); the landing row has the journal
+quote it beside `Lane verdict:` and `Gate steps:`; `tools/gates.py`
+reads its release figure. The next pass reads the forty-third tranche's
+lane gates by step off the journals and names the step; a release build
+that is most of them is a shared-build item, not a slot-count item.
+
+**The gate table graduates** (CLAUDE.md's third-use rule): `tools/
+gates.py <the commander's job tmp> --since <the last pass's gate log>`
+is one row a booking gate — whole or scoped and whether the scope
+widened, minutes, `Gate steps:`, the release minutes, `Admission wait:`,
+`Host load:`, the verdict with the failed tests named, `no receipt` for
+a killed gate — and the totals the pass's table carries. The fortieth,
+forty-first and forty-second passes each wrote it by hand, and its first
+run read a test fixture's receipt lines as the gate's, which the tool
+and its test now guard against (the last receipt is the gate's).
+
+**A stale memory row is named** (Loop 3167): `isolated_tests.py` reads
+the budget's stop line back and prints `stale profile row: <test>
+stopped at N MiB against its L MiB limit, reserved R MiB from a K MiB
+row (<profile>, tree <sha>): raise its rss_bytes to the measured RSS or
+re-profile; alone it may pass`. The gate does not refresh the row: the
+profile is a committed file and a gate edits no tree.
+
+**A run number is reserved once** (Loop 3176): `brief.py` refuses a note
+that names a run its `--runs` does not carry and a run another item's
+brief under `--briefs DIR` names — two notes offered run 923 "if needed"
+and two captures landed under one number.
+
+**An `@FILE` line is a flag with its value** (Loops 3180 and 3102):
+`sweep_gen.py`'s reader splits a line as the shell would and expands a
+`--port-file` inside a file.
+
+**The nations tool round-trips again** (Loop 3222): `nations_census.py
+--write` rewrote fifteen rows of NATIONS §5 on an unchanged tree because
+its hand tables (`HAND`, `LOBBY`) were three landings behind the
+document the guard checks; the tables were synced to the document and
+the document's five rows the tool answers better (four `get_cost`
+constants at `cost.rs` since 3145–3172 moved them, `carried at` for a
+sweep module) taken from the tool. The round trip is empty and
+`the_audit_table_s_witnesses_hold` is green.
+
+**Twenty-one Loop items ruled.** Built, red first: 3167, 3176, 3180
+with 3102, 3222, 3224 in part, and the gate table. Closed on the
+measurement: 3157 (a chapter's wiring sits inside a six-minute landing).
+Closed unreached under entry 54 §7: 3095, 3116, 3122, 3149. Stay, each
+with its reach: 3013 (a third), 3139 (a second, the candidate narrowed to
+`--nation`), 3158, 3165, 3181, 3218, 2003 the ledger, and Ramon's four —
+1570, 3118, 3143 (with the measurement), 3188 (with the
+recommendation). Twelve stay.
+
+**What is not established.** Which step of a lane gate takes its
+minutes — the forty-third tranche's journals will say, now that the
+line exists; whether the nations lane's median moves on NATIONS §7's
+remaining `has_tribe_bonus` callers (3221 is the test); what the orphan
+is looping on (alive at 1 d 4 h, Ramon's kill).
+
+**For Ramon, held by the fence** (entry 61 §4): the orphan's kill; the
+nations lane's seat; 3118's sound, with the check named; 1570; the roster
+stands at four. The pass recommends in its record and moves none of
+them. The commander is cleared into the forty-third tranche on the
+queue's four unspawned items (3211, 3223, 3219, 3221), four lanes, the
+roster of entry 78 (i).
+

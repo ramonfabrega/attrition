@@ -430,13 +430,13 @@ commander, and nothing else** — never a worker: one pass did, on an
 opener that said "refill", and ratified a trial only the user decides
 (DECISIONS 59, 61). Never Sonnet on a reading or an adjudication;
 **the workers' roster is the user's, set at a steer** (DECISIONS 61):
-**four lanes for the forty-second tranche: Opus 5.5 at `--effort
+**four lanes for the forty-third tranche: Opus 5.5 at `--effort
 medium` on the AI word's lane, Sonnet 5.5 at `--effort medium` on the
 rules track, the shape sweep and the nations lane** (Ramon, at the
 fortieth steer, DECISIONS 78: five lanes cost 18 minutes a landing in
 waiting for one landing an hour, and the host budget admits 20 slots
-now; the forty-first tranche on four ran at the loop's cheapest and no
-pass changes the roster, DECISIONS 79; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
+now; the forty-first and forty-second tranches on four ran at the
+loop's cheapest and no pass changes the roster, DECISIONS 79, 80; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
 `--model 'claude-sonnet-5-5[1m]' --effort medium`, after three Opus
 tranches measured against three Sonnet ones, DECISIONS 65 and 68; the
 model and effort verified from each worker's transcript and the spawn
@@ -683,7 +683,9 @@ and rewrites the queue and the loop's own clauses in this file — one
 commit a person can revert. **Its first act is the archives' compression,
 backgrounded** — `afsctool -c -f -T LZFSE -J8` on `~/ron-data` and
 `~/ron-golden`, six minutes and 19 GiB on 2026-10-17, never beside a
-gate (DECISIONS 77). **It never moves what is the user's**: the
+gate (DECISIONS 77) — **and its table of the tranche's gates is
+`python3 tools/gates.py <the commander's job tmp> --since <the last
+pass's gate log>`** (DECISIONS 80). **It never moves what is the user's**: the
 roster, the lane count past the one-a-tranche rule, the phase, the finish
 line, the thesis, a hard constraint, or anything a decision entry
 reserves. Those it writes as recommendations at the top of its record,
@@ -718,7 +720,8 @@ and makes the eventual diff mechanical rather than a translation exercise.
   thirty-eighth tranche waited 32.0 minutes a landing against 36.5 with
   the admission waiting 2–41 s a gate): `tools/guard.sh` and every gate
   mode reserve from one host budget (`tools/resource_budget.py`), each
-  gate's last lines carry an `Admission wait:` receipt, and `touch
+  gate's last lines carry `Gate minutes:` by step, an `Admission wait:`
+  receipt and `Host load:` (DECISIONS 80), and `touch
   ~/Library/Caches/attrition/admission-off` is the kill switch for every
   worktree at once. A standalone `cargo test …` joins the budget as `zsh
   tools/check.sh test …`; nothing wraps `guard.sh` or a gate again. The

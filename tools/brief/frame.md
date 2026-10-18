@@ -136,7 +136,7 @@ Before any reading, in order:
 - **Wait on a capture with `tools/gamelog/waitrun.sh <viadriver
   log>`** — the launcher's `log:` file, never your redirect (2449),
   backgrounded, **the Bash tool's `timeout:
-  3600000`, never a `timeout` command** (1672, 2599); end your turn;
+  3600000`, never a `timeout` command** (1672, 2599); end the turn;
   minutes waited on another lane: the journal. **A windowed
   capture is filed by `filerun.py <run> <tag>`** (2933).
 - **The pool picks the lane** (1568, 1569): never set
@@ -144,8 +144,8 @@ Before any reading, in order:
 
 ## chapter
 
-- **A chapter is three arms of one staging at most**: take three. **A
-  chapter that opens with a parting ends there**: staging walked, capture
+- **A chapter is three arms of one staging at most**: take three. **One
+  that opens with a parting ends there**: staging walked, capture
   taken, word pinned, section written;
   **at its trace's end, `word == hi − 1` in its widening; the
   `Golden:` count is mine** (1781).
@@ -211,8 +211,9 @@ Before any reading, in order:
   `--ptrarg`, `--stub`: a record through a global cell, a table, a
   pointed buffer, a callee answered a row), its helpers
   `tools/emu/sweeplib.py`, a float argument `xmm_bits` (1867), a
-  hooked callee's answer `(eax, ecx)` (1922), `@FILE` flags and
-  `--port-file`, a `--regen` that refuses to reset a hand port (2792,
+  hooked callee's answer `(eax, ecx)` (1922), `@FILE` flags — a flag
+  and its value on one line, a `--port-file` inside one (3180, 3102) —
+  and `--port-file`, a `--regen` that refuses to reset a hand port (2792,
   2796) — never a throwaway generator; a hand-written script is the
   Loop's next shape, filed under your park heading. **A subagent's
   brief names its function in the body, never in the task line alone**
@@ -269,14 +270,14 @@ Before any reading, in order:
   a run (1551); **kill a gate by its `Gate pid:`, never `pkill
   -f`** (1527, 1713).
 - **A probe goes in behind one env guard, in one commit reverted
-  whole** — never stripped by a pattern or a `git checkout <file>`
+  whole** — never stripped by a pattern or a `git checkout`
   (1727, 1717) — **committed before any other edit, never `commit -a`
   across it and a build** (1864); **a new window names its
   `GROUND_INEXACT` row first** (1715).
 - **A divergence your change introduces is built or named a
   regression, never parked** (864).
 - **A command the worktree guard refuses runs from
-  `$CLAUDE_JOB_DIR/tmp/`** — no `timeout` (1537); an edit inside a
+  `$CLAUDE_JOB_DIR/tmp/`** — no `timeout` (1537); an edit in a
   `&&` chain is python or `sed -i ''` (2628); **`no
   verdict (error)` is an outage: back off on a Monitor, five minutes to
   an hour**; a human's need: one line to me (1315).
@@ -298,12 +299,12 @@ Before any reading, in order:
   (1812). The gate: `python3 tools/release_gate.py
   ~/code/fun/attrition/game --test-threads 4 --lane --item {item}
   --tests {tests}` (1567, 1623), to a file, backgrounded; read
-  its exit before saying landed, quote `Lane verdict:` and `Gate
-  steps:` (969); its verdict: a second commit.
+  its exit before saying landed; quote `Lane verdict:`, `Gate
+  steps:` and `Gate minutes:` (969, 3224); its verdict: a second commit.
 - **`ccc update att-<n>` takes the ref, never a SHA** (1557); a conflict
   takes `--keep-conflicts`, keep both, commit the merge (1161); a
   re-pinned count is the merged tree's (1151); read your run's RUNS
-  section after (1285); a landing that moves another lane's word
+  section (1285); a landing that moves another lane's word
   says so (1289).
 - **At a trace's end, `tools/runwiring.py runNNN` says what the word
   owes** (1729); a `Pair`'s word and a golden `WANT_CH*` list are

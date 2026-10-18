@@ -12,18 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-second tranche (commander, Opus): 20 landings from `75ccea37`, drained**, four lanes (DECISIONS
-78 (i), 79), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `a17f673c`, at the drain (green).*
+*2026-10-18, **the forty-second pass (steer, Fable): the forty-second tranche measured — 20 landings from `75ccea37`
+in 4 h 52, 99.90 USD, 33.6 minutes waiting a landing — and the forty-third's base is the pass's commit (its second
+commit names it)**, four lanes (DECISIONS 78 (i), 80): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.
+Last whole gate `a17f673c`, at the drain (green); the pass's own is named in its third commit.*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 → 5144 → 5576 of 12658 (3170, 3186),
-  widened by 3202 (runs 928, 930: the state first parts on 5564), owed as 3211; `EastIndiesGermanTier3` closed at 13519.
-  Chapters 95–97 closed (3175, 3191, 3209), 87 → 90; the death object's cull built (3205). Census 1459 → 1477, **port
-  293 → 311** (3150, 3166, 3182, 3200). Battery median 2270 → 4770 (3160); the nations lane's other five moved none (Loop 3188).
-- **Lanes: none live** — drained at twenty; unspawned: 3211 AI (AI §253), 3223 rules (run 931, GOLDEN §129), 3219
-  shape, 3221 nations. Landings: 3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186, 3191,
-  3194, 3205, 3202, 3200, 3207, 3209. Next 3224, run 932. Pools: GOLDEN §130–132, AI §254–255, park IR–IV.
-- **DECISIONS 79**: the whole gate every third *widening* landing. **Ramon's**: `kill 51257` (3143), the budget, the nations lane.
-- **Fable backlog: 21 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181, 3188, 3218, 3222).
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 of 12658, widened (3202: the state first
+  parts on 5564), owed as 3211; `EastIndiesGermanTier3` closed at 13519. Chapters 95–97 closed, 90 closed; census 1477, **port 311**; the held-out battery's median 4770.
+- **Lanes: none live** — four unspawned: 3211 AI (AI §253), 3223 rules (run 931, GOLDEN §129), 3219 shape, 3221
+  nations. Next 3225, run 932. Pools: GOLDEN §130–132, AI §254–255, park IR–IV.
+- **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
+  table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
+- **Fable backlog: 12 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,9 +38,10 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 90 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the forty-second pass (steer, Fable): measure the forty-second tranche (twenty landings from `75ccea37`,
-drained), ratify the marked rows, rule the 21 Loop items (3143 and the nations lane, 3188, are Ramon's), then clear
-`commander` into the forty-third tranche on the queue's four unspawned items (3211, 3223, 3219, 3221).**
+**Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — spawn the four unspawned items on four
+lanes (3211 the AI word's on `--model 'claude-opus-5-5[1m]' --effort medium`; 3223, 3219 and 3221 on
+`'claude-sonnet-5-5[1m]' --effort medium`), the model said in user-visible text, each brief by `tools/brief.py`; count
+landings from the pass's commit; the chain is `CLAUDE.md`'s; at twenty the handoff, the drain and `ccc clear steer`.**
 
 ## The queue
 

@@ -132,7 +132,7 @@ def const_row(n, v):
 # ---- hand judgements ----------------------------------------------------
 # (nation, arm, original site, status, witness)
 HAND = [
-    ("Egyptians", "wonders cost 25% less", "TypeData::get_cost@00664090", "not modelled", "egyptian_wonders"),
+    ("Egyptians", "wonders cost 25% less", "TypeData::get_cost@00664090", "modelled at cost.rs", "egyptian_wonders"),
     ("Egyptians", "scholars swap food and wealth (gate is 0 in the rules)", "TypeData::get_cost@00664090", "not modelled", "egyptian_scholars_food"),
     ("Egyptians", "granary available early", "LeaderData::has_preq@006db810", "modelled at tech.rs", "egyptian_granary_early"),
     ("Egyptians", "wonders one age early", "LeaderData::special_preq@006d7030", "modelled at tech.rs", "egyptian_wonders_early"),
@@ -142,8 +142,8 @@ HAND = [
     ("Egyptians", "food commerce bonus", "Leader::calc_resource_caps@006ce900", "modelled at economy.rs", "egyptian_food_commerce"),
     ("Egyptians", "granary upgrades applied on tech gain", "Leader::gain_tech@006dcb60", "carried, unread", "egyptian_granary_upgrades"),
     ("Russians", "attrition doubled", "Leader::calc_attrition@006cdea0", "modelled at attrition.rs", "russian_attrition"),
-    ("Russians", "oil +20% in the rate pass", "LeaderData::calc_resource_bonuses@006db030", "not modelled", "russian_oil"),
-    ("Russians", "spy cost 50% less", "TypeData::get_cost@00664090", "not modelled", "russian_spy_cost"),
+    ("Russians", "oil +20% in the rate pass", "LeaderData::calc_resource_bonuses@006db030", "modelled at economy.rs", "russian_oil"),
+    ("Russians", "spy cost 50% less", "TypeData::get_cost@00664090", "modelled at cost.rs", "russian_spy_cost"),
     ("Russians", "borders grow per age", "World::compute_reg_territory@006b0bb0", "modelled at territory.rs", "russian_borders_per_age"),
     ("Russians", "gems' territory bonus halved", "World::compute_reg_territory@006b0bb0", "modelled at territory.rs", "n.russian"),
     ("Russians", "plunder steals from the plundered", "Build::plunder@00623660", "modelled at city.rs", "russian_plunder_steal"),
@@ -152,8 +152,8 @@ HAND = [
     ("Russians", "attrition upgrades applied on tech gain", "Leader::gain_tech@006dcb60", "carried, unread", "russian_attrition_upgrades"),
     ("Russians", "market prices pinned at 100 after the fifth age (gate is 0)", "LeaderData::calc_market_prices@006dc2a0", "carried, unread", "russian_communism"),
     ("Chinese", "science techs 20% cheaper", "TypeData::get_cost@00664090", "modelled at lib.rs", "chinese_science_discount"),
-    ("Chinese", "citizens train twice as fast", "ObjectData::train_time@006508c0", "not modelled", "chinese_citizen_creation"),
-    ("Chinese", "citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1)", "ObjectData::train_time@006508c0", "not modelled", "chinese_citizen_instant"),
+    ("Chinese", "citizens train twice as fast", "ObjectData::train_time@006508c0", "modelled at lib.rs", "chinese_citizen_creation"),
+    ("Chinese", "citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1)", "ObjectData::train_time@006508c0", "modelled at lib.rs", "chinese_citizen_instant"),
     ("Chinese", "a large-city building on a new city", "Build::activate@00623e20", "modelled at city.rs", "chinese_large_cities"),
     ("Chinese", "a large-city building on assimilation", "City::assimilate@00738e90", "modelled at city.rs", "chinese_large_cities"),
     ("Chinese", "herbal lore applied on tech gain", "Leader::gain_tech@006dcb60", "carried, unread", "chinese_herbal_lore"),
@@ -162,11 +162,11 @@ HAND = [
 
 HAND += [
     ("Greeks", "research faster (train_time's research tail)", "ObjectData::train_time@006508c0", "not modelled", "greek_research_speed"),
-    ("Romans", "legions train faster", "ObjectData::train_time@006508c0", "not modelled", "roman_legion_fast"),
+    ("Romans", "legions train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "roman_legion_fast"),
     ("French", "siege units train faster", "ObjectData::train_time@006508c0", "not modelled", "french_siege_speed"),
     ("French", "special (general) units train faster, 0 in the rules", "ObjectData::train_time@006508c0", "not modelled", "french_special_speed"),
-    ("Germans", "aircraft train faster", "ObjectData::train_time@006508c0", "not modelled", "german_air_speed"),
-    ("Germans", "submarines train faster", "ObjectData::train_time@006508c0", "not modelled", "german_submarine_speed"),
+    ("Germans", "aircraft train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "german_air_speed"),
+    ("Germans", "submarines train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "german_submarine_speed"),
     ("Japanese", "barracks units train faster (negative in the rules)", "ObjectData::train_time@006508c0", "not modelled", "japanese_barracks_speed"),
     ("Japanese", "carriers train faster", "ObjectData::train_time@006508c0", "not modelled", "japanese_carrier_speed"),
     ("Lakota", "raze speed (train_time's tail)", "ObjectData::train_time@006508c0", "not modelled", "lakota_raze_speed"),
@@ -218,6 +218,7 @@ ROSTER = ["Aztecs", "Maya", "Inca", "Bantu", "Nubians", "Greeks", "Romans", "Egy
           "Japanese", "Koreans", "Mongols", "Iroquois", "Lakota", "Americans", "Indians",
           "Dutch", "Persians"]
 LOBBY = {7: "`GreatSaharaEgyptianTier4` (map 7, tier 4)", 12: "`EastIndiesGermanTier3` (AI word, tier 3)",
+         18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (map 18, tier 4)",
          13: "`GreatLakesRussianTier2` (map 14, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
          4: "the human in every capture", 10: "scored pairs", 11: "scored pairs", 16: "scored pairs"}
 FLAG = {0: "aztecs", 1: "maya", 2: "inca", 3: "bantu", 4: "nubians", 6: "romans", 7: "egyptians",

@@ -29,6 +29,7 @@ SUITES = (
     'test_runqueue',
     'test_startcapture',
     'test_brief',
+    'test_gates',
     'test_trace_report',
     'test_recomp_snapshot',
     'test_gamelog_checks',

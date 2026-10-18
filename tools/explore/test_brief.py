@@ -247,6 +247,25 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertNotIn('--claimed', residue)
         self.assertTrue(brief.lane_worktree(7).endswith('/att-7'))
 
+    def test_a_run_number_goes_through_runs_and_is_reserved_once(self):
+        # Loop 3176 (the commander, at 3162's merge): two notes offered run
+        # 923 "if needed" and a third brief reserved it with `--runs`; two
+        # captures landed under one number. A note that names a run the
+        # `--runs` list does not carry is refused, and a run another brief
+        # on the box names is refused. Red first: both composed.
+        with self.assertRaises(ValueError) as e:
+            self.compose(1133, note='Take run 925 if the first capture is short.')
+        self.assertIn('925', str(e.exception))
+        self.compose(1133, note='Take run 423 if the first capture is short.')  # in --runs: fine
+        others = {'brief1127.md': '## Reserved for you\n\n- **Run numbers**: run424.\n',
+                  'brief1131.md': '- **Run numbers**: none; ask for one before a capture.\n'}
+        with self.assertRaises(ValueError) as e:
+            self.compose(1133, briefs=others)
+        self.assertIn('run424', str(e.exception))
+        self.assertIn('brief1127.md', str(e.exception))
+        self.compose(1133, briefs={'brief1133.md': '- **Run numbers**: run423, run424.\n'})  # its own earlier brief
+        self.compose(1133, briefs={'brief1127.md': '- **Run numbers**: run500.\n'})
+
     def test_the_commander_s_own_note_is_last_before_the_landing(self):
         text = self.compose(1133, note='Read `1/2`\'s path on block 6 first.')
         self.assertLess(text.index("Read `1/2`'s path"), text.index('## Landing'))

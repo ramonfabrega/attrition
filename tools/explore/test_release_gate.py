@@ -299,6 +299,30 @@ class GateTests(unittest.TestCase):
         self.assertEqual(gate.steps_line(commands, []),
                          'Gate steps: 0 of 6 ran (none); not reached: offline, clippy, fmt, survey, release, guard')
 
+    def test_the_receipt_carries_the_step_minutes(self):
+        # The forty-second pass: the lane gate is 21.6 of the 33.6 minutes a
+        # landing waits and ran 11 to 51 minutes on a box at a load of ten,
+        # and nothing in the receipt says which step took them. Red first:
+        # no `Gate minutes:` line, and `_run_steps` kept no clock.
+        self.assertEqual(gate.minutes_line(['offline', 'clippy', 'release'], [12.0, 114.0, 744.6]),
+                         'Gate minutes: offline 0.2, clippy 1.9, release 12.4')
+        self.assertEqual(gate.minutes_line(['offline', 'clippy'], [12.0]),
+                         'Gate minutes: offline 0.2; not reached: clippy')
+        self.assertEqual(gate.minutes_line(['offline'], []), 'Gate minutes: none ran; not reached: offline')
+        with tempfile.TemporaryDirectory() as d:
+            install = Path(d)/'install'
+            (install/'Data').mkdir(parents=True)
+            (install/'Data/rules.xml').write_text('authored fixture')
+            def run(command, **kwargs):
+                if '--release' in command:
+                    release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                gate.gate(install, report_dir=Path(d)/'report', test_threads=4, isolated=True, run=run)
+            lines = out.getvalue().splitlines()
+            self.assertTrue(lines[-4].startswith('Gate minutes: offline '), lines[-4:])
+            self.assertTrue(lines[-3].startswith('Gate steps: 6 of 6 ran'), lines[-4:])
+
     def test_the_receipt_carries_the_host_load(self):
         # Loop 3091: the admission receipt reads seconds while the lane gates
         # ran at half speed; the load at start and end, beside the cores, is

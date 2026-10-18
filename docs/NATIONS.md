@@ -89,7 +89,7 @@ says in its doc comment that only the British and Mongol arms are built,
 <!-- GENERATED:hand -->
 | nation | arm | original | status | witness |
 |---|---|---|---|---|
-| Egyptians | wonders cost 25% less | `TypeData::get_cost@00664090` | modelled at city.rs | `egyptian_wonders` |
+| Egyptians | wonders cost 25% less | `TypeData::get_cost@00664090` | modelled at cost.rs | `egyptian_wonders` |
 | Egyptians | scholars swap food and wealth (gate is 0 in the rules) | `TypeData::get_cost@00664090` | not modelled | `egyptian_scholars_food` |
 | Egyptians | granary available early | `LeaderData::has_preq@006db810` | modelled at tech.rs | `egyptian_granary_early` |
 | Egyptians | wonders one age early | `LeaderData::special_preq@006d7030` | modelled at tech.rs | `egyptian_wonders_early` |
@@ -100,7 +100,7 @@ says in its doc comment that only the British and Mongol arms are built,
 | Egyptians | granary upgrades applied on tech gain | `Leader::gain_tech@006dcb60` | carried, unread | `egyptian_granary_upgrades` |
 | Russians | attrition doubled | `Leader::calc_attrition@006cdea0` | modelled at attrition.rs | `russian_attrition` |
 | Russians | oil +20% in the rate pass | `LeaderData::calc_resource_bonuses@006db030` | modelled at economy.rs | `russian_oil` |
-| Russians | spy cost 50% less | `TypeData::get_cost@00664090` | modelled at lib.rs | `russian_spy_cost` |
+| Russians | spy cost 50% less | `TypeData::get_cost@00664090` | modelled at cost.rs | `russian_spy_cost` |
 | Russians | borders grow per age | `World::compute_reg_territory@006b0bb0` | modelled at territory.rs | `russian_borders_per_age` |
 | Russians | gems' territory bonus halved | `World::compute_reg_territory@006b0bb0` | modelled at territory.rs | `n.russian` |
 | Russians | plunder steals from the plundered | `Build::plunder@00623660` | modelled at city.rs | `russian_plunder_steal` |
@@ -192,10 +192,10 @@ left out; a constant with no reader in the export is dead there too.
 | `ROMAN_AGE_FOR_3_LEGIONS` | 5 | Build::activate | modelled at nations.rs | `roman_age_for_3_legions` |
 | `ROMAN_MAX_LEGION` | 3 | Build::activate | modelled at nations.rs | `roman_max_legion` |
 | `ROMAN_CITY_GATHER` | 10 | LeaderData::calc_city_resources | modelled at economy.rs | `roman_city_gather` |
-| `ROMAN_LEGION_CHEAP` | 10 | TypeData::get_cost | modelled at lib.rs | `roman_legion_cheap` |
+| `ROMAN_LEGION_CHEAP` | 10 | TypeData::get_cost | modelled at cost.rs | `roman_legion_cheap` |
 | `ROMAN_LEGION_FAST` | 10 | ObjectData::train_time | modelled at lib.rs | `roman_legion_fast` |
 | `ROMAN_FREE_MILITARY` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `roman_free_military` |
-| `EGYPTIAN_WONDERS` | 25 | TypeData::get_cost | modelled at city.rs | `egyptian_wonders` |
+| `EGYPTIAN_WONDERS` | 25 | TypeData::get_cost | modelled at cost.rs | `egyptian_wonders` |
 | `EGYPTIAN_GRANARY_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `egyptian_granary_early` |
 | `EGYPTIAN_GRANARY_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `egyptian_granary_upgrades` |
 | `EGYPTIAN_SCHOLARS_FOOD` | 0 | TypeData::get_cost | not carried | `egyptian_scholars_food` |
@@ -274,7 +274,7 @@ left out; a constant with no reader in the export is dead there too.
 | `RUSSIAN_BORDERS` | 0 | World::compute_reg_territory | modelled at territory.rs | `russian_borders` |
 | `RUSSIAN_BORDERS_PER_AGE` | 1 | World::compute_reg_territory | modelled at territory.rs | `russian_borders_per_age` |
 | `RUSSIAN_COMMUNISM` | 0 | LeaderData::calc_market_prices | carried, unread | `russian_communism` |
-| `RUSSIAN_SPY_COST` | 50 | TypeData::get_cost | modelled at lib.rs | `russian_spy_cost` |
+| `RUSSIAN_SPY_COST` | 50 | TypeData::get_cost | modelled at cost.rs | `russian_spy_cost` |
 | `RUSSIAN_COSSACK_DAMAGE` | 25 | ObjectData::get_damage | modelled at combat.rs | `russian_cossack_damage` |
 | `RUSSIAN_PLUNDER_STEAL` | 1 | Build::plunder, Cities::capture_city | modelled at city.rs | `russian_plunder_steal` |
 | `RUSSIAN_FREE_CIVIC` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `russian_free_civic` |
@@ -356,7 +356,7 @@ left out; a constant with no reader in the export is dead there too.
 | `DUTCH_FORT_SPEED` | 0 | Wall::update_construct_time | modelled at build.rs | `dutch_fort_speed` |
 | `DUTCH_ATTACK_BONUS` | 1 | ObjectData::armor, ObjectData::attack | not carried | `dutch_attack_bonus` |
 | `DUTCH_HP_BONUS` | 10 | Unit::update_hits | not carried | `dutch_hp_bonus` |
-| `DUTCH_SHIP_DISCOUNT` | 10 | TypeData::get_cost | modelled at lib.rs | `dutch_ship_discount` |
+| `DUTCH_SHIP_DISCOUNT` | 10 | TypeData::get_cost | modelled at cost.rs | `dutch_ship_discount` |
 | `PERSIANS_DESPOTISM` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `persians_despotism` |
 | `PERSIANS_BONUS_FOOD` | 50 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at lib.rs | `persians_bonus_food` |
 | `PERSIANS_CIVIC_DISCOUNT` | 30 | TypeData::get_cost | modelled at lib.rs | `persians_civic_discount` |
@@ -478,7 +478,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `IFaceOptions::on_redraw@00815a50` | 8 | not sim | `interface or render side` |
 | `IFaceResources::update_visibility@0081ba60` | 4 | not sim | `interface or render side` |
 | `Scene::set_help_type@008be140` | 12 | not sim | `interface or render side` |
-| `CommandPackage::process_sell@009468a0` | 4 | modelled at command_package_process_sell.rs | `009468a0` |
+| `CommandPackage::process_sell@009468a0` | 4 | carried at command_package_process_sell.rs | `009468a0` |
 | `ScenarioFuncSet::buy_good@009fb790` | 4 | not sim | `the scenario trigger set, cut from v1` |
 | `ScenarioFuncSet::sell_good@009fb880` | 4 | not sim | `the scenario trigger set, cut from v1` |
 | `ScenarioFuncSet::can_buy_sell@009fb970` | 4 | not sim | `the scenario trigger set, cut from v1` |

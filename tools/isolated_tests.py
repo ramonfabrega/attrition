@@ -80,6 +80,17 @@ def read_result(log):
     return passed, clock, rss
 
 
+def stopped_at(log):
+    """`(rss, limit)` in MiB when the resource budget stopped the test, else
+    `(None, None)` — the budget's own stderr line, read back (Loop 3167)."""
+    with log.open() as stream:
+        for part in iter(lambda: stream.readline(65536), ''):
+            found = re.search(r'resource budget: RSS (\d+) MiB / limit (\d+) MiB', part)
+            if found:
+                return int(found[1]), int(found[2])
+    return None, None
+
+
 def resource_timing(log):
     with log.open() as stream:
         for part in iter(lambda: stream.readline(65536), ''):
@@ -105,12 +116,13 @@ def run_one(binary, name, number, output, directory, memory, cancelled, known=Tr
                 except subprocess.TimeoutExpired:
                     pass
     passed, clock, rss = read_result(log)
+    stopped, seen_limit = stopped_at(log)
     success = (child.returncode == 0 and passed == 1 and clock is not None and rss is not None
                and binary_stamp(binary) == stamp)
     return dict(name=name, success=success, exit=child.returncode, elapsed=time.monotonic()-start,
                 user=clock[0] if clock else None, system=clock[1] if clock else None,
-                rss_bytes=rss, reservation_mib=memory, log=str(log), allocator=allocator_policy(env),
-                resource_timing=resource_timing(log))
+                rss_bytes=rss, reservation_mib=memory, stopped_mib=stopped, limit_mib=seen_limit or limit,
+                log=str(log), allocator=allocator_policy(env), resource_timing=resource_timing(log))
 
 
 def isolated(binary, output, directory, slots=8, skips=()):
@@ -126,7 +138,8 @@ def isolated(binary, output, directory, slots=8, skips=()):
     names = [n for n in all_tests if n not in set(ignored) and n not in excluded]
     if not names and not skipped:
         raise ValueError('no nonignored tests discovered')
-    profile = json.loads(PROFILE.read_text())['tests']
+    profile_doc = json.loads(PROFILE.read_text())
+    profile = profile_doc['tests']
     pending = sorted(enumerate(names), key=lambda p: -profile.get(p[1], {}).get('elapsed', 0))
     (output / 'manifest.json').write_text(json.dumps(dict(binary=str(binary), binary_stamp=stamp, tests=names, ignored=ignored, skipped=skipped, requested_skips=list(skips),
         install=os.environ.get('RON_INSTALL'), slots=slots, resource_directory=str(directory)), indent=2)+'\n')
@@ -167,6 +180,15 @@ def isolated(binary, output, directory, slots=8, skips=()):
     (output / 'summary.json').write_text(json.dumps(summary, indent=2)+'\n')
     print(f"test result: {'ok' if success else 'FAILED'}. {passed} passed; {len(rows)-passed} failed; "
           f"{len(ignored)} ignored; 0 measured; {len(skipped)} filtered out; finished in {summary['elapsed']:.2f}s", flush=True)
+    for row in rows:
+        # Loop 3167: a test the budget stopped under a limit its own profile
+        # row set is a stale row, not a 137 — say so, with the remedy.
+        if not row['success'] and row['exit'] == 137 and row.get('stopped_mib') is not None and row['name'] in profile:
+            known = round(profile[row['name']]['rss_bytes'] / 2**20)
+            print(f"stale profile row: {row['name']} stopped at {row['stopped_mib']} MiB against its "
+                  f"{row['limit_mib']} MiB limit, reserved {row['reservation_mib']} MiB from a {known} MiB row "
+                  f"({PROFILE.name}, tree {profile_doc.get('tree', '?')}): raise its rss_bytes to the measured RSS "
+                  f"or re-profile; alone it may pass", flush=True)
     if cancelled:
         return 130
     if not complete:

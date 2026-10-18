@@ -1752,6 +1752,24 @@ class Shapes(unittest.TestCase):
         self.assertEqual(sweep_gen.expand_argfiles(['a', '@/no/such/file', '--x']), ['a', '@/no/such/file', '--x'],
                          'a missing @file is left as it stands')
 
+    def test_an_argfile_line_is_split_as_the_shell_would_and_a_port_file_in_it_expands(self):
+        # Loop 3180 (3166's line): `--place x` on one line was read as one
+        # argument and failed "invalid choice"; Loop 3102 (3078's line): a
+        # `--port-file` inside an `@FILE` was never expanded. A line is split
+        # as the shell would, and the file's tokens take the same expansion.
+        # Red first: one token a line, and `--port-file` came out as itself.
+        with tempfile.TemporaryDirectory() as tmp:
+            port = Path(tmp) / 'port.rs'
+            port.write_text('let v = 1;\n')
+            flags = Path(tmp) / 'flags'
+            flags.write_text(f'# one flag a line, or a flag with its value\n--place x\n--name "a b"\n'
+                             f'--port-file {port}\n--regen\n')
+            self.assertEqual(sweep_gen.expand_argfiles(['y', f'@{flags}', '--x']),
+                             ['y', '--place', 'x', '--name', 'a b', '--port', 'let v = 1;', '--regen', '--x'])
+            flags.write_text("--name it's\n")
+            self.assertEqual(sweep_gen.expand_argfiles([f'@{flags}']), ['--name', "it's"],
+                             'a line the shell cannot split is split on blanks')
+
     def test_regen_given_a_whole_line_keeps_the_flags_the_line_leaves_out(self):
         # Loop 2508 (2507's Loop line; the thirty-fifth pass): `--regen` with
         # a whole line redrew `issue_toggle_pause` without the kept line's

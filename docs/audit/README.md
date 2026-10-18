@@ -315,6 +315,33 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the forty-second pass
+
+The forty-second tranche (DECISIONS 80): twenty landings on four lanes in
+4 h 52 from the pass's commit, 4.20 USD and 33.6 minutes waiting a
+landing (4.25 / 34.0); one red booking gate (a stale memory row), no kill
+rule, two `DEEP`, one `STALLED`, no merge backed out. The pass added
+these rows, each from the tranche's own receipts; the chapter kind stood
+at 12,999 of its 13,000 and the pass trimmed words, never a number, to
+seat them.
+
+- **The journal's gate section quotes `Gate minutes:` beside `Lane
+  verdict:` and `Gate steps:`** (3224, the pass's measurement): the lane
+  gate is 21.6 of the 33.6 minutes a landing waits and ran 11–51 minutes
+  on a box under its cores at eleven of fifteen gate ends, and no
+  receipt said which step took them; the gate prints the minutes by
+  step now, and a pass reads them off the journals.
+- **An `@FILE` line is a flag with its value, and a `--port-file`
+  inside one expands** (3180, 3102; 3166's and 3078's lines): the
+  reader split a line into one token and never expanded a file's own
+  `--port-file`; it splits as the shell would and takes the same
+  expansion for the file's tokens.
+- A run number is the brief's `Reserved for you` or none (Loop 3176,
+  the commander's rule, built in `brief.py`): a note that names a run
+  the `--runs` list does not carry is refused, and so is a run another
+  brief on the box names; two notes offered run 923 "if needed" and two
+  captures landed under one number.
+
 ## The brief checklist, from the forty-first pass
 
 The forty-first tranche (DECISIONS 79): twenty landings on four lanes in

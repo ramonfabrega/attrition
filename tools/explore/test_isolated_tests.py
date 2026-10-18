@@ -1,4 +1,6 @@
 """Authored processes only: no fixtures, no recursive release gate."""
+import contextlib
+import io
 import json
 import os
 from pathlib import Path
@@ -275,6 +277,32 @@ class Manifest(unittest.TestCase):
             self.assertTrue(json.loads((out/'summary.json').read_text())['complete'])
             with self.assertRaises(FileExistsError):
                 runner.isolated('fake', out, Path(d), 2)
+
+
+    def test_a_test_the_budget_stopped_names_its_stale_profile_row(self):
+        # Loop 3167 (the booking gate on e183b2e5, the forty-second
+        # tranche's one red): a test reserved from a 346 MB profile row,
+        # grew to 849 MiB with the battery, was stopped at a 768 MiB limit
+        # and reported as 137 and nothing else; the commander read the
+        # budget's stderr by hand. The row is named stale, with the three
+        # numbers and the remedy. Red first: no such line, no such fields.
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d) / 'one.log'
+            log.write_text('running 1 test\nresource budget: RSS 849 MiB / limit 768 MiB; combined 900 MiB / host limit 65536 MiB — stopping owned workload\n')
+            self.assertEqual(runner.stopped_at(log), (849, 768))
+            log.write_text('test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out;\n')
+            self.assertEqual(runner.stopped_at(log), (None, None))
+            profile = Path(d) / 'profile.json'
+            profile.write_text(json.dumps({'tree': 'abc', 'tests': {'only': {'elapsed': 0.5, 'rss_bytes': 346603520}}}))
+            row = dict(name='only', success=False, exit=137, user=0, system=0, stopped_mib=849, limit_mib=768, reservation_mib=512)
+            out = io.StringIO()
+            with patch.object(runner, 'PROFILE', profile), patch.object(runner, 'binary_stamp', return_value=(0,)), \
+                    patch.object(runner, 'discover', side_effect=[['only'], []]), patch.object(runner, 'run_one', return_value=row), \
+                    contextlib.redirect_stdout(out):
+                self.assertEqual(runner.isolated('fake', Path(d)/'out', Path(d), 1), 137)
+            said = out.getvalue()
+            self.assertIn('stale profile row: only stopped at 849 MiB against its 768 MiB limit, reserved 512 MiB from a 331 MiB row', said)
+            self.assertIn(f'({profile.name}, tree abc): raise its rss_bytes to the measured RSS or re-profile; alone it may pass', said)
 
 
 if __name__ == '__main__':

@@ -193,6 +193,7 @@ never when a file exists. `--dry-run` prints both files instead.
 import argparse
 import json
 import re
+import shlex
 import sys
 from pathlib import Path
 
@@ -3407,14 +3408,17 @@ def split_gate_this(argv):
     return out
 
 
-def expand_argfiles(argv):
+def expand_argfiles(argv, depth=0):
     """`@FILE` on the line stands for the file's lines, one argument each,
     blank and `#` lines dropped; `--port-file FILE` becomes `--port <the
     file's text>` (Loop 2796: sixty `--wbias` flags and a 3 KB port do not
     fit a command, and three batches wrote throwaway `gen.sh` drivers). Both
     expand before parsing, so the kept `# sweep_gen:` line records the
     arguments themselves and `--regen` redraws after the files are gone. A
-    missing `@FILE` is left as it stands (an argument may start with `@`)."""
+    missing `@FILE` is left as it stands (an argument may start with `@`).
+    A line of the file is split as the shell would (`--place x` is two
+    arguments; Loop 3180), on blanks when the shell cannot split it, and the file's tokens take this same expansion, so a
+    `--port-file` or an `@FILE` inside one expands too (Loop 3102)."""
     out = []
     i = 0
     while i < len(argv):
@@ -3424,10 +3428,18 @@ def expand_argfiles(argv):
             i += 2
             continue
         if a.startswith('@') and len(a) > 1 and Path(a[1:]).is_file():
+            if depth >= 8:
+                raise OSError(f'{a}: @FILEs nested past eight deep')
+            tokens = []
             for line in Path(a[1:]).read_text().splitlines():
                 line = line.strip()
-                if line and not line.startswith('#'):
-                    out.append(line)
+                if not line or line.startswith('#'):
+                    continue
+                try:
+                    tokens += shlex.split(line)
+                except ValueError:  # an unbalanced quote: split on blanks
+                    tokens += line.split()
+            out += expand_argfiles(tokens, depth + 1)
             i += 1
             continue
         out.append(a)

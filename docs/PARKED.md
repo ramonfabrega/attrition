@@ -3742,60 +3742,43 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-second tranche's
 
-(3222) **`tools/nations_census.py --write` drifts from NATIONS §5's guarded witnesses** (3207's done line, filed at its
-merge): run to regenerate §5.1 after building `AnimalData::is_seen`, it rewrote fifteen unrelated rows that
-`the_audit_table_s_witnesses_hold` rejects, so the lane hand-edited the one row and kept nothing the tool wrote. The
-documented regeneration path no longer round-trips. Candidate: make the tool's output pass the guard on an unchanged
-tree first (the fifteen rows say which side drifted), then land it. One reach.
+(3224) **A lane gate's minutes are not in its receipt** (the forty-second pass's measurement): the lane gate is 21.6
+of the 33.6 minutes a landing waits (`tranche.py`, twenty-two sessions), ran 11–51 minutes on a box whose load was
+under its sixteen cores at eleven of fifteen booking-gate ends, and the receipt said only that six steps ran. Built
+this pass: `Gate minutes: offline 0.3, clippy 1.9, …; not reached: …` before `Gate steps:` (`minutes_line`,
+`test_the_receipt_carries_the_step_minutes`, red first); the landing row quotes it, `tools/gates.py` reads its release
+figure. Owed: the next pass reads the tranche's lane-gate minutes by step off the journals and names the step; a release
+build that is most of them is the next item (a shared or cached build across the lanes' worktrees). One reach.
+
+Loop 2003's reaches in the forty-second tranche, filed here below its own row (its section is at the size ceiling):
+3150 `--seq` draws from `--answers`' list (3165); 3166 the `@FILE` token rule (3180, built by the forty-second pass
+with 3102) and a null `--answer-win` (3181); 3182 `--regen` under a new `--answers` list and `--regen --fresh` on a
+plain name (3013's third reach); 3200 the `--wbias` header's decimal offsets (3218); and 3102's second half, a port
+that returns early wrapped in a closure by the generator, stays the lane's.
 
 (3188) **The nations lane's named family is spent for the battery's leaders** (the commander, at 3172's merge, for the
 pass and for Ramon): 3145, 3160 and 3172 audited `get_cost`'s and `train_time`'s national arms against the eight
 battery leaders — 3160's Citizen arms moved the median 2270 → 4770; 3172's audit of `train_time` is negative and its
 Sulphur arm moved no lobby. What the lane takes next is NATIONS §7's sixth candidate (the tiers' arms, booked 3187); whether a
-nations lane stays on the roster is Ramon's (DECISIONS 78). One reach.
+nations lane stays on the roster is Ramon's (DECISIONS 78). One reach. **The forty-second pass**: the lane's six landings (3145, 3160, 3172, 3187, 3194, 3207) moved the held-out battery's median once (3160, 2270 → 4770) at 1.98 USD and 33.2 minutes waiting a landing; 3187, 3194 and 3207 built NATIONS §7's tier arms, the wonder-gated free techs and `AnimalData::is_seen` and moved none. The pass recommends in its record that the forty-third tranche scores the lane on the median alone and that it is re-seated as a second shape lane, judged on the port count, if the median does not move. Ramon's.
 
-(3218) **`sweep_gen.py obj`'s `--wbias` offsets print decimal** (3200's "for the Loop" line, filed at its merge): a hand-built line spelling `m+0x18` and then `str.replace`d by the hex spelling replaces nothing, and a `--regen` of unchanged flags reads as a draw that did not move. Candidate: the header names the offset in the spelling it was given (parked 3217). One reach.
+(3218) **`sweep_gen.py obj`'s `--wbias` offsets print decimal** (3200's "for the Loop" line, filed at its merge): a hand-built line spelling `m+0x18` and then `str.replace`d by the hex spelling replaces nothing, and a `--regen` of unchanged flags reads as a draw that did not move. Candidate: the header names the offset in the spelling it was given (parked 3217). One reach. **The forty-second pass**: one reach; stays — the shape lane's at its next `--wbias` header; closes at the next pass unreached (DECISIONS 54).
 
 (3181) **`--answer-win` cannot answer null** (3166's "for the Loop" line, filed at its merge): `UnitData::find_def_pos`'s
 `get_action() == 0` arm is unreached because the window answer is never null. Candidate: an `--answer-win` null a third
-of the rows, as `--place-null` does, made to fail first on the starved arm. One reach.
-
-(3180) **An `@FILE` flag file is one token a line, not one flag with its value** (3166, filed at its merge): `--place x`
-on one line is read as a single argument and fails "invalid choice"; the help says "one a line". Candidate: the reader
-splits a line as the shell would, or the help names the token rule, made to fail first. One reach.
-
-(3176) **A run number reserved in a commander's note is not a reservation `brief.py` sees** (the commander, at 3162's
-merge): 3152's and 3162's notes offered run 923 "if needed", and 3170's brief reserved it with `--runs 923`; 3170's
-capture took `~/ron-golden/run923/` and 3162's packet landed under `ch95pkt` (settled as run 924, parked 3173).
-Candidate: `brief.py` reads the live lanes' briefs and refuses a run number another one names, and a note's run goes
-through `--runs`, made to fail first. One reach.
-
-(3167) **An isolated test's memory row goes stale as the test grows** (the commander, the booking gate on `e183b2e5`):
-`battery_captures_are_complete_and_say_their_lobby` reserved from its 2026-10-16 row (346 MB) and was stopped at 849 MiB
-against its 768 MiB limit (137) — the battery gained lobbies since the profile (3107's Dutch pair); alone it passes. The
-row was raised to the measured 890 MB in the second commit. Candidate: the gate refreshes a row whose measured RSS beat
-its reservation and still passed, or names the test as stale rather than 137, made to fail first. One reach.
+of the rows, as `--place-null` does, made to fail first on the starved arm. One reach. **The forty-second pass**: one reach; stays — the shape lane's at its next null-answered window; closes at the next pass unreached (DECISIONS 54).
 
 (3165) **`--seq` draws from `--answers`' list** (3150's "for the Loop" line, filed at its merge): the seq draw goes
 through `--answers` 90% of the time, so a loop's first and last answers come from one set, and `Unit::resolve_block`'s
 arms starved until the list was mostly the exit value. Candidate: `--seq` takes its own value list, as `--answers` does
-for the base answer, made to fail first on a break the shared list starves. One reach.
+for the base answer, made to fail first on a break the shared list starves. One reach. **The forty-second pass**: one reach; stays — the shape lane's at its next `--seq` loop; closes at the next pass unreached (DECISIONS 54).
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
 (3158) **A term a document cites and the code lacks has no row in `seams.py`** (3142's "for the Loop" line, filed by
 the forty-first pass — it was not filed at the merge): `compare_target`'s unit-target spellcaster arm stood in COMBAT
 §12.3 and not in `fight.rs`, a five-frame fix found by reading. Candidate: `seams.py --terms <DOC §N> <fn>` lists the
-section's spelled terms the function's body does not carry, a test made to fail first. One reach.
-
-(3157) **A golden chapter is wired in six places by hand** (3126's "for the Loop" line, filed by the forty-first pass —
-it was not filed at the merge): the cmd list, the cases, `testkit.rs`'s consts and `WIDENINGS` row, `floors.rs`,
-`coverage.rs`, `golden.rs`'s test and `WANT`, with a staged-line count assert. Candidate: a `tools/` scaffold that
-clones the previous chapter's wiring under the new number, a test made to fail first. One reach.
-
-(3149) **`--stub-write` takes one fixed value** (3134's "for the Loop" line, filed at its merge): `Unit::cavarch_fight`
-needed two modules for two written values, and its clamp and pre-fight copy stayed starved. Candidate: `--stub-write`
-takes a list drawn per row, as `--answers` does, made to fail first on a break the one-value form starves. One reach. **The forty-first pass**: one reach; stays — the shape lane's at its next two-value stub; closes at the next pass unreached (DECISIONS 54).
+section's spelled terms the function's body does not carry, a test made to fail first. One reach. **The forty-second pass**: no reach — the rules track's six landings read a packet or a dump, none a document term the code lacked. Stays; closes at the next pass unreached (DECISIONS 54).
 
 (3143) **The host at saturation, and a runaway the budget cannot see** (Ramon, 2026-10-18, for the steer): at 01:12
 during the forty-first tranche's whole gate, with four lanes live and 3140's run921 capture under Wine, the load was 32 on
@@ -3807,20 +3790,13 @@ subagent worktree (`agent-a125b8735144f445e`; the sweep is 2793's), parent launc
 Candidates: (i) the slot policy measured against the load: 32 slots on 16 cores admits 2x and the gate's `Admission wait`
 receipt reads seconds while every lane's wall clock stretches; (ii) a reaper, or a `guard.sh`/`check.sh` lease timeout
 that outlives no supervisor, so a test whose supervisor died cannot run a day; (iii) the sweep test that did not
-terminate (the soak found one in an hour; this one ran under no budget). **The forty-first pass** (02:00–02:40, 2026-10-18, the box idle but for the pass): the orphan is **alive** — pid 51257, the same debug `sweep_a_f … city_data_num_city_buildings` binary, parent 1, started 2026-10-17 03:25:59, 22 h 40 m at 100 % — so the fortieth pass's (iii) was wrong: the `kill 63145 33786` named the cargo parents, not the test; the pass's own `kill 51257` was refused by the classifier (Interfere With Workloads) and goes to Ramon. The budget at 20 made the wait visible: the fourteen booking gates waited **1375.6 s summed at the door, longest 83.8 s** (246 s over nineteen the tranche before), and the lane gates still ran **19–31 minutes on ten of fourteen** (6–13 on the four after 01:00, two lanes live), so twenty slots on sixteen cores beside a Wine capture outside the budget and the orphan's core is still a load past the cores; the gate prints `Host load:` at start and end now (Loop 3091). Loop 3088 (the same orphan) is folded here. Candidates unchanged: a sweep test's emulator loop takes an instruction budget; a lease timeout no supervisor outlives; the capture lane takes a lease.
+terminate (the soak found one in an hour; this one ran under no budget). **The forty-first pass** (02:00–02:40, 2026-10-18, the box idle but for the pass): the orphan is **alive** — pid 51257, the same debug `sweep_a_f … city_data_num_city_buildings` binary, parent 1, started 2026-10-17 03:25:59, 22 h 40 m at 100 % — so the fortieth pass's (iii) was wrong: the `kill 63145 33786` named the cargo parents, not the test; the pass's own `kill 51257` was refused by the classifier (Interfere With Workloads) and goes to Ramon. The budget at 20 made the wait visible: the fourteen booking gates waited **1375.6 s summed at the door, longest 83.8 s** (246 s over nineteen the tranche before), and the lane gates still ran **19–31 minutes on ten of fourteen** (6–13 on the four after 01:00, two lanes live), so twenty slots on sixteen cores beside a Wine capture outside the budget and the orphan's core is still a load past the cores; the gate prints `Host load:` at start and end now (Loop 3091). Loop 3088 (the same orphan) is folded here. Candidates unchanged: a sweep test's emulator loop takes an instruction budget; a lease timeout no supervisor outlives; the capture lane takes a lease. **The forty-second pass** (08:00–09:30, 2026-10-18): the orphan is **still alive** — pid 51257, 1 d 4 h 22 m at 99.7 % of a core; Ramon's `kill 51257`. The tranche's fifteen booking gates, read by `tools/gates.py` (built this pass from the probe three passes wrote by hand): admission **1351.8 s summed, longest 134.8 s** (1375.6 / 83.8 before); **four of fifteen ended past the sixteen cores** (24.0, 19.7, 20.0, 18.7) and eleven under; the lane gates ran **11–51 minutes** (`tranche.py`'s gate class, 21.6 a session mean; 3207's 51.4 beside the sixteenth landing's whole gate and three other lane gates), and 3170's lane gate waited **400.9 s at the door**. Twenty slots is not what the receipts show as the ceiling: the box was under its cores at eleven of fifteen gate ends and the lane gates still ran twenty minutes — the gate prints `Gate minutes:` by step now (Loop 3224), and the next pass reads where a lane gate's minutes go before any slot count moves. Candidates unchanged; Ramon's.
 
 (3139) **`seams.py --item` missed the word's live SEAM** (3117's "for the Loop" row, filed at its merge): the brief's run named `explore_goody`, `think_bird`,
 `WIDENINGS`, `IROQUOIS_WORD`, and `path.rs`'s `iroquois: false, // SEAM: unit_masks2 & 0x4000` was found by grepping
 `iroquois` after the widening named the path. A `--item` that also takes the parted unit's nation and the fields the
 previous item built (`FOREST_WALKER`) would have printed it before the capture.
-One reach. **The forty-first pass**: one reach; stays — the AI lane's at its next widening on the word; closes at the next pass unreached (DECISIONS 54).
-
-(3122) **A `calc_cost` record diff by `(from, to, dir)` is a third-use tool** (3099's "for the Loop" line, filed at
-its merge): diffing the original's `calc_cost` records against ours by key, grouped by ours' cell flags, found the
-army-mode flag behind chapter 94's 847 parting in ten minutes after four sessions of fog and danger reading; and
-`unitaddr.py` prints decimal and accepts unaligned hits (`0xe3f58e` was a false hit on run916b). Candidate: graduate
-the diff into `tools/` (CLAUDE.md's third-use rule) and make `unitaddr.py` print hex and refuse unaligned pairs, each a
-test made to fail first. One reach. **The forty-first pass**: `unitaddr.py` printed hex already (`{a:08x}`; 3099's line misread it) and drops an unaligned hit now (`test_an_unaligned_hit_is_not_a_unit`, red first). The `calc_cost` record diff stays one reach — the rules lane's at its next cost parting; closes at the next pass unreached (DECISIONS 54).
+One reach. **The forty-first pass**: one reach; stays — the AI lane's at its next widening on the word; closes at the next pass unreached (DECISIONS 54). **The forty-second pass**: a second reach — 3202 named `UnitData::speed`'s Iroquois spear arm (`iroquois_spear_speed`, a SEAM in `unit_speed`) by reading, after the widening; the brief's seams print had not carried it. Stays — the AI lane's at its next widening on the word; the candidate narrows to `seams.py --nation <the parted unit's nation>`: the SEAMs whose comment names the nation, one grep.
 
 (3118) **The captures are not silent** (Ramon, 2026-10-17, during the forty-first tranche, for the steer): sound is
 heard while captures run, though the click-free lane was meant to be muted (parked 343, DECISIONS 40's list). What the
@@ -3831,29 +3807,13 @@ click-free pool lanes, `golden_capture.sh` included, so either the profile write
 (the intro and the menu play before a profile loads; a volume of 0 may be read as unset), or the sound came from a path
 that does not mute. Not measured. Candidate: a Wine-side mute every launch shares (`winelaunch.sh`: the prefix's audio
 driver off, or the process's output muted) rather than a per-path profile write, and a test that a launch's environment
-carries it. Ramon's to discuss at the steer. **The forty-first pass**: not measured — a pass cannot hear the box. The check before any mute is made every launch's: one click-free capture with the prefix's audio driver off (`HKCU\Software\Wine\Drivers`, `Audio=""`), scored by `samegame.py` against its twin, because a device that fails to open can move the load's timing. Ramon's.
-
-(3116) **A probe commit that also holds a build cannot be reverted whole** (3107's "for the Loop" line, filed at its
-merge): the first probe commit carried the Iroquois hits build with it, against the brief's row 1727 (one guard, one
-commit, reverted whole); it was kept as a test instead. Candidate: a `probe.py --env X` that refuses a commit touching
-files outside the probe's, the rule made a guard, a test made to fail first. One reach. **The forty-first pass**: one reach; stays — the AI lane's at its next probe commit; closes at the next pass unreached (DECISIONS 54).
-
-(3102) **`mutate.py`/`sweep_gen.py`'s `--port-file` is not expanded inside an `@FILE`** (3078's "for the Loop" line, parked
-at its merge): it reads as an unrecognised argument; and a port that returns early must be wrapped in a closure
-(`(|| -> i64 { … })()`) because the generated test is a `()` function. Candidate: expand `--port-file` wherever the
-argument list is read, and wrap the port in the generator, a test made to fail first. One reach. **The forty-first pass**: one reach; stays — the shape lane's at its next `@FILE`; closes at the next pass unreached (DECISIONS 54).
+carries it. Ramon's to discuss at the steer. **The forty-first pass**: not measured — a pass cannot hear the box. The check before any mute is made every launch's: one click-free capture with the prefix's audio driver off (`HKCU\Software\Wine\Drivers`, `Audio=""`), scored by `samegame.py` against its twin, because a device that fails to open can move the load's timing. Ramon's. **The forty-second pass**: not measured — a pass cannot hear the box; the check stands as written. Ramon's.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
-(3095) **A document-only landing pays the release build** (the fortieth steer, Ramon's question): a lane gate whose
-diff touches no crate still builds and runs the fast release suite, 5 to 9 minutes idle and twice that under load, for a
-tree the guards and the document's own tests would judge. Candidate: `--lane` on a diff with no `crates/` or workspace path
-runs the offline step, the guards and the named tests and skips the release build, saying so in its `Lane verdict:`; a test
-made to fail first. The next pass's. One reach. **The forty-first pass**: no reach — every merge of the forty-first tranche touched `crates/`, so no lane gate was a document's. Stays, Ramon's rule: built at the first document-only landing's gate, or closed at the next pass unreached (DECISIONS 54). The lane gate's `blind::` pin needs the release binary, so the skip is of the release build and not of the named tests — the candidate's shape is the named tests under the debug profile, which no kept dump reaches.
-
 (3013) **A `--regen` whose `--clean-stack` changed resets a hand port to `todo!()`** (parked 3010, filed at its merge): the
 `.rs` did not win, against Loop 2886's built rule. Candidate: the regen keeps a hand port whatever flag changed and says
-so, a test made to fail first; and `--clean-stack 256` the default for a logger of five or more reference arguments. One reach. **The fortieth pass**: one reach; stays — the sweep lane's at its next `--clean-stack` regen; closes at the next pass unreached (DECISIONS 54). **The forty-first pass**: a second reach — 3111 (3104's "for the Loop" line, folded here): a `--regen` dropped the `log.is_empty()` → `"-"` line a recorded-stub sweep with no-call rows needs, three times in one item, and the row's print order (singles, `--outarg` values, `--seq` runs, then the slotbase flag) is nowhere in the generated header. Stays — the shape lane's at its next regen; the candidate is a regen that keeps every hand line and writes the order into the header comment, a test made to fail first.
+so, a test made to fail first; and `--clean-stack 256` the default for a logger of five or more reference arguments. One reach. **The fortieth pass**: one reach; stays — the sweep lane's at its next `--clean-stack` regen; closes at the next pass unreached (DECISIONS 54). **The forty-first pass**: a second reach — 3111 (3104's "for the Loop" line, folded here): a `--regen` dropped the `log.is_empty()` → `"-"` line a recorded-stub sweep with no-call rows needs, three times in one item, and the row's print order (singles, `--outarg` values, `--seq` runs, then the slotbase flag) is nowhere in the generated header. Stays — the shape lane's at its next regen; the candidate is a regen that keeps every hand line and writes the order into the header comment, a test made to fail first. **The forty-second pass**: a third reach — 3182: `--regen` kept an old `--answer-range` under a new `--answers` list until `--fresh`, and `--regen --fresh` on a plain name overwrote another overload's sweep (restored from git). Stays — the shape lane's at its next regen; the candidate adds a refusal of a plain name that matches several overloads.
 
 Loop 2003's reaches in the fortieth tranche, filed here below its own row (its section is at the size ceiling): 2959 the `process_*` bodies' table windows (2987); 2966 `--regen` without `--fresh` (3002) and a 2-byte `--wbias` (3003); 2990 the sibling port copy (3012) and the `--clean-stack` regen (3013); 3004 the regen's exit (3022, closed by the fortieth pass: the generator exits 2 and the lane's grep read stdout); 3014 `--record-edx`'s ten columns; 3024 `--ecx-int` without `--tame` (3043); 3030 `--answers` (3057); 3038 `--cell-win` on a flag byte (3048); 3044, 3064 and 3049 the help's six spellings (3062); 3058 a regen under a batch (3077). **The fortieth pass built** the batch's un-mutated run and its `\n` rows (3037, 3048) and `blind::` in every kind's lane gate (2989).
 
@@ -3997,7 +3957,7 @@ Whether that is a timing problem at the autostart or two tracer builds
 that do not combine is not known. Score: a `cover=1` capture and a
 lobby the autostart could not start, both on a pool lane with no
 cursor; then the queue lane goes and the pool is the only lane. One
-reach; the suite lane's after 1569. **The twenty-seventh pass**: stays — a capture trial (`cover=1` on a pool lane, a lobby the autostart cannot start) the user books; no lane ran it this tranche. **The twenty-eighth pass**: stays — the user's capture trial; no lane ran it in the race, which took no lane but the four arms. **The twenty-ninth pass**: stays — the user's capture trial; no lane ran it. **The thirtieth pass**: stays — the user's capture trial; no lane ran it. **The thirty-first pass**: stays — the user's capture trial; no lane ran it. **The thirty-second pass**: stays — the user's capture trial; no lane ran it. **The thirty-third pass**: stays — the user's capture trial; no lane ran it. **The thirty-fourth pass**: stays — the user's capture trial; no lane ran it. **The thirty-fifth pass**: stays — the user's capture trial; no lane ran it. **The thirty-sixth pass**: stays — the user's capture trial; no lane ran it. **The thirty-seventh pass**: stays — the user's capture trial; no lane ran it. **The thirty-eighth pass**: stays — the user's capture trial; no lane ran it. **The thirty-ninth and fortieth passes**: stays — the user's capture trial; no lane ran it. **The forty-first pass**: stays — the user's capture trial; no lane ran it.
+reach; the suite lane's after 1569. **The twenty-seventh pass**: stays — a capture trial (`cover=1` on a pool lane, a lobby the autostart cannot start) the user books; no lane ran it this tranche. **The twenty-eighth pass**: stays — the user's capture trial; no lane ran it in the race, which took no lane but the four arms. **The twenty-ninth pass**: stays — the user's capture trial; no lane ran it. **The thirtieth pass**: stays — the user's capture trial; no lane ran it. **The thirty-first pass**: stays — the user's capture trial; no lane ran it. **The thirty-second pass**: stays — the user's capture trial; no lane ran it. **The thirty-third pass**: stays — the user's capture trial; no lane ran it. **The thirty-fourth pass**: stays — the user's capture trial; no lane ran it. **The thirty-fifth pass**: stays — the user's capture trial; no lane ran it. **The thirty-sixth pass**: stays — the user's capture trial; no lane ran it. **The thirty-seventh pass**: stays — the user's capture trial; no lane ran it. **The thirty-eighth pass**: stays — the user's capture trial; no lane ran it. **The thirty-ninth and fortieth passes**: stays — the user's capture trial; no lane ran it. **The forty-first pass**: stays — the user's capture trial; no lane ran it. **The forty-second pass**: stays — the user's capture trial; no lane ran it.
 
 ## Loop, filed 2026-10-05 — the twenty-fourth pass's own
 

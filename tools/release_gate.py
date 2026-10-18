@@ -415,11 +415,14 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
               + (f"; base {base} is not a ref here, so nothing widened" if touched is None else ''),
               flush=True)
     reached = []
+    seconds = []
     load_at_start = host_load()
     try:
         _run_steps(commands, run=run, env=env, audit_dir=audit_dir, report_dir=report_dir,
-                   require_fixtures=require_fixtures, reached=reached, lane=lane, word=tests)
+                   require_fixtures=require_fixtures, reached=reached, lane=lane, word=tests,
+                   seconds=seconds)
     finally:
+        print(minutes_line([step_name(c) for c in commands], seconds), flush=True)
         print(steps_line(commands, reached), flush=True)
         print(admission_line(admission_summary(report_dir)), flush=True)
         print(load_line(load_at_start, host_load(), os.cpu_count() or 0), flush=True)
@@ -490,6 +493,19 @@ def step_name(command):
     return command[-1]
 
 
+def minutes_line(names, seconds):
+    """`Gate minutes: offline 0.3, clippy 1.9, …; not reached: …` — where a
+    gate's minutes went, step by step (the forty-second pass: the lane gate
+    is two thirds of what a landing waits, and the receipt said only that
+    its steps ran)."""
+    ran = [f'{n} {s / 60:.1f}' for n, s in zip(names, seconds)]
+    rest = names[len(seconds):]
+    line = 'Gate minutes: ' + (', '.join(ran) or 'none ran')
+    if rest:
+        line += f"; not reached: {', '.join(rest)}"
+    return line
+
+
 def steps_line(commands, reached):
     """`Gate steps: <ran>; not reached: <rest>` — the last line a gate prints.
 
@@ -508,8 +524,9 @@ def steps_line(commands, reached):
 
 
 def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, reached,
-               lane=False, word=()):
+               lane=False, word=(), seconds=None):
     for command in commands:
+        began = time.monotonic()
         child_env = env.copy()
         is_release = '--release' in command
         completed = False
@@ -528,6 +545,8 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
                 raise
             held = failure
         finally:
+            if seconds is not None:
+                seconds.append(time.monotonic() - began)
             if is_release:
                 summary = summarize_requests(audit_dir, release_completed=completed)
                 output = report_dir / 'fixture-coverage.json'

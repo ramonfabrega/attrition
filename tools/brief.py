@@ -25,6 +25,7 @@ copied from the job's scratch directory and edited, and it had grown from
 4,700 characters to 11,000 in ten days. `tools/explore/test_brief.py`.
 """
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -123,10 +124,38 @@ def filters(kind, tests):
     return tests + [t for t in ALWAYS_TESTS[kind] if t not in tests]
 
 
+def run_numbers(text):
+    """The run numbers a text names: `run423`, `run 423`, `--runs 423`."""
+    return set(re.findall(r'\brun ?(\d{3,4})\b', text))
+
+
+def reserved_once(item, runs, note, briefs):
+    """Loop 3176: a run number is reserved by `--runs` and nowhere else.
+    A note that names a run the list does not carry is refused — two
+    notes offered run 923 "if needed" and a third brief reserved it — and
+    a run another item's brief on the box names is refused."""
+    mine = {re.sub(r'\D', '', r) for r in runs}
+    loose = run_numbers(note) - mine
+    if loose:
+        raise ValueError(f"the note names run {', '.join(sorted(loose))} and --runs does not: "
+                         "a note's run goes through --runs (Loop 3176)")
+    for name, text in sorted((briefs or {}).items()):
+        if re.search(rf'(?<!\d){item}(?!\d)', name):
+            continue  # the item's own earlier brief
+        for line in text.splitlines():
+            if 'Run numbers' not in line:
+                continue
+            taken = run_numbers(line) & mine
+            if taken:
+                raise ValueError(f"run{', run'.join(sorted(taken))} is reserved by {name}; "
+                                 "a run number is reserved once (Loop 3176)")
+
+
 def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read, note, tests=(),
-            park=None, seams=None):
+            park=None, seams=None, briefs=None):
     if kind not in KINDS:
         raise ValueError(f'no such kind of brief: {kind}; one of {sorted(KINDS)}')
+    reserved_once(item, runs, note, briefs)
     tests = filters(kind, tests)
     items = open_items_text(queue)
     if item not in items:
@@ -211,7 +240,11 @@ def main():
                     help="the lane gate's filters for the word; `coverage::` is added (1623)")
     ap.add_argument('--park', help='the park slot letter reserved for the item (parked 1812)')
     ap.add_argument('--no-seams', action='store_true', help='leave out the seams.py print (parked 1743)')
+    ap.add_argument('--briefs', type=Path, default=Path(os.environ['CLAUDE_JOB_DIR']) / 'tmp' if os.environ.get('CLAUDE_JOB_DIR') else None,
+                    help="the directory of the other lanes' briefs (brief*.md), whose run numbers are taken (Loop 3176); "
+                         "$CLAUDE_JOB_DIR/tmp when set")
     args = ap.parse_args()
+    briefs = {f.name: f.read_text() for f in sorted(args.briefs.glob('brief*.md'))} if args.briefs and args.briefs.is_dir() else {}
     base = subprocess.run(['git', 'rev-parse', '--short=8', 'HEAD'], cwd=ROOT,
                           capture_output=True, text=True, check=True).stdout.strip()
     try:
@@ -221,7 +254,7 @@ def main():
                        sections=args.sections, read=args.read,
                        note=args.note_file.read_text() if args.note_file else '',
                        tests=args.tests, park=args.park,
-                       seams=None if args.no_seams else run_seams)
+                       seams=None if args.no_seams else run_seams, briefs=briefs)
     except ValueError as e:
         print(f'brief.py: {e}', file=sys.stderr)
         sys.exit(2)
