@@ -653,6 +653,18 @@ impl Sim {
         };
         g.army = None;
         g.pushed = Some(slot);
+        // `copy_group` wrote the **army's own record** when the slot is one a valid
+        // army owns and has emptied but not recounted (`num_units` still set,
+        // list empty — `get_open_slot` hands such a slot out): the army's
+        // list now names the push, so the army's tick commands it. Golden
+        // chapter ninety-four's Scout `1/0` joins army 0 this way on 846
+        // and gets its `ATTACK_TO` to the muster on 1021 (`docs/GOLDEN.md`
+        // §120). Only the empty case: the equal arm above is parked row 9's.
+        if let Some(a) = self.armies[g.who as usize].list.iter_mut().find(|a| {
+            a.valid && a.num_units != 0 && a.group.pool == Some(pool) && a.units.is_empty()
+        }) {
+            a.units = g.list.clone();
+        }
         pool
     }
 

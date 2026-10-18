@@ -13236,12 +13236,24 @@ ATTACK_TO; ours seats the push in a `Pushed` entry and army 0's group stays empt
 **What the diff backs.** `chapter_ninety_four_s_window_is_widened_whole` (`WANT_CH94`) and `chapter_sixty_two_s_word_frame_is_widened_whole`. **Not established**: the reset of
 `+0x8` by the recount; the 1021 order.
 
-## 120. Reserved for the next item on the rules track
+## 120. Chapter ninety-four closes: a push onto an emptied army slot is the army's list (run914)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Item 3123: §119's open word, 1117, and the widening's first parted field, the who=1 Scout `1/0` on 1021 (ours `EXPLORE_TO`, theirs `ATTACK_TO` to
+(38664, 13320), path 14 steps against 43). **Disk answered it** (no capture): run914's dump and trace.
+
+**What the widening showed.** The order is a fresh one on 1021, after an `astar_path` through the static `grouppath` (`0xe85e40`) on 1020 — frame ≡ 252 mod 256, army 0's
+tick. Its `orig` (38646, 13305) is army 0's muster (50, 17) in cells; ours read army 1/0 as `units 2` (stale) with an **empty list** from 833, the Scout seated in a separate
+`Pushed` entry on the same pool slot (64 = who 1's pool 0). So the original's army 0 held the Scout and its muster march took it; ours' army ticked over nobody.
+
+**Cause and build.** `Groups::copy_group` writes the slot's own record (§28), and `get_open_slot` hands out an army's emptied slot (§119), so the push's list **is** the army's
+list. `push_group_slot` (`group.rs`) now also writes the list into the army that owns the pool slot when that army is valid, `num_units != 0` and its list is empty — the
+same discriminator as `slot_keeps_army_link`. The equal arm (parked row 9) is untouched.
+
+**Result.** The widening parts only its 11 standing `form` rows on 605; the 1021 order, 1041 tolerance, the **1118 metal bucket (175 against 100)** and the 1130–1168 rows all
+go with it. **The word is the capture's end, 1200**: `chN closed`.
+
+**Not established**: the `num_units != 0` / empty-list discriminator is still §119's assumption (a recount resets the link); an emptied army whose slot a push takes after
+a recount is untested here beyond chapters 41 and 62's pins. **What the diff backs**: `chapter_ninety_four_s_window_is_widened_whole`, `chapter_ninety_four_holds_to_the_golden_word`.
 
 ## 121. Reserved for the next item on the rules track
 
