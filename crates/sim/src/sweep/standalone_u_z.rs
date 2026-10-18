@@ -392,6 +392,8 @@ mod valid_filter_case7;
 mod valid_filter_case8;
 #[path = "valid_filter_case9.rs"]
 mod valid_filter_case9;
+#[path = "valid_target_const_air.rs"]
+mod valid_target_const_air;
 #[path = "valid_target_const_neg_i.rs"]
 mod valid_target_const_neg_i;
 #[path = "valid_target_const_p_high.rs"]
