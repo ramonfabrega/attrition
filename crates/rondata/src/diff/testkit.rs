@@ -9706,13 +9706,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // taking a gather where the original took the re-placed camp's
     // build. **Item 3140 moved it 1496 → 1772** (`action_swarm_around`'s
     // builder mark, `unit_masks |= 0x400`), past run921's last block:
-    // 1772's widening is owed, a capture of 1766..2022; the owing item's
-    // number is the commander's.
+    // 1772's widening is owed, a capture from run921's last block, item
+    // 3156's (run 922).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3140,
+        3156,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

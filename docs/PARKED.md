@@ -3742,6 +3742,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3155) **A widening's window sized to the word, not to the last dumped block** (3140's "for the Loop" row, filed at
+its merge): the booking's "1490..1746" window was sized to the word, and the walk named 1376–1378 — 126 blocks
+before it — as the parting; a window that starts at the last dumped block (run918's 1370) when the gap is under 256
+would have been the same capture with no second one owed. A booking that sizes a window could name "from the last
+dumped block when it is near" as the default. One reach.
+
 (3149) **`--stub-write` takes one fixed value** (3134's "for the Loop" line, filed at its merge): `Unit::cavarch_fight`
 needed two modules for two written values, and its clamp and pre-fight copy stayed starved. Candidate: `--stub-write`
 takes a list drawn per row, as `--answers` does, made to fail first on a break the one-value form starves. One reach.
@@ -7538,18 +7544,15 @@ Five shapes built (find_town_at, find_good_at@0065bec0, process_ejection, cavarc
 
 ## Parked by item 3140, 2026-10-18 — the Iroquois word on 1496
 
-- **who=1's script on 1577** (`docs/AI.md` §248, run921): `script_step` 15 against 18, `tech_frame` and
+- (3153) **who=1's script on 1577** (`docs/AI.md` §248, run921): `script_step` 15 against 18, `tech_frame` and
   `tech_cat_frame[2]` 1 against 1576, the Library 1/2005's `queued` 0 against 1, timber `bucket` 133 against 79 — the
   original queues a tech on 1576 that ours does not. A standing row on the gatherers' player before the new word 1772;
   a hypothesis for 1772's item, which names its own frame (ours 3 draws, theirs 4, index 0: ours
   `Guy::set_anim+0x104b`, theirs `Unit::do_non_flat_gather+0x54b`). The food row (parked 3138) stands beside it.
-- **`swarm_around` still skips `add_build_order`'s civilian transport request** (`unit_masks |= 0x800000` when the
+- (3154) **`swarm_around` still skips `add_build_order`'s civilian transport request** (`unit_masks |= 0x800000` when the
   target's tile region differs and the leader can transport, `docs/ORDERS.md` §3.1): item 3140 took only the `0x400`
   half. No capture of this lobby reaches a swarm across regions; names no score yet.
-- **For the Loop**: the booking's "1490..1746" window was sized to the word, and the walk named 1376–1378 — 126 blocks
-  before it — as the parting; a window that starts at the last dumped block (run918's 1370) when the gap is under 256
-  would have been the same capture with no second one owed. A booking that sizes a window could name "from the last
-  dumped block when it is near" as the default.
+- (3155) Its Loop row is filed in the Loop section at the merge.
 
 ## Parked by item 3142, 2026-10-18 — a caster is weighed by its action
 
