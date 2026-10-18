@@ -1057,7 +1057,9 @@ impl Sim {
                     !s.units[u].decoy && s.unit_line_is(u, SCOUT)
                 }) != 0
                 {
-                    self.use_scouts(who, slot);
+                    if std::env::var_os("RON_PROBE_NO_SCOUTS").is_none() {
+                        self.use_scouts(who, slot);
+                    }
                 }
             }
             if (frame + s) % 256 != 0 {
