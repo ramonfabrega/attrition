@@ -340,6 +340,8 @@ mod group_patrol_order_walk_data_vtordisp;
 mod group_report_speed;
 #[path = "group_set_ordered.rs"]
 mod group_set_ordered;
+#[path = "group_set_up_insert.rs"]
+mod group_set_up_insert;
 #[path = "group_toggle.rs"]
 mod group_toggle;
 #[path = "group_walk_data.rs"]
