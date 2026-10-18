@@ -22787,8 +22787,8 @@ block 5574, §4.3's walk variant). **The word's drawer** is `1/26`'s figure in t
 
 **Not built.** The two partings are this item's successor (parked 3210, the lane's number). The speed's hypothesis is
 written as one: 35 is 28 plus one `UNIT_MOVE_SPEED` step, the size of `UnitData::speed@0060aae0`'s Iroquois arm
-(`iroquois_spear_speed` 1, a SEAM in `cast.rs`'s `unit_speed`). But that arm's `is(0xa6..0xa9)` tests read the Spearmen
-line (TI 166..169), so the Slingers' way into it is not shown. A packet at `RON_STATE_FRAME=5564` that runs `speed` on
+(`iroquois_spear_speed` 1, a SEAM in `cast.rs`'s `unit_speed`). But that arm's `is` tests read the Spearmen line
+(TI 166..169), so the Slingers' way into it is not shown. A packet at `RON_STATE_FRAME=5564` that runs `speed` on
 `1/26` decides it. The offsets are `Form::compute_dests`' follower arm, or a squad formation that arm does not take,
 and are not read.
 

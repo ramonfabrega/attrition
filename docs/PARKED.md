@@ -7608,7 +7608,7 @@ words and edits nothing here; a refill lands when two remain.
   and (−48, ±96) in theirs. (b) The figures' `last_speed`: ours 28 (`myspeed`) against theirs 35, which is one
   `UNIT_MOVE_SPEED` step more. The hypothesis for (b), unproven: an arm of `UnitData::speed@0060aae0` this crate
   leaves a SEAM in `cast.rs`'s `unit_speed`. The Iroquois spear arm's `iroquois_spear_speed` is 1 in `rules.xml`,
-  but its `is(0xa6..0xa9)` tests read the Spearmen line, so the Slingers' entry to it is not shown; a packet at
+  but its `is` tests read the Spearmen line (TI 166..169), so the Slingers' entry to it is not shown; a packet at
   `RON_STATE_FRAME=5564` that runs `UnitData::speed` on `1/26` settles it. The word stays at 5576: theirs' idle
   roll is `1/26`'s figure stopping on 5574 and wrapping on 5576.
 
