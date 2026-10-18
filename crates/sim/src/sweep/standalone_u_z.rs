@@ -56,6 +56,8 @@ mod unit_add_repair_order;
 mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
 mod unit_air_alt_speed;
+#[path = "unit_build_done.rs"]
+mod unit_build_done;
 #[path = "unit_cavarch_fight.rs"]
 mod unit_cavarch_fight;
 #[path = "unit_cavarch_fight_written.rs"]
