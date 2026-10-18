@@ -76,13 +76,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 )
             };
             let (mut n0, mut n2, mut n3) = (0usize, 0usize, 0usize);
-            let (mut l0, mut l1, mut l2, mut l3, mut l4): (
-                Vec<String>,
-                Vec<String>,
-                Vec<String>,
-                Vec<String>,
-                Vec<String>,
-            ) = (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
+            type Calls = Vec<String>;
+            let (mut l0, mut l1, mut l2, mut l3, mut l4): (Calls, Calls, Calls, Calls, Calls) =
+                (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
             let (mut d0, mut d1): (Vec<String>, Vec<String>) = (Vec::new(), Vec::new());
             let hex = |v: i32| {
                 v.to_le_bytes()
