@@ -245,7 +245,10 @@ pub fn gather_slots_walk(
     mut slots: Option<&mut [i32; 6]>,
     mut open: Option<&mut [i32; 6]>,
 ) -> i32 {
-    for o in [slots.as_deref_mut(), open.as_deref_mut()].into_iter().flatten() {
+    for o in [slots.as_deref_mut(), open.as_deref_mut()]
+        .into_iter()
+        .flatten()
+    {
         *o = [0; 6];
     }
     let mut total = 0i32;

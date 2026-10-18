@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(7);
@@ -101,7 +106,9 @@ fn the_emulated_original_agrees_on_every_row() {
                     if b >= 0 {
                         let rec = &p[1 + 5 * who + b as usize];
                         let tile = |o: usize| rd(&c[1], 4 * ((rd(rec, o) ^ K) >> 8) as usize);
-                        let idx = tile(0x14).wrapping_mul(rd(&c[2], 0)).wrapping_add(tile(0x10));
+                        let idx = tile(0x14)
+                            .wrapping_mul(rd(&c[2], 0))
+                            .wrapping_add(tile(0x10));
                         let owner = i32::from(p[10][(idx as usize).wrapping_mul(0x1c) + 0xf] as i8);
                         let mut ok = true;
                         if owner >= 0 {
@@ -126,14 +133,25 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         assert_eq!(got, want_eax, "find_repair_spot — eax, row `{line}`");
-        assert_eq!(log, want_log, "find_repair_spot — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "find_repair_spot — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "find_repair_spot — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "find_repair_spot — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "find_repair_spot — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[8 + i], "find_repair_spot — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[8 + i],
+                "find_repair_spot — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

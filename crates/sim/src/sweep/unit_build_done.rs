@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -54,7 +59,13 @@ fn the_emulated_original_agrees_on_every_row() {
                     f8n += 1;
                     a[15 + (f8n - 1).min(5)]
                 };
-                let mut toks = ["-".to_string(), "-".into(), "-".into(), "-".into(), "-".into()];
+                let mut toks = [
+                    "-".to_string(),
+                    "-".into(),
+                    "-".into(),
+                    "-".into(),
+                    "-".into(),
+                ];
                 let who = m[9];
                 let ty = i16::from_le_bytes([m[0xa], m[0xb]]);
                 'done: {
@@ -90,7 +101,11 @@ fn the_emulated_original_agrees_on_every_row() {
                         (f8() == 0, 0x603c91)
                     };
                     if gather {
-                        toks[2] = format!("m+0x0,{},0,{}", rd(&c[2], 0x28).wrapping_mul(0xc0), ret_addr);
+                        toks[2] = format!(
+                            "m+0x0,{},0,{}",
+                            rd(&c[2], 0x28).wrapping_mul(0xc0),
+                            ret_addr
+                        );
                         if a[5] != 0 {
                             m[0x80..0x82].copy_from_slice(&0xffffu16.to_le_bytes());
                             let play = rd(&c[3], 0x2a0) as usize;
@@ -129,7 +144,10 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "build_done — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "build_done — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "build_done — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

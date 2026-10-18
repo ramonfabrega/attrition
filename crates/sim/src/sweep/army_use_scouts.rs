@@ -103,18 +103,10 @@ fn the_emulated_original_agrees_on_every_row() {
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "use_scouts — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + i],
-                "use_scouts — window c[{i}], row `{line}`"
-            );
+            assert_eq!(w, &want[1 + i], "use_scouts — window c[{i}], row `{line}`");
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + i],
-                "use_scouts — window p[{i}], row `{line}`"
-            );
+            assert_eq!(w, &want[1 + i], "use_scouts — window p[{i}], row `{line}`");
         }
         n += 1;
     }

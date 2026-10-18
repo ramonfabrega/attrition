@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(5);
@@ -41,73 +46,85 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-            let off = rd(&p[7], 4) as usize;
-            let calls = &mut log;
-            if a[2] == 2 {
-                wr(m, 0x68, rd(m, 0x68) & 0xfbffffffu32 as i32);
-                wr(m, 0xc0, 0);
-                calls.push("s0:m+0x0,0".to_string());
-                calls.push("s1:m+0x0".to_string());
-                calls.push("s2:m+0x0".to_string());
-            }
-            wr(m, 0x68, rd(m, 0x68) | 0x400);
-            wr(&mut p[6], 8, a[0]);
-            wr(&mut p[6], 0xc, a[1]);
-            let o = 2 + 2 * a[1] as usize + a[0] as usize;
-            let short = if a[0] < 0 || a[1] < 0 {
-                0xffffu16
-            } else {
-                u16::from_le_bytes([p[o][0x30], p[o][0x31]])
-            };
-            p[6][0x10..0x12].copy_from_slice(&short.to_le_bytes());
-            if a[3] == 0 {
-                p[6][off + 8] &= 0xfb;
-            } else {
-                p[6][off + 8] |= 4;
-            }
-            let tile = |c1: &[u8], v: i32| rd(c1, 4 * ((v ^ 0x63637) >> 6) as usize);
-            let (ux, uy) = (tile(&c[1], rd(m, 0x10)), tile(&c[1], rd(m, 0x14)));
-            let (ox, oy) = (tile(&c[1], rd(&p[o], 0x10)), tile(&c[1], rd(&p[o], 0x14)));
-            calls.push("s6:c3+0x0,sp-0x10,sp-0x8".to_string());
-            calls.push("s6:c3+0x0,sp-0x4,sp-0xc".to_string());
-            let ry = rd(&c[1], 4 * ((rd(&p[o], 0x14) ^ 0x63637) >> 6) as usize);
-            let rx = rd(&c[1], 4 * ((rd(&p[o], 0x10) ^ 0x63637) >> 6) as usize);
-            let cell = (ry.wrapping_mul(rd(&c[3], 0x18)).wrapping_add(rx)).wrapping_mul(2) as usize;
-            if a[14] != a[13] && p[9][cell] & 0x30 != 0x20 {
-                let lead = rd(&c[4], m[9] as usize * 0x6eec);
-                let tier = if lead & 0x100 != 0 {
-                    3
-                } else if lead & 0x200 != 0 {
-                    2
-                } else {
-                    (lead as u32 >> 10 & 1) as i32
-                };
-                if a[11] <= tier && a[12] != 0 {
-                    wr(m, 0x68, rd(m, 0x68) | 0x800000);
+                let off = rd(&p[7], 4) as usize;
+                let calls = &mut log;
+                if a[2] == 2 {
+                    wr(m, 0x68, rd(m, 0x68) & 0xfbffffffu32 as i32);
+                    wr(m, 0xc0, 0);
+                    calls.push("s0:m+0x0,0".to_string());
+                    calls.push("s1:m+0x0".to_string());
+                    calls.push("s2:m+0x0".to_string());
                 }
+                wr(m, 0x68, rd(m, 0x68) | 0x400);
+                wr(&mut p[6], 8, a[0]);
+                wr(&mut p[6], 0xc, a[1]);
+                let o = 2 + 2 * a[1] as usize + a[0] as usize;
+                let short = if a[0] < 0 || a[1] < 0 {
+                    0xffffu16
+                } else {
+                    u16::from_le_bytes([p[o][0x30], p[o][0x31]])
+                };
+                p[6][0x10..0x12].copy_from_slice(&short.to_le_bytes());
+                if a[3] == 0 {
+                    p[6][off + 8] &= 0xfb;
+                } else {
+                    p[6][off + 8] |= 4;
+                }
+                let tile = |c1: &[u8], v: i32| rd(c1, 4 * ((v ^ 0x63637) >> 6) as usize);
+                let (ux, uy) = (tile(&c[1], rd(m, 0x10)), tile(&c[1], rd(m, 0x14)));
+                let (ox, oy) = (tile(&c[1], rd(&p[o], 0x10)), tile(&c[1], rd(&p[o], 0x14)));
+                calls.push("s6:c3+0x0,sp-0x10,sp-0x8".to_string());
+                calls.push("s6:c3+0x0,sp-0x4,sp-0xc".to_string());
+                let ry = rd(&c[1], 4 * ((rd(&p[o], 0x14) ^ 0x63637) >> 6) as usize);
+                let rx = rd(&c[1], 4 * ((rd(&p[o], 0x10) ^ 0x63637) >> 6) as usize);
+                let cell =
+                    (ry.wrapping_mul(rd(&c[3], 0x18)).wrapping_add(rx)).wrapping_mul(2) as usize;
+                if a[14] != a[13] && p[9][cell] & 0x30 != 0x20 {
+                    let lead = rd(&c[4], m[9] as usize * 0x6eec);
+                    let tier = if lead & 0x100 != 0 {
+                        3
+                    } else if lead & 0x200 != 0 {
+                        2
+                    } else {
+                        (lead as u32 >> 10 & 1) as i32
+                    };
+                    if a[11] <= tier && a[12] != 0 {
+                        wr(m, 0x68, rd(m, 0x68) | 0x800000);
+                    }
+                }
+                calls.push(format!("s5:m+0xcc,p6+0x{:x}", 4 + off));
+                calls.push("s2:m+0x0".to_string());
+                let hex = |v: i32| {
+                    v.to_le_bytes()
+                        .iter()
+                        .map(|b| format!("{b:02x}"))
+                        .collect::<String>()
+                };
+                calls.push(format!("{}/{}", hex(ox), hex(ux)));
+                calls.push(format!("{}/{}", hex(oy), hex(uy)));
+                0
             }
-            calls.push(format!("s5:m+0xcc,p6+0x{:x}", 4 + off));
-            calls.push("s2:m+0x0".to_string());
-            let hex = |v: i32| {
-                v.to_le_bytes()
-                    .iter()
-                    .map(|b| format!("{b:02x}"))
-                    .collect::<String>()
-            };
-            calls.push(format!("{}/{}", hex(ox), hex(ux)));
-            calls.push(format!("{}/{}", hex(oy), hex(uy)));
-            0
-        }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "add_repair_order — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "add_repair_order — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "add_repair_order — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "add_repair_order — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "add_repair_order — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[6 + i], "add_repair_order — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[6 + i],
+                "add_repair_order — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
