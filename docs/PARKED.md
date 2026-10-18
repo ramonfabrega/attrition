@@ -3742,6 +3742,32 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3125) **The `Golden:` line is a ninety-part list where one fact is news** (Ramon, 2026-10-17, for the steer): the
+line names every chapter `chN closed` in order — ninety-one parts, about 1,400 characters — and the one open word
+(`ch94 w1117 of 1,200`) sits at its end. `golden_line_verdict` (`rondata::diff::floors`) holds it part by part against
+`GOLDEN_WORDS`, which is why it grew: every chapter a guard can see must be on the line. Candidate: the line carries the
+open words and a count (`Golden: ch94 w1117 of 1,200 · 90 closed (ch1–ch93, gaps named)`), the verdict reads the count
+and the closed set from `GOLDEN_WORDS` itself, made to fail first on a closed chapter left off and on a stale open word.
+Ramon's to discuss at the steer.
+
+(3122) **A `calc_cost` record diff by `(from, to, dir)` is a third-use tool** (3099's "for the Loop" line, filed at
+its merge): diffing the original's `calc_cost` records against ours by key, grouped by ours' cell flags, found the
+army-mode flag behind chapter 94's 847 parting in ten minutes after four sessions of fog and danger reading; and
+`unitaddr.py` prints decimal and accepts unaligned hits (`0xe3f58e` was a false hit on run916b). Candidate: graduate
+the diff into `tools/` (CLAUDE.md's third-use rule) and make `unitaddr.py` print hex and refuse unaligned pairs, each a
+test made to fail first. One reach.
+
+(3118) **The captures are not silent** (Ramon, 2026-10-17, during the forty-first tranche, for the steer): sound is
+heard while captures run, though the click-free lane was meant to be muted (parked 343, DECISIONS 40's list). What the
+tree does: `unattended_capture.py`'s `mute()` zeroes `MUSIC_VOL`, `SOUND_VOL` and `TAUNT_VOL` in the lane profile's
+`Player.dat` beside `set_map`, under the staged backup and restore; the queue lane (`runqueue.sh`, `longtrace.sh`,
+`startcapture.sh`) and the packet (`frame_snapshot.py`) call no mute. This tranche's captures (run914–918) ran on the
+click-free pool lanes, `golden_capture.sh` included, so either the profile write does not reach what the game reads
+(the intro and the menu play before a profile loads; a volume of 0 may be read as unset), or the sound came from a path
+that does not mute. Not measured. Candidate: a Wine-side mute every launch shares (`winelaunch.sh`: the prefix's audio
+driver off, or the process's output muted) rather than a per-path profile write, and a test that a launch's environment
+carries it. Ramon's to discuss at the steer.
+
 (3116) **A probe commit that also holds a build cannot be reverted whole** (3107's "for the Loop" line, filed at its
 merge): the first probe commit carried the Iroquois hits build with it, against the brief's row 1727 (one guard, one
 commit, reverted whole); it was kept as a test instead. Candidate: a `probe.py --env X` that refuses a commit touching
@@ -7345,13 +7371,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HK — reserved
+## Parked by item 3099, 2026-10-17 — chapter ninety-four's 1021 order
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3121) **`1/0` `f1021`, order kind (ours EXPLORE_TO, theirs ATTACK_TO)**, the ch94 widening's first parted field and the draw word's neighbour (1117): the Scout sits on slot 64, which
+  the original's army 0 still counts, so army 0's tick commands it. Names the headline's chapter-94 frame; the item is a successor of 3099, booked as 3123. Run the ch41 floor first (row 9).
+The lane's Loop line (a `calc_cost` record diff tool; `unitaddr.py`'s decimal print) is filed as Loop 3122 at the merge.
 
 ## Parked by item 3104, 2026-10-17 — three can_carry overloads swept, Census 1446 → 1448
 
@@ -7389,13 +7413,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HO — reserved
+## Parked by item 3112, 2026-10-17 — the generator flags were already there; is_engaged and set_up_insert swept, Census 1448 → 1450
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3119) **Neither flag was needed.** `vector_dist` as a generator callee is `--stub run:0x46cff0:0` (item 2731): the original's own code runs, `ecx`/`edx` set by the
+function under test, and the port calls `crate::world::vector_dist`; `Army::is_engaged@006f56d0` is swept on it (8 of 9 breaks held, the ninth —
+`hits != 0 &&` dropped — is equivalent since `hits > count/4 >= 0` implies it). A pointer-linked ring is `--place` for the chain and `--alias WIN+OFF:TARGET!` for the
+closing edge: `Group::set_up_insert@0070e520` is swept on a fixed three-node ring (`p3`..`p5`, orders `p6`..`p8`) with the port reading the node
+addresses back from the windows that point at them (5 of 7 breaks held; two equivalent: dropping the prologue step, since the loop's last turn rewrites the cursor
+fields from node 0). So (3101)'s `--ptrring` is not needed for a fixed-length ring; a ring whose *length* varies still is.
+**Not built**: `Caravans::new_danger@0073e0c0` (walks eight leaders at stride 0x6eec from `0xe3a390` and eight caravan lists at stride 0x1c from `0xe3a2a0`, so it
+needs `--sparse` over a 225 KB image table plus a pointer array of caravan records — an hour of windows), `ObjectsData::find_dock`,
+`ObjectData::num_aircraft_here`, `ObjectTypeData::get_wonder_value` (as (3110)).
 
 ## Parked by the next landing, slot HP — reserved
 
@@ -7445,6 +7473,46 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot HU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HZ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

@@ -17840,3 +17840,8 @@ SHA-256 `5173e06b7abc265656782cf40e95bd016b995afc4bdd3599b8a2b26fc742689f`.
 `run918b_s_gap_is_widened_whole` (270 blocks, 43 keys). On run918b's block 894 who=1's Scout `1/0` takes a ten-leg path to
 (39672, 22776) whose legs 6..8 were one cell east in ours; with `astar_path`'s `iroquois` mode from the unit they agree, and
 the word moved 1120 → 1496. Both windows are in the coverage driver's slice.
+## run916, run916b — chapter ninety-four's window and its packet at 846 (2026-10-17, item 3099, `att-3099`)
+
+`docs/GOLDEN.md` §119. **What the disk could not answer**: the pathfinder's per-cell prices and a group record's `+0x8` on 846. Recipe `tools/gamelog/window/chapter94w.cmd`
+(chapter 94's with `--end-frame 850 --log-window 845 850`), `~/ron-golden/ch94w/map-14/`, pool lane 1, 164 s; its `rontrace.log` holds the `calc_cost` records. The packet (run916b,
+`~/ron-golden/ch94p/map-14/`, `--tracer-def RON_STATE_FRAME=846`) is `frame-snapshot.bin`, 836,926,300 bytes, logger frame 846. No minutes waited on another lane.
