@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-18, **the forty-third pass (steer, Fable): the forty-third tranche measured — 20 landings from `1a15c80f` in
 6 h 02, 92.89 USD, 52.0 minutes waiting a landing against 33.6** (DECISIONS 81; the sweep lanes' fan-outs, two to four
-lane gates a landing). **The forty-fourth tranche's base is the pass's commit**, named with its whole gate in its second.*
+lane gates a landing). **The forty-fourth tranche's base is `6db69429`**; the last whole gate is the pass's, on its second commit, named in its third.*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10695 of 12658 (3211, 3231, 3242,
   3248), its widening owed as 3255; `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
@@ -40,7 +40,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 
 **Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — spawn the four unspawned items on four
 lanes (3255 the AI word's on `--model 'claude-opus-5-5[1m]' --effort medium`; 3263, 3261 and 3259 on `--model
-'claude-sonnet-5-5[1m]' --effort medium`) off the pass's commit, DECISIONS 78 (i); twenty landings, then the forty-fourth pass.**
+'claude-sonnet-5-5[1m]' --effort medium`) off `6db69429`, DECISIONS 78 (i); twenty landings, then the forty-fourth pass.**
 
 ## The queue
 
