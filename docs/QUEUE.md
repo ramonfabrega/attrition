@@ -19,8 +19,8 @@ Last whole gate `ebe325dc`, the pass's (green, 6 of 6; rondata 960, sim 1699; re
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 of 12658, widened (3202: the state first
   parts on 5564), owed as 3211; `EastIndiesGermanTier3` closed at 13519. Chapters 95–98 closed, 91 closed; census 1477, **port 311**; the held-out battery's median 4770.
-- **Lanes: four live, landings 2 of 20** (3221, 3223): 3211 AI (run 932, AI §253, park IR), 3228 rules (run 933,
-  GOLDEN §130, IQ), 3219 shape (IT), 3225 nations (IV). Next 3229, run 934. Pools: GOLDEN §131–136, AI §254–255, park IW–JB.
+- **Lanes: four live, landings 3 of 20** (3221, 3223, 3225): 3211 AI (run 932, AI §253, park IR), 3228 rules (run
+  933, GOLDEN §130, IQ), 3219 shape (IT), 3229 shape, the nations seat (IW). Next 3230, run 934. Pools: GOLDEN §131–136, AI §254–255, park IX–JB.
 - **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
   table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
 - **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227).
@@ -46,7 +46,7 @@ landings from the pass's commit; the chain is `CLAUDE.md`'s; at twenty the hando
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3211 the AI word's (Opus); 3228, 3219 and 3225 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5576. Take the first unstarted item unless a better
+3211 the AI word's (Opus); 3228, 3219 and 3229 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5576. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3211. **The battery word, 5576 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes), widened: its state first parts on
@@ -70,13 +70,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `Unit::add_repair_order` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each built,
     or parked naming the generator flag it could not spell. `--kind sweep`.
 
-3225. **The battery tribes' `Leader::gain_tech@006dcb60` national arms, carried and unread** (NATIONS §3's `carried,
-    unread` rows; 3221 found `Wall::do_construct`'s Egyptian bound already built and parked the Aztec `plunder` and
-    `disband` arms, which want a killer record the crate does not carry: the `has_tribe_bonus` family is spent for
-    the battery's leaders; the score: the held-out battery's median first try, `battery_measure`, `battery_floors`
-    never lowered): `russian_attrition_upgrades` (Russian 13), `egyptian_granary_upgrades` (Egyptian 7),
-    `chinese_herbal_lore` (Chinese 14). One arm a landing, the first a battery lobby reaches before its first parting;
-    never a held-out dump (DECISIONS 54). NATIONS §3, §5.
+3229. **A second shape batch, the nations seat's** (DECISIONS 63 (iv), `CLAUDE.md`: a lane with no word of its own is a
+    sweep lane; the battery's `has_tribe_bonus` and `gain_tech` families are spent, 3221 and 3225; Loop 3188; the score
+    `Census:` port 311): `Guy::update_gpiece`, `Unit::find_melee_pos`, `ObjectsData::find_building_placed_at`,
+    `Group::is_attacking_near`, `Unit::find_garrison_build`, `Caster::process_spells` (`census.py --unbacked`, the
+    `port` mark, `--claimed ../att-3219` hides 3219's six) — each built, or parked naming the generator flag it could
+    not spell. `--kind sweep`.
 
 ## How to maintain this file
 
