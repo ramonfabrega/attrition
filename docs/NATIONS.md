@@ -32,6 +32,7 @@ witness, and the guard checks the pair:
 |---|---|---|
 | `modelled at F.rs` | a field name, or an address, the module holds | `F.rs` lacks it (comments do not count for a field) |
 | `carried at F.rs` | the function's address, cited in `F.rs` | `F.rs` lacks it — **the function is carried; this audit did not read each nation arm of it** |
+| `loaded at F.rs` | a `Tuning` field | `crates/rondata/src/F.rs` does not read it (the loader builds the rule the sim's `TechTree` runs) |
 | `carried, unread` | a `Tuning` field | the field is not in `tuning.rs`, or any other module reads it |
 | `not carried` / `not modelled` | the field or address | the sim now holds it — the row is stale and the candidate may have landed |
 | `not sim` | a reason | never — a judgement about the class, not the code |
@@ -94,10 +95,10 @@ says in its doc comment that only the British and Mongol arms are built,
 | Egyptians | granary available early | `LeaderData::has_preq@006db810` | modelled at tech.rs | `egyptian_granary_early` |
 | Egyptians | wonders one age early | `LeaderData::special_preq@006d7030` | modelled at tech.rs | `egyptian_wonders_early` |
 | Egyptians | one more wonder per city (placement) | `BuildTypeData::blocked_location@006375b0` | modelled at place.rs | `n.egyptians` |
-| Egyptians | the same limit enforced at construction | `Wall::do_construct@006434d0` | not modelled | `006434d0` |
+| Egyptians | the same limit enforced at construction | `Wall::do_construct@006434d0` | modelled at city.rs | `006434d0` |
 | Egyptians | farm limit per city | `LeaderData::get_farm_limit@006db270` | modelled at city.rs | `egyptian_farms_per_city_base` |
 | Egyptians | food commerce bonus | `Leader::calc_resource_caps@006ce900` | modelled at economy.rs | `egyptian_food_commerce` |
-| Egyptians | granary upgrades applied on tech gain | `Leader::gain_tech@006dcb60` | carried, unread | `egyptian_granary_upgrades` |
+| Egyptians | granary upgrades applied on tech gain | `Leader::gain_tech@006dcb60` | loaded at load.rs | `egyptian_granary_upgrades` |
 | Russians | attrition doubled | `Leader::calc_attrition@006cdea0` | modelled at attrition.rs | `russian_attrition` |
 | Russians | oil +20% in the rate pass | `LeaderData::calc_resource_bonuses@006db030` | modelled at economy.rs | `russian_oil` |
 | Russians | spy cost 50% less | `TypeData::get_cost@00664090` | modelled at cost.rs | `russian_spy_cost` |
@@ -106,14 +107,14 @@ says in its doc comment that only the British and Mongol arms are built,
 | Russians | plunder steals from the plundered | `Build::plunder@00623660` | modelled at city.rs | `russian_plunder_steal` |
 | Russians | a free civic at start | `Leader::init@006e3930` | modelled at tech.rs | `russian_free_civic` |
 | Russians | oil well counts as held (has_preq) | `LeaderData::has_preq@006db810` | modelled at tech.rs | `has_tribe_bonus(setup, p, 13)` |
-| Russians | attrition upgrades applied on tech gain | `Leader::gain_tech@006dcb60` | carried, unread | `russian_attrition_upgrades` |
+| Russians | attrition upgrades applied on tech gain | `Leader::gain_tech@006dcb60` | loaded at load.rs | `russian_attrition_upgrades` |
 | Russians | market prices pinned at 100 after the fifth age (gate is 0) | `LeaderData::calc_market_prices@006dc2a0` | carried, unread | `russian_communism` |
 | Chinese | science techs 20% cheaper | `TypeData::get_cost@00664090` | modelled at lib.rs | `chinese_science_discount` |
 | Chinese | citizens train twice as fast | `ObjectData::train_time@006508c0` | modelled at lib.rs | `chinese_citizen_creation` |
 | Chinese | citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1) | `ObjectData::train_time@006508c0` | modelled at lib.rs | `chinese_citizen_instant` |
 | Chinese | a large-city building on a new city | `Build::activate@00623e20` | modelled at city.rs | `chinese_large_cities` |
 | Chinese | a large-city building on assimilation | `City::assimilate@00738e90` | modelled at city.rs | `chinese_large_cities` |
-| Chinese | herbal lore applied on tech gain | `Leader::gain_tech@006dcb60` | carried, unread | `chinese_herbal_lore` |
+| Chinese | herbal lore applied on tech gain | `Leader::gain_tech@006dcb60` | loaded at load.rs | `chinese_herbal_lore` |
 | Chinese | knowledge upgrades applied on tech gain (0 in the rules) | `Leader::gain_tech@006dcb60` | carried, unread | `chinese_knowledge_upgrades` |
 | Greeks | research faster (train_time's research tail) | `ObjectData::train_time@006508c0` | not modelled | `greek_research_speed` |
 | Romans | legions train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `roman_legion_fast` |
@@ -185,7 +186,7 @@ left out; a constant with no reader in the export is dead there too.
 | `ROMAN_FORT_COST` | 25 | TypeData::get_cost | not carried | `roman_fort_cost` |
 | `ROMAN_FORT_EARLY` | 1 | LeaderData::has_preq, LeaderData::special_preq | modelled at tech.rs | `roman_fort_early` |
 | `ROMAN_FORT_SPEED` | 50 | Wall::update_construct_time | modelled at build.rs | `roman_fort_speed` |
-| `ROMAN_FORT_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `roman_fort_upgrades` |
+| `ROMAN_FORT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `roman_fort_upgrades` |
 | `ROMAN_BARRACKS_LEGION` | 1 | Build::activate | modelled at nations.rs | `roman_barracks_legion` |
 | `ROMAN_AGE_FOR_1_LEGION` | 1 | Build::activate | modelled at nations.rs | `roman_age_for_1_legion` |
 | `ROMAN_AGE_FOR_2_LEGIONS` | 3 | Build::activate | modelled at nations.rs | `roman_age_for_2_legions` |
@@ -197,7 +198,7 @@ left out; a constant with no reader in the export is dead there too.
 | `ROMAN_FREE_MILITARY` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `roman_free_military` |
 | `EGYPTIAN_WONDERS` | 25 | TypeData::get_cost | modelled at cost.rs | `egyptian_wonders` |
 | `EGYPTIAN_GRANARY_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `egyptian_granary_early` |
-| `EGYPTIAN_GRANARY_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `egyptian_granary_upgrades` |
+| `EGYPTIAN_GRANARY_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `egyptian_granary_upgrades` |
 | `EGYPTIAN_SCHOLARS_FOOD` | 0 | TypeData::get_cost | not carried | `egyptian_scholars_food` |
 | `EGYPTIAN_WONDERS_EARLY` | 1 | LeaderData::special_preq | modelled at tech.rs | `egyptian_wonders_early` |
 | `EGYPTIAN_FARMS_PER_CITY_BASE` | 7 | LeaderData::get_farm_limit | modelled at city.rs | `egyptian_farms_per_city_base` |
@@ -208,7 +209,7 @@ left out; a constant with no reader in the export is dead there too.
 | `TURK_ASSIMILATE` | 200 | Build::process, IFaceSelected::update_progress | modelled at city.rs | `turk_assimilate` |
 | `TURK_CITIZEN` | 33 | TypeData::get_cost | modelled at lib.rs | `turk_citizen` |
 | `TURK_FREE_SIEGE` | 2 | Build::activate | modelled at nations.rs | `turk_free_siege` |
-| `TURK_FREE_SIEGE_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `turk_free_siege_upgrades` |
+| `TURK_FREE_SIEGE_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `turk_free_siege_upgrades` |
 | `TURK_PACK` | 100 | SpellTypeData::get_job_time | not carried | `turk_pack` |
 | `TURK_MILITARY_CHEAP` | 33 | TypeData::get_cost | modelled at lib.rs | `turk_military_cheap` |
 | `SPANISH_LOS` | 0 | Unit::update_los | not carried | `spanish_los` |
@@ -217,7 +218,7 @@ left out; a constant with no reader in the export is dead there too.
 | `SPANISH_RUINS_BASE` | 30 | Unit::explore_goody | modelled at goody.rs | `spanish_ruins_base` |
 | `SPANISH_RUINS` | 26 | Unit::explore_goody | modelled at goody.rs | `spanish_ruins` |
 | `SPANISH_COMMANDOS` | 1 | no reader in the export | not carried | `spanish_commandos` |
-| `SPANISH_SCOUT_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `spanish_scout_upgrades` |
+| `SPANISH_SCOUT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `spanish_scout_upgrades` |
 | `FRENCH_SUPPLY_HEAL_RATE` | 20 | Build::process, Unit::process_healing | modelled at supply.rs | `french_supply_heal_rate` |
 | `FRENCH_SPECIAL_CRAFT` | 0 | UnitData::mana | modelled at cast.rs | `french_special_craft` |
 | `FRENCH_SPECIAL_COST` | 0 | TypeData::get_cost | not carried | `french_special_cost` |
@@ -229,13 +230,13 @@ left out; a constant with no reader in the export is dead there too.
 | `FRENCH_FREE_SUPPLY` | 1 | Build::activate | modelled at nations.rs | `french_free_supply` |
 | `FRENCH_ENTRENCH` | 100 | SpellTypeData::get_job_time | not carried | `french_entrench` |
 | `FRENCH_LUMBERMILL_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `french_lumbermill_early` |
-| `FRENCH_LUMBERMILL_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `french_lumbermill_upgrades` |
+| `FRENCH_LUMBERMILL_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `french_lumbermill_upgrades` |
 | `FRENCH_WOODIES` | 1 | BuildTypeData::calc_gather | modelled at gather.rs | `french_woodies` |
 | `FRENCH_TIMBER_COMMERCE` | 10 | Leader::calc_resource_caps | modelled at economy.rs | `french_timber_commerce` |
 | `BRITISH_COMMERCE` | 25 | Leader::calc_resource_caps | modelled at economy.rs | `british_commerce` |
 | `BRITISH_SHIP_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `british_ship_speed` |
 | `BRITISH_ARCHER_SPEED` | 0 | ObjectData::train_time | modelled at lib.rs | `british_archer_speed` |
-| `BRITISH_ARCHER_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `british_archer_upgrades` |
+| `BRITISH_ARCHER_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `british_archer_upgrades` |
 | `BRITISH_AA_COST` | 25 | TypeData::get_cost | not carried | `british_aa_cost` |
 | `BRITISH_AA_SPEED` | 33 | ObjectData::train_time, Wall::update_construct_time | modelled at build.rs | `british_aa_speed` |
 | `BRITISH_FREE_SHIP` | 0 | no reader in the export | not carried | `british_free_ship` |
@@ -261,7 +262,7 @@ left out; a constant with no reader in the export is dead there too.
 | `GERMAN_METAL_UPGRADES` | 0 | Leader::gain_tech | carried, unread | `german_metal_upgrades` |
 | `GERMAN_MINE_COST` | 0 | Build::plunder, TypeData::get_cost | modelled at city.rs | `german_mine_cost` |
 | `GERMAN_MINERS` | 0 | BuildTypeData::calc_gather | not carried | `german_miners` |
-| `GERMAN_HEAVY_INFANTRY` | 0 | Leader::gain_tech | carried, unread | `german_heavy_infantry` |
+| `GERMAN_HEAVY_INFANTRY` | 0 | Leader::gain_tech | loaded at load.rs | `german_heavy_infantry` |
 | `GERMAN_INDUSTRY_UPGRADES` | 0 | Leader::gain_tech | carried, unread | `german_industry_upgrades` |
 | `GERMAN_INDUSTRY_DISCOUNT` | 50 | TypeData::get_cost | not carried | `german_industry_discount` |
 | `GERMAN_COMPLETION_BONUS` | 50 | Build::do_bonus | modelled at city.rs | `german_completion_bonus` |
@@ -269,7 +270,7 @@ left out; a constant with no reader in the export is dead there too.
 | `GERMAN_INDUSTRY_EARLY` | 1 | LeaderData::special_preq | modelled at tech.rs | `german_industry_early` |
 | `GERMAN_CITY_GATHER` | 5 | BuildTypeOut::set_parse_data, LeaderData::calc_city_resources, Scene::set_help_type | modelled at economy.rs | `german_city_gather` |
 | `RUSSIAN_ATTRITION` | 100 | Leader::calc_attrition | modelled at attrition.rs | `russian_attrition` |
-| `RUSSIAN_ATTRITION_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `russian_attrition_upgrades` |
+| `RUSSIAN_ATTRITION_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `russian_attrition_upgrades` |
 | `RUSSIAN_OIL` | 20 | LeaderData::calc_resource_bonuses | modelled at economy.rs | `russian_oil` |
 | `RUSSIAN_BORDERS` | 0 | World::compute_reg_territory | modelled at territory.rs | `russian_borders` |
 | `RUSSIAN_BORDERS_PER_AGE` | 1 | World::compute_reg_territory | modelled at territory.rs | `russian_borders_per_age` |
@@ -278,8 +279,8 @@ left out; a constant with no reader in the export is dead there too.
 | `RUSSIAN_COSSACK_DAMAGE` | 25 | ObjectData::get_damage | modelled at combat.rs | `russian_cossack_damage` |
 | `RUSSIAN_PLUNDER_STEAL` | 1 | Build::plunder, Cities::capture_city | modelled at city.rs | `russian_plunder_steal` |
 | `RUSSIAN_FREE_CIVIC` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `russian_free_civic` |
-| `CHINESE_KNOWLEDGE_UPGRADES` | 0 | Leader::gain_tech | carried, unread | `chinese_knowledge_upgrades` |
-| `CHINESE_HERBAL_LORE` | 1 | Leader::gain_tech | carried, unread | `chinese_herbal_lore` |
+| `CHINESE_KNOWLEDGE_UPGRADES` | 0 | Leader::gain_tech | loaded at load.rs | `chinese_knowledge_upgrades` |
+| `CHINESE_HERBAL_LORE` | 1 | Leader::gain_tech | loaded at load.rs | `chinese_herbal_lore` |
 | `CHINESE_SCIENCE_DISCOUNT` | 20 | TypeData::get_cost | modelled at lib.rs | `chinese_science_discount` |
 | `CHINESE_CITIZEN_INSTANT` | 1 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_instant` |
 | `CHINESE_CITIZEN_CREATION` | 100 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_creation` |
@@ -297,8 +298,8 @@ left out; a constant with no reader in the export is dead there too.
 | `KOREAN_FREE_CITIZEN` | 5 | no reader in the export | not carried | `korean_free_citizen` |
 | `KOREAN_CITIZENS` | [1, ...] | Build::activate, Setup::build_units | modelled at nations.rs | `korean_citizens` |
 | `KOREAN_TEMPLE_UPGRADES` | 2 | Leader::gain_tech, LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `korean_temple_upgrades` |
-| `KOREAN_TEMPLE_TAX_UPGRADES` | 0 | Leader::gain_tech | carried, unread | `korean_temple_tax_upgrades` |
-| `KOREAN_MILITIA_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `korean_militia_upgrades` |
+| `KOREAN_TEMPLE_TAX_UPGRADES` | 0 | Leader::gain_tech | loaded at load.rs | `korean_temple_tax_upgrades` |
+| `KOREAN_MILITIA_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `korean_militia_upgrades` |
 | `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at build.rs | `korean_build_under_fire` |
 | `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at build.rs | `korean_repair` |
 | `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | not carried | `korean_tower_cost` |
@@ -308,7 +309,7 @@ left out; a constant with no reader in the export is dead there too.
 | `MONGOL_THREE_MIL_CAVALRY` | 3 | Build::activate, CheckSums::check_constants, Game::walk_rules_data +3 | modelled at nations.rs | `mongol_three_mil_cavalry` |
 | `MONGOL_FREE_CAVALRY` | 2 | Build::activate | modelled at nations.rs | `mongol_free_cavalry` |
 | `MONGOL_START_CAVALRY` | 1 | Build::activate | modelled at nations.rs | `mongol_start_cavalry` |
-| `MONGOL_FREE_FORAGE` | 1 | Leader::gain_tech | carried, unread | `mongol_free_forage` |
+| `MONGOL_FREE_FORAGE` | 1 | Leader::gain_tech | loaded at load.rs | `mongol_free_forage` |
 | `MONGOL_NOMADIC_FOOD` | 1 | Leader::calc_gather | modelled at economy.rs | `mongol_nomadic_food` |
 
 ## 4.4 Constants: Iroquois to Persians
@@ -321,7 +322,7 @@ left out; a constant with no reader in the export is dead there too.
 | `IROQUOIS_SENATE` | 0 | Setup::build_civ_specific | not carried | `iroquois_senate` |
 | `IROQUOIS_HEAL_RATE` | [20 frames, ...] | Unit::process_healing | not carried | `iroquois_heal_rate` |
 | `IROQUOIS_FREE_SCOUT` | 1 | Build::activate | modelled at nations.rs | `iroquois_free_scout` |
-| `IROQUOIS_SCOUT_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `iroquois_scout_upgrades` |
+| `IROQUOIS_SCOUT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `iroquois_scout_upgrades` |
 | `IROQUOIS_GOVS_EARLY` | 0 | TypeData::get_preq | modelled at tech.rs | `iroquois_govs_early` |
 | `IROQUOIS_EXTRA_HITS` | 5 | Unit::update_hits | modelled at cast.rs | `iroquois_extra_hits` |
 | `IROQUOIS_QUICK_SENATE` | 1 | BuildData::construct_time, TypeData::get_cost | modelled at build.rs | `iroquois_quick_senate` |
@@ -330,7 +331,7 @@ left out; a constant with no reader in the export is dead there too.
 | `LAKOTA_HERBAL_LORE` | 1 | no reader in the export | not carried | `lakota_herbal_lore` |
 | `LAKOTA_RAZE_SPEED` | 100 | ObjectData::train_time | not carried | `lakota_raze_speed` |
 | `LAKOTA_RAZE_PRICE` | 0 | Build::plunder, Object::disband | modelled at city.rs | `lakota_raze_price` |
-| `LAKOTA_CAV_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `lakota_cav_upgrades` |
+| `LAKOTA_CAV_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `lakota_cav_upgrades` |
 | `LAKOTA_CAV_DMG_BONUS` | 1/3 | Object::do_damage | not carried | `lakota_cav_dmg_bonus` |
 | `AMERICANS_FREE_SCHOLAR` | 1 | Build::activate | modelled at nations.rs | `americans_free_scholar` |
 | `AMERICANS_FREE_BOMBER` | 1 | Build::activate, Leader::gain_tech, LeaderData::get_support_count | modelled at nations.rs | `americans_free_bomber` |
@@ -346,7 +347,7 @@ left out; a constant with no reader in the export is dead there too.
 | `INDIANS_CITY_RADIUS` | 4 | Leader::plan_strategy, LeaderData::get_radius | modelled at city.rs | `indians_city_radius` |
 | `INDIANS_CARAVAN` | 15 | Caravan::trade_value | modelled at caravan.rs | `indians_caravan` |
 | `INDIANS_ELEPHANT_COST` | 15 | TypeData::get_cost | not carried | `indians_elephant_cost` |
-| `INDIANS_ELEPHANT_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `indians_elephant_upgrades` |
+| `INDIANS_ELEPHANT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `indians_elephant_upgrades` |
 | `DUTCH_FREE_COMMERCE` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `dutch_free_commerce` |
 | `DUTCH_COMMERCE_DISCOUNT` | 10 | TypeData::get_cost | modelled at lib.rs | `dutch_commerce_discount` |
 | `DUTCH_FORT_PLACEMENT` | 0 | BuildTypeData::blocked_tcoord | modelled at place.rs | `dutch_fort_placement` |
@@ -360,7 +361,7 @@ left out; a constant with no reader in the export is dead there too.
 | `PERSIANS_DESPOTISM` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `persians_despotism` |
 | `PERSIANS_BONUS_FOOD` | 50 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at lib.rs | `persians_bonus_food` |
 | `PERSIANS_CIVIC_DISCOUNT` | 30 | TypeData::get_cost | modelled at lib.rs | `persians_civic_discount` |
-| `PERSIANS_TAXATION` | 1 | Leader::gain_tech | carried, unread | `persians_taxation` |
+| `PERSIANS_TAXATION` | 1 | Leader::gain_tech | loaded at load.rs | `persians_taxation` |
 
 ## 5.1 The census of `has_tribe_bonus` callers, by address (first half)
 
@@ -406,7 +407,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `BuildTypeData::calc_gather@00639e40` |  +var | carried at gather.rs | `00639e40` |
 | `Wall::update_construct_time@0063d560` | 1 6 11 22 | carried at economy.rs | `0063d560` |
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
-| `Wall::do_construct@006434d0` | 7 | not modelled | `006434d0` |
+| `Wall::do_construct@006434d0` | 7 | carried at city.rs | `006434d0` |
 | `ObjectData::get_damage@00644130` | 15 | carried at combat.rs | `00644130` |
 | `Object::disband@006455c0` | 0 19 | not modelled | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
@@ -568,9 +569,10 @@ a pass books against a word, not a fix for the lobby that exposed it.
    the marble term first (`marble_wonder_cost`, **not carried**: no marble
    holder has been priced) and then this one; the Korean tower term follows.
    Not diff-backed; the cost test `an_egyptian_wonder_costs_a_quarter_less`
-   carries it. Lobby `GreatSaharaEgyptianTier4`: see the journal. Still
-   open: `Wall::do_construct@006434d0`'s second enforcement of the
-   two-wonders limit (placement is built).
+   carries it. Lobby `GreatSaharaEgyptianTier4`: see the journal.
+   `Wall::do_construct@006434d0`'s second enforcement of the two-wonders
+   limit was built already (`city.rs`, `<= 1 + egyptians`); item 3221 found
+   the row stale and added `a_second_wonder_site_survives_its_first_builder_only_for_the_egyptians`.
 3. ~~**Russian oil +20% (`calc_resource_bonuses@006db030`) and spy −50%
    (`get_cost:299`).**~~ **Built, item 3108.** The oil term is the
    listing's first: `has_tribe_bonus(0xd)` then `(RUSSIAN_OIL + 100) *

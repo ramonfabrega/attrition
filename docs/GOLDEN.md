@@ -13352,12 +13352,15 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Not established**: the per-piece packet lengths themselves (69 and 79 are the records' observed lengths, which this crate's `slot_length` reproduces); a ship that dies at sea with cargo or crew (these Barks carry none); the disc-release case parked 3204, which this staging does not touch.
 
-## 129. Reserved for the next item on the rules track
+## 129. Chapter ninety-eight — a late unit crosses a released disc, closed at 1500 on the first run (item 3223, run931)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Staging.** `tools/gamelog/golden/chapter98.cmd`: chapter 96's staging whole (both dead Tanks' records end by 1235 and the cull releases their `blocks_while_dead` discs, §127), plus `@move` at 1002 sending the two late squads' captains, `0/17` and `0/20` (a follower is refused: `stage_walk` printed it; the captains are the first of each three added at 1000), to (13536, 16032) and (13536, 16008), west across the first dead Tank's cell (it died near (13949, 16075), killed before 794 and released at 946). Run931, lane 1, `~/ron-golden/ch98/map-14/`, 1,501 frames, seed 12345, chapter 95's `end:`/`start:` sets.
+
+**The word is 1500, the capture's end: no draw parts.** The widening is whole (both directions): eleven rows, the standing `form` rows, nothing else.
+
+**The finding.** In the original `0/17` passes (14016, 16083) on 1020 and (13608, 16056) on 1040, and `0/20` (14040, 16104) and (13896, 15912) on 1040 and 1060: both walk straight over the cell the dead Tank's disc held, and this crate's walk agrees block for block through 1500. So parked 3204 is answered for the combat death of a `blocks_while_dead` type: after the cull the cell is free in both.
+
+**Not established**: the non-combat death sites that still clear the disc (parked 3190: `cast_sniper_unit`, air crash, bribe, attrition) and which types carry `0x800000` besides the Tank; whether the crossing would part had the disc been kept (no mutation was run: the unit paths over the cell with it released, and a kept disc would route round).
 
 ## 130. Reserved for the next item on the rules track
 
@@ -13374,6 +13377,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 132. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 133. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 134. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 135. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 136. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

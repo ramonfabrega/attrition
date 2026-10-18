@@ -687,6 +687,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch95 = golden_dump("ch95");
     let ch96 = golden_dump("ch96");
     let ch97 = golden_dump("ch97");
+    let ch98 = golden_dump("ch98");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2656,6 +2657,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter ninety-seven carries five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter ninety-eight, on run931** (item 3223): a late unit crosses a
+    // released disc; the window takes the crossing's first blocks.
+    if let Some(p) = &ch98 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINETY_EIGHT;
+        let n = drive_capture(p, 1040, 1044, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter ninety-eight carries five blocks in the window"
         );
         frames += n;
     }

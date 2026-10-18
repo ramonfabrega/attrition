@@ -5512,6 +5512,33 @@ fn an_oil_platform_site_nobody_is_building_is_disbanded_on_its_128_frame_phase()
     assert!(sim.buildings[site].alive, "the gate is the owner's");
 }
 
+/// **`Wall::do_construct@006434d0`'s wonder-limit re-check** (`docs/NATIONS.md`
+/// §3, the Egyptians' second enforcement). A site whose first builder
+/// arrives asks `blocked_site` again; a `Wonder` answer leaves the site
+/// standing only while the city's wonder count (the site counting itself)
+/// is at most `1 + has_tribe_bonus(7)`, and otherwise disbands it.
+#[test]
+fn a_second_wonder_site_survives_its_first_builder_only_for_the_egyptians() {
+    fn run(egyptians: bool) -> bool {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        // Placement lets an Egyptian put two down; the flag under test is
+        // set after, when the first builder arrives.
+        sim.nation[0].egyptians = true;
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let mut wonder_type = bt(Ident::Wonder, None, "a", 4, 4, 2000, 2000, 0);
+        wonder_type.wonder = true;
+        let wonder = sim.add_build_type(wonder_type);
+        let _first = sim.place_building(0, wonder, tile_pos(40, 32)).unwrap();
+        let second = sim.place_building(0, wonder, tile_pos(46, 32)).unwrap();
+        sim.nation[0].egyptians = egyptians;
+        sim.do_construct(second, 1);
+        sim.buildings[second].alive
+    }
+    assert!(!run(false), "one wonder a city, enforced at construction");
+    assert!(run(true), "the Egyptians' second is allowed");
+}
+
 /// **`Wall::process`'s site recruiter** (`docs/AI.md` §69, item 715). On
 /// its `(frame + o) & 31` phase an unfinished wonder or fort of a computer
 /// leader wants `max(4, helpers)` builders, and while it is short it hands

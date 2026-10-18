@@ -18,12 +18,12 @@ first commit**, four lanes (DECISIONS 78 (i), 80): the AI word's on Opus 5.5 med
 Last whole gate `ebe325dc`, the pass's (green, 6 of 6; rondata 960, sim 1699; release 7.0 of its 8 minutes).*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 of 12658, widened (3202: the state first
-  parts on 5564), owed as 3211; `EastIndiesGermanTier3` closed at 13519. Chapters 95–97 closed, 90 closed; census 1477, **port 311**; the held-out battery's median 4770.
-- **Lanes: none live** — four unspawned: 3211 AI (AI §253), 3223 rules (run 931, GOLDEN §129), 3219 shape, 3221
-  nations. Next 3225, run 932. Pools: GOLDEN §130–132, AI §254–255, park IR–IV.
+  parts on 5564), owed as 3211; `EastIndiesGermanTier3` closed at 13519. Chapters 95–98 closed, 91 closed; census 1477, **port 311**; the held-out battery's median 4770.
+- **Lanes: four live, landings 2 of 20** (3221, 3223): 3211 AI (run 932, AI §253, park IR), 3228 rules (run 933,
+  GOLDEN §130, IQ), 3219 shape (IT), 3225 nations (IV). Next 3229, run 934. Pools: GOLDEN §131–136, AI §254–255, park IW–JB.
 - **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
   table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
-- **Fable backlog: 12 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224).
+- **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,7 +35,7 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w5576 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1477 of 3611 · port 311 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · 90 closed
+Golden: every chapter closed · 91 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — spawn the four unspawned items on four
@@ -46,7 +46,7 @@ landings from the pass's commit; the chain is `CLAUDE.md`'s; at twenty the hando
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3211 the AI word's (Opus); 3223, 3219 and 3221 (Sonnet); all four unspawned at the drain, four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5576. Take the first unstarted item unless a better
+3211 the AI word's (Opus); 3228, 3219 and 3225 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5576. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3211. **The battery word, 5576 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes), widened: its state first parts on
@@ -57,12 +57,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     arm of `UnitData::speed@0060aae0` left a SEAM in `cast.rs`; a packet at `RON_STATE_FRAME=5564` running it on `1/26`
     settles it (run 931 if taken). The word's extra draw is `1/26`'s idle roll on 5576. AI §253.
 
-3223. **Chapter ninety-eight, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
-    931 minted here): 3209 closed chapter 97 at 1500 on run929 with no sim change (a ship's death object ends on its
-    animation alone; 3208 diffed). Candidates by what a failure would teach: a late unit crossing a released disc
-    (parked 3204, which needs a staging that paths over a dead blocking-while-dead corpse's cell after the cull), and
-    the non-combat death sites that still clear the disc (parked 3190). Stage it, capture it, open it at its first
-    word. GOLDEN §129.
+3228. **Chapter ninety-nine, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
+    933 minted here): 3223 closed chapter 98 at 1500 with no sim change (both late captains cross the released Tank
+    cell in both; parked 3204 struck). Candidates by what a failure would teach: a non-combat death that still clears
+    the disc — `cast_sniper_unit`, an air crash, a bribe or attrition (parked 3190, `Unit::close`'s `param_1` arms not
+    read per site) — and which types besides the Tank carry `0x800000`. Stage it, capture it, open it at its first
+    word. GOLDEN §130.
 
 3219. **The sweep's next shape batch: the next never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
     score `Census:` port 311; 3200 built all six of its batch, parked 3212–3216 and Loop 3218): `Army::use_spies`,
@@ -70,11 +70,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `Unit::add_repair_order` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each built,
     or parked naming the generator flag it could not spell. `--kind sweep`.
 
-3221. **The `has_tribe_bonus` callers a battery tribe reaches and the crate does not model, the rest of the family**
-    (NATIONS §5's `not modelled` rows; 3207 built `AnimalData::is_seen` (Spanish 9) and the battery stayed at 4770, as
-    3187's and 3194's did; the score: the held-out battery's median first try, `battery_measure`, `battery_floors`
-    never lowered): `Unit::plunder@00605b00` and `Object::disband@006455c0` (Aztec 0), `Wall::do_construct@006434d0`
-    (Egyptian 7). One function a landing; never a held-out dump (DECISIONS 54). NATIONS §5, §7.
+3225. **The battery tribes' `Leader::gain_tech@006dcb60` national arms, carried and unread** (NATIONS §3's `carried,
+    unread` rows; 3221 found `Wall::do_construct`'s Egyptian bound already built and parked the Aztec `plunder` and
+    `disband` arms, which want a killer record the crate does not carry: the `has_tribe_bonus` family is spent for
+    the battery's leaders; the score: the held-out battery's median first try, `battery_measure`, `battery_floors`
+    never lowered): `russian_attrition_upgrades` (Russian 13), `egyptian_granary_upgrades` (Egyptian 7),
+    `chinese_herbal_lore` (Chinese 14). One arm a landing, the first a battery lobby reaches before its first parting;
+    never a held-out dump (DECISIONS 54). NATIONS §3, §5.
 
 ## How to maintain this file
 

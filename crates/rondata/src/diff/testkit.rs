@@ -6699,6 +6699,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_SEVEN: i64 = 1500;
 /// `chapter_ninety_seven_s_window_is_widened_whole`'s window: run929.
 pub(crate) const WIDENING_CHAPTER_NINETY_SEVEN: (i64, i64) = (604, 1501);
 
+/// **Chapter ninety-eight** (item 3223, `docs/GOLDEN.md` §129, run931):
+/// chapter ninety-six's staging with two squad captains ordered across the
+/// first dead Tank's released disc at 1002.
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_EIGHT: i64 = 1500;
+
+/// `chapter_ninety_eight_s_window_is_widened_whole`'s window: run931.
+pub(crate) const WIDENING_CHAPTER_NINETY_EIGHT: (i64, i64) = (604, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9313,6 +9321,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_ninety_seven_s_window_is_widened_whole"),
         3209,
         Some(WIDENING_CHAPTER_NINETY_SEVEN),
+    ),
+    // Item 3223: run931, chapter ninety-eight, a late unit crosses a released disc.
+    (
+        "GOLDEN_WORD_CHAPTER_NINETY_EIGHT",
+        GOLDEN_WORD_CHAPTER_NINETY_EIGHT,
+        Some("chapter_ninety_eight_s_window_is_widened_whole"),
+        3223,
+        Some(WIDENING_CHAPTER_NINETY_EIGHT),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

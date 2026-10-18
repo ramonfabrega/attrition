@@ -18005,3 +18005,8 @@ is `1/26`'s figure, which stops on 5574 and rolls its idle on 5576. The window i
 
 `docs/GOLDEN.md` §128. **What the disk could not answer**: no dump held a sea unit's death record and its end (chapter 64's `end:` set lacked `DEATHS=1`, and it ended at 820). Recipe `tools/gamelog/golden/chapter97.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch97/map-14/`, 1,501 frames, seed 12345, 345 s launch to exit; `rontrace.dll` SHA-256 `c22ddf33680bf9fb9edbc28d99c7a8632ff0df917d68f20c6d0cd4c6c41fa6e5`. The first take (`end:` set copied from chapter 64, no `DEATHS=1`, 1,410 s) printed no death records and was discarded (`~/ron-golden/ch97-nodeaths`). Waited on another lane: none.
 **What it holds**: `golden::chapter_ninety_seven_holds_to_the_golden_word` (1500) and `chapter_ninety_seven_s_window_is_widened_whole` (eleven `form` rows); its window 866..870 is in the coverage driver's slice.
+
+## run931 — chapter ninety-eight: a late unit crosses a released disc (2026-10-18, item 3223, `att-3223`)
+
+`docs/GOLDEN.md` §129. **What the disk could not answer**: no dump held a unit pathing over a released `blocks_while_dead` disc (chapter 96's two late hoplites were ordered nowhere and never crossed). Recipe `tools/gamelog/golden/chapter98.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch98/map-14/`, 1,501 frames, seed 12345. No minutes waited on another lane.
+**What it holds**: `golden::chapter_ninety_eight_holds_to_the_golden_word` (1500) and `chapter_ninety_eight_s_window_is_widened_whole` (eleven `form` rows); its window 1040..1044 is in the coverage driver's slice.

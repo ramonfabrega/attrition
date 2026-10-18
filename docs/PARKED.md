@@ -3740,6 +3740,19 @@ for: it cost one run rather than an item.
 
 (3068) **A harvest batch: the order-adders' family** — held off the queue at the fortieth steer (Ramon: the harvest lane becomes the nations lane, 3092; DECISIONS 78 amended), its text as booked: the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,     `add_cast_order`, `add_trade_order`, `add_repair_order`,     `add_build_order` by 3064's recipe (parked 3070), then ten more off     `--claimed` the live sweep lanes' trees; never a `process_*`.     Unstarted. `--kind sweep`. It returns when a pass books a sweep lane on it; the shape sweep (3078) keeps the generator.
 
+## Loop, filed 2026-10-18 — the forty-third tranche's
+
+(3226) **`tools/brief.py` has no nations kind** (the commander, at 3221's merge): the nations lane's briefs go out as
+`--kind residue`, and the frame tells the worker it is "on the AI track" (`TRACKS`, brief.py:52) — 3207's, 3221's and
+3225's all read so, beside a note that says the nations lane. Candidate: a `nations` kind whose track line, reading
+list and default filters are the lane's (`battery_floors`, `nations`, `first_parting`), made to fail first on a
+nations brief that names the AI track. One reach.
+
+(3227) **A lane gate's `--tests` filter can name an `#[ignore]` test** (3221's done line, filed at its merge): the
+commander's briefs for 3194, 3207 and 3221 named `battery_measure`, which is `#[ignore]`, and 3221's lane gate exited 2
+on it and was rerun without it; the battery was measured by hand. Candidate: `brief.py --tests` refuses a filter whose
+only matches are ignored tests, or the lane gate runs an ignored match with `--ignored` and says so. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-second tranche's
 
 (3224) **A lane gate's minutes are not in its receipt** (the forty-second pass's measurement): the lane gate is 21.6
@@ -7507,7 +7520,7 @@ no score today.
 ## Parked by item 3175, 2026-10-18 — the dead Tank's disc, and the death-object cull
 
 - (3189) **The death object's cull and the disc's release** (GOLDEN §125). Theirs ends `1/6`'s record (Tank, piece 194, anim 20) 152 frames after the death — block 946 is the first without it — where this crate's list is grow-only, so ch95's `1/6` `death:extra` on 946 stands, and a kept disc (`blocks_while_dead`) is never released here. What names the score: the chapter's last standing non-`form` row; a unit of such a type dying early in a longer capture would hold its cells for ever. Check: where the original clears the disc when the record ends (`DeathObj::inc_time@008d5240`'s end, `remove_from_world`), and the length of the packet (`gpiece` 194's animation).
-- (3190) **Which types carry `unit_flags & 0x800000`**, and the non-combat death sites (`cast_sniper_unit`, air crash, bribe, attrition) which still clear the disc: `Unit::close`'s `param_1` reset arms were not read per site.
+- (booked as item 3228) **Which types carry `unit_flags & 0x800000`**, and the non-combat death sites (`cast_sniper_unit`, air crash, bribe, attrition) which still clear the disc: `Unit::close`'s `param_1` reset arms were not read per site.
 
 ## Parked by item 3182, 2026-10-18 — the shape lane's tenth batch: check_idle and is_in_range@006486b0 swept, Census 1469 → 1471
 
@@ -7545,7 +7558,7 @@ Two built of the six; four not attempted past reading, each with the flag it wou
 ## Parked by item 3191, 2026-10-18 — chapter 96: the cull measured, closed at 1500
 
 - (3203; the lane's 3191a) ~~**The death object's cull**~~ built, item 3205 (GOLDEN §127): (GOLDEN §126; supersedes 3189's open check). The original's lifetime by death piece and animation: piece 194 anim 20 152 frames, anim 17 143, piece 375 anim 18 650, piece 434 anim 17 644 (piece 434 anim 18 is at least 564). It is the death piece's animation packet run by `DeathObj::inc_time@008d5240`; this crate does not load the packet, so `Sim::deaths` is grow-only and four `death:extra` rows stand in ch96 (946, 1235, 1395, 1476), two in ch95. What names the score: the standing rows on both golden chapters, and slot reuse (`Objects::find_free`) in any capture where a long-dead unit's number would be recycled. Check: where `DeathObj::inc_time` ends the record (`remove_from_world`, which slot is freed and when `hold_frames` stops), and the anim packet length source for piece 194/375/434 in the `.bha` data; a loader would read the install at runtime.
-- (3204) **Which late hoplites cross a released disc** — ch96's two hoplites added at 1000 agree through 1500 with the Tank's disc standing; no staging yet crosses it after the cull, so the disc's release (3190) is still unexercised. Needs the cull built first.
+- (3204) ~~**Which late hoplites cross a released disc**~~ diffed, item 3223 (GOLDEN §129, run931): both late captains cross the released Tank cell in the original and in ours, through 1500; the non-combat sites (3190) stay unreached.
 
 ## Parked by item 3194, 2026-10-18 — the wonder-gated free-tech blocks
 
@@ -7615,13 +7628,9 @@ words and edits nothing here; a refill lands when two remain.
   `LEADERS=9` for the make list. Two rows that are not draws stand before it: `1/22`'s `blown` (ours 1 against 0, from
   5627 in run928 and 5883 in run932) and `1/23`'s second figure (from 5673).
 
-## Parked by the next landing, slot IS — reserved
+## Parked by item 3223, 2026-10-18 — a late unit crosses a released disc
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3204) Answered for a Tank's combat death by GOLDEN §129 (run931): both captains cross the released cell in the original and in ours. Not answered: the non-combat death sites (3190) that still clear the disc; no capture reaches one, so it names no score.
 
 ## Parked by the next landing, slot IT — reserved
 
@@ -7631,18 +7640,59 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IU — reserved
+## Parked by item 3221, 2026-10-18 — the Aztec `has_tribe_bonus(0)` callers
+
+- **`Unit::plunder@00605b00` (436 lines, floats; `AZTEC_SLAY_BONUS`/`AZTEC_SLAY_CAP`/`INCA_REFUND`) and `Object::disband@006455c0`'s arm calling it (`field_0x68 & 0x4000`, the unit's recorded killer `+0xa9`/`+0xa4`, `flags & 3 == 3`, tribe bonus 0).** Not built: the arm needs a unit's killer record this crate does not carry, and no score names its frame (the Aztec lobby's first parting is elsewhere). Names no score, so it parks; a lobby whose first parting is a kill by an Aztec unit books it.
+
+## Parked by item 3225, 2026-10-18 — the gain_tech free-tech blocks were already built
+
+Nothing parked. The queue's three arms (Russian 13, Egyptian 7, Chinese 14) were built by items 3113 and 3124 as
+`FreeRule`s loaded in `rondata::load`; the NATIONS rows read "carried, unread" because the census scanned `sim` only.
+
+## Parked by the next landing, slot IW — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IU renames this heading `## Parked by item N, <date> — <title>`
+names slot IW renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IV — reserved
+## Parked by the next landing, slot IX — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IV renames this heading `## Parked by item N, <date> — <title>`
+names slot IX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JB renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
