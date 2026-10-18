@@ -7516,6 +7516,20 @@ impl Sim {
         if let Some((spot, facing)) = self.swarm_spot(u, b, building) {
             self.add_move_facing_order(u, spot, kind, QueuePos::First, false, facing, None, false);
         }
+        // **The builder's mark.** `action_swarm_around@0070fbe0` has one
+        // arm for `QUEUE_NEW` and `QUEUE_LAST` (`QUEUE_FIRST` re-enters
+        // it at `QUEUE_NEW`, `70fd40`), and that arm queues the order
+        // through `Unit::add_build_order@005e5210` (`710797`) or
+        // `add_repair_order@005e4ff0` (`7106fb`), each of which sets
+        // `unit_masks |= 0x400` (`5e5247`) — the "has been a builder" bit
+        // `think_peasant`'s build arm reads. This shape inserted the order itself and left it
+        // unset, so the AI's builder sent through `produce_building`'s
+        // `QUEUE_NEW` arm, its site re-placed under it, went idle without
+        // it and took a gather where the original took the new site
+        // (run921's `1/7` on 1378, `docs/AI.md` §248).
+        if matches!(body, Body::Build(_) | Body::Repair(_)) {
+            self.units[u].was_builder = true;
+        }
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
             body,
