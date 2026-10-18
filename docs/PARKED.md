@@ -3740,6 +3740,17 @@ for: it cost one run rather than an item.
 
 (3068) **A harvest batch: the order-adders' family** — held off the queue at the fortieth steer (Ramon: the harvest lane becomes the nations lane, 3092; DECISIONS 78 amended), its text as booked: the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,     `add_cast_order`, `add_trade_order`, `add_repair_order`,     `add_build_order` by 3064's recipe (parked 3070), then ten more off     `--claimed` the live sweep lanes' trees; never a `process_*`.     Unstarted. `--kind sweep`. It returns when a pass books a sweep lane on it; the shape sweep (3078) keeps the generator.
 
+## Loop, filed 2026-10-17 — the forty-first tranche's
+
+(3102) **`mutate.py`/`sweep_gen.py`'s `--port-file` is not expanded inside an `@FILE`** (3078's "for the Loop" line, parked
+at its merge): it reads as an unrecognised argument; and a port that returns early must be wrapped in a closure
+(`(|| -> i64 { … })()`) because the generated test is a `()` function. Candidate: expand `--port-file` wherever the
+argument list is read, and wrap the port in the generator, a test made to fail first. One reach.
+
+(3103) **The queue ledger notes `7 is ledgered and live again`** (the booking gate on `04fb2b88`, the forty-first
+tranche's first): `queueledger.py` prints it as a note on every gate and nothing reads it. Either the ledger line for 7
+drops, or the live match is a false hit (a `7.` in a list) and the parser narrows. One reach.
+
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
 (3095) **A document-only landing pays the release build** (the fortieth steer, Ramon's question): a lane gate whose
@@ -7296,7 +7307,7 @@ dumped record on 846–848 first. Booked as 3099.
 
 ## Parked by item 3078, 2026-10-17 — two shapes swept, Census 1444 → 1446
 
-(3078, first) **Swept: `BuildData::show_later_tech` and `UnitData::get_attrition@00608fd0`.**
+(3100) **Swept: `BuildData::show_later_tech` and `UnitData::get_attrition@00608fd0`.**
 `show_later_tech`: the stubs ride `--seq 0..3:4` (a constant answer makes every `has_tech == 0` path end at 0), the
 tech table is `--place 0xc0aabc:-4:0x30` plus nine `--place p0+4k` records so that `get_preq`'s `-1` reads a valid
 record (a `--ptrtab` put index -1 on a neighbouring window and faulted at 0x1000); 11 of 12 breaks held, `go(preq,
@@ -7304,15 +7315,13 @@ depth)` for `go(preq, depth - 1)` passes (the descent needs a fourth nested miss
 biased to the f32 bit patterns of 0, 1/8, 1/2, 1, 3/2, 2, 3, 4 and the port is the integer mantissa/exponent
 product (no float); 22 of 24 breaks held, the two that pass (`diff > 0`, `+98`) are equivalent at the drawn constants.
 
-(3078, second) **Not built, read**: `Army::is_engaged` and `Caravans::new_danger` need `vector_dist` with its
+(3101) **Not built, read**: `Army::is_engaged` and `Caravans::new_danger` need `vector_dist` with its
 register convention (the export's `unaff_*`) as a generator callee; `Group::set_up_insert` needs a *pointer*-linked
 circular node list inside a unit record (`--ring` is c-window only, `--link` is index-linked) — a `--ptrring` flag;
 `ObjectData::num_aircraft_here`, `can_carry` (x2), `ObjectsData::find_dock` and `ObjectTypeData::get_wonder_value`
 unstarted.
 
-(3078, third) **For the Loop**: `--port-file` is expanded only on the command line, never inside an `@FILE`
-(it reads as an unrecognised argument); a port that returns early needs the body wrapped in a closure
-(`(|| -> i64 { … })()`), the generated test is a `()` function.
+The lane's "for the Loop" line is filed as Loop 3102 at the merge (the forty-first tranche's Loop section).
 
 ## Parked by the next landing, slot HJ — reserved
 
