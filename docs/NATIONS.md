@@ -584,14 +584,27 @@ a pass books against a word, not a fix for the lobby that exposed it.
    carry them. Still open: `calc_market_prices`' communism arm, gated by
    `RUSSIAN_COMMUNISM` = 0 (inert as shipped).
 4. **`Leader::gain_tech@006dcb60`'s nation arms** — the `*_UPGRADES`
-   fields (Roman fort, Egyptian granary, Turkish siege, Spanish scout,
-   French lumbermill, British archer, German metal/industry, Russian
-   attrition, Chinese knowledge, Korean temple/militia, Mongol forage,
-   Iroquois scout, Lakota cavalry, Indian elephants, Persian taxation) are
-   **carried and read by no module**. Whether the effect is carried in
-   another form (the tech tree's unit grafts) is not established; the
-   Russian and Chinese ones are the held-out lobbies' (Chinese herbal lore
-   is 1 as shipped and the arm sits in `gain_tech`).
+   fields. **The effect was already carried in another form**: step 13 of
+   `TechTree::gain` (`tech.rs`, `free_rules`) is the original's tail of
+   free-tech blocks, and the `*_UPGRADES` constants are its `enabled`
+   gates; the "carried and read by no module" in the table meant the
+   tuning field, not the arm. What was missing was the **range blocks'
+   loading** (`rondata::load`, after the French Carpentry block). **Built,
+   item 3113**: the Russians (`has_tribe_bonus(0xd)`,
+   `russian_attrition_upgrades`, `ALLEGIANCE` `0x254`..`<600`), the Chinese
+   herbal lore (`0xe`, `chinese_herbal_lore`, `0x25b`..`0x25d`) and the
+   Chinese knowledge block (`0xe`, `chinese_knowledge_upgrades` = 0 as
+   shipped, inert, `LITERACY` `0x267`..`0x26b`), each the `PreqMatch`
+   shape read off the decompile. Test
+   `the_russian_and_chinese_free_tech_blocks_are_loaded`, made to fail by
+   narrowing the Russian range. **Moved the battery**: the Chinese lobby
+   5663 → 12712 (floor raised); the median stays 2207. Not diff-backed by a
+   dump of a Chinese or Russian leader; the lobby's later parting is the
+   evidence. **Still unloaded**: the Roman (`+0x40 == 0x1bb`, `!has_tech`
+   — a different predicate), Egyptian granary, Mongol forage, Persian
+   taxation, Korean temple/militia, Indian elephant, Lakota and Iroquois
+   blocks, the Red Fort pair, Colosseum, Tikal, Hanging Gardens, German
+   metal/industry — each its own reading of the same listing.
 5. **The remaining national `get_cost` and `train_time` arms** (§3,
    §4): about forty percentage terms, of which `cost.rs` carries the
    French siege and the Spy/General arms and `lib.rs` the Chinese, Dutch,
