@@ -7492,12 +7492,6 @@ citizen one: `trainer 0x1ae/0x1af` with rare bit 4 — uncarried for any leader,
 one that could reach it, so it is the next candidate if `GreatLakesTurkishTier4` parts on a price). Names
 no score today.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ID renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
-
 ## Parked by the next landing, slot IE — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
