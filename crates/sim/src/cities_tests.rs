@@ -1545,6 +1545,60 @@ fn the_president_near_a_site_shortens_its_clock_by_a_quarter() {
     );
 }
 
+/// **An Iroquois leader's first Senate is free and instant** (item 3231,
+/// `docs/AI.md` §254): `TypeData::get_cost@00664090`'s building arm returns
+/// 0 (`006656f5`..`0066576b`) and `BuildData::construct_time@0062d5c0`'s
+/// last arm sets the clock to 0, floored at 1, both on tribe bonus `0x12`,
+/// `is(0x1b6, 0)`, `IROQUOIS_QUICK_SENATE` and a zero `high_buildings`
+/// short for the type. run934's block 6982 has the original list the
+/// Senate at val 80000 (a free type's `check_income` is 0x100), and block
+/// 6983 its site `1/2023` at full `construct_hits`.
+///
+/// Made to fail with each arm dropped, and with the `high_buildings` test
+/// dropped (the second Senate is priced and clocked).
+#[test]
+fn an_iroquois_leader_s_first_senate_is_free_and_instant() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let full = sim.building_price(0, t.senate);
+    assert_ne!(full, [0; economy::RESOURCES], "a Senate costs");
+    sim.tech[0].power = Some(crate::nations::power::IROQUOIS);
+    assert!(
+        sim.tech_tree
+            .has_tribe_bonus(&sim.setup, &sim.tech[0], crate::ai::tribe::IROQUOIS),
+        "the bonus holds in this setup"
+    );
+    assert_eq!(
+        sim.building_price(0, t.senate),
+        [0; economy::RESOURCES],
+        "the first is free"
+    );
+    assert_ne!(
+        sim.building_price(0, t.barracks),
+        [0; economy::RESOURCES],
+        "only the Senate"
+    );
+    assert_eq!(sim.building_price(1, t.senate), full, "another nation's");
+    let b = sim.place_building(0, t.senate, tile_pos(40, 32)).unwrap();
+    assert!(sim.buildings[b].constr_time > 1);
+    assert_eq!(sim.construct_time_of(b), 1, "the first is instant");
+    sim.tuning.iroquois_quick_senate = 0;
+    assert_eq!(
+        sim.building_price(0, t.senate),
+        full,
+        "the constant gates it"
+    );
+    assert_eq!(sim.construct_time_of(b), sim.buildings[b].constr_time);
+    sim.tuning.iroquois_quick_senate = 1;
+    if sim.building_high[0].len() <= t.senate {
+        sim.building_high[0].resize(t.senate + 1, 0);
+    }
+    sim.building_high[0][t.senate] = 1;
+    assert_eq!(sim.building_price(0, t.senate), full, "one has stood");
+    assert_eq!(sim.construct_time_of(b), sim.buildings[b].constr_time);
+}
+
 /// **The President's arm of `ObjectData::train_time`** (item 2491,
 /// `train_time@006508c0:103`–`107`, `docs/AI.md` §225): a trained unit's time
 /// at a building with one of the owner's THEPRESIDENT heroes in

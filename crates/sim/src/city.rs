@@ -1122,6 +1122,9 @@ impl Sim {
     /// offered beside two Large Cities is priced as the third city, not the
     /// first Small one.
     pub fn building_price(&self, who: Player, ty: usize) -> [i32; RESOURCES] {
+        if self.iroquois_free_senate(who, ty) {
+            return [0; RESOURCES];
+        }
         let wonder = self.build_types[ty].wonder;
         let is_city = !wonder && build::is_city(&self.build_types, ty);
         let of_type = if wonder {
@@ -1173,6 +1176,39 @@ impl Sim {
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// **An Iroquois leader's first Senate is free** (item 3231,
+    /// `docs/AI.md` §254): `TypeData::get_cost@00664090`'s building arm,
+    /// after the scenario's `buildings_free` test (`006656f5`..`00665713`),
+    /// returns 0 for every good when the leader has tribe bonus `0x12`, the
+    /// type is the Senate by lineage (vslot `+0x60`, `is(0x1b6, 0)`),
+    /// `IROQUOIS_QUICK_SENATE` is set (`constantsc +0x834`), and the
+    /// leader's `high_buildings` short for the type is zero — `cmpw $0,
+    /// 0x5324(%eax,%ecx,2)` at `00665762`, `0x5324 + type × 2` being
+    /// `+0x5660`'s slot `type − 414`. The listing indexes it by the type
+    /// itself; [`Sim::building_high`] is written at the lineage root, which
+    /// for the Senate is the Senate.
+    pub(crate) fn iroquois_free_senate(&self, who: Player, ty: usize) -> bool {
+        let w = who as usize;
+        if self.tuning.iroquois_quick_senate == 0
+            || w >= self.tech.len()
+            || !build::is(&self.build_types, ty, Ident::Senate)
+        {
+            return false;
+        }
+        if !self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[w], crate::ai::tribe::IROQUOIS)
+        {
+            return false;
+        }
+        self.building_high
+            .get(w)
+            .and_then(|h| h.get(ty))
+            .copied()
+            .unwrap_or(0)
+            == 0
     }
 
     /// `get_cost`'s city tail (`00665c46`..`00665c9b`): `BANTU_CITY_COST`
@@ -1498,6 +1534,10 @@ impl Sim {
                 bd.constr_time,
                 &build::ClockMods {
                     president: self.president_near_building(b),
+                    // `construct_time@0062d5c0`'s last arm (`0062d8b8`
+                    // the constant, `0062d8d8` the `high_buildings` short):
+                    // get_cost's predicate, read live (item 3231).
+                    iroquois_first_senate: self.iroquois_free_senate(bd.owner, t),
                     ..bd.clock
                 },
             ),

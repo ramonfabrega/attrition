@@ -103,9 +103,20 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // stepped one point short from 5810. At 6982 ours 10 draws, theirs 15,
     // index 5: ours `Guy::set_anim+0x97a < Animal::do_idle+0x19`, theirs
     // `Leader::produce_building+0x1805`; past run932's last block, its
-    // widening owed (`docs/AI.md` §253).
-    count: 6982,
-    sequence: 6982,
+    // widening owed (`docs/AI.md` §253). **Item 3231 widened it on run934
+    // and moved it 6982 → 7033 → 7982** (`docs/AI.md` §254): block 6982's
+    // `MAKE[3]` was ours `t` 171 (val 62976) against theirs 438, the
+    // Senate (val 80000, city 1) — ours valued the Senate at 80000 too and
+    // `check_income` zeroed it, because `get_cost`'s Iroquois arm (the
+    // first Senate is free) was not carried. With it the word was 7033
+    // (theirs 208 draws, `PathFinder::calc_road_cost`, the Senate's
+    // capital move on 7025): block 6983's `1/2023` `construct_hits` ours 1
+    // against theirs 1200, `construct_time`'s twin arm (the first Senate
+    // is instant). With both, 7982: ours 12 draws, theirs 14, index 5,
+    // ours `Animal::do_idle+0x83`, theirs `Leader::make_stuff+0x63d`;
+    // past run934's last block (7232), its widening owed.
+    count: 7982,
+    sequence: 7982,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -836,7 +847,17 @@ fn run934_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "initial run934 baseline");
+    // Item 3231, on base 5b18de8c: 1105 keys, the first non-standing row
+    // block 6982's `leader:MAKE[3]` (ours `t` 171 val 62976 escrow 1 cat 7,
+    // theirs 438 val 80000 escrow 0 city 1 cat 8: the Senate). With
+    // `get_cost`'s Iroquois Senate arm, 986, the first block 6983's
+    // `1/2023` `construct_hits` (ours 1, theirs 1200); with
+    // `construct_time`'s, 41: run932's standing set (the `SITE` regs, the
+    // forms, pools 64 and 66, `1/22`'s `blown`, `1/23`'s second figure's
+    // nine), the newborn figures' `g.angle[0]` on `1/35`, `1/36` and
+    // `1/37` (`Unit::init`'s 0x55555555 against 0, a family standing in
+    // other lobbies) and `SITE[1].reg` on 7176. The move's value diff is these two blocks.
+    pin_eq!(w.firsts.len(), 41, "initial run934 baseline");
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at
