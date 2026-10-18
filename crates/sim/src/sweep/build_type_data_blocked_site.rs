@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `BuildTypeData::blocked_site@00636a50`, run by `tools/emu/sweep_build_type_data_blocked_site.py` under unicorn
-/// (tools/emu): 576 random bytes of object, 5 argument(s), `p` windows in order: p0 argument 4, p1..p32 sparse table 0 (8 rows × 4 slice(s), row-major); the global cell 0x00c061d0 points at 16 random bytes; the global cell 0x00cae5fc points at 2048 random bytes; the global cell 0x00c061e8 points at 2304 random bytes; argument 4 names 4 random bytes; vtable slot +0x60 (2 args) stubbed; vtable slot +0x64 (0 args) stubbed; callee 0x00636db0 (4 args) stubbed; callee 0x006b53f0 (3 args) stubbed; callee 0x006375b0 (7 args) stubbed; slot +0x64 laid as 0x00472bc0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 0, 0, 0, 34, 23, 32, 31, 36, 24, 20, 26, 27, 46, 45, 14, 4, 5] (90%); stub 3 answered from [0, 1] (90%); stub 4 answered from [0, 34, 23, 32, 31, 36, 24, 20, 26, 27, 46, 45, 14, 4, 5] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 1 answers 1 values in call order, printed after the answers; stub 2 answers 25 values in call order, printed after the answers; stub 3 answers 25 values in call order, printed after the answers; stub 4 answers 1 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 3 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); 8 rows 0x6eec apart at `0xc061e0`, slices +0x0:0x4, +0x8:0x4, +0x74:0x20, +0x410:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
+/// (tools/emu): 576 random bytes of object, 5 argument(s), `p` windows in order: p0 argument 4, p1..p32 sparse table 0 (8 rows × 4 slice(s), row-major); the global cell 0x00c061d0 points at 16 random bytes; the global cell 0x00cae5fc points at 2048 random bytes; the global cell 0x00c061e8 points at 2304 random bytes; argument 4 names 4 random bytes; vtable slot +0x60 (2 args) stubbed; vtable slot +0x64 (0 args) stubbed; callee 0x00636db0 (4 args) stubbed; callee 0x006b53f0 (3 args) stubbed; callee 0x006375b0 (7 args) stubbed; slot +0x64 laid as 0x00472bc0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 0, 0, 0, 34, 23, 32, 31, 36, 24, 20, 26, 27, 46, 45, 14, 4, 5] (90%); stub 3 answered from [0, 1] (90%); stub 4 answered from [0, 34, 23, 32, 31, 36, 24, 20, 26, 27, 46, 45, 14, 4, 5] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 1 answers 1 values in call order, printed after the answers; stub 2 answers 36 values in call order, printed after the answers; stub 3 answers 36 values in call order, printed after the answers; stub 4 answers 1 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 3 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); 8 rows 0x6eec apart at `0xc061e0`, slices +0x0:0x4, +0x8:0x4, +0x74:0x20, +0x410:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_build_type_data_blocked_site.py") else {
@@ -50,9 +50,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // `blocked_location` and `was_seen` would have to be driven to the stubs' answers
             // tile by tile, so this is the listing's port (Loop 3237: out of reach, inline).
             // a[0..5] the arguments, a[5..10] the stubs' one answer (unread), a[10..12] the
-            // `is` slot's answers (stub 0), a[12] the +0x64 slot's (stub 1), a[13..38] tcoord's
-            // (stub 2), a[38..63] was_seen's (stub 3), a[63] blocked_location's (stub 4),
-            // a[64] whether slot +0x64 was laid as `is_city`. c1 `div_3_table`, c2 the game
+            // `is` slot's answers (stub 0), a[12] the +0x64 slot's (stub 1), a[13..49] tcoord's
+            // (stub 2), a[49..85] was_seen's (stub 3), a[85] blocked_location's (stub 4),
+            // a[86] whether slot +0x64 was laid as `is_city`. c1 `div_3_table`, c2 the game
             // (+0x550 frame, +0x821 semaphore), p[1 + 4k + 0..4] leader k's flags, +8, +0x74..,
             // +0x410 slices.
             let (x, y, who, excl) = (a[0], a[1], a[2], a[3]);
@@ -97,7 +97,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 l0.push(format!("m+0x0,{t},0"));
                 r
             };
-            let city = if a[64] != 0 {
+            let city = if a[86] != 0 {
                 is(0x19e)
             } else {
                 l1.push("m+0x0".to_string());
@@ -132,7 +132,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let (mut first, mut unseen) = (0i32, 0i32);
                 for tx in tx0..tx0 + xs {
                     for ty in ty0..ty0 + ys {
-                        let r = a[13 + n2.min(24)];
+                        let r = a[13 + n2.min(35)];
                         n2 += 1;
                         l2.push(format!("m+0x0,{tx},{ty},{who},{excl}"));
                         if r == 0x22 {
@@ -142,7 +142,7 @@ fn the_emulated_original_agrees_on_every_row() {
                             first = r;
                         }
                         if who >= 0 {
-                            let seen = a[38 + n3.min(24)] != 0;
+                            let seen = a[49 + n3.min(35)] != 0;
                             n3 += 1;
                             l3.push(format!("c0+0x0,sp-0x20,sp-0x30,{who}"));
                             d0.push(hex(tx >> 1));
@@ -163,7 +163,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     break 'done 0xe;
                 }
                 l4.push(format!("m+0x0,{x},{y},{tx0},{ty0},{who},{excl},p0+0x0"));
-                let r = a[63];
+                let r = a[85];
                 if r == 0 || (sem && refused(r)) {
                     first
                 } else {
