@@ -535,10 +535,13 @@ impl Sim {
     /// (item 3211: run930's Slingers, TI 82, step 35 on a speed of 28 and
     /// take the follower scatter from block 5564, `docs/AI.md` §253).
     pub(crate) fn is_modern_infantry(&self, u: usize) -> bool {
-        let iroquois = self.tech.get(self.units[u].owner as usize).is_some_and(|p| {
-            self.tech_tree
-                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
-        });
+        let iroquois = self
+            .tech
+            .get(self.units[u].owner as usize)
+            .is_some_and(|p| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
+            });
         self.units[u].ty.is_some_and(|t| {
             let ty = &self.unit_types[t];
             ty.cols.unit_flags & 0x100 != 0 && (iroquois || ty.combat.age > 5)
@@ -1219,6 +1222,33 @@ mod tests {
         u.on_map = true;
         u.movement.speed = 25;
         s.add_unit(u)
+    }
+
+    /// **An Iroquois foot soldier is modern infantry in any age** (item
+    /// 3211): `is_modern_infantry@00607b40` asks `has_tribe_bonus(0x12)`
+    /// first and answers the type's `0x100` alone, the age unread.
+    /// run930's Slingers (TI 82, age 1) step 35 on a speed of 28 and take
+    /// the follower scatter on block 5564. Made to fail with the arm gone.
+    #[test]
+    fn an_iroquois_flagged_type_is_modern_infantry_in_any_age() {
+        let mut s = sim();
+        let t = ty(&mut s, 0, 0, 0);
+        s.unit_types[t].cols.unit_flags |= 0x100;
+        s.unit_types[t].combat.age = 1;
+        let u = spawn(&mut s, t, Pos::new(1000, 1000));
+        assert!(!s.is_modern_infantry(u), "no nation power, age 1");
+        s.tech[1].power = Some(crate::nations::power::IROQUOIS);
+        let bonus = s
+            .tech_tree
+            .has_tribe_bonus(&s.setup, &s.tech[1], crate::ai::tribe::IROQUOIS);
+        assert_eq!(s.is_modern_infantry(u), bonus, "the Iroquois arm");
+        assert!(bonus, "the bonus holds in this setup");
+        s.unit_types[t].cols.unit_flags &= !0x100;
+        assert!(!s.is_modern_infantry(u), "the flag is still asked");
+        s.tech[1].power = None;
+        s.unit_types[t].cols.unit_flags |= 0x100;
+        s.unit_types[t].combat.age = 6;
+        assert!(s.is_modern_infantry(u), "anyone's, past age 5");
     }
 
     fn group(list: &[usize]) -> Group {
