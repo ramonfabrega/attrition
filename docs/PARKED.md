@@ -7538,8 +7538,8 @@ no score today.
 
 ## Parked by item 3175, 2026-10-18 — the dead Tank's disc, and the death-object cull
 
-- **The death object's cull and the disc's release** (GOLDEN §125). Theirs ends `1/6`'s record (Tank, piece 194, anim 20) 152 frames after the death — block 946 is the first without it — where this crate's list is grow-only, so ch95's `1/6` `death:extra` on 946 stands, and a kept disc (`blocks_while_dead`) is never released here. What names the score: the chapter's last standing non-`form` row; a unit of such a type dying early in a longer capture would hold its cells for ever. Check: where the original clears the disc when the record ends (`DeathObj::inc_time@008d5240`'s end, `remove_from_world`), and the length of the packet (`gpiece` 194's animation).
-- **Which types carry `unit_flags & 0x800000`**, and the non-combat death sites (`cast_sniper_unit`, air crash, bribe, attrition) which still clear the disc: `Unit::close`'s `param_1` reset arms were not read per site.
+- (3189) **The death object's cull and the disc's release** (GOLDEN §125). Theirs ends `1/6`'s record (Tank, piece 194, anim 20) 152 frames after the death — block 946 is the first without it — where this crate's list is grow-only, so ch95's `1/6` `death:extra` on 946 stands, and a kept disc (`blocks_while_dead`) is never released here. What names the score: the chapter's last standing non-`form` row; a unit of such a type dying early in a longer capture would hold its cells for ever. Check: where the original clears the disc when the record ends (`DeathObj::inc_time@008d5240`'s end, `remove_from_world`), and the length of the packet (`gpiece` 194's animation).
+- (3190) **Which types carry `unit_flags & 0x800000`**, and the non-combat death sites (`cast_sniper_unit`, air crash, bribe, attrition) which still clear the disc: `Unit::close`'s `param_1` reset arms were not read per site.
 
 ## Parked by the next landing, slot IG — reserved
 
