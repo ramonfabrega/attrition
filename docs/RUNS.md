@@ -18101,3 +18101,7 @@ SHA-256 `40a3e0dd741510eb576bc505da5d21640583fd3867e5ca40d8991b23e5c88b3c`.
 **What it holds**: `diff::iroquois_word::run940_s_word_frame_is_widened_whole` (257 blocks). Block 8416 holds theirs'
 three Javelineers `1/48`..`1/50` out of the Barracks `1/2016`, and who=1's rare mask gaining Cotton (`080000` →
 `081000`). With `train_time`'s Cotton arm the window has 61 keys. The window is in the coverage driver's slice.
+## run942 — chapter one hundred and one: an idle squad beside a Tank wreck (2026-10-18, item 3253, `att-3253`)
+
+`docs/GOLDEN.md` §136. **What the disk could not answer**: no dump held an idle unit beside a `blocks_while_dead` wreck with nothing else in reach (run933's Barracks drew the hoplites away; the first take of this chapter repeated that and is kept at `~/ron-golden/ch101-barracks/`, not wired). Recipe `tools/gamelog/golden/chapter101.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch101/map-14/`, 1,501 frames, seed 12345. No minutes waited on another lane.
+**What it holds**: `golden::chapter_one_hundred_and_one_holds_to_the_golden_word` (1500, closed) and `chapter_one_hundred_and_one_s_window_is_widened_whole` (11 standing `form` rows); its window 1496..1500 (four blocks) is in the coverage driver's slice.

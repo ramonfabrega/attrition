@@ -13442,12 +13442,17 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the Tank's round on the building (971 → 978), the Tank's death draws and `DEATH_OBJS` (1890) and `0/12`'s share death (2544), the whole run to 2600. Reading only: the `is_tank` gate on a building shooter, `+0x110`'s other readers.
 
-## 136. Reserved for the next item on the rules track
+## 136. Chapter one hundred and one — an idle squad beside a Tank wreck; closed at 1500 on the first take, no code (item 3253, run942)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3235): the original leaves a `blocks_while_dead` Tank on the object chain until the death object's cull, this crate keeps it off, so a chain reader that does not test `alive` (`find_nearby_target`, `find_units`, `alarm`) would part beside a wreck.
+
+**Staging** (`tools/gamelog/golden/chapter101.cmd`, 14 lines, `RON_STAGE=ch76:chapter101:1500`): chapter 99's Sabotage of a who=1 Tank by four Commandos (616..623), then two who=0 hoplite squads added at 790/791 beside the wreck with no orders. **The first take (kept at `~/ron-golden/ch101-barracks/`) kept chapter 99's Barracks `1/2006`: both hoplites attacked it, so it tested nothing; the Barracks is gone from the recipe** and the second take, run942, leaves both squads idle (`orders none`, dump f1000) with the wreck the only thing in reach. Pool lane 1, 1,501 frames, seed 12345, chapter 94's `end:`/`start:` sets.
+
+**What the original does and this crate agrees with.** The window (605..1500, `WIDENING_CHAPTER_ONE_HUNDRED_AND_ONE` (604, 1501)) parts on the eleven standing `form` rows and nothing else; the golden word is the trace's end, 1500, on the first run. No code moved.
+
+**Not established.** That the idle hoplites' search *reached* the wreck: the dump holds no `find_nearby_target` record, and both sides leave them without an order, so it is read as the original's chain readers either testing `alive` or the idle stance never searching — not separated. A reader of the wreck by an armed, aggressive unit is the next arm: a shooter with a standing attack stance or a Commando's `alarm`. The building shooter's near-face gate (3252's park) is untouched.
+
+**Coverage.** Diff-backed: the whole 605..1500 window, both directions. Reading only: the wreck's chain readers.
 
 ## 137. Reserved for the next item on the rules track
 

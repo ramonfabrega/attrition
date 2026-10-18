@@ -6723,6 +6723,13 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED: i64 = 2600;
 /// `chapter_one_hundred_s_window_is_widened_whole`'s window: run936.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED: (i64, i64) = (604, 2601);
 
+/// **Chapter one hundred and one** (item 3253, `docs/GOLDEN.md` §136, run942):
+/// two idle hoplite squads beside a Tank wreck (Sabotage's `dtype` 3).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_ONE: i64 = 1500;
+
+/// `chapter_one_hundred_and_one_s_window_is_widened_whole`'s window: run942.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_ONE: (i64, i64) = (604, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
