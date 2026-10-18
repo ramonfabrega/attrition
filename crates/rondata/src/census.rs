@@ -191,12 +191,15 @@
 /// item 3268: 1518 -> 1525 on the merged tree, the nations seat's fifth shape batch (`Build::remove_from_city`,
 /// `ObjectsData::find_unit_with_radius`, `Object::update_seen`, `Unit::ungroup_move_order`, `Unit::add_gather_order`,
 /// `Roads::redo_changed_roads`), and one layout-backed function besides.
+/// item 3272: 1525 -> 1531 on the merged tree, the nations seat's sixth shape batch (`City::check_upgrade`,
+/// `World::gather_at`, `Build::add_gather_point`, `Unit::bank_aircraft`, `TechType::is_ultimate_preq`,
+/// `ObjectData::valid_target_const`).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1525;
+pub const SIMULATION_BACKED: usize = 1531;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
@@ -205,8 +208,8 @@ pub const SIMULATION_BACKED: usize = 1525;
 /// measured 293 of 1459 on this tree). `tools/census.py --layers` prints
 /// both, the `Census:` line carries both, and the commander re-pins both at
 /// booking. Item 3182: 303 -> 305 (both of its bodies have a port consumer); item
-/// 3200: 305 -> 311 (all six); item 3219: 311 -> 317 (all six); item 3234: 317 -> 323 (all six); item 3229: 323 -> 328 (five of six); item 3238: 328 -> 334 (all six); item 3239: 334 -> 340 (all six); item 3250: 340 -> 347 (all six, and one backed function the crate now spells); item 3259: 347 -> 353 (all six); item 3268: 353 -> 359 (all six).
-pub const SIMULATION_PORT_BACKED: usize = 359;
+/// 3200: 305 -> 311 (all six); item 3219: 311 -> 317 (all six); item 3234: 317 -> 323 (all six); item 3229: 323 -> 328 (five of six); item 3238: 328 -> 334 (all six); item 3239: 334 -> 340 (all six); item 3250: 340 -> 347 (all six, and one backed function the crate now spells); item 3259: 347 -> 353 (all six); item 3268: 353 -> 359 (all six); item 3272: 359 -> 365 (all six).
+pub const SIMULATION_PORT_BACKED: usize = 365;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

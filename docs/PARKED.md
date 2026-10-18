@@ -3748,8 +3748,8 @@ sat on its batch with nothing to wake it until `lanewait.py` named the child. Ca
 (the unmutated run's time times a factor, a floor of a minute), a timed-out mutant counted as caught and printed as
 `hung`, made to fail first on a mutant that loops. One reach.
 
-(3277) **A lane lands with its own gate red on its own line, fixed after and not re-run** (the commander, at 3267's
-and 3271's merges): both Sonnet rules lanes' lane gates were red on the journal-quote guard
+(3277) **A lane lands with its own gate red on its own line, fixed after and not re-run** (the commander, at 3267's,
+3271's and 3272's merges): both Sonnet rules lanes' lane gates were red on the journal-quote guard
 (`a_journal_quotes_its_lane_verdict_and_gate_minutes`), fixed in a later commit, the gate not re-run and its guard
 step not reached; the booking gate carries the check. Candidate: the frame row that a lane whose verdict is "red on
 the worker's own" re-runs the guard step alone (`tools/guard.sh`) before its done line and quotes it, or the gate's

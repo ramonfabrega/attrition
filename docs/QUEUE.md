@@ -19,9 +19,9 @@ lane gates a landing). **The forty-fourth tranche's base is `6db69429`**; last w
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10852 of 12658 (3211, 3231, 3242,
   3248, 3255: run943 widened whole); `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
   1477 → 1512, **port 311 → 347**; the battery's median 4770. Built, red first: six tools and guards (DECISIONS 81).
-- **Lanes: four live, landings 7 of 20** (3263, 3259, 3255, 3267, 3268, 3271, 3269): 3279 AI (run 948, AI §259, JU),
-  3274 rules (run 947, GOLDEN §140, JT), 3261 shape (JM), 3272 the nations seat (JS). Next 3281, run 949. Pools: GOLDEN
-  §141–144, AI §260–263, park JV–JZ. The stray `agent-*` worktrees are gone (one by the gate's own remedy, two by Ramon, 2026-10-18).
+- **Lanes: four live, landings 8 of 20** (3263, 3259, 3255, 3267, 3268, 3271, 3269, 3272): 3279 AI (run 948, AI
+  §259, JU), 3274 rules (run 947, GOLDEN §140, JT), 3261 shape (JM), 3281 the nations seat (JV). Next 3282, run 949.
+  Pools: GOLDEN §141–144, AI §260–263, park JW–JZ. The stray `agent-*` worktrees are gone (one by the gate's own remedy, two by Ramon, 2026-10-18).
   **Ramon's**: the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
 - **Fable backlog: 13 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265, 3276, 3277, 3280).
 
@@ -33,7 +33,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w10852 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1525 of 3611 · port 359 · layout 1166
+Census: simulation backed 1531 of 3611 · port 365 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 96 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -45,7 +45,7 @@ lanes (3255 the AI word's on `--model 'claude-opus-5-5[1m]' --effort medium`; 32
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3279 the AI word's (Opus); 3274, 3261 and 3272 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10852. Take the first unstarted item unless a better
+3279 the AI word's (Opus); 3274, 3261 and 3281 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10852. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3279. **The battery word, 10852 of 12658 (`GreatLakesIroquoisTier3`), on its own block** (parked 3278; 3269 closed
@@ -70,10 +70,10 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `--claimed` the nations seat's tree) — each built against the crate's own method where it has one, or parked naming
     the generator flag it could not spell. `--kind sweep`.
 
-3272. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 359; 3268 built
-    all six of its batch, with three sim fixes the sweeps forced — `add_gather_order`'s first rotation, `ungroup`'s
-    head-first scan, `update_seen`'s DETECT ring — parked 3268a–g): `City::check_upgrade`, `World::gather_at`,
-    `Build::add_gather_point`, `Unit::bank_aircraft`, `TechType::is_ultimate_preq`, `ObjectData::valid_target_const`
+3281. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 365; 3272 built
+    all six of its batch, with four sim fixes the sweeps forced — `tech.rs`'s Disabled preq, `single.rs`'s `to_i32`
+    saturation, `air.rs`'s helicopter arms, `rally.rs`'s head insert — parked 3272a–g): `PathFinder::find_tpath`,
+    `Army::find_besieged_city`, `World::reveal_fog`, `Unit::check_build_order`, `Unit::think_carry`, `Farms::add`
     (`census.py --unbacked`, the `port` mark, `--claimed ../att-3261`) — each built against the crate's own method
     where it has one, or parked naming the generator flag it could not spell. `--kind sweep`.
 
