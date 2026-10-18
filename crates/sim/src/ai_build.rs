@@ -366,6 +366,14 @@ impl Sim {
                         l.escrow,
                     );
                     let val = inc.wrapping_mul(l.val) / 256;
+                    if std::env::var("RON_PROBE_CB").is_ok()
+                        && (6975..=6990).contains(&self.frame)
+                        && (self.build_types[rec].ident == Ident::Senate || val > 50000)
+                    {
+                        eprintln!("PROBE CB offer f{} c={} t={} inc={} lval={} val={} esc={} cat={} list={:?}",
+                            self.frame, c, t, inc, l.val, val, l.escrow, l.cat,
+                            self.ai[w].make_list.list.iter().filter(|m| m.t != -1).map(|m| (m.t, m.val)).collect::<Vec<_>>());
+                    }
                     self.ai[w]
                         .make_list
                         .make_me(t as i32, val, l.escrow, l.cat, c as i32, l.up, 1, 0, 0);
