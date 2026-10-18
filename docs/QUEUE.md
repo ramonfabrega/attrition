@@ -13,7 +13,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-18, **the forty-first pass (steer, Fable) done; the forty-second tranche (commander, Opus) opens from
-`PASS_SHA`**, four lanes (DECISIONS 78 (i), 79): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.*
+`75ccea37`**, four lanes (DECISIONS 78 (i), 79): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 of 12658 (3107, 3117, 3140), its
   widening owed as 3156 (run 922, from run921's last dumped block 1626); `EastIndiesGermanTier3` closed at 13519
@@ -40,7 +40,7 @@ Golden: ch95 w634 of 1,200 · 87 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-second tranche from docs/QUEUE.md's handoff — spawn 3156 (Opus 5.5 medium), 3152, 3150
-and 3145 (Sonnet 5.5 medium) off `PASS_SHA`; merge, book, refill, gate, push, reap; count landings from `PASS_SHA`
+and 3145 (Sonnet 5.5 medium) off `75ccea37`; merge, book, refill, gate, push, reap; count landings from `75ccea37`
 and stop at twenty with the handoff written and the pass cleared in.**
 
 ## The queue
