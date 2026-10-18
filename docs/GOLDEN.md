@@ -13255,12 +13255,24 @@ go with it. **The word is the capture's end, 1200**: `chN closed`.
 **Not established**: the `num_units != 0` / empty-list discriminator is still §119's assumption (a recount resets the link); an emptied army whose slot a push takes after
 a recount is untested here beyond chapters 41 and 62's pins. **What the diff backs**: `chapter_ninety_four_s_window_is_widened_whole`, `chapter_ninety_four_holds_to_the_golden_word`.
 
-## 121. Reserved for the next item on the rules track
+## 121. Chapter ninety-five — Sabotage on firing Tanks: the Tank's target pick parts at 624 (run920)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Item 3126, parked 3065 and 3098: Sabotage on an armed vehicle that *fires*. §118's Artillery never fired at the Commando beside it; a Tank shoots the lone
+Commando dead (parked 3065). **Disk could not answer**: no dump held a Sabotage cast on a firing armed unit.
+
+**Staging** (`tools/gamelog/golden/chapter95.cmd`, 13 lines, `RON_STAGE=ch76:chapter95:1200`, walked by `stage_walk`): chapter 94's recipe with `tank` for `artillery`, plus three who=0
+Hoplite squads (618, 619) near the Tanks as decoys. Walked on ours: the Tanks attack from 634, two Hoplites die, both Tanks are razed (788, 800), the Commandos live at 90 hp.
+
+**What the original does** (run920, 1,201 frames, seed 12345, ~2 min, pool lane 1, `~/ron-golden/ch95/map-14/`): **the word is 629, open.** The widening (595 blocks, 424 parted keys; `WANT_CH95`)
+parts first, past the eleven standing `form` rows, on **624, the who=1 Tank `1/7`'s `order:target`: ours the decoy Hoplite `0/16` (14912,17504), theirs the Commando `0/7`**
+(13972,17040), nearer (about 440 units against 560 from the Tank at (14392,17173)). The Tank is AI-commanded (`ATTACKTOORDER`, group 64) and its `near` is `0/7` on 624 in the dump. The
+same pick on `1/6` at 635 (ours `0/8`, theirs `0/6`); the Tanks' first hits part at 638/644 (`damage_frac`), the Commando `0/7` takes 42 on 666 in the original, which ours never lets it. Cascade after.
+
+**Hypothesis only, unchecked**: `compare_target`'s `ai` arm divides by the damage a Tank does (`v / dmg`, §33.2), so a computer leader's pick favours what it kills slowest; ours may be missing a
+term that makes the Commando outrank the Hoplite (a Commando-class stealth/unit-mask term, `search_ai`, or the candidate set `find_nearby_target` rings). Draws part at 629.
+
+**What the diff backs.** `chapter_ninety_five_s_window_is_widened_whole`, `chapter_ninety_five_holds_to_the_golden_word` (629). Coverage window 622–628. **Not established**: the Tank pick's mechanism; the cast
+on a firing target (reached only after 629); the Commando's wound at 666.
 
 ## 122. Reserved for the next item on the rules track
 
@@ -13277,6 +13289,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 124. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 125. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 126. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 127. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 128. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

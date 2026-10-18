@@ -17864,3 +17864,8 @@ SHA-256 `691196dd297577323eb88d683a30cf1895da778ff1565fa2c52c2247a938efc6`.
 
 Archive `rontrace-run921.log`, 12,207,872 bytes,
 SHA-256 `548987e62b3ecf02397d4dcea368291e2e0d00a6755b7759f36c80cd76afdc2f`.
+## run920 — chapter ninety-five: Sabotage on firing Tanks (2026-10-18, item 3126, `att-3126`)
+
+`docs/GOLDEN.md` §121. **What the disk could not answer**: no dump held a Sabotage cast on a firing armed unit. Recipe `tools/gamelog/golden/chapter95.cmd` (`--map 14 --end-frame 1200
+--log-window 605 1200`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch95/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane.
+**What it holds**: the who=1 Tanks `1/6`, `1/7` pick the Commandos where ours picks the decoy Hoplites (624, 635); the word is 629.

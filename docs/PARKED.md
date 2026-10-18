@@ -3742,6 +3742,22 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3149) **`--stub-write` takes one fixed value** (3134's "for the Loop" line, filed at its merge): `Unit::cavarch_fight`
+needed two modules for two written values, and its clamp and pre-fight copy stayed starved. Candidate: `--stub-write`
+takes a list drawn per row, as `--answers` does, made to fail first on a break the one-value form starves. One reach.
+
+(3143) **The host at saturation, and a runaway the budget cannot see** (Ramon, 2026-10-18, for the steer): at 01:12
+during the forty-first tranche's whole gate, with four lanes live and 3140's run921 capture under Wine, the load was 32 on
+16 cores at 0% idle; the admission budget held 16 leases (16 CPU slots of the v2 policy's 32, 16 GiB reserved), so it was
+admitting freely while the box was already full. Memory was not the constraint: 26 GiB unused, compressor 1.8 GiB, swap
+2.5 MiB. One core went to an orphan: `sweep_a_f … city_data_num_city_buildings`, a **debug** test binary from a deleted
+subagent worktree (`agent-a125b8735144f445e`; the sweep is 2793's), parent launchd, running since 2026-10-17 03:25 (21 h
+47 m), outside every lease, and not killed: the commander's `kill` was refused by the classifier (Ramon's to run).
+Candidates: (i) the slot policy measured against the load: 32 slots on 16 cores admits 2x and the gate's `Admission wait`
+receipt reads seconds while every lane's wall clock stretches; (ii) a reaper, or a `guard.sh`/`check.sh` lease timeout
+that outlives no supervisor, so a test whose supervisor died cannot run a day; (iii) the sweep test that did not
+terminate (the soak found one in an hour; this one ran under no budget).
+
 (3139) **`seams.py --item` missed the word's live SEAM** (3117's "for the Loop" row, filed at its merge): the brief's run named `explore_goody`, `think_bird`,
 `WIDENINGS`, `IROQUOIS_WORD`, and `path.rs`'s `iroquois: false, // SEAM: unit_masks2 & 0x4000` was found by grepping
 `iroquois` after the widening named the path. A `--item` that also takes the parted unit's nation and the fields the
@@ -7496,29 +7512,29 @@ words and edits nothing here; a refill lands when two remain.
 - (3136) **German metal/industry blocks** (`german_metal_upgrades`,
   `german_industry_upgrades`, both 0 as shipped) are inert and unloaded.
 
-## Parked by the next landing, slot HU — reserved
+## Parked by item 3126, 2026-10-18 — chapter ninety-five, a Tank's target pick
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3141) **A computer Tank picks the Commando, ours a Hoplite** (run920, 624, `1/7 order:target`; `1/6` at 635): chapter 95's word, 629. Frame and delta are the booking; the `ai` arm of
+`compare_target` (`v / dmg`) and the candidate rings of `find_nearby_target` are the item before's hypothesis (GOLDEN §121). Next: `RON_DEBUG_UNIT=1/7@622-626` both sides and a
+packet at 623 if the ranking reads a value no dump prints.
 
-## Parked by the next landing, slot HV — reserved
+## Parked by item 3134, 2026-10-18 — the shape lane's seventh batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Five shapes built (find_town_at, find_good_at@0065bec0, process_ejection, cavarch_fight twice, send_here); none unbuildable.
 
-## Parked by the next landing, slot HW — reserved
+- (3146) **`Unit::cavarch_fight` clamp and pre-fight copy are starved, not equivalent.** `--stub-write` writes one fixed value, so a
+  stubbed `fight` leaves the target either alone (`unit_cavarch_fight`) or at (1, 0) (`unit_cavarch_fight_written`). Starved:
+  the pre-fight `+0x2d0 → +0x1fc` copy (overwritten after `fight`; only a real `fight` reads it), the `(idx as u16) >= 0x8000`
+  and `< 0` predicates (need a final negative index with an original in 0x4000..0x7fff, or a final 0). Flag it could not spell:
+  `--stub-write` with a drawn VAL (a list, as `--answers`).
+- (3147) **`Build::process_ejection`**: one break starved (the captain chain's inner `p[u][9]`; chain targets are array 0, whose byte 9 is 0 by construction so chains stay acyclic).
+  Flag it could not spell: `--link` across several arrays (a global window index mapped to array × slot).
+- (3148) **`Army::send_here`**: `find_angle` and `sin_table` are stubbed and recorded (their tables build at boot and read as zeros), so their own arithmetic is not
+  exercised here; `find_angle` is pinned elsewhere.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3137, 2026-10-18 — the Roman legion pair, and what the nations family still lacks
+
+- (3144) The remaining uncarried national terms of `get_cost` (Mongol stable, Japanese barracks and ships, American aircraft, British AA, Nubian merchants, Angkor ships, Wool/Turkish citizens, Korean towers, Colosseum forts) and `train_time` (the French arm, `TROOPS_FASTER`, cotton and wool) are unaudited by this item; it took the Roman pair only. No score named them; a lobby with that nation's leader would. Battery unmoved by the pair (no held-out lobby holds a Roman leader).
 
 ## Parked by item 3140, 2026-10-18 — the Iroquois word on 1496
 
@@ -7547,6 +7563,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot HZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ID — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ID renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

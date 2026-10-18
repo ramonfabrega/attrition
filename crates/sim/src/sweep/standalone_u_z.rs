@@ -50,6 +50,10 @@ mod unit_add_garrison_order;
 mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
 mod unit_air_alt_speed;
+#[path = "unit_cavarch_fight.rs"]
+mod unit_cavarch_fight;
+#[path = "unit_cavarch_fight_written.rs"]
+mod unit_cavarch_fight_written;
 #[path = "unit_data_action_type.rs"]
 mod unit_data_action_type;
 #[path = "unit_data_activity_type.rs"]

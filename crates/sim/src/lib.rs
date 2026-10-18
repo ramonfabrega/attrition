@@ -2263,12 +2263,14 @@ impl Sim {
         let stable_rares = self.stable_rare_discounts(who, ty);
         let discount = self.nation_unit_discount(who, ty);
         let russian_spy = self.russian_spy_discount(who, ty);
+        let roman_legion = self.roman_legion_discount(who, ty);
         let uranium = self.uranium_discount(who, ty);
         let liberty = self.liberty_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
                 russian_spy,
+                roman_legion,
                 discount,
                 stable_rares,
                 liberty,
@@ -2282,6 +2284,7 @@ impl Sim {
                 salmon: self.salmon_cost_discount(who, ty),
                 maize: self.has_rare(who, economy::MAIZE),
                 russian_spy,
+                roman_legion,
                 discount,
                 stable_rares,
                 liberty,
@@ -2563,6 +2566,25 @@ impl Sim {
             })
         {
             self.tuning.russian_spy_cost
+        } else {
+            0
+        }
+    }
+
+    /// Whether `ty` is of the Legion's lineage (`is(0x84, 0)`, the loose
+    /// test) — the test both Roman legion arms make.
+    fn is_legion_line(&self, ty: usize) -> bool {
+        self.unit_types[ty].tree.is_some_and(|t| {
+            self.tech_tree.types.get(0x84).is_some() && self.tech_tree.is(t, 0x84, false)
+        })
+    }
+
+    /// `get_cost:306`–`311`: a Roman leader's Legion-line unit takes
+    /// `ROMAN_LEGION_CHEAP` off, a truncating step of its own after the
+    /// Russian spy's and before the Terra Cotta Army's.
+    pub fn roman_legion_discount(&self, who: Player, ty: usize) -> i32 {
+        if self.nation[who as usize].romans && self.is_legion_line(ty) {
+            self.tuning.roman_legion_cheap
         } else {
             0
         }
@@ -3528,7 +3550,13 @@ impl Sim {
                 ));
             }
         }
-        // The French and Roman arms, and `TROOPS_FASTER` (`role & 0x10000`,
+        // **The Roman arm** (`train_time@006508c0:208`–`213`, after the
+        // German arms and before `TROOPS_FASTER`): a Legion-line unit of a
+        // Roman leader takes `ROMAN_LEGION_FAST`, `t × 100 / (k + 100)`.
+        if self.nation[who as usize].romans && self.is_legion_line(ty) {
+            tail.push(production::Adjust::Faster(self.tuning.roman_legion_fast));
+        }
+        // The French arm, and `TROOPS_FASTER` (`role & 0x10000`,
         // three-quarters), stand around it: the first two are other
         // nations' powers, and the bonus's prerequisite is `Disable` in the
         // shipped file, so no player holds it.

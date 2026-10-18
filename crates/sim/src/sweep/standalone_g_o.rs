@@ -666,12 +666,16 @@ mod objects_data_find_dock;
 mod objects_data_find_good_at;
 #[path = "objects_data_find_good_at_tcoord.rs"]
 mod objects_data_find_good_at_tcoord;
+#[path = "objects_data_find_good_at_wcoord.rs"]
+mod objects_data_find_good_at_wcoord;
 #[path = "objects_data_find_goody_at.rs"]
 mod objects_data_find_goody_at;
 #[path = "objects_data_find_goody_at_tile.rs"]
 mod objects_data_find_goody_at_tile;
 #[path = "objects_data_find_town.rs"]
 mod objects_data_find_town;
+#[path = "objects_data_find_town_at.rs"]
+mod objects_data_find_town_at;
 #[path = "objects_data_find_village.rs"]
 mod objects_data_find_village;
 #[path = "objects_data_make_tree_mask.rs"]

@@ -7520,6 +7520,56 @@ fn a_german_fire_raft_line_costs_a_quarter_less_and_trains_faster() {
     assert_eq!(faster(&sim, plane), 1, "an aircraft");
 }
 
+/// **A Roman leader's Legion line costs a tenth less and trains a tenth
+/// faster** (item 3137, `docs/NATIONS.md` §7): `get_cost:306`–`311` takes
+/// `ROMAN_LEGION_CHEAP` off a unit that `is(0x84, 0)`, by lineage, and
+/// `train_time@006508c0:208`–`213` divides by `ROMAN_LEGION_FAST + 100`.
+#[test]
+fn a_roman_legion_line_costs_a_tenth_less_and_trains_faster() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x84 {
+        tree.add(TypeDef::good("filler"));
+    }
+    let legion_t = tree.add(TypeDef::unit("Legion", Traits::default()));
+    assert_eq!(legion_t, 0x84);
+    let heavy_t = tree.add(TypeDef::unit("Heavy Legion", Traits::default()).from(legion_t));
+    let other_t = tree.add(TypeDef::unit("Hoplite", Traits::default()));
+    sim.set_tech_tree(tree);
+    for t in [legion_t, heavy_t, other_t] {
+        sim.tech[1].tech[t] = true;
+    }
+    let ty = |sim: &mut Sim, t| {
+        sim.add_unit_type(UnitType {
+            price: cost::Price::free().with_base(economy::Resource::Wealth, 4),
+            tree: Some(t),
+            ..UnitType::default()
+        })
+    };
+    let legion = ty(&mut sim, legion_t);
+    let heavy = ty(&mut sim, heavy_t);
+    let other = ty(&mut sim, other_t);
+    let wealth = economy::Resource::Wealth.index();
+    sim.holdings[1].available[wealth] = true;
+    let w = 4 * sim.tuning.unit_cost_factor;
+    let faster = |s: &Sim, ty| {
+        s.train_tail(1, ty)
+            .iter()
+            .filter(|a| matches!(a, production::Adjust::Faster(10)))
+            .count()
+    };
+    assert_eq!(sim.price_of(1, legion)[wealth], w, "not a Roman");
+    assert_eq!(faster(&sim, legion), 0, "not a Roman");
+    sim.nation[1].romans = true;
+    assert_eq!(sim.price_of(1, legion)[wealth], w * 90 / 100);
+    assert_eq!(sim.price_of(1, heavy)[wealth], w * 90 / 100, "by lineage");
+    assert_eq!(sim.price_of(1, other)[wealth], w, "not the line");
+    assert_eq!(faster(&sim, legion), 1);
+    assert_eq!(faster(&sim, heavy), 1, "by lineage");
+    assert_eq!(faster(&sim, other), 0, "not the line");
+}
+
 /// **`path_recursion` survives a recycled object slot** (item 1458,
 /// `docs/GROUPS.md` §37.2): `Unit::init` never writes `UnitData +0xaf`,
 /// so a unit born into a dead unit's object number keeps its count. A
