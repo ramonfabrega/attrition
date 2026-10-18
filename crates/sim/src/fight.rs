@@ -4077,7 +4077,7 @@ impl Sim {
                         dist += (targeted + 8) * 0x30;
                         let value = self.compare_target(attacker, o, in_range, ai);
                         let mut score = value / (dist / 0xc0 + 1);
-                        if cfg!(test) && std::env::var("RON_DEBUG_TGT").is_ok() && self.frame >= 622 && self.frame <= 625 {
+                        if std::env::var("RON_DEBUG_TGT").is_ok() && self.frame >= 622 && self.frame <= 625 {
                             eprintln!("TGT f{} {:?} -> {:?} dist {} targeted {} value {} score {} ai {}", self.frame, attacker, o, dist, targeted, value, score, ai);
                         }
                         // **The `flags` preferences** (`00649766`–
