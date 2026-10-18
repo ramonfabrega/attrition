@@ -2680,7 +2680,9 @@ mod tests {
         let find = |power: usize, first: tech::TypeId| {
             rules
                 .iter()
-                .find(|r| r.gate == tech::Gate::Power(power) && r.candidates.first() == Some(&first))
+                .find(|r| {
+                    r.gate == tech::Gate::Power(power) && r.candidates.first() == Some(&first)
+                })
                 .unwrap_or_else(|| panic!("no rule for power {power}"))
         };
         let tech_at = |x: i32| loaded.tech_tree[(x - BASE_TECHTYPES) as usize];
