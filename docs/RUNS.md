@@ -18105,3 +18105,53 @@ three Javelineers `1/48`..`1/50` out of the Barracks `1/2016`, and who=1's rare 
 
 `docs/GOLDEN.md` §136. **What the disk could not answer**: no dump held an idle unit beside a `blocks_while_dead` wreck with nothing else in reach (run933's Barracks drew the hoplites away; the first take of this chapter repeated that and is kept at `~/ron-golden/ch101-barracks/`, not wired). Recipe `tools/gamelog/golden/chapter101.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch101/map-14/`, 1,501 frames, seed 12345. No minutes waited on another lane.
 **What it holds**: `golden::chapter_one_hundred_and_one_holds_to_the_golden_word` (1500, closed) and `chapter_one_hundred_and_one_s_window_is_widened_whole` (11 standing `form` rows); its window 1496..1500 (four blocks) is in the coverage driver's slice.
+## run943 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 10695's widening (10689..10945) at run940's detail (2026-10-18, item 3255, `att-3255`)
+
+`docs/AI.md` §257. **What the disk could not answer**: the word moved to 10695 (item 3248), and run940 ends at block
+8665. No dump of the lobby held a block past it. The window is six blocks before the word's block 10696 and 250 after
+it, at run940's detail: `--log-window 10689 10946 --end-frame 10951`, run940's recipe otherwise.
+- Pool lane 1. Launched 15:47:48 and the game exited at 16:12:53. `success`, 10952 frames, seed 12345. `rngcmp.py
+  rontrace-run897b.log rontrace-run943.log`: **10952 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run943-greatlakes-iroquois-diff3-window-10689-10946-guys4.txt`, 520,732,578 bytes,
+SHA-256 `738e3fb8bf538a8e5e602ee708bbaf581d1d4ac696c6ed41061894083d996312`.
+
+Archive `rontrace-run943.log`, 57,011,552 bytes,
+SHA-256 `acde327950861f9a883255fbbc66540a7ab06438b9edbebacf86a56cad1ad220`.
+
+**What it holds**: `diff::iroquois_word::run943_s_word_frame_is_widened_whole` (257 blocks). The Scout `0/0` struck on
+10691 by the Archers `1/32`'s arrow of 10674. With pieces 1529, 1441 and 1545's release rows the window has 456 keys,
+and the state first parts on 10843. The window is in the coverage driver.
+
+## run943b — the same game, the missile rounds of 10660..10761 at `AMMO=5` (2026-10-18, item 3255, `att-3255`)
+
+`docs/AI.md` §257. **What the disk could not answer**: no `AMMO` dump on disk prints piece 1529, 1441 or 1545 (every
+`AMMO=5` run in this file scanned). `--log-window 10660 10761 --end-frame 10765 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=2,AMMO=5`, run943's recipe otherwise. `success`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run943b-greatlakes-iroquois-diff3-window-10660-10761-ammo5.txt`, 59,536,291 bytes,
+SHA-256 `91915475638ecb7af5338b41e84767a221d3a9393d673891c10fbcac8fac3323`.
+
+Archive `rontrace-run943b.log`, 55,690,624 bytes,
+SHA-256 `dcd98ef938078a08119c92decee87ad69ceebb455918da8937821cdad6fd2733`.
+
+**What it holds**: every round loosed in the window with its shooter's `GUY` record — the Archers `1/32` and `1/33`,
+the Javelineers `1/27` (10727) and the Horse Archers `1/51` (10687, 10739, `turret_angles[0]` 291307520). Read by
+`launch::tests::run943b_s_javelin_leaves_the_throwing_hand` and
+`pivot::tests::run943b_s_horse_archer_looses_through_its_pivot`.
+
+## run943c — the same game, a state packet on 10674 (2026-10-18, item 3255, `att-3255`)
+
+`docs/AI.md` §257. **What the disk could not answer**: no packet on disk holds the `AttachPos` rows of pieces 1529,
+1441 or 1545; the original fills them only when a game fields the type. `--log-window 10672 10677 --end-frame 10680
+--detail end:GUYS=4,AMMO=5 --tracer-def RON_STATE_FRAME=10674` and `RON_STATE_PLAN` (item 597's plan.h). 114 s,
+`success`.
+- Minutes waited on another lane: none.
+
+Kept in place: `~/ron-golden/run943c/map-14/frame-snapshot.bin`, 789,986,352 bytes. The emulator's pivot sweeps of
+piece 1545 are `~/ron-data/lab-experiments/2026-10-18-item-3255/pivot-1545-a<anim>-t<time>.txt`.
+
+**What it holds**: `launch::BAYS` for pieces 1529 and 1441, `pivot::RELEASES` and `pivot::NODES` for 1545
+(`tools/recomp/get_position.py … entries`, `sweep`, `pivot`); `launch::tests::run943c_s_arrow_leaves_the_bow_hand`.

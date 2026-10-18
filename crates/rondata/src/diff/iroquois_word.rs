@@ -134,9 +134,16 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // 15000) was not carried. With it, 10695: ours 12 draws, theirs 11,
     // index 10, ours `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, theirs
     // `Farms::inc_time+0x1ae`; past run940's last block (8665), its
-    // widening owed.
-    count: 10695,
-    sequence: 10695,
+    // widening owed. **Item 3255 widened it on run943 and moved it 10695
+    // → 10852** (`docs/AI.md` §257): the Scout `0/0` was struck a frame
+    // late (10692 against 10691) by the Archers `1/32`'s arrow, which
+    // ours loosed from the figure's own square; with the bays of pieces
+    // 1529 and 1441 and the Horse Archers' (1545) pivot releases, 10852:
+    // ours 25 draws, theirs 30, index 3, ours `Unit::close+0xcb6`, theirs
+    // `605fe5`; run943's state first parts on 10843 (`1/32`'s
+    // `dest_angle`, ours −786038784 against theirs −792788992).
+    count: 10852,
+    sequence: 10852,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -1044,8 +1051,11 @@ fn run943_s_word_frame_is_widened_whole() {
     // 50, its `FLEE_TO` to (1992, 32280) on the block) and on 10692 in
     // ours — the Archers `1/32`'s arrow, fired on 10674 on both sides,
     // flies 19 frames in ours and 18 in theirs, and every row after is
-    // that frame's lag (`docs/AI.md` §257).
-    pin_eq!(w.firsts.len(), 2032, "initial run943 baseline");
+    // that frame's lag (`docs/AI.md` §257). **With the release rows, 456
+    // keys**: the 47 standing, and the state first parts on 10843 (`1/32`'s
+    // `dest_angle`), the word's own block 10853 after it. (The widening's
+    // block; the word's delta is in `IROQUOIS`'s comment.)
+    pin_eq!(w.firsts.len(), 456, "run943 with pieces 1529, 1441 and 1545");
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at
