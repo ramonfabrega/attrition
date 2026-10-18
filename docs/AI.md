@@ -22964,7 +22964,7 @@ The 51 are the standing set on 7976 (the `SITE` regs, the forms, pools 64 and 67
 `1/23`'s second figure, the newborn figures' `g.angle[0]` on `1/35`..`1/44`), pools 65 (7994) and 66 (8031), and
 `SITE[2].reg` on 8176. **The word moved 7982 → 8415**: ours 8 draws, theirs 14, index 3, ours
 `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`, a figure's init on theirs' side (the hypothesis the next item tests). It is past
-run937's last block, so its widening is owed (parked 3243). No other lobby's first parting and no other pin moved.
+run937's last block, so its widening is owed (parked 3247). No other lobby's first parting and no other pin moved.
 
 **The standing rows the booking named** stand on run937's first block, as on run934's: `1/22`'s `blown` (1 against 0),
 `1/23`'s second figure (`g.x[1]` 40682 against 40512, `g.end_time[1]` 60 against 3, `g.gpiece` 11/14091 against
