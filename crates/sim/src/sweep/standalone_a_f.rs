@@ -72,6 +72,8 @@ mod army_charge;
 mod army_count;
 #[path = "army_data_select.rs"]
 mod army_data_select;
+#[path = "army_is_engaged.rs"]
+mod army_is_engaged;
 #[path = "army_member.rs"]
 mod army_member;
 #[path = "army_member_by_unit.rs"]
