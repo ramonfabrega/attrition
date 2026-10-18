@@ -435,6 +435,41 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 164,
         },
     ),
+    // **The Native American Javelineers' piece 1441** (item 3255,
+    // `docs/AI.md` §257): the same packet's three attack `AttachPos` rows,
+    // swept and reproduced at all 361 headings, x and y. who=1's
+    // Javelineers `1/27` threw on 10726 from (4820, 31215) in run943b
+    // where this crate threw from the figure's own (4872, 31272).
+    (
+        1441,
+        11,
+        12,
+        Bay {
+            right: 42732,
+            fwd: 64492,
+            dz: 167,
+        },
+    ),
+    (
+        1441,
+        12,
+        6,
+        Bay {
+            right: -241,
+            fwd: 56838,
+            dz: 174,
+        },
+    ),
+    (
+        1441,
+        13,
+        27,
+        Bay {
+            right: 20479,
+            fwd: 35674,
+            dz: 162,
+        },
+    ),
     // King's Yeomanry: run586 get_position sweep, checked against
     // run587's actual arrows (COMBAT §87, item 1436).
     (
@@ -1542,6 +1577,29 @@ mod tests {
         for (anim, time) in [(11, 12), (12, 9), (13, 15)] {
             assert!(
                 bay(1529, anim, time, 0).is_some(),
+                "every attack AttachPos row"
+            );
+        }
+    }
+
+    /// run943b's javelin from who=1's Javelineers `1/27` (item 3255),
+    /// independent of the packet sweep: the figure at (4872, 31272),
+    /// angle −895811584, `ATTACK1` at frame 12; the dump's `AMMO` leaves
+    /// from (4820, 31215) on block 10727, `total_time` 18.
+    #[test]
+    fn run943b_s_javelin_leaves_the_throwing_hand() {
+        let at = launch_point(
+            Pos::new(4872, 31272),
+            Angle(-895_811_584),
+            1441,
+            crate::anim::ATTACK1,
+            12,
+            0,
+        );
+        assert_eq!((at.x, at.y), (4820, 31215));
+        for (anim, time) in [(11, 12), (12, 6), (13, 27)] {
+            assert!(
+                bay(1441, anim, time, 0).is_some(),
                 "every attack AttachPos row"
             );
         }
