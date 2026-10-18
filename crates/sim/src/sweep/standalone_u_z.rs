@@ -62,6 +62,8 @@ mod unit_add_spec_anim_order;
 mod unit_add_trade_order;
 #[path = "unit_air_alt_speed.rs"]
 mod unit_air_alt_speed;
+#[path = "unit_bank_aircraft.rs"]
+mod unit_bank_aircraft;
 #[path = "unit_build_done.rs"]
 mod unit_build_done;
 #[path = "unit_cavarch_fight.rs"]
