@@ -7887,13 +7887,9 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JN — reserved
+## Parked by item 3263, 2026-10-18 — chapter 102, stance-0 hoplites beside a wreck
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **A shooter that takes damage beside the wreck (`alarm`), and a building shooter's near-face gate (3252)**: chapter 102 shows stance-0 hoplites take no order from a Tank wreck (GOLDEN §137); the two remaining arms of the wreck on the chain (3235) are an armed unit struck beside it and a Tower/Fort shooter. Names no score until a frame shows it.
 
 ## Parked by the next landing, slot JO — reserved
 
