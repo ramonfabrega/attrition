@@ -1551,9 +1551,10 @@ fn the_president_near_a_site_shortens_its_clock_by_a_quarter() {
 /// roll % 25` is least. run943's who=1 took metal 44 → 59 on 10852 over
 /// four draws.
 ///
-/// Made to fail with the call dropped, with the owner test dropped (the
-/// victim's own Despot pays), with the radius test dropped, and with
-/// knowledge not skipped (its empty bucket wins).
+/// Made to fail with the call dropped, with the Despot's owner test
+/// dropped (the victim's own Despot pays), with the killer-and-victim
+/// test dropped (a kill of one's own pays), and with knowledge not skipped
+/// (its empty bucket wins).
 #[test]
 fn the_despot_beside_a_kill_plunders_the_least_stocked_good() {
     let mut sim = world_sim();
@@ -1612,6 +1613,15 @@ fn the_despot_beside_a_kill_plunders_the_least_stocked_good() {
         "metal, the least stocked of the four drawn; THEDESPOT_UNIT_PLUNDER 15"
     );
     assert_eq!(sim.tuning.thedespot_unit_plunder, 15);
+    // Its own side's kill, beside its own Despot: the leaders are one.
+    let mate = sim.init_unit(0, foot, tile_pos(40, 39));
+    let before = (sim.ledgers[0].bucket, sim.rng);
+    sim.unit_plunder(victim, mate);
+    assert_eq!(
+        (sim.ledgers[0].bucket, sim.rng),
+        before,
+        "no plunder of one's own"
+    );
 }
 
 /// **An Iroquois leader's first Senate is free and instant** (item 3231,
