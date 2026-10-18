@@ -3742,6 +3742,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
+(3256) **The rare masks are on the coverage's unread list** (3248's "for the Loop", its parked 3254 (b), filed at its
+merge): `bits`/`bit_values` and `rares_collected` are printed by the leaders' dump and parsed by nothing, so a rare
+one side gains alone parts no key; run940's Cotton (block 8416, mask `080000` → `081000`) was read off the dump by
+hand, with the compared `resources`/`income` standing in. Candidate: a reader for the mask and the count, its key
+leaving `coverage.rs`'s unread pin in the same landing, made to fail first on run940's 8416 with ours' Cotton
+withheld. One reach.
+
 (3249) **`sweep_gen.py`'s `--stub-write` writes only a fixed value** (3238's parked (d), (e) and (g), named in its
 done line and filed at its merge): `Army::do_marching` needed two sweep modules, one per answer, because a stub's
 written value cannot be drawn, and `Build::find_gather_tiles`' final list is always six tiles for the same reason; a
@@ -7823,7 +7830,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3248, 2026-10-18 — the Iroquois word 10695's widening
 
-- (3253) **The Iroquois word 10695's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §256). Item 3248 moved the
+- (booked as item 3255) (3254) **The Iroquois word 10695's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §256). Item 3248 moved the
   word 8415 → 10695 with `train_time`'s Cotton arm: ours 12 draws against theirs 11 at index 10, ours
   `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`. That is past run940's last block
   (8665), and no dump of this lobby holds 8665..12658. Owed: the capture over 10689..10945 at run940's detail
