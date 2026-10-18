@@ -1908,6 +1908,7 @@ impl Sim {
     /// building's chain **now**, before it has moved, if the type is a
     /// gatherer; the non-flat fields are set for wood and ore.
     pub fn add_gather_order(&mut self, u: usize, b: usize, pos: QueuePos, action: bool) {
+        self.probe_3140("gather", u);
         if pos == QueuePos::New {
             self.units[u].path.clear();
             self.close_orders(u);
