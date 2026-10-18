@@ -17846,6 +17846,23 @@ the word moved 1120 → 1496. Both windows are in the coverage driver's slice.
 (chapter 94's with `--end-frame 850 --log-window 845 850`), `~/ron-golden/ch94w/map-14/`, pool lane 1, 164 s; its `rontrace.log` holds the `calc_cost` records. The packet (run916b,
 `~/ron-golden/ch94p/map-14/`, `--tracer-def RON_STATE_FRAME=846`) is `frame-snapshot.bin`, 836,926,300 bytes, logger frame 846. No minutes waited on another lane.
 
+## run922 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 1772's widening (1620..2022) (2026-10-18, item 3156, `att-3156`)
+
+`docs/AI.md` §249. **What the disk could not answer**: run921 ends at block 1626 and run897b is `cover=0`, so no dump of
+the lobby held a block between 1626 and 12658. The window starts six blocks before run921's last (Loop 3155) and runs
+250 past the word's block 1773. run921's recipe, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run922`: `--map 14 --end-frame 2028 --timeout 7200 --log-window 1620 2023 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 18 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1, 02:48:38–03:08:13 (1175 s), `success`, `settings_restored`, 2029 frames, `map_style 14`, seed 12345,
+  players `(0,4,7),(1,18,1)`; 404 `BEGIN FRAME`s (1620..2022 and the closing 2029). `rngcmp.py rontrace-run897b.log
+  rontrace-run922.log`: **2029 identical, 0 differing**. Filed `filerun.py run922 greatlakes-iroquois-diff3-window-1620-2023`.
+- Minutes waited on another lane: none (the lane was `free` at launch).
+
+Archive `gamelog-run922-greatlakes-iroquois-diff3-window-1620-2023.txt`, 646,822,511 bytes,
+SHA-256 `0271853965b211cf007070f8f6f97d74e1d012cd4fa458a3ddb48ed74c5f7b5b`.
+
+Archive `rontrace-run922.log`, 12,962,368 bytes,
+SHA-256 `a8d43a5e114d86cd0487f0730d6bab3d2751551f9f67ca06447d1ee3682a7fde`.
 ## run921 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 1496's widening (1371..1626) (2026-10-18, item 3140, `att-3140`)
 
 `docs/AI.md` §248. **What the disk could not answer**: run918 ends at block 1370 and run897b is `cover=0`, so no dump of
