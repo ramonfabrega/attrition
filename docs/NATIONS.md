@@ -68,11 +68,11 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | none |
 | 16 | Koreans | koreans | `koreans` | 6 | scored pairs |
 | 17 | Mongols | mongols | `mongols` | 3 | none |
-| 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | none |
+| 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | none |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | none |
 | 21 | Indians | indians | `indians` | 4 | none |
-| 22 | Dutch | dutch | `dutch` | 9 | none |
+| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (map 18, tier 4) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | none |
 
 ## 3. The held-out nations, arm by arm
@@ -323,7 +323,7 @@ left out; a constant with no reader in the export is dead there too.
 | `IROQUOIS_FREE_SCOUT` | 1 | Build::activate | modelled at nations.rs | `iroquois_free_scout` |
 | `IROQUOIS_SCOUT_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `iroquois_scout_upgrades` |
 | `IROQUOIS_GOVS_EARLY` | 0 | TypeData::get_preq | modelled at tech.rs | `iroquois_govs_early` |
-| `IROQUOIS_EXTRA_HITS` | 5 | Unit::update_hits | not carried | `iroquois_extra_hits` |
+| `IROQUOIS_EXTRA_HITS` | 5 | Unit::update_hits | modelled at cast.rs (item 3107) | `iroquois_extra_hits` |
 | `IROQUOIS_QUICK_SENATE` | 1 | BuildData::construct_time, TypeData::get_cost | modelled at build.rs | `iroquois_quick_senate` |
 | `IROQUOIS_SPEAR_SPEED` | [1, ...] | UnitData::speed | not carried | `iroquois_spear_speed` |
 | `LAKOTA_FOOD` | 4 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | modelled at economy.rs | `lakota_food` |

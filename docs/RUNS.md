@@ -17769,3 +17769,40 @@ SHA-256 `21507a6ee575ac4b05997f596bffce76e584d2e46219175c182abef5fdd81106`.
 `docs/GOLDEN.md` §118. **What the disk could not answer**: no dump held a Sabotage cast on an armed unit. Recipe `tools/gamelog/golden/chapter94.cmd` (`--map 14 --end-frame 1200
 --log-window 605 1200`, chapter 93's `end:`/`start:` sets). Pool lane 1, 266 s, kept in `~/ron-golden/ch94/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane.
 **What it holds**: Artillery `1/6`, `1/7` dead by the Commandos' casts (794, 824); ours agrees through 1178, and the who=1 Scout `1/0`'s explore path parts from 847.
+
+## run915 — the held-out battery's ninth lobby: East Indies, the Dutch at difficulty 4, the `DUMP_ALL` start (2026-10-17, item 3107, `att-3107`)
+
+`docs/AI.md` §125, §246. Map 18, human Nubians (4) against the Dutch (22), `DIFFICULTY 4`, seed 12345. **What the disk could not
+answer**: no dump held the Dutch, and DECISIONS 72 mints a held-out lobby when one leaves the battery. run887's recipe, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run915`: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start
+--ai-tribe 22 --profile DIFFICULTY=4`. Filed with `filerun.py run915 eastindies-dutch-diff4-start`.
+- Pool lane 1: `success`, `settings_restored`, 37 frames, `map_style 18`, seed 12345, players `(0,4,7),(1,22,1)`; relaunched once
+  by the runner's stall guard at 300 s; 418 s from the relaunch to exit (launched 22:20:26, exited 22:32:33).
+- Minutes waited on another lane: none measured; the pool ran it beside run917.
+
+Archive `gamelog-run915-eastindies-dutch-diff4-start.txt`, 153,585,807 bytes,
+SHA-256 `d5d91e71959686072d79b35b7512d6b764194ae23048184c2727a54824714d2b`.
+
+Archive `rontrace-run915.log`, 10,543,872 bytes,
+SHA-256 `fc93ac2c030c0dbf389652739a7a3a108df08b2f3d32aefe356508abf7af640f`.
+
+## run917 — the held-out battery's ninth lobby: East Indies, the Dutch at difficulty 4, the long trace (2026-10-17, item 3107, `att-3107`)
+
+`docs/AI.md` §125, §246. Map 18, human Nubians (4) against the Dutch (22), `DIFFICULTY 4`, seed 12345. run888's recipe plus
+`--allow-early-end`, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run917`: `--map 18 --end-frame 24000
+--timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 22 --allow-early-end
+--profile DIFFICULTY=4` and run643's four `--detail` lines (`end:MISC`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`, `misc:CHECKSUM=2`,
+`endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`). Filed with `filerun.py run917 eastindies-dutch-diff4-24k-trace`.
+- Pool lane 2: `success`, `settings_restored`, 24001 frames, last frame 24000, **`ended_early` false**: the game does not end itself
+  by 24000. 167 s from launch to exit (22:20:43–22:23:29).
+- `rngcmp.py rontrace-run915.log rontrace-run917.log`: 37 identical, 0 differing.
+- Minutes waited on another lane: none.
+- **First try 1567 / 1567 of 24000**: ours 6 draws, theirs 5, at draw 2 ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+  `Farms::inc_time+0x1ae`. Measured, never debugged against.
+
+Archive `gamelog-run917-eastindies-dutch-diff4-24k-trace.txt`, 14,053,510 bytes,
+SHA-256 `670ab03876bdda71f720cc352da75fcce66f103e2dd718dc4c779f9387080b3e`.
+
+Archive `rontrace-run917.log`, 280,195,520 bytes,
+SHA-256 `1fa5d1ea8a8153682b6006c478c5453a4444cc91222a3d3b620bf60e61f3a9b9`.
