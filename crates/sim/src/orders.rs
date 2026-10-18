@@ -4312,9 +4312,9 @@ impl Sim {
         if matches!(self.units[u].type_index, 0x34 | 0x35) {
             return false;
         }
-        // SEAM: a **human's** arm here is `(was_builder or stance ∈
-        // {1, 2}) and find_repair_spot()`, and `find_repair_spot` is not
-        // modelled (`docs/ORDERS.md` §5.9).
+        // A **human's** arm here is `(was_builder or stance ∈ {1, 2}) and
+        // find_repair_spot()`; the function is built (item 3187) but this
+        // human call is left unwired (`docs/ORDERS.md` §5.9).
         self.units[u].was_builder = false;
         if !ai {
             return false;
@@ -7816,7 +7816,7 @@ impl Sim {
             // of adopting it (§5.2 step 6). Great Lakes' `1/1` finishes
             // building `2010` on frame 2803 and walks to `2011` on 2804;
             // this crate sent it to gather until [`Self::find_build_spot`]
-            // landed. `find_repair_spot` is still a seam, and it only ever
+            // landed. `find_repair_spot` (item 3187) only ever
             // runs when the build search comes back empty.
             if self.find_build_spot(u) || self.find_repair_spot(u) {
                 return;
@@ -8171,7 +8171,7 @@ impl Sim {
         // gate**: a repairer is put on `CHAR_REPAIR` even on the frame the
         // order dies. Same reason as `do_build`'s (`docs/ANIM.md` §4.6).
         self.set_anim(u, anim::REPAIR, false, true);
-        // §5.6: an AI repairer takes `find_repair_spot` (a seam) instead of
+        // §5.6: an AI repairer takes `find_repair_spot` instead of
         // adopting the building it has just mended — the same `unit_masks &
         // 0x40000` split as `do_build`'s two.
         let gather_after = |sim: &mut Sim| {
