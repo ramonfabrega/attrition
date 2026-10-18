@@ -317,6 +317,39 @@ pub(crate) fn find_collision_steps(
     i32::from(walk())
 }
 
+/// The second pass of `Objects::find_ordered_collision@0065b440`
+/// (`65b680`-`65b7b3`), over closures (item 3261's sweep drives it): the
+/// asker's own group — `group` is its owner and member list, `None` when the
+/// asker has none — must belong to the asker's player and list the asker; then
+/// every *other* member that `member` yields (`None` for one not alive and on
+/// the map, or with no block) is tested with the unit-cell Chebyshev
+/// predicate against its ordered spot, `<= mine + its block` on both axes.
+/// A caller with no block of its own (`mine == 0`) answers false first.
+pub(crate) fn ordered_group_steps(
+    group: Option<(crate::Player, &[usize])>,
+    u: usize,
+    owner: crate::Player,
+    mine: i32,
+    c: (i32, i32),
+    mut member: impl FnMut(usize) -> Option<(i32, (i32, i32))>,
+) -> bool {
+    let Some((who, members)) = group else {
+        return false;
+    };
+    if who != owner || !members.contains(&u) || mine == 0 {
+        return false;
+    }
+    members.iter().any(|&o| {
+        if o == u {
+            return false;
+        }
+        let Some((r, q)) = member(o) else {
+            return false;
+        };
+        (c.0 - q.0).abs() <= mine + r && (c.1 - q.1).abs() <= mine + r
+    })
+}
+
 /// The walk in `Objects::find_collision@0065b1b0` (`65b290`-`65b42d`), over
 /// closures: for each of the nine world cells around the query, in the
 /// shipped `move_x`/`move_y` order (`(0,0)` then the ring, [`spiral`]`(1)`),
@@ -2130,26 +2163,24 @@ impl Sim {
         let Some(g) = self.group_of(u) else {
             return false;
         };
-        let members = &g.list;
-        if g.who != self.units[u].owner || !members.contains(&u) {
-            return false;
-        }
-        let mine = self.coll_size(u);
-        if mine == 0 {
-            return false;
-        }
-        let c = ucell(at);
-        members.iter().any(|&o| {
-            if o == u || !self.units[o].alive() || !self.units[o].on_map {
-                return false;
-            }
-            let r = self.coll_size(o);
-            if r == 0 {
-                return false;
-            }
-            let q = ucell(self.units[o].orders_pos);
-            (c.x - q.x).abs() <= mine + r && (c.y - q.y).abs() <= mine + r
-        })
+        ordered_group_steps(
+            Some((g.who, &g.list)),
+            u,
+            self.units[u].owner,
+            self.coll_size(u),
+            {
+                let c = ucell(at);
+                (c.x, c.y)
+            },
+            |o| {
+                if !self.units[o].alive() || !self.units[o].on_map {
+                    return None;
+                }
+                let r = self.coll_size(o);
+                let q = ucell(self.units[o].orders_pos);
+                (r != 0).then_some((r, (q.x, q.y)))
+            },
+        )
     }
 
     /// The walk both share: the nine world cells around `at`, each cell's

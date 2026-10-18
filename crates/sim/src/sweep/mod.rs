@@ -30,6 +30,7 @@ mod object_min_range;
 mod object_recharge;
 mod objects_add_ammo;
 mod objects_find_collision;
+mod objects_find_ordered_collision;
 mod objects_find_free;
 mod path_finder_calc_road_cost;
 mod spell_type_cast_unpack;
