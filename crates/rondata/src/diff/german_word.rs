@@ -456,6 +456,10 @@ fn run910_s_word_frame_is_widened_whole() {
     // and no position parts in the window.
 }
 
+/// The closing state's window: run643's closing block 13520 alone, the
+/// game's last frame 13519 writing it (item 3086).
+pub(crate) const WIDENING_GERMAN_CLOSING: (i64, i64) = (13518, 13521);
+
 /// **The lobby's closing state** (item 3086, DECISIONS 55): the draws
 /// agree to the game's last frame, 13519, and run643 — the draw stream's
 /// own capture, `cover=0` — prints the closing block 13520 whole. Walked
@@ -467,9 +471,11 @@ fn run643_german_closing_state() {
     let Some(inst) = install() else {
         return;
     };
-    let (Some(path), Some(start), Some(tr)) =
-        (dump(GERMAN.long.0), dump(GERMAN.start), trace(GERMAN.long.1))
-    else {
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(GERMAN.long.0),
+        dump(GERMAN.start),
+        trace(GERMAN.long.1),
+    ) else {
         return;
     };
     let loaded = crate::load::load(&inst).unwrap();
@@ -501,9 +507,11 @@ fn run643_german_closing_state() {
         "Closing fields: {}",
         harness::compare(&built, &fin, 8).closing_fields()
     );
-    pin_eq!(e.frame, 13519, "the closing block");
-    pin_eq!(e.compared, 0, "units compared");
+    pin_eq!(e.frame, 13520, "the closing block");
+    pin_eq!(e.compared, 90, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3086, the first walk: 90 units compared on block 13520, none
+    // apart, no building or city field-row, and no closing field parted.
 }
 
 /// run912: the gap between run893c and run910, blocks 6837..12809 at

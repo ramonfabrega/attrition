@@ -7988,7 +7988,10 @@ mod tests {
         let _foe = put(&mut sim, 1, melee, Pos::new(0x1100, 0x1000));
         sim.units[me].combat.recharging = 2;
         sim.work(me, 1);
-        assert_eq!(sim.units[me].idle, 0, "a recharging melee unit does not idle");
+        assert_eq!(
+            sim.units[me].idle, 0,
+            "a recharging melee unit does not idle"
+        );
         assert!(sim.units[me].orders.is_empty(), "and takes no order");
         sim.units[me].combat.recharging = 0;
         sim.work(me, 2);
