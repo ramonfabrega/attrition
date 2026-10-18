@@ -1,7 +1,7 @@
 # Golden record, chapter one hundred and two -- an aggressive squad searches beside a Tank wreck (item 3263, GOLDEN 137; parked 3262, 3235).
-# Chapter 101's idle hoplites (stance 1 in the dump) never searched, so the wreck on the object chain stayed unread.  Here the
-# same staging sets both hoplite squads to option 0 (aggressive) at 800, after the wreck is made: a standing search then walks
-# the chain with the wreck (a `blocks_while_dead` Tank, who=1) the only object in reach.
+# Chapter 101's hoplites were thought passive.  The dump says otherwise: the hoplites (0/10..0/15) are born stance 0, and the
+# commandos (0/6..0/9) stance 1.  `800 @stance 0 0 6 7 9` therefore set the COMMANDOS (not the hoplites) to option 0 -- kept as
+# captured; the wreck (a `blocks_while_dead` Tank, who=1) stays the only enemy object in reach of six stance-0 hoplites.
 #   RON_STAGE=ch76:chapter102:1500
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch102 \
 #       --map 14 --end-frame 1500 --log-window 605 1500 --timeout 5400 \

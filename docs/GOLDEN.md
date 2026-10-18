@@ -13454,12 +13454,19 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the whole 605..1500 window, both directions. Reading only: the wreck's chain readers.
 
-## 137. Reserved for the next item on the rules track
+## 137. Chapter one hundred and two — stance-0 hoplites beside a Tank wreck; closed at 1500 on the first take, no code (item 3263, run944)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3262, 3235): chapter 101's journal read its hoplites as idle-stance and so never searching. **The dump says otherwise**: the six hoplites (`0/10`..`0/15`) are born `stance 0` (the commandos `0/6`..`0/9` are `stance 1`), and they stay idle, `orders none`, from their birth at 791 to 1000, six tiles' reach from the who=1 Tank's wreck.
+
+**Staging** (`tools/gamelog/golden/chapter102.cmd`, 15 lines, `RON_STAGE=ch76:chapter102:1500`): chapter 101's recipe plus `800 @stance 0 0 6 7 9`. **That line set the Commandos** (the ids were guessed before the dump was read), not the hoplites; the dump shows `stance 0` on `0/6`.. at 1000 and no change in what any unit does. Kept as captured; the hoplites were already the aggressive arm. Run944 on lane 2 (pool), 1,501 frames, seed 12345, chapter 94's detail sets.
+
+**What the original does and this crate agrees with.** Window 605..1500 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_TWO` (604, 1501)) parts on the same eleven standing `form` rows as run942 and nothing else; golden word 1500, closed on the first run. No code moved.
+
+**What it teaches.** Aggressive-stance units (stance 0) with a `blocks_while_dead` wreck as the only enemy object in reach take no order: either the original's idle search tests `alive` before it takes a candidate, or it never reaches the wreck. This crate keeps the wreck off the chain and agrees; a divergence would need a shooter whose search *takes* the wreck, and none appears. The "idle stance never searched" reading of §136 is struck: stance 0 is the aggressive default.
+
+**Not established.** That the wreck stays on the original's chain across 800..1500 (nothing dumped prints the chain), and so whether the search *saw* it. `alarm` (a unit that takes damage there) and a building shooter's near-face gate (3252's park) remain unread: the next arms.
+
+**Coverage.** Diff-backed: the whole 605..1500 window, both directions. Reading only: the wreck's chain readers.
 
 ## 138. Reserved for the next item on the rules track
 
