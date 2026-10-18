@@ -199,7 +199,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     fn target_damage(&mut self) -> i32 {
                         rd32(self.obj(), 0x24)
                     }
-                    fn move_to(
+                    fn march_move_to(
                         &mut self,
                         g: i32,
                         to: Pos,

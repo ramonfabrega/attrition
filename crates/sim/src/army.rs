@@ -3421,7 +3421,7 @@ pub(crate) trait MarchToView {
     fn target_damage(&mut self) -> i32;
     /// `Group::action_move_to@0070fba0`.
     #[allow(clippy::too_many_arguments)]
-    fn move_to(
+    fn march_move_to(
         &mut self,
         g: i32,
         to: Pos,
@@ -3508,9 +3508,9 @@ pub(crate) fn march_to_target_steps<V: MarchToView>(v: &mut V) {
             let h = v.target_hits().wrapping_mul(9) / 10;
             v.target_damage() >= h
         } {
-            v.move_to(g, tp, QueuePos::New, true, angle, MoveKind::AttackTo, true);
+            v.march_move_to(g, tp, QueuePos::New, true, angle, MoveKind::AttackTo, true);
         } else if mv {
-            v.move_to(g, at, QueuePos::New, true, angle, MoveKind::AttackTo, true);
+            v.march_move_to(g, at, QueuePos::New, true, angle, MoveKind::AttackTo, true);
         } else {
             v.siege_attack_to(g, at, angle);
         }
@@ -3649,7 +3649,7 @@ impl MarchToView for MarchToSim<'_> {
             _ => 0,
         }
     }
-    fn move_to(
+    fn march_move_to(
         &mut self,
         _: i32,
         to: Pos,
