@@ -665,7 +665,10 @@ a pass books against a word, not a fix for the lobby that exposed it.
    battery leader (Aztec 0, Egyptian 7, Turk 8, Spanish 9, Russian 0xd, Dutch 0x16) reaches an
    unbuilt arm.** **Battery unmoved**: all eight lobbies at their pins, median 4770; the Turkish lobby
    parts on 6982 at `use_market+0x1ed` against `make_stuff+0x221`, a market decision, not a price.
-   Not diff-backed (no capture prices a Siege Factory unit under Sulphur).
+   **Diff-backed after all, by the keys that part**: the Persian and Lakota pairs hold Sulphur, and seven
+   widenings' parting-key counts fell — run716 149 → 146, run721 175 → 159, run754 172 → 163, run762 192 → 191,
+   run763 186 → 185, run855 and run861 122 → 120 — the siege units' queue prices now agree (re-pinned, each
+   comment carrying the delta).
 6. **The tiers' unbuilt arms** (§6): `Unit::do_gather`'s and
    `Build::process`'s AI repair arms (H12), `get_econ_mod` (no caller
    in the export, so it is dead there too). Tier 1–4 parts have not been
