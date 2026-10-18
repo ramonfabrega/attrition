@@ -18010,3 +18010,8 @@ is `1/26`'s figure, which stops on 5574 and rolls its idle on 5576. The window i
 
 `docs/GOLDEN.md` §129. **What the disk could not answer**: no dump held a unit pathing over a released `blocks_while_dead` disc (chapter 96's two late hoplites were ordered nowhere and never crossed). Recipe `tools/gamelog/golden/chapter98.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch98/map-14/`, 1,501 frames, seed 12345. No minutes waited on another lane.
 **What it holds**: `golden::chapter_ninety_eight_holds_to_the_golden_word` (1500) and `chapter_ninety_eight_s_window_is_widened_whole` (eleven `form` rows); its window 1040..1044 is in the coverage driver's slice.
+
+## run933 — chapter ninety-nine: a Tank blown up by Sabotage keeps its disc (2026-10-18, item 3228, `att-3228`)
+
+`docs/GOLDEN.md` §130. **What the disk could not answer**: no dump held a unit pathing round a `blocks_while_dead` Tank wreck after a non-combat death (Sabotage, `dtype` 3). Recipe `tools/gamelog/golden/chapter99.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch99/map-14/`, 1,501 frames, seed 12345. No minutes waited on another lane.
+**What it holds**: `golden::chapter_ninety_nine_holds_to_the_golden_word` (845) and `chapter_ninety_nine_s_window_is_widened_whole` (52 rows to 849); its window 845..849 is in the coverage driver's slice.
