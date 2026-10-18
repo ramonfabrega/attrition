@@ -1897,7 +1897,7 @@ impl Sim {
         }
     }
 
-    /// `Wall::do_construct(amount)`: one builder's contribution this frame.
+    /// `Wall::do_construct@006434d0(amount)`: one builder's contribution this frame.
     /// Returns whether the building finished.
     pub fn do_construct(&mut self, b: usize, amount: i32) -> bool {
         if !self.buildings[b].alive {

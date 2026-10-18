@@ -94,7 +94,7 @@ says in its doc comment that only the British and Mongol arms are built,
 | Egyptians | granary available early | `LeaderData::has_preq@006db810` | modelled at tech.rs | `egyptian_granary_early` |
 | Egyptians | wonders one age early | `LeaderData::special_preq@006d7030` | modelled at tech.rs | `egyptian_wonders_early` |
 | Egyptians | one more wonder per city (placement) | `BuildTypeData::blocked_location@006375b0` | modelled at place.rs | `n.egyptians` |
-| Egyptians | the same limit enforced at construction | `Wall::do_construct@006434d0` | not modelled | `006434d0` |
+| Egyptians | the same limit enforced at construction | `Wall::do_construct@006434d0` | modelled at city.rs | `006434d0` |
 | Egyptians | farm limit per city | `LeaderData::get_farm_limit@006db270` | modelled at city.rs | `egyptian_farms_per_city_base` |
 | Egyptians | food commerce bonus | `Leader::calc_resource_caps@006ce900` | modelled at economy.rs | `egyptian_food_commerce` |
 | Egyptians | granary upgrades applied on tech gain | `Leader::gain_tech@006dcb60` | carried, unread | `egyptian_granary_upgrades` |
@@ -406,7 +406,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `BuildTypeData::calc_gather@00639e40` |  +var | carried at gather.rs | `00639e40` |
 | `Wall::update_construct_time@0063d560` | 1 6 11 22 | carried at economy.rs | `0063d560` |
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
-| `Wall::do_construct@006434d0` | 7 | not modelled | `006434d0` |
+| `Wall::do_construct@006434d0` | 7 | carried at city.rs | `006434d0` |
 | `ObjectData::get_damage@00644130` | 15 | carried at combat.rs | `00644130` |
 | `Object::disband@006455c0` | 0 19 | not modelled | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
@@ -568,9 +568,10 @@ a pass books against a word, not a fix for the lobby that exposed it.
    the marble term first (`marble_wonder_cost`, **not carried**: no marble
    holder has been priced) and then this one; the Korean tower term follows.
    Not diff-backed; the cost test `an_egyptian_wonder_costs_a_quarter_less`
-   carries it. Lobby `GreatSaharaEgyptianTier4`: see the journal. Still
-   open: `Wall::do_construct@006434d0`'s second enforcement of the
-   two-wonders limit (placement is built).
+   carries it. Lobby `GreatSaharaEgyptianTier4`: see the journal.
+   `Wall::do_construct@006434d0`'s second enforcement of the two-wonders
+   limit was built already (`city.rs`, `<= 1 + egyptians`); item 3221 found
+   the row stale and added `a_second_wonder_site_survives_its_first_builder_only_for_the_egyptians`.
 3. ~~**Russian oil +20% (`calc_resource_bonuses@006db030`) and spy −50%
    (`get_cost:299`).**~~ **Built, item 3108.** The oil term is the
    listing's first: `has_tribe_bonus(0xd)` then `(RUSSIAN_OIL + 100) *
