@@ -30,16 +30,25 @@ fn tree_from(c: &[Vec<u8>], p: &[Vec<u8>], this: &[u8]) -> (TechTree, usize) {
         let kind = match idx {
             0..=0x31 => Kind::Good,
             0x32..=0x19d => Kind::Unit(UnitTraits::default()),
-            0x19e..=0x21e => Kind::Building { auto: false, wonder: false },
+            0x19e..=0x21e => Kind::Building {
+                auto: false,
+                wonder: false,
+            },
             0x21f => Kind::Plain,
             0x220..=0x226 => Kind::Age((idx - 0x220) as u8),
             0x227..=0x242 => {
                 let j = (idx - 0x227) / 7;
-                Kind::Epoch { line: Line::of(3 - j as i32).expect("a line"), level: ((idx - 0x227) % 7) as u8 }
+                Kind::Epoch {
+                    line: Line::of(3 - j as i32).expect("a line"),
+                    level: ((idx - 0x227) % 7) as u8,
+                }
             }
             0x243..=0x246 => Kind::Final,
             0x247..=0x26e => Kind::Plain,
-            _ => Kind::Gov { tier: ((idx - 0x26f) / 2) as u8, column: ((idx - 0x26f) % 2) as u8 },
+            _ => Kind::Gov {
+                tier: ((idx - 0x26f) / 2) as u8,
+                column: ((idx - 0x26f) % 2) as u8,
+            },
         };
         let mut def = TypeDef::new("t", kind);
         if (0x21f..=0x242).contains(&idx) {
@@ -50,10 +59,24 @@ fn tree_from(c: &[Vec<u8>], p: &[Vec<u8>], this: &[u8]) -> (TechTree, usize) {
     tree.roles.university = Some(0x1a4);
     tree.iroquois_govs_early = rd(&c[1], 0x82c);
     let t = rd(this, 4) as usize;
-    let preq = |v: i32| if v < 0 { Preq::None } else { Preq::Of(v as usize) };
-    tree.types[t].preq = [preq(rd(this, 0x30)), preq(rd(this, 0x34)), preq(rd(this, 0x38))];
+    let preq = |v: i32| {
+        if v < 0 {
+            Preq::None
+        } else {
+            Preq::Of(v as usize)
+        }
+    };
+    tree.types[t].preq = [
+        preq(rd(this, 0x30)),
+        preq(rd(this, 0x34)),
+        preq(rd(this, 0x38)),
+    ];
     let w = rd(this, 0x40);
-    tree.types[t].where_ = if (0..0x275).contains(&w) { Some(w as usize) } else { None };
+    tree.types[t].where_ = if (0..0x275).contains(&w) {
+        Some(w as usize)
+    } else {
+        None
+    };
     (tree, t)
 }
 
@@ -64,7 +87,11 @@ fn port(a: &[i32], m: &[u8], c: &[Vec<u8>], p: &[Vec<u8>]) -> i64 {
         starting_age: i32::from(c[0][0x34]),
         starting_age2: i32::from(c[0][0x35]),
         ending: i32::from(c[0][0x36]),
-        rules: if c[0][0x2a] == 8 { Rules::BarbariansAtTheGates } else { Rules::Standard },
+        rules: if c[0][0x2a] == 8 {
+            Rules::BarbariansAtTheGates
+        } else {
+            Rules::Standard
+        },
         ..Setup::STANDARD
     };
     // `param_2`: a leader index, or `-1`; `has_tribe_bonus(.., 0x12)` is the stub's answer.
@@ -90,10 +117,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
