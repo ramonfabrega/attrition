@@ -1941,6 +1941,9 @@ impl Sim {
                         .and_then(|ty| self.art.pivots.get(&self.unit_types[ty].type_index))
                         .map_or(0, |n| n.len());
                     let k = (i32::from(node) & 3) as usize;
+                    if std::env::var("RON_PROBE_HIT").is_ok() {
+                        eprintln!("PROBE rel f{} u{u} anim {} t {t} node {node} pivots {pivots} flags {} last {last} cur {cur}", self.frame, guy.anim, guy.turret.node_flags);
+                    }
                     if k < pivots && guy.turret.node_flags & (1 << k) == 0 {
                         continue;
                     }
