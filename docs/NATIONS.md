@@ -636,6 +636,14 @@ a pass books against a word, not a fix for the lobby that exposed it.
    Roman leader. **Not established**: the crate applies the Russian-spy step
    before the French discount where the listing has it after; the two nations
    are disjoint, so no leader sees the difference.
+   **Built, item 3145: the Dutch ship-upgrade discount.** `get_cost:530`–`533`,
+   inside the research arm's Military-level block (`role & 0x10000`, `0 < ahead`):
+   `has_tribe_bonus(0x16)` and `UnitTypeData +0x218 == 1` (a sea unit) take
+   `DUTCH_SHIP_DISCOUNT` (10) in a truncating step after the Military discount's clamp
+   (`cost::Research::dutch_ship`, set in `Sim::research_modifiers`). Test
+   `a_dutch_ship_upgrade_costs_a_tenth_less`. Not diff-backed. **Battery unmoved**: the Dutch lobby
+   (`EastIndiesDutchTier4`) stays at 1567 and all eight lobbies at their pins, median 2270.
+   The American twin (`+0x218 == 0`) is unbuilt (parked).
 6. **The tiers' unbuilt arms** (§6): `Unit::do_gather`'s and
    `Build::process`'s AI repair arms (H12), `get_econ_mod` (no caller
    in the export, so it is dead there too). Tier 1–4 parts have not been
