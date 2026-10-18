@@ -316,6 +316,10 @@ pub struct Tuning {
     /// Ships as **0**, which switches off the arm that would pin both
     /// market prices at a flat 100 for a Russian past the fifth age.
     pub russian_communism: i32,
+    /// Percentage added to a Russian leader's oil rate (`calc_resource_bonuses`).
+    pub russian_oil: i32,
+    /// Percentage off a Russian leader's Spy (`get_cost`).
+    pub russian_spy_cost: i32,
     pub market_min_variance: i32,
     pub market_min_trend: i32,
     pub market_trend_range: i32,
@@ -1159,6 +1163,8 @@ impl Tuning {
         super_buy: 125,
         super_sell: 50,
         russian_communism: 0,
+        russian_oil: 20,
+        russian_spy_cost: 50,
         market_min_variance: 2,
         market_min_trend: 8,
         market_trend_range: 16,
@@ -1471,7 +1477,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 399] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 401] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1728,6 +1734,8 @@ impl Tuning {
             ("SUPER_BUY", Slot::Value(T.super_buy)),
             ("SUPER_SELL", Slot::Value(T.super_sell)),
             ("RUSSIAN_COMMUNISM", Slot::Value(T.russian_communism)),
+            ("RUSSIAN_OIL", Slot::Value(T.russian_oil)),
+            ("RUSSIAN_SPY_COST", Slot::Value(T.russian_spy_cost)),
             ("MARKET_MIN_VARIANCE", Slot::Value(T.market_min_variance)),
             ("MARKET_MIN_TREND", Slot::Value(T.market_min_trend)),
             ("MARKET_TREND_RANGE", Slot::Value(T.market_trend_range)),

@@ -485,6 +485,7 @@ pub struct Holdings {
     pub romans: bool,
     pub germans: bool,
     pub egyptians: bool,
+    pub russians: bool,
     pub french: bool,
     pub inca: bool,
     /// Percentage adjustment to income from the difficulty setting.
@@ -755,7 +756,7 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
 
     out[Resource::Wealth.index()] += territory_tax(t, h);
     out[Resource::Food.index()] += mongol_nomadic_food(t, h);
-    resource_bonuses(t, h.wonders, &mut out);
+    resource_bonuses(t, h.wonders, h.russians, &mut out);
     out
 }
 
@@ -788,14 +789,17 @@ fn nation_city_gather(t: &Tuning, h: &Holdings, out: &mut [i32; RESOURCES]) {
 /// capture has reached: Great Lakes' who=1 reads food 1920 on 17087's
 /// reassembly against 1600 without it.
 ///
-/// **Seams**, stated rather than built: the Russian oil term
-/// (`has_tribe_bonus(0xd)`, first in the listing), Virtual Reality's
+/// **Seams**, stated rather than built: Virtual Reality's
 /// `GLOBAL_PROSPERITY` and the Conquer-the-World rate bonuses. No capture
 /// holds a Russian player or reaches either of the others.
-pub fn resource_bonuses(t: &Tuning, wonders: u32, out: &mut [i32; RESOURCES]) {
+pub fn resource_bonuses(t: &Tuning, wonders: u32, russians: bool, out: &mut [i32; RESOURCES]) {
     use crate::tech::wonder;
     let has = |w: usize| wonders & (1 << w) != 0;
     let pct = |v: &mut i32, p: i32| *v = (p + 100) * *v / 100;
+    // First in the listing: `has_tribe_bonus(0xd)`, the Russians' oil.
+    if russians {
+        pct(&mut out[Resource::Oil.index()], t.russian_oil);
+    }
     if has(wonder::PYRAMIDS) {
         pct(&mut out[Resource::Food.index()], t.pyramids_food);
     }
@@ -1494,10 +1498,22 @@ mod tests {
     fn the_pyramids_pay_a_fifth_more_food() {
         let t = Tuning::RON;
         let mut out = [1600, 2560, 1024, 1840, 1120, 0];
-        resource_bonuses(&t, 0, &mut out);
+        resource_bonuses(&t, 0, false, &mut out);
         assert_eq!(out, [1600, 2560, 1024, 1840, 1120, 0]);
-        resource_bonuses(&t, 1 << crate::tech::wonder::PYRAMIDS, &mut out);
+        resource_bonuses(&t, 1 << crate::tech::wonder::PYRAMIDS, false, &mut out);
         assert_eq!(out, [1920, 2560, 1024, 1840, 1120, 0]);
+    }
+
+    /// `calc_resource_bonuses@006db030`'s first term: a Russian leader's oil
+    /// rate is `(RUSSIAN_OIL + 100) * oil / 100`, before every wonder term.
+    #[test]
+    fn a_russian_leader_pays_a_fifth_more_oil() {
+        let t = Tuning::RON;
+        let mut out = [0, 0, 0, 0, 0, 1000];
+        resource_bonuses(&t, 0, false, &mut out);
+        assert_eq!(out[5], 1000);
+        resource_bonuses(&t, 0, true, &mut out);
+        assert_eq!(out[5], 1200);
     }
 
     /// run221's value diff (`docs/AI.md` §72): the British AI at commerce

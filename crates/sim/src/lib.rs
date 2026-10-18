@@ -2262,11 +2262,13 @@ impl Sim {
     pub fn price_of(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
         let stable_rares = self.stable_rare_discounts(who, ty);
         let discount = self.nation_unit_discount(who, ty);
+        let russian_spy = self.russian_spy_discount(who, ty);
         let uranium = self.uranium_discount(who, ty);
         let liberty = self.liberty_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
+                russian_spy,
                 discount,
                 stable_rares,
                 liberty,
@@ -2279,6 +2281,7 @@ impl Sim {
                 socialism: self.socialism_cost_discount(who, ty),
                 salmon: self.salmon_cost_discount(who, ty),
                 maize: self.has_rare(who, economy::MAIZE),
+                russian_spy,
                 discount,
                 stable_rares,
                 liberty,
@@ -2516,7 +2519,7 @@ impl Sim {
     /// there on 6580, and with a wealth bucket of 39 offered it at a
     /// quarter (`docs/AI.md` §242). The nations' arms are exclusive by
     /// tribe, so one answer per type is the tail's product. The Mongol,
-    /// Japanese, American, British, Nubian, Russian and Roman arms of the
+    /// Japanese, American, British, Nubian and Roman arms of the
     /// same tail are not modelled.
     pub fn nation_unit_discount(&self, who: Player, ty: usize) -> i32 {
         let french = self.nation[who as usize].french;
@@ -2534,7 +2537,7 @@ impl Sim {
         // The tail's last arm (`get_cost:336`–`343`): a Spy or a General
         // under `SPIES_GENERALS_CHEAPER`, a half in the shipped rules
         // (Great Sahara's Spy at `1/2030` is 25/25 on 1983, 50/50 before
-        // item 1583). The Russian spy arm before it is not modelled.
+        // item 1583). The Russian spy arm before it is [`Sim::russian_spy_discount`].
         if self.is_spy_or_general(ty)
             && self
                 .tech_tree
@@ -2548,6 +2551,21 @@ impl Sim {
             return self.tuning.spy_general_cost;
         }
         0
+    }
+
+    /// `get_cost:299`–`305`: a Russian leader's unit of the Spy's lineage
+    /// (`is(0x3a, 0)`, the loose test) takes `RUSSIAN_SPY_COST` off, a
+    /// step of its own before the French/German/Spy-General tail.
+    pub fn russian_spy_discount(&self, who: Player, ty: usize) -> i32 {
+        if self.nation[who as usize].russians
+            && self.unit_types[ty].tree.is_some_and(|t| {
+                self.tech_tree.types.get(0x3a).is_some() && self.tech_tree.is(t, 0x3a, false)
+            })
+        {
+            self.tuning.russian_spy_cost
+        } else {
+            0
+        }
     }
 
     /// `is(0x3a, 1) || is(0x36, 1)`: a Spy or a General, the strict test.

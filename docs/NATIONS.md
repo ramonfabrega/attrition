@@ -99,8 +99,8 @@ says in its doc comment that only the British and Mongol arms are built,
 | Egyptians | food commerce bonus | `Leader::calc_resource_caps@006ce900` | modelled at economy.rs | `egyptian_food_commerce` |
 | Egyptians | granary upgrades applied on tech gain | `Leader::gain_tech@006dcb60` | carried, unread | `egyptian_granary_upgrades` |
 | Russians | attrition doubled | `Leader::calc_attrition@006cdea0` | modelled at attrition.rs | `russian_attrition` |
-| Russians | oil +20% in the rate pass | `LeaderData::calc_resource_bonuses@006db030` | not modelled | `russian_oil` |
-| Russians | spy cost 50% less | `TypeData::get_cost@00664090` | not modelled | `russian_spy_cost` |
+| Russians | oil +20% in the rate pass | `LeaderData::calc_resource_bonuses@006db030` | modelled at economy.rs | `russian_oil` |
+| Russians | spy cost 50% less | `TypeData::get_cost@00664090` | modelled at lib.rs | `russian_spy_cost` |
 | Russians | borders grow per age | `World::compute_reg_territory@006b0bb0` | modelled at territory.rs | `russian_borders_per_age` |
 | Russians | gems' territory bonus halved | `World::compute_reg_territory@006b0bb0` | modelled at territory.rs | `n.russian` |
 | Russians | plunder steals from the plundered | `Build::plunder@00623660` | modelled at city.rs | `russian_plunder_steal` |
@@ -270,11 +270,11 @@ left out; a constant with no reader in the export is dead there too.
 | `GERMAN_CITY_GATHER` | 5 | BuildTypeOut::set_parse_data, LeaderData::calc_city_resources, Scene::set_help_type | modelled at economy.rs | `german_city_gather` |
 | `RUSSIAN_ATTRITION` | 100 | Leader::calc_attrition | modelled at attrition.rs | `russian_attrition` |
 | `RUSSIAN_ATTRITION_UPGRADES` | 1 | Leader::gain_tech | carried, unread | `russian_attrition_upgrades` |
-| `RUSSIAN_OIL` | 20 | LeaderData::calc_resource_bonuses | not carried | `russian_oil` |
+| `RUSSIAN_OIL` | 20 | LeaderData::calc_resource_bonuses | modelled at economy.rs | `russian_oil` |
 | `RUSSIAN_BORDERS` | 0 | World::compute_reg_territory | modelled at territory.rs | `russian_borders` |
 | `RUSSIAN_BORDERS_PER_AGE` | 1 | World::compute_reg_territory | modelled at territory.rs | `russian_borders_per_age` |
 | `RUSSIAN_COMMUNISM` | 0 | LeaderData::calc_market_prices | carried, unread | `russian_communism` |
-| `RUSSIAN_SPY_COST` | 50 | TypeData::get_cost | not carried | `russian_spy_cost` |
+| `RUSSIAN_SPY_COST` | 50 | TypeData::get_cost | modelled at lib.rs | `russian_spy_cost` |
 | `RUSSIAN_COSSACK_DAMAGE` | 25 | ObjectData::get_damage | modelled at combat.rs | `russian_cossack_damage` |
 | `RUSSIAN_PLUNDER_STEAL` | 1 | Build::plunder, Cities::capture_city | modelled at city.rs | `russian_plunder_steal` |
 | `RUSSIAN_FREE_CIVIC` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `russian_free_civic` |
@@ -571,11 +571,17 @@ a pass books against a word, not a fix for the lobby that exposed it.
    carries it. Lobby `GreatSaharaEgyptianTier4`: see the journal. Still
    open: `Wall::do_construct@006434d0`'s second enforcement of the
    two-wonders limit (placement is built).
-3. **Russian oil +20% (`calc_resource_bonuses@006db030`) and spy −50%
-   (`get_cost:299`).** Both uncarried; the oil term is a named SEAM in
-   `economy.rs` (`resource_bonuses`). Lobby `GreatLakesRussianTier2`
-   (6563 of 7303) reaches oil late; the spy price is paid when the AI buys
-   a spy. Also `calc_market_prices`' communism arm, gated by
+3. ~~**Russian oil +20% (`calc_resource_bonuses@006db030`) and spy −50%
+   (`get_cost:299`).**~~ **Built, item 3108.** The oil term is the
+   listing's first: `has_tribe_bonus(0xd)` then `(RUSSIAN_OIL + 100) *
+   oil / 100`, before the Pyramids (`economy.rs` `resource_bonuses`, now
+   taking a `russians` flag from `Holdings`). The spy term is
+   `cost::Modifiers::russian_spy`, its own truncating step ahead of the
+   Spy/General arm (`Sim::russian_spy_discount`, loose `is(0x3a, 0)`, set
+   on the train and research arms alike: the block `get_cost:224`–`425`
+   precedes the research fork). Not diff-backed; the tests
+   `a_russian_leader_pays_a_fifth_more_oil` and `a_russian_spy_costs_half`
+   carry them. Still open: `calc_market_prices`' communism arm, gated by
    `RUSSIAN_COMMUNISM` = 0 (inert as shipped).
 4. **`Leader::gain_tech@006dcb60`'s nation arms** — the `*_UPGRADES`
    fields (Roman fort, Egyptian granary, Turkish siege, Spanish scout,
