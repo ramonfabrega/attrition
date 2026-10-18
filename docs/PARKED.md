@@ -7342,13 +7342,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HL — reserved
+## Parked by item 3104, 2026-10-17 — three can_carry overloads swept, Census 1446 → 1448
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3104) **Swept: `ObjectData::can_carry@00645e00` (TypeIndex) and `@006483c0` (index, player), plus `@00646c40` (DomainIndex).**
+`@00646c40` was already counted backed at the base (a sibling sweep names it), so it moved nothing: the census is 1446 → 1448 for the other two.
+Both use the is-slot compare by `--slotbase 0xb8:0x653790` and a second `--slotbase 0xc:0x4707e0` (two slotbases on one line work).
+`@006483c0`: the objects table is `0xc0ab84+0x1c*p`, **not** `0xc0618c` (that cell is another global; a fetch of address 0 through a
+zeroed page is the symptom); `home_base`'s `&param_1` is `--outarg 3:0:0,1`, its token `sp-0x8`; the row prints the
+singles, then the `--outarg` values, then each `--seq` run, then the slotbase flag — the order counts. 12 of 12 breaks held on each of the
+last two (after drawing `p3+0x218` past 2 for `@00645e00`), 8 of 8 on the first.
+
+(3104, second) **Not built, read**: `ObjectData::num_aircraft_here@00645330` aliases its `local_8` as both the running count and the
+out-pointer `home_base` writes through (`&local_8`), so the port must carry one cell for both; `ObjectsData::find_dock@0065cfd0`
+needs `vector_dist`'s register convention as a callee and `Search::valid_search`/`valid_filter`; `ObjectTypeData::get_wonder_value@00661ba0`
+needs the gamec semaphore offset and `Error::report`'s arm walled off by bias. The two generator flags (`vector_dist` callee convention,
+`--ptrring`) are untouched.
+
+(3104, third) **`--regen` drops a hand edit outside the port**: the `if log.is_empty() { log.push("-") }` a sweep with a recorded stub and
+rows that call nothing needs sits above the eax assert, and a `--regen` removes it silently (three times in this item). The generator should
+emit it when `--record` is on.
 
 ## Parked by the next landing, slot HM — reserved
 
