@@ -2676,6 +2676,7 @@ impl Sim {
             }
         }
         let mut discount = 0;
+        let mut dutch_ship = 0;
         if self.role_word_of_rec(ty) & ai_load::role::MILITARY != 0 {
             let ahead = self.tech[w].epoch[tech::Line::Military.index()]
                 - self.tech_tree.military_level_in(&self.setup, t);
@@ -2685,9 +2686,15 @@ impl Sim {
                 if span < 8 {
                     discount = (span * discount + 7) / 8;
                 }
+                if self.nation[w].dutch
+                    && self.unit_types[ty].combat.domain == attrition::Domain::Sea
+                {
+                    dutch_ship = self.tuning.dutch_ship_discount;
+                }
             }
         }
         Some(cost::Research {
+            dutch_ship,
             wine: if self.has_rare(who, economy::WINE) {
                 self.tuning.wine_unit_upgrades
             } else {

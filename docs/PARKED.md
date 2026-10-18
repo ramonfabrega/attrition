@@ -7453,13 +7453,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IC — reserved
+## Parked by item 3145, 2026-10-18 — the Dutch ship-upgrade discount, and its twin
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3159) The American upgrade discount (`get_cost:524`–`527`, `AMERICANS_UPGRADE_DISCOUNT`, `has_tribe_bonus(0x14)`
+and `+0x218 == 0`, a land unit) sits beside the Dutch one in the same research-arm block and is still
+unbuilt: `city::Nation` carries no `americans` flag and no battery lobby holds an American leader. Names
+no score; the next American lobby's term. The remaining uncarried arms (Mongol stable, Japanese
+barracks and ships, American aircraft, British AA, Nubian merchants, French `train_time`) stand as
+parked 3144 listed them; none belongs to a battery lobby's leader.
 
 ## Parked by the next landing, slot ID — reserved
 

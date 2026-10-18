@@ -19,10 +19,10 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   widening owed as 3156 (run 922, from run921's last dumped block 1626); `EastIndiesGermanTier3` closed at 13519
   (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–94 closed; 95 at 634 (3126, 3142), as 3152. Census
   1459, **port 293 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
-  median 2270 (`GreatLakesChineseTier1` 12712; 3096, 3108, 3124, 3137 moved none).
-- **Lanes: none live** — the forty-first drained at twenty and the pass cleared `commander` here; unspawned: 3156
-  the AI word's (run 922, AI §249), 3152 the rules track's (GOLDEN §123), 3150 shape, 3145 nations. Next 3159, run
-  923 (Astra 900–909; 919 unused). Pools: GOLDEN §124–128, AI §250–255, park HZ, IA–ID. Last whole gate: the pass's.
+  median 2270 (`GreatLakesChineseTier1` 12712; 3096, 3108, 3124, 3137, 3145 moved none).
+- **Lanes: four live, landings 1 of 20** (3145 the Dutch ship discount, battery unmoved): 3156 the AI word's (run
+  922, AI §249, park HZ), 3152 the rules track's (GOLDEN §123, IA), 3150 shape (IB), 3160 nations (ID). Next 3161,
+  run 923 (3152's if needed). Pools: GOLDEN §124–128, AI §250–255, park HJ, HN, HP. Last whole gate: the pass's.
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
 - **Fable backlog: 13 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158).
 
@@ -46,7 +46,7 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3156 the AI word's (Opus); 3152, 3150 and 3145 (Sonnet); all four unspawned at the drain, four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
+3156 the AI word's (Opus); 3152, 3150 and 3160 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1772. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3156. **The battery word, 1772 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 3 draws against theirs 4**
@@ -68,13 +68,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `Armies::find_army` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each built, or
     parked naming the generator flag it could not spell. Unstarted, unspawned (the drain). `--kind sweep`.
 
-3145. **The nations' uncarried `get_cost` and `train_time` terms, the battery lobbies' nations first** (NATIONS §7.5;
+3160. **The battery lobbies' own uncarried `get_cost` and `train_time` terms: the Turkish first** (NATIONS §7.5;
     Ramon, the fortieth steer, DECISIONS 78; the score: the held-out battery's median first try, 2270 over eight,
-    `battery_measure`, `battery_floors` never lowered): 3137 built the Roman legion pair (`ROMAN_LEGION_CHEAP`,
-    `ROMAN_LEGION_FAST`) and moved no lobby, none holding a Roman leader; parked 3144 lists the rest (Mongol stable,
-    Japanese barracks and ships, American aircraft, British AA, Nubian merchants, the French `train_time` arm and
-    more). A term a battery lobby's leader reaches first; one function's family a landing; never a held-out dump
-    (DECISIONS 54). Unstarted, unspawned (the drain). NATIONS §7.
+    `battery_measure`, `battery_floors` never lowered): 3137 built the Roman legion pair and 3145 the Dutch
+    ship-upgrade discount (`DUTCH_SHIP_DISCOUNT`), neither moving a lobby; parked 3144's list holds the Wool/Turkish
+    citizens arm, the one term a battery lobby's leader (`GreatLakesTurkishTier4`) reaches; then the Aztec, Spanish,
+    Egyptian and Russian arms of both functions audited against what `cost.rs` and `lib.rs` carry. The American
+    twin is parked (3159). One function's family a landing; never a held-out dump (DECISIONS 54). NATIONS §7.
 
 ## How to maintain this file
 
