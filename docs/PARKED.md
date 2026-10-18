@@ -3738,6 +3738,11 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3077) **A `sweep_gen.py` run during a `mutate.py --batch` dirties the tree under it** (3058's "for the Loop" line, parked
+3076, filed at its merge): every later break is refused ("the tree is dirty; commit first"), twice in one batch. Candidate:
+`sweep_gen.py` refuses while a batch holds the tree, or the batch works in a worktree copy, a test made to fail first. One
+reach.
+
 (3063) **`waitrun.sh` missed the click-free lane's receipt** (the commander, at a `STALLED att-3018` exit, 2026-10-17):
 run913's capture on pool lane 2 exited at 17:03:50 with its receipt JSON (`"success": true`, `"exit_code": 0`) as the
 viadriver log's last line, and the lane's `waitrun.sh` on that log was still waiting at 18:25 — 81 minutes, until
@@ -7192,25 +7197,25 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3058, 2026-10-17 — the shape batch: `update_armor` and 3030's tails, Census 1407 → 1412 on its own tree
 
-(unnumbered, the commander numbers them) **Equivalent breaks, said plainly.** `Unit::update_armor`: three of 17 pass — `>> 15` for
+(3073) **Equivalent breaks, said plainly.** `Unit::update_armor`: three of 17 pass — `>> 15` for
 `>> 14` (a valid object index never has bit 14 set; one that does reads past the table), `w[9] & 1` for `w[9]` (the bias keeps the player
 byte 0/1 so the leaders table has two rows), and `a[4] == 1 || a[4] == 2` for `a[4] != 0` (the flag is 0/1). The stub path of slot
 `+0xe8` is `--seq 1:1:1` (always a captain at once): a stub answering 0 sends the climb to table index -1 and the chain ends only on a
 high bit, so the stub path's climb is not covered (a flag that terminates a chain from the stub side, `--answer-by` with a
 captain terminator, would take it).
 
-(unnumbered) **`Tribes::find`'s `_wcsicmp` arm is built** (an `iat:0xac5640:2` stub with `--stub-cdecl 0`, offsets drawn 0/1/2, 800 rows);
+(3074) **`Tribes::find`'s `_wcsicmp` arm is built** (an `iat:0xac5640:2` stub with `--stub-cdecl 0`, offsets drawn 0/1/2, 800 rows);
 the import's leftover `ecx` is the last offset loaded (the record's when its flag bit 0 is clear, else the string's, else the length) —
 the `--record` prefix of a cdecl stub is that `ecx`, not a call count.
 
-(unnumbered) **`Build::swap_team`, `SubObject::swap_team` built** (3055: the Build one is not the Wall one's sibling in text — it calls
+(3075) **`Build::swap_team`, `SubObject::swap_team` built** (3055: the Build one is not the Wall one's sibling in text — it calls
 `Wall::swap_team` — but the `--vtat-image m+0:0xb42174` vtable-or-slot compare, `--slotbase`-free, took its three `is`-slot sites with
 both `+0x60` and `+0xb8` two-argument). 24 breaks held. `AmmoData::walk_data` (3020) is built with `--outarg 0:0:...` — the walker writes
 the caller's stack local through its first argument, the same stub's other calls write `this+4`/`this+5`, and the port models all
 three; `Game::walk_data` with an `iat:0xac5460:0` cdecl `timeGetTime`, `TurnControl::end_cannon_time` with `--clean-stack 256` and a
 ten-argument stub for `MessageWin::add_message`. Their breaks: 15, 12, 10 held (one pass, an outarg draw with no high nibble, fixed).
 
-(unnumbered) **For the Loop (filed 3057 already):** `mutate.py --batch` refuses a multi-line OLD (the line splits on `\n`) — the message is
+(3076) **For the Loop (Loop 3048 and 3077):** `mutate.py --batch` refuses a multi-line OLD (the line splits on `\n`) — the message is
 clear but the batch line is lost; and a `sweep_gen.py` run while a batch is running dirties the tree under it ("the tree is dirty; commit
 first" for every later break) — a generator run should say so, or the batch should work in a worktree copy.
 
