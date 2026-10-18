@@ -144,6 +144,8 @@ mod roads_road_added;
 mod roads_road_cleared;
 #[path = "roads_scan_and_kill_straggled_tcoord.rs"]
 mod roads_scan_and_kill_straggled_tcoord;
+#[path = "roads_scan_and_kill_stray_roads.rs"]
+mod roads_scan_and_kill_stray_roads;
 #[path = "search_valid_search.rs"]
 mod search_valid_search;
 #[path = "search_walk_data.rs"]
