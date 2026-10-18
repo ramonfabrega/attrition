@@ -604,6 +604,7 @@ impl Sim {
         h.romans = self.nation[w].romans;
         h.germans = self.nation[w].germans;
         h.egyptians = self.nation[w].egyptians;
+        h.russians = self.nation[w].russians;
         h.french = self.nation[w].french;
         h.inca = self.nation[w].inca;
     }

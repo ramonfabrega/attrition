@@ -218,6 +218,10 @@ impl Counts {
 /// government layers exist to apply their own, one at a time.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Modifiers {
+    /// The Russians' Spy percentage (`get_cost:299`), its own
+    /// `(100 - x) * cost / 100` before [`Modifiers::discount`] and the
+    /// Spy/General arm that follows it in the original's tail.
+    pub russian_spy: i32,
     /// Percentage off the scaled base, before the ramp.
     pub discount: i32,
     /// Horses' and then Rubber's percentage off a Stable or Auto Plant
@@ -487,7 +491,11 @@ pub fn scholar_surcharge(count: i32) -> i32 {
 /// swapping any two of these changes the answer.
 pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modifiers) -> i32 {
     let scaled = price.base[r.index()] * price.kind.factor(t);
-    let mut cost = scaled * (100 - m.discount) / 100;
+    let mut cost = scaled;
+    if m.russian_spy != 0 {
+        cost = (100 - m.russian_spy) * cost / 100;
+    }
+    cost = cost * (100 - m.discount) / 100;
     for pct in m.stable_rares {
         cost = (100 - pct) * cost / 100;
     }
@@ -1270,6 +1278,30 @@ mod tests {
         };
         assert_eq!(price(0), 402);
         assert_eq!(price(T.egyptian_wonders), (100 - 25) * 402 / 100);
+    }
+
+    /// `get_cost:299`: a Russian Spy loses `RUSSIAN_SPY_COST` percent in its
+    /// own truncating step, ahead of the Spy/General arm's.
+    #[test]
+    fn a_russian_spy_costs_half() {
+        let spy = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Wealth, 5)
+        };
+        let price = |russian_spy: i32, discount: i32| {
+            let m = Modifiers {
+                russian_spy,
+                discount,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &spy, Resource::Wealth, owned(0), &m)
+        };
+        let plain = price(0, 0);
+        assert_eq!(price(T.russian_spy_cost, 0), (100 - 50) * plain / 100);
+        assert_eq!(
+            price(T.russian_spy_cost, 50),
+            (100 - 50) * ((100 - 50) * plain / 100) / 100
+        );
     }
 
     #[test]
