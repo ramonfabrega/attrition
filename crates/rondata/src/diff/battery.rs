@@ -122,7 +122,7 @@ pub(crate) const BATTERY: &[Lobby] = &[
         length: 24000,
         // Item 2904, the first try: ours 12 draws, theirs 14, at 6 ours
         // `Farms::inc_time+0x1ae`, theirs `Guy::init_real+0x52`. Item 3092,
-        // the Chinese citizen arm of `train_time` (NATIONS §7.1): 176 →
+        // the Chinese citizen arm of `train_time` (NATIONS §7, first candidate): 176 →
         // 5663, ours 6 draws, theirs 8, at 0 ours `Guy::set_anim+0x97a <
         // Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`.
         count: 5663,
