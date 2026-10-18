@@ -22498,7 +22498,7 @@ both — and the Scout's `pos`, `heading`, `dest_angle` and path agree on every 
 
 **What stands on both windows**: the control's set (`SITE[n].reg`, `aggression`, `form`, groups' `held`, the pool); the
 Scout's `blown` 1/0 from 38 (`unit_masks & 0x1000`: `Unit::work`'s stealth arm skips `unit_masks2 & 0x8000`, which theirs'
-Scout carries as `0xc080` and ours does not — parked 3114's cloak bit; no reader this crate has moves on it); and who=1's
+Scout carries (`unit_masks2` 49280) and ours does not — parked 3114's cloak bit; no reader this crate has moves on it); and who=1's
 food from block 38 — `income`/`resources` 640 against 672 (896 against 800 by 1114), `bucket` 4/5, `leftover` 6560/352 —
 with **`known_rares` 0 against 1** on 38: theirs knows a rare by block 38 and ours none (run897's block 37 holds no such row).
 
