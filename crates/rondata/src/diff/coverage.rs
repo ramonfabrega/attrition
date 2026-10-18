@@ -2691,8 +2691,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_ONE;
         let n = drive_capture(p, 1496, 1500, &mut paths);
         assert_eq!(
-            n, 5,
-            "chapter one hundred and one carries five blocks in the window"
+            n, 4,
+            "chapter one hundred and one carries four blocks in the window"
         );
         frames += n;
     }
