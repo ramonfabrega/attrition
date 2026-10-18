@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_object_data_can_carry_domain.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 32-byte object of random bytes (no bias), 1 stack argument(s);
-`p` windows in order: p0..p10 the place(s), in flag order; vtable slot +0x18 (0 args) stubbed; vtable slot +0xb8 (2 args) stubbed; vtable slot +0x60 (2 args) stubbed; the word at `m+0x18` points at 16 random bytes less `0` (placed); the word at `0xc0aec0+0x1c*0` points at 8 random bytes less `0` (placed); the word at `p1+0` points at 32 random bytes less `0` (placed); the word at `p1+4` points at 32 random bytes less `0` (placed); the word at `0xc0aec0+0x1c*1` points at 8 random bytes less `0` (placed); the word at `p4+0` points at 32 random bytes less `0` (placed); the word at `p4+4` points at 32 random bytes less `0` (placed); the word at `p2+0x18` points at 736 random bytes less `0` (placed); the word at `p3+0x18` points at 736 random bytes less `0` (placed); the word at `p5+0x18` points at 736 random bytes less `0` (placed); the word at `p6+0x18` points at 736 random bytes less `0` (placed); slot +0xb8 laid as 0x00653790 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 1 answers 3 values in call order, printed after the answers; stub 2 answers 3 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); the stubbed vtable laid at `p0+0` as well as at `this`.
+`p` windows in order: p0..p10 the place(s), in flag order; vtable slot +0x18 (0 args) stubbed; vtable slot +0xb8 (2 args) stubbed; vtable slot +0x60 (2 args) stubbed; the word at `m+0x18` points at 16 random bytes less `0` (placed); the word at `0xc0aec0+0x1c*0` points at 8 random bytes less `0` (placed); the word at `p1+0` points at 32 random bytes less `0` (placed); the word at `p1+4` points at 32 random bytes less `0` (placed); the word at `0xc0aec0+0x1c*1` points at 8 random bytes less `0` (placed); the word at `p4+0` points at 32 random bytes less `0` (placed); the word at `p4+4` points at 32 random bytes less `0` (placed); the word at `p2+0x18` points at 736 random bytes less `0` (placed); the word at `p3+0x18` points at 736 random bytes less `0` (placed); the word at `p5+0x18` points at 736 random bytes less `0` (placed); the word at `p6+0x18` points at 736 random bytes less `0` (placed); slot +0xb8 laid as 0x00653790 or its stub, a flag after the answers; stub 0 answered from [1, 1, 1, 0] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 1 answers 3 values in call order, printed after the answers; stub 2 answers 3 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); the stubbed vtable laid at `p0+0` as well as at `this`.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -26,7 +26,7 @@ ENTRY = 0x00646c40
 WIN = 32
 OWN = 1
 BIAS = []
-ARGSET = []
+ARGSET = [(0, [0, 0, 0, 2])]
 ARGFROM = []
 CELLS = []
 AT = []
@@ -47,7 +47,7 @@ EDXWIN = None
 XMM = []
 # `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
 WILD = 0.1
-ANSWERS = [(0, [0, 1]), (1, [0, 1]), (2, [0, 1])]
+ANSWERS = [(0, [1, 1, 1, 0]), (1, [0, 1]), (2, [0, 1])]
 VTAT = None
 VTATHALF = []
 VTIMAGE = []
@@ -304,8 +304,8 @@ def main(argv):
         for off in slots:
             uc.mem_write(va_ + off, h.r32(vt + off).to_bytes(4, "little"))
     base = h.brk
-    for i in range(220):
-        h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
+    for i in range(400):
+        h.brk = base  # the bump heap is reused a row; 400 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
         mem = bytearray(rng.randrange(256) for _ in range(WIN))
         for off, vals in BIAS:
@@ -689,4 +689,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "ObjectData::can_carry@00646c40", "--name", "object_data_can_carry_domain", "--item", "3104", "--win", "32", "--own", "1", "--argrange", "0:0:3", "--stub", "slot:0x18:0", "--stub", "slot:0xb8:2", "--stub", "slot:0x60:2", "--place", "m+0x18:0:16", "--place", "0xc0aec0+0x1c*0:0:8", "--place", "p1+0:0:32", "--place", "p1+4:0:32", "--place", "0xc0aec0+0x1c*1:0:8", "--place", "p4+0:0:32", "--place", "p4+4:0:32", "--place", "p2+0x18:0:0x2e0", "--place", "p3+0x18:0:0x2e0", "--place", "p5+0x18:0:0x2e0", "--place", "p6+0x18:0:0x2e0", "--slotbase", "0xb8:0x653790", "--vtat-also", "p0+0", "--wbias", "m+8:0x0,0x100,0x10000,0x10100", "--answers", "0:0,1", "--answers", "1:0,1", "--answers", "2:0,1", "--seq", "1:3", "--seq", "2:3", "--record", "0", "--record", "1", "--record", "2", "--record-order", "--wbias", "p7+0x2d4:0,0,5", "--wbias", "p8+0x2d4:0,0,5", "--wbias", "p9+0x2d4:0,0,5", "--wbias", "p10+0x2d4:0,0,5"]
+# sweep_gen: ["obj", "ObjectData::can_carry@00646c40", "--name", "object_data_can_carry_domain", "--item", "3104", "--win", "32", "--own", "1", "--argrange", "0:0:3", "--stub", "slot:0x18:0", "--stub", "slot:0xb8:2", "--stub", "slot:0x60:2", "--place", "m+0x18:0:16", "--place", "0xc0aec0+0x1c*0:0:8", "--place", "p1+0:0:32", "--place", "p1+4:0:32", "--place", "0xc0aec0+0x1c*1:0:8", "--place", "p4+0:0:32", "--place", "p4+4:0:32", "--place", "p2+0x18:0:0x2e0", "--place", "p3+0x18:0:0x2e0", "--place", "p5+0x18:0:0x2e0", "--place", "p6+0x18:0:0x2e0", "--slotbase", "0xb8:0x653790", "--vtat-also", "p0+0", "--wbias", "m+8:0x0,0x100,0x10000,0x10100", "--answers", "0:1,1,1,0", "--answers", "1:0,1", "--answers", "2:0,1", "--seq", "1:3", "--seq", "2:3", "--record", "0", "--record", "1", "--record", "2", "--record-order", "--wbias", "p7+0x2d4:0,0,5", "--wbias", "p8+0x2d4:0,0,5", "--wbias", "p9+0x2d4:0,0,5", "--wbias", "p10+0x2d4:0,0,5", "--argset", "0:0,0,0,2", "--rows", "400"]
