@@ -7553,13 +7553,14 @@ Two built of the six; four not attempted past reading, each with the flag it wou
 - (3199) **`Group::is_attacking_near@00710e40`, `Unit::find_garrison_build@00605040`, `ObjectsData::find_building_placed_at@00658c80` not built**: the first two read `vector_dist` with register arguments (`--stub run:0x46cff0:0` exists, 3119) and walk the 3-level units/objects table by `player*0x1c` (the cells work for player 0 only — `--argrange 1:0:0`); `find_building_placed_at` walks nine `move_x/move_y` neighbours into a linked list of `(index, class)` shorts through eight per-class object tables (`0xc0ab84 + cls*0x1c`), the class a *drawn* short: a `--place` names one cell. Flag wanted: `--table`-style eight pointer cells (`--cell-row VA:STRIDE:N:SIZE`) and a `--link` that ends on a negative short at `+0x2c/+0x2e`.
 - Breaks: `check_idle` 29 of 30 (the `& 0x8000000f` → `& 0xf` is equivalent: zero iff the low nibble is zero either way); `is_in_range@006486b0` 27 of 30 (c).
 
-## Parked by the next landing, slot IH — reserved
+## Parked by item 3186, 2026-10-18 — the army's scouts' turn
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3189) **The Iroquois word 5576 is owed its widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §251; the number
+  the commander's to confirm): ours 35 draws, theirs 37, index 30 — ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271 < Unit::inc_time+0x3e` (theirs' 30 is a sound draw on another stream, `SoundType::play+0x2d`, and
+  the game stream's 31 the first one ours does not make). run926 ends at 5394 and run897b is `cover=0`: a window of
+  5570..5826 at run918's detail, every dumped record on block 5577 both directions; `WIDENINGS`' `IROQUOIS_WORD` names
+  3189.
 
 ## Parked by item 3187, 2026-10-18 — find_repair_spot and the tiers' arms
 

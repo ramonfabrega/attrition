@@ -70,9 +70,19 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // `check_borders`. With both, Barter is paid on 1576 and 1/6's gather
     // on 1770 agrees (`docs/AI.md` §250). At 5144 ours 36 draws, theirs 37,
     // index 0: ours `Animal::think_bird+0x82`, theirs
-    // `Unit::think_spellcaster+0x413`.
-    count: 5144,
-    sequence: 5144,
+    // `Unit::think_spellcaster+0x413`. **Item 3186 moved it 5144 → 5576**
+    // with `Army::use_scouts@006f49a0` (and `use_spies`), the army's
+    // spellcaster turn this crate left a seam: on 5144 who=1's army 1
+    // holds `1/22` (TY 29 `takohs`, TI 79, land, the Scout's lineage), so
+    // `Army::process`'s `count(COUNT_NON_DECOY_TYPE, 0x45)` is non-zero and
+    // its special arm throws the coin at `+0x413`. run926 widens 5145: the
+    // coin writes nothing, so the block is quiet; without the turn the
+    // shifted stream first parts on 5156, `1/4`'s move order (41016,
+    // 17016) against (40824, 17592) (`docs/AI.md` §251). At 5576 ours 35 draws, theirs 37, index 30:
+    // ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`.
+    count: 5576,
+    sequence: 5576,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -588,4 +598,58 @@ fn run923_s_food_row_is_widened_whole() {
     // is pending (`docs/AI.md` §250). Both closed: 41 → 36, the control's
     // set, the groups' `held`, the pool, and the Scout's `blown`.
     pin_eq!(w.firsts.len(), 36, "initial run923 baseline");
+}
+
+/// run926: the word 5144's window, blocks 5138..5394 at run918's detail
+/// (item 3186) — six blocks before the word's own block 5145, 250 past it;
+/// run922 ends at 2022 and run897b is `cover=0`.
+pub(crate) const RUN926: &str = "gamelog-run926-greatlakes-iroquois-diff3-window-5138-5395.txt";
+
+/// The window: block 5138 through 5394.
+pub(crate) const WIDENING_IROQUOIS_FRAME_5144: (i64, i64) = (5138, 5394);
+
+pub(crate) fn iroquois_frame_5144_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run926",
+        &[(RUN926, WIDENING_IROQUOIS_FRAME_5144.0)],
+        WIDENING_IROQUOIS_FRAME_5144,
+        1,
+        &[5145],
+        true,
+    )
+}
+
+#[test]
+fn run926_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_5144_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3186, on base 954b4359 with `Army::use_scouts` built: 32 keys,
+    // the standing set alone — both leaders' `SITE[n].reg`, `aggression`,
+    // `form`, the groups' `held`, the pools, `1/22`'s `blown` (parked
+    // 3114). The word's block 5145 parts nothing on either side: theirs'
+    // extra draw on 5144 is `1/22`'s special coin (`Unit::think_spellcaster
+    // +0x413` under `Army::use_scouts`), which writes no state. With the
+    // scouts' turn left out (a probe, reverted whole) the window parts 425
+    // keys, the first on block 5156: `1/4`'s move order `x`/`y` 41016/17016
+    // against 40824/17592 (`off_x`/`off_y` 312/120 against 120/696) — the
+    // stream one draw behind. The word moved 5144 → 5576, past the window.
+    pin_eq!(w.firsts.len(), 32, "initial run926 baseline");
 }

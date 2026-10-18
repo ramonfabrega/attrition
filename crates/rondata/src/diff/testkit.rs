@@ -9726,12 +9726,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // → 5144** (`IROQUOIS_FOOD`, and setup's border fixes leaving frame
     // 0's rares count standing; run923 over 1..40 dated both to block 8,
     // `run923_s_food_row_is_widened_whole`), past run922's last block
-    // (2022): 5144's widening is owed, item 3186.
+    // (2022): 5144's widening was item 3186's, run926 over 5138..5394
+    // (block 5145 quiet: theirs' extra draw is `1/22`'s special coin under
+    // `Army::use_scouts`, which writes nothing; `run926_s_word_frame_is_
+    // widened_whole`). **Item 3186 moved it 5144 → 5576** (the scouts' and
+    // spies' turn), past run926's last block: 5576's widening is owed,
+    // parked 3189.
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3186,
+        3189,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
