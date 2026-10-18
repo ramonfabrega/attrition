@@ -70,9 +70,17 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // `check_borders`. With both, Barter is paid on 1576 and 1/6's gather
     // on 1770 agrees (`docs/AI.md` §250). At 5144 ours 36 draws, theirs 37,
     // index 0: ours `Animal::think_bird+0x82`, theirs
-    // `Unit::think_spellcaster+0x413`.
-    count: 5144,
-    sequence: 5144,
+    // `Unit::think_spellcaster+0x413`. **Item 3186 moved it 5144 → 5576**
+    // with `Army::use_scouts@006f49a0` (and `use_spies`), the army's
+    // spellcaster turn this crate left a seam: on 5144 who=1's army holds
+    // its Scout `1/0` (TI 69), `Army::process`'s
+    // `count(COUNT_NON_DECOY_TYPE, 0x45)` is non-zero, and the Scout's
+    // special arm throws its coin at `+0x413`; run926's widening of 5145
+    // (`docs/AI.md` §251). At 5576 ours 35 draws, theirs 37, index 30:
+    // ours `Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`.
+    count: 5576,
+    sequence: 5576,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
