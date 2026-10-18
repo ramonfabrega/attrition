@@ -105,10 +105,7 @@ impl Sim {
                 // the original passes exactly that object — then take it
                 // back, leaving the leader's own stack as it was.
                 let saved = std::mem::replace(&mut self.units[l].path, chain);
-                if std::env::var("RON_DEBUG_FOGPATH").is_ok() && g.who == 1 {
-                    eprintln!("GROUPARMY f{} who {} army {:?} members {}", self.frame, g.who, g.army, g.list.len());
-                }
-                self.find_wpath_from(l, start, g.army.is_some());
+                self.find_wpath_from(l, start, g.army.is_some() || self.slot_keeps_army_link(g));
                 chain = std::mem::replace(&mut self.units[l].path, saved);
             }
         }

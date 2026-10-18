@@ -828,6 +828,28 @@ impl Sim {
         (entry, prev)
     }
 
+    /// Whether the pool slot a pushed group sits in still names a live army
+    /// in its `army` field (`GroupData +0x8`).
+    ///
+    /// `copy_group@006fa690` never writes that field (§28): the slot keeps
+    /// its previous occupant's. When `get_open_slot` hands back the slot of
+    /// an army that has lost every member, the army is still `valid` and its
+    /// slot still reads `army ≥ 0`, so `Group::action_move_near@00704990`
+    /// (`706178`..`70619f`) sets the pathfinder's `army` mode for whoever
+    /// was pushed there. Golden chapter ninety-four's Scout `1/0` on 846:
+    /// army 0's group 64 empties with the Artillery (824), the Scout's lone
+    /// group is pushed onto 64, and its explore search prices every
+    /// `NEARBLOCK` cell at `base << 5` (`docs/GOLDEN.md` §119).
+    pub(crate) fn slot_keeps_army_link(&self, g: &Group) -> bool {
+        let Some(i) = g.pushed else { return false };
+        let Some(pool) = self.pushed.get(i).and_then(|e| e.state.pool) else {
+            return false;
+        };
+        self.armies
+            .get(g.who as usize)
+            .is_some_and(|x| x.list.iter().any(|a| a.valid && a.group.pool == Some(pool)))
+    }
+
     /// The seat whose record pool slot `s` of `who` is — the army whose
     /// group sits on it, else the [`Pushed`] entry that names it.
     fn pool_seat(&self, who: Player, s: u8) -> Option<Seat> {

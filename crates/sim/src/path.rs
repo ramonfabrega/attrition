@@ -648,57 +648,6 @@ impl Sim {
         // `2c + 1` sample (`crate::scout`). World grid only.
         let seen = step != STEP_WORLD
             || self.was_really_seen_fog(to.x.div_euclid(0x180), to.y.div_euclid(0x180), who);
-        if step == STEP_WORLD && std::env::var("RON_DEBUG_FOGPATH").is_ok() && who == 1 {
-            eprintln!(
-                "FOGPATH f{} u{} to ({},{}) seen {} bits {:?}",
-                self.frame,
-                u,
-                to.x,
-                to.y,
-                seen,
-                self.world.seen2(to.x.div_euclid(0x180), to.y.div_euclid(0x180))
-            );
-        }
-        if step == STEP_WORLD && who == 1 && self.frame == 846 && std::env::var("RON_DEBUG_FOGPATH").is_ok() {
-            static ONCE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-            if !ONCE.swap(true, std::sync::atomic::Ordering::SeqCst) {
-                const THEIRS: [(i32, i32); 50] = [(45816, 11256), (45816, 10488), (45816, 9720), (45816, 8952), (45816, 8184), (45816, 7416), (45048, 6648), (44280, 5880), (43512, 6648), (42744, 6648), (41976, 6648), (41208, 6648), (40440, 6648), (39672, 6648), (38904, 6648), (38136, 6648), (37368, 6648), (36600, 6648), (35832, 6648), (35064, 6648), (34296, 7416), (33528, 8184), (32760, 8952), (32760, 9720), (32760, 10488), (32760, 11256), (32760, 12024), (31992, 12792), (31992, 13560), (31224, 14328), (31224, 15096), (31224, 15864), (30456, 16632), (30456, 17400), (30456, 18168), (30456, 18936), (31224, 19704), (31992, 20472), (32760, 21240), (33528, 21240), (34296, 21240), (35064, 21240), (35832, 21240), (36600, 21240), (37368, 21240), (38136, 21240), (38904, 21240), (39672, 22008), (40440, 22008), (41952, 21984)];
-                const OURS: [(i32, i32); 12] = [(45816, 12792), (45048, 13560), (44280, 14328), (44280, 15096), (44280, 15864), (44280, 16632), (44280, 17400), (43512, 18168), (42744, 18936), (41976, 19704), (41976, 20472), (41952, 21984)];
-                {
-                    let (fw, fh) = (self.world.width() * 2, self.world.height() * 2);
-                    let mut o = String::new();
-                    for i in 0..fw * fh {
-                        o.push_str(&format!("{},", self.world.seen2(i % fw, i / fw).unwrap_or(9)));
-                    }
-                    eprintln!("PLANE seen2 {}", o);
-                    let mut o = String::new();
-                    for i in 0..self.world.reg_size() {
-                        o.push_str(&format!("{},", self.world.danger_half(1, crate::Cell::new((i % self.world.reg_xs()) * 2, (i / self.world.reg_xs()) * 2))));
-                    }
-                    eprintln!("PLANE danger1 {}", o);
-                }
-                {
-                    let pos = self.units[u].pos;
-                    let ty = self.units[u].ty.map(|t| (self.unit_types[t].combat.attack, self.unit_types[t].worker != Worker::None));
-                    eprintln!("ARMYTY {} {:?}", self.units[u].type_index, self.units[u].ty.map(|t| (self.unit_types[t].combat.attack, self.unit_types[t].cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO))));
-                    eprintln!("ARMY u{} pos {:?} ty(attack,worker) {:?} flags {:#x} army {}", u, pos, ty, self.world.cell_data(pos.cell()).flags, self.army_mode(u));
-                }
-                for (name, path) in [("theirs", &THEIRS[..]), ("ours", &OURS[..])] {
-                    let mut tot = 0i64;
-                    for w in path.windows(2) {
-                        let (a, b) = (w[0], w[1]);
-                        let dx = (b.0 - a.0).signum();
-                        let dy = (b.1 - a.1).signum();
-                        let d = (1..9).find(|&d| MOVE_X[d] == dx && MOVE_Y[d] == dy).unwrap_or(0);
-                        let (c, _) = self.calc_cost(u, m, Pos::new(a.0, a.1), Pos::new(b.0, b.1), d, step, 2, avoid_land, avoid_sea);
-                        let sn = self.was_really_seen_fog(b.0.div_euclid(0x180), b.1.div_euclid(0x180), who);
-                        eprintln!("PRICE {} ({},{})->({},{}) cost {} seen {} dan {}", name, a.0, a.1, b.0, b.1, c, sn, self.world.danger_half(who, Pos::new(b.0, b.1).cell()));
-                        tot += i64::from(c);
-                    }
-                    eprintln!("PRICE {} total {}", name, tot);
-                }
-            }
-        }
         if step == STEP_WORLD && !seen {
             // The fog branch: terrain, owner and danger are all unread —
             // the player cannot know them — so the only thing priced is
@@ -1332,9 +1281,6 @@ impl Sim {
                     avoid_land,
                     avoid_sea,
                 );
-                if step == STEP_WORLD && self.frame == 846 && std::env::var("RON_DEBUG_FOGPATH").is_ok() && self.units[u].owner == 1 {
-                    eprintln!("OURS {},{} {},{} {} {} {:#x}", cur.x, cur.y, nx, ny, d, cost, self.world.cell_data(p.cell()).flags);
-                }
                 if self.trace_costs {
                     self.cost_marks.push(CostMark {
                         unit: u,
@@ -2200,7 +2146,6 @@ impl Sim {
         let river = self.world.cell_data(self.units[u].pos.cell()).flags
             & crate::world::cell::HALFLAND
             != 0;
-        let armed = armed || std::env::var("RON_FORCE_ARMY").is_ok();
         armed && !worker && !attacking && !river
     }
 
