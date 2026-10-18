@@ -82,6 +82,8 @@ mod army_count;
 mod army_data_select;
 #[path = "army_do_mustering.rs"]
 mod army_do_mustering;
+#[path = "army_engagement.rs"]
+mod army_engagement;
 #[path = "army_is_engaged.rs"]
 mod army_is_engaged;
 #[path = "army_member.rs"]
