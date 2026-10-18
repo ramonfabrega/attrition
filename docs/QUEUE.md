@@ -18,9 +18,9 @@ first commit**, four lanes (DECISIONS 78 (i), 80): the AI word's on Opus 5.5 med
 Last whole gate `ebe325dc`, the pass's (green, 6 of 6; rondata 960, sim 1699; release 7.0 of its 8 minutes).*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 6982 of 12658 (3211: 5576 → 6982, two Iroquois
-  arms), its widening owed as 3231; `EastIndiesGermanTier3` closed at 13519. Chapters 95–98 closed, 91 closed, ch99 open at 845; census 1483, **port 317**; the held-out battery's median 4770.
-- **Lanes: four live, landings 6 of 20** (3221, 3223, 3225, 3211, 3228, 3219): 3231 AI (run 934, AI §254, park IX), 3233
-  rules (run 935, GOLDEN §131, IY), 3234 shape (IZ), 3229 shape, the nations seat (IW). Next 3235, run 936. Pools: GOLDEN §132–136, AI §255–259, park JA–JF.
+  arms), its widening owed as 3231; `EastIndiesGermanTier3` closed at 13519. Chapters 95–99 closed, 92 closed; census 1483, **port 317**; the held-out battery's median 4770.
+- **Lanes: four live, landings 7 of 20** (3221, 3223, 3225, 3211, 3228, 3219, 3233): 3231 AI (run 934, AI §254, park IX), 3236
+  rules (run 936, GOLDEN §132, JA), 3234 shape (IZ), 3229 shape, the nations seat (IW). Next 3237, run 937. Pools: GOLDEN §133–136, AI §255–259, park JB–JF.
 - **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
   table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
 - **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227).
@@ -35,7 +35,7 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w6982 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1483 of 3611 · port 317 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: 91 closed · ch99 w845 of 1,500
+Golden: every chapter closed · 92 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — spawn the four unspawned items on four
@@ -46,7 +46,7 @@ landings from the pass's commit; the chain is `CLAUDE.md`'s; at twenty the hando
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3231 the AI word's (Opus); 3233, 3234 and 3229 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 6982. Take the first unstarted item unless a better
+3231 the AI word's (Opus); 3236, 3234 and 3229 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 6982. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3231. **The battery word, 6982 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes), its widening owed** (parked 3230;
@@ -58,12 +58,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     frame both directions. Two non-draw rows stand before it: `1/22`'s `blown` (from 5627/5883) and `1/23`'s second
     figure (from 5673). AI §254.
 
-3233. **Chapter ninety-nine's word, 845 of 1500** (parked 3232, the lane's row renumbered at the merge; 3228 built
-    the crate's `keeps_disc` in `fight.rs`, the Sabotaged Tank's disc kept, 842 → 845; GOLDEN §130, run933, widened over 604..851): ours 5
-    draws against theirs 6 — the extra is `Guy::set_anim+0x97a < Unit::move_step+0x823`, captain `0/10` (Hoplite) at
-    (13749, 16021) walking onto the idle Commando `0/6` at (13752, 16056): `collide_o` 6 on 846 in the original, −1
-    here. The item before's hypothesis: the crate's collision test lacks a walker meeting a unit standing after a cast.
-    A retake, if one is needed, is run 935. GOLDEN §131.
+3236. **Chapter one hundred, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
+    936 minted here): 3233 closed chapter 99 at 1500 (845 → 1500: the original's collider on 846 was the dead Tank
+    `1/6`'s wreck, not the Commando the booking named; `scan_colliders` walks the kept-disc wrecks). Candidates by what
+    a failure would teach: another reader of a wreck the crate keeps off the object chain (parked 3235: the original
+    leaves it linked), and attrition's disc release (`dtype` 0, parked 3190, read and not diffed). Stage it, capture
+    it, open it at its first word. GOLDEN §132.
 
 3234. **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 317; 3219 built all six of its
     batch, parked 3219 (a)–(d)): `Armies::find_local_army`, `Wall::check_ever_seen`, `Unit::find_new_bomber_target`,

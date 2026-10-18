@@ -7679,7 +7679,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3233, 2026-10-18 — chapter 99 closed: a Tank wreck is a collider
 
-- (3234) **A wreck on the original's chain, other readers**: the crate unlinks a dead unit from the object chain at its death and keeps the disc beside it; `scan_colliders` alone now walks the wrecks (from the death list). The original leaves a `blocks_while_dead` unit on the chain until the death object's cull, so every chain reader that does not test `alive` (`find_nearby_target`, `find_units`, `alarm`) would see the wreck there; none of the captures on file reaches one, and the death list is the only seat this crate has for the wreck. A capture with a Tank wreck beside an idle unit's search would say.
+- (3235) **A wreck on the original's chain, other readers**: the crate unlinks a dead unit from the object chain at its death and keeps the disc beside it; `scan_colliders` alone now walks the wrecks (from the death list). The original leaves a `blocks_while_dead` unit on the chain until the death object's cull, so every chain reader that does not test `alive` (`find_nearby_target`, `find_units`, `alarm`) would see the wreck there; none of the captures on file reaches one, and the death list is the only seat this crate has for the wreck. A capture with a Tank wreck beside an idle unit's search would say.
 - Attrition's release (`dtype` 0) is still read, not diff-backed (3190, §130).
 
 ## Parked by item N, <date> — <title>`
