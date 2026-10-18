@@ -648,6 +648,17 @@ impl Sim {
         // `2c + 1` sample (`crate::scout`). World grid only.
         let seen = step != STEP_WORLD
             || self.was_really_seen_fog(to.x.div_euclid(0x180), to.y.div_euclid(0x180), who);
+        if step == STEP_WORLD && std::env::var("RON_DEBUG_FOGPATH").is_ok() && who == 1 {
+            eprintln!(
+                "FOGPATH f{} u{} to ({},{}) seen {} bits {:?}",
+                self.frame,
+                u,
+                to.x,
+                to.y,
+                seen,
+                self.world.seen2(to.x.div_euclid(0x180), to.y.div_euclid(0x180))
+            );
+        }
         if step == STEP_WORLD && !seen {
             // The fog branch: terrain, owner and danger are all unread —
             // the player cannot know them — so the only thing priced is
