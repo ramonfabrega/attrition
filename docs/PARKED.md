@@ -7423,7 +7423,7 @@ needs `--sparse` over a 225 KB image table plus a pointer array of caravan recor
 
 ## Parked by item 3124, 2026-10-17 — gain_tech's nation range blocks
 
-- (3135) **The wonder-gated free-tech blocks are unwired**: Red Fort
+- (3135) ~~**The wonder-gated free-tech blocks are unwired**~~ built, item 3194:: Red Fort
   (`has_wonder(0x216)`: `FORTIFICATION` `0x251`..`0x253`, `END_FINALTYPES`
   `0x247`..`0x249`), Colosseum, Tikal (`RELIGION`) and Hanging Gardens
   (`CARPENTRY`/`METAL_ALLOYS`/`AGRICULTURE`) are `Gate::Wonder` in `tech.rs`, but
@@ -7581,14 +7581,8 @@ Two built of the six; four not attempted past reading, each with the flag it wou
 
 ## Parked by item 3194, 2026-10-18 — the wonder-gated free-tech blocks
 
-(3195) Items 3135's wonder blocks are built and the battery is unmoved; the German pair (3136) stays inert and unloaded. Names no score; parked.
+(3206) **Item 3135's wonder blocks are built** (the lane's 3195, renumbered: 3195 was 3182's): the battery is unmoved; the German pair (3136) stays inert and unloaded. Names no score; parked.
 
-
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
 
 ## Parked by the next landing, slot IL — reserved
 
