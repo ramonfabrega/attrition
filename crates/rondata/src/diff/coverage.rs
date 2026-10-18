@@ -3203,6 +3203,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::iroquois_word::iroquois_gap_918b_window(),
         || super::iroquois_word::iroquois_frame_1120_window(),
         || super::iroquois_word::iroquois_frame_1496_window(),
+        || super::iroquois_word::iroquois_frame_1772_window(),
         || super::german_word::german_frame_576_window(),
         || super::german_word::german_frame_5577_window(),
         || super::german_word::german_sites_3975_window(),
