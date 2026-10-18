@@ -398,8 +398,6 @@ mod guy_set_pivot_angle;
 mod guy_turn_angles;
 #[path = "guy_turn_towards.rs"]
 mod guy_turn_towards;
-#[path = "guy_update_gpiece.rs"]
-mod guy_update_gpiece;
 #[path = "guy_update_z.rs"]
 mod guy_update_z;
 #[path = "herd_walk_data.rs"]
