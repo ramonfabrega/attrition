@@ -38,10 +38,11 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 92 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — spawn the four unspawned items on four
-lanes (3211 the AI word's on `--model 'claude-opus-5-5[1m]' --effort medium`; 3223, 3219 and 3221 on
-`'claude-sonnet-5-5[1m]' --effort medium`), the model said in user-visible text, each brief by `tools/brief.py`; count
-landings from the pass's commit; the chain is `CLAUDE.md`'s; at twenty the handoff, the drain and `ccc clear steer`.**
+**Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — four lanes live (3242 the AI word's on
+`--model 'claude-opus-5-5[1m]' --effort medium`; 3236, 3238 and 3239 on `'claude-sonnet-5-5[1m]' --effort medium`), ten
+landed; re-arm `tools/lanewait.py` on the four, merge each landing at its gate's exit, refill its lane by
+`tools/brief.py`, the model said in user-visible text; count landings from the pass's commit `1a15c80f`; the chain is
+`CLAUDE.md`'s; at twenty the handoff, the drain and `ccc clear steer`.**
 
 ## The queue
 
