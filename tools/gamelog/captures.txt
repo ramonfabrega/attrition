@@ -9692,3 +9692,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #           --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3   (the word 12815's window)
 # Checks: `rngcmp.py` run643 vs run910 -> 0 differing in 13073.
 # ==== TAKEN 2026-10-17, one take, 15:14-15:38, pool lane 2 ====
+# ==== item 2997: the battery word's gap before 12815 (`docs/AI.md` §244; `docs/RUNS.md` run912, run912b–e) ====
+#   run912  --map 18 --end-frame 12812 --timeout 10800 --log-window 6837 12810 --detail end:UNITS=3,GUYS=2
+#           --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3   (the gap 6837..12810)
+#   run912b --end-frame 12396 --log-window 12376 12393 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9   (the Militia queued)
+#   run912c --end-frame 12570 --log-window 12556 12567 (run912b's detail)   (the Militia gained, 12563)
+#   run912d --end-frame 12772 --log-window 12750 12770 --detail end:MISC,UNITS=3,BUILDS=7,GUYS=4,AMMO=5,DEATHS=1,LEADERS=2   (the javelin)
+#   run912e --end-frame 12758 --log-window 12752 12756 (run912d's detail) --tracer-def RON_STATE_FRAME=12753
+#           --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (pieces 34 and 137's packet)
+# Checks: `rngcmp.py` run643 vs run912 -> 0 differing in 12813; vs run912b, c, d -> 0 differing.
+# ==== TAKEN 2026-10-17, one take each, 16:26-19:27, pool lane 1 ====

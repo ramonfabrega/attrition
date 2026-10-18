@@ -22200,12 +22200,78 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 244. Reserved for the next item on the AI track
+## 244. The battery word's gap walked: the Militia's pool, the Javelineers' bays, the Horse Archer's release, 12815 → 12836 (2026-10-17, item 2997)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: 12815 of 13519 (`EastIndiesGermanTier3`), ours 9 draws against theirs 8, index 1 ours `Unit::fight+0x9b0`
+where theirs draws `Guy::set_anim+0x97a < Guy::inc_time+0x271`. §242 left the state parting somewhere in 6837..12808,
+which no dump of the lobby covered.
+
+**The gap, captured.** The draw stream agrees to 12815 by definition, so bisecting the draws cannot place a position
+parting. run912 (`docs/RUNS.md`) logged 6837..12810 at `UNITS=3,GUYS=2` — 2 h 23 m, 1.9 GB — and its widening
+`diff::german_word::run912_s_gap_is_widened_whole` (5973 blocks, in the coverage driver's slice) parted 232 keys. Three
+partings, each built in order:
+
+**1. Block 12563 — the Militia's pool reaches the Citizens a leader pass late.**
+- who=1's thirty Citizens (TI 50) at `myhits` 50 in ours against 40 in theirs. Ours gained Militia (TI 66) from the
+  Tower `1/2014`'s queue and raised the Citizens' hits inside `gain_tech`.
+- The research runs alike on both sides: run912b queues it on 12383 at 100 a frame; run912c has `job_counter` 18000 on
+  12562 and the slot empty on 12563. Theirs' Citizens are at 40 on 12563 and 50 on 12564.
+- `Leader::gain_tech@006dcb60:661` raises `0x4000000` for a unit type and does not touch the units. Only
+  `Leader::calc_unit_stats@006cf970` calls vslot `+0x15c` (`update_hits`) on the leader's units, behind that flag in
+  `Leader::process`. (`gain_tech`'s `param_5` loop is the line upgrade's `set_type`, not the pools.)
+- **Built**: the immediate refresh is removed (`cast.rs`'s `refresh_citizen_hits` deleted). `apply_gained` already
+  raises `unit_stats_dirty`, and `rares.rs`'s `calc_unit_stats` refreshes the hits through `unit_hits` at the next pass.
+  Test `cities_tests::a_gained_militia_reaches_a_citizen_s_hits_at_the_next_leader_pass`; chapter 39 (run422) stays green.
+- run912: 232 → 142 keys. The word did not move.
+
+**2. Block 12767 — the Elite Javelineers' javelin left the figure, not the hand.**
+- The Scout `0/0` (TI 69): `damage` 16/0 in ours against 17/10 in theirs. The round is who=1's `1/42` (TI 84, piece 34).
+- run912d (12750..12770, `AMMO=5,DEATHS=1,GUYS=4`) prints theirs: launch (6466, 8872, 408), landing (5184, 8682),
+  `total_time` 13. Ours left from the figure (6504, 8904), 14 frames, landed (5159, 8707) and missed.
+- `launch::BAYS` had no row for piece 34. run912e is a `RON_STATE_FRAME=12753` packet; `get_position.py entries 34` gives
+  three `AttachPos` rows, and a sweep with an integer fit gives the `Bay`s with **0 misses of 361 headings** in x, y, z:
+  (anim 11, t 12) right 39258, fwd 59130, dz 166; (12, 6) 1121, 50544, 173; (13, 27) 21620, 35314, 159.
+- Ours' round is now theirs exactly: (6466, 8872) → (5184, 8682), 13 frames, angle −736821248. Test
+  `launch::tests::run912d_s_javelin_leaves_the_throwing_hand`.
+- The word moved 12815 → 12835; run912 fell to 97 keys (standing kinds and the detail's `build:extra`).
+
+**3. Block 12835 — the Horse Archer's arrow, a pivot piece.**
+- who=1's `1/60` (TI 187, piece 137 = TI − 0x32) kills the Scout on 12835 in theirs; ours' arrow left from the figure's
+  point (5832, 9240) and arrived a frame late.
+- Piece 137 is a pivot piece (`pivot.rs`'s `RELEASES` `SEAM`, "the horse archers"). run912e's packet gives `NODES` (137,
+  4) px −6, py −148, and four `RELEASES` rows (ATTACKWALK 18, ATTACK1 18, ATTACK2 16, ATTACK3 18; node 0) with the pivot
+  node's and the release node's entries in millionths, and ATTACK3's `float_lands` (9, 3, −2, 86), (99, 3, −86, −2),
+  (189, 3, 2, −86), (279, 3, 86, 2).
+- The oracle (`get_position.py pivot 137 0 <anim> <time> 1`, `sweep 137 4 0 0`) is in
+  `~/ron-data/lab-experiments/2026-10-17-item-2997/`: **369,664 cells and 361 degrees agree**
+  (`pivot::tests::the_original_s_release_agrees_on_every_cell_for_the_horse_archer`, `$RON_RELEASE_TABLE_137`).
+- The Scout dies on 12835 on both sides. The word moved 12835 → 12836.
+
+**Mutations** (`tools/mutate.py`, each `mutation: held`):
+- the immediate Citizen refresh restored → `a_gained_militia…` fails and run912's widening parts on 12563 again
+  (`hits_left` 50 against 40);
+- piece 34 dropped from `bay` → `run912d_s_javelin…` fails and `german_word_first_parting` reads 12815 against 12836;
+- piece 137 dropped from `release` → the horse-archer cell test and `german_word_first_parting` fail.
+
+**The value diff** (run910, block 12837): who=1's `1/31` has `collide` 0 in ours against 1 in theirs (`collide_o` 68,
+`collide_guy` 0), at (6524, 12980) against (6545, 12999), `half_step` 1 against 0, `order:coll` None against (6524,
+12980). `1/32` (`collide_o` 28), `1/64` (`collide_o` 30) and `1/68` (`collide` 3 against 4, `collide_o` 31) are the
+same shape. run910's widening falls 967 → 932 keys; its window still holds the new word, so it stays the word's
+widening.
+
+**The new word, 12836.** Ours 7 draws, theirs 11, index 0: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::set_anim+0x97a < Unit::move_step+0x823`. The collide rows above are its value diff.
+
+**Coverage.**
+- Diff-backed: the Citizens' pool timing (run912's widening, run912c's 12563/12564), piece 34's three bays (run912d's
+  AMMO, the packet sweep at 361 headings), piece 137's release (the packet's 369,664 cells, the Scout's death frame).
+- Reading-only: that `calc_unit_stats` is the only caller of `update_hits` on a leader's units.
+
+**What is not established.**
+- The javelin's launch `sz`: theirs is 408; the figure's z 228 + dz 173 is 401, and ours' `sz` was never printed
+  (parked, slot GU).
+- The new word's `collide` rows: not walked.
+- The `g.angle[0]` standing row (parked 2995, `0x55555555` against 0) is unchanged and is not this word's cause.
 
 ## 245. Reserved for the next item on the AI track
 
