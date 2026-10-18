@@ -584,6 +584,8 @@ mod object_data_is_siege;
 mod object_data_is_visible_wonder;
 #[path = "object_data_isnt.rs"]
 mod object_data_isnt;
+#[path = "object_data_num_aircraft_here.rs"]
+mod object_data_num_aircraft_here;
 #[path = "object_data_num_aircraft_limit.rs"]
 mod object_data_num_aircraft_limit;
 #[path = "object_data_say_name.rs"]
@@ -624,6 +626,8 @@ mod object_type_data_get_age;
 mod object_type_data_get_age_slow;
 #[path = "object_type_data_get_stance_type.rs"]
 mod object_type_data_get_stance_type;
+#[path = "object_type_data_get_wonder_value.rs"]
+mod object_type_data_get_wonder_value;
 #[path = "object_type_data_has_objmask.rs"]
 mod object_type_data_has_objmask;
 #[path = "object_type_data_is.rs"]
@@ -656,6 +660,8 @@ mod objects_data_count_nukes_in_flight;
 mod objects_data_find_city;
 #[path = "objects_data_find_city_at.rs"]
 mod objects_data_find_city_at;
+#[path = "objects_data_find_dock.rs"]
+mod objects_data_find_dock;
 #[path = "objects_data_find_good_at.rs"]
 mod objects_data_find_good_at;
 #[path = "objects_data_find_good_at_tcoord.rs"]

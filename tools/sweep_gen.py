@@ -1436,7 +1436,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 from sweeplib import link_value  # noqa: E402
-from sweeplib import draw_reg, xmm_bits  # noqa: E402
+from sweeplib import draw_reg, xmm_bits, set_tib  # noqa: E402
 
 ENTRY = 0x{va:08x}
 WIN = {win}
@@ -1471,6 +1471,7 @@ ALIAS = {alias!r}
 ANSWERBY = {answerby!r}
 ANSWERWIN = {answerwin!r}
 CDECL = {cdecl!r}
+TIB = {tib!r}
 ARGEQ = {argeq!r}
 SEQ = {seq!r}
 ANSRANGE = {ansrange!r}
@@ -1702,6 +1703,9 @@ def main(argv):
     h = Harness(argv[1], {{a: (f"{{a:x}}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
                           if k == "call"}})
     uc = h.m.uc
+    # `--tib`: an SEH-framed function reads and writes `fs:[0]` (item 3120).
+    if TIB:
+        set_tib(uc)
     slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
     vt = h.vtable(slots) if slots else None
     names = [f"slot{{a:x}}" if k == "slot" else f"iat{{a:x}}" if k == "iat" else f"run{{a:x}}" if k == "run" else f"{{a:x}}" for k, a, _ in STUBS]
@@ -2323,7 +2327,7 @@ def _wbias(spec):
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
-                 cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
+                 cdecl=False, tib=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
                  rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), clean_stack=0, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=()):
     name, va = parse(spec)
@@ -2729,7 +2733,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
                                    cells=pcells, at=pat, atrange=atrange, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull, nullforce=pforce,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, edxwin=edx_win, xmm=pxmm, wild=0.0 if tame else 0.1,
-                                   answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
+                                   answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, tib=tib, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stackclean=clean_stack, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
@@ -3576,6 +3580,8 @@ def main(argv=None):
                     help='obj: stub IDX answers the address of SIZE random bytes, a new `p` window after the '
                          'places (a callee that answers a record; parked 2151); repeated for one IDX, '
                          'one window a call in call order, the last repeated (parked 2623)')
+    ap.add_argument('--tib', action='store_true', help='obj: the function opens an SEH frame (`mov eax, fs:[0]`): '
+                    'a guest TIB page is mapped and `fs` pointed at it (item 3120)')
     ap.add_argument('--cdecl', action='store_true', help='obj: the function is `__cdecl` (a bare `ret`), so '
                     'the caller pops its arguments and the esp check expects them left (item 2181)')
     ap.add_argument('--argeq', action='append', default=[], metavar='IDX:WIN+OFF',
@@ -3815,7 +3821,7 @@ def main(argv=None):
                                                     argrange=args.argrange, slotbase=args.slotbase,
                                                     module=args.module, ecx_int=args.ecx_int,
                                                     answers=args.answers, vtat=args.vtat,
-                                                    answer_wins=args.answer_win, cdecl=args.cdecl,
+                                                    answer_wins=args.answer_win, cdecl=args.cdecl, tib=args.tib,
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,

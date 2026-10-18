@@ -334,6 +334,8 @@ mod caravan_restart_trade_route;
 mod caravan_verify_road;
 #[path = "caravan_walk_data.rs"]
 mod caravan_walk_data;
+#[path = "caravans_new_danger.rs"]
+mod caravans_new_danger;
 #[path = "cast_order_walk_data.rs"]
 mod cast_order_walk_data;
 #[path = "cast_order_walk_data_vtordisp.rs"]
