@@ -12,8 +12,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the forty-first tranche (commander, Opus): 16 landings from `0efdf09d`**, four lanes under the 20-slot
-budget (DECISIONS 78 amended), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `a2652acb`.*
+*2026-10-17, **the forty-first tranche (commander, Opus): 17 landings from `0efdf09d`**, four lanes under the 20-slot
+budget (DECISIONS 78 amended), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `8806dbc0`.*
 
 - **Words**: every pair closed. The battery word `EastIndiesGermanTier3` **closed at 13519 of 13519** (3086; run643's
   closing block whole). Its successor by DECISIONS 72, **`GreatLakesIroquoisTier3`, promoted and moved 0 → 1120 → 1496 of 12658**
@@ -21,10 +21,10 @@ budget (DECISIONS 78 amended), the AI word's on Opus 5.5 medium and three on Son
   86–94 closed (3123: a push onto an emptied army slot writes the army's list, 1117 → 1200 on run914); 95 opened
   at 629 of 1200 (3126, run920: Sabotage beside a firing Tank; the Tank's target pick), as 3142. Census 1224 → 1454 (3078, 3104, 3112, 3120). Battery eight lobbies, median 1008 → 2207 (3092, the Chinese
   citizens) → 2270 (3107's swap; 3124's other range blocks moved none); `GreatLakesChineseTier1` 176 → 5663 → 12712 (3092, 3113); 3096 and 3108 moved nothing.
-- **Lanes: four live** — 3140 the AI word's (run 921, AI §248, park HX), 3142 the rules track's (GOLDEN §122, park HY), 3134
-  shape (park HV), 3137 nations (§7.5, park HW). Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108, 3107, 3112, 3113, 3099, 3123, 3120, 3124, 3117, 3126.
-  Next 3143, run 922 (Astra 900–909; 919 unused). Pools: GOLDEN §123–128, AI §249–251, park HZ, IA–ID.
-- **Fable backlog: 34 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111, 3116, 3118, 3122, 3125, 3127, 3133, 3139).
+- **Lanes: three live** — 3140 the AI word's (run 921, AI §248, park HX), 3142 the rules track's (GOLDEN §122, park HY), 3134
+  shape (park HV); the nations lane drained (3137 landed, 3145 booked unspawned). Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108, 3107, 3112, 3113, 3099, 3123, 3120, 3124, 3117, 3126, 3137.
+  Next 3146, run 922 (Astra 900–909; 919 unused). Pools: GOLDEN §123–128, AI §249–251, park HZ, IA–ID.
+- **Fable backlog: 35 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111, 3116, 3118, 3122, 3125, 3127, 3133, 3139, 3143).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,14 +39,14 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed · ch94 closed · ch95 w629 of 1,200
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-first tranche (commander, Opus) at sixteen landings from `0efdf09d`: four lanes live
-(3140 Opus 5.5 medium; 3134, 3137, 3142 Sonnet 5.5 medium) — wait on them with `lanewait.py`, merge, book, refill while
+**Opener: continue the forty-first tranche (commander, Opus) at seventeen landings from `0efdf09d`: three lanes live
+(3140 Opus 5.5 medium; 3134, 3142 Sonnet 5.5 medium), the tranche draining — wait on them with `lanewait.py`, merge, book, refill while
 landings plus live lanes are under twenty, stop at twenty, and clear `steer` into the forty-first pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3140 the AI word's (Opus); 3142, 3134 and 3137 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1496. Take the first unstarted item unless a better
+3140 the AI word's (Opus); 3142 and 3134 (Sonnet); 3145 unspawned (the drain), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 1496. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3140. **The battery word, 1496 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 37 draws against
@@ -67,12 +67,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `ObjectsData::find_good_at` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each
     built, or parked naming the generator flag it could not spell. Unstarted. `--kind sweep`.
 
-3137. **The nations' `get_cost` and `train_time` rest, the Romans' legions first** (NATIONS §7.5; Ramon, the fortieth
-    steer, DECISIONS 78; the score: the held-out battery's median first try, 2270 over eight, `battery_measure`,
-    `battery_floors` never lowered): 3124 loaded the other `gain_tech` range blocks and moved no lobby (parked 3135
-    the wonder-gated blocks, unfed; 3136 the German pair, inert); the uncarried national percentage terms of
-    `TypeData::get_cost@00664090` and `ObjectData::train_time@006508c0`, the Roman legion arms first. From the rules
-    and the original's function, never a held-out dump (DECISIONS 54); one function's family a landing. Unstarted. NATIONS §7.
+3145. **The nations' uncarried `get_cost` and `train_time` terms, the battery lobbies' nations first** (NATIONS §7.5;
+    Ramon, the fortieth steer, DECISIONS 78; the score: the held-out battery's median first try, 2270 over eight,
+    `battery_measure`, `battery_floors` never lowered): 3137 built the Roman legion pair (`ROMAN_LEGION_CHEAP`,
+    `ROMAN_LEGION_FAST`) and moved no lobby, none holding a Roman leader; parked 3144 lists the rest (Mongol stable,
+    Japanese barracks and ships, American aircraft, British AA, Nubian merchants, the French `train_time` arm and
+    more). A term a battery lobby's leader reaches first; one function's family a landing; never a held-out dump
+    (DECISIONS 54). Unstarted, unspawned (the drain). NATIONS §7.
 
 ## How to maintain this file
 

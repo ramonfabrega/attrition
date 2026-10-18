@@ -3742,6 +3742,18 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3143) **The host at saturation, and a runaway the budget cannot see** (Ramon, 2026-10-18, for the steer): at 01:12
+during the forty-first tranche's whole gate, with four lanes live and 3140's run921 capture under Wine, the load was 32 on
+16 cores at 0% idle; the admission budget held 16 leases (16 CPU slots of the v2 policy's 32, 16 GiB reserved), so it was
+admitting freely while the box was already full. Memory was not the constraint: 26 GiB unused, compressor 1.8 GiB, swap
+2.5 MiB. One core went to an orphan: `sweep_a_f … city_data_num_city_buildings`, a **debug** test binary from a deleted
+subagent worktree (`agent-a125b8735144f445e`; the sweep is 2793's), parent launchd, running since 2026-10-17 03:25 (21 h
+47 m), outside every lease, and not killed: the commander's `kill` was refused by the classifier (Ramon's to run).
+Candidates: (i) the slot policy measured against the load: 32 slots on 16 cores admits 2x and the gate's `Admission wait`
+receipt reads seconds while every lane's wall clock stretches; (ii) a reaper, or a `guard.sh`/`check.sh` lease timeout
+that outlives no supervisor, so a test whose supervisor died cannot run a day; (iii) the sweep test that did not
+terminate (the soak found one in an hour; this one ran under no budget).
+
 (3139) **`seams.py --item` missed the word's live SEAM** (3117's "for the Loop" row, filed at its merge): the brief's run named `explore_goody`, `think_bird`,
 `WIDENINGS`, `IROQUOIS_WORD`, and `path.rs`'s `iroquois: false, // SEAM: unit_masks2 & 0x4000` was found by grepping
 `iroquois` after the widening named the path. A `--item` that also takes the parted unit's nation and the fields the
@@ -7512,7 +7524,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3137, 2026-10-18 — the Roman legion pair, and what the nations family still lacks
 
-- **3137a.** The remaining uncarried national terms of `get_cost` (Mongol stable, Japanese barracks and ships, American aircraft, British AA, Nubian merchants, Angkor ships, Wool/Turkish citizens, Korean towers, Colosseum forts) and `train_time` (the French arm, `TROOPS_FASTER`, cotton and wool) are unaudited by this item; it took the Roman pair only. No score named them; a lobby with that nation's leader would. Battery unmoved by the pair (no held-out lobby holds a Roman leader).
+- (3144) The remaining uncarried national terms of `get_cost` (Mongol stable, Japanese barracks and ships, American aircraft, British AA, Nubian merchants, Angkor ships, Wool/Turkish citizens, Korean towers, Colosseum forts) and `train_time` (the French arm, `TROOPS_FASTER`, cotton and wool) are unaudited by this item; it took the Roman pair only. No score named them; a lobby with that nation's leader would. Battery unmoved by the pair (no held-out lobby holds a Roman leader).
 
 ## Parked by the next landing, slot HX — reserved
 
