@@ -415,13 +415,36 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
               + (f"; base {base} is not a ref here, so nothing widened" if touched is None else ''),
               flush=True)
     reached = []
+    load_at_start = host_load()
     try:
         _run_steps(commands, run=run, env=env, audit_dir=audit_dir, report_dir=report_dir,
                    require_fixtures=require_fixtures, reached=reached, lane=lane, word=tests)
     finally:
         print(steps_line(commands, reached), flush=True)
         print(admission_line(admission_summary(report_dir)), flush=True)
+        print(load_line(load_at_start, host_load(), os.cpu_count() or 0), flush=True)
     return report_dir
+
+
+def host_load():
+    """The one-minute load average, or None where the platform has none."""
+    try:
+        return os.getloadavg()[0]
+    except (OSError, AttributeError):
+        return None
+
+
+def load_line(start, end, cores):
+    """Loop 3091 (the forty-first pass): the admission receipt says what a
+    gate waited at the door and nothing about what it ran into once
+    admitted — the fortieth tranche's lane gates ran 18–32 minutes against
+    9.5 while the receipt read seconds, and Ramon read a load of 32 on
+    sixteen cores off `top` (Loop 3143). The box's load at the gate's start
+    and end, beside its cores, is the contention a pass reads off the gate
+    itself; a load past the cores is dilation, whatever the receipt said."""
+    def part(v):
+        return 'n/a' if v is None else f'{v:.1f}'
+    return f"Host load: {part(start)} at start, {part(end)} at end, on {cores} cores"
 
 
 def admission_summary(report_dir):

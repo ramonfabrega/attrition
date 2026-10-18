@@ -30,6 +30,11 @@ class FourDigitItems(unittest.TestCase):
         self.assertEqual(queueledger.parens('(1006) **the ledger** and (1050/1051)'),
                          {1006, 1050, 1051})
 
+    def test_a_call_s_argument_is_not_a_park(self):
+        # Loop 3103: `(on - 1).min(7)` in docs/PARKED.md read as park 7 and the
+        # ledger noted it live on every gate of the forty-first tranche.
+        self.assertEqual(queueledger.parens('`ally_i.min(7)` and (1006); f(1050) x (1051)'), {1006, 1051})
+
     def test_a_wrapped_sentence_is_still_not_an_item(self):
         # The blank line is the discriminator, at any width.
         text = 'the word is\n4924. East Indies follows.\n'

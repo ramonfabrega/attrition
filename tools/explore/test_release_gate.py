@@ -2,6 +2,8 @@
 """The gate refuses absent installs and never launches a child without RON_INSTALL."""
 import importlib.util
 import json
+import io
+import contextlib
 import os
 from pathlib import Path
 import subprocess
@@ -296,6 +298,26 @@ class GateTests(unittest.TestCase):
                          'Gate steps: 2 of 6 ran (offline, clippy); not reached: fmt, survey, release, guard')
         self.assertEqual(gate.steps_line(commands, []),
                          'Gate steps: 0 of 6 ran (none); not reached: offline, clippy, fmt, survey, release, guard')
+
+    def test_the_receipt_carries_the_host_load(self):
+        # Loop 3091: the admission receipt reads seconds while the lane gates
+        # ran at half speed; the load at start and end, beside the cores, is
+        # what a pass reads for contention. Red first: no such line was printed.
+        self.assertEqual(gate.load_line(21.3, 32.04, 16), 'Host load: 21.3 at start, 32.0 at end, on 16 cores')
+        self.assertEqual(gate.load_line(None, None, 0), 'Host load: n/a at start, n/a at end, on 0 cores')
+        with tempfile.TemporaryDirectory() as d:
+            install = Path(d)/'install'
+            (install/'Data').mkdir(parents=True)
+            (install/'Data/rules.xml').write_text('authored fixture')
+            def run(command, **kwargs):
+                if '--release' in command:
+                    release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                gate.gate(install, report_dir=Path(d)/'report', test_threads=4, isolated=True, run=run)
+            lines = out.getvalue().splitlines()
+            self.assertTrue(lines[-1].startswith('Host load: '), lines[-3:])
+            self.assertTrue(lines[-2].startswith('Admission wait: '), lines[-3:])
 
     def test_wider_release_is_capped_and_other_children_stay_conservative(self):
         for width in (2, 3, 4, 6, 8):

@@ -2273,6 +2273,9 @@ fn widen_civilians_walk(
         crate::diff::harness::debug_leader(&s.built, n);
         crate::diff::harness::debug_builds(&s.built, n);
         crate::diff::harness::debug_watch(&s.built, n);
+        // Loop 3127 (3123's line): the army dump is a flag here, not a
+        // probe commit — chapter 94's 1021 was read off it and reverted.
+        crate::diff::harness::debug_armies(&s.built, n);
         crate::diff::harness::debug_ammo(&s.built, n);
         if n < first {
             continue;

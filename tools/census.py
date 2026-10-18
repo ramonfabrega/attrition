@@ -430,19 +430,34 @@ def layers(index, docs, sim_src, pdb):
     source = source_of(source_ranges(pdb), names)
     by_doc = doc_backed(docs, by_name) & names.keys()
     by_sweep = sweep_backed(sim_src, by_name, os.path.join(HERE, "emu")) & names.keys()
+    spelled = port_spellings(sim_src)
     rows, sim_files, unknown = {}, Counter(), Counter()
     for va, path in source.items():
         lay = layer_of(path)
-        r = rows.setdefault(lay, {"functions": 0, "backed": 0, "doc": 0, "sweep": 0})
+        r = rows.setdefault(lay, {"functions": 0, "backed": 0, "doc": 0, "sweep": 0, "port": 0})
         r["functions"] += 1
         r["doc"] += va in by_doc
         r["sweep"] += va in by_sweep
         r["backed"] += va in by_doc or va in by_sweep
+        r["port"] += is_port_backed(va, names[va], by_doc, by_sweep, spelled)
         if lay == "simulation":
             sim_files[path.rsplit("\\", 1)[-1]] += 1
         elif lay == "unknown":
             unknown[path.rsplit("\\", 2)[-2] + "\\" if path else "(no line record)"] += 1
     return rows, sim_files, unknown
+
+
+def is_port_backed(va, name, by_doc, by_sweep, spelled):
+    """Loop 3093 (1725, Ramon's answer at the fortieth steer after twelve
+    askings): a backed function is **port-backed** when something in
+    `crates/sim` consumes it — a document's coverage section diffs it, or
+    the crate spells its own `Class::method` outside `sweep/` (the `port`
+    mark's test, `rank_unbacked`) — and **layout-backed** when a sweep test
+    alone asserts the raw word: an offset identity backs the layout, not a
+    consumer, and the two had moved the `Census:` line the same."""
+    if va not in by_doc and va not in by_sweep:
+        return False
+    return va in by_doc or name in spelled
 
 
 PORT_FN = re.compile(r"\bfn ([a-z0-9_]+)\s*[(<]")
@@ -703,16 +718,18 @@ def unbacked(index, docs, sim_src, pdb, top, show_all=False, claimed_dirs=()):
 
 def print_layers(rows, sim_files, unknown, as_json):
     import json
-    sim = rows.get("simulation", {"functions": 0, "backed": 0})
+    sim = rows.get("simulation", {"functions": 0, "backed": 0, "port": 0})
     if as_json:
         print(json.dumps({"layers": rows, "simulation_backed": sim["backed"],
+                          "simulation_port_backed": sim["port"],
                           "simulation_functions": sim["functions"]}, indent=1, sort_keys=True))
         return
-    print(f"{'layer':12} {'functions':>9} {'backed':>7} {'by doc':>7} {'by sweep':>8} {'share':>7}")
+    print(f"{'layer':12} {'functions':>9} {'backed':>7} {'by doc':>7} {'by sweep':>8} {'port':>6} {'layout':>7} {'share':>7}")
     for lay in ("simulation", "AI", "engine", "interface", "unknown"):
-        r = rows.get(lay, {"functions": 0, "backed": 0, "doc": 0, "sweep": 0})
+        r = rows.get(lay, {"functions": 0, "backed": 0, "doc": 0, "sweep": 0, "port": 0})
         share = f"{100 * r['backed'] / r['functions']:.1f}%" if r["functions"] else "-"
-        print(f"{lay:12} {r['functions']:9} {r['backed']:7} {r['doc']:7} {r['sweep']:8} {share:>7}")
+        print(f"{lay:12} {r['functions']:9} {r['backed']:7} {r['doc']:7} {r['sweep']:8} {r['port']:6} "
+              f"{r['backed'] - r['port']:7} {share:>7}")
     print()
     print("# simulation, by source file (rule 5's default — a misfiled file shows here)")
     print(" ".join(f"{f}:{n}" for f, n in sim_files.most_common()))
@@ -720,7 +737,14 @@ def print_layers(rows, sim_files, unknown, as_json):
     print("# unknown, by where the source sits")
     print(" ".join(f"{f}:{n}" for f, n in unknown.most_common()))
     print()
-    print(f"Census: simulation backed {sim['backed']} of {sim['functions']}")
+    print(census_line(sim["backed"], sim["port"], sim["functions"]))
+
+
+def census_line(backed, port, functions):
+    """The handoff's line (Loop 3093): the total first, as every reader of
+    `<N> of <M>` expects, then the split the sweep lane is judged on."""
+    return (f"Census: simulation backed {backed} of {functions} · port {port} · "
+            f"layout {backed - port}")
 
 
 def main():

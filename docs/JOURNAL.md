@@ -21244,3 +21244,27 @@ its receipt (3063), `blind::` in every lane gate (2989), `mutate.py
 reservation's bounded wait (2984); 3022 closed on reading, four closed
 unreached, four filed. Ramon asked for a steer mid-pass; the commander
 waits on it. **DECISIONS 78.** `docs/audit/2026-10-17-fable-pass-40.md`.
+
+**2026-10-18 — the forty-first Fable pass: four lanes scored at the
+loop's cheapest, the census split, the Golden line counted.** Twenty
+landings on four lanes in 4 h 44: 100.67 USD in all against 141.73,
+4.25 USD and 34.0 minutes waiting a landing against 6.22 / 41.9 on five;
+the German battery word closed at 13,519 and the Iroquois word 0 → 1772
+of 12,658 with the stride built on the way; chapter ninety-four closed
+and ninety-five opened at 629 → 634; the census 1444 → 1459, of which
+293 port-backed and 1166 layout-backed — the split 1725 asked for
+thirteen times, built as `Census: … · port P · layout L`; the battery's
+median 1008 → 2270. Fourteen booking gates, every one green first time;
+every scoped gate widened and two whole gates fell by position on sweep
+landings, so the whole gate counts widening landings now; the twenty
+slots turned dilation into a 1375.6 s wait at the door while the lane
+gates still ran 19–31 minutes beside a Wine capture and an orphan the
+classifier would not let the pass kill. Built, red first: the census
+split (3093), the Golden count form (3125, `ch95 w634 of 1,200 · 87
+closed`), the gate's `Host load:` line (3091), the ledger's phantom 7
+(3103), the armies dump in the walk (3127), unitaddr's alignment (3122),
+the slot table as a slice, the tranche classifier's gate-log read, four
+frame rows and a guard that every journal's "for the Loop" line is
+filed or says `none`; 3085 closed built by the lane, two folded,
+fourteen closed unreached, two filed; 37 → 13. **DECISIONS 79.**
+`docs/audit/2026-10-18-fable-pass-41.md`.

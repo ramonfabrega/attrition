@@ -8,7 +8,8 @@ scanning the packet for the masked position `(x ^ 0x63637, y ^ 0x63637)`
 at `+0x10` of the unit (parked 1953: 1845 read `units.lists` by hand, 1868
 and 1948 scanned). Every hit is printed, one address a line, `x` and `y`
 the unit's internal coordinates as the dump prints them (`x_internal`,
-`y_internal`). Exits 1 when nothing matches. A reading instrument: nothing
+`y_internal`); a hit at an address that is not a multiple of four is
+dropped (Loop 3122). Exits 1 when nothing matches. A reading instrument: nothing
 here is a source, and the packet never enters the repository.
 """
 import struct
@@ -27,9 +28,13 @@ def find(ranges, x, y):
     for base, data in ranges:
         at = data.find(pair)
         while at >= 0:
-            if at >= AT:
+            # Loop 3122 (3099's line): a unit is heap-allocated, so its
+            # address is a multiple of four; `0xe3f58e` on run916b was bytes
+            # that happened to match at an odd offset. The ranges' bases are
+            # page-aligned, so the offset's alignment is the address's.
+            if at >= AT and (at - AT) % 4 == 0:
                 hits.append(base + at - AT)
-            at = data.find(pair, at + 4)
+            at = data.find(pair, at + 1)
     return hits
 
 

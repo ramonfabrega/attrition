@@ -430,12 +430,13 @@ commander, and nothing else** — never a worker: one pass did, on an
 opener that said "refill", and ratified a trial only the user decides
 (DECISIONS 59, 61). Never Sonnet on a reading or an adjudication;
 **the workers' roster is the user's, set at a steer** (DECISIONS 61):
-**four lanes for the forty-first tranche: Opus 5.5 at `--effort
+**four lanes for the forty-second tranche: Opus 5.5 at `--effort
 medium` on the AI word's lane, Sonnet 5.5 at `--effort medium` on the
 rules track, the shape sweep and the nations lane** (Ramon, at the
 fortieth steer, DECISIONS 78: five lanes cost 18 minutes a landing in
 waiting for one landing an hour, and the host budget admits 20 slots
-now; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
+now; the forty-first tranche on four ran at the loop's cheapest and no
+pass changes the roster, DECISIONS 79; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
 `--model 'claude-sonnet-5-5[1m]' --effort medium`, after three Opus
 tranches measured against three Sonnet ones, DECISIONS 65 and 68; the
 model and effort verified from each worker's transcript and the spawn
@@ -512,9 +513,11 @@ spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 --no-ff`, the booking commit, **the spawn that refills the lane, cut off
 that commit**, the gate to a file — **`--scope <the tip the last whole
 gate ran on> --test-threads 8` on a merge, and the whole gate, no
-`--scope`, every third landing and at the drain** (the thirty-fifth
-steer, DECISIONS 72: a scoped gate runs the timed tests only when a
-merge since the last whole one can move a pin) — **`git push origin
+`--scope`, every third landing whose merge widened and at the drain**
+(the thirty-fifth steer, DECISIONS 72: a scoped gate runs the timed
+tests only when a merge since the last whole one can move a pin; the
+forty-first pass, DECISIONS 79: a sweep or document landing in third
+position drew the whole gate by position, twice in one tranche) — **`git push origin
 worktree-replan-pdb`, read back by `git rev-parse HEAD
 origin/worktree-replan-pdb`** — `ccc push <ref> --base` pushes the
 row's *base*, which for the integration row is `main` (parked 1742),

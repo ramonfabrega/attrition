@@ -203,7 +203,7 @@ pub struct TuningReport {
 /// former alone, because the dump is what the program holds.
 pub fn tuning_drift(dump: &[ConstantDump<'_>]) -> TuningReport {
     let mut out = TuningReport::default();
-    for (name, slot) in Tuning::ron_slots() {
+    for &(name, slot) in Tuning::ron_slots() {
         let theirs = dumped(dump, name).map(|c| c.values.clone());
         let (ours, same): (String, bool) = match slot {
             Slot::Value(v) | Slot::Ratio256(v) | Slot::Ratio100(v) | Slot::Ratio192(v) => (
@@ -307,7 +307,7 @@ mod tests {
     fn tuning_drift_agrees_with_ron_on_a_consistent_dump() {
         // Build a dump straight from the table: no drift by construction.
         let mut owned: Vec<(String, Vec<i64>)> = Vec::new();
-        for (name, slot) in Tuning::ron_slots() {
+        for &(name, slot) in Tuning::ron_slots() {
             let vals = match slot {
                 Slot::Value(v) | Slot::Ratio256(v) | Slot::Ratio100(v) | Slot::Ratio192(v) => {
                     vec![i64::from(v)]

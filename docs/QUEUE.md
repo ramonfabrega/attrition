@@ -12,19 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-first tranche (commander, Opus): 20 landings from `0efdf09d`, drained**, four lanes (DECISIONS
-78 amended), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate at the drain.*
+*2026-10-18, **the forty-first pass (steer, Fable) done; the forty-second tranche (commander, Opus) opens from
+`PASS_SHA`**, four lanes (DECISIONS 78 (i), 79): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.*
 
-- **Words**: every pair closed. The battery word `EastIndiesGermanTier3` closed at 13519 (3086); its successor
-  `GreatLakesIroquoisTier3` 0 → 1120 → 1496 → 1772 of 12658 (3107, 3117 the Iroquois path mode, 3140 `swarm_around`'s
-  builder mark), as 3156; `EastIndiesDutchTier4` held out at 1567. Chapters 86–94 closed (3123 closed 94); 95 opened at
-  629 (3126, run920) and moved to 634 (3142), as 3152. Census 1224 → 1459 (3078, 3104, 3112, 3120, 3134). Battery median
-  1008 → 2207 → 2270 (3092, 3107); `GreatLakesChineseTier1` 176 → 12712 (3092, 3113); 3096, 3108, 3124, 3137 moved none.
-- **Lanes: none live** — the tranche drained at twenty; the next four unspawned: 3156 the AI word's (run 922, AI §249),
-  3152 the rules track's (GOLDEN §123), 3150 shape, 3145 nations. Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108, 3107,
-  3112, 3113, 3099, 3123, 3120, 3124, 3117, 3126, 3137, 3134, 3142, 3140. Next 3157, run 923 (Astra 900–909; 919 unused).
-  Pools: GOLDEN §124–128, AI §250–251, park HZ, IA–ID.
-- **Fable backlog: 37 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111, 3116, 3118, 3122, 3125, 3127, 3133, 3139, 3143, 3149, 3155).
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 1772 of 12658 (3107, 3117, 3140), its
+  widening owed as 3156 (run 922, from run921's last dumped block 1626); `EastIndiesGermanTier3` closed at 13519
+  (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–94 closed; 95 at 634 (3126, 3142), as 3152. Census
+  1459, **port 293 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
+  median 2270 (`GreatLakesChineseTier1` 12712; 3096, 3108, 3124, 3137 moved none).
+- **Lanes: none live** — the forty-first drained at twenty and the pass cleared `commander` here; unspawned: 3156
+  the AI word's (run 922, AI §249), 3152 the rules track's (GOLDEN §123), 3150 shape, 3145 nations. Next 3159, run
+  923 (Astra 900–909; 919 unused). Pools: GOLDEN §124–128, AI §250–255, park HZ, IA–ID. Last whole gate: the pass's.
+- **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
+- **Fable backlog: 13 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -34,14 +34,14 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w1772 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1459 of 3611
+Census: simulation backed 1459 of 3611 · port 293 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed · ch94 closed · ch95 w634 of 1,200
+Golden: ch95 w634 of 1,200 · 87 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the forty-first pass (steer, Fable): measure the forty-first tranche (twenty landings from `0efdf09d`,
-drained), ratify the marked rows, rule the 37 Loop items (3143, the saturated host, is Ramon's), then clear `commander`
-into the forty-second tranche on the queue's four unspawned items (3156, 3152, 3150, 3145).**
+**Opener: continue the forty-second tranche from docs/QUEUE.md's handoff — spawn 3156 (Opus 5.5 medium), 3152, 3150
+and 3145 (Sonnet 5.5 medium) off `PASS_SHA`; merge, book, refill, gate, push, reap; count landings from `PASS_SHA`
+and stop at twenty with the handoff written and the pass cleared in.**
 
 ## The queue
 
@@ -94,7 +94,7 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
   `docs/JOURNAL.md`.** It reports; the commander books and writes these
   lines; the story is `docs/journal/<date>-item-<N>.md`. **A pinned
   constant is the worker's to re-pin; the line is the commander's**, and
-  so is `census::SIMULATION_BACKED`, re-pinned at booking (Loop 2367).
+  so are `census::SIMULATION_BACKED` and `SIMULATION_PORT_BACKED`, re-pinned at booking (Loop 2367, 3093).
   The chain — merge, book, spawn, gate, push, reap — is `CLAUDE.md`'s.
 - **The floors and these lines move together** — `FLOORS`, `LONG_WORD_*`,
   `GOLDEN_WORD_*`, `ENDPOINTS`, `AI_WORDS` with `Scoreboard:`, `Long captures:`,
@@ -102,15 +102,15 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
   `Second pair:`, `Third map:`, `Census:`, `Fable backlog: N Loop items` and `lower map first — <map>` — read
   literally and **never wrapped**, or the count guard matches this line
   instead (twice, 09-19). The length guard counts every line to the next `## `.
-- **A capture is a draw-stream trace first, detail on demand** (DECISIONS
-  41): whole length at `cover=0`, then a windowed re-run sized to the word;
-  after 363, the click-free lane unless it needs the mouse. Overlap the
-  neighbours: six blocks each end (run83); `samegame.py` exits 0 when nothing
-  is in common, so assert the count, not the verdict; **a detached capture
-  waits on `waitrun.sh`** (565, 656). **A value question takes a packet at
-  the block before the first print** (EMULATOR §8, 2303).
+- **A capture is a draw-stream trace first, detail on demand** (DECISIONS 41): whole length at `cover=0`, then a
+  windowed re-run sized to the word, **from the last dumped block when a gap leaves it near** (3155); after 363, the
+  click-free lane unless it needs the mouse. Overlap the neighbours: six blocks each end (run83); `samegame.py` exits
+  0 when nothing is in common, so assert the count, not the verdict; **a detached capture waits on `waitrun.sh`**
+  (565, 656). **A value question takes a packet at the block before the first print** (EMULATOR §8, 2303).
 - **Grep for the derived quantity, the SHAPE and the GATE**: a term zero in every dump is
   zero-valued or switched off (117, 178); **a never-cleared field asserts a CHANGE, not a value** (`collide_frame`, run85).
 - **The gate is `python3 tools/release_gate.py <install> --test-threads 8 [--scope <tip>]`** (DECISIONS 72), to
-  a file, never piped — a pipe launders the 137 — ending `Gate steps:`; **a worker's takes `--lane --tests
-  --test-threads 4`** (the brief's, 1623), quotes `Lane verdict:` (969), and widens on a branch that moves a pin (2415).
+  a file, never piped — a pipe launders the 137 — ending `Gate steps:`, `Admission wait:` and `Host load:`; **whole
+  (no `--scope`) every third landing whose merge widened, and at the drain** (DECISIONS 79); **a worker's takes
+  `--lane --tests --test-threads 4`** (the brief's, 1623), quotes `Lane verdict:` (969), and widens on a branch that
+  moves a pin (2415).

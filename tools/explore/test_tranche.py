@@ -57,6 +57,10 @@ class Fold(unittest.TestCase):
 
     def test_the_classes(self):
         for command, cls in [('python3 tools/release_gate.py x --lane', 'gate'),
+                             # The forty-first pass: the read of a gate's log after the
+                             # wake is the gate's wait, not `other`.
+                             ('tail -c 1200 /Users/x/.claude/jobs/a40adc8e/tmp/gate2.log; grep -E Lane x', 'gate'),
+                             ('grep -aE \\"Lane verdict|^Gate steps\\" $CLAUDE_JOB_DIR/tmp/gate.log | tail -5', 'gate'),
                              ('zsh tools/gamelog/waitrun.sh /tmp/ron-runs/viadriver-1.log', 'capture'),
                              ('cat $J/tmp/chain1221.log | tail -5', 'capture'),
                              ('zsh tools/memcap.sh 16 cargo test --release', 'suite'),

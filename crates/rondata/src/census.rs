@@ -168,6 +168,15 @@
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
 pub const SIMULATION_BACKED: usize = 1459;
+/// Of those, the **port-backed**: a document's coverage section diffs the
+/// function, or `crates/sim` spells its own `Class::method` outside
+/// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
+/// sweep test asserts the raw word and nothing here reads it (Loop 3093,
+/// 1725: Ramon's answer at the fortieth steer; the forty-first pass
+/// measured 293 of 1459 on this tree). `tools/census.py --layers` prints
+/// both, the `Census:` line carries both, and the commander re-pins both at
+/// booking.
+pub const SIMULATION_PORT_BACKED: usize = 293;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
@@ -224,21 +233,27 @@ mod tests {
         }
         let measured = (
             field(&text, "simulation_backed").expect("simulation_backed"),
+            field(&text, "simulation_port_backed").expect("simulation_port_backed"),
             field(&text, "simulation_functions").expect("simulation_functions"),
         );
         assert_eq!(
             measured,
-            (SIMULATION_BACKED, SIMULATION_FUNCTIONS),
-            "the census moved: re-pin `census::SIMULATION_BACKED` and \
-             `SIMULATION_FUNCTIONS` to (backed, functions) as measured, and the \
-             handoff's `Census:` line with them"
+            (
+                SIMULATION_BACKED,
+                SIMULATION_PORT_BACKED,
+                SIMULATION_FUNCTIONS
+            ),
+            "the census moved: re-pin `census::SIMULATION_BACKED`, \
+             `SIMULATION_PORT_BACKED` and `SIMULATION_FUNCTIONS` to (backed, port, \
+             functions) as measured, and the handoff's `Census:` line with them"
         );
     }
 
     #[test]
     fn a_measured_field_is_read_whole() {
-        let json = r#"{"layers": {}, "simulation_backed": 45, "simulation_functions": 3611}"#;
+        let json = r#"{"layers": {}, "simulation_backed": 45, "simulation_port_backed": 9, "simulation_functions": 3611}"#;
         assert_eq!(field(json, "simulation_backed"), Some(45));
+        assert_eq!(field(json, "simulation_port_backed"), Some(9));
         assert_eq!(field(json, "simulation_functions"), Some(3611));
         assert_eq!(field(json, "simulation"), None);
     }

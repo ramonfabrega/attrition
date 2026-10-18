@@ -31,7 +31,7 @@ pub struct Drift {
 /// user's copy of the game ships.
 pub fn drift(rules: &Rules) -> Vec<Drift> {
     let mut out = Vec::new();
-    for (name, slot) in Tuning::ron_slots() {
+    for &(name, slot) in Tuning::ron_slots() {
         match slot {
             Slot::Value(ours) => {
                 let theirs = rules.constant(name).map(Scalar::written_int);

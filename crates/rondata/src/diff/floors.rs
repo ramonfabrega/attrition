@@ -264,18 +264,23 @@ mod tests {
     }
 
     /// **The census line is the pinned share** (item 1467): the board's
-    /// number for the sweep lane, `Census: simulation backed <B> of <N>`,
-    /// read against `census::SIMULATION_BACKED` and `SIMULATION_FUNCTIONS`
+    /// number for the sweep lane, `Census: simulation backed <B> of <N> ·
+    /// port <P> · layout <B−P>`, read against `census::SIMULATION_BACKED`,
+    /// `SIMULATION_PORT_BACKED` and `SIMULATION_FUNCTIONS`
     /// — the line a commander writes beside the words. Made to fail first
     /// on a handoff with no such line.
     #[test]
     fn the_handoff_s_census_is_the_pinned_share() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        // Loop 3093: the total first, as every reader of `<N> of <M>`
+        // expects, then the split the sweep lane is judged on.
         let want = format!(
-            "Census: simulation backed {} of {}",
+            "Census: simulation backed {} of {} \u{b7} port {} \u{b7} layout {}",
             crate::census::SIMULATION_BACKED,
-            crate::census::SIMULATION_FUNCTIONS
+            crate::census::SIMULATION_FUNCTIONS,
+            crate::census::SIMULATION_PORT_BACKED,
+            crate::census::SIMULATION_BACKED - crate::census::SIMULATION_PORT_BACKED
         );
         let line = q.lines().find(|l| l.starts_with("Census:"));
         assert_eq!(
@@ -928,11 +933,19 @@ mod tests {
     fn golden_line_verdict(line: &str, words: &[(&str, i64, (i64, i64))]) -> Result<(), String> {
         let mut said_closed: Vec<&str> = Vec::new();
         let mut said_open: Vec<(&str, i64)> = Vec::new();
+        // Loop 3125 (Ramon, the forty-first tranche): `<N> closed` is the
+        // count form — one part for every closed chapter, read against
+        // the pinned words, in place of ninety `chN closed` parts.
+        let mut said_count: Option<usize> = None;
         for part in line.trim_start_matches("Golden:").split('\u{b7}') {
             let t: Vec<&str> = part.split_whitespace().collect();
             let Some(name) = t.first().copied() else {
                 continue;
             };
+            if let (Ok(n), Some(&"closed")) = (name.parse::<usize>(), t.get(1)) {
+                said_count = Some(n);
+                continue;
+            }
             let Some((name, _, _)) = words.iter().find(|(n, _, _)| *n == name) else {
                 continue;
             };
@@ -949,9 +962,16 @@ mod tests {
             }
         }
         let mut open_words: Vec<i64> = Vec::new();
+        let closed = words.iter().filter(|(_, w, (_, hi))| *w == hi - 1).count();
+        if let Some(n) = said_count.filter(|n| *n != closed) {
+            return Err(format!(
+                "the `Golden:` line says `{n} closed` and {closed} pinned words are at \
+                 their trace's end: {line:?}"
+            ));
+        }
         for (name, w, (_, hi)) in words {
             if *w == hi - 1 {
-                if !said_closed.contains(name) {
+                if said_count.is_none() && !said_closed.contains(name) {
                     return Err(format!(
                         "{name} is closed (its word {w} is its trace's end) and the \
                          `Golden:` line does not say `{name} closed`: {line:?}"
@@ -1026,6 +1046,19 @@ mod tests {
         // says `restage w792` — the old guard skipped the part.
         let stale = format!("Golden: ch7b w1148 of 1200{sep}ch1 closed{sep}restage w792 of 1000");
         assert!(golden_line_verdict(&stale, &words).is_err(), "{stale}");
+        // Loop 3125: the count form. Two words are closed; `2 closed` stands
+        // for both, `1 closed` is a closed chapter left off, and a closed
+        // word still carried as open is caught under the count too.
+        let counted = format!("Golden: ch7b w1148 of 1200{sep}2 closed");
+        assert_eq!(golden_line_verdict(&counted, &words), Ok(()));
+        let short = format!("Golden: ch7b w1148 of 1200{sep}1 closed");
+        assert!(golden_line_verdict(&short, &words).is_err(), "{short}");
+        let stale_counted =
+            format!("Golden: ch7b w1148 of 1200{sep}2 closed{sep}restage w792 of 1000");
+        assert!(
+            golden_line_verdict(&stale_counted, &words).is_err(),
+            "{stale_counted}"
+        );
         // A pinned word missing from the line altogether.
         let missing = format!("Golden: ch1 closed{sep}restage closed");
         assert!(golden_line_verdict(&missing, &words).is_err(), "{missing}");

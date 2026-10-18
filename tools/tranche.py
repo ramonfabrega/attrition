@@ -45,7 +45,12 @@ WELL = "worktrees-att-{item}"
 # What a worker waits on, by the last instruction before the gap. Order
 # matters: a gate runs the suite, so the gate's own line is tested first.
 CLASSES = [
-    ("gate", re.compile(r"release_gate\.py")),
+    # The forty-first pass: a lane that backgrounded its gate and ended its
+    # turn reads the log when the harness wakes it (`tail … gate2.log`,
+    # `grep "Lane verdict" … gate.log`), and that read was the instruction
+    # before the gap — ten lane gates of one tranche, 20–35 minutes each,
+    # folded into `other` (15.7 of 32.4 minutes a session).
+    ("gate", re.compile(r"release_gate\.py|gate\d*\.log|Lane verdict|Gate steps")),
     ("capture", re.compile(
         r"waitrun\.sh|unattended_capture|longtrace\.sh|startcapture\.sh|"
         r"viadriver|clickdriver\.sh|winelaunch|golden/.*\.sh|frame_snapshot|"

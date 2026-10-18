@@ -2149,6 +2149,77 @@ fn a_journal_carries_no_tool_call_markup() {
     );
 }
 
+/// **A journal's "for the Loop" line is filed, or says `none`** (the
+/// forty-first pass): the commander files the line at the merge (`CLAUDE.md`,
+/// "Fan-out rules"), and five of fourteen findings of the forty-first tranche
+/// were not — 3086's, 3112's, 3126's, 3137's and 3142's — against two of
+/// twenty the tranche before. A journal dated from 2026-10-18 whose line is
+/// not `none` names its item in `docs/PARKED.md` or a pass's record under
+/// `docs/audit/` as `N's "for the Loop"`. Made to fail first on the three
+/// unfiled lines of 2026-10-18.
+#[test]
+fn a_journal_s_loop_line_is_filed_or_says_none() {
+    // The parked file wraps its rows, so the phrase is matched with its
+    // whitespace folded (3133's row broke between "for the" and "Loop").
+    let fold = |t: String| t.split_whitespace().collect::<Vec<_>>().join(" ");
+    let parked = fold(read("PARKED.md"));
+    let mut records = String::new();
+    for entry in std::fs::read_dir(docs().join("audit")).expect("docs/audit/") {
+        let path = entry.expect("entry").path();
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+        if name.contains("fable-pass") && name.ends_with(".md") {
+            records.push_str(&std::fs::read_to_string(&path).expect("read"));
+        }
+    }
+    let records = fold(records);
+    let mut unfiled = Vec::new();
+    for entry in std::fs::read_dir(docs().join("journal")).expect("docs/journal/") {
+        let path = entry.expect("entry").path();
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+        let Some((date, rest)) = name.split_once("-item-") else {
+            continue;
+        };
+        let Some(item) = rest.strip_suffix(".md") else {
+            continue;
+        };
+        if date < "2026-10-18" {
+            continue;
+        }
+        let text = std::fs::read_to_string(&path).expect("read");
+        let Some(line) = text
+            .lines()
+            .find(|l| l.to_lowercase().contains("for the loop"))
+        else {
+            continue;
+        };
+        let after = line.to_lowercase();
+        let after = after
+            .split_once("for the loop")
+            .map(|(_, a)| a)
+            .unwrap_or("");
+        let after = after.trim_start_matches(|c: char| !c.is_alphanumeric());
+        if after.starts_with("none") {
+            continue;
+        }
+        let filed = format!("{item}'s \"for the Loop\"");
+        let filed_curly = format!("{item}'s \u{201c}for the Loop\u{201d}");
+        if !(parked.contains(&filed)
+            || parked.contains(&filed_curly)
+            || records.contains(&filed)
+            || records.contains(&filed_curly))
+        {
+            unfiled.push(format!("{name}: {}", line.trim()));
+        }
+    }
+    assert!(
+        unfiled.is_empty(),
+        "journal lines headed \"for the Loop\" that neither say `none` nor are filed as \
+         `N's \"for the Loop\"` in docs/PARKED.md or a pass's record — the commander files \
+         the line at the merge (CLAUDE.md, \"Fan-out rules\"):\n{}",
+        unfiled.join("\n")
+    );
+}
+
 /// What a `SEAM` says when it cites the disk for an absence.
 const SEAM_ABSENCES: &[&str] = &[
     "no capture",

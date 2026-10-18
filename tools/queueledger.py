@@ -132,7 +132,11 @@ def parens(text):
     "off by (11,7)" and booking both; a comma form was never used for items.
     """
     out = set()
-    for group in re.findall(r"\((%s(?:/%s)*)\)" % (N, N), text):
+    # Loop 3103 (the forty-first pass): `ally_i.min(7)` in a parked row is a
+    # call, not a park — the ledger noted "7 is ledgered and live again" on
+    # every gate of a tranche for it. A park's parenthesis follows a space,
+    # a line start or punctuation, never an identifier or a dot.
+    for group in re.findall(r"(?<![\w.])\((%s(?:/%s)*)\)" % (N, N), text):
         out |= {int(n) for n in group.split("/")}
     return out
 

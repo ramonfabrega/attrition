@@ -18,6 +18,15 @@ class Scan(unittest.TestCase):
         self.assertEqual(unitaddr.find([(0x1000, blob)], x, y), [0x1000 + 0x40 - unitaddr.AT])
         self.assertEqual(unitaddr.find([(0x1000, blob)], x, y + 1), [])
 
+    def test_an_unaligned_hit_is_not_a_unit(self):
+        # Loop 3122 (3099's line): `0xe3f58e` was a false hit on run916b — a
+        # unit is heap-allocated and its address is a multiple of four; a pair
+        # found at an odd offset is bytes that happen to match.
+        x, y = 1200, 340
+        pair = struct.pack('<II', (x ^ unitaddr.MASK), (y ^ unitaddr.MASK))
+        blob = bytes(0x10) + pair + bytes(0x13) + pair
+        self.assertEqual(unitaddr.find([(0x1000, blob)], x, y), [0x1000])
+
     def test_every_hit_is_listed_across_ranges(self):
         x, y = 5, 6
         pair = struct.pack('<II', x ^ unitaddr.MASK, y ^ unitaddr.MASK)

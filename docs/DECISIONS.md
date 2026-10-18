@@ -90,6 +90,7 @@ is append-only and amended in place, as it always was.
 - 76 standing — The thirty-eighth tranche is scored under host admission, the admission and the fourth lane stay, the census subtracts a sweep's stubbed callees, and twenty Loop items become tools, rows or closes
 - 77 standing — The thirty-ninth tranche is scored at the loop's fastest, the fourth lane holds while the fifth goes to a steer, the sweep lanes get a claim mark, and thirteen Loop items become tools, rows or closes
 - 78 standing — The fortieth tranche is scored on five lanes, the booking gate is named the chain's bottleneck and its scope stops widening on the blind residue, the waiter reads a finished log under another lane's runner, and nine Loop items become tools, rows or closes
+- 79 standing — The forty-first tranche is scored on four lanes at the loop's cheapest, the census splits port-backed from layout-backed, the Golden line is counted, the whole gate counts widening landings, and twenty-six Loop items become tools, rows or closes
 
 ## 1. Fidelity before divergence
 
@@ -6308,3 +6309,133 @@ a document-only lane gate skips the release build. (vi) **The stride
 is booked as the AI lane's own item at its next windowed capture over
 a gap** (Loop 3085). The commander is cleared into the forty-first
 tranche on these.
+
+## 79. The forty-first tranche is scored on four lanes at the loop's cheapest, the census splits port-backed from layout-backed, the Golden line is counted, the whole gate counts widening landings, and twenty-six Loop items become tools, rows or closes
+
+*2026-10-18, the forty-first Fable pass, the `steer` session, cleared
+into by the commander at the drain (`ec1f4b65`), unattended under entry
+61's fence. The record is `docs/audit/2026-10-18-fable-pass-41.md`.*
+
+**The tranche.** Twenty landings on four lanes in **4 h 44** from the
+pass's commit (`0efdf09d` 21:03 to 3140's booking and handoff `ec1f4b65`
+01:47), the drain gate green at 01:56 — against 4 h 49 on five lanes
+and 3 h 53 on four the tranche before that. `tools/tranche.py` over the
+twenty (21 sessions): working 254 minutes, **waiting 680 — 34.0 a
+landing, 32.4 a session** (41.9 / 38.1 before). **Fourteen booking
+gates, every one green on its first commit** — the first tranche with
+no red gate — seven whole and seven scoped, and **every scoped gate
+widened to every timed test** (a word's re-pin, a parser, a loader on
+each merge), while **two of the seven whole gates fell by position on a
+sweep landing that could not move a pin** (`88cc8996` after 3078,
+`34d6b7d6` after 3112: `census.rs` and `sweep/` alone) — 20.5 minutes
+against six; 119.8 minutes of gate on the commander's 293. The
+admission budget at 20 (entry 78 (ii)) did what the steer meant: the
+gates waited **1375.6 s summed at the door, longest 83.8 s** (246 / 28.6
+under 32 slots) — and the lane gates still ran **19–31 minutes on ten
+of fourteen**, 6–13 on the four that gated after 01:00 with two lanes
+live, because a Wine capture and an orphaned test binary (below) sit
+outside the budget. One `DEEP` (3099 at 307 k, cleared in 5 s into a
+1.54 USD session), one `STALLED` (3099's second session on its gate),
+two `LANDED` after the lane's own line, no `UNCLEARED`; no kill rule,
+no blocked ending, no merge backed out.
+
+**The words.** The battery word `EastIndiesGermanTier3` **12836 → 13519,
+closed** (3086); its successor `GreatLakesIroquoisTier3` **0 → 1120 →
+1496 → 1772** of 12,658 (3107, 3117, 3140), each with its value diff,
+the stride built on the way (3117, Loop 3085: `tools/trace/stride.h`,
+`stride=N`); `EastIndiesDutchTier4` minted held-out at 1567. Chapter
+**94 opened at 1178 and closed at 1200** (3067, 3123); **95 opened at
+629 and moved to 634** (3126, 3142). The census **1444 → 1459**. The
+held-out battery's median **1008 → 2207 → 2270** (3092 the Chinese
+citizens' `train_time`, 3113 the Russian and Chinese `gain_tech` blocks;
+`GreatLakesChineseTier1` 176 → 12712); 3096, 3108, 3124 and 3137 built
+nation terms no battery lobby's leader reaches and moved none, which is
+3145's order.
+
+**The roster, lane by lane** (every session's model read from its
+transcript; every spawn line `--effort medium`; lore's list price at
+2026-10-18's rates; USD and minutes waiting a landing against the
+tranche before): the AI word on Opus 5.5 medium, four landings, **8.59
+/ 40.0** (12.31 / 114.6); the rules track on Sonnet 5.5 medium, five,
+**3.67 / 37.9** (3.84 / 59.7); the shape sweep on Sonnet, five, **4.52
+/ 30.9** (6.22 / 26.7); the nations lane on Sonnet, six, **1.60 / 29.4**
+(the harvest sweep's 6.31 / 28.3). Workers **84.90 USD, 4.25 a landing**
+(6.22); the commander 15.77; **100.67** in all (141.73) — the loop's
+cheapest tranche. The roster stands; no pass changes it (entry 61).
+
+**The census splits** (Loop 3093; 1725, Ramon's answer at the fortieth
+steer after twelve askings, built here after the thirteenth). A backed
+simulation function is **port-backed** when a document's coverage
+section diffs it or `crates/sim` spells its own `Class::method` outside
+`sweep/` — a consumer this crate runs — and **layout-backed** when a
+sweep test alone asserts the raw word. On this tree: **293 port, 1166
+layout of 1459**. `tools/census.py --layers` prints both; the line is
+`Census: simulation backed B of N · port P · layout B−P` (the total
+first, as every reader of `<N> of <M>` expects); `census::
+SIMULATION_PORT_BACKED` is pinned beside `SIMULATION_BACKED`, the
+commander re-pins both at booking, and `the_handoff_s_census_is_the_
+pinned_share` reads all three. The pass recommends, and does not
+decide, that the shape lane be judged on the port count from the
+forty-second tranche and pick its batches by the `port` mark first.
+
+**The Golden line is counted** (Loop 3125, Ramon's). `golden_line_
+verdict` reads `<N> closed` as the count of pinned words at their
+trace's end, refuses a count off by one and a closed word still carried
+as open, and still accepts the per-chapter form; the handoff's line is
+`Golden: ch95 w634 of 1,200 · 87 closed`, 1,400 characters to 45 — and the guard's first run refused the pass's own miscount (88 written from a `grep -c`, 87 pinned).
+
+**The whole gate counts widening landings** (Loop 3094, Ramon's,
+measured above). The chain clause in `CLAUDE.md` and the queue's gate
+line read: the whole gate every third landing **whose merge widened**
+(`lane_widens` non-empty on the merge's paths — the scoped gate's own
+banner says which) and at the drain; a sweep or document landing in
+third position no longer draws a whole gate by position.
+
+**The receipt says load** (Loop 3091): the gate's last line is `Host
+load: <start> at start, <end> at end, on <cores> cores`; a load past the
+cores is dilation whatever the admission receipt said.
+
+**Twenty-six Loop items ruled.** Built, red first: 3093, 3125, 3094 (as
+the rule), 3091, 3103 (`queueledger.parens` refuses a call's argument —
+`ally_i.min(7)` was the ledger's phantom 7), 3127 (the armies dump
+wired into the civilians walk), 3122's `unitaddr.py` half (an unaligned
+hit is dropped; the `calc_cost` diff tool stays), 3137's line (the slot
+table is a slice), and the pass's own (`tranche.py` reads a gate-log
+read as the gate's wait). Built as rows: 3155 (a windowed re-run over a
+gap starts at the last dumped block when it is near), 3133 with 3112's
+line (a sweep park names the flag the generator could not spell), 3086's
+line (a word at a lobby's last frame is scored on the long's closing
+block), 3089's first half (the journal before the gate). Closed built by
+the lane: 3085 (the stride, 3117). Folded: 3088 into 3143, 3111 into
+3013. Closed unreached under entry 54 §7: 2983, 2987, 3002, 3003, 3007,
+3012, 3023, 3043, 3048, 3057, 3062, 3077, 3089's second half, 3090.
+Filed: 3157 (a golden chapter's six-place wiring wants a scaffold), 3158
+(`seams.py` has no row for a term a document cites and the code lacks).
+Thirteen stay: 1570 and 3118 (Ramon's), 3143 (Ramon's, with the
+measurement), 2003 (the ledger), 3013, 3095, 3102, 3116, 3122, 3139,
+3149, 3157, 3158.
+
+**A journal's line is guarded.** Five of the tranche's fourteen "for
+the Loop" findings were not filed at the merge (3086's, 3112's, 3126's,
+3137's, 3142's; two of twenty the tranche before). `docs_guard::
+a_journal_s_loop_line_is_filed_or_says_none` reads every journal dated
+from 2026-10-18: a line that is not `none` names its item as `N's "for
+the Loop"` in `docs/PARKED.md` or a pass's record, or the gate is red.
+Made to fail first on the day's unfiled lines.
+
+**What is not established.** Whether twenty slots or the capture lane's
+place outside the budget is the larger part of the lane gates' 19–31
+minutes — the next tranche's `Host load:` lines will say; whether the
+port-backed count moves at a sweep lane's pace once the lane picks by
+the mark (the first number is 293); what the orphan `sweep_a_f …
+city_data_num_city_buildings` is looping on (the soak found a
+non-terminating loop in an hour; this one has run a day under no
+budget, pid 51257, and the pass's kill was refused).
+
+**For Ramon, held by the fence** (entry 61 §4): the orphan's kill; the
+budget — 16 slots, or a lease for the capture lane; whether the shape
+lane is judged on the port count; 3118's sound, with the check named;
+1570. The pass recommends in its record and moves none of them. The
+commander is cleared into the forty-second tranche on the queue's four
+unspawned items (3156, 3152, 3150, 3145), four lanes, the roster of
+entry 78 (i).

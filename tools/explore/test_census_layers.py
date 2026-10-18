@@ -99,6 +99,21 @@ fn a_plain_test() {
         self.assertEqual(got, {0x610000, 0x710000})
 
 
+class TheSplitColumn(unittest.TestCase):
+    # Loop 3093 (1725): a sweep that asserts a raw word backs the layout;
+    # a function a document diffs or the crate spells is port-backed.
+    def test_port_or_layout(self):
+        by_doc, by_sweep, spelled = {0x10}, {0x10, 0x20, 0x30}, {'Unit::hits'}
+        self.assertTrue(census.is_port_backed(0x10, 'Unit::move_step', by_doc, by_sweep, spelled))
+        self.assertTrue(census.is_port_backed(0x20, 'Unit::hits', by_doc, by_sweep, spelled))
+        self.assertFalse(census.is_port_backed(0x30, 'Unit::is_tank', by_doc, by_sweep, spelled))
+        self.assertFalse(census.is_port_backed(0x40, 'Unit::hits', by_doc, by_sweep, spelled))
+
+    def test_the_line_leads_with_the_total(self):
+        self.assertEqual(census.census_line(1459, 900, 3611),
+                         'Census: simulation backed 1459 of 3611 · port 900 · layout 559')
+
+
 class TheUnbackedList(unittest.TestCase):
     # Parked 1703 (four scratch listers) and 1725 (offset identities
     # counted as backed): the lister ranks the never-backed simulation

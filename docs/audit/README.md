@@ -315,6 +315,36 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the forty-first pass
+
+The forty-first tranche (DECISIONS 79): twenty landings on four lanes in
+4 h 44 from the pass's commit, 4.25 USD and 34.0 minutes waiting a
+landing (6.22 / 41.9 on five); no red booking gate, no kill rule, one
+`DEEP`, one `STALLED`, no merge backed out. The pass added these rows,
+each from the tranche's own journals; the chapter kind stood at 12,991
+of its 13,000 and the pass trimmed words, never a number, to seat them.
+
+- **A windowed re-run over a gap starts at the last dumped block when
+  it is within reach** (3155, 3140's line): the booking sized 1490..1746
+  to the word, the walk named 1376–1378 — 126 blocks before it — and a
+  second capture was owed; from run918's 1370 the same capture would
+  have covered the walk-back.
+- **A word at a lobby's last frame is scored on the long's closing
+  block before a capture is booked** (3086's line): the close of a
+  self-ending lobby is on disk in its own long (`cover=0` prints the
+  closing block whole), and the peace pair's closing state was scored
+  on a fresh capture where the long would have served.
+- **A shape parked names the flag the generator could not spell, after
+  a grep of `sweep_gen.py`'s `_stub` and `--alias` docs** (3133,
+  3112's and 3120's lines): 3078, 3104 and 3112 each parked
+  `num_aircraft_here`, `get_wonder_value`, `find_dock` and `new_danger`
+  as unstarted, and 3120 built all four on flags the generator had.
+- **The journal before the gate, and its "for the Loop" line is `none`
+  or a finding the commander files** (3089, 2971's line; the forty-first
+  pass's guard `a_journal_s_loop_line_is_filed_or_says_none`): a lane
+  gate refuses a tree with no journal, and five of the tranche's
+  fourteen findings were not filed at the merge.
+
 ## The brief checklist, from the fortieth pass
 
 The fortieth tranche (DECISIONS 78): twenty landings on five lanes in
