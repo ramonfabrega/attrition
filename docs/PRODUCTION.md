@@ -360,7 +360,10 @@ enumerated here rather than each derived:
   `SPIES_GENERALS_CREATED_FASTER` as a half, `INSTANT_UNIT_BONUS` returning
   `ACCEL_TRAIN * 5 - 1` so the item completes in five frames.
 - **Rares and upgrades.** Cotton, wool, uranium, relics, and the ship, troop
-  and vehicle speed upgrade counts as a `(10 - n)/10` factor.
+  and vehicle speed upgrade counts as a `(10 - n)/10` factor. Cotton takes
+  `COTTON_CREATION_SPEED` (25%) off a unit whose trainer is the Barracks, the
+  Stable or the Dock by equality, after the speed-upgrade step — built,
+  diff-backed on the Barracks arm (`docs/AI.md` §256).
 - **Generals.** "The President" on both buildings and units.
 - **Lobby and handicap.** The tech-cost setting as 2/3 or 3/2, a handicap as
   `(200 - h)/200`, and the Conquer-the-World Great Thinker card, applied once

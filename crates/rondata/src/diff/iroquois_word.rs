@@ -125,9 +125,18 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // only. With it, 8415: ours 8 draws, theirs 14, index 3, ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::init_real+0x52`; past run937's last block (8232), its
+    // widening owed. **Item 3248 widened it on run940 and moved it 8415 →
+    // 10695** (`docs/AI.md` §256): theirs' Barracks `1/2016` finished its
+    // Javelineers on 8415 at a clock of 16200, ours' target 18750 — who=1
+    // gained Cotton that frame (block 8416's rare mask `080000` →
+    // `081000`, the Merchant `1/24`'s cast), and `train_time`'s Cotton arm
+    // on a Barracks, Stable or Dock unit (`COTTON_CREATION_SPEED`, 25%:
+    // 15000) was not carried. With it, 10695: ours 12 draws, theirs 11,
+    // index 10, ours `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, theirs
+    // `Farms::inc_time+0x1ae`; past run940's last block (8665), its
     // widening owed.
-    count: 8415,
-    sequence: 8415,
+    count: 10695,
+    sequence: 10695,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -925,6 +934,64 @@ fn run937_s_word_frame_is_widened_whole() {
     // to 8415 (`docs/AI.md` §255). The move's value diff is blocks 7980 and
     // 7983.
     pin_eq!(w.firsts.len(), 51, "initial run937 baseline");
+}
+
+/// run940: the word 8415's window, blocks 8409..8665 at run937's detail
+/// (`LEADERS=9`, `GUYS=4`; item 3248) — six blocks before the word's own
+/// block 8416, 250 after; no earlier dump of this lobby holds 8232..12658.
+pub(crate) const RUN940: &str =
+    "gamelog-run940-greatlakes-iroquois-diff3-window-8409-8666-guys4.txt";
+
+/// The window: block 8409 through 8665.
+pub(crate) const WIDENING_IROQUOIS_FRAME_8415: (i64, i64) = (8409, 8665);
+
+pub(crate) fn iroquois_frame_8415_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run940",
+        &[(RUN940, WIDENING_IROQUOIS_FRAME_8415.0)],
+        WIDENING_IROQUOIS_FRAME_8415,
+        1,
+        &[8416],
+        true,
+    )
+}
+
+#[test]
+fn run940_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_8415_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3248, on base bfd657c1: 909 keys. The first rows past the
+    // standing set (8409) are block 8415's `1/24` second figure (theirs'
+    // Merchant snaps it onto figure 0 at its cast's end, ours walks it on:
+    // `g.x[1]` 1622 against 1536) and block 8416's birth: theirs' Barracks
+    // `1/2016` empties (`queue:queued` ours 2, theirs 1), the three
+    // Javelineers `1/48`..`1/50` the dump holds alone, `num_units[33]` ours
+    // 1 against theirs 2. With `train_time`'s Cotton arm, 61: the standing
+    // set on 8409 (the `SITE` regs, the forms, pools 64 and 66, `1/22`'s
+    // `blown`, `1/23`'s second figure, the newborn figures' `g.angle[0]`,
+    // `0/-1`'s `aggression[1]`), `1/24`'s second figure on 8415 and its
+    // `g.end_time[1]` on 8416, pools 65 (8416) and 67 (8497), and three
+    // `dest_angle`s (8453, 8463). The word moved past the window to 10695
+    // (`docs/AI.md` §256). The move's value diff is block 8416.
+    pin_eq!(w.firsts.len(), 61, "initial run940 baseline");
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at

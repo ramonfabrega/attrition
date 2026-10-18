@@ -9828,12 +9828,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // the Javelineers' upgrade ours priced 80/80 and theirs 68/68. **Item
     // 3242 moved it 7982 → 8415** (`get_cost`'s Despotism arm on a
     // Barracks unit), past run937's last block: owed as 3247
-    // (`docs/PARKED.md`).
+    // (`docs/PARKED.md`). 8415 was widened by item 3248 on run940 over
+    // 8409..8665 (`run940_s_word_frame_is_widened_whole`): block 8416's
+    // birth, theirs' Javelineers finished under Cotton. **Item 3248 moved
+    // it 8415 → 10695** (`train_time`'s Cotton arm), past run940's last
+    // block: owed as 3253 (`docs/PARKED.md`).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3247,
+        3253,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

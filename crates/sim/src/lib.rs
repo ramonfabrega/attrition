@@ -3646,6 +3646,33 @@ impl Sim {
             let n = self.speed_upgrade_level(who, ladder);
             tail.push(production::Adjust::Ratio(10 - n, 10));
         }
+        // **The Cotton arm** (`train_time@006508c0:268`–`273`, after the
+        // speed-upgrade step and before the spy/general arm): a unit whose
+        // trainer (`TypeData +0x40`) is, by equality, the Barracks, the
+        // Stable or the Dock (0x1ab, 0x1ac, 0x1b0) takes
+        // `COTTON_CREATION_SPEED` when its player holds Cotton (`0x6da6 &
+        // 1` or `0x6dce & 1`). The battery's Iroquois Barracks `1/2016`
+        // finishes its Javelineers on 8415, the frame who=1 gains Cotton:
+        // 18750 × 100 / 125 = 15000 against a clock of 16200 (run940,
+        // `docs/AI.md` §256).
+        if self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.where_)
+            .is_some_and(|w| {
+                [
+                    nations::ty::BARRACKS,
+                    nations::ty::STABLES[0],
+                    nations::ty::DOCKS[0],
+                ]
+                .contains(&w)
+            })
+            && self.has_rare(who, economy::COTTON)
+        {
+            tail.push(production::Adjust::Faster(
+                self.tuning.cotton_creation_speed,
+            ));
+        }
         // `SPIES_GENERALS_CREATED_FASTER`: a Spy or a General under the
         // bonus takes half (`train_time@006508c0:271`–`283`, after the
         // cotton arm and before the wool one; item 1584).

@@ -22981,12 +22981,68 @@ before it is read from the listing, and no capture has a Despot's ship or aircra
 **Coverage.** *Diff-backed*: the first tier on a Barracks unit's research (run937, blocks 7980 and 7983). *Reading
 only*: the train arm on a capture (the test holds it), and tiers two and three.
 
-## 256. Reserved for the next item on the AI track
+## 256. The word 8415 → 10695: Cotton trains a Barracks, Stable or Dock unit faster (2026-10-18, item 3248)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 8415 (§255), ours 8 draws against theirs 14 at index 3,
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`. No dump of the lobby held a block past
+8232.
+
+**The draws.** Theirs' indices 3..5 are three `Guy::init_real+0x52`, and its `Guy::inc_time` rolls are six to ours'
+three: three figures born on the frame, each drawing at its init and at its first clock. `births.py` names them on block
+8416: `1/48`, `1/49` and `1/50`, `JAVELINEERS` (type 83), uid 73..75, group 65, beside the Barracks `1/2016`.
+
+**The queue** (`buildat.py` on run940, `RON_DEBUG_BUILDS=8414-8415` on ours). Both sides' Barracks `1/2016` hold
+`[83 JAVELINEERS, 166 IRQSPEAR]`, and the head's clock runs 100 a frame on both: 16200 on block 8415. Theirs' entry is
+gone on block 8416; ours' runs on to 16300 against a target of **18750**. That target is the whole `train_time`: base
+150 × 100 = 15000, `UNIT_RATE_BASE` 6/5 → 18000, plus one owned Javelineers (`num_units[33]` 1 on both sides) of ramp,
+750. A target that stopped theirs on 8415 with a clock of 16200 is at most 16200.
+
+**The direction: theirs acted, on its leader record.** `leader.py` across blocks 8414..8416, who=1: block 8416's first
+44-bit mask (the rares) goes `080000` → **`081000`**, byte 2 bit 0, and `resources`/`income` 1952 → 2272. Byte 2 bit 0
+is `rare` bit 16, good 22, **Cotton**: theirs' Merchant `1/24` finished its `CASTORDER` (spell 656) on 8415.
+`ObjectData::train_time@006508c0:268`–`273` reads exactly that bit:
+
+```text
+w = TypeData[ty] +0x40                       # the trainer
+if (w == 0x1ab || w == 0x1ac || w == 0x1b0)  # Barracks, Stable, Dock — by equality
+   && (+0x6da6 & 1 || +0x6dce & 1):          # Cotton, rare or rare_conquest
+    t = t * 100 / (COTTON_CREATION_SPEED + 100)   # 25%, rules.xml
+```
+
+18750 × 100 / 125 = **15000**, under the clock, so the entry is done on 8415. The arm sits after the speed-upgrade step
+(`0065102d`) and before `SPIES_GENERALS_CREATED_FASTER`; this crate's tail named it in a comment and never carried it.
+Ours gained the same Cotton on the same frame: `resources` and `income` are compared and stay quiet on 8416. The masks
+themselves (`bits`/`bit_values`) and `rares_collected` are on the coverage's unread list, so the dump's mask is the
+reading here, not a diff.
+
+**Built**: the arm in `Sim::train_tail` (`lib.rs`), the trainer by `where_` against `nations::ty::BARRACKS`,
+`STABLES[0]` and `DOCKS[0]`, and `has_rare(who, economy::COTTON)`; `Tuning::cotton_creation_speed`, 25, checked against
+`rules.xml`'s `COTTON_CREATION_SPEED`.
+
+| run940 | keys | the word |
+|---|---:|---|
+| base `bfd657c1` | 909 | 8415 |
+| the Cotton arm | 61 | **10695** |
+
+**The value diff, block 8416** (the base): `1/2016` `queue:queued` ours 2 against theirs 1; `1/48`..`1/50` held by the
+dump alone; who=1 `num_units[33]` ours 1 against theirs 2, `num_queued[33]` 1 against 0, `active`/`control` 41 against
+42. With the arm, all of them quiet.
+
+The 61 are the standing set on 8409 (the `SITE` regs, the forms, pools 64 and 66, `0/-1`'s `aggression[1]`, `1/22`'s
+`blown`, `1/23`'s second figure, the newborn figures' `g.angle[0]`), `1/24`'s second figure on 8415 (theirs snaps it onto
+figure 0 at its cast's end: `g.x[1]` 1622 against 1536, `g.gpiece` 11/14091 against 50690) and its `g.end_time[1]` on
+8416, pools 65 (8416) and 67 (8497), and `dest_angle` on `1/26`, `1/29` (8453) and `1/27` (8463). **The word moved
+8415 → 10695**: ours 12 draws against theirs 11, index 10, ours `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, theirs
+`Farms::inc_time+0x1ae` — one more figure clock roll on ours' side, the hypothesis the next item tests. It is past
+run940's last block, so its widening is owed (parked 3253). No other lobby's first parting moved.
+
+**Test**: `a_barracks_stable_or_dock_unit_trains_faster_for_a_player_holding_cotton` (`harness_tests.rs`): a Barracks,
+a Stable and a Dock unit take 25%, a unit of the second Stable (0x1ad) and a Citizen do not, and 18750 → 15000.
+Mutations through `tools/mutate.py`, all held: the rare gate dropped (`iroquois_word_first_parting` and the unit test
+fail), and the trainer widened to 0x1ad (the unit test fails).
+
+**Not established.** The Stable and Dock arms are read, not diffed: no capture on file holds a Cotton player's Stable
+or Dock unit in training. `rare_conquest`'s half of the gate is this crate's union in `Ledger::rare`, as for Wool.
 
 ## 257. Reserved for the next item on the AI track
 
