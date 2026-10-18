@@ -3742,6 +3742,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
+(3249) **`sweep_gen.py`'s `--stub-write` writes only a fixed value** (3238's parked (d), (e) and (g), named in its
+done line and filed at its merge): `Army::do_marching` needed two sweep modules, one per answer, because a stub's
+written value cannot be drawn, and `Build::find_gather_tiles`' final list is always six tiles for the same reason; a
+`--stub-grow` (a stub appending a drawn count of unique words) is wanted for the list itself. And a standalone sweep
+sees only the crate's `pub` surface, so four methods were made `pub` for it. Candidate: a drawn `--stub-write`, made
+to fail first on do_marching's two modules folded into one; it folds with 3240 at the pass. One reach.
+
 (3240) **`sweep_gen.py`'s five gaps from one batch** (3229's "for the Loop" line, its parked (3229c), filed at its
 merge): `--regen` keeps a flag dropped from an `@FILE` (the kept `# sweep_gen:` line merges with the new flags); a
 32-bit `--wbias` zeroes neighbouring bytes; a void function returning a loaded window pointer in eax has no spelling
