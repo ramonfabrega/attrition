@@ -751,11 +751,11 @@ impl Sim {
                     return (REFUSED, false);
                 }
             }
-            // Fleeing triples the additive part.
-            if self
-                .current_order(u)
-                .is_some_and(|o| o.flags & orders::flag::FLEEING != 0)
-            {
+            // Fleeing triples the additive part. The predicate is
+            // `UnitData::is_fleeing@0046efa0` (the current order's type is
+            // `FLEE_TO`), not the order's `flags & 2`, which nothing writes
+            // (`docs/ORDERS.md` §4; item 3246, `docs/GOLDEN.md` §134).
+            if self.is_fleeing(u) {
                 extra *= 3;
             }
             // **The no-rush timer** (`calc_cost@00684e50:411`-`420`, item
