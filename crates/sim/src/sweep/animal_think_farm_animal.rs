@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -73,8 +78,18 @@ fn the_emulated_original_agrees_on_every_row() {
                     hits: 500,
                     ..BuildType::default()
                 });
-                let ref_pos = if num == 0 { objpos(&p[1 + idx]) } else { objpos(&p[1 + head]) };
-                let far = |v: i32| if v / 192 < 8 { v + 6 * 192 } else { v - 6 * 192 };
+                let ref_pos = if num == 0 {
+                    objpos(&p[1 + idx])
+                } else {
+                    objpos(&p[1 + head])
+                };
+                let far = |v: i32| {
+                    if v / 192 < 8 {
+                        v + 6 * 192
+                    } else {
+                        v - 6 * 192
+                    }
+                };
                 let bpos = if num == 0 || cov != 0 {
                     ref_pos
                 } else {
@@ -110,7 +125,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     };
                     go.been_there = true;
                     sim.units[g].orders[i].body = crate::orders::Body::Gather(go);
-                    assert_eq!(sim.num_gatherers(b, true, false), 1, "arrived, row `{line}`");
+                    assert_eq!(
+                        sim.num_gatherers(b, true, false),
+                        1,
+                        "arrived, row `{line}`"
+                    );
                 } else {
                     // Half the zero-count rows hold a citizen still *walking* to the farm (`been_there` clear):
                     // on the chain by length, not counted as arrived, and standing off the farm's footprint.
@@ -120,12 +139,21 @@ fn the_emulated_original_agrees_on_every_row() {
                             worker: crate::orders::Worker::Citizen,
                             ..crate::UnitType::default()
                         });
-                        let mut g = crate::Unit::new(0, 99, Pos::new(far(ref_pos.x), far(ref_pos.y)), 10);
+                        let mut g =
+                            crate::Unit::new(0, 99, Pos::new(far(ref_pos.x), far(ref_pos.y)), 10);
                         g.ty = Some(citizen);
                         let g = sim.add_unit(g);
                         sim.add_gather_order(g, b, crate::orders::QueuePos::New, false);
-                        assert_eq!(sim.num_gatherers(b, false, false), 1, "on the chain, row `{line}`");
-                        assert_eq!(sim.num_gatherers(b, true, false), 0, "not arrived, row `{line}`");
+                        assert_eq!(
+                            sim.num_gatherers(b, false, false),
+                            1,
+                            "on the chain, row `{line}`"
+                        );
+                        assert_eq!(
+                            sim.num_gatherers(b, true, false),
+                            0,
+                            "not arrived, row `{line}`"
+                        );
                     }
                     if cov == 0 {
                         sim.buildings[b].ty = None;
@@ -143,19 +171,37 @@ fn the_emulated_original_agrees_on_every_row() {
                 sim.think_farm_animal(u);
                 let drew = sim.rng.seed != seed;
                 let ordered = !sim.units[u].orders.is_empty();
-                assert_eq!(drew, want_log.iter().any(|t| t.starts_with("s3:")), "draw, row `{line}`");
-                assert_eq!(ordered, want_log.iter().any(|t| t.starts_with("s4:")), "order, row `{line}`");
+                assert_eq!(
+                    drew,
+                    want_log.iter().any(|t| t.starts_with("s3:")),
+                    "draw, row `{line}`"
+                );
+                assert_eq!(
+                    ordered,
+                    want_log.iter().any(|t| t.starts_with("s4:")),
+                    "order, row `{line}`"
+                );
                 if drew {
                     assert_eq!(sim.rng.seed, after_one.seed, "one draw, row `{line}`");
                 }
                 if ordered {
-                    let Some(crate::orders::Body::Move(mo)) = sim.units[u].orders.front().map(|o| o.body) else {
+                    let Some(crate::orders::Body::Move(mo)) =
+                        sim.units[u].orders.front().map(|o| o.body)
+                    else {
                         panic!("a MOVE_TO, row `{line}`")
                     };
                     let w9 = &want[5 + 9];
-                    assert_eq!((rd(w9, 4), rd(w9, 8)), (mo.dest.x, mo.dest.y), "destination, row `{line}`");
+                    assert_eq!(
+                        (rd(w9, 4), rd(w9, 8)),
+                        (mo.dest.x, mo.dest.y),
+                        "destination, row `{line}`"
+                    );
                     assert_eq!(rd(w9, 0xc), mo.angle.0, "facing, row `{line}`");
-                    assert_eq!((rd(w9, 0x2c), rd(w9, 0x30)), (mo.dest.x, mo.dest.y), "copy, row `{line}`");
+                    assert_eq!(
+                        (rd(w9, 0x2c), rd(w9, 0x30)),
+                        (mo.dest.x, mo.dest.y),
+                        "copy, row `{line}`"
+                    );
                     assert_eq!(
                         (i16at(w9, 0x4c), i16at(w9, 0x4e)),
                         ((mo.dest.x % 0x300) as i16, (mo.dest.y % 0x300) as i16),
@@ -171,14 +217,25 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         assert_eq!(got, want_eax, "think_farm_animal — eax, row `{line}`");
-        assert_eq!(log, want_log, "think_farm_animal — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "think_farm_animal — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "think_farm_animal — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "think_farm_animal — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "think_farm_animal — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[5 + i], "think_farm_animal — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[5 + i],
+                "think_farm_animal — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
