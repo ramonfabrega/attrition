@@ -4312,9 +4312,9 @@ impl Sim {
         if matches!(self.units[u].type_index, 0x34 | 0x35) {
             return false;
         }
-        // SEAM: a **human's** arm here is `(was_builder or stance ∈
-        // {1, 2}) and find_repair_spot()`, and `find_repair_spot` is not
-        // modelled (`docs/ORDERS.md` §5.9).
+        // A **human's** arm here is `(was_builder or stance ∈ {1, 2}) and
+        // find_repair_spot()`; the function is built (item 3187) but this
+        // human call is left unwired (`docs/ORDERS.md` §5.9).
         self.units[u].was_builder = false;
         if !ai {
             return false;
@@ -4343,8 +4343,8 @@ impl Sim {
                 return self.think_scout(u);
             }
         }
-        // SEAM: `find_repair_spot` again, the AI's own.
-        false
+        // The AI's tail: `find_repair_spot` (`docs/ORDERS.md` §5.9).
+        self.find_repair_spot(u)
     }
 
     /// `Unit::do_guard@005e5c70` (`docs/ORDERS.md` §7.5, §24) — one frame
@@ -7816,9 +7816,9 @@ impl Sim {
             // of adopting it (§5.2 step 6). Great Lakes' `1/1` finishes
             // building `2010` on frame 2803 and walks to `2011` on 2804;
             // this crate sent it to gather until [`Self::find_build_spot`]
-            // landed. `find_repair_spot` is still a seam, and it only ever
+            // landed. `find_repair_spot` (item 3187) only ever
             // runs when the build search comes back empty.
-            if self.find_build_spot(u) {
+            if self.find_build_spot(u) || self.find_repair_spot(u) {
                 return;
             }
             if !self.lobby.resources_unlimited() {
@@ -8072,6 +8072,91 @@ impl Sim {
         true
     }
 
+    /// `Unit::find_repair_spot@00604320` (`docs/ORDERS.md` §5.10), as the
+    /// AI takes it: a computer below difficulty 2 answers 0 and never
+    /// repairs on its own (`docs/NATIONS.md` §6; `get_diff() < 2`).
+    ///
+    /// The search is `ObjectsData::find_any_building@00659ca0` with
+    /// `SEARCH_FRIENDLY`, range `UNIT_BUILD_RESPOND_RANGE × 0xc0` (×0x180
+    /// for a human on worker stance 1 or 2), the `0x200` region gate,
+    /// `FILTER_DAMAGED` (an active building with `damage != 0`) and
+    /// `FILTER_NOT_UNDER_ATTACK`. It keeps the **nearest** candidate,
+    /// `vector_dist <= find_dist`, so a tie goes to the later one visited:
+    /// the circle's cells in order (`range / 0x300 <= 9`), else the object
+    /// arrays. A building on a tile owned by a leader that is not me or a
+    /// mutual ally answers 0. Then a one-member `Group` takes
+    /// `action_swarm_around(b, QUEUE_LAST, REPAIR, 0)`: **`MOVE_TO`** for a
+    /// computer, which is what `swarm_around`'s SEAM is held for.
+    pub(crate) fn find_repair_spot(&mut self, u: usize) -> bool {
+        let who = self.units[u].owner;
+        let human = !self.unit_ai_bit(who) && !self.ai_driven(who);
+        let mut range = self.tuning.unit_build_respond_range * TILE;
+        if human {
+            let stance = self.units[u].stance;
+            if stance == 1 || stance == 2 {
+                range *= 2;
+            }
+        } else if self.ai_difficulty() < 2 {
+            return false;
+        }
+        let here = self.units[u].pos;
+        let Some(region) = self.world.region_of(here.cell()) else {
+            return false;
+        };
+        let candidate = |sim: &Self, b: usize| {
+            let bd = &sim.buildings[b];
+            bd.alive
+                && bd.active
+                && bd.damage != 0
+                && !bd.is_under_attack()
+                && (bd.owner == who || sim.is_ally(who, bd.owner))
+                && sim.world.region_of(bd.pos.cell()) == Some(region)
+                && vector_dist(bd.pos.x - here.x, bd.pos.y - here.y) <= range
+        };
+        let mut order: Vec<usize> = Vec::new();
+        if range < 0 || (range + 0x2ff) / 0x300 > 9 {
+            order.extend(0..self.buildings.len());
+        } else {
+            let circle = crate::ai_place::circle();
+            let ring = Self::ring_index(range);
+            let c0 = here.cell();
+            for i in 0..circle.radius[ring] {
+                let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+                if !self.world.contains(c) {
+                    continue;
+                }
+                order.extend(
+                    (0..self.buildings.len())
+                        .rev()
+                        .filter(|&b| self.buildings[b].pos.cell() == c),
+                );
+            }
+        }
+        let mut best: Option<(i32, usize)> = None;
+        for b in order {
+            if !candidate(self, b) {
+                continue;
+            }
+            let p = self.buildings[b].pos;
+            let d = vector_dist(p.x - here.x, p.y - here.y);
+            if best.is_none_or(|(bd, _)| d <= bd) {
+                best = Some((d, b));
+            }
+        }
+        let Some((_, b)) = best else {
+            return false;
+        };
+        if let crate::Owner::Player(p) = self.world.owner_at(self.buildings[b].pos)
+            && p != who
+            && !self.is_ally(who, p)
+        {
+            return false;
+        }
+        let kind = MoveKind::MoveTo;
+        self.swarm_around_last(u, b, Body::Repair(b), false, kind, QueuePos::Last);
+        true
+    }
+
     /// `Unit::do_repair` (§5.6), on the existing repair step.
     fn do_repair(&mut self, u: usize, frame: i64) {
         let Some(Order {
@@ -8087,7 +8172,7 @@ impl Sim {
         // gate**: a repairer is put on `CHAR_REPAIR` even on the frame the
         // order dies. Same reason as `do_build`'s (`docs/ANIM.md` §4.6).
         self.set_anim(u, anim::REPAIR, false, true);
-        // §5.6: an AI repairer takes `find_repair_spot` (a seam) instead of
+        // §5.6: an AI repairer takes `find_repair_spot` instead of
         // adopting the building it has just mended — the same `unit_masks &
         // 0x40000` split as `do_build`'s two.
         let gather_after = |sim: &mut Sim| {
@@ -8105,6 +8190,9 @@ impl Sim {
         if bd.damage == 0 {
             self.kill_current_order(u);
             gather_after(self);
+            if self.ai_driven(who) {
+                self.find_repair_spot(u);
+            }
             return;
         }
         if bd.owner != who && !self.is_ally(who, bd.owner) {
@@ -10508,6 +10596,56 @@ mod all_gathering_tests {
         sim.units[u].was_builder = false;
         sim.swarm_around(u, site, Body::Repair(site), true);
         assert!(sim.units[u].was_builder, "a repair swarm marks it");
+    }
+
+    /// **`find_repair_spot` is a tier arm** (item 3187,
+    /// `Unit::find_repair_spot@00604320`): a computer below difficulty 2
+    /// answers 0, and from 2 up it swarms the nearest damaged friendly
+    /// building not under attack, a `MOVE_TO` approach and a repair order
+    /// behind it. Made to fail by dropping the difficulty gate (the first
+    /// assert falls) or the under-attack filter (the last).
+    #[test]
+    fn find_repair_spot_is_a_tier_arm_and_takes_the_nearest_damaged_building() {
+        let mut world = World::new(60, 60);
+        world.fill_region(
+            crate::world::Terrain::Land,
+            crate::world::Cell::new(0, 0),
+            crate::world::Cell::new(59, 59),
+        );
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, world, 2);
+        let citizen = sim.add_unit_type(crate::UnitType {
+            hits: 10,
+            worker: Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        let near = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
+        let far = sim.add_building(1, Pos::new(0x1600, 0x1000), 1);
+        for b in [near, far] {
+            sim.buildings[b].active = true;
+            sim.buildings[b].damage = 5;
+        }
+        let mut u = crate::Unit::new(1, 0, Pos::new(0x1400, 0x1000), 10);
+        u.ty = Some(citizen);
+        u.on_map = true;
+        let u = sim.add_unit(u);
+        sim.nation[1].human = false;
+        sim.lobby.difficulty = 1;
+        assert!(!sim.find_repair_spot(u), "tier 1 never repairs");
+        sim.lobby.difficulty = 2;
+        sim.buildings[far].under_attack = 2;
+        sim.buildings[near].under_attack = 2;
+        assert!(
+            !sim.find_repair_spot(u),
+            "a building under attack is skipped"
+        );
+        sim.buildings[near].under_attack = 0;
+        assert!(sim.find_repair_spot(u), "tier 2 repairs");
+        assert!(
+            sim.units[u]
+                .orders
+                .iter()
+                .any(|o| matches!(o.body, Body::Repair(b) if b == near))
+        );
     }
 
     /// **`Build::all_gathering` prunes the chain before it walks it**

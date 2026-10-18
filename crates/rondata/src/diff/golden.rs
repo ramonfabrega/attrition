@@ -5776,24 +5776,15 @@ fn chapter_ninety_five_holds_to_the_golden_word() {
     cases_80_89::chapter_ninety_five_holds_to_the_golden_word();
 }
 
-/// What parts in run920's window, blocks 605–1200: the open word, 1174 (1118
+/// What parts in run920's window, blocks 605–1200: the word, closed at 1200 by
+/// item 3175 (the dead Tank's disc stands; it took `0/12`'s path rows from 1175 away),
+/// 1174 (1118
 /// under 3152, 634 under 3142, 629 under 3126). The rows are the eleven standing
 /// `form` rows, `1/6`'s `death:extra` on 946 and, from 1175, `0/12`'s path and
 /// what follows; item 3162 took `1/7`'s 766 `hits:damage` rows (a flank reads the
 /// target's heading, not its guy facing) and the 1119 `0/15` damage (the Tank's
 /// pivot node, piece 194) away.
 const WANT_CH95: &[&str] = &[
-    "1175 0/12 path:length",
-    "1175 0/12 safe",
-    "1176 0/12 collide_o",
-    "1176 0/12 collide_who",
-    "1176 0/12 heading",
-    "1176 0/12 mirror",
-    "1176 0/12 order:move.dest",
-    "1176 0/12 pos",
-    "1181 0/12 collide",
-    "1183 0/12 order:move.dest_x",
-    "1183 0/12 order:move.dest_y",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",

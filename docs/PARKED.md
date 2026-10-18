@@ -7536,21 +7536,22 @@ no score today.
   nations term; names no score until a widening reads it (the battery is never debugged against).
 
 
-## Parked by the next landing, slot IF — reserved
+## Parked by item 3175, 2026-10-18 — the dead Tank's disc, and the death-object cull
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3189) **The death object's cull and the disc's release** (GOLDEN §125). Theirs ends `1/6`'s record (Tank, piece 194, anim 20) 152 frames after the death — block 946 is the first without it — where this crate's list is grow-only, so ch95's `1/6` `death:extra` on 946 stands, and a kept disc (`blocks_while_dead`) is never released here. What names the score: the chapter's last standing non-`form` row; a unit of such a type dying early in a longer capture would hold its cells for ever. Check: where the original clears the disc when the record ends (`DeathObj::inc_time@008d5240`'s end, `remove_from_world`), and the length of the packet (`gpiece` 194's animation).
+- (3190) **Which types carry `unit_flags & 0x800000`**, and the non-combat death sites (`cast_sniper_unit`, air crash, bribe, attrition) which still clear the disc: `Unit::close`'s `param_1` reset arms were not read per site.
 
-## Parked by the next landing, slot IG — reserved
+## Parked by item 3182, 2026-10-18 — the shape lane's tenth batch: check_idle and is_in_range@006486b0 swept, Census 1469 → 1471
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Two built of the six; four not attempted past reading, each with the flag it would need. Numbered at the merge.
+
+- (a) **`ObjectData::is_in_range@006486b0` is a second overload** of the name an earlier sweep holds (`@0064e4a0`, item 2683): `--name object_data_is_in_range_at`, and a
+  `--regen` without `--name` (or with `--fresh` on the plain name) rewrites the other overload's files — one was overwritten and restored from git. Flag wanted: `--regen`/generation refusing a function address that differs from the file's header.
+- (b) **`--regen` keeps the old line's `--answer-range`** beside a new `--answers` for the same stub, so the list never took (the first three break batches read a starved arm that was the old range); `--regen --fresh` is the cure. Flag wanted: `--answers IDX` replacing an `--answer-range IDX` on the kept line, or `--regen` saying it kept one.
+- (c) **Starved, not equivalent**: `is_in_range@006486b0`'s `dist < k*0xc0 - 6` (three breaks: `<=`, `-5` on the first compare, `<=` on the second) needs `dist` equal to the threshold *and* `k2 > k1` from `slot +0x12c`'s two calls; one answer list serves both arms and 1200 rows reach it rarely. Flag wanted: `--answers IDX` per call of a `--seq` stub (a list a call), or a per-arm weight.
+- (d) **`Caster::process_spells@00739ad0` not built**: the shockwave arm calls `Underlays::add` with float arguments in `xmm0/xmm2/xmm3` and on the stack (`cvtdq2ps` of `unit+0xc ^ 0x63637`), and `Array<ActiveSpell>::remove` takes a 12-byte struct by value; `--record` prints `ecx` and stack words only. Flag wanted: a recorded `--record-xmm IDX:N,..` (registers read at the stub's entry).
+- (e) **`Group::is_attacking_near@00710e40`, `Unit::find_garrison_build@00605040`, `ObjectsData::find_building_placed_at@00658c80` not built**: the first two read `vector_dist` with register arguments (`--stub run:0x46cff0:0` exists, 3119) and walk the 3-level units/objects table by `player*0x1c` (the cells work for player 0 only — `--argrange 1:0:0`); `find_building_placed_at` walks nine `move_x/move_y` neighbours into a linked list of `(index, class)` shorts through eight per-class object tables (`0xc0ab84 + cls*0x1c`), the class a *drawn* short: a `--place` names one cell. Flag wanted: `--table`-style eight pointer cells (`--cell-row VA:STRIDE:N:SIZE`) and a `--link` that ends on a negative short at `+0x2c/+0x2e`.
+- Breaks: `check_idle` 29 of 30 (the `& 0x8000000f` → `& 0xf` is equivalent: zero iff the low nibble is zero either way); `is_in_range@006486b0` 27 of 30 (c).
 
 ## Parked by item 3186, 2026-10-18 — the army's scouts' turn
 
@@ -7561,13 +7562,17 @@ words and edits nothing here; a refill lands when two remain.
   5570..5826 at run918's detail, every dumped record on block 5577 both directions; `WIDENINGS`' `IROQUOIS_WORD` names
   3189.
 
-## Parked by the next landing, slot II — reserved
+## Parked by item 3187, 2026-10-18 — find_repair_spot and the tiers' arms
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot II renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3192) **The human arms of `find_repair_spot` are not wired.** `Unit::find_repair_spot` is built
+  (`orders.rs`) for both leaders, but only the AI's three callers call it (`build_done`, `do_repair`'s
+  finished-building arm, `think_peasant`'s tail); the human callers (`docs/ORDERS.md` §5.5, §5.6, §5.9, stance
+  1/2) stay a SEAM — no score names them.
+- (3193) **`swarm_around`'s computer `REPAIR` approach is still `EXPLORE_TO`** (its SEAM); `find_repair_spot` queues
+  `MOVE_TO` through `swarm_around_last`, as the original does. `do_repair`'s own re-swarm (not adjacent) is the
+  `swarm_around` path and still carries the seam.
+- **No battery lobby reaches the arm before its parting** (all eight at their pins, median 4770). Whether a
+  long capture at difficulty 5 reaches it is the booking gate's: see the journal.
 
 ## Parked by the next landing, slot IJ — reserved
 

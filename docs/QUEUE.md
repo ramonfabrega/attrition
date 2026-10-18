@@ -17,12 +17,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5144 of 12658 (3140, 3156, 3170), its
   widening owed as 3186 (run 926); `EastIndiesGermanTier3` closed at 13519
-  (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–94 closed; 95 at 1174 (3126, 3142, 3152, 3162), as 3175. Census
+  (3086); `EastIndiesDutchTier4` held out at 1567. Chapters 86–95 closed (3175: 95 at 1200); 96 owed as 3191. Census
   1469, **port 303 · layout 1166** (DECISIONS 79; the shape lane's score is the port count, Ramon deciding). Battery
   median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
-- **Lanes: four live, landings 9 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170): 3186 AI (run 926, AI
-  §251, park IH), 3175 rules (run 925, GOLDEN §125, IF), 3182 shape (IG), 3187 nations (II). Next 3189, run 927.
-  Pools: GOLDEN §126–128, AI §252–255, park IJ–IP. Last whole gate: `dab91773`.
+- **Lanes: four live, landings 11 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187): 3186 AI (run
+  926, AI §251, park IH), 3191 rules (run 927, GOLDEN §126, IJ), 3182 shape (IG), 3194 nations (IK). Next 3195, run
+  928 (925 unused). Pools: GOLDEN §127–128, AI §252–255, park IL–IP. Last whole gate: `5b9f621e` (green).
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
 - **Fable backlog: 19 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181, 3188).
 
@@ -36,7 +36,7 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w5144 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1469 of 3611 · port 303 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: ch95 w1174 of 1,200 · 87 closed
+Golden: every chapter closed · 88 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-second tranche from docs/QUEUE.md's handoff — spawn 3156 (Opus 5.5 medium), 3152, 3150
@@ -46,7 +46,7 @@ and stop at twenty with the handoff written and the pass cleared in.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3186 the AI word's (Opus); 3175, 3182 and 3187 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
+3186 the AI word's (Opus); 3191, 3182 and 3194 (Sonnet); four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 5144. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3186. **The battery word, 5144 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes): ours 36 draws against theirs 37,
@@ -55,10 +55,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     Its widening is owed (`WIDENINGS`' `IROQUOIS_WORD` names this item): run922 ends at 2022 and run897b is `cover=0`,
     so a window of 5138..5394 at run918's detail (run 926), every dumped record on 5145 both directions. AI §251.
 
-3175. **Chapter ninety-five's word, 1174 of 1200 (run920): ours draws `0/12`'s `Unit::move_step+0x823` stop on 1174
-    where theirs draws none; the state parts first on 946, `1/6`'s `death:extra`** (3162 moved it 1118 → 1174: a flank
-    reads the target's heading, and the Tank's pivot node from the `ch95pkt` packet, run 924; parked 3173–3174). The
-    frame first — `RON_DEBUG_UNIT=1/6@944-947` both sides, the whole cast on 945–947 — then the draw word. GOLDEN §125.
+3191. **Chapter ninety-six, without a capture yet** (GOLDEN §13, §14: no rules item open means the next chapter; run
+    927 minted here): chapter 95 closed at 1200 (3175: `Object::close` keeps a `blocks_while_dead` type's disc, built as
+    `close_supply_in`'s `keep_disc` in this crate), its twelve standing rows kept; parked 3189 (the death object's cull at
+    152 frames, `1/6` `death:extra` on 946) and 3190 (which types carry `0x800000`). Choose the chapter by what a
+    failure would teach — the death-object cull and the non-combat death sites are candidates; stage it, capture it,
+    open it at its first word. GOLDEN §126.
 
 3182. **The sweep's next shape batch: the next never-backed bodies with a port consumer** (DECISIONS 63 (iv); the
     score `Census:` port 303; 3166 built six, parked 3177–3179, Loop 3180–3181): `ObjectsData::find_building_placed_at`,
@@ -66,12 +68,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `ObjectData::is_in_range` (`census.py --unbacked`, the `port` mark, `--claimed` the live lanes' trees) — each built,
     or parked naming the generator flag it could not spell. `--kind sweep`.
 
-3187. **The tiers' unbuilt arms, the battery lobbies' tiers first** (NATIONS §7's sixth candidate; Ramon, the fortieth steer,
-    DECISIONS 78; the score: the held-out battery's median first try, 4770 over eight, `battery_measure`,
-    `battery_floors` never lowered): 3172 audited `train_time`'s national arms (negative) and built `get_cost`'s
-    Sulphur siege arm, no lobby moved; parked 3183, Loop 3188. `Unit::do_gather`'s and `Build::process`'s AI repair
-    arms (H12) and the difficulty tiers' other arms, read for what a battery lobby's tier reaches. One function's family
-    a landing; never a held-out dump (DECISIONS 54). NATIONS §7.
+3194. **The wonder-gated free-tech blocks** (parked 3135; NATIONS §7.4's remainder — §7's six candidates are built, 3187
+    the last: `find_repair_spot`, battery unmoved at 4770; the score: the held-out battery's median first try,
+    `battery_measure`, `battery_floors` never lowered): this crate's `PlayerTech` wonder set is never fed (the sim holds `wonders_held`),
+    so Red Fort (`has_wonder(0x216)`), Colosseum, Tikal and Hanging Gardens stand as `Gate::Wonder` in `tech.rs`, unloaded —
+    feed it and load the blocks off `Leader::gain_tech@006dcb60`, or park naming which battery lobby holds a wonder before
+    its parting. One function's family; never a held-out dump (DECISIONS 54). NATIONS §7.
 
 ## How to maintain this file
 

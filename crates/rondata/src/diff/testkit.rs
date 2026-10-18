@@ -6653,7 +6653,11 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FOUR: i64 = 1200;
 /// 605 to 1199.
 pub(crate) const WIDENING_CHAPTER_NINETY_FOUR: (i64, i64) = (604, 1201);
 
-/// **Chapter ninety-five** (item 3126, `docs/GOLDEN.md` §121, run920):
+/// **Chapter ninety-five** (item 3126, `docs/GOLDEN.md` §121, run920;
+/// **closed at the capture's end, 1174 → 1200, by item 3175**: a combat death of a
+/// `blocks_while_dead` type (the Tank `1/7`, died 1144) leaves its occupancy disc
+/// standing, so `0/12`'s 48-grid search on 1174 is refused the cell south of it and
+/// exhausts, `docs/GOLDEN.md` §125):
 /// Sabotage on a firing Tank. **The word is 1174, open** (item 3162 moved it
 /// 1118 → 1174: a flank reads the target's heading, and the Tank's pivot node,
 /// piece 194, is carried from the `ch95pkt` packet (run 924), so `1/7` releases no round on
@@ -6670,7 +6674,7 @@ pub(crate) const WIDENING_CHAPTER_NINETY_FOUR: (i64, i64) = (604, 1201);
 /// `0/7` — and item 3142 closed it: `compare_target` weighs a spellcaster by
 /// its action (×20, +10,000,000 casting at the searcher). The first parted
 /// field is now `1/7`'s `order:target` on 635, ours `0/7`, theirs `0/6`.
-pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 1174;
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 1200;
 
 /// `chapter_ninety_five_s_window_is_widened_whole`'s window: run920.
 pub(crate) const WIDENING_CHAPTER_NINETY_FIVE: (i64, i64) = (604, 1201);
