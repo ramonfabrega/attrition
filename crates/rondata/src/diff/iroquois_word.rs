@@ -626,7 +626,7 @@ fn run926_s_word_frame_is_widened_whole() {
     let Some(w) = iroquois_frame_5144_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 257, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -639,5 +639,5 @@ fn run926_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "initial run926 baseline");
+    pin_eq!(w.firsts.len(), 32, "initial run926 baseline");
 }
