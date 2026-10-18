@@ -568,6 +568,8 @@ mod object_data_is_active_wallbuild;
 mod object_data_is_dock;
 #[path = "object_data_is_in_range.rs"]
 mod object_data_is_in_range;
+#[path = "object_data_is_in_range_at.rs"]
+mod object_data_is_in_range_at;
 #[path = "object_data_is_in_range_margin.rs"]
 mod object_data_is_in_range_margin;
 #[path = "object_data_is_in_range_this.rs"]
