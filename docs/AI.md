@@ -22875,8 +22875,8 @@ affordable and every good it costs to have no price, and the stockpiles agree on
 **The arm**: `TypeData::get_cost@00664090`'s building branch. After the scenario's `buildings_free` test
 (`006656f5`..`00665713`), it returns 0 when `has_tribe_bonus(0x12)` (`0066572b`), the type `is(0x1b6, 0)`, the
 Senate by lineage (vslot `+0x60`, `0066573f`), `IROQUOIS_QUICK_SENATE` is set (`cmpl $0, 0x834(%eax)`, `0066574b`),
-and the leader's short at `0x5324 + type × 2` is zero (`00665762`). That short is `high_buildings` (`+0x5660`) at
-slot `type − 414`, so for the Senate it is `high_buildings[24]`. The decompile names the index `param_1`, which the
+and the leader's `high_buildings` short (`+0x5660`) at slot `type − 414` is zero (`00665762`), so for the Senate it
+is `high_buildings[24]`. The decompile names the index `param_1`, which the
 listing's `edi` and the bit test after it (`00665776`) confirm is the type. So an Iroquois leader whose Senate has
 never stood pays nothing for one. The crate had only `construct_time`'s twin of this arm, and it never set its flag.
 
