@@ -6293,7 +6293,18 @@ one by design): a booking gate and three lane gates together, the
 fourth queued, so contention becomes a
 wait the receipt can show instead of a dilation it cannot; (iii) Loop
 3088's orphaned process had ended on its own before Ramon's kill (`no
-such process`); the row stays for its candidate. The other
-recommendations (the stride, the harvest lanes' purpose, the sweep
-lanes' value, a document landing's gate price) are in discussion and
-the commander's clear waits on it.
+such process`); the row stays for its candidate. **(iv) The harvest
+lane becomes the nations lane**: 3068 is parked and 3092 booked —
+`docs/NATIONS.md` §7's candidates in its order, each from the rules and
+the original's function and never from a held-out dump (entry 54), the
+score the held-out battery's median first try (1008) with
+`battery_floors` never lowered; the shape sweep keeps the generator.
+The four lanes of the forty-first tranche are 3086 (Opus 5.5 medium),
+3067, 3078 and 3092 (Sonnet 5.5 medium). (v) **Three rules for the
+next pass**, filed as Loop 3093–3095: the `Census:` line splits
+port-backed from layout-backed (1725, answered after twelve askings);
+the whole gate's every-third count takes only landings that widened;
+a document-only lane gate skips the release build. (vi) **The stride
+is booked as the AI lane's own item at its next windowed capture over
+a gap** (Loop 3085). The commander is cleared into the forty-first
+tranche on these.

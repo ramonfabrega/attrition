@@ -430,16 +430,17 @@ commander, and nothing else** — never a worker: one pass did, on an
 opener that said "refill", and ratified a trial only the user decides
 (DECISIONS 59, 61). Never Sonnet on a reading or an adjudication;
 **the workers' roster is the user's, set at a steer** (DECISIONS 61):
-**five lanes for the fortieth tranche: Opus 5.5 at `--effort
+**four lanes for the forty-first tranche: Opus 5.5 at `--effort
 medium` on the AI word's lane, Sonnet 5.5 at `--effort medium` on the
-rules track, the held-out minting lane, the nations audit lane and the
-one sweep lane** (Ramon, at the thirty-ninth steer, DECISIONS 77: `ccc
-spawn --model 'claude-opus-5-5[1m]' --effort medium` and `--model
-'claude-sonnet-5-5[1m]' --effort medium`, after three Opus tranches
-measured against three Sonnet ones, DECISIONS 65 and 68; the model and
-effort verified from each worker's transcript and the spawn line — the
-harness's defaults differ by model, and a trial once moved two settings
-for one).
+rules track, the shape sweep and the nations lane** (Ramon, at the
+fortieth steer, DECISIONS 78: five lanes cost 18 minutes a landing in
+waiting for one landing an hour, and the host budget admits 20 slots
+now; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
+`--model 'claude-sonnet-5-5[1m]' --effort medium`, after three Opus
+tranches measured against three Sonnet ones, DECISIONS 65 and 68; the
+model and effort verified from each worker's transcript and the spawn
+line — the harness's defaults differ by model, and a trial once moved
+two settings for one).
 **Two kill rules ride with a medium lane**: a booking gate red on its merge for what its
 own lane gate passed returns that lane to Opus 5.5 at high — **a red
 on a pin another landing's merge

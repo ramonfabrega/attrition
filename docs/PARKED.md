@@ -3736,7 +3736,29 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Parked by the fortieth Fable pass, 2026-10-17 — the harvest lane's item, held
+
+(3068) **A harvest batch: the order-adders' family** — held off the queue at the fortieth steer (Ramon: the harvest lane becomes the nations lane, 3092; DECISIONS 78 amended), its text as booked: the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,     `add_cast_order`, `add_trade_order`, `add_repair_order`,     `add_build_order` by 3064's recipe (parked 3070), then ten more off     `--claimed` the live sweep lanes' trees; never a `process_*`.     Unstarted. `--kind sweep`. It returns when a pass books a sweep lane on it; the shape sweep (3078) keeps the generator.
+
 ## Loop, filed 2026-10-17 — the fortieth tranche's
+
+(3095) **A document-only landing pays the release build** (the fortieth steer, Ramon's question): a lane gate whose
+diff touches no crate still builds and runs the fast release suite, 5 to 9 minutes idle and twice that under load, for a
+tree the guards and the document's own tests would judge. Candidate: `--lane` on a diff with no `crates/` or workspace path
+runs the offline step, the guards and the named tests and skips the release build, saying so in its `Lane verdict:`; a test
+made to fail first. The next pass's. One reach.
+
+(3094) **The whole gate's "every third landing" counts landings that cannot move a pin** (the fortieth steer): a sweep or
+document landing in third position draws the 9–12 minute whole gate by position, not content, and the chain waits on it.
+Candidate: the commander counts only landings whose merge widened (`lane_widens` non-empty) toward the third, the drain's
+whole gate unchanged; the queue's rules and `CLAUDE.md`'s chain clause say so; `tranche.py` reports the whole gates a tranche
+ran. The next pass's. One reach.
+
+(3093) **The `Census:` line splits port-backed from layout-backed** (Loop 1725, Ramon's answer at the fortieth steer after
+twelve askings: do it): a sweep whose test asserts a raw field (an offset identity) backs the layout, not a consumer, and the
+score moves the same. Candidate: `census.py --layers` and the pin carry two counts, `simulation backed <port> + <layout> of
+3611`, the scoreboard line read by `rondata::diff` the same way, a test made to fail first; the harvest lane is judged on the
+first. The next pass's. One reach.
 
 (3091) **The admission receipt says wait, never dilation** (the fortieth pass's measurement): nineteen
 booking gates waited 246 s summed at the door, longest 28.6 s, while the lane gates ran 18–32 minutes against the
@@ -3767,7 +3789,7 @@ to fail first. One reach.
 (3085) **A windowed capture over a long gap pays for every block when one is needed** (2997's "for the Loop" line,
 parked 3084, filed at its merge): run912 took 8584 s and 1.9 GB at `UNITS=3,GUYS=2` over a 5973-block gap, and only
 its first non-standing row (block 12563) was used. Candidate: `unattended_capture.py --stride N`, or a positions-only
-category, a test made to fail first. One reach. **The fortieth pass**: the tranche's dearest wait — 2997 sat 162 of its 180 minutes on run912 (8584 s for one row); the AI lane's at its next windowed capture over a gap, before the capture is booked; one reach; stays; closes at the next pass unreached (DECISIONS 54).
+category, a test made to fail first. One reach. **The fortieth pass**: the tranche's dearest wait — 2997 sat 162 of its 180 minutes on run912 (8584 s for one row); booked as the AI lane's own item at its next windowed capture over a gap, before that capture (Ramon, the fortieth steer: two launches of about ten minutes against one of 143); one reach; stays; closes at the next pass unreached (DECISIONS 54).
 
 (3077) **A `sweep_gen.py` run during a `mutate.py --batch` dirties the tree under it** (3058's "for the Loop" line, parked
 3076, filed at its merge): every later break is refused ("the tree is dirty; commit first"), twice in one batch. Candidate:

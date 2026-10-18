@@ -20,10 +20,10 @@ serial (128 of 326 min; its scope no longer widens on `blind.rs`). Last whole ga
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 → 6585 → 12815 (2974) → 12836 (2997), as 3086, on its lobby until it closes (DECISIONS 77 (vii)).
   Chapters 86–93 closed; 94 is 3067. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), median 1008, a gate floor.
-- **Lanes: none live.** 3086 the AI word's, 3067 the rules track's, 3078 shape and 3068 harvest, unstarted — **four
-  lanes, the steer's word (DECISIONS 78 amended), the CPU budget at 20**. Next 3092, run 915 (Astra 900–909).
-  Pools: GOLDEN §119–124, AI §246–251, park HG–HL. The commander's clear waits on the steer's last word.
-- **Fable backlog: 21 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091).
+- **Lanes: none live.** 3086 the AI word's, 3067 the rules track's, 3078 shape and 3092 nations, unstarted — **four
+  lanes, Ramon's word (DECISIONS 78 amended), the CPU budget at 20; the harvest lane's 3068 parked**. Next 3096,
+  run 915 (Astra 900–909). Pools: GOLDEN §119–124, AI §246–251, park HG–HL. The commander is cleared.
+- **Fable backlog: 24 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,14 +38,14 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the forty-first tranche (commander, Opus): spawn the queue's four items (3086, 3067, 3078, 3068) on four lanes
+**Opener: the forty-first tranche (commander, Opus): spawn the queue's four items (3086, 3067, 3078, 3092) on four lanes
 — Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rest (DECISIONS 78 amended; the CPU budget admits 20) — merge,
 book, refill while landings plus live lanes are under twenty, stop at twenty, and clear `steer` into the forty-first pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3086 the AI word's (Opus); 3067, 3078 and 3068 (Sonnet), the pass's to roster. The battery word is the AI's — lower map first — East Indies (Germans), at 12836. Take the first unstarted item unless a better
+3086 the AI word's (Opus); 3067, 3078 and 3092 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — East Indies (Germans), at 12836. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3086. **The battery word, 12836 of 13519 (`EastIndiesGermanTier3`, East Indies):
@@ -74,12 +74,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     (recursive), `Group::set_up_insert`; `UnitData::get_attrition`'s `f32`
     as the original's exact rational, never a float. Unstarted. `--kind sweep`.
 
-3068. **A harvest batch: the order-adders' family** (DECISIONS 61 §5;
-    the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,
-    `add_cast_order`, `add_trade_order`, `add_repair_order`,
-    `add_build_order` by 3064's recipe (parked 3070), then ten more off
-    `--claimed` the live sweep lanes' trees; never a `process_*`.
-    Unstarted. `--kind sweep`.
+3092. **The nations' unmodelled arms, NATIONS §7's order** (Ramon, the fortieth steer, DECISIONS 78; the
+    score: the held-out battery's median first try, 1008 over eight, `battery_measure`, `battery_floors` never
+    lowered): the Chinese citizens' `train_time` arm (§7.1; `GreatLakesChineseTier1` parts at 176), the Egyptian
+    wonders cost (§7.2), the Russian oil and spy terms (§7.3), `gain_tech`'s nation arms (§7.4), then the
+    `get_cost`/`train_time` rest, the Romans' legions first (§7.5; `EastIndiesRomanTier2` parts at 576) — each from
+    the rules and the original's function, never a held-out dump (DECISIONS 54), its NATIONS.md row flipped, the
+    battery measured after; one arm a landing, or one function's family. Unstarted. NATIONS §7.
 
 ## How to maintain this file
 
