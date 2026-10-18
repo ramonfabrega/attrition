@@ -7739,9 +7739,9 @@ read unguarded, as parked 3216). `check_ever_seen`: `|| param_1 != 0` on the tai
 
 ## Parked by item 3236, 2026-10-18 — chapter one hundred, a Tank bled by attrition
 
-- (3236) **The Tank's first rounds land earlier in the original** (run936, GOLDEN §132): `1/2` takes 34 damage on 629 against none here, with no draw parting before 917; the first-shot timing of a Tank at a fleeing citizen (the round's flight, `in_range` gate or reload) names the successor, booked by its frame (629/630) and its value rows, not by a mechanism.
-- (3236) **The disc release (3190) and the wreck on the chain (3235) are untouched**: the squads crossing the Tank's cell (1903..) are past the word; they wait on 917 closing.
-- (3236) **A better staging for the release alone**: the Tank in a quiet corner of who=1's land (no citizens to shoot) would keep combat out of the way; the same file with the Tank elsewhere and a retake would reach 1890 on draws.
+- (booked as item 3244) (3243) **The Tank's first rounds land earlier in the original** (run936, GOLDEN §132): `1/2` takes 34 damage on 629 against none here, with no draw parting before 917; the first-shot timing of a Tank at a fleeing citizen (the round's flight, `in_range` gate or reload) names the successor, booked by its frame (629/630) and its value rows, not by a mechanism.
+- **The disc release (3190) and the wreck on the chain (3235) are untouched**: the squads crossing the Tank's cell (1903..) are past the word; they wait on 917 closing.
+- **A better staging for the release alone**: the Tank in a quiet corner of who=1's land (no citizens to shoot) would keep combat out of the way; the same file with the Tank elsewhere and a retake would reach 1890 on draws.
 
 ## Parked by the next landing, slot JB — reserved
 
