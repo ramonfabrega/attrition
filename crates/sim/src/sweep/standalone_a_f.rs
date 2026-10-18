@@ -52,6 +52,8 @@ mod animal_data_valid_target_const;
 mod animal_data_walk_data_vt;
 #[path = "animal_think_bird.rs"]
 mod animal_think_bird;
+#[path = "animal_think_farm_animal.rs"]
+mod animal_think_farm_animal;
 #[path = "animal_update_los.rs"]
 mod animal_update_los;
 #[path = "armies_diplo_change.rs"]
