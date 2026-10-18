@@ -63,7 +63,7 @@ fn think_peasant_port(
             calls
         });
         for x in d {
-            log.push(x.map_or("-".to_string(), |v| hex4(v)));
+            log.push(x.map_or("-".to_string(), hex4));
         }
         r
     };
