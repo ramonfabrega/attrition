@@ -1323,11 +1323,25 @@ impl World {
     /// carries good `-1`, which matches no good, so the two gates come to
     /// the same thing.
     pub fn gather_at(&self, c: Cell, centre_only: bool) -> [i32; crate::economy::RESOURCES] {
+        self.gather_at_with(c, centre_only, &LANDS, good_is_flat)
+    }
+
+    /// [`World::gather_at`] over a given `lands` table and flat-good
+    /// predicate — the two things the original reads from globals
+    /// (`lands`, `GameAccess::goodtypes`) rather than from the world, so a
+    /// sweep can hand it the emulator's own tables.
+    pub fn gather_at_with(
+        &self,
+        c: Cell,
+        centre_only: bool,
+        lands: &[Land],
+        good_is_flat: impl Fn(usize) -> bool,
+    ) -> [i32; crate::economy::RESOURCES] {
         let mut out = [0; crate::economy::RESOURCES];
         let taken = |w: &World, n: Cell| w.tile_mask(n.centre_tile()) & tile::GATHERED_FROM != 0;
         if let Some(land) = usize::try_from(self.land_class(c))
             .ok()
-            .and_then(|i| LANDS.get(i))
+            .and_then(|i| lands.get(i))
         {
             for k in 0..MAKES_PER_LAND {
                 let amount = land.amount[k];
@@ -1354,7 +1368,7 @@ impl World {
             }
             let Some(land) = usize::try_from(self.land_class(n))
                 .ok()
-                .and_then(|i| LANDS.get(i))
+                .and_then(|i| lands.get(i))
             else {
                 continue;
             };

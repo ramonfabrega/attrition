@@ -5535,6 +5535,219 @@ pub(crate) fn valid_target_steps<C>(
     armed_attack(cx)
 }
 
+/// What `ObjectData::valid_target_const@006472c0` reads, one method a read,
+/// in the order the original makes them (item 3272). `this` is the asker;
+/// "the target" is `objects[p][i]` and "its unit" `units[p][i]`; "the asker's
+/// slot" is `objects[who][idx]` / `units[who][idx]` for the asker's own
+/// `who` byte and slot short. Every method is a pure read except the vslot
+/// calls, which may be asked more than once and are answered in call order.
+///
+/// **Not implemented by [`Sim`]**: this crate's [`Sim::valid_target_const`]
+/// is the older partial port (no type-flag arms, no fog-cell arm, no
+/// helicopter arm), kept as it stands until a capture parts on one of them;
+/// the steps below are the original's whole decision tree, held to it by
+/// `sweep::object_data_valid_target_const`.
+pub trait TargetConstView {
+    /// The asker's `who` byte (`this+9`).
+    fn who(&mut self) -> i32;
+    /// `LeaderData::is_enemy@006ebaa0` of `leaders[who]` against `other`.
+    fn is_enemy(&mut self, who: i32, other: i32) -> bool;
+    /// The target's `flags & 1`.
+    fn target_active(&mut self) -> bool;
+    /// The target's vslot `+0x48` (`is_seen(who, 0)`).
+    fn target_is_seen(&mut self, who: i32) -> bool;
+    /// The target's vslot `+0x18`, asked up to twice.
+    fn target_is_unit(&mut self) -> bool;
+    /// The target's unit's vslot `+0xbc` (`UnitData::is_on_map`).
+    fn target_on_map(&mut self) -> bool;
+    /// The target's type, `+0x218` (its domain).
+    fn target_domain(&mut self) -> i32;
+    /// The asker's vslot `+0x18`.
+    fn self_is_unit(&mut self) -> bool;
+    /// The asker's own unit's type, `+0x2b4`.
+    fn self_unit_flags(&mut self) -> u32;
+    /// The target's vslot `+0x1c`.
+    fn target_vslot_1c(&mut self) -> bool;
+    /// The asker's vslot `+0x130`.
+    fn self_vslot_130(&mut self) -> bool;
+    /// The byte of the world's cell the target stands on (`worldc +0x138`,
+    /// indexed through `div_3_table`).
+    fn target_cell_flags(&mut self) -> u8;
+    /// The target's unit's type, `+0x2b4`.
+    fn target_unit_flags(&mut self) -> u32;
+    /// The asker's type, `+0x218`.
+    fn self_domain(&mut self) -> i32;
+    /// The asker's vslot `+0x20`.
+    fn self_vslot_20(&mut self) -> bool;
+    /// The asker's type, `+0x1e4`.
+    fn self_type_flags(&mut self) -> i32;
+    /// The asker's type, `+0x1fc` (its range).
+    fn self_range(&mut self) -> i32;
+    /// The asker's type's vslot `+0x10c`.
+    fn self_type_vslot_10c(&mut self) -> bool;
+    /// The asker's type's vslot `+0x110`.
+    fn self_type_vslot_110(&mut self) -> bool;
+    /// The asker's vslot `+0xb8` is the base `ObjectData::is@00653790`.
+    fn self_is_base(&mut self) -> bool;
+    /// The asker's type's vslot `+0x60` (what `is` forwards to).
+    fn self_type_vslot_60(&mut self) -> bool;
+    /// The asker's vslot `+0xb8` called with `(what, 0)`.
+    fn self_vslot_b8(&mut self, what: i32) -> bool;
+    /// The target's unit's vslot `+0xb8` is the base `is`.
+    fn target_unit_is_base(&mut self) -> bool;
+    /// The target's unit's type's vslot `+0x60`.
+    fn target_unit_type_vslot_60(&mut self) -> bool;
+    /// The target's unit's vslot `+0xb8` called with `(what, 0)`.
+    fn target_unit_vslot_b8(&mut self, what: i32) -> bool;
+    /// `ObjectData::can_carry@00646c40(this, AIR)`.
+    fn can_carry_air(&mut self) -> bool;
+    /// The asker's vslot `+0x148` called with `what`.
+    fn self_vslot_148(&mut self, what: u32) -> bool;
+    /// The asker's slot's object type (`objects[who][idx]`), `+0x250`.
+    fn slot_fly_high(&mut self) -> i32;
+    /// The same type's `+0x254`.
+    fn slot_fly_low(&mut self) -> i32;
+    /// The target's unit's type, `+0x250`.
+    fn target_fly_high(&mut self) -> i32;
+    /// The same type's `+0x254`.
+    fn target_fly_low(&mut self) -> i32;
+    /// `UnitData::is_flying_high@0060a310` of the target's unit.
+    fn target_is_flying_high(&mut self) -> bool;
+    /// `UnitData::is_flying_low@0060a140` of the target's unit.
+    fn target_is_flying_low(&mut self) -> bool;
+    /// The target's own type (`objects[p][i]`), `+0x1e4`.
+    fn target_type_flags(&mut self) -> u32;
+}
+
+/// **`ObjectData::valid_target_const@006472c0`'s steps** (item 3272): the
+/// whole decision tree over [`TargetConstView`], the reads in the
+/// original's order, from the `(i, p)` it is handed (`param_1`, `param_2`).
+///
+/// - refused outright: `i < 0`, `p` outside `0..=7`, `p` the asker's own
+///   `who`, `p` not an enemy of it, the target's `flags & 1` clear, not
+///   seen by `who`, a unit target (`+0x18`) not on the map;
+/// - an asker that is a unit whose own type has `0x102000` set takes only
+///   a domain-1 target, and not one whose `+0x1c` answers;
+/// - unless the asker's vslot `+0x130` is true, a world cell with both
+///   `0x30` bits refuses the target;
+/// - domain 1 refuses a unit target flagged `0x100000` to a domain-0
+///   asker; every domain but 2 then takes the closing test, a type-flag
+///   word below zero refusing when the asker's `+0x20` answers or its
+///   domain is 0;
+/// - domain 2 (air) needs the asker's range, takes the helicopter arm
+///   (unit flag `0x20`: vslots `+0x10c`, `+0x110`, the `0x8000000` bit,
+///   then `is(0x130, 0)` unless the base) or the aircraft ladder (the
+///   `is(0x132, 0)` answer with `can_carry`, then `+0x148(0x80000000)`
+///   choosing which of fly-high / fly-low each side must have, with the
+///   real `is_flying_high` and `is_flying_low` of the target), and ends
+///   in the missile bit of either type.
+pub fn valid_target_const_steps<V: TargetConstView>(v: &mut V, i: i32, p: i32) -> bool {
+    if !valid_target_const_args(i, p) {
+        return false;
+    }
+    let who = v.who();
+    if p == who || !v.is_enemy(who, p) {
+        return false;
+    }
+    if !v.target_active() || !v.target_is_seen(who) {
+        return false;
+    }
+    if v.target_is_unit() && !v.target_on_map() {
+        return false;
+    }
+    let domain = v.target_domain();
+    if v.self_is_unit()
+        && v.self_unit_flags() & 0x10_2000 != 0
+        && (domain != 1 || v.target_vslot_1c())
+    {
+        return false;
+    }
+    if !v.self_vslot_130() && v.target_cell_flags() & 0x30 == 0x30 {
+        return false;
+    }
+    if domain == 1 {
+        if v.target_is_unit() && v.target_unit_flags() & 0x10_0000 != 0 && v.self_domain() == 0 {
+            return false;
+        }
+        return closing_test(v);
+    }
+    if domain != 2 {
+        return closing_test(v);
+    }
+    if v.self_range() == 0 {
+        return false;
+    }
+    if v.target_unit_flags() & 0x20 != 0 {
+        if v.self_type_vslot_10c()
+            || v.self_type_vslot_110()
+            || v.self_type_flags() & 0x800_0000 != 0
+        {
+            return false;
+        }
+        return if v.self_is_base() {
+            !v.self_type_vslot_60()
+        } else {
+            !v.self_vslot_b8(0x130)
+        };
+    }
+    let aircraft = if v.target_unit_is_base() {
+        v.target_unit_type_vslot_60()
+    } else {
+        v.target_unit_vslot_b8(0x132)
+    };
+    if aircraft && v.self_domain() != 2 && !v.can_carry_air() {
+        return false;
+    }
+    if !v.self_vslot_148(0x8000_0000) {
+        if v.slot_fly_high() == 0 && v.slot_fly_low() == 0 {
+            return false;
+        }
+        if v.target_fly_high() == 0 {
+            if v.target_fly_low() == 0 || v.target_is_flying_high() {
+                return false;
+            }
+        } else if v.target_fly_low() == 0 && v.target_is_flying_low() {
+            return false;
+        }
+        if slot_ladder_refuses(v) {
+            return false;
+        }
+    } else if v.self_domain() != 2 {
+        if v.slot_fly_high() == 0 {
+            if v.slot_fly_low() == 0 {
+                return false;
+            }
+            if v.target_is_flying_high() {
+                return false;
+            }
+        } else if v.slot_fly_low() == 0 && v.target_is_flying_low() {
+            return false;
+        }
+    }
+    v.target_type_flags() & 0x800_0000 == 0 && v.self_type_flags() & 0x800_0000 == 0
+}
+
+/// `valid_target_const@006472c0`'s first test: `param_1` a slot index
+/// (`>= 0`) and `param_2` a player of the eight (`0..=7`).
+pub fn valid_target_const_args(i: i32, p: i32) -> bool {
+    i >= 0 && (0..=7).contains(&p)
+}
+
+/// `valid_target_const`'s domain-1 and other-domain tail (`0064748e`).
+fn closing_test<V: TargetConstView>(v: &mut V) -> bool {
+    !((v.self_vslot_20() || v.self_domain() == 0) && v.self_type_flags() < 0)
+}
+
+/// `006476b3`: the asker's slot type's fly-high / fly-low against the
+/// target's unit, after the target's own side passed.
+fn slot_ladder_refuses<V: TargetConstView>(v: &mut V) -> bool {
+    if v.slot_fly_high() != 0 {
+        v.slot_fly_low() == 0 && v.target_is_flying_low()
+    } else {
+        v.target_is_flying_high()
+    }
+}
+
 /// **`Unit::set_attack@005fce70`**'s steps, the callees as closures
 /// ([`Sim::set_attack`]; `sweep::unit_set_attack` runs it against the
 /// emulated original).

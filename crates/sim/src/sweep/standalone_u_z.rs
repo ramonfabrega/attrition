@@ -62,6 +62,8 @@ mod unit_add_spec_anim_order;
 mod unit_add_trade_order;
 #[path = "unit_air_alt_speed.rs"]
 mod unit_air_alt_speed;
+#[path = "unit_bank_aircraft.rs"]
+mod unit_bank_aircraft;
 #[path = "unit_build_done.rs"]
 mod unit_build_done;
 #[path = "unit_cavarch_fight.rs"]
@@ -392,6 +394,14 @@ mod valid_filter_case7;
 mod valid_filter_case8;
 #[path = "valid_filter_case9.rs"]
 mod valid_filter_case9;
+#[path = "valid_target_const_air.rs"]
+mod valid_target_const_air;
+#[path = "valid_target_const_neg_i.rs"]
+mod valid_target_const_neg_i;
+#[path = "valid_target_const_p_high.rs"]
+mod valid_target_const_p_high;
+#[path = "valid_target_const_p_low.rs"]
+mod valid_target_const_p_low;
 #[path = "vector_dist_coords.rs"]
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
