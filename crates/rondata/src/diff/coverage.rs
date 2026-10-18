@@ -2630,6 +2630,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let n = drive_capture(p, 1116, 1120, &mut paths);
         assert_eq!(n, 5, "chapter ninety-five carries the word's five blocks");
         frames += n;
+        // Item 3162: the word 1174 (`0/12`'s stop draw) and the 766 flank.
+        let n = drive_capture(p, 1172, 1176, &mut paths);
+        assert_eq!(n, 5, "chapter ninety-five carries the second word's blocks");
+        frames += n;
+        let n = drive_capture(p, 764, 768, &mut paths);
+        assert_eq!(n, 5, "chapter ninety-five carries the 766 blocks");
+        frames += n;
     }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
     // shot, the original's alone.

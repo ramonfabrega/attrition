@@ -7281,13 +7281,16 @@ unstarted.
 
 The lane's "for the Loop" line is filed as Loop 3102 at the merge (the forty-first tranche's Loop section).
 
-## Parked by the next landing, slot HJ — reserved
+## Parked by item 3162, 2026-10-18 — chapter ninety-five's second word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3163) **Run number collision**: `~/ron-golden/run923/` already held another lane's 46-frame capture (receipt
+  03:46) when this item's run 923 launched; the packet was kept as `~/ron-golden/ch95pkt/map-14/frame-snapshot.bin`
+  (RON_STATE_FRAME=1117, plan from `2026-09-23-item-597`). File it under a free run number when the commander settles it.
+  Names no score.
+(3164) **Other pivot pieces still bear from the unit's point** (`pivot.rs::NODES` SEAM): a one-node entry changed a
+  15°-boundary release here (the turret sat at exactly `0xaaaaaaa` from its desire, `turret_near` strict), so any
+  restricted type's missing row can part a round. The packet's `get_position.py … entries <piece>` reads a row; the
+  next lobby that fields a restricted type without a row books it. Names no score until one parts.
 
 ## Parked by item 3099, 2026-10-17 — chapter ninety-four's 1021 order
 
