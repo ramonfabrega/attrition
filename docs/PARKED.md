@@ -7382,13 +7382,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HO — reserved
+## Parked by item 3112, 2026-10-17 — the generator flags were already there; is_engaged and set_up_insert swept, Census 1448 → 1450
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3112) **Neither flag was needed.** `vector_dist` as a generator callee is `--stub run:0x46cff0:0` (item 2731): the original's own code runs, `ecx`/`edx` set by the
+function under test, and the port calls `crate::world::vector_dist`; `Army::is_engaged@006f56d0` is swept on it (8 of 9 breaks held, the ninth —
+`hits != 0 &&` dropped — is equivalent since `hits > count/4 >= 0` implies it). A pointer-linked ring is `--place` for the chain and `--alias WIN+OFF:TARGET!` for the
+closing edge: `Group::set_up_insert@0070e520` is swept on a fixed three-node ring (`p3`..`p5`, orders `p6`..`p8`) with the port reading the node
+addresses back from the windows that point at them (5 of 7 breaks held; two equivalent: dropping the prologue step, since the loop's last turn rewrites the cursor
+fields from node 0). So (3101)'s `--ptrring` is not needed for a fixed-length ring; a ring whose *length* varies still is.
+**Not built**: `Caravans::new_danger@0073e0c0` (walks eight leaders at stride 0x6eec from `0xe3a390` and eight caravan lists at stride 0x1c from `0xe3a2a0`, so it
+needs `--sparse` over a 225 KB image table plus a pointer array of caravan records — an hour of windows), `ObjectsData::find_dock`,
+`ObjectData::num_aircraft_here`, `ObjectTypeData::get_wonder_value` (as (3110)).
 
 ## Parked by the next landing, slot HP — reserved
 
