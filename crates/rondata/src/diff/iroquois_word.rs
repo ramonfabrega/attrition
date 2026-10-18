@@ -45,8 +45,8 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // leg 6), agrees whole, and with it the Scout's `pos` on every block to
     // 1370 (`docs/AI.md` §247). At 1496 ours 37 draws, theirs 36, index 30:
     // ours `Unit::do_non_flat_gather+0xcc3`, theirs `Farms::inc_time+0x1ae`.
-    count: 1496,
-    sequence: 1496,
+    count: 1772,
+    sequence: 1772,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -345,4 +345,51 @@ fn run918b_s_gap_is_widened_whole() {
     // food from block 38 — `income`/`resources` 640 against 672, `bucket`
     // 4/5, `leftover` 6560/352 — with `known_rares` 0 against 1: theirs
     // knows a rare on 38 and ours none (run897's block 37 holds no such row).
+}
+
+/// run921: the word 1496's window, blocks 1371..1626 at run918's detail
+/// (item 3140) — run918's last block is 1370, so it starts there, and
+/// it holds the frame the state parted on (block 1378) as well as the
+/// word's own (1497).
+pub(crate) const RUN921: &str = "gamelog-run921-greatlakes-iroquois-diff3-window-1371-1627.txt";
+
+/// The window: block 1371 through 1626.
+pub(crate) const WIDENING_IROQUOIS_FRAME_1496: (i64, i64) = (1371, 1626);
+
+pub(crate) fn iroquois_frame_1496_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run921",
+        &[(RUN921, WIDENING_IROQUOIS_FRAME_1496.0)],
+        WIDENING_IROQUOIS_FRAME_1496,
+        1,
+        &[1378, 1497],
+        true,
+    )
+}
+
+#[test]
+fn run921_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_1496_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // The capture's `GUYS=2` prints two gaia animation keys nothing reads
+    // (item 1496's pattern): the animals' clocks.
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 41, "initial run921 baseline");
 }
