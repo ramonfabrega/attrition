@@ -18,9 +18,9 @@ first commit**, four lanes (DECISIONS 78 (i), 80): the AI word's on Opus 5.5 med
 Last whole gate `f0261980`, at 3246's booking (green, 6 of 6; rondata 969, sim 1708; release 10.1 minutes).*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 8415 of 12658 (3211, 3231, 3242: 5576 → 8415, four
-  Iroquois arms and a Despot's Barracks discount), its widening owed as 3248; `EastIndiesGermanTier3` closed at 13519. Chapters 95–99 closed, 92 closed, ch100 open at 977 (3246: 917 → 977); census 1500, **port 334**; the held-out battery's median 4770.
-- **Lanes: four live, landings 15 of 20** (3221, 3223, 3225, 3211, 3228, 3219, 3233, 3234, 3229, 3231, 3236, 3244, 3242, 3238, 3246): 3248 AI (run 940, AI §256, park JG), 3252
-  rules (run 941, GOLDEN §135, JI), 3250 shape (JH), 3239 shape, the nations seat (JC). Next 3253, run 942. Pools: GOLDEN §136–140, AI §257–259, park JJ–JN.
+  Iroquois arms and a Despot's Barracks discount), its widening owed as 3248; `EastIndiesGermanTier3` closed at 13519. Chapters 95–100 closed, 93 closed (3252: 977 → 2600); census 1500, **port 334**; the held-out battery's median 4770.
+- **Lanes: four live, landings 16 of 20** (3221, 3223, 3225, 3211, 3228, 3219, 3233, 3234, 3229, 3231, 3236, 3244, 3242, 3238, 3246, 3252): 3248 AI (run 940, AI §256, park JG), 3253
+  rules (run 942, GOLDEN §136, JJ), 3250 shape (JH), 3239 shape, the nations seat (JC). Next 3254, run 943. Pools: GOLDEN §137–140, AI §257–259, park JK–JN.
 - **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
   table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
 - **Fable backlog: 17 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227, 3237, 3240, 3249).
@@ -35,7 +35,7 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w8415 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1500 of 3611 · port 334 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: 92 closed · ch100 w977 of 2,600
+Golden: every chapter closed · 93 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — four lanes live (3248 the AI word's on
@@ -46,7 +46,7 @@ text; count landings from `1a15c80f`; the chain is `CLAUDE.md`'s; at twenty the 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3248 the AI word's (Opus); 3252, 3250 and 3239 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 8415. Take the first unstarted item unless a better
+3248 the AI word's (Opus); 3253, 3250 and 3239 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 8415. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3248. **The battery word, 8415 of 12658 (`GreatLakesIroquoisTier3`, Great Lakes), its widening owed** (parked 3247;
@@ -58,12 +58,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     8414–8415 to name the queue, run 940), widened whole on the word's frame both directions. Standing rows before it:
     run937's 51 keys (the set on 7976, pools 65 and 66, `SITE[2].reg` on 8176). AI §256.
 
-3252. **Chapter one hundred's word, 977 of 2600** (parked 3251; 3246 moved it 917 → 977: `path.rs`'s triple cost on a
-    flee read `flags & 2`, which nothing writes, and now asks the order type, as `UnitData::is_fleeing` does, GOLDEN §134; the 605..978 widening
-    leaves only the eleven `form` rows): the values agree through 978, and the draws part at draw 0 — ours
-    `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`; ours 6 draws against theirs 5. Booked by its frame and
-    draw; who takes damage in ours (`RON_STACKS` both sides, `RON_DEBUG_AMMO`) is the first read. The disc release
-    (3190) and the wreck readers (3235) wait behind it. A retake, if one is needed, is run 941. GOLDEN §135.
+3253. **Chapter one hundred and one, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
+    chapter; run 942 minted here): 3252 closed chapter 100 at 2600 (977 → 2600: a Tank's round at a building is aimed
+    at the near face, attrition kills with `dtype` 1 and keeps the disc, its damage falls at a figure's share; GOLDEN
+    §135, parked 3190 struck). Candidates by what a failure would teach: a reader of a wreck the crate keeps off the
+    object chain (parked 3235: `find_nearby_target`, `find_units`, `alarm` beside a Tank wreck), and a building
+    shooter's near-face gate (3252's park, read on the shooter's type and not diffed). Stage it, capture it, open it
+    at its first word. GOLDEN §136.
 
 3250. **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 334; 3238 built all six of its
     batch, four against the crate's own method, parked 3238 (a)–(g), Loop 3249): `UnitTypeData::can_garrison`,
