@@ -7612,7 +7612,7 @@ All six built, none parked for a missing flag. The unreached arms, numbered at t
 
 ## Parked by item 3228, 2026-10-18 — chapter 99: the Sabotaged Tank's disc, and a collision with a standing Commando
 
-- (3228) **Chapter 99's word, 845 (run933, GOLDEN §130): ours 5 draws, theirs 6** — the extra is `Guy::set_anim+0x97a < Unit::move_step+0x823`, captain `0/10` (Hoplite) walking at (13749,16021) onto the idle Commando `0/6` at (13752,16056): `collide_o` 6 on 846 in the original, −1 here. Book by frame and delta; what this crate's collision test lacks for a walker meeting a unit standing after a cast is the hypothesis, not the booking.
+- (booked as item 3233) (3232) **Chapter 99's word, 845 (run933, GOLDEN §130): ours 5 draws, theirs 6** — the extra is `Guy::set_anim+0x97a < Unit::move_step+0x823`, captain `0/10` (Hoplite) walking at (13749,16021) onto the idle Commando `0/6` at (13752,16056): `collide_o` 6 on 846 in the original, −1 here. Book by frame and delta; what this crate's collision test lacks for a walker meeting a unit standing after a cast is the hypothesis, not the booking.
 - (3190) Narrowed by §130: only the Tank line carries `x`; `cast_sniper_unit` (Sabotage, `dtype` 3) now keeps the disc. Attrition (`dtype` 0) releases it, read and not diff-backed (a Tank's attrition death is ~1500 frames at 187 hits).
 
 ## Parked by item 3211, 2026-10-18 — the Iroquois word 6982
