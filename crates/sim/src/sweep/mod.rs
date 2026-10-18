@@ -20,6 +20,7 @@ mod farms_add_animals;
 mod group_action_eject_all;
 mod group_action_eject_all_eject_o;
 mod group_target_opportunity;
+mod guy_set_all_pivots;
 mod object_has_range;
 mod object_is_peasant;
 mod object_is_scholar;
