@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(10);
@@ -40,7 +45,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-                        // `Unit::bank_aircraft`: the crate's `Sim::bank_plane_as` (item 3272), run on a `Sim` the row's windows
+            // `Unit::bank_aircraft`: the crate's `Sim::bank_plane_as` (item 3272), run on a `Sim` the row's windows
             // lay out. Windows: m the unit; c0 the game (frame at +0x550), c1 the constants (+8 unit_turn_speed),
             // c3 the order list's node (+4 the record), c4 the record (+8 the order, +0xc a byte), c6 the air
             // order base (+0x18 returning), c7 the type (+0x2b4 flags, +0x2c4 turn speed), c8 the guy's pointer
@@ -88,7 +93,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // (the node's record, the record's order and its byte), none of which an early return reaches.
             wr(m, 0x50, sim.units[u].movement.heading.0);
             wr(&mut c[9], 0x44, sim.units[u].airframe.bank.bits() as i32);
-            wr(&mut c[9], 0x48, sim.units[u].airframe.last_bank.bits() as i32);
+            wr(
+                &mut c[9],
+                0x48,
+                sim.units[u].airframe.last_bank.bits() as i32,
+            );
             wr(&mut p[0], 0, speed);
             if !early {
                 let rec = rd(&c[3], 4);
@@ -112,14 +121,25 @@ fn the_emulated_original_agrees_on_every_row() {
             want_eax
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "bank_aircraft — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "bank_aircraft — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "bank_aircraft — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "bank_aircraft — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "bank_aircraft — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[11 + i], "bank_aircraft — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[11 + i],
+                "bank_aircraft — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
