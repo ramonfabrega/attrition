@@ -152,3 +152,68 @@ fn run897_s_word_frame_is_widened_whole() {
     // `angle` 1913782272 against 120324096, `facing` 0/1), and group 65's
     // `oy` 19680/12768 and `o_angle` with it (`docs/AI.md` §246).
 }
+
+/// PROBE (item 3107): run897's block 1 fog plane against ours after frame 0.
+#[test]
+fn probe_iroquois_fog_block_1() {
+    if std::env::var_os("RON_PROBE_3107").is_none() {
+        return;
+    }
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(start), Some(tr)) = (dump(IROQUOIS.start), trace(IROQUOIS.long.1)) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let start_text = crate::capture::read(start);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let w0 = &built.sim.world;
+    let (fw, fh) = (w0.fog_xs(), w0.fog_ys());
+    let before: Vec<u8> = (0..fh)
+        .flat_map(|y| (0..fw).map(move |x| (x, y)))
+        .map(|(x, y)| w0.seen2(x, y).unwrap_or(0))
+        .collect();
+    built.tick();
+    let block = start_log
+        .frames()
+        .into_iter()
+        .find(|(n, _)| *n == 1)
+        .map(|(_, b)| b)
+        .expect("block 1");
+    let world = block
+        .kid("FULL DUMP")
+        .unwrap_or(block)
+        .kid("WORLD")
+        .expect("WORLD");
+    let theirs = crate::gamelog::world_fog(&world.fields().to_vec());
+    let w = &built.sim.world;
+    eprintln!("fog {fw}x{fh}, theirs {}", theirs.len());
+    let mut n = 0;
+    for y in 0..fh {
+        for x in 0..fw {
+            let t = theirs[(y * fw + x) as usize];
+            let o = w.seen2(x, y).unwrap_or(0);
+            if o != t {
+                n += 1;
+                if n < 200 {
+                    eprintln!(
+                        "  ({x},{y}) cell ({},{}) ours {o:#x} theirs {t:#x} before {:#x}",
+                        x / 2,
+                        y / 2,
+                        before[(y * fw + x) as usize]
+                    );
+                }
+            }
+        }
+    }
+    eprintln!("{n} half-cells part");
+    for u in built.sim.units.iter().filter(|u| u.owner == 1) {
+        eprintln!("  unit 1 ty {:?} pos {:?}", u.ty, u.pos);
+    }
+}
