@@ -13388,12 +13388,19 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the wreck as a hard collider on a walker's step (run933, 846 and after). Reading only: the cull removing the wreck from the scan (the death list drops the record, so the wreck leaves the scan with it), and attrition's release.
 
-## 132. Reserved for the next item on the rules track
+## 132. Chapter one hundred — a Tank bled by attrition; the word is 917 (item 3236, run936)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** §131 left two candidates: another reader of a wreck the crate keeps off the object chain (parked 3235), and attrition's disc release (`dtype` 0, parked 3190). The staging takes the second and reaches the first: a who=0 Tank in who=1's land bleeds to death, then two squads cross its cell.
+
+**Staging** (`tools/gamelog/golden/chapter100.cmd`, 12 lines, `RON_STAGE=ch76:chapter100:2600`, walked by `stage_walk`): `library` for both, who=1 gets `allegiance`, `oath_of_fealty`, `patriotism` and `nationalism` (605), a who=0 Tank `0/6` at (41400,19320) (`add tank who=0 215,100`: the console's tile is 192 units, so the first guess `72,83`-style coordinates land in no one's land), and two hoplite squads at 1900/1901 whose captains `0/7`, `0/10` are sent west past the Tank's cell on 1903. The walk bleeds the Tank to 0 on 1890. Run936, lane 1, `~/ron-golden/ch100/map-14/`, 2,601 frames, seed 12345, chapter 94's `end:`/`start:` sets, 768 s.
+
+**What the original does.** The Tank also dies, and the dump carries its death object from 1891 (`death:direct`, the dump alone): attrition ends it near this crate's 1890, which is the one diff-backed fact about the disc-release arm so far. But **the Tank is at war inside who=1's town and shoots the citizens**: it kills `1/2`, `1/1`, `1/4` and `1/3` in turn, and that is where this crate first parts.
+
+**The word, 917, open.** Draw delta: ours 6, theirs 7; theirs' extra is draw 0, `Unit::close+0xcb6` (a unit's death roll), so the original killed citizen `1/3` three frames before this crate (death `first_frame` 917 against 920). **Value diff** (the widening, 605..921, 87 rows): the state first parts on **630**, `1/2`: `damage_frame` 0 → 629, `hits:damage` 0 → 34, `hits_left` 40 → 6 (theirs): the original's Tank lands its first round on 629 and this crate's has not landed one; the same row opens on `1/1` (712), `1/4` (796) and `1/3` (875). On 901 the Tank's own `heading` is 372310016 in the original and −357695488 here (the value held since 617), and the citizen it is killing dies 917 against 920. The draw word is the last of a chain that began at 629, the Tank's firing rhythm against a target that flees.
+
+**Not established**: why this crate's Tank rounds land later (the booking is the frame 629/630 and its draws: none part there, so a round's flight or a gate, not a roll); the disc release itself is untested because the late squads' crossing (1903..) lies past the word; whether the Tank's bleed matches the original's tick for tick (the death is within a frame of ours at 1890/1891, the hp rows are not compared past the word). Parked 3190/3235 stand open.
+
+**Coverage.** Diff-backed: the Tank's attrition death lands at the same frame in both (1890/1891). Reading only: the `dtype` 0 release of the disc, and every chain reader's view of a wreck.
 
 ## 133. Reserved for the next item on the rules track
 

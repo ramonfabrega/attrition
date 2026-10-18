@@ -268,6 +268,8 @@ mod group_get_num;
 mod group_get_num_cap;
 #[path = "group_get_speed.rs"]
 mod group_get_speed;
+#[path = "group_is_attacking_near.rs"]
+mod group_is_attacking_near;
 #[path = "group_kill_group_order.rs"]
 mod group_kill_group_order;
 #[path = "group_kill_next_order.rs"]
@@ -398,6 +400,8 @@ mod guy_set_pivot_angle;
 mod guy_turn_angles;
 #[path = "guy_turn_towards.rs"]
 mod guy_turn_towards;
+#[path = "guy_update_gpiece.rs"]
+mod guy_update_gpiece;
 #[path = "guy_update_z.rs"]
 mod guy_update_z;
 #[path = "herd_walk_data.rs"]
@@ -660,6 +664,8 @@ mod object_update_los;
 mod objects_array_get_data_type;
 #[path = "objects_data_count_nukes_in_flight.rs"]
 mod objects_data_count_nukes_in_flight;
+#[path = "objects_data_find_building_placed_at.rs"]
+mod objects_data_find_building_placed_at;
 #[path = "objects_data_find_city.rs"]
 mod objects_data_find_city;
 #[path = "objects_data_find_city_at.rs"]

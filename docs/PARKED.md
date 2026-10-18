@@ -3742,6 +3742,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
+(3240) **`sweep_gen.py`'s five gaps from one batch** (3229's "for the Loop" line, its parked (3229c), filed at its
+merge): `--regen` keeps a flag dropped from an `@FILE` (the kept `# sweep_gen:` line merges with the new flags); a
+32-bit `--wbias` zeroes neighbouring bytes; a void function returning a loaded window pointer in eax has no spelling
+(a `--eax-win cN`); a cell a callee reads indirectly shows only as starved hits (a hint listing the callee's cells);
+and (3229a) a stack-local `SimpleArray` filled by a callee has no stub (`--stub-array`). Candidate: the first two are
+bugs, made to fail first; the last three are flags, each built when a batch's body needs it. One reach.
+
 (3237) **The port count rises on a sweep that diffs an inline copy, not the crate** (3234's parked (a), filed at its
 merge): five of 3234's six sweeps assert logic inlined in the test, and `Sim::same_damage`, `Sim::do_patrol`,
 `Sim::add_trade_order`, `Sim::check_ever_seen` and `Sim::find_new_bomber_target` are not diffed; the census marks all
@@ -7669,21 +7676,38 @@ flag was missing.
 Nothing parked. The queue's three arms (Russian 13, Egyptian 7, Chinese 14) were built by items 3113 and 3124 as
 `FreeRule`s loaded in `rondata::load`; the NATIONS rows read "carried, unread" because the census scanned `sim` only.
 
-## Parked by the next landing, slot IW — reserved
+## Parked by item 3229, 2026-10-18 — the nations seat's second shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3229a) **`Unit::find_melee_pos@006010b0`** stays unbuilt (3163 stands). Re-read for this batch: it builds a stack-local
+  `SimpleArray<CoordData>` at `ebp-0x30` (count at +4, data pointer at +0x10), `find_open_slots@00600e30` fills it, and the
+  function frees it through the import at `0xac5500`. Flag it could not spell: a stub that writes a count at one stack-local
+  offset and a pointer to a drawn window of N (x, y) pairs at another, exposed to the port as a `p` window — e.g.
+  `--stub-array IDX:K:COUNT_OFF:DATA_OFF:MAXN[:LO..HI]`, or `--outarg` taking `K+OFF` and a `winaddr(pN)` value. Without it the
+  nearest-slot arm (`vector_dist`, strict `<`) is never reached. Also `free` wants `--stub-cdecl 0xac5500`.
+- (3229b) **3164 is built**: `Guy::update_gpiece@005d8530` was spelled with existing flags (`--at 0xc06244:4:<f32 bit range>` for
+  `guy_scale`, `--wbias` with f32 bit patterns on the piece words); 3164's "flag it could not spell" is wrong.
+- (3229c) Generator notes from the five builds (Loop candidates): `--regen` merges the kept `# sweep_gen:` line with the new flags,
+  so a flag dropped from an `@FILE` silently survives (delete both files to drop one); `--wbias` is never wild but unbiased words
+  get a 10 % wild draw, and a 32-bit `--wbias` zeroes neighbouring bytes (a separately read byte field wants values with it set);
+  a void function that returns a loaded window pointer in eax has no spelling (`caster_process_spells` hard-codes the guest
+  address; a `--eax-win cN` would compare window-relative); a cell a callee reads indirectly (`tile_corner`'s `div_3_table` heap
+  cell at `0xcae5fc`) shows only as starved hits — a hint listing the callee's cells would help.
+- 3229's "for the Loop" line is (3229c) above, filed here.
+- (3229d) Decompile errors found: `find_building_placed_at` — `move_x`/`move_y` are swapped against the asm (`0xadcaf0` is added to
+  x, `0xadc400` to y) and the type compare `< 8` is signed; `find_garrison_build` — `vector_dist`'s coordinates come from the
+  object record (+0x10/+0x14 ^ 0x63637), not the data record, and `num_inside` returns in eax. The crate's `world::vector_dist`
+  differs from the original's on near-2^31 inputs (`+` overflow, `.abs()`): the sweeps re-implement the original's own wraps.
 
-## Parked by the next landing, slot IX — reserved
+## Parked by item 3231, 2026-10-18 — the Iroquois word 7982
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (booked as item 3242) (3241) **The Iroquois word 7982's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §254). Item 3231 moved the word
+  6982 → 7033 → 7982 with `get_cost`'s and `construct_time`'s `IROQUOIS_QUICK_SENATE` arms (an Iroquois leader's first
+  Senate is free and instant). At 7982 ours 12 draws, theirs 14, index 5: ours `Animal::do_idle+0x83`, theirs
+  `Leader::make_stuff+0x63d`, so theirs acted, in the make list's turn. It is past run934's last block, 7232, and no
+  dump of the lobby holds a block between 7232 and 12658. The word owes a capture over 7976..8232 at run934's detail
+  (`LEADERS=9`, `GUYS=4`). Standing before it, all from earlier windows: `1/22`'s `blown`, `1/23`'s second figure,
+  the newborn figures' `g.angle[0]` (`1/35`..`1/37`, `Unit::init`'s 0x55555555 against 0) and `SITE[1].reg` (7176).
+  The lane minted 3232 for `WIDENINGS`' owed row; 3232 was taken (3228's), so the commander renumbered it 3241.
 
 ## Parked by item 3233, 2026-10-18 — chapter 99 closed: a Tank wreck is a collider
 
@@ -7713,13 +7737,11 @@ generated test (add_trade_order's two `s6` stack tokens) is lost by a `--regen` 
 read unguarded, as parked 3216). `check_ever_seen`: `|| param_1 != 0` on the tail gate is unobservable at the outputs.
 `find_local_army`: `tgt >= 0` vs `> 0` with `who` fixed at 0. `check_ever_seen` reaches its meet arm on ~18% of rows.
 
-## Parked by the next landing, slot JA — reserved
+## Parked by item 3236, 2026-10-18 — chapter one hundred, a Tank bled by attrition
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (booked as item 3244) (3243) **The Tank's first rounds land earlier in the original** (run936, GOLDEN §132): `1/2` takes 34 damage on 629 against none here, with no draw parting before 917; the first-shot timing of a Tank at a fleeing citizen (the round's flight, `in_range` gate or reload) names the successor, booked by its frame (629/630) and its value rows, not by a mechanism.
+- **The disc release (3190) and the wreck on the chain (3235) are untouched**: the squads crossing the Tank's cell (1903..) are past the word; they wait on 917 closing.
+- **A better staging for the release alone**: the Tank in a quiet corner of who=1's land (no citizens to shoot) would keep combat out of the way; the same file with the Tank elsewhere and a retake would reach 1890 on draws.
 
 ## Parked by item 3238, 2026-10-18 — the sweep's fourteenth batch (six port bodies against the crate)
 
@@ -7792,6 +7814,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot JF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JJ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

@@ -5871,6 +5871,112 @@ fn chapter_ninety_nine_holds_to_the_golden_word() {
     cases_80_89::chapter_ninety_nine_holds_to_the_golden_word();
 }
 
+/// **run936 whole, both directions** (item 3236, `docs/GOLDEN.md` §132).
+#[test]
+fn chapter_one_hundred_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_s_window_is_widened_whole();
+}
+
+/// Chapter one hundred holds to its golden word (item 3236, run936).
+#[test]
+fn chapter_one_hundred_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_holds_to_the_golden_word();
+}
+
+/// What parts in run936's window, blocks 605–921 (item 3236): the eleven standing `form` rows;
+/// from 630 the Tank `0/6`'s first rounds land earlier in the original (`1/2`, `1/1`, `1/4`, `1/3`
+/// each hit before this crate's); 901 the Tank's heading, 917 the word (their `Unit::close` death roll
+/// on `1/3`, ours on 920) and the leader's food that follows.
+const WANT_CH100: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "630 1/2 damage_frame",
+    "630 1/2 dest_angle",
+    "630 1/2 hits:damage",
+    "630 1/2 hits_left",
+    "630 1/2 order:kind",
+    "630 1/2 order:length",
+    "630 1/2 orders.len",
+    "630 1/2 orders_x",
+    "630 1/2 orders_y",
+    "631 1/2 heading",
+    "631 1/2 order:flags",
+    "631 1/2 order:gather.wait",
+    "631 1/2 order:move.dest",
+    "631 1/2 path:length",
+    "631 1/2 pos",
+    "712 1/1 damage_frame",
+    "712 1/1 dest_angle",
+    "712 1/1 hits:damage",
+    "712 1/1 hits_left",
+    "712 1/1 order:kind",
+    "712 1/1 order:length",
+    "712 1/1 orders.len",
+    "712 1/1 orders_x",
+    "712 1/1 orders_y",
+    "713 1/1 heading",
+    "713 1/1 mirror",
+    "713 1/1 order:flags",
+    "713 1/1 order:gather.wait",
+    "713 1/1 order:move.dest",
+    "713 1/1 path:length",
+    "713 1/1 pos",
+    "796 1/4 damage_frame",
+    "796 1/4 dest_angle",
+    "796 1/4 hits:damage",
+    "796 1/4 hits_left",
+    "796 1/4 order:kind",
+    "796 1/4 order:length",
+    "796 1/4 orders.len",
+    "796 1/4 orders_y",
+    "797 1/4 heading",
+    "797 1/4 mirror",
+    "797 1/4 order:flags",
+    "797 1/4 order:move.dest",
+    "797 1/4 path:length",
+    "797 1/4 pos",
+    "875 1/3 damage_frame",
+    "875 1/3 dest_angle",
+    "875 1/3 hits:damage",
+    "875 1/3 hits_left",
+    "875 1/3 order:kind",
+    "875 1/3 order:length",
+    "875 1/3 orders.len",
+    "875 1/3 orders_x",
+    "875 1/3 orders_y",
+    "876 1/3 heading",
+    "876 1/3 order:flags",
+    "876 1/3 order:move.dest",
+    "876 1/3 path:length",
+    "876 1/3 pos",
+    "876 1/3 tolerance",
+    "877 1/3 mirror",
+    "877 1/3 order:move.dest_x",
+    "877 1/3 order:move.dest_y",
+    "877 1/3 path[1].to",
+    "877 1/3 path[2].to",
+    "877 1/3 path[3].to",
+    "901 0/6 angle:Heading",
+    "901 0/6 heading",
+    "902 0/6 dest_angle",
+    "918 1/2002 gather:gather_down[-1]",
+    "918 1/3 death:direct",
+    "918 1/3 death:missing",
+    "918 1/3 extra",
+    "920 1/-1 leader:income[0:food]",
+    "920 1/-1 leader:leftover[0:food]",
+    "920 1/-1 leader:resources[0:food]",
+];
+
 /// What parts in run933's window, blocks 605–1500: the eleven standing `form` rows
 /// alone (item 3233: the word was 845 and the cascade after it is gone — the Tank wreck
 /// `1/6` is a hard collider in the scan; the kept disc took `0/11`'s 808 path rows).
