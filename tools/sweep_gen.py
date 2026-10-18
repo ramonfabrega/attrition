@@ -1746,7 +1746,9 @@ def main(argv):
             mem[0:4] = vt.to_bytes(4, "little")
         args = [rand32(rng) for _ in range(OWN)]
         for idx, vals in ARGSET:
-            args[idx] = rng.choice(vals) if rng.random() < 0.9 else args[idx]
+            ex_ = idx < 0  # `--argset IDX!:V,..` (item 3272): every row from the list, no wild tenth
+            idx = ~idx if ex_ else idx
+            args[idx] = rng.choice(vals) if ex_ or rng.random() < 0.9 else args[idx]
         for idx, off, size in ARGFROM:
             if rng.random() < 0.45:
                 args[idx] = int.from_bytes(mem[off:off + size], "little", signed=True)
@@ -2361,7 +2363,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     for b in bias:
         off, vals = b.split(':', 1)
         parsed.append((int(off, 0), [int(v, 0) for v in vals.split(',')]))
-    pset = [(int(a.split(':', 1)[0]), [int(v, 0) for v in a.split(':', 1)[1].split(',')]) for a in argset]
+    pset = [(~int(a.split(':', 1)[0][:-1], 0) if a.split(':', 1)[0].endswith('!') else int(a.split(':', 1)[0]),
+             [int(v, 0) for v in a.split(':', 1)[1].split(',')]) for a in argset]
     pfrom = [tuple(int(x, 0) for x in a.split(':')) for a in argfrom]
     port = port or f'todo!("the port of {name}")'
     biasdoc = ', '.join(f'+{o:#x} in {v}' for o, v in parsed) or 'no bias'
@@ -3560,7 +3563,7 @@ def main(argv=None):
     ap.add_argument('--stale-col', action='store_true', help='mix: the `stale` leftover ecx is a drawn column of its own after the gate (parked 2673), not the g column')
     ap.add_argument('--ret-arg', action='store_true', help='mix: assert the result (eax) is the stack argument, an out-pointer returned')
     ap.add_argument('--own', type=int, default=0, help='fwd, obj: stack arguments the function itself takes')
-    ap.add_argument('--argset', action='append', default=[], help='obj: IDX:V,V,.. — argument IDX drawn from the list (90%%)')
+    ap.add_argument('--argset', action='append', default=[], help='obj: IDX:V,V,.. — argument IDX drawn from the list (90%%); IDX! every row (item 3272: an index into a table of placed records, a wild tenth faults)')
     ap.add_argument('--argfrom', action='append', default=[], help='obj: IDX:OFF:SIZE — argument IDX copies the signed SIZE-byte word at OFF (45%%)')
     ap.add_argument('--win', type=lambda s: int(s, 0), default=0x400, help='obj: bytes of random object')
     ap.add_argument('--bias', action='append', default=[], help='obj: OFF:V,V,.. — a 32-bit word at OFF drawn from the list')
