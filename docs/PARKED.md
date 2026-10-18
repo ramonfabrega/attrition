@@ -7698,13 +7698,16 @@ Nothing parked. The queue's three arms (Russian 13, Egyptian 7, Chinese 14) were
   object record (+0x10/+0x14 ^ 0x63637), not the data record, and `num_inside` returns in eax. The crate's `world::vector_dist`
   differs from the original's on near-2^31 inputs (`+` overflow, `.abs()`): the sweeps re-implement the original's own wraps.
 
-## Parked by the next landing, slot IX — reserved
+## Parked by item 3231, 2026-10-18 — the Iroquois word 7982
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (booked as item 3242) (3241) **The Iroquois word 7982's widening** (`GreatLakesIroquoisTier3`, `docs/AI.md` §254). Item 3231 moved the word
+  6982 → 7033 → 7982 with `get_cost`'s and `construct_time`'s `IROQUOIS_QUICK_SENATE` arms (an Iroquois leader's first
+  Senate is free and instant). At 7982 ours 12 draws, theirs 14, index 5: ours `Animal::do_idle+0x83`, theirs
+  `Leader::make_stuff+0x63d`, so theirs acted, in the make list's turn. It is past run934's last block, 7232, and no
+  dump of the lobby holds a block between 7232 and 12658. The word owes a capture over 7976..8232 at run934's detail
+  (`LEADERS=9`, `GUYS=4`). Standing before it, all from earlier windows: `1/22`'s `blown`, `1/23`'s second figure,
+  the newborn figures' `g.angle[0]` (`1/35`..`1/37`, `Unit::init`'s 0x55555555 against 0) and `SITE[1].reg` (7176).
+  The lane minted 3232 for `WIDENINGS`' owed row; 3232 was taken (3228's), so the commander renumbered it 3241.
 
 ## Parked by item 3233, 2026-10-18 — chapter 99 closed: a Tank wreck is a collider
 
@@ -7734,13 +7737,11 @@ generated test (add_trade_order's two `s6` stack tokens) is lost by a `--regen` 
 read unguarded, as parked 3216). `check_ever_seen`: `|| param_1 != 0` on the tail gate is unobservable at the outputs.
 `find_local_army`: `tgt >= 0` vs `> 0` with `who` fixed at 0. `check_ever_seen` reaches its meet arm on ~18% of rows.
 
-## Parked by the next landing, slot JA — reserved
+## Parked by item 3236, 2026-10-18 — chapter one hundred, a Tank bled by attrition
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (booked as item 3244) (3243) **The Tank's first rounds land earlier in the original** (run936, GOLDEN §132): `1/2` takes 34 damage on 629 against none here, with no draw parting before 917; the first-shot timing of a Tank at a fleeing citizen (the round's flight, `in_range` gate or reload) names the successor, booked by its frame (629/630) and its value rows, not by a mechanism.
+- **The disc release (3190) and the wreck on the chain (3235) are untouched**: the squads crossing the Tank's cell (1903..) are past the word; they wait on 917 closing.
+- **A better staging for the release alone**: the Tank in a quiet corner of who=1's land (no citizens to shoot) would keep combat out of the way; the same file with the Tank elsewhere and a retake would reach 1890 on draws.
 
 ## Parked by the next landing, slot JB — reserved
 
@@ -7766,18 +7767,47 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JE — reserved
+## Parked by item 3244, 2026-10-18 — the Tank's gun, found at its release point
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (booked as item 3246) (3245) **`1/3`'s flee on 876** (run936, GOLDEN §133): with the Tank's rounds landing on the dump's frames, `1/3` is hit on 875 in both and flees differently — heading ours −632750080 against theirs 1305346048, `order:move.dest` (41400, 16776) against (42936, 17544), path legs 1..3 and the position (41955, 17193) against (41999, 17217) on 876; no draw parts there. Booked by its frame and values, not by a mechanism; the Tank's heading on 901 and the 917 death (ours 919) follow it.
+- **`float_lands` for piece 194** (GOLDEN §133): run `tools/recomp/get_position.py … pivot 194 0 <anim> <time> 1` on `~/ron-golden/run938b/map-14/frame-snapshot.bin` and add the cells where the exact form parts; rows for the Tank's other two anims came from the packet but only `CHAR_ATTACK1`/`3` fire in the chapter.
 
 ## Parked by the next landing, slot JF — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot JF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot JJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot JJ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

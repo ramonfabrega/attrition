@@ -689,6 +689,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch97 = golden_dump("ch97");
     let ch98 = golden_dump("ch98");
     let ch99 = golden_dump("ch99");
+    let ch100 = golden_dump("ch100");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2683,6 +2684,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         );
         frames += n;
     }
+    // **Chapter one hundred, on run936** (item 3236): a Tank bled by
+    // attrition; the window is the word, 917, the Tank's kill of `1/3`.
+    if let Some(p) = &ch100 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED;
+        let n = drive_capture(p, 917, 921, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred carries five blocks in the window"
+        );
+        frames += n;
+    }
     // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
     // shot, the original's alone.
     if let Some(p) = &ch50 {
@@ -3265,6 +3277,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::iroquois_word::iroquois_squad_930_window(),
         || super::iroquois_word::iroquois_frame_5576_window(),
         || super::iroquois_word::iroquois_frame_5843_window(),
+        || super::iroquois_word::iroquois_frame_6982_window(),
         || super::german_word::german_frame_576_window(),
         || super::german_word::german_frame_5577_window(),
         || super::german_word::german_sites_3975_window(),

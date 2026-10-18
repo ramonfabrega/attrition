@@ -13388,19 +13388,31 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the wreck as a hard collider on a walker's step (run933, 846 and after). Reading only: the cull removing the wreck from the scan (the death list drops the record, so the wreck leaves the scan with it), and attrition's release.
 
-## 132. Reserved for the next item on the rules track
+## 132. Chapter one hundred — a Tank bled by attrition; the word is 917 (item 3236, run936)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** §131 left two candidates: another reader of a wreck the crate keeps off the object chain (parked 3235), and attrition's disc release (`dtype` 0, parked 3190). The staging takes the second and reaches the first: a who=0 Tank in who=1's land bleeds to death, then two squads cross its cell.
 
-## 133. Reserved for the next item on the rules track
+**Staging** (`tools/gamelog/golden/chapter100.cmd`, 12 lines, `RON_STAGE=ch76:chapter100:2600`, walked by `stage_walk`): `library` for both, who=1 gets `allegiance`, `oath_of_fealty`, `patriotism` and `nationalism` (605), a who=0 Tank `0/6` at (41400,19320) (`add tank who=0 215,100`: the console's tile is 192 units, so the first guess `72,83`-style coordinates land in no one's land), and two hoplite squads at 1900/1901 whose captains `0/7`, `0/10` are sent west past the Tank's cell on 1903. The walk bleeds the Tank to 0 on 1890. Run936, lane 1, `~/ron-golden/ch100/map-14/`, 2,601 frames, seed 12345, chapter 94's `end:`/`start:` sets, 768 s.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What the original does.** The Tank also dies, and the dump carries its death object from 1891 (`death:direct`, the dump alone): attrition ends it near this crate's 1890, which is the one diff-backed fact about the disc-release arm so far. But **the Tank is at war inside who=1's town and shoots the citizens**: it kills `1/2`, `1/1`, `1/4` and `1/3` in turn, and that is where this crate first parts.
+
+**The word, 917, open.** Draw delta: ours 6, theirs 7; theirs' extra is draw 0, `Unit::close+0xcb6` (a unit's death roll), so the original killed citizen `1/3` three frames before this crate (death `first_frame` 917 against 920). **Value diff** (the widening, 605..921, 87 rows): the state first parts on **630**, `1/2`: `damage_frame` 0 → 629, `hits:damage` 0 → 34, `hits_left` 40 → 6 (theirs): the original's Tank lands its first round on 629 and this crate's has not landed one; the same row opens on `1/1` (712), `1/4` (796) and `1/3` (875). On 901 the Tank's own `heading` is 372310016 in the original and −357695488 here (the value held since 617), and the citizen it is killing dies 917 against 920. The draw word is the last of a chain that began at 629, the Tank's firing rhythm against a target that flees.
+
+**Not established**: why this crate's Tank rounds land later (the booking is the frame 629/630 and its draws: none part there, so a round's flight or a gate, not a roll); the disc release itself is untested because the late squads' crossing (1903..) lies past the word; whether the Tank's bleed matches the original's tick for tick (the death is within a frame of ours at 1890/1891, the hp rows are not compared past the word). Parked 3190/3235 stand open.
+
+**Coverage.** Diff-backed: the Tank's attrition death lands at the same frame in both (1890/1891). Reading only: the `dtype` 0 release of the disc, and every chain reader's view of a wreck.
+
+## 133. Chapter one hundred — the Tank's gun leaves 187 units ahead of it; the word stays 917 (item 3244, run938, run938b)
+
+**The booking** (parked 3243): `1/2` took the Tank's first round on 629 in the original and not here, no draw parting before 917. **The disk answered the frame, not the cause**: the original's trace (`rontrace.log`, `report.py draws`) has `Ammo::init+0xcd9` on 627 (the same frame as ours, so no draw parts) and `AmmoOut::explode` on 629; this crate's round had `total_time` 4 and landed on 631. Across the chapter's eight rounds the original flew 2, 5, 3, 6, 3, 6, 4, 4 frames against ours 4, 6, 5, 7, 5, 7, 6, 8. The first-shot-timing hypothesis (a turn or reload gate) was **wrong**: the swing and the launch agree to the frame.
+
+**The cause** (run938, `--detail end:…AMMO=5`, 605..925): the ammo record prints `sx, sy, sz` = (41305, 19159, 346) for a Tank at (41400, 19320), so the round leaves ~187 units ahead of the unit along the turret, not from its square; every round's offset is 186–187 long and points at the turret's bearing. `sim::launch`/`pivot` had no row for piece 194 and launched from the unit's point, so flights were 1–2 frames too long. **The rows** (run938b, a packet at logger frame 630, `tools/recomp/get_position.py … entries 194`): `pivot::RELEASES` now holds piece 194's three `<RELEASEEVENT>`s — `CHAR_ATTACK1` frame 4, `CHAR_ATTACK2` frame 21, `CHAR_ATTACK3` frame 1 — with the pivot node (0, −0.96, 31.92) and the release node, from the packet's floats.
+
+**What moved.** The widening (605..921) drops the 630, 712 and 796 rows (the Tank's rounds on `1/2`, `1/1`, `1/4`; `1/3`'s 875 row too): **the word's frame is still 917** (ours 6 draws against theirs 7) and what parts earlier is now `1/3`'s flee at **876** — heading, destination and path legs, no draw parting (ours −632750080 against theirs 1305346048 at 876), with the Tank's own heading on 901, the death of `1/3` (ours 919, theirs 917) and the food after.
+
+**Not established.** `float_lands` for piece 194 (the unicorn sweep of `get_position.py pivot` over the 361 × 256 cells has not been run: a cell whose single-precision sum truncates differently would put a round one unit off); the rounds' measured launch points are not asserted one by one (the widening's pin is what fails without the rows). The next booking is **876, `1/3`'s flee** (by frame and value: heading, `order:move.dest`, `path[1..3].to`, no draw delta).
+
+**Coverage.** Diff-backed: the Tank's rounds' landing frames on all four targets (the widening). Reading only: the `float_lands` question above.
 
 ## 134. Reserved for the next item on the rules track
 
@@ -13417,6 +13429,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 136. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 137. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 138. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 139. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 140. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

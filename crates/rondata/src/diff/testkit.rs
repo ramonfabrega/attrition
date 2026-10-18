@@ -6715,6 +6715,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_NINE: i64 = 1500;
 /// `chapter_ninety_nine_s_window_is_widened_whole`'s window: run933.
 pub(crate) const WIDENING_CHAPTER_NINETY_NINE: (i64, i64) = (604, 1501);
 
+/// **Chapter one hundred** (item 3236, `docs/GOLDEN.md` §132, run936):
+/// a Tank bled to death by attrition (`dtype` 0) with two late captains ordered
+/// across its cell.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED: i64 = 917;
+
+/// `chapter_one_hundred_s_window_is_widened_whole`'s window: run936.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED: (i64, i64) = (604, 922);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9810,11 +9818,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // arm); 5843 was widened on run932 over 5826..6094
     // (`run932_s_word_frame_is_widened_whole`), and 6982 is past it, owed
     // as 3230 (the lane's 3229, renumbered at the merge; `docs/PARKED.md`).
+    // 6982 was widened by item 3231 on run934 over 6976..7232
+    // (`run934_s_word_frame_is_widened_whole`): block 6982's `MAKE[3]`, the
+    // Senate theirs listed and ours priced. **Item 3231 moved it 6982 →
+    // 7033 → 7982** (`get_cost`'s and `construct_time`'s Iroquois Senate
+    // arms), past run934's last block: owed as 3241 (the lane's 3232, renumbered at the merge; `docs/PARKED.md`).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3230,
+        3241,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
