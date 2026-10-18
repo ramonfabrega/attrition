@@ -2604,6 +2604,21 @@ impl Sim {
             }
             self.trace_costs = false;
             self.cost_marks.clear();
+            for q in [Pos::new(14328, 16872), Pos::new(14328, 16920), Pos::new(14328, 16824)] {
+                let il = self.invalid_loc(u, q.tile(), false, true, false, true, false);
+                let dq = self.detect_quick(u, q, true);
+                eprintln!("P3175 cell {:?} invalid_loc {} detect_quick {}", q, il, dq);
+            }
+            for (k, v) in self.units.iter().enumerate() {
+                if (v.pos.x - 14328).abs() < 400 && (v.pos.y - 16900).abs() < 400 {
+                    eprintln!("P3175 near unit {} {}/{} at {:?} alive {}", k, v.owner, v.index, v.pos, v.alive);
+                }
+            }
+            for (k, b) in self.buildings.iter().enumerate() {
+                if (b.pos.x - 14328).abs() < 1500 && (b.pos.y - 16900).abs() < 1500 {
+                    eprintln!("P3175 near build {} {}/{} at {:?}", k, b.owner, b.index, b.pos);
+                }
+            }
         }
         if std::env::var("RON_PROBE3175").is_ok() && self.units[u].owner == 0 && self.units[u].index == 12 {
             eprintln!("P3175 f{} find_upath anti {} -> {} path {}", self.frame, anti, r, self.units[u].path.len());
