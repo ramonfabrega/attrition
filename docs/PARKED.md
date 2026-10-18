@@ -7929,13 +7929,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JQ — reserved
+## Parked by item 3269, 2026-10-18 — The Despot's plunder on the Iroquois word 10852
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The battery word 10852's cause: The Despot's `Unit::plunder@00605b00`** (`GreatLakesIroquoisTier3`, `docs/AI.md`
+  §258). Item 3269 closed run943's 10843 and left the word at 10852: ours 25 draws against theirs 30 at index 3, ours
+  `Unit::close+0xcb6`, theirs `605fe5` = `Unit::plunder+0x4e5`. run943's widening (455 keys) now first parts on the
+  word's own block **10853**: the Citizen `0/3` (TI 50) dies on frame 10852 on both sides, `death:extra` ours 1 against
+  theirs 0, and who=1's `leader:bucket[4:metal]` ours 44 against theirs **59**. The reading, not yet a diff:
+  `Unit::plunder`'s EE arm (`get_patch_version >= 9`) sets `local_14` when `thedespot_unit_plunder != 0`, the killer
+  is not the victim's owner, `param_4 == 0`, and `HeroesData::find_hero` finds the killer's Despot within `0x160` of
+  the victim (`leaders[who] +0x59be` / `+0x59d8`, hero types `0x160` and `0x16d`); The Despot `1/46` (TI 352) stands
+  in who=1's group 64 beside it. Then it draws one `Random::get(0, 0xffff)` per available good other than knowledge
+  (five draws, 25 → 30), picks the stock with the least `amount + draw % 25`, and adds `thedespot_unit_plunder`
+  (`THEDESPOT_UNIT_PLUNDER` 15 in `rules.xml`: 44 → 59, before `leaders[who] +0x914`'s `f32` multiplier) to it. `docs/NATIONS.md` lists
+  `Unit::plunder@00605b00` "not modelled", and the crate carries no `thedespot_unit_plunder`. Owed first: grep the
+  caller (`Object::die`/`take_damage`) for the killer's arguments, `max`'s and the `+0x914` multiplier's value on the
+  dump, and `RON_STACKS` on 10852 if the draws' order is in doubt.
 
 ## Parked by the next landing, slot JR — reserved
 

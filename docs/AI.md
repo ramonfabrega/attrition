@@ -23099,12 +23099,45 @@ and the clocks of `1/25`..`1/57`).
 run943's own window. The 1441 bays are diffed on one round (10727) and the 1545 releases on two (10687, 10739); the
 other rows of each are the packet's and the emulator's, not a dump's.
 
-## 258. Reserved for the next item on the AI track
+## 258. The Iroquois 10843: a follower's `check_target` reads its captain through `update_action` (2026-10-18, item 3269)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 10852 (§257), ours 25 draws against theirs 30 at index
+3, ours `Unit::close+0xcb6`, theirs `605fe5`; run943's widening (456 keys) first parting on block 10843, the Archers
+`1/32`'s `dest_angle` ours −786038784 against theirs −792788992.
+
+**The widening on 10843, both directions.** One row on the block, and every other key of every unit agrees. `1/32`
+(TI 171, `ARCHERS`, land, the squad captain of `1/33` and `1/34` by `o_up`) took the Citizen `0/3` (TI 50) as its
+target on 10842 on both sides (`new_ord` 1, `in_range` 0), and on 10843 both sides turn it to −792788992 in `fight`'s
+`Unit::set_angle`: the figure's `angle` and `des_angle` and the unit's `heading` agree. Only the unit's `dest_angle`
+(`UnitData +0x58`) differs. Ours catches up on 10844 (`RON_DEBUG_UNIT` now prints `des`), so the row is a one-frame lag
+of the copy, not a different angle. The control is `1/33`: it turns on 10844 and its `dest_angle` follows on 10845, on
+both sides.
+
+**Who copies it: `1/34`.** `dest_angle` has one writer of note, `Unit::update_action@0060a870` (`+0x58 = +0x50` when no
+move step leads). In ours the frame's only call for `1/32` is `work`'s own, before the dispatch (a backtrace probe,
+reverted whole). run946 is a packet on 10842. `step4.py --entry 0065dce0` (`Objects::process_all`, this `c0ab70`)
+reproduces the frame: `set_angle` writes −792788992 at instruction 132618, and an `update_action` on `1/32` at 137487
+copies it. Its caller is **`Object::check_target+0x2d9`** (`0064a0d4`), called by **`1/34`'s** `fight+0x841` on the
+same target `0/3`. Running `1/32`'s own `Unit::process` alone puts every `update_action` before the turn.
+
+**The mechanism.** It is `check_target`'s guarding arm (`param_5`; COMBAT §63.1). When the asker is not a captain
+(vslot `+0xe8`), it takes its squad captain (vslot `+0xe4`). If the captain's `action_type` is `ATTACK`, it reads that
+action **through `Unit::update_action(captain)`**, and only then compares the target. The read writes the captain's
+`orders_x/y` and `dest_angle`, whatever the target. Ours' `Sim::guard_leash` read the action bare.
+
+**Built.** `guard_leash` calls `update_action` on the captain when the captain's action is an attack, before the
+target test; it and `guard_check_target` take `&mut self`. run943's widening goes **456 → 455** keys and first parts
+on the word's own block 10853. The mutation (the call dropped) fails `run943_s_word_frame_is_widened_whole` (exit 101,
+`tools/mutate.py`).
+
+**The word does not move**: 10852, ours 25 against theirs 30, index 3. Its block 10853 is the Citizen `0/3`'s death on
+frame 10852 on both sides, with `death:extra` ours 1 against theirs 0 and who=1's metal ours 44 against theirs 59.
+Theirs' index-3 draw is `Unit::plunder+0x4e5`: the read is The Despot's unit plunder (`THEDESPOT_UNIT_PLUNDER` 15),
+"not modelled" in `docs/NATIONS.md`, and it is parked under item 3269's heading as the next word's frame.
+
+**Not established.** The other callers of `check_target` with `param_5` set reach the same `update_action`. This item
+diffs one of them, `fight`'s guard call, on one frame; `find_nearby_target`'s calls for a follower are the same code
+path and are not separately diffed. The plunder is read, not built.
 
 ## 259. Reserved for the next item on the AI track
 
