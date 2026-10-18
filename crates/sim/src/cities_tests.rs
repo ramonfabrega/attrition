@@ -7521,7 +7521,7 @@ fn a_german_fire_raft_line_costs_a_quarter_less_and_trains_faster() {
 }
 
 /// **A Roman leader's Legion line costs a tenth less and trains a tenth
-/// faster** (item 3137, `docs/NATIONS.md` §7.5): `get_cost:306`–`311` takes
+/// faster** (item 3137, `docs/NATIONS.md` §7): `get_cost:306`–`311` takes
 /// `ROMAN_LEGION_CHEAP` off a unit that `is(0x84, 0)`, by lineage, and
 /// `train_time@006508c0:208`–`213` divides by `ROMAN_LEGION_FAST + 100`.
 #[test]
