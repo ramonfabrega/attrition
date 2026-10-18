@@ -22,7 +22,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   median 4770 (3160: `GreatLakesTurkishTier4` 1440 → 6982; `GreatLakesChineseTier1` 12712).
 - **Lanes: four live, landings 16 of 20** (3145, 3152, 3150, 3156, 3160, 3162, 3166, 3172, 3170, 3175, 3187, 3182, 3186, 3191, 3194, 3205): 3202 AI (runs
   928 and 930, AI §252, park IM), 3209 rules (run 929, GOLDEN §128, IP), 3200 shape (IL), 3207 nations (IO). Next 3210, run
-  931 (925 unused). Pools: GOLDEN §129–132, AI §253–255, park IQ–IV. Last whole gate: `5b9f621e` (green).
+  931 (925 unused). Pools: GOLDEN §129–132, AI §253–255, park IQ–IV. Last whole gate: `b6ad1cc2` (green).
 - **DECISIONS 79**: the whole gate every third *widening* landing; a Loop line is `none` or filed (guarded). **Ramon's**: `kill 51257` (3143), the budget.
 - **Fable backlog: 19 Loop items** (1570, 2003, 3013, 3095, 3102, 3116, 3118, 3122, 3139, 3143, 3149, 3157, 3158, 3165, 3167, 3176, 3180, 3181, 3188).
 
