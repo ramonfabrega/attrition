@@ -2362,6 +2362,70 @@ fn a_citizen_trains_faster_for_a_player_holding_wool() {
 }
 
 #[test]
+fn a_barracks_stable_or_dock_unit_trains_faster_for_a_player_holding_cotton() {
+    // `ObjectData::train_time@006508c0:268`–`273`: a unit whose trainer
+    // (`TypeData +0x40`) is, by equality, the Barracks, the Stable or the
+    // Dock (0x1ab, 0x1ac, 0x1b0) takes `COTTON_CREATION_SPEED` percent off
+    // when its player holds Cotton. The battery's Iroquois Barracks
+    // `1/2016` finishes its Javelineers on 8415, the frame who=1 gains
+    // Cotton (item 3248, `docs/AI.md` §256).
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x1ab {
+        tree.add(TypeDef::building("pad"));
+    }
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let stable = tree.add(TypeDef::building("Stable"));
+    let stable2 = tree.add(TypeDef::building("Stable II"));
+    while tree.types.len() < 0x1b0 {
+        tree.add(TypeDef::building("pad"));
+    }
+    let dock = tree.add(TypeDef::building("Dock"));
+    assert_eq!(
+        (barracks, stable, stable2, dock),
+        (0x1ab, 0x1ac, 0x1ad, 0x1b0)
+    );
+    let at =
+        |tree: &mut TechTree, name, w| tree.add(TypeDef::unit(name, UnitTraits::default()).at(w));
+    let jav_t = at(&mut tree, "Javelineers", barracks);
+    let horse_t = at(&mut tree, "Light Cavalry", stable);
+    let ship_t = at(&mut tree, "Galley", dock);
+    let other_t = at(&mut tree, "Hussar", stable2);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    let typ = |t| UnitType {
+        tree: Some(t),
+        ..citizen_type()
+    };
+    let _first = sim.add_unit_type(citizen_type());
+    let _second = sim.add_unit_type(citizen_type());
+    let jav = sim.add_unit_type(typ(jav_t));
+    let horse = sim.add_unit_type(typ(horse_t));
+    let ship = sim.add_unit_type(typ(ship_t));
+    let other = sim.add_unit_type(typ(other_t));
+    let cotton = |s: &Sim, ty| {
+        s.train_tail(0, ty)
+            .iter()
+            .any(|a| matches!(a, production::Adjust::Faster(25)))
+    };
+    for ty in [jav, horse, ship, other] {
+        assert!(!cotton(&sim, ty), "no Cotton yet");
+    }
+    sim.ledgers[0].rare |= 1 << (economy::COTTON - economy::BASE_RARE);
+    assert!(cotton(&sim, jav), "Cotton: a Barracks unit");
+    assert!(cotton(&sim, horse), "Cotton: a Stable unit");
+    assert!(cotton(&sim, ship), "Cotton: a Dock unit");
+    assert!(!cotton(&sim, other), "by equality, never by lineage");
+    assert!(!cotton(&sim, 0), "a Citizen has no such trainer");
+    assert_eq!(
+        production::adjusted(18750, &sim.train_tail(0, jav)),
+        15000,
+        "run940's Javelineers: 18750 × 100 / 125"
+    );
+}
+
+#[test]
 fn a_mongol_attacker_from_the_stable_trains_faster() {
     // `ObjectData::train_time@006508c0:109`–`117`: a Mongol leader's unit
     // with an attack whose trainer is of the Stable line takes

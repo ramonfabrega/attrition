@@ -177,6 +177,13 @@ pub const SILK: usize = 11;
 /// (`WOOL_CITIZENS_SPEED`, `docs/AI.md` §184).
 pub const WOOL: usize = 33;
 
+/// `TypeIndex::COTTON` — the rare `ObjectData::train_time@006508c0`'s
+/// trainer arm reads: `0x6da6 & 1`, else `0x6dce & 1`, byte 2 bit 0 of
+/// `rare` or of `rare_conquest`, which is bit `22 - `[`BASE_RARE`]` = 16
+/// (`COTTON_CREATION_SPEED`, `docs/AI.md` §256). The dump's mask prints it
+/// as `bit_values 081000` beside Amber's `080000`.
+pub const COTTON: usize = 22;
+
 /// `TypeIndex::TOBACCO` — the rare `Wall::update_construct_time` reads.
 ///
 /// `0063d560:32` tests `LeaderData +0x6da5 & 0x20` **or** `+0x6dcd &

@@ -922,6 +922,11 @@ pub struct Tuning {
     /// `ObjectData::train_time@006508c0`'s tail, on a type whose `TypeIndex`
     /// is a Citizen (0x32, 0x33). Ships as 33 (`docs/AI.md` §184).
     pub wool_citizens_speed: i32,
+    /// Percent faster training of a Barracks', Stable's or Dock's unit with
+    /// the Cotton rare — `ObjectData::train_time@006508c0:268`–`273`, the
+    /// trainer (`TypeData +0x40`) by equality against 0x1ab, 0x1ac and
+    /// 0x1b0. Ships as 25 (`docs/AI.md` §256).
+    pub cotton_creation_speed: i32,
     /// Percent faster training of a Stable's unit under `MONARCHY_1` and
     /// `MONARCHY_2` — `train_time`'s Monarchy arm. Both ship as 25
     /// (`docs/AI.md` §217).
@@ -1441,6 +1446,7 @@ impl Tuning {
         british_archer_speed: 0,
         british_aa_speed: 33,
         wool_citizens_speed: 33,
+        cotton_creation_speed: 25,
         monarchy_unit_prod: [25, 25],
         socialism_unit_bonus: 25,
         salmon_naval_cost: 20,
@@ -2181,6 +2187,10 @@ impl Tuning {
             ("BRITISH_ARCHER_SPEED", Slot::Value(T.british_archer_speed)),
             ("BRITISH_AA_SPEED", Slot::Value(T.british_aa_speed)),
             ("WOOL_CITIZENS_SPEED", Slot::Value(T.wool_citizens_speed)),
+            (
+                "COTTON_CREATION_SPEED",
+                Slot::Value(T.cotton_creation_speed),
+            ),
             ("MONARCHY_UNIT_PROD", Slot::Value(T.monarchy_unit_prod[0])),
             ("MONARCHY_UNIT_PROD2", Slot::Value(T.monarchy_unit_prod[1])),
             ("SOCIALISM_UNIT_BONUS", Slot::Value(T.socialism_unit_bonus)),
