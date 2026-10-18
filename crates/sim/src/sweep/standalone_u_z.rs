@@ -46,6 +46,8 @@ mod unit_add_await_board_order;
 mod unit_add_board_order;
 #[path = "unit_add_garrison_order.rs"]
 mod unit_add_garrison_order;
+#[path = "unit_add_patrol_order.rs"]
+mod unit_add_patrol_order;
 #[path = "unit_add_spec_anim_order.rs"]
 mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
@@ -66,6 +68,8 @@ mod unit_data_can_ever_transport;
 mod unit_data_can_garrison;
 #[path = "unit_data_can_gather.rs"]
 mod unit_data_can_gather;
+#[path = "unit_data_find_def_pos.rs"]
+mod unit_data_find_def_pos;
 #[path = "unit_data_get_attrition.rs"]
 mod unit_data_get_attrition;
 #[path = "unit_data_get_captain.rs"]
@@ -96,6 +100,8 @@ mod unit_data_has_damage;
 mod unit_data_has_stance_type;
 #[path = "unit_data_hits.rs"]
 mod unit_data_hits;
+#[path = "unit_data_home_base.rs"]
+mod unit_data_home_base;
 #[path = "unit_data_in_supply.rs"]
 mod unit_data_in_supply;
 #[path = "unit_data_is_attacking.rs"]
@@ -152,6 +158,8 @@ mod unit_data_turn_speed;
 mod unit_data_will_be_corner;
 #[path = "unit_die.rs"]
 mod unit_die;
+#[path = "unit_do_air_attack_ground.rs"]
+mod unit_do_air_attack_ground;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
 #[path = "unit_do_explore_to.rs"]
