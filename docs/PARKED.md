@@ -7594,7 +7594,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3202, 2026-10-18 — the Slinger squad's start on 5564
 
-- (3210; the lane's number, the commander's to confirm) **The Iroquois word 5576's state parts on block 5564: the
+- (3210; booked as item 3211) **The Iroquois word 5576's state parts on block 5564: the
   Slinger squad's first move** (`GreatLakesIroquoisTier3`, `docs/AI.md` §252; run930, `run930_s_squad_is_widened_whole`).
   who=1's squad `1/25` (captain), `1/26`, `1/27` (TI 82, born on 5563 at the Barracks, group 64) takes an `ATTACKTO` to
   (36552, 21960). Two fields part on that block. (a) The followers' formation offsets: `1/26`'s `off_x`/`off_y`
