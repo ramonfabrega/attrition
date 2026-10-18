@@ -9681,7 +9681,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // walked it back to block 894 (item 3117, `run918_s_word_frame_is_
     // widened_whole`, `run918b_s_gap_is_widened_whole`). **Item 3117 moved
     // it 1120 → 1496**, past run918's last block (1370): 1496's widening is
-    // owed, a capture of the lobby's 1490..1746, item 3140's (run 921).
+    // run921's, 1371..1626 (item 3140, `run921_s_word_frame_is_widened_
+    // whole`), which holds the parting on block 1378 — who=1's `1/7`
+    // taking a gather where the original took the re-placed camp's
+    // build. **Item 3140 moved it 1496 → 1772** (`action_swarm_around`'s
+    // builder mark, `unit_masks |= 0x400`), past run921's last block:
+    // 1772's widening is owed, a capture of 1766..2022; the owing item's
+    // number is the commander's.
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
