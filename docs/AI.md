@@ -22348,15 +22348,17 @@ who=1's `1/31` `collide` 0 against 1. No capture was taken: run910 (12809..13066
 after 12926 but the standing set (the control's `form`, `group:*.held`, `pool:*`, `leader:SITE[*].reg`,
 `leader:aggression[1]`, `g.angle[0]` on two units — parked 2995 unchanged) and two `order:target` rows, `1/64` on 12865
 and `1/28` on 12926: ours' attack order names the Town Center `0/2000` where theirs' still names the dead Scout's
-`(0, 0)`. Neither moves a position in the window. Blocks 13067..13519 are in no dump, so the closing state is not
-value-compared.
+`(0, 0)`. Neither moves a position in the window. Blocks 13067..13519 are in no windowed dump, but **the long itself
+closes the game**: run643 (`cover=0`) prints its closing block 13520 whole, and `run643_german_closing_state` walks to
+it and compares it — 90 units, every count 0, no closing field parted. It is the lobby's endpoint in `AI_WORDS` and the
+word's row in `WIDENINGS` (`WIDENING_GERMAN_CLOSING`, block 13520): **the battery lobby closes** (DECISIONS 55).
 
-**Coverage.** *Diff-backed*: `german_word_first_parting` (13519 of 13519) and `run910_s_word_frame_is_widened_whole`
-(59 keys). *Listing-backed, no run reaches it*: the gate's `+0x2b4 & 0x400` term, which this crate does not read
+**Coverage.** *Diff-backed*: `german_word_first_parting` (13519 of 13519), `run910_s_word_frame_is_widened_whole`
+(59 keys) and `run643_german_closing_state` (90 units). *Listing-backed, no run reaches it*: the gate's `+0x2b4 & 0x400` term, which this crate does not read
 (the flag is unnamed in `uflags`); a type carrying it would idle while recharging in the original.
 
 **What is not established.**
-- The closing state past 13066 (no dump).
+- The blocks between 13067 and 13519, which only the draws compare.
 - The `order:target` rows: whether theirs' `TargetOrder` keeps the dead Scout's slot until something else rewrites it,
   and what retargets ours (parked, slot HG).
 
