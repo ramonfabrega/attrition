@@ -156,12 +156,14 @@
 /// item 3058: 1429 -> 1434 on the merged tree, the sweep's hundred-and-forty-first batch, five shapes
 /// (`Unit::update_armor`, `Build::swap_team`, `SubObject::swap_team`, `AmmoData::walk_data`, `Game::walk_data`;
 /// `TurnControl::end_cannon_time` and `Tribes::find`'s import arm beside them).
+/// item 3049: 1434 -> 1444 on the merged tree, the sweep's hundred-and-forty-second batch, ten small bodies
+/// (`Border::rebuild_visible_list`, `Roads::generate`, `Doober::remove_doobers` and seven more).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1434;
+pub const SIMULATION_BACKED: usize = 1444;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

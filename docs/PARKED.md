@@ -3752,7 +3752,8 @@ made to fail first on this log. One reach.
 (3062) **`sweep_gen.py`'s help omits two working spellings** (3044's "for the Loop" line, parked 3061, filed at its merge):
 `--outarg IDX:K` repeated for one stub, and a `--place` at a stub's answer (`sN`) with its own `--wbias` window for a
 callee-returned record's field; and (parked 3071) `--cell-this` replaces `--cell-win`, `--argrange` bounds are inclusive,
-and an `iat:` stub records a stale `ecx`. Candidate: all five in the help with an example each. One reach.
+and an `iat:` stub records a stale `ecx`; and (parked 3081) `--seq`'s header names the stubs' leading answers. Candidate: all
+six in the help with an example each. One reach.
 
 (3057) **`sweep_gen.py --answers IDX:V,..` draws a wild word a tenth of the rows** (3030's parked 3053, filed at its
 merge): a stub whose answer indexes an array faults there, where `--answer-range` does not; and a `slot:` stub with the
@@ -7189,7 +7190,7 @@ second `--wbias` window is the way to give a callee-returned record a field (`Wa
 
 ## Parked by item 3049, 2026-10-17 — the fourth harvest batch: ten small bodies, Census +10 on its own tree
 
-(3049, first) **Draw gaps, said plainly.** `Doober::remove_doobers`: the two long-leg arms (shorter leg of 60000 or
+(3079) **Draw gaps, said plainly.** `Doober::remove_doobers`: the two long-leg arms (shorter leg of 60000 or
 more) change a distance no row can remove with a threshold of 40, so `b < 60000` and the `>> 1` branch survive their
 breaks; reaching them needs `--argrange 2` past 60000, which starves the arms a small threshold exercises (one draw,
 one range). `World::new_coll_block`: the allocator stub answers a window every row, so the null arm (block 0 stored)
@@ -7197,13 +7198,13 @@ is not drawn, and the CRT `memset` is a stub (its call is recorded; the cleared 
 and `TerrainMap::map_change_river` have no equivalents beyond the transposed index (`h*x+y` over a `w*h` rectangle is
 a bijection) and `<=` for `<` on equal bounds in `BorderSplineRender::make_bbox`.
 
-(3049, second) **`WorldMapFog::fill_colors` is swept at `who` 0 only**: the leader table's base (`0xc061e0`'s pointer)
+(3080) **`WorldMapFog::fill_colors` is swept at `who` 0 only**: the leader table's base (`0xc061e0`'s pointer)
 is recorded as a window token, and a window large enough for `who * 0x6eec` makes every row 56 KB of hex. A `sweep_gen`
 option to record `ecx` relative to a cell's pointer (not its window) would lift it.
 
-(3049, third) **`sweep_gen.py obj` stub answers**: `--seq IDX:N` prints two leading answers (one per stub) before the N
+(3081) **`sweep_gen.py obj` stub answers**: `--seq IDX:N` prints two leading answers (one per stub) before the N
 sequence values; the row's `a` indices are `stubs + k`, which the generated header does not say (it said "printed after
-the answers"). One line in the header would save a probe per use.
+the answers"). One line in the header would save a probe per use (Loop 3062).
 
 ## Parked by item 3058, 2026-10-17 — the shape batch: `update_armor` and 3030's tails, Census 1407 → 1412 on its own tree
 
