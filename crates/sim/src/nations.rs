@@ -940,9 +940,10 @@ mod tests {
         })
     }
 
-    const STATUSES: [&str; 6] = [
+    const STATUSES: [&str; 7] = [
         "modelled at ",
         "carried at ",
+        "loaded at ",
         "carried, unread",
         "not carried",
         "not modelled",
@@ -1040,6 +1041,27 @@ mod tests {
                         ));
                     }
                     Some(_) => {}
+                }
+            } else if let Some(f) = status.strip_prefix("loaded at ") {
+                // The effect is a rule the loader builds (`rondata`), which
+                // the sim's `TechTree` then runs; the field is read there.
+                let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../rondata/src")
+                    .join(f);
+                match std::fs::read_to_string(&path) {
+                    Err(e) => bad.push(format!("line {line}: {}: {e}", path.display())),
+                    Ok(t) => {
+                        let code: String = t
+                            .lines()
+                            .filter(|l| !l.trim_start().starts_with("//"))
+                            .collect::<Vec<_>>()
+                            .join("\n");
+                        if !holds(&code, w) {
+                            bad.push(format!(
+                                "line {line}: `{status}` but {f} does not read `{w}`"
+                            ));
+                        }
+                    }
                 }
             } else if status == "carried, unread" {
                 if !tuning.contains(&format!("pub {w}:")) {
