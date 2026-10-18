@@ -532,6 +532,8 @@ mod object_data_attack_dist;
 mod object_data_attack_dist_at;
 #[path = "object_data_can_carry.rs"]
 mod object_data_can_carry;
+#[path = "object_data_can_carry_domain.rs"]
+mod object_data_can_carry_domain;
 #[path = "object_data_cargo_inside.rs"]
 mod object_data_cargo_inside;
 #[path = "object_data_get_inside.rs"]
