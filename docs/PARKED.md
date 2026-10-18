@@ -3749,13 +3749,6 @@ merge): `--regen` keeps a flag dropped from an `@FILE` (the kept `# sweep_gen:` 
 and (3229a) a stack-local `SimpleArray` filled by a callee has no stub (`--stub-array`). Candidate: the first two are
 bugs, made to fail first; the last three are flags, each built when a batch's body needs it. One reach.
 
-(3241) **A drawn `--stub-write` value, and a convention for the public API a standalone sweep needs** (3238's "for the Loop" line,
-filed with the landing): `--stub-write` writes one fixed value on every call, so a found/not-found split costs two modules
-(`army_do_marching` and `_found`); and a standalone `standalone_*.rs` sweep sees only `sim`'s public API, so each batch widened
-visibility on the crate method it drives (`roads.rs`, `collide.rs`, `caravan.rs`, `place.rs`) and a sweep using `crate::`
-internals sits in `sweep/mod.rs`. Candidate: a `--stub-write IDX:WIN+OFF:SIZE:V,V,..` drawn per row; the visibility is a stated
-convention in the generator's help. One reach.
-
 (3237) **The port count rises on a sweep that diffs an inline copy, not the crate** (3234's parked (a), filed at its
 merge): five of 3234's six sweeps assert logic inlined in the test, and `Sim::same_damage`, `Sim::do_patrol`,
 `Sim::add_trade_order`, `Sim::check_ever_seen` and `Sim::find_new_bomber_target` are not diffed; the census marks all
