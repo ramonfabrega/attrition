@@ -5883,11 +5883,10 @@ fn chapter_one_hundred_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_holds_to_the_golden_word();
 }
 
-/// What parts in run936's window, blocks 605–921 (item 3244): the eleven standing `form` rows;
-/// the Tank's gun now leaves 187 units ahead of it (`pivot::RELEASES`, piece 194, run938b), so its
-/// rounds on `1/2`, `1/1`, `1/4` and `1/3` land on the dump's frames and the 630/712/796 rows are
-/// gone; from 876 `1/3`'s flee path (its heading, destination and legs) parts, 901 the Tank's
-/// heading, 917 the word (their `Unit::close` death roll on `1/3`, ours 919) and the leader's food after.
+/// What parts in run936's window, blocks 605–978 (item 3246): the eleven standing `form` rows
+/// alone. A fleeing unit's path costs tripled on `UnitData::is_fleeing` (the order's type), not on
+/// the dead `flags & 2` bit, so `1/3`'s flee at 876 takes the original's route and every row from
+/// 876 to 921 is gone; the word moves 917 → 977 (a draw delta alone, ours' `take_damage+0xe1`).
 const WANT_CH100: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -5900,27 +5899,6 @@ const WANT_CH100: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "876 1/3 heading",
-    "876 1/3 mirror",
-    "876 1/3 order:move.dest_x",
-    "876 1/3 order:move.dest_y",
-    "876 1/3 path:length",
-    "876 1/3 path[1].to",
-    "876 1/3 path[2].to",
-    "876 1/3 path[3].to",
-    "876 1/3 pos",
-    "893 1/3 order:move.dest",
-    "901 0/6 angle:Heading",
-    "901 0/6 heading",
-    "902 0/6 dest_angle",
-    "918 1/2002 gather:gather_down[-1]",
-    "918 1/3 death:direct",
-    "918 1/3 death:missing",
-    "918 1/3 extra",
-    "920 1/-1 leader:income[0:food]",
-    "920 1/-1 leader:leftover[0:food]",
-    "920 1/-1 leader:resources[0:food]",
-    "920 1/3 death:first_frame",
 ];
 
 /// What parts in run933's window, blocks 605–1500: the eleven standing `form` rows

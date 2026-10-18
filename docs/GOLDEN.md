@@ -13414,12 +13414,17 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the Tank's rounds' landing frames on all four targets (the widening). Reading only: the `float_lands` question above.
 
-## 134. Reserved for the next item on the rules track
+## 134. Chapter one hundred — a fleeing unit's path costs triple on `is_fleeing`; the word moves 917 → 977 (item 3246, no new capture)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3245): `1/3`, hit on 875 in both, flees to the same destination `(42936, 16008)` (the `FLEETOORDER` of 875 agrees) and the paths part on 876: ours routes west and north round the capital `1/2000` (legs `(41400,16776)`, `(41400,16008)`, `(42168,15240)`), theirs east and south round `1/2005` (`(42936,17544)`, `(43704,18312)`, `(44472,17544)`, `(44472,16776)`) — the dump's `heading`, `order:move.dest` and `path[1..3].to` are that one choice. The disk answered it: run936's dump and this crate's own `RON_DEBUG_UNIT` print, no capture.
+
+**The cause.** `calc_cost`'s "fleeing triples the additive part" row (`docs/PATHFINDER.md` §5, the cost table) was read in `path.rs` off the move order's `flags & 2` (`orders::flag::FLEEING`). `docs/ORDERS.md` §4 already says nothing writes that bit and the live predicate is `UnitData::is_fleeing@0046efa0`, the current order's type being `FLEE_TO` — so this crate never tripled a flee's cost and chose the short route. It now asks `Sim::is_fleeing(u)`.
+
+**What moved.** The widening (605..978, 373 blocks) parts on nothing but the eleven standing `form` rows: every row of 876..921 (`1/3`'s heading, mirror, path legs and position, the Tank's heading on 901, `1/3`'s death and the food) is gone. **The word moves 917 → 977**, a draw delta alone, no value parting through 978: ours 6 against theirs 5, ours' extra at draw 0 `Object::take_damage+0xe1` against theirs' `Farms::inc_time+0x1ae`.
+
+**Not established.** What takes damage in ours on 977 and not in theirs (the next item, by its frame and draw: a damage roll this crate makes and the original does not, with nothing parting in the values — who is hit and by what is for `RON_STACKS` on both sides). The flag bit `flags & 2` is now read by nothing in `path.rs`; its other readers (none by grep) are unchanged.
+
+**Coverage.** Diff-backed: the flee route of 876 and the rows to 921, and the nothing-parts through 978 (the widening). Reading only: the triple's reach on branches the chapter does not walk.
 
 ## 135. Reserved for the next item on the rules track
 
