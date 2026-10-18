@@ -6718,10 +6718,10 @@ pub(crate) const WIDENING_CHAPTER_NINETY_NINE: (i64, i64) = (604, 1501);
 /// **Chapter one hundred** (item 3236, `docs/GOLDEN.md` §132, run936):
 /// a Tank bled to death by attrition (`dtype` 0) with two late captains ordered
 /// across its cell.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED: i64 = 977;
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED: i64 = 2600;
 
 /// `chapter_one_hundred_s_window_is_widened_whole`'s window: run936.
-pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED: (i64, i64) = (604, 979);
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED: (i64, i64) = (604, 2601);
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).

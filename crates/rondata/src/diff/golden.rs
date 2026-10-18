@@ -5883,10 +5883,12 @@ fn chapter_one_hundred_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_holds_to_the_golden_word();
 }
 
-/// What parts in run936's window, blocks 605–978 (item 3246): the eleven standing `form` rows
-/// alone. A fleeing unit's path costs tripled on `UnitData::is_fleeing` (the order's type), not on
-/// the dead `flags & 2` bit, so `1/3`'s flee at 876 takes the original's route and every row from
-/// 876 to 921 is gone; the word moves 917 → 977 (a draw delta alone, ours' `take_damage+0xe1`).
+/// What parts in run936's window, blocks 605–2600 (items 3246, 3252): the eleven standing `form`
+/// rows and the Tank's `near` from 1227 (ours `1/2001`, theirs `1/5`; no draw parts). A fleeing
+/// unit's path costs tripled on `UnitData::is_fleeing` (3246, 977); a Tank's round at a building
+/// aims at its centre, not the near face (`Ammo::init`'s `is_tank` gate), and a unit dies of
+/// attrition with `dtype` 1 at its share of the squad's hit points (3252: 977 → 2600, the trace's
+/// end, `GOLDEN.md` §135).
 const WANT_CH100: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -5899,6 +5901,7 @@ const WANT_CH100: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
+    "1227 0/6 near",
 ];
 
 /// What parts in run933's window, blocks 605–1500: the eleven standing `form` rows

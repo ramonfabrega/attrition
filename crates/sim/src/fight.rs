@@ -2212,9 +2212,19 @@ impl Sim {
             Some(_) => combat::scatter(&self.tuning, acc, true, false, strafes),
             None => combat::scatter(&self.tuning, acc, land_unit, p.has(mask::MISSILE), strafes),
         };
-        // A building target shot by a non-siege unit: aim at the near face.
+        // A building target shot by a non-siege, **non-tank** unit: aim at the
+        // near face. The gate is the shooter type's vslots `+0x10c`
+        // (`is_siege`) and `+0x110` (`UnitTypeData::is_tank`, `unit_flags &
+        // 0x80000`), both zero (`Ammo::init@0067bbf0`, `0067c1c0`): a Tank
+        // aims at the building's centre (`docs/GOLDEN.md` §135).
+        let tank = match shooter {
+            Obj::Unit(u) => self.units[u]
+                .ty
+                .is_some_and(|t| self.unit_types[t].cols.flag(uflags::TANK)),
+            Obj::Building(_) => false,
+        };
         let mut aim = target_pos;
-        if matches!(target, Some(Obj::Building(_))) && !p.siege && s != 0 {
+        if matches!(target, Some(Obj::Building(_))) && !p.siege && !tank && s != 0 {
             let back = Angle(angle.0.wrapping_add(Angle::SOUTH.0));
             aim = Pos::new(
                 aim.x + crate::movement::sin_component(back, tp.x_size * 0x30),
@@ -2843,6 +2853,25 @@ impl Sim {
         let keep = self.keeps_disc(v, dtype);
         self.close_supply_in(v, keep);
         self.forget(Obj::Unit(v));
+    }
+
+    /// A unit's death by attrition: `Unit::suffer_attrition@005e1a10` calls
+    /// the unit's `take_damage` (vslot `+0x16c`) with `dtype` **1**, not 0 —
+    /// `(whole, sixteenths, 1, -1, 1, 0x55555555, ...)` — so `Object::die`
+    /// runs the whole combat tail: the death animation's draw
+    /// (`Unit::close+0xcb6`), the sound, and a Tank's disc left standing
+    /// (`docs/GOLDEN.md` §135, run936: the original draws on 1890).
+    pub(crate) fn die_by_attrition(&mut self, i: usize, frame: i64) {
+        const ATTRITION_DTYPE: i32 = 1;
+        self.close_count(i);
+        self.relink_squad(i);
+        self.close_unit(i, ATTRITION_DTYPE, frame);
+        self.kremlin_spy_closed(i);
+        self.close_dead_orders(i);
+        self.hold_dead_slot(i);
+        let keep = self.keeps_disc(i, ATTRITION_DTYPE);
+        self.close_supply_in(i, keep);
+        self.forget(Obj::Unit(i));
     }
 
     /// `Object::close@00647160`'s `blocks_while_dead` arm: any death with a

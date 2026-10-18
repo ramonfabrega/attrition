@@ -2685,10 +2685,10 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
     }
     // **Chapter one hundred, on run936** (item 3236): a Tank bled by
-    // attrition; the window is the word, 977.
+    // attrition; the window takes the Tank's death (`dtype` 1), 1888..1892 (item 3252).
     if let Some(p) = &ch100 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED;
-        let n = drive_capture(p, 977, 981, &mut paths);
+        let n = drive_capture(p, 1888, 1892, &mut paths);
         assert_eq!(
             n, 5,
             "chapter one hundred carries five blocks in the window"
