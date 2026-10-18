@@ -7571,7 +7571,7 @@ fn a_roman_legion_line_costs_a_tenth_less_and_trains_faster() {
 }
 
 /// **A Turkish Citizen costs a third less, and Wool takes its fifteen first**
-/// (item 3160, `docs/NATIONS.md` §7.5): `get_cost`'s `TURK_CITIZEN` and
+/// (item 3160, `docs/NATIONS.md` §7): `get_cost`'s `TURK_CITIZEN` and
 /// `WOOL_CITIZENS_COST` arms, on `TypeIndex` 0 and 1 only.
 #[test]
 fn a_turkish_citizen_costs_a_third_less() {
