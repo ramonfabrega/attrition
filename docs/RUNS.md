@@ -18077,3 +18077,27 @@ the coverage driver's slice.
 
 `docs/GOLDEN.md` §133. **What the disk could not answer**: the Tank's release point (no dump of a Tank's fire carried `AMMO`; the packet for piece 194 did not exist). run938: chapter 100's recipe (`--map 14 --end-frame 925 --log-window 605 925`, run936's `end:` set plus `GUYS=4,AMMO=5`, a copy of `chapter100.cmd` without its 1900 lines), pool lane 1, kept in `~/ron-golden/run938/map-14/`; `AmmoData` prints the eight rounds' `sx, sy, sz`. run938b: the same with `--end-frame 636 --log-window 628 634 --tracer-def RON_STATE_FRAME=630 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`, `~/ron-golden/run938b/map-14/frame-snapshot.bin`, 797,530,952 bytes; two earlier takes of it produced none (the plan define unquoted; the logger window excluding the frame). No minutes waited on another lane.
 **What it holds**: `golden::chapter_one_hundred_s_window_is_widened_whole` (the rows after the Tank's rows were added to `pivot::RELEASES`).
+
+## run940 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 8415's widening (8409..8665) at `LEADERS=9`, `GUYS=4` (2026-10-18, item 3248, `att-3248`)
+
+`docs/AI.md` §256. **What the disk could not answer**: the word moved to 8415 (item 3242), and run937 ends at block
+8232. No dump of the lobby held a block between 8232 and 12658: run97 is Great Lakes in run53's game, another lobby.
+The window is six blocks before the word's block 8416 and 250 after it, at run937's detail. The recipe is run937's:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run940 --map 14 --end-frame 8671 --timeout 10800
+--log-window 8409 8666 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 18 --cover cover=0
+--profile DIFFICULTY=3`.
+- Pool lane 1. Launched 12:34:16 and the game exited at 12:50:37 (980 s launch to exit). `success`,
+  `settings_restored`, 8672 frames, `map_style 14`, seed 12345, players `(0,4,7),(1,18,1)`. `rngcmp.py
+  rontrace-run897b.log rontrace-run940.log`: **8672 identical, 0 differing**. Filed with `filerun.py run940
+  greatlakes-iroquois-diff3-window-8409-8666-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run940-greatlakes-iroquois-diff3-window-8409-8666-guys4.txt`, 492,767,962 bytes,
+SHA-256 `6846e569f60c921ed43c41485fab2b5772d5ba3d1b1bd91214d1e699af7966e5`.
+
+Archive `rontrace-run940.log`, 36,527,968 bytes,
+SHA-256 `40a3e0dd741510eb576bc505da5d21640583fd3867e5ca40d8991b23e5c88b3c`.
+
+**What it holds**: `diff::iroquois_word::run940_s_word_frame_is_widened_whole` (257 blocks). Block 8416 holds theirs'
+three Javelineers `1/48`..`1/50` out of the Barracks `1/2016`, and who=1's rare mask gaining Cotton (`080000` →
+`081000`). With `train_time`'s Cotton arm the window has 61 keys. The window is in the coverage driver's slice.
