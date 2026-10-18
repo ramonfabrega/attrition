@@ -13342,12 +13342,15 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Not established**: a sea unit's end (no capture reaches one; the arm is read from `inc_time`'s `+0x218 == 1` test alone); whether every guy of a squad dies with one `cur_anim` (the dump's four records agree); the cull's effect on slot reuse in a capture where a recycled number is born inside the window (none on disk).
 
-## 128. Reserved for the next item on the rules track
+## 128. Chapter ninety-seven — a ship's death object, closed at 1500 on the first counted run (item 3209, run929)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Staging.** `tools/gamelog/golden/chapter97.cmd`: chapter 64's sea (region 70) without its stance commands — two who=0 Barks `0/6`, `0/7`, who=1's Trireme `1/6`, fishing boat `1/7` and Bark `1/8` — run to 1500 (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Run929, lane 1, `~/ron-golden/ch97/map-14/`, 1,501 frames, seed 12345. The first take copied chapter 64's `end:` set, which lacks `DEATHS=1`, and printed no `DEATH_OBJS` at all (the dump's two `death:extra` rows were that gap, not the original); it was discarded and retaken.
+
+**The word is 1500, the capture's end: no draw parts.** The widening is whole (895 blocks, both directions): eleven rows, the standing `form` rows, and nothing else — no `death:extra` and no `death:missing`.
+
+**The finding.** Both human Barks die and the original ends their records where §127's cull does: `0/6` (`gpiece` 273, `cur_anim` 17, `first_frame` 800) is printed for 69 blocks and `0/7` (`first_frame` 918) for 79. A sea unit's record lives its animation alone, with no body or corpse fade (`type +0x218 == 1`), so §127's one reading-only arm is now diff-backed: had the fade been added, the records would stand 135 or 627 frames and print `death:extra` here. (Chapter 64's dump ending at 820 is why it showed no record for the sunk Bark: its `end:` set lacked `DEATHS=1`.)
+
+**Not established**: the per-piece packet lengths themselves (69 and 79 are the records' observed lengths, which this crate's `slot_length` reproduces); a ship that dies at sea with cargo or crew (these Barks carry none); the disc-release case parked 3204, which this staging does not touch.
 
 ## 129. Reserved for the next item on the rules track
 

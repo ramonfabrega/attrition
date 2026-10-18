@@ -5805,6 +5805,33 @@ const WANT_CH96: &[&str] = &[
     "605 1/5 form",
 ];
 
+/// **run929 whole, both directions** (item 3209, `docs/GOLDEN.md` §128).
+#[test]
+fn chapter_ninety_seven_s_window_is_widened_whole() {
+    cases_80_89::chapter_ninety_seven_s_window_is_widened_whole();
+}
+
+/// Chapter ninety-seven holds to its golden word (item 3209, run929).
+#[test]
+fn chapter_ninety_seven_holds_to_the_golden_word() {
+    cases_80_89::chapter_ninety_seven_holds_to_the_golden_word();
+}
+
+/// What parts in run929's window, blocks 605–1500.
+const WANT_CH97: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
 /// What parts in run920's window, blocks 605–1200: the word, closed at 1200 by
 /// item 3175 (the dead Tank's disc stands; it took `0/12`'s path rows from 1175 away),
 /// 1174 (1118

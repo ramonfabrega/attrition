@@ -7612,13 +7612,10 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot IP — reserved
+## Parked by item 3209, 2026-10-18 — chapter 97: a ship's death object
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot IP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3208) ~~**A sea unit's end**~~ diffed, item 3209 (GOLDEN §128, run929): both Barks' records end at 69 and 79 frames with the animation alone; the cull agrees with no row standing.
+- (3204, still open) **Which late hoplites cross a released disc** — chapter 97 does not touch it; it still needs a staging where a unit paths over a dead blocking-while-dead corpse's cell after the cull. Names no score until a capture shows a part.
 
 ## Parked by the next landing, slot IQ — reserved
 

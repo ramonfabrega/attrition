@@ -17935,3 +17935,8 @@ window is in the coverage driver's slice.
 
 `docs/GOLDEN.md` §126. **What the disk could not answer**: no dump held a death object's cull measured against the piece and animation (ch95 ended before the second Tank's record did). Recipe `tools/gamelog/golden/chapter96.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch96/map-14/`, 1,501 frames, seed 12345. About twenty minutes waited on run926's hold of the lane.
 **What it holds**: the word is 1500, the capture's end; four `death:extra` rows are the cull (lifetimes 152, 143, 650, 644 frames by piece and animation).
+
+## run929 — chapter ninety-seven: a ship's death object (2026-10-18, item 3209, `att-3209`)
+
+`docs/GOLDEN.md` §128. **What the disk could not answer**: no dump held a sea unit's death record and its end (chapter 64's `end:` set lacked `DEATHS=1`, and it ended at 820). Recipe `tools/gamelog/golden/chapter97.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch97/map-14/`, 1,501 frames, seed 12345, 345 s launch to exit; `rontrace.dll` SHA-256 `c22ddf33680bf9fb9edbc28d99c7a8632ff0df917d68f20c6d0cd4c6c41fa6e5`. The first take (`end:` set copied from chapter 64, no `DEATHS=1`, 1,410 s) printed no death records and was discarded (`~/ron-golden/ch97-nodeaths`). Waited on another lane: none.
+**What it holds**: `golden::chapter_ninety_seven_holds_to_the_golden_word` (1500) and `chapter_ninety_seven_s_window_is_widened_whole` (eleven `form` rows); its window 866..870 is in the coverage driver's slice.
