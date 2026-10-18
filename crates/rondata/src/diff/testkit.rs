@@ -9793,12 +9793,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`is_modern_infantry`'s Iroquois arm, then `UnitData::speed`'s spear
     // arm); 5843 was widened on run932 over 5826..6094
     // (`run932_s_word_frame_is_widened_whole`), and 6982 is past it, owed
-    // as 3229 (the lane's number, `docs/PARKED.md`).
+    // as 3230 (the lane's 3229, renumbered at the merge; `docs/PARKED.md`).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3229,
+        3230,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

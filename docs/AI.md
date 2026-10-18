@@ -22838,7 +22838,7 @@ The march arm compares against `myspeed`, not against that sum, so a march repla
 it. run932 goes from 734 keys to 41: the standing set, `1/22`'s `blown` (5883), the camp pool (5896) and `SITE[3].reg`
 (5976). run928 goes from 52 to 35. **The word moved 5843 → 6982**: ours 10 draws, theirs 15, index 5, ours
 `Guy::set_anim+0x97a < Animal::do_idle+0x19` against theirs `Leader::produce_building+0x1805`. That is the AI's
-building turn, past run932's last block, so its widening is owed (parked 3229, the lane's number).
+building turn, past run932's last block, so its widening is owed (parked 3230; the lane minted 3229, renumbered at the merge).
 
 **Not established.** `IROQUOIS_SPEAR_SPEED`'s entries 1..3 (`is(0xa7..0xa9, 1)`) and the march's replacement of the
 bonus are read, not diffed, because no capture has a pike or a march. Two rows that are not draws remain standing in
@@ -22856,6 +22856,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 255. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 256. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 257. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 258. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 259. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number
