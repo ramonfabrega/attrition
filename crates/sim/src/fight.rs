@@ -7962,6 +7962,39 @@ mod tests {
         assert_eq!(sim.units[me].unit_masks2, 0);
     }
 
+    /// **A recharging melee unit with no order steps nothing**:
+    /// `Unit::work@0060d180:79-86`'s gate returns for a non-`ATTACK` unit
+    /// with `recharging` (`+0xae`) above nought and no range (`+0x1fc`)
+    /// when it has **no order** as well as when its order lacks the action
+    /// bit, so it reaches neither `do_idle` nor `check_idle` (`idle`,
+    /// `+0xb0`, stays 0) until the countdown ends. The battery word 13054
+    /// (`docs/AI.md` §245): the Knight `1/65` ends its `ATTACK_TO` at
+    /// `recharging` 21 and stands orderless at `idle` 0 in the original.
+    /// Made to fail on purpose by restoring the gate's `Some(order)` test.
+    #[test]
+    fn a_recharging_melee_unit_with_no_order_does_not_idle() {
+        let (mut sim, _) = at_war();
+        let melee = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 0,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 0, melee, Pos::new(0x1000, 0x1000));
+        let _foe = put(&mut sim, 1, melee, Pos::new(0x1100, 0x1000));
+        sim.units[me].combat.recharging = 2;
+        sim.work(me, 1);
+        assert_eq!(sim.units[me].idle, 0, "a recharging melee unit does not idle");
+        assert!(sim.units[me].orders.is_empty(), "and takes no order");
+        sim.units[me].combat.recharging = 0;
+        sim.work(me, 2);
+        assert_eq!(sim.units[me].idle, 1, "the countdown over, it idles");
+    }
+
     /// **A move whose action's target has died is only re-pathed when
     /// the walk is nearly over** (item 487, `docs/ORDERS.md` §20).
     ///
