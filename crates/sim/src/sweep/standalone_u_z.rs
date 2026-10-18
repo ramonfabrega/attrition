@@ -526,6 +526,8 @@ mod world_map_fog_set_fog_lookup;
 mod world_map_on_right_down;
 #[path = "world_map_reinit_all.rs"]
 mod world_map_reinit_all;
+#[path = "world_new_coll_block.rs"]
+mod world_new_coll_block;
 #[path = "world_scale_by_area.rs"]
 mod world_scale_by_area;
 #[path = "world_scale_by_axis.rs"]
