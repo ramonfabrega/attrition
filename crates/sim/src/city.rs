@@ -991,7 +991,21 @@ impl Sim {
     /// census, and East Indies' run227 shows it there: the original's
     /// `reg_known_rares[7]` and `[11]` go to 0 on block 16529, one after
     /// the fix's own.
+    ///
+    /// **A fix made before the first frame marks nothing** (item 3170,
+    /// `docs/AI.md` §250). Setup's fixes — the starting buildings'
+    /// `Build::activate` — are each followed by
+    /// `World::compute_all_territory@006b5700`, from
+    /// `Setup::build_cities@005ab910` and twice more at the end of
+    /// `Setup::build_game@005ac190`, which runs every region's
+    /// `compute_reg_territory(r, 1)` to completion and leaves no region
+    /// with `borders < size`. Frame 0's `check_borders` therefore zeroes
+    /// nothing, and frame 0's census count stands: run923's who=1 holds
+    /// `reg_known_rares[1] = 1` (the Silk at (40320, 14208)) from block 1.
     pub(crate) fn fix_borders(&mut self) {
+        if !self.in_play {
+            return;
+        }
         self.borders_fixed = true;
     }
 

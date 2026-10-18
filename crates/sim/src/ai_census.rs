@@ -1511,6 +1511,7 @@ mod tests {
         });
         s.ai[1].new_rares = vec![g];
         let land = s.world.region_of(Cell::new(2, 2)).expect("land") as usize;
+        s.in_play = true;
         s.census(1);
         assert_eq!(s.ai[1].census.reg_known_rares[land], 1, "counted");
         s.sync_territory();
@@ -1528,6 +1529,34 @@ mod tests {
         s.census(1);
         s.assemble_holdings(1);
         assert_eq!(s.ai[1].known_rares, 1, "the next sweep counts it again");
+    }
+
+    /// **A setup fix leaves frame 0's census count standing** (item 3170,
+    /// `docs/AI.md` §250): the original's setup ends in
+    /// `World::compute_all_territory`, so no region's pass is pending when
+    /// the first `check_borders` runs. run923's who=1 keeps its start-seen
+    /// Silk in `reg_known_rares` from block 1.
+    #[test]
+    fn a_setup_fix_leaves_frame_0_s_rares_standing() {
+        let mut f = fix();
+        let s = &mut f.sim;
+        let g = s.world.add_good(crate::world::Good {
+            pos: tile_pos(2 * TILES_PER_CELL, 2 * TILES_PER_CELL),
+            ty: 20,
+            alive: true,
+        });
+        s.ai[1].new_rares = vec![g];
+        let land = s.world.region_of(Cell::new(2, 2)).expect("land") as usize;
+        assert!(!s.in_play, "the fixture stands before the first frame");
+        s.sync_territory();
+        s.census(1);
+        s.check_borders();
+        assert_eq!(
+            s.ai[1].census.reg_known_rares[land], 1,
+            "setup's fix marked nothing for frame 0's check_borders"
+        );
+        s.assemble_holdings(1);
+        assert_eq!(s.ai[1].known_rares, 1, "and the recompute sums it");
     }
 
     fn finish(sim: &mut Sim, b: usize) {
