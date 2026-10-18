@@ -3742,6 +3742,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
+(3264) **A renumbered parked row leaves its code pin on the old number** (the commander, at the drain): 3248's lane
+minted 3253 for `WIDENINGS`' owed row in `testkit.rs`; the merge renumbered the parked row 3254 and booked it as 3255,
+and the pin kept 3253. `the_widening_behind_each_pinned_word_exists` passed on four gates, because 3253 was then
+chapter 101's queue item, and went red on the drain's gate when chapter 101 left the queue (`b1f20492`, a second
+commit `ea82a057`). Candidate: the guard asks that an owed row's number name a parked row or queue item about that
+word (its pin's name in the row's text), not any item; made to fail first on `b1f20492`. One reach.
+
 (3260) **`sweep_gen.py --regen` resets a hand-written port to `todo!()`** (3250's "for the Loop" line, its parked
 (3250) (f) and (g), filed at its merge): a `--regen` with a changed `--rows` or `--answer-range` overwrote
 `think_peasant`'s and `target_opportunity`'s hand-written ports; and three flags were wanted — `--init ADDR`, a

@@ -13,8 +13,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-18, **the forty-third tranche (commander, Opus): 20 landings from `1a15c80f` in 6 h 08, drained**, four lanes
-(DECISIONS 78 (i), 80), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `0d754368`, at
-3239's booking (green, 6 of 6; rondata 970, sim 1709; release 10.3 minutes); the drain's follows.*
+(DECISIONS 78 (i), 80), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `ea82a057`, at
+the drain (green, 6 of 6; rondata 972, sim 1713; release 8.8 minutes; `b1f20492` red on one pin, Loop 3264).*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10695 of 12658 (3211, 3231, 3242,
   3248: four Iroquois arms, a Despot's Barracks discount, Cotton's training speed), its widening owed as 3255;
@@ -22,9 +22,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   1512, **port 311 → 347** (3219, 3234, 3229, 3238, 3239, 3250). The held-out battery's median 4770.
 - **Lanes: none live** — drained at twenty; unspawned: 3255 AI (run 943, AI §257, JK), 3263 rules (run 944, GOLDEN
   §137, JN), 3261 shape (JM), 3259 the nations seat (JL). Landings: 3221, 3223, 3225, 3211, 3228, 3219, 3233, 3234,
-  3229, 3231, 3236, 3244, 3242, 3238, 3246, 3252, 3248, 3239, 3250, 3253. Next 3264, run 945. Pools: GOLDEN §138–140, AI §258–259, park JO–JR.
+  3229, 3231, 3236, 3244, 3242, 3238, 3246, 3252, 3248, 3239, 3250, 3253. Next 3265, run 945. Pools: GOLDEN §138–140, AI §258–259, park JO–JR.
   **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
-- **Fable backlog: 21 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227, 3237, 3240, 3249, 3256, 3257, 3258, 3260).
+- **Fable backlog: 22 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227, 3237, 3240, 3249, 3256, 3257, 3258, 3260, 3264).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -40,7 +40,7 @@ Golden: every chapter closed · 94 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the forty-third pass (steer, Fable): measure the forty-third tranche (twenty landings from `1a15c80f`,
-drained), ratify the marked rows, rule the 21 Loop items (3143, 3188, 3118 and 1570 are Ramon's), then clear
+drained), ratify the marked rows, rule the 22 Loop items (3143, 3188, 3118 and 1570 are Ramon's), then clear
 `commander` into the forty-fourth tranche on the queue's four unspawned items (3255, 3263, 3261, 3259).**
 
 ## The queue
