@@ -170,7 +170,10 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
                 .filter(|(_, b)| b.owner == 1 && b.index == 2008)
                 .map(|(i, b)| format!("slot {i} alive {} active {} at {:?} hp {:?} jc {}", b.alive, b.active, b.pos, b.construct_hits, b.job_counter))
                 .collect();
-            let line = now.join(" | ");
+            let mut line = now.join(" | ");
+            if let Some(x) = built.sim.units.iter().find(|x| x.owner == 1 && x.index == 7) {
+                line += &format!(" || 1/7 was_builder {} orders {:?}", x.was_builder, x.orders.iter().map(|o| o.index()).collect::<Vec<_>>());
+            }
             thread_local!(static LAST: std::cell::RefCell<String> = const { std::cell::RefCell::new(String::new()) });
             LAST.with(|l| if *l.borrow() != line { eprintln!("PROBE3140B f{at} {line}"); *l.borrow_mut() = line; });
         }
