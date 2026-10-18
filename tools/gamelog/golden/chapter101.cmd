@@ -1,4 +1,4 @@
-# Golden record, chapter one hundred and one -- an idle squad beside a Tank wreck (item 3253, GOLDEN 136; parked 3235).
+# Golden record, chapter one hundred and one -- an idle squad beside a Tank wreck, no Barracks to draw it away (item 3253, GOLDEN 136; parked 3235).
 # The original leaves a `blocks_while_dead` wreck on the object chain until the death object's cull, so a reader that
 # walks the chain without testing `alive` (`find_nearby_target`, `find_units`, `alarm`) sees the Tank's wreck.  This crate
 # keeps the wreck off the chain.  Chapter 99's Sabotage kills who=1's Tank at ~800; two who=0 hoplite squads are added
@@ -12,7 +12,6 @@
 0 !ai off
 600 library who=0 2
 602 library who=1 2
-606 add barracks who=1 80,80
 608 add commando who=0 71,83
 609 add commando who=0 73,83
 610 add commando who=0 72,82

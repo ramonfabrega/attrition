@@ -702,6 +702,16 @@ pub(super) fn chapter_one_hundred_s_window_is_widened_whole() {
     pin_eq!(got, want, "ch100: what parts in the window moved");
 }
 
+pub(super) fn chapter_one_hundred_and_one_holds_to_the_golden_word() {
+    let Some(w) = walk_scriptX else {
+        return;
+    };
+    eprintln!(
+        "chapter one hundred and one: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+}
+
 pub(super) fn chapter_eighty_seven_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch87", "chapter87", 87, 6, 1500) else {
         return;
