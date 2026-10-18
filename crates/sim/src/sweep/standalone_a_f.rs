@@ -38,6 +38,8 @@ mod airpatrolorder_get_air_patrol_order;
 mod ammo_check_hit;
 #[path = "ammo_data_walk_data.rs"]
 mod ammo_data_walk_data;
+#[path = "ammo_hit_target.rs"]
+mod ammo_hit_target;
 #[path = "ammo_out_set_shooter_vis.rs"]
 mod ammo_out_set_shooter_vis;
 #[path = "ammo_process.rs"]
