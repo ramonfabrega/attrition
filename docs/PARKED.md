@@ -3742,6 +3742,11 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3116) **A probe commit that also holds a build cannot be reverted whole** (3107's "for the Loop" line, filed at its
+merge): the first probe commit carried the Iroquois hits build with it, against the brief's row 1727 (one guard, one
+commit, reverted whole); it was kept as a test instead. Candidate: a `probe.py --env X` that refuses a commit touching
+files outside the probe's, the rule made a guard, a test made to fail first. One reach.
+
 (3111) **`sweep_gen.py --regen` drops a hand edit outside the port** (3104's "for the Loop" line, parked at its
 merge): the `if log.is_empty() { log.push("-") }` a recorded-stub sweep with no-call rows needs sits above the eax
 assert, and a `--regen` removed it silently three times in one item; and the row's print order (singles, `--outarg`
@@ -7368,12 +7373,12 @@ The lane's third row (`--regen` drops the empty-log line) is filed as Loop 3111 
 
 ## Parked by item 3107, 2026-10-17 — the Iroquois Scout's masks
 
-- **`Unit::process_cloak@005e1c20` is not modelled, and the Iroquois Scout carries its cloak by block 1.** run897's
+(3114) **`Unit::process_cloak@005e1c20` is not modelled, and the Iroquois Scout carries its cloak by block 1.** run897's
   Scout `1/0` prints `unit_masks2` 49280 on block 1: `Unit::init`'s `0x4080` (built, `docs/AI.md` §246) and
   `0x8000`, which `process_cloak:58` raises; the function has an Iroquois arm (`has_tribe_bonus(0x12)`, `:98`). The
   harness compares `unit_masks2` for `0x10` alone, so the bit parts no key. Names no score until a draw or a detection
   on the word's frame reads it (`UnitData::is_cloaked@0060a6a0`).
-- (3107, second) **`Unit::init@00612100:341`'s first half, `unit_masks2 |= 0x80`** on an Iroquois land unit whose type
+(3115) **`Unit::init@00612100:341`'s first half, `unit_masks2 |= 0x80`** on an Iroquois land unit whose type
   lacks objmask 4, is not carried: no reader of `0x80` in this crate, and run897's citizens print 0.
 
 ## Parked by the next landing, slot HN — reserved
