@@ -5871,9 +5871,9 @@ fn chapter_ninety_nine_holds_to_the_golden_word() {
     cases_80_89::chapter_ninety_nine_holds_to_the_golden_word();
 }
 
-/// What parts in run933's window, blocks 605–850: the eleven standing `form` rows
-/// and, from 846, the word's cascade (item 3228: the draw word is 845, `0/10` collides with
-/// the standing Commando `0/6`; the kept disc took `0/11`'s 808 path rows away).
+/// What parts in run933's window, blocks 605–1500: the eleven standing `form` rows
+/// alone (item 3233: the word was 845 and the cascade after it is gone — the Tank wreck
+/// `1/6` is a hard collider in the scan; the kept disc took `0/11`'s 808 path rows).
 const WANT_CH99: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -5886,47 +5886,6 @@ const WANT_CH99: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "846 0/10 collide_o",
-    "846 0/10 collide_who",
-    "846 0/10 dest_angle",
-    "846 0/10 order:length",
-    "846 0/10 orders.len",
-    "846 0/10 orders_x",
-    "846 0/10 orders_y",
-    "846 0/10 path:length",
-    "846 0/10 pos",
-    "846 0/11 collide",
-    "846 0/11 collide_o",
-    "846 0/11 collide_who",
-    "846 0/11 half_step",
-    "846 0/11 pos",
-    "847 0/10 heading",
-    "847 0/10 idle",
-    "847 0/10 order:kind",
-    "847 1/0 dest_angle",
-    "847 1/0 order:move.angle",
-    "847 1/0 order:move.x",
-    "847 1/0 order:move.y",
-    "847 1/0 orders_x",
-    "847 1/0 orders_y",
-    "847 1/0 path:length",
-    "847 1/0 path[0].to",
-    "847 1/0 path[10].to",
-    "847 1/0 path[11].to",
-    "847 1/0 path[1].to",
-    "847 1/0 path[2].to",
-    "847 1/0 path[3].to",
-    "847 1/0 path[4].to",
-    "847 1/0 path[5].to",
-    "847 1/0 path[6].to",
-    "847 1/0 path[7].to",
-    "847 1/0 path[8].to",
-    "847 1/0 path[9].to",
-    "848 0/11 order:move.dest",
-    "848 0/11 path:length",
-    "849 0/11 angle:Heading",
-    "849 0/11 collide_frame",
-    "849 0/11 heading",
 ];
 
 /// What parts in run920's window, blocks 605–1200: the word, closed at 1200 by

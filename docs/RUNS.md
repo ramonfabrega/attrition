@@ -18015,3 +18015,7 @@ is `1/26`'s figure, which stops on 5574 and rolls its idle on 5576. The window i
 
 `docs/GOLDEN.md` §130. **What the disk could not answer**: no dump held a unit pathing round a `blocks_while_dead` Tank wreck after a non-combat death (Sabotage, `dtype` 3). Recipe `tools/gamelog/golden/chapter99.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch99/map-14/`, 1,501 frames, seed 12345. No minutes waited on another lane.
 **What it holds**: `golden::chapter_ninety_nine_holds_to_the_golden_word` (845) and `chapter_ninety_nine_s_window_is_widened_whole` (52 rows to 849); its window 845..849 is in the coverage driver's slice.
+
+## run935 — not taken (item 3233)
+
+Reserved for chapter 99's retake; the capture on disk (run933) answered the word, so no run was made.
