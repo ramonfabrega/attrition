@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(3);
@@ -41,14 +46,22 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-                let rd = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
-                let rd16 = |w: &[u8], o: usize| i16::from_le_bytes(w[o..o + 2].try_into().expect("two bytes")) as i32;
+                let rd = |w: &[u8], o: usize| {
+                    i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+                };
+                let rd16 = |w: &[u8], o: usize| {
+                    i16::from_le_bytes(w[o..o + 2].try_into().expect("two bytes")) as i32
+                };
                 const KEY: i32 = 0x63637;
                 let (x, y, who, want_idx, by_good) = (a[0], a[1], a[2], a[3], a[4]);
                 // a[5] the type_avail stub's answer; windows: c0 the world, c2 the good count, p0 the div_3_table,
                 // p1 the world's cells, p2.. the goods, p6.. a good's type record, p14+4*pl+j the object arrays.
                 let mut avail = |ty: i32, log: &mut Vec<String>| {
-                    log.push(format!("{},{},1", 0x00e3_a390 + who.wrapping_mul(0x6eec), ty));
+                    log.push(format!(
+                        "{},{},1",
+                        0x00e3_a390 + who.wrapping_mul(0x6eec),
+                        ty
+                    ));
                     a[5] != 0
                 };
                 let ty = |g: usize| rd(&p[6 + g], 4);
@@ -96,14 +109,25 @@ fn the_emulated_original_agrees_on_every_row() {
             log.push("-".to_string());
         }
         assert_eq!(got, want_eax, "find_good_at — eax, row `{line}`");
-        assert_eq!(log, want_log, "find_good_at — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "find_good_at — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "find_good_at — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "find_good_at — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "find_good_at — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[4 + i], "find_good_at — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[4 + i],
+                "find_good_at — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

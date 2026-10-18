@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -40,7 +45,9 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            let rd = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
+            let rd = |w: &[u8], o: usize| {
+                i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+            };
             let wr = |w: &mut [u8], o: usize, v: i32| w[o..o + 4].copy_from_slice(&v.to_le_bytes());
             // a[3] the find_angle stub's answer, a[6..14] the sin_table stub's run; windows: c0 the world (width, height),
             // c1 the groups (0x9d4 apart), p0 the div_3_table.
@@ -55,7 +62,11 @@ fn the_emulated_original_agrees_on_every_row() {
             let mut l1 = Vec::new();
             let mut l2 = Vec::new();
             if x != rd(m, 0x38) && y != rd(m, 0x3c) {
-                l0.push(format!("{},{}", x.wrapping_sub(rd(m, 0x38)), y.wrapping_sub(rd(m, 0x3c))));
+                l0.push(format!(
+                    "{},{}",
+                    x.wrapping_sub(rd(m, 0x38)),
+                    y.wrapping_sub(rd(m, 0x3c))
+                ));
                 wr(m, 0x50, a[3]);
             }
             wr(m, 0x38, x);
@@ -69,14 +80,25 @@ fn the_emulated_original_agrees_on_every_row() {
             let sin_args = |v: i32| {
                 let amp = if v < 0 { -0x180 } else { 0x180 };
                 let t = v & 0x7fff_ffff;
-                (if t & 0x4000_0000 != 0 { 0x7fff_ffff - t } else { t }, amp)
+                (
+                    if t & 0x4000_0000 != 0 {
+                        0x7fff_ffff - t
+                    } else {
+                        t
+                    },
+                    amp,
+                )
             };
             for k in 0..n.max(0) {
                 let g = rd(m, 0x54 + 4 * k as usize);
                 if g < 0 || rd(&c[1], 0x9d4 * g as usize + 0xc) == 0 {
                     continue;
                 }
-                wr(&mut c[1], 0x9d4 * g as usize + 8, i32::from(i16::from_le_bytes([m[2], m[3]])));
+                wr(
+                    &mut c[1],
+                    0x9d4 * g as usize + 8,
+                    i32::from(i16::from_le_bytes([m[2], m[3]])),
+                );
                 l1.push(format!(
                     "c1+{:#x},{},{},{},2,1,{},{},1,-1,-1,0",
                     0x9d4 * g as usize,
@@ -97,12 +119,19 @@ fn the_emulated_original_agrees_on_every_row() {
                 k_sin += 1;
             }
             for l in [l0, l1, l2] {
-                log.push(if l.is_empty() { "-".to_string() } else { l.join("/") });
+                log.push(if l.is_empty() {
+                    "-".to_string()
+                } else {
+                    l.join("/")
+                });
             }
             0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "send_here — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "send_here — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "send_here — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
