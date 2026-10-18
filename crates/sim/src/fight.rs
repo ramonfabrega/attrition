@@ -1118,7 +1118,7 @@ impl Sim {
     }
 
     /// **`AnimalData::is_seen@005d8160`** for `param_1 = who`, as far as
-    /// the fog goes (NATIONS §5; `reveal_map == 3` is [`Sim::has_fog`]'s).
+    /// the fog goes (NATIONS §5.1; `reveal_map == 3` is [`Sim::has_fog`]'s).
     ///
     /// ```text
     /// if herd == -1:                       return was_seen(pos, who)
