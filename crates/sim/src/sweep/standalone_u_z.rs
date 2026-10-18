@@ -268,6 +268,8 @@ mod unit_type_num_preq;
 mod unit_type_restore;
 #[path = "unit_type_walk_rules_data.rs"]
 mod unit_type_walk_rules_data;
+#[path = "unit_update_armor.rs"]
+mod unit_update_armor;
 #[path = "unit_update_ceo_position.rs"]
 mod unit_update_ceo_position;
 #[path = "unit_update_gpiece.rs"]

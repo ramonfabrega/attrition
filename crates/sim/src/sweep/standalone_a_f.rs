@@ -34,6 +34,8 @@ mod air_patrol_order_walk_data_vtordisp;
 mod airattackgroundorder_get_air_order;
 #[path = "airpatrolorder_get_air_patrol_order.rs"]
 mod airpatrolorder_get_air_patrol_order;
+#[path = "ammo_data_walk_data.rs"]
+mod ammo_data_walk_data;
 #[path = "ammo_out_set_shooter_vis.rs"]
 mod ammo_out_set_shooter_vis;
 #[path = "ammo_process.rs"]
@@ -222,6 +224,8 @@ mod build_queue_walk_data;
 mod build_remove_gatherer;
 #[path = "build_repair_damage.rs"]
 mod build_repair_damage;
+#[path = "build_swap_team.rs"]
+mod build_swap_team;
 #[path = "build_type_backup.rs"]
 mod build_type_backup;
 #[path = "build_type_corner_tile.rs"]

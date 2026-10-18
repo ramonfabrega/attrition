@@ -232,6 +232,8 @@ mod sub_object_refresh_z;
 mod sub_object_set_new_location;
 #[path = "sub_object_set_type.rs"]
 mod sub_object_set_type;
+#[path = "sub_object_swap_team.rs"]
+mod sub_object_swap_team;
 #[path = "sub_object_time.rs"]
 mod sub_object_time;
 #[path = "subobject_is_active.rs"]
@@ -364,6 +366,8 @@ mod turn_control_check_new_frame_playback;
 mod turn_control_check_new_frame_solo;
 #[path = "turn_control_compute_next_turn_solo.rs"]
 mod turn_control_compute_next_turn_solo;
+#[path = "turn_control_end_cannon_time.rs"]
+mod turn_control_end_cannon_time;
 #[path = "turn_control_get_delta_percent.rs"]
 mod turn_control_get_delta_percent;
 #[path = "turn_control_get_frame_timing.rs"]

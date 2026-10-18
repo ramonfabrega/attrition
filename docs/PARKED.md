@@ -7190,13 +7190,29 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HE — reserved
+## Parked by item 3058, 2026-10-17 — the shape batch: `update_armor` and 3030's tails, Census 1407 → 1412 on its own tree
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(unnumbered, the commander numbers them) **Equivalent breaks, said plainly.** `Unit::update_armor`: three of 17 pass — `>> 15` for
+`>> 14` (a valid object index never has bit 14 set; one that does reads past the table), `w[9] & 1` for `w[9]` (the bias keeps the player
+byte 0/1 so the leaders table has two rows), and `a[4] == 1 || a[4] == 2` for `a[4] != 0` (the flag is 0/1). The stub path of slot
+`+0xe8` is `--seq 1:1:1` (always a captain at once): a stub answering 0 sends the climb to table index -1 and the chain ends only on a
+high bit, so the stub path's climb is not covered (a flag that terminates a chain from the stub side, `--answer-by` with a
+captain terminator, would take it).
+
+(unnumbered) **`Tribes::find`'s `_wcsicmp` arm is built** (an `iat:0xac5640:2` stub with `--stub-cdecl 0`, offsets drawn 0/1/2, 800 rows);
+the import's leftover `ecx` is the last offset loaded (the record's when its flag bit 0 is clear, else the string's, else the length) —
+the `--record` prefix of a cdecl stub is that `ecx`, not a call count.
+
+(unnumbered) **`Build::swap_team`, `SubObject::swap_team` built** (3055: the Build one is not the Wall one's sibling in text — it calls
+`Wall::swap_team` — but the `--vtat-image m+0:0xb42174` vtable-or-slot compare, `--slotbase`-free, took its three `is`-slot sites with
+both `+0x60` and `+0xb8` two-argument). 24 breaks held. `AmmoData::walk_data` (3020) is built with `--outarg 0:0:...` — the walker writes
+the caller's stack local through its first argument, the same stub's other calls write `this+4`/`this+5`, and the port models all
+three; `Game::walk_data` with an `iat:0xac5460:0` cdecl `timeGetTime`, `TurnControl::end_cannon_time` with `--clean-stack 256` and a
+ten-argument stub for `MessageWin::add_message`. Their breaks: 15, 12, 10 held (one pass, an outarg draw with no high nibble, fixed).
+
+(unnumbered) **For the Loop (filed 3057 already):** `mutate.py --batch` refuses a multi-line OLD (the line splits on `\n`) — the message is
+clear but the batch line is lost; and a `sweep_gen.py` run while a batch is running dirties the tree under it ("the tree is dirty; commit
+first" for every later break) — a generator run should say so, or the batch should work in a worktree copy.
 
 ## Parked by item 3064, 2026-10-17 — the fifth harvest batch: eleven order-adders, clocks and records
 
