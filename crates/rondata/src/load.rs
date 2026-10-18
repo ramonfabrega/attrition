@@ -1096,6 +1096,26 @@ pub fn load_tables(
             candidates: range(0x261, 0x263),
             shape: tech::Shape::PreqMatch,
         });
+        // **The Russian, Chinese herbal-lore and Chinese knowledge blocks**
+        // (item 3113, `docs/NATIONS.md` §7.4): the same shape over a run of
+        // tech indices, each from `gain_tech@006dcb60`'s listing —
+        // `ALLEGIANCE` `0x254`..`<600` behind `has_tribe_bonus(0xd)` and
+        // `russian_attrition_upgrades`; `HERBAL_LORE` `0x25b`..`<0x25e`
+        // behind `has_tribe_bonus(0xe)` and `chinese_herbal_lore`;
+        // `LITERACY` `0x267`..`<0x26c` behind `0xe` and
+        // `chinese_knowledge_upgrades` (0 as shipped, so inert).
+        for (power, enabled, lo, hi) in [
+            (13, t.russian_attrition_upgrades, 0x254, 0x257),
+            (14, t.chinese_herbal_lore, 0x25b, 0x25d),
+            (14, t.chinese_knowledge_upgrades, 0x267, 0x26b),
+        ] {
+            tree.free_rules.push(tech::FreeRule {
+                gate: tech::Gate::Power(power),
+                enabled,
+                candidates: range(lo, hi),
+                shape: tech::Shape::PreqMatch,
+            });
+        }
     }
     tree.finalize();
 
@@ -2558,6 +2578,29 @@ impl BuildCols {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `Leader::gain_tech@006dcb60`'s Russian and Chinese range blocks
+    /// (item 3113): the loader hands the tree one rule per block, gated on
+    /// the nation's power, with the run of tech types the listing walks.
+    #[test]
+    fn the_russian_and_chinese_free_tech_blocks_are_loaded() {
+        let Some(inst) = crate::testenv::install() else { return };
+        let loaded = load(&inst).unwrap();
+        let rule = |power: usize, first: i32| {
+            let id = loaded.tech_tree[(first - BASE_TECHTYPES) as usize];
+            loaded
+                .tree
+                .free_rules
+                .iter()
+                .find(|r| r.gate == tech::Gate::Power(power) && r.candidates.first() == Some(&id))
+                .unwrap_or_else(|| panic!("no rule for power {power} at {first:#x}"))
+        };
+        assert_eq!(rule(13, 0x254).candidates.len(), 4);
+        assert_eq!(rule(14, 0x25b).candidates.len(), 3);
+        assert_eq!(rule(14, 0x267).candidates.len(), 5);
+        assert_eq!(rule(13, 0x254).enabled, 1);
+        assert_eq!(rule(14, 0x267).enabled, 0);
+    }
 
     #[test]
     fn unit_flags_fold_letters_and_digits() {
