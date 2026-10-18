@@ -7434,7 +7434,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3152, 2026-10-18 — chapter 95's word 1118
 
-(3159) **Chapter 95's word 1118: `1/7`'s `hits:damage` on 766, ours 20 theirs 19; draws part on 1118 at `0/15`'s damage (ours 30, theirs 0).** The first parted field after item 3152's attack-action arm (`fight.rs::attack_action_yields`). Frame and delta are the booking: `RON_DEBUG_UNIT=1/7@764-767` both sides, the whole cast on 765–767; `1/7`'s damage_frac 1 vs 12 says a fractional hit differs (the Commando's sabotage?).
+(3161; the lane's journal says 3159, a number the commander's booking of 3145 already held) **Chapter 95's word 1118: `1/7`'s `hits:damage` on 766, ours 20 theirs 19; draws part on 1118 at `0/15`'s damage (ours 30, theirs 0).** The first parted field after item 3152's attack-action arm (`fight.rs::attack_action_yields`). Frame and delta are the booking: `RON_DEBUG_UNIT=1/7@764-767` both sides, the whole cast on 765–767; `1/7`'s damage_frac 1 vs 12 says a fractional hit differs (the Commando's sabotage?).
 
 ## Parked by the next landing, slot IB — reserved
 
