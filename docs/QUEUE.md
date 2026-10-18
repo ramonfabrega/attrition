@@ -16,12 +16,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 6 h 02, 92.89 USD, 52.0 minutes waiting a landing against 33.6** (DECISIONS 81; the sweep lanes' fan-outs, two to four
 lane gates a landing). **The forty-fourth tranche's base is `6db69429`**; last whole gate `d58dc7c7` (green, 6 of 6; rondata 972, sim 1714; release 9.0 minutes).*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10695 of 12658 (3211, 3231, 3242,
-  3248), its widening owed as 3255; `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10852 of 12658 (3211, 3231, 3242,
+  3248, 3255: run943 widened whole); `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed, 90 → 94. Census
   1477 → 1512, **port 311 → 347**; the battery's median 4770. Built, red first: six tools and guards (DECISIONS 81).
-- **Lanes: four live, landings 2 of 20** (3263, 3259): 3255 AI (run 943, AI §257, JK), 3267 rules (run 945, GOLDEN
-  §138, JO), 3261 shape (JM), 3268 the nations seat (JP). Next 3269, run 946. Pools: GOLDEN §139–140, AI §258–259, park
-  JQ–JV. **Ramon's**: three stray `agent-*` worktrees (`git worktree remove --force`, refused the
+- **Lanes: four live, landings 3 of 20** (3263, 3259, 3255): 3269 AI (run 946, AI §258, JQ), 3267 rules (run 945,
+  GOLDEN §138, JO), 3261 shape (JM), 3268 the nations seat (JP). Next 3270, run 947. Pools: GOLDEN §139–140, AI
+  §259–263, park JR–JV. **Ramon's**: three stray `agent-*` worktrees (`git worktree remove --force`, refused the
   pass) and a fourth, 3259's locked `agent-af31de55716845cfa`, the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
 - **Fable backlog: 10 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265).
 
@@ -32,7 +32,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: GreatLakesIroquoisTier3 w10695 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
+Battery word: GreatLakesIroquoisTier3 w10852 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1518 of 3611 · port 353 · layout 1165
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 95 closed
@@ -45,17 +45,15 @@ lanes (3255 the AI word's on `--model 'claude-opus-5-5[1m]' --effort medium`; 32
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3255 the AI word's (Opus); 3267, 3261 and 3268 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10695. Take the first unstarted item unless a better
+3269 the AI word's (Opus); 3267, 3261 and 3268 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10852. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3255. **The battery word, 10695 of 12658 (`GreatLakesIroquoisTier3`), its widening owed** (parked 3254; 3248 moved it
-    8415 → 10695 with `train_time`'s Cotton arm, a Barracks, Stable or Dock unit 25% faster, AI §256, run940; value diff
-    on 8416: theirs' Javelineers `1/48`..`1/50` born at a clock of 16200 against ours' target 18750, rare mask `080000` →
-    `081000`): ours 12 draws against theirs 11 at index 10 — ours `Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`.
-    No dump of this lobby holds 8665..12658 (run100 spans 9340..10900 on Great Lakes, run53's game): the
-    capture over 10689..10945 at run940's detail (`LEADERS=9`, `GUYS=4`, run 943), widened whole on the word's frame
-    both directions; and the rare masks read — `bits`/`bit_values`, `rares_collected` — beside `leader.rs`'s `resources`
-    compare, their key leaving `coverage.rs`'s unread pin (3254 (b), Loop 3256). Standing: run940's 61 keys (3254 (a)). AI §257.
+3269. **The battery word, 10852 of 12658 (`GreatLakesIroquoisTier3`)** (3255 moved it 10695 → 10852 with the bays of
+    pieces 1529 and 1441 and the Horse Archers' (1545) pivot releases, from run943c's packet, AI §257): ours 25 draws
+    against theirs 30 at index 3 — ours `Unit::close+0xcb6`, theirs `605fe5`. run943's widening (2032 → 456 keys)
+    first parts on block 10843: the Archers `1/32`'s `dest_angle`, ours −786038784 against theirs −792788992, inside
+    run943's window on `GreatLakesIroquoisTier3`, which the disk holds (run 946 reserved). Widen 10843 whole both
+    directions, name who turned `1/32` and why, build only what it proves. AI §258.
 
 3267. **Chapter one hundred and three, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
     chapter; run 945 minted here): 3263 closed chapter 102 at 1500 on its first take, no sim change (stance-0 hoplites
