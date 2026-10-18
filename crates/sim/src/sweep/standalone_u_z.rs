@@ -188,6 +188,8 @@ mod unit_do_spec_unit_anim;
 mod unit_execute_events;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
+#[path = "unit_find_new_bomber_target.rs"]
+mod unit_find_new_bomber_target;
 #[path = "unit_find_repair_spot.rs"]
 mod unit_find_repair_spot;
 #[path = "unit_get_speed.rs"]
