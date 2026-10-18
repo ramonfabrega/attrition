@@ -12,7 +12,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the forty-first tranche (commander, Opus): 6 landings from `0efdf09d`**, four lanes under the 20-slot
+*2026-10-17, **the forty-first tranche (commander, Opus): 7 landings from `0efdf09d`**, four lanes under the 20-slot
 budget (DECISIONS 78 amended), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `88cc8996`, scoped `8d08a485`.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). **The battery word closed**: `EastIndiesGermanTier3`
@@ -20,10 +20,10 @@ budget (DECISIONS 78 amended), the AI word's on Opus 5.5 medium and three on Son
   melee unit's orderless frame; run643's closing block 13520 whole, 90 units, none apart). Its successor by DECISIONS
   72 is the battery's lowest lobby, `GreatLakesIroquoisTier3` (first try 0 of 12658), with a held-out lobby minted
   beside it: 3107. Chapters 86–93 closed; 94 open at 1178 of 1200 (3067, run914), as 3099. Census 1224 → 1448 (3078, 3104).
-  Battery eight lobbies, median 1008 → 2207 (3092, the Chinese citizens: 176 → 5663; 3096's wonders moved nothing).
-- **Lanes: four live** — 3107 the AI word's (runs 915, 917), 3099 the rules track's (run 916), 3112 shape, 3108 nations
-  (§7.3). Landings: 3092, 3067, 3078, 3086, 3096, 3104. Next 3113, run 918 (Astra 900–909). Pools: GOLDEN §120–124,
-  AI §247–251, park HP–HU.
+  Battery eight lobbies, median 1008 → 2207 (3092, the Chinese citizens: 176 → 5663; 3096's wonders and 3108's Russian oil and spy moved nothing).
+- **Lanes: four live** — 3107 the AI word's (runs 915, 917), 3099 the rules track's (run 916), 3112 shape, 3113 nations
+  (§7.4). Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108. Next 3114, run 918 (Astra 900–909). Pools: GOLDEN §120–124,
+  AI §247–251, park HQ–HU.
 - **Fable backlog: 27 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -46,7 +46,7 @@ book, refill while landings plus live lanes are under twenty, stop at twenty, an
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3107 the AI word's (Opus); 3099, 3112 and 3108 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word closed at 13519 (3086); its successor is 3107's to promote — lower map first — closed, until 3107 pins it. Take the first unstarted item unless a better
+3107 the AI word's (Opus); 3099, 3112 and 3113 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word closed at 13519 (3086); its successor is 3107's to promote — lower map first — closed, until 3107 pins it. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3107. **The battery's successor: `GreatLakesIroquoisTier3` promoted to the AI word, first try 0 of 12658**
@@ -69,13 +69,13 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `ObjectData::num_aircraft_here` (one cell both count and out-pointer) and `ObjectTypeData::get_wonder_value`.
     Unstarted. `--kind sweep`.
 
-3108. **The nations' unmodelled arms, NATIONS §7's order, from §7.3** (Ramon, the fortieth steer, DECISIONS 78;
+3113. **The nations' unmodelled arms, NATIONS §7's order, from §7.4** (Ramon, the fortieth steer, DECISIONS 78;
     the score: the held-out battery's median first try, 2207 over eight, `battery_measure`, `battery_floors` never
-    lowered): the Russian oil +20% (`calc_resource_bonuses@006db030`, the `resource_bonuses` SEAM in `economy.rs`)
-    and spy −50% (`get_cost:299`) (§7.3), `gain_tech`'s nation arms (§7.4), then the `get_cost`/`train_time` rest,
-    the Romans' legions first (§7.5); 3096's leavings — the wonder tail's marble term and `Wall::do_construct`'s
-    second two-wonders check — where cheap. Each from the rules and the original's function, never a held-out dump
-    (DECISIONS 54); one arm a landing, or one function's family. Unstarted. NATIONS §7.
+    lowered): `Leader::gain_tech@006dcb60`'s nation arms (the `*_UPGRADES` fields, carried and read by no module;
+    the Russian and Chinese first), then the `get_cost`/`train_time` rest, the Romans' legions first (§7.5); the
+    leavings of 3096 and 3108 (the wonder tail's marble term, `Wall::do_construct`'s second two-wonders check) where
+    cheap. Each from the rules and the original's function, never a held-out dump (DECISIONS 54); one arm a
+    landing, or one function's family. Unstarted. NATIONS §7.
 
 ## How to maintain this file
 
