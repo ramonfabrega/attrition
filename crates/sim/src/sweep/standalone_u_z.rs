@@ -54,6 +54,8 @@ mod unit_air_alt_speed;
 mod unit_cavarch_fight;
 #[path = "unit_cavarch_fight_written.rs"]
 mod unit_cavarch_fight_written;
+#[path = "unit_change_target.rs"]
+mod unit_change_target;
 #[path = "unit_data_action_type.rs"]
 mod unit_data_action_type;
 #[path = "unit_data_activity_type.rs"]
@@ -210,6 +212,8 @@ mod unit_out_issue_come_out;
 mod unit_out_issue_unqueue;
 #[path = "unit_replace_form_id.rs"]
 mod unit_replace_form_id;
+#[path = "unit_resolve_block.rs"]
+mod unit_resolve_block;
 #[path = "unit_set_ai_control.rs"]
 mod unit_set_ai_control;
 #[path = "unit_set_angle.rs"]
