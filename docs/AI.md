@@ -22679,7 +22679,7 @@ food enhancer) and over the sites outside cities; `Holdings::iroquois` from `has
 
 ### 250.4 What this has *not* established
 
-- **The Iroquois food slots** (parked 3172): the camp's food pass counts its own slots in the survey and carries
+- **The Iroquois food slots** (parked 3178): the camp's food pass counts its own slots in the survey and carries
   `min(gatherers, slots, 2 × access)` into the timber pass; ours admits every timber gatherer. No block of run923 has a
   camp under its gatherers.
 - **The enhancer's order**: the original scales the product (`gatherers × rate`) by the enhancer byte, `>> 8`; ours

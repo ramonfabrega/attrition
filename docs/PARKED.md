@@ -7354,7 +7354,7 @@ needs `--sparse` over a 225 KB image table plus a pointer array of caravan recor
 
 ## Parked by item 3170, 2026-10-18 — the Iroquois food row
 
-- (3172) **An Iroquois timber site's food slots and the cap they put on its timber gatherers are not carried.**
+- (3178) **An Iroquois timber site's food slots and the cap they put on its timber gatherers are not carried.**
   `BuildTypeData::calc_gather@00639e40` counts the camp's food slots in the same survey (`aiStack_108[0] += local_8c`
   under `has_tribe_bonus(0x12)`), takes `min(gatherers, slots, 2 × access)` for the food pass, and carries that minimum
   into the timber pass as `param_11`; a slot count of 0 breaks out with `−1`. `economy::iroquois_food` admits every
