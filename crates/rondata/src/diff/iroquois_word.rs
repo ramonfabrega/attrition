@@ -581,7 +581,13 @@ fn probe_3170_rares_block_1() {
             s.ai[who].census.reg_known_rares.iter().enumerate().filter(|(_, v)| **v != 0).collect::<Vec<_>>()
         );
     }
-    for (gi, g) in s.world.goods().iter().enumerate() {
+    eprintln!("who=1 reg_peasants {:?}", s.ai[1].census.reg_peasants.iter().enumerate().filter(|(_, v)| **v != 0).collect::<Vec<_>>());
+    eprintln!("reg_known_rares len {}", s.ai[1].census.reg_known_rares.len());
+    for dy in -2..=2 {
+        let row: Vec<_> = (-2..=2).map(|dx| s.world.region_of(sim::world::Cell::new(52 + dx, 18 + dy))).collect();
+        eprintln!("regions row {dy}: {row:?}");
+    }
+    for (gi, g) in s.world.goods().iter().enumerate().filter(|(gi, _)| *gi == 15) {
         let c = g.pos.cell();
         let half = |v: i32| v.div_euclid(sim::world::UNITS_PER_CELL / 2);
         let seen = s.world.seen2(half(g.pos.x), half(g.pos.y)).unwrap_or(0);
