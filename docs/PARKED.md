@@ -7294,12 +7294,6 @@ dumped record on 846–848 first.
 
 (3067, second) **Sabotage's armed-vehicle arm adds nothing the cast reads**: the Artillery never fired, so a *firing* armed target (a Tank beside an out-of-reach Commando) stays unstaged (3065 still open for that).
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
-
 ## Parked by the next landing, slot HI — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
