@@ -112,6 +112,34 @@ class Mutate(unittest.TestCase):
             mutate.read_batch(str(batch), '\t')
         self.assertEqual(mutate.main(['--root', d, '--batch', str(batch), '--', *walk]), 2)
 
+    def test_a_batch_refuses_a_tree_the_command_does_not_pass_before_its_first_break(self):
+        # Loop 3037 (3008's line, parked 3034): a port that did not compile
+        # exited 101 as a red walk does, and fifteen "held" breaks of one
+        # batch were a type error. The un-mutated command runs once first.
+        d = repo()
+        batch = Path(d) / 'breaks.tsv'
+        batch.write_text('src.rs\tlet x = 1;\tlet x = 2;\n')
+        red = [sys.executable, '-c', 'import sys; sys.exit(101)']
+        out = StringIO()
+        with self.assertRaises(mutate.Refused) as cm:
+            mutate.batch(d, str(batch), '\t', red, out=out)
+        self.assertIn('exits 101 on the un-mutated tree', str(cm.exception))
+        self.assertNotIn('batch 1/1', out.getvalue())
+        self.assertEqual(mutate.main(['--root', d, '--batch', str(batch), '--', *red]), 2)
+        self.assertEqual(mutate.dirty(d), [])
+
+    def test_a_batch_row_s_backslash_n_is_a_newline(self):
+        # Loop 3048 (3038's line, parked 3035 and 3046; 3058 dropped a break
+        # for it): a break whose OLD spans two lines cannot be written on
+        # one tab-separated line, so `\\n` in OLD and NEW is a newline.
+        d = repo()
+        batch = Path(d) / 'breaks.tsv'
+        batch.write_text('src.rs\tfn f() {\\n    let x = 1;\tfn f() {\\n    let x = 2;\n')
+        out = StringIO()
+        self.assertEqual(mutate.batch(d, str(batch), '\t', WALK, out=out), 0)
+        self.assertIn('held', out.getvalue())
+        self.assertEqual(mutate.dirty(d), [])
+
     def test_a_dirty_tree_is_refused_before_anything_is_written(self):
         (Path(self.d) / 'src.rs').write_text('fn f() {}\n')
         with self.assertRaises(mutate.Refused) as cm:

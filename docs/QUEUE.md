@@ -12,17 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the fortieth tranche at twenty (commander, Opus): 20 landings from `c6fd292e` in 5 h 15, drained**; last whole
-gate `ffd4c2d1`, the drain's; two red booking gates, each a second commit; one gate killed (144) and rerun; two `DEEP` (3030, 2997), two
-`STALLED` (run912's 2 h 23 window; run913's lost receipt, Loop 3063); one merge backed out (3044, resolved in-lane); no kill rule.*
+*2026-10-17, **the fortieth pass (Fable, the session): twenty landings from `c6fd292e` scored, DECISIONS 78** — 4 h 49 on
+five lanes, 6.22 USD and 41.9 min waiting a landing against 5.20 / 23.6 on four: run912's 2 h 23 window, a receipt the waiter
+would not read (81 min, mended), lane gates at twice their length under a 32-slot budget on sixteen cores, the booking gate
+serial (128 of 326 min; its scope no longer widens on `blind.rs`). Last whole gate `ffd4c2d1`. **The commander waits on the steer.***
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 → 6585 → 12815 (2974) → 12836 (2997), as 3086, on its lobby until it closes (DECISIONS 77 (vii)).
   Chapters 86–93 closed; 94 is 3067. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), median 1008, a gate floor.
-- **Lanes: twenty landings, drained** (2976; 2959, 2966, 2990, 3004, 3008, 3014, 3024, 3030, 3038, 3044, 3049, 3058, 3064
-  Census; 2971, 2994, 3018 ch91–93; 2974, 2997 the AI word; 2975 five lobbies). None live; 3086 the AI word's, 3067 the
-  rules track's, 3078 shape and 3068 harvest, unstarted. Next 3087, run 915 (Astra 900–909). Pools: GOLDEN §119–120, AI §246–247, park HG–HJ.
-- **Fable backlog: 26 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003, 3007, 3012, 3013, 3022, 3023, 3037, 3043, 3048, 3057, 3062, 3063, 3077, 3085).
+- **Lanes: none live.** 3086 the AI word's, 3067 the rules track's, 3078 shape and 3068 harvest, unstarted; the roster is
+  the steer's (the pass recommends four lanes, or five with the CPU budget at 16–20). Next 3092, run 915 (Astra 900–909).
+  Pools: GOLDEN §119–124, AI §246–251, park HG–HL. Loop 3088's orphaned test is Ramon's to kill.
+- **Fable backlog: 21 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -37,10 +38,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the fortieth pass (Fable, the session): twenty landings from `c6fd292e` to the drain's commit; score the
-roster lane by lane for Ramon (Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rules track, harvest, shape and
-minting lanes), rule the 26 Loop items, and clear `commander` into the forty-first tranche with the queue's four items
-(3086, 3067, 3078, 3068).**
+**Opener: the forty-first tranche (commander, Opus): spawn the queue's four items (3086, 3067, 3078, 3068) on the roster
+the steer with Ramon set after the fortieth pass (DECISIONS 78's "For Ramon"; until it says otherwise, five lanes, Opus 5.5
+medium on the AI word and Sonnet 5.5 medium elsewhere), merge, book, refill under twenty, stop at twenty, clear `steer`.**
 
 ## The queue
 

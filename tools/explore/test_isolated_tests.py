@@ -40,7 +40,14 @@ class Admission(unittest.TestCase):
                 other = budget.Lease(d, 1, 128)
                 self.assertFalse(other.try_acquire())
                 child.communicate()
-            self.assertTrue(other.try_acquire())
+            # Loop 2984: once under a load average of 21 the lock was still
+            # held a moment after the child had exited (the kernel releases
+            # a flock when the last descriptor closes, not when `wait`
+            # returns); a bounded wait, never a longer one than two seconds.
+            deadline = time.monotonic() + 2.0
+            while not other.try_acquire():
+                self.assertLess(time.monotonic(), deadline, 'the orphan reservation outlived its child by 2 s')
+                time.sleep(0.05)
             other.close()
 
     def test_worktrees_cannot_silently_use_conflicting_host_policies(self):

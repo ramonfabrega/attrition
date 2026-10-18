@@ -90,6 +90,23 @@ while :; do
       exit 2
     fi
   fi
+  # Every staged map has its receipt: the click-free runner prints
+  # `Staged: …/map-N` before each take and its `"map_requested": N` receipt
+  # after, so a log where the two sets agree is finished whatever else
+  # runs — the `pgrep` below sees every lane's runner, and run913's
+  # receipt sat 81 minutes behind run912's capture on the other pool lane
+  # (Loop 3063, the fortieth tranche).
+  if [ -r "$log" ] && grep -qE -- "$receipt" "$log"; then
+    staged_maps=$(grep -oE '^Staged: .*/map-[0-9]+' "$log" | sed 's/.*map-//' | sort -un)
+    receipt_maps=$(grep -E -- "$receipt" "$log" | grep -oE '"map_requested": [0-9]+' | grep -oE '[0-9]+' | sort -un)
+    if [ -n "$staged_maps" ] && [ -z "$(comm -23 <(printf '%s\n' "$staged_maps") <(printf '%s\n' "$receipt_maps"))" ]; then
+      grep -E -- "$receipt" "$log"
+      if grep -E -- "$receipt" "$log" | grep -q '"success": false'; then
+        exit 1
+      fi
+      exit 0
+    fi
+  fi
   if ! pgrep -f -- "$runner_pattern" >/dev/null 2>&1; then
     # No runner. The click-free lane's receipts are its verdict, read only
     # once the runner is gone: it prints one per map and may still be on

@@ -21225,3 +21225,22 @@ closed on run880's counter-example, 2809 unreached. Seven Loop items
 stay. The fourth lane holds and the fifth goes to the steer Ramon asked
 for mid-pass. **DECISIONS 77.** `docs/audit/2026-10-17-fable-pass-39.md`.
 
+**2026-10-17 — the fortieth Fable pass: five lanes scored, the booking
+gate named the chain's bottleneck, the waiter mended.** Twenty landings
+on five lanes in 4 h 49 (5 h 26 to the handoff): 6.22 USD and 41.9
+minutes waiting a landing against 5.20 / 23.6 on four; the AI word 6585
+→ 12815 → 12836 of 13,519; chapters ninety-one to ninety-three closed;
+the census 1319 → 1444; five held-out lobbies minted, the battery's
+median first try 1008; two red gates, one killed, two `DEEP`, two
+`STALLED`, one merge backed out, no kill rule. The waiting is three
+things: run912's 2 h 23 capture for one row, a receipt the waiter
+would not read under another lane's runner (81 minutes), and lane
+gates at twice their length under five lanes on a 32-slot budget over
+sixteen cores — and the booking gate, 128 of the commander's 326
+minutes, serial. Built, red first: the gate's scope no longer widens on
+`blind.rs` (3087), `waitrun.sh` judges a log whose every staged map has
+its receipt (3063), `blind::` in every lane gate (2989), `mutate.py
+--batch`'s un-mutated run and `\n` rows (3037, 3048), the orphan
+reservation's bounded wait (2984); 3022 closed on reading, four closed
+unreached, four filed. Ramon asked for a steer mid-pass; the commander
+waits on it. **DECISIONS 78.** `docs/audit/2026-10-17-fable-pass-40.md`.

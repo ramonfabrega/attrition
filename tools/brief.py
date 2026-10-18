@@ -56,9 +56,13 @@ TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the
 # parting 4730 -> 4206, which took a capture to read; the three run in a
 # dozen seconds together. A sweep moves no word and runs neither.
 # And the held-out battery's floors (DECISIONS 77): a word lane's change can lower an unseen lobby.
-ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors'),
-                'chapter': ('coverage::', 'first_parting', 'battery_floors'),
-                'sweep': ('sweep::',)}
+# `blind::` in every kind (Loop 2989): the pinned never-executed list moves
+# when a document or a sweep cites a function no trace enters, and 2976's
+# lane gate (`--tests nations::`) left its re-pin to the booking gate; the
+# pin is 0.4 s.
+ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'blind::'),
+                'chapter': ('coverage::', 'first_parting', 'battery_floors', 'blind::'),
+                'sweep': ('sweep::', 'blind::')}
 # Rows of the checklist that are the commander's to follow in composing, or
 # the pass's, and say nothing to a worker.
 NOT_A_BRIEF_S = frozenset()

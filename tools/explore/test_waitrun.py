@@ -60,6 +60,32 @@ class Waitrun(unittest.TestCase):
         self.assertIn('traceback and no receipt', err)
         self.assertIn('ValueError', err)
 
+    def test_a_log_whose_every_staged_map_has_its_receipt_is_judged_while_another_runner_lives(self):
+        # Loop 3063 (the fortieth tranche, item 3018): run913's receipt was
+        # the log's last line at 17:03 and the waiter sat 81 minutes,
+        # because the receipts are read only once no runner is alive and
+        # `pgrep` saw run912's runner on the other pool lane. A log where
+        # every `Staged: …/map-N` has its `"map_requested": N` receipt is
+        # finished whatever else runs; one still owed a map keeps waiting.
+        name = f'waitrun-fixture-runner-{os.getpid()}'
+        runner = Path(self.tmp.name) / name
+        runner.write_text('#!/bin/sh\nsleep 20\n')
+        runner.chmod(0o755)
+        alive = subprocess.Popen([str(runner)])
+        try:
+            code, out, _ = self.run_it('Staged: /x/map-7\n' + RECEIPT_OK, runner=name)
+            self.assertEqual(code, 0)
+            self.assertIn('"map_requested": 7', out)
+            self.assertEqual(self.run_it('Staged: /x/map-7\n' + RECEIPT_BAD, runner=name)[0], 1)
+            self.log.write_text('Staged: /x/map-7\nStaged: /x/map-8\n' + RECEIPT_OK)
+            env = dict(os.environ, WAITRUN_RUNNER=name)
+            with self.assertRaises(subprocess.TimeoutExpired):
+                subprocess.run(['zsh', str(SCRIPT), str(self.log), '1'], env=env,
+                               capture_output=True, text=True, timeout=4)
+        finally:
+            alive.kill()
+            alive.wait()
+
     def test_a_receipt_after_a_traceback_is_the_verdict(self):
         self.assertEqual(self.run_it(TRACEBACK + RECEIPT_OK)[0], 0)
         self.assertEqual(self.run_it(TRACEBACK + RECEIPT_BAD)[0], 1)

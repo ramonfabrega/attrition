@@ -240,7 +240,12 @@ Before any reading, in order:
   tab-separated, each on the restored tree (2965). **`--regen` says what
   it kept from the old line, `--fresh` keeps nothing, and the `.rs`
   port wins** (2886); **the header names the `p` windows in order**
-  (2892).
+  (2892). **A generator's verdict is its exit, never a grep of its
+  stdout**: `--regen` on a bad flag set exits 2 and leaves the old
+  files, and a `grep -i error` on stdout read it as a pass twice
+  (3022). **A batch runs the un-mutated command first and refuses a
+  tree it does not pass** (3037); **a break that spans two lines
+  writes `\n` in its OLD and NEW** (3048).
 
 ## build
 

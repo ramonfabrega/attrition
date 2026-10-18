@@ -603,6 +603,15 @@ class GateTests(unittest.TestCase):
         # (Loop 2409) is then the gate itself.
         self.assertEqual(gate.lane_widens(['crates/sim/src/sweep/x.rs', 'docs/AI.md', 'tools/x.py',
                                            'crates/rondata/src/census.rs']), [])
+        # Loop 3087 (the fortieth pass): `blind::NEVER` is the residue of
+        # functions the documents cite and no trace enters — a sweep that
+        # cites one moves it, and no timed `diff::` pin reads it. Seven of
+        # the fortieth tranche's eleven scoped booking gates ran every
+        # timed test, three of them widened by `blind.rs` alone (441d4f8a,
+        # 45b67af5, 88071064): six minutes a gate the chain waited on.
+        self.assertEqual(gate.lane_widens(['crates/rondata/src/blind.rs']), [])
+        self.assertEqual(gate.lane_widens(['crates/rondata/src/blind.rs', 'crates/sim/src/x.rs']),
+                         ['crates/sim/src/x.rs'])
         self.assertEqual(gate.lane_widens(['crates/sim/src/diplomacy.rs', 'crates/rondata/src/diff/leader.rs',
                                            'crates/rondata/src/gamelog.rs', 'Cargo.lock']),
                          ['Cargo.lock', 'crates/rondata/src/diff/leader.rs', 'crates/rondata/src/gamelog.rs',

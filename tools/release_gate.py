@@ -218,9 +218,12 @@ def lane_skips(timings, tests):
 # whole-suite run before the gate (Loop 2409) is then the gate's own.
 # The thirty-fifth steer widened the rule from sim and the `diff` row lists
 # to every crate (a parser in `rondata` moves every pin) and the workspace
-# files, less the two things a pin cannot see: a sweep test and the census
-# count. `--scope` (below) reads the same rule for the booking gate.
-NEVER_WIDENS = ('crates/sim/src/sweep/', 'crates/rondata/src/census.rs')
+# files, less the three things a pin cannot see: a sweep test, the census
+# count and the blind residue (`blind::NEVER`, the functions the documents
+# cite and no trace enters — a sweep that cites one moves it; Loop 3087:
+# three scoped gates of the fortieth tranche ran every timed test for it
+# alone). `--scope` (below) reads the same rule for the booking gate.
+NEVER_WIDENS = ('crates/sim/src/sweep/', 'crates/rondata/src/census.rs', 'crates/rondata/src/blind.rs')
 
 
 def lane_widens(paths):

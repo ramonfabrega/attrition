@@ -60,6 +60,17 @@ def row_numbers(text):
     return out
 
 
+class TheAlwaysSet(unittest.TestCase):
+    def test_every_kind_s_lane_gate_runs_the_blind_pin(self):
+        # Loop 2989 (2976's booking gate, red on its first commit): a
+        # document lane cited nineteen functions no trace enters, and its
+        # lane gate (`--tests nations::`) never ran
+        # `the_blind_list_is_the_pinned_residue`, so the re-pin fell to the
+        # booking gate's second commit. The pin is 0.4 s; every kind runs it.
+        for kind in brief.ALWAYS_TESTS:
+            self.assertIn('blind::', brief.filters(kind, ['nations::'] if kind != 'sweep' else []), kind)
+
+
 class TheFrameHoldsTheChecklist(unittest.TestCase):
     def test_every_row_of_the_checklist_is_in_a_section_of_the_frame(self):
         live = re.sub(r'~~.*?~~', '', checklist(), flags=re.S)
@@ -184,7 +195,7 @@ class ABriefIsComposed(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '--tests'):
             self.compose(1133, tests=[])
         self.assertEqual(brief.filters('residue', ['coverage::', 'x::']),
-                         ['coverage::', 'x::', 'first_parting', 'battery_floors'])
+                         ['coverage::', 'x::', 'first_parting', 'battery_floors', 'blind::'])
 
     def test_every_lobby_s_first_parting_is_among_a_word_s_filters(self):
         # Parked 1910 and 2000 (the thirty-first pass): 1937's fix moved
@@ -198,7 +209,7 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertNotIn('first_parting', brief.filters('sweep', []))
         # And the held-out battery's floors (DECISIONS 77): a word lane's change can lower an unseen lobby.
         self.assertEqual(brief.filters('residue', ['first_parting', 'coverage::']),
-                         ['first_parting', 'coverage::', 'battery_floors'])
+                         ['first_parting', 'coverage::', 'battery_floors', 'blind::'])
         self.assertIn('first_parting', self.compose(1133))
 
     def test_a_sweep_brief_has_its_section_and_no_booking(self):

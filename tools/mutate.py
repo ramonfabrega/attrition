@@ -133,7 +133,10 @@ def read_batch(path, sep):
         if len(parts) not in (3, 4):
             raise Refused(f'{path}:{n}: {len(parts)} field(s) split on {sep!r}; a break is FILE, OLD, NEW and an optional NTH')
         nth = int(parts[3]) if len(parts) == 4 and parts[3].strip() else None
-        out.append((parts[0], parts[1], parts[2], nth))
+        # A break whose OLD spans two lines cannot sit on one line of the
+        # file, so `\\n` in OLD and NEW is a newline (Loop 3048: a two-line
+        # break was refused line by line, and 3058 dropped one for it).
+        out.append((parts[0], parts[1].replace('\\n', '\n'), parts[2].replace('\\n', '\n'), nth))
     if not out:
         raise Refused(f'{path}: no break on any line')
     return out
@@ -144,6 +147,18 @@ def batch(root, path, sep, command, out=sys.stdout):
     one verdict a line and a count at the end; 0 only when every break
     held (Loop 2965)."""
     breaks = read_batch(path, sep)
+    # The un-mutated command once, first (Loop 3037): a port that does not
+    # compile exits 101 as a red walk does, and fifteen "held" breaks of
+    # one batch were a type error. A tree the command does not pass has
+    # no verdict to give.
+    before = dirty(root)
+    if before:
+        raise Refused('the tree is dirty; commit first: ' + ', '.join(before))
+    print(f'batch: the un-mutated tree first; running: {" ".join(command)}', file=out, flush=True)
+    code = subprocess.run(command, cwd=root, env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1')).returncode
+    if code:
+        raise Refused(f'the command exits {code} on the un-mutated tree, so no break can be held by it; '
+                      'make it pass first (Loop 3037)')
     held = failed = refused = 0
     for k, (file, old, new, nth) in enumerate(breaks, 1):
         try:

@@ -315,6 +315,28 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the fortieth pass
+
+The fortieth tranche (DECISIONS 78): twenty landings on five lanes in
+4 h 49 from the pass's commit, 6.22 USD and 41.9 minutes waiting a
+landing (5.20 / 23.6 before); two red booking gates, one killed, two
+`STALLED`, one merge backed out, no kill rule. The pass added these
+rows, each from the tranche's own journals, and struck none — the
+chapter kind stands at 12,965 of its 13,000 and the rows went to the
+sweep kind, which has room.
+
+- **A generator's verdict is its exit, never a grep of its stdout**
+  (3022, 3004's line): `sweep_gen.py --regen` on a bad flag set exits
+  2 and leaves the old files in place, and a `grep -iE error` over
+  stdout read it as a pass twice in one batch.
+- **A batch of breaks runs the un-mutated command first** (3037,
+  3008's line): a port that did not compile exited 101 as a red walk
+  does, and fifteen "held" breaks were a type error; `mutate.py
+  --batch` refuses the tree now, and the row says why.
+- **A two-line break writes `\n`** (3048, 3038's and 3058's lines): a
+  break whose OLD spans a newline was refused line by line and one
+  batch dropped it; the batch file decodes `\n` in OLD and NEW now.
+
 ## The brief checklist, from the thirty-ninth pass
 
 The thirty-ninth tranche (DECISIONS 77): twenty landings on four lanes

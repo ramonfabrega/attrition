@@ -89,6 +89,7 @@ is append-only and amended in place, as it always was.
 - 75 standing — Astra's test-suite branch is fast-forwarded whole, adapted at four points, and tried for one tranche with a kill switch and two numbers
 - 76 standing — The thirty-eighth tranche is scored under host admission, the admission and the fourth lane stay, the census subtracts a sweep's stubbed callees, and twenty Loop items become tools, rows or closes
 - 77 standing — The thirty-ninth tranche is scored at the loop's fastest, the fourth lane holds while the fifth goes to a steer, the sweep lanes get a claim mark, and thirteen Loop items become tools, rows or closes
+- 78 standing — The fortieth tranche is scored on five lanes, the booking gate is named the chain's bottleneck and its scope stops widening on the blind residue, the waiter reads a finished log under another lane's runner, and nine Loop items become tools, rows or closes
 
 ## 1. Fidelity before divergence
 
@@ -6161,3 +6162,123 @@ this day. (vii) The AI word stays on its lobby until it closes. The
 tranche stays twenty landings: the drain's lone lane was the waste, and
 (v) removes it.
 
+## 78. The fortieth tranche is scored on five lanes, the booking gate is named the chain's bottleneck and its scope stops widening on the blind residue, the waiter reads a finished log under another lane's runner, and nine Loop items become tools, rows or closes
+
+*2026-10-17, the fortieth Fable pass, the `steer` session, cleared into
+by the commander at the drain (`baca7d32`); Ramon asked, as it ran, for
+a steer on the five lanes and the loop's next improvements, so the
+commander is not cleared into the forty-first tranche by this pass —
+the clear waits on that steer. The record is
+`docs/audit/2026-10-17-fable-pass-40.md`.*
+
+**The tranche.** Twenty landings on five lanes in **4 h 49** from the
+pass's commit (`c6fd292e` 14:50 to 3049's booking `87f47c1b` 19:40),
+the drain's 2997 at 20:07 and the handoff `baca7d32` at 20:16 — 5 h 26
+in all, against 3 h 53 / 4 h 44 on four lanes the tranche before.
+`tools/tranche.py` over the twenty (22 sessions): working 386
+minutes, **waiting 838 — 41.9 a landing, 38.1 a session** (23.6 before);
+by class a session: gate 12.6 (9.5), message 12.4 (0.4), other 8.2
+(6.8), capture 4.4 (4.8). The number went up by three quarters, and
+the classes name three causes, none of them the lanes' work: **(a)
+two captures and a lost receipt** — 2997 sat 162 of its 180 minutes
+on run912's 2 h 23 window over a 5,973-block gap for one row (Loop
+3085), 3018 sat 81 minutes on a receipt `waitrun.sh` would not read
+while run912's runner was alive on the other pool lane (Loop 3063,
+built below), 2975's ten mintings 68; **(b) the lane gates ran 18–32
+minutes against 9.5 the tranche before** (2966 32.4, 2974 30.3, 3030's
+second session 28.0, seven more at 19–21) — the admission waited 246 s
+summed over nineteen booking gates, longest 28.6 s, because
+`resource_budget.py` admits 32 CPU slots on sixteen cores and five
+lanes' gates ran beside a whole booking gate at half speed each (the
+commander read a load average of 21; Loop 3091); **(c) the booking
+gate is the chain's serial step** — 128 of the commander's 326 minutes
+were gates, and a landing that arrives under one waits for its exit:
+four landings merged in a ten-minute burst at 16:19 behind one whole
+gate. Of the nineteen booking gates, eight were whole by the rule
+(every third and the drain), eleven scoped; of the eleven, **seven ran
+every timed test anyway** — three widened by `crates/rondata/src/blind.rs`
+alone (`441d4f8a`, `45b67af5`, `88071064`), two by `nations.rs` and
+2974's sim change, two cumulatively — and three ran short (3.1–3.6
+minutes against 8–12). Two gates red, each a second commit within a
+minute (`16f1a675` the blind re-pin a document lane's gate never ran,
+Loop 2989; `5037b79c` a `cargo fmt` on 3024's conflict resolution);
+one killed at 2.7 minutes with exit 144 and rerun green (Loop 3023,
+its sender still unknown); two `DEEP` (3030 at 323 k, 2997 at 327 k),
+each cleared in six to seven seconds into a second session of 0.78 and
+2.93 USD whose work was the lane gate; one merge backed out (3044,
+resolved in the lane at the cost of one more lane gate). No kill rule,
+no blocked ending.
+
+**The words.** The AI word, the battery's `EastIndiesGermanTier3`:
+**6585 → 12815** (2974, the Germans' Fire Raft line, `get_cost`'s and
+`train_time`'s German arms, run910) **→ 12836** (2997, the Militia's
+pool at the next leader pass, the Javelineers' piece-34 bays, the Horse
+Archer's release, run912 and 912b–e), and the fix lowered four other
+lobbies' parted counts (run99 67 → 22, Great Lakes 125–127 → 38–40,
+run471 103 → 34, run416 107 → 38). Chapters **91 to 93 closed** (2971
+run894, 2994 run911, 3018 run913); 94 is 3067. The census **1319 →
+1444** of 3611 in thirteen landings. The held-out battery: five lobbies
+minted (2975, runs 895–899) make eight; first tries 6566, 2974, 176,
+9130, 576, 0, 1440, 576 — **median 1008**, a floor in every gate
+(entry 77 (i)), unmoved by the tranche. `docs/NATIONS.md` audits every
+nation and tier (2976).
+
+**The roster, lane by lane** (every session's model read from its
+transcript; every spawn line `--effort medium`; lore's list price at
+2026-10-17's rates; USD and minutes waiting a landing against the
+tranche before): the AI word on Opus 5.5 medium, two landings, **12.31
+/ 114.6** (9.56 / 39.8) — its waiting is run912; the rules track on
+Sonnet 5.5 medium, three, **3.84 / 59.7** (2.76 / 25.5) — 3018's lost
+receipt; the shape sweep on Sonnet, five, **6.22 / 26.7** (3.97 /
+17.7); the harvest sweep on Sonnet, eight over two lanes once the
+audit and minting lanes had landed, **6.31 / 28.3** (6.11 / 15.4); the
+audit and minting lanes, one each, **3.31 / 35.1**. Workers **124.36
+USD, 6.22 a landing** (5.20); the commander 17.37; **141.73** in all
+(126.01). The roster stands; no pass changes it (entry 61).
+
+**The booking gate's scope** (Loop 3087, built): `blind::NEVER` is the
+residue of functions the documents cite and no trace enters; a sweep
+that cites one moves it, and no timed `diff::` pin reads it. It joins
+the census count and the sweep tests in `NEVER_WIDENS`, so a scoped
+gate after a sweep landing runs short
+(`test_release_gate`'s widening case, red first). On this tranche's
+log that is three gates of nine minutes made three of three and a half.
+
+**The waiter** (Loop 3063, built): `waitrun.sh` judged a click-free
+log's receipts only once no runner was alive, and `pgrep` sees every
+lane's; run913's receipt sat 81 minutes behind run912. A log where
+every `Staged: …/map-N` has its `"map_requested": N` receipt is
+finished whatever else runs, and one still owed a map keeps waiting
+(`test_a_log_whose_every_staged_map_has_its_receipt_is_judged_while_
+another_runner_lives`, red first).
+
+**Nine Loop items ruled.** Built, each red first unless said: 3087 and
+3063 (above); 2989 — `blind::` in every kind's `ALWAYS_TESTS`, the pin
+is 0.4 s; 3037 — `mutate.py --batch` runs the un-mutated command once
+and refuses a tree it does not pass; 3048's second half — a batch
+row's `\n` is a newline; 2984 — the orphan-reservation test waits,
+bounded to two seconds, for the child's lock to lift (a flake under
+load, not red first: no deterministic red exists for it). Closed on
+reading: 3022 — the generator already exits 2, the lane's grep read
+stdout, a sweep-frame row says so. Closed unreached under entry 54 §7:
+2899, 2948, 2958, 2973. Filed this pass: 3088 (an `agent-*` worktree's
+debug sweep test seventeen hours orphaned at a full core, the kill
+refused to the pass), 3089 and 3090 (two journal lines the merges did
+not file — 2971's and 2974's), 3091 (the admission receipt says wait,
+never dilation). Seventeen stay: 1570 and 1725 (Ramon's), 2003 (the
+ledger), 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048,
+3057, 3062, 3077 and 3085 at one reach each.
+
+**What is not established.** What killed the gate on `f9a46406`
+(exit 144, SIGURG on this platform, whose default is to ignore — the
+number is the harness's); whether the five-lane dilation or the serial
+gate is the larger of the two waits, since one tranche carries both;
+whether the AI word's captures can be cut by a `--stride` without
+losing the row they are run for (Loop 3085).
+
+**For Ramon, held by the fence** (entry 61 §4): the lane count — five
+cost 18 minutes a landing in waiting against four, for one more
+landing an hour; the CPU budget's 32 slots on sixteen cores; whether
+the commander's booking gate should run under a lane's budget or hold
+its merges longer; and 1725, a twelfth time. The pass recommends in
+its record and moves none of them.
