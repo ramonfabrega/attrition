@@ -819,7 +819,9 @@ fn run702_s_word_frame_is_widened_whole() {
     // from the window's first block (who=0, the human): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
     // Item 2761: 82 → 76 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 76, "initial run702 baseline");
+    // Item 3279: −14, `death:extra` is not a parting on a capture that
+    // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
+    pin_eq!(w.firsts.len(), 62, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         50,
@@ -994,10 +996,12 @@ fn run718_s_word_frame_is_widened_whole() {
     // Item 2761: 65 → 61 with `Unit::close`'s count (`docs/AI.md` §232):
     // the human's dead leave `control`, so its row on 2267 closes (0 both
     // sides) with three more of the block's standing keys.
-    pin_eq!(w.firsts.len(), 61, "initial run718 baseline");
+    // Item 3279: −14, `death:extra` is not a parting on a capture that
+    // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
+    pin_eq!(w.firsts.len(), 47, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
-        56,
+        42,
         "the keys standing on the window's first block"
     );
     // **The word 2273's value diff** (item 1611, `docs/AI.md` §171). The
@@ -1115,7 +1119,9 @@ fn run766_s_word_frame_is_widened_whole() {
     // `1/2000` `queue[0..5].cost[0]` (ours 57 theirs 54 on 2634), `1/2032`
     // (62/59), `1/2028` (63/60 on 2783) and `1/-1 bucket[0:food]` (18949
     // against 18967) now agree.
-    pin_eq!(w.firsts.len(), 66, "initial run766 baseline");
+    // Item 3279: −14, `death:extra` is not a parting on a capture that
+    // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
+    pin_eq!(w.firsts.len(), 52, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";

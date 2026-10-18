@@ -187,6 +187,9 @@ OVERRIDES = {
     "BuildData::construct_time@0062d5c0": ("modelled at build.rs", "iroquois_quick_senate"),
     "Build::plunder@00623660": ("modelled at city.rs", "russian_plunder_steal"),
     "Leader::lost_a_city@006dc6d0": ("carried at city.rs", "fn lost_a_city"),
+    # The Despot's arm is built (fight.rs, item 3279); the Aztec arms the
+    # census counts (the slay bonus, AZTEC_PLUNDER on a unit) are not.
+    "Unit::plunder@00605b00": ("not modelled", "aztec_slay_bonus"),
 }
 NOT_SIM = ("Setup::", "ConquestGame::", "ScenarioFuncSet::", "IFace", "StatWin::",
            "Options::", "Scene::", "BuildTypeOut::", "BuildOut::", "LeaderOut::",
