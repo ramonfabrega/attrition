@@ -46,6 +46,8 @@ mod unit_add_await_board_order;
 mod unit_add_board_order;
 #[path = "unit_add_garrison_order.rs"]
 mod unit_add_garrison_order;
+#[path = "unit_add_patrol_order.rs"]
+mod unit_add_patrol_order;
 #[path = "unit_add_spec_anim_order.rs"]
 mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
