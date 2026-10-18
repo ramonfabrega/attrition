@@ -592,9 +592,9 @@ a pass books against a word, not a fix for the lobby that exposed it.
    loading** (`rondata::load`, after the French Carpentry block). **Built,
    item 3113**: the Russians (`has_tribe_bonus(0xd)`,
    `russian_attrition_upgrades`, `ALLEGIANCE` `0x254`..`<600`), the Chinese
-   herbal lore (`0xe`, `chinese_herbal_lore`, `0x25b`..`<0x25e`) and the
+   herbal lore (`0xe`, `chinese_herbal_lore`, `0x25b`..`0x25d`) and the
    Chinese knowledge block (`0xe`, `chinese_knowledge_upgrades` = 0 as
-   shipped, inert, `LITERACY` `0x267`..`<0x26c`), each the `PreqMatch`
+   shipped, inert, `LITERACY` `0x267`..`0x26b`), each the `PreqMatch`
    shape read off the decompile. Test
    `the_russian_and_chinese_free_tech_blocks_are_loaded`, made to fail by
    narrowing the Russian range. **Moved the battery**: the Chinese lobby

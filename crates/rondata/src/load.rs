@@ -1097,12 +1097,12 @@ pub fn load_tables(
             shape: tech::Shape::PreqMatch,
         });
         // **The Russian, Chinese herbal-lore and Chinese knowledge blocks**
-        // (item 3113, `docs/NATIONS.md` §7.4): the same shape over a run of
+        // (item 3113, `docs/NATIONS.md` §7, item 4): the same shape over a run of
         // tech indices, each from `gain_tech@006dcb60`'s listing —
         // `ALLEGIANCE` `0x254`..`<600` behind `has_tribe_bonus(0xd)` and
-        // `russian_attrition_upgrades`; `HERBAL_LORE` `0x25b`..`<0x25e`
+        // `russian_attrition_upgrades`; `HERBAL_LORE` `0x25b`..`0x25d`
         // behind `has_tribe_bonus(0xe)` and `chinese_herbal_lore`;
-        // `LITERACY` `0x267`..`<0x26c` behind `0xe` and
+        // `LITERACY` `0x267`..`0x26b` behind `0xe` and
         // `chinese_knowledge_upgrades` (0 as shipped, so inert).
         for (power, enabled, lo, hi) in [
             (13, t.russian_attrition_upgrades, 0x254, 0x257),
@@ -3221,8 +3221,8 @@ mod tests {
         let t = &l.tree;
         assert_eq!(
             t.free_rules.len(),
-            6,
-            "the five predicate blocks and the French range block"
+            9,
+            "the five predicate blocks, the French range block and item 3113's three"
         );
         let by_gate = |power: usize| {
             t.free_rules
