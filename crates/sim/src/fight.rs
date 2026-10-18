@@ -1100,6 +1100,11 @@ impl Sim {
             return self.build_is_seen(b, who);
         }
         if let Obj::Unit(u) = target
+            && self.units[u].is_gaia()
+        {
+            return self.animal_is_seen(u, who);
+        }
+        if let Obj::Unit(u) = target
             && self.unit_stealth_hides(u, who)
         {
             return false;
@@ -1110,6 +1115,41 @@ impl Sim {
         // `return (visible >> who) & 1` — the fallback, and the whole of
         // item 457.
         self.visible_of(target) & Self::who_bit(who) != 0
+    }
+
+    /// **`AnimalData::is_seen@005d8160`** for `param_1 = who`, as far as
+    /// the fog goes (NATIONS §5; `reveal_map == 3` is [`Sim::has_fog`]'s).
+    ///
+    /// ```text
+    /// if herd == -1:                       return was_seen(pos, who)
+    /// if good(herd).ever_seen & (1 << who): return 1           // SEAM
+    /// if kind(good) not in {6, 0x1f} && (tribe 9 || tribe 4):  // Spanish, 4
+    ///                                      return was_seen(pos, who)
+    /// return was_really_seen(pos, who)
+    /// ```
+    ///
+    /// An animal never takes `UnitData::is_seen`'s stealth arm or its
+    /// `visible` fallback: its answer is the **ever-seen** plane, so a
+    /// herd once spotted stays a legal target after the line of sight
+    /// moves on.
+    ///
+    /// SEAM: the herd's good (`HerdData::good_o`) is not carried, so the
+    /// good's `ever_seen` bit and its kind (the fish/`0x1f` exemption) are
+    /// not read; the kind is taken as not exempt.
+    pub(crate) fn animal_is_seen(&self, u: usize, who: Player) -> bool {
+        let fog = crate::vision::UNITS_PER_FOG;
+        let p = self.units[u].pos;
+        let (fx, fy) = (p.x / fog, p.y / fog);
+        let bonus = |n| {
+            self.tech
+                .get(who as usize)
+                .is_some_and(|t| self.tech_tree.has_tribe_bonus(&self.setup, t, n))
+        };
+        if self.units[u].herd.is_none() || bonus(9) || bonus(4) {
+            self.was_seen_fog(fx, fy, who)
+        } else {
+            self.was_really_seen_fog(fx, fy, who)
+        }
     }
 
     /// `UnitData::is_seen@00607a60`'s stealth arm, for `param_2 == 0`:
