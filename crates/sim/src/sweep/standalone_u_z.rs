@@ -212,6 +212,8 @@ mod unit_out_issue_come_out;
 mod unit_out_issue_unqueue;
 #[path = "unit_replace_form_id.rs"]
 mod unit_replace_form_id;
+#[path = "unit_resolve_block.rs"]
+mod unit_resolve_block;
 #[path = "unit_set_ai_control.rs"]
 mod unit_set_ai_control;
 #[path = "unit_set_angle.rs"]
