@@ -236,6 +236,8 @@ mod unit_out_issue_unqueue;
 mod unit_replace_form_id;
 #[path = "unit_resolve_block.rs"]
 mod unit_resolve_block;
+#[path = "unit_same_damage.rs"]
+mod unit_same_damage;
 #[path = "unit_set_ai_control.rs"]
 mod unit_set_ai_control;
 #[path = "unit_set_angle.rs"]
