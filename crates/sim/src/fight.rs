@@ -3512,7 +3512,11 @@ impl Sim {
             return false;
         }
         let me = Obj::Unit(u);
-        if self.profile(me).has(crate::combat::mask::SIEGE | crate::combat::mask::BOMBARD | crate::combat::mask::EXPLOSIVE) {
+        if self.profile(me).has(
+            crate::combat::mask::SIEGE
+                | crate::combat::mask::BOMBARD
+                | crate::combat::mask::EXPLOSIVE,
+        ) {
             return false;
         }
         if matches!(held, Obj::Unit(_)) && self.profile(held).combat_role {
@@ -3521,10 +3525,7 @@ impl Sim {
         if matches!(attacker, Obj::Building(_)) {
             return false;
         }
-        if matches!(
-            self.units[u].combat.stance,
-            Stance::Raid | Stance::Raze
-        ) {
+        if matches!(self.units[u].combat.stance, Stance::Raid | Stance::Raze) {
             return false;
         }
         if self.profile(attacker).attack != 0
