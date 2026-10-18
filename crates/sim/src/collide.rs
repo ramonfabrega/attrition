@@ -2592,6 +2592,9 @@ impl Sim {
                     .is_some_and(|a| self.units[o].orders[a].index() == index::ATTACK)
             });
         let r = self.find_upath(u, anti);
+        if std::env::var("RON_PROBE3175").is_ok() && self.units[u].owner == 0 && self.units[u].index == 12 {
+            eprintln!("P3175 f{} find_upath anti {} -> {} path {}", self.frame, anti, r, self.units[u].path.len());
+        }
         // **`dest = 0`, on both arms** — `005f9d30`'s last two blocks are
         // the same store through `update_order()->get_move_order()`, and
         // the only thing the non-zero one adds is the pause roll. The
