@@ -20,9 +20,9 @@ serial (128 of 326 min; its scope no longer widens on `blind.rs`). Last whole ga
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 → 6585 → 12815 (2974) → 12836 (2997), as 3086, on its lobby until it closes (DECISIONS 77 (vii)).
   Chapters 86–93 closed; 94 is 3067. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), median 1008, a gate floor.
-- **Lanes: none live.** 3086 the AI word's, 3067 the rules track's, 3078 shape and 3068 harvest, unstarted; the roster is
-  the steer's (the pass recommends four lanes, or five with the CPU budget at 16–20). Next 3092, run 915 (Astra 900–909).
-  Pools: GOLDEN §119–124, AI §246–251, park HG–HL. Loop 3088's orphaned test is Ramon's to kill.
+- **Lanes: none live.** 3086 the AI word's, 3067 the rules track's, 3078 shape and 3068 harvest, unstarted — **four
+  lanes, the steer's word (DECISIONS 78 amended), the CPU budget at 20**. Next 3092, run 915 (Astra 900–909).
+  Pools: GOLDEN §119–124, AI §246–251, park HG–HL. The commander's clear waits on the steer's last word.
 - **Fable backlog: 21 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -38,9 +38,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the forty-first tranche (commander, Opus): spawn the queue's four items (3086, 3067, 3078, 3068) on the roster
-the steer with Ramon set after the fortieth pass (DECISIONS 78's "For Ramon"; until it says otherwise, five lanes, Opus 5.5
-medium on the AI word and Sonnet 5.5 medium elsewhere), merge, book, refill under twenty, stop at twenty, clear `steer`.**
+**Opener: the forty-first tranche (commander, Opus): spawn the queue's four items (3086, 3067, 3078, 3068) on four lanes
+— Opus 5.5 medium on the AI word, Sonnet 5.5 medium on the rest (DECISIONS 78 amended; the CPU budget admits 20) — merge,
+book, refill while landings plus live lanes are under twenty, stop at twenty, and clear `steer` into the forty-first pass.**
 
 ## The queue
 

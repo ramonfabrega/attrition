@@ -21,7 +21,14 @@ import subprocess
 import sys
 import time
 
-CPU = 32
+# Twenty slots on sixteen cores (Ramon, the fortieth steer, 2026-10-17,
+# DECISIONS 78): at 32 the fortieth tranche's five lanes were all admitted
+# at once and every lane gate ran at half speed (18–32 minutes against
+# 9.5) while the door waited 246 s over nineteen gates; at 20 a booking
+# gate (8) runs beside three lane gates (4 each) and the fourth queues —
+# above the core count because a build and a test suite idle a core on
+# I/O, below two cores a slot because that is what dilated.
+CPU = 20
 MEMORY_MIB = 98304
 QUANTUM_MIB = 256
 DEFAULT = Path.home() / 'Library/Caches/attrition/resources-v2'

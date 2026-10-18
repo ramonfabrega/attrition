@@ -3760,7 +3760,7 @@ moves ahead of the gate line, and the walk's `@spell` takes a seat, a test made 
 its opening): `cargo test -p sim the_emulated_original_agrees_on_every_row` in debug, cwd
 `.claude/worktrees/agent-a125b8735144f445e` (att-2793's, the thirty-eighth tranche), parent pid 1, 16 h 53 elapsed
 at 100 % CPU, the worktree no longer in `git worktree list`; the pass's `kill` was refused by the classifier and
-the pids (63145, 33786) go to Ramon. Candidate: a sweep test's emulator loop takes an instruction budget and fails
+the pids (63145, 33786) went to Ramon, and the process had ended on its own by the time he looked (`no such process`, about two hours after the pass's check). Candidate: a sweep test's emulator loop takes an instruction budget and fails
 past it, and the sweep frame's "`agent-*` worktrees go with your landing" line adds their processes; a test made
 to fail first. One reach.
 

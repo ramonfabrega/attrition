@@ -6282,3 +6282,16 @@ landing an hour; the CPU budget's 32 slots on sixteen cores; whether
 the commander's booking gate should run under a lane's budget or hold
 its merges longer; and 1725, a twelfth time. The pass recommends in
 its record and moves none of them.
+
+**Amended the same day, at the steer with Ramon (every item his):**
+(i) **four lanes for the forty-first tranche** — the AI word (Opus 5.5
+medium), the rules track, the shape sweep and the harvest sweep (Sonnet
+5.5 medium), the queue's four items; (ii) **the host budget admits 20
+CPU slots** (`tools/resource_budget.py`, from 32): a booking gate and
+three lane gates together, the fourth queued, so contention becomes a
+wait the receipt can show instead of a dilation it cannot; (iii) Loop
+3088's orphaned process had ended on its own before Ramon's kill (`no
+such process`); the row stays for its candidate. The other
+recommendations (the stride, the harvest lanes' purpose, the sweep
+lanes' value, a document landing's gate price) are in discussion and
+the commander's clear waits on it.
