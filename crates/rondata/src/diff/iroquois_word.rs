@@ -793,6 +793,52 @@ fn run932_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 41, "initial run932 baseline");
 }
 
+/// run934: the word 6982's window, blocks 6976..7232 at run932's detail
+/// (`LEADERS=9` for the make list, `GUYS=4` for the figure clocks; item
+/// 3231) — six blocks before the word's own block 6983, 250 after; no
+/// earlier dump of this lobby holds 6094..12658.
+pub(crate) const RUN934: &str =
+    "gamelog-run934-greatlakes-iroquois-diff3-window-6976-7233-guys4.txt";
+
+/// The window: block 6976 through 7232.
+pub(crate) const WIDENING_IROQUOIS_FRAME_6982: (i64, i64) = (6976, 7232);
+
+pub(crate) fn iroquois_frame_6982_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run934",
+        &[(RUN934, WIDENING_IROQUOIS_FRAME_6982.0)],
+        WIDENING_IROQUOIS_FRAME_6982,
+        1,
+        &[6983],
+        true,
+    )
+}
+
+#[test]
+fn run934_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_6982_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "initial run934 baseline");
+}
+
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at
 /// run918's detail with `GUYS=4` (item 3202) — the Slinger squad's birth on
 /// 5563 and the figures' clocks on the word's block 5577, which run928's
