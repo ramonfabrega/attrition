@@ -13,8 +13,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-18, **the forty-second pass (steer, Fable): the forty-second tranche measured — 20 landings from `75ccea37`
-in 4 h 52, 99.90 USD, 33.6 minutes waiting a landing — and the forty-third's base is the pass's commit (its second
-commit names it)**, four lanes (DECISIONS 78 (i), 80): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.
+in 4 h 52, 99.90 USD, 33.6 minutes waiting a landing — and the forty-third tranche's base is `1a15c80f`, the pass's
+first commit**, four lanes (DECISIONS 78 (i), 80): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.
 Last whole gate `a17f673c`, at the drain (green); the pass's own is named in its third commit.*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 of 12658, widened (3202: the state first
