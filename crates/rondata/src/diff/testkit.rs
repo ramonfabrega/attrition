@@ -6653,6 +6653,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FOUR: i64 = 1200;
 /// 605 to 1199.
 pub(crate) const WIDENING_CHAPTER_NINETY_FOUR: (i64, i64) = (604, 1201);
 
+/// **Chapter ninety-five** (item 3126, `docs/GOLDEN.md` §121, run920):
+/// Sabotage on a firing Tank. **The word is 629, open** (draws part there);
+/// the widening's first parted field is the who=1 Tank `1/7`'s `order:target`
+/// on 624 — ours the decoy Hoplite `0/16`, theirs the Commando `0/7`.
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 629;
+
+/// `chapter_ninety_five_s_window_is_widened_whole`'s window: run920.
+pub(crate) const WIDENING_CHAPTER_NINETY_FIVE: (i64, i64) = (604, 1201);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9243,6 +9252,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_ninety_four_s_window_is_widened_whole"),
         3067,
         Some(WIDENING_CHAPTER_NINETY_FOUR),
+    ),
+    // Item 3126: run920, chapter ninety-five, Sabotage on a firing Tank.
+    (
+        "GOLDEN_WORD_CHAPTER_NINETY_FIVE",
+        GOLDEN_WORD_CHAPTER_NINETY_FIVE,
+        Some("chapter_ninety_five_s_window_is_widened_whole"),
+        3126,
+        Some(WIDENING_CHAPTER_NINETY_FIVE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

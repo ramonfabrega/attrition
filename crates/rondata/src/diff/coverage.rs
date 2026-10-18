@@ -684,6 +684,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch92 = golden_dump("ch92");
     let ch93 = golden_dump("ch93");
     let ch94 = golden_dump("ch94");
+    let ch95 = golden_dump("ch95");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2611,6 +2612,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 7,
             "chapter ninety-four carries seven blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter ninety-five, on run920** (item 3126): Sabotage on firing
+    // Tanks; the window takes the 624 target pick and its neighbours.
+    if let Some(p) = &ch95 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINETY_FIVE;
+        let n = drive_capture(p, 622, 628, &mut paths);
+        assert_eq!(
+            n, 7,
+            "chapter ninety-five carries seven blocks in the window"
         );
         frames += n;
     }
