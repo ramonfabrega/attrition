@@ -504,3 +504,47 @@ fn run922_s_word_frame_is_widened_whole() {
     // moves downstream (`gather_stamp`, `known_rares` on 1760, the
     // gatherers from 1776, the City Center's queue from 1777).
 }
+
+/// run923: the lobby's first forty blocks dense, at run918's detail (item
+/// 3170) — the gap run897 leaves between its start dump's block 1 and its
+/// blocks 36 and 37, where the food row parts.
+pub(crate) const RUN923: &str = "gamelog-run923-greatlakes-iroquois-diff3-window-1-41.txt";
+
+/// The window: block 1 through 40.
+pub(crate) const WIDENING_IROQUOIS_FOOD_923: (i64, i64) = (1, 40);
+
+pub(crate) fn iroquois_food_923_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run923",
+        &[(RUN923, WIDENING_IROQUOIS_FOOD_923.0)],
+        WIDENING_IROQUOIS_FOOD_923,
+        1,
+        &[1773],
+        true,
+    )
+}
+
+#[test]
+fn run923_s_food_row_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_food_923_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 40, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "initial run923 baseline");
+}
