@@ -411,3 +411,54 @@ fn run910_s_word_frame_is_widened_whole() {
     // parting lies in 6837..12808, which no dump of this lobby covers
     // (`docs/AI.md` §242).
 }
+
+/// run912: the gap between run893c and run910, blocks 6837..12809 at
+/// `UNITS=3,GUYS=2` only (item 2997), to find the block the state first
+/// parts on before the word 12815.
+pub(crate) const RUN912: &str = "gamelog-run912-eastindies-german-diff3-window-6837-12810.txt";
+
+/// The window: block 6837 through 12809.
+pub(crate) const WIDENING_GERMAN_GAP_912: (i64, i64) = (6837, 12809);
+
+pub(crate) fn german_gap_912_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GERMAN.start],
+        true,
+        GERMAN.long,
+        "run912",
+        &[(RUN912, WIDENING_GERMAN_GAP_912.0)],
+        WIDENING_GERMAN_GAP_912,
+        1,
+        &[12816],
+        true,
+    )
+}
+
+#[test]
+fn run912_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_gap_912_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 5973, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 232, "initial run912 baseline");
+    // Item 2997: the gap between run893c (ends 6836) and run910 (starts
+    // 12809), at `UNITS=3,GUYS=2` only, so every `build:extra` row (the
+    // buildings this crate holds and the dump does not print) is the
+    // detail's, not a parting. Beside them only the control's standing set
+    // (`form`, `group:*.held`, `pool:*`, `g.angle[0]`) parts until **block
+    // 12563**, where who=1's thirty Citizens (TypeIndex 50) carry `myhits`
+    // 50 in ours against 40 in theirs: this crate's Tower `1/2014` finishes
+    // its Militia research (TypeIndex 66, queued on 12383 at 100 a frame
+    // on both sides, run912b) a frame before the original does, which
+    // raises them on 12564 (`docs/AI.md` §244). The next rows are the
+    // Scout `0/0`'s `damage_frac` on 12767 (ours 0, theirs 10) and its
+    // `FLEETOORDER` on 12803, which theirs issues and ours does not.
+}
