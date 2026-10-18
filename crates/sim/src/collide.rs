@@ -2064,7 +2064,7 @@ impl Sim {
     /// (`659002`), but measured to the unit's `orders_x/orders_y`
     /// (`658fdc`): a spot one of my own units is already walking to is
     /// taken.
-    pub(crate) fn find_unit_ordered_with_radius(
+    pub fn find_unit_ordered_with_radius(
         &self,
         r_coll: i32,
         at: Pos,
