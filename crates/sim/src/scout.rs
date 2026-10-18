@@ -579,7 +579,6 @@ impl Sim {
         }
         if domain != Domain::Air {
             if self.world.region_of(c) != self.world.tregion(self.units[u].pos.tile()) {
-        if std::env::var_os("RON_PROBE_3107").is_some() && self.frame == 0 { eprintln!("SCOUT3107 ring {ring} cell ({},{}) region", c.x, c.y); }
                 return;
             }
             // The surface tile is the cell **centre**, `(4x + 2, 4y + 2)` —
@@ -591,7 +590,6 @@ impl Sim {
             let t = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
             let ocean = self.world.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN;
             if (domain == Domain::Land) == ocean {
-        if std::env::var_os("RON_PROBE_3107").is_some() && self.frame == 0 { eprintln!("SCOUT3107 ring {ring} cell ({},{}) ocean", c.x, c.y); }
                 return;
             }
         }
@@ -603,7 +601,6 @@ impl Sim {
         let owner = self.world.owner(c).player().unwrap_or(who);
         if self.was_really_seen(c, who) {
             if owner != who {
-                if std::env::var_os("RON_PROBE_3107").is_some() && self.frame == 0 { eprintln!("SCOUT3107 ring {ring} cell ({},{}) seen-foreign", c.x, c.y); }
                 return;
             }
             // The second arm of the escape — `WData +0` read as a
@@ -612,20 +609,17 @@ impl Sim {
             // has 22 and none of them is ever a candidate in any capture,
             // but the bit is loaded, so this reads it rather than a seam.
             if self.world.cell_data(c).flags & crate::world::cell::GOODY == 0 {
-        if std::env::var_os("RON_PROBE_3107").is_some() && self.frame == 0 { eprintln!("SCOUT3107 ring {ring} cell ({},{}) seen", c.x, c.y); }
                 return;
             }
         }
         let tile = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
         if self.invalid_loc(u, tile, false, false, false, false, false) != 0 {
-        if std::env::var_os("RON_PROBE_3107").is_some() && self.frame == 0 { let v = self.invalid_loc(u, tile, false, false, false, false, false); eprintln!("SCOUT3107 ring {ring} cell ({},{}) invalid {v}", c.x, c.y); }
             return;
         }
         let here = self.units[u].pos.cell();
         // `+0x64c`: the jitter that breaks ties between equidistant cells.
         self.mark(SITE_CELL);
         let mut score = vector_dist(here.x - c.x, here.y - c.y) * 8 + self.rng.roll() % 8;
-        if std::env::var_os("RON_PROBE_3107").is_some() && self.frame == 0 { eprintln!("SCOUT3107 ring {ring} cell ({},{}) DRAW score {score}", c.x, c.y); }
 
         // §8. `treaties[leader] & 3 == 0` — `LeaderData +0x94`, **not**
         // `diplos` at `+0x74` (`005f6688`: `0xe3a424` is leader 0's
