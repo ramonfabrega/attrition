@@ -124,9 +124,13 @@ pub(crate) const BATTERY: &[Lobby] = &[
         // `Farms::inc_time+0x1ae`, theirs `Guy::init_real+0x52`. Item 3092,
         // the Chinese citizen arm of `train_time` (NATIONS §7, first candidate): 176 →
         // 5663, ours 6 draws, theirs 8, at 0 ours `Guy::set_anim+0x97a <
-        // Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`.
-        count: 5663,
-        sequence: 5663,
+        // Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`. Item 3113, the
+        // Chinese herbal-lore free-tech block (`gain_tech@006dcb60`, NATIONS
+        // §7.4): 5663 → 12712, ours 34 draws, theirs 40, at 30 ours
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+        // `Guy::init_real+0x52`.
+        count: 12712,
+        sequence: 12712,
     },
     // The five lobbies minted by item 2975 (DECISIONS 77 (ii), `docs/AI.md`
     // §125, §243; runs 895–899): a nation no dump holds, a tier of 2, 3 or 4,
