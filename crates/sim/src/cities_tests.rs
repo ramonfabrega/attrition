@@ -6499,6 +6499,9 @@ fn a_citizen_s_to_arms_keeps_its_damage_fraction_and_its_former_type() {
     assert!(sim.units[c].orders.is_empty());
     assert_eq!((sim.units[c].max_health, sim.unit_los(c)), (40, 2));
     sim.gain_tech(0, militia_t);
+    // The pool moves at the next leader pass's `calc_unit_stats`, not on
+    // the gain itself (item 2997, `docs/AI.md` §244).
+    sim.calc_unit_stats(0);
     assert_eq!(
         (sim.units[c].max_health, sim.unit_los(c)),
         (50, 4),

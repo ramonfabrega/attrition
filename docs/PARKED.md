@@ -1976,7 +1976,7 @@ axis (GOLDEN §13).
 
 ## Parked by item 673, 2026-09-23 — under Great Lakes' 12897
 
-(679) **who=1's citizens hold `myhits` 40 against 50 and `mylos` 2
+(679) closed 2026-10-17 by item 2997 (AI §244; `mylos` by item 1354): **who=1's citizens hold `myhits` 40 against 50 and `mylos` 2
 against 4 from block 12564**, and the newborn `1/69` on 12566 the same.
 No draw; it reads as an upgrade the original applies and this crate does
 not (`docs/journal/2026-09-23-item-673.md`). **850**: the same citizens'

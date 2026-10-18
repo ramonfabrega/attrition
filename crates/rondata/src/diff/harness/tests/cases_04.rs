@@ -1659,7 +1659,9 @@ mod bodies {
         // standing on 10164, ours 4 against the original's cached 2 — the
         // Militia term the original had not yet refreshed, which this
         // crate's cache now holds back too (`docs/VISION.md` §2).
-        pin_eq!(under, 67, "the floor under the word");
+        // Item 2997: 67 → 22, the Citizens' `myhits` — a gained Militia
+        // reaches the pool at the next leader pass (`docs/AI.md` §244).
+        pin_eq!(under, 22, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,

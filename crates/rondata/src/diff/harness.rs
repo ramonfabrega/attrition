@@ -5218,7 +5218,10 @@ pub(crate) mod tests {
         // ours 4 against 2 — the Militia line's term reaching the
         // derivation a frame before the original's cache (`docs/VISION.md`
         // §2).
-        pin_eq!(past, 87, "the keys first parting after 12537");
+        // Item 2997 took the rest (87 → 0): the Citizens' `myhits` from
+        // 12564 (parked 679) — a gained Militia reaches the pool at the next
+        // leader pass's `calc_unit_stats` (`docs/AI.md` §244).
+        pin_eq!(past, 0, "the keys first parting after 12537");
         // **The floor**: 259 keys to run163's last block, and 2,120 to
         // run174's. The floor had been 275 to run163, as item 661 left it,
         // and 2,197 to run174. The fix took sixteen under 12399, all
@@ -5247,7 +5250,7 @@ pub(crate) mod tests {
         // Item 1461: (118, 210) → (112, 204); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (38, 125), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (38, 38), // Item 2997: (38, 125) → (38, 38), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -5461,7 +5464,7 @@ pub(crate) mod tests {
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (125, 2, 127), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (38, 2, 40), // Item 2997: (125, 2, 127) → (38, 2, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -5589,7 +5592,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, own.len(), firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (127, 0, 127), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (40, 0, 40), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -5700,7 +5703,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (127, 0, 127), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (40, 0, 40), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -5858,7 +5861,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (127, 0, 127), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (40, 0, 40), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -6013,7 +6016,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (127, 0, 127), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (40, 0, 40), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -6137,7 +6140,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (127, 0, 127), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (40, 0, 40), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -6281,7 +6284,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (127, 0, 127), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (40, 0, 40), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }

@@ -22249,6 +22249,9 @@ partings, each built in order:
   raises `unit_stats_dirty`, and `rares.rs`'s `calc_unit_stats` refreshes the hits through `unit_hits` at the next pass.
   Test `cities_tests::a_gained_militia_reaches_a_citizen_s_hits_at_the_next_leader_pass`; chapter 39 (run422) stays green.
 - run912: 232 → 142 keys. The word did not move.
+- **Other lobbies**: the same deferral takes run99's floor 67 → 22, Great Lakes' run174..run226 floors 125–127 → 38–40
+  (the keys past 12537 87 → 0: parked 679's `myhits`, closed), run471 103 → 34 and run416 107 → 38. The To Arms test
+  (item 1111) now runs the leader pass before reading the Citizen's hits.
 
 **2. Block 12767 — the Elite Javelineers' javelin left the figure, not the hand.**
 - The Scout `0/0` (TI 69): `damage` 16/0 in ours against 17/10 in theirs. The round is who=1's `1/42` (TI 84, piece 34).
