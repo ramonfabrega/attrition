@@ -7923,7 +7923,7 @@ argument mask for a recorded stub (3250 (f), (g)).
 
 ## Parked by item 3253, 2026-10-18 — chapter one hundred and one, an idle squad beside a Tank wreck
 
-- (3253) **The wreck on the chain (3235), still unread**: run942 closes at 1500 with two idle hoplite squads beside a Sabotaged Tank's wreck, so the idle stance does not show whether the original's search sees it (GOLDEN §136). A staging with an armed unit that must search — a shooter on an aggressive stance with the wreck as its only object in range, or a unit that takes damage there so `alarm` runs — would; names no score until a frame shows it.
+- (booked as item 3263) (3262) **The wreck on the chain (3235), still unread**: run942 closes at 1500 with two idle hoplite squads beside a Sabotaged Tank's wreck, so the idle stance does not show whether the original's search sees it (GOLDEN §136). A staging with an armed unit that must search — a shooter on an aggressive stance with the wreck as its only object in range, or a unit that takes damage there so `alarm` runs — would; names no score until a frame shows it.
 
 ## Parked by the next landing, slot JK — reserved
 

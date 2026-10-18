@@ -12,17 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-second pass (steer, Fable): the forty-second tranche measured — 20 landings from `75ccea37`
-in 4 h 52, 99.90 USD, 33.6 minutes waiting a landing — and the forty-third tranche's base is `1a15c80f`, the pass's
-first commit**, four lanes (DECISIONS 78 (i), 80): the AI word's on Opus 5.5 medium, three on Sonnet 5.5 medium.
-Last whole gate `f0261980`, at 3246's booking (green, 6 of 6; rondata 969, sim 1708; release 10.1 minutes).*
+*2026-10-18, **the forty-third tranche (commander, Opus): 20 landings from `1a15c80f` in 6 h 08, drained**, four lanes
+(DECISIONS 78 (i), 80), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `0d754368`, at
+3239's booking (green, 6 of 6; rondata 970, sim 1709; release 10.3 minutes); the drain's follows.*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 10695 of 12658 (3211, 3231, 3242, 3248: 5576 → 10695, four
-  Iroquois arms, a Despot's Barracks discount and Cotton's training speed), its widening owed as 3255; `EastIndiesGermanTier3` closed at 13519. Chapters 95–100 closed, 93 closed (3252: 977 → 2600); census 1512, **port 347**; the held-out battery's median 4770.
-- **Lanes: one live, landings 19 of 20** (3221, 3223, 3225, 3211, 3228, 3219, 3233, 3234, 3229, 3231, 3236, 3244, 3242, 3238, 3246, 3252, 3248, 3239, 3250), the tranche draining: 3253
-  rules (run 942, GOLDEN §136, JJ); unspawned 3255 AI (run 943, AI §257, JK), 3261 shape (JM), 3259 the nations seat (JL). Next 3262, run 944. Pools: GOLDEN §137–140, AI §258–259, park JN–JR.
-- **DECISIONS 80**: every gate prints `Gate minutes:` by step and the journal quotes it; `tools/gates.py` is the pass's gate
-  table; `brief.py` refuses a note's run and one another brief names. **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10695 of 12658 (3211, 3231, 3242,
+  3248: four Iroquois arms, a Despot's Barracks discount, Cotton's training speed), its widening owed as 3255;
+  `EastIndiesGermanTier3` closed at 13519. Chapters 98–101 closed (3223, 3233, 3252, 3253), 90 → 94. Census 1477 →
+  1512, **port 311 → 347** (3219, 3234, 3229, 3238, 3239, 3250). The held-out battery's median 4770.
+- **Lanes: none live** — drained at twenty; unspawned: 3255 AI (run 943, AI §257, JK), 3263 rules (run 944, GOLDEN
+  §137, JN), 3261 shape (JM), 3259 the nations seat (JL). Landings: 3221, 3223, 3225, 3211, 3228, 3219, 3233, 3234,
+  3229, 3231, 3236, 3244, 3242, 3238, 3246, 3252, 3248, 3239, 3250, 3253. Next 3264, run 945. Pools: GOLDEN §138–140, AI §258–259, park JO–JR.
+  **Ramon's**: `kill 51257` (3143), the nations lane's seat (3188), 3118, 1570.
 - **Fable backlog: 21 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3158, 3165, 3181, 3188, 3218, 3224, 3226, 3227, 3237, 3240, 3249, 3256, 3257, 3258, 3260).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -35,18 +36,17 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w10695 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1512 of 3611 · port 347 · layout 1165
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · 93 closed
+Golden: every chapter closed · 94 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-third tranche from `docs/QUEUE.md`'s handoff — the drain (3255 the AI word's on
-`--model 'claude-opus-5-5[1m]' --effort medium`; the rest on `'claude-sonnet-5-5[1m]' --effort medium`); re-arm
-`tools/lanewait.py`, merge each landing at its gate's exit, refill by `tools/brief.py`, the model said in user-visible
-text; count landings from `1a15c80f`; the chain is `CLAUDE.md`'s; at twenty the handoff, the drain and `ccc clear steer`.**
+**Opener: the forty-third pass (steer, Fable): measure the forty-third tranche (twenty landings from `1a15c80f`,
+drained), ratify the marked rows, rule the 21 Loop items (3143, 3188, 3118 and 1570 are Ramon's), then clear
+`commander` into the forty-fourth tranche on the queue's four unspawned items (3255, 3263, 3261, 3259).**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3255 the AI word's (Opus); 3253, 3261 and 3259 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10695. Take the first unstarted item unless a better
+3255 the AI word's (Opus); 3263, 3261 and 3259 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10695. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3255. **The battery word, 10695 of 12658 (`GreatLakesIroquoisTier3`), its widening owed** (parked 3254; 3248 moved it
@@ -57,13 +57,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     capture over 10689..10945 at run940's detail (`LEADERS=9`, `GUYS=4`, run 943), widened whole on the word's frame
     both directions. Standing: run940's 61 keys, `1/24`'s figure snap (parked 3254 (a)). AI §257.
 
-3253. **Chapter one hundred and one, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
-    chapter; run 942 minted here): 3252 closed chapter 100 at 2600 (977 → 2600: a Tank's round at a building is aimed
-    at the near face, attrition kills with `dtype` 1 and keeps the disc, its damage falls at a figure's share; GOLDEN
-    §135, parked 3190 struck). Candidates by what a failure would teach: a reader of a wreck the crate keeps off the
-    object chain (parked 3235: `find_nearby_target`, `find_units`, `alarm` beside a Tank wreck), and a building
-    shooter's near-face gate (3252's park, read on the shooter's type and not diffed). Stage it, capture it, open it
-    at its first word. GOLDEN §136.
+3263. **Chapter one hundred and two, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
+    chapter; run 944 minted here): 3253 closed chapter 101 at 1500 on its first take, no sim change (two idle hoplite
+    squads beside a Sabotaged Tank's wreck, run942, GOLDEN §136): the idle stance never searched, so the wreck on the
+    chain stays unread (parked 3262, 3235). Candidates by what a failure would teach: a unit that must search beside
+    the wreck (a shooter on an aggressive stance, or one that takes damage there so `alarm` runs), and a building
+    shooter's near-face gate (3252's park). Stage it, capture it, open it at its first word. GOLDEN §137.
 
 3261. **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 347; 3250 built all six of its
     batch, four against the crate's own method and two against extracted helpers, parked 3250 (a)–(h), Loop 3260):
