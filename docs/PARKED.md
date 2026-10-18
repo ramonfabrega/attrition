@@ -7889,7 +7889,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3263, 2026-10-18 — chapter 102, stance-0 hoplites beside a wreck
 
-- (3267) **A shooter that takes damage beside the wreck (`alarm`), and a building shooter's near-face gate (3252)**: chapter 102 shows stance-0 hoplites take no order from a Tank wreck (GOLDEN §137); the two remaining arms of the wreck on the chain (3235) are an armed unit struck beside it and a Tower/Fort shooter. Names no score until a frame shows it.
+- **A shooter that takes damage beside the wreck (`alarm`), and a building shooter's near-face gate (3252)**: chapter 102 shows stance-0 hoplites take no order from a Tank wreck (GOLDEN §137); the two remaining arms of the wreck on the chain (3235) are an armed unit struck beside it and a Tower/Fort shooter. Names no score until a frame shows it.
 
 ## Parked by the next landing, slot JO — reserved
 
