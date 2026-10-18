@@ -628,8 +628,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK1,
         12,
         Bay {
-            right: -1_706,
-            fwd: 88_958,
+            right: -1_830,
+            fwd: 88_800,
             dz: 163,
         },
     ),
@@ -1314,6 +1314,21 @@ mod tests {
                 6704,
                 32753,
                 255,
+            ),
+            // Chapter 103's bowman `1/9` on block 933 (run945b, item
+            // 3271, `docs/GOLDEN.md` §139): facing 319°, offset (−59,
+            // −65), where the two rows above alone gave (−59, −66) and
+            // flew the arrow one frame short.
+            (
+                crate::anim::ATTACK1,
+                12,
+                15912,
+                16200,
+                -483_196_928,
+                82,
+                15853,
+                16135,
+                245,
             ),
             (
                 crate::anim::ATTACK3,

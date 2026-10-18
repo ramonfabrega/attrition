@@ -5932,8 +5932,10 @@ fn chapter_one_hundred_and_three_s_window_is_widened_whole() {
 }
 
 /// What parts in run945's window, blocks 605–1500 (item 3267): the eleven
-/// standing `form` rows, and the hoplite `0/10`'s wound at 934/935 (ours takes
-/// it a block before theirs: `damage` 27 and 10 sixteenths against 19, no draw).
+/// standing `form` rows, and the hoplite `0/10`'s two order fields on 935
+/// (`dest_angle`, `orders_y`: the Attack order's write point, parked slot JR).
+/// Item 3271 closed the wound's own four rows at 934: the bowman `1/9`'s
+/// launch y was one short, so the round flew in 1 frame, not 2 (§139).
 const WANT_CH103: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -5946,10 +5948,6 @@ const WANT_CH103: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "934 0/10 damage_frac",
-    "934 0/10 hits:damage",
-    "934 0/10 hits:damage_frac",
-    "934 0/10 hits_left",
     "935 0/10 dest_angle",
     "935 0/10 orders_y",
 ];
