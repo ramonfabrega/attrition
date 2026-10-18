@@ -7933,13 +7933,10 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JR — reserved
+## Parked by item 3271, 2026-10-18 — chapter 103's wound closed on a bay refit, the order's write point parts
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3271) **`0/10`'s `orders_y` and `dest_angle` on 935 (run945, GOLDEN §139)**: the Attack order that replaces the move on 935 agrees on both sides (flags, `in_range`, position 16008), but ours writes `orders_x/orders_y` at 15984 (the position before the frame's step) and `dest_angle` −2147483648, theirs 16008 and 1181417472 (the position after it). The unit is moving when the order changes; the stationary `0/11`, `0/12` agree. Booking is the frame (935) and the value (`orders_y` 15984 against 16008): which caller adds the Attack on 935 (`RON_STACKS`, `kill_current_order`) and whether the original's thinks run before or after the step for a unit with a path.
+- (3271) **The bowman bay `120/ATTACK1/12` is a fit** (`right −1830, fwd 88800`): one point of a 2,398-point family that matches three arrows; a fourth facing on disk or in a later capture would narrow it. `get_position` is float trigonometry in the original and `Bay::point` an integer rotation by a whole degree.
 
 ## Parked by the next landing, slot JS — reserved
 
