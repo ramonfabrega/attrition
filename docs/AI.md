@@ -22900,7 +22900,7 @@ The 41 are run932's standing set (the `SITE` regs, the forms, pools 64 and 66, `
 figure's nine), the three newborn figures' `g.angle[0]` (`Unit::init`'s 0x55555555 against 0, a family that stands
 in other lobbies, §54.3) and `SITE[1].reg` on 7176. **The word moved 6982 → 7982**: ours 12 draws, theirs 14, index
 5, ours `Animal::do_idle+0x83` against theirs `Leader::make_stuff+0x63d`. It is past run934's last block, so its
-widening is owed (parked 3232). No other lobby's first parting and no other pin moved.
+widening is owed (parked 3241; the lane minted 3232, renumbered at the merge). No other lobby's first parting and no other pin moved.
 
 **The two rows the booking named** (`1/22`'s `blown`, `1/23`'s second figure) stand on run934's first block, as they
 did on run932's. They parted at 5627/5883 and 5673, which this window does not reach, so this capture cannot read

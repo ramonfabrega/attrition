@@ -9814,12 +9814,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`run934_s_word_frame_is_widened_whole`): block 6982's `MAKE[3]`, the
     // Senate theirs listed and ours priced. **Item 3231 moved it 6982 →
     // 7033 → 7982** (`get_cost`'s and `construct_time`'s Iroquois Senate
-    // arms), past run934's last block: owed as 3232 (`docs/PARKED.md`).
+    // arms), past run934's last block: owed as 3241 (the lane's 3232, renumbered at the merge; `docs/PARKED.md`).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3232,
+        3241,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
