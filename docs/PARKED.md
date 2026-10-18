@@ -7494,13 +7494,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot HV — reserved
+## Parked by item 3134, 2026-10-18 — the shape lane's seventh batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Five shapes built (find_town_at, find_good_at@0065bec0, process_ejection, cavarch_fight twice, send_here); none unbuildable.
+
+- **`Unit::cavarch_fight` clamp and pre-fight copy are starved, not equivalent.** `--stub-write` writes one fixed value, so a
+  stubbed `fight` leaves the target either alone (`unit_cavarch_fight`) or at (1, 0) (`unit_cavarch_fight_written`). Starved:
+  the pre-fight `+0x2d0 → +0x1fc` copy (overwritten after `fight`; only a real `fight` reads it), the `(idx as u16) >= 0x8000`
+  and `< 0` predicates (need a final negative index with an original in 0x4000..0x7fff, or a final 0). Flag it could not spell:
+  `--stub-write` with a drawn VAL (a list, as `--answers`).
+- **`Build::process_ejection`**: one break starved (the captain chain's inner `p[u][9]`; chain targets are array 0, whose byte 9 is 0 by construction so chains stay acyclic).
+  Flag it could not spell: `--link` across several arrays (a global window index mapped to array × slot).
+- **`Army::send_here`**: `find_angle` and `sin_table` are stubbed and recorded (their tables build at boot and read as zeros), so their own arithmetic is not
+  exercised here; `find_angle` is pinned elsewhere.
 
 ## Parked by the next landing, slot HW — reserved
 
