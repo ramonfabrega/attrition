@@ -112,3 +112,32 @@ def draw_reg(rng, spec, wild, word=None):
     if spec[0] == "set":
         return rng.choice(spec[1])
     return rng.randint(spec[1], spec[2])
+
+
+GDT, TIB = 0x7C000000, 0x7C010000
+
+
+def _descriptor(base, access):
+    limit = 0xFFFFF
+    lo = (limit & 0xFFFF) | ((base & 0xFFFF) << 16)
+    hi = ((base >> 16) & 0xFF) | (access << 8) | (((limit >> 16) & 0xF) << 16) | (0xC << 20) | (base & 0xFF000000)
+    return struct.pack("<II", lo, hi)
+
+
+def set_tib(uc):
+    """Map a guest TIB at `TIB` and point `fs` at it, for an SEH-framed
+    function (`mov eax, fs:[0]` ... `mov fs:[0], ecx`). Unicorn ignores
+    `FS_BASE` for a 32-bit guest, so, as `tools/recomp/step4.py` does, a flat
+    GDT is loaded and one data descriptor holds the TIB (item 3120)."""
+    from unicorn.x86_const import (UC_X86_REG_CS, UC_X86_REG_DS, UC_X86_REG_ES, UC_X86_REG_FS,
+                                   UC_X86_REG_GDTR, UC_X86_REG_SS)
+    uc.mem_map(GDT, 0x1000)
+    uc.mem_map(TIB, 0x1000)
+    uc.mem_write(GDT + 8 * 15, _descriptor(TIB, 0x93))
+    uc.mem_write(GDT + 8 * 16, _descriptor(0, 0x93))
+    uc.mem_write(GDT + 8 * 17, _descriptor(0, 0x9B))
+    uc.reg_write(UC_X86_REG_GDTR, (0, GDT, 8 * 18 - 1, 0))
+    for seg in (UC_X86_REG_DS, UC_X86_REG_ES, UC_X86_REG_SS):
+        uc.reg_write(seg, 16 << 3)
+    uc.reg_write(UC_X86_REG_CS, 17 << 3)
+    uc.reg_write(UC_X86_REG_FS, 15 << 3)

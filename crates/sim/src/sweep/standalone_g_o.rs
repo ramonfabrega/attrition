@@ -626,6 +626,8 @@ mod object_type_data_get_age;
 mod object_type_data_get_age_slow;
 #[path = "object_type_data_get_stance_type.rs"]
 mod object_type_data_get_stance_type;
+#[path = "object_type_data_get_wonder_value.rs"]
+mod object_type_data_get_wonder_value;
 #[path = "object_type_data_has_objmask.rs"]
 mod object_type_data_has_objmask;
 #[path = "object_type_data_is.rs"]
