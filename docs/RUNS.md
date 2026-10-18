@@ -17909,3 +17909,8 @@ SHA-256 `548987e62b3ecf02397d4dcea368291e2e0d00a6755b7759f36c80cd76afdc2f`.
 `docs/GOLDEN.md` §121. **What the disk could not answer**: no dump held a Sabotage cast on a firing armed unit. Recipe `tools/gamelog/golden/chapter95.cmd` (`--map 14 --end-frame 1200
 --log-window 605 1200`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch95/map-14/`, 1,201 frames, seed 12345. No minutes waited on another lane.
 **What it holds**: the who=1 Tanks `1/6`, `1/7` pick the Commandos where ours picks the decoy Hoplites (624, 635); the word is 629.
+
+## run927 — chapter ninety-six: the death object's cull (2026-10-18, item 3191, `att-3191`)
+
+`docs/GOLDEN.md` §126. **What the disk could not answer**: no dump held a death object's cull measured against the piece and animation (ch95 ended before the second Tank's record did). Recipe `tools/gamelog/golden/chapter96.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 95's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch96/map-14/`, 1,501 frames, seed 12345. About twenty minutes waited on run926's hold of the lane.
+**What it holds**: the word is 1500, the capture's end; four `death:extra` rows are the cull (lifetimes 152, 143, 650, 644 frames by piece and animation).

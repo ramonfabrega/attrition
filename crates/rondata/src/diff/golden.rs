@@ -5776,6 +5776,37 @@ fn chapter_ninety_five_holds_to_the_golden_word() {
     cases_80_89::chapter_ninety_five_holds_to_the_golden_word();
 }
 
+/// **run927 whole, both directions** (item 3191, `docs/GOLDEN.md` §126).
+#[test]
+fn chapter_ninety_six_s_window_is_widened_whole() {
+    cases_80_89::chapter_ninety_six_s_window_is_widened_whole();
+}
+
+/// Chapter ninety-six holds to its golden word (item 3191, run927).
+#[test]
+fn chapter_ninety_six_holds_to_the_golden_word() {
+    cases_80_89::chapter_ninety_six_holds_to_the_golden_word();
+}
+
+/// What parts in run927's window, blocks 605–1500.
+const WANT_CH96: &[&str] = &[
+    "1235 1/7 death",
+    "1395 0/7 death",
+    "1476 0/14 death",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "946 1/6 death",
+];
+
 /// What parts in run920's window, blocks 605–1200: the word, closed at 1200 by
 /// item 3175 (the dead Tank's disc stands; it took `0/12`'s path rows from 1175 away),
 /// 1174 (1118

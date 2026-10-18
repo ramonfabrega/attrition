@@ -6679,6 +6679,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_FIVE: i64 = 1200;
 /// `chapter_ninety_five_s_window_is_widened_whole`'s window: run920.
 pub(crate) const WIDENING_CHAPTER_NINETY_FIVE: (i64, i64) = (604, 1201);
 
+/// **Chapter ninety-six** (item 3191, `docs/GOLDEN.md` §126, run927): chapter
+/// ninety-five's staging run to 1500, two hoplites added at 1000. **The word is
+/// 1500, the capture's end, on the first run**: no draw parts. The widening's
+/// four non-`form` rows are the death object's cull (parked 3189).
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETY_SIX: i64 = 1500;
+
+/// `chapter_ninety_six_s_window_is_widened_whole`'s window: run927.
+pub(crate) const WIDENING_CHAPTER_NINETY_SIX: (i64, i64) = (604, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9277,6 +9286,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_ninety_five_s_window_is_widened_whole"),
         3126,
         Some(WIDENING_CHAPTER_NINETY_FIVE),
+    ),
+    // Item 3191: run927, chapter ninety-six, the death object's cull.
+    (
+        "GOLDEN_WORD_CHAPTER_NINETY_SIX",
+        GOLDEN_WORD_CHAPTER_NINETY_SIX,
+        Some("chapter_ninety_six_s_window_is_widened_whole"),
+        3191,
+        Some(WIDENING_CHAPTER_NINETY_SIX),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
