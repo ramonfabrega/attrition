@@ -2483,13 +2483,23 @@ impl Sim {
     /// `RUBBER_AUTOPLANT_COST` when it holds Rubber — both rares on both
     /// kinds, as the listing tests them. [`Sim::has_rare`] is the union of
     /// `rare` and `rare_conquest` the arm reads. `docs/AI.md` §62.
-    pub fn stable_rare_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
+    pub fn stable_rare_discounts(&self, who: Player, ty: usize) -> [i32; 3] {
+        // **The Sulphur arm** (`get_cost:332`–`335`, right after Rubber): a
+        // unit whose trainer is `0x1ae` or `0x1af`, the Siege Factory line,
+        // takes `SULPHUR_SIEGE_COST` when the player holds Sulphur.
+        let sulphur = if matches!(self.trainer_where(ty), Some(0x1ae | 0x1af))
+            && self.has_rare(who, economy::SULPHUR)
+        {
+            self.tuning.sulphur_siege_cost
+        } else {
+            0
+        };
         let trainer = self.trainer_ident(ty);
         if !matches!(
             trainer,
             Some(build::Ident::Stable | build::Ident::AutoPlant)
         ) {
-            return [0, 0];
+            return [0, 0, sulphur];
         }
         [
             if self.has_rare(who, economy::HORSES) {
@@ -2502,6 +2512,7 @@ impl Sim {
             } else {
                 0
             },
+            sulphur,
         ]
     }
 

@@ -654,6 +654,21 @@ a pass books against a word, not a fix for the lobby that exposed it.
    Chinese, Roman, Dutch): their `get_cost` arms (Russian spy, Egyptian wonders, Roman legion, Dutch ship)
    are built; the Aztec and Spanish have none in `get_cost`/`train_time`. Not diff-backed by a dump of a
    Turkish leader's citizen price; the lobby's parting later is the evidence.
+   **Built, item 3172: the Sulphur siege arm, and the `train_time` audit.** `get_cost:332`–`335`,
+   right after Rubber: a unit whose trainer (`+0x40`) is `0x1ae`/`0x1af` takes `SULPHUR_SIEGE_COST`
+   (20) for a player holding Sulphur (rare 16, `& 4`; `rare` or `rare_conquest`), a third truncating
+   step (`cost::Modifiers::stable_rares` now `[i32; 3]`, `Sim::stable_rare_discounts`; the rule is
+   the player's rare, **not** the Turks' — 3171 mis-framed it). Test in `cost::tests`
+   (`horses_and_rubber_each_take_their_own_percentage`, the `[15, 0, 20]` row). `train_time@006508c0`'s
+   national arms by `has_tribe_bonus` index: 5 Greek research, 6 Roman legion (built), 0xa French,
+   0xb British, 0xc German, 0xe Chinese (built), 0xf Japanese, 0x11 Mongol, 0x13 Lakota raze: **no
+   battery leader (Aztec 0, Egyptian 7, Turk 8, Spanish 9, Russian 0xd, Dutch 0x16) reaches an
+   unbuilt arm.** **Battery unmoved**: all eight lobbies at their pins, median 4770; the Turkish lobby
+   parts on 6982 at `use_market+0x1ed` against `make_stuff+0x221`, a market decision, not a price.
+   **Diff-backed after all, by the keys that part**: the Persian and Lakota pairs hold Sulphur, and seven
+   widenings' parting-key counts fell — run716 149 → 146, run721 175 → 159, run754 172 → 163, run762 192 → 191,
+   run763 186 → 185, run855 and run861 122 → 120 — the siege units' queue prices now agree (re-pinned, each
+   comment carrying the delta).
 6. **The tiers' unbuilt arms** (§6): `Unit::do_gather`'s and
    `Build::process`'s AI repair arms (H12), `get_econ_mod` (no caller
    in the export, so it is dead there too). Tier 1–4 parts have not been

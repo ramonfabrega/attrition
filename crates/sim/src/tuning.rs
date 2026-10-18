@@ -533,6 +533,9 @@ pub struct Tuning {
     /// (`docs/AI.md` §62).
     pub horses_stable_cost: i32,
     pub rubber_autoplant_cost: i32,
+    /// `SULPHUR_SIEGE_COST` — a Siege Factory unit's percentage off for a
+    /// player holding Sulphur (`get_cost:333`–`335`, the third stable rare).
+    pub sulphur_siege_cost: i32,
     /// `TROOPS_UPGRADE_LOS` — tiles of line of sight per `TROOPS_LOS_n`
     /// level held, for a unit the Barracks, the Stable or the Auto Plant
     /// trains (`Unit::update_los@0060e4d0`'s term 6, `docs/VISION.md` §2).
@@ -1265,6 +1268,7 @@ impl Tuning {
         horses_stable_cost: 15,
         troops_upgrade_los: 2,
         rubber_autoplant_cost: 15,
+        sulphur_siege_cost: 20,
         wine_unit_upgrades: 20,
         uranium_nuke_cost: 5,
         liberty_bombers: 33,
@@ -1854,6 +1858,7 @@ impl Tuning {
                 "RUBBER_AUTOPLANT_COST",
                 Slot::Value(T.rubber_autoplant_cost),
             ),
+            ("SULPHUR_SIEGE_COST", Slot::Value(T.sulphur_siege_cost)),
             ("WINE_UNIT_UPGRADES", Slot::Value(T.wine_unit_upgrades)),
             ("URANIUM_NUKE_COST", Slot::Value(T.uranium_nuke_cost)),
             ("LIBERTY_BOMBERS", Slot::Value(T.liberty_bombers)),

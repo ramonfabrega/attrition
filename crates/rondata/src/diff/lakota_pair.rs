@@ -423,7 +423,7 @@ fn run855_s_word_frame_is_widened_whole() {
         }
     }
     // Item 2761: 128 → 122 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 122, "initial run855 baseline");
+    pin_eq!(w.firsts.len(), 120, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 2423: the word 4544's own block is 4545, and it holds no row:
     // the state parts before the window opens. On 4538 `leader:diplos` is
     // ours 1 against theirs 0 both ways (`0/-1 diplos[1]`, `1/-1
@@ -476,7 +476,7 @@ fn run861_s_word_frame_is_widened_whole() {
         }
     }
     // Item 2761: 126 → 122 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 122, "initial run861 baseline");
+    pin_eq!(w.firsts.len(), 120, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 2460: the word 4859's own block is 4860. Theirs spends a birth
     // there (`Guy::init_real < Unit::init < Objects::init_unit`): `1/50`
     // is unlinked on 4860 (the dump holds it alone), `1/2005`'s `queued`

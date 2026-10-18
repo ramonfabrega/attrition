@@ -1629,7 +1629,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
     // Item 2761: 153 → 149 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 149, "initial run716 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    pin_eq!(w.firsts.len(), 146, "initial run716 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −3, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     let first = w
         .firsts
         .values()
@@ -1757,7 +1757,7 @@ fn run763_s_closing_frame_is_widened_whole() {
     // Item 2384: 190 -> 191, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 190 → 186 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 186, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    pin_eq!(w.firsts.len(), 185, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1786,7 +1786,7 @@ fn run762_s_word_frame_is_widened_whole() {
     // Item 2384: 196 -> 197, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 196 → 192 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 192, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    pin_eq!(w.firsts.len(), 191, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1815,7 +1815,7 @@ fn run754_s_word_frame_is_widened_whole() {
     // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
     // on the tree before item 1700 (411); measured on the merged tree: 204.
     // Item 2761: 176 → 172 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 172, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    pin_eq!(w.firsts.len(), 163, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1854,7 +1854,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // Item 2761: 179 → 175 with `Unit::close`'s count (`docs/AI.md` §232).
     pin_eq!(
         w.firsts.len(),
-        175, // Item 2677: −1 (parked 2680).
+        159, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");
