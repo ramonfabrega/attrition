@@ -378,6 +378,8 @@ mod valid_filter_case9;
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
 mod vector_dist_ints;
+#[path = "wall_check_ever_seen.rs"]
+mod wall_check_ever_seen;
 #[path = "wall_data_armor.rs"]
 mod wall_data_armor;
 #[path = "wall_data_can_capture.rs"]
