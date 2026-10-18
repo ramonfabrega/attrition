@@ -5859,6 +5859,35 @@ const WANT_CH98: &[&str] = &[
     "605 1/5 form",
 ];
 
+/// **run933 whole, both directions** (item 3228, `docs/GOLDEN.md` §130).
+#[test]
+fn chapter_ninety_nine_s_window_is_widened_whole() {
+    cases_80_89::chapter_ninety_nine_s_window_is_widened_whole();
+}
+
+/// Chapter ninety-nine holds to its golden word (item 3228, run933).
+#[test]
+fn chapter_ninety_nine_holds_to_the_golden_word() {
+    cases_80_89::chapter_ninety_nine_holds_to_the_golden_word();
+}
+
+/// What parts in run933's window, blocks 605–1500: the eleven standing `form` rows
+/// alone (item 3233: the word was 845 and the cascade after it is gone — the Tank wreck
+/// `1/6` is a hard collider in the scan; the kept disc took `0/11`'s 808 path rows).
+const WANT_CH99: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
 /// What parts in run920's window, blocks 605–1200: the word, closed at 1200 by
 /// item 3175 (the dead Tank's disc stands; it took `0/12`'s path rows from 1175 away),
 /// 1174 (1118

@@ -18035,3 +18035,11 @@ SHA-256 `3c2a606dbfff9b6f048ed2539e036a49782fdd33247feb0ca6e639c1a139f42c`.
 theirs' Senate (438, val 80000) where ours lists 171. Block 6983 holds the Senate's site `1/2023` at full
 `construct_hits`, and block 7025 holds its completion. With both Iroquois Senate arms the window has 41 keys, all of
 them standing rows. The window is in the coverage driver's slice.
+## run933 — chapter ninety-nine: a Tank blown up by Sabotage keeps its disc (2026-10-18, item 3228, `att-3228`)
+
+`docs/GOLDEN.md` §130. **What the disk could not answer**: no dump held a unit pathing round a `blocks_while_dead` Tank wreck after a non-combat death (Sabotage, `dtype` 3). Recipe `tools/gamelog/golden/chapter99.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch99/map-14/`, 1,501 frames, seed 12345. No minutes waited on another lane.
+**What it holds**: `golden::chapter_ninety_nine_holds_to_the_golden_word` (845) and `chapter_ninety_nine_s_window_is_widened_whole` (52 rows to 849); its window 845..849 is in the coverage driver's slice.
+
+## run935 — not taken (item 3233)
+
+Reserved for chapter 99's retake; the capture on disk (run933) answered the word, so no run was made.

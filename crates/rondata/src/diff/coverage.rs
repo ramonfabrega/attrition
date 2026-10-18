@@ -688,6 +688,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch96 = golden_dump("ch96");
     let ch97 = golden_dump("ch97");
     let ch98 = golden_dump("ch98");
+    let ch99 = golden_dump("ch99");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2668,6 +2669,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter ninety-eight carries five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter ninety-nine, on run933** (item 3228): a Tank blown up by
+    // Sabotage; the window takes the late hoplites' crossing of its cell.
+    if let Some(p) = &ch99 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINETY_NINE;
+        let n = drive_capture(p, 845, 849, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter ninety-nine carries five blocks in the window"
         );
         frames += n;
     }

@@ -50,10 +50,16 @@ mod unit_add_build_order;
 mod unit_add_garrison_order;
 #[path = "unit_add_patrol_order.rs"]
 mod unit_add_patrol_order;
+#[path = "unit_add_repair_order.rs"]
+mod unit_add_repair_order;
 #[path = "unit_add_spec_anim_order.rs"]
 mod unit_add_spec_anim_order;
+#[path = "unit_add_trade_order.rs"]
+mod unit_add_trade_order;
 #[path = "unit_air_alt_speed.rs"]
 mod unit_air_alt_speed;
+#[path = "unit_build_done.rs"]
+mod unit_build_done;
 #[path = "unit_cavarch_fight.rs"]
 mod unit_cavarch_fight;
 #[path = "unit_cavarch_fight_written.rs"]
@@ -178,12 +184,20 @@ mod unit_do_gather;
 mod unit_do_group_attack_to;
 #[path = "unit_do_idle.rs"]
 mod unit_do_idle;
+#[path = "unit_do_patrol.rs"]
+mod unit_do_patrol;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
 #[path = "unit_execute_events.rs"]
 mod unit_execute_events;
+#[path = "unit_find_garrison_build.rs"]
+mod unit_find_garrison_build;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
+#[path = "unit_find_new_bomber_target.rs"]
+mod unit_find_new_bomber_target;
+#[path = "unit_find_repair_spot.rs"]
+mod unit_find_repair_spot;
 #[path = "unit_get_speed.rs"]
 mod unit_get_speed;
 #[path = "unit_go_to_city.rs"]
@@ -226,6 +240,8 @@ mod unit_out_issue_unqueue;
 mod unit_replace_form_id;
 #[path = "unit_resolve_block.rs"]
 mod unit_resolve_block;
+#[path = "unit_same_damage.rs"]
+mod unit_same_damage;
 #[path = "unit_set_ai_control.rs"]
 mod unit_set_ai_control;
 #[path = "unit_set_angle.rs"]
@@ -364,6 +380,8 @@ mod valid_filter_case9;
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
 mod vector_dist_ints;
+#[path = "wall_check_ever_seen.rs"]
+mod wall_check_ever_seen;
 #[path = "wall_data_armor.rs"]
 mod wall_data_armor;
 #[path = "wall_data_can_capture.rs"]

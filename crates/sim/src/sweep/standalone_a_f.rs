@@ -60,6 +60,8 @@ mod armies_emergency;
 mod armies_find_army;
 #[path = "armies_find_city.rs"]
 mod armies_find_city;
+#[path = "armies_find_local_army.rs"]
+mod armies_find_local_army;
 #[path = "armies_find_useful_army.rs"]
 mod armies_find_useful_army;
 #[path = "armies_leader_defeated.rs"]
@@ -354,6 +356,8 @@ mod caravans_new_danger;
 mod cast_order_walk_data;
 #[path = "cast_order_walk_data_vtordisp.rs"]
 mod cast_order_walk_data_vtordisp;
+#[path = "caster_process_spells.rs"]
+mod caster_process_spells;
 #[path = "caster_walk_data.rs"]
 mod caster_walk_data;
 #[path = "categories_find_data.rs"]
@@ -368,6 +372,8 @@ mod circle_render_on_field_change;
 mod city_calc_gather;
 #[path = "city_could_queue.rs"]
 mod city_could_queue;
+#[path = "city_count_gather_slots.rs"]
+mod city_count_gather_slots;
 #[path = "city_data_count_farms.rs"]
 mod city_data_count_farms;
 #[path = "city_data_depop_can_queue.rs"]
