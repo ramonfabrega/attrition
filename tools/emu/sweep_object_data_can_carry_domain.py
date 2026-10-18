@@ -37,7 +37,7 @@ STUBS = [('slot', 24, 0), ('slot', 184, 2), ('slot', 96, 2)]
 PLACES = [('m', '0x18', '0', 16), (None, '0xc0aec0+0x1c*0', '0', 8), ('p1', '0', '0', 32), ('p1', '4', '0', 32), (None, '0xc0aec0+0x1c*1', '0', 8), ('p4', '0', '0', 32), ('p4', '4', '0', 32), ('p2', '0x18', '0', 736), ('p3', '0x18', '0', 736), ('p5', '0x18', '0', 736), ('p6', '0x18', '0', 736)]
 NULLS = []
 NULLFORCE = {}
-WBIAS = [('m', 8, ('set', [0, 256, 65536, 65792]))]
+WBIAS = [('m', 8, ('set', [0, 256, 65536, 65792])), ('p7', 724, ('set', [0, 0, 5])), ('p8', 724, ('set', [0, 0, 5])), ('p9', 724, ('set', [0, 0, 5])), ('p10', 724, ('set', [0, 0, 5]))]
 FILLS = []
 ARGRANGE = [(0, 0, 3)]
 SLOTBASE = [(184, 6633360)]
@@ -689,4 +689,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "ObjectData::can_carry@00646c40", "--name", "object_data_can_carry_domain", "--item", "3104", "--win", "32", "--own", "1", "--argrange", "0:0:3", "--stub", "slot:0x18:0", "--stub", "slot:0xb8:2", "--stub", "slot:0x60:2", "--place", "m+0x18:0:16", "--place", "0xc0aec0+0x1c*0:0:8", "--place", "p1+0:0:32", "--place", "p1+4:0:32", "--place", "0xc0aec0+0x1c*1:0:8", "--place", "p4+0:0:32", "--place", "p4+4:0:32", "--place", "p2+0x18:0:0x2e0", "--place", "p3+0x18:0:0x2e0", "--place", "p5+0x18:0:0x2e0", "--place", "p6+0x18:0:0x2e0", "--slotbase", "0xb8:0x653790", "--vtat-also", "p0+0", "--wbias", "m+8:0x0,0x100,0x10000,0x10100", "--answers", "0:0,1", "--answers", "1:0,1", "--answers", "2:0,1", "--seq", "1:3", "--seq", "2:3", "--record", "0", "--record", "1", "--record", "2", "--record-order", "--port", "todo!()"]
+# sweep_gen: ["obj", "ObjectData::can_carry@00646c40", "--name", "object_data_can_carry_domain", "--item", "3104", "--win", "32", "--own", "1", "--argrange", "0:0:3", "--stub", "slot:0x18:0", "--stub", "slot:0xb8:2", "--stub", "slot:0x60:2", "--place", "m+0x18:0:16", "--place", "0xc0aec0+0x1c*0:0:8", "--place", "p1+0:0:32", "--place", "p1+4:0:32", "--place", "0xc0aec0+0x1c*1:0:8", "--place", "p4+0:0:32", "--place", "p4+4:0:32", "--place", "p2+0x18:0:0x2e0", "--place", "p3+0x18:0:0x2e0", "--place", "p5+0x18:0:0x2e0", "--place", "p6+0x18:0:0x2e0", "--slotbase", "0xb8:0x653790", "--vtat-also", "p0+0", "--wbias", "m+8:0x0,0x100,0x10000,0x10100", "--answers", "0:0,1", "--answers", "1:0,1", "--answers", "2:0,1", "--seq", "1:3", "--seq", "2:3", "--record", "0", "--record", "1", "--record", "2", "--record-order", "--wbias", "p7+0x2d4:0,0,5", "--wbias", "p8+0x2d4:0,0,5", "--wbias", "p9+0x2d4:0,0,5", "--wbias", "p10+0x2d4:0,0,5"]
