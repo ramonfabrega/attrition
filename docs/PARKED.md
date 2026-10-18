@@ -7843,13 +7843,9 @@ words and edits nothing here; a refill lands when two remain.
 - **A building shooter's near-face gate** (`Ammo::init`'s `+0x10c`/`+0x110` pair is read on the shooter's *type*): this crate asks only `Obj::Unit` for the Tank flag; a building shooter reads the type vslots too, unverified.
 - **Attrition's `Unit::suffer_attrition` has no `in_danger`/`frame_attacked` stamps** (the `attrition` flag skips them in `take_damage`, so the omission is right); the other `take_damage` consequences of dtype 1 beyond `die` (score, messages) are unread.
 
-## Parked by the next landing, slot JJ — reserved
+## Parked by item 3253, 2026-10-18 — chapter one hundred and one, an idle squad beside a Tank wreck
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3253) **The wreck on the chain (3235), still unread**: run942 closes at 1500 with two idle hoplite squads beside a Sabotaged Tank's wreck, so the idle stance does not show whether the original's search sees it (GOLDEN §136). A staging with an armed unit that must search — a shooter on an aggressive stance with the wreck as its only object in range, or a unit that takes damage there so `alarm` runs — would; names no score until a frame shows it.
 
 ## Parked by the next landing, slot JK — reserved
 
