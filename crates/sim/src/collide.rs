@@ -2032,7 +2032,7 @@ impl Sim {
     ///
     /// `exempt` is `FILTER_NOT_ME`'s `not_o`, which the `(-1, -1)` form
     /// has none of and a squad placement (`docs/ARMY.md` §4.3) does.
-    pub(crate) fn find_unit_with_radius(
+    pub fn find_unit_with_radius(
         &self,
         r_coll: i32,
         at: Pos,
