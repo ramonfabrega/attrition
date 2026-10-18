@@ -222,6 +222,9 @@ pub struct Modifiers {
     /// `(100 - x) * cost / 100` before [`Modifiers::discount`] and the
     /// Spy/General arm that follows it in the original's tail.
     pub russian_spy: i32,
+    /// The Romans' Legion percentage (`get_cost:306`–`311`), its own
+    /// truncating step right after the Russian spy's.
+    pub roman_legion: i32,
     /// Percentage off the scaled base, before the ramp.
     pub discount: i32,
     /// Horses' and then Rubber's percentage off a Stable or Auto Plant
@@ -494,6 +497,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     let mut cost = scaled;
     if m.russian_spy != 0 {
         cost = (100 - m.russian_spy) * cost / 100;
+    }
+    if m.roman_legion != 0 {
+        cost = (100 - m.roman_legion) * cost / 100;
     }
     cost = cost * (100 - m.discount) / 100;
     for pct in m.stable_rares {
@@ -1302,6 +1308,27 @@ mod tests {
             price(T.russian_spy_cost, 50),
             (100 - 50) * ((100 - 50) * plain / 100) / 100
         );
+    }
+
+    /// `get_cost:306`: a Roman Legion loses `ROMAN_LEGION_CHEAP` percent in
+    /// its own truncating step.
+    #[test]
+    fn a_roman_legion_costs_a_tenth_less() {
+        let legion = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Food, 5)
+        };
+        let price = |roman_legion: i32| {
+            let m = Modifiers {
+                roman_legion,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &legion, Resource::Food, owned(0), &m)
+        };
+        let plain = price(0);
+        assert!(plain > 0);
+        assert_eq!(price(T.roman_legion_cheap), (100 - 10) * plain / 100);
+        assert!(price(T.roman_legion_cheap) < plain);
     }
 
     #[test]
