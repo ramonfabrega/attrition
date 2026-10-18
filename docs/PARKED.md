@@ -7498,7 +7498,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3126, 2026-10-18 — chapter ninety-five, a Tank's target pick
 
-(3126a) **A computer Tank picks the Commando, ours a Hoplite** (run920, 624, `1/7 order:target`; `1/6` at 635): chapter 95's word, 629. Frame and delta are the booking; the `ai` arm of
+(3141) **A computer Tank picks the Commando, ours a Hoplite** (run920, 624, `1/7 order:target`; `1/6` at 635): chapter 95's word, 629. Frame and delta are the booking; the `ai` arm of
 `compare_target` (`v / dmg`) and the candidate rings of `find_nearby_target` are the item before's hypothesis (GOLDEN §121). Next: `RON_DEBUG_UNIT=1/7@622-626` both sides and a
 packet at 623 if the ranking reads a value no dump prints.
 
@@ -7538,6 +7538,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot HZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot IC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot IC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ID — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ID renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
