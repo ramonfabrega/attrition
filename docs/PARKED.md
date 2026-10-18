@@ -7559,11 +7559,11 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3187, 2026-10-18 — find_repair_spot and the tiers' arms
 
-- **The human arms of `find_repair_spot` are not wired.** `Unit::find_repair_spot` is built
+- (3192) **The human arms of `find_repair_spot` are not wired.** `Unit::find_repair_spot` is built
   (`orders.rs`) for both leaders, but only the AI's three callers call it (`build_done`, `do_repair`'s
   finished-building arm, `think_peasant`'s tail); the human callers (`docs/ORDERS.md` §5.5, §5.6, §5.9, stance
   1/2) stay a SEAM — no score names them.
-- **`swarm_around`'s computer `REPAIR` approach is still `EXPLORE_TO`** (its SEAM); `find_repair_spot` queues
+- (3193) **`swarm_around`'s computer `REPAIR` approach is still `EXPLORE_TO`** (its SEAM); `find_repair_spot` queues
   `MOVE_TO` through `swarm_around_last`, as the original does. `do_repair`'s own re-swarm (not adjacent) is the
   `swarm_around` path and still carries the seam.
 - **No battery lobby reaches the arm before its parting** (all eight at their pins, median 4770). Whether a
