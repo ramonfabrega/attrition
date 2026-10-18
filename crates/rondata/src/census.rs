@@ -151,12 +151,14 @@
 /// (`CommandPackage::process_rename_city`, `Tribes::find`, `Object::poor_target`, `Wall::swap_team` and four more).
 /// item 3044: 1407 -> 1418 on the merged tree, the sweep's hundred-and-thirty-ninth batch, eleven unit and border bodies
 /// (`Armies::process_all`, `Borders::process_all`, `Unit::update_z` and eight more).
+/// item 3064: 1418 -> 1429 on the merged tree, the sweep's hundred-and-fortieth batch, eleven order-adders, clocks and records
+/// (`Unit::add_board_order`, `TurnControl::check_new_frame_solo`, `World::set_edge_flags` and eight more).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1418;
+pub const SIMULATION_BACKED: usize = 1429;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

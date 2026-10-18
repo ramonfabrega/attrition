@@ -3746,7 +3746,8 @@ made to fail first on this log. One reach.
 
 (3062) **`sweep_gen.py`'s help omits two working spellings** (3044's "for the Loop" line, parked 3061, filed at its merge):
 `--outarg IDX:K` repeated for one stub, and a `--place` at a stub's answer (`sN`) with its own `--wbias` window for a
-callee-returned record's field. Candidate: both in the help with an example each. One reach.
+callee-returned record's field; and (parked 3071) `--cell-this` replaces `--cell-win`, `--argrange` bounds are inclusive,
+and an `iat:` stub records a stale `ecx`. Candidate: all five in the help with an example each. One reach.
 
 (3057) **`sweep_gen.py --answers IDX:V,..` draws a wild word a tenth of the rows** (3030's parked 3053, filed at its
 merge): a stub whose answer indexes an array faults there, where `--answer-range` does not; and a `slot:` stub with the
@@ -3757,7 +3758,7 @@ wrong argument count faults at 0x1000 from a return address of 0. Candidate: `--
 merge): `sweep_gen.py --cell-win` on a muted-error call site's flag byte writes a pointer whose low byte is the flag, so a
 sweep passes until a draw puts a zero there; and `mutate.py --batch` reads `\n` literally, so a two-line break is refused
 (parked 3035 the same). Candidate: `--cell-win` refuses an address a `cmp byte ptr [VA], 0` names, and a batch row decodes
-`\n`, each a test made to fail first. One reach.
+`\n`, each a test made to fail first (parked 3072 dropped a break for the second). One reach.
 
 (3043) **`sweep_gen.py --ecx-int` without `--tame` draws wild ecx** (3024's "for the Loop" line and parked 3039, filed at
 its merge): a `--sparse` table indexed by `ecx` matched no row for 10 % of the first generation. Candidate: the generator
@@ -7199,7 +7200,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3064, 2026-10-17 — the fifth harvest batch: eleven order-adders, clocks and records
 
-(3064) **Starved draws accepted, said plainly.** `TurnControl::check_new_frame_solo`: the three boundary
+(3069) **Starved draws accepted, said plainly.** `TurnControl::check_new_frame_solo`: the three boundary
 equalities (`now < due_at`, `now > bound`, the `0x7d0` margin) survive an off-by-one break — the draw
 (clock and time-sync words in -30..60, bases and counters small) reaches `now == due_at` and
 `now == bound` on no row; the strict-versus-equal compare is not covered. `Terrain::object_placed`: the
@@ -7211,7 +7212,7 @@ answers non-zero) is not reached — the `ignore_always` byte is drawn always se
 `ObjectsArray::get_data_type`; the arm needs the `String` constructors and `Error::key`'s argument
 count stubbed, and a `--wbias` that leaves the byte zero a third of the rows.
 
-(3064, second) **Shapes that held, for the next lane.** The order-adders (`Unit::add_*_order`) are one
+(3070) **Shapes that held, for the next lane.** The order-adders (`Unit::add_*_order`) are one
 shape: a pool object from `OrdersMemManager::get_obj` (`--stub 0x730ac0:1`), a vtable slot of that object
 stubbed with `--vtat pN+0` on the `--answer-win` window, the order record laid as `--place sK`, its inner
 pointer `--place pK+4` with `--wbias +4:0..0x30`, and the objects table through `c0+0x14` / `c0+0x30`
@@ -7220,15 +7221,15 @@ and faulted at `0x5e4cbd`). `Unit::add_patrol_order` (2577 bytes, `port`), `add_
 `add_trade_order`, `add_repair_order` and `add_build_order` are the same family and larger; the family's
 `add_*` pairs with the unit's order list, so one batch can take them with this recipe.
 
-(3064, third) `sweep_gen.py`'s help does not say that a `--cell-this VA` replaces the
+(3071) `sweep_gen.py`'s help does not say that a `--cell-this VA` replaces the
 `--cell-win VA` (naming both is refused: "names a cell --cell-win gives a record of its own"), that
 `--argrange` bounds are inclusive, or that an `iat:0xADDR:N` stub (`timeGetTime`, 0 args) records
 `ecx` as the *stale* register — `m+0x0` for the first call, the previous clock for the second
-(`TurnControl::check_new_frame_playback`'s `m+0x0/<now>` token). Worth a line (Loop).
+(`TurnControl::check_new_frame_playback`'s `m+0x0/<now>` token). Worth a line (Loop 3062).
 
-(3064, fourth) `mutate.py --batch`'s file refused a row whose OLD held a newline ("2 field(s) split
+(3072) `mutate.py --batch`'s file refused a row whose OLD held a newline ("2 field(s) split
 on '\t'"); the break was dropped. Known (parked 3046); the tab-separated rows cannot carry a multi-line
-OLD, and the batch has no escape for it.
+OLD, and the batch has no escape for it (Loop 3048).
 
 ## Parked by the next landing, slot HG — reserved
 
