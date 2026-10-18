@@ -448,7 +448,38 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         "gov_hero_frame".to_string(),
         built.sim.tech[who].gov_hero_frame,
     ));
+    // **The rare masks and their count** (item 3255, `docs/AI.md` §257):
+    // `rare` (`+0x6d98`), `rare_owned` (`+0x6dac`) and `rare_conquest`
+    // (`+0x6dc0`, Conquer-the-World's, empty here), the three
+    // `BitMask<44>`s `LeaderData::log_data@006e5110` prints after the goods
+    // block, and `rares_collected`, the `int[44]` the same walk fills.
+    out.push(("rare".to_string(), mask_text(l.rare)));
+    out.push(("rare_owned".to_string(), mask_text(h.rare_owned)));
+    out.push(("rare_conquest".to_string(), mask_text(0)));
+    for i in 0..sim::economy::RARES {
+        let v = h.rares_collected.get(i).copied().unwrap_or(0);
+        out.push((format!("rares_collected[{i}]"), i64::from(v)));
+    }
     out
+}
+
+/// A `BitMask<44>` as `BitMask::log_data` prints it — each of its six
+/// bytes in `%u`, no separator — read back as a number behind a leading
+/// `1`, so a leading zero byte still counts. The text is not uniquely
+/// decodable (`[0, 81, …]` and `[0, 8, 1, …]` print alike, `diff::build`'s
+/// run80 note), so the two sides are compared in the printed form rather
+/// than decoded.
+fn mask_text(m: u64) -> i64 {
+    let mut text = String::from("1");
+    for b in m.to_le_bytes().iter().take(6) {
+        text.push_str(&b.to_string());
+    }
+    text.parse().unwrap_or(i64::MIN)
+}
+
+/// The dump's side of [`mask_text`]: the printed bytes behind the same `1`.
+fn mask_theirs(text: &str) -> i64 {
+    format!("1{}", text.trim()).parse().unwrap_or(i64::MIN)
 }
 
 /// The census's per-region arrays (`docs/AI.md` §2.3 step 8), by width:
@@ -773,6 +804,29 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
                 out.insert(format!("SITE[{i}].{k}"), x);
             }
         }
+    }
+    // The three 44-bit masks are the first three `bits 44` triples the
+    // record prints (`rare`, `rare_owned`, `rare_conquest`, in
+    // `log_data`'s order); the 806-, 17- and 24-bit masks after them are
+    // the tech and conquest masks, read here and not compared. `bits` and
+    // `bit_values` pair one to one; `size` is not paired, since the record
+    // prints other `size` lines, and stays unread.
+    let (bits, values) = (block.all("bits"), block.all("bit_values"));
+    let rare44: Vec<_> = bits
+        .iter()
+        .zip(values.iter())
+        .filter(|(b, _)| b.trim() == "44")
+        .map(|(_, v)| mask_theirs(v))
+        .collect();
+    for (k, v) in ["rare", "rare_owned", "rare_conquest"].iter().zip(rare44) {
+        out.insert((*k).to_string(), v);
+    }
+    for (i, x) in all("rares_collected[scan]")
+        .iter()
+        .enumerate()
+        .take(sim::economy::RARES)
+    {
+        out.insert(format!("rares_collected[{i}]"), *x);
     }
     out
 }

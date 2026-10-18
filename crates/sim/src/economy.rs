@@ -536,6 +536,13 @@ pub struct Holdings {
     /// on every recompute, which is why a rare with nobody on it pays
     /// nothing and grants nothing.
     pub rare_owned: u64,
+    /// `LeaderData::rares_collected` (`+0x6d8`, `int[44]`): how many of
+    /// this player's gatherers stood on each rare when step 6 last ran,
+    /// indexed by the good less `BASE_RARE`. `Leader::calc_gather@006ceee0`
+    /// clears it beside `rare_owned` and `UnitData::calc_gather@00609180`
+    /// adds one per gatherer beside the mask's bit, so it is the mask's
+    /// count. Empty until the first recompute (`docs/AI.md` §257).
+    pub rares_collected: Vec<i32>,
 }
 
 impl Holdings {
