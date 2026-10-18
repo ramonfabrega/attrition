@@ -602,6 +602,8 @@ mod object_data_num_aircraft_limit;
 mod object_data_say_name;
 #[path = "object_data_support.rs"]
 mod object_data_support;
+#[path = "object_data_valid_target_const.rs"]
+mod object_data_valid_target_const;
 #[path = "object_execute_events.rs"]
 mod object_execute_events;
 #[path = "object_get_army.rs"]
