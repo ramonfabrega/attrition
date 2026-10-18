@@ -188,6 +188,8 @@ mod graphicwinxml_get_graphicwinxml;
 mod greatest_common_factor;
 #[path = "group_action_begin.rs"]
 mod group_action_begin;
+#[path = "group_action_buildmask.rs"]
+mod group_action_buildmask;
 #[path = "group_action_hotkey.rs"]
 mod group_action_hotkey;
 #[path = "group_attack_order_vector_deleting_destructor_vtordisp.rs"]
