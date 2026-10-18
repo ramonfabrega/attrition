@@ -7560,13 +7560,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot II — reserved
+## Parked by item 3187, 2026-10-18 — find_repair_spot and the tiers' arms
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot II renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The human arms of `find_repair_spot` are not wired.** `Unit::find_repair_spot` is built
+  (`orders.rs`) for both leaders, but only the AI's three callers call it (`build_done`, `do_repair`'s
+  finished-building arm, `think_peasant`'s tail); the human callers (`docs/ORDERS.md` §5.5, §5.6, §5.9, stance
+  1/2) stay a SEAM — no score names them.
+- **`swarm_around`'s computer `REPAIR` approach is still `EXPLORE_TO`** (its SEAM); `find_repair_spot` queues
+  `MOVE_TO` through `swarm_around_last`, as the original does. `do_repair`'s own re-swarm (not adjacent) is the
+  `swarm_around` path and still carries the seam.
+- **No battery lobby reaches the arm before its parting** (all eight at their pins, median 4770). Whether a
+  long capture at difficulty 5 reaches it is the booking gate's: see the journal.
 
 ## Parked by the next landing, slot IJ — reserved
 

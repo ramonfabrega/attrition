@@ -522,7 +522,7 @@ lobbies at 1–4 (tier 1 Chinese, 2 Russians, 3 Germans, 4 Egyptians).
 | `Object::find_nearby_target@00648da0` | the AI flag at 0 | carried at fight.rs | `00648da0` |
 | `Object::take_damage@00652020` | the `frame_attacked` stamp below 2; the `> 1` peasant arms | carried at fight.rs | `00652020` |
 | `Object::do_launch@0064f3b0` | a launch against the leader winning the wonder race, above 2 | carried at airbase.rs | `0064f3b0` |
-| `Unit::do_gather@005ef2a0` | the AI repair arm above 1 | not modelled | `find_repair_spot@00604320` |
+| `Unit::do_gather@005ef2a0` | the AI repair arm above 1 | modelled at orders.rs | `find_repair_spot@00604320` |
 | `Build::process@0061edf0` | the AI repair-order arm above 1, building below half hits | carried at city.rs | `0061edf0` |
 | `ConquestGame::*` (`demand_tribute`, `attacked_player`, `plan_strategy@0079ea80`, `setup_*`) | Conquer the World's own difficulty | not sim | `cut from v1` |
 | `SetupWin::*`, `Options`, `do_save`, `do_load`, `get_difficulty@009e5320` | the lobby's combo and the save format | not sim | `interface and save format` |
@@ -673,6 +673,11 @@ a pass books against a word, not a fix for the lobby that exposed it.
    `Build::process`'s AI repair arms (H12), `get_econ_mod` (no caller
    in the export, so it is dead there too). Tier 1–4 parts have not been
    read; candidates wait for a tier word.
+   **Built, item 3187: `Unit::find_repair_spot@00604320`** (`orders.rs`), the AI repair arm of
+   `do_gather`/`think_peasant`/`build_done`/`do_repair`: a computer below difficulty 2 answers 0; from 2 up it
+   swarms the nearest damaged, active, not-under-attack friendly building in range (`MOVE_TO` approach, repair
+   order). Reached by tiers 2–4. Test `find_repair_spot_is_a_tier_arm_and_takes_the_nearest_damaged_building`.
+   **Battery unmoved** (all eight at their pins, median 4770). Not diff-backed by a battery dump.
 
 ## 8. What is not established
 
