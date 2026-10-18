@@ -22,9 +22,9 @@ budget (DECISIONS 78 amended), the AI word's on Opus 5.5 medium and three on Son
   1224 → 1448 (3078, 3104). Battery eight lobbies, median 1008 → 2207 (3092, the Chinese citizens: 176 → 5663) → 2270
   (3107: the Iroquois' 0 out, the Dutch's 1567 in); 3096's wonders and 3108's Russian oil and spy moved nothing.
 - **Lanes: four live** — 3117 the AI word's (run 918), 3099 the rules track's (run 916), 3112 shape, 3113 nations (§7.4).
-  Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108, 3107. Next 3118, run 919 (Astra 900–909). Pools: GOLDEN §120–124,
+  Landings: 3092, 3067, 3078, 3086, 3096, 3104, 3108, 3107. Next 3119, run 919 (Astra 900–909). Pools: GOLDEN §120–124,
   AI §248–251, park HR–HU.
-- **Fable backlog: 28 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111, 3116).
+- **Fable backlog: 29 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095, 3102, 3103, 3111, 3116, 3118).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

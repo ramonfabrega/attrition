@@ -3742,6 +3742,17 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
+(3118) **The captures are not silent** (Ramon, 2026-10-17, during the forty-first tranche, for the steer): sound is
+heard while captures run, though the click-free lane was meant to be muted (parked 343, DECISIONS 40's list). What the
+tree does: `unattended_capture.py`'s `mute()` zeroes `MUSIC_VOL`, `SOUND_VOL` and `TAUNT_VOL` in the lane profile's
+`Player.dat` beside `set_map`, under the staged backup and restore; the queue lane (`runqueue.sh`, `longtrace.sh`,
+`startcapture.sh`) and the packet (`frame_snapshot.py`) call no mute. This tranche's captures (run914–918) ran on the
+click-free pool lanes, `golden_capture.sh` included, so either the profile write does not reach what the game reads
+(the intro and the menu play before a profile loads; a volume of 0 may be read as unset), or the sound came from a path
+that does not mute. Not measured. Candidate: a Wine-side mute every launch shares (`winelaunch.sh`: the prefix's audio
+driver off, or the process's output muted) rather than a per-path profile write, and a test that a launch's environment
+carries it. Ramon's to discuss at the steer.
+
 (3116) **A probe commit that also holds a build cannot be reverted whole** (3107's "for the Loop" line, filed at its
 merge): the first probe commit carried the Iroquois hits build with it, against the brief's row 1727 (one guard, one
 commit, reverted whole); it was kept as a test instead. Candidate: a `probe.py --env X` that refuses a commit touching
