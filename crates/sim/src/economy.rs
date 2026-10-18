@@ -491,6 +491,9 @@ pub struct Holdings {
     pub russians: bool,
     pub french: bool,
     pub inca: bool,
+    /// `has_tribe_bonus(0x12)`: the Iroquois, whose timber sites pay
+    /// `IROQUOIS_FOOD` food a gatherer too ([`iroquois_food`]).
+    pub iroquois: bool,
     /// Percentage adjustment to income from the difficulty setting.
     ///
     /// **AI leaders only.** A human earns 100% of their capped rate unless the
@@ -732,12 +735,18 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
         for r in Resource::ALL {
             out[r.index()] += c[r.index()];
         }
+        if h.iroquois {
+            out[Resource::Food.index()] += iroquois_food(t, Some(city), &city.sites);
+        }
         nation_city_gather(t, h, &mut out);
     }
     // Steps 4 and 5: the sites outside every city, at the bare rate.
     for site in &h.outside {
         let i = site.resource.index();
         out[i] += per_gatherer(t, site.resource, site.level) * site.gatherers;
+    }
+    if h.iroquois {
+        out[Resource::Food.index()] += iroquois_food(t, None, &h.outside);
     }
 
     // Step 6: every idle fisherman and merchant, and with them every rare
@@ -761,6 +770,39 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     out[Resource::Food.index()] += mongol_nomadic_food(t, h);
     resource_bonuses(t, h.wonders, h.russians, &mut out);
     out
+}
+
+/// **The Iroquois' food from the woods** — `BuildTypeData::calc_gather@00639e40`'s
+/// food pass (`0063b8d4`..`0063ba59`), in sixteenths. For resource 0, a
+/// building that does not gather food enters the arithmetic anyway when
+/// `IROQUOIS_FOOD != 0` and the owner holds `has_tribe_bonus(0x12)`; there,
+/// if the building gathers timber (`gathers(type, 1)`), the per-gatherer
+/// rate is `IROQUOIS_FOOD × 16` in place of `PEASANT_RATE`'s, times the
+/// gatherers it admits, scaled by the city's food enhancer
+/// (`local_120[0]`, the granary byte) as every food site is. Ships as 2:
+/// a woodcutter pays two food beside its ten timber.
+///
+/// run923's who=1 (`docs/AI.md` §250): one woodcutter, food `income` 672
+/// against 640 without it on block 8, the first recompute.
+///
+/// **Not carried**: the food slots the survey counts for the camp
+/// (`aiStack_108[0] += local_8c` under the same tribe test, `0063b5fe`'s
+/// walk) and the gatherer cap they put on the timber pass after it
+/// (`param_11 = min(param_11, slots, 2 × access)`). Each gatherer is taken
+/// as admitted, which is the timber pass's own count.
+pub fn iroquois_food(t: &Tuning, city: Option<&City>, sites: &[Site]) -> i32 {
+    if t.iroquois_food == 0 {
+        return 0;
+    }
+    let rate = t.iroquois_food * RATE_SCALE;
+    let rate = city.map_or(rate, |c| {
+        c.enhancer_amount(Resource::Food.index() as i32, rate)
+    });
+    sites
+        .iter()
+        .filter(|s| s.resource == Resource::Timber)
+        .map(|s| rate * s.gatherers)
+        .sum()
 }
 
 /// The nations' flat per-city terms, after `CITY_GATHER` and before taxes in
@@ -1254,6 +1296,35 @@ mod tests {
         assert_eq!(per_gatherer(&t, Resource::Oil, 1), 35 * RATE_SCALE);
         assert_eq!(per_gatherer(&t, Resource::Knowledge, 1), 5 * RATE_SCALE);
         assert_eq!(per_gatherer(&t, Resource::Knowledge, 6), 25 * RATE_SCALE);
+    }
+
+    /// **An Iroquois woodcutter pays two food** (item 3170, `docs/AI.md`
+    /// §250): run923's who=1, one woodcutter and three farmers, reads food
+    /// 672 on block 8 — the city's 160, three farms' 480, and the camp's
+    /// `IROQUOIS_FOOD × 16`.
+    #[test]
+    fn an_iroquois_timber_site_pays_food_too() {
+        let t = Tuning::RON;
+        let city = City {
+            sites: vec![
+                Site::new(Resource::Timber, 1),
+                Site::new(Resource::Food, 1),
+                Site::new(Resource::Food, 1),
+                Site::new(Resource::Food, 1),
+            ],
+            ..City::default()
+        };
+        let mut h = Holdings::new();
+        h.cities = vec![city];
+        let food = Resource::Food.index();
+        assert_eq!(assemble(&t, &h)[food], 640, "anyone else");
+        h.iroquois = true;
+        assert_eq!(assemble(&t, &h)[food], 672, "the Iroquois");
+        assert_eq!(
+            assemble(&t, &h)[Resource::Timber.index()],
+            320,
+            "and the timber is the same"
+        );
     }
 
     #[test]

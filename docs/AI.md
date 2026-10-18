@@ -22612,12 +22612,86 @@ parting lies in 2..36, which no dump holds (run897's block 36 is empty). The nex
 the 15 → 18 step and the commerce-category queue, not read off the leader's script name), and that the price is 54
 (`6f/6t` scaled, measured as theirs' spend rather than derived from `tech_price`).
 
-## 250. Reserved for the next item on the AI track
+## 250. The Iroquois food row: a woodcutter's two food, and a rare setup forgot it had counted — the word 1772 → 5144 (2026-10-18, item 3170)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: §249's word, 1772 of 12658 (`GreatLakesIroquoisTier3`), ours 3 draws against 4, index 0; the food row
+standing from block 38 (parked 3138, 3168) and parting somewhere in 2..36, which no dump held. Barter and the commerce cap
+were the consequence; the brief was to walk the food and `known_rares` rows to their first block and name the writer.
+
+**run923** (`docs/RUNS.md`): the lobby's blocks 1..40 dense at run918's detail, `rngcmp` 47 of 47 against run897b.
+`run923_s_food_row_is_widened_whole` parts 41 keys; past the control's set (both leaders' `SITE[n].reg`, `aggression`,
+`form`, the groups' `held`, the pool) and the Scout's `blown` (parked 3114), **two rows part, both on block 8** — the
+first `Leader::calc_gather` recompute (`gather_stamp` 0 → 7 in theirs):
+
+| who=1, block 8 | ours | theirs |
+|---|---:|---:|
+| `income[0:food]`, `resources[0:food]` | 640 | 672 |
+| `leftover[0:food]` | 1760 | 1792 |
+| `known_rares` | 0 | 1 |
+| (`bucket[0:food]`, from block 27) | 3 | 4 |
+
+They are two writers.
+
+### 250.1 `known_rares`: a setup fix ours left pending into frame 0
+
+Theirs' `reg_known_rares[1]` (the land region; ours numbers it 0) is 1 from block 1: frame 0's census (§55.1) counts the
+Silk at (40320, 14208), owned by and seen by who=1. `calc_gather` sums it on block 8. Ours counts it too — the good is in
+`new_rares` from `seed_new_rares_from_fog`, seen, unowned by an enemy — and then **`Sim::check_borders` zeroes the array
+on frame 0** (§76.3), for a fix raised by `build_sim`'s stand-up `activate`s (`sync_territory` → `fix_borders`).
+
+The original's setup leaves nothing pending. `Setup::build_cities@005ab910` follows the starting city's
+`activate` with `World::compute_all_territory@006b5700`, and `Setup::build_game@005ac190` calls it twice more at its end
+(`:883`, `:1071`). It runs `compute_reg_territory(r, 1)` over every region with its index reset — the whole pass,
+unbudgeted — and sets `game_daemon->borders = 0`. So frame 0's `check_borders` finds no region with `borders < size`,
+zeroes nothing, and frame 0's count stands.
+
+**Built**: `Sim::fix_borders` raises `borders_fixed` only `in_play` — a fix before the first frame belongs to setup's
+pass, which `start_border_pass` already settles wholesale. `ai_census::tests::a_setup_fix_leaves_frame_0_s_rares_standing`;
+`a_border_fix_zeroes_the_rares_until_the_next_census` now stands its fixture in play, the case it was written for.
+
+### 250.2 The food: `IROQUOIS_FOOD`
+
+32 is two units of food in sixteenths, and who=1 has one woodcutter. `BuildTypeData::calc_gather@00639e40`'s food pass
+(`0063b8d4`..`0063ba59`): for resource 0 a building that does not gather food enters the arithmetic anyway when
+`IROQUOIS_FOOD != 0` and the owner holds `has_tribe_bonus(0x12)`; there, if it gathers timber, the per-gatherer rate is
+`IROQUOIS_FOOD × 16` (`*param_3 = iroquois_food * 0x10 + *param_3`, `*param_3` zero on resource 0) in place of
+`PEASANT_RATE >> 8 << 4`, times the gatherers admitted, scaled by the food enhancer. It ships as 2. `docs/NATIONS.md`
+listed it "not carried".
+
+**Built**: `economy::iroquois_food`, summed in `economy::assemble` over each city's timber sites (through the city's
+food enhancer) and over the sites outside cities; `Holdings::iroquois` from `has_tribe_bonus(IROQUOIS)`;
+`Tuning::iroquois_food` from `IROQUOIS_FOOD`. `economy::tests::an_iroquois_timber_site_pays_food_too`: 640 for anyone,
+672 for the Iroquois, timber 320 either way.
+
+### 250.3 What it moved
+
+- **The value diff on the word's frame**, run922's block 1771 (frame 1770): who=1's `1/6` takes the `GATHERORDER` on
+  the camp 1/2008 on both sides (`orders.len` 1 and 1, the camp's `gather_down` 6 and 6). Behind it, on run921, Barter
+  is queued on 1576 on both (`tech_frame` 1576, the Library's `queued` 1, `script_step` 18): ours now holds the 54 food.
+  run922 parts 408 → 32 keys, the control's set, the groups' `held`, the pools and the Scout's `blown`.
+- **The word 1772 → 5144**: ours 36 draws, theirs 37, index 0 — ours `Animal::think_bird+0x82`, theirs
+  `Unit::think_spellcaster+0x413`. Past run922's last block; its widening is owed.
+- The lobby's other windows: run918 37 → 33, run918b 43 → 38, run921 40 → 32, run923 41 → 36 — the food and
+  `known_rares` rows.
+- **Great Sahara's coverage lobby**, run677: leader 1's `known_rares` on block 8 (ours 0, theirs 1, `civilian_value`'s
+  input) closes — the same setup zero; 47 → 46, and nothing past block 6 parts there now. The second pair's run350
+  loses its one block-8 key (the first recompute's, by its block the same row). Every other lobby's `first_parting`
+  holds.
+
+### 250.4 What this has *not* established
+
+- **The Iroquois food slots** (parked 3178): the camp's food pass counts its own slots in the survey and carries
+  `min(gatherers, slots, 2 × access)` into the timber pass; ours admits every timber gatherer. No block of run923 has a
+  camp under its gatherers.
+- **The enhancer's order**: the original scales the product (`gatherers × rate`) by the enhancer byte, `>> 8`; ours
+  applies `enhancer_amount` to the per-gatherer rate, as every city site here does (`the_enhancer_truncates_per_gatherer_
+  not_per_city`). With no granary in any window that reaches an Iroquois woodcutter, the two cannot part yet.
+- **A mid-game stand-up**: `build_sim` from a dump at block N runs the same setup `activate`s, now marking nothing. A
+  pass the original had in flight at N is not reconstructed by either version (parked 568's transient).
+
+**Coverage.** *Diff-backed*: both block-8 rows and their closing (run923), the word's frame (run922), Barter's queue
+(run921), run677's `known_rares`. *Reading only*: that `compute_all_territory` is what leaves frame 0 clean (the dump shows
+frame 0's count standing, which is all the diff needs) and the slot cap of §250.4.
 
 ## 251. Reserved for the next item on the AI track
 

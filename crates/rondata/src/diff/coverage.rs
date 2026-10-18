@@ -3211,6 +3211,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::lakota_pair::lakota_frame_6808_window(),
         || super::lakota_pair::lakota_closing_window(),
         || super::iroquois_word::iroquois_start_window(),
+        || super::iroquois_word::iroquois_food_923_window(),
         || super::iroquois_word::iroquois_gap_918b_window(),
         || super::iroquois_word::iroquois_frame_1120_window(),
         || super::iroquois_word::iroquois_frame_1496_window(),

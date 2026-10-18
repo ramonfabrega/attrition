@@ -705,9 +705,14 @@ mod tests {
         );
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1, 31), (2, 2), (8, 1)],
+            [(1, 31), (2, 2)],
             "the blocks keys first part on, the first three"
         );
+        // Item 3170: block 8's one key — the first `calc_gather`
+        // recompute's — left with setup's border fixes no longer zeroing
+        // frame 0's census count of a rare (`docs/AI.md` §250; by its block
+        // the same `known_rares` row run677 and run923 lost, not printed
+        // here before the move).
     }
 
     /// **The second pair's East Indies word, 1576, widened whole** (item

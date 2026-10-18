@@ -17846,6 +17846,29 @@ the word moved 1120 → 1496. Both windows are in the coverage driver's slice.
 (chapter 94's with `--end-frame 850 --log-window 845 850`), `~/ron-golden/ch94w/map-14/`, pool lane 1, 164 s; its `rontrace.log` holds the `calc_cost` records. The packet (run916b,
 `~/ron-golden/ch94p/map-14/`, `--tracer-def RON_STATE_FRAME=846`) is `frame-snapshot.bin`, 836,926,300 bytes, logger frame 846. No minutes waited on another lane.
 
+## run923 — the battery word: Great Lakes, Iroquois at difficulty 3, the food row's blocks 1..40 dense (2026-10-18, item 3170, `att-3170`)
+
+`docs/AI.md` §250. **What the disk could not answer**: run897 holds the lobby's blocks 1, 36 (empty) and 37, and run918b
+starts at 38 at a stride of 4, so no dump held a record in 2..35, where who=1's food and `known_rares` rows part (parked
+3138, 3168). run918's detail through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run923`: `--map 14
+--end-frame 46 --timeout 1800 --log-window 1 41 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 18 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1, 03:46:23–03:48:29 (127 s), `success`, `settings_restored`, 47 frames, `map_style 14`, seed 12345, players
+  `(0,4,7),(1,18,1)`; 41 `BEGIN FRAME`s (1..40 and the closing 47). `rngcmp.py rontrace-run897b.log rontrace-run923.log`:
+  **47 identical, 0 differing**. Filed `filerun.py run923 greatlakes-iroquois-diff3-window-1-41`.
+- Minutes waited on another lane: none (the lane was `free` at launch).
+
+Archive `gamelog-run923-greatlakes-iroquois-diff3-window-1-41.txt`, 63,383,916 bytes,
+SHA-256 `fbd3de3b6918e90e7821b24d9802c75f7f793df0466dac936260aa1508987a0f`.
+
+Archive `rontrace-run923.log`, 8,512,480 bytes,
+SHA-256 `3ea2e53c22e65ade3b704bda05f6618bf8176a712a45a59db1cfc2fdce5f86c9`.
+
+**What it holds**: `diff::iroquois_word::run923_s_food_row_is_widened_whole` (40 blocks). Both rows part on block 8, the
+first `calc_gather` recompute: food `income` 640/672 (`IROQUOIS_FOOD`) and `known_rares` 0/1 (a setup border fix
+left pending into frame 0). Both closed by item 3170; the word moved 1772 → 5144. The window is in the coverage
+driver's slice.
+
 ## run922 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 1772's widening (1620..2022) (2026-10-18, item 3156, `att-3156`)
 
 `docs/AI.md` §249. **What the disk could not answer**: run921 ends at block 1626 and run897b is `cover=0`, so no dump of

@@ -579,6 +579,10 @@ impl Sim {
         // Step 6, and the `rare_owned` it rebuilds ([`crate::rares`]).
         let (rares, rare_owned) = self.gather_rares(who);
         let lakota = self.nation[w].lakota && self.tuning.lakota_food != 0;
+        let iroquois = self.tech.get(w).is_some_and(|p| {
+            self.tech_tree
+                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
+        });
         let capitalism = self.holds_capitalism_bonus(who);
         let lakota_units = if lakota {
             self.lakota_food_units(who)
@@ -607,6 +611,7 @@ impl Sim {
         h.russians = self.nation[w].russians;
         h.french = self.nation[w].french;
         h.inca = self.nation[w].inca;
+        h.iroquois = iroquois;
     }
 
     /// `has_preq(CAPITALISM_1)` (`0x325`, `calc_gather`'s `006cf454`): the

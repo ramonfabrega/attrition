@@ -1014,6 +1014,10 @@ pub struct Tuning {
     /// Percent more on an Iroquois Barracks unit that is armed or a Scout
     /// (`Unit::update_hits@0060e930`'s `has_tribe_bonus(0x12)` arm).
     pub iroquois_extra_hits: i32,
+    /// Food a gatherer at an Iroquois timber site pays beside its timber,
+    /// in whole units (`BuildTypeData::calc_gather@00639e40`'s
+    /// `has_tribe_bonus(0x12)` food arm, [`crate::economy::iroquois_food`]).
+    pub iroquois_food: i32,
     /// Percent added to a Nubian merchant's rare on friendly ground
     /// (`LeaderData::calc_rare@006e08d0`'s `Constants +0x5bc`, `NUBIAN_RARE`).
     pub nubian_rare: i32,
@@ -1476,6 +1480,7 @@ impl Tuning {
         red_fort_fort_hps: 33,
         nubian_hit_points: 50,
         iroquois_extra_hits: 5,
+        iroquois_food: 2,
         nubian_rare: 50,
         tower_garrison_upgrade: 2,
         fort_garrison_upgrade: 5,
@@ -2263,6 +2268,7 @@ impl Tuning {
             ("RED_FORT_FORT_HPS", Slot::Value(T.red_fort_fort_hps)),
             ("NUBIAN_HIT_POINTS", Slot::Value(T.nubian_hit_points)),
             ("IROQUOIS_EXTRA_HITS", Slot::Value(T.iroquois_extra_hits)),
+            ("IROQUOIS_FOOD", Slot::Value(T.iroquois_food)),
             ("NUBIAN_RARE", Slot::Value(T.nubian_rare)),
             (
                 "TOWER_GARRISON_UPGRADE",
