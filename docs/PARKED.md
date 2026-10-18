@@ -7437,13 +7437,18 @@ Five shapes built (find_town_at, find_good_at@0065bec0, process_ejection, cavarc
 
 (3151; the lane's journal says 3143, a number Loop 3143 already held) **Chapter 95's word 634: `635 1/7 order:target`, ours `0/7`, theirs `0/6`** (run920). `1/7` already holds an in-range attack on the Commando `0/7` casting at it; the original re-targets it onto `0/6` (casting at `1/6`) on the frame `1/6` picks `0/6`, ours runs no search for `1/7` on 633–636. Hypothesis only: the captain's target handed down by the group (`Group::target_opportunity`, the mirror). Frame and delta are the booking: the draw delta on 634 first, `RON_DEBUG_UNIT=1/7@633-636` both sides, `RON_DEBUG_ARMIES`.
 
-## Parked by the next landing, slot HZ — reserved
+## Parked by item 3156, 2026-10-18 — the Iroquois word 1772 widened
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot HZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3161) **The Iroquois word 1772 is who=1's food row** (`docs/AI.md` §249, run922): the original's `1/6` takes the
+  camp 1/2008's gather on frame 1770 under a commerce cap of 1600, which Barter raised on 1757; ours' cap is 1120, the
+  timber income already at it, so ours' `find_gather_spot` scores nothing. Barter was queued on 1576 by `defensive.bhs`
+  step 15, and ours cannot pay its 54 food (bucket 46 against the original's 67). The food row is parked 3138's: `income`
+  640 against 672 by run897's block 37, while block 1 agrees, so it parts in 2..36, which no dump holds. **The next word's item
+  books a dense capture of 1..40 at run918's detail** (`LEADERS=9`, `UNITS=3`, `BUILDS=7`), walks the food and
+  `known_rares` rows to their first block, and names the writer. The frame stays 1772 (ours 3 draws, theirs 4, index 0).
+- (3162) **who=1's script is read as `defensive.bhs` from its steps, not from its name.** The 15 → 18 step on 1576 and the
+  commerce queue fit `defensive.bhs`'s steps 15–18 and not `economic.bhs`'s, but no row printed here names the script.
+  `RON_DEBUG_LEADER` could print `ai[w].script` beside `sstep`. That is a one-line probe, and it names no score.
 
 ## Parked by item 3152, 2026-10-18 — chapter 95's word 1118
 
