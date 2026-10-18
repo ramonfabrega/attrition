@@ -994,6 +994,60 @@ fn run940_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 61, "initial run940 baseline");
 }
 
+/// run943: the word 10695's window, blocks 10689..10945 at run940's detail
+/// (`LEADERS=9`, `GUYS=4`; item 3255) — six blocks before the word's own
+/// block 10696, 250 after; no earlier dump of this lobby holds 8666..12658.
+pub(crate) const RUN943: &str =
+    "gamelog-run943-greatlakes-iroquois-diff3-window-10689-10946-guys4.txt";
+
+/// The window: block 10689 through 10945.
+pub(crate) const WIDENING_IROQUOIS_FRAME_10695: (i64, i64) = (10689, 10945);
+
+pub(crate) fn iroquois_frame_10695_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run943",
+        &[(RUN943, WIDENING_IROQUOIS_FRAME_10695.0)],
+        WIDENING_IROQUOIS_FRAME_10695,
+        1,
+        &[10696],
+        true,
+    )
+}
+
+#[test]
+fn run943_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_10695_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3255, on base 37884575: 2032 keys, 47 of them the standing set
+    // on 10689 (the forms, the `SITE` regs, pools 64 and 66, `0/-1`'s
+    // `aggression[1]`, `1/23`'s and `1/24`'s second figures). **The state
+    // first parts on block 10692**: the Scout `0/0` is struck on frame
+    // 10691 in theirs (`damage_frame` 10691, `hits_left` 46 against ours'
+    // 50, its `FLEE_TO` to (1992, 32280) on the block) and on 10692 in
+    // ours — the Archers `1/32`'s arrow, fired on 10674 on both sides,
+    // flies 19 frames in ours and 18 in theirs, and every row after is
+    // that frame's lag (`docs/AI.md` §257).
+    pin_eq!(w.firsts.len(), 2032, "initial run943 baseline");
+}
+
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at
 /// run918's detail with `GUYS=4` (item 3202) — the Slinger squad's birth on
 /// 5563 and the figures' clocks on the word's block 5577, which run928's
