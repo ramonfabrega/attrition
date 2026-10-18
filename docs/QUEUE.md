@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-17, **the forty-first tranche (commander, Opus): 1 landing from `0efdf09d`** — four lanes under the 20-slot
+*2026-10-17, **the forty-first tranche (commander, Opus): 2 landings from `0efdf09d`** — four lanes under the 20-slot
 budget (DECISIONS 78 amended): 3086 Opus 5.5 medium, 3067, 3078 and the nations lane Sonnet 5.5 medium. Last whole gate
 `f696f69b`.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 → 6585 → 12815 (2974) → 12836 (2997), as 3086, on its lobby until it closes (DECISIONS 77 (vii)).
-  Chapters 86–93 closed; 94 is 3067. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), median 1008 → 2207 (3092,
+  Chapters 86–93 closed; 94 open at 1178 of 1200 (3067, Sabotage on Artillery, run914), as 3099. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), median 1008 → 2207 (3092,
   the Chinese citizens' arm: `GreatLakesChineseTier1` 176 → 5663), a gate floor.
-- **Lanes: four live** — 3086 the AI word's (run 915), 3067 the rules track's (run 914), 3078 shape, 3096 nations (§7.2).
-  Landings: 3092. Next 3097, run 916 (Astra 900–909). Pools: GOLDEN §119–124, AI §246–251, park HK–HL.
+- **Lanes: four live** — 3086 the AI word's (run 915), 3099 the rules track's (run 916), 3078 shape, 3096 nations (§7.2).
+  Landings: 3092, 3067. Next 3100, run 917 (Astra 900–909). Pools: GOLDEN §119–124, AI §246–251, park HK–HL.
 - **Fable backlog: 24 Loop items** (1570, 1725, 2003, 2983, 2987, 3002, 3003, 3007, 3012, 3013, 3023, 3043, 3048, 3057, 3062, 3077, 3085, 3088, 3089, 3090, 3091, 3093, 3094, 3095).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -34,7 +34,7 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: EastIndiesGermanTier3 w12836 of 13,519
 Census: simulation backed 1444 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed
+Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed · ch94 w1178 of 1,200
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the forty-first tranche (commander, Opus): spawn the queue's four items (3086, 3067, 3078, 3092) on four lanes
@@ -44,7 +44,7 @@ book, refill while landings plus live lanes are under twenty, stop at twenty, an
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3086 the AI word's (Opus); 3067, 3078 and 3096 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — East Indies (Germans), at 12836. Take the first unstarted item unless a better
+3086 the AI word's (Opus); 3099, 3078 and 3096 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — East Indies (Germans), at 12836. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3086. **The battery word, 12836 of 13519 (`EastIndiesGermanTier3`, East Indies):
@@ -56,13 +56,11 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `collide` 0 against 1 (`half_step` 1 against 0, `order:coll` None),
     `1/32`, `1/64`, `1/68` the same. Unstarted. AI §245.
 
-3067. **Chapter ninety-four: the next chapter no capture reaches**
-    (DECISIONS 56 §3; GOLDEN §13, §14a; 3018 closed chapter 93 on run913
-    to 1200, Sabotage on an unarmed vehicle, parked 3065): the order
-    family's next unreached arm by what a failure would teach, or
-    Sabotage on an armed vehicle (parked 3065: the Tank shoots the lone
-    Commando first, so a cast staged out of its reach), run 914.
-    Unstarted. GOLDEN §118.
+3099. **Chapter ninety-four's word, 1178 of 1200 (run914, Sabotage on Artillery): the who=1 Scout `1/0`'s
+    explore path parts on 847, no draw delta** (3067; parked 3097): 12 steps against 50, `dest_y` 12792 against
+    11256 on 848, 38 standing rows (`WANT_CH94`, 11 `form` + 27 on `1/0`). Chapter 93 agrees on the same frame; the
+    staged difference is the Artillery dead by 824 against the wagons on 853. Hypothesis only: `think_scout`'s
+    candidate read. Widen every dumped record on 846–848 first, both directions. Unstarted. GOLDEN §119.
 
 3078. **The sweep's next shape batch: what the harvests read and did not
     build** (DECISIONS 63 (iv); the score `Census:` 1434 of 3611; parked
