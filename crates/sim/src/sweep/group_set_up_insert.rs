@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -46,8 +51,11 @@ fn the_emulated_original_agrees_on_every_row() {
                 // p6..p8 their orders (flags at +4). The ring is laid by the alias, so the port walks it by index: the
                 // head (`+0xdc`) is node 0, and the cursor (`+0xd4`) holds the node's own address, read back from the
                 // window that points at it.
-                let rd = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
-                let wr = |w: &mut [u8], o: usize, v: i32| w[o..o + 4].copy_from_slice(&v.to_le_bytes());
+                let rd = |w: &[u8], o: usize| {
+                    i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+                };
+                let wr =
+                    |w: &mut [u8], o: usize, v: i32| w[o..o + 4].copy_from_slice(&v.to_le_bytes());
                 let mut calls: Vec<String> = Vec::new();
                 if a[1] >= 0 && rd(&p[2], 0xd8) != 0 {
                     let addr = [rd(&p[2], 0xdc), rd(&p[3], 0), rd(&p[4], 0)];
@@ -75,19 +83,34 @@ fn the_emulated_original_agrees_on_every_row() {
                         }
                     }
                 }
-                log.push(if calls.is_empty() { "-".into() } else { calls.join("/") });
+                log.push(if calls.is_empty() {
+                    "-".into()
+                } else {
+                    calls.join("/")
+                });
                 0
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "set_up_insert — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "set_up_insert — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "set_up_insert — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "set_up_insert — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "set_up_insert — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "set_up_insert — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "set_up_insert — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

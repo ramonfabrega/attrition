@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -42,7 +47,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // `center_of_gravity` writes through its arguments 0 and 1, 10..=13 `get_unit`'s run, 14..=17 slot +0x8's,
                 // 18..=21 slot +0xbc's, 22..=25 slot +0x10's. Windows: p6..p9 the objects' records (x at +0x14, y at +0x10, both
                 // xor 0x63637). `vector_dist` is the original's own code (stub 7).
-                let rd = |w: &[u8], o: usize| i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"));
+                let rd = |w: &[u8], o: usize| {
+                    i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+                };
                 const KEY: i32 = 0x63637;
                 let count = rd(m, 0x10);
                 let (mut k1, mut k2, mut k3, mut k5) = (0usize, 0usize, 0usize, 0usize);
@@ -75,8 +82,14 @@ fn the_emulated_original_agrees_on_every_row() {
                         continue;
                     }
                     let d2 = crate::world::vector_dist(
-                        a[8].wrapping_mul(0x300).wrapping_sub(ry).wrapping_add(0x180).wrapping_abs(),
-                        a[9].wrapping_mul(0x300).wrapping_sub(rx).wrapping_add(0x180).wrapping_abs(),
+                        a[8].wrapping_mul(0x300)
+                            .wrapping_sub(ry)
+                            .wrapping_add(0x180)
+                            .wrapping_abs(),
+                        a[9].wrapping_mul(0x300)
+                            .wrapping_sub(rx)
+                            .wrapping_add(0x180)
+                            .wrapping_abs(),
                     );
                     if d2 < 0xc01 {
                         hits += 1;
