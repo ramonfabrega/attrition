@@ -29,7 +29,8 @@
 //! - **the targets**: every target search goes through
 //!   [`Sim::spell_valid_target`], which since item 2971 reads the Sniper's
 //!   and Counterintelligence's arms (`docs/GOLDEN.md` §115); Bribe's
-//!   (item 2812) too. Pilfer and Sabotage still refuse;
+//!   (item 2812) too, and since item 2994 Sabotage's and Pilfer's
+//!   (`docs/GOLDEN.md` §116);
 //! - **the Spy's cloak**: not carried, so a Spy is read as uncloaked and
 //!   returns 0 — the original's Spy arm draws nothing either way;
 //! - ~~**the hero arm**~~: built as [`Sim::think_hero`] (item 1305,

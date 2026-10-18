@@ -34,6 +34,8 @@ mod air_patrol_order_walk_data_vtordisp;
 mod airattackgroundorder_get_air_order;
 #[path = "airpatrolorder_get_air_patrol_order.rs"]
 mod airpatrolorder_get_air_patrol_order;
+#[path = "ammo_data_walk_data.rs"]
+mod ammo_data_walk_data;
 #[path = "ammo_out_set_shooter_vis.rs"]
 mod ammo_out_set_shooter_vis;
 #[path = "ammo_process.rs"]
@@ -58,6 +60,8 @@ mod armies_find_useful_army;
 mod armies_leader_defeated;
 #[path = "armies_num_armies.rs"]
 mod armies_num_armies;
+#[path = "armies_process_all.rs"]
+mod armies_process_all;
 #[path = "armies_send_navy.rs"]
 mod armies_send_navy;
 #[path = "armies_update_city.rs"]
@@ -94,6 +98,8 @@ mod attack_order_walk_data;
 mod attack_to_order_walk_data;
 #[path = "attacktoorder_get_attack_to_order.rs"]
 mod attacktoorder_get_attack_to_order;
+#[path = "balance_lookup_absolute_name.rs"]
+mod balance_lookup_absolute_name;
 #[path = "balance_return_modifier.rs"]
 mod balance_return_modifier;
 #[path = "balance_walk_rules_data.rs"]
@@ -108,18 +114,30 @@ mod border_nodes_find;
 mod border_process;
 #[path = "border_process_morph.rs"]
 mod border_process_morph;
+#[path = "border_rebuild_visible_list.rs"]
+mod border_rebuild_visible_list;
 #[path = "border_spline_get_name.rs"]
 mod border_spline_get_name;
 #[path = "border_spline_on_field_change.rs"]
 mod border_spline_on_field_change;
 #[path = "border_spline_render_is_visible.rs"]
 mod border_spline_render_is_visible;
+#[path = "border_spline_render_make_bbox.rs"]
+mod border_spline_render_make_bbox;
+#[path = "borders_check_border_blocked.rs"]
+mod borders_check_border_blocked;
 #[path = "borders_get_who.rs"]
 mod borders_get_who;
 #[path = "borders_is_border_hidden.rs"]
 mod borders_is_border_hidden;
 #[path = "borders_out_no_border.rs"]
 mod borders_out_no_border;
+#[path = "borders_process_all.rs"]
+mod borders_process_all;
+#[path = "borders_remove_border_region.rs"]
+mod borders_remove_border_region;
+#[path = "borders_save_last_who.rs"]
+mod borders_save_last_who;
 #[path = "build_add_attack_order.rs"]
 mod build_add_attack_order;
 #[path = "build_add_gatherer.rs"]
@@ -152,6 +170,8 @@ mod build_data_get_garrison_arrows;
 mod build_data_get_most_shots;
 #[path = "build_data_get_packer_stance.rs"]
 mod build_data_get_packer_stance;
+#[path = "build_data_get_queue.rs"]
+mod build_data_get_queue;
 #[path = "build_data_get_shot.rs"]
 mod build_data_get_shot;
 #[path = "build_data_get_worker_stance.rs"]
@@ -200,6 +220,8 @@ mod build_queue_data_get_queue;
 mod build_queue_get_size;
 #[path = "build_queue_set_job_counter.rs"]
 mod build_queue_set_job_counter;
+#[path = "build_queue_set_queue.rs"]
+mod build_queue_set_queue;
 #[path = "build_queue_un_queue.rs"]
 mod build_queue_un_queue;
 #[path = "build_queue_walk_data.rs"]
@@ -208,6 +230,8 @@ mod build_queue_walk_data;
 mod build_remove_gatherer;
 #[path = "build_repair_damage.rs"]
 mod build_repair_damage;
+#[path = "build_swap_team.rs"]
+mod build_swap_team;
 #[path = "build_type_backup.rs"]
 mod build_type_backup;
 #[path = "build_type_corner_tile.rs"]
@@ -314,6 +338,8 @@ mod cast_order_walk_data_vtordisp;
 mod caster_walk_data;
 #[path = "categories_find_data.rs"]
 mod categories_find_data;
+#[path = "categories_find_key.rs"]
+mod categories_find_key;
 #[path = "circle_render_get_name.rs"]
 mod circle_render_get_name;
 #[path = "circle_render_on_field_change.rs"]
@@ -322,6 +348,8 @@ mod circle_render_on_field_change;
 mod city_calc_gather;
 #[path = "city_could_queue.rs"]
 mod city_could_queue;
+#[path = "city_data_count_farms.rs"]
+mod city_data_count_farms;
 #[path = "city_data_depop_can_queue.rs"]
 mod city_data_depop_can_queue;
 #[path = "city_data_enhancer_amount.rs"]
@@ -526,16 +554,26 @@ mod command_package_begin_process;
 mod command_package_process_accept;
 #[path = "command_package_process_alarm.rs"]
 mod command_package_process_alarm;
+#[path = "command_package_process_attack.rs"]
+mod command_package_process_attack;
 #[path = "command_package_process_attack_ground.rs"]
 mod command_package_process_attack_ground;
 #[path = "command_package_process_begin.rs"]
 mod command_package_process_begin;
+#[path = "command_package_process_board_ship.rs"]
+mod command_package_process_board_ship;
+#[path = "command_package_process_build.rs"]
+mod command_package_process_build;
 #[path = "command_package_process_buildmask.rs"]
 mod command_package_process_buildmask;
 #[path = "command_package_process_buy.rs"]
 mod command_package_process_buy;
 #[path = "command_package_process_cannon_time.rs"]
 mod command_package_process_cannon_time;
+#[path = "command_package_process_chat_set.rs"]
+mod command_package_process_chat_set;
+#[path = "command_package_process_cheat_ai_speed_increase.rs"]
+mod command_package_process_cheat_ai_speed_increase;
 #[path = "command_package_process_cheat_ai_speed_normal.rs"]
 mod command_package_process_cheat_ai_speed_normal;
 #[path = "command_package_process_cheat_ai_toggle.rs"]
@@ -544,6 +582,8 @@ mod command_package_process_cheat_ai_toggle;
 mod command_package_process_cheat_give_techs;
 #[path = "command_package_process_cheat_increase_buckets.rs"]
 mod command_package_process_cheat_increase_buckets;
+#[path = "command_package_process_cheat_init_unit.rs"]
+mod command_package_process_cheat_init_unit;
 #[path = "command_package_process_cheat_view_all.rs"]
 mod command_package_process_cheat_view_all;
 #[path = "command_package_process_cheat_zero_buckets.rs"]
@@ -560,6 +600,8 @@ mod command_package_process_clear_all;
 mod command_package_process_clear_tributes;
 #[path = "command_package_process_come_out.rs"]
 mod command_package_process_come_out;
+#[path = "command_package_process_console_cmd.rs"]
+mod command_package_process_console_cmd;
 #[path = "command_package_process_declare.rs"]
 mod command_package_process_declare;
 #[path = "command_package_process_demand_tribute.rs"]
@@ -568,6 +610,8 @@ mod command_package_process_demand_tribute;
 mod command_package_process_disband;
 #[path = "command_package_process_eject_all.rs"]
 mod command_package_process_eject_all;
+#[path = "command_package_process_flight.rs"]
+mod command_package_process_flight;
 #[path = "command_package_process_form.rs"]
 mod command_package_process_form;
 #[path = "command_package_process_garrison.rs"]
@@ -578,40 +622,66 @@ mod command_package_process_gather;
 mod command_package_process_gather_point;
 #[path = "command_package_process_halt.rs"]
 mod command_package_process_halt;
+#[path = "command_package_process_hotkey.rs"]
+mod command_package_process_hotkey;
+#[path = "command_package_process_launch_patrol.rs"]
+mod command_package_process_launch_patrol;
 #[path = "command_package_process_marwan.rs"]
 mod command_package_process_marwan;
+#[path = "command_package_process_move_near.rs"]
+mod command_package_process_move_near;
+#[path = "command_package_process_mp_log.rs"]
+mod command_package_process_mp_log;
 #[path = "command_package_process_patrol.rs"]
 mod command_package_process_patrol;
 #[path = "command_package_process_pause.rs"]
 mod command_package_process_pause;
+#[path = "command_package_process_ping.rs"]
+mod command_package_process_ping;
 #[path = "command_package_process_propose_attack.rs"]
 mod command_package_process_propose_attack;
 #[path = "command_package_process_queue_up.rs"]
 mod command_package_process_queue_up;
+#[path = "command_package_process_quit.rs"]
+mod command_package_process_quit;
 #[path = "command_package_process_recall.rs"]
 mod command_package_process_recall;
 #[path = "command_package_process_reject.rs"]
 mod command_package_process_reject;
+#[path = "command_package_process_rename_city.rs"]
+mod command_package_process_rename_city;
 #[path = "command_package_process_repair.rs"]
 mod command_package_process_repair;
 #[path = "command_package_process_resign.rs"]
 mod command_package_process_resign;
 #[path = "command_package_process_scramble.rs"]
 mod command_package_process_scramble;
+#[path = "command_package_process_sell.rs"]
+mod command_package_process_sell;
 #[path = "command_package_process_set_transport.rs"]
 mod command_package_process_set_transport;
+#[path = "command_package_process_siege_attack.rs"]
+mod command_package_process_siege_attack;
 #[path = "command_package_process_speed_down.rs"]
 mod command_package_process_speed_down;
+#[path = "command_package_process_speed_set.rs"]
+mod command_package_process_speed_set;
 #[path = "command_package_process_speed_up.rs"]
 mod command_package_process_speed_up;
 #[path = "command_package_process_stop_spell.rs"]
 mod command_package_process_stop_spell;
+#[path = "command_package_process_swarm_around.rs"]
+mod command_package_process_swarm_around;
+#[path = "command_package_process_trade.rs"]
+mod command_package_process_trade;
 #[path = "command_package_process_transport.rs"]
 mod command_package_process_transport;
 #[path = "command_package_process_treaty.rs"]
 mod command_package_process_treaty;
 #[path = "command_package_process_tribute.rs"]
 mod command_package_process_tribute;
+#[path = "command_package_process_turn_data.rs"]
+mod command_package_process_turn_data;
 #[path = "command_package_process_ungraceful_player_drop.rs"]
 mod command_package_process_ungraceful_player_drop;
 #[path = "command_package_process_unitmask.rs"]
@@ -638,6 +708,12 @@ mod doober_get_num;
 mod doober_has_doobers;
 #[path = "doober_inc_time.rs"]
 mod doober_inc_time;
+#[path = "doober_remove_cover_doober.rs"]
+mod doober_remove_cover_doober;
+#[path = "doober_remove_doobers.rs"]
+mod doober_remove_doobers;
+#[path = "doober_remove_hold_doobers.rs"]
+mod doober_remove_hold_doobers;
 #[path = "draw_thick_diamond.rs"]
 mod draw_thick_diamond;
 #[path = "farms_add_animals_all.rs"]
@@ -652,6 +728,8 @@ mod farms_data_get_wheat_status;
 mod farms_grow;
 #[path = "farms_out_get_name.rs"]
 mod farms_out_get_name;
+#[path = "farms_remove.rs"]
+mod farms_remove;
 #[path = "farms_snip.rs"]
 mod farms_snip;
 #[path = "farms_walk_data.rs"]
@@ -684,3 +762,5 @@ mod form_order_walk_data_vtordisp;
 mod fort_walk_data;
 #[path = "forts_find_fort.rs"]
 mod forts_find_fort;
+#[path = "fractal_get_height.rs"]
+mod fractal_get_height;

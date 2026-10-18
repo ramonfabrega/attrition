@@ -38,6 +38,14 @@ mod unbuilt_wonder_walk_data;
 mod unbuilt_wonders_add_unbuilt_wonder;
 #[path = "unbuilt_wonders_remove_unbuilt_wonder.rs"]
 mod unbuilt_wonders_remove_unbuilt_wonder;
+#[path = "unit_add_attack_ground_order.rs"]
+mod unit_add_attack_ground_order;
+#[path = "unit_add_await_board_order.rs"]
+mod unit_add_await_board_order;
+#[path = "unit_add_board_order.rs"]
+mod unit_add_board_order;
+#[path = "unit_add_garrison_order.rs"]
+mod unit_add_garrison_order;
 #[path = "unit_add_spec_anim_order.rs"]
 mod unit_add_spec_anim_order;
 #[path = "unit_air_alt_speed.rs"]
@@ -84,6 +92,8 @@ mod unit_data_hits;
 mod unit_data_in_supply;
 #[path = "unit_data_is_attacking.rs"]
 mod unit_data_is_attacking;
+#[path = "unit_data_is_busy.rs"]
+mod unit_data_is_busy;
 #[path = "unit_data_is_caravan.rs"]
 mod unit_data_is_caravan;
 #[path = "unit_data_is_casting.rs"]
@@ -136,14 +146,22 @@ mod unit_data_will_be_corner;
 mod unit_die;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
+#[path = "unit_do_explore_to.rs"]
+mod unit_do_explore_to;
 #[path = "unit_do_flee_to.rs"]
 mod unit_do_flee_to;
 #[path = "unit_do_form_change.rs"]
 mod unit_do_form_change;
 #[path = "unit_do_gather.rs"]
 mod unit_do_gather;
+#[path = "unit_do_group_attack_to.rs"]
+mod unit_do_group_attack_to;
+#[path = "unit_do_idle.rs"]
+mod unit_do_idle;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
+#[path = "unit_execute_events.rs"]
+mod unit_execute_events;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
 #[path = "unit_get_speed.rs"]
@@ -168,6 +186,10 @@ mod unit_is_supply;
 mod unit_kill_current_action;
 #[path = "unit_kill_current_path.rs"]
 mod unit_kill_current_path;
+#[path = "unit_kill_group_order.rs"]
+mod unit_kill_group_order;
+#[path = "unit_modify_group_order.rs"]
+mod unit_modify_group_order;
 #[path = "unit_must_walk.rs"]
 mod unit_must_walk;
 #[path = "unit_on_duty.rs"]
@@ -246,12 +268,20 @@ mod unit_type_num_preq;
 mod unit_type_restore;
 #[path = "unit_type_walk_rules_data.rs"]
 mod unit_type_walk_rules_data;
+#[path = "unit_update_armor.rs"]
+mod unit_update_armor;
+#[path = "unit_update_ceo_position.rs"]
+mod unit_update_ceo_position;
 #[path = "unit_update_gpiece.rs"]
 mod unit_update_gpiece;
+#[path = "unit_update_local_seen.rs"]
+mod unit_update_local_seen;
 #[path = "unit_update_order.rs"]
 mod unit_update_order;
 #[path = "unit_update_patrol_order.rs"]
 mod unit_update_patrol_order;
+#[path = "unit_update_z.rs"]
+mod unit_update_z;
 #[path = "units_make_valid.rs"]
 mod units_make_valid;
 #[path = "valid_filter_case0.rs"]
@@ -312,6 +342,8 @@ mod valid_filter_case9;
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
 mod vector_dist_ints;
+#[path = "wall_data_armor.rs"]
+mod wall_data_armor;
 #[path = "wall_data_can_capture.rs"]
 mod wall_data_can_capture;
 #[path = "wall_data_can_make.rs"]
@@ -344,8 +376,12 @@ mod wall_die;
 mod wall_is_active;
 #[path = "wall_is_started.rs"]
 mod wall_is_started;
+#[path = "wall_kill_competing_buildings.rs"]
+mod wall_kill_competing_buildings;
 #[path = "wall_mask_city.rs"]
 mod wall_mask_city;
+#[path = "wall_mask_me.rs"]
+mod wall_mask_me;
 #[path = "wall_out_draw.rs"]
 mod wall_out_draw;
 #[path = "wall_out_get_gpiece.rs"]
@@ -356,6 +392,8 @@ mod wall_out_make_options;
 mod wall_set_type;
 #[path = "wall_set_type_dispatch.rs"]
 mod wall_set_type_dispatch;
+#[path = "wall_swap_team.rs"]
+mod wall_swap_team;
 #[path = "wcoord_data_walk_data.rs"]
 mod wcoord_data_walk_data;
 #[path = "wcoord_get_tcorner.rs"]
@@ -380,6 +418,8 @@ mod wonder_get_timer;
 mod wonder_walk_data;
 #[path = "world_adjust_fog.rs"]
 mod world_adjust_fog;
+#[path = "world_compute_all_vals.rs"]
+mod world_compute_all_vals;
 #[path = "world_data_buildings_allowed.rs"]
 mod world_data_buildings_allowed;
 #[path = "world_data_get_bottom.rs"]
@@ -434,6 +474,8 @@ mod world_data_num_waterhalf;
 mod world_data_restrict_coord;
 #[path = "world_data_restrict_wcoord.rs"]
 mod world_data_restrict_wcoord;
+#[path = "world_data_start_city_rad_wcoord.rs"]
+mod world_data_start_city_rad_wcoord;
 #[path = "world_data_start_city_wcoord.rs"]
 mod world_data_start_city_wcoord;
 #[path = "world_data_valid.rs"]
@@ -442,6 +484,8 @@ mod world_data_valid;
 mod world_data_was_really_seen;
 #[path = "world_data_was_seen.rs"]
 mod world_data_was_seen;
+#[path = "world_data_was_seen_wcoord.rs"]
+mod world_data_was_seen_wcoord;
 #[path = "world_get_land.rs"]
 mod world_get_land;
 #[path = "world_get_region.rs"]
@@ -498,6 +542,8 @@ mod world_is_tocean;
 mod world_is_tree_at;
 #[path = "world_map_fog_add_update.rs"]
 mod world_map_fog_add_update;
+#[path = "world_map_fog_fill_colors.rs"]
+mod world_map_fog_fill_colors;
 #[path = "world_map_fog_get_fog_lookup.rs"]
 mod world_map_fog_get_fog_lookup;
 #[path = "world_map_fog_set_fog_lookup.rs"]
@@ -506,6 +552,8 @@ mod world_map_fog_set_fog_lookup;
 mod world_map_on_right_down;
 #[path = "world_map_reinit_all.rs"]
 mod world_map_reinit_all;
+#[path = "world_new_coll_block.rs"]
+mod world_new_coll_block;
 #[path = "world_scale_by_area.rs"]
 mod world_scale_by_area;
 #[path = "world_scale_by_axis.rs"]
@@ -524,6 +572,8 @@ mod world_set_cliff_at;
 mod world_set_coastal;
 #[path = "world_set_down.rs"]
 mod world_set_down;
+#[path = "world_set_edge_flags.rs"]
+mod world_set_edge_flags;
 #[path = "world_set_gather_edge.rs"]
 mod world_set_gather_edge;
 #[path = "world_set_gathered_at.rs"]
@@ -540,6 +590,8 @@ mod world_set_orig_coast;
 mod world_set_resource_at;
 #[path = "world_set_river_at.rs"]
 mod world_set_river_at;
+#[path = "world_set_seen2.rs"]
+mod world_set_seen2;
 #[path = "world_set_started2_at.rs"]
 mod world_set_started2_at;
 #[path = "world_set_started_at.rs"]

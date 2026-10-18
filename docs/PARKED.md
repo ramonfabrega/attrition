@@ -3738,6 +3738,73 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 
+(3077) **A `sweep_gen.py` run during a `mutate.py --batch` dirties the tree under it** (3058's "for the Loop" line, parked
+3076, filed at its merge): every later break is refused ("the tree is dirty; commit first"), twice in one batch. Candidate:
+`sweep_gen.py` refuses while a batch holds the tree, or the batch works in a worktree copy, a test made to fail first. One
+reach.
+
+(3063) **`waitrun.sh` missed the click-free lane's receipt** (the commander, at a `STALLED att-3018` exit, 2026-10-17):
+run913's capture on pool lane 2 exited at 17:03:50 with its receipt JSON (`"success": true`, `"exit_code": 0`) as the
+viadriver log's last line, and the lane's `waitrun.sh` on that log was still waiting at 18:25 — 81 minutes, until
+`lanewait.py`'s child rule named it. Candidate: `waitrun.sh` keys on the receipt's JSON line as well as its banner, a test
+made to fail first on this log. One reach.
+
+(3062) **`sweep_gen.py`'s help omits two working spellings** (3044's "for the Loop" line, parked 3061, filed at its merge):
+`--outarg IDX:K` repeated for one stub, and a `--place` at a stub's answer (`sN`) with its own `--wbias` window for a
+callee-returned record's field; and (parked 3071) `--cell-this` replaces `--cell-win`, `--argrange` bounds are inclusive,
+and an `iat:` stub records a stale `ecx`; and (parked 3081) `--seq`'s header names the stubs' leading answers. Candidate: all
+six in the help with an example each. One reach.
+
+(3057) **`sweep_gen.py --answers IDX:V,..` draws a wild word a tenth of the rows** (3030's parked 3053, filed at its
+merge): a stub whose answer indexes an array faults there, where `--answer-range` does not; and a `slot:` stub with the
+wrong argument count faults at 0x1000 from a return address of 0. Candidate: `--answers` draws only its list, and the
+`--stub slot:` docstring names both traps, a test made to fail first. One reach.
+
+(3048) **Two sweep tools pass or refuse by accident** (3038's "for the Loop" lines, parked 3045 and 3046, filed at its
+merge): `sweep_gen.py --cell-win` on a muted-error call site's flag byte writes a pointer whose low byte is the flag, so a
+sweep passes until a draw puts a zero there; and `mutate.py --batch` reads `\n` literally, so a two-line break is refused
+(parked 3035 the same). Candidate: `--cell-win` refuses an address a `cmp byte ptr [VA], 0` names, and a batch row decodes
+`\n`, each a test made to fail first (parked 3072 dropped a break for the second). One reach.
+
+(3043) **`sweep_gen.py --ecx-int` without `--tame` draws wild ecx** (3024's "for the Loop" line and parked 3039, filed at
+its merge): a `--sparse` table indexed by `ecx` matched no row for 10 % of the first generation. Candidate: the generator
+defaults `--tame` when a `--sparse` table is indexed by `ecx`, or says so, a test made to fail first. One reach.
+
+(3037) **A mutant that does not compile reads as held** (3008's "for the Loop" line and parked 3034, filed at its merge):
+`mutate.py` scores the command's exit, and a port that fails to compile exits 101 as a red test does — fifteen "held"
+breaks of one batch were a type error. Candidate: `mutate.py` runs the un-mutated command once and refuses a tree that does
+not pass, before the first break, a test made to fail first. And `--wbias`'s errors name the flag and "list or range"
+(parked 3031). One reach.
+
+(3022) **`sweep_gen.py --regen` with a bad flag set leaves the old files and exits 0** (3004's "for the Loop" line, filed
+at its merge). Candidate: a regen that cannot write exits non-zero and names the flag, a test made to fail first. One reach.
+
+(3023) **A booking gate was killed mid-run with exit 144 and no verdict** (the fortieth tranche's eighth booking gate,
+`f9a46406`, 16:53, its log ending on a passing `rondata` test; the re-run was green, 6 of 6): five lanes were live, and
+the gate's banner warns against `pkill -f` on a name every lane shares. Candidate: the gate traps the signal and prints
+who sent it (`siginfo` pid where the platform gives one) in its last line, a test made to fail first. One reach.
+
+(3012) **A sibling's port block is copied by hand with three constants re-measured, ten times a batch** (2990's "for the
+Loop" line and parked 3011, filed at its merge; the fifth reach of the shape). Candidate: `sweep_gen.py --port-from
+SIBLING` copies the block and reports the constants that differ, a test made to fail first. One reach.
+
+(3013) **A `--regen` whose `--clean-stack` changed resets a hand port to `todo!()`** (parked 3010, filed at its merge): the
+`.rs` did not win, against Loop 2886's built rule. Candidate: the regen keeps a hand port whatever flag changed and says
+so, a test made to fail first; and `--clean-stack 256` the default for a logger of five or more reference arguments. One reach.
+
+(3007) **`golden_capture.sh` through `viadriver.sh` returns at once, so a loop of launches does not queue** (2975's "for
+the Loop" line, filed at its merge): ten captures in a shell loop raced the lane; the pool lanes did queue. Candidate: the
+wrapper waits on its own receipt or refuses a second launch into a held lane, a test made to fail first. One reach.
+
+(3002) **A `--regen` without `--fresh` appends a changed flag set to the kept one** (2966's "for the Loop" line, filed at
+its merge): a stale `p11` place survived one regen. Candidate: the sweep brief says `--regen --fresh` first, or the regen
+refuses a flag set that differs from the kept one without `--fresh`, a test made to fail first. And a batch of ten wants a
+`cargo test` line taking several module filters. One reach.
+
+(3003) **A `--wbias` on a window under four bytes corrupts what follows it** (parked 2999, filed at its merge): a 2-byte
+`--sparse` slice with a `--wbias` faulted a read at a random address. Candidate: `sweep_gen.py` refuses or clips a
+`--wbias` wider than its window, a test made to fail first. One reach.
+
 (2987) **The objects- and groups-table windows are a shell loop of `--place` flags, four times over** (2959's "for the Loop"
 line and its parked 2987, filed at its merge): `process_repair`, `_garrison`, `_gather`, `_begin`. Candidate: a
 `sweep_gen.py` flag taking a table of N pointers to arrays of M records, a test made to fail first. One reach.
@@ -6852,7 +6919,14 @@ so no dump has read a Roman `income`; a lobby with a Roman AI on one city would 
 - (2993) **The booking's premise was wrong**: the Commando's `mylos` prints 12 (`unitrules.xml` says `LOS 8`), so no caster in this lobby casts beyond its
   sight but the Informer; `LOS` and `mylos` differ by a factor this crate has not derived. Names no score.
 
-## Parked by the next landing, slot GO — reserved
+## Parked by item 2975, 2026-10-17 — five held-out lobbies minted
+
+- (3005) **`GreatLakesIroquoisTier3` parts at frame 0** (ours 121 draws, theirs 122; at draw 30 ours `Unit::think_scout+0x436`, theirs
+  `Unit::think_scout+0x64c`) — the first battery lobby to part on the first frame. Same callsite pair as `GreatSaharaAztecTier2`
+  at 9130. Names no score (the battery is a floor, never debugged against): a `think_scout` branch (a scout's target choice) that
+  differs for the Aztecs and Iroquois (both have a nation scout rule: `IROQUOIS_FREE_SCOUT`, `AZTEC` ...) is the supposition,
+  unread. The booking is the frame and the draw delta.
+- (3006) **The Spanish and Romans part on 576, as the Germans did** (§125); the AI word's lane (2974) may move all three if it is one cause. **At the merge**: 2974's Fire Raft arms are German-only, and the battery stayed 576 / 576 on the merged tree.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot GO renames this heading `## Parked by item N, <date> — <title>`
@@ -6888,29 +6962,50 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
 - (2988) **A stray tracked file stands in `crates/sim/src/sweep/`**, named `command_manager_issue_treaty declare
   clear_tributes clear_all accept reject tribute.rs` (spaces in the name): an earlier batch's shell glitch. Not compiled; delete it. **Deleted in 2959's booking commit** (it came from 2486's `008b9961`).
 
-## Parked by the next landing, slot GR — reserved
+## Parked by item 2966, 2026-10-17 — the hundred-and-thirty-first sweep batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (2998) **`Unit::update_local_seen@0060e410` is no built shape's**: it loops `circle_radius[type]` times
+  (a table at `0xcbe330` the image builds at boot, zeros under the emulator) over `circle_x`/`circle_y` byte tables
+  (`0xcb7e90`, `0xcbb0e0`, also boot-built) and the `div_3_table` cell `0xcae5fc`. `--at` draws the radius table as
+  random 32-bit words, which sizes a loop of 2^31; a shape needs a bounded image-table draw (`--at VA:SIZE:LO..HI`).
+  Names the census (+1) once the shape is there.
+- (2999) **`--wbias` on a window under four bytes corrupts what follows it**: a 2-byte `--sparse` slice with a
+  `--wbias` faulted a read at a random address (`was_seen_wcoord`'s `+0x59e4` short); the batch widened the slice to four
+  bytes. Filed as Loop 3003.
+- (3000) **`--record-edx` refuses `--record-order`**, so two stubs on one function (`find_supply`'s
+  `get_radius` and `vector_dist`) are recorded in two columns and their interleaving is unheld; the leftover `edx` the
+  first one sees (the previous measure's) is in the port instead.
+- (3001) **`UnitData::is_busy`'s type-table index is unexercised**: every type record in the `--ptrtab :vt` table
+  carries the one stubbed vtable, so a wrong index (`+0x20`) reads another record answering the same; and
+  `Unit::modify_group_order` reads `[this+0xd4]` after its loop whether or not `[this+0xdc]` is set, so its
+  null-tail row is undrawable (a stale `d4`). Both held by their ports' comments, not by a row.
 
-## Parked by the next landing, slot GS — reserved
+## Parked by item 2990, 2026-10-17 — ten more `process_*` bodies swept, Census 1329 → 1339
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3009) **Still unswept in `CommandPackage::process_*`**: `rename_city` (virtual slot 0xac, `String::operator=`,
+  `HotKeyGroups::find_group`), `ping` (a loop over the eight leaders calling `Leader::action_ping`), `cheat_init_unit`,
+  `cheat_ai_speed_increase`, `console_cmd`, `hotkey`, `sell` (`has_tribe_bonus`/`has_preq`/`has_market`/`do_sell`
+  chain), `trade`, `speed_set` (timings table, `String`/`MessageWin`/`SoundGlobal` calls), `quit` (console play, `Player::quit`,
+  a vcall), `turn_data`. And 2964's list, not reached: `find_city`, `find_city_at`, `poor_target`, `Wall::swap_team`,
+  `Tribes::find`, `Signposts::add`. Names no score beyond the census.
+- (3010) **`--clean-stack 64` is not enough for a logger with five or more reference arguments**: the line, tags and
+  format slots of `logToMemory` read caller stack residue (varying by row) that 64 bytes leave; `--clean-stack 256` zeroes
+  them on every row (`process_attack`, `_swarm_around`, `_launch_patrol`, `_flight`, `_build`, `_move_near`). Parked 2985's
+  `come_out`/`cannon_time` pins could use 256 and lose their residue constants. `sweep_gen.py --regen` on a hand-ported
+  `.rs` whose `--clean-stack` argument changed reset the port to `todo!()` (the `.rs` did not win): filed as Loop 3013.
+- (3011) **The batch's `five.py`/graft shape is a fifth reach**: a sibling's port block copied with three constants
+  re-measured (the file literal for a null `strrchr`, the format pointer, the say offset) -- ten times this batch, each from
+  the first failing row. A `sweep_gen.py --port-from SIBLING` that copies the block and reports the constants: filed as Loop 3012.
 
-## Parked by the next landing, slot GT — reserved
+## Parked by item 2994, 2026-10-17 — Chapter ninety-two's leftovers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3015) **`cast_sabotage`'s leader counters and score** (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x818`, `+0x44 += cost/5`) are still unbuilt, and the crate carries none of
+  the five fields (`score_combat`, `units_killed`, `buildings_razed`, `deaths_current_frame`, `kills_current_frame`); `LEADERS=2` prints none of them and the compared pin
+  lists them unread, so no diff can see them. Names no score.
+- (3016) **Pilfer** (`0x276`): `cast_pilfer@00673e80` (a goods steal, one `Random::get` draw) and its validity arm are read and the arm built, but `FROM None` means no
+  unit is given the cast, so no chapter stages it; who calls it in the original is not found. Names no score.
+- (3017) **A Stockade's border bleeds a lone Commando dead mid-cast** (150-frame job, 12 hp / 25 frames): the walk found it before the capture; Sabotage on a
+  vehicle (`dtype` 3, the boom) needs a staged vehicle for who=1 and is not covered. **Booked as chapter 93 (3018) at the merge.**
 
 ## Parked by item 2997, 2026-10-17 — the battery word's gap walked
 
@@ -6923,26 +7018,282 @@ words and edits nothing here; a refill lands when two remain.
   non-standing row (block 12563) was needed. A `--stride N`, or a positions-only category, on
   `unattended_capture.py` would have named that block in a fraction of the time.
 
-## Parked by the next landing, slot GV — reserved
+## Parked by item 3004, 2026-10-17 — the second harvest batch
+
+- (3019) **`Unit::update_armor` needs a climb that ends**: the loop calls slot `+0xa8` on the object table's
+  record until a captain is reached, and `sweep_gen.py obj` can answer a stub with one window, which makes the climb
+  its own parent (an unbounded loop unless every row's second `+0xe8` answer is 1). A `--climb` shape (a chain of
+  windows, each `+0x8e` naming the next, terminated) would take it and the other `is_captain` climbs. Names no score
+  beyond the census.
+- (3020) **`AmmoData::walk_data`, `Game::walk_data` and `TurnControl::end_cannon_time`
+  read and not taken**: the first reads a stack byte of its own argument slot that the real walker writes on input (the
+  walker stub cannot; `--stub-write` writes through a pointer argument, not the caller's slot), the second calls
+  `timeGetTime`, the third pushes a dozen-argument `MessageWin::add_message` with uninitialised stack temporaries.
+- (3021) **Three breaks of the batch pass and are not draw faults worth a flag**: `count_farms`' `(k - 1).min(5)`
+  needs a six-member live chain (the `--link` draw above each figure's own index rarely walks all six), and
+  `get_abbrev_parsed`' `ty < 0x32` is equivalent (`SILK` and `GEMS`, the only types the arm tests, are both below it).
+  The third, `lookup_absolute_name`'s two boundary breaks, passed on `--argrange 1:-4:0x180` and held on
+  `1:0x15e:0x171`: a range wide enough to hold four boundaries one value each is too wide for 220 rows.
+
+## Parked by item 3008, 2026-10-17 — the second harvest batch (ten world and table bodies)
+
+(3031) **`--wbias` takes a list or a range, never both.** `--wbias 'p0+0:0..3000,0..100000'` dies with `too many values to
+unpack (expected 2, got 3)`, an error that names neither the flag nor the colon. The draw it wanted (a small coordinate most
+rows, a >60000 one for `start_city_rad_wcoord`'s large-distance arm) is a list, which a range cannot spell. Loop: the message
+names the flag and says "list or range".
+
+(3032) **A window's `c`/`p` number is its flag order, and the header is the only place that says so.** `--cell-win`
+twice makes `c0`, `c1`; `--at VA:SIZE` flags follow as `c2`, `c3`, … and `--fill 'c1:i*5'` reaches the table a `--at` laid. Three
+sweeps (`Map::is_near_ocean`, `Map::land_dist`, `WorldData::start_city_rad_wcoord`) read a table the image builds at boot
+(`circle_radius/x/y`, 0xcbe330/0xcb7e90/0xcbb0e0, zeros under the emulator): the draw is a drawn table, not the real one, which
+tests the function's logic and not `circle_init`'s values (`scout::circle` is the ground for those). Loop: `--at` could take a
+fill expression of its own.
+
+(3033) **A draw whose two arms contradict starves the one that needs both.** `is_near_ocean` answers 1 only when the
+`param_4` ring has land and the `param_3` disk has none, and with one cell density the ring sits inside the disk: 3 of 220 rows
+answered 1, then 9 of 800, 16 of 1500, and all 15 breaks held only after the offsets were a diverse ±3 byte list (not
+`0x00ff0100`'s nine positions) at 800 rows. Worth a line in `sweep_gen.py`'s help: "read the eax histogram before the breaks".
+
+(3034) **A mutant that compiles nowhere reads as held.** `mutate.py` scores the command's exit; a broken port that fails to
+compile (`break 'r r` for an i64 label) exits 101 as a red test does, so `map_land_dist`'s first fifteen "held" were a type
+error. The lane ran the plain test first, saw "mismatched types", and re-ran. Loop: `mutate.py` could demand the un-mutated tree
+pass the command before the first break (one run), which would have named it.
+
+(3035) **`mutate.py --batch` cannot spell a multi-line old text,** and `head -n -2` is not macOS's. A pair file of
+` => ` lines through a four-line script (job tmp) did the batches; a flag taking `OLD => NEW` pairs would remove it.
+
+(3036) **Survivors left, each named.** `Roads::scan_and_kill_straggled_tcoord`: none. `BuildQueue::set_queue`: `if !done`
+→ `if true` is equivalent (done implies the tail range is empty). `Borders::check_border_blocked`: `dy.abs() * 2` → `dy * 2` is
+equivalent mod 4 (`4|dy|` vanishes under `& 3`). `WorldData::start_city_rad_wcoord`: `dy < dx` → `dy <= dx` is equivalent (the two
+orders agree at equality); `lo < 60000` → `lo < 59999` survives 6000 rows, the draw needing a record whose x and y distances are
+59999 and above 60000 at one index with the radius at 363000: a `--seq`-style paired draw. `Map::land_dist`: the `0x41` return
+(no ring in 64 holds non-land) is never drawn, the nearest non-land cell always inside 31 rings. `Doober::remove_cover_doober`:
+`n > 0` is a guard no drawn row crosses (the count is drawn 1..6).
+
+## Parked by item 3014, 2026-10-17 — ten more `process_*` bodies swept, Census 1349 → 1359
+
+- (3025) **Still unswept after this batch**: `CommandPackage::process_rename_city` (virtual slot 0xac on a unit
+  record placed through the objects table, so a `--vtat-also` on all twelve unit windows; the slot's answer is a pointer
+  the function indexes by a signed short at +0x72 into the per-player `cities` array at `0xc09970 + who*0x1c`; a
+  `String::operator=` whose `ecx` after the return is the next callee's argument, `find_group` and `update_name`), and
+  2964's `find_city`, `find_city_at`, `poor_target`, `Tribes::find`, `Unit::update_local_seen` (a bounded image-table
+  draw, `--at VA:SIZE:LO..HI`), `Wall::swap_team`, `Signposts::add`. None read this batch. **Booked as 3030 at the merge.**
+- (3026) **`--record-edx` prefixes `ecx,edx` to every recorded call**, so a logger of five references prints ten
+  arguments after its `ecx`; the generated docstring does not say so and `process_hotkey`'s first run looked as if the
+  logger's arity were off by one. One line in the docstring when the flag is set.
+- (3027) **`--answers IDX` with `--seq IDX:N:T` prints one plain answer then N values**, the last drawn from
+  the terminators (`process_sell`'s `do_sell`: `a[9]` the plain answer, `a[10..15]` the sequence); the usage text says "N
+  values" and the row has N+1 after the plain one. `process_sell` reads `a[10 + min(k, 4)]`.
+- (3028) **`--place-null K:WIN+OFF=V` is the only way a port tells a null placed pointer from a live one**:
+  `process_console_cmd` marks it with the word 12345678 at the start of the buffer (`p1+0`); a port of a function that
+  reads that word would have to take another marker.
+- (3029) **`process_speed_set`'s timings table (`0xafc4a4`) is read as the file's static bytes under the emulator**
+  (values like 5242957, 67, 1 that no booted game holds); the sweep draws it as a window instead, so it pins the
+  indexing and the call, not the table (the table is the sim's own `TurnControl::timings`, not swept here).
+
+## Parked by item 3018, 2026-10-17 — Sabotage on a vehicle
+
+(3065) **An armed vehicle target is unstageable as a Sabotage victim**: a who=1 Tank shot the lone Commando dead before the cast's 150 frames ended; only an unarmed
+vehicle (Supply Wagon) was staged. A Tank-class target and the caster's counters stay unestablished (GOLDEN §117).
+
+(3066) **`waitrun.sh` missed the click-free lane's receipt**: it kept waiting 90 minutes after the run exited (receipt JSON is the log's last line); the commander noticed. Filed as Loop 3063.
+
+## Parked by item 3024, 2026-10-17 — the sweep's third harvest batch
+
+Ten harvested (`Region::walk_data`, `TypeData::count_discovered`, `TypeData::get_score_value`,
+`ObjectData::has_general`, `WallData::armor`, `HeroesData::find_hero`, `Group::get_num`,
+`Group::get_num_cap`, `Search::valid_search`, `ObjectData::get_inside`); journal
+`docs/journal/2026-10-17-item-3024.md`.
+
+(3039) **`--ecx-int` without `--tame` draws wild ecx**: `Search::valid_search` took `this`
+as a player index and the first generation gave it 10 % wild integers, so a leader row named
+by `p<this>` never matched; the generator could say so, or default `--tame` when a `--sparse`
+table is indexed by `ecx`. Filed as Loop 3043.
+
+(3040) **`get_inside`'s climb is covered to eight calls only**: the chain draws 90 %
+0/1 answers so the ninth `slot 0x18` call (the seq's terminator) is never reached; a cycle of
+units whose links point at each other would be the starved arm. The container player byte
+`+0xb4` is drawn 0/1, so the signed-byte path (`movsx`) is not covered either.
+
+(3041) **`Group::get_num`'s short copy is a two-byte move**: indices past 255 (the high
+byte) are unreached since the objects table window is four pointers wide.
+
+(3042) **Not built this batch, read**: `Army::is_engaged` (`normalize`,
+`ArmyData::get_unit`, `get_action` slot, `center_of_gravity` then `vector_dist` twice),
+`ObjectsData::find_dock` (nine arguments and `Search::valid_search`'s register convention),
+`ObjectTypeData::get_wonder_value` (`Error::report` paths), `BuildData::show_later_tech`
+(recurses into itself), `UnitData::get_attrition` (the one `float`, an `f32` times 2^-8 into
+an `int` conversion).
+
+## Parked by item 3030, 2026-10-17 — eight shapes swept, Census 1389 → 1397 on the merged tree
+
+(3050) **`Unit::update_armor` is parked twice now** (3019, and again here): the climb needs a stub chain
+that ends — `--slotbase 0xe8:<is_captain>` ends it from data (the `+0x8e` high bit) but the slot-`+0xa8`
+answer (the parent) is one window; `--answer-by` makes a chain from the stub's `ecx` and would take it, with
+`--link` on `+0x8e`. Its own item, not a third batch's tail (2732).
+
+(3051) **`Tribes::find`'s `_wcsicmp` arm (`call *0xac5640`, an import) is unreached**: the draw keeps
+non-null data pointers equal (`{0, 0x401000}`), string offsets zero. Equal non-null pointers with different
+offsets reach the import and the emulator faults (UC_ERR_READ_UNMAPPED). An `iat:` stub for it
+(`--stub iat:0xac5640:2 --stub-cdecl`) would answer it and let the offsets move; the port's `side()` arm is
+held only by the null-pointer rows. Three of its seven breaks pass for that reason.
+
+(3052) **`Object::poor_target`'s exact edges pass**: `e < 0x2aaaaaaa` and `- 0x80000000` +1 need an
+angle drawn at the threshold (the generator cannot compute `find_angle`'s answer), and `d > 0xc0` in the
+unflagged arm needs 192 from a 150..450 range in the ~5 % of rows that reach it.
+
+(3053) **`--answers IDX:V,..` draws a wild word the other tenth of the rows** (`--answer-range`
+does not): a stub whose answer indexes an array (`init_build`'s `ebx`) faults on that tenth, and the fault
+names a fetch at 0x1000 from a return address of 0 when a `slot:` stub's argument count is wrong (`slot:0x60:0`
+for a `ret 8` callee) — two traps for the docstring of `--stub slot:`. Filed as Loop 3057.
+
+(3054) **`--at VA:SIZE:LO..HI[/b]` is built** (`tools/sweep_gen.py`, a unit test made to fail first in
+`tools/explore/test_sweep_gen.py`): `Unit::update_local_seen`'s `circle_radius/x/y` use it.
+
+(3055) **`Wall::swap_team` and the `is`-slot sibling shape**: the base-or-slot arm is `--slotbase`, and
+its flag is 1 for base; `Build::swap_team@00628210` and `SubObject`'s are the same text and not yet swept.
+
+(3056) **`AmmoData::walk_data`, `Game::walk_data`, `TurnControl::end_cannon_time` (3020)** not taken.
+
+## Parked by item 3038, 2026-10-17 — the third harvest batch
+
+(3045) **`sweep_gen.py --cell-win` on a muted-error call site's flag byte passes by luck** (names no score; filed
+as Loop 3048). The decompiler's `ignore_always` is a separate byte per error call site (`0xee121c`, `0xee1232`, `0xee1244`,
+`0xee1245`); `--cell-win VA` writes a pointer there, whose low byte is the flag, so a sweep passed (`remove_hold_doobers`)
+until a draw put a zero low byte. Candidate: `sweep_gen.py` refuses `--cell-win` on an address a function's `cmp byte ptr
+[VA], 0` names, or offers `--flag-byte VA`. One reach.
+
+(3046) **`mutate.py --batch` cannot carry a multi-line OLD** (Loop 3048): a break that spans two source lines is
+written as a literal backslash-n and refused ("occurs 0 times"); two of 24 in this batch had to be rewritten as one-liners.
+Candidate: decode `\n` in a batch row. One reach.
+
+(3047) **`h * 100 >> 8` against `h * 100 / 256` in `Fractal::get_height`'s port is an equivalent mutant** (h is
+clamped to 0..255), so the break "fails nothing" by arithmetic, not by a starved draw. Names no score.
+
+## Parked by item 3044, 2026-10-17 — the sweep's fourth harvest batch
+
+(3059) **Starved draws accepted, said plainly.** `ObjectsArray::get_data_type`: a break `a[0] > 0`
+passes — the object argument is a `--ptrarg` address, never negative. `Unit::update_z`: the child's
+unit-index short is drawn 0/1 only (a break `as u16` for `as i16` passes), because a negative index reads
+before the pointer table and the emulator answers the neighbouring window; the sign of that short is not
+covered. `Group::can_activate`: the `is_team` answer is unused by the function and drawn wild.
+
+(3060) **Not built, read** (shortest of the rest): `ObjectData::num_aircraft_here` (a vtable
+slot compared with `ObjectData::is`'s address, `UnitData::home_base` through an out pointer, the
+`units` table twice), `ObjectData::can_carry` (the same `is`-slot compare four times and two
+type tables), `Army::is_engaged` and `Caravans::new_danger` (`vector_dist` called with
+register arguments the export shows as `unaff_*`), `Group::set_up_insert` (a `LinkListBase::add`
+and `copy_order`), `UnitData::get_attrition` (the `f32`, still not as a float),
+`Terrain::object_placed` (`spot_update_land` and `TerrainVis::invalidate_wcoord`).
+
+(3061) `--outarg IDX:K` repeated for one stub (two out pointers, as `tile_corner`'s) works and
+the generator says nothing of it; and a `--place` whose location is a stub's answer (`sN`) carrying a
+second `--wbias` window is the way to give a callee-returned record a field (`Wall::mask_me`'s
+`+0x72`). Worth a line in `sweep_gen.py`'s help (Loop 3062).
+
+## Parked by item 3049, 2026-10-17 — the fourth harvest batch: ten small bodies, Census +10 on its own tree
+
+(3079) **Draw gaps, said plainly.** `Doober::remove_doobers`: the two long-leg arms (shorter leg of 60000 or
+more) change a distance no row can remove with a threshold of 40, so `b < 60000` and the `>> 1` branch survive their
+breaks; reaching them needs `--argrange 2` past 60000, which starves the arms a small threshold exercises (one draw,
+one range). `World::new_coll_block`: the allocator stub answers a window every row, so the null arm (block 0 stored)
+is not drawn, and the CRT `memset` is a stub (its call is recorded; the cleared bytes are not). `Border::rebuild_visible_list`
+and `TerrainMap::map_change_river` have no equivalents beyond the transposed index (`h*x+y` over a `w*h` rectangle is
+a bijection) and `<=` for `<` on equal bounds in `BorderSplineRender::make_bbox`.
+
+(3080) **`WorldMapFog::fill_colors` is swept at `who` 0 only**: the leader table's base (`0xc061e0`'s pointer)
+is recorded as a window token, and a window large enough for `who * 0x6eec` makes every row 56 KB of hex. A `sweep_gen`
+option to record `ecx` relative to a cell's pointer (not its window) would lift it.
+
+(3081) **`sweep_gen.py obj` stub answers**: `--seq IDX:N` prints two leading answers (one per stub) before the N
+sequence values; the row's `a` indices are `stubs + k`, which the generated header does not say (it said "printed after
+the answers"). One line in the header would save a probe per use (Loop 3062).
+
+## Parked by item 3058, 2026-10-17 — the shape batch: `update_armor` and 3030's tails, Census 1407 → 1412 on its own tree
+
+(3073) **Equivalent breaks, said plainly.** `Unit::update_armor`: three of 17 pass — `>> 15` for
+`>> 14` (a valid object index never has bit 14 set; one that does reads past the table), `w[9] & 1` for `w[9]` (the bias keeps the player
+byte 0/1 so the leaders table has two rows), and `a[4] == 1 || a[4] == 2` for `a[4] != 0` (the flag is 0/1). The stub path of slot
+`+0xe8` is `--seq 1:1:1` (always a captain at once): a stub answering 0 sends the climb to table index -1 and the chain ends only on a
+high bit, so the stub path's climb is not covered (a flag that terminates a chain from the stub side, `--answer-by` with a
+captain terminator, would take it).
+
+(3074) **`Tribes::find`'s `_wcsicmp` arm is built** (an `iat:0xac5640:2` stub with `--stub-cdecl 0`, offsets drawn 0/1/2, 800 rows);
+the import's leftover `ecx` is the last offset loaded (the record's when its flag bit 0 is clear, else the string's, else the length) —
+the `--record` prefix of a cdecl stub is that `ecx`, not a call count.
+
+(3075) **`Build::swap_team`, `SubObject::swap_team` built** (3055: the Build one is not the Wall one's sibling in text — it calls
+`Wall::swap_team` — but the `--vtat-image m+0:0xb42174` vtable-or-slot compare, `--slotbase`-free, took its three `is`-slot sites with
+both `+0x60` and `+0xb8` two-argument). 24 breaks held. `AmmoData::walk_data` (3020) is built with `--outarg 0:0:...` — the walker writes
+the caller's stack local through its first argument, the same stub's other calls write `this+4`/`this+5`, and the port models all
+three; `Game::walk_data` with an `iat:0xac5460:0` cdecl `timeGetTime`, `TurnControl::end_cannon_time` with `--clean-stack 256` and a
+ten-argument stub for `MessageWin::add_message`. Their breaks: 15, 12, 10 held (one pass, an outarg draw with no high nibble, fixed).
+
+(3076) **For the Loop (Loop 3048 and 3077):** `mutate.py --batch` refuses a multi-line OLD (the line splits on `\n`) — the message is
+clear but the batch line is lost; and a `sweep_gen.py` run while a batch is running dirties the tree under it ("the tree is dirty; commit
+first" for every later break) — a generator run should say so, or the batch should work in a worktree copy.
+
+## Parked by item 3064, 2026-10-17 — the fifth harvest batch: eleven order-adders, clocks and records
+
+(3069) **Starved draws accepted, said plainly.** `TurnControl::check_new_frame_solo`: the three boundary
+equalities (`now < due_at`, `now > bound`, the `0x7d0` margin) survive an off-by-one break — the draw
+(clock and time-sync words in -30..60, bases and counters small) reaches `now == due_at` and
+`now == bound` on no row; the strict-versus-equal compare is not covered. `Terrain::object_placed`: the
+flag argument is drawn 0/1, so `a[4] != 0` against `a[4] == 1` is an equivalent mutant.
+`Type::backup`: a name length of 0 and the copy of 2 bytes then zeroed are the same bytes, so dropping
+the `len != 0` test is an equivalent mutant (the guard is the original's cheap exit).
+`Types::object_key`: the error report (`Error::key` after two `String` constructions, `int3` when it
+answers non-zero) is not reached — the `ignore_always` byte is drawn always set, as in 3044's
+`ObjectsArray::get_data_type`; the arm needs the `String` constructors and `Error::key`'s argument
+count stubbed, and a `--wbias` that leaves the byte zero a third of the rows.
+
+(3070) **Shapes that held, for the next lane.** The order-adders (`Unit::add_*_order`) are one
+shape: a pool object from `OrdersMemManager::get_obj` (`--stub 0x730ac0:1`), a vtable slot of that object
+stubbed with `--vtat pN+0` on the `--answer-win` window, the order record laid as `--place sK`, its inner
+pointer `--place pK+4` with `--wbias +4:0..0x30`, and the objects table through `c0+0x14` / `c0+0x30`
+rows with `--argrange` **inclusive** (`0:-1:1`, not `-1:2`: the first generation read one past the table
+and faulted at `0x5e4cbd`). `Unit::add_patrol_order` (2577 bytes, `port`), `add_cast_order`,
+`add_trade_order`, `add_repair_order` and `add_build_order` are the same family and larger; the family's
+`add_*` pairs with the unit's order list, so one batch can take them with this recipe.
+
+(3071) `sweep_gen.py`'s help does not say that a `--cell-this VA` replaces the
+`--cell-win VA` (naming both is refused: "names a cell --cell-win gives a record of its own"), that
+`--argrange` bounds are inclusive, or that an `iat:0xADDR:N` stub (`timeGetTime`, 0 args) records
+`ecx` as the *stale* register — `m+0x0` for the first call, the previous clock for the second
+(`TurnControl::check_new_frame_playback`'s `m+0x0/<now>` token). Worth a line (Loop 3062).
+
+(3072) `mutate.py --batch`'s file refused a row whose OLD held a newline ("2 field(s) split
+on '\t'"); the break was dropped. Known (parked 3046); the tab-separated rows cannot carry a multi-line
+OLD, and the batch has no escape for it (Loop 3048).
+
+## Parked by the next landing, slot HG — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GV renames this heading `## Parked by item N, <date> — <title>`
+names slot HG renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GW — reserved
+## Parked by the next landing, slot HH — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GW renames this heading `## Parked by item N, <date> — <title>`
+names slot HH renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot GX — reserved
+## Parked by the next landing, slot HI — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot GX renames this heading `## Parked by item N, <date> — <title>`
+names slot HI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot HJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot HJ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

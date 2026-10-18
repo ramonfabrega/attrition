@@ -13145,19 +13145,45 @@ other seat to cast the Informer (the console's seat is player 0 only, `@spell` r
 the unit-type ones (CEO shield, caravan, worker, merchant), the building arm of `cast_sabotage` (Sabotage `0x280`), the caster's leader counters and score
 (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x44 += cost/5`, a captain target only), the message and sound. Unit tests in `cast.rs` pin each arm's predicates.
 
-## 116. Reserved for the next item on the rules track
+## 116. Chapter ninety-two — Sabotage's building arm and its refused unit arm (run911)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** DECISIONS 56 §3, parked 2992: Sabotage (`0x280`) and Pilfer (`0x276`) refused in `spell_valid_target`, and `cast_sabotage`'s building arm was
+unbuilt. Read `is_valid_target@006763c0` and `cast_sabotage@006720e0` end to end. **Sabotage**: a unit target needs objmask `0x200000` (`VEHICLE`) when the craft
+lacks `b` (it is `fcm`), so a foot soldier is refused; a building passes on `c`. **Pilfer**: an active building with object flag `0x20` (a city). **Building arm**:
+`dmg = hits_left / 2`, floored at `COMMANDO_MIN_DAMAGE` (200, `rules.xml`), taken as `take_damage(dmg, 0, dtype 3, -1, attrition 1, ..)`; the `this->field_4 == 0x4d/0x4b`
+tests compare a `SpellType`'s own index (`0x280`) and never match, so the Commando's floor always applies. Pilfer's cast (`FROM None`, `PREQ0 Disable`) cannot be
+given to any unit, so nothing stages it. **Disk could not answer**: no dump held a Sabotage cast on a building (run246 refused a Pilfer on a Barracks only).
 
-## 117. Reserved for the next item on the rules track
+**Staging** (`tools/gamelog/golden/chapter92.cmd`, 15 lines, `RON_STAGE=ch76:chapter92:1200`): arm 1 — four Commandos `0/6`..`0/9` at one who=1 Barracks `1/2006`
+(a Farm cannot be `add`ed; a Stockade's border bleeds the lone Commando dead mid-cast, found on the walk); arm 2 — Commando `0/10` at the Hoplite `1/6`.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What the original does** (run911, 1,201 frames, seed 12345, 263 s): the four blows land on 1,200 hits as 600, 300, 200 and the last 100, the Barracks dying on the fourth;
+the Hoplite is refused on issue. **Ours agrees on every block bar the 11 standing `form` rows (`WANT_CH92`) on the first try**: word 1200, `ch92` closed. Value diff on the
+word's frame: the widening is whole (457,673 record rows), so every Barracks `damage` row agrees.
+
+**What the diff backs, by mutation** (`tools/mutate.py`, clean tree): the building arm dropped, the vehicle test made true, and the floor removed each fail
+`chapter_ninety_two_s_window_is_widened_whole`. Coverage window 850–856.
+
+**Not established**: Pilfer's validity arm and cast (no unit can cast it), Sabotage on a vehicle (`dtype` 3, the boom), the dead-target refund arm, the caster's leader
+counters and score (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x818`, `+0x44 += cost/5`: this crate carries none and the dump's `LEADERS=2` prints none of them), the message and the sounds.
+
+## 117. Chapter ninety-three — Sabotage on a vehicle, the boom (run913)
+
+**The booking.** DECISIONS 56 §3: `cast_sabotage`'s unit arm for a vehicle (`dtype` 3), built by item 2994 (`cast_sniper_unit(v, 3)`, `is_valid_target`'s `0x200000` test)
+and never staged. **Disk could not answer**: no dump held a Sabotage cast on a unit.
+
+**Staging** (`tools/gamelog/golden/chapter93.cmd`, 10 lines, `RON_STAGE=ch76:chapter93:1200`, walked by `stage_walk`): a who=1 Barracks at (80,80) as chapter 92's border, two
+Commandos `0/6`, `0/7` and two who=1 **Supply Wagons** `1/6`, `1/7` (objmask `VC`, unarmed) a few tiles off. **Two walks failed first**: a Tank (`VTAU`) shoots the Commando
+dead before the cast ends (three tiles or ten), and a wagon at (134,100) is a 150-frame walk that the border bleed (12 hp / 25 frames, parked 3017) does not outlast.
+Walked: the wagons die on 794 and 853, the Commandos at 90 hp.
+
+**What the original does** (run913, 1,201 frames, seed 12345, 583 s): ours agrees on every block bar the same 11 standing `form` rows (`WANT_CH93`) on the first try: word
+1200, `ch93` closed. Widening whole (340,258 record rows, 109,480 leader rows).
+
+**What the diff backs, by mutation**: the vehicle test of `is_valid_target`'s `0x280` arm made false fails `chapter_ninety_three_s_window_is_widened_whole`. Coverage window 851–857.
+
+**Not established**: the caster's leader counters and score on a killed captain (`+0xa58`, `+0xa5a`, `+0x80c`, `+0x44 += cost/5`), the message and sound, a Tank-class target
+(the Commando did not live to cast), the dead-target refund arm.
 
 ## 118. Reserved for the next item on the rules track
 

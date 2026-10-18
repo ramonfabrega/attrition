@@ -78,10 +78,14 @@ mod region_is_coast;
 mod region_num_coasts;
 #[path = "region_release.rs"]
 mod region_release;
+#[path = "region_walk_data.rs"]
+mod region_walk_data;
 #[path = "regions_concat.rs"]
 mod regions_concat;
 #[path = "regions_fix_all_borders.rs"]
 mod regions_fix_all_borders;
+#[path = "regions_get_num_sea.rs"]
+mod regions_get_num_sea;
 #[path = "regions_walk_data.rs"]
 mod regions_walk_data;
 #[path = "repair_order_get_type.rs"]
@@ -124,6 +128,8 @@ mod river_section_out_compute_vert_height;
 mod rivers_out_get_name;
 #[path = "rivers_walk_data.rs"]
 mod rivers_walk_data;
+#[path = "roads_generate.rs"]
+mod roads_generate;
 #[path = "roads_out_fill_cache.rs"]
 mod roads_out_fill_cache;
 #[path = "roads_out_get_name.rs"]
@@ -136,6 +142,10 @@ mod roads_pieces_rot_byte;
 mod roads_road_added;
 #[path = "roads_road_cleared.rs"]
 mod roads_road_cleared;
+#[path = "roads_scan_and_kill_straggled_tcoord.rs"]
+mod roads_scan_and_kill_straggled_tcoord;
+#[path = "search_valid_search.rs"]
+mod search_valid_search;
 #[path = "search_walk_data.rs"]
 mod search_walk_data;
 #[path = "setup_build_leader.rs"]
@@ -144,6 +154,8 @@ mod setup_build_leader;
 mod setup_get_starting_citizens;
 #[path = "setup_init_wild_life.rs"]
 mod setup_init_wild_life;
+#[path = "signposts_add.rs"]
+mod signposts_add;
 #[path = "signposts_cur_name.rs"]
 mod signposts_cur_name;
 #[path = "signposts_cur_x.rs"]
@@ -156,12 +168,18 @@ mod signposts_get_num;
 mod signposts_head;
 #[path = "signposts_next.rs"]
 mod signposts_next;
+#[path = "sort_b.rs"]
+mod sort_b;
+#[path = "sort_c.rs"]
+mod sort_c;
 #[path = "special_anim_order_walk_data.rs"]
 mod special_anim_order_walk_data;
 #[path = "special_data_get_radius.rs"]
 mod special_data_get_radius;
 #[path = "special_walk_data.rs"]
 mod special_walk_data;
+#[path = "specials_data_find_special.rs"]
+mod specials_data_find_special;
 #[path = "spell_type_cast_blow_tread.rs"]
 mod spell_type_cast_blow_tread;
 #[path = "spell_type_cast_depopulate.rs"]
@@ -220,12 +238,16 @@ mod sub_object_refresh_z;
 mod sub_object_set_new_location;
 #[path = "sub_object_set_type.rs"]
 mod sub_object_set_type;
+#[path = "sub_object_swap_team.rs"]
+mod sub_object_swap_team;
 #[path = "sub_object_time.rs"]
 mod sub_object_time;
 #[path = "subobject_is_active.rs"]
 mod subobject_is_active;
 #[path = "subobject_swap_team.rs"]
 mod subobject_swap_team;
+#[path = "supplies_find_supply.rs"]
+mod supplies_find_supply;
 #[path = "supply_data_get_radius.rs"]
 mod supply_data_get_radius;
 #[path = "supply_deplete.rs"]
@@ -274,6 +296,8 @@ mod terrain_list_walk_data;
 mod terrain_map_cancel_button_enable;
 #[path = "terrain_map_get_terrain_type.rs"]
 mod terrain_map_get_terrain_type;
+#[path = "terrain_map_map_change_river.rs"]
+mod terrain_map_map_change_river;
 #[path = "terrain_map_on_left_up.rs"]
 mod terrain_map_on_left_up;
 #[path = "terrain_map_on_mouse_leave.rs"]
@@ -286,6 +310,8 @@ mod terrain_map_remove_feature;
 mod terrain_map_river_point;
 #[path = "terrain_map_start_river.rs"]
 mod terrain_map_start_river;
+#[path = "terrain_object_placed.rs"]
+mod terrain_object_placed;
 #[path = "terrain_oil_gain_tech.rs"]
 mod terrain_oil_gain_tech;
 #[path = "terrain_oil_lose_tech.rs"]
@@ -294,6 +320,8 @@ mod terrain_oil_lose_tech;
 mod terrain_oil_remove_rocky_patch;
 #[path = "terrain_out_get_name.rs"]
 mod terrain_out_get_name;
+#[path = "terrain_refresh_good_z.rs"]
+mod terrain_refresh_good_z;
 #[path = "terrain_vis_get_verts_per_bucket.rs"]
 mod terrain_vis_get_verts_per_bucket;
 #[path = "terrain_vis_invalidate_fog_wcoord.rs"]
@@ -336,10 +364,18 @@ mod tribe_set_pseudonym;
 mod tribe_walk_data;
 #[path = "tribe_walk_rules_data.rs"]
 mod tribe_walk_rules_data;
+#[path = "tribes_find.rs"]
+mod tribes_find;
 #[path = "tribes_walk_data.rs"]
 mod tribes_walk_data;
+#[path = "turn_control_check_new_frame_playback.rs"]
+mod turn_control_check_new_frame_playback;
+#[path = "turn_control_check_new_frame_solo.rs"]
+mod turn_control_check_new_frame_solo;
 #[path = "turn_control_compute_next_turn_solo.rs"]
 mod turn_control_compute_next_turn_solo;
+#[path = "turn_control_end_cannon_time.rs"]
+mod turn_control_end_cannon_time;
 #[path = "turn_control_get_delta_percent.rs"]
 mod turn_control_get_delta_percent;
 #[path = "turn_control_get_frame_timing.rs"]
@@ -366,6 +402,8 @@ mod turn_control_speed_down;
 mod turn_control_speed_up;
 #[path = "turn_control_walk_data.rs"]
 mod turn_control_walk_data;
+#[path = "type_backup.rs"]
+mod type_backup;
 #[path = "type_bonus.rs"]
 mod type_bonus;
 #[path = "type_build.rs"]
@@ -374,10 +412,16 @@ mod type_build;
 mod type_data_avail;
 #[path = "type_data_can_pay_cost.rs"]
 mod type_data_can_pay_cost;
+#[path = "type_data_count_discovered.rs"]
+mod type_data_count_discovered;
+#[path = "type_data_get_abbrev_parsed.rs"]
+mod type_data_get_abbrev_parsed;
 #[path = "type_data_get_kill_value.rs"]
 mod type_data_get_kill_value;
 #[path = "type_data_get_limiting_resource.rs"]
 mod type_data_get_limiting_resource;
+#[path = "type_data_get_score_value.rs"]
+mod type_data_get_score_value;
 #[path = "type_data_is.rs"]
 mod type_data_is;
 #[path = "type_data_is_age_type.rs"]
@@ -454,6 +498,8 @@ mod type_unpay_cost;
 mod type_walk_rules_data;
 #[path = "type_wonder.rs"]
 mod type_wonder;
+#[path = "types_object_key.rs"]
+mod types_object_key;
 #[path = "types_walk_data.rs"]
 mod types_walk_data;
 #[path = "types_walk_rules_data.rs"]

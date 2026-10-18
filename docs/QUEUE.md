@@ -19,11 +19,11 @@ seven stay; `docs/audit/2026-10-17-fable-pass-39.md`.*
 
 - **Words**: every pair closed (the peace pair at 6822, 2864). The AI word is the battery's `EastIndiesGermanTier3`
   (DECISIONS 72): 576 → 5577 (2931) → 6585 (2956) → 12815 (2974), as 2997; it stays on its lobby until it closes (DECISIONS 77 (vii)).
-  Chapters 86–91 closed; 92 is 2994. Census 1224 → 1329 of 3611. Battery 6566 / 2974 / 176, a gate floor now.
-- **Lanes: four landings** (2976 `docs/NATIONS.md`; 2959 Census → 1329; 2971 chapter 91; 2974 the word 6585 → 12815, parked
-  2995–2996). 2997 the AI word's (Opus 5.5 medium, run 912); 2994 the rules track's (Sonnet 5.5 medium, run 911); refilled
-  only while landings + live lanes < 20. Next 2998, run 913 (Astra 900–909). Pools: GOLDEN §117–120, AI §245–247, park GU–GX.
-- **Fable backlog: 11 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989).
+  Chapters 86–93 closed; 94 is 3067. Census 1224 → 1444 of 3611. Battery eight lobbies (2975), 0 to 9130, median 1008, a gate floor.
+- **Lanes: nineteen landings** (2976 NATIONS.md; 2959, 2966, 2990, 3004, 3008, 3014, 3024, 3030, 3038, 3044, 3049, 3058,
+  3064 Census → 1444; 2971, 2994, 3018 ch91–93; 2974 6585 → 12815; 2975 five lobbies). 2997 the AI word's (Opus 5.5 medium,
+  run 912; cleared at DEEP, 12836 in-lane); twenty with it; 3067, 3068, 3078 wait for the next tranche. Next 3082, run 915 (Astra 900–909). Pools: GOLDEN §119–120, AI §245–247, park HG–HJ.
+- **Fable backlog: 25 Loop items** (1570, 1725, 2003, 2899, 2948, 2958, 2973, 2983, 2984, 2987, 2989, 3002, 3003, 3007, 3012, 3013, 3022, 3023, 3037, 3043, 3048, 3057, 3062, 3063, 3077).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,20 +33,19 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: EastIndiesGermanTier3 w12815 of 13,519
-Census: simulation backed 1329 of 3611
+Census: simulation backed 1444 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed · ch71 closed · ch72 closed · ch73 closed · ch74 closed · ch75 closed · ch76 closed · ch77 closed · ch78 closed · ch79 closed · ch80 closed · ch85 closed · ch86 closed · ch87 closed · ch88 closed · ch89 closed · ch90 closed · ch91 closed · ch92 closed · ch93 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the fortieth tranche from `docs/QUEUE.md`'s handoff (commander, Opus): spawn the queue's five lanes —
-2974 (`claude-opus-5-5[1m]`, `--effort medium`, the AI word), 2971, 2975, 2976 and 2959 (`claude-sonnet-5-5[1m]`,
-`--effort medium`; 2959's brief `--kind sweep`) — off the pass's gate commit; arm `lanewait.py`; refill only while
-landings + live lanes < 20; stop at twenty.**
+**Opener: continue the fortieth tranche from `docs/QUEUE.md`'s handoff (commander, Opus): nineteen landings booked; one
+lane live — `att-2997` (Opus 5.5); arm `lanewait.py` on them;
+merge, book, refill while landings + live lanes < 20; the whole gate every third landing; stop at twenty.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2997 the AI word's (Opus); 2975, 2966, 2990 and 2994 (Sonnet). The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
+2997 the AI word's (Opus); 3067, 3068 and 3078 the next tranche's. The battery word is the AI's — lower map first — East Indies (Germans), at 12815. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 2997. **The battery word, 12815 of 13519 (`EastIndiesGermanTier3`, East Indies):
@@ -58,36 +57,29 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     parts in 6837..12808, which no dump holds: a windowed capture or a
     bisection, run 912. Unstarted. AI §244.
 
-2975. **Five held-out lobbies minted** (DECISIONS 77 (ii), 61 §6; `docs/AI.md`
-    §125, `diff::battery::BATTERY`): captures only, never debugged against
-    — each a nation no dump holds (§125's list) at difficulty 2, 3 or 4 on
-    Great Sahara, Great Lakes or East Indies (maps 7, 14, 18), no two
-    sharing a nation or a tier on a map; a start sibling and a long trace of run888's shape (110 s each);
-    its first try pinned as count and sequence with the draw delta in
-    §125's table. Runs 895–899, pool lanes in parallel. Unstarted. Sonnet.
+3067. **Chapter ninety-four: the next chapter no capture reaches**
+    (DECISIONS 56 §3; GOLDEN §13, §14a; 3018 closed chapter 93 on run913
+    to 1200, Sabotage on an unarmed vehicle, parked 3065): the order
+    family's next unreached arm by what a failure would teach, or
+    Sabotage on an armed vehicle (parked 3065: the Tank shoots the lone
+    Commando first, so a cast staged out of its reach), run 914.
+    Unstarted. GOLDEN §118.
 
-2994. **Chapter ninety-two: Sabotage's and Pilfer's refused arms**
-    (DECISIONS 56 §3; 2971 closed chapter 91 on run894 to 1200, the
-    Sniper's kill through `cast_sabotage`'s unit arm, parked 2991–2993):
-    Sabotage `0x280` and Pilfer `0x276` refuse in `spell_valid_target`
-    (SEAM), and `cast_sabotage`'s building arm and leader counters
-    (`+0xa58`, `+0xa5a`, `+0x80c`) are unbuilt (parked 2992); the arms
-    read first, run 911 only when no packet answers. Unstarted. GOLDEN §116.
+3078. **The sweep's next shape batch: what the harvests read and did not
+    build** (DECISIONS 63 (iv); the score `Census:` 1434 of 3611; parked
+    3042, 3060, 3073): `Army::is_engaged` and `Caravans::new_danger`
+    (register arguments), `ObjectsData::find_dock` (nine arguments),
+    `ObjectData::num_aircraft_here` and `can_carry` (the `is`-slot
+    compare), `ObjectTypeData::get_wonder_value`, `BuildData::show_later_tech`
+    (recursive), `Group::set_up_insert`; `UnitData::get_attrition`'s `f32`
+    as the original's exact rational, never a float. Unstarted. `--kind sweep`.
 
-2990. **The sweep's next shape batch: the rest of `process_*` and 2964's
-    list** (DECISIONS 63 (iv); the score `Census:` 1329 of 3611; parked
-    2986, 2964): `rename_city` (virtual slot 0xac), `build` (its own
-    `GameLog::say`), `board_ship` (the gather shape), `flight`, `attack`,
-    `siege_attack`, `move_near`, `sell`, `trade` and the rest of 2986;
-    then `find_city`, `find_city_at`, `poor_target`, `Tribes::find`. Unstarted. `--kind sweep`.
-
-2966. **The sweep's next harvest batch: ten never-backed simulation
-    functions a built shape holds** (DECISIONS 63 (iv), 73; the score
-    `Census:` 1319 of 3611): off the base's `census.py --unbacked`
-    re-read at each `ccc update`, each generated by `sweep_gen.py` as it
-    stands, none the shape lane's (the `process_*` bodies, 2959's, Loop
-    2926); a function no built shape holds parks for the shape lane
-    (2964). Unstarted. `--kind sweep`.
+3068. **A harvest batch: the order-adders' family** (DECISIONS 61 §5;
+    the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,
+    `add_cast_order`, `add_trade_order`, `add_repair_order`,
+    `add_build_order` by 3064's recipe (parked 3070), then ten more off
+    `--claimed` the live sweep lanes' trees; never a `process_*`.
+    Unstarted. `--kind sweep`.
 
 ## How to maintain this file
 
