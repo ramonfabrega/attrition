@@ -8455,3 +8455,37 @@ fn relics_take_a_third_off_a_research_job() {
     assert_eq!(sim.tech_time(0, monarchy), 67 * plain / 100);
     assert_eq!(sim.tech_time(1, monarchy), plain, "and only its holder's");
 }
+
+/// **A decoy counts for neither side of the capture tally** (item 3318,
+/// `docs/AI.md` §264): `check_capture@006276a0`'s object loop skips a unit
+/// whose `unit_masks & 1` is set. Two hoplites against the base of 2 do not
+/// take a city at zero, and a third that is a decoy does not tip it —
+/// Great Sahara's capital fell eight frames early to who=1's decoy `1/104`.
+#[test]
+fn a_decoy_does_not_count_in_the_capture_tally() {
+    let setup = |decoy: bool| {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+        let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+        let bd = &mut sim.buildings[b];
+        bd.damage = bd.hits;
+        bd.sync_health();
+        sim.frame = 1000;
+        let hs: Vec<usize> = (0..3)
+            .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+            .collect();
+        sim.units[hs[0]].decoy = decoy;
+        (sim, b, hs[2])
+    };
+    let (mut sim, b, h) = setup(false);
+    assert!(
+        sim.check_capture(b, h),
+        "three hoplites against the base of 2"
+    );
+    let (mut sim, b, h) = setup(true);
+    assert!(
+        !sim.check_capture(b, h),
+        "a decoy among them: two against two holds"
+    );
+}

@@ -41,9 +41,13 @@ pub(crate) const SPANISH: Lobby = Lobby {
     // run958e's block 14376 on both sides (`epoch[3]` 3; ours was 2, its job
     // at 34500 of 35000). On 22692, eight frames from the game's end, ours
     // draws 19, theirs 16; index 16 is ours `Farms::inc_time+0x1ae`, theirs
-    // none.
-    count: 22692,
-    sequence: 22692,
+    // none — the human's capital `0/2000` fell to who=1 there, eight frames
+    // early: `check_capture`'s tally counted the decoy `1/104`. With decoys
+    // out of the tally the word moved 22692 → 22700, the game's last frame,
+    // and the close is compared whole on run896b's closing block 22701
+    // (`run896b_spanish_closing_state`).
+    count: 22700,
+    sequence: 22700,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -267,4 +271,119 @@ fn run958e_s_word_frame_is_widened_whole() {
     // standing set alone**, from 14376; the word's block 14383 parts
     // nothing, and the word moved 14382 → 22692, past the window.
     pin_eq!(w.firsts.len(), 28, "run958e with Relics' research arm");
+}
+
+/// The closing state's window: run896b's closing block alone, the game's
+/// last frame 22700 writing it (item 3318).
+pub(crate) const WIDENING_SPANISH_CLOSING: (i64, i64) = (22699, 22702);
+
+/// **The lobby's closing state** (item 3318, DECISIONS 55): run896b — the
+/// draw stream's own capture, `cover=0` — prints the closing block whole.
+/// Walked to it and compared whole, as `run897b_iroquois_closing_state` is.
+#[test]
+fn run896b_spanish_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(SPANISH.long.0),
+        dump(SPANISH.start),
+        trace(SPANISH.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Spanish closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 22701, "the closing block");
+    pin_eq!(e.compared, 166, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3318, the first walk (the word at 22692): 70 units off, one
+    // field-row, six extra, and city `1/2057` (the human's capital, taken)
+    // stamped 22692 against 22700 — the capture eight frames early. With
+    // decoys out of `check_capture`'s tally: 166 units compared on block
+    // 22701, none apart, no building or city field-row, no closing field.
+}
+
+/// run958f: the word 22692's window, blocks 22686 to the game's end at
+/// run958d's detail (item 3318) — Relics' research arm moved the word past
+/// run958e's last block, eight frames from the end.
+pub(crate) const RUN958F: &str =
+    "gamelog-run958f-greatsahara-spanish-diff3-window-22686-22702-guys4.txt";
+
+/// The window: block 22686 through the closing block 22701; the word
+/// 22692's own block is 22693.
+pub(crate) const WIDENING_SPANISH_FRAME_22692: (i64, i64) = (22686, 22701);
+
+pub(crate) fn spanish_frame_22692_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH.start],
+        true,
+        SPANISH.long,
+        "run958f",
+        &[(RUN958F, WIDENING_SPANISH_FRAME_22692.0)],
+        WIDENING_SPANISH_FRAME_22692,
+        1,
+        &[22693],
+        true,
+    )
+}
+
+#[test]
+fn run958f_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_frame_22692_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 16, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3318: 3065 keys on the first build, from block 22693: the
+    // human's capital `0/2000` taken in ours on 22692 (`city_num` 0 against
+    // 1, its citizens' orders gone, `0/2001`'s damage 800 against 0) —
+    // `check_capture`'s tally counted who=1's decoy `1/104` at 1897 of
+    // 1920, which the original leaves out (`unit_masks & 1`). Without it the
+    // window parts the standing set, the newborn `1/136`, `1/138` and
+    // `1/141`'s `g.angle[0]` (`Unit::init`'s 0x55555555 against 0, parked
+    // with the Iroquois'), and on the closing block 22701 alone who=0's
+    // `defense` (0 against −1) and `1/2024`'s `queued` (1 against 0), the
+    // game's end (park KJ).
+    pin_eq!(w.firsts.len(), 33, "run958f with decoys out of the tally");
 }
