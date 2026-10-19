@@ -3795,6 +3795,15 @@ merge): after a merge, `zsh tools/check.sh test …` exited 0 on a `rondata` com
 is not cargo's, and a worker that reads the exit and not the `test result:` lines reads green. Candidate: `check.sh`
 carries cargo's exit, made to fail first on a crate that does not compile. One reach.
 
+(3328) **A journal's "for the Loop" line holds the lane gate red, and only the commander can file it** (3322's done
+line, and its journal's method note, filed at its merge): `release_gate.py`'s `COMMANDERS_LINES` forgives the journal
+quote (3277) but not `a_journal_s_loop_line_is_filed_or_says_none`, so 3314's lane gate exited 1 on its Loop line
+alone, 3318 filed its own as 3318f to get past it, and 3322 wrote `none` and moved its note out of the heading. The
+note itself: when a dump shows a blow larger than ours with every term of `get_damage` agreeing, scan the packet for
+live `Ammo` bound for the target before reading formulas (the second round was a closed decoy's; no dump prints
+ammo). Candidates: the guard joins `COMMANDERS_LINES`, made to fail first on a journal with an unfiled line; the note
+a brief row. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-fourth tranche's
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
@@ -8249,13 +8258,9 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KL — reserved
+## Parked by item 3322, 2026-10-19 — the Romans' closing state, a closed decoy's last round
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the word closed (`docs/AI.md` §265).
 
 ## Parked by item 3326, 2026-10-19 — the Greeks research faster and cheaper, a Library at a third, the Colossus' cap; the Greek word at the long's end
 
