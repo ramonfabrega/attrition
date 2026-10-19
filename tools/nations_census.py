@@ -231,7 +231,8 @@ ROSTER = ["Aztecs", "Maya", "Inca", "Bantu", "Nubians", "Greeks", "Romans", "Egy
           "Japanese", "Koreans", "Mongols", "Iroquois", "Lakota", "Americans", "Indians",
           "Dutch", "Persians"]
 LOBBY = {7: "`GreatSaharaEgyptianTier4` (map 7, tier 4)", 12: "`EastIndiesGermanTier3` (AI word, tier 3)",
-         18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (map 18, tier 4)",
+         18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (AI word, tier 4)",
+         21: "`EastIndiesIndianTier2` (map 18, tier 2)",
          13: "`GreatLakesRussianTier2` (map 14, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
          9: "`GreatSaharaSpanishTier3` (AI word, tier 3)", 5: "`GreatSaharaGreekTier1` (AI word, tier 1)",
          15: "`GreatSaharaJapaneseTier1` (map 7, tier 1)",

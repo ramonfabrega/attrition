@@ -1383,15 +1383,25 @@ excess = bucket[t] - start
 if excess > 0:
     rate = rate + (DUTCH_INTEREST * excess / 100) * 16
     rate = min(rate, DUTCH_INTEREST_CAP * 16 + resource_cap[t])
-rate = min(rate, 16000)
+rate = min(rate, 0x3e70)    # 15984, CAP_CEILING × 16
 ```
 
 So the Dutch earn interest on savings above what they started with, capped
 twice — once by `DUTCH_INTEREST_CAP` above the ordinary commerce cap, and again
-by a flat 16000 sixteenths (a thousand a rate) that exists **only inside this
+by a flat `0x3e70` = 15984 sixteenths (999, the knowledge ceiling; "16000" in
+an earlier draft, amended by item 3329) that exists **only inside this
 branch**. Nobody else in the game is subject to it. `start` is the game's
 starting amount, scaled by the starting-resources setting in a team game and by
 `CTW_NOMAD_STARTING_RES_X` for a Conquer-the-World nomad start.
+
+**Built, item 3329** (`economy::pay`; `Holdings::dutch`, `Holdings::starting`
+filled from `Sim::starting_good`, whose Barbarians-at-the-Gates arm is the
+"team game" scale above). Test
+`a_dutch_stockpile_past_its_grant_earns_interest_past_the_cap`; **diff-backed**:
+run963b's block 5577 had the Dutch AI's `bucket` and `income` apart on four
+goods (wealth `income` 880 ours against 976), and all agree through 5834 with
+it; the Dutch word moved 5583 → 5782 on it (`docs/AI.md` §267). The CtW arm
+is cut with CtW.
 
 ### Escrow
 

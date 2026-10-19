@@ -9978,6 +9978,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3318,
         Some(crate::diff::spanish_word::WIDENING_SPANISH_CLOSING),
     ),
+    // **The battery's fifth word** (item 3329, DECISIONS 72, 83): frame
+    // 1567, the Dutch lobby's first try, moved 1567 → 23985 by the item.
+    // run915 dumps blocks 0..36 and run917 its setup and closing blocks
+    // only; the word's windows are run963's (1567), run963b's (5583,
+    // 5782), run963c's (22935) and run963d's, which holds 23782 and
+    // 23985 to the trace's last block.
+    (
+        "DUTCH_WORD",
+        crate::diff::dutch_word::DUTCH_WORD,
+        Some("run963d_s_word_frame_is_widened_whole"),
+        3329,
+        Some(crate::diff::dutch_word::WIDENING_DUTCH_FRAME_23782),
+    ),
     // **The battery's third word** (item 3314, DECISIONS 72, 83): frame
     // 576, the Roman lobby's first try. run899 dumps blocks 0..36 and
     // run899b its setup and closing blocks only, so no dump on disk held
@@ -10328,6 +10341,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 20_380,
         endpoint: None,
         window: Some("egyptian_frame_15782_window"),
+    },
+    // **The battery's fifth word** (DECISIONS 72, 83; item 3329): East
+    // Indies, the Dutch at Difficulty 4 — the held-out battery's lowest
+    // lobby after the Greeks, which does not end itself: the long runs to
+    // 24000. It joins the `Battery word` line first; the closed rows
+    // choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesDutchTier4",
+        named: "East Indies (Dutch)",
+        word: crate::diff::dutch_word::DUTCH_WORD,
+        length: 24_000,
+        endpoint: None,
+        window: Some("dutch_frame_23782_window"),
     },
     // **The battery's Japanese word** (DECISIONS 72, 83; item 3331): Great
     // Sahara, the Japanese at Difficulty 1 — the held-out battery's lowest

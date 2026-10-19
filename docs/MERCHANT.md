@@ -539,8 +539,8 @@ unreached** — both maps are 1-v-1 with fog, every capture is AI-side, and no
 leader in any of them has an ally holding merchants.
 
 Three are already carried as seams here or at the code site: §3's
-`detect_unit_collision` ring test, §3's `unit_masks &= ~0x100` clear, and §4
-row 1's Dutch auto-attack arm. Three were not, and are **stated,
+`detect_unit_collision` ring test, §3's `unit_masks &= ~0x100` clear, and
+~~§4 row 1's Dutch auto-attack arm~~ (built, item 3329: see §7). Three were not, and are **stated,
 unimplemented, unreached**:
 
 - **§2.2's `g.ever_seen & (1 << who)`** is substituted in `crate::merchant`
@@ -616,10 +616,15 @@ corpus, where no capture has an ally.
   walking merchant uses is the ordinary arithmetic's `-PACKED` slot, which
   this crate already computes, and the seam bites only once a merchant has
   deployed.
-- **The Dutch merchant's arm.** `think:146` calls `think_merchant` from
+- ~~**The Dutch merchant's arm.** `think:146` calls `think_merchant` from
   inside the auto-attack block, ahead of everything else, for a packed
   `MERCHANTDUTCH`. No capture has one, and this crate does not model the
-  arm.
+  arm.~~ **Built, item 3329** (`orders.rs`, one frame in 32 against the
+  tail's one in 128), **diff-backed**: run963's block 1567, the Dutch AI's
+  `1/2` (`MERCHANTDUTCH`) took its `MOVE_TO` (31800, 37176) on 1566 in
+  theirs and stood idle in ours (`orders.len` 0 against 1); they agree
+  after it (`docs/AI.md` §267). Test
+  `merchant::tests::a_dutch_merchant_searches_one_frame_in_thirty_two`.
 - **`unit_masks &= ~0x100`**, which `unpack_merchant` clears before the
   cast. The bit is `Unit::work` step 3's ("this unit was ordered
   recently"), and nothing here keeps it.

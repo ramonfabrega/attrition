@@ -527,6 +527,11 @@ pub struct Holdings {
     /// `has_tribe_bonus(0x12)`: the Iroquois, whose timber sites pay
     /// `IROQUOIS_FOOD` food a gatherer too ([`iroquois_food`]).
     pub iroquois: bool,
+    /// `has_tribe_bonus(0x16)`: the Dutch, whose stockpile past its
+    /// starting grant earns `DUTCH_INTEREST` percent on the rate ([`pay`]),
+    /// and the grant itself, `game->starting[g]` as `Leader::init` paid it.
+    pub dutch: bool,
+    pub starting: [i32; RESOURCES],
     /// Percentage adjustment to income from the difficulty setting.
     ///
     /// **AI leaders only.** A human earns 100% of their capped rate unless the
@@ -1240,6 +1245,20 @@ pub fn pay(t: &Tuning, ledger: &mut Ledger, h: &Holdings, frame: i64) {
             ledger.over_cap[i] = OverCap::Under;
         }
 
+        // The Dutch interest (`do_gather@006ce450:116`–`147`, item 3329):
+        // every good but knowledge, on the stockpile past its starting
+        // grant, `DUTCH_INTEREST` percent in whole resources — added after
+        // the cap, which it may pass by `DUTCH_INTEREST_CAP`, and the whole
+        // held under the ceiling.
+        if h.dutch && r != Resource::Knowledge {
+            let over = ledger.bucket[i] - h.starting[i];
+            if over > 0 {
+                rate += t.dutch_interest * over / 100 * RATE_SCALE;
+                rate = rate.min(t.dutch_interest_cap * RATE_SCALE + cap);
+            }
+            rate = rate.min(CAP_CEILING * RATE_SCALE);
+        }
+
         // Captured before the handicap: the number on screen is the capped
         // rate, not the rate that arrives. On the hardest setting the two
         // differ by a quarter.
@@ -1555,6 +1574,44 @@ mod tests {
         }
         assert_eq!(l.bucket[food], 70);
         assert_eq!(l.bucket[know], 25 * 20);
+    }
+
+    #[test]
+    fn a_dutch_stockpile_past_its_grant_earns_interest_past_the_cap() {
+        // `do_gather@006ce450:116`–`147`: five percent of the stockpile past
+        // the starting grant, in whole resources, after the cap and capped
+        // fifty past it; knowledge earns none.
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.dutch = true;
+        h.starting = [200; RESOURCES];
+        let mut l = Ledger::default();
+        let (food, know) = (Resource::Food.index(), Resource::Knowledge.index());
+        l.rate[food] = 10 * RATE_SCALE;
+        l.cap[food] = 70 * RATE_SCALE;
+        l.rate[know] = 10 * RATE_SCALE;
+        l.cap[know] = CAP_CEILING * RATE_SCALE;
+        l.bucket[food] = 439;
+        l.bucket[know] = 439;
+        pay(&t, &mut l, &h, 1);
+        // 239 over: 5 × 239 / 100 = 11 whole resources.
+        assert_eq!(l.income[food], 21 * RATE_SCALE);
+        assert_eq!(l.income[know], 10 * RATE_SCALE);
+        // A pile at its grant earns nothing.
+        l.bucket[food] = 200;
+        pay(&t, &mut l, &h, 2);
+        assert_eq!(l.income[food], 10 * RATE_SCALE);
+        // A capped rate passes the cap by fifty and no more.
+        l.rate[food] = 100 * RATE_SCALE;
+        l.bucket[food] = 20_000;
+        pay(&t, &mut l, &h, 3);
+        assert_eq!(l.income[food], (70 + 50) * RATE_SCALE);
+        // And a leader without the power earns none.
+        h.dutch = false;
+        l.bucket[food] = 439;
+        l.rate[food] = 10 * RATE_SCALE;
+        pay(&t, &mut l, &h, 4);
+        assert_eq!(l.income[food], 10 * RATE_SCALE);
     }
 
     #[test]

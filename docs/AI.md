@@ -23570,12 +23570,65 @@ ship as 0 and are not carried; `GREEK_SCHOLARS_FAST` has no reader. The Colossus
 (`Cities::capture_city`'s `calc_pop_cap`) rides `sync_pop_cities`' recompute and is unexercised by any capture. `battery_measure` shows the Chinese at 24000 and the Turks at 14991 above their pins: earlier landings', the
 pass's to re-pin.
 
-## 267. Reserved for the next item on the AI track
+## 267. The Dutch: the merchant's leg, the caravan's art, interest, the ship discount, a library's clock and the Colossus (2026-10-19, item 3329)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Score.** The battery's fifth word, `EastIndiesDutchTier4` (Nubians against the Dutch at Difficulty 4, East Indies;
+run915, run917), promoted out of the battery: **1567 → 1769 → 5583 → 5782 → 22935 → 23782 → 23985 of 24000**. Every other
+lobby's `first_parting` and `battery_floors_hold` held on each build. `EastIndiesIndianTier2` (run962, run962b) is
+minted into `BATTERY` in its place: first try 221 / 221.
+
+**Build 1, 1567 → 1769: the Dutch merchant's leg of `Unit::think`'s auto-attack arm** (`think@005f6e40:145`;
+`docs/MERCHANT.md` §7). A packed `MERCHANTDUTCH` (`is(0x3e, 1)`) asks `think_merchant` one frame in 32, where the
+tail's is one in 128. Value diff, run963's block 1567: `1/2` `orders.len` 0 ours against 1, `orders_x` 40344 against
+31800 (its `MOVE_TO` (31800, 37176) on 1566, `(2 + 1566) & 31 == 0`).
+
+**Build 2, 1769 → 5583: unit pieces bound by `GRAPH` without case** (`rondata::artdata::graph_types`). The Dutch
+caravan's `GRAPH` is `ArmedCaravan` and its art `ARMEDCARAVAN-…`. Value diff, run963's block 1765: the newborn `1/14`
+(`CARADUTCH`) `g.gpiece[0]` 0 against 10, `g.gpiece[1]` 0 against 12682, `g.end_time[0]` 33 against 31.
+
+**Build 3, 5583 → 5782 → 22935: the Dutch interest and the Dutch ship discount.** Interest
+(`Leader::do_gather@006ce450:116`–`147`, `docs/ECONOMY.md` "Dutch interest"): run963b's block 5577 had who=1's
+`bucket` (food 145 ours against 149, timber 199/218, wealth 63/128, metal 154/155) and `income` (timber 1440/1552,
+wealth 880/976, metal 480/512) apart; all agree through 5834 with it. The ship discount (`TypeData::get_cost:532`–
+`535`) follows the Military block's close, where item 3145 had nested it inside `0 < ahead` (`docs/NATIONS.md`):
+block 5783, the dock `1/2011`'s `DROMON` research `queue[0].cost[0..1]` 60 ours against 54, who=1's `bucket` food
+57/63, timber 69/75. With these, the Dutch per-age hit-point, attack and armour terms (`Unit::update_hits`'s
+`0060eab4`, `ObjectData::attack@006469f0`, `ObjectData::armor@00647db0`; `docs/COMBAT.md` §4): `myhits` 135 on a type
+of 125 for the Classical merchants and caravan, diff-backed in run963b's window; attack and armour by test only.
+
+**Build 4, 22935 → 23782: a library's slots read their clocks before its recursion** (`Build::do_queue@0061e410:100`,
+`:283`–`290`, `:344`; `docs/PRODUCTION.md`). run963c's Library `1/2005` held the Industrial Age (slot 0) and
+Electricity (slot 1). On 22935 Electricity completes in both — Science 4 → 5, a 10% shorter age — and theirs advances
+the age 95300 → 95400 under the old target, finishing it on 22936; ours, walking the slots in reverse and reading the
+age's target after the epoch landed, took 90000 and finished it on 22935. Value diff, block 22936: `1/2005`'s `queued`
+0 ours against 1, who=1's `ages` 5 against 4, `pop` 17 against 13, the oil grant 100 against 0; all agree from 22937.
+
+**Build 5, 23782 → 23985: the Colossus in the population cap** (`Leader::calc_pop_cap@006dc490:89`, `has_wonder(0x20f)`,
+`+ COLOSSUS_POP_CAP`; `Build::activate:1795` calls it for the Colossus; `docs/COSTS.md`). Built here and by item 3326
+(§266) in parallel; the merge keeps 3326's, and ours is gone. This item's evidence is a second lobby's: run963d's block
+23776, who=1's `pop_cap` 150 against 200 (the Colossus `1/2071` built in 23186..23775, which no dump holds), and from
+23779 the tree's make list topped by `NATION_IN_ARMS` at 9999999; both 200 after.
+
+**The word 23985.** Ours 13 draws, theirs 15, at 0: ours `Leader::produce_building+0x1805`, theirs
+`Leader::use_market+0x1ed`. On 23982 theirs buys an `ARTILLERY` (20 timber, 20 metal; block 23983's `bucket`) that ours
+does not; ours has carried `num_units[270]` (`ARTILLERYGERMAN`) −1 and `[271]` (`HOWITZER`) 1 against 0 and 0 since
+before run963c's first block — an upgrade that took a unit off the German variant's count. That is the next item's
+hypothesis, not this one's finding.
+
+**Mutations** (`tools/mutate.py`), each `exit 101`, held: build 1's leg off; build 2's key case-sensitive; the interest
+off; the ship arm back inside `0 < ahead`; each of the hit-point, attack and armour terms zeroed; build 4's slots read
+late; build 5's activation call and its flag, each, before the merge (after it, 3326's activation arm stands
+beside the removed one).
+
+**Captures** (`docs/RUNS.md`): run962, run962b (the Indians), run963 (1561..1818), run963b (5577..5834), run963c
+(22929..23186), run963d (23776..24001). run963c and run963d were launched through `viadriver.sh`: two direct launches
+from this session died in 3.8 s on `nodrv_CreateWindow` (`docs/ORACLE.md`, "The click-free lane needs a window").
+
+**Not established.** The state parts before run963c's window and after run963b's — 5834..22928 is in no dump: on
+22929 the Dutch merchants' figure pieces (`g.gpiece` 2124/14796/27468 ours against 50689 theirs, all three figures),
+who=1's `num_units[270]` −1 and `[271]` 1 (`ARTILLERYGERMAN`, `HOWITZER`; a negative count is ours alone), and `1/201`'s
+`myhits` 172 against 212. None moves a draw before 23782. The Americans' upgrade discount beside the Dutch arm
+(`get_cost:528`–`531`) is not modelled. The interest's `Barbarians at the Gates` and CtW arms are untested.
 
 ## 268. The Japanese: a Farm at half price, a farmer's food at five quarters, and the long's end (2026-10-19, item 3331)
 

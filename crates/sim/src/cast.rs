@@ -220,6 +220,11 @@ impl Sim {
         if self.tuning.iroquois_extra_hits != 0 && self.iroquois_barracks_unit(who, rec) {
             hits = (self.tuning.iroquois_extra_hits + 100) * hits / 100;
         }
+        // The Dutch (`0060eab4`..`0060eb98`, item 3329): `+ ages ×
+        // DUTCH_HP_BONUS` on the Dutch kinds, after the Iroquois and before
+        // the Spy. run963b's merchants `1/1`, `1/2` and caravan `1/14` are
+        // 135 on a type of 125 in the Classical age.
+        hits += self.dutch_ages(who, rec) * self.tuning.dutch_hp_bonus;
         // A Spy's hit points are the upgrade table's entry, not the type's
         // plus a term (`0060eb98`..`0060ebd8`, `docs/AI.md` §160).
         if self.is_spy_type(rec) {
@@ -255,6 +260,43 @@ impl Sim {
             hits += self.tuning.supply_hp_upgrade[level];
         }
         hits
+    }
+
+    /// **The Dutch kinds' age count** (item 3329, `docs/COMBAT.md` §4):
+    /// the owner's `ages` when it has the Dutch power (`has_tribe_bonus
+    /// (0x16)`) and the unit record is one of the three merchant ids
+    /// (`0x3d`, `0x3e`, `400`), a caravan (`is_caravan`, `unit_flags2 &
+    /// 8`) or a supply unit (`is_supply`, `& 0x40`), and is not a
+    /// government hero (`is_gov_hero`, `unit_flags & 0x4000000`, which
+    /// carries `& 0x40` too); 0 otherwise. It is the one predicate of
+    /// `Unit::update_hits@0060e930` (`0060eab4`), `ObjectData::attack
+    /// @006469f0` and `ObjectData::armor@00647db0`, each multiplying it by
+    /// its own constant. The patch gate on the hero exemption (`8 <
+    /// get_patch_version`) is taken as passed: the shipped build is past it.
+    pub(crate) fn dutch_ages(&self, who: Player, rec: usize) -> i32 {
+        let Some(t) = self.unit_types.get(rec) else {
+            return 0;
+        };
+        let kind = matches!(t.type_index, 0x3d | 0x3e | 400)
+            || t.cols.flag2(crate::ai_load::uflags2::CARAVAN)
+            || t.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO);
+        let gov_hero = t
+            .tree
+            .and_then(|i| self.tech_tree.types.get(i))
+            .and_then(|d| d.kind.unit())
+            .is_some_and(|u| u.patriot);
+        match self.tech.get(who as usize) {
+            Some(p)
+                if kind
+                    && !gov_hero
+                    && self
+                        .tech_tree
+                        .has_tribe_bonus(&self.setup, p, crate::ai::tribe::DUTCH) =>
+            {
+                p.ages
+            }
+            _ => 0,
+        }
     }
 
     /// `Unit::update_hits`'s Iroquois predicate (`0060ea36`): tribe bonus

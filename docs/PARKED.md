@@ -3804,6 +3804,12 @@ live `Ammo` bound for the target before reading formulas (the second round was a
 ammo). Candidates: the guard joins `COMMANDERS_LINES`, made to fail first on a journal with an unfiled line; the note
 a brief row. One reach.
 
+(3334) **A click-free capture launched straight from a session dies on `nodrv_CreateWindow`** (3329's "for the Loop"
+line, its parked 3329e, filed at its merge): twice in one lane the launch died in 3.8 s and read as a renderer
+failure (`docs/ORACLE.md`, "The click-free lane needs a window"); `viadriver.sh tools/explore/golden_capture.sh` ran.
+Candidate: `unattended_capture.py` refuses a launch with no window-server connection and names `viadriver.sh`, made
+to fail first on a launch from a bare shell. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-fourth tranche's
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
@@ -8285,13 +8291,24 @@ Nothing parked: the word closed (`docs/AI.md` §265).
   `sync_pop_cities`' recompute, which reads `has_wonder(0x20f)` live; no capture takes a Colossus. Returns when a
   word's frame does.
 
-## Parked by the next landing, slot KN — reserved
+## Parked by item 3329, 2026-10-19 — the Dutch word 1567 → 23985: the merchant's leg, the caravan's art, interest, the ship discount, a library's clock, the Colossus
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3329a) **The Dutch merchants' figures on run963c's 22929** (`docs/AI.md` §267): `1/1`, `1/2`, `1/96`, `1/141`'s
+  `g.gpiece[0..2]` 2124/14796/27468 ours against 50689 for all three figures theirs, and the second figure's `x`, `y`,
+  `track_dx/dy` and `end_time` with them. Apart before the window (5834..22928 is in no dump); no draw moves on them
+  before 23985. Returns when a word's frame reaches a merchant's piece.
+- (3329b) **`1/201`'s `myhits` 172 ours against 212 on 22929** (run963c): 40 is four ages × `DUTCH_HP_BONUS`, and
+  its record carries `type 318` (`MERCHANTFLEET`), so the first hypothesis is a Dutch kind `Sim::dutch_ages` misses —
+  a merchant fleet the original's `is_caravan` (`unit_flags2 & 8`) answers for. Unread; no draw moves on it.
+- (3329c) **The Dutch attack and armour terms are not diff-backed** (`docs/COMBAT.md` §4.1, §4.2): no dump prints an
+  attack or an armour, and no word has moved on them; the hit-point term is (run963b). Returns with a packet of a
+  Dutch merchant's `UnitData::attack` if a word's frame turns on one.
+- (3329d) **The Dutch interest's Barbarians-at-the-Gates arm** (`do_gather:118`–`121`, `Sim::starting_good`'s row-8
+  team-0 scale) is built and in no lobby; the CtW arm is cut. Returns with a lobby that plays that rule.
+- (3329e) **3329's "for the Loop"** (the journal's line): a click-free capture launched straight from a session dies
+  in 3.8 s on `nodrv_CreateWindow` and reads as a renderer failure (twice here, `docs/ORACLE.md`'s "The click-free
+  lane needs a window"); `unattended_capture.py` could refuse a launch with no window-server connection and name
+  `viadriver.sh`. The pass decides.
 
 ## Parked by the next landing, slot KO — reserved
 
