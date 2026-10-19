@@ -212,8 +212,9 @@ impl Sim {
             if std::env::var_os("RON_PROBE_GOODY").is_some() {
                 let (x, y) = (2 * c.x, 2 * c.y);
                 eprintln!(
-                    "PROBE goody f{} u{} cell ({},{}) really [{} {} {} {}] world_is_seen {} item {}",
-                    self.frame, u, c.x, c.y,
+                    "PROBE goody f{} u{} cell ({},{}) seen2 {:?} {:?} ally {} really [{} {} {} {}] world_is_seen {} item {}",
+                    self.frame, u, c.x, c.y, self.world.seen2(x + 1, y + 1), self.world.seen2(x + 1, y),
+                    self.ai.get(who as usize).map_or(0, |a| a.census.ally_mask),
                     self.was_really_seen_fog(x + 1, y + 1, who),
                     self.was_really_seen_fog(x, y + 1, who),
                     self.was_really_seen_fog(x + 1, y, who),
