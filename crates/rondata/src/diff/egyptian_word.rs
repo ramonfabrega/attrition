@@ -44,9 +44,15 @@ pub(crate) const EGYPTIAN: Lobby = Lobby {
     // `get_cost`) — the Hanging Gardens' industry discount
     // (`get_cost:1270`–`1276`, 66%). The word moved 15782 → 15982: ours
     // 495 draws, theirs 450, at 4 ours `Leader::produce_building+0xc99`,
-    // theirs `Build::find_gather_tiles+0x10a`.
-    count: 15982,
-    sequence: 15982,
+    // theirs `Build::find_gather_tiles+0x10a`. There who=1 offered a Farm
+    // theirs refused at `gather_value`'s three-quarters gate: the census's
+    // `gather_slots[0]`, 19 against 20, a second copy of the ledger's
+    // field (`LeaderData +0x8a4`) that the Farm finishing on 15976 never
+    // reached. With the one field, the word moved 15982 → 20031: ours 12
+    // draws, theirs 15, at 4 ours `Animal::do_idle+0x83`, theirs
+    // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`.
+    count: 20031,
+    sequence: 20031,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -229,7 +235,8 @@ fn run967b_s_gap_is_widened_whole() {
 /// run967c: the word 15782's window, blocks 15776..16033 at run967b's
 /// detail (`GUYS=2`; item 3332); run645 prints its setup and closing blocks
 /// only.
-pub(crate) const RUN967C: &str = "gamelog-run967c-greatsahara-egyptian-diff4-window-15776-16033.txt";
+pub(crate) const RUN967C: &str =
+    "gamelog-run967c-greatsahara-egyptian-diff4-window-15776-16033.txt";
 
 /// The window: block 15776 through 16033; the word 15782's own block is
 /// 15783.
@@ -281,6 +288,14 @@ fn run967c_s_word_frame_is_widened_whole() {
     // and the word moved 15782 → 15982: on 15982 who=1's make list carries
     // ours' building 417 (cat 4, city 4, 312960) where theirs' holds 418
     // and Metal Alloys, which theirs researches on 15982 (`tech_frame`)
-    // while ours places the building in city 4.
-    pin_eq!(w.firsts.len(), 276, "run967c with the Hanging Gardens' industry discount");
+    // while ours places the building in city 4. With the census writing
+    // the ledger's `gather_slots` (`plan_strategy:1162`) **36**: the
+    // standing set, the newborns' `g.angle[0]` and the pool and group
+    // lists, and nothing on 15982 — the Farm offers and the make list
+    // agree whole, and the word moved 15982 → 20031, past the window.
+    pin_eq!(
+        w.firsts.len(),
+        36,
+        "run967c with the census's gather slots the ledger's"
+    );
 }

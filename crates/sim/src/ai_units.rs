@@ -1636,7 +1636,7 @@ impl Sim {
             // per pass until `k` reached `make_me`. `docs/AI.md` §42.
             *num_out = k;
             let filled = self.ai[w].census.filled_gather_slots[KNOWLEDGE];
-            let total = self.ai[w].census.gather_slots[KNOWLEDGE];
+            let total = self.ledgers[w].gather_slots[KNOWLEDGE];
             // The multiplier chain is [`scholar_value`], which quotes the
             // listing: **three independent `if`s**, the first and third
             // the same `+0x8c8 < +0x8b0` test, so a city below two thirds

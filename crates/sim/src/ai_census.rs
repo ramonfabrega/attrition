@@ -906,12 +906,19 @@ impl Sim {
             defense += n;
             reg_defense.push((r as usize, n));
         }
-        let cs = &mut self.ai[w].census;
-        // `gather_slots[2]` — wealth — is the one slot the original never
-        // writes: no building gathers it, and the store keeps its old value.
+        // **The census writes the ledger's own array** (item 3332):
+        // `plan_strategy@006b9620:1162`–`1191` stores `local_58` into
+        // `LeaderData +0x8a4`, the one field `Build::activate` and
+        // `Build::close` also move. This crate once kept the census's sum in
+        // a second copy, so a Farm finishing between two censuses reached
+        // the ledger and never the AI's gather gate. `gather_slots[2]` —
+        // wealth — is the one slot the census never writes: no building
+        // gathers it, and the store keeps what the commerce slots made it.
+        let ledger = &mut self.ledgers[w];
         for g in [0, 1, 3, 4, 5] {
-            cs.gather_slots[g] = slots[g];
+            ledger.gather_slots[g] = slots[g];
         }
+        let cs = &mut self.ai[w].census;
         cs.defense += defense;
         for (r, n) in reg_defense {
             cs.reg_defense[r] += n;
@@ -923,10 +930,14 @@ impl Sim {
         let w = who as usize;
         let cities = self.city_num(who);
         let villages = self.village_num(who);
-        let cs = &mut self.ai[w].census;
+        // `+0x8d4`, the ledger's high-water mark, raised to the census's
+        // count (`plan_strategy:1163`–`1167`) — the same field
+        // `Build::activate`'s bonus reads.
+        let ledger = &mut self.ledgers[w];
         for g in [0, 1, 3, 4, 5] {
-            cs.gather_slots_high[g] = cs.gather_slots_high[g].max(cs.gather_slots[g]);
+            ledger.gather_slots_high[g] = ledger.gather_slots_high[g].max(ledger.gather_slots[g]);
         }
+        let cs = &mut self.ai[w].census;
         cs.peasant_high = cs.peasant_high.max(cs.peasants);
         cs.scholar_high = cs.scholar_high.max(cs.scholars);
         cs.caravan_high = cs.caravan_high.max(cs.caras);
@@ -1797,6 +1808,41 @@ mod tests {
         assert_eq!(n.peasant_dist, PEASANT_DIST_NONE);
     }
 
+    /// **One field, three writers** (item 3332): the census rewrites
+    /// `LeaderData +0x8a4` from its walk, and a Farm that finishes before
+    /// the next census reaches the same field through `Build::activate` —
+    /// which is what the AI's three-quarters gather gate reads between
+    /// censuses. An unfinished Farm counts for neither.
+    #[test]
+    fn a_farm_finished_between_censuses_reaches_the_gather_gate() {
+        let mut f = fix();
+        build(&mut f.sim, 1, f.village, 20, 20);
+        build(&mut f.sim, 1, f.farm, 26, 20);
+        let late = f
+            .sim
+            .place_building(1, f.farm, tile_pos(26, 24))
+            .expect("a second farm site");
+        f.sim.census(1);
+        let at_census = f.sim.ledgers[1].gather_slots[0];
+        assert!(at_census > 0, "the finished farm");
+        assert!(!f.sim.buildings[late].active, "the second is a site");
+
+        finish(&mut f.sim, late);
+        let gm = f.sim.buildings[late].gather_max.unwrap_or(0);
+        assert!(gm > 0);
+        assert_eq!(
+            f.sim.ledgers[1].gather_slots[0],
+            at_census + gm,
+            "the gate's field moved with no census"
+        );
+        f.sim.census(1);
+        assert_eq!(
+            f.sim.ledgers[1].gather_slots[0],
+            at_census + gm,
+            "and the census agrees"
+        );
+    }
+
     /// `gather_slots` comes off the buildings, `filled_gather_slots` off
     /// the citizens working them, and each is keyed by the *building's*
     /// type: farm food, woodcutter timber, university knowledge (which only
@@ -1828,11 +1874,12 @@ mod tests {
         f.sim.units[sch].on_map = false;
 
         f.sim.census(1);
+        let slots = f.sim.ledgers[1].gather_slots;
+        assert_eq!(slots[0], 3, "the farm");
+        assert_eq!(slots[1], 5, "the woodcutter");
+        assert_eq!(slots[3], 4, "the university");
+        assert_eq!(slots[2], 0, "wealth is never written");
         let cs = &f.sim.ai[1].census;
-        assert_eq!(cs.gather_slots[0], 3, "the farm");
-        assert_eq!(cs.gather_slots[1], 5, "the woodcutter");
-        assert_eq!(cs.gather_slots[3], 4, "the university");
-        assert_eq!(cs.gather_slots[2], 0, "wealth is never written");
         assert_eq!(cs.filled_gather_slots[0], 3);
         assert_eq!(cs.filled_gather_slots[1], 2);
         assert_eq!(cs.filled_gather_slots[3], 1, "the garrisoned scholar");

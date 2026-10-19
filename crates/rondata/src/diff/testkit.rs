@@ -9911,7 +9911,10 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`run967c_s_word_frame_is_widened_whole`: who=1's Metal Alloys
     // value on the make list, 54000 against 216000: the Hanging Gardens'
     // industry discount). **And 15782 → 15982** on the same window
-    // (who=1's building 417 offered where theirs researches Metal Alloys).
+    // (who=1's building 417 offered where theirs researches Metal Alloys),
+    // **and 15982 → 20031** on it again (the census's `gather_slots`, one
+    // field with the ledger's). 20031 is past run967c's last block, and
+    // its own widening is owed by the item after 3332.
     (
         "EGYPTIAN_WORD",
         crate::diff::egyptian_word::EGYPTIAN_WORD,

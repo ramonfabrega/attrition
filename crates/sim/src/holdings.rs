@@ -967,8 +967,7 @@ mod tests {
         let farm = build(&mut sim, 0, t.farm, 40, 32);
         let wealth = |sim: &mut Sim| {
             sim.assemble_holdings(0);
-            economy::city_rates(&sim.tuning, &sim.holdings[0].cities[0])
-                [Resource::Wealth.index()]
+            economy::city_rates(&sim.tuning, &sim.holdings[0].cities[0])[Resource::Wealth.index()]
         };
         let city = sim.tuning.city_gather[Resource::Wealth.index()] * RATE_SCALE;
         sim.set_tribe(0, 7);
@@ -979,7 +978,11 @@ mod tests {
         assert_eq!(wealth(&mut sim) - city, 2 * RATE_SCALE, "two wealth a Farm");
         let v = spawn(&mut sim, 0, t.citizen, tile_pos(44, 34));
         gather_until_arrived(&mut sim, v, farm);
-        assert_eq!(wealth(&mut sim) - city, 2 * RATE_SCALE, "flat, not per head");
+        assert_eq!(
+            wealth(&mut sim) - city,
+            2 * RATE_SCALE,
+            "flat, not per head"
+        );
         sim.set_tribe(0, 16);
         assert_eq!(wealth(&mut sim), city, "the Koreans' Farm pays no wealth");
     }

@@ -622,8 +622,11 @@ pub struct Ledger {
     pub goody_box_resources: i32,
     /// `LeaderData + 0x8a4`, the dump's `gather_slots`: how many gatherers
     /// the player's finished gather buildings have room for, per resource.
-    /// `Build::activate` adds a building's `gather_max` as it goes active and
-    /// nothing ever takes it back — a razed farm leaves its slot behind.
+    /// `Build::activate` adds a building's `gather_max` as it goes active,
+    /// `Build::close` takes an active one's back, and the AI census
+    /// (`plan_strategy@006b9620:1162`) rewrites every slot but wealth from
+    /// its own walk — three writers of one field, and the AI's gather gate
+    /// reads it between censuses (item 3332).
     pub gather_slots: [i32; RESOURCES],
     /// `LeaderData + 0x8d4`, the dump's `gather_slots_high`: the high-water
     /// mark of [`Ledger::gather_slots`]. It is what decides whether a
