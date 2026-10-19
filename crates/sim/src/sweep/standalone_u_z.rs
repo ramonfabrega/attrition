@@ -178,8 +178,12 @@ mod unit_detect_boat_collision;
 mod unit_die;
 #[path = "unit_do_air_attack_ground.rs"]
 mod unit_do_air_attack_ground;
+#[path = "unit_do_attack.rs"]
+mod unit_do_attack;
 #[path = "unit_do_attack_ground.rs"]
 mod unit_do_attack_ground;
+#[path = "unit_do_attack_neg.rs"]
+mod unit_do_attack_neg;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
 #[path = "unit_do_build.rs"]
