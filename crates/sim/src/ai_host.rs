@@ -1112,13 +1112,18 @@ impl ScriptHost<'_> {
             return NO;
         };
         // `can_queue`: the price through the building, then `could_queue`.
+        // `BuildData::can_queue@0062da00` asks `can_pay_cost(who, −1, city,
+        // 1)`, the escrow flag set, so the **whole** bucket counts and the
+        // reservation does not hold a research back (item 3343: the Bantu
+        // word's Classical Age on 2776, 250 food against a purse of 286
+        // with 100 escrowed, `docs/AI.md` §276).
         let charges = self.sim.tech_price(w, t);
-        let paid = cost::can_pay(
+        let paid = cost::affordable(
             &charges,
             &self.sim.ledgers[w as usize],
             &self.sim.holdings[w as usize].available,
-            1,
-        );
+            true,
+        ) >= 1;
         if !paid || !self.sim.buildings[b].queue.has_room() {
             return NO;
         }

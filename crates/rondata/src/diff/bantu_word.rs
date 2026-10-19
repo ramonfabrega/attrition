@@ -33,8 +33,13 @@ pub(crate) const BANTU: Lobby = Lobby {
     // (`BANTU_UNITS_MOVE`, citizens 25 → 31): 4 → 3184, ours 34 draws,
     // theirs 32, at 30 ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
     // theirs `Farms::inc_time+0x1ae`.
-    count: 3184,
-    sequence: 3184,
+    // Item 3343, a script's research priced against the whole bucket
+    // (`BuildData::can_queue`'s `can_pay_cost(…, 1)`; the Classical Age on
+    // 2776), with a group's `queue_up` drawing the escrow down: 3184 →
+    // 4376, ours 226 draws, theirs 93, at 53 ours
+    // `Build::find_gather_tiles+0x10a`, theirs `GameDaemon::calc_market+0x54`.
+    count: 4376,
+    sequence: 4376,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
