@@ -621,7 +621,6 @@ impl Sim {
             sea_map: self.world.sea_map(),
         };
         let mut val = mul(weight_total(&ai, &facts), base);
-        if std::env::var("RON_PROBE_TV").is_ok() && self.frame > 15500 && ["Metal Alloys","Fortification","Medicine"].contains(&self.tech_tree.types[t].name.as_str()) { eprintln!("TVW {} t={} ai={:?} wt={} cities={} full={} my={} other={} min={} wars={} sea={} base={}", self.frame, t, ai, weight_total(&ai, &facts), facts.cities, facts.full_cities, facts.my_team_terr, facts.other_team_terr, facts.min_other_team_terr, facts.active_wars, facts.sea_map, base); }
 
         if std::env::var("RON_PROBE_TV").is_ok() && self.tech_tree.types[t].name == "Metal Alloys" && self.frame > 14000 { eprintln!("TV {} who={} {} val={} base={}", self.frame, who, "weights", val, base); }
 
@@ -780,7 +779,6 @@ impl Sim {
             val /= 2;
         }
         let income = self.check_income(who, t, 0x400, None, no_wonder, -1, 1, 0);
-        if std::env::var("RON_PROBE_TV").is_ok() && self.tech_tree.types[t].name == "Metal Alloys" && self.frame > 15500 { eprintln!("TVA {} price={:?} bucket={:?} escrow={:?} avail={:?} n={}", self.frame, self.type_price(who, t), self.ledgers[w].bucket, self.ledgers[w].escrow, self.holdings[w].available, self.type_affordable(who, t, true)); }
         val = income_scaled(income, val);
 
         if std::env::var("RON_PROBE_TV").is_ok() && self.tech_tree.types[t].name == "Metal Alloys" && self.frame > 14000 { eprintln!("TV {} who={} {} val={} base={}", self.frame, who, format!("income={}", income), val, base); }
