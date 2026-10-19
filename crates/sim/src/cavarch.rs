@@ -95,10 +95,6 @@ impl crate::Sim {
     /// `cavarch_fight`'s `max_range` swap for it. No shipped `v` type
     /// carries `k`.
     pub(crate) fn cavarch_head(&mut self, u: usize, frame: i64) {
-        if std::env::var_os("RON_PROBE_CAV").is_some() && (20184..=20188).contains(&frame) && self.units[u].owner == 1 && self.units[u].index == 68 {
-            let attacking = self.action_of(u).is_some_and(|i| matches!(self.units[u].orders[i].body, Body::Attack(_)));
-            eprintln!("PROBE cav f{frame} fires {} atk {} attacking {attacking} stance {:?} idle {} tgt {:?} recharging {} captain {} index {} valid {:?}", self.fires_on_move(u), self.attack_of(Obj::Unit(u)), self.units[u].combat.stance, self.units[u].cavarch_idle, self.units[u].cast_target, self.units[u].combat.recharging, self.units[u].combat.captain, self.units[u].index, self.units[u].cast_target.map(|t| self.valid_target(Obj::Unit(u), t)));
-        }
         if !self.fires_on_move(u) || self.attack_of(Obj::Unit(u)) == 0 {
             return;
         }
