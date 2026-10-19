@@ -186,7 +186,7 @@ fn run978c_s_gap_is_widened_whole() {
     let Some(w) = bantu_gap_978c_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 59, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -196,10 +196,18 @@ fn run978c_s_gap_is_widened_whole() {
     }
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
-        Vec::<String>::new(),
+        ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run978c");
+    // Item 3343. On the first try (with the Bantu speed arm and pop cap)
+    // 47 keys: past the standing set, who=1's `escrow[0:food]` ours 18
+    // against theirs 2 on block 1608 — the script's citizen of 1576 paid
+    // against the reservation in theirs (run978d) — and on 2808 theirs'
+    // Classical Age (`tech_frame` 2776, `bucket[0:food]` 25 against 275,
+    // `script_step` 20 against 18). With a group's `queue_up` drawing the
+    // escrow down and the research priced against the whole bucket,
+    // **37**: the standing set alone.
+    pin_eq!(w.firsts.len(), 37, "run978c, quiet to its last block");
 }
 
 /// run978d: blocks 1556..1611 at `GUYS=2` (item 3343), around run978c's
@@ -229,7 +237,7 @@ fn run978d_s_escrow_window_is_widened_whole() {
     let Some(w) = bantu_escrow_978d_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 55, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -239,8 +247,61 @@ fn run978d_s_escrow_window_is_widened_whole() {
     }
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
-        Vec::<String>::new(),
+        ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run978d");
+    // Item 3343. On the first try 32 keys: the standing set and who=1's
+    // `escrow[0:food]` ours 16 against theirs 0 on block 1577 — the
+    // script's citizen of 1576, queued through `Group::action_queue_up`,
+    // whose `Build::queue_up(ty, 1)` hands `Type::pay_cost` the escrow
+    // flag, so theirs drew the reservation down (16 − 30 → 0) where ours
+    // paid it as an ordinary order. With the flag, **31**.
+    pin_eq!(w.firsts.len(), 31, "run978d with the group's escrow flag");
+}
+
+/// run978b: the word 3184's window, blocks 3178..3434 at `GUYS=2` (item
+/// 3343).
+pub(crate) const RUN978B: &str = "gamelog-run978b-greatsahara-bantu-diff4-window-3178-3434.txt";
+
+/// The window: block 3178 through 3434; the word 3184's own block is 3185.
+pub(crate) const WIDENING_BANTU_FRAME_3184: (i64, i64) = (3178, 3434);
+
+pub(crate) fn bantu_frame_3184_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU.start],
+        true,
+        BANTU.long,
+        "run978b",
+        &[(RUN978B, WIDENING_BANTU_FRAME_3184.0)],
+        WIDENING_BANTU_FRAME_3184,
+        1,
+        &[3185],
+        true,
+    )
+}
+
+#[test]
+fn run978b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_frame_3184_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3343. The word 3184's window (the caravan `1/15`'s guys' two
+    // `Guy::move` draws): with the script's research priced against the
+    // whole bucket the word left it (3184 → 4376), and **29** keys stand,
+    // the standing set alone.
+    pin_eq!(w.firsts.len(), 29, "run978b");
 }
