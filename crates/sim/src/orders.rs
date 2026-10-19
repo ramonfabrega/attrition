@@ -4512,8 +4512,8 @@ impl Sim {
         // theirs, `(2 + 1566) & 31 == 0` and `& 127 == 32`, and stood idle
         // in ours (the battery's Dutch word, 1567).
         //
-        // SEAM: the leg's other half — a packed merchant whose
-        // `think_merchant` answered 0, or a deployed one, asks
+        // SEAM: the leg's other half — a packed merchant whose trade
+        // search just above answered 0, or a deployed one, asks
         // `think_attack` when it is not packing or unpacking — is not
         // taken: this crate's `think_attack` is the military arm below,
         // and a merchant has no attack column (`docs/MERCHANT.md` §7).
