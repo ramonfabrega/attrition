@@ -141,15 +141,19 @@ def run(root, mutate, command, out=sys.stdout, timeout=None):
     if before:
         raise Refused('the tree is dirty; commit first: ' + ', '.join(before))
     paths = mutate(root)
-    stat = git(root, 'diff', '--stat').strip()
-    if not stat:
-        restore(root, paths)
-        raise Refused('the mutation took nothing: `git diff --stat` is empty')
-    print(stat, file=out)
-    print(f'mutation applied to {", ".join(paths)}; running: {" ".join(command)}', file=out, flush=True)
-    applied = git(root, 'diff')
+    # The guard opens the moment the mutation is written (item 3314): a
+    # signal during the two `git diff`s below once raised outside it and
+    # left the mutant in the tree — `test_a_signal_under_the_run_restores_
+    # the_tree` signals as soon as it sees the edit, and landed there.
+    applied = None
     output = ''
     try:
+        stat = git(root, 'diff', '--stat').strip()
+        if not stat:
+            raise Refused('the mutation took nothing: `git diff --stat` is empty')
+        print(stat, file=out)
+        print(f'mutation applied to {", ".join(paths)}; running: {" ".join(command)}', file=out, flush=True)
+        applied = git(root, 'diff')
         # No bytecode is written under the run: a `.pyc` records its
         # source's mtime to the second and its size, and a mutation of
         # the same length restored inside that second leaves one that
@@ -159,7 +163,7 @@ def run(root, mutate, command, out=sys.stdout, timeout=None):
     finally:
         # The whole diff, not the paths: an edit to the mutated file itself
         # under the run would vanish in the restore.
-        changed = git(root, 'diff') != applied
+        changed = applied is not None and git(root, 'diff') != applied
         touched = sorted(set(dirty(root)) - set(paths))
         restore(root, paths)
         after = dirty(root)
