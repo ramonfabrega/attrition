@@ -258,5 +258,13 @@ fn run958e_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run958e on its first build");
+    // Item 3318: 833 keys on the first build, from block 14376: who=1's
+    // `epoch[3]` 2 against 3 (`epochs` 11 against 12), the Library `1/2005`
+    // still `queued` in ours, and seven of who=1's units' `mylos` one or
+    // two short — its Chemistry, queued on 14035 on both sides, done in
+    // theirs and at 34500 of 35000 in ours, which took nothing off for the
+    // Relics it held. With Relics' research arm the window parts **the
+    // standing set alone**, from 14376; the word's block 14383 parts
+    // nothing, and the word moved 14382 → 22692, past the window.
+    pin_eq!(w.firsts.len(), 28, "run958e with Relics' research arm");
 }
