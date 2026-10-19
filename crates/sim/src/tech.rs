@@ -1051,7 +1051,9 @@ impl TechTree {
         }
         if strict {
             // Strict: units only, the graft, and not a unique target.
-            let Some(u) = self.kind(x).unit() else {
+            // `x` is guarded as `t` is above: a fixture's tree may stop
+            // short of it.
+            let Some(u) = self.types.get(x).and_then(|e| e.kind.unit()) else {
                 return false;
             };
             return self.kind(t).is_unit() && self.types[t].graft == Some(x) && !u.unique;

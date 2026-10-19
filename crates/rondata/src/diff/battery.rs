@@ -83,6 +83,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // AI word (item 3314, DECISIONS 72, 83): the Romans at Difficulty 2,
     // East Indies.
     (18, 6, 2),
+    // The battery's lowest lobby after item 3322's booking beside the
+    // Greeks, promoted to the AI word (item 3329, DECISIONS 72, 83): the
+    // Dutch at Difficulty 4, East Indies.
+    (18, 22, 4),
     // The battery's lowest lobby after item 3318 closed the Spanish,
     // promoted to the AI word (item 3326, DECISIONS 72, 83): the Greeks at
     // Difficulty 1, Great Sahara.
@@ -194,28 +198,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `EastIndiesRomanTier2` (Romans 6, Difficulty 2, map 18; run899 and
     // run899b, 576 of 18620) left the battery on item 3314 for the AI word
     // (`diff::roman_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3107 (DECISIONS 72, `docs/AI.md` §125,
-    // §246; runs 915 and 917) when the Iroquois left for the AI word, so
-    // the held-out set stays replenished: East Indies, the Dutch at
-    // Difficulty 4 — a nation no dump held and a tier no lobby on the map
-    // has. The game does not end itself: the long runs to 24000.
-    Lobby {
-        name: "EastIndiesDutchTier4",
-        map_style: 18,
-        ai_tribe: 22,
-        difficulty: 4,
-        start: "gamelog-run915-eastindies-dutch-diff4-start.txt",
-        long: (
-            "gamelog-run917-eastindies-dutch-diff4-24k-trace.txt",
-            "rontrace-run917.log",
-        ),
-        length: 24000,
-        // Item 3107, the first try: ours 6 draws, theirs 5, at 2 ours
-        // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
-        // `Farms::inc_time+0x1ae`.
-        count: 1567,
-        sequence: 1567,
-    },
+    // `EastIndiesDutchTier4` (Dutch 22, Difficulty 4, map 18; run915 and
+    // run917, 1567 of 24000) left the battery on item 3329 for the AI word
+    // (`diff::dutch_word`, DECISIONS 72, 83).
     // `GreatSaharaGreekTier1` (Greeks 5, Difficulty 1, map 7; run957 and
     // run957b, 176 of 24000), minted by item 3318, left the battery on item
     // 3326 for the AI word (`diff::greek_word`, DECISIONS 72, 83).
@@ -242,6 +227,28 @@ pub(crate) const BATTERY: &[Lobby] = &[
         // `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`.
         count: 9185,
         sequence: 9185,
+    },
+    // The lobby minted by item 3329 (DECISIONS 72, 83, `docs/AI.md` §125,
+    // §267; runs 962 and 962b) when the Dutch left for the AI word, so the
+    // held-out set stays eight: East Indies, the Indians at Difficulty 2 —
+    // a nation no dump held and a tier the map's battery lacks. The game
+    // does not end itself: the long runs to 24000.
+    Lobby {
+        name: "EastIndiesIndianTier2",
+        map_style: 18,
+        ai_tribe: 21,
+        difficulty: 2,
+        start: "gamelog-run962-eastindies-indian-diff2-start.txt",
+        long: (
+            "gamelog-run962b-eastindies-indian-diff2-24k-trace.txt",
+            "rontrace-run962b.log",
+        ),
+        length: 24000,
+        // Item 3329, the first try: ours 5 draws, theirs 17, at 0 ours
+        // `Farms::inc_time+0x1ae`, theirs `Guy::set_anim+0x97a <
+        // Unit::do_idle+0x7d`.
+        count: 221,
+        sequence: 221,
     },
     // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §263; runs 955 and 955b) when the Romans left for the AI word, so

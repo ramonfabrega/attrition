@@ -36,6 +36,8 @@ mod city;
 mod corrections;
 #[cfg(test)]
 mod coverage_pair;
+#[cfg(test)]
+mod dutch_word;
 mod endpoint;
 mod floors;
 #[cfg(test)]

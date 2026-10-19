@@ -224,6 +224,17 @@ slots that advance at once. One library, one tech at a time. Four libraries,
 four. The recursion happens before the handover below, so a deeper slot
 completes in the same frame before the head does.
 
+**But after the slot's own clock is read** (item 3329): `train_time` at
+`do_queue:100`, the done test and the new counter at `:283`–`290`, and only
+then the recursion at `:344`. So a deeper entry that completes on the frame
+changes nothing a shallower one reads until the next: run963c's Library
+`1/2005` finishes Electricity (slot 1, the Science epoch that shortens an
+age by 10%) on 22935 and still advances the Industrial Age (slot 0) from
+95300 to 95400 under the old target, finishing it on 22936. The crate reads
+every slot's `(target, accel)` forward and then advances them in reverse
+(`Sim::slot_plan`); **diff-backed**, the Dutch word 22935 → 23782
+(`docs/AI.md` §267).
+
 (An earlier draft stated the recursion unconditionally, and the implementation
 applied it to every building — a barracks owned by a player with four library
 cities advanced four entries at once. The recursion sits inside `do_queue`'s

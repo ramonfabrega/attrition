@@ -4500,8 +4500,34 @@ impl Sim {
         // on its first idle frame. The base column is the original's
         // (`+0x1e8`), not the runtime stat.
         //
-        // SEAM: the merchant arm (`is(0x3e, 1)`), which no capture on
-        // disk reaches; `docs/MERCHANT.md` owns it.
+        // **The Dutch merchant's leg** of the same disjunction (item 3329,
+        // `docs/MERCHANT.md` §4): a unit of the `MERCHANTDUTCH` lineage
+        // (`is(0x3e, 1)`) that is packed asks `think_merchant` here, on the
+        // auto-attack's cadence — the first idle frame and then one in
+        // **thirty-two**, phased by `o` — and a `1` back ends the think.
+        // The tail's own `is_merchant` call runs one in a hundred and
+        // twenty-eight, so without this leg a Dutch merchant searched a
+        // quarter as often: run963's `1/2` (`TypeIndex` 62, land), idle
+        // since before 1561, took its `MOVE_TO` (31800, 37176) on 1566 in
+        // theirs, `(2 + 1566) & 31 == 0` and `& 127 == 32`, and stood idle
+        // in ours (the battery's Dutch word, 1567).
+        //
+        // SEAM: the leg's other half — a packed merchant whose trade
+        // search just above answered 0, or a deployed one, asks
+        // `think_attack` when it is not packing or unpacking — is not
+        // taken: this crate's `think_attack` is the military arm below,
+        // and a merchant has no attack column (`docs/MERCHANT.md` §7).
+        let dutch = self
+            .unit_tree(u)
+            .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true));
+        if dutch
+            && (unit.idle == 1 || phase & 0x1f == 0)
+            && unit.combat.packed
+            && self.think_merchant(u)
+        {
+            return;
+        }
+        let unit = &self.units[u];
         let p = self.profile(me);
         if p.attack != 0
             && p.combat_role

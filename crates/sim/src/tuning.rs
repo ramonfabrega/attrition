@@ -1074,6 +1074,20 @@ pub struct Tuning {
     /// in whole units (`BuildTypeData::calc_gather@00639e40`'s
     /// `has_tribe_bonus(0x12)` food arm, [`crate::economy::iroquois_food`]).
     pub iroquois_food: i32,
+    /// **The Dutch** (`has_tribe_bonus(0x16)`), item 3329. Hit points a
+    /// Dutch merchant, fur trapper, caravan or supply unit gains per age
+    /// (`Unit::update_hits@0060e930`'s `0060eab4` arm).
+    pub dutch_hp_bonus: i32,
+    /// Attack (× 10) and armour the same kinds gain per age
+    /// (`ObjectData::attack@006469f0`, `ObjectData::armor@00647db0`).
+    pub dutch_attack_bonus: i32,
+    /// Percent of a stockpile past its starting grant that a Dutch leader
+    /// earns as interest each rate period, every good but knowledge
+    /// (`Leader::do_gather@006ce450:117`–`147`).
+    pub dutch_interest: i32,
+    /// How far past the commerce cap the interest may carry the rate, in
+    /// whole resources (`"50 over econ cap"`).
+    pub dutch_interest_cap: i32,
     /// Percent added to a Nubian merchant's rare on friendly ground
     /// (`LeaderData::calc_rare@006e08d0`'s `Constants +0x5bc`, `NUBIAN_RARE`).
     pub nubian_rare: i32,
@@ -1551,6 +1565,10 @@ impl Tuning {
         nubian_hit_points: 50,
         iroquois_extra_hits: 5,
         iroquois_food: 2,
+        dutch_hp_bonus: 10,
+        dutch_attack_bonus: 1,
+        dutch_interest: 5,
+        dutch_interest_cap: 50,
         nubian_rare: 50,
         tower_garrison_upgrade: 2,
         fort_garrison_upgrade: 5,
@@ -2374,6 +2392,10 @@ impl Tuning {
             ("NUBIAN_HIT_POINTS", Slot::Value(T.nubian_hit_points)),
             ("IROQUOIS_EXTRA_HITS", Slot::Value(T.iroquois_extra_hits)),
             ("IROQUOIS_FOOD", Slot::Value(T.iroquois_food)),
+            ("DUTCH_HP_BONUS", Slot::Value(T.dutch_hp_bonus)),
+            ("DUTCH_ATTACK_BONUS", Slot::Value(T.dutch_attack_bonus)),
+            ("DUTCH_INTEREST", Slot::Value(T.dutch_interest)),
+            ("DUTCH_INTEREST_CAP", Slot::Value(T.dutch_interest_cap)),
             ("NUBIAN_RARE", Slot::Value(T.nubian_rare)),
             (
                 "TOWER_GARRISON_UPGRADE",

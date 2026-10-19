@@ -410,9 +410,10 @@ pub struct Research {
     /// `MILITARY_UPGRADE_DISCOUNT`'s percentage, already scaled for a short
     /// scenario.
     pub discount: i32,
-    /// `DUTCH_SHIP_DISCOUNT` for a Dutch leader's sea unit, set only where
-    /// the Military discount applied (`get_cost:530`–`533`, inside its
-    /// block): its own `(100 − x) × cost / 100` after it.
+    /// `DUTCH_SHIP_DISCOUNT` for a Dutch leader's sea unit of a military
+    /// role, whether or not the Military discount applied (`get_cost:532`–
+    /// `535`, after that block's close; item 3329): its own `(100 − x) ×
+    /// cost / 100` after it.
     pub dutch_ship: i32,
 }
 

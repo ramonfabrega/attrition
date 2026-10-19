@@ -72,8 +72,8 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | none |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
-| 21 | Indians | indians | `indians` | 4 | none |
-| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (map 18, tier 4) |
+| 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
+| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | none |
 
 ## 3. The held-out nations, arm by arm
@@ -355,12 +355,12 @@ left out; a constant with no reader in the export is dead there too.
 | `DUTCH_FREE_COMMERCE` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `dutch_free_commerce` |
 | `DUTCH_COMMERCE_DISCOUNT` | 10 | TypeData::get_cost | modelled at lib.rs | `dutch_commerce_discount` |
 | `DUTCH_FORT_PLACEMENT` | 0 | BuildTypeData::blocked_tcoord | modelled at place.rs | `dutch_fort_placement` |
-| `DUTCH_INTEREST` | 5 | Leader::do_gather, Options::describe | not carried | `dutch_interest` |
-| `DUTCH_INTEREST_CAP` | 50 | Leader::do_gather, Options::describe | not carried | `dutch_interest_cap` |
+| `DUTCH_INTEREST` | 5 | Leader::do_gather, Options::describe | modelled at economy.rs | `dutch_interest` |
+| `DUTCH_INTEREST_CAP` | 50 | Leader::do_gather, Options::describe | modelled at economy.rs | `dutch_interest_cap` |
 | `DUTCH_FREE_LIGHT_SHIP` | 1 | Build::activate | modelled at nations.rs | `dutch_free_light_ship` |
 | `DUTCH_FORT_SPEED` | 0 | Wall::update_construct_time | modelled at build.rs | `dutch_fort_speed` |
-| `DUTCH_ATTACK_BONUS` | 1 | ObjectData::armor, ObjectData::attack | not carried | `dutch_attack_bonus` |
-| `DUTCH_HP_BONUS` | 10 | Unit::update_hits | not carried | `dutch_hp_bonus` |
+| `DUTCH_ATTACK_BONUS` | 1 | ObjectData::armor, ObjectData::attack | modelled at fight.rs | `dutch_attack_bonus` |
+| `DUTCH_HP_BONUS` | 10 | Unit::update_hits | modelled at cast.rs | `dutch_hp_bonus` |
 | `DUTCH_SHIP_DISCOUNT` | 10 | TypeData::get_cost | modelled at cost.rs | `dutch_ship_discount` |
 | `PERSIANS_DESPOTISM` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `persians_despotism` |
 | `PERSIANS_BONUS_FOOD` | 50 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at lib.rs | `persians_bonus_food` |
@@ -658,7 +658,10 @@ a pass books against a word, not a fix for the lobby that exposed it.
    before the French discount where the listing has it after; the two nations
    are disjoint, so no leader sees the difference.
    **Built, item 3145: the Dutch ship-upgrade discount.** `get_cost:530`–`533`,
-   inside the research arm's Military-level block (`role & 0x10000`, `0 < ahead`):
+   inside the research arm's Military-level block (`role & 0x10000`, ~~`0 < ahead`~~ —
+   **amended by item 3329**: the arm follows the `0 < ahead` block's close, so a ship
+   research pays it whether or not the line is ahead; run963b's `DROMON` at 54 against
+   60, `docs/AI.md` §267):
    `has_tribe_bonus(0x16)` and `UnitTypeData +0x218 == 1` (a sea unit) take
    `DUTCH_SHIP_DISCOUNT` (10) in a truncating step after the Military discount's clamp
    (`cost::Research::dutch_ship`, set in `Sim::research_modifiers`). Test

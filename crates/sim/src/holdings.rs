@@ -597,6 +597,11 @@ impl Sim {
             self.tech_tree
                 .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
         });
+        let dutch = self.tech.get(w).is_some_and(|p| {
+            self.tech_tree
+                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::DUTCH)
+        });
+        let starting = std::array::from_fn(|g| self.starting_good(who, g));
         let capitalism = self.holds_capitalism_bonus(who);
         let lakota_units = if lakota {
             self.lakota_food_units(who)
@@ -626,6 +631,8 @@ impl Sim {
         h.french = self.nation[w].french;
         h.inca = self.nation[w].inca;
         h.iroquois = iroquois;
+        h.dutch = dutch;
+        h.starting = starting;
     }
 
     /// `has_preq(CAPITALISM_1)` (`0x325`, `calc_gather`'s `006cf454`): the
