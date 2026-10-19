@@ -501,6 +501,28 @@ impl Sim {
             }
         }
 
+        if std::env::var("RON_PROBE_GOODY").is_ok() && who == 1 && (sx, sy) == (50, 12) {
+            let mut cells = Vec::new();
+            for k in 0..25 {
+                let (x, y) = (wx + MOVE_X[k], wy + MOVE_Y[k]);
+                if x < 0 || y < 0 || x >= world_w || y >= world_h {
+                    continue;
+                }
+                let cc = Cell::new(x, y);
+                cells.push(format!(
+                    "({x},{y}) s{} {:?} o{} c{}",
+                    u8::from(self.site_was_seen(x, y, who)),
+                    self.world.owner(cc),
+                    u8::from(self.site_is_ocean(cc)),
+                    u8::from(self.world.cell_data(cc).flags & 0x100 != 0)
+                ));
+            }
+            eprintln!(
+                "PROBE site f{} from ({wx},{wy}) danger {danger} water {water} base {base}: {}",
+                self.frame,
+                cells.join(" ")
+            );
+        }
         // 4.
         if base < 1 {
             return zero(sx, sy);
@@ -826,6 +848,9 @@ impl Sim {
                 );
                 let (city, unit) = self.site_reference(who, reg, centre);
                 let st = self.compute_site_stats(who, s.wx, s.wy, city, unit, reg, false);
+                if std::env::var("RON_PROBE_GOODY").is_ok() && who == 1 {
+                    eprintln!("PROBE css f{} in ({},{}) -> ({},{}) val {} dist {}", self.frame, s.wx, s.wy, st.wx, st.wy, st.val, st.dist);
+                }
                 let e = &mut self.ai[w].sites[i];
                 e.val = st.val;
                 e.dist = st.dist;
@@ -884,6 +909,9 @@ impl Sim {
             while i < size {
                 let c = cells[i as usize];
                 let st = self.compute_site_stats(who, c.x, c.y, city, unit, reg, true);
+                if std::env::var("RON_PROBE_GOODY").is_ok() && who == 1 {
+                    eprintln!("PROBE css f{} in ({},{}) -> ({},{}) val {} dist {}", self.frame, c.x, c.y, st.wx, st.wy, st.val, st.dist);
+                }
                 i += stride;
 
                 // The insertion, transliterated: the running minimum starts

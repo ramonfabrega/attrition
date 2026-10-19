@@ -160,6 +160,34 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
             built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
         }
         built.tick();
+        if let Some((pf, path)) = std::env::var("RON_PROBE_FOG")
+            .ok()
+            .and_then(|v| v.split_once(':').map(|(a, b)| (a.parse::<i64>().ok(), b.to_string())))
+            && pf == Some(built.sim.frame)
+        {
+            let w = &built.sim.world;
+            let mut out = String::new();
+            for y in 0..w.fog_ys() {
+                let row: Vec<String> = (0..w.fog_xs())
+                    .map(|x| w.seen2(x, y).unwrap_or(0).to_string())
+                    .collect();
+                out.push_str(&row.join(" "));
+                out.push('\n');
+            }
+            std::fs::write(format!("{path}-seen2.txt"), out).unwrap();
+            let mut own = String::new();
+            for y in 0..w.height() {
+                let row: Vec<String> = (0..w.width())
+                    .map(|x| match w.owner(sim::world::Cell::new(x, y)) {
+                        sim::world::Owner::Player(p) => p.to_string(),
+                        _ => "-1".to_string(),
+                    })
+                    .collect();
+                own.push_str(&row.join(" "));
+                own.push('\n');
+            }
+            std::fs::write(format!("{path}-who.txt"), own).unwrap();
+        }
         // `RON_DEBUG_SLOTS=<lo>-<hi>`: player 1's births and deaths by
         // object number over a window, with the dead slots' holds — the
         // allocator's view, for a word that is a numbering (item 1594).

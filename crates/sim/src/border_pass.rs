@@ -181,6 +181,18 @@ impl Sim {
                 for c in cells {
                     let i = (c.y * self.world.width() + c.x) as usize;
                     let (who, who2) = pass.target[i];
+                    if std::env::var("RON_PROBE_GOODY").is_ok()
+                        && (c == crate::world::Cell::new(50, 10) || c == crate::world::Cell::new(48, 11))
+                        && self.world.owner(c) != who
+                    {
+                        eprintln!(
+                            "PROBE border f{} {:?}: {:?} -> {:?}",
+                            self.frame,
+                            c,
+                            self.world.owner(c),
+                            who
+                        );
+                    }
                     self.world.set_owner(c, who, who2);
                     if let Some(&w) = pass.won.get(i) {
                         self.mark_bordering(who, who2, w, c);
