@@ -174,7 +174,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     (rd(win, o), rd(win, o + 4))
                 }
                 fn ring_radius(&self, k: usize) -> i32 {
-                    rd(&self.c[if k == 3 { 5 } else { 6 }], 0)
+                    match k {
+                        3 => rd(&self.c[5], 0),
+                        8 => rd(&self.c[6], 0),
+                        _ => panic!("circle_radius[{k}] is not a window"),
+                    }
                 }
                 fn ring_at(&self, i: usize) -> (i32, i32) {
                     (i32::from(self.c[7][i] as i8), i32::from(self.c[8][i] as i8))
