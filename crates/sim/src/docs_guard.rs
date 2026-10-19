@@ -1645,7 +1645,7 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// and `PAPERMILL`, are the French Carpentry block's range in
 /// `rondata::load` (`docs/AI.md` §123).
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 14),
+    ("AI.md", 13),
     ("ANIM.md", 2),
     ("ARMY.md", 4),
     ("ATTRITION.md", 1),
@@ -1653,7 +1653,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("COLLISION.md", 1),
     ("COMBAT.md", 4),
     ("COSTS.md", 1),
-    ("ECONOMY.md", 12),
+    ("ECONOMY.md", 11),
     ("GOLDEN.md", 4),
     ("GOODY.md", 4),
     ("GROUPS.md", 3),

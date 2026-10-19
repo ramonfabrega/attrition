@@ -7020,10 +7020,12 @@ run125's last, so its widening is owed a capture.
 - **`MAKE[3].val` 38,500 against 37,500 on run123's 11185** survives. It is
   the Mine's value, a building. §55.5 filed it under §14.4's `get_cost` row,
   and it is not the unit discount.
-- **The rest of the common tail**: Coal, Sugar, Gold, Iron and Gypsum by
+- ~~**The rest of the common tail**: Coal, Sugar, Gold, Iron and Gypsum by
   resource, and the Supercollider and Indian terms. `late_discount` carries
   only the military discount, so the fold is exact until one of them is
-  built.
+  built.~~ The rares are built by item 3343 (§276, `docs/COSTS.md` "The
+  rares' tail"), the Indian term by item 3335 (§271); the Supercollider's
+  remains.
 
 ### 56.6 Coverage
 
@@ -24091,12 +24093,47 @@ it fails alone, exit 101.
 **Coverage.** Diff-backed: the conjunct, by run976's block 6562 and the draw stream to 7303. Not established:
 `valid_target` sits only in the building arm and is not modelled (§65.6), and the siege gate still has no capture.
 
-## 276. Reserved for the next item on the AI track
+## 276. The battery's Bantu word: from the first try to the game's end
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3343, 2026-10-19, Opus 5.5. Great Sahara, the Nubians (human) against the Bantu at Difficulty 4, seed 12345:
+the lobby item 3338 minted (§273), scored at 4 of 23,627 on its first try and promoted here to the AI word
+(`diff::bantu_word`); the French at Difficulty 4 (`GreatSaharaFrenchTier4`) replace it in the battery, 13422 of
+13422 on their first try. Captures run978..run978f, every one `rngcmp`-identical to run972b where checked.*
+
+**Five fixes, each its own value diff.**
+
+1. **`Unit::update_speed`'s Bantu arm** (`006057d8`..`605858`): a Bantu leader's Barracks unit, Citizen or Militia
+   moves `(100 + BANTU_UNITS_MOVE) × s / 100`. run978 block 1: `myspeed` 25 against 31. **4 → 3184.**
+   `calc_pop_cap`'s Bantu flag gained its writer beside it (`pop_cap` 25 → 50, run978 37 → 36).
+2. **A group's `queue_up` passes the escrow flag** (`Group::action_queue_up@006fdbb0` →
+   `Build::queue_up(b, ty, 1)` → `Type::pay_cost`'s fourth argument): run978d block 1577, who=1's `escrow[0:food]` 16
+   against 0. State only.
+3. **A script's research is priced against the whole bucket** (`research_tech_with_cost@009ee700` →
+   `BuildData::can_queue@0062da00`'s `can_pay_cost(who, −1, city, 1)`): run978c block 2808, the Classical Age on
+   2776. **3184 → 4376.**
+4. **A tech already in research is refused** (`could_queue@0062da50` → `BuildData::can_make@0062db10`'s tech arm,
+   `LeaderData::researching`). `economic.bhs` asks for The Art of War in its `population >= 23` preamble and again in
+   its step 24 in one run; the original answers the second with 0 and the script stays on 24. Ours granted it and
+   walked 24 → 34 → `place_woodcutter` → 19 (Woodcutter `1/2019`). run978e block 4377: `script_step` 19 against 24,
+   food 104 against 194, `1/12`'s order kind 3 against 7. **4376 → 15582**; run978e 265 → 30 keys.
+5. **`get_cost`'s rares' tail** (`docs/COSTS.md`, "The rares' tail"): who=1's Enlightenment Age on 15578 is 382 food
+   with Sugar against this crate's 425, a purse of 388, so `check_income`'s factor was 0x40 against 0x100 and the
+   age's offer (and Constitution's) a quarter of the original's — 3564000 against the overflow's 9999999 on run978f's
+   15579; on 15583 the original bought the age and ours Laws of Nature. **15582 → 23627, the game's end**; run978f
+   776 → 41 keys. The tail moved 28 widening pins on other lobbies, every one toward agreement (third.rs's 70-against-63
+   queue price is Sugar's tenth).
+
+**The close.** `run972b_bantu_closing_state` walks to run972b's closing block 23628 and compares 250 units, every
+count 0, no closing field. The lobby is closed.
+
+**Tests.** `rares::tests::a_bantu_citizen_moves_a_quarter_faster`;
+`cities_tests::a_script_s_second_ask_for_a_tech_in_research_is_refused` (fails with the check removed: 2001 against
+0); `cost::tests::sugar_takes_a_tenth_off_the_food_alone_and_gypsum_off_everything` (fails with the arm removed);
+the five widenings `run978{,b,c,d,e,f}_…` and the closing state.
+
+**Coverage.** Diff-backed: fixes 1–5 by the blocks named, the draw stream to 23627 and the close. Not established:
+Coal, Gold, Iron and Gypsum change no price on any widening on file; the research cursor's write order
+(`find_counters[0x1e]` only on success in the original, before the price here) moves no pin and is parked.
 
 ## 277. Reserved for the next item on the AI track
 

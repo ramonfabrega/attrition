@@ -1248,7 +1248,7 @@ fn run790_s_word_frame_is_widened_whole() {
     // Item 2677: −1 with the city clamp's kept fraction and the crash
     // round's strike (`docs/AI.md` §230).
     // Item 2761: 116 → 112 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 98, "initial run790 baseline");
+    pin_eq!(w.firsts.len(), 84, "initial run790 baseline");
 }
 
 /// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
@@ -1320,5 +1320,5 @@ fn run817_s_word_frame_is_widened_whole() {
     // Item 2761: 297 → 293 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3326: 279 → 278 with the Colossus' cap (`docs/AI.md` §266):
     // who=1's `pop_cap` stood from 4260, ours 220 against theirs 270.
-    pin_eq!(w.firsts.len(), 278, "initial run817 baseline");
+    pin_eq!(w.firsts.len(), 264, "initial run817 baseline");
 }

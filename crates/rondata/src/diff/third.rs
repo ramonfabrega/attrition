@@ -1180,10 +1180,13 @@ mod tests {
             None,
             "the Farm falls on the original's tick, since item 1194"
         );
+        // Item 3343, `get_cost`'s rares' tail: `1/2024`'s queue price 70
+        // against 63 was Sugar's tenth off the food (70 × 90% = 63), and
+        // who=1's food agrees with it.
         pin_eq!(
             row(1, -1, "leader:bucket[0:food]").as_deref(),
-            Some("16783: ours 118 theirs 125"),
-            "who=1's food, beside `1/2024`'s queue price 70 against 63"
+            None,
+            "who=1's food, beside `1/2024`'s queue price, since the rares' tail"
         );
         // **The old word's block, 16682** (item 1194, the move's value
         // diff): frame 16681 spent ours 11 draws against 8, `1/30`'s
@@ -1211,7 +1214,7 @@ mod tests {
         // army group's id on 16891, stamped six frames apart again.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 177.
         // Item 1451, `largest_gather` (AI §115): 123 → 119.
-        pin_eq!(w.firsts.len(), 41, "every key parted on run442"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 39, "every key parted on run442"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The third map's long word, 17623, widened whole** (item 1194):
@@ -1268,7 +1271,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_17623_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(17618, 39)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(17618, 38)], // Item 3343: −1, the rares' tail. Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, to the old word's"
         );
         // **Past it, the standing families and one row they reach**:
@@ -1280,14 +1283,16 @@ mod tests {
         // the draws had parted at 17623 and the pick fell to wealth by a
         // desynced stream. The SITE rows on 17776 and the human's
         // `production_step` on 17801 are run442's families.
+        // Item 3343: with the rares' tail who=1's food agrees and the goody
+        // pays wealth on both sides.
         pin_eq!(
             row(1, -1, "leader:bucket[2:wealth]").as_deref(),
-            Some("17683: ours 119 theirs 194"),
-            "the goody pays food where the original pays wealth"
+            None,
+            "the goody pays wealth on both sides, since the rares' tail"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         // Item 1451, `largest_gather` (AI §115): 106 → 104.
-        pin_eq!(w.firsts.len(), 44, "every key parted on run449"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 42, "every key parted on run449"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The gap before the third map's word, widened** (item 1206):
@@ -1350,12 +1355,12 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 102 → 100.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(17140, 40), (17176, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(17140, 38), (17176, 1)], // Item 3343: −2, the rares' tail. Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 172.
         // Item 1451, `largest_gather` (AI §115): 119 → 117.
-        pin_eq!(w.firsts.len(), 41, "every key parted on run457"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 39, "every key parted on run457"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The third map's word at its end, widened whole** (item 1206):

@@ -8745,3 +8745,43 @@ fn a_maya_building_costs_a_quarter_less_timber() {
         "outside the tree, by its ident"
     );
 }
+
+/// **A script that asks for a tech already in research is refused**
+/// (`ScenarioFuncSet::research_tech_with_cost@009ee700` →
+/// `BuildData::can_queue@0062da00` → `could_queue@0062da50` →
+/// `BuildData::can_make@0062db10`, whose tech arm returns 0 on
+/// `LeaderData::researching`). `economic.bhs` asks for The Art of War in its
+/// population preamble and again in its step 24 in the same run; the
+/// original answers the second with 0 and the script stays on 24 (item
+/// 3343, the Bantu word 4376).
+#[test]
+fn a_script_s_second_ask_for_a_tech_in_research_is_refused() {
+    use crate::ai_host::ScriptHost;
+    use crate::bhs::{Host, Value};
+    use crate::tech::{Line, TechTree, TypeDef};
+    let food = economy::Resource::Food.index();
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let library_t = tree.add(TypeDef::building("Library"));
+    let written_word = tree.add(TypeDef::epoch("Written Word", Line::Science, 0).at(library_t));
+    sim.set_tech_tree(tree);
+    sim.build_types[t.library].tree = Some(library_t);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
+    finish(&mut sim, lib);
+    sim.ledgers[0].bucket[food] = 1_000;
+    let ask = |sim: &mut Sim| {
+        ScriptHost { sim, who: 0 }
+            .call(
+                "research_tech_with_cost",
+                &[Value::Int(1), Value::Str("Written Word".into())],
+            )
+            .unwrap()
+            .as_int()
+    };
+    assert!(ask(&mut sim) > 0, "the first ask queues it");
+    assert!(sim.researching(0, written_word));
+    assert_eq!(ask(&mut sim), 0, "the second is `could_queue`'s refusal");
+    assert_eq!(sim.buildings[lib].queue.items.len(), 1);
+}

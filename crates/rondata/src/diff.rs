@@ -30,6 +30,8 @@ use crate::load::Loaded;
 use sim::{Pos, Sim, Tuning, Unit, World};
 
 #[cfg(test)]
+mod bantu_word;
+#[cfg(test)]
 mod battery;
 mod build;
 mod city;

@@ -9903,6 +9903,24 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Bantu word** (item 3343, DECISIONS 72, 83): frame
+    // 4, the battery's first try, widened on run978 over 1..256 (block 5).
+    // Item 3343 moved it 4 → 3184 with `update_speed`'s Bantu arm, 3184 →
+    // 4376 with a script's research priced against the whole bucket and a
+    // group's escrow flag (run978b over 3178..3434, run978c the gap,
+    // run978d the escrow window), 4376 → 15582 with a tech in research
+    // refused (run978e over 4370..4626), and 15582 → 23627, the game's
+    // last frame, with `get_cost`'s rares' tail (run978f over
+    // 15576..15832 keeps 15582's value diff, who=1's Enlightenment Age
+    // offer). The close is compared whole on run972b's own closing block
+    // 23628 by `run972b_bantu_closing_state`.
+    (
+        "BANTU_WORD",
+        crate::diff::bantu_word::BANTU_WORD,
+        Some("run972b_bantu_closing_state"),
+        3343,
+        Some(crate::diff::bantu_word::WIDENING_BANTU_CLOSING),
+    ),
     // **The battery's Maya word** (item 3338, DECISIONS 72, 83): frame
     // 776, the battery's first try, widened on run973 over 770..1026
     // (block 777). Item 3338 moved it 776 → 10497 with `get_cost`'s Maya
@@ -10396,6 +10414,22 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Bantu word** (DECISIONS 72, 83; item 3343): Great
+    // Sahara, the Bantu at Difficulty 4 — the held-out battery's lowest open
+    // lobby once item 3338 closed the Maya; the game ends itself on 23627.
+    // It joins the `Battery word` line first; the closed rows choose
+    // nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaBantuTier4",
+        named: "Great Sahara (Bantu)",
+        word: crate::diff::bantu_word::BANTU_WORD,
+        length: 23_627,
+        // Closed by item 3343: the draw stream agrees to 23627, and
+        // run972b's closing block 23628 scores the end itself.
+        endpoint: Some("run972b_bantu_closing_state"),
+        window: Some("bantu_frame_15582_window"),
+    },
     // **The battery's Russian word** (DECISIONS 72, 83; item 3342): Great
     // Lakes, the Russians at Difficulty 2 — the held-out battery's lowest
     // open lobby once item 3340 closed the Indians (the Maya being item

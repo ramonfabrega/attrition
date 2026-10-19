@@ -214,6 +214,25 @@ pub const TOBACCO: usize = 19;
 /// (`URANIUM_NUKE_COST`, `docs/AI.md` §167).
 pub const URANIUM: usize = 35;
 
+/// The five rares `TypeData::get_cost@00664090`'s **shared tail** reads
+/// (`switchD_00666b91_default`, listing `00666e46`..`00666f7f`), after
+/// every arm's own discounts and before the captured-building doubling:
+/// Coal on timber (`+0x6da7 & 0x10`), Sugar on food (`+0x6da6 & 0x20`),
+/// Gold on wealth (`+0x6da8 & 0x10`), Iron on metal (`+0x6da9 & 2`) — each
+/// tested against the good being priced, one `(100 − x) × cost / 100` —
+/// then Gypsum (`+0x6da8 & 4`) on **every** good, with no condition on the
+/// good or the type. Each byte has its `rare_conquest` twin at `+0x28`
+/// (item 3343, `docs/COSTS.md`, "The rares' tail").
+pub const SUGAR: usize = 27;
+/// See [`SUGAR`].
+pub const COAL: usize = 34;
+/// See [`SUGAR`].
+pub const GYPSUM: usize = 40;
+/// See [`SUGAR`].
+pub const GOLD: usize = 42;
+/// See [`SUGAR`]: `TypeIndex::IRONORE`.
+pub const IRON: usize = 47;
+
 /// `TypeIndex::SILVER` — the rare `TypeData::get_cost@00664090`'s **age**
 /// arm reads: `testb $0x10, 0x6da5(%ecx,%eax)`, else the same at `0x6dcd`
 /// (`00666b1b`), byte 1 bit 4 of `rare` or of `rare_conquest`, which is bit

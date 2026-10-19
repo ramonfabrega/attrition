@@ -628,7 +628,7 @@ fn run838_s_word_frame_is_widened_whole() {
     // Item 2384: 188 -> 189, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 189 → 185 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 170, "run838 baseline");
+    pin_eq!(w.firsts.len(), 167, "run838 baseline");
 }
 
 /// run844: the pair's last blocks, 4940..5057 at the long's detail — six
@@ -682,5 +682,5 @@ fn run844_s_closing_frame_is_widened_whole() {
     // Item 2384: 225 -> 226, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 225 → 221 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 206, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    pin_eq!(w.firsts.len(), 203, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }

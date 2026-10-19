@@ -1112,14 +1112,25 @@ impl ScriptHost<'_> {
             return NO;
         };
         // `can_queue`: the price through the building, then `could_queue`.
+        // `BuildData::can_queue@0062da00` asks `can_pay_cost(who, −1, city,
+        // 1)`, the escrow flag set, so the **whole** bucket counts and the
+        // reservation does not hold a research back (item 3343: the Bantu
+        // word's Classical Age on 2776, 250 food against a purse of 286
+        // with 100 escrowed, `docs/AI.md` §276).
         let charges = self.sim.tech_price(w, t);
-        let paid = cost::can_pay(
+        let paid = cost::affordable(
             &charges,
             &self.sim.ledgers[w as usize],
             &self.sim.holdings[w as usize].available,
-            1,
-        );
-        if !paid || !self.sim.buildings[b].queue.has_room() {
+            true,
+        ) >= 1;
+        // `could_queue@0062da50` asks `BuildData::can_make@0062db10` first,
+        // whose tech arm refuses a tech already in research
+        // (`LeaderData::researching`): a script that asks twice in one run
+        // — `economic.bhs`'s population preamble, then its step 24 — gets 0
+        // the second time (item 3343: the Bantu word 4376, `docs/AI.md`
+        // §276).
+        if !paid || self.sim.researching(w, t) || !self.sim.buildings[b].queue.has_room() {
             return NO;
         }
         self.action_queue_up(w, b, QueueType::Tech(t), 1);
@@ -1134,20 +1145,24 @@ impl ScriptHost<'_> {
         // The building group every caller pushes first (`009f4595`,
         // `009ee881`, …; `docs/GROUPS.md` §28.4): it takes a pool slot.
         self.sim.push_building_group(w, b);
+        // Every `Build::queue_up` the group makes passes 1 for the escrow
+        // flag (`006fdbb0`: `Build::queue_up(b, ty, 1)` in both arms), so the
+        // script's order draws the reservation down (`Type::pay_cost`'s
+        // fourth argument; item 3343, `docs/AI.md` §276).
         match what {
             QueueType::Unit(rec, t) if self.sim.tech[w as usize].tech[t] => {
                 for _ in 0..num {
-                    let _ = self.sim.queue_up(b, rec);
+                    let _ = self.sim.queue_up_with(b, rec, true);
                 }
             }
             QueueType::Unit(rec, t) => {
                 if !self.sim.researching(w, t) {
-                    let _ = self.sim.queue_up(b, rec);
+                    let _ = self.sim.queue_up_with(b, rec, true);
                 }
             }
             QueueType::Tech(t) => {
                 if !self.sim.researching(w, t) {
-                    let _ = self.sim.queue_tech(b, t);
+                    let _ = self.sim.queue_tech_with(b, t, true);
                 }
             }
         }
