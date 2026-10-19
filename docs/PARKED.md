@@ -8318,6 +8318,10 @@ words and edits nothing here; a refill lands when two remain.
 - **3332b. who=0's `other_team_terr` on run967b, from 1404.** 441 against 388 (`run967b_s_gap_is_widened_whole`'s
   39 keys). The human's count of cells another team holds; nothing the AI's draws read, so no score names it. A
   border-pass word on the human's side is where it would part.
+- **3332c. `GERMAN_INDUSTRY_DISCOUNT` is not carried.** `get_cost@00664090:1277`–`1281`, on the Hanging Gardens'
+  predicate (the food, timber and metal gathering lines): `(100 − 50)` off for `has_tribe_bonus(0xc)`, after the
+  Gardens' term (`docs/COSTS.md`). No walk's German leader has reached an industry tech's price where a draw parts on
+  it; a German lobby whose Smelter, Lumber Mill or Granary line is researched is where it would.
 
 ## Parked by the next landing, slot KR — reserved
 

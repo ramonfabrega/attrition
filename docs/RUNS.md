@@ -18775,3 +18775,54 @@ SHA-256 `3f9087c117e84e9b91b1d989e4c7cbd8b3dd7a1e3ef8077a0d9051ef8bd8228f`.
 against 96 (theirs' series 96, 128, 160 — the Egyptian Farm's 32 a worked farm); with the arm 55 → **39** keys, still 39
 after the `ever_seen` fix: the standing set and who=0's `other_team_terr` from 1404. Its window is in the coverage
 driver.
+
+## run967c — the AI word: Great Sahara, the Egyptians at difficulty 4, the word 15782's widening (15776..16033) (2026-10-19, item 3332, `att-3332`)
+
+`docs/AI.md` §269. **What the disk could not answer**: run645 prints its setup and closing blocks only, and run967
+ends on 3230. `--map 7 --end-frame 16038 --timeout 5400 --log-window 15776 16033 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 07:45:11 and the game exited at 08:01:05 (954 s). `success`, 16039 frames.
+  `rngcmp.py rontrace-run645.log rontrace-run967c.log`: **16039 identical, 0 differing**. Filed with
+  `filerun.py run967c greatsahara-egyptian-diff4-window-15776-16033`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run967c-greatsahara-egyptian-diff4-window-15776-16033.txt`, 504,372,964 bytes,
+SHA-256 `1d56f98ffcc74d95fab6b216d5df05e6cb056000e0c9c47dad67783c680dc86e`.
+
+Archive `rontrace-run967c.log`, 73,198,240 bytes,
+SHA-256 `aff773808bc6d19474f881f3897d435a8dc78f1c0099e7f91a7c175581f52cd5`.
+
+**What it holds**: `diff::egyptian_word::run967c_s_word_frame_is_widened_whole` (257 blocks). First try 820 keys,
+who=1's Metal Alloys on the make list 54000 against 216000 on block 15779; with the Hanging Gardens' industry discount
+**276**, and the word moved 15782 → 15982, inside this window. Its window is in the coverage driver and `WIDENINGS`.
+
+## run967d — the same game, `RON_LEADER_PROBE` with `check_income` over 15776..15781 (2026-10-19, item 3332, `att-3332`)
+
+`docs/AI.md` §269. **What the disk could not answer**: theirs' `check_income` factor, which no dump prints.
+`--map 7 --end-frame 15782 --timeout 3600 --log-window 15776 15781 --detail end:MISC,LEADERS=9 --callwin 15776 15781
+--tracer-def RON_LEADER_PROBE --ai-tribe 7 --cover cover=0 --profile DIFFICULTY=4`, the probe build with
+`Leader::check_income@006cc800` as site 11.
+- Pool lane 1. Launched 08:22:05 and the game exited at 08:23:06 (61 s). `success`, 15783 frames. Read in place; not
+  filed.
+- Minutes waited on another lane: none.
+
+Trace `~/ron-golden/run967d/map-7/rontrace.log`, 19,202,560 bytes,
+SHA-256 `af98472c52884acbb7062b0da27421f416a3a01eefab9a27cefa9abacc07c222`.
+
+**What it holds**: on 15778, `check_income(620, 0x400, -1, 1)` = **256** and `make_me(620, 216000, …)`: ours' value
+before its income step, ours' factor 64. No test reads it.
+
+## run967e — the same game, `get_cost` and `can_pay_cost` on frame 15778 (2026-10-19, item 3332, `att-3332`)
+
+`docs/AI.md` §269. **What the disk could not answer**: theirs' per-good price, which no dump prints. run967d's recipe
+with `--end-frame 15780 --log-window 15777 15779 --callwin 15778 15778`, the probe build with
+`TypeData::can_pay_cost@00667570` and `TypeData::get_cost@00664090` as sites 12 and 13.
+- Pool lane 1. Launched 08:26:47 and the game exited at 08:27:43 (56 s). `success`, 15781 frames. Read in place; not
+  filed.
+- Minutes waited on another lane: none.
+
+Trace `~/ron-golden/run967e/map-7/rontrace.log`, 19,141,184 bytes,
+SHA-256 `cef0a4e19b4719728aa496c0c5c449bca2e794f762468f286b67762a5a427af3`.
+
+**What it holds**: Metal Alloys' `get_cost` **68** food and **68** timber and `can_pay_cost` 3 (ours charged 200);
+Fortification 86/86 and Medicine 144/144, as ours. The Hanging Gardens' industry discount. No test reads it.

@@ -23626,7 +23626,7 @@ application line deleted against its own test (exit 101). Every other lobby's `f
 (`JAPANESE_BARRACKS_SPEED`, `JAPANESE_CARRIER_SPEED`) are not carried; this lobby at Difficulty 1 never reaches them
 in a way the draw stream can see (parked 3331a).
 
-## 269. The Egyptians: a worked Farm's wealth, a good met through its footprint, and the word 15782 (2026-10-19, item 3332)
+## 269. The Egyptians: a worked Farm's wealth, a good met through its footprint, the Hanging Gardens' industry, and the word 15982 (2026-10-19, item 3332)
 
 **The booking**: the battery's Great Sahara Egyptian word. `GreatSaharaEgyptianTier4` (map 7, the Egyptians (7) at
 Difficulty 4; runs 648, 645) was the held-out battery's lowest open lobby on the measure of `987c4c33`, at **2974 /
@@ -23663,12 +23663,28 @@ sets `ever_seen |= 1 << who` right after `new_rare`; ours set it only in `comput
 **33** keys (the standing set, and `1/16`'s `g.gpiece[0..1]` from 3056 — parked 3332a), run967b to **39** (the
 standing set, and who=0's `other_team_terr` from 1404 — parked 3332b).
 
-RUN967C_PLACEHOLDER
+**3. The Hanging Gardens' industry discount (15782 → 15982).** run967c (15776..16033; `run967c_s_word_frame_is_widened_whole`)
+parts, past the standing set, on block 15779: who=1's Metal Alloys on the make list, **54000 against 216000**, from
+`research_techs`' pass on 15778. Every term of ours' value agreed with the dump's state (weights 5 × base 3600, the
+gather line's ×2 with `econ[4]` 8 on both sides, recency ×6, `shortages` 0), and the factor was `check_income`'s:
+**run967d** (`RON_LEADER_PROBE` with `check_income@006cc800` added) printed theirs' 256 against ours' 64, and **run967e**
+(with `can_pay_cost@00667570` and `get_cost@00664090` under it, one frame) printed theirs' price, **68 food and 68 timber
+against ours' 200**, Fortification and Medicine agreeing. `TypeData::get_cost@00664090:1270`–`1276`: a food, timber or
+metal gathering-line tech (`0x261..=0x266`, `0x26c..=0x26e`, an unsigned `ja` on the last range) for a leader holding the
+Hanging Gardens (`has_wonder(0x210)`) costs `(100 − HANGING_GARDENS_INDUSTRY_DISCOUNT) × p / 100`, shipped 66%. Built:
+`cost::Modifiers::industry` after the democracy term, `Sim::industry_tech_discount`,
+`Tuning::hanging_gardens_industry_discount`. **Value diff**: ours' Metal Alloys at 68/68, `can_pay_cost` 3 on both sides;
+run967c 820 → **276** keys. **The word moves 15782 → 15982**: ours 495 draws, theirs 450, at 4, ours
+`Leader::produce_building+0xc99`, theirs `Build::find_gather_tiles+0x10a`. On 15982 who=1's make list carries ours'
+building 417 (cat 4, city 4, 312960) where theirs holds 418 and Metal Alloys, which theirs researches on 15982
+(`tech_frame`) while ours places the building in city 4 — the next item's frame, not a mechanism.
 
 Each fix has a test (`holdings::tests::an_egyptian_worked_farm_pays_two_wealth_flat`,
 `rares::tests::reveal_fog_marks_the_rare_it_meets_seen`) and a `tools/mutate.py` mutation that held against
 `egyptian_word_first_parting` (exit 101): the farm wealth's application zeroed, and `reveal_fog`'s `mark_good_seen`
-deleted.
+deleted. The industry arm has `cost::tests::the_hanging_gardens_take_two_thirds_off_an_industry_tech`, and its
+`Modifiers::industry` line deleted held against the same test (exit 101). Every other lobby's `first_parting`,
+`battery_floors_hold`, `closing_state` and `sahara_coverage` held.
 
 **Not established.** `EGYPTIAN_SCHOLARS_FOOD` (0 as shipped) and `EGYPTIAN_GRANARY_UPGRADES`' consumer are not
 carried past their loaders (`docs/NATIONS.md`); this lobby's walk to 15782 never needed them. Whether the `ever_seen`
