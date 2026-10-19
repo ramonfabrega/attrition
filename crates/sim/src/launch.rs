@@ -1861,7 +1861,8 @@ mod tests {
     /// are [`BAYS`] rows since run437 turned them (item 1200); their keys
     /// are 5, 9 and 17 because the frame is `starttime / 67` (§50.1):
     /// under the old `× 3 / 200` the first and third would be 6 and 18,
-    /// keys the event walk never reaches.
+    /// keys the event walk never reaches. **49**, the Musketeer's two, are
+    /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4.
     #[test]
     fn the_table_is_every_release_event_a_capture_has_measured() {
         let mut keys: Vec<(i32, i8, u32)> =
@@ -1870,6 +1871,8 @@ mod tests {
         assert_eq!(
             keys,
             vec![
+                (49, crate::anim::ATTACK1, 1),
+                (49, crate::anim::ATTACK3, 4),
                 (127, crate::anim::ATTACK1, 6),
                 (127, crate::anim::ATTACK1, 22),
                 (127, crate::anim::ATTACK2, 4),

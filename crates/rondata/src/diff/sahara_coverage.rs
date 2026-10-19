@@ -998,7 +998,8 @@ fn run718_s_word_frame_is_widened_whole() {
     // sides) with three more of the block's standing keys.
     // Item 3279: −14, `death:extra` is not a parting on a capture that
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 47, "initial run718 baseline");
+    // Item 3336: −1, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
+    pin_eq!(w.firsts.len(), 46, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
         42,
@@ -1121,7 +1122,8 @@ fn run766_s_word_frame_is_widened_whole() {
     // against 18967) now agree.
     // Item 3279: −14, `death:extra` is not a parting on a capture that
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 52, "initial run766 baseline");
+    // Item 3336: −1, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
+    pin_eq!(w.firsts.len(), 51, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
