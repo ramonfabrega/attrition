@@ -92,7 +92,26 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     // starttime 20 on tick 12134, `sx, sy, sz` (8725, 31923, 816), and
     // `CHAR_ATTACK1` at 18 on tick 12158, (8729, 31908, 813). One facing
     // each, so the bearing is the middle of the exact fits and the radius
-    // the fits' own; `CHAR_ATTACK2` is not measured.
+    // the fits' own. `CHAR_ATTACK2` at starttime 16 is run973f's (`AMMO=5`
+    // over `[12205, 12300]`): `1/56` on tick 12259, guy (8664, 30312) `z`
+    // 645 facing −704315392, (8573, 30286, 853). **Planar, and known
+    // short of the original's**: run973f's second round, `1/56`'s
+    // `CHAR_ATTACK1` on 12287 at −704315392, leaves from (8581, 30287)
+    // where this row puts it at (8587, 30273), and run973g's packet sweep
+    // of the piece's three node-0 `AttachPos` rows (a [`Bay`] each, exact
+    // at 361 headings) misses all four dumped rounds by 6 to 16 units at
+    // the unit's facing — so the mounted figure's release is turned by
+    // something the non-pivot sweep does not take (parked by item 3338).
+    (
+        842,
+        crate::anim::ATTACK2,
+        16,
+        Node {
+            bearing: -174_784_512,
+            radius: 94,
+            dz: 208,
+        },
+    ),
     (
         842,
         crate::anim::ATTACK1,
@@ -1752,7 +1771,7 @@ mod tests {
     }
 
     /// **Piece 842, the Horse Archer** (item 3338): run973e's two rounds
-    /// of `1/56`, `(anim, starttime, guy x, guy y, guy angle, guy z, sx,
+    /// of `1/56` and run973f's first, `(anim, starttime, guy x, guy y, guy angle, guy z, sx,
     /// sy, sz)` — the dump's own columns.
     #[test]
     fn run973e_s_horse_archer_rounds_leave_from_their_release_nodes() {
@@ -1761,6 +1780,7 @@ mod tests {
         const ROWS: &[Row] = &[
             (crate::anim::ATTACK3, 20, 8808, 31944, -730_923_008, 588, 8725, 31923, 816),
             (crate::anim::ATTACK1, 18, 8808, 31944, -730_923_008, 588, 8729, 31908, 813),
+            (crate::anim::ATTACK2, 16, 8664, 30312, -704_315_392, 645, 8573, 30286, 853),
         ];
         for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in ROWS {
             let got = launch_point(Pos::new(gx, gy), Angle(ga), 842, anim, t, 0);
@@ -1771,6 +1791,18 @@ mod tests {
                 "piece 842 dz"
             );
         }
+        // run973f's second round, `CHAR_ATTACK1` at the second facing: the
+        // original's (8581, 30287), the planar row's (8587, 30273) — the
+        // known miss the row's comment parks.
+        let miss = launch_point(
+            Pos::new(8664, 30312),
+            Angle(-704_315_392),
+            842,
+            crate::anim::ATTACK1,
+            18,
+            0,
+        );
+        assert_eq!((miss.x, miss.y), (8587, 30273), "the parked miss");
     }
 
     /// **Piece 1442, the Native American Peltasts** (item 3287): four

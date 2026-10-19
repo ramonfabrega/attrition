@@ -36,9 +36,12 @@ pub(crate) const MAYA: Lobby = Lobby {
     // reading an enemy city's `bordering` off the city's owner (`:486`–`489`):
     // 10497 → 12197, ours 12 draws, theirs 14, at 3 ours
     // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
-    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
-    count: 12197,
-    sequence: 12197,
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Item 3338, the Horse
+    // Archer's release nodes (piece 842, `launch::MEASURED`): 12197 →
+    // 13086, the game's last frame — the draw stream agrees to the end,
+    // and run966b's closing block is `run966b_maya_closing_state`'s.
+    count: 13086,
+    sequence: 13086,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -310,5 +313,67 @@ fn run973d_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run973d on the first try");
+    // Item 3338. On the first try **520** keys, already apart on block
+    // 12191: the human's Scout `0/0` at (5960, 31007) against theirs
+    // (5926, 31003), `damage_frame` 12150 against 12149 — one step behind
+    // on its `FLEE_TO`, so on 12197 theirs reaches the end and idles
+    // (`Unit::do_idle`) and ours still walks. The hit is the Horse Archer
+    // `1/56`'s round of 12134: run973e's `AMMO=5` prints it leaving from
+    // (8725, 31923) at `total_time` 16 where ours left the guy's (8808,
+    // 31944) at 17 — piece 842 had no release-node row. With its three
+    // (`CHAR_ATTACK3` and `1` off run973e, `2` off run973f) **27**: the
+    // standing set and `1/53`'s `dest_angle` on 12209, apart one field and
+    // healed by the close; the word moved 12197 → 12267 → 13086.
+    pin_eq!(w.firsts.len(), 27, "run973d with the Horse Archer's nodes");
+}
+
+/// The closing state's window: run966b's closing block alone, the long's
+/// last frame 13086 writing it (item 3338).
+pub(crate) const WIDENING_MAYA_CLOSING: (i64, i64) = (13085, 13088);
+
+/// **The lobby's closing state** (item 3338, DECISIONS 55): run966b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+#[test]
+fn run966b_maya_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(MAYA.long.0), dump(MAYA.start), trace(MAYA.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Maya closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 13087, "the closing block");
+    pin_eq!(e.compared, 128, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }

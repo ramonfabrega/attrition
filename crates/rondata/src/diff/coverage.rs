@@ -3460,6 +3460,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::maya_word::maya_frame_776_window(),
         || super::maya_word::maya_frame_10497_window(),
         || super::maya_word::maya_gap_973c_window(),
+        || super::maya_word::maya_frame_12197_window(),
     ];
     let mut missing = false;
     let mut closing_blocks = 0;
