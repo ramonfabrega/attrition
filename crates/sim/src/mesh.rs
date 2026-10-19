@@ -470,6 +470,13 @@ impl Sim {
     /// carried nowhere: run189's packet holds it at cell 903 after 14,529
     /// frames, `14,529 × 7 mod 3,600`.
     pub(crate) fn scan_and_kill_stray_roads(&mut self) {
+        if std::env::var("RON_PROBE_ROADS").is_ok() && [10190, 10191, 10386, 10387, 10485, 10486, 10619].contains(&self.frame) {
+            for (x, y) in [(234, 152), (235, 152), (236, 152), (235, 153), (234, 154), (233, 155), (232, 155)] {
+                let e = self.mesh.elem(&self.world, Pos::new(x, y));
+                let r = self.world.tile_mask(Pos::new(x, y)) & tile::SURFACE == tile::SURFACE_ROAD;
+                eprintln!("PROBE elem f{} ({x}, {y}) road {r} {:?}", self.frame, e.map(|e| (format!("{:#x}", e.flags), e.support, e.refs, e.refs2, e.made)));
+            }
+        }
         let (xs, ys) = (self.world.width(), self.world.height());
         let size = xs * ys;
         let per = size / 500;
