@@ -9723,3 +9723,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #   run918b  --map 14 --end-frame 1120 --timeout 7200 --log-window 37 1114 --stride 4 (run918's --detail, --ai-tribe, --cover, --profile)
 # Checks: `rngcmp.py` run897b vs run918 -> 0 differing in 1377; vs run918b -> 0 differing in 1121.
 # ==== TAKEN 2026-10-17/18, one take each, 23:20-00:00, pool lane 1 ====
+# ==== item 3314: the Roman word's widening and the battery's tenth held-out lobby (`docs/AI.md` §263; `docs/RUNS.md` run955, run956) ====
+#   run955   --map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 20 --profile DIFFICULTY=1   (East Indies, Americans; start)
+#   run955b  --map 18 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#            --ai-tribe 20 --allow-early-end --profile DIFFICULTY=1 (run643's four --detail lines)
+#   run956   --map 18 --end-frame 832 --timeout 2400 --log-window 570 827 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#            --ai-tribe 6 --cover cover=0 --profile DIFFICULTY=2   (East Indies, Romans; the word 576's window)
+#   run956b  --map 18 --end-frame 18281 --timeout 10800 --log-window 18020 18276 (run956's --detail, --ai-tribe, --cover, --profile)
+#            (the word 18026's window)
+# Checks: `rngcmp.py` run955 vs run955b -> 0 differing in 37; run899b vs run956 -> 0 differing in 833. run955b runs to 24000.
+# ==== TAKEN 2026-10-19, one take each (run956 retaken once: the default --timeout 180), 00:39-, pool lanes 2, 3 ====

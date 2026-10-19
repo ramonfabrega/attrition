@@ -18233,3 +18233,52 @@ SHA-256 `2b495b5152aec62a97d166c30572808bb32573abc94e1fd1f4eecd4919bba030`.
 **What it holds**: `diff::iroquois_word::run952b_s_gap_is_widened_whole` (640 blocks). The state first parts past
 the standing set on block 11259: who=1's food 69 against 89, `0/2002` razed beside The Despot. With the hero cut,
 59 keys. Its window is in the coverage driver.
+
+## run955, run955b — the held-out battery's tenth lobby: East Indies, the Americans at difficulty 1, the `DUMP_ALL` start and the long trace (2026-10-19, item 3314, `att-3314`)
+
+`docs/AI.md` §125, §263. Map 18, human Nubians (4) against the Americans (20), `DIFFICULTY 1`, seed 12345. **What the disk could
+not answer**: no dump held the Americans, and DECISIONS 72 mints a held-out lobby when one leaves the battery (the Romans, for the
+AI word). No battery lobby on East Indies had tier 1. Start (run955), run915's recipe through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run955`: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 20
+--profile DIFFICULTY=1`. Long (run955b), run917's recipe: `--map 18 --end-frame 24000 --timeout 7200 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 20 --allow-early-end --profile DIFFICULTY=1` and run643's four
+`--detail` lines. Filed with `filerun.py run955 eastindies-american-diff1-start` and `run955b eastindies-american-diff1-24k-trace`.
+- run955: pool lane 3, `success`, `settings_restored`, 37 frames, players `(0,4,7),(1,20,1)`; 00:44:53–00:52:15 (442 s).
+- run955b: pool lane 2, `success`, 24001 frames, last frame 24000, **`ended_early` false**: the game does not end itself by
+  24000. 00:42:59–00:44:54 (115 s).
+- `rngcmp.py rontrace-run955.log rontrace-run955b.log`: 37 identical, 0 differing.
+- **First try 9382 / 9382** (count / sequence of 24000): ours 14 draws, theirs 12; at draw 1 ours `Leader::make_stuff+0x221`,
+  theirs `Leader::use_market+0x1ed`. Measured and never debugged against.
+- Minutes waited on another lane: none; the pool ran both beside att-3306's run954.
+
+Archive `gamelog-run955-eastindies-american-diff1-start.txt`, 153,477,478 bytes,
+SHA-256 `11c22b9fcd4b2879f587d777237dcd6fff008dca21fdc81be04bac5b01cb1e3e`.
+
+Archive `rontrace-run955.log`, 10,181,152 bytes,
+SHA-256 `59ee9c6548135258f26f1a75e0d94d5af3ee2e8819a9e3e334c32de07407ac53`.
+
+Archive `gamelog-run955b-eastindies-american-diff1-24k-trace.txt`, 13,281,620 bytes,
+SHA-256 `946596e66952e947452e939938d6d6073c676753e97a28d6ffce6f930bebdfa0`.
+
+Archive `rontrace-run955b.log`, 113,366,240 bytes,
+SHA-256 `5efbb66cdff4571a7809ce69ef56a2641a79b9cb9f4e76ebbb96619df8ab5daf`.
+
+## run956 — the Roman word 576's window: East Indies, the Romans at difficulty 2, blocks 570..826 (2026-10-19, item 3314, `att-3314`)
+
+`docs/AI.md` §263. **What the disk could not answer**: run899 dumps blocks 0..36 and run899b its setup and closing blocks
+only, so no dump held the word's block 577. run886's recipe on the Roman lobby: `--map 18 --end-frame 832 --timeout 2400
+--log-window 570 827 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0 --profile
+DIFFICULTY=2`. Filed with `filerun.py run956 eastindies-roman-diff2-window-570-827`.
+- The first take (00:39:37) died on the runner's default `--timeout 180` at 9.7 frames per second, three games on the box; the
+  retake ran on pool lane 2, 00:50:07–01:04:18 (851 s), `success`, 833 frames, seed 12345, players `(0,4,7),(1,6,1)`.
+- `rngcmp.py rontrace-run899b.log rontrace-run956.log`: **833 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run956-eastindies-roman-diff2-window-570-827.txt`, 438,364,600 bytes,
+SHA-256 `a8fff510bc3ea9c9035ce967b6ebb17ea0822aa2c48be89614bb304a2dea6a91`.
+
+Archive `rontrace-run956.log`, 11,185,280 bytes,
+SHA-256 `6a6bbc0fee2e893f57fea2a97b00c1146c4e68924b20c55919dbf05a3a8c28e0`.
+
+**What it holds**: `diff::roman_word::run956_s_word_frame_is_widened_whole` (257 blocks). 239 keys, standing from 570 on
+who=1's timber and wealth bucket; with `get_cost`'s fort arm, 29 (the control's set). Its window is in the coverage driver.

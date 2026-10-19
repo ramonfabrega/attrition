@@ -226,6 +226,7 @@ ROSTER = ["Aztecs", "Maya", "Inca", "Bantu", "Nubians", "Greeks", "Romans", "Egy
 LOBBY = {7: "`GreatSaharaEgyptianTier4` (map 7, tier 4)", 12: "`EastIndiesGermanTier3` (AI word, tier 3)",
          18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (map 18, tier 4)",
          13: "`GreatLakesRussianTier2` (map 14, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
+         6: "`EastIndiesRomanTier2` (AI word, tier 2)", 20: "`EastIndiesAmericanTier1` (map 18, tier 1)",
          4: "the human in every capture", 10: "scored pairs", 11: "scored pairs", 16: "scored pairs"}
 FLAG = {0: "aztecs", 1: "maya", 2: "inca", 3: "bantu", 4: "nubians", 6: "romans", 7: "egyptians",
         8: "turks", 10: "french", 11: "british", 12: "germans", 13: "russians", 14: "chinese",
