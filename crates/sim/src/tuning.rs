@@ -944,6 +944,14 @@ pub struct Tuning {
     pub dutch_fort_speed: i32,
     /// Percent faster Roman fort construction.
     pub roman_fort_speed: i32,
+    /// Percent off a fort's or a Tower-line building's price for a Roman
+    /// leader (`TypeData::get_cost@00664090`'s fort arm, `00665e55`..;
+    /// `docs/AI.md` §263). Ships as 25.
+    pub roman_fort_cost: i32,
+    /// Percent off a fort's or a Tower-line building's price with the
+    /// Colosseum held (`has_wonder(0x212)`, the same arm's first step).
+    /// Ships as 20.
+    pub colosseum_fort_cost: i32,
     /// Percent off construction time in the Hanging Gardens' city. Ships as zero.
     pub hanging_gardens_build_time: i32,
     /// Percent faster construction with the President nearby.
@@ -1456,6 +1464,8 @@ impl Tuning {
         salmon_naval_cost: 20,
         dutch_fort_speed: 0,
         roman_fort_speed: 50,
+        roman_fort_cost: 25,
+        colosseum_fort_cost: 20,
         hanging_gardens_build_time: 0,
         thepresident_building_speed: 33,
         thepresident_unit_build_speed: 100,
@@ -2205,6 +2215,8 @@ impl Tuning {
             ("SALMON_NAVAL_COST", Slot::Value(T.salmon_naval_cost)),
             ("DUTCH_FORT_SPEED", Slot::Value(T.dutch_fort_speed)),
             ("ROMAN_FORT_SPEED", Slot::Value(T.roman_fort_speed)),
+            ("ROMAN_FORT_COST", Slot::Value(T.roman_fort_cost)),
+            ("COLOSSEUM_FORT_COST", Slot::Value(T.colosseum_fort_cost)),
             (
                 "HANGING_GARDENS_BUILD_TIME",
                 Slot::Value(T.hanging_gardens_build_time),

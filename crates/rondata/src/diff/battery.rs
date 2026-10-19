@@ -75,6 +75,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // AI word (item 3107, DECISIONS 72): the Iroquois at Difficulty 3,
     // Great Lakes.
     (14, 18, 3),
+    // The battery's lowest lobby after item 3306's booking, promoted to the
+    // AI word (item 3314, DECISIONS 72, 83): the Romans at Difficulty 2,
+    // East Indies.
+    (18, 6, 2),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -186,20 +190,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 6982,
         sequence: 6982,
     },
-    Lobby {
-        name: "EastIndiesRomanTier2",
-        map_style: 18,
-        ai_tribe: 6,
-        difficulty: 2,
-        start: "gamelog-run899-eastindies-roman-diff2-start.txt",
-        long: (
-            "gamelog-run899b-eastindies-roman-diff2-24k-trace.txt",
-            "rontrace-run899b.log",
-        ),
-        length: 18620,
-        count: 576,
-        sequence: 576,
-    },
+    // `EastIndiesRomanTier2` (Romans 6, Difficulty 2, map 18; run899 and
+    // run899b, 576 of 18620) left the battery on item 3314 for the AI word
+    // (`diff::roman_word`, DECISIONS 72, 83).
     // The lobby minted by item 3107 (DECISIONS 72, `docs/AI.md` §125,
     // §246; runs 915 and 917) when the Iroquois left for the AI word, so
     // the held-out set stays replenished: East Indies, the Dutch at
@@ -221,6 +214,27 @@ pub(crate) const BATTERY: &[Lobby] = &[
         // `Farms::inc_time+0x1ae`.
         count: 1567,
         sequence: 1567,
+    },
+    // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
+    // §263; runs 955 and 955b) when the Romans left for the AI word, so
+    // the held-out set stays eight: East Indies, the Americans at
+    // Difficulty 1 — a nation no dump held and a tier no lobby on the map
+    // has. The game does not end itself: the long runs to 24000.
+    Lobby {
+        name: "EastIndiesAmericanTier1",
+        map_style: 18,
+        ai_tribe: 20,
+        difficulty: 1,
+        start: "gamelog-run955-eastindies-american-diff1-start.txt",
+        long: (
+            "gamelog-run955b-eastindies-american-diff1-24k-trace.txt",
+            "rontrace-run955b.log",
+        ),
+        length: 24000,
+        // Item 3314, the first try: ours 14 draws, theirs 12, at 1 ours
+        // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
+        count: 9382,
+        sequence: 9382,
     },
 ];
 

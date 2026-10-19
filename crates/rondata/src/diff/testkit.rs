@@ -9903,6 +9903,26 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's third word** (item 3314, DECISIONS 72, 83): frame
+    // 576, the Roman lobby's first try. run899 dumps blocks 0..36 and
+    // run899b its setup and closing blocks only, so no dump on disk held
+    // the word's block: item 3314 widened it on run956 over 570..826
+    // (`run956_s_word_frame_is_widened_whole`): block 570's bucket, the
+    // Tower priced without the Romans' quarter off. **Item 3314 moved it
+    // 576 → 18026** (`get_cost`'s fort arm), past run956's last block, and
+    // widened it on run956b over 18020..18276
+    // (`run956b_s_word_frame_is_widened_whole`): nothing on block 18027,
+    // the caravan's road search parting on tile (28, 40), the Library
+    // `0/2005`'s ring. **And 18026 → 18620**, the game's end, with
+    // `place_roads`' teardown; the close is compared whole on run899b's
+    // closing block 18621 by `run899b_roman_closing_state`.
+    (
+        "ROMAN_WORD",
+        crate::diff::roman_word::ROMAN_WORD,
+        Some("run899b_roman_closing_state"),
+        3314,
+        Some(crate::diff::roman_word::WIDENING_ROMAN_CLOSING),
+    ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
     // item 1538's build and **720** on the merged tree, widened on run680
@@ -10234,6 +10254,22 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // run897b's closing block 12659 scores the end itself.
         endpoint: Some("run897b_iroquois_closing_state"),
         window: Some("iroquois_frame_12156_window"),
+    },
+    // **The battery's third word** (DECISIONS 72, 83; item 3314): East
+    // Indies, the Romans at Difficulty 2 — the held-out battery's lowest
+    // lobby beside the Spanish, which ends itself at 18620. It shares the
+    // `Battery word` line with the Iroquois row and the closed German row.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesRomanTier2",
+        named: "East Indies (Romans)",
+        word: crate::diff::roman_word::ROMAN_WORD,
+        length: 18_620,
+        // Closed by item 3314: the draw stream agrees to 18620, and
+        // run899b's closing block 18621 scores the end itself, with the
+        // capture of who=0's Village its residue.
+        endpoint: Some("run899b_roman_closing_state"),
+        window: Some("roman_frame_18026_window"),
     },
     // **The battery's word** (DECISIONS 72; item 2904): East Indies, the
     // Germans at Difficulty 3 — the held-out battery's lowest lobby, which

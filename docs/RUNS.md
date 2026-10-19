@@ -18234,6 +18234,96 @@ SHA-256 `2b495b5152aec62a97d166c30572808bb32573abc94e1fd1f4eecd4919bba030`.
 the standing set on block 11259: who=1's food 69 against 89, `0/2002` razed beside The Despot. With the hero cut,
 59 keys. Its window is in the coverage driver.
 
+## run955, run955b — the held-out battery's tenth lobby: East Indies, the Americans at difficulty 1, the `DUMP_ALL` start and the long trace (2026-10-19, item 3314, `att-3314`)
+
+`docs/AI.md` §125, §263. Map 18, human Nubians (4) against the Americans (20), `DIFFICULTY 1`, seed 12345. **What the disk could
+not answer**: no dump held the Americans, and DECISIONS 72 mints a held-out lobby when one leaves the battery (the Romans, for the
+AI word). No battery lobby on East Indies had tier 1. Start (run955), run915's recipe through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run955`: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 20
+--profile DIFFICULTY=1`. Long (run955b), run917's recipe: `--map 18 --end-frame 24000 --timeout 7200 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 20 --allow-early-end --profile DIFFICULTY=1` and run643's four
+`--detail` lines. Filed with `filerun.py run955 eastindies-american-diff1-start` and `run955b eastindies-american-diff1-24k-trace`.
+- run955: pool lane 3, `success`, `settings_restored`, 37 frames, players `(0,4,7),(1,20,1)`; 00:44:53–00:52:15 (442 s).
+- run955b: pool lane 2, `success`, 24001 frames, last frame 24000, **`ended_early` false**: the game does not end itself by
+  24000. 00:42:59–00:44:54 (115 s).
+- `rngcmp.py rontrace-run955.log rontrace-run955b.log`: 37 identical, 0 differing.
+- **First try 9382 / 9382** (count / sequence of 24000): ours 14 draws, theirs 12; at draw 1 ours `Leader::make_stuff+0x221`,
+  theirs `Leader::use_market+0x1ed`. Measured and never debugged against.
+- Minutes waited on another lane: none; the pool ran both beside att-3306's run954.
+
+Archive `gamelog-run955-eastindies-american-diff1-start.txt`, 153,477,478 bytes,
+SHA-256 `11c22b9fcd4b2879f587d777237dcd6fff008dca21fdc81be04bac5b01cb1e3e`.
+
+Archive `rontrace-run955.log`, 10,181,152 bytes,
+SHA-256 `59ee9c6548135258f26f1a75e0d94d5af3ee2e8819a9e3e334c32de07407ac53`.
+
+Archive `gamelog-run955b-eastindies-american-diff1-24k-trace.txt`, 13,281,620 bytes,
+SHA-256 `946596e66952e947452e939938d6d6073c676753e97a28d6ffce6f930bebdfa0`.
+
+Archive `rontrace-run955b.log`, 113,366,240 bytes,
+SHA-256 `5efbb66cdff4571a7809ce69ef56a2641a79b9cb9f4e76ebbb96619df8ab5daf`.
+
+## run956 — the Roman word 576's window: East Indies, the Romans at difficulty 2, blocks 570..826 (2026-10-19, item 3314, `att-3314`)
+
+`docs/AI.md` §263. **What the disk could not answer**: run899 dumps blocks 0..36 and run899b its setup and closing blocks
+only, so no dump held the word's block 577. run886's recipe on the Roman lobby: `--map 18 --end-frame 832 --timeout 2400
+--log-window 570 827 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0 --profile
+DIFFICULTY=2`. Filed with `filerun.py run956 eastindies-roman-diff2-window-570-827`.
+- The first take (00:39:37) died on the runner's default `--timeout 180` at 9.7 frames per second, three games on the box; the
+  retake ran on pool lane 2, 00:50:07–01:04:18 (851 s), `success`, 833 frames, seed 12345, players `(0,4,7),(1,6,1)`.
+- `rngcmp.py rontrace-run899b.log rontrace-run956.log`: **833 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run956-eastindies-roman-diff2-window-570-827.txt`, 438,364,600 bytes,
+SHA-256 `a8fff510bc3ea9c9035ce967b6ebb17ea0822aa2c48be89614bb304a2dea6a91`.
+
+Archive `rontrace-run956.log`, 11,185,280 bytes,
+SHA-256 `6a6bbc0fee2e893f57fea2a97b00c1146c4e68924b20c55919dbf05a3a8c28e0`.
+
+**What it holds**: `diff::roman_word::run956_s_word_frame_is_widened_whole` (257 blocks). 239 keys, standing from 570 on
+who=1's timber and wealth bucket; with `get_cost`'s fort arm, 29 (the control's set). Its window is in the coverage driver.
+
+## run956b — the Roman word 18026's window: East Indies, the Romans at difficulty 2, blocks 18020..18276 (2026-10-19, item 3314, `att-3314`)
+
+`docs/AI.md` §263. **What the disk could not answer**: run956 ends on block 826 and run899b prints its setup and
+closing blocks only, so no dump held the word's block 18027. run956's recipe, windowed: `--map 18 --end-frame 18281
+--timeout 10800 --log-window 18020 18276` with run956's `--detail`, `--ai-tribe`, `--cover` and `--profile`. Filed with
+`filerun.py run956b eastindies-roman-diff2-window-18020-18277`.
+- One take, pool lane 1, 01:14:07–01:30:56 (1,009 s), 18,282 frames, players `(0,4,7),(1,6,1)`.
+- `rngcmp.py rontrace-run899b.log rontrace-run956b.log`: **18,282 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run956b-eastindies-roman-diff2-window-18020-18277.txt`, 517,952,486 bytes,
+SHA-256 `83e7680d6c4ba877d7e7923244e5e290f0d1047fa66e0624a7f8087ead831215`.
+
+Archive `rontrace-run956b.log`, 90,916,992 bytes,
+SHA-256 `3ca9df1af96cb0d11ed6070fe228274a9d17d87b3b9e0ac85b966744d2a35164`.
+
+**What it holds**: `diff::roman_word::run956b_s_word_frame_is_widened_whole` (256 blocks). With the ring teardown
+(`docs/ROADS.md` §13), 51 keys, every one standing from 18020: the control's set and who=1's `g.angle[0]` on
+`1/22`..`1/37`. who=0's Village `0/2000` is at damage 840 of 1200 on both sides on the last block. Its window is in the
+coverage driver.
+
+## run956c — the Roman lobby's last 344 blocks: East Indies, the Romans at difficulty 2, blocks 18277..18621 (2026-10-19, item 3314, `att-3314`)
+
+`docs/AI.md` §263. **What the disk could not answer**: who=0's Village `0/2000` is at damage 840 on both sides on
+run956b's last block (18276) and 1199 against a capture in the closing block 18621. run956b ends on 18276, and run899b
+prints nothing between its setup and its closing block. run956b's recipe, from its end to the game's: `--map 18
+--end-frame 18625 --allow-early-end --timeout 10800 --log-window 18277 18621` with run956's `--detail`, `--ai-tribe`,
+`--cover` and `--profile`. Filed with `filerun.py run956c eastindies-roman-diff2-window-18277-18622`.
+- One take, pool lane 2, 02:02:57–02:25:26 (1,349 s), 18,621 frames, ended itself on 18620, players `(0,4,7),(1,6,1)`.
+- `rngcmp.py rontrace-run899b.log rontrace-run956c.log`: **18,621 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run956c-eastindies-roman-diff2-window-18277-18622.txt`, 690,682,571 bytes,
+SHA-256 `bacb1f6e407e3f803a16594b23fd55e4bdefcdcc4fc39abe0c4ac9b0701f67ec`.
+
+Archive `rontrace-run956c.log`, 92,774,272 bytes,
+SHA-256 `8f532e6d099eb44a01309096391252cc08f505314af77bd80554686b63a862e8`.
+
+**What it holds**: `diff::roman_word::run956c_s_gap_is_widened_whole` (344 blocks). 52 keys: run956b's 51 standing,
+and `0/2000`'s `damage` on block 18369, ours 868 against theirs 869. That is the Horse Archers `1/53`'s blow of
+18368, 1.0 here and 2.0 there. Its window is in the coverage driver.
 ## run954 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 12156's widening (12150..12406) at run952's detail (2026-10-19, item 3306, `att-3306`)
 
 `docs/AI.md` §262. **What the disk could not answer**: the word moved to 12156 (item 3297), and run952 ends at block
