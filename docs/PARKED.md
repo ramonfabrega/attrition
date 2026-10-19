@@ -3746,7 +3746,8 @@ for: it cost one run rather than an item.
 `objects_find_ordered_collision` that never terminates held one `cargo test` at 100% CPU for 100 minutes, and the lane
 sat on its batch with nothing to wake it until `lanewait.py` named the child. Candidate: a `--timeout` per mutant
 (the unmutated run's time times a factor, a floor of a minute), a timed-out mutant counted as caught and printed as
-`hung`, made to fail first on a mutant that loops. One reach.
+`hung`, made to fail first on a mutant that loops. One reach; 3261's own "for the Loop" line (its parked 3261g) names
+it too — two mutants of `find_ordered_collision`'s batch hung, killed by hand.
 
 (3277) **A lane lands with its own gate red on its own line, fixed after and not re-run** (the commander, at 3267's,
 3271's and 3272's merges): both Sonnet rules lanes' lane gates were red on the journal-quote guard
