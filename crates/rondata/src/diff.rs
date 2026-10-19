@@ -41,6 +41,8 @@ mod floors;
 #[cfg(test)]
 mod german_word;
 #[cfg(test)]
+mod greek_word;
+#[cfg(test)]
 mod golden;
 mod harness;
 #[cfg(test)]
