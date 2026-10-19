@@ -260,6 +260,8 @@ mod unit_set_ai_control;
 mod unit_set_angle;
 #[path = "unit_set_mask.rs"]
 mod unit_set_mask;
+#[path = "unit_set_new_location.rs"]
+mod unit_set_new_location;
 #[path = "unit_set_rally.rs"]
 mod unit_set_rally;
 #[path = "unit_set_type.rs"]
