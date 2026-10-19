@@ -3600,13 +3600,24 @@ impl Sim {
         }) {
             self.update_action(responder);
         }
-        if st.target.is_some() && !self.attack_action_yields(responder, attacker) {
-            return;
-        }
+        // A held attack that yields is killed and the arm ends in `goto
+        // LAB_00600877` (`6004e7`..), **past** the flee arm and the on-duty
+        // gate below: a decoy with no post, whose attack on a building
+        // `Group::target_opportunity` overrides, takes the new target
+        // (run954's `1/77` on 12155, item 3306).
+        let yielded = if st.target.is_some() {
+            if !self.attack_action_yields(responder, attacker) {
+                return;
+            }
+            true
+        } else {
+            false
+        };
         // **The flee arm** (`docs/COMBAT.md` §34), and it is reached only
         // with `local_c == 0` — the front order is not one of the seven
         // move kinds (`6002a0`'s `is_move(order_type())`).
-        if !front.is_some_and(|o| crate::orders::index::is_move_family(o.index()))
+        if !yielded
+            && !front.is_some_and(|o| crate::orders::index::is_move_family(o.index()))
             && self.flee_from(responder, attacker)
         {
             return;
@@ -3620,7 +3631,11 @@ impl Sim {
         // is the action-is-an-attack arm (`600516`, `jmp 600877`), which
         // this crate carries as the `target` test above; an attack action
         // with no target keeps the old path (SEAM).
-        if front.is_some() && !self.action_is_attack(responder) && !self.on_duty(responder) {
+        if !yielded
+            && front.is_some()
+            && !self.action_is_attack(responder)
+            && !self.on_duty(responder)
+        {
             return;
         }
         // `LAB_00600877`'s own gate — `type->attack != 0`, the base column.
@@ -3680,7 +3695,10 @@ impl Sim {
         let frame = self.frame;
         if std::env::var_os("RON_PROBE_GTO").is_some() {
             let last = self.seat_parts(seat).1.opportunity;
-            eprintln!("PROBE_GTO f{frame} group {seat:?} asker {asker} last {last} members {:?}", self.seat_list(seat));
+            eprintln!(
+                "PROBE_GTO f{frame} group {seat:?} asker {asker} last {last} members {:?}",
+                self.seat_list(seat)
+            );
         }
         {
             let (_, st) = self.seat_parts(seat);
@@ -3732,8 +3750,10 @@ impl Sim {
     /// ATTACK on someone else drops it for the new attacker unless the
     /// order is mandatory, the held target is a combat-role unit, the new
     /// attacker is a building, the stance is Raid or Raze, or — when the
-    /// attacker's type has an attack at all — the held target is in range
-    /// or the attacker is not. Returns whether the old order is killed and
+    /// held target is a unit and the attacker's type has an attack at all
+    /// — the held target is in range or the attacker is not; a held
+    /// building yields without the range tests (item 3306). Returns
+    /// whether the old order is killed and
     /// the retaliation goes on to the tail.
     ///
     /// SEAMs: the siege/bombard/explosive shields (`has_objmask(0x840002)`)
@@ -3768,7 +3788,16 @@ impl Sim {
         if matches!(self.units[u].combat.stance, Stance::Raid | Stance::Raze) {
             return false;
         }
-        if self.profile(attacker).attack != 0
+        // **A held target that is not a unit yields at once**
+        // (`target_opportunity@005fffc0:202`–`:209`, the listing's
+        // `LAB_006004e7`): when the held object's vslot `+0x18` answers 0
+        // and the unit has none of `0x840002`, the two range tests below
+        // are never asked. A guard striking the human's city in range drops
+        // it for a Citizen its group names: run954's `1/25`, `1/48` and
+        // `1/51` on 12155, handed `0/5` by decoy `1/88`'s
+        // `Group::target_opportunity` (item 3306, `docs/AI.md` §262).
+        if matches!(held, Obj::Unit(_))
+            && self.profile(attacker).attack != 0
             && (self.is_in_range(me, held) || !self.is_in_range(me, attacker))
         {
             return false;
