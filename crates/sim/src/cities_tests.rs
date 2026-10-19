@@ -1129,6 +1129,9 @@ fn a_re_entry_re_issues_a_queued_build_on_the_site_that_took_its_number() {
         QueuePos::Last,
     );
     sim.close_building(b2, false);
+    // The close's hold run out (`docs/COMBAT.md` §59.3), so the number is
+    // free again.
+    sim.buildings[b2].hold_frames = 0;
     let b3 = sim.place_building(0, t.barracks, tile_pos(48, 44)).unwrap();
     assert_eq!(sim.buildings[b3].index, sim.buildings[b2].index);
     // The builder is carried off, its first approach spent: the build on
@@ -1177,7 +1180,9 @@ fn a_closed_site_s_builder_walks_on_until_its_number_is_reused() {
         sim.units[u].orders
     );
     assert_ne!(sim.units[u].pos, start, "and the walk under it goes on");
-    // The next building takes the dead one's number, and the uid test fails.
+    // Once the close's hold has run out (`docs/COMBAT.md` §59.3) the next
+    // building takes the dead one's number, and the uid test fails.
+    sim.buildings[b].hold_frames = 0;
     let b2 = sim.place_building(0, t.barracks, tile_pos(46, 40)).unwrap();
     assert_eq!(
         sim.buildings[b2].index, sim.buildings[b].index,
@@ -1192,6 +1197,35 @@ fn a_closed_site_s_builder_walks_on_until_its_number_is_reused() {
         "a reused number ends it: {:?}",
         sim.units[u].orders
     );
+}
+
+/// **A closed building's number is held thirty frames** (item 3335,
+/// `docs/COMBAT.md` §59.3): `Build::close` reaches `Object::close` through
+/// `Wall::close:155`, whose last write to an active object is `hold_frames
+/// = 0x1e`, and `Objects::process_all`'s building band takes one off a
+/// frame. run970b's script places a Woodcutter's Camp on 1176, destroys
+/// it and places another: theirs' second is `1/2010`, the first's 2009
+/// still held.
+#[test]
+fn a_closed_building_s_number_is_held_thirty_frames() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    sim.close_building(b, false);
+    assert_eq!(sim.buildings[b].hold_frames, Sim::CLOSE_HOLD);
+    let b2 = sim.place_building(0, t.barracks, tile_pos(46, 40)).unwrap();
+    assert_eq!(
+        sim.buildings[b2].index,
+        sim.buildings[b].index + 1,
+        "a held number is not reused"
+    );
+    for _ in 0..Sim::CLOSE_HOLD {
+        sim.tick();
+    }
+    assert_eq!(sim.buildings[b].hold_frames, 0, "one off a frame");
+    let b3 = sim.place_building(0, t.barracks, tile_pos(40, 46)).unwrap();
+    assert_eq!(sim.buildings[b3].index, sim.buildings[b].index, "and then it is");
 }
 
 #[test]

@@ -10280,6 +10280,22 @@ and 8429, are `1/68`–`1/71`. uid 111 has 62 by 8248. Inside run439, uid
 number to uid 117 on 8562. So a number is still held 15 and 18 frames
 after its death, and free 43 frames after.
 
+**And a building's close holds its number too** (item 3335,
+2026-10-19). `Build::close@00628980:144` calls `Wall::close@0063f6e0`,
+whose line 155 is `Object::close`, so a building's number is held thirty
+frames like a unit's; `Objects::process_all@0065dce0`'s building band
+(numbers from 2000) takes one off a dead building a frame, after
+`Build::process_ejection` when the building is ejecting (`build_masks &
+0x4000`), which puts one back while a squad comes out. This crate held a
+dead building's number only while its garrison emptied. run970b's 1176
+is the receipt: the Indians' script places a Woodcutter's Camp at the
+queued Small City, reads `max_workers_at_building` 4, destroys it and
+places another on the same frame; theirs' second is `1/2010` and the
+citizen sent to the first keeps its `BUILDORDER` on the dead 2009, where
+ours reused 2009 at once (`docs/AI.md` §271). Built in
+`Sim::close_building` and `Sim::process_building`; test
+`cities_tests::a_closed_building_s_number_is_held_thirty_frames`.
+
 ### 59.4 What moved
 
 | | before | after |

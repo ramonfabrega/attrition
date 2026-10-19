@@ -1584,7 +1584,11 @@ pub struct Building {
     pub under_attack: u8,
     /// `build_masks & 0x4000`: eject one squad a frame.
     pub eject_pending: bool,
-    /// `ObjectData::hold_frames` on a dead building.
+    /// `ObjectData::hold_frames` on a dead building: 30 from its close
+    /// (`Object::close@00647160`, reached through `Wall::close:155`), one
+    /// off a frame in `Objects::process_all`'s building band, one back for
+    /// each squad `process_ejection` lets out. [`Sim::find_free`] reuses
+    /// no number it holds (`docs/COMBAT.md` §59.3, item 3335).
     pub hold_frames: i32,
     /// The city it belongs to, as an index into [`Sim::cities`].
     pub city: Option<usize>,
@@ -2162,9 +2166,8 @@ impl Sim {
             for b in &self.buildings {
                 let i = b.index - base;
                 if b.owner == who && (base..mark).contains(&b.index) {
-                    // A building keeps no hold count here: a garrison stands in for it.
                     free[i as usize] &=
-                        find_free_reusable(b.alive, i16::from(!b.garrison.is_empty()), false, true);
+                        find_free_reusable(b.alive, i16::from(b.hold_frames != 0), false, true);
                 }
             }
         } else {

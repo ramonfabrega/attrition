@@ -3439,6 +3439,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::spanish_word::spanish_frame_7785_window(),
         || super::spanish_word::spanish_frame_14382_window(),
         || super::spanish_word::spanish_frame_22692_window(),
+        || super::indian_word::indian_frame_221_window(),
+        || super::indian_word::indian_frame_1177_window(),
         || super::dutch_word::dutch_frame_1567_window(),
         || super::dutch_word::dutch_frame_5583_window(),
         || super::dutch_word::dutch_frame_22935_window(),

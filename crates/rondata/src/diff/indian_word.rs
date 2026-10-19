@@ -31,11 +31,11 @@ pub(crate) const INDIAN: Lobby = Lobby {
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`). Item 3335 promoted it to
     // the AI word (`docs/AI.md` §271) and moved it 221 → 1176 (a goody
     // box's own `ever_seen`, `reveal_fog`'s goody arm) → 1177 (`get_cost`'s
-    // Indian ramp arm): ours 10 draws, theirs 8, at 1: ours
-    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
-    // `Guy::set_anim+0x104b`.
-    count: 1177,
-    sequence: 1177,
+    // Indian ramp arm) → 9985 (a closed building's number held thirty
+    // frames, run970b's 1176): ours 5 draws, theirs 6, at 2: ours
+    // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
+    count: 9985,
+    sequence: 9985,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -151,4 +151,62 @@ fn run970_s_word_frame_is_widened_whole() {
     // `form`, the groups' `held` and the pool — 30 on block 37 and two
     // late rows, who=1's `group:66.held` on 177 and `pool:64` on 222.
     pin_eq!(w.firsts.len(), 32, "keys that part in the window");
+}
+
+/// run970b: the word 1177's window, blocks 1171..1428 at run970's detail
+/// (item 3335); run970 ends on block 472 and run962b dumps its setup and
+/// closing blocks only.
+pub(crate) const RUN970B: &str = "gamelog-run970b-eastindies-indian-diff2-window-1171-1428-guys4.txt";
+
+/// The window: block 1171 through 1428; the word 1177's own block is 1178.
+pub(crate) const WIDENING_INDIAN_FRAME_1177: (i64, i64) = (1171, 1428);
+
+pub(crate) fn indian_frame_1177_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INDIAN.start],
+        true,
+        INDIAN.long,
+        "run970b",
+        &[(RUN970B, WIDENING_INDIAN_FRAME_1177.0)],
+        WIDENING_INDIAN_FRAME_1177,
+        1,
+        &[1178],
+        true,
+    )
+}
+
+#[test]
+fn run970b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = indian_frame_1177_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3335: 400 keys part on blocks 1171..1428, the word's own block
+    // being 1178. The first that is not the standing set: block 1177,
+    // who=1's citizen `1/7` holds a `BUILDORDER` on `1/2009` (uid 19) and
+    // its walk to (38184, 36744) in theirs and nothing in ours
+    // (`orders.len` 0/2, `orders_x` 40248/38184), and the Woodcutter's
+    // Camp ours numbers 2009 is theirs' `1/2010` (the Farm `1/2008`'s
+    // `city_down` 2009/2010). The script places a Camp at the queued
+    // Small City 2007, reads `max_workers_at_building` 4, destroys it and
+    // places another on the same frame (1176): theirs' 2009 is held thirty
+    // frames by its close, ours was reused at once. **400 → 35** with the
+    // close's hold (the word 1177 → 9985): both read 2010 and `1/7`'s two
+    // orders. What stands is the control's set — 32 on 1171 and three
+    // late rows, who=1's `SITE[5].reg` on 1176, `SITE[6].reg` on 1376 and
+    // `group:66.held` on 1377.
+    pin_eq!(w.firsts.len(), 35, "keys that part in the window");
 }

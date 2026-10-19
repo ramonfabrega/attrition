@@ -2514,7 +2514,8 @@ impl Sim {
     /// garrison streams out.
     pub fn die_building(&mut self, b: usize) {
         self.close_building(b, false);
-        self.buildings[b].hold_frames = 1;
+        let bd = &mut self.buildings[b];
+        bd.hold_frames = bd.hold_frames.max(1);
     }
 
     /// `Build::close@00628980:183-187`: for any reason but 5 the cell under
@@ -2611,6 +2612,12 @@ impl Sim {
             self.close_pasture_animals(b);
         }
         self.buildings[b].alive = false;
+        // `Wall::close:155` → `Object::close@00647160`: an active object's
+        // close ends with `hold_frames = 0x1e`, so the number is not
+        // `find_free`'s for thirty frames (`docs/COMBAT.md` §59.3). The
+        // script's probe-and-destroy of a Woodcutter's Camp on run970b's
+        // 1176 leaves 2009 held, and the replacement is 2010.
+        self.buildings[b].hold_frames = Self::CLOSE_HOLD;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();
         self.wall_stats_dirty[who as usize] = true;
@@ -2670,13 +2677,15 @@ impl Sim {
     /// re-entries, then the tail — the city block and the road replan. `Sim::tick`
     /// runs the five per building.
     pub(crate) fn process_building(&mut self, b: usize, frame: i64) -> bool {
+        // `Objects::process_all@0065dce0`'s building band: a dead building
+        // whose hold is not zero lets a squad out when it is ejecting
+        // (`build_masks & 0x4000`), then loses one frame of the hold.
         if !self.buildings[b].alive {
-            if self.buildings[b].hold_frames > 0 {
-                if self.buildings[b].garrison.is_empty() {
-                    self.buildings[b].hold_frames = 0;
-                } else {
+            if self.buildings[b].hold_frames != 0 {
+                if self.buildings[b].eject_pending {
                     self.process_ejection(b);
                 }
+                self.buildings[b].hold_frames -= 1;
             }
             return false;
         }
