@@ -905,87 +905,17 @@ impl Sim {
     /// unit-balance mode's), a
     /// `FIGHTERBOMBER`'s carrier-relative point.
     pub(crate) fn do_air_patrol(&mut self, u: usize, frame: i64) {
-        let Some(crate::orders::Body::AirPatrol(mut p)) = self.current_order(u).map(|o| o.body)
-        else {
-            return;
-        };
-        // `5ea64b`..`5ea653`: a waypoint at or past the arrays' length starts over.
-        if p.waypoint >= usize::from(p.len) {
-            p.waypoint = 0;
-            self.set_waypoint(u, 0);
-        }
-        let goal = (!p.returning).then_some(p.current());
-        if self.plane_air_physics(u, goal, frame) == Flew::Done {
+        if !matches!(
+            self.current_order(u).map(|o| &o.body),
+            Some(crate::orders::Body::AirPatrol(_))
+        ) {
             return;
         }
-        // `+0x58` is read again after the flight: an empty tank sets it there.
-        if let Some(crate::orders::Body::AirPatrol(q)) = self.current_order(u).map(|o| o.body) {
-            p.returning = q.returning;
-        }
-        let xs = self.world.width() * UNITS_PER_CELL;
-        let ys = self.world.height() * UNITS_PER_CELL;
-        let at = self.units[u].pos;
-        let point = p.current();
-        let (gx, gy) = (point.x.clamp(0, xs - 1), point.y.clamp(0, ys - 1));
-        // **A patrol going home still looks** (`5ea6c0`..: `+0x58` gates the
-        // arrival and the search and not the look below, item 1937): the
-        // arrival and the sixteen-frame search need `returning` clear.
-        if !p.returning && vector_dist(at.x - gx, at.y - gy) < 0x240 {
-            // **The waypoint steps on** (item 947): within `0x240` of
-            // `points[waypoint]` a patrol with a point after it flies at the
-            // next; at the last, a patrol with an order behind it is killed,
-            // and one alone circles there.
-            if p.waypoint + 1 < usize::from(p.len) {
-                p.waypoint += 1;
-                self.set_waypoint(u, p.waypoint);
-            } else if self.units[u].orders.len() > 1 {
-                self.kill_current_order(u);
-                return;
-            }
-        }
-        let phase = i64::from(self.units[u].index) + frame;
-        if !p.returning && phase & 15 == 0 {
-            let me = crate::combat::Obj::Unit(u);
-            // The search is round the **last** point (`x_pos[length − 1]`),
-            // and a target it finds is struck from the last leg (`waypoint
-            // == length − 1`), or from any when it flies (`5ea8f4`: the
-            // target's type `domain == 2`). A Bomber asks
-            // `find_new_bomber_target`, anything else `find_new_air_target`
-            // (item 1182: `is(BOMBER)` at `5ea86a`).
-            let found = if self.is_bomber(u) {
-                self.find_new_bomber_target(u, p.last())
-            } else {
-                self.find_new_air_target(u, p.last())
-            };
-            if let Some(t) = found.filter(|&t| self.valid_target(me, t)).filter(|&t| {
-                p.waypoint + 1 == usize::from(p.len)
-                    || matches!(self.profile(t).domain, crate::attrition::Domain::Air)
-            }) {
-                self.add_strafe_order(
-                    u,
-                    Some(t),
-                    p.home,
-                    false,
-                    crate::orders::QueuePos::First,
-                    false,
-                );
-                return;
-            }
-        }
-        if phase & 31 == 0
-            && let Some(b) = self.enemy_building_on_tile(u, p.current())
-            && self.buildings[b].ever_seen & Self::who_bit(self.units[u].owner) != 0
-        {
-            let t = crate::combat::Obj::Building(b);
-            self.add_strafe_order(
-                u,
-                Some(t),
-                p.home,
-                true,
-                crate::orders::QueuePos::First,
-                false,
-            );
-        }
+        air_patrol_steps(&mut SimPatrol {
+            sim: self,
+            u,
+            frame,
+        });
     }
 
     /// **`UnitData::home_base@00609dc0`**: the building a unit is inside,
@@ -4983,6 +4913,362 @@ mod flak_tests {
 /// type `is_modern_infantry` answers. It lives beside the air line because
 /// chapter thirty-eight is where a Modern Infantry first walked in a
 /// capture (run404's `1/6`, a first step of 42 on a speed of 34).
+/// What the home object's flag byte says (`home_flagged`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(not(test), allow(dead_code))] // a plane's home is a building: the sweep alone builds the others
+pub(crate) enum Home {
+    /// No home (`+0x44 < 0`).
+    Absent,
+    /// A home object whose flag byte is clear.
+    Plain,
+    /// A flagged one, at this position.
+    At(i32, i32),
+}
+
+/// The register the look's `find_building_at` is handed in its last
+/// argument slot, which the compiler leaves unset: whatever `ecx` held on
+/// the path that reached the call. The simulation reads none of them; the
+/// sweep records the call's arguments, so the steps name the paths.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Stale {
+    /// The unit, after a `this`-call (not a `FIGHTERBOMBER`).
+    This,
+    /// The home index (`+0x44`), negative.
+    HomeIdx,
+    /// The home object, its flag clear.
+    HomeObject,
+    /// The world, after `restrict`.
+    World,
+}
+
+/// What `Unit::do_air_patrol@005ea620` asks of the world, in the order it
+/// asks (item 3289): [`air_patrol_steps`] is the original's control flow and
+/// the view is what it reads and calls. `Sim::do_air_patrol` runs it over
+/// [`SimPatrol`]; `sweep/unit_do_air_patrol.rs` runs it over the emulated
+/// original's windows and stubs.
+pub(crate) trait PatrolView {
+    /// An `(index, list)` pair of `ObjectsData`, opaque to the steps.
+    type Target: Copy;
+    /// `this->vtable[0x180](order, 0)`, the animal's think; first call.
+    fn think(&mut self);
+    /// `x_pos.length` (`+0x8`).
+    fn len(&self) -> i32;
+    /// `y_pos.length` (`+0x24`), which the last point's `y` is indexed by.
+    fn ylen(&self) -> i32;
+    /// `PatrolOrder::waypoint` (`+0x3c`).
+    fn waypoint(&self) -> i32;
+    fn set_waypoint(&mut self, w: i32);
+    /// `AirOrder::returning` (`+0x58`), read live.
+    fn returning(&self) -> bool;
+    fn x_at(&self, i: i32) -> i32;
+    fn y_at(&self, i: i32) -> i32;
+    /// `this->vtable[0x30]`, `SubObjectData::is_animal`.
+    fn is_animal(&mut self) -> bool;
+    /// The home object's `vtable[8]` and, when it answers, its position
+    /// (`+0x10/+0x14` less the key): the carrier-relative goal.
+    fn carrier(&mut self) -> Option<(i32, i32)>;
+    /// The home object's flag byte (`+8 & 1`) and, when set, its position:
+    /// the carrier-relative search and look.
+    fn home_flagged(&mut self) -> Home;
+    /// `WorldData::restrict`.
+    fn restrict(&mut self, x: i32, y: i32) -> (i32, i32);
+    /// `Unit::do_air_physics(order, x, y)`; a patrol going home hands
+    /// `None` (the original's -1, -1).
+    fn air_physics(&mut self, goal: Option<(i32, i32)>) -> bool;
+    /// `vector_dist(this - (x, y))`.
+    fn dist_to(&self, x: i32, y: i32) -> i32;
+    /// The unit's order count (`+0xd8`).
+    fn orders(&self) -> i32;
+    fn kill_current_order(&mut self);
+    /// `short +0xa` plus the game frame.
+    fn phase(&self) -> i32;
+    /// `ObjectData::is(0x134)`.
+    fn fighter_bomber(&mut self) -> bool;
+    /// `ObjectData::is(0x130)`.
+    fn bomber(&mut self) -> bool;
+    /// `find_new_bomber_target(x, y, -1, p4, &out)`; `p4` the stale `ecx`
+    /// the first call hands on (`None`) or the `y` the fallback passes.
+    fn find_bomber(&mut self, x: i32, y: i32, p4: Option<i32>) -> Self::Target;
+    /// `find_new_air_target(x, y, -1, -1, &out)`.
+    fn find_air(&mut self, x: i32, y: i32) -> Self::Target;
+    /// The unit's own position, `+0x10/+0x14` less the key.
+    fn self_pos(&self) -> (i32, i32);
+    /// `game->semaphore[1] & 2`.
+    fn semaphore_fallback(&self) -> bool;
+    fn valid_target(&mut self, t: Self::Target) -> bool;
+    /// The target's type `domain == 2`.
+    fn target_flies(&self, t: Self::Target) -> bool;
+    /// `add_strafe_order(t, home, mandatory, QUEUE_FIRST, 0)`.
+    fn strafe(&mut self, t: Self::Target, mandatory: bool);
+    /// `ObjectsData::find_building_at(tile of (x, y), SEARCH_ENEMY, who,
+    /// FILTER_ALL)`.
+    fn find_building_at(&mut self, x: i32, y: i32, stale: Stale) -> Option<Self::Target>;
+    /// The building's `ever_seen` (`+0x62`) holds this player's bit.
+    fn ever_seen(&mut self, t: Self::Target) -> bool;
+    /// `spell_time` (`+0x98`).
+    fn spell_time(&self) -> i32;
+    fn set_spell_time(&mut self, v: i32);
+}
+
+/// **`Unit::do_air_patrol@005ea620`**, the control flow (item 3289; the
+/// sweep `sweep/unit_do_air_patrol.rs` holds it to the original over the
+/// emulated windows): the animal think and the waypoint's reset; the goal
+/// of a patrol not going home, carrier-relative when its home is a unit;
+/// `do_air_physics`; then the animal tail (`spell_time` 0 to 1), or, not
+/// going home, the arrival and the sixteen-frame search, and for any
+/// patrol the thirty-two-frame look.
+pub(crate) fn air_patrol_steps<V: PatrolView>(v: &mut V) {
+    v.think();
+    if v.len() <= v.waypoint() {
+        v.set_waypoint(0);
+    }
+    let mut goal = None;
+    if !v.returning() {
+        let w = v.waypoint();
+        let (mut gx, mut gy) = (v.x_at(w), v.y_at(w));
+        if !v.is_animal()
+            && let Some((ox, oy)) = v.carrier()
+        {
+            (gx, gy) = v.restrict(gx + ox, gy + oy);
+        }
+        goal = Some((gx, gy));
+    }
+    if !v.air_physics(goal) {
+        return;
+    }
+    if v.is_animal() {
+        if v.spell_time() == 0 {
+            v.set_spell_time(1);
+        }
+        return;
+    }
+    // `+0x58` is read again after the flight: an empty tank sets it there. (The
+    // original reads it a third time after the waypoint steps on; nothing writes
+    // it between, and the sweep's mutations of that read all survived.)
+    if !v.returning() {
+        if let Some((gx, gy)) = goal
+            && v.dist_to(gx, gy) < 0x240
+        {
+            if v.waypoint() < v.len() - 1 {
+                let w = v.waypoint();
+                v.set_waypoint(w + 1);
+            } else if v.orders() > 1 {
+                v.kill_current_order();
+                return;
+            }
+        }
+        if v.phase() & 15 == 0 {
+            let (mut sx, mut sy) = (v.x_at(v.len() - 1), v.y_at(v.ylen() - 1));
+            if v.fighter_bomber()
+                && let Home::At(ox, oy) = v.home_flagged()
+            {
+                (sx, sy) = v.restrict(sx + ox, sy + oy);
+            }
+            let (px, py) = v.self_pos();
+            let mut t;
+            if v.bomber() {
+                t = v.find_bomber(sx, sy, None);
+                if !v.valid_target(t) && v.semaphore_fallback() {
+                    t = v.find_air(px, py);
+                }
+            } else {
+                t = v.find_air(sx, sy);
+                if !v.valid_target(t) && v.semaphore_fallback() {
+                    t = v.find_bomber(px, py, Some(py));
+                }
+            }
+            if v.valid_target(t) && (v.waypoint() == v.len() - 1 || v.target_flies(t)) {
+                v.strafe(t, false);
+                return;
+            }
+        }
+    }
+    if v.phase() & 31 == 0 {
+        let w = v.waypoint();
+        let (mut lx, mut ly) = (v.x_at(w), v.y_at(w));
+        let mut stale = Stale::This;
+        if v.fighter_bomber() {
+            match v.home_flagged() {
+                Home::Absent => stale = Stale::HomeIdx,
+                Home::Plain => stale = Stale::HomeObject,
+                Home::At(ox, oy) => {
+                    (lx, ly) = v.restrict(lx + ox, ly + oy);
+                    stale = Stale::World;
+                }
+            }
+        }
+        if let Some(b) = v.find_building_at(lx, ly, stale)
+            && v.ever_seen(b)
+        {
+            v.strafe(b, true);
+        }
+    }
+}
+
+/// [`PatrolView`] over the simulation: a plane's patrol.
+///
+/// SEAM: the animal arms (`is_animal`, the `+0x180` think and the
+/// `spell_time` latch: a bird is `do_idle`'s, `crate::gaia`), the home as a
+/// carrier unit (`carrier`, `home_flagged`: a hangar is a building, whose
+/// `vtable[8]` answers false), and `game->semaphore & 2`.
+struct SimPatrol<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    frame: i64,
+}
+
+impl SimPatrol<'_> {
+    fn patrol(&self) -> crate::orders::AirPatrolOrder {
+        match self.sim.current_order(self.u).map(|o| o.body) {
+            Some(Body::AirPatrol(p)) => p,
+            _ => unreachable!("do_air_patrol runs on a patrol"),
+        }
+    }
+
+    fn point(&self, i: i32) -> Pos {
+        let p = self.patrol();
+        p.points[usize::try_from(i).unwrap_or(0).min(p.points.len() - 1)]
+    }
+}
+
+impl PatrolView for SimPatrol<'_> {
+    type Target = Option<crate::combat::Obj>;
+
+    fn think(&mut self) {}
+
+    fn len(&self) -> i32 {
+        i32::from(self.patrol().len)
+    }
+
+    fn ylen(&self) -> i32 {
+        self.len()
+    }
+
+    fn waypoint(&self) -> i32 {
+        self.patrol().waypoint as i32
+    }
+
+    fn set_waypoint(&mut self, w: i32) {
+        self.sim.set_waypoint(self.u, w as usize);
+    }
+
+    fn returning(&self) -> bool {
+        self.patrol().returning
+    }
+
+    fn x_at(&self, i: i32) -> i32 {
+        self.point(i).x
+    }
+
+    fn y_at(&self, i: i32) -> i32 {
+        self.point(i).y
+    }
+
+    fn is_animal(&mut self) -> bool {
+        false
+    }
+
+    fn carrier(&mut self) -> Option<(i32, i32)> {
+        None
+    }
+
+    fn home_flagged(&mut self) -> Home {
+        Home::Absent
+    }
+
+    fn restrict(&mut self, x: i32, y: i32) -> (i32, i32) {
+        let xs = self.sim.world.width() * UNITS_PER_CELL;
+        let ys = self.sim.world.height() * UNITS_PER_CELL;
+        (x.clamp(0, xs - 1), y.clamp(0, ys - 1))
+    }
+
+    fn air_physics(&mut self, goal: Option<(i32, i32)>) -> bool {
+        let goal = goal.map(|(x, y)| Pos::new(x, y));
+        self.sim.plane_air_physics(self.u, goal, self.frame) != Flew::Done
+    }
+
+    fn dist_to(&self, x: i32, y: i32) -> i32 {
+        let at = self.sim.units[self.u].pos;
+        vector_dist(at.x - x, at.y - y)
+    }
+
+    fn orders(&self) -> i32 {
+        self.sim.units[self.u].orders.len() as i32
+    }
+
+    fn kill_current_order(&mut self) {
+        self.sim.kill_current_order(self.u);
+    }
+
+    fn phase(&self) -> i32 {
+        (i64::from(self.sim.units[self.u].index) + self.frame) as i32
+    }
+
+    fn fighter_bomber(&mut self) -> bool {
+        false
+    }
+
+    fn bomber(&mut self) -> bool {
+        self.sim.is_bomber(self.u)
+    }
+
+    fn find_bomber(&mut self, x: i32, y: i32, _p4: Option<i32>) -> Self::Target {
+        self.sim.find_new_bomber_target(self.u, Pos::new(x, y))
+    }
+
+    fn find_air(&mut self, x: i32, y: i32) -> Self::Target {
+        self.sim.find_new_air_target(self.u, Pos::new(x, y))
+    }
+
+    fn self_pos(&self) -> (i32, i32) {
+        let at = self.sim.units[self.u].pos;
+        (at.x, at.y)
+    }
+
+    fn semaphore_fallback(&self) -> bool {
+        false
+    }
+
+    fn valid_target(&mut self, t: Self::Target) -> bool {
+        t.is_some_and(|t| self.sim.valid_target(crate::combat::Obj::Unit(self.u), t))
+    }
+
+    fn target_flies(&self, t: Self::Target) -> bool {
+        t.is_some_and(|t| matches!(self.sim.profile(t).domain, crate::attrition::Domain::Air))
+    }
+
+    fn strafe(&mut self, t: Self::Target, mandatory: bool) {
+        let home = self.patrol().home;
+        self.sim.add_strafe_order(
+            self.u,
+            t,
+            home,
+            mandatory,
+            crate::orders::QueuePos::First,
+            false,
+        );
+    }
+
+    fn find_building_at(&mut self, x: i32, y: i32, _stale: Stale) -> Option<Self::Target> {
+        self.sim
+            .enemy_building_on_tile(self.u, Pos::new(x, y))
+            .map(|b| Some(crate::combat::Obj::Building(b)))
+    }
+
+    fn ever_seen(&mut self, t: Self::Target) -> bool {
+        matches!(t, Some(crate::combat::Obj::Building(b))
+            if self.sim.buildings[b].ever_seen & Sim::who_bit(self.sim.units[self.u].owner) != 0)
+    }
+
+    fn spell_time(&self) -> i32 {
+        i32::from(self.sim.units[self.u].spell_time)
+    }
+
+    fn set_spell_time(&mut self, v: i32) {
+        self.sim.units[self.u].spell_time = v as _;
+    }
+}
+
 #[cfg(test)]
 mod infantry_step_tests {
     use crate::world::Pos;
