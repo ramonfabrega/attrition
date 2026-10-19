@@ -347,7 +347,6 @@ impl RoadMesh {
         if e.flags & mask != 0 {
             return;
         }
-        if std::env::var("RON_PROBE_MESH").is_ok() && [(235, 152), (235, 153)].contains(&(t.x, t.y)) { eprintln!("PROBM join ({}, {}) {:#x} |= {mask:#x} from at {:?}", t.x, t.y, e.flags, self.at); }
         e.flags |= mask;
         self.add_unique(i, list);
     }
@@ -358,7 +357,6 @@ impl RoadMesh {
 
     fn set_flags(&mut self, world: &World, t: Pos, flags: u32) {
         if let Some(e) = self.elems.get_mut(&index_of(world, t)) {
-            if std::env::var("RON_PROBE_MESH").is_ok() && [(235, 152), (235, 153)].contains(&(t.x, t.y)) { eprintln!("PROBM set ({}, {}) {:#x} -> {flags:#x} at {:?} road {:?} blocked {:?}", t.x, t.y, e.flags, self.at, self.road, self.blocked); }
             e.flags = flags;
         }
     }
@@ -472,13 +470,6 @@ impl Sim {
     /// carried nowhere: run189's packet holds it at cell 903 after 14,529
     /// frames, `14,529 × 7 mod 3,600`.
     pub(crate) fn scan_and_kill_stray_roads(&mut self) {
-        if std::env::var("RON_PROBE_ROADS").is_ok() && [10190, 10191, 10386, 10387, 10485, 10486, 10619].contains(&self.frame) {
-            for (x, y) in [(234, 152), (235, 152), (236, 152), (235, 153), (234, 154), (233, 155), (232, 155)] {
-                let e = self.mesh.elem(&self.world, Pos::new(x, y));
-                let r = self.world.tile_mask(Pos::new(x, y)) & tile::SURFACE == tile::SURFACE_ROAD;
-                eprintln!("PROBE elem f{} ({x}, {y}) road {r} {:?}", self.frame, e.map(|e| (format!("{:#x}", e.flags), e.support, e.refs, e.refs2, e.made)));
-            }
-        }
         let (xs, ys) = (self.world.width(), self.world.height());
         let size = xs * ys;
         let per = size / 500;
@@ -520,9 +511,6 @@ impl Sim {
             sup[k] = road && elem.is_some_and(|e| e.flags & COMPASS_FLAGS[k] != 0);
         }
         let road = self.mesh.sweep_road;
-        if self.frame == 10620 && [(235, 153), (234, 154), (233, 155)].contains(&(t.x, t.y)) {
-            eprintln!("PROBS ({}, {}) elem {:?} road {:?} sup {:?} build {:?} water {:?}", t.x, t.y, elem, road, sup, build, water);
-        }
         // `scan_and_kill_bad_tcoord`.
         match elem {
             // No element on the tile — `rotation == 10`, an empty slot: a
@@ -530,7 +518,6 @@ impl Sim {
             // down, because nothing holds it.
             None => {
                 if road[0] {
-                    if self.frame == 10620 { eprintln!("PROBC scan-none ({}, {})", t.x, t.y); }
                     self.world_set_road_at(t, false, 0, 0);
                 }
             }
@@ -567,7 +554,6 @@ impl Sim {
     /// reference down, then `World::set_road_at(x, y, 0, 0, 0)` through the
     /// door, which queues the removal and trims the neighbours.
     fn kill_stray(&mut self, t: Pos) {
-        if self.frame == 10620 { eprintln!("PROBC kill_stray ({}, {})", t.x, t.y); }
         self.mesh.road_changed(&self.world, t, false, 0, 1);
         self.world_set_road_at(t, false, 0, 0);
     }
@@ -584,7 +570,6 @@ impl Sim {
     pub(crate) fn set_blocked_at(&mut self, t: Pos, on: bool) {
         self.world.set_blocked_at(t, on);
         if on && self.world.tile_in_bounds(t) {
-            if self.frame == 10620 { eprintln!("PROBC set_blocked ({}, {})", t.x, t.y); }
             self.world_set_road_at(t, false, 0, 0);
         }
     }
@@ -596,15 +581,6 @@ impl Sim {
     /// pass it 1 so that a tile it lays does not re-enter `add_roads`.
     pub(crate) fn world_set_road_at(&mut self, t: Pos, set: bool, p4: i32, p5: i32) {
         let m = self.world.tile_mask(t);
-        if std::env::var("RON_PROBE_MESH").is_ok() && self.frame == 10485 {
-            eprintln!("PROBM lay ({}, {}) set {set} p5 {p5} was_road {}", t.x, t.y, m & tile::SURFACE == tile::SURFACE_ROAD);
-        }
-        if std::env::var("RON_PROBE_ROADS").is_ok() && [(235, 152), (235, 153), (232, 155), (233, 155)].contains(&(t.x, t.y)) {
-            eprintln!("PROBW f{} tile ({}, {}) set {set} p4 {p4} p5 {p5} mask {m:#x}", self.frame, t.x, t.y);
-            if !set {
-                eprintln!("{}", std::backtrace::Backtrace::force_capture());
-            }
-        }
         let c = Cell::new(t.x.div_euclid(4), t.y.div_euclid(4));
         if !set {
             if m & tile::SURFACE == tile::SURFACE_ROAD {

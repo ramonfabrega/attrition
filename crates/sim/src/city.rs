@@ -1825,7 +1825,6 @@ impl Sim {
                 // whose template byte is not 1, has one **laid**. Both go
                 // through the mesh door, `param_5 = 0`.
                 if !lays {
-                    if self.frame == 10620 { eprintln!("PROBC mask-nolays b{} ({}, {})", self.buildings[b].index, t.x, t.y); }
                     self.world_set_road_at(t, false, 0, 0);
                 }
                 // Through `set_blocked_at`, never by hand: the bit is only
