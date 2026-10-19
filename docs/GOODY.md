@@ -204,8 +204,11 @@ unit taking the same ruins, since step 2 leaves the item linked.
   both are reset by `Leader::reset_score`; neither has a writer in this
   executable, so a box in RoN:EE holds resources and nothing else. Not
   re-checked against the 2003 build.
-- **The Spanish branch has never run.** `has_tribe_bonus(9)` is false in
-  every capture on disk.
+- ~~**The Spanish branch has never run.** `has_tribe_bonus(9)` is false in
+  every capture on disk.~~ **A Spanish lobby is on disk since item 3318**
+  (`GreatSaharaSpanishTier3`; run896, run896b, run958 .. run958f), and its
+  sight arm is carried (§7.2). Whether its Scout *opens* a box before the
+  game's end, and so runs the payout's pair, is unread (parked 3318d).
 - ~~**Whether a box's *good* is right.**~~ **Answered 2026-09-02, and it
   was wrong** (`docs/ECONOMY.md`, "run60"). run60 is run58's game with
   `[End Frame]` cut to `MISC,LEADERS=2`, so both leaders' six buckets are

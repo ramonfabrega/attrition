@@ -18461,3 +18461,45 @@ SHA-256 `4f751381191b75e59fbdf4800aee9f3836ba40aab734b9e8466814fe9e521d12`.
 **What it holds**: `diff::spanish_word::run958d_s_word_frame_is_widened_whole` (257 blocks). 666 keys on the first
 build, block 7783's Barracks prices the first past the standing set; **34** with Salt's Barracks arm. Its window is in
 the coverage driver.
+
+## run958e — the battery word: Great Sahara, Spanish, the word 14382's widening (14376..14632) (2026-10-19, item 3318, `att-3318`)
+
+`docs/AI.md` §264. **What the disk could not answer**: Salt's Barracks arm moved the word to 14382, past run958d's
+last block 8035; no dump of the lobby holds a block between 8035 and the game's end. `--map 7 --end-frame 14637
+--timeout 5400 --log-window 14376 14633 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 9
+--cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1. Launched 03:00:32 and the game exited at 03:20:21 (1189 s). `success`, 14638 frames, `map_style 7`,
+  seed 12345. `rngcmp.py rontrace-run896b.log rontrace-run958e.log`: **14638 identical, 0 differing**. Filed with
+  `filerun.py run958e greatsahara-spanish-diff3-window-14376-14633-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run958e-greatsahara-spanish-diff3-window-14376-14633-guys4.txt`, 532,137,025 bytes,
+SHA-256 `1bdc8968222264540b423672d17603c0b765e4a9bf19b2ec8a83f34a9d2174f8`.
+
+Archive `rontrace-run958e.log`, 80,205,440 bytes,
+SHA-256 `f961c225f4c23b1c9b06c2aa9f2467f825dee61ac315e5c56bc4f67a0566133a`.
+
+**What it holds**: `diff::spanish_word::run958e_s_word_frame_is_widened_whole` (257 blocks). 833 keys on the first
+build, who=1's `epoch[3]` and the Library `1/2005`'s `queued` already apart on 14376 (Chemistry without the Relics
+term); **28** with Relics' research arm. Its window is in the coverage driver.
+
+## run958f — the battery word: Great Sahara, Spanish, the word 22692's widening to the game's end (22686..22701) (2026-10-19, item 3318, `att-3318`)
+
+`docs/AI.md` §264. **What the disk could not answer**: Relics' research arm moved the word to 22692, past run958e's
+last block 14632; run896b prints only the setup and closing blocks. run958e's `--detail`, tribe, cover and profile,
+with `--end-frame 22702 --timeout 7200 --log-window 22686 22702 --allow-early-end`.
+- Pool lane 1. Launched 03:28:38 and the game exited at 03:31:05 (147 s). `success`, 22701 frames, `ended_early`
+  true: the game ends itself on 22700, the closing block 22701. `rngcmp.py rontrace-run896b.log
+  rontrace-run958f.log`: **22701 identical, 0 differing**. Filed with `filerun.py run958f
+  greatsahara-spanish-diff3-window-22686-22702-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run958f-greatsahara-spanish-diff3-window-22686-22702-guys4.txt`, 39,795,499 bytes,
+SHA-256 `4ffc3ed6257fc464c54f99a7d16f201a1c90e220cd34dbad689612d3c2bbef2d`.
+
+Archive `rontrace-run958f.log`, 132,845,088 bytes,
+SHA-256 `1c6a30d85a344843299933975eab1fd1a7f148fd74ea60b4928f6ba822382dbb`.
+
+**What it holds**: `diff::spanish_word::run958f_s_word_frame_is_widened_whole` (16 blocks). 3065 keys on the first
+build, the human's capital `0/2000` taken in ours on 22692; **33** with a decoy counting for neither side of
+`check_capture`'s tally. Its window is in the coverage driver.

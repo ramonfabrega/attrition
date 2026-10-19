@@ -9736,3 +9736,21 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks: `rngcmp.py` run955 vs run955b -> 0 differing in 37; run899b vs run956 -> 0 differing in 833. run955b runs to 24000.
 #         run899b vs run956b -> 0 differing in 18282; vs run956c -> 0 differing in 18621 (ended itself on 18620).
 # ==== TAKEN 2026-10-19, one take each (run956 retaken once: the default --timeout 180), 00:39-, pool lanes 2, 3 ====
+# ==== item 3318: the Spanish word's widenings and the battery's eleventh held-out lobby (`docs/AI.md` §264; `docs/RUNS.md` run957 .. run958f) ====
+#   run957   --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 5 --profile DIFFICULTY=1   (Great Sahara, Greeks; start)
+#   run957b  --map 7 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#            --ai-tribe 5 --allow-early-end --profile DIFFICULTY=1 (run643's four --detail lines)
+#   run958   --map 7 --end-frame 832 --timeout 2400 --log-window 570 827 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#            --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=3   (Great Sahara, Spanish; the word 576's window)
+#   run958b  RON_STATE_FRAME=375 (item 597's plan.h) --end-frame 379 --log-window 373 378 --detail end:MISC,UNITS=3,GUYS=4 --callwin 0 379
+#            (the click-free lane; a packet at 375)
+#   run958c  --end-frame 580 --log-window 575 579 --detail end:MISC,LEADERS=9 --callwin 0 580 --tracer-def RON_SITE_PROBE (not filed)
+#   run958d  --map 7 --end-frame 8040 --timeout 3600 --log-window 7779 8036 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=3   (the word 7785's window)
+#   run958e  --map 7 --end-frame 14637 --timeout 5400 --log-window 14376 14633 (run958d's --detail, --ai-tribe, --cover, --profile)
+#            (the word 14382's window)
+#   run958f  --map 7 --end-frame 22702 --timeout 7200 --log-window 22686 22702 --allow-early-end (run958d's --detail, --ai-tribe, --cover,
+#            --profile) (the word 22692's window, to the game's end)
+# Checks: `rngcmp.py` run957 vs run957b -> 37 identical; run896b vs run958 -> 0 differing in 833; vs run958d -> 0 in 8041;
+#         vs run958e -> 0 in 14638; vs run958f -> 0 in 22701 (ended itself on 22700). run957b runs to 24000.
+# ==== TAKEN 2026-10-19, one take each, 01:56-03:31, pool lanes 1-3 ====
