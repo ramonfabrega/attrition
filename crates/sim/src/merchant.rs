@@ -287,7 +287,9 @@ impl Sim {
     /// merchant `1/38` on 2205, the original's `(−1, −1)` against our
     /// `(0, 0)`).
     fn find_merchant_spot(&mut self, u: usize, ring: usize) -> Option<Pos> {
-        if !self.calc_gather(u) {
+        // Null out-pointers (`00603ab0:20`): the gate writes neither
+        // `rare` nor `good_obj` (item 3306).
+        if !self.calc_gather_at(u, self.units[u].pos, false) {
             return None;
         }
         let t0 = self.units[u].pos.tile();
@@ -332,7 +334,11 @@ impl Sim {
                 return false;
             }
         }
-        self.calc_gather_at(u, Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE))
+        self.calc_gather_at(
+            u,
+            Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE),
+            false,
+        )
     }
 }
 

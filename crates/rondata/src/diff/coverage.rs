@@ -135,6 +135,11 @@ const UNREAD: &[(&str, &str)] = &[
     // `turret_inc`, the fifth, rides the same key unread. Two keys leave;
     // no path does.
     //
+    // **Item 3306 took `good_obj`, `mana_burn` and `rare` off both
+    // `UNITDATA` paths** (Loop 3310): fields `sim::Unit` carries, compared
+    // beside `spell_time` in `widen_block`. Three keys leave each; no path
+    // does.
+    //
     // **Item 1117 took the turret's four off both `UNITDATA/GUY` paths**
     // — `turret_angles[4]`, `des_turret_angles[4]`, `node_flags` and
     // `des_node_flags` — which the golden widening compares
@@ -144,7 +149,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special supply trench_angle waiting",
+        "air_alt cavarch_uid full gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -268,7 +273,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special supply trench_angle waiting",
+        "air_alt cavarch_uid full gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
@@ -533,14 +538,10 @@ fn drive(text: &str, out: &mut Paths) {
 /// name is exactly the key that can. Each entry is `(key, the item that
 /// owes its reader)`; exact both ways — a key read since leaves here, a
 /// field the sim gains leaves the unread row or lands here with its item.
-const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] = &[
-    // Red first on these three (the forty-fourth pass): the AI word's
-    // widening item takes their readers beside `diff::unit`'s compare,
-    // each key leaving `UNREAD`'s unit row in the same landing.
-    ("good_obj", 3306),
-    ("mana_burn", 3306),
-    ("rare", 3306),
-];
+///
+/// Item 3306 read the first three — `good_obj`, `mana_burn` and `rare` —
+/// beside `widen_block`'s `spell_time` row, and the list is empty.
+const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] = &[];
 
 /// The field names of `pub struct Unit` in `crates/sim/src/lib.rs`.
 fn sim_unit_fields() -> BTreeSet<String> {

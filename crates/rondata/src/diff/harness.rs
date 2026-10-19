@@ -2084,6 +2084,13 @@ fn widen_block_rows(
                 // The cast clock (item 1608): `get_job_time`'s type arms
                 // are read on every frame of a cast, not at its end.
                 ("spell_time", i64::from(un.spell_time), them.spell_time),
+                // **The craft and the gather memory** (item 3306, Loop
+                // 3310): fields `sim::Unit` carries that stood on the
+                // coverage driver's unread row. The Despot's `mana_burn`
+                // parted unseen on every block of run943.
+                ("mana_burn", i64::from(un.mana_burn), them.mana_burn),
+                ("rare", i64::from(un.rare), them.rare),
+                ("good_obj", i64::from(un.good_obj), them.good_obj),
                 ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
                 (
                     "half_step",
@@ -2337,6 +2344,9 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "cavarch_who" => ("UnitDump", "cavarch_who"),
         "start_dist" => ("UnitDump", "start_dist"),
         "spell_time" => ("UnitDump", "spell_time"),
+        "mana_burn" => ("UnitDump", "mana_burn"),
+        "rare" => ("UnitDump", "rare"),
+        "good_obj" => ("UnitDump", "good_obj"),
         "mylos" => ("UnitDump", "mylos"),
         "g.x" | "g.y" => ("Guy", "pos"),
         "g.angle" => ("Guy", "angle"),
