@@ -511,6 +511,9 @@ impl Sim {
             sup[k] = road && elem.is_some_and(|e| e.flags & COMPASS_FLAGS[k] != 0);
         }
         let road = self.mesh.sweep_road;
+        if self.frame == 10620 && [(235, 153), (234, 154), (233, 155)].contains(&(t.x, t.y)) {
+            eprintln!("PROBS ({}, {}) elem {:?} road {:?} sup {:?} build {:?} water {:?}", t.x, t.y, elem, road, sup, build, water);
+        }
         // `scan_and_kill_bad_tcoord`.
         match elem {
             // No element on the tile — `rotation == 10`, an empty slot: a
