@@ -103,26 +103,19 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // to the AI word (item 3335, DECISIONS 72, 83): the Indians at
     // Difficulty 2, East Indies.
     (18, 21, 2),
+    // The battery's lowest open lobby after item 3340 closed the Indians,
+    // the Maya being item 3338's, promoted to the AI word (item 3342,
+    // DECISIONS 72, 83): the Russians at Difficulty 2, Great Lakes.
+    (14, 13, 2),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
     // `EastIndiesGermanTier3` (Germans 12, Difficulty 3, map 18; run646 and
     // run643, 576 of 13519) left the battery on item 2904 for the AI word
     // (`diff::german_word`, DECISIONS 72).
-    Lobby {
-        name: "GreatLakesRussianTier2",
-        map_style: 14,
-        ai_tribe: 13,
-        difficulty: 2,
-        start: "gamelog-run647-greatlakes-russian-diff2-start.txt",
-        long: (
-            "gamelog-run644-greatlakes-russian-diff2-24k-trace.txt",
-            "rontrace-run644.log",
-        ),
-        length: 7303,
-        count: 6566,
-        sequence: 6563,
-    },
+    // `GreatLakesRussianTier2` (Russians 13, Difficulty 2, map 14; run647
+    // and run644, 6563 of 7303), one of item 1465's three, left the battery
+    // on item 3342 for the AI word (`diff::russian_word`, DECISIONS 72, 83).
     // `GreatSaharaEgyptianTier4` (Egyptians 7, Difficulty 4, map 7; run648
     // and run645, 2974 of 20380), one of item 1465's three, left the battery
     // on item 3332 for the AI word (`diff::egyptian_word`, DECISIONS 72, 83).

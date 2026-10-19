@@ -10362,6 +10362,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Russian word** (DECISIONS 72, 83; item 3342): Great
+    // Lakes, the Russians at Difficulty 2 — the held-out battery's lowest
+    // open lobby once item 3340 closed the Indians (the Maya being item
+    // 3338's); the game ends itself on 7303. It joins the `Battery word`
+    // line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatLakesRussianTier2",
+        named: "Great Lakes (Russians)",
+        word: crate::diff::russian_word::RUSSIAN_WORD,
+        length: 7_303,
+        endpoint: None,
+        window: None,
+    },
     // **The battery's Indian word** (DECISIONS 72, 83; item 3335): East
     // Indies, the Indians at Difficulty 2 — the held-out battery's lowest
     // lobby once item 3333 closed the Dutch; the game does not end itself,
