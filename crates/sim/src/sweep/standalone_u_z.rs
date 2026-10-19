@@ -172,6 +172,8 @@ mod unit_data_transport_type;
 mod unit_data_turn_speed;
 #[path = "unit_data_will_be_corner.rs"]
 mod unit_data_will_be_corner;
+#[path = "unit_detect_boat_collision.rs"]
+mod unit_detect_boat_collision;
 #[path = "unit_die.rs"]
 mod unit_die;
 #[path = "unit_do_air_attack_ground.rs"]
