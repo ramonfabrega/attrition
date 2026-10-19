@@ -23952,12 +23952,41 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 274. Reserved for the next item on the AI track
+## 274. The Indians to the long's end: a carrying boat's region is `get_tregion`'s (2026-10-19, item 3340)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The word, 14631** (run970e's window, blocks 14588..14845): ours 12 draws against theirs 11 at index 10 — ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Farms::inc_time+0x1ae`. Walked back, the window's first
+parting past the standing block 14588 is **block 14595**, and every row on it is one unit's: who=1's
+`TRANSPORTBARGE` `1/77` (TI 320, uid 120) at (38952, 33048), carrying the citizen `1/42` (TI 50, `inside_up` 77).
+Theirs gives it a `MOVEORDER` to (21912, 32664) (`orders.len` 0/1, `orders_x/_y` 38952/21912 and 33048/32664,
+`dest_angle`), `path:length` 0/21 on 14596; ours leaves it idle. Nothing else on the block parts, either direction.
+
+**The arm.** Not `think_peasant` (§271's draft): a type with a `CARRY` takes `Unit::think@005f6e40`'s carry arm,
+and `Unit::think_carry@005f2ee0` with a worker aboard (`count_inside(COUNT_WORKERS)`) is
+`think_carry_civilian(1)`. That function's first act is `WorldData::get_tregion` of **the boat's own tile**
+(`005f37c0`, `local_64`, from `div_3_table[x >> 6]`) — the coastal-refined region, which on a coastal land cell's
+ocean tile is the cell's sea `region2`. Every candidate is then asked `Region::is_coast(r, local_64)` and
+`coast_here(r, local_64, …)`. Ours (`transport.rs`, `Sim::think_carry_civilian`) read the cell's plain `tregion`:
+`1/77` stands on the coastal cell whose land region is 12 and sea region 0 (§271's `find_gather_spot` finding, the
+same cell), so ours searched for land regions coasting land region 12 — only 12 itself, which the leader did not
+want — and answered no. The fix is `World::tregion_alt` for `local_64`, the same refinement §271 gave
+`find_gather_spot`.
+
+**What moved.** The Indian word **14631 → 24000**, the long's last frame, count and sequence. Value diff on 14595:
+`1/77`'s `orders.len` 0/1 → 1/1 and its order's (21912, 32664) on both sides. run970e's window **929 → 56 keys**:
+the 54 standing rows on 14588 (the control's set — `form`, `leader`, `group`, `pool`, the newborns' `g.angle[0]`)
+and who=1's `group:71.held` and `pool:71` on 14640, the late control rows run970 showed on 177 and 222. **The close**:
+`run962b_indian_closing_state` walks to run962b's closing block 24001 and compares 113 units, none apart, no
+building or city field-row and no closing field. The lobby is closed.
+
+**Tests.** `transport::tests::a_boat_on_a_coastal_cell_s_water_searches_from_the_sea` (a boat on a coastal land
+cell's ocean tile, the only wanted region an island across the sea; mutated back to `tregion`, it fails —
+`tools/mutate.py`, exit 101 on that test alone); `diff::indian_word::run962b_indian_closing_state`;
+`run970e_s_word_frame_is_widened_whole` re-pinned 929 → 56.
+
+**Coverage.** Diff-backed: the predicate's region by run970e's block 14595 and the draw stream to 24000. Not
+established: the shore arm's `Group::action_eject_all` and `think_carry_idle` remain the stated seams in
+`transport.rs`; no capture on file reaches a carrying boat that stands in its chosen region.
 
 ## 275. Reserved for the next item on the AI track
 

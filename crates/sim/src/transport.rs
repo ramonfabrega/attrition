@@ -834,6 +834,11 @@ impl Sim {
     /// bit 2. A worker boat takes bit 1 alone and ignores `scouted`; the
     /// other takes any bit and skips a region its leader has scouted.
     ///
+    /// **The boat's own region is `get_tregion`'s** (`local_64`), the
+    /// coastal-refined [`crate::world::World::tregion_alt`]: a boat on the
+    /// ocean tile of a coastal land cell is in the cell's sea `region2`,
+    /// not its land region (`docs/AI.md` §274, run970e's `1/77`).
+    ///
     /// Then three outcomes:
     /// 1. **no region** — `false` for workers (`think_carry_military` is
     ///    the other's, a SEAM);
@@ -856,7 +861,7 @@ impl Sim {
         let who = self.units[u].owner;
         let pos = self.units[u].pos;
         let my_cell = pos.cell();
-        let Some(my_region) = self.world.tregion(pos.tile()) else {
+        let Some(my_region) = self.world.tregion_alt(pos.tile()) else {
             return false;
         };
         let sizes: Vec<i32> = (0..self.world.region_count() as u16)
@@ -3620,6 +3625,64 @@ mod tests {
             .and_then(|o| o.move_dest())
             .expect("a move order");
         assert!(dest.cell().x >= 7, "the land's own shore column: {dest:?}");
+    }
+
+    /// **The boat's region is `get_tregion`'s** (`think_carry_civilian@005f37c0`,
+    /// `local_64`; `docs/AI.md` §274): a boat on the ocean tile of a coastal
+    /// land cell stands in the cell's `region2`, the sea, so the land it
+    /// lies against coasts it. Read as the cell's plain region it is in the
+    /// land, which no land region coasts, and the search finds nothing —
+    /// run970e's barge `1/77` on 14595, left idle where the original sails
+    /// it to (21912, 32664).
+    #[test]
+    fn a_boat_on_a_coastal_cell_s_water_searches_from_the_sea() {
+        let mut f = fix();
+        // The only region the leader wants is an island across the sea:
+        // the boat's own land answers `is_coast` of itself, so the island
+        // is what tells the two regions apart.
+        let far = f
+            .sim
+            .world
+            .fill_region(Terrain::Land, Cell::new(11, 0), Cell::new(11, 7));
+        for y in 0..8 {
+            let c = Cell::new(11, y);
+            let mut d = f.sim.world.cell_data(c);
+            d.land = 0;
+            d.flags |= 0x100;
+            d.region2 = Some(f.sea);
+            f.sim.world.set_cell_data(c, d);
+            for tx in 44..48 {
+                for ty in y * 4..y * 4 + 4 {
+                    f.sim
+                        .world
+                        .set_tile_field(Pos::new(tx, ty), tile::SURFACE, 0);
+                }
+            }
+        }
+        f.sim.world.rebuild_coasts();
+        f.sim.world.set_region_flags(far, 8);
+        let at = tile_pos(31, 13);
+        f.sim
+            .world
+            .set_tile_field(Pos::new(31, 13), tile::SURFACE, tile::SURFACE_OCEAN);
+        assert_eq!(f.sim.world.tregion(Pos::new(31, 13)), Some(f.land));
+        assert_eq!(f.sim.world.tregion_alt(Pos::new(31, 13)), Some(f.sea));
+        let boat = unit(&mut f.sim, 1, f.ship, at);
+        f.sim.units[boat].on_map = true;
+        let rider = unit(&mut f.sim, 1, f.citizen, at);
+        f.sim.units[rider].type_index = 0x32;
+        f.sim.units[rider].inside_unit = Some(boat);
+        f.sim.units[rider].on_map = false;
+        assert!(
+            f.sim.think_carry(boat),
+            "the island's coast is found from the coastal cell's water"
+        );
+        let dest = f.sim.units[boat]
+            .orders
+            .front()
+            .and_then(|o| o.move_dest())
+            .expect("a move order");
+        assert!(dest.cell().x >= 10, "towards the island: {dest:?}");
     }
 
     /// The shore arm of `think_carry_civilian` (§195): a boat beside the land

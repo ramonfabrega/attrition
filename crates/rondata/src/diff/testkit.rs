@@ -9996,13 +9996,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // building's number held, 1177 → 9985), run970c's (9979..10236, with
     // run970d's gap behind it: the elephant arm and the Stable's group,
     // 9985 → 14594) and run970e's, which holds 14594
-    // (`run970e_s_word_frame_is_widened_whole`).
+    // (`run970e_s_word_frame_is_widened_whole`). **Item 3340 moved it
+    // 14631 → 24000, the long's last frame** (`think_carry_civilian`'s
+    // boat region from `get_tregion`): run970e's test keeps 14595's value
+    // diff, and the close is compared whole on run962b's own closing block
+    // 24001 by `run962b_indian_closing_state`.
     (
         "INDIAN_WORD",
         crate::diff::indian_word::INDIAN_WORD,
-        Some("run970e_s_word_frame_is_widened_whole"),
-        3335,
-        Some(crate::diff::indian_word::WIDENING_INDIAN_FRAME_14594),
+        Some("run962b_indian_closing_state"),
+        3340,
+        Some(crate::diff::indian_word::WIDENING_INDIAN_CLOSING),
     ),
     // **The battery's fifth word** (item 3329, DECISIONS 72, 83): frame
     // 1567, the Dutch lobby's first try, moved 1567 → 23985 by the item.
@@ -10369,7 +10373,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (Indians)",
         word: crate::diff::indian_word::INDIAN_WORD,
         length: 24_000,
-        endpoint: None,
+        // Closed by item 3340: the draw stream agrees to 24000, and
+        // run962b's closing block 24001 scores the end itself.
+        endpoint: Some("run962b_indian_closing_state"),
         window: Some("indian_frame_14594_window"),
     },
     // **The battery's Egyptian word** (DECISIONS 72, 83; item 3332): Great
