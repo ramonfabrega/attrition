@@ -10316,6 +10316,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Indian word** (DECISIONS 72, 83; item 3335): East
+    // Indies, the Indians at Difficulty 2 — the held-out battery's lowest
+    // lobby once item 3333 closed the Dutch; the game does not end itself,
+    // and the long runs to 24000. It joins the `Battery word` line first;
+    // the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesIndianTier2",
+        named: "East Indies (Indians)",
+        word: crate::diff::indian_word::INDIAN_WORD,
+        length: 24_000,
+        endpoint: None,
+        window: Some("indian_frame_221_window"),
+    },
     // **The battery's fifth word** (DECISIONS 72, 83; item 3329): East
     // Indies, the Dutch at Difficulty 4 — the held-out battery's lowest
     // lobby after the Greeks, which does not end itself: the long runs to

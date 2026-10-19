@@ -95,6 +95,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // promoted to the AI word (item 3331, DECISIONS 72, 83): the Japanese
     // at Difficulty 1, Great Sahara.
     (7, 15, 1),
+    // The battery's lowest lobby after item 3333 closed the Dutch, promoted
+    // to the AI word (item 3335, DECISIONS 72, 83): the Indians at
+    // Difficulty 2, East Indies.
+    (18, 21, 2),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -228,27 +232,29 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 9185,
         sequence: 9185,
     },
-    // The lobby minted by item 3329 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §267; runs 962 and 962b) when the Dutch left for the AI word, so the
-    // held-out set stays eight: East Indies, the Indians at Difficulty 2 —
-    // a nation no dump held and a tier the map's battery lacks. The game
-    // does not end itself: the long runs to 24000.
+    // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
+    // and run962b, 221 of 24000), minted by item 3329, left the battery on
+    // item 3335 for the AI word (`diff::indian_word`, DECISIONS 72, 83).
+    // The lobby minted by item 3335 (DECISIONS 72, 83, `docs/AI.md` §125,
+    // §271; runs 969 and 969b) when the Indians left for the AI word, so
+    // the held-out set stays eight: East Indies, the Incas at Difficulty 3
+    // — a nation no dump held, and a tier the map's battery lacks. The
+    // game does not end itself: the long runs to 24000.
     Lobby {
-        name: "EastIndiesIndianTier2",
+        name: "EastIndiesIncaTier3",
         map_style: 18,
-        ai_tribe: 21,
-        difficulty: 2,
-        start: "gamelog-run962-eastindies-indian-diff2-start.txt",
+        ai_tribe: 2,
+        difficulty: 3,
+        start: "gamelog-run969-eastindies-inca-diff3-start.txt",
         long: (
-            "gamelog-run962b-eastindies-indian-diff2-24k-trace.txt",
-            "rontrace-run962b.log",
+            "gamelog-run969b-eastindies-inca-diff3-24k-trace.txt",
+            "rontrace-run969b.log",
         ),
         length: 24000,
-        // Item 3329, the first try: ours 5 draws, theirs 17, at 0 ours
-        // `Farms::inc_time+0x1ae`, theirs `Guy::set_anim+0x97a <
-        // Unit::do_idle+0x7d`.
-        count: 221,
-        sequence: 221,
+        // Item 3335, the first try: ours 3218 draws, theirs 3219, at 1 ours
+        // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
+        count: 7782,
+        sequence: 7782,
     },
     // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §263; runs 955 and 955b) when the Romans left for the AI word, so
