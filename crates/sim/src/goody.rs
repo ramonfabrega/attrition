@@ -209,19 +209,6 @@ impl Sim {
             // that matters, because the box sits inside its finder's own
             // borders and the shortcut above answers yes from frame 0.
             // `docs/GOODY.md` §7.2.
-            if std::env::var_os("RON_PROBE_GOODY").is_some() {
-                let (x, y) = (2 * c.x, 2 * c.y);
-                eprintln!(
-                    "PROBE goody f{} u{} cell ({},{}) really [{} {} {} {}] world_is_seen {} item {}",
-                    self.frame, u, c.x, c.y,
-                    self.was_really_seen_fog(x + 1, y + 1, who),
-                    self.was_really_seen_fog(x, y + 1, who),
-                    self.was_really_seen_fog(x + 1, y, who),
-                    self.was_really_seen_fog(x, y, who),
-                    self.world_is_seen_fog(x + 1, y + 1, who),
-                    self.goody_item_is_seen(c, who),
-                );
-            }
             if !self.goody_item_is_seen(c, who) {
                 continue;
             }
