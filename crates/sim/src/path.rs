@@ -38,7 +38,7 @@ use std::collections::BTreeMap;
 
 use crate::orders::{self, Body, PathData, path_flag};
 use crate::world::{Owner, Pos, TILES_PER_CELL, cell, tile, vector_dist};
-use crate::{Sim, movement};
+use crate::Sim;
 
 /// **A payoff probe's hand**, not a mechanic (item 563,
 /// `docs/PATHFINDER.md` §23): one unit cell that `valid_ucoord` refuses to
