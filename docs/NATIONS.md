@@ -64,13 +64,13 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 10 | French | french | `french` | 7 | scored pairs |
 | 11 | British | british | `british` | 6 | scored pairs |
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
-| 13 | Russians | russians | `russians` | 10 | `GreatLakesRussianTier2` (map 14, tier 2) |
+| 13 | Russians | russians | `russians` | 10 | `GreatLakesRussianTier2` (AI word, tier 2) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
 | 16 | Koreans | koreans | `koreans` | 6 | scored pairs |
 | 17 | Mongols | mongols | `mongols` | 3 | none |
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
-| 19 | Lakota | lakota | `lakota` | 17 | none |
+| 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (map 14, tier 2) |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4) |
@@ -410,7 +410,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `BuildOut::make_options@00629ed0` | 4 | not sim | `interface or render side` |
 | `BuildData::construct_time@0062d5c0` | 20 | modelled at build.rs | `iroquois_quick_senate` |
 | `BuildTypeData::get_building_range@00639990` | 6 | carried at fight.rs | `00639990` |
-| `BuildTypeData::calc_gather@00639e40` |  +var | carried at gather.rs | `00639e40` |
+| `BuildTypeData::calc_gather@00639e40` |  +var | carried at holdings.rs | `00639e40` |
 | `Wall::update_construct_time@0063d560` | 1 6 11 22 | carried at economy.rs | `0063d560` |
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
 | `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |

@@ -11173,8 +11173,9 @@ margin and the captain retarget). The unit test is
   crate's `uflags::SIEGE` on the type, as §64.2's word reads it.
 - ~~**`find_collision`** at the attacker's own spot is not modelled in
   either arm. It only makes the kill rarer.~~ **The building arm's is
-  built** (item 1177, §65.8). The unit arm's (`5f7f11`) is still not
-  modelled.
+  built** (item 1177, §65.8). ~~The unit arm's (`5f7f11`) is still not
+  modelled.~~ **The unit arm's is built** (item 3342, §65.8's last
+  paragraph).
 - **`valid_target@00648ba0`** (`5f7f71`), the building arm's third
   conjunct, is not modelled. It refuses only a capturable building the
   attacker cannot capture, which no capture on disk has shown.
@@ -11239,9 +11240,19 @@ asked.
   original's. Every `1/29` row agrees across 15581..15837, and run426's
   parted keys fall 741 → 183
   (`run426_s_word_frame_is_widened_whole`).
-- **The unit arm** (`5f7f11`) makes the same call, and it is left
+- ~~**The unit arm** (`5f7f11`) makes the same call, and it is left
   unmodelled here. No word on disk parts on it, and building it would
-  change frames this item does not test.
+  change frames this item does not test.~~ **Built by item 3342**
+  (2026-10-19). The unit arm (`5f7f11`–`5f7f2c`) asks the same forced
+  `find_collision` after `is_in_range` at its `0x90` margin, with no
+  `valid_target` between them. The Great Lakes Russian battery word
+  parted on it at 6563. run976's block 6562 has the Slinger `1/22` on a
+  `MOVE_TO` over an `ATTACK` on `0/5`, in reach (`attack_dist` 986)
+  with a mate in its block: ours (2193, 31584), `order:kind` 10,
+  `orders.len` 2; theirs (2223, 31586), 1, 3. Built, the word went
+  6563 → 7303, the game's last frame, and run976 went from 847 keys to
+  28. Test: `fight::tests::a_unit_in_the_chaser_s_block_holds_its_chase_on_a_unit`
+  (mutated off, it fails alone).
 
 ## 66. An army group's attack-move looks, and hands its find to the group (item 1012, 2026-09-27)
 
