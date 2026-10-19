@@ -118,6 +118,27 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaEgyptianTier4` (Egyptians 7, Difficulty 4, map 7; run648
     // and run645, 2974 of 20380), one of item 1465's three, left the battery
     // on item 3332 for the AI word (`diff::egyptian_word`, DECISIONS 72, 83).
+    // The lobby minted by item 3332 (DECISIONS 72, 83, `docs/AI.md` §125,
+    // §269; runs 966 and 966b) when the Egyptians left for the AI word, so
+    // the held-out set stays eight: Great Sahara, the Maya at Difficulty 4
+    // — a nation no dump held, and the tier the map's battery lacked once
+    // the Egyptians left. The game ends itself on 13086.
+    Lobby {
+        name: "GreatSaharaMayaTier4",
+        map_style: 7,
+        ai_tribe: 1,
+        difficulty: 4,
+        start: "gamelog-run966-greatsahara-maya-diff4-start.txt",
+        long: (
+            "gamelog-run966b-greatsahara-maya-diff4-24k-trace.txt",
+            "rontrace-run966b.log",
+        ),
+        length: 13086,
+        // Item 3332, the first try: ours 34 draws, theirs 75, at 0 ours
+        // `Animal::think_bird+0x82`, theirs `Leader::produce_building+0xc99`.
+        count: 776,
+        sequence: 776,
+    },
     // The fourth lobby (item 2904, DECISIONS 72), minted when the first
     // left for the AI word so three stay held out: Great Lakes, the Chinese
     // at Difficulty 1 — a nation and a difficulty no scored or battery
