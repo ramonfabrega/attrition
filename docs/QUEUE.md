@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-fourth tranche (commander, Opus): 10 of 20 landed from `6db69429`**, four lanes (DECISIONS 78
+*2026-10-18, **the forty-fourth tranche (commander, Opus): 11 of 20 landed from `6db69429`**, four lanes (DECISIONS 78
 (i)); last whole gate `86fb8f8e` (3267's booking, green, 6 of 6; release 10.1 min), scoped since, each green.*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10852 of 12658 (3211, 3231, 3242,
-  3248, 3255, 3269); `EastIndiesGermanTier3` closed at 13519. Chapters 102–103 closed (3263, 3267, 3271, 3274), 94 →
+- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10917 of 12658 (3211, 3231, 3242,
+  3248, 3255, 3269, 3279); `EastIndiesGermanTier3` closed at 13519. Chapters 102–103 closed (3263, 3267, 3271, 3274), 94 →
   96. Census 1512 → 1537, **port 347 → 371** (3259, 3268, 3272, 3261). The battery's median 4770.
-- **Lanes: four live, landings 10 of 20** (3263, 3259, 3255, 3267, 3268, 3271, 3269, 3272, 3261, 3274): 3279 AI
-  (att-3279, run 948, AI §259, JU), 3285 rules (att-3285, run 949, GOLDEN §141, JX), 3282 shape (att-3282, JW), 3281
-  the nations seat (att-3281, JV). Next 3286, run 950. Pools: GOLDEN §142–144, AI §260–263, park JY–KD.
+- **Lanes: four live, landings 11 of 20** (3263, 3259, 3255, 3267, 3268, 3271, 3269, 3272, 3261, 3274, 3279): 3287
+  AI (att-3287, run 948, AI §260, JY), 3285 rules (att-3285, run 949, GOLDEN §141, JX), 3282 shape (att-3282, JW), 3281
+  the nations seat (att-3281, JV). Next 3289, run 950. Pools: GOLDEN §142–144, AI §261–263, park JZ–KD.
   **Ramon's**: the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
 - **Fable backlog: 13 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265, 3276, 3277, 3280).
 
@@ -31,31 +31,31 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: GreatLakesIroquoisTier3 w10852 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
+Battery word: GreatLakesIroquoisTier3 w10917 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1537 of 3611 · port 371 · layout 1166
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 96 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — ten of twenty landed from `6db69429`;
-four lanes live (att-3279, att-3285, att-3282, att-3281); re-arm `tools/lanewait.py` on them, merge each landing at its
-gate's exit, refill by `tools/brief.py` (3279's successor on `--model 'claude-opus-5-5[1m]' --effort medium`, the rest on
+**Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — eleven of twenty landed from `6db69429`;
+four lanes live (att-3287, att-3285, att-3282, att-3281); re-arm `tools/lanewait.py` on them, merge each landing at its
+gate's exit, refill by `tools/brief.py` (3287's successor on `--model 'claude-opus-5-5[1m]' --effort medium`, the rest on
 `'claude-sonnet-5-5[1m]' --effort medium`), the model said in user-visible text; the chain is `CLAUDE.md`'s; the whole
 gate at the third widened merge since `86fb8f8e`; at twenty the handoff, the drain and `ccc clear steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3279 the AI word's (Opus); 3285, 3282 and 3281 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10852. Take the first unstarted item unless a better
+3287 the AI word's (Opus); 3285, 3282 and 3281 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10917. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3279. **The battery word, 10852 of 12658 (`GreatLakesIroquoisTier3`), on its own block** (parked 3278; 3269 closed
-    run943's 10843 — theirs' `1/32` `dest_angle` is `Object::check_target+0x2d9`'s `update_action` on the squad
-    captain, from `1/34`'s fight; `guard_leash` now makes the call; run943's widening 456 → 455 keys, AI §258): ours 25
-    draws against theirs 30 at index 3 — ours `Unit::close+0xcb6`, theirs `Unit::plunder+0x4e5`. The widening first
-    parts on 10853: the Citizen `0/3` dies on 10852 on both sides, `death:extra` ours 1 against theirs 0, who=1's
-    `leader:bucket[4:metal]` ours 44 against theirs 59 (`THEDESPOT_UNIT_PLUNDER` 15). The reading names The Despot's
-    `Unit::plunder@00605b00`, "not modelled" in `docs/NATIONS.md`; build what the 10853 diff proves. AI §259.
+3287. **The battery word, 10917 of 12658 (`GreatLakesIroquoisTier3`)** (parked 3286; 3279 built The Despot's
+    `Unit::plunder` from `take_damage_typed`, 10852 → 10917, who=1's metal on 10853 now 59 both sides, four draws not
+    five, run943's widening 455 → 174 keys, AI §259): ours 285 draws against theirs 296 at index 272 — ours
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. The widening first parts
+    on 10853: `1/25` (Javelineers upgraded to Peltasts on 10852, both sides, under an `ATTACK` on `0/2000`) has
+    `g.cur_anim[0]` ours 1 against theirs 2 and `g.end_time[0]` 96 against 36; then `0/2000`'s `build:damage` 41
+    against 44 on 10870. Which arm of the upgrade resets a figure mid-attack is a hypothesis. AI §260.
 
 3285. **Chapter one hundred and four, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
     chapter; run 949 minted here): 3274 closed chapter 103's last value, `0/10`'s 935 order (`Unit::target_opportunity`'s

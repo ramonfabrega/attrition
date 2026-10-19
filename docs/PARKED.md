@@ -8022,7 +8022,7 @@ Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircra
 
 ## Parked by item 3279, 2026-10-18 — The Despot's plunder built, the Iroquois word at 10917
 
-- **The battery word 10917** (`GreatLakesIroquoisTier3`, `docs/AI.md` §259). Item 3279 built The Despot's
+- (booked as item 3287) (3286) **The battery word 10917** (`GreatLakesIroquoisTier3`, `docs/AI.md` §259). Item 3279 built The Despot's
   `Unit::plunder` and moved the word 10852 → 10917: ours 285 draws against theirs 296, index 272, ours
   `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. run943's widening (174 keys)
   still first parts on **10853**: `1/25` (TI 83 → 84, Javelineers upgraded to Peltasts on 10852 on both sides) has
@@ -8030,7 +8030,7 @@ Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircra
   (`in_range` 1) when its type changed. Then `0/2000`'s `build:damage` 41 against 44 and `city:raid_stamp` 10863 against
   10869 part on 10870. The booking is the frame (10853) and the field. Which arm of the upgrade's `set_type` resets a
   figure mid-attack is a hypothesis.
-- **`Unit::plunder`'s other arms** (`docs/AI.md` §259, not established): the General, caravan and supply-wagon victims
+- (3288) **`Unit::plunder`'s other arms** (`docs/AI.md` §259, not established): the General, caravan and supply-wagon victims
   (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`), the Aztec slay bonus (`AZTEC_SLAY_BONUS`, `AZTEC_SLAY_CAP`), the Inca refund
   (`INCA_REFUND`) and `take_damage`'s victim redirect (`+0x2b4 & 0x10`). No capture on disk has been shown to reach them.
 
