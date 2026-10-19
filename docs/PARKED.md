@@ -8340,13 +8340,13 @@ words and edits nothing here; a refill lands when two remain.
   Gardens' term (`docs/COSTS.md`). No walk's German leader has reached an industry tech's price where a draw parts on
   it; a German lobby whose Smelter, Lumber Mill or Granary line is researched is where it would.
 
-## Parked by the next landing, slot KR — reserved
+## Parked by item 3333, 2026-10-19 — the Dutch word 23985 → 24000: an Oil Platform priced by the Oil Wells
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3333a) **who=1's `num_units[270]` (`ARTILLERYGERMAN`) −1 and `[271]` (`HOWITZER`) 1 ours against 0 and 0**
+  (`docs/AI.md` §270), standing from before run963c's 22929 to the long's end; no draw moves on it to 24000 and the
+  closing block compares whole. A negative count is ours alone. Theirs' `num_units` is no live count: on run963d's
+  23982 it holds `[269]` 1 beside two living `ARTILLERY` (TypeIndex 269), so the first reading is the writers of
+  `num_units` on an upgrade, by offset. Returns when a word's frame reaches a count of the Artillery line.
 
 ## Parked by the next landing, slot KS — reserved
 

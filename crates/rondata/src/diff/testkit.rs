@@ -9986,13 +9986,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run915 dumps blocks 0..36 and run917 its setup and closing blocks
     // only; the word's windows are run963's (1567), run963b's (5583,
     // 5782), run963c's (22935) and run963d's, which holds 23782 and
-    // 23985 to the trace's last block.
+    // 23985 to the trace's last block. **Item 3333 moved it 23985 → 24000,
+    // the long's last frame** (an Oil Platform priced by the Oil Wells):
+    // run963d's test keeps 23985's value diff, and the close is compared
+    // whole on run917's own closing block 24001 by
+    // `run917_dutch_closing_state`.
     (
         "DUTCH_WORD",
         crate::diff::dutch_word::DUTCH_WORD,
-        Some("run963d_s_word_frame_is_widened_whole"),
-        3329,
-        Some(crate::diff::dutch_word::WIDENING_DUTCH_FRAME_23782),
+        Some("run917_dutch_closing_state"),
+        3333,
+        Some(crate::diff::dutch_word::WIDENING_DUTCH_CLOSING),
     ),
     // **The battery's third word** (item 3314, DECISIONS 72, 83): frame
     // 576, the Roman lobby's first try. run899 dumps blocks 0..36 and
@@ -10356,7 +10360,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (Dutch)",
         word: crate::diff::dutch_word::DUTCH_WORD,
         length: 24_000,
-        endpoint: None,
+        // Closed by item 3333: the draw stream agrees to 24000, and
+        // run917's closing block 24001 scores the end itself.
+        endpoint: Some("run917_dutch_closing_state"),
         window: Some("dutch_frame_23782_window"),
     },
     // **The battery's Japanese word** (DECISIONS 72, 83; item 3331): Great

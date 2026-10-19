@@ -258,7 +258,10 @@ fn run848_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 72, "initial run848 baseline");
+    pin_eq!(w.firsts.len(), 70, "initial run848 baseline");
+    // Item 3333: who=1's `bucket` timber 18475/18435 and metal 15805/15765,
+    // standing from 1378, close with an Oil Platform priced by the Oil Wells
+    // (`docs/AI.md` §270).
     // Item 2320: 870 keys part on blocks 1378..1634, the word's own block
     // being 1385 (frame 1384: ours 596 draws, theirs 564, index 28; ours
     // `Leader::create_buildings+0xffb`, theirs `Animal::think_bird+0x82`).
@@ -312,7 +315,10 @@ fn run849_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 87, "initial run849 baseline");
+    pin_eq!(w.firsts.len(), 85, "initial run849 baseline");
+    // Item 3333: who=1's `bucket` timber 17466/17361 and metal 15317/15212,
+    // standing from 1978, close with an Oil Platform priced by the Oil Wells
+    // (`docs/AI.md` §270).
     // Item 2351: 1242 keys part on blocks 1978..2235, the word's own block
     // being 1985 (frame 1984: ours 61 draws, theirs 62, index 28; ours
     // `Animal::think_bird+0x82`, theirs `6bdab8` in `Leader::diplomacy`).
@@ -369,7 +375,10 @@ fn run853_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 100, "initial run853 baseline");
+    pin_eq!(w.firsts.len(), 98, "initial run853 baseline");
+    // Item 3333: who=1's `bucket` timber 13437/13252 and metal 11970/11785,
+    // standing from 3296, close with an Oil Platform priced by the Oil Wells
+    // (`docs/AI.md` §270).
     // Item 2412: the word 3302's own block is 3303. Without the silo
     // return, who=1's Missile Silo `1/2018` trains its second ICBM (316)
     // from 2582 and births it on 3302 (`Guy::init_real+0x52`, ours' extra
@@ -424,7 +433,10 @@ fn run855_s_word_frame_is_widened_whole() {
     }
     // Item 2761: 128 → 122 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 106, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 104, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 3333: who=1's `bucket` timber 8265/8000 and metal 9997/9732,
+    // standing from 4538, close with an Oil Platform priced by the Oil Wells
+    // (`docs/AI.md` §270).
     // Item 2423: the word 4544's own block is 4545, and it holds no row:
     // the state parts before the window opens. On 4538 `leader:diplos` is
     // ours 1 against theirs 0 both ways (`0/-1 diplos[1]`, `1/-1
@@ -478,7 +490,10 @@ fn run861_s_word_frame_is_widened_whole() {
     }
     // Item 2761: 126 → 122 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 106, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 104, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 3333: who=1's `bucket` timber 7707/7282 and metal 6422/5997,
+    // standing from 4853, close with an Oil Platform priced by the Oil Wells
+    // (`docs/AI.md` §270).
     // Item 2460: the word 4859's own block is 4860. Theirs spends a birth
     // there (`Guy::init_real < Unit::init < Objects::init_unit`): `1/50`
     // is unlinked on 4860 (the dump holds it alone), `1/2005`'s `queued`
@@ -539,7 +554,11 @@ fn run866_s_word_frame_is_widened_whole() {
     // 4440) against (10008, 4440)) agrees — `calc_cost` reads the same
     // fog, and a Space Program sees every cell.
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 149, "initial run866 baseline");
+    pin_eq!(w.firsts.len(), 148, "initial run866 baseline");
+    // Item 3333: who=1's `bucket` metal 5716/5231, standing from 5129, closes
+    // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
+    // timber row, ours above theirs till now, parts on 5183 with ours below
+    // (3866/4692).
     // Item 2554: the word 5135's own block is 5136, widened at 5707 keys.
     // Theirs gives who=1's naval army (group 72, nine members: the
     // Missile Cruisers `1/20`, `1/21`, `1/25`, `1/26`, `1/34`, `1/36`,
@@ -621,7 +640,10 @@ fn run867_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 169, "initial run867 baseline");
+    pin_eq!(w.firsts.len(), 168, "initial run867 baseline");
+    // Item 3333: who=1's `bucket` metal 5815/5330, standing from 5401, closes
+    // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
+    // timber row stands, ours below theirs.
     // Item 2677: the word 5407's own block is 5408, widened at 3418 keys.
     // Every who=1 Strategic Bomber (`TypeIndex` 305, air) on its
     // `AIRPATROLORDER` round the human's capital `0/2000` (6240, 7008)
@@ -737,7 +759,10 @@ fn run879_s_word_frame_is_widened_whole() {
     // freighter's idle draws shifted after it; `1/225` keeps only its
     // standing `form`. Left: the standing keys from 5976, and from 6045
     // `1/164`'s `attrition` (ours 6, theirs 0) and then its `hits`.
-    pin_eq!(w.firsts.len(), 177, "initial run879 baseline");
+    pin_eq!(w.firsts.len(), 176, "initial run879 baseline");
+    // Item 3333: who=1's `bucket` metal 4998/4453, standing from 5976, closes
+    // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
+    // timber row stands, ours below theirs.
 }
 
 /// run881: the word 6452's window, blocks 6446..6701 at the long's detail (item 2825).
@@ -789,7 +814,10 @@ fn run881_s_word_frame_is_widened_whole() {
     // 6446, the `attrition`/`sheltered` rows from 6453 (`1/44` ours 6,
     // theirs 0, as run879's `1/164` on 6045), the `form` and
     // `dest_angle` rows.
-    pin_eq!(w.firsts.len(), 238, "initial run881 baseline");
+    pin_eq!(w.firsts.len(), 237, "initial run881 baseline");
+    // Item 3333: who=1's `bucket` metal 5193/4648, standing from 6446, closes
+    // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
+    // timber row stands, ours below theirs.
 }
 
 /// run882: the word 6808's window, blocks 6802..6821 at the long's detail (item 2845).
@@ -840,7 +868,10 @@ fn run882_s_word_frame_is_widened_whole() {
     // `attack[0].mandatory` on 6821, the new word's frame.
     // Item 2864: 248 → 247, `1/124`'s `attack[0].mandatory` goes with
     // `think`'s army shortcut (`docs/AI.md` §238).
-    pin_eq!(w.firsts.len(), 233, "initial run882 baseline");
+    pin_eq!(w.firsts.len(), 232, "initial run882 baseline");
+    // Item 3333: who=1's `bucket` metal 5378/4833, standing from 6802, closes
+    // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
+    // timber row stands, ours below theirs.
 }
 
 /// run883: the word 6821's window, blocks 6815..6822 and the closing block
@@ -893,7 +924,10 @@ fn run883_s_closing_frame_is_widened_whole() {
     // 260 → 246: block 6822 keeps one row, the Armored Cavalry `1/106`'s
     // `cavarch_o` (ours −1, theirs 2000 — its fire-on-the-move target,
     // no draw, no order).
-    pin_eq!(w.firsts.len(), 232, "run883 baseline");
+    pin_eq!(w.firsts.len(), 231, "run883 baseline");
+    // Item 3333: who=1's `bucket` metal 5389/4844, standing from 6815, closes
+    // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
+    // timber row stands, ours below theirs.
 }
 
 /// **The pair's closing state** (item 2864, DECISIONS 55): run883's
