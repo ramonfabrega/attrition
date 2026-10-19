@@ -180,15 +180,6 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         // `RON_DEBUG_UNIT` and `RON_DEBUG_SITES=<lo>-<hi>`'s attributed
         // sites, as the second pair's long walk prints them (item 1206).
         crate::diff::harness::debug_watch(&built, at + 1);
-        if std::env::var("RON_PROBE_RARES").ok().and_then(|v| v.parse::<i64>().ok()) == Some(at) {
-            let s = &built.sim;
-            for (i, &gi) in s.ai[1].new_rares.iter().enumerate() {
-                let g = s.world.goods()[gi];
-                let c = g.pos.cell();
-                eprintln!("PROBE f{at} new_rares[{i}] good {gi} ty {} pos {:?} alive {} seen {} ever {} owner {:?} region {:?} danger {}",
-                    g.ty, g.pos, g.alive, s.good_seen_bit(gi, 1), s.good_ever_seen(g.pos, 1), s.world.owner(c), s.world.region_of(c), s.world.danger_half(1, c));
-            }
-        }
         if crate::diff::harness::site_window().is_some_and(|(lo, hi)| (lo..=hi).contains(&at)) {
             for (label, who) in crate::diff::harness::attributed_sites(&built) {
                 eprintln!("  f{at} {who}: {label}");
