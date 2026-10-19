@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(3);
@@ -75,7 +80,9 @@ fn the_emulated_original_agrees_on_every_row() {
                     w[o..o + 4].copy_from_slice(&v.to_le_bytes());
                 }
                 fn rd16(w: &[u8], o: usize) -> i32 {
-                    i32::from(i16::from_le_bytes(w[o..o + 2].try_into().expect("two bytes")))
+                    i32::from(i16::from_le_bytes(
+                        w[o..o + 2].try_into().expect("two bytes"),
+                    ))
                 }
                 impl V<'_> {
                     fn who(&self) -> usize {
@@ -228,8 +235,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                     fn sound(&mut self) {}
                     fn unpay_cost(&mut self, caster: i32) {
-                        self.log
-                            .push(format!("s0:m+0x0,{},{caster},-1", self.a[1]));
+                        self.log.push(format!("s0:m+0x0,{},{caster},-1", self.a[1]));
                     }
                     fn mana_burn(&self, o: i32) -> i16 {
                         rd16(self.unit(o), 0x96) as i16
@@ -255,14 +261,25 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "cast_create_decoy — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "cast_create_decoy — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "cast_create_decoy — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "cast_create_decoy — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "cast_create_decoy — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[4 + i], "cast_create_decoy — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[4 + i],
+                "cast_create_decoy — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
