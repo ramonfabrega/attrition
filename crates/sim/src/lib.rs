@@ -115,6 +115,7 @@ pub mod swarm;
 pub mod tech;
 pub mod terrain;
 pub mod territory;
+pub mod tpath;
 pub mod transport;
 pub mod tuning;
 pub mod type_index;

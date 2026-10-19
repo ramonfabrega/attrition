@@ -547,7 +547,7 @@ impl Sim {
     /// `Unit::add_move_facing_order@005e55c0` writes as `dest % 0x300`.
     /// Nothing about it is conditional on a *target*: a plain move fills it
     /// too (`docs/PATHFINDER.md` §12, run20).
-    fn toff(&self, u: usize) -> Option<(i32, i32)> {
+    pub(crate) fn toff(&self, u: usize) -> Option<(i32, i32)> {
         match self.current_order(u)?.body {
             Body::Move(mo) => Some((mo.dest.x % 0x300, mo.dest.y % 0x300)),
             _ => None,
@@ -566,7 +566,7 @@ impl Sim {
 
     /// `PathFinder::valid_tcoord` — the tile grid's probe (the pre-walk's
     /// form; the search inlines the same flags).
-    fn valid_tcoord(&self, u: usize, p: Pos) -> bool {
+    pub(crate) fn valid_tcoord(&self, u: usize, p: Pos) -> bool {
         self.invalid_loc(u, p.tile(), false, true, true, true, false) == loc::VALID
     }
 
@@ -1752,106 +1752,24 @@ impl Sim {
         self.units[u].path.len() as i32
     }
 
-    /// `PathFinder::find_tpath` — the tile-grid planner.
-    pub(crate) fn find_tpath(&mut self, u: usize) -> i32 {
-        let Some(mut goal_e) = self.units[u].path.pop() else {
-            return 0;
-        };
-        let here = self.units[u].pos;
-        let gt = goal_e.to.tile();
-        if !self.world.tile_in_bounds(gt) {
-            self.units[u].path.clear();
-            return -1;
-        }
-        let ht = here.tile();
-        self.pf_start = ht;
-        // The same tile, or a helicopter (`68990d`, item 1048).
-        if ht == gt || self.is_helicopter(u) {
-            goal_e.tolerance = 0;
-            self.units[u].path.push(goal_e);
-            return self.units[u].path.len() as i32;
-        }
-        // The pull-back walk on tiles — **gated as `find_upath`'s is**
-        // (`006897d0`, listing `68994c`–`689960`): `cmp [type + 0x218], 2;
-        // jge` and `UnitData::can_transport@0046f960`, `jne`, both to the
-        // near test at `689aa6`. So only a unit that is not an aircraft and
-        // cannot transport walks its goal back toward its own tile region;
-        // a transport keeps the goal it was given. run710's Freighter `1/52`
-        // (`unit_masks & 0x800000`) stands on 1685 on a tile whose region is
-        // not its goal's, and without the gate its walk came all the way
-        // home and the plan was refused (`docs/AI.md` §163).
-        let mut goal = goal_e.to;
-        let pulls_back =
-            self.unit_domain_of(u) != crate::attrition::Domain::Air && !self.unit_can_transport(u);
-        if pulls_back {
-            loop {
-                if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
-                    && self.valid_tcoord(u, goal)
-                {
-                    break;
-                }
-                let (dx, dy) = (here.x - goal.x, here.y - goal.y);
-                if dx.abs() < 0x60 && dy.abs() < 0x60 {
-                    if goal_e.flags & path_flag::FINAL == 0 {
-                        return 0;
-                    }
-                    break;
-                }
-                let ang = movement::find_angle(dx, dy);
-                // `0x60`, the same constant as the give-up test above, and no
-                // caller-level fold — `mov ebx, 0x60` at `0x6899da`, negated to
-                // `0xffffffa0` only inside the sine's own fold.
-                let s = 0x60;
-                let sx = movement::sin_component(ang, s);
-                let cy = movement::cos_component(ang, s);
-                goal = Pos::new(goal.x + sx, goal.y - cy);
-                goal_e.to = goal;
-                if goal.tile() == ht {
-                    self.units[u].path.push(goal_e);
-                    return self.units[u].path.len() as i32;
-                }
-                if sx == 0 && cy == 0 {
-                    break;
-                }
-            }
-        }
-        let gt = goal.tile();
-        let td = (ht.x - gt.x).abs() + (ht.y - gt.y).abs();
-        if td < 2 {
-            goal_e.tolerance = 0;
-            self.units[u].path.push(goal_e);
-            return self.units[u].path.len() as i32;
-        }
-        let kept = goal_e.tolerance;
-        self.units[u].path.push(goal_e);
-        let centre_t = |t: Pos| Pos::new(t.x * 0xc0 + 0x60, t.y * 0xc0 + 0x60);
-        self.units[u].path.push(PathData {
-            to: centre_t(gt),
-            tolerance: if kept == 0x180 { 0x180 } else { 0x60 },
-            flags: 0,
-        });
-        self.units[u].path.push(PathData {
-            to: centre_t(ht),
-            tolerance: 0,
-            flags: 0,
-        });
+    /// `find_tpath`'s search: `astar_path` on the tile grid, then
+    /// `kill_lists` (`689be0`–`689c47`).
+    pub(crate) fn tpath_search(&mut self, u: usize) -> i32 {
         let modes = Modes {
             no_danger: self.no_danger_mode(u),
             ..Modes::default()
         };
         let r = self.astar_path(u, &modes, STEP_TILE, 0, false);
         self.kill_lists();
-        if r < 1 {
-            if self.units[u]
-                .path
-                .last()
-                .is_some_and(|p| p.flags & path_flag::FINAL == 0)
-            {
-                self.units[u].path.pop();
-            }
-            return 0;
-        }
-        self.units[u].path.len() as i32
+        r
+    }
+
+    /// `PathFinder::find_tpath` — the tile-grid planner
+    /// (`find_tpath@006897d0`), as [`crate::tpath::find_tpath_steps`] over
+    /// this unit (item 3337).
+    pub(crate) fn find_tpath(&mut self, u: usize) -> i32 {
+        let here = self.units[u].pos;
+        crate::tpath::find_tpath_steps(&mut crate::tpath::SimTpath { sim: self, u }, here)
     }
 
     /// `PathFinder::find_upath` — the 48-grid planner, collision
