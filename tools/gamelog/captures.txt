@@ -9833,6 +9833,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            (the gap, one block in fifty)
 #   run973d  --map 7 --end-frame 12452 --timeout 5400 --log-window 12191 12447 (run973b's --detail, --ai-tribe, --cover, --profile)
 #            (the word 12197's window)
-# Checks: `rngcmp.py` run972 vs run972b -> 37 identical; run966b vs run973 -> 1032 identical, vs run973b -> 10753, vs run973c -> 10491.
+#   run973e  --map 7 --end-frame 12205 --timeout 5400 --log-window 12128 12200 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+#            (run973's --ai-tribe, --cover, --profile)   (the Horse Archer's rounds of 12134 and 12158)
+#   run973f  --map 7 --end-frame 12305 --timeout 5400 --log-window 12205 12300 (run973e's --detail, --ai-tribe, --cover, --profile)
+#            (the rounds of 12259 and 12287)
+#   run973g  --map 7 --end-frame 12290 --timeout 5400 --log-window 12284 12289 --detail end:MISC,UNITS=3,GUYS=4
+#            --tracer-def RON_STATE_FRAME=12286 --tracer-def RON_STATE_PLAN=<item 597's plan.h> (run973's --ai-tribe, --cover, --profile)   (a packet)
+# Checks: `rngcmp.py` run972 vs run972b -> 37 identical; run966b vs run973 -> 1032 identical, vs run973b -> 10753, vs run973c -> 10491,
+# vs run973d -> 12453, vs run973e -> 12206, vs run973f -> 12306.
 # run972b ended itself on 23627.
-# ==== TAKEN 2026-10-19, one take each, 11:40-, pool lanes 1-3 ====
+# ==== TAKEN 2026-10-19, one take each, 11:40-13:20, pool lanes 1-3 ====

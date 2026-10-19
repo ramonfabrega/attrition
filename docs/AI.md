@@ -23887,12 +23887,69 @@ was not compared on 20029 beyond the orders dropping. The follower's `unit_flags
 the head. `town_up`'s `set_type` raises no flag of its own here; whether the original's caller does is the listing's
 alone.
 
-## 273. Reserved for the next item on the AI track
+## 273. The Maya to the game's end: a Maya building's timber, an enemy city's bordering, the Horse Archer's nodes (2026-10-19, item 3338)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Score.** `GreatSaharaMayaTier4` (the Maya at Difficulty 4, Great Sahara; run966, run966b, run973..run973g), promoted
+from the held-out battery to the `Battery word` line when item 3336 closed the Egyptians: **776 → 13086 of 13086**,
+the game's last frame (count and sequence), and run966b's closing block 13087 compared whole — 128 units, every count
+0, no closing field (`run966b_maya_closing_state`). Its battery seat goes to `GreatSaharaBantuTier4` (the Bantu,
+`--ai-tribe 3`, which no capture had used), first try **4 / 4**, pinned.
+
+**1. `get_cost`'s Maya arm** (`TypeData::get_cost@00664090:973`–`987`): with the Maya bonus, a building's **timber**
+is `(100 − MAYA_BUILDING_TIMBER) × cost / 100` (25 off) unless the type is one of the twenty-three military and
+defence types the arm lists by equality, or a wonder (vslot `+0x1c`). Value diff, run973's block 770: who=1's
+`bucket[1:timber]` ours 20 against theirs 48; on 777 theirs holds the Farm `1/2008` (the economic script's step 12,
+`place_farm`), ours cannot pay. **776 → 10497.** `cost::Modifiers::maya_timber`, `Sim::maya_timber_discount`
+(`city.rs`), `Tuning::maya_building_timber`; test `cities_tests::a_maya_building_costs_a_quarter_less_timber`.
+
+**2. `find_target` reads an enemy city's `bordering` off its owner** (`find_target@006f69b0:486`–`489`, `:550`, the
+city record's `CityData +0x65`, which `mark_bordering` writes on the owner's row). This crate read the bit from the
+searching army's own `city_ai` table, where an enemy's city is never written. Value diff, run973b's block 10491: who=0's
+`attacked_by` −1 against 1, `frame_attacked` 0 against 10490, and who=1's army head `1/83` on `ATTACK_TO` (22824, 20328)
+against theirs (1320, 28872) — Napata (`bordering` 3) scored 192 without its ×4, under the army's own cities.
+run973c (the gap at stride 50) is quiet to its last block, so the choice is 10490's. **10497 → 12197.** `army.rs`;
+test `army::tests::an_enemy_city_s_bordering_is_read_off_its_owner`; `docs/ARMY.md` §12.
+
+**3. The Horse Archer's release nodes** (piece 842, `CAVARCHERS`; `launch::MEASURED`): `CHAR_ATTACK1` at starttime 18
+→ bearing −45285376, radius 86, dz 225; `CHAR_ATTACK2` at 16 → −174784512, 94, 208; `CHAR_ATTACK3` at 20 →
+−168689664, 85, 228, each the middle of its exact fits to one dumped round. Value diff, run973d's block 12191: the
+human's Scout `0/0` at (5960, 31007) against theirs (5926, 31003) and `damage_frame` 12150 against 12149 — one step
+behind on its `FLEE_TO`, so on 12197 theirs idles at the end (`Unit::do_idle`) and ours still walks. run973e's
+`AMMO=5` prints the hit: `1/56`'s round of 12134 leaves from (8725, 31923, 816) at `total_time` 16, where this crate
+launched from the guy's own (8808, 31944) at 17 — 1700.6 against the landing, a hair over the frame. **12197 →
+12267** (`CHAR_ATTACK3`, `1`), then run973f's `CHAR_ATTACK2` round of 12259 at the building `0/2005` (9 frames against
+10, `Object::take_damage` on 12267) **→ 13086**. Test `launch::tests::run973e_s_horse_archer_rounds_leave_from_their_
+release_nodes`.
+
+**The packet that did not settle it.** run973g, a `RON_STATE_FRAME=12286` packet, holds the piece's three node-0
+`AttachPos` rows; `tools/recomp/get_position.py`'s sweep of each fits a `Bay` exactly at all 361 headings, and those
+bays miss all four dumped rounds by 6 to 16 units at the unit's facing, with the sweep's height 68/58/72 against the
+dump's 225/208/228. The planar rows are kept: three of four rounds exact, the draw stream to the end, the close whole.
+The fourth, run973f's `CHAR_ATTACK1` on 12287 at the second facing, leaves from (8581, 30287) in the original and
+(8587, 30273) here; it parts nothing compared (parked, slot KV).
+
+**Captures** (`docs/RUNS.md`): run972/972b (the Bantu), run973 (770..1026), run973b (10491..10747), run973c (the gap
+1027..10477 at stride 50), run973d (12191..12447), run973e/f (`AMMO=5` over 12128..12200 and 12205..12300), run973g
+(the packet). All `rngcmp` identical to run966b.
+
+**Mutation** (`tools/mutate.py`), each against its unit test and the floor:
+
+| | the mutation | the unit test | the floor |
+|---|---|---|---|
+| M1 | the Maya application dropped | — | `maya_word_first_parting`, exit 101 |
+| M2 | BARRACKS out of `MAYA_FULL_TIMBER` and the ident fallback | red, exit 101 | — |
+| M3 | the bordering read put back on the searcher | red, exit 101 | `maya_word_first_parting`, exit 101 |
+| M4 | piece 842's `CHAR_ATTACK3` row unkeyed | — | `maya_word_first_parting`, exit 101 |
+| M5 | piece 842's `CHAR_ATTACK2` row unkeyed | — | `maya_word_first_parting`, exit 101 |
+| M6 | piece 842's `CHAR_ATTACK1` row unkeyed | — | the `maya_word` tests, exit 101 |
+| M7 | `CHAR_ATTACK3`'s radius 85 → 60 | red, exit 101 | **green** — 16 frames either way |
+
+**What stands.** run973d's 27 keys: the standing set (`SITE[n].reg`, `aggression`, every unit's `form`, who=1's
+groups' `held` and pools) and `1/53`'s `dest_angle` on 12209, one field, healed by the close.
+
+**Not established.** Why the mounted figure's release is not the non-pivot sweep at its facing — a rider's own turn
+or a pivot this crate does not give the piece; the `dz` gap of about 155 is the same question. The Maya arm's British
+AA and Japanese Farm neighbours stay uncarried; no lobby fields them.
 
 ## 274. Reserved for the next item on the AI track
 

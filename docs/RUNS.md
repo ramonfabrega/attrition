@@ -19090,3 +19090,78 @@ SHA-256 `545acd7cbdb728040906446e1ffa825d51351b7449088c0ef6b399376df8f1f5`.
 
 **What it holds**: `run973c_s_gap_is_widened_whole` (189 blocks, 48 keys: the standing set, the newborns'
 `g.angle[0]` and `1/0`'s group from 6228) — quiet on the armies to 10478, so the target choice is 10490's.
+
+## run973d — the Maya word 12197's widening (12191..12447) (2026-10-19, item 3338, `att-3338`)
+
+`docs/AI.md` §273. **What the disk could not answer**: run973b ends on 10747 and run966b prints no block between its
+setup and its closing block. `--map 7 --end-frame 12452 --timeout 5400 --log-window 12191 12447 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 1 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 12:26:55 and the game exited at 12:45:53 (1138 s). `success`, 12453 frames.
+  `rngcmp.py rontrace-run966b.log rontrace-run973d.log`: **12453 identical, 0 differing**. Filed with
+  `filerun.py run973d greatsahara-maya-diff4-window-12191-12447`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run973d-greatsahara-maya-diff4-window-12191-12447.txt`, 483,585,351 bytes,
+SHA-256 `b361f48ca9e937c79d9e90920bd135c394e16cac05762170bc7fb13b4f58b8c4`.
+
+Archive `rontrace-run973d.log`, 64,626,656 bytes,
+SHA-256 `be750656d436e3a0813727b7a2da781daa82d25ef6bbda9c705bd9607ad45be8`.
+
+**What it holds**: `run973d_s_word_frame_is_widened_whole` (256 blocks; 520 keys on the first try): on block 12191
+the human's Scout `0/0` one flee step behind theirs, `damage_frame` 12150 against 12149 — the Horse Archer `1/56`'s
+round. 27 with piece 842's nodes. Its window is in the coverage driver.
+
+## run973e — the Horse Archer's rounds, 12128..12200 at `AMMO=5` (2026-10-19, item 3338, `att-3338`)
+
+`docs/AI.md` §273. **What the disk could not answer**: run973d starts on 12191, past the hit, and no dump of this
+game prints an ammo record. `--map 7 --end-frame 12205 --timeout 5400 --log-window 12128 12200 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 1 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 12:55:06 and the game exited at 13:00:06 (300 s). `success`, 12206 frames.
+  `rngcmp.py rontrace-run966b.log rontrace-run973e.log`: **12206 identical, 0 differing**. Filed with
+  `filerun.py run973e greatsahara-maya-diff4-window-12128-12200-ammo`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run973e-greatsahara-maya-diff4-window-12128-12200-ammo.txt`, 136,443,312 bytes,
+SHA-256 `4ed18a71584c3d302570e0e56663acb0cc0e37840e75634bd2bbe29db15f2884`.
+
+Archive `rontrace-run973e.log`, 61,560,928 bytes,
+SHA-256 `874c4ea69b258168ecfc9760e5fb635c8b9aad164174ff958cc82aef72e5b969`.
+
+**What it holds**: `1/56`'s two rounds — `CHAR_ATTACK3` on 12134 from (8725, 31923, 816), `total_time` 16, and
+`CHAR_ATTACK1` on 12158 from (8729, 31908, 813) — over its guy at (8808, 31944) `z` 588; piece 842's two planar rows
+(`launch::tests::run973e_s_horse_archer_rounds_leave_from_their_release_nodes`).
+
+## run973f — the Horse Archer's rounds, 12205..12300 at `AMMO=5` (2026-10-19, item 3338, `att-3338`)
+
+`docs/AI.md` §273. **What the disk could not answer**: the word's next parting, 12267, is a `CHAR_ATTACK2` round of
+12259, past run973e's last block and printed by no ammo dump. run973e's recipe over `--end-frame 12305 --log-window
+12205 12300`.
+- Pool lane 1. Launched 13:05:11 and the game exited at 13:11:17 (366 s). `success`, 12306 frames.
+  `rngcmp.py rontrace-run966b.log rontrace-run973f.log`: **12306 identical, 0 differing**. Filed with
+  `filerun.py run973f greatsahara-maya-diff4-window-12205-12300-ammo`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run973f-greatsahara-maya-diff4-window-12205-12300-ammo.txt`, 179,667,411 bytes,
+SHA-256 `edbd78cf4ca8cb01b14deea89aadd7fd619683ceee252fac24878ea5c83c83f8`.
+
+Archive `rontrace-run973f.log`, 64,465,376 bytes,
+SHA-256 `8c38959e22a22ddbaab5e607540e2d4ae4ecc6ad3c7fe0ffdfb9074ff9d70a02`.
+
+**What it holds**: `1/56`'s `CHAR_ATTACK2` on 12259 from (8573, 30286, 853) over its guy at (8664, 30312) `z` 645 —
+the third planar row — and its `CHAR_ATTACK1` on 12287 from (8581, 30287, 870), the parked miss (3338a); and the
+Catapults `1/83`, `1/86`'s rounds, whose landings and times already agree.
+
+## run973g — the same game, a state packet at frame 12286 (2026-10-19, item 3338, `att-3338`)
+
+`docs/AI.md` §273. **What the disk could not answer**: no packet on disk loads piece 842 (`get_position.py … entries
+842` on every `frame-snapshot.bin` under `~/ron-golden`). `RON_STATE_FRAME=12286` with item 597's `plan.h`,
+`--end-frame 12290 --log-window 12284 12289 --detail end:MISC,UNITS=3,GUYS=4 --ai-tribe 1 --cover cover=0 --profile
+DIFFICULTY=4`.
+- Pool lane 1. Launched 13:18:44 and the game exited at 13:19:37 (52 s). `success`, 12291 frames, `map_style 7`.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run973g/map-7/frame-snapshot.bin`, 848,714,836 bytes,
+SHA-256 `a1ce43d6e0e4908d7f2f6f269bb6711bb17585b16e74191b3402ac129b1720f5`.
+
+**What it holds**: piece 842's nine `AttachPos` rows (`pos_start` 146), node 0 at anims 10/18, 11/18, 12/16 and
+13/20; the sweeps of 11/18, 12/16, 13/20 fit a `Bay` each and miss the dumped rounds (3338a).
