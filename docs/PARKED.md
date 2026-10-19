@@ -8109,7 +8109,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3294, 2026-10-18 — chapter 106, a Fort in the Tower's place
 
-- (3294a) Chapter 106 closed at 1500 on the first take (run951, GOLDEN §143): a who=1 Fort (1/2006) against three stationary hoplite captains parts on the eleven standing `form` rows alone. The squad took the Fort as `near` from 823, walked to it and sat in range by 1040, but no hoplite lost a hit to 1500: the Fort struck no one, so its near-face gate and `Unit::target_opportunity`'s move-front arm as strikes are both still unreached. Next: a Fort with a garrison staged (or a victim inside its reach from the start), or a victim walking past a Tower beyond its sight so a round lands first.
+- (booked as item 3302) (3301) Chapter 106 closed at 1500 on the first take (run951, GOLDEN §143): a who=1 Fort (1/2006) against three stationary hoplite captains parts on the eleven standing `form` rows alone. The squad took the Fort as `near` from 823, walked to it and sat in range by 1040, but no hoplite lost a hit to 1500: the Fort struck no one, so its near-face gate and `Unit::target_opportunity`'s move-front arm as strikes are both still unreached. Next: a Fort with a garrison staged (or a victim inside its reach from the start), or a victim walking past a Tower beyond its sight so a round lands first.
 
 ## Parked by the next landing, slot KC — reserved
 
