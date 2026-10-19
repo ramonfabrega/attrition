@@ -296,6 +296,8 @@ mod build_type_data_connects_to_roads;
 mod build_type_data_count_mountains_adjacent;
 #[path = "build_type_data_count_trees_adjacent.rs"]
 mod build_type_data_count_trees_adjacent;
+#[path = "build_type_data_find_friends.rs"]
+mod build_type_data_find_friends;
 #[path = "build_type_data_fundamental_type.rs"]
 mod build_type_data_fundamental_type;
 #[path = "build_type_data_gather_radius.rs"]

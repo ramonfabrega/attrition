@@ -308,7 +308,10 @@ impl Sim {
 
     /// `BuildTypeData::find_friends(x, y, city, who)`: neighbours of the
     /// candidate cell that count for this type, `+1` on a diagonal and `+2`
-    /// on a cardinal.
+    /// on a cardinal. The control flow is
+    /// [`crate::friends::find_friends_steps`] (swept against the original,
+    /// item 3339); this builds its view. A `city` of `None` compares no
+    /// neighbour's city, as the original's `-1`.
     pub(crate) fn find_friends(
         &self,
         rec: usize,
@@ -316,79 +319,13 @@ impl Sim {
         city: Option<usize>,
         who: Player,
     ) -> i32 {
-        let bt = &self.build_types[rec];
-        let ident = bt.ident;
-        // `is(0x1b7, 0)`, `is(0x209, 0)` and `is(0x1a2, 0)` — the Tower, the
-        // Lookout and the Woodcutter **lines** (`00639270`–`006392c0`): a
-        // Keep counts its gather neighbours as a Tower does (item 1377).
-        let types = &self.build_types;
-        let lookout = crate::build::is(types, rec, Ident::Lookout);
-        let tower_like = crate::build::is_tower(types, rec) || lookout;
-        if (bt.attack != 0 && !tower_like) || crate::build::is(types, rec, Ident::Woodcutter) {
-            return 0;
-        }
-        let needs_city = !bt.has(flags::NO_CITY);
-        let mut n = 0;
-        for d in 1..=8usize {
-            let nc = Cell::new(cell.x + MOVE_X[d], cell.y + MOVE_Y[d]);
-            let Some(nb) = self.building_placed_at(who, nc) else {
-                continue;
-            };
-            if needs_city && self.buildings[nb].city != city {
-                continue;
-            }
-            let ni = self.building_ident(nb);
-            let nt = self.buildings[nb].ty.map(|t| &self.build_types[t]);
-            // `BuildTypeData::is_military_trainer@0063bcf0` on both sides of
-            // the pair — the derived flag on the root, which holds the Dock,
-            // the Airbase and the Missile Silo beside the five land
-            // trainers. The five-ident list read here before item 1530 sent
-            // a second Silo to the "anything else" arm, where an Airbase
-            // beside it counts nothing (`docs/AI.md` §143).
-            let nb_trainer = self.buildings[nb]
-                .ty
-                .is_some_and(|t| crate::build::is_military_trainer(types, t));
-            let nb_gather = nt.is_some_and(|t| t.has(flags::GATHER));
-            let nb_wonder = ni == Ident::Wonder;
-            let add = if d % 2 == 1 { 1 } else { 2 };
-            if is_enhancer(ident) {
-                // **The enhanced good against the neighbour's**
-                // (`0x639380`–`0x6393b0`): `get_enhancing_good(this)` beside
-                // `get_good` of the neighbour's type, and a friend when the
-                // two are equal — a Granary counts the farms around it
-                // (`docs/AI.md` §99.5). `get_good@0063bd50` answers −1 for
-                // anything but the six gather types and the enhancer's side
-                // is never −1, so a non-gather neighbour never counts.
-                if enhancing_good(ident).is_some() && enhancing_good(ident) == gather_good(ni) {
-                    n += add;
-                }
-            } else if crate::build::is_military_trainer(types, rec) {
-                if nb_trainer && !self.building_is_city(nb) {
-                    n += add;
-                }
-            } else if tower_like {
-                if nb_gather && ni != Ident::University {
-                    n += 2;
-                } else if nb_wonder {
-                    n += if lookout { 8 } else { 4 };
-                }
-            } else if ident == Ident::Farm {
-                if matches!(ni, Ident::Farm | Ident::Granary) {
-                    n += add;
-                }
-            } else {
-                // Anything else: a gather building (not a university), an
-                // enhancer or a non-city military trainer adds nothing; any
-                // other non-wonder neighbour counts.
-                let nothing = (nb_gather && ni != Ident::University)
-                    || is_enhancer(ni)
-                    || (nb_trainer && !self.building_is_city(nb));
-                if !nothing && !nb_wonder {
-                    n += add;
-                }
-            }
-        }
-        n
+        let city = city.map_or(-1, |c| i32::try_from(c).expect("a city index"));
+        let mut view = crate::friends::SimFriends {
+            sim: self,
+            rec,
+            who,
+        };
+        crate::friends::find_friends_steps(&mut view, cell.x, cell.y, city)
     }
 
     /// `produce_building`'s two line tests, `(local_84, is_fort)`.
