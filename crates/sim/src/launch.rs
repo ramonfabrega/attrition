@@ -1694,8 +1694,9 @@ mod tests {
     /// gz, sx, sy, sz)` as the dump prints them.
     #[test]
     fn run971_s_musketeer_rounds_leave_from_their_release_nodes() {
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
         #[rustfmt::skip]
-        const ROWS: &[(i8, u32, i32, i32, i32, i32, i32, i32, i32)] = &[
+        const ROWS: &[Row] = &[
             (crate::anim::ATTACK3, 4, 5448, 26856, -1_656_487_936, 504, 5333, 26970, 682),
             (crate::anim::ATTACK1, 1, 5544, 26808, -1_641_873_408, 495, 5426, 26889, 713),
         ];
