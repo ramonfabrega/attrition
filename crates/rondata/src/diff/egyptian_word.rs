@@ -61,9 +61,14 @@ pub(crate) const EGYPTIAN: Lobby = Lobby {
     // from the Citizen `0/4` it held — `do_group_move`'s own fire on the
     // move (`005e79a0:392`–`406`). The word moved 20186 → 20235: ours 15
     // draws, theirs 16, at 4 ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
-    // theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
-    count: 20235,
-    sequence: 20235,
+    // theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Walked back to
+    // block 20219: the army's escort round the Cannon `1/125` on tick 20218
+    // read it moving in ours, standing in theirs — theirs keeps a packer's
+    // pack cast at the head through the group move's `QUEUE_NEW` clear
+    // (`action_move_near@00704990:410`–`440`, `:727`–`752`). With that keep
+    // the draw stream agrees to the game's end.
+    count: 20380,
+    sequence: 20380,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
