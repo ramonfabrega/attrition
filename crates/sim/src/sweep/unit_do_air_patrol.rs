@@ -250,12 +250,12 @@ fn the_emulated_original_agrees_on_every_row() {
                     let idx = self.a[1 + 13];
                     (idx >= 0).then(|| (idx, rd32(&self.c[0], 0x200)))
                 }
-                fn ever_seen(&mut self, t: Self::Target) -> bool {
+                fn target_ever_seen(&mut self, t: Self::Target) -> bool {
                     let w = Self::object(t.1, t.0);
                     self.log.push(format!("s5:p{w}+0x0"));
                     u32::from(self.p[25][0x62]) & (1u32 << (self.m[9] & 31)) != 0
                 }
-                fn spell_time(&self) -> i32 {
+                fn caster_spell_time(&self) -> i32 {
                     i32::from(i16::from_le_bytes([self.m[0x98], self.m[0x99]]))
                 }
                 fn set_spell_time(&mut self, v: i32) {

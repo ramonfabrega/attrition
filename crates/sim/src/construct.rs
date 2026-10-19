@@ -132,9 +132,10 @@ pub(crate) fn do_construct_steps(h: &mut impl ConstructHost, param: i32) -> bool
 
 /// [`ConstructHost`] on a [`Sim`] building.
 ///
-/// SEAM: the console's messages and sounds (`console_owns` answers no: the
-/// sim has no console surface), `ai_speed` (1: the cheat's counter is not
-/// carried) and `scene->recalc_builds` (a renderer flag) are not modelled.
+/// SEAM: the console's messages and sounds (the console-owner query answers
+/// no: the sim has no console surface), the AI-speed cheat (answers 1: its
+/// counter is not carried) and the scene's recalc flag (a renderer flag) are
+/// not modelled.
 pub(crate) struct SimConstruct<'a> {
     pub sim: &'a mut Sim,
     pub b: usize,

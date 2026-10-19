@@ -1323,8 +1323,8 @@ const MACHINEGUN: crate::tech::TypeId = 0x7b;
 /// the one body [`do_attack_ground_steps`] runs over [`Sim`] (`SimAttackGround`)
 /// and, in `crates/sim/src/sweep/unit_do_attack_ground.rs`, over the emulated
 /// original's stubs. The attack-unit-0 arm (a player's ground click: the
-/// peace test, `is_in_range`, `find_nearby_spot`, the walk-in) is the SEAM
-/// the steps keep as a kill.
+/// peace test, the range test, the nearby-spot search, the walk-in) is the
+/// SEAM the steps keep as a kill.
 pub trait AttackGroundView {
     fn can_attack_ground(&mut self) -> bool;
     fn kill_current_order(&mut self);

@@ -5004,9 +5004,9 @@ pub(crate) trait PatrolView {
     /// FILTER_ALL)`.
     fn find_building_at(&mut self, x: i32, y: i32, stale: Stale) -> Option<Self::Target>;
     /// The building's `ever_seen` (`+0x62`) holds this player's bit.
-    fn ever_seen(&mut self, t: Self::Target) -> bool;
+    fn target_ever_seen(&mut self, t: Self::Target) -> bool;
     /// `spell_time` (`+0x98`).
-    fn spell_time(&self) -> i32;
+    fn caster_spell_time(&self) -> i32;
     fn set_spell_time(&mut self, v: i32);
 }
 
@@ -5037,7 +5037,7 @@ pub(crate) fn air_patrol_steps<V: PatrolView>(v: &mut V) {
         return;
     }
     if v.is_animal() {
-        if v.spell_time() == 0 {
+        if v.caster_spell_time() == 0 {
             v.set_spell_time(1);
         }
         return;
@@ -5098,7 +5098,7 @@ pub(crate) fn air_patrol_steps<V: PatrolView>(v: &mut V) {
             }
         }
         if let Some(b) = v.find_building_at(lx, ly, stale)
-            && v.ever_seen(b)
+            && v.target_ever_seen(b)
         {
             v.strafe(b, true);
         }
@@ -5255,12 +5255,12 @@ impl PatrolView for SimPatrol<'_> {
             .map(|b| Some(crate::combat::Obj::Building(b)))
     }
 
-    fn ever_seen(&mut self, t: Self::Target) -> bool {
+    fn target_ever_seen(&mut self, t: Self::Target) -> bool {
         matches!(t, Some(crate::combat::Obj::Building(b))
             if self.sim.buildings[b].ever_seen & Sim::who_bit(self.sim.units[self.u].owner) != 0)
     }
 
-    fn spell_time(&self) -> i32 {
+    fn caster_spell_time(&self) -> i32 {
         i32::from(self.sim.units[self.u].spell_time)
     }
 
