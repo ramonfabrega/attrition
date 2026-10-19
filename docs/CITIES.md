@@ -1892,7 +1892,7 @@ not activated: v = v × min(1, job_counter_2 / construct_time(0))       # FLOAT 
 own, finished: standing in a city of another race → v = PLUNDER (100 %) × v / 100
 an enemy's finished: v = PLUNDER × v / 100
 Aztec attacker: v = (AZTEC_PLUNDER + 100) × v / 100
-hero cut: a Despot/Spitamenes near → hero = THEDESPOT_PLUNDER × v / 100
+hero cut: find_hero(0x160, then 0x16d; slack (y_size / 2 + x_size) × 0xc0) → hero = THEDESPOT_PLUNDER × v / 100   # AI §261
 Russian owner with RUSSIAN_PLUNDER_STEAL: bucket_add(owner, g, v), bucket_add(who, g, hero);  else bucket_add(who, g, v + hero)
 ```
 

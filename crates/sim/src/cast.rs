@@ -1045,10 +1045,12 @@ impl Sim {
     /// is `marching`: run630 holds the original's `1/79` at 1000 from its
     /// march on 10777 through run629's 10815, and ours resumes on 10928.
     ///
-    /// SEAM: the supply wagon's gate, and the mask's `0x2000`, which no
-    /// capture holds (scan: `grep -aoE 'unit_masks -?[0-9]+'
-    /// gamelog-run*.txt`, every distinct value tested for `0x2000`: none,
-    /// over the 306 of 311 dumps that print the field; item 1470).
+    /// `0x2000` is [`crate::Unit::ambushing`]: run943 holds the
+    /// original's Despot `1/46` at 1000 under `unit_masks` `0x42008` on
+    /// every block of 10689..10945, and run952 has it recovering, 392 on
+    /// 11579 under `0x40008` (item 3297; item 1470's scan predates both).
+    ///
+    /// SEAM: the supply wagon's gate.
     pub(crate) fn recover_mana(&mut self, u: usize, frame: i64) {
         if !self.units[u].decoy && self.unit_domain_of(u) == crate::attrition::Domain::Air {
             self.burn_fuel(u);
@@ -1072,7 +1074,11 @@ impl Sim {
             return;
         }
         let unit = &self.units[u];
-        if unit.mana_burn == 0 || unit.casting || unit.marching.is_some() {
+        if unit.mana_burn == 0
+            || unit.casting
+            || unit.marching.is_some()
+            || unit.ambushing.is_some()
+        {
             return;
         }
         let step = i16::try_from(((frame & 1) + i64::from(self.craft_rate(u))) / 2).unwrap_or(1);
@@ -1174,12 +1180,37 @@ impl Sim {
         self.forced_march[who] = true;
     }
 
+    /// `SpellType::cast_ambush@00671610` — Ambush on a hero: an
+    /// `ActiveSpell` (`0x27b`) to `frame + duration + general_upgrade ×
+    /// duration_upgrade` (`this +0x1d4`, `+0x1d8`, the fields
+    /// [`Sim::cast_march`] reads), and `unit_masks |= 0x2800`
+    /// (`docs/AI.md` §261).
+    ///
+    /// SEAM: `0x800`, the cloak `UnitData::is_seen` and `is_cloaked` read,
+    /// and `Unit::set_new_location` clears on the hero's next step — the
+    /// hero arm casts Ambush only on the move, so it lasts a step; the
+    /// leader's `0x4000`, which only `Leader::verify_spell_flags` reads;
+    /// Parmenio's (`0x168`) `PARMENIO_AMBUSH_TIME` 8.8 scale, which this
+    /// crate does not load; the console's sound.
+    pub(crate) fn cast_ambush(&mut self, g: usize) {
+        let Some(d) = self.spell(crate::orders::spell::AMBUSH) else {
+            return;
+        };
+        let level = self.general_upgrade_level(self.units[g].owner);
+        let end = self.frame + i64::from(march_extent(d.duration, d.duration_upgrade, level));
+        self.units[g].ambushing = Some(end);
+    }
+
     /// `Caster::process_spells(o, who, 0)@00739ad0` on a hero, from the
     /// head of `Unit::process`: a spell whose end frame has passed is
     /// removed, and a Forced March's takes `unit_masks & 0x8000` with it;
     /// then `Leader::verify_spell_flags@006ce190` drops the leader's
     /// `0x8000` when none of its heroes still marches.
     pub(crate) fn process_spells(&mut self, u: usize, frame: i64) {
+        // An Ambush's `0x27b` arm: `unit_masks &= 0xffffd7ff`.
+        if self.units[u].ambushing.is_some_and(|end| end < frame) {
+            self.units[u].ambushing = None;
+        }
         let Some(end) = self.units[u].marching else {
             return;
         };

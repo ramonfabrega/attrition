@@ -9884,7 +9884,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **Item 3287 moved it 10917 → 11585** (`set_diags`' corner tail, the
     // Peltasts' bays, `init_real`'s `guy_flags`), past run943's last block
     // (10945): owed as 3297 (`docs/QUEUE.md`; parked 3296, the row item
-    // 3287 filed under its heading, numbered at the merge).
+    // 3287 filed under its heading, numbered at the merge). 11585 was
+    // widened by item 3297 on run952 over 11579..11835 and run952b over
+    // the gap 10940..11579 (`run952b_s_gap_is_widened_whole`): block
+    // 11259's food, The Despot's cut on `0/2002`. **Item 3297 moved it
+    // 11585 → 12156** (`Build::plunder`'s hero cut, Ambush's hold), past
+    // run952's last block (11835): owed by the row item 3297 files under
+    // its heading, numbered at the merge.
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,

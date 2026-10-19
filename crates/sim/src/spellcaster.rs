@@ -112,8 +112,8 @@ impl Sim {
     /// whose heroes is on the march throws no coin and goes straight to
     /// the territory test.
     ///
-    /// SEAM: what Ambush does when cast (`cast_ambush`) and what Forced
-    /// March does beyond its flags (`crate::cast`).
+    /// SEAM: Ambush's cloak (`0x800`, [`Sim::cast_ambush`]) and what
+    /// Forced March does beyond its flags (`crate::cast`).
     fn think_hero(&mut self, u: usize) -> bool {
         use crate::orders::{QueuePos, spell};
         if !self.is_hero_unit(u) {

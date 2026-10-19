@@ -1199,16 +1199,22 @@ impl Sim {
         // The untargeted crafts of chapter thirty-nine, behind the same
         // `is_castable(o, who, 1) == 3` (`docs/GOLDEN.md` §48).
         // …and the General's Forced March (`cast_march`, `docs/AI.md`
-        // §99.13). SEAM: Ambush's `cast_ambush` and Rally's are not built.
+        // §99.13), and its Ambush (`cast_ambush`, `docs/AI.md` §261).
+        // SEAM: Rally's `cast_rally@00671600` is an empty body.
         if matches!(
             s,
-            spell::TO_ARMS | spell::CIVILIAN | spell::CREATE_DECOY | spell::FORCED_MARCH
+            spell::TO_ARMS
+                | spell::CIVILIAN
+                | spell::CREATE_DECOY
+                | spell::FORCED_MARCH
+                | spell::AMBUSH
         ) && self.spell_castable(s, u)
         {
             match s {
                 spell::TO_ARMS => self.cast_to_arms(u),
                 spell::CIVILIAN => self.cast_civilian(u),
                 spell::FORCED_MARCH => self.cast_march(u),
+                spell::AMBUSH => self.cast_ambush(u),
                 _ => self.cast_create_decoy(u),
             }
         }

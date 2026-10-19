@@ -2836,27 +2836,9 @@ impl Sim {
         if kind & (uflags2::GENERAL | uflags2::CARAVAN | uflags2::SUPPLY_OR_HERO) != 0 {
             return;
         }
-        let counted = |ti: i32| {
-            self.unit_types
-                .iter()
-                .position(|t| t.type_index == ti)
-                .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
-                .is_some_and(|&n| n != 0)
-        };
-        let found = |ti: i32| {
-            counted(ti)
-                && (0..self.units.len()).any(|h| {
-                    let x = &self.units[h];
-                    x.owner == who
-                        && x.type_index == ti
-                        && x.alive()
-                        && x.on_map
-                        && self.is_hero_unit(h)
-                        && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
-                            <= self.hero_radius(h) * 0xc0
-                })
-        };
-        if amount == 0 || !(found(DESPOT) || found(SPITAMENES)) {
+        if amount == 0
+            || !(self.hero_near(who, DESPOT, at, 0) || self.hero_near(who, SPITAMENES, at, 0))
+        {
             return;
         }
         let w = who as usize;
@@ -2876,6 +2858,33 @@ impl Sim {
         if let Some(g) = pick {
             self.ledgers[w].bucket[g] += amount;
         }
+    }
+
+    /// **`HeroesData::find_hero@0073a1b0`** behind a leader's per-type count
+    /// (`+0x56fe + ti × 2`, the muster here): one of `who`'s heroes of type
+    /// `ti`, active and on the map, with `vector_dist(hero, at) − slack ≤
+    /// get_radius × 0xc0`. `slack` is the caller's sixth argument: 0 for a
+    /// unit's plunder, a building's footprint for its own
+    /// ([`Sim::plunder_kill`], `docs/AI.md` §261).
+    pub(crate) fn hero_near(&self, who: Player, ti: i32, at: Pos, slack: i32) -> bool {
+        let counted = self
+            .unit_types
+            .iter()
+            .position(|t| t.type_index == ti)
+            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .is_some_and(|&n| n != 0);
+        counted
+            && (0..self.units.len()).any(|h| {
+                let x = &self.units[h];
+                x.owner == who
+                    && x.type_index == ti
+                    && x.alive()
+                    && x.on_map
+                    && self.is_hero_unit(h)
+                    && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
+                        - slack
+                        <= self.hero_radius(h) * 0xc0
+            })
     }
 
     /// `SpellType::cast_sabotage@006720e0`'s unit arm for the Sniper

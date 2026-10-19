@@ -156,9 +156,18 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // and run946's packet's twelve elements agree on 10842. 11585: ours 16
     // draws, theirs 15, index 4, ours `Leader::make_stuff+0x221`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`; past run943's last block
-    // (10945), its widening owed.
-    count: 11585,
-    sequence: 11585,
+    // (10945), its widening owed. **Item 3297 widened it on run952 and
+    // run952b and moved it 11585 → 12156** (`docs/AI.md` §261): ours'
+    // second `+0x221` was a second Farm offer in the make list, behind
+    // who=1's food 69 against 89 on block 11259 — `0/2002` razed beside
+    // The Despot `1/46`, whose cut (`Build::plunder`'s `find_hero`) ours
+    // never paid; with it, 89 on both sides. The Despot's Ambush now holds
+    // its craft (`mana_burn` 1000 through run943, 392 on 11579 on both).
+    // 12156: ours 29 draws, theirs 35, index 1, ours `Unit::fight+0x824`,
+    // theirs `Guy::set_anim+0x97a < Unit::fight+0x169`; past run952's last
+    // block (11835), its widening owed.
+    count: 12156,
+    sequence: 12156,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -1088,6 +1097,155 @@ fn run943_s_word_frame_is_widened_whole() {
     // `build:damage` to 44 on both on 10870; `set_diags`' corner tail keeps
     // the caravan diagonal (235, 153) (`docs/AI.md` §260).
     pin_eq!(w.firsts.len(), 47, "run943 with set_diags' corner tail");
+}
+
+/// run952: the word 11585's window, blocks 11579..11835 at run943's
+/// detail (`LEADERS=9`, `GUYS=4`; item 3297) — six blocks before the
+/// word's own block 11586, 250 after; run943 ends on 10945.
+pub(crate) const RUN952: &str =
+    "gamelog-run952-greatlakes-iroquois-diff3-window-11579-11836-guys4.txt";
+
+/// The window: block 11579 through 11835.
+pub(crate) const WIDENING_IROQUOIS_FRAME_11585: (i64, i64) = (11579, 11835);
+
+pub(crate) fn iroquois_frame_11585_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run952",
+        &[(RUN952, WIDENING_IROQUOIS_FRAME_11585.0)],
+        WIDENING_IROQUOIS_FRAME_11585,
+        1,
+        &[11586],
+        true,
+    )
+}
+
+#[test]
+fn run952_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_11585_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3297: 786 keys on its first build, opening already parted on
+    // 11579 (who=1's food 78 against 98, The Despot `1/46`'s Create Decoy
+    // in ours alone, the make list from 11580). **60** with Ambush's hold
+    // and the building plunder's Despot cut: the standing set, `1/53`'s
+    // `damage_frac`, the Scholars `1/71`/`1/73`'s `g.angle[0]` and `1/66`'s
+    // second figure. (The widening's block; the word's delta is in
+    // `IROQUOIS`'s comment.)
+    pin_eq!(w.firsts.len(), 60, "run952 with the Despot's cut");
+}
+
+/// run952b: the walk-back behind run952's first block, blocks
+/// 10940..11579 at run952's detail (item 3297) — run943 ends on 10945 and
+/// run952 opens on 11579 already parted (who=1's food 78 against 98).
+pub(crate) const RUN952B: &str =
+    "gamelog-run952b-greatlakes-iroquois-diff3-window-10940-11580-guys4.txt";
+
+/// The window: block 10940 through 11579.
+pub(crate) const WIDENING_IROQUOIS_GAP_952B: (i64, i64) = (10940, 11579);
+
+pub(crate) fn iroquois_gap_952b_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run952b",
+        &[(RUN952B, WIDENING_IROQUOIS_GAP_952B.0)],
+        WIDENING_IROQUOIS_GAP_952B,
+        1,
+        &[11579],
+        true,
+    )
+}
+
+#[test]
+fn run952b_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_gap_952b_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 640, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3297: 63 keys, the state first parting past the standing set on
+    // block 11259 (who=1's `bucket[0:food]` 69 against 89: `0/2002` razed
+    // beside The Despot, `Build::plunder`'s hero cut). **59** with the cut,
+    // 89 on both sides (`docs/AI.md` §261).
+    pin_eq!(w.firsts.len(), 59, "run952b with the Despot's cut");
+}
+
+/// **The Despot's Ambush holds its craft** (item 3297, `docs/AI.md`
+/// §261): `SpellType::cast_ambush@00671610` sets `unit_masks |= 0x2800`,
+/// and `Unit::process`'s caster arm takes no craft back while `0x2000`
+/// stands. The original's `1/46` (TI 352, The Despot) casts on the move on
+/// 10521 and its `mana_burn` reads 1000 on every block of run943
+/// (10689..10945, `unit_masks` `0x42008`) and 392 on run952's 11579
+/// (`0x40008`), one a frame from the `ActiveSpell`'s end. `mana_burn` is
+/// on the coverage driver's unread list, so no widening compared it.
+#[test]
+fn the_despot_s_ambush_holds_its_craft() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(IROQUOIS.long.0),
+        dump(IROQUOIS.start),
+        trace(IROQUOIS.long.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", IROQUOIS.long.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let (log, sib_log) = (Log::parse(&text), Log::parse(&sib_text));
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_log.initial().expect("a start dump")]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    // (block, theirs' `mana_burn`): run943's first and last, run952's
+    // first and the word's own.
+    let theirs = [(10689, 1000), (10945, 1000), (11579, 392), (11586, 385)];
+    let mut parted = Vec::new();
+    for (block, want) in theirs {
+        while built.sim.frame < block {
+            built.tick();
+        }
+        let ours = built
+            .sim
+            .unit_by_o(1, 46)
+            .map(|u| i64::from(built.sim.units[u].mana_burn));
+        if ours != Some(want) {
+            parted.push(format!("block {block}: ours {ours:?} theirs {want}"));
+        }
+    }
+    assert!(parted.is_empty(), "the Despot's craft: {parted:?}");
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at

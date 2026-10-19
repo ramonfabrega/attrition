@@ -23241,12 +23241,56 @@ widening is owed.
 on a road tile is not modelled (`docs/ROADS.md` §12). (235, 154)'s split between ref and camel is parked. `init_real`'s
 other fields that a re-type might reset were not walked: only `guy_flags` was measured.
 
-## 261. Reserved for the next item on the AI track
+## 261. The Iroquois 11585: The Despot's Ambush holds its craft, and a razed building pays his cut (2026-10-18, item 3297)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 11585 (§260), ours 16 draws against theirs 15 at
+index 4. run943 ends on 10945, so the widening was owed: **run952** (blocks 11579..11835, run943's detail) and,
+because run952 opened already parted, **run952b** over the gap (10940..11579). Both are draw-identical to run897b.
+
+**The direction.** `RON_DEBUG_SITES=11585-11585`: ours spends **two** `Leader::make_stuff+0x221`, theirs one; the
+rest of the frame agrees draw for draw. `+0x221` is the head's expiry walk (§2, step 4), one draw per make-list
+slot holding the head's type. Ours holds the Farm (t 417) in slots 0 and 4. **Ours acted.** The previous item's
+hypothesis, a theirs-only figure roll, is killed by the frame's own sites.
+
+**The widening.** run952's whole record parted on its first block, 786 keys. Past the standing set, block 11579
+holds who=1's food 78 ours against 98 theirs, The Despot `1/46` (TI 352) with a `CastOrder` (spell `0x27a`, Create
+Decoy) and `spell_time` 35 in ours only, and from 11580 the make list's types and values (Heavy Mohawk Spearmen
+195840 ours, 783360 theirs). run952b places the first parting past the standing set on **block 11259**: who=1's
+`bucket[0:food]` 69 ours against 89 theirs.
+
+**1. Ambush holds the hero's craft.** `mana_burn` is on `coverage.rs`'s unread list, so no widening compared it.
+The original's Despot reads 1000 on every block of run943, under `unit_masks` `0x42008`, and 392 on 11579 under
+`0x40008`. Ours took craft back from 10521, the frame it cast on the move in enemy ground: Ambush (`0x27b`, the
+hero arm's moving branch, §99.13). `SpellType::cast_ambush@00671610` lays an `ActiveSpell` to `frame + duration +
+general_upgrade × duration_upgrade` (`this +0x1d4`, `+0x1d8`) and sets `unit_masks |= 0x2800`.
+`Caster::process_spells@00739ad0`'s `0x27b` arm clears `& 0xffffd7ff` at the end frame, and `Unit::process`'s
+caster arm takes nothing back while `0x2a000` holds a bit (`cast.rs`'s `recover_mana`, whose `0x2000` SEAM this
+closes). Built: `Unit::ambushing`, `Sim::cast_ambush`, the dispatch in `do_cast`'s untargeted tail and the
+expiry in `process_spells`. **Value diff**: `1/46`'s `mana_burn` is 1000 on 10689 and 10945, 392 on 11579 and
+385 on 11586 on both sides (`the_despot_s_ambush_holds_its_craft`). It costs no draw. The Despot's Create Decoy
+of 11545 (ours alone) goes, and with it the four `1/46` rows on 11579.
+
+**2. A razed building pays The Despot's cut.** On 11258 the human's building `0/2002` (398 of 400 damage) falls to
+who=1 beside The Despot. Ours paid 21 food, theirs 41. `Build::plunder@00623660:136`–`:161` adds
+`THEDESPOT_PLUNDER × v / 100` when `HeroesData::find_hero@0073a1b0` finds a THEDESPOT (`0x160`), then a SPITAMENES
+(`0x16d`), of the killer's, with `vector_dist(hero, building) − (y_size / 2 + x_size) × 0xc0 ≤ get_radius × 0xc0`,
+behind the leader's count of the type. This crate read a `Nation::plunder_hero` that nothing wrote. Built:
+`Sim::hero_near`, the search item 3279's unit plunder already ran with no slack, now shared, and `plunder_kill`
+asks it with the footprint. **Value diff, block 11259**: who=1's `bucket[0:food]` is 89 on both sides (ours 69).
+The make list follows: every `MAKE` row of run952 agrees.
+
+**The word moves 11585 → 12156**, ours 29 draws against theirs 35 at index 1: ours `Unit::fight+0x824`, theirs
+`Guy::set_anim+0x97a < Unit::fight+0x169`. run952's widening is **786 → 60** keys and run952b's **63 → 59**: the
+standing set, plus three rows that stood before either build (`1/53`'s `damage_frac` from 11259, the Scholars
+`1/71`/`1/73`'s `g.angle[0]` inside their University, `1/66`'s second figure from 11423), parked. 12156 is past
+run952's last block, so its widening is owed.
+
+**Not established.** The Ambush's cloak (`0x800`): `is_seen`, `is_cloaked` and `find_melee_target` read it and
+`Unit::set_new_location` clears it on the hero's next step. Since the hero arm casts Ambush only on the move, it
+lasts a step, and no reader of it is built. The leader's `0x4000` (read only by `verify_spell_flags`) and
+Parmenio's `PARMENIO_AMBUSH_TIME` scale are not carried. A capture's hero cut (`Cities::capture_city`) still reads
+the unwritten `plunder_hero`. The duration's value is the craft's own `DURATION`, as Forced March's, and matches
+the release frame by the recovery's slope (one a frame to 392); no block prints the `ActiveSpell`.
 
 ## 262. Reserved for the next item on the AI track
 

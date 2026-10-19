@@ -18193,3 +18193,43 @@ Kept in place: `~/ron-golden/run946/map-14/frame-snapshot.bin`, 840,195,088 byte
 
 `docs/GOLDEN.md` §142. **What the disk could not answer**: no dump held a squad walking (a move front) toward a building shooter. Recipe `tools/gamelog/golden/chapter105.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch105/map-14/`, 1,501 frames, seed 12345, 494 s. Waited on another lane: none.
 **What it holds**: `golden::chapter_one_hundred_and_five_holds_to_the_golden_word` (1500, closed) and `chapter_one_hundred_and_five_s_window_is_widened_whole` (eleven standing `form` rows); its window 1496..1500 (four blocks) is in the coverage driver's slice.
+## run952 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 11585's widening (11579..11835) at run943's detail (2026-10-18, item 3297, `att-3297`)
+
+`docs/AI.md` §261. **What the disk could not answer**: the word moved to 11585 (item 3287), and run943 ends at block
+10945. No dump of the lobby held a block past it; run125 and run130 span 11585 in another game. The window is six
+blocks before the word's block 11586 and 250 after it: `--log-window 11579 11836 --end-frame 11841`, run943's
+recipe otherwise.
+- Pool lane 1. Launched 21:09:59 and the game exited at 21:42:15 (1936 s). `success`, `settings_restored`, 11842
+  frames, `map_style 14`, seed 12345, players `(0,4,7),(1,18,1)`. `rngcmp.py rontrace-run897b.log
+  rontrace-run952.log`: **11842 identical, 0 differing**. Filed with `filerun.py run952
+  greatlakes-iroquois-diff3-window-11579-11836-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run952-greatlakes-iroquois-diff3-window-11579-11836-guys4.txt`, 522,932,749 bytes,
+SHA-256 `1f6e62bdddff895ea0736086cf952a5cd5232d52095cd5c24374b21e6f18b204`.
+
+Archive `rontrace-run952.log`, 60,619,136 bytes,
+SHA-256 `bd4c0ecbaa39153e64c3ca18b6e87f3e4d093aeb6fcae19110e9ecb1c3fa9fab`.
+
+**What it holds**: `diff::iroquois_word::run952_s_word_frame_is_widened_whole` (257 blocks). It opened already
+parted (786 keys): who=1's food, The Despot `1/46`'s cast, the make list. With Ambush's hold and the building
+plunder's hero cut, 60. Its window is in the coverage driver.
+
+## run952b — the same game, the walk-back over the gap 10940..11579 (2026-10-18, item 3297, `att-3297`)
+
+`docs/AI.md` §261. **What the disk could not answer**: run952's first block was already parted, and no dump held
+10946..11578. `--log-window 10940 11580 --end-frame 11585`, run952's recipe otherwise.
+- Pool lane 1. Launched 21:45:15 and the game exited at 22:24:28 (2345 s). `success`, 11586 frames, seed 12345.
+  `rngcmp.py rontrace-run897b.log rontrace-run952b.log`: **11586 identical, 0 differing**. Filed with `filerun.py
+  run952b greatlakes-iroquois-diff3-window-10940-11580-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run952b-greatlakes-iroquois-diff3-window-10940-11580-guys4.txt`, 1,295,868,883 bytes,
+SHA-256 `c279c78649c72533f19d36da40cec9a1ca32e55e0e117796e108ec641f3f42bb`.
+
+Archive `rontrace-run952b.log`, 59,897,920 bytes,
+SHA-256 `2b495b5152aec62a97d166c30572808bb32573abc94e1fd1f4eecd4919bba030`.
+
+**What it holds**: `diff::iroquois_word::run952b_s_gap_is_widened_whole` (640 blocks). The state first parts past
+the standing set on block 11259: who=1's food 69 against 89, `0/2002` razed beside The Despot. With the hero cut,
+59 keys. Its window is in the coverage driver.
