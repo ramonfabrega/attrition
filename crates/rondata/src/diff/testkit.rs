@@ -9962,6 +9962,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3318,
         Some(crate::diff::spanish_word::WIDENING_SPANISH_CLOSING),
     ),
+    // **The battery's Indian word** (item 3335, DECISIONS 72, 83): frame
+    // 221, the Indian lobby's first try. run962 dumps blocks 0..36 and
+    // run962b its setup and closing blocks only; the word's windows are
+    // run970's (37..472: a goody box's own `ever_seen`, 221 → 1176, and
+    // the Indian ramp, → 1177), run970b's (1171..1428: a closed
+    // building's number held, 1177 → 9985) and run970c's, which holds
+    // 9985 (`run970c_s_word_frame_is_widened_whole`).
+    (
+        "INDIAN_WORD",
+        crate::diff::indian_word::INDIAN_WORD,
+        Some("run970c_s_word_frame_is_widened_whole"),
+        3335,
+        Some(crate::diff::indian_word::WIDENING_INDIAN_FRAME_9985),
+    ),
     // **The battery's fifth word** (item 3329, DECISIONS 72, 83): frame
     // 1567, the Dutch lobby's first try, moved 1567 → 23985 by the item.
     // run915 dumps blocks 0..36 and run917 its setup and closing blocks
@@ -10328,7 +10342,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::indian_word::INDIAN_WORD,
         length: 24_000,
         endpoint: None,
-        window: Some("indian_frame_221_window"),
+        window: Some("indian_frame_9985_window"),
     },
     // **The battery's fifth word** (DECISIONS 72, 83; item 3329): East
     // Indies, the Dutch at Difficulty 4 — the held-out battery's lowest
