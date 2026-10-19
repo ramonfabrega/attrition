@@ -3453,6 +3453,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::indian_word::indian_frame_9985_window(),
         || super::indian_word::indian_gap_970d_window(),
         || super::indian_word::indian_frame_14594_window(),
+        || super::russian_word::russian_frame_6563_window(),
         || super::dutch_word::dutch_frame_1567_window(),
         || super::dutch_word::dutch_frame_5583_window(),
         || super::dutch_word::dutch_frame_22935_window(),

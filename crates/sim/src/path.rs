@@ -36,9 +36,9 @@
 
 use std::collections::BTreeMap;
 
-use crate::orders::{self, Body, MoveKind, PathData, Worker, path_flag};
-use crate::world::{Owner, Pos, TILES_PER_CELL, UNITS_PER_CELL, cell, tile, vector_dist};
-use crate::{Sim, movement};
+use crate::Sim;
+use crate::orders::{self, Body, PathData, path_flag};
+use crate::world::{Owner, Pos, TILES_PER_CELL, cell, tile, vector_dist};
 
 /// **A payoff probe's hand**, not a mechanic (item 563,
 /// `docs/PATHFINDER.md` §23): one unit cell that `valid_ucoord` refuses to
@@ -1553,203 +1553,27 @@ impl Sim {
     /// it, since a human jumps the whole mode block (`leaders & 4` at
     /// `0068973d`).
     pub(crate) fn find_wpath_from(&mut self, u: usize, here: Pos, army_hint: bool) -> i32 {
-        let Some(goal_e) = self.units[u].path.pop() else {
-            return 0;
-        };
-        let gc = goal_e.to.cell();
-        if !self.world.contains(gc) {
-            self.units[u].path.clear();
-            return -1;
-        }
-        // Same cell, or a type that flies like a helicopter (`+0x2b4 &
-        // 0x20`, `689110`, item 1048): push back, done.
-        self.pf_start = here.tile();
-        if here.cell() == gc || self.is_helicopter(u) {
-            self.units[u].path.push(goal_e);
-            return self.units[u].path.len() as i32;
-        }
-        // The pull-back walk: step the goal toward the start until its
-        // tile region matches the start's. On one-region maps this exits
-        // immediately.
-        //
-        // **A unit that can board skips it whole**, and that gate is the
-        // whole of transport pathing: `00689375` runs the walk only for
-        // `domain < 2 && (!is_on_map() || !can_transport())`, so a land
-        // unit with `unit_masks & 0x800000` keeps the goal it was given and
-        // the search is asked to cross the water. Without the gate the goal
-        // is dragged back onto the unit's own island and the route ends at
-        // the shore — which is what this crate did on the day `go_here`
-        // first pointed a scout at another one (`docs/TRANSPORT.md` §7).
-        //
-        // **A sea unit's break test has a second clause** (`00689375`–
-        // `00689331`, item 1868): the matched region must also pass
-        // `invalid_loc(t, 0, 1, 1, 1, 0)`, the tile grid's own question, so
-        // a goal on the shore (a fishing spot's tile, a dock's) is stepped
-        // back over water even when its region reads as the boat's.
-        let mut goal_e = goal_e;
-        let mut goal = goal_e.to;
-        let boardless = !self.units[u].on_map || !self.unit_can_transport(u);
-        // **A human's leader takes the other variant first** (`leaders &
-        // 4`, `00689109`–`006892e4`; item 676, `docs/GOLDEN.md` §17): it
-        // does not drag the goal back toward the start, it **pops**. While
-        // the goal cell's centre tile is in another region from the start
-        // cell's, or its centre half-cell (`2c + 1`) has never been seen,
-        // the goal is dropped for the entry under it — stopping on a final
-        // entry or an empty stack. So a human's unit whose next world
-        // waypoint turns out to be water re-plans to the first waypoint
-        // past it it may still stand on, or to its order's own goal, and
-        // the search runs. Only a goal it **has** seen — or a sea unit —
-        // then goes on to the AI's walk. run180's chariot does this on 693,
-        // a cell short of the sand its first plan crossed unseen, and its
-        // new plan goes round the lake to the destination.
-        let human = self
-            .nation
-            .get(self.units[u].owner as usize)
-            .is_some_and(|n| n.human);
-        let sea = self.unit_domain_of(u) == crate::attrition::Domain::Sea;
-        let mut ai_walk = true;
-        if human {
-            let owner = self.units[u].owner;
-            let centre = |c: crate::world::Cell| {
-                Pos::new(c.x * TILES_PER_CELL + 2, c.y * TILES_PER_CELL + 2)
-            };
-            let seen =
-                |s: &Self, c: crate::world::Cell| s.was_seen_fog(2 * c.x + 1, 2 * c.y + 1, owner);
-            if boardless {
-                let start = self.world.tregion_alt(centre(here.cell()));
-                loop {
-                    let c = goal_e.to.cell();
-                    if self.world.tregion_alt(centre(c)) == start && seen(self, c) {
-                        break;
-                    }
-                    if goal_e.flags & crate::orders::path_flag::FINAL != 0
-                        || self.units[u].path.is_empty()
-                    {
-                        break;
-                    }
-                    goal_e = self.units[u].path.pop().expect("a non-empty stack");
-                    if !self.world.contains(goal_e.to.cell()) {
-                        self.units[u].path.clear();
-                        return -1;
-                    }
-                }
-                goal = goal_e.to;
-            }
-            ai_walk = seen(self, goal.cell()) || sea;
-        }
-        let walks = ai_walk && self.unit_domain_of(u) != crate::attrition::Domain::Air && boardless;
-        while walks
-            && (self.world.tregion_alt(goal.tile()) != self.world.tregion_alt(here.tile())
-                || (sea && self.invalid_loc(u, goal.tile(), false, true, true, true, false) != 0))
-        {
-            let (dx, dy) = (here.x - goal.x, here.y - goal.y);
-            let far = dx.abs() + dy.abs() >= 0x300;
-            let s = if far { 0x180 } else { 0x30 };
-            // The give-up exit: a remainder smaller than the step on both
-            // axes takes the goal where it stands **without running A\***
-            // (audit V17) — the same push-and-return as reaching the
-            // start's cell. Only a region match continues to the search.
-            if dx.abs() < s && dy.abs() < s {
-                self.units[u].path.push(goal_e);
-                return self.units[u].path.len() as i32;
-            }
-            let ang = movement::find_angle(dx, dy);
-            // **No sign flip here.** The decompiler's `if (angle < 0) step =
-            // -step` before the two `sin_table` calls is the *inlined* fold
-            // that [`movement::sin_component`] already performs — and the
-            // listing settles it: at `0x6894c3` the cosine's distance is
-            // reloaded from the un-negated `s` and negated again only on the
-            // sign of `angle + 0x40000000`. Doing it twice cancels the fold,
-            // which sends the pull-back away from the start instead of
-            // toward it; the walk then never converges. Every capture broke
-            // out of this loop on its first region test, so nothing caught
-            // it until a dock stood one cell further out
-            // (`docs/PATHFINDER.md` §13).
-            let sx = movement::sin_component(ang, s);
-            let cy = movement::cos_component(ang, s);
-            goal = Pos::new(goal.x + sx, goal.y - cy);
-            goal_e.to = goal;
-            if goal.cell() == here.cell() {
-                self.units[u].path.push(goal_e);
-                return self.units[u].path.len() as i32;
-            }
-        }
-        self.units[u].path.push(goal_e);
-        // The near test and the centre push use the (possibly pulled-back)
-        // goal's cell.
-        let gc = goal.cell();
-        let hc = here.cell();
-        if (gc.x - hc.x).abs() + (gc.y - hc.y).abs() < 3 {
-            return self.units[u].path.len() as i32;
-        }
+        crate::wpath::find_wpath_steps(&mut crate::wpath::SimWpath::new(self, u, army_hint), here)
+    }
 
-        // `army`/`worker` are **AI-only**: `leaders.flags & 4` is
-        // `is_human`, and a human's `find_wpath` jumps straight to the
-        // search past the whole mode block (audit V14).
-        // **Gaia is a leader and it is a computer one.** `self.nation` has
-        // a row per *player*; the original's `leaders.list` has ten, and
-        // run58's own dump prints owner 8 with `leader_flags 33554439` —
-        // the same `0x2000007` the AI player carries, `& 4` set — against
-        // the human's `0x800113`. So an owner with no row here is not
-        // human, and a wandering animal takes the AI's mode block, which
-        // is what it took in the original. Before this read panicked on
-        // owner 8, 19,000 frames past East Indies' word.
-        let human = self
-            .nation
-            .get(self.units[u].owner as usize)
-            .is_some_and(|n| n.human);
+    /// `find_wpath`'s search: `astar_path` on the world grid with the modes
+    /// the planner set on the pathfinder (`pathfinder +0x94/+0x70/+0x78`); the
+    /// caller runs `kill_lists` after reading the verdict (`68973d`-`68978e`).
+    pub(crate) fn wpath_search(
+        &mut self,
+        u: usize,
+        scouting: bool,
+        army: bool,
+        worker: bool,
+    ) -> i32 {
         let modes = Modes {
-            // `scouting = 1` iff the **type** is a scout — `role & 0x10`,
-            // `is(SCOUT)` on land and `is(BARK)` at sea
-            // (`UnitType::determine_roles@0061c320`) — **and** the order is
-            // `EXPLORE_TO` (§3). The type half was missing, and it is not a
-            // refinement: `scouting` prices seen ground at `0x400` against
-            // unseen `8`, so any unit given an `EXPLORE_TO` walked toward
-            // the fog. run10's AI citizen `1/1` is sent to its second
-            // city's site under an `EXPLORETO` on frame 777 and took a
-            // ten-cell detour west through unexplored ground where the
-            // original walks seven cells south-east.
-            //
-            // SEAM: the clause `order.flags & 4 == 0 || unit_masks &
-            // 0x40100`, which can only ever turn scouting *off* for a
-            // scout whose explore order carries `ACTION`. Left out until
-            // the two mask bits are modelled; every explore order in the
-            // corpus has `flags 1`.
-            scouting: self.units[u]
-                .ty
-                .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::SCOUT))
-                && self.current_order(u).is_some_and(
-                    |o| matches!(o.body, Body::Move(mo) if mo.kind == MoveKind::ExploreTo),
-                ),
-            army: army_hint || (!human && self.army_mode(u)),
-            worker: !human
-                && self.units[u]
-                    .ty
-                    .is_some_and(|t| self.unit_types[t].worker != Worker::None),
+            scouting,
+            army,
+            worker,
             no_danger: self.no_danger_mode(u),
-            // `iroquois` is `astar_path`'s own, from the unit (§4.1).
             ..Modes::default()
         };
-        let centre = |c: crate::world::Cell| {
-            Pos::new(c.x * UNITS_PER_CELL + 0x180, c.y * UNITS_PER_CELL + 0x180)
-        };
-        self.units[u].path.push(PathData {
-            to: centre(gc),
-            tolerance: 0x180,
-            flags: 0,
-        });
-        self.units[u].path.push(PathData {
-            to: centre(here.cell()),
-            tolerance: 0,
-            flags: 0,
-        });
-        let r = self.astar_path(u, &modes, STEP_WORLD, 0, false);
-        self.kill_lists();
-        if r == 0 {
-            let popped = self.units[u].path.pop();
-            return -i32::from(popped.is_some_and(|p| p.flags & path_flag::FINAL != 0));
-        }
-        self.units[u].path.len() as i32
+        self.astar_path(u, &modes, STEP_WORLD, 0, false)
     }
 
     /// `find_tpath`'s search: `astar_path` on the tile grid, then
@@ -1798,229 +1622,19 @@ impl Sim {
         self.upath(u, false, 300 / sq, true)
     }
 
-    /// `PathFinder::find_upath@00682f30`, the big form. `resume` is the
-    /// global `saving`.
+    /// `PathFinder::find_upath@00682f30`, as
+    /// [`crate::upath::find_upath_steps`] over this unit (item 3339).
+    /// `resume` is the global `saving`.
     fn upath(&mut self, u: usize, anti: bool, limit: i32, resume: bool) -> i32 {
-        if resume {
-            return self.upath_search(u, anti, limit, true);
-        }
-        let Some(mut goal_e) = self.units[u].path.pop() else {
-            return 0;
-        };
         let here = self.units[u].pos;
-        self.pf_start = here.tile();
-        let g48 = |p: Pos| Pos::new(p.x.div_euclid(0x30), p.y.div_euclid(0x30));
-        let gg0 = g48(goal_e.to);
-        if gg0.x < 0
-            || gg0.y < 0
-            || gg0.x >= self.world.width() * 16
-            || gg0.y >= self.world.height() * 16
-        {
-            self.units[u].path.clear();
-            return -1;
-        }
-        let hg = g48(here);
-        if hg == g48(goal_e.to) {
-            goal_e.tolerance = 0;
-            self.units[u].path.push(goal_e);
-            return self.units[u].path.len() as i32;
-        }
-        let mut goal = goal_e.to;
-        // The pathfinder's memo, not a local one (§24.5): the pre-walk's
-        // verdicts stay in it on every return below, none of which reaches
-        // `kill_lists`, and a search — this one's or the next unit's —
-        // reads them back.
-
-        // **The pre-walk is gated, and the gate is not `find_wpath`'s**
-        // (item 301). `00683095` tests the type's domain `+0x218 < 2` and
-        // `UnitData::can_transport@0046f960` — a **conjunction with no
-        // vfunc `+0x8` disjunct**, where `find_wpath@00688fc0:91` has
-        // `domain < 2 && (vfunc+8 == 0 || !can_transport)`. So a land unit
-        // whose side has a Dock — `unit_masks & 0x800000` without
-        // `unit_masks2 & 0x2000`, which every citizen on an island map
-        // carries — never pulls its 48-grid goal back at all: it goes
-        // straight to the near test and the search.
-        // **The pre-walk is gated, and the gate is not `find_wpath`'s**
-        // (item 301, `docs/PATHFINDER.md` §18.1). `00683095` tests the
-        // type's domain `+0x218 < 2` and `UnitData::can_transport@0046f960`
-        // — a **conjunction with no vfunc `+0x8` disjunct**, where
-        // `find_wpath@00688fc0:91` has `domain < 2 && (vfunc+8 == 0 ||
-        // !can_transport)`. So a land unit whose side has a Dock —
-        // `unit_masks & 0x800000` without `unit_masks2 & 0x2000`, which
-        // every citizen on an island map carries — never pulls its 48-grid
-        // goal back at all: it goes straight to the near test and the
-        // search.
-        let pulls_back =
-            self.unit_domain_of(u) != crate::attrition::Domain::Air && !self.unit_can_transport(u);
-        if pulls_back {
-            loop {
-                let gg = g48(goal);
-                let metric = i64::from(gg.x) + i64::from(gg.y) * i64::from(self.world.width()) * 16;
-                if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
-                    && self.valid_ucoord(u, goal, metric)
-                {
-                    break;
-                }
-                let (dx, dy) = (here.x - goal.x, here.y - goal.y);
-                if dx.abs() < 0x18 && dy.abs() < 0x18 {
-                    if goal_e.flags & path_flag::FINAL == 0 {
-                        return 0;
-                    }
-                    // A final goal given up on is pushed as it stands —
-                    // `testb $1, [ebp-0x34]; jne 683082`, the plain push —
-                    // past the near test and the search, its tolerance
-                    // kept (`docs/AI.md` §231).
-                    self.units[u].path.push(goal_e);
-                    return self.units[u].path.len() as i32;
-                }
-                let ang = movement::find_angle(dx, dy);
-                // `0x18` here — `mov edi, 0x18` at `0x68318b`.
-                let s = 0x18;
-                let sx = movement::sin_component(ang, s);
-                let cy = movement::cos_component(ang, s);
-                goal = Pos::new(goal.x + sx, goal.y - cy);
-                goal_e.to = goal;
-                if g48(goal) == hg {
-                    self.units[u].path.push(goal_e);
-                    return self.units[u].path.len() as i32;
-                }
-                if sx == 0 && cy == 0 {
-                    break;
-                }
-            }
-        }
-        let gg = g48(goal);
-        let md = (hg.x - gg.x).abs() + (hg.y - gg.y).abs();
-        // **The near test zeroes the tolerance**, as the same-cell test
-        // above does: `cmp ecx, 1; jg` at `683273`, then `mov [ebp-0x3c],
-        // 0` — `PathData +0x8` of the entry at `ebp-0x44` — before the push
-        // at `683284`. The pull-back's own pushes keep it. East Indies'
-        // Flamethrower `1/187` (`docs/AI.md` §231) pulled a far waypoint
-        // back beside it on 5459 and kept its 384, so it popped the leg
-        // where it stood instead of walking it.
-        if md < 2 {
-            goal_e.tolerance = 0;
-            self.units[u].path.push(goal_e);
-            return self.units[u].path.len() as i32;
-        }
-        self.units[u].path.push(goal_e);
-        let centre48 = |g: Pos| Pos::new(g.x * 0x30 + 0x18, g.y * 0x30 + 0x18);
-        self.units[u].path.push(PathData {
-            to: centre48(gg),
-            tolerance: 0,
-            flags: 0,
-        });
-        self.units[u].path.push(PathData {
-            to: centre48(hg),
-            tolerance: 0,
-            flags: 0,
-        });
-        self.upath_search(u, anti, limit, false)
-    }
-
-    /// `find_upath`'s tail: `anti_unit` around the search, then the
-    /// failure teardown and the success compaction. The teardown's guard is
-    /// `pathfinder +0x84` (`find_upath@00682f30`'s `_132_4_`), **the
-    /// suspended flag, not a resume flag**: `astar_path` writes 1 on its
-    /// suspend and 0 on every failure tail before it returns (`:535`,
-    /// `:908`), `find_upath_restore` merely starts it at 1. So a resumed
-    /// search that gives up pops its non-final top and kills the order
-    /// unless the retry roll spared it, exactly as a fresh one does (item
-    /// 1982: the AA missile `1/107` on 3180 — the pop was the 61 against 60
-    /// stack — read "a resume skips the teardown" off the prologue's guard,
-    /// which tests the same word for another reason).
-    fn upath_search(&mut self, u: usize, anti: bool, limit: i32, resume: bool) -> i32 {
-        let modes = Modes {
-            anti_unit: true,
+        let mut v = SimUpath {
+            sim: self,
+            u,
             limit,
-            no_danger: self.no_danger_mode(u),
-            ..Modes::default()
+            resume,
+            keep: Vec::new(),
         };
-        let r = self.astar_path(u, &modes, STEP_UNIT, i32::from(anti), resume);
-        self.kill_lists();
-        if r < 1 {
-            if r == 0 {
-                if self.units[u]
-                    .path
-                    .last()
-                    .is_some_and(|p| p.flags & path_flag::FINAL == 0)
-                {
-                    self.units[u].path.pop();
-                }
-                // **The kill, and what spares it** — `find_upath@
-                // 00682f30:187`-`195`: a current order that is a **move**
-                // (vslot `+0x14`, `call *0x14` at `006833c9`; the action
-                // bit is not read, item 673) whose move data carries a
-                // non-zero `retry` is left alone, and the tail of
-                // `astar_path` has just written that retry. So a failed
-                // unit-grid search kills the order only when the roll did
-                // not happen — an order that is not a move, or one over
-                // the `attempts` ceiling ([`Sim::roll_upath_retry`]).
-                //
-                // Until item 329 the roll was a seam and the kill was
-                // unconditional, which cost run19's `1/28` its whole chase
-                // on Great Lakes 8187: the original stands it still for six
-                // to eight frames with its 42-entry stack intact, and this
-                // crate threw the stack away and went back to `fight`.
-                let spared = self
-                    .current_order(u)
-                    .is_some_and(crate::orders::Order::is_move)
-                    && self.current_move(u).is_some_and(|m| m.retry != 0);
-                if !spared {
-                    self.kill_current_order(u);
-                }
-            }
-            return r.min(0);
-        }
-        // Post-processing: drop a top equal to the unit's position, then
-        // compact collinear side-steps.
-        if self.units[u].path.len() > 3 {
-            self.compact_upath(u);
-        }
-        self.units[u].path.len() as i32
-    }
-
-    /// `find_upath`'s success post-processing: the top-equals-position
-    /// drop and the `flags & 2` collinear compaction.
-    fn compact_upath(&mut self, u: usize) {
-        let here = self.units[u].pos;
-        let mut first = self.units[u].path.pop().expect("upath top");
-        if first.to == here && first.flags & path_flag::FINAL == 0 {
-            first = self.units[u].path.pop().expect("upath second");
-        }
-        let mut keep: Vec<PathData> = vec![first];
-        if first.flags & path_flag::SIDESTEP != 0 && self.units[u].path.len() > 2 {
-            // The reference point advances to the examined waypoint on a
-            // keep and on a collinear drop, but not on a one-step-jump
-            // drop — the decompile's comma-expression side effects,
-            // followed exactly.
-            let (mut ax, mut ay) = (first.to.x, first.to.y);
-            let mut mid = self.units[u].path.pop().expect("upath mid");
-            while let Some(&next) = self.units[u].path.last() {
-                if mid.flags & path_flag::SIDESTEP == 0
-                    || next.flags & path_flag::SIDESTEP == 0
-                    || self.units[u].path.len() <= 1
-                {
-                    break;
-                }
-                let collinear =
-                    ax - mid.to.x == mid.to.x - next.to.x && ay - mid.to.y == mid.to.y - next.to.y;
-                let one_step = (ax - next.to.x).abs() == 0x30 && (ay - next.to.y).abs() == 0x30;
-                if mid.flags & path_flag::TRANSPORT != 0 || (!collinear && !one_step) {
-                    keep.push(mid);
-                    ax = mid.to.x;
-                    ay = mid.to.y;
-                } else if collinear {
-                    ax = mid.to.x;
-                    ay = mid.to.y;
-                }
-                mid = self.units[u].path.pop().expect("upath chain");
-            }
-            self.units[u].path.push(mid);
-        }
-        while let Some(p) = keep.pop() {
-            self.units[u].path.push(p);
-        }
+        crate::upath::find_upath_steps(&mut v, here, i32::from(anti))
     }
 
     /// The `army` mode: a military unit, not a worker, **not attacking**, and
@@ -2058,6 +1672,7 @@ impl Sim {
     /// which no hero reaches here, being armed. A Supply Wagon plans as an
     /// army and pays `base << 5` for every `0x200` cell; golden chapter
     /// four's wagon `1/10` is the first `find_wpath` of one in the corpus.
+    #[cfg(test)]
     fn army_mode(&self, u: usize) -> bool {
         let armed = self.units[u].ty.is_some_and(|t| {
             let ty = &self.unit_types[t];
@@ -2065,7 +1680,7 @@ impl Sim {
         });
         let worker = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].worker != Worker::None);
+            .is_some_and(|t| self.unit_types[t].worker != orders::Worker::None);
         // `is_attacking`: the current order's `is_attack` (`006896b9`).
         let attacking = self
             .current_order(u)
@@ -2094,9 +1709,127 @@ impl Sim {
     }
 }
 
+/// The crate's [`Sim`] as `find_upath`'s view: unit `u`, the node `limit` the
+/// caller's repath count set, `resume` the global `saving`, and the
+/// function-static `keep` stack.
+struct SimUpath<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    limit: i32,
+    resume: bool,
+    keep: Vec<PathData>,
+}
+
+impl crate::upath::UpathView for SimUpath<'_> {
+    fn begin(&mut self, here: Pos) {
+        // `pathfinder +0x58/+0x5c`; the unit pointer and the zeroed
+        // `+0x68/+0x6c/+0x94` have no field of their own here.
+        self.sim.pf_start = here.tile();
+    }
+    fn saving(&self) -> bool {
+        self.resume
+    }
+    fn cell48(&self, c: i32) -> i32 {
+        c.div_euclid(0x30)
+    }
+    fn world_dims(&self) -> (i32, i32) {
+        (self.sim.world.width(), self.sim.world.height())
+    }
+    fn pop(&mut self) -> Option<PathData> {
+        self.sim.units[self.u].path.pop()
+    }
+    fn peek(&mut self) -> PathData {
+        *self.sim.units[self.u].path.last().expect("a peeked entry")
+    }
+    fn push(&mut self, e: PathData) {
+        self.sim.units[self.u].path.push(e);
+    }
+    fn clear(&mut self) {
+        self.sim.units[self.u].path.clear();
+    }
+    fn depth(&self) -> i32 {
+        self.sim.units[self.u].path.len() as i32
+    }
+    fn domain_below_2(&self) -> bool {
+        self.sim.unit_domain_of(self.u) != crate::attrition::Domain::Air
+    }
+    fn can_transport(&mut self) -> bool {
+        self.sim.unit_can_transport(self.u)
+    }
+    fn tregion(&mut self, cx4: i32, cy4: i32) -> i32 {
+        self.sim
+            .world
+            .tregion_alt(Pos::new(cx4, cy4))
+            .map_or(-1, i32::from)
+    }
+    fn valid_ucoord(&mut self, p: Pos, metric: i32) -> bool {
+        self.sim.valid_ucoord(self.u, p, i64::from(metric))
+    }
+    fn search(&mut self, anti: i32) -> i32 {
+        let modes = Modes {
+            anti_unit: true,
+            limit: self.limit,
+            no_danger: self.sim.no_danger_mode(self.u),
+            ..Modes::default()
+        };
+        self.sim
+            .astar_path(self.u, &modes, STEP_UNIT, anti, self.resume)
+    }
+    /// **The suspended flag, not a resume flag**: `astar_path` writes 1 on
+    /// its suspend and 0 on every failure tail before it returns (`:535`,
+    /// `:908`), `find_upath_restore` merely starts it at 1. So a resumed
+    /// search that gives up pops its non-final top and kills the order
+    /// unless the retry roll spared it, exactly as a fresh one does (item
+    /// 1982: the AA missile `1/107` on 3180).
+    fn suspended(&self, r: i32) -> bool {
+        r < 0
+    }
+    fn drop_unfinal_top(&mut self) {
+        if self.sim.units[self.u]
+            .path
+            .last()
+            .is_some_and(|p| p.flags & path_flag::FINAL == 0)
+        {
+            self.sim.units[self.u].path.pop();
+        }
+    }
+    /// A current order that is a **move** (vslot `+0x14`, `call *0x14` at
+    /// `006833c9`; the action bit is not read, item 673).
+    fn order_is_move(&mut self) -> bool {
+        self.sim
+            .current_order(self.u)
+            .is_some_and(crate::orders::Order::is_move)
+    }
+    /// The move data's `retry`, which the tail of `astar_path` has just
+    /// written: a failed unit-grid search kills the order only when the roll
+    /// did not happen (`Sim::roll_upath_retry`; item 329, Great Lakes 8187).
+    fn move_retry(&mut self) -> i32 {
+        self.sim.current_move(self.u).map_or(0, |m| m.retry)
+    }
+    fn kill_current_order(&mut self) {
+        self.sim.kill_current_order(self.u);
+    }
+    fn kill_lists(&mut self) {
+        self.sim.kill_lists();
+    }
+    fn unit_pos(&self) -> Pos {
+        self.sim.units[self.u].pos
+    }
+    fn keep_begin(&mut self) {
+        self.keep.clear();
+    }
+    fn keep_push(&mut self, e: PathData) {
+        self.keep.push(e);
+    }
+    fn keep_pop(&mut self) -> Option<PathData> {
+        self.keep.pop()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::orders::{MoveKind, Worker};
     use crate::world::{Cell, Terrain};
     use crate::{Tuning, Unit, World};
 

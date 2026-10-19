@@ -9813,6 +9813,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks: `rngcmp.py` run969 vs run969b -> 37 identical; run962b vs run970 -> 479 identical; vs run970b -> 1433 identical;
 #         vs run970c -> 10241 identical; vs run970d -> 9981 identical; vs run970e -> 14851 identical.
 # ==== TAKEN 2026-10-19, one take each, 09:05-10:12, pool lanes 1-3 (run970c 10:28-) ====
+# ==== item 3342: the Russian word's widening and the battery's replacement lobby (`docs/AI.md` §275; `docs/RUNS.md` run975 .. run976) ====
+#   run975   --map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 19 --profile DIFFICULTY=2   (Great Lakes, Lakota; start)
+#   run975b  run962b's recipe on --map 14 with --ai-tribe 19 --profile DIFFICULTY=2   (the draw stream to the game's end, 7902)
+#   run976   --map 14 --end-frame 6820 --timeout 3600 --log-window 6557 6814 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 13 --cover cover=0 --profile DIFFICULTY=2   (Great Lakes, Russians; the word 6563's window)
+# Checks: `rngcmp.py` run975 vs run975b -> 37 identical; run644 vs run976 -> 6821 identical. run975b ended itself on 7902.
+# ==== TAKEN 2026-10-19, one take each, 14:29-14:47, pool lanes 1-3 ====
 # ==== item 3332: the Egyptian word's widenings and the battery's replacement lobby (`docs/AI.md` §269; `docs/RUNS.md` run966 .. run967g) ====
 #   run966   --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 1 --profile DIFFICULTY=4   (Great Sahara, Maya; start)
 #   run966b  --map 7 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000

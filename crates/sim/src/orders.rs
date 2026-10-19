@@ -5568,10 +5568,20 @@ impl Sim {
                         // the captain's retarget, past the kill. It is
                         // `check_target_path`'s triple against the
                         // attacker's heading rather than the bearing.
+                        //
+                        // **And no other unit in my block**, as the
+                        // building arm (item 3342, `docs/COMBAT.md`
+                        // §65.8): `5f7f11`–`5f7f2c` call
+                        // `Objects::find_collision(my own spot, o, who, 1)`
+                        // after the range test, and a hit goes to the
+                        // planner. run976's Slinger `1/22` stands in reach
+                        // of `0/5` on 6561 with a mate in its block, and
+                        // walks on.
                         let margin = !self.units[u].combat.mandatory;
                         let at = self.units[u].pos;
                         if !self.chase_target_flees(u, t)
                             && self.is_in_range_at_margin(me, at, t, margin)
+                            && !self.find_collision_forced(u, at)
                         {
                             self.kill_current_order(u);
                             return Did::Something;

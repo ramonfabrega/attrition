@@ -72,6 +72,8 @@ mod report;
 #[cfg(test)]
 mod roman_word;
 #[cfg(test)]
+mod russian_word;
+#[cfg(test)]
 mod sahara_coverage;
 #[cfg(test)]
 mod sahara_mongol;
