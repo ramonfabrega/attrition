@@ -2388,13 +2388,6 @@ impl Sim {
             frame,
             &self.mods_of(owner),
         );
-        if std::env::var_os("RON_PROBE_DMG").is_some() && matches!(target, Obj::Building(0)) {
-            eprintln!(
-                "PROBE_DMG f{frame} by {:?} attack {} armor {} pct {} unfriendly {} dmg {} count {} ammo {} apa {} uber {}",
-                attacker, self.attack_of(attacker), self.armor_of(target), pct,
-                tt.in_unfriendly_territory, dmg, count, ammo, ap.ammo_per_att, ap.uber_size
-            );
-        }
         // Step 2: the target's captain reacts, and the overkill record.
         if let Obj::Unit(t) = target
             && !quiet
