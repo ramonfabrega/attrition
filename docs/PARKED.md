@@ -8231,6 +8231,10 @@ words and edits nothing here; a refill lands when two remain.
 - (3318e) **`research_rares`' SEAMs** (`crates/sim/src/lib.rs`): RESEARCH_FASTER, Angkor, Conquer the World, the
   handicap, `tech_cost`, the catch-up and the held-elsewhere arms are not modelled; and `fix_tech_flags` clearing
   `leader_flags 0x1000` on `lose_tech` is never reached by any capture. Each returns when a word's frame reaches it.
+- (3318f) **3318's "for the Loop"** (the journal's line, filed by the lane): `zsh tools/check.sh test …` exited 0 on a
+  `rondata` compile error after the merge, so the budget wrapper's exit is not cargo's; a worker reads the `test
+  result:` lines. And `RON_DISABLE_ORACLE_CACHE`/`RON_DISABLE_PREFIX_REUSE` were not needed for a sim-side probe. The
+  pass decides whether `check.sh` should carry cargo's exit.
 
 ## Parked by the next landing, slot KK — reserved
 
