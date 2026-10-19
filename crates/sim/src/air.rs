@@ -5042,9 +5042,10 @@ pub(crate) fn air_patrol_steps<V: PatrolView>(v: &mut V) {
         }
         return;
     }
-    // `+0x58` is read again after the flight: an empty tank sets it there.
-    let mut returning = v.returning();
-    if !returning {
+    // `+0x58` is read again after the flight: an empty tank sets it there. (The
+    // original reads it a third time after the waypoint steps on; nothing writes
+    // it between, and the sweep's mutations of that read all survived.)
+    if !v.returning() {
         if let Some((gx, gy)) = goal
             && v.dist_to(gx, gy) < 0x240
         {
@@ -5055,9 +5056,8 @@ pub(crate) fn air_patrol_steps<V: PatrolView>(v: &mut V) {
                 v.kill_current_order();
                 return;
             }
-            returning = v.returning();
         }
-        if !returning && v.phase() & 15 == 0 {
+        if v.phase() & 15 == 0 {
             let (mut sx, mut sy) = (v.x_at(v.len() - 1), v.y_at(v.ylen() - 1));
             if v.fighter_bomber()
                 && let Home::At(ox, oy) = v.home_flagged()
