@@ -1686,7 +1686,11 @@ mod tests {
                 .expect("a facing at the degree");
             let b = bay(1442, anim, time, 0).expect("every attack AttachPos row");
             let at = b.point(Pos::new(10_000, 10_000), facing);
-            assert_eq!((at.x - 10_000, at.y - 10_000), (x, y), "{anim} {time} {deg}");
+            assert_eq!(
+                (at.x - 10_000, at.y - 10_000),
+                (x, y),
+                "{anim} {time} {deg}"
+            );
         }
     }
 

@@ -1191,7 +1191,8 @@ fn run946_s_road_elements_at_10842_are_ours() {
         built.tick();
     }
     // (x, y, connections, support, (ref, camel), C4)
-    let theirs: [(i32, i32, u32, u16, (u8, u8), bool); 12] = [
+    type Row = (i32, i32, u32, u16, (u8, u8), bool);
+    let theirs: [Row; 12] = [
         (234, 152, E | W, 0, (1, 0), false),
         (235, 152, E | S | W, 0, (1, 0), false),
         (236, 152, E | W, 0, (0, 1), false),
