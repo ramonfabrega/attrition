@@ -740,25 +740,20 @@ impl Sim {
     /// (`005f2f30`), the walk to the nearest coastal city with a dock — is
     /// not modelled, and answers `false`: the think goes on to the tail.
     pub(crate) fn think_carry(&mut self, u: usize) -> bool {
-        if !self.units[u].on_map {
-            return false;
-        }
-        let riders: Vec<usize> = (0..self.units.len())
-            .filter(|&i| self.units[i].alive() && self.units[i].inside_unit == Some(u))
-            .collect();
-        if riders.iter().any(|&i| self.is_worker(i)) {
-            return self.think_carry_civilian(u, true);
-        }
-        if riders.iter().any(|&i| self.unit_line_is(i, 0x45)) {
-            return self.think_carry_civilian(u, false);
-        }
-        let attack = riders
-            .iter()
-            .any(|&i| self.is_captain(i) && self.attack_of(Obj::Unit(i)) != 0);
-        if !attack {
-            return false;
-        }
-        self.think_carry_army(u, riders[0])
+        // `count_inside` opens on `is_on_map` of the carrier itself.
+        let riders: Vec<usize> = if self.units[u].on_map {
+            (0..self.units.len())
+                .filter(|&i| self.units[i].alive() && self.units[i].inside_unit == Some(u))
+                .collect()
+        } else {
+            Vec::new()
+        };
+        let mut v = SimCarry {
+            sim: self,
+            u,
+            riders,
+        };
+        think_carry_steps(&mut v) != 0
     }
 
     /// `Unit::think_carry@005f2ee0`'s attack arm (`docs/AI.md` §235): a boat
@@ -2129,6 +2124,76 @@ impl UnpackSteps for SimUnpack<'_> {
     }
     fn update_gpiece(&mut self) {
         self.sim.update_gpiece(self.u);
+    }
+}
+
+/// What `Unit::think_carry@005f2ee0` asks of the world: three `count_inside`
+/// calls and the three functions it hands the think to.
+pub trait CarryView {
+    /// `count_inside(COUNT_WORKERS, 0)`.
+    fn count_workers(&mut self) -> i32;
+    /// `count_inside(COUNT_TYPE, line)`.
+    fn count_type(&mut self, line: TypeId) -> i32;
+    /// `count_inside(COUNT_ATTACK, 0)`.
+    fn count_attack(&mut self) -> i32;
+    /// `think_carry_civilian@005f37c0(workers)`.
+    fn civilian(&mut self, workers: bool) -> i32;
+    /// `think_carry_military@005f3260` (the attack-carrier arm).
+    fn military(&mut self) -> i32;
+    /// `think_carry_idle@005f2f30`.
+    fn idle(&mut self) -> i32;
+}
+
+/// `Unit::think_carry@005f2ee0` itself: the 0x42-byte dispatcher. A worker
+/// aboard is `think_carry_civilian(1)`, a unit of `is(0x45)` is
+/// `think_carry_civilian(0)`, an attacker aboard tail-jumps to
+/// `think_carry_military`, and nothing of the three to `think_carry_idle`;
+/// each callee's answer is the function's own. Swept against the emulated
+/// original in `sweep/unit_think_carry.rs`.
+pub fn think_carry_steps<V: CarryView>(v: &mut V) -> i32 {
+    if v.count_workers() != 0 {
+        return v.civilian(true);
+    }
+    if v.count_type(0x45) != 0 {
+        return v.civilian(false);
+    }
+    if v.count_attack() != 0 {
+        v.military()
+    } else {
+        v.idle()
+    }
+}
+
+struct SimCarry<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    riders: Vec<usize>,
+}
+
+impl CarryView for SimCarry<'_> {
+    fn count_workers(&mut self) -> i32 {
+        i32::from(self.riders.iter().any(|&i| self.sim.is_worker(i)))
+    }
+    fn count_type(&mut self, line: TypeId) -> i32 {
+        i32::from(self.riders.iter().any(|&i| self.sim.unit_line_is(i, line)))
+    }
+    fn count_attack(&mut self) -> i32 {
+        i32::from(
+            self.riders
+                .iter()
+                .any(|&i| self.sim.is_captain(i) && self.sim.attack_of(Obj::Unit(i)) != 0),
+        )
+    }
+    fn civilian(&mut self, workers: bool) -> i32 {
+        i32::from(self.sim.think_carry_civilian(self.u, workers))
+    }
+    fn military(&mut self) -> i32 {
+        i32::from(self.sim.think_carry_army(self.u, self.riders[0]))
+    }
+    /// SEAM: `think_carry_idle` (`005f2f30`), the walk to the nearest coastal
+    /// city with a dock, is not modelled and answers `false`.
+    fn idle(&mut self) -> i32 {
+        0
     }
 }
 

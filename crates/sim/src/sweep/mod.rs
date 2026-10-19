@@ -16,6 +16,7 @@ pub(crate) use support::{emu_rows, row, tail_row};
 
 mod build_type_get_good;
 mod city_get_empty_trade_routes;
+mod farms_add;
 mod farms_add_animals;
 mod group_action_eject_all;
 mod group_action_eject_all_eject_o;
@@ -81,6 +82,7 @@ mod army_do_forming_untargeted;
 mod army_do_marching;
 mod army_do_marching_found;
 mod army_do_transporting;
+mod army_find_besieged_city;
 mod army_march_to_target;
 mod army_set_stance;
 mod army_use_generals;

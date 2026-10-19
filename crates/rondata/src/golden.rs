@@ -2069,6 +2069,7 @@ mod tests {
         ("chapter101.cmd", &[]),
         ("chapter102.cmd", &[]),
         ("chapter103.cmd", &[]),
+        ("chapter104.cmd", &[]),
         // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
         // line (item 696, `docs/GOLDEN.md` §19).
         ("chapter11.cmd", &[]),

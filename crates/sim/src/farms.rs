@@ -243,6 +243,260 @@ impl AnimalHost for PastureHost<'_> {
     }
 }
 
+/// What [`farms_add_steps`] asks of the world it runs in — one method a
+/// call the original makes, in the order it makes them, so a sweep's host
+/// can log them and compare the sequence (item 3281).
+pub(crate) trait FarmsAddHost {
+    /// `ObjectData` slot `+0xac` of the new building, then `BuildData+0x72`:
+    /// its city, `-1` for none. (The record's `memset` is the original's own.)
+    fn city(&mut self) -> i32;
+    /// `CityData::count_buildings@00739390(city, FARM, 1, 0)`, whole: the
+    /// caller takes one off for the building being placed.
+    fn count_buildings(&mut self, city: i32) -> i32;
+    /// `CityData::count_farms@007368c0`.
+    fn count_farms(&mut self, city: i32) -> i32;
+    /// `FarmsData::get_nearest_farm_type@008d73a0`: `-1` for none.
+    fn nearest(&mut self) -> i32;
+    /// `Random::get(game_random, 0, 0xffff)`, spent at `site`.
+    fn draw(&mut self, site: &'static str) -> i32;
+    /// Slot `+0xb0` then `WallData::tile_corner@00643440`: the footprint's
+    /// corner. Art's alone — it feeds the ambience emitter and the heights.
+    fn tile_corner(&mut self) -> (i32, i32);
+    /// Slot `+0xac` of the new building once more (`+0x72` again), then the
+    /// first member of its city's building chain (`CityData+8`), `-1` at
+    /// its end.
+    fn chain_first(&mut self, city: i32) -> i32;
+    /// Slot `+0xac` of member `m`, then the `Build` vtable test and the
+    /// `is(FARM)` call it makes (`+0x60` of the type, `+0xb8` of the rest).
+    fn member_is_farm(&mut self, m: i32) -> bool;
+    /// Slot `+0xac` of member `m`, then `BuildData+0x78`: its farm slot.
+    fn member_farm_slot(&mut self, m: i32) -> i32;
+    /// Bit 4 of the farm record `slot`'s `farm_type`: the ambience.
+    fn slot_ambience(&mut self, slot: i32) -> bool;
+    /// Slot `+0xac` of member `m`, then `BuildData+0x74`: the next, `-1` at
+    /// the end.
+    fn member_next(&mut self, m: i32) -> i32;
+    /// `GraphicEvents::add_ambience@008e3e70(1, x, y, 135.0f, who, o)`,
+    /// `x` and `y` in 1/192 tiles. Art.
+    fn add_ambience(&mut self, x: i32, y: i32);
+    /// One of the 25 `TerrainOut::find_data_z@00866560` samples at
+    /// `(x, y)`; the original stores it at `terrain_height[col][row]`.
+    fn terrain_height(&mut self, row: usize, col: usize, x: i32, y: i32);
+    /// `farms.count`.
+    fn slot_count(&mut self) -> i32;
+    /// Whether record `i` is in use (`valid != 0`).
+    fn slot_valid(&mut self, i: i32) -> bool;
+    /// `farms.capacity`.
+    fn slot_capacity(&mut self) -> i32;
+    /// `ArrayBaseSimpleCopy<FarmStruct>::increase_size@00434e10`.
+    fn grow(&mut self);
+    /// Copies the new record over `slot`; `slot == count` appends and takes
+    /// the count a farm up.
+    fn store(&mut self, slot: i32, farm_type: u8);
+}
+
+/// `Farms::add@008d8a40(who, o)`, from its first call to its return: the
+/// type the new farm gets, the city's one ambience emitter, and the record
+/// slot. `o` is the building's object index; the slot is the return value.
+///
+/// The `farm_type` word is chosen in the order the original tests it. A
+/// nonzero answer — a pasture, or any nearest-farm answer but zero — jumps
+/// to the store and skips the corner, the ambience and the heights; a
+/// crop falls through them. `(rand & 3) > 2` is C's signed remainder: a
+/// negative draw cannot make a pasture, which the game's own `0..=0xffff`
+/// draws never test.
+pub(crate) fn farms_add_steps<H: FarmsAddHost>(host: &mut H, o: i32) -> i32 {
+    let city = host.city();
+    let mut farm_type: u8 = 0;
+    let mut crops = 0;
+    let mut stored = false;
+    if city < 0 {
+        // The odd/even coin on the object's own index, not a draw.
+        if o & 1 != 0 {
+            farm_type = 1;
+            stored = true;
+        }
+    } else {
+        let others = host.count_buildings(city).wrapping_sub(1);
+        crops = host.count_farms(city);
+        if others == crops {
+            // `others == 4` with `crops == 0` is dead (they are equal).
+            if others == 4 {
+                farm_type = 1;
+                stored = true;
+            } else {
+                let near = host.nearest();
+                if near != -1 {
+                    farm_type = near as u8;
+                    stored = near != 0;
+                } else if others == 3 {
+                    farm_type = 1;
+                    stored = true;
+                } else {
+                    let r = host.draw(SITE_TYPE_COIN);
+                    let mut u = r & (i32::MIN | 3);
+                    if u < 0 {
+                        u = (u.wrapping_sub(1) | -4).wrapping_add(1);
+                    }
+                    if u > 2 {
+                        farm_type = 1;
+                        stored = true;
+                    }
+                }
+            }
+        }
+    }
+    if !stored {
+        let (x, y) = host.tile_corner();
+        if crops > 1 {
+            let mut m = host.chain_first(city);
+            let mut taken = false;
+            while m != -1 {
+                if host.member_is_farm(m) {
+                    let slot = host.member_farm_slot(m);
+                    if slot >= 0 && host.slot_ambience(slot) {
+                        taken = true;
+                        break;
+                    }
+                }
+                m = host.member_next(m);
+            }
+            if !taken {
+                let rx = host.draw(SITE_AMBIENCE_X);
+                let ry = host.draw(SITE_AMBIENCE_Y);
+                let ax = x.wrapping_add(1).wrapping_add(rx % 3).wrapping_mul(0xc0);
+                let ay = y.wrapping_add(1).wrapping_add(ry % 3).wrapping_mul(0xc0);
+                host.add_ambience(ax, ay);
+                farm_type |= AMBIENCE;
+            }
+        }
+        for row in 0..5 {
+            for col in 0..5 {
+                host.terrain_height(
+                    row,
+                    col,
+                    x.wrapping_mul(0xc0).wrapping_add(col as i32 * 0xc0),
+                    y.wrapping_mul(0xc0).wrapping_add(row as i32 * 0xc0),
+                );
+            }
+        }
+    }
+    let count = host.slot_count();
+    for i in 0..count {
+        if !host.slot_valid(i) {
+            host.store(i, farm_type);
+            return i;
+        }
+    }
+    if host.slot_capacity() <= count {
+        host.grow();
+    }
+    host.store(count, farm_type);
+    count
+}
+
+/// [`farms_add_steps`]' host in a running [`Sim`]: the building being
+/// placed, its city's chain, and `farm_order` as the record list. The
+/// corner, the ambience emitter and the heights are art and take nothing.
+struct SimFarmsHost<'a> {
+    sim: &'a mut Sim,
+    b: usize,
+    city: Option<usize>,
+    members: Vec<usize>,
+    at: usize,
+}
+
+impl FarmsAddHost for SimFarmsHost<'_> {
+    fn city(&mut self) -> i32 {
+        self.city.map_or(-1, |c| c as i32)
+    }
+
+    fn count_buildings(&mut self, city: i32) -> i32 {
+        self.sim
+            .count_buildings(city as usize, crate::build::Ident::Farm, false)
+    }
+
+    fn count_farms(&mut self, city: i32) -> i32 {
+        self.sim.city_count_farms(city as usize)
+    }
+
+    fn nearest(&mut self) -> i32 {
+        self.sim.nearest_farm_type(self.b).map_or(-1, i32::from)
+    }
+
+    fn draw(&mut self, site: &'static str) -> i32 {
+        self.sim.mark(site);
+        self.sim.rng.roll()
+    }
+
+    fn tile_corner(&mut self) -> (i32, i32) {
+        (0, 0)
+    }
+
+    fn chain_first(&mut self, _city: i32) -> i32 {
+        self.at = 0;
+        if self.members.is_empty() { -1 } else { 0 }
+    }
+
+    // The chain's "member" token is its position in `members`; the cursor
+    // `at` is the walk, so a building listed twice cannot loop it.
+    fn member_is_farm(&mut self, m: i32) -> bool {
+        let b = self.members[m as usize];
+        self.sim.buildings[b].alive && self.sim.building_ident(b) == crate::build::Ident::Farm
+    }
+
+    fn member_farm_slot(&mut self, m: i32) -> i32 {
+        // A farm's record is its own building in this crate.
+        let b = self.members[m as usize];
+        if self.sim.buildings[b].farm.valid {
+            m
+        } else {
+            -1
+        }
+    }
+
+    fn slot_ambience(&mut self, slot: i32) -> bool {
+        self.sim.buildings[self.members[slot as usize]]
+            .farm
+            .farm_type
+            & AMBIENCE
+            != 0
+    }
+
+    fn member_next(&mut self, _m: i32) -> i32 {
+        self.at += 1;
+        if self.at < self.members.len() {
+            self.at as i32
+        } else {
+            -1
+        }
+    }
+
+    fn add_ambience(&mut self, _x: i32, _y: i32) {}
+
+    fn terrain_height(&mut self, _row: usize, _col: usize, _x: i32, _y: i32) {}
+
+    fn slot_count(&mut self) -> i32 {
+        self.sim.farm_order.len() as i32
+    }
+
+    fn slot_valid(&mut self, i: i32) -> bool {
+        self.sim.buildings[self.sim.farm_order[i as usize]].alive
+    }
+
+    fn slot_capacity(&mut self) -> i32 {
+        i32::MAX
+    }
+
+    fn grow(&mut self) {}
+
+    fn store(&mut self, _slot: i32, farm_type: u8) {
+        let bd = &mut self.sim.buildings[self.b];
+        bd.farm.farm_type = farm_type;
+        bd.farm.valid = true;
+    }
+}
+
 impl Farm {
     /// `Farms::grow(farm, dy, dx)@008d91c0`: the farmer's add — the
     /// original takes `dy` then `dx` and writes `[dx][dy]`, so `cell` here
@@ -376,17 +630,9 @@ impl Sim {
         // to demolish farms (the nuke kills the human's three) and then
         // place one: the Persians' 64th building takes the human's first
         // slot and is walked ahead of the farms placed between (item 1639,
-        // `docs/AI.md` §175).
-        if !self.farm_order.contains(&b) {
-            let free = self
-                .farm_order
-                .iter()
-                .position(|&f| !self.buildings[f].alive);
-            match free {
-                Some(i) => self.farm_order[i] = b,
-                None => self.farm_order.push(b),
-            }
-        }
+        // `docs/AI.md` §175). [`farms_add_steps`] finds it; a farm already
+        // in the order (`city.rs`'s activation push) keeps its place.
+        let placed = self.farm_order.contains(&b);
         let (o, city) = {
             let bd = &self.buildings[b];
             (i32::from(bd.index), bd.city)
@@ -395,50 +641,22 @@ impl Sim {
         // the call. Everything below therefore counts the city's **other**
         // farms, never this one.
         debug_assert!(!self.buildings[b].farm.valid, "a farm gets one record");
-        let Some(c) = city else {
-            // `+0x72 < 0`: `Build::init` ran `find_city` and it found none.
-            // The odd/even coin on the object's own index is the original's,
-            // and it is not a draw.
-            self.buildings[b].farm.farm_type = u8::from(o & 1 != 0);
-            self.buildings[b].farm.valid = true;
-            return;
+        let members: Vec<usize> = city.map_or_else(Vec::new, |c| self.city_members(c).collect());
+        let mut host = SimFarmsHost {
+            sim: self,
+            b,
+            city,
+            members,
+            at: 0,
         };
-        let others = self.count_buildings(c, crate::build::Ident::Farm, false) - 1;
-        let crops = self.city_count_farms(c);
-        let farm_type = if others != crops {
-            0
-        } else if others == 4 {
-            ANIMAL_FARM
-        } else if let Some(t) = self.nearest_farm_type(b) {
-            t
-        } else if others == 3 {
-            ANIMAL_FARM
-        } else {
-            self.mark(SITE_TYPE_COIN);
-            u8::from(self.rng.roll() & 3 > 2)
-        };
-        self.buildings[b].farm.farm_type = farm_type;
-        self.buildings[b].farm.valid = true;
-        if farm_type != 0 {
-            return;
+        let slot = farms_add_steps(&mut host, o) as usize;
+        if !placed {
+            if slot < self.farm_order.len() {
+                self.farm_order[slot] = b;
+            } else {
+                self.farm_order.push(b);
+            }
         }
-        // `1 < count_farms`, and no farm of this city holding the bit
-        // already. The walk is the city's building chain and any hit ends
-        // it, so the order it is walked in cannot matter.
-        if crops <= 1 {
-            return;
-        }
-        let taken = self
-            .city_members(c)
-            .any(|m| self.is_farm_record(m) && self.buildings[m].farm.farm_type & AMBIENCE != 0);
-        if taken {
-            return;
-        }
-        self.mark(SITE_AMBIENCE_X);
-        let _x = self.rng.roll() % 3;
-        self.mark(SITE_AMBIENCE_Y);
-        let _y = self.rng.roll() % 3;
-        self.buildings[b].farm.farm_type |= AMBIENCE;
     }
 
     /// A building `count_farms` and the ambience walk both count: alive, a
