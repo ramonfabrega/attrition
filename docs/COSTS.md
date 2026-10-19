@@ -485,7 +485,7 @@ They are worth enumerating by *what* rather than one at a time, because the
 shape carries no information and the predicates do:
 
 - **Nations.** The Mongols on stables, the French on siege and specials, the
-  Japanese on barracks and ships, the Germans on submarines and mines, the
+  Japanese on barracks and ships (and on Farms, built, item 3331; see "The Japanese pay half for a Farm"), the Germans on submarines and mines, the
   Americans on aircraft and upgrades, the British on anti-air, the Nubians on
   merchants, the Russians on spies, the Romans on legions and forts, the Turks
   on citizens, the Koreans on towers, the Iroquois on senates, the Indians on
@@ -1104,6 +1104,19 @@ arms (Mongol stable, Japanese barracks and ships, ~~German submarines~~
 (built, item 2974, `docs/AI.md` §242),
 American aircraft, British anti-air, Nubian merchants, Russian spies,
 Roman legions, Terra Cotta, Angkor ships) are read but not carried.
+
+## The Japanese pay half for a Farm
+
+*Item 3331, 2026-10-19. Read from `TypeData::get_cost@00664090:1003`–`1008`;
+built as `cost::Modifiers::japanese_farms` (set by `city.rs`'s
+`japanese_farm_discount`). `docs/AI.md` §268.*
+
+A leader with `has_tribe_bonus(0xf)` pays **`JAPANESE_FARMS_CHEAPER`** (50)
+off a Farm (`0x1a1`, by equality), `(100 − x) × cost / 100` in every good,
+in the building arm's `else if` beside the German mine and after the Greek
+Library arm. run965's block 570: who=1's timber 78 where full-price farms
+left 52. The farm's food arm that rides with it (`calc_gather:983`, a
+quarter more per farmer) is income, not price: `economy::Site::nation_pct`.
 
 ## The Greeks pay less for learning
 

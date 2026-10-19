@@ -18639,3 +18639,59 @@ SHA-256 `4db74b669443c9a40fc0de2650051e92d59ee59a00eb9a9b564c6bb8aa864d88`.
 **What it holds**: `diff::greek_word::run961d_s_word_frame_is_widened_whole` (257 blocks). Block 19176 parts who=1's
 `pop_cap`, ours 110 against theirs 160 — the Colossus' 50; with the Colossus term **41** keys, the standing set
 alone, and the word moved 19182 → 24000. Its window is in the coverage driver.
+
+## run964 — the battery's replacement lobby: Great Sahara, Koreans at difficulty 3, a `DUMP_ALL` start (2026-10-19, item 3331, `att-3331`)
+
+`docs/AI.md` §268. **What the disk could not answer**: the Japanese left the battery for the AI word, and the held-out
+set stays eight with a lobby no dump holds — a nation (the Koreans, 16) no dump had held, at a tier (3) no battery
+lobby holds. `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 16 --profile DIFFICULTY=3`.
+- Pool lane 2. Launched 06:13:58 and the game exited at 06:20:43 (406 s). `success`, 37 frames, `map_style 7`, seed
+  12345, players `(0, 4, 7), (1, 16, 1)`. Filed with `filerun.py run964 greatsahara-korean-diff3-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run964-greatsahara-korean-diff3-start.txt`, 149,631,597 bytes,
+SHA-256 `da21f0c675ba86e05a9387e3b1cd1bbc5c468e6b53bedfdf89a29aa009ffe5ad`.
+
+Archive `rontrace-run964.log`, 8,967,680 bytes,
+SHA-256 `3c0128deff8f7f8f14c71da58e85e59881d148e7eab12792a37975eceba08fc2`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaKoreanTier3` start.
+
+## run964b — the same lobby, the draw stream to the game's end (2026-10-19, item 3331, `att-3331`)
+
+`docs/AI.md` §268. run960b's recipe with `--ai-tribe 16 --profile DIFFICULTY=3`: `--map 7 --end-frame 24000 --timeout
+7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end` and run643's four
+`--detail` lines.
+- Pool lane 3. Launched 06:14:00 and the game exited at 06:15:34 (94 s). `success`, **the game ended itself on 15944**
+  (closing block 15945, `ended_early` true). `rngcmp.py rontrace-run964.log rontrace-run964b.log`: **37 identical, 0
+  differing**. Filed with `filerun.py run964b greatsahara-korean-diff3-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run964b-greatsahara-korean-diff3-24k-trace.txt`, 12,617,547 bytes,
+SHA-256 `08ee9d72cd10db120f405ee209b75bb6c5044ad625bdf1f28ff46563315aa90f`.
+
+Archive `rontrace-run964b.log`, 80,310,112 bytes,
+SHA-256 `ddeadb5b9b02382592589bb282e7a1f50cbf0de9d2076cb02179ecbaa3a2018a`.
+
+**What it holds**: the Koreans' first try, **9185 / 9185** of 15944 (ours 14 draws, theirs 13, index 1: ours
+`Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`), pinned in `battery::BATTERY`.
+
+## run965 — the AI word: Great Sahara, Japanese at difficulty 1, the word 576's widening (570..826) (2026-10-19, item 3331, `att-3331`)
+
+`docs/AI.md` §268. **What the disk could not answer**: run960 dumps blocks 0..36 and run960b its setup and closing
+blocks only, so no block near 576 was on disk. `--map 7 --end-frame 832 --timeout 2400 --log-window 570 827 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 15 --cover cover=0 --profile DIFFICULTY=1`.
+- Pool lane 3. Launched 06:18:09 and the game exited at 06:30:24 (735 s). `success`, 833 frames.
+  `rngcmp.py rontrace-run960b.log rontrace-run965.log`: **833 identical, 0 differing**. Filed with
+  `filerun.py run965 greatsahara-japanese-diff1-window-570-827-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run965-greatsahara-japanese-diff1-window-570-827-guys4.txt`, 407,674,852 bytes,
+SHA-256 `1acbf16099c4356795bf96f30d2f7391f003757520938980616be8138ff60b75`.
+
+Archive `rontrace-run965.log`, 9,468,416 bytes,
+SHA-256 `fcacb6b422bd07a47a2df5613a8cf8206689c04016422bca9f2b91eb2f64cef3`.
+
+**What it holds**: `diff::japanese_word::run965_s_word_frame_is_widened_whole` (257 blocks). Block 570 parts who=1's
+`bucket[1:timber]` 52 against 78 and `income[0:food]` 800 against 960; with the two Japanese farm arms **34** keys, the
+standing set alone, and the word moved 576 → 24000. Its window is in the coverage driver.

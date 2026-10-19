@@ -126,6 +126,8 @@ says in its doc comment that only the British and Mongol arms are built,
 | Germans | submarines train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_submarine_speed` |
 | Japanese | barracks units train faster (negative in the rules) | `ObjectData::train_time@006508c0` | not modelled | `japanese_barracks_speed` |
 | Japanese | carriers train faster | `ObjectData::train_time@006508c0` | not modelled | `japanese_carrier_speed` |
+| Japanese | a Farm costs 50% less | `TypeData::get_cost@00664090` | modelled at city.rs | `japanese_farms_cheaper` |
+| Japanese | a farmer gathers 25% more food (calc_gather's flat branch) | `BuildTypeData::calc_gather@00639e40` | modelled at holdings.rs | `japanese_fishing_boats` |
 | Lakota | raze speed (train_time's tail) | `ObjectData::train_time@006508c0` | not modelled | `lakota_raze_speed` |
 | Mongols | stable units train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `mongol_stable_speed` |
 | British | ships, archers and anti-air train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `british_ship_speed` |
@@ -293,9 +295,9 @@ left out; a constant with no reader in the export is dead there too.
 | `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | not carried | `japanese_barracks_speed` |
 | `JAPANESE_SHIP_COST` | 10 | TypeData::get_cost | not carried | `japanese_ship_cost` |
 | `JAPANESE_AIRCRAFT_CARRIERS_SPEED` | 33 | no reader in the export | not carried | `japanese_aircraft_carriers_speed` |
-| `JAPANESE_FISHING_BOATS` | 25 | BuildTypeData::calc_gather, LeaderData::calc_rare | not carried | `japanese_fishing_boats` |
+| `JAPANESE_FISHING_BOATS` | 25 | BuildTypeData::calc_gather, LeaderData::calc_rare | modelled at holdings.rs | `japanese_fishing_boats` |
 | `JAPANESE_CARRIER_SPEED` | 33 | ObjectData::train_time | not carried | `japanese_carrier_speed` |
-| `JAPANESE_FARMS_CHEAPER` | 50 | TypeData::get_cost | not carried | `japanese_farms_cheaper` |
+| `JAPANESE_FARMS_CHEAPER` | 50 | TypeData::get_cost | modelled at cost.rs | `japanese_farms_cheaper` |
 | `KOREAN_START_CITIZEN` | 3 | no reader in the export | not carried | `korean_start_citizen` |
 | `KOREAN_FREE_CITIZEN` | 5 | no reader in the export | not carried | `korean_free_citizen` |
 | `KOREAN_CITIZENS` | [1, ...] | Build::activate, Setup::build_units | modelled at nations.rs | `korean_citizens` |
@@ -459,7 +461,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Leader::lost_a_city@006dc6d0` | 23 | carried at city.rs | `fn lost_a_city` |
 | `LeaderData::get_caravan_limit@006dca50` | 4 | carried at ai_units.rs | `006dca50` |
 | `Leader::gain_tech@006dcb60` | 5 6 7 8 9 10 11 12 13 14 16 17 18 19 20 21 23 | carried at lib.rs | `006dcb60` |
-| `LeaderData::get_general_upgrade@006e0830` | 4 | carried at rares.rs | `006e0830` |
+| `LeaderData::get_general_upgrade@006e0830` | 4 | carried at cast_decoy.rs | `006e0830` |
 | `LeaderData::get_supply_upgrade@006e0880` | 4 | not modelled | `006e0880` |
 | `LeaderData::calc_rare@006e08d0` | 4 15 | carried at economy.rs | `006e08d0` |
 | `LeaderData::has_bonus@006e0b80` | 4 | not modelled | `006e0b80` |

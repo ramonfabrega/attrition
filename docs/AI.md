@@ -23577,12 +23577,54 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 268. Reserved for the next item on the AI track
+## 268. The Japanese: a Farm at half price, a farmer's food at five quarters, and the long's end (2026-10-19, item 3331)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery's Great Sahara Japanese word. `GreatSaharaJapaneseTier1` (map 7, the Japanese (15) at
+Difficulty 1; runs 960, 960b) was the held-out battery's lowest lobby once 3326 closed the Greeks, at **576 / 576** on
+its first try (§266). It is promoted here (`diff::japanese_word`, `SCORED_LOBBIES` `(7, 15, 1)`). The battery is
+eight lobbies again with **`GreatSaharaKoreanTier3`** (map 7, the Koreans (16) at Difficulty 3; runs 964, 964b),
+whose first try is **9185 / 9185** of 15944 (the game ends itself): ours 14 draws, theirs 13, at index 1, ours
+`Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`. No dump had held the Koreans (nor the Maya, the Inca or
+the Bantu), and no battery lobby held tier 3.
+
+**The frame.** On 576 ours draws 56 and theirs 35: ours' who=1 runs `Leader::compute_sites` five times, each with two
+or three `make_stuff` draws, theirs once; ours also births (`Guy::init_real`) where theirs does not. Ours held City
+State from 382 (`RON_DEBUG_TECH`) with food 55, timber 53 — a mechanism the window was to name, not this note.
+
+**The widening** (run965, 570..826, block 577; `run965_s_word_frame_is_widened_whole`): already apart on block 570,
+past the standing set, who=1's `bucket[1:timber]` ours 52 against theirs 78, `bucket[0:food]` 54 against 64, and
+`income[0:food]` (with `resources`) 800 against 960, `leftover[0:food]` 5552 against 1960.
+
+**1. The Japanese Farm cost arm (timber).** `TypeData::get_cost@00664090:1003`–`1008`: in the building arm's
+`else if` chain beside the German mine, a Farm (`0x1a1`) by equality for a leader with `has_tribe_bonus(0xf)` is
+`(100 − JAPANESE_FARMS_CHEAPER) × cost / 100`, shipped `50% cheaper`. Built: `cost::Modifiers::japanese_farms`,
+applied after the Greek Library arm; `city.rs::japanese_farm_discount`; `Tuning::japanese_farms_cheaper`. **Value
+diff**: run965's timber closed; the window parted the food rows alone.
+
+**2. The Japanese farm food arm (food; 576 → 24000).** `BuildTypeData::calc_gather@00639e40:978`–`985`: in the flat
+branch (`max_flat_gatherers` — farms, oil wells, oil platforms), food's per-gatherer rate, after the enhancer ratio
+and before the multiply by the gatherers, is `(JAPANESE_FISHING_BOATS + 100) × rate / 100` for a Japanese leader,
+shipped `25% increase` — a farmer's 160 sixteenths become 200. Built: `economy::Site::nation_pct`, set by
+`holdings.rs::site_of` for a Farm's food, applied in `economy::city_rates`; `Tuning::japanese_fishing_boats`.
+**Value diff**: run965's widening went to **34** keys, the standing set alone (both leaders' `SITE[n].reg` and
+`aggression`, every unit's `form`, who=1's groups' `held` and the pool). **The word moves 576 → 24000, the long's last
+frame.**
+
+**3. The closing state.** The game does not end itself; the long's `!quit` closes it on 24000, and run960b prints the
+closing block 24001 whole. Walked to it and compared (`run960b_japanese_closing_state`): **61 units, none apart**
+(the human's `0/4` is the dump's own tear), no building or city field-row, and no closing field parted. The lobby is
+closed at its full length.
+
+Each arm has a test (`cost::tests::the_japanese_pay_half_for_a_farm`,
+`holdings::tests::a_japanese_farmer_gathers_a_quarter_more_food`) and `tools/mutate.py` mutations that held: each
+arm's constant zeroed at its setter against `japanese_word_first_parting` (576 against 24000, exit 101), and each
+application line deleted against its own test (exit 101). Every other lobby's `first_parting` (11),
+`battery_floors_hold`, `closing_state` (15) and `sahara_coverage` (15) held.
+
+**Not established.** `calc_rare@006e08d0:65`'s Japanese term (`JAPANESE_FISHING_BOATS` on fishermen at a rare) and
+`get_cost`'s barracks and ship arms (`JAPANESE_BARRACKS_COST`, `JAPANESE_SHIP_COST`) and `train_time`'s
+(`JAPANESE_BARRACKS_SPEED`, `JAPANESE_CARRIER_SPEED`) are not carried; this lobby at Difficulty 1 never reaches them
+in a way the draw stream can see (parked 3331a).
 
 ## 269. Reserved for the next item on the AI track
 
