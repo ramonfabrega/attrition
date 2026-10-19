@@ -351,15 +351,15 @@ mod tests {
     use crate::orders::{Body, index};
     use crate::world::{Cell, Good, Terrain, World};
 
-    /// A 40 × 40 land world with a human (0) and a computer (1), and the
-    /// computer's Merchant — `TypeIndex` `0x3d`, packing — standing at
-    /// cell `(20, 20)`. Two regions: the west half is one, the east half
-    /// (the merchant's) another, which is what the `+100` needs.
     thread_local! {
         /// `find_merchant_spot`'s calls on this test's thread.
         pub(super) static SPOT_SEARCHES: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
     }
 
+    /// A 40 × 40 land world with a human (0) and a computer (1), and the
+    /// computer's Merchant — `TypeIndex` `0x3d`, packing — standing at
+    /// cell `(20, 20)`. Two regions: the west half is one, the east half
+    /// (the merchant's) another, which is what the `+100` needs.
     fn merchant_sim() -> (Sim, usize) {
         let mut world = World::new(40, 40);
         world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(19, 39));
