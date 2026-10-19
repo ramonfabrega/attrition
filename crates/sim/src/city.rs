@@ -3337,7 +3337,16 @@ impl Sim {
         {
             v = (self.tuning.aztec_plunder + 100) * v / 100;
         }
-        let hero = if killer != owner && self.nation[killer as usize].plunder_hero {
+        // `Build::plunder@00623660:136`..`:161`: `find_hero` for THEDESPOT
+        // (`0x160`), then SPITAMENES (`0x16d`), around the building's
+        // position with its footprint, `(y_size / 2 + x_size) × 0xc0`, as
+        // the slack (`docs/AI.md` §261).
+        let slack = (bt.y_size / 2 + bt.x_size) * 0xc0;
+        let at = self.buildings[b].pos;
+        let hero = if killer != owner
+            && (self.hero_near(killer, 0x160, at, slack)
+                || self.hero_near(killer, 0x16d, at, slack))
+        {
             self.tuning.thedespot_plunder * v / 100
         } else {
             0

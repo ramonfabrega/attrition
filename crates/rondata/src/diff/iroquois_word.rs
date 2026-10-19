@@ -1135,6 +1135,51 @@ fn run952_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 786, "initial run952 baseline");
 }
 
+/// run952b: the walk-back behind run952's first block, blocks
+/// 10940..11579 at run952's detail (item 3297) — run943 ends on 10945 and
+/// run952 opens on 11579 already parted (who=1's food 78 against 98).
+pub(crate) const RUN952B: &str =
+    "gamelog-run952b-greatlakes-iroquois-diff3-window-10940-11580-guys4.txt";
+
+/// The window: block 10940 through 11579.
+pub(crate) const WIDENING_IROQUOIS_GAP_952B: (i64, i64) = (10940, 11579);
+
+pub(crate) fn iroquois_gap_952b_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run952b",
+        &[(RUN952B, WIDENING_IROQUOIS_GAP_952B.0)],
+        WIDENING_IROQUOIS_GAP_952B,
+        1,
+        &[11579],
+        true,
+    )
+}
+
+#[test]
+fn run952b_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_gap_952b_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 640, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "initial run952b baseline");
+}
+
 /// **The Despot's Ambush holds its craft** (item 3297, `docs/AI.md`
 /// §261): `SpellType::cast_ambush@00671610` sets `unit_masks |= 0x2800`,
 /// and `Unit::process`'s caster arm takes no craft back while `0x2000`
