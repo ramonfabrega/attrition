@@ -1947,68 +1947,86 @@ impl Sim {
     /// this cell, four wide, are free of placed buildings and footprints,
     /// and whose first tile is neither mountain nor forest.
     pub fn is_dock_tile(&self, c: Cell) -> bool {
-        if !self.world.contains(c) {
-            return false;
-        }
-        let d = self.world.cell_data(c);
-        if d.flags & 0x100 != 0 || !(d.land == 1 || d.land == 2) {
-            return false;
-        }
-        let tw = self.world.width() * TILES_PER_CELL;
-        let th = self.world.height() * TILES_PER_CELL;
-        let (tx0, ty0) = (c.x * TILES_PER_CELL, c.y * TILES_PER_CELL);
-        for (ox, oy) in ORTHOG {
-            // A positive step lands on the next cell's first tile row, a
-            // negative one on the previous cell's last: one tile outside
-            // this cell's edge either way.
-            let sx = if ox > 0 { ox * TILES_PER_CELL } else { ox };
-            let sy = if oy > 0 { oy * TILES_PER_CELL } else { oy };
-            let (mut tx, mut ty) = (tx0 + sx, ty0 + sy);
-            if tx < 0 || ty < 0 || tx >= tw || ty >= th {
-                continue;
-            }
-            let there = self
-                .world
-                .cell_data(Cell::new(tx / TILES_PER_CELL, ty / TILES_PER_CELL));
-            if there.flags & 0x100 == 0 && (there.land == 1 || there.land == 2) {
-                // Open water that way: not a shore.
-                continue;
-            }
-            let m = self.world.tile_mask(Pos::new(tx, ty));
-            if m & tile::OBJECT == tile::OBJECT_MOUNTAIN
-                || m & tile::SURFACE == tile::SURFACE_FOREST
-            {
-                continue;
-            }
-            let blocked =
-                |m: u16| m & tile::PLACED != 0 || m & tile::OBJECT == tile::OBJECT_BUILDING;
-            let mut ok = true;
-            'strip: for pass in 0..2 {
-                if pass != 0 {
-                    if sx == 0 {
-                        ty += sy.signum();
-                    } else {
-                        tx += sx.signum();
-                    }
-                }
-                for i in 0..TILES_PER_CELL {
-                    let t = if sx == 0 {
-                        Pos::new(tx0 + i, ty)
-                    } else {
-                        Pos::new(tx, ty0 + i)
-                    };
-                    if blocked(self.world.tile_mask(t)) {
-                        ok = false;
-                        break 'strip;
-                    }
-                }
-            }
-            if ok {
-                return true;
-            }
-        }
-        false
+        dock_tile_in(
+            self.world.width(),
+            self.world.height(),
+            |c| {
+                let d = self.world.cell_data(c);
+                (d.flags, d.land)
+            },
+            |t| self.world.tile_mask(t),
+            c,
+        )
     }
+}
+
+/// [`Sim::is_dock_tile`] over plain data (item 3261's sweep drives it):
+/// the world's size in cells, a cell's `(flags, land)` and a tile's mask.
+pub(crate) fn dock_tile_in(
+    width: i32,
+    height: i32,
+    cell: impl Fn(Cell) -> (u16, i8),
+    mask: impl Fn(Pos) -> u16,
+    c: Cell,
+) -> bool {
+    if c.x < 0 || c.y < 0 || c.x >= width || c.y >= height {
+        return false;
+    }
+    let water = |c: Cell| {
+        let (flags, land) = cell(c);
+        flags & 0x100 == 0 && (land == 1 || land == 2)
+    };
+    if !water(c) {
+        return false;
+    }
+    let tw = width * TILES_PER_CELL;
+    let th = height * TILES_PER_CELL;
+    let (tx0, ty0) = (c.x * TILES_PER_CELL, c.y * TILES_PER_CELL);
+    for (ox, oy) in ORTHOG {
+        // A positive step lands on the next cell's first tile row, a
+        // negative one on the previous cell's last: one tile outside
+        // this cell's edge either way.
+        let sx = if ox > 0 { ox * TILES_PER_CELL } else { ox };
+        let sy = if oy > 0 { oy * TILES_PER_CELL } else { oy };
+        let (mut tx, mut ty) = (tx0 + sx, ty0 + sy);
+        if tx < 0 || ty < 0 || tx >= tw || ty >= th {
+            continue;
+        }
+        if water(Cell::new(tx / TILES_PER_CELL, ty / TILES_PER_CELL)) {
+            // Open water that way: not a shore.
+            continue;
+        }
+        let m = mask(Pos::new(tx, ty));
+        if m & tile::OBJECT == tile::OBJECT_MOUNTAIN || m & tile::SURFACE == tile::SURFACE_FOREST {
+            continue;
+        }
+        let blocked = |m: u16| m & tile::PLACED != 0 || m & tile::OBJECT == tile::OBJECT_BUILDING;
+        let mut ok = true;
+        'strip: for pass in 0..2 {
+            if pass != 0 {
+                if sx == 0 {
+                    ty += sy.signum();
+                } else {
+                    tx += sx.signum();
+                }
+            }
+            for i in 0..TILES_PER_CELL {
+                let t = if sx == 0 {
+                    Pos::new(tx0 + i, ty)
+                } else {
+                    Pos::new(tx, ty0 + i)
+                };
+                if blocked(mask(t)) {
+                    ok = false;
+                    break 'strip;
+                }
+            }
+        }
+        if ok {
+            return true;
+        }
+    }
+    false
 }
 
 /// `ObjectData::is_cargo`'s test on the type of a unit on the map, with
