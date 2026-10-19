@@ -287,6 +287,8 @@ impl Sim {
     /// merchant `1/38` on 2205, the original's `(−1, −1)` against our
     /// `(0, 0)`).
     fn find_merchant_spot(&mut self, u: usize, ring: usize) -> Option<Pos> {
+        #[cfg(test)]
+        tests::SPOT_SEARCHES.with(|n| n.set(n.get() + 1));
         // Null out-pointers (`00603ab0:20`): the gate writes neither
         // `rare` nor `good_obj` (item 3306).
         if !self.calc_gather_at(u, self.units[u].pos, false) {
@@ -353,6 +355,11 @@ mod tests {
     /// computer's Merchant — `TypeIndex` `0x3d`, packing — standing at
     /// cell `(20, 20)`. Two regions: the west half is one, the east half
     /// (the merchant's) another, which is what the `+100` needs.
+    thread_local! {
+        /// `find_merchant_spot`'s calls on this test's thread.
+        pub(super) static SPOT_SEARCHES: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+    }
+
     fn merchant_sim() -> (Sim, usize) {
         let mut world = World::new(40, 40);
         world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(19, 39));
@@ -855,18 +862,21 @@ mod tests {
     /// §4's cadence, through `Unit::do_idle` — the first idle frame and
     /// then one frame in 128, phased by `o`.
     ///
-    /// The probe is `UnitData::calc_gather`'s own first write:
-    /// `unpack_merchant`'s spot search clears `rare` to `−1` on every
-    /// call, and nothing else in an idle merchant's frame touches it.
+    /// The probe is a count of `find_merchant_spot`'s calls: the spot
+    /// search hands `calc_gather` null out-pointers, so it leaves nothing
+    /// on the unit to read (item 3306; the probe was `rare`'s `−1` until
+    /// then, a write the original does not make).
     #[test]
     fn a_merchant_thinks_on_its_first_idle_frame_and_then_once_in_128() {
         let (mut s, u) = merchant_sim();
         let o = i64::from(s.units[u].index);
         let mut thought = Vec::new();
         for frame in 0..400 {
+            let before = SPOT_SEARCHES.with(std::cell::Cell::get);
             s.units[u].rare = 7;
             s.do_idle(u, frame);
-            if s.units[u].rare == -1 {
+            assert_eq!(s.units[u].rare, 7, "the spot search writes no `rare`");
+            if SPOT_SEARCHES.with(std::cell::Cell::get) != before {
                 thought.push(frame);
             }
         }
