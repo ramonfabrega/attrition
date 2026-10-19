@@ -5204,6 +5204,10 @@ impl Sim {
         let mut target = p.target.filter(|&t| self.struck(t));
         if !self.hit_target(&p) {
             target = self.check_hit(&p);
+            if std::env::var_os("RON_PROBE_DMG").is_some() && p.target == Some(Obj::Building(0)) {
+                let b = &self.buildings[0];
+                eprintln!("PROBE_MISS f{frame} {:?} landing {:?} bld at {:?} sizes {} {} check_hit {:?}", p.shooter, p.landing, b.pos, self.profile(Obj::Building(0)).x_size, self.profile(Obj::Building(0)).y_size, target);
+            }
         }
         if p.splash_area == 0 {
             let Some(t) = target else {
