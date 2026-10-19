@@ -448,6 +448,8 @@ mod city_data_ready_to_upgrade;
 mod city_data_smelter_level;
 #[path = "city_data_upgrades_to.rs"]
 mod city_data_upgrades_to;
+#[path = "city_find_buildings.rs"]
+mod city_find_buildings;
 #[path = "city_get_trade_routes.rs"]
 mod city_get_trade_routes;
 #[path = "city_set_name.rs"]
