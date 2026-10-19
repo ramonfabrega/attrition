@@ -404,6 +404,16 @@ impl Sim {
     /// Takes `&mut self` for one reason: the wonder branch draws.
     #[allow(clippy::too_many_lines)]
     fn building_value(&mut self, who: Player, f: &Facts, rec: usize, pass: u32) -> Option<Listing> {
+        let r = self.building_value_probe(who, f, rec, pass);
+        if std::env::var("RON_PROBE_FARM").is_ok() && (15978..=15982).contains(&self.frame) && matches!(self.build_types[rec].ident, Ident::Farm | Ident::Woodcutter) {
+            let have = self.city_count_exact(f.c, rec, false);
+            eprintln!("FARM {} who={} c={} {:?} have={} limit={} level={} fit={:?} open={} free={} pd={} -> {:?}", self.frame, who, f.c, self.build_types[rec].ident, have, self.farm_limit(f.c), f.level, f.space, f.open, f.free, f.peasant_dist, r.as_ref().map(|l| format!("{l:?}")));
+        }
+        r
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn building_value_probe(&mut self, who: Player, f: &Facts, rec: usize, pass: u32) -> Option<Listing> {
         let w = who as usize;
         let bt = self.build_types[rec].clone();
         let ident = bt.ident;
