@@ -16,6 +16,7 @@ pub(crate) use support::{emu_rows, row, tail_row};
 
 mod build_type_get_good;
 mod city_get_empty_trade_routes;
+mod farms_add;
 mod farms_add_animals;
 mod group_target_opportunity;
 mod object_has_range;
