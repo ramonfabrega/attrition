@@ -50,9 +50,15 @@ pub(crate) const EGYPTIAN: Lobby = Lobby {
     // field (`LeaderData +0x8a4`) that the Farm finishing on 15976 never
     // reached. With the one field, the word moved 15982 → 20031: ours 12
     // draws, theirs 15, at 4 ours `Animal::do_idle+0x83`, theirs
-    // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`.
-    count: 20031,
-    sequence: 20031,
+    // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`. Item 3336 walked
+    // it back on run967g to who=1's Fusilier `1/162` on tick 20029: theirs
+    // sets `collide_frame` to 20029 and drops the move, ours counts
+    // `collide` 4 → 5 — `do_move`'s `ATTACK` retarget, a non-mandatory
+    // attack's `find_new_target(NULL, 1)` four frames after the collision
+    // (`005f7b30`). The word moved 20031 → 20186: ours 11 draws, theirs 12,
+    // at 1 ours `Unit::do_move+0xe84`, theirs `Unit::fight+0x9b0`.
+    count: 20186,
+    sequence: 20186,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`

@@ -5348,11 +5348,33 @@ impl Sim {
         // after the collision that suspended the search, and the `repaths`
         // tick on every fourth `o + frame`.
         //
-        // SEAM: the `ATTACK` retarget (`find_new_target` every 4 frames)
-        // is the arm above this one and is dormant; no capture has reached
-        // it.
+        // **The `ATTACK` retarget** (`005f7b30`, the action's `get_type ==
+        // 10` arm; item 3336, `docs/AI.md` §272): a unit whose action is an
+        // attack that is not `mandatory` (the action's vslot `+0xcc`, byte
+        // `+0x1c`, as `find_melee_target` reads it) gives the walk up every
+        // fourth frame after the collision, while its player's `repaths` is
+        // non-zero: `find_new_target(this, NULL, 1)` — the move dies and a
+        // target is sought standing ground — and `collide_frame` takes the
+        // frame, so `collide` is not counted. Great Sahara's Egyptian
+        // Fusilier `1/162` on tick 20029 (run967g), four frames after it met
+        // `1/119`.
         if self.units[u].search.is_some() {
             let elapsed = frame - self.units[u].collide_frame;
+            let attacking = self
+                .action_of(u)
+                .is_some_and(|i| self.units[u].orders[i].index() == index::ATTACK);
+            if attacking {
+                let who = self.units[u].owner as usize;
+                if elapsed > 0
+                    && elapsed % 4 == 0
+                    && self.repaths[who] != 0
+                    && !self.units[u].combat.mandatory
+                {
+                    self.find_new_target(u, true);
+                    self.units[u].collide_frame = frame;
+                    return Did::Nothing;
+                }
+            }
             // **The `GATHER` park** (`docs/COLLISION.md` §15, item 698):
             // a gatherer whose search is suspended, on the frame
             // `(elapsed + 2) & 7 == 0`, within `vector_dist < 0x120` of the
