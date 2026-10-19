@@ -43,8 +43,13 @@ pub(crate) const BANTU: Lobby = Lobby {
     // 4376 → 15582, ours 15 draws, theirs 14, at 4 ours
     // `Leader::make_stuff+0x63d`, theirs `Guy::set_anim+0x97a <
     // Unit::do_non_flat_gather+0xb99`.
-    count: 15582,
-    sequence: 15582,
+    // Item 3343, `get_cost`'s rares' tail (Sugar on food — who=1's
+    // Enlightenment Age 382 food where 425 left it unaffordable on 15578, so
+    // `check_income`'s 0x40 quartered the offer): 15582 → 23627, the
+    // game's end — the closing state is scored
+    // (`run972b_bantu_closing_state`).
+    count: 23627,
+    sequence: 23627,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -359,4 +364,108 @@ fn run978e_s_word_frame_is_widened_whole() {
     // on 4467 (ours 0x55555555, theirs 0) and who=1's `SITE[1].reg` on
     // 4576.
     pin_eq!(w.firsts.len(), 30, "run978e");
+}
+
+/// run978f: the word 15582's window, blocks 15576..15832 at `GUYS=2` (item
+/// 3343).
+pub(crate) const RUN978F: &str = "gamelog-run978f-greatsahara-bantu-diff4-window-15576-15832.txt";
+
+/// The window: block 15576 through 15832; the word 15582's own block is
+/// 15583.
+pub(crate) const WIDENING_BANTU_FRAME_15582: (i64, i64) = (15576, 15832);
+
+pub(crate) fn bantu_frame_15582_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU.start],
+        true,
+        BANTU.long,
+        "run978f",
+        &[(RUN978F, WIDENING_BANTU_FRAME_15582.0)],
+        WIDENING_BANTU_FRAME_15582,
+        1,
+        &[15583],
+        true,
+    )
+}
+
+#[test]
+fn run978f_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_frame_15582_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3343. The word 15582's window: **776** keys, already apart on
+    // 15576 (`MAKE[2].num`, `MAKE[5].num`) and on 15579 who=1's Enlightenment
+    // Age offered at 9999999 in theirs against 3564000 — `check_income`
+    // 0x100 against 0x40, the age 382 food (Sugar's ten percent, `get_cost`'s
+    // rares' tail) where ours priced it 425 against a purse of 388; on
+    // 15583 theirs bought it. With the tail the word left for the game's end
+    // (15582 → 23627) and **41** stand: the standing set, the `g.angle[0]`
+    // family (ours 0x55555555, theirs 0) and two `dest_angle`s on 15624 and
+    // 15653.
+    pin_eq!(w.firsts.len(), 41, "run978f with the rares' tail");
+}
+
+/// The closing state's window: run972b's closing block alone, the long's
+/// last frame 23627 writing it (item 3343).
+pub(crate) const WIDENING_BANTU_CLOSING: (i64, i64) = (23626, 23629);
+
+/// **The lobby's closing state** (item 3343, DECISIONS 55): run972b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+#[test]
+fn run972b_bantu_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(BANTU.long.0), dump(BANTU.start), trace(BANTU.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Bantu closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 23628, "the closing block");
+    pin_eq!(e.compared, 250, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }

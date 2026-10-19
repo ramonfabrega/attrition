@@ -1774,7 +1774,7 @@ fn run763_s_closing_frame_is_widened_whole() {
     // Item 2384: 190 -> 191, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 190 → 186 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 170, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 168, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1803,7 +1803,7 @@ fn run762_s_word_frame_is_widened_whole() {
     // Item 2384: 196 -> 197, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 196 → 192 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 176, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 174, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]

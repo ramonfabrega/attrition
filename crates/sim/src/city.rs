@@ -1144,6 +1144,7 @@ impl Sim {
                 .map_or(n, |t| cost::building_family_count(t, n))
         };
         let holdings = &self.holdings[who as usize];
+        let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         cost::charges(
             &self.tuning,
             &self.build_types[ty].price,
@@ -1172,6 +1173,8 @@ impl Sim {
                 } else {
                     self.indian_ramp(who, ty)
                 },
+                rare_goods,
+                gypsum,
                 ..cost::Modifiers::default()
             },
             &holdings.available,

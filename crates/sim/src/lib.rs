@@ -2312,6 +2312,7 @@ impl Sim {
         let despotism = self.despotism_unit_discount(who, ty);
         let salt = self.salt_barracks_discount(who, ty);
         let indian_elephant = self.indian_elephant_discount(who, ty);
+        let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
@@ -2325,6 +2326,8 @@ impl Sim {
                 liberty,
                 uranium,
                 citizens,
+                rare_goods,
+                gypsum,
                 ..cost::Modifiers::default()
             },
             None => cost::Modifiers {
@@ -2343,6 +2346,8 @@ impl Sim {
                 liberty,
                 uranium,
                 citizens,
+                rare_goods,
+                gypsum,
                 ..cost::Modifiers::default()
             },
         };
@@ -3222,6 +3227,7 @@ impl Sim {
     /// expression at the same place (`docs/AI.md` §74).
     pub fn tech_price(&self, who: Player, t: tech::TypeId) -> [i32; economy::RESOURCES] {
         let holdings = &self.holdings[who as usize];
+        let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         let british_taxation = self.tech_tree.roles.taxation_line.contains(&t)
             && self
                 .tech_tree
@@ -3247,6 +3253,8 @@ impl Sim {
                 },
                 line_discounts: self.line_discounts(who, t),
                 silver: self.silver_age_discount(who, t),
+                rare_goods,
+                gypsum,
                 ..cost::Modifiers::default()
             },
             &holdings.available,
@@ -3353,6 +3361,19 @@ impl Sim {
     /// `rare` or `rare_conquest` carries bit 12, `SILVER`, takes
     /// `SILVER_AGE_COST` off — `docs/COSTS.md`, "The discounts". Anything
     /// that is not an age takes nothing.
+    /// `get_cost`'s rares' tail ([`cost::Modifiers::rare_goods`]): every
+    /// price — unit, building and technology — reaches it.
+    pub(crate) fn rare_goods_discounts(&self, who: Player) -> ([i32; economy::RESOURCES], i32) {
+        let pct = |rare, x| if self.has_rare(who, rare) { x } else { 0 };
+        let t = &self.tuning;
+        let mut by = [0; economy::RESOURCES];
+        by[economy::Resource::Timber.index()] = pct(economy::COAL, t.coal_timber_cost);
+        by[economy::Resource::Food.index()] = pct(economy::SUGAR, t.sugar_food_cost);
+        by[economy::Resource::Wealth.index()] = pct(economy::GOLD, t.gold_wealth_cost);
+        by[economy::Resource::Metal.index()] = pct(economy::IRON, t.iron_metal_cost);
+        (by, pct(economy::GYPSUM, t.gypsum_cost))
+    }
+
     fn silver_age_discount(&self, who: Player, t: tech::TypeId) -> i32 {
         if matches!(self.tech_tree.kind(t), tech::Kind::Age(_))
             && self.has_rare(who, economy::SILVER)

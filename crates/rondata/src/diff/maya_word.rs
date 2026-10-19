@@ -268,7 +268,7 @@ fn run973c_s_gap_is_widened_whole() {
     // nothing apart on the army's targets — so the parting run973b's
     // first block holds is the army 1 target choice on 10490, between this
     // gap's last block (10478) and run973b's first.
-    pin_eq!(w.firsts.len(), 48, "run973c, quiet to its last block");
+    pin_eq!(w.firsts.len(), 47, "run973c, quiet to its last block");
 }
 
 /// run973d: the word 12197's window, blocks 12191..12447 at `GUYS=2`

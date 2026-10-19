@@ -423,6 +423,19 @@ pub struct Tuning {
     /// `(100 − x) × cost / 100`, after Versailles and before the
     /// library-line tail (`docs/COSTS.md`, "The discounts").
     pub silver_age_cost: i32,
+    /// `SUGAR_FOOD_COST`, `COAL_TIMBER_COST`, `GOLD_WEALTH_COST`,
+    /// `IRON_METAL_COST` and `GYPSUM_COST` — `get_cost`'s shared tail
+    /// (Sugar `+0x928`, Gold `+0x974`, Iron `+0x988`, Gypsum `+0x96c`;
+    /// [`crate::economy::SUGAR`]).
+    pub sugar_food_cost: i32,
+    /// See [`Tuning::sugar_food_cost`].
+    pub coal_timber_cost: i32,
+    /// See [`Tuning::sugar_food_cost`].
+    pub gold_wealth_cost: i32,
+    /// See [`Tuning::sugar_food_cost`].
+    pub iron_metal_cost: i32,
+    /// See [`Tuning::sugar_food_cost`].
+    pub gypsum_cost: i32,
     /// The same, for the Egyptians on food.
     pub egyptian_food_commerce: i32,
     /// The same, for the French on timber.
@@ -1313,6 +1326,11 @@ impl Tuning {
         chinese_science_discount: 20,
         americans_science_discount: 0,
         silver_age_cost: 15,
+        sugar_food_cost: 10,
+        coal_timber_cost: 25,
+        gold_wealth_cost: 10,
+        iron_metal_cost: 10,
+        gypsum_cost: 10,
         egyptian_food_commerce: 10,
         french_timber_commerce: 10,
         french_siege_move: 20,
@@ -1800,6 +1818,11 @@ impl Tuning {
                 Slot::Value(T.americans_science_discount),
             ),
             ("SILVER_AGE_COST", Slot::Value(T.silver_age_cost)),
+            ("SUGAR_FOOD_COST", Slot::Value(T.sugar_food_cost)),
+            ("COAL_TIMBER_COST", Slot::Value(T.coal_timber_cost)),
+            ("GOLD_WEALTH_COST", Slot::Value(T.gold_wealth_cost)),
+            ("IRON_METAL_COST", Slot::Value(T.iron_metal_cost)),
+            ("GYPSUM_COST", Slot::Value(T.gypsum_cost)),
             (
                 "EGYPTIAN_FOOD_COMMERCE",
                 Slot::Value(T.egyptian_food_commerce),

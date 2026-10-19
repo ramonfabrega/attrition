@@ -162,7 +162,7 @@ left out; a constant with no reader in the export is dead there too.
 | `BANTU_POP_CAP` | 100 | Leader::calc_pop_cap | modelled at cost.rs | `bantu_pop_cap` |
 | `BANTU_FINAL_POP_CAP` | 25 | Leader::calc_pop_cap | modelled at cost.rs | `bantu_final_pop_cap` |
 | `BANTU_UNIT_UPGRADES` | 1 | no reader in the export | not carried | `bantu_unit_upgrades` |
-| `BANTU_UNITS_MOVE` | 25 | Unit::update_speed | not carried | `bantu_units_move` |
+| `BANTU_UNITS_MOVE` | 25 | Unit::update_speed | modelled at rares.rs | `bantu_units_move` |
 | `BANTU_CITY_COST` | 75 | TypeData::get_cost | modelled at city.rs | `bantu_city_cost` |
 | `NUBIAN_RARE` | 50 | LeaderData::calc_rare | modelled at economy.rs | `nubian_rare` |
 | `NUBIAN_CARAVAN_LIMIT` | 1 | LeaderData::get_caravan_limit | modelled at ai_units.rs | `nubian_caravan_limit` |

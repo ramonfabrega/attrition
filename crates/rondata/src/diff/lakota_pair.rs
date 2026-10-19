@@ -556,7 +556,7 @@ fn run866_s_word_frame_is_widened_whole() {
     // 4440) against (10008, 4440)) agrees — `calc_cost` reads the same
     // fog, and a Space Program sees every cell.
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 147, "initial run866 baseline");
+    pin_eq!(w.firsts.len(), 137, "initial run866 baseline");
     // Item 3333: who=1's `bucket` metal 5716/5231, standing from 5129, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row, ours above theirs till now, parts on 5183 with ours below
@@ -642,7 +642,7 @@ fn run867_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 167, "initial run867 baseline");
+    pin_eq!(w.firsts.len(), 161, "initial run867 baseline");
     // Item 3333: who=1's `bucket` metal 5815/5330, standing from 5401, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -761,7 +761,7 @@ fn run879_s_word_frame_is_widened_whole() {
     // freighter's idle draws shifted after it; `1/225` keeps only its
     // standing `form`. Left: the standing keys from 5976, and from 6045
     // `1/164`'s `attrition` (ours 6, theirs 0) and then its `hits`.
-    pin_eq!(w.firsts.len(), 175, "initial run879 baseline");
+    pin_eq!(w.firsts.len(), 174, "initial run879 baseline");
     // Item 3333: who=1's `bucket` metal 4998/4453, standing from 5976, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -816,7 +816,7 @@ fn run881_s_word_frame_is_widened_whole() {
     // 6446, the `attrition`/`sheltered` rows from 6453 (`1/44` ours 6,
     // theirs 0, as run879's `1/164` on 6045), the `form` and
     // `dest_angle` rows.
-    pin_eq!(w.firsts.len(), 236, "initial run881 baseline");
+    pin_eq!(w.firsts.len(), 235, "initial run881 baseline");
     // Item 3333: who=1's `bucket` metal 5193/4648, standing from 6446, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -870,7 +870,7 @@ fn run882_s_word_frame_is_widened_whole() {
     // `attack[0].mandatory` on 6821, the new word's frame.
     // Item 2864: 248 → 247, `1/124`'s `attack[0].mandatory` goes with
     // `think`'s army shortcut (`docs/AI.md` §238).
-    pin_eq!(w.firsts.len(), 231, "initial run882 baseline");
+    pin_eq!(w.firsts.len(), 230, "initial run882 baseline");
     // Item 3333: who=1's `bucket` metal 5378/4833, standing from 6802, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -926,7 +926,7 @@ fn run883_s_closing_frame_is_widened_whole() {
     // 260 → 246: block 6822 keeps one row, the Armored Cavalry `1/106`'s
     // `cavarch_o` (ours −1, theirs 2000 — its fire-on-the-move target,
     // no draw, no order).
-    pin_eq!(w.firsts.len(), 230, "run883 baseline");
+    pin_eq!(w.firsts.len(), 229, "run883 baseline");
     // Item 3333: who=1's `bucket` metal 5389/4844, standing from 6815, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.

@@ -341,6 +341,16 @@ pub struct Modifiers {
     /// ahead of Silver and the library-line tail. Zero is the identity
     /// (item 3326, `docs/AI.md` §266).
     pub greek_research: i32,
+    /// `get_cost`'s **rares' tail** (`00666e40`..`00666f7f`), after the
+    /// library-line tail and before the captured-building doubling: the
+    /// percentage off this resource of the rare that names it — Coal on
+    /// timber, Sugar on food, Gold on wealth, Iron on metal — indexed by
+    /// resource, then Gypsum's on every resource, each its own
+    /// `(100 − x) × cost / 100` (item 3343; [`crate::economy::SUGAR`]).
+    /// Zero is the identity.
+    pub rare_goods: [i32; RESOURCES],
+    /// See [`Modifiers::rare_goods`]: Gypsum, every resource.
+    pub gypsum: i32,
     /// Maize halves the ramp term — `MAIZE_RAMPING_BONUS`.
     pub maize: bool,
     /// Producing at a captured, unassimilated building doubles the price.
@@ -722,6 +732,12 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     for d in m.line_discounts {
         cost = (100 - d) * cost / 100;
+    }
+    if m.rare_goods[r.index()] != 0 {
+        cost = (100 - m.rare_goods[r.index()]) * cost / 100;
+    }
+    if m.gypsum != 0 {
+        cost = (100 - m.gypsum) * cost / 100;
     }
     if m.unassimilated {
         cost *= 2;
@@ -1320,6 +1336,32 @@ mod tests {
         assert_eq!(both(4, false), [57, 38]);
         assert_eq!(both(3, true), [48, 31]);
         assert_eq!(both(4, true), [52, 35]);
+    }
+
+    /// **The rares' tail** (item 3343): `get_cost`'s shared tail takes
+    /// Sugar's tenth off the food alone, after every other term (run978f's
+    /// Enlightenment Age: 425 food after Science, 382 with Sugar, its 850
+    /// knowledge untouched) — and Gypsum's off every good after it.
+    #[test]
+    fn sugar_takes_a_tenth_off_the_food_alone_and_gypsum_off_everything() {
+        let age = Price {
+            kind: Kind::Tech,
+            ..Price::free()
+        }
+        .with_base(Resource::Food, 50)
+        .with_base(Resource::Knowledge, 100);
+        let mut sugar = Modifiers::default();
+        sugar.rare_goods[Resource::Food.index()] = 10;
+        let at = |m: &Modifiers| {
+            [Resource::Food, Resource::Knowledge].map(|r| cost_of(&T, &age, r, owned(0), m))
+        };
+        assert_eq!(at(&Modifiers::default()), [500, 1000]);
+        assert_eq!(at(&sugar), [450, 1000]);
+        let gypsum = Modifiers {
+            gypsum: 10,
+            ..sugar
+        };
+        assert_eq!(at(&gypsum), [405, 900]);
     }
 
     /// **The Greeks' research and Library arms** (item 3326, `docs/AI.md`
