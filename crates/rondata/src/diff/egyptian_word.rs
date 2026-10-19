@@ -38,8 +38,15 @@ pub(crate) const EGYPTIAN: Lobby = Lobby {
     // `ever_seen` bit `reveal_fog` sets (`:87`–`88`). The word moved 2974
     // → 15782: ours 62 draws, theirs 63, at 1 ours
     // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
-    count: 15782,
-    sequence: 15782,
+    // run967c (15776..16033) parts on who=1's Metal Alloys, 54000 against
+    // 216000 on the make list: `check_income` 64 against 256 (run967d's
+    // `RON_LEADER_PROBE`), the price 200 against 68 (run967e's
+    // `get_cost`) — the Hanging Gardens' industry discount
+    // (`get_cost:1270`–`1276`, 66%). The word moved 15782 → 15982: ours
+    // 495 draws, theirs 450, at 4 ours `Leader::produce_building+0xc99`,
+    // theirs `Build::find_gather_tiles+0x10a`.
+    count: 15982,
+    sequence: 15982,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -261,5 +268,19 @@ fn run967c_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run967c, first try");
+    // Item 3332. On the first try 820 keys part. Past the standing set the
+    // first are on block 15776, `1/126`..`1/129`'s `g.angle[0]` (ours
+    // `0x55555555`, `Angle::INITIAL`, against theirs 0), and on 15779 the
+    // word's own row: who=1's `MAKE[2].val`, Metal Alloys (dump type 620),
+    // ours 54000 against theirs 216000 — `research_techs`' pass on 15778
+    // (ours: weights 5 × base 3600, the gather-line ×2, recency ×6, and
+    // `check_income`'s 64, unaffordable at timber 149 of 200). Theirs
+    // keeps it, ours sinks it below the Crossbowmen on 15781, and theirs
+    // goes to the market on 15782 where ours makes. With the Hanging
+    // Gardens' industry discount (68 food and 68 timber, not 200) **276**,
+    // and the word moved 15782 → 15982: on 15982 who=1's make list carries
+    // ours' building 417 (cat 4, city 4, 312960) where theirs' holds 418
+    // and Metal Alloys, which theirs researches on 15982 (`tech_frame`)
+    // while ours places the building in city 4.
+    pin_eq!(w.firsts.len(), 276, "run967c with the Hanging Gardens' industry discount");
 }

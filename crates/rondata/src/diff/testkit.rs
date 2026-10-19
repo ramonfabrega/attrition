@@ -9903,6 +9903,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Egyptian word** (item 3332, DECISIONS 72, 83): frame
+    // 2974, the Egyptian lobby's first try, widened on run967 over
+    // 2968..3225 with run967b the gap at stride 50 (the Egyptian Farm's
+    // wealth and `reveal_fog`'s `ever_seen`). **Item 3332 moved it 2974 →
+    // 15782**, widened on run967c over 15776..16033
+    // (`run967c_s_word_frame_is_widened_whole`: who=1's Metal Alloys
+    // value on the make list, 54000 against 216000: the Hanging Gardens'
+    // industry discount). **And 15782 → 15982** on the same window
+    // (who=1's building 417 offered where theirs researches Metal Alloys).
+    (
+        "EGYPTIAN_WORD",
+        crate::diff::egyptian_word::EGYPTIAN_WORD,
+        Some("run967c_s_word_frame_is_widened_whole"),
+        3332,
+        Some(crate::diff::egyptian_word::WIDENING_EGYPTIAN_FRAME_15782),
+    ),
     // **The battery's Japanese word** (item 3331, DECISIONS 72, 83): frame
     // 576, the Japanese lobby's first try. run960 dumps blocks 0..36 and
     // run960b its setup and closing blocks only, so no dump on disk held
@@ -10311,7 +10327,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::egyptian_word::EGYPTIAN_WORD,
         length: 20_380,
         endpoint: None,
-        window: None,
+        window: Some("egyptian_frame_15782_window"),
     },
     // **The battery's Japanese word** (DECISIONS 72, 83; item 3331): Great
     // Sahara, the Japanese at Difficulty 1 — the held-out battery's lowest

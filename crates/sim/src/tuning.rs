@@ -995,6 +995,10 @@ pub struct Tuning {
     pub colosseum_fort_cost: i32,
     /// Percent off construction time in the Hanging Gardens' city. Ships as zero.
     pub hanging_gardens_build_time: i32,
+    /// Percent off an industry technology's price — the food, timber and
+    /// metal gathering lines — with the Hanging Gardens held
+    /// (`get_cost@00664090:1270`–`1276`). Ships as 66.
+    pub hanging_gardens_industry_discount: i32,
     /// Percent faster construction with the President nearby.
     pub thepresident_building_speed: i32,
     /// Percent faster unit training at a building with the President nearby
@@ -1518,6 +1522,7 @@ impl Tuning {
         roman_fort_cost: 25,
         colosseum_fort_cost: 20,
         hanging_gardens_build_time: 0,
+        hanging_gardens_industry_discount: 66,
         thepresident_building_speed: 33,
         thepresident_unit_build_speed: 100,
         iroquois_quick_senate: 1,
@@ -2293,6 +2298,10 @@ impl Tuning {
             (
                 "HANGING_GARDENS_BUILD_TIME",
                 Slot::Value(T.hanging_gardens_build_time),
+            ),
+            (
+                "HANGING_GARDENS_INDUSTRY_DISCOUNT",
+                Slot::Value(T.hanging_gardens_industry_discount),
             ),
             (
                 "THEPRESIDENT_BUILDING_SPEED",

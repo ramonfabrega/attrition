@@ -325,6 +325,14 @@ pub struct Modifiers {
     /// Non-library technology discount, after Science and before the
     /// British taxation term. Its own truncation (`docs/AI.md` §109).
     pub democracy: i32,
+    /// `get_cost`'s **industry arm** (`TypeData::get_cost@00664090:1270`–
+    /// `1276`): `HANGING_GARDENS_INDUSTRY_DISCOUNT` off a food, timber or
+    /// metal gathering-line technology (`0x261..=0x266`, `0x26c..=0x26e`)
+    /// for a leader holding the Hanging Gardens, every resource. Its own
+    /// `(100 − x) × cost / 100`, after [`Modifiers::democracy`] and before
+    /// [`Modifiers::late_discount`] (item 3332, `docs/AI.md` §269). Zero is
+    /// the identity.
+    pub industry: i32,
     /// `get_cost`'s **Greek research arm** (`TypeData::get_cost@00664090`,
     /// `LAB_006667c4`, `:1250`–`1255`): an age or a library epoch priced
     /// for a leader with `has_tribe_bonus(5)` takes `GREEK_RESEARCH_COST`
@@ -651,6 +659,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.democracy != 0 {
         cost = cost.wrapping_mul(100 - m.democracy) / 100;
+    }
+    if m.industry != 0 {
+        cost = (100 - m.industry) * cost / 100;
     }
     cost = cost * (100 - m.late_discount) / 100;
     if m.monarchy != 0 {
