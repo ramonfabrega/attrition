@@ -215,7 +215,27 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaGreekTier1` (Greeks 5, Difficulty 1, map 7; run957 and
     // run957b, 176 of 24000), minted by item 3318, left the battery on item
     // 3326 for the AI word (`diff::greek_word`, DECISIONS 72, 83).
-
+    // The lobby minted by item 3326 (DECISIONS 72, 83, `docs/AI.md` §125,
+    // §266; runs 960 and 960b) when the Greeks left for the AI word, so the
+    // held-out set stays eight: Great Sahara, the Japanese at Difficulty 1
+    // — a nation no dump held, and the tier the map's battery lacked once
+    // the Greeks left. The game does not end itself: the long runs to 24000.
+    Lobby {
+        name: "GreatSaharaJapaneseTier1",
+        map_style: 7,
+        ai_tribe: 15,
+        difficulty: 1,
+        start: "gamelog-run960-greatsahara-japanese-diff1-start.txt",
+        long: (
+            "gamelog-run960b-greatsahara-japanese-diff1-24k-trace.txt",
+            "rontrace-run960b.log",
+        ),
+        length: 24000,
+        // Item 3326, the first try: ours 56 draws, theirs 35, at 4 ours
+        // `Leader::compute_sites+0x4ac`, theirs `Animal::think_bird+0x82`.
+        count: 576,
+        sequence: 576,
+    },
     // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §263; runs 955 and 955b) when the Romans left for the AI word, so
     // the held-out set stays eight: East Indies, the Americans at
