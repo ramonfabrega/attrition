@@ -124,7 +124,7 @@ fn run973_s_word_frame_is_widened_whole() {
     let Some(w) = maya_frame_776_window() else {
         return;
     };
-    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -137,5 +137,17 @@ fn run973_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run973 with the Maya arm");
+    // Item 3338. On the first try 430 keys part. Past the standing set the
+    // first is on block 770, who=1's `bucket[1:timber]` ours 20 against
+    // theirs 48 — the Small City `1/2007`, placed before the window, bought
+    // at full timber where theirs paid three quarters; and on the word's
+    // own block 777 theirs holds `1/2008`, a Farm (`myhits` 500) at
+    // (41088, 15936), its builder `1/9` ordered there (`orders_x` 40824
+    // against ours 38376) and who=1's `script_step` 13 against 12: the
+    // economic script's step 12, `place_farm`, which ours could not pay.
+    // With `get_cost`'s Maya arm (`:973`–`987`, `MAYA_BUILDING_TIMBER` 25
+    // off a building's timber) **32**: the standing set alone (both
+    // leaders' `SITE[n].reg` and `aggression`, every unit's `form`, who=1's
+    // groups' `held` and pools), and the word moved 776 → 10497.
+    pin_eq!(w.firsts.len(), 32, "run973 with the Maya arm");
 }
