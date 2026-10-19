@@ -129,6 +129,7 @@ says in its doc comment that only the British and Mongol arms are built,
 | Japanese | a Farm costs 50% less | `TypeData::get_cost@00664090` | modelled at city.rs | `japanese_farms_cheaper` |
 | Japanese | a farmer gathers 25% more food (calc_gather's flat branch) | `BuildTypeData::calc_gather@00639e40` | modelled at holdings.rs | `japanese_fishing_boats` |
 | Indians | a building's support ramp zeroed, halved rounding up for a wonder or a defence | `TypeData::get_cost@00664090` | modelled at cost.rs | `indian_ramp` |
+| Indians | an elephant-line unit costs 15% less, the last step | `TypeData::get_cost@00664090` | modelled at cost.rs | `indian_elephant` |
 | Lakota | raze speed (train_time's tail) | `ObjectData::train_time@006508c0` | not modelled | `lakota_raze_speed` |
 | Mongols | stable units train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `mongol_stable_speed` |
 | British | ships, archers and anti-air train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `british_ship_speed` |
@@ -351,7 +352,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AMERICANS_BARRACKS_GATHER` | 2 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | not carried | `americans_barracks_gather` |
 | `INDIANS_CITY_RADIUS` | 4 | Leader::plan_strategy, LeaderData::get_radius | modelled at city.rs | `indians_city_radius` |
 | `INDIANS_CARAVAN` | 15 | Caravan::trade_value | modelled at caravan.rs | `indians_caravan` |
-| `INDIANS_ELEPHANT_COST` | 15 | TypeData::get_cost | not carried | `indians_elephant_cost` |
+| `INDIANS_ELEPHANT_COST` | 15 | TypeData::get_cost | modelled at cost.rs | `indians_elephant_cost` |
 | `INDIANS_ELEPHANT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `indians_elephant_upgrades` |
 | `DUTCH_FREE_COMMERCE` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `dutch_free_commerce` |
 | `DUTCH_COMMERCE_DISCOUNT` | 10 | TypeData::get_cost | modelled at lib.rs | `dutch_commerce_discount` |

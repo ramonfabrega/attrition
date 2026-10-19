@@ -23730,11 +23730,11 @@ merchants' second figures (3329a). run963c's 116 held unchanged with the fix, so
 crate's live buildings of the two types, not the original's two `u16` arrays; a queued, unplaced oil building would
 part them, and no window has one.
 
-## 271. The Indians: a goody box's own sight, an Indian building unramped, a closed building's number held (2026-10-19, item 3335)
+## 271. The Indians: a goody box's own sight, an unramped building, a held number, the elephants' price and group (2026-10-19, item 3335)
 
 **Score.** `EastIndiesIndianTier2` (Nubians against the Indians at Difficulty 2, East Indies; run962, run962b),
-promoted out of the held-out battery as the AI word once item 3333 closed the Dutch: **221 → 1176 → 1177 → 9985 of
-24000** (count and sequence). The Incas (tribe 2, Difficulty 3, East Indies; run969, run969b) take the Indians'
+promoted out of the held-out battery as the AI word once item 3333 closed the Dutch: **221 → 1176 → 1177 → 9985 → 14594
+of 24000** (count and sequence). The Incas (tribe 2, Difficulty 3, East Indies; run969, run969b) take the Indians'
 place in the battery, first try **7782 / 7782**.
 
 **221: the goody box's own `ever_seen`.** run970's first row that is not the standing set is block 180: ours'
@@ -23759,8 +23759,21 @@ places another. `Build::close` reaches `Object::close` through `Wall::close:155`
 reused 2009 at once and the second Camp's builder took the first's place. Value diff, run970b block 1177: `1/7`'s
 `orders.len` 2/2 and the Camp 2010 on both sides; run970b's keys 400 → 35, the standing set. 1177 → 9985.
 
-**The new word, 9985**: ours 5 draws, theirs 6, at 2: ours `Leader::make_stuff+0x221`, theirs
-`Leader::use_market+0x1ed`.
+**9985: the Indian elephant arm and the Stable's group.** run970c (9979..10236) opened already parted — who=1's
+food 74/89 and wealth 56/65 on 9979 — so run970d took the gap 1428..9979 at a stride of 32. Its block 9589: the War
+Elephant (TI 261) queued at the Stable `1/2019` costs 96 food and 56 wealth ours against 81 and 47, fifteen percent:
+`get_cost`'s last arm, `INDIANS_ELEPHANT_COST` off a unit that `is` one of `0x105..=0x108` for an Indian leader, after
+the captured-building doubling (`docs/COSTS.md`, "An Indian elephant costs less, last"). With it the gap holds the
+standing set alone (67 → 62) and run970c 586 → 569, but the word held: block 9983's **Horse Archer** (TI 187,
+`PROGRESSION 3`) at the same Stable is 51/34 ours against 52/35. Theirs' leader prints `stable_units` 1 — the War
+Elephant, `PROGRESSION 2` — and `Leader::track_unit_type` / `track_queued` move the group counters for every attacking
+type, gating on attack alone; only `get_support_count`'s read asks the group bit. This crate gave a type a group only
+when its own progression counted by group, so the elephant never ramped a Horse Archer (`docs/COSTS.md`, "The ramp";
+test `load::tests::an_elephant_counts_toward_a_horse_archer_s_ramp`). Value diff, run970c's 9983: 52/35 on both sides,
+run970c 569 → 50. 9985 → 14594.
+
+**The new word, 14594**: ours 11 draws, theirs 12, at 3: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d` — past run970c's window; run970e (14588..14845) is its widening.
 
 **Not established.** The ramp arm's halved branch (a wonder, a defence) is the listing's alone. The hold's exact
 frame of release (the thirtieth `process_all` after the close, against this crate's building loop) is not compared
