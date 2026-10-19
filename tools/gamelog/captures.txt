@@ -9736,3 +9736,9 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks: `rngcmp.py` run955 vs run955b -> 0 differing in 37; run899b vs run956 -> 0 differing in 833. run955b runs to 24000.
 #         run899b vs run956b -> 0 differing in 18282; vs run956c -> 0 differing in 18621 (ended itself on 18620).
 # ==== TAKEN 2026-10-19, one take each (run956 retaken once: the default --timeout 180), 00:39-, pool lanes 2, 3 ====
+# ==== item 3322: the Roman closing word's packet (`docs/AI.md` §265; `docs/RUNS.md` run959) ====
+#   run959   --map 18 --end-frame 18372 --timeout 10800 --log-window 18366 18370 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#            --ai-tribe 6 --cover cover=0 --profile DIFFICULTY=2 --tracer-def RON_STATE_FRAME=18368
+#            --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'   (through golden_capture.sh; the plan quoted)
+# Checks: `rngcmp.py` run899b vs run959 -> 0 differing in 18373.
+# ==== TAKEN 2026-10-19, one take (a first died in the tracer build: RON_STATE_PLAN unquoted), 03:40-, pool lane 1 ====
