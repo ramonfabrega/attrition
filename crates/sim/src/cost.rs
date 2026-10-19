@@ -370,6 +370,11 @@ pub struct Modifiers {
     /// fort arm and Tikal's temple term. Zero is the identity (item 3326,
     /// `docs/AI.md` §266).
     pub greek_library: i32,
+    /// `get_cost`'s **Japanese Farm arm** (`:1003`–`1008`): a Farm (`0x1a1`)
+    /// for a leader with tribe bonus `0xf` takes `JAPANESE_FARMS_CHEAPER`
+    /// off, `(100 − x) × cost / 100`, after the Greek Library arm in the
+    /// same chain. Zero is the identity (item 3331, `docs/AI.md` §268).
+    pub japanese_farms: i32,
     /// `get_cost`'s **research** arm: the type is not yet available to the
     /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
     /// research, and it takes the place of the ramp. `None` is the train arm.
@@ -637,6 +642,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.greek_library != 0 {
         cost = (100 - m.greek_library) * cost / 100;
+    }
+    if m.japanese_farms != 0 {
+        cost = (100 - m.japanese_farms) * cost / 100;
     }
     if m.greek_research != 0 && r != Resource::Knowledge {
         cost = (100 - m.greek_research) * cost / 100;
@@ -1295,6 +1303,25 @@ mod tests {
             let off = cost_of(&T, &university, r, owned(0), &library);
             assert_eq!(off, 34 * plain / 100, "{r:?}");
             assert_ne!(off, plain);
+        }
+    }
+
+    /// `get_cost:1003`–`1008`: a Japanese Farm at `(100 − 50) × cost / 100`
+    /// in every good, after the Greek Library arm (item 3331).
+    #[test]
+    fn the_japanese_pay_half_for_a_farm() {
+        let farm = small_city().with_base(Resource::Timber, 55);
+        let japanese = Modifiers {
+            japanese_farms: T.japanese_farms_cheaper,
+            ..Modifiers::default()
+        };
+        assert_eq!(T.japanese_farms_cheaper, 50);
+        for r in [Resource::Food, Resource::Timber] {
+            for n in 0..3 {
+                let plain = cost_of(&T, &farm, r, owned(n), &Modifiers::default());
+                let off = cost_of(&T, &farm, r, owned(n), &japanese);
+                assert_eq!(off, plain / 2, "{r:?} {n}");
+            }
         }
     }
 

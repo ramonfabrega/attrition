@@ -8301,13 +8301,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KP — reserved
+## Parked by item 3331, 2026-10-19 — the Japanese word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3331a. The Japanese arms no walk holds.** `get_cost`'s barracks and ship arms (`JAPANESE_BARRACKS_COST` −7, per
+  age; `JAPANESE_SHIP_COST` 10), `train_time`'s (`JAPANESE_BARRACKS_SPEED` −10, `JAPANESE_CARRIER_SPEED` 33) and
+  `calc_rare@006e08d0:65`'s fishermen term are not carried. `GreatSaharaJapaneseTier1` closed at 24000 without them
+  (`docs/AI.md` §268), so no score names them; a lobby whose Japanese train at a Barracks or a Dock is where one
+  would part.
 
 ## Parked by the next landing, slot KQ — reserved
 

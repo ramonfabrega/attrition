@@ -9903,6 +9903,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Japanese word** (item 3331, DECISIONS 72, 83): frame
+    // 576, the Japanese lobby's first try. run960 dumps blocks 0..36 and
+    // run960b its setup and closing blocks only, so no dump on disk held
+    // the word's block: its widening is run965's window over 570..826
+    // (`run965_s_word_frame_is_widened_whole`: who=1's timber and food,
+    // the Japanese farm arms). **Item 3331 moved it 576 → 24000, the
+    // long's last frame**: run965's test keeps 576's value diff, and the
+    // close is compared whole on run960b's own closing block 24001 by
+    // `run960b_japanese_closing_state`.
+    (
+        "JAPANESE_WORD",
+        crate::diff::japanese_word::JAPANESE_WORD,
+        Some("run960b_japanese_closing_state"),
+        3331,
+        Some(crate::diff::japanese_word::WIDENING_JAPANESE_CLOSING),
+    ),
     // **The battery's Greek word** (item 3326, DECISIONS 72, 83): frame
     // 176, the Greek lobby's first try. run957 dumps blocks 0..36 and
     // run957b its setup and closing blocks only, so no dump on disk held
@@ -10283,6 +10299,22 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Japanese word** (DECISIONS 72, 83; item 3331): Great
+    // Sahara, the Japanese at Difficulty 1 — the held-out battery's lowest
+    // lobby once item 3326 closed the Greeks; the game does not end itself,
+    // and the long runs to 24000. It joins the `Battery word` line first;
+    // the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaJapaneseTier1",
+        named: "Great Sahara (Japanese)",
+        word: crate::diff::japanese_word::JAPANESE_WORD,
+        length: 24_000,
+        // Closed by item 3331: the draw stream agrees to 24000, and
+        // run960b's closing block 24001 scores the end itself.
+        endpoint: Some("run960b_japanese_closing_state"),
+        window: Some("japanese_frame_576_window"),
+    },
     // **The battery's Greek word** (DECISIONS 72, 83; item 3326): Great
     // Sahara, the Greeks at Difficulty 1 — the held-out battery's lowest
     // lobby once item 3318 closed the Spanish; the game does not end

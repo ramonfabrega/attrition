@@ -9776,3 +9776,11 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'   (through golden_capture.sh; the plan quoted)
 # Checks: `rngcmp.py` run899b vs run959 -> 0 differing in 18373.
 # ==== TAKEN 2026-10-19, one take (a first died in the tracer build: RON_STATE_PLAN unquoted), 03:40-, pool lane 1 ====
+# ==== item 3331: the Japanese word's widening and the battery's thirteenth held-out lobby (`docs/AI.md` §268; `docs/RUNS.md` run964 .. run965) ====
+#   run964   --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 16 --profile DIFFICULTY=3   (Great Sahara, Koreans; start)
+#   run964b  --map 7 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#            --ai-tribe 16 --allow-early-end --profile DIFFICULTY=3 (run643's four --detail lines)
+#   run965   --map 7 --end-frame 832 --timeout 2400 --log-window 570 827 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 15 --cover cover=0 --profile DIFFICULTY=1   (Great Sahara, Japanese; the word 576's window)
+# Checks: `rngcmp.py` run964 vs run964b -> 0 differing in 37; run960b vs run965 -> 0 in 833. run964b ended itself on 15944.
+# ==== TAKEN 2026-10-19, one take each, 06:13-06:30, pool lanes 2-3 ====
