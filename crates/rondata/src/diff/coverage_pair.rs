@@ -1871,7 +1871,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // Item 2761: 179 → 175 with `Unit::close`'s count (`docs/AI.md` §232).
     pin_eq!(
         w.firsts.len(),
-        144, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 3336: −1, `Wall::set_type`'s hits (`docs/AI.md` §272)
+        143, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 3336: −1, `Wall::set_type`'s hits (`docs/AI.md` §272) // Item 3335: −1, the group change (every attacking type in its trainer's group)
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");
