@@ -12,19 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-19, **the forty-fifth tranche (commander, Opus): 17 of 20 landed from `43e161a7`**, three lanes (DECISIONS
-83). Nine battery words closed (the Egyptians, the Indians, the Maya this half); 3304, 3320, 3330, 3337 swept. Last
-whole gate 3336's booking, `c2ba8608`.*
+*2026-10-19, **the forty-fifth tranche (commander, Opus): 18 of 20 landed from `43e161a7`**, two lanes draining
+(DECISIONS 83). Ten battery words closed (the Egyptians, the Indians, the Maya, the Russians this half); 3304, 3320,
+3330, 3337 swept. Last whole gate 3338's booking, `4a8c0108`.*
 
 - **Words**: every pair closed. Battery closed whole: Iroquois 12658 (3306), Romans 18620 (3314, 3322), Spanish 22700
   (3318), Greeks 24000 (3326), Japanese 24000 (3331), Dutch 24000 (3329, 3333), Egyptians 20380 (3332, 3336), Indians
-  24000 (3335, 3340), Maya 13086 (3338). Open: the Russians at 6563 (3342, the Lakota minted at Difficulty 2 on
-  Great Lakes — every nation a dump holds, Loop 3341's sibling owed at its merge); the Bantu at 4 promoted by 3343.
-  Battery on `281a04c7`: 6563, **4**, 24000, 9130, 14991, 9185, 7782, 9382 (the Chinese and Turks above, 3326b).
-- **Lanes: three live**: 3343 Opus (att-3343, runs 977, 978, AI §276, KZ), 3342 Opus (runs 975, 976, AI §275, KY),
-  3339 Sonnet (att-3339, KW). Next 3344, run 979. Pools: GOLDEN §144–148, AI §277–282, park JK, LA–LD.
-- **Fable backlog: 16 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3240, 3311, 3312, 3313, 3323, 3327, 3328,
-  3334, 3341).
+  24000 (3335, 3340), Maya 13086 (3338), Russians 7303 (3342). Open: the Bantu at 4 (3343). The replacement recipe
+  has run out of nations (Loop 3344): the Lakota minted at 6071 by 3342's criterion. Battery on `281a04c7`: 6563
+  (now promoted), 4, 24000, 9130, 14991, 9185, 7782, 9382 (the Chinese and Turks above their pins, 3326b).
+- **Lanes: two live, no refill** (18 landed + 2 live = 20): 3343 Opus (runs 977, 978, AI §276, KZ), 3339 Sonnet
+  (KW). Next 3345, run 979. Pools: GOLDEN §144–148, AI §277–282, park JK, LA–LD.
+- **Fable backlog: 17 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3240, 3311, 3312, 3313, 3323, 3327, 3328,
+  3334, 3341, 3344).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,31 +33,23 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
+Battery word: GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1576 of 3611 · port 430 · layout 1146
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-fifth tranche from docs/QUEUE.md's handoff — commander, Opus: read `docs/LOOP.md` first;
-17 of 20 landed from `43e161a7`; re-arm `tools/lanewait.py` on att-3343, att-3342, att-3339 and carry the chain (refill
-a battery word on Opus 5.5 medium by `battery_measure`'s lowest open lobby, the sweep on Sonnet 5.5 medium); twenty landings.**
+18 of 20 landed from `43e161a7`; re-arm `tools/lanewait.py` on att-3343, att-3339 and drain the chain (no refill: 18
+landed and 2 live are twenty); at twenty, the whole gate, the handoff, and `ccc clear steer` for the pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's** (the forty-fourth steer, DECISIONS 83):
-3343 and 3342 the battery words' (Opus), 3339 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its
-widening exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed until 3342's pin lands (`AI_WORDS`
-holds ten closed games); open: the Russians on Great Lakes (3342) and the Bantu on Great Sahara (3343). An open word is carried to its
+3343 the battery word's (Opus), 3339 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its
+widening exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed until 3343's pin lands (`AI_WORDS`
+holds eleven closed games); open: the Bantu on Great Sahara (3343). An open word is carried to its
 end before the battery's next lobby is promoted (3329 → 3333). Take the first unstarted item unless a better order is clear, and say why. The backlog is `docs/PARKED.md`.
-
-3342. **The battery's lowest open game, `GreatLakesRussianTier2` at 6563 of 7303** (entry 72: 3340 closed the Indians
-    at 24000, and the lowest lobby left that no lane holds is the Russians at Difficulty 2, the Maya being 3338's, by
-    the measure on `826e0b6c`): count 6566, sequence 6563; ours 11 draws against theirs 11 at index 4 — ours
-    `Guy::set_anim+0xf2f < Guy::move+0x166`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Promoted by the
-    recipe — `diff::russian_word` and its `AI_WORDS` pin, the lobby leaving `BATTERY`, a replacement minted (run 975)
-    — **its widening first**: grep the lobby's start and long dumps for 6563, a Great Lakes window capture at detail
-    only for what they cannot answer (run 976), both directions. Lands wide. AI §275, park KY.
 
 3343. **The battery's lowest open game, `GreatSaharaBantuTier4` at 4 of 23627** (entry 72: 3338 closed the Maya at 13086
     and minted the Bantu at Difficulty 4, 4 of 4 on its first try; by the measure on `281a04c7`, the Russians being

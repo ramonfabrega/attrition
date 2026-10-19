@@ -3819,6 +3819,16 @@ the lane gate's verdict does not ask. Candidate: the lane gate's `Lane verdict:`
 since the lane's last update and refuses "landed" while they touch a file the lane's diff touches, made to fail
 first on 3338's tip. One reach.
 
+(3344) **The battery's replacement recipe has run out of nations** (3342's method note, filed at its merge): "a nation
+no dump holds" is exhausted as of run972 — 3338's Bantu was the last of tribes 0..23 no dump held. 3342 took the
+Lakota (`GreatLakesLakotaTier2`, runs 975, 975b, 6071 on its first try) by a criterion agreed in one message each
+way: a nation held only by a closed pair on another map, the widest census reach among those (17 functions in
+`docs/NATIONS.md`, against the Persians' 11 and the Mongols' 3), at the tier the map's battery lacks; 3343's brief
+carries the same. Entry 61's held-out battery is the score that says when minting can stop, and the recipe is
+entry 72's; neither says what a held-out game is once every nation has been tuned somewhere. Candidates: the
+criterion written into entry 72 by the pass; or the held-out unit moves from the nation to the (nation, map, tier)
+lobby, which `diff::battery` already keys on. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-fourth tranche's
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
