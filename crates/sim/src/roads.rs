@@ -244,7 +244,7 @@ impl Sim {
     }
 
     /// **The teardown: a footprint's ring road goes with it** (item 3314,
-    /// `docs/ROADS.md` §9.6). `BuildType::mask_me@006312a0`'s last
+    /// `docs/ROADS.md` §13). `BuildType::mask_me@006312a0`'s last
     /// statement on the unmask (`param_4 == 0`, from `Wall::close`) is
     /// `place_roads(…, 0, REGEN_SIMPLE)`: the same three arms and the same
     /// ring, each tile handed to `set_road_at(x, y, param_5 = 0, 0, 0)` —
@@ -1150,7 +1150,7 @@ mod tests {
     }
 
     /// **The ring goes with the building** (item 3314, `docs/ROADS.md`
-    /// §9.6): `mask_me`'s unmask ends in `place_roads(…, 0, REGEN_SIMPLE)`,
+    /// §13): `mask_me`'s unmask ends in `place_roads(…, 0, REGEN_SIMPLE)`,
     /// so a closed Library's ring is handed back through `set_road_at(…,
     /// 0, 0, 0)` — and the road it planned to the centre, which only
     /// `param_5 != 0` reaches, stays.

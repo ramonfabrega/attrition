@@ -1150,47 +1150,7 @@ the original does not, but no tile on disk is one it laid. ~~The teardown
 (`param_4 == 0`) is still unmodelled here — `mask_building(b, false)` does
 not run either arm, and `Build::close` is what would reach it.~~ Neither
 footprint arm runs on the teardown, which is right: `mask_me` gates both on
-`param_4`. What the teardown does reach is `place_roads`' removal, §9.6.
-
-### 9.6 The teardown — a closed building's ring goes with it (2026-10-19, item 3314)
-
-*Established 2026-10-19 from run899b's call window and the closing walk of
-East Indies (Romans), and diff-backed.*
-
-`BuildType::mask_me@006312a0`'s last statement is `place_roads(this, x, y,
-o, who, set, regen)` with `set = 1` on the mark and, on the **unmask**
-(`param_4 == 0`), `set = 0` and `REGEN_SIMPLE` whatever the caller passed.
-`place_roads@0063c580` hands its `param_5` straight to every ring tile's
-`World::set_road_at(x, y, param_5, 0, 0)`, so the unmask walks **the same
-three arms and the same ring** (§3, with its skip predicate unchanged) and
-takes each tile's road away through the mesh door (§9.1). The road to the
-centre is under `param_5 != 0` and is never reached: it stays. The unmask
-is `Wall::close@0063f6e0`'s `mask_me(this, 0, REGEN_SIMPLE)`, for a started
-building and any reason but 5, and `Build::close@00628980` calls
-`Wall::close` at line 144, **before** `remove_from_city` at 165 — so the
-third arm's `city >= 0` gate still sees the building's city.
-
-**What it was worth.** East Indies with the Romans at Difficulty 2: the
-human's Library `0/2005`, at tile (26, 39), dies on 18011 on both sides. Its
-ring held tile (28, 40), and nothing here took it away, so on 18026 who=1's
-caravan road search priced the step onto it from (28, 39) as friendly road,
-27, where theirs priced it off road, 88 (the roll 8, base 55, ground 25),
-and ours spent 192 `calc_road_cost` draws against 194. Theirs' searches had
-last visited the tile on frame 11, so the trace could not date the removal;
-our own map, logged frame by frame over the game around the tile, could: the
-Library's death was the only event near it. With the teardown built, all
-107 road searches to 18030 are the original's node for node (194 against
-194 on 18026), and the lobby's draw stream agrees to its last frame, 18620
-(`rondata::diff::roman_word::run899b_s_road_search_on_18026_holds_node_for_node`,
-`roman_word_first_parting`; `crate::roads`'
-`a_closed_building_takes_its_ring_road_with_it_and_leaves_its_road`). Both
-fail with the call taken out.
-
-**What it has not established.** No dump prints a tile mask after block 36
-of this lobby, so theirs' (28, 40) is read off the search's price, not seen;
-the sixteen other ring tiles ours clears on 18011 are unobserved. A city
-centre's teardown (the first arm) and the third arm's have not reached a
-consequence in any capture this crate walks. `REGEN_TOTAL` stays §1's.
+`param_4`. What the teardown does reach is `place_roads`' removal, §13.
 
 ## 10. The stray-road sweep — `Roads::scan_and_kill_stray_roads@008956a0` (2026-09-24, item 695)
 
@@ -1401,3 +1361,43 @@ sides (`docs/AI.md` §260).
   `param` this crate reads as the caravan's and the original as not.
 - The ten pairs are diff-backed only where Great Lakes' diagonal reaches them, which is the SW–NE axis. The other arms
   rest on the listing alone.
+
+## 13. The teardown — a closed building's ring goes with it (2026-10-19, item 3314)
+
+*Established 2026-10-19 from run899b's call window and the closing walk of
+East Indies (Romans), and diff-backed.*
+
+`BuildType::mask_me@006312a0`'s last statement is `place_roads(this, x, y,
+o, who, set, regen)` with `set = 1` on the mark and, on the **unmask**
+(`param_4 == 0`), `set = 0` and `REGEN_SIMPLE` whatever the caller passed.
+`place_roads@0063c580` hands its `param_5` straight to every ring tile's
+`World::set_road_at(x, y, param_5, 0, 0)`, so the unmask walks **the same
+three arms and the same ring** (§3, with its skip predicate unchanged) and
+takes each tile's road away through the mesh door (§9.1). The road to the
+centre is under `param_5 != 0` and is never reached: it stays. The unmask
+is `Wall::close@0063f6e0`'s `mask_me(this, 0, REGEN_SIMPLE)`, for a started
+building and any reason but 5, and `Build::close@00628980` calls
+`Wall::close` at line 144, **before** `remove_from_city` at 165 — so the
+third arm's `city >= 0` gate still sees the building's city.
+
+**What it was worth.** East Indies with the Romans at Difficulty 2: the
+human's Library `0/2005`, at tile (26, 39), dies on 18011 on both sides. Its
+ring held tile (28, 40), and nothing here took it away, so on 18026 who=1's
+caravan road search priced the step onto it from (28, 39) as friendly road,
+27, where theirs priced it off road, 88 (the roll 8, base 55, ground 25),
+and ours spent 192 `calc_road_cost` draws against 194. Theirs' searches had
+last visited the tile on frame 11, so the trace could not date the removal;
+our own map, logged frame by frame over the game around the tile, could: the
+Library's death was the only event near it. With the teardown built, all
+107 road searches to 18030 are the original's node for node (194 against
+194 on 18026), and the lobby's draw stream agrees to its last frame, 18620
+(`rondata::diff::roman_word::run899b_s_road_search_on_18026_holds_node_for_node`,
+`roman_word_first_parting`; `crate::roads`'
+`a_closed_building_takes_its_ring_road_with_it_and_leaves_its_road`). Both
+fail with the call taken out.
+
+**What it has not established.** No dump prints a tile mask after block 36
+of this lobby, so theirs' (28, 40) is read off the search's price, not seen;
+the sixteen other ring tiles ours clears on 18011 are unobserved. A city
+centre's teardown (the first arm) and the third arm's have not reached a
+consequence in any capture this crate walks. `REGEN_TOTAL` stays §1's.

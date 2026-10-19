@@ -23326,7 +23326,7 @@ parts nothing on the word's own block. Node for node, using run899b's call windo
 the step onto tile (28, 40): ours 27, on road; theirs 88, off road. Ours had the road from frame 0 and never
 changed it. Logging our map around the tile over the whole game shows one event there, the human's Library
 `0/2005` dying on 18011 (both sides). In the original, `mask_me`'s unmask ends in `place_roads(…, 0,
-REGEN_SIMPLE)`, which takes the ring away (`docs/ROADS.md` §9.6). This crate had it as a SEAM. Built:
+REGEN_SIMPLE)`, which takes the ring away (`docs/ROADS.md` §13). This crate had it as a SEAM. Built:
 `Sim::unplace_roads`, `road_ring`'s `set`. **Value diff**: all 107 searches to 18030 agree node for node, 194
 against 194 on 18026. run956b's widening has **51** keys, every one standing from 18020: the control's set, and
 who=1's `1/22`..`1/37` `g.angle[0]`, ours `0x55555555` against 0. `1/64`'s move offsets from 18028 are gone.

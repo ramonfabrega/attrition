@@ -18300,7 +18300,7 @@ Archive `rontrace-run956b.log`, 90,916,992 bytes,
 SHA-256 `3ca9df1af96cb0d11ed6070fe228274a9d17d87b3b9e0ac85b966744d2a35164`.
 
 **What it holds**: `diff::roman_word::run956b_s_word_frame_is_widened_whole` (256 blocks). With the ring teardown
-(`docs/ROADS.md` §9.6), 51 keys, every one standing from 18020: the control's set and who=1's `g.angle[0]` on
+(`docs/ROADS.md` §13), 51 keys, every one standing from 18020: the control's set and who=1's `g.angle[0]` on
 `1/22`..`1/37`. who=0's Village `0/2000` is at damage 840 of 1200 on both sides on the last block. Its window is in the
 coverage driver.
 

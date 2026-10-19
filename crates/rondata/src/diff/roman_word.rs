@@ -41,7 +41,7 @@ pub(crate) const ROMAN: Lobby = Lobby {
     // 18026 ours 199 draws, theirs 200, index 192: ours `Guy::set_anim+0x97a
     // < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`,
     // past run956's last block (826). **And 18026 → 18620, the game's
-    // last frame**, with `place_roads`' teardown (`docs/ROADS.md` §9.6):
+    // last frame**, with `place_roads`' teardown (`docs/ROADS.md` §13):
     // the Library `0/2005`, dead on 18011, took its ring road with it in
     // theirs, and on 18026 who=1's caravan search priced tile (28, 40) on
     // road here and off it there (run956b, run899b's call window).
@@ -208,12 +208,12 @@ fn run956b_s_word_frame_is_widened_whole() {
     // Item 3314: 51 keys, every one standing from 18020 — the control's set
     // (`SITE[n].reg`, `form`, groups' `held`, the pool, `aggression`) and
     // who=1's `1/22`..`1/37` `g.angle[0]`, ours `0x55555555` against 0.
-    // Before the Library's ring went with it (`docs/ROADS.md` §9.6), `1/64`'s
+    // Before the Library's ring went with it (`docs/ROADS.md` §13), `1/64`'s
     // move offsets parted from 18028 too.
 }
 
 /// **The word 18026's caravan road search, node for node** (item 3314,
-/// `docs/ROADS.md` §9.6): theirs' `PathFinder::astar_caravan_road` spent
+/// `docs/ROADS.md` §13): theirs' `PathFinder::astar_caravan_road` spent
 /// 194 `calc_road_cost` draws on 18026 against ours' 192, and the first
 /// node to part was 32, the step onto tile (28, 40): ours priced it on
 /// road, theirs off. The road was the Library `0/2005`'s ring, which its
@@ -337,7 +337,7 @@ pub(crate) const WIDENING_ROMAN_CLOSING: (i64, i64) = (18619, 18622);
 
 /// **The lobby's closing state** (item 3314, DECISIONS 55): the draws agree
 /// to the game's last frame, 18620, once the Library's ring road goes with
-/// it (`docs/ROADS.md` §9.6), and run899b — the draw stream's own capture,
+/// it (`docs/ROADS.md` §13), and run899b — the draw stream's own capture,
 /// `cover=0` — prints the closing block 18621 whole. Walked to it and
 /// compared whole, as the Germans' `run643_german_closing_state` is.
 #[test]

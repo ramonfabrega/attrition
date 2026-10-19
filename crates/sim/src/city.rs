@@ -1911,7 +1911,7 @@ impl Sim {
             }
         }
         // `mask_me`'s last statement on the unmask: `place_roads(…, 0,
-        // REGEN_SIMPLE)` takes the ring road away (`docs/ROADS.md` §9.6).
+        // REGEN_SIMPLE)` takes the ring road away (`docs/ROADS.md` §13).
         if !on {
             self.unplace_roads(b);
         }

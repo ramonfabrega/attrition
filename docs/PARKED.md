@@ -8188,7 +8188,7 @@ words and edits nothing here; a refill lands when two remain.
   Senator `1/55`'s uid) on block 18367. The booking is the frame and the blow. "The Senator's escort" is a hypothesis.
 - **who=1's `g.angle[0]` on `1/22`..`1/37`** (run956b, run956c, standing from 18020): ours `0x55555555` against 0.
   It parts nothing that moves, and names no score.
-- **The teardown's other arms** (`docs/ROADS.md` §9.6): a city centre's ring and the third arm's have reached no
+- **The teardown's other arms** (`docs/ROADS.md` §13): a city centre's ring and the third arm's have reached no
   consequence in a capture this crate walks. Of the seventeen tiles ours clears on 18011, only (28, 40) is observed
   (through a search's price).
 
