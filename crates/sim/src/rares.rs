@@ -322,31 +322,9 @@ impl Sim {
     /// type — and adds it to the revealing leader's `oil_patches` unless
     /// it is already there.
     pub(crate) fn reveal_fog(&mut self, fx: i32, fy: i32, who: Player) {
-        let c = crate::world::Cell::new(fx >> 1, fy >> 1);
-        let t = crate::Pos::new(2 * fx + 1, 2 * fy + 1);
-        if self.world.tile_mask(t) & crate::world::tile::AS_BUILDING != 0 {
-            // `find_good_at(x, y, who, 1, 0)` — the **index** form, which
-            // answers before `type_avail` and so hands `new_rare` goods the
-            // caller could not yet build with. The alive and non-`OIL` tests
-            // are the same two [`Sim::find_good_at`] makes.
-            if let Some((gi, g)) = self.world.good_at(c)
-                && g.alive
-                && g.ty != crate::world::OIL
-            {
-                self.new_rare(who, gi);
-                // `reveal_fog:87`–`88`: the good's `ever_seen` takes the
-                // revealer's bit (`+0x20 |= 1 << who`), whoever the revealer
-                // is — the byte `think_merchant` tests. A good met through
-                // its footprint is seen though its own half-cell is not
-                // (item 3332: Great Sahara's good 13, met on 2114).
-                self.mark_good_seen(gi, who);
-            }
-        }
-        if self.world.cell_data(c).flags & crate::world::cell::OIL != 0
-            && let Some(gi) = self.first_live_good_at(c)
-        {
-            self.add_oil_patch(who, gi);
-        }
+        // This crate has no unit index to hand (`param_4`, the revealing
+        // unit's slot): the goody-box arm is the seam `goody.rs` names.
+        reveal_fog_steps(&mut SimRevealFog { sim: self }, fx, fy, i32::from(who), -1);
     }
 
     /// The first good in the goods list, front to back, that is alive and
@@ -592,6 +570,259 @@ pub(crate) fn rare_bit(rare: u64, good: usize) -> bool {
     good >= economy::BASE_RARE
         && good - economy::BASE_RARE < economy::RARES
         && rare >> (good - economy::BASE_RARE) & 1 != 0
+}
+
+/// What `World::reveal_fog@006b3d30` reads and does, one method a read or a
+/// call, so [`reveal_fog_steps`] is the original's body and a view is the state
+/// it runs over — [`SimRevealFog`] here, the emulated original's windows in
+/// the sweep (`sweep/world_reveal_fog.rs`, item 3337).
+pub trait RevealFogView {
+    /// The tile mask at `(2fx + 1, 2fy + 1)` carries `0x200`
+    /// ([`crate::world::tile::AS_BUILDING`]) — the gate the original reads
+    /// twice, through `GameAccess::world` and `GameAccessConst::worldc`, which
+    /// are one world.
+    fn tile_marked(&mut self, fx: i32, fy: i32) -> bool;
+    /// `ObjectsData::find_good_at(qx, qy, who, 1, 0)`, the index form: a
+    /// goods-list index, or `< 0` for none.
+    fn find_good_at(&mut self, qx: i32, qy: i32, who: i32) -> i32;
+    /// `goods[gi]`'s `flags & 1`.
+    fn good_alive(&mut self, gi: i32) -> bool;
+    /// `Leader::new_rare@006d9e70` on `who`'s leader.
+    fn new_rare(&mut self, who: i32, gi: i32);
+    /// `MiscAccess::console->who`.
+    fn console_who(&mut self) -> i32;
+    /// `GameAccess::game->frame != 0`.
+    fn game_started(&mut self) -> bool;
+    /// `goods[gi]`'s `ever_seen` (`+0x20`).
+    fn good_ever_seen(&mut self, gi: i32) -> u8;
+    /// The leader's byte at `+0x6929`, the mask `ever_seen` is tested against.
+    fn leader_seen_mask(&mut self, who: i32) -> u8;
+    /// `goods[gi]`'s type index (`*(*(good + 0x18) + 4)`).
+    fn good_type(&mut self, gi: i32) -> i32;
+    /// The game's `reveal_map` setting (`game + 0x30`, a byte).
+    fn reveal_map(&mut self) -> u8;
+    /// The leader's `leader_flags` (`+0x0`).
+    fn leader_flags(&mut self, who: i32) -> u32;
+    /// The leader's short at `+0x59e4`.
+    fn leader_w59e4(&mut self, who: i32) -> u16;
+    /// The world cell's owner byte (`+0xf`, signed) at world cell `(cx, cy)`.
+    fn cell_owner(&mut self, cx: i32, cy: i32) -> i32;
+    /// `LeaderData::type_avail(ty, 1) != 0` on `who`'s leader.
+    fn type_avail(&mut self, who: i32, ty: i32) -> bool;
+    /// The "found a rare resource" message: the string, the sound, the
+    /// leader's neon colour and `MessageWin::add_message` at the fog cell's
+    /// world position `(wx, wy)`.
+    fn found_rare_message(&mut self, who: i32, ty: i32, wx: i32, wy: i32);
+    /// `goods[gi].ever_seen |= 1 << who` (a byte).
+    fn mark_good_seen(&mut self, gi: i32, who: i32);
+    /// The world cell's `flags` short (`+0x0`).
+    fn cell_flags(&mut self, cx: i32, cy: i32) -> u16;
+    /// The world cell's signed byte at `+0x2`.
+    fn cell_kind(&mut self, cx: i32, cy: i32) -> i32;
+    /// `objects.count` — the goods list's length.
+    fn goods_len(&mut self) -> i32;
+    /// Whether good `i` is alive, and the world cell it stands on, each axis
+    /// through `div_3_table`.
+    fn good_cell(&mut self, i: i32) -> (i32, i32);
+    /// `who`'s leader's `oil_patches` (`ArrayBase<int>`) count.
+    fn oil_count(&mut self, who: i32) -> i32;
+    /// The `k`-th of them.
+    fn oil_at(&mut self, who: i32, k: i32) -> i32;
+    /// `ArrayBase<int>::add` on `who`'s `oil_patches`.
+    fn oil_add(&mut self, who: i32, gi: i32);
+    /// `ObjectsData::find_goody_at` on world cell `(cx, cy)`: an items-list
+    /// index, or `< 0`.
+    fn find_goody_at(&mut self, cx: i32, cy: i32) -> i32;
+    /// `items[gi].ever_seen |= 1 << who` (a byte).
+    fn mark_item_seen(&mut self, gi: i32, who: i32);
+    /// `who`'s `objects[unit]` virtual slot `+0x18` answered non-zero.
+    fn unit_is_unit(&mut self, who: i32, unit: i32) -> bool;
+    /// `who`'s `units[unit]`'s `unit_masks` (`+0x68`).
+    fn unit_masks(&mut self, who: i32, unit: i32) -> u32;
+    /// `Unit::get_goody_box@005f7690` on that unit, handed world cell `(cx, cy)`.
+    fn get_goody_box(&mut self, who: i32, unit: i32, cx: i32, cy: i32);
+}
+
+/// `World::reveal_fog@006b3d30(fx, fy, who, unit)`: a **fog** cell is revealed
+/// to `who`, and `unit` is the revealing unit's slot or `< 0`.
+///
+/// Four arms in the original's order: the rare (tile mark, then the cell's
+/// good — met by `new_rare`, announced to the console's human, marked seen),
+/// the oil patch (the cell's `0x800` flag, then the goods list's first live
+/// good standing on the cell, added to the leader's `oil_patches` once), the
+/// goody (a cell whose `flags` sign is set: `find_goody_at`'s item marked
+/// seen), and the revealing unit's goody box (`Unit::get_goody_box` for a
+/// unit with `unit_masks & 0x100`). The last three read the world cell
+/// `(fx >> 1, fy >> 1)`; **a cell whose `flags` sign is clear returns before
+/// the goody arm and the box arm**, so the box arm is reached only on a goody
+/// cell.
+pub fn reveal_fog_steps<V: RevealFogView>(v: &mut V, fx: i32, fy: i32, who: i32, unit: i32) {
+    let (cx, cy) = (fx >> 1, fy >> 1);
+    if v.tile_marked(fx, fy) {
+        let gi = v.find_good_at((2 * fx + 1) >> 2, (2 * fy + 1) >> 2, who);
+        if gi >= 0 && v.good_alive(gi) {
+            v.new_rare(who, gi);
+            // The message is the console player's alone, once the game runs,
+            // for a good its leader has not yet seen, that is not the base
+            // rare (type 6), under `reveal_map < 3`, to a leader without
+            // `flags & 0x800` or the `+0x59e4` short, not standing on its own
+            // ground under the territory-reveal bonus (`flags & 0x2000`), and
+            // that could build with the good (`type_avail`).
+            if who == v.console_who()
+                && v.game_started()
+                && v.good_ever_seen(gi) & v.leader_seen_mask(who) == 0
+            {
+                let ty = v.good_type(gi);
+                if ty != 6 && v.reveal_map() < 3 {
+                    let flags = v.leader_flags(who);
+                    if flags & 0x800 == 0
+                        && v.leader_w59e4(who) == 0
+                        && (flags & 0x2000 == 0 || v.cell_owner(cx, cy) != who)
+                        && ty >= 0
+                        && v.type_avail(who, ty)
+                    {
+                        v.found_rare_message(who, ty, fx * 0x180 + 0xc0, fy * 0x180 + 0xc0);
+                    }
+                }
+            }
+            v.mark_good_seen(gi, who);
+        }
+    }
+    if v.cell_flags(cx, cy) & 0x800 != 0 {
+        let n = v.goods_len();
+        let mut i = 0;
+        while i < n {
+            if v.good_alive(i) && v.good_cell(i) == (cx, cy) {
+                let count = v.oil_count(who);
+                let mut k = 0;
+                while k < count {
+                    if v.oil_at(who, k) == i {
+                        break;
+                    }
+                    k += 1;
+                }
+                if k >= count {
+                    v.oil_add(who, i);
+                }
+                break;
+            }
+            i += 1;
+        }
+    }
+    let flags = v.cell_flags(cx, cy);
+    if flags & 0x8000 == 0 {
+        return;
+    }
+    if flags & 0x100 != 0 || !matches!(v.cell_kind(cx, cy), 1 | 2) {
+        let gi = v.find_goody_at(cx, cy);
+        if gi >= 0 {
+            v.mark_item_seen(gi, who);
+        }
+    }
+    if unit >= 0 && v.unit_is_unit(who, unit) && v.unit_masks(who, unit) & 0x100 != 0 {
+        v.get_goody_box(who, unit, cx, cy);
+    }
+}
+
+/// [`RevealFogView`] over a [`Sim`]. What this crate does not carry answers
+/// "nothing there": no message window (`found_rare_message`), no items chain
+/// (`find_goody_at`, `mark_item_seen`: [`Sim::goody_item_is_seen`] reads the
+/// fog instead), and no unit slots (`unit_is_unit`: nothing sets
+/// `unit_masks & 0x100`, `goody.rs`). **The console answers `-1`**, so the
+/// message gate fails before it asks anything else.
+struct SimRevealFog<'a> {
+    sim: &'a mut Sim,
+}
+
+impl RevealFogView for SimRevealFog<'_> {
+    fn tile_marked(&mut self, fx: i32, fy: i32) -> bool {
+        let t = crate::Pos::new(2 * fx + 1, 2 * fy + 1);
+        self.sim.world.tile_mask(t) & crate::world::tile::AS_BUILDING != 0
+    }
+    fn find_good_at(&mut self, qx: i32, qy: i32, _who: i32) -> i32 {
+        // The index form answers before `type_avail`; the non-`OIL` test is
+        // the one [`Sim::find_good_at`] makes.
+        match self.sim.world.good_at(crate::world::Cell::new(qx, qy)) {
+            Some((gi, g)) if g.ty != crate::world::OIL => gi as i32,
+            _ => -1,
+        }
+    }
+    fn good_alive(&mut self, gi: i32) -> bool {
+        self.sim.world.goods()[gi as usize].alive
+    }
+    fn new_rare(&mut self, who: i32, gi: i32) {
+        self.sim.new_rare(who as Player, gi as usize);
+    }
+    fn console_who(&mut self) -> i32 {
+        -1
+    }
+    fn game_started(&mut self) -> bool {
+        false
+    }
+    fn good_ever_seen(&mut self, _gi: i32) -> u8 {
+        0
+    }
+    fn leader_seen_mask(&mut self, _who: i32) -> u8 {
+        0
+    }
+    fn good_type(&mut self, _gi: i32) -> i32 {
+        -1
+    }
+    fn reveal_map(&mut self) -> u8 {
+        0
+    }
+    fn leader_flags(&mut self, _who: i32) -> u32 {
+        0
+    }
+    fn leader_w59e4(&mut self, _who: i32) -> u16 {
+        0
+    }
+    fn cell_owner(&mut self, _cx: i32, _cy: i32) -> i32 {
+        -1
+    }
+    fn type_avail(&mut self, _who: i32, _ty: i32) -> bool {
+        false
+    }
+    fn found_rare_message(&mut self, _who: i32, _ty: i32, _wx: i32, _wy: i32) {}
+    fn mark_good_seen(&mut self, gi: i32, who: i32) {
+        self.sim.mark_good_seen(gi as usize, who as Player);
+    }
+    fn cell_flags(&mut self, cx: i32, cy: i32) -> u16 {
+        self.sim
+            .world
+            .cell_data(crate::world::Cell::new(cx, cy))
+            .flags
+    }
+    fn cell_kind(&mut self, _cx: i32, _cy: i32) -> i32 {
+        0
+    }
+    fn goods_len(&mut self) -> i32 {
+        self.sim.world.goods().len() as i32
+    }
+    fn good_cell(&mut self, i: i32) -> (i32, i32) {
+        let c = self.sim.world.goods()[i as usize].pos.cell();
+        (c.x, c.y)
+    }
+    fn oil_count(&mut self, who: i32) -> i32 {
+        self.sim.ai[who as usize].oil_patches.len() as i32
+    }
+    fn oil_at(&mut self, who: i32, k: i32) -> i32 {
+        self.sim.ai[who as usize].oil_patches[k as usize] as i32
+    }
+    fn oil_add(&mut self, who: i32, gi: i32) {
+        self.sim.ai[who as usize].oil_patches.push(gi as usize);
+    }
+    fn find_goody_at(&mut self, _cx: i32, _cy: i32) -> i32 {
+        -1
+    }
+    fn mark_item_seen(&mut self, _gi: i32, _who: i32) {}
+    fn unit_is_unit(&mut self, _who: i32, _unit: i32) -> bool {
+        false
+    }
+    fn unit_masks(&mut self, _who: i32, _unit: i32) -> u32 {
+        0
+    }
+    fn get_goody_box(&mut self, _who: i32, _unit: i32, _cx: i32, _cy: i32) {}
 }
 
 #[cfg(test)]
