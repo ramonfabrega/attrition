@@ -8104,13 +8104,21 @@ Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircra
 
 - (booked as item 3302) (3301) Chapter 106 closed at 1500 on the first take (run951, GOLDEN §143): a who=1 Fort (1/2006) against three stationary hoplite captains parts on the eleven standing `form` rows alone. The squad took the Fort as `near` from 823, walked to it and sat in range by 1040, but no hoplite lost a hit to 1500: the Fort struck no one, so its near-face gate and `Unit::target_opportunity`'s move-front arm as strikes are both still unreached. Next: a Fort with a garrison staged (or a victim inside its reach from the start), or a victim walking past a Tower beyond its sight so a round lands first.
 
-## Parked by the next landing, slot KC — reserved
+## Parked by item 3295, 2026-10-18 — the nations seat's ninth shape batch: all six built
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3295a.** `ObjectsData::find_building_at@0065ab40`: the crate has no world cell chains or mark table, so the sweep's chain walk is an inline port (a SEAM in its comment); only `place::tile_corner_of` and `footprint_covers` are the crate's.
+
+**3295b.** `Build::start@006273a0`: the interface arm behind `iface_current` is unreached (the cell reads zero under the emulator); `StartSite` glue is covered by the existing `start_building` tests only.
+
+**3295c.** `City::assimilate@00738e90`: three view hooks are stated SEAMs in `SimAssimilate` (`region_unfixed` always true, `new_library` a no-op, `console_is_owner`/`announce` inert). Behaviour changes the sweep forced: assimilation raises `economy_changed`, a finished Senate trains the government patriot, `fix_borders` runs before the Chinese village-to-town change; no pinned test moved and no capture is known to exercise them. One starved break: `n.min(9)` (needs a 10th slot-0x4c answer).
+
+**3295d.** `UnitType::find_nearby_spot@0061de70`: unswept — the footprint-object arm (`param_14 >= 0`, needs the objects cell, a slot-0x60 stub that collides with the carrier stub's), the region filter (`param_16`), negative centre coordinates (the original reads `div_3_table[coord >> 4]` before its `< 0` test), `FILTER_ALL` with `not_who < 0` or `uber != 0` (13% of rows filtered out), and `(not_o < 0, not_who >= 0)` pairs. One near-equivalent break: the default-step floor `.max(1)` → `.max(2)`. `--regen` reformats the generated file; run rustfmt after.
+
+**3295e.** `Unit::explore_goody@005f9780`: the item/object chain walk is inline in the sweep (no such chain in the crate); the `SimGoody` accessors and `Sim::goody_amount` glue are unswept.
+
+**3295f.** `Unit::do_build@005eebf0`: generator gap — one vtable cannot give a slot offset different argument counts on different objects (slot 0x60: 0 args on the order, 2 on the type; slot 0x10: 0 on an order, 4 on the select group); the wanted flag is a per-window stub vtable beside `--vtat-also`. Worked around with real image vtables and `--ecx-answer`. The `ObjectData::is` fast arms and the Build vftable compare are unswept; the rider-host term of the group-of-two gather is a stated SEAM. The `set_angle` gate removes an every-build-frame `crew_des` call with an equal angle; no golden moved. `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other` fails on the base too (Loop 2132).
+
+**3295g.** Shared worktree: the six subagents shared the lane's worktree and branch (the harness did not cut isolated ones), so `git add` of shared paths swept one agent's hunks into another's commit and `tools/mutate.py` refused the dirty tree; each ran its breaks in a throwaway detached worktree.
 
 ## Parked by the next landing, slot KD — reserved
 
