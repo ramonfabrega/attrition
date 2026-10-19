@@ -246,6 +246,10 @@ impl Sim {
         }
         let centre = self.cities[c].building;
         let road = self.find_road(b, centre);
+        if std::env::var("RON_PROBE_ROADS").is_ok() && self.buildings[b].index == 2027 {
+            let tiles: Vec<_> = road.iter().map(|p| (p.tile().x, p.tile().y)).collect();
+            eprintln!("PROBL f{} b{} road {:?}", self.frame, self.buildings[b].index, tiles);
+        }
         // `reconstruct` appends goal-end first, as `astar_caravan_road`
         // does (`00685990`), and `place_roads@0063c580` pops that stack from
         // the top: the road is laid near-*start* end first, and since §9's
