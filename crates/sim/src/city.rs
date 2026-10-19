@@ -1146,6 +1146,7 @@ impl Sim {
                 },
                 fort: self.fort_discounts(who, ty),
                 greek_library: self.greek_library_discount(who, ty),
+                japanese_farms: self.japanese_farm_discount(who, ty),
                 ..cost::Modifiers::default()
             },
             &holdings.available,
@@ -1210,6 +1211,27 @@ impl Sim {
             )
         {
             self.tuning.greek_library_cost
+        } else {
+            0
+        }
+    }
+
+    /// `get_cost`'s **Japanese Farm arm** (`:1003`–`1008`): a Farm by type
+    /// equality — its `TypeIndex`, or its ident where a type stands outside
+    /// the tree — for a Japanese leader ([`cost::Modifiers::japanese_farms`]).
+    /// run965's block 570: who=1's timber 52 against theirs 78 (item 3331,
+    /// `docs/AI.md` §268).
+    fn japanese_farm_discount(&self, who: Player, ty: usize) -> i32 {
+        let farm = self.build_types[ty].tree == Some(crate::nations::ty::FARM)
+            || self.build_types[ty].ident == Ident::Farm;
+        if farm
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[who as usize],
+                crate::nations::power::JAPANESE,
+            )
+        {
+            self.tuning.japanese_farms_cheaper
         } else {
             0
         }

@@ -431,6 +431,19 @@ impl Sim {
                 0
             },
         );
+        // `calc_gather:978`–`985`: the flat branch's food, for a Japanese
+        // leader (item 3331).
+        let nation_pct = if resource == Resource::Food
+            && self.is_kind(b, Ident::Farm)
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[bd.owner as usize],
+                crate::nations::power::JAPANESE,
+            ) {
+            self.tuning.japanese_fishing_boats
+        } else {
+            0
+        };
         Site {
             resource,
             gatherers,
@@ -439,6 +452,7 @@ impl Sim {
             } else {
                 1
             },
+            nation_pct,
         }
     }
 

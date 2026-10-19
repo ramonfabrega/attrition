@@ -29,8 +29,16 @@ pub(crate) const JAPANESE: Lobby = Lobby {
     // Item 3326: the battery's first try, count and sequence both at 576;
     // ours 56 draws, theirs 35, at 4 ours `Leader::compute_sites+0x4ac`,
     // theirs `Animal::think_bird+0x82`. Item 3331 promoted it to the AI word.
-    count: 576,
-    sequence: 576,
+    // Ours' who=1 runs `compute_sites` five times on 576 against theirs'
+    // once; run965 (570..826) has who=1 apart already on block 570, timber
+    // 52 against 78 and food income 800 against 960. The Japanese Farm cost
+    // arm (`get_cost:1007`, `JAPANESE_FARMS_CHEAPER`, half off a Farm) closed
+    // the timber; the Japanese farm food arm (`calc_gather:983`,
+    // `JAPANESE_FISHING_BOATS`, a quarter more per farmer) the food, and the
+    // word moved 576 → 24000, the long's last frame. run960b's closing
+    // block 24001 is compared whole (`run960b_japanese_closing_state`).
+    count: 24000,
+    sequence: 24000,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -90,4 +98,115 @@ fn japanese_word_is_no_other_lobby() {
         assert_eq!(info("MAP_STYLE"), Some(p.map_style), "{name}");
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
+}
+
+/// run965: the word 576's window, blocks 570..826 at run961's detail
+/// (`LEADERS=9`, `GUYS=4`; item 3331); run960 dumps blocks 0..36 and run960b
+/// its setup and closing blocks only.
+pub(crate) const RUN965: &str =
+    "gamelog-run965-greatsahara-japanese-diff1-window-570-827-guys4.txt";
+
+/// The window: block 570 through 826; the word 576's own block is 577.
+pub(crate) const WIDENING_JAPANESE_FRAME_576: (i64, i64) = (570, 826);
+
+pub(crate) fn japanese_frame_576_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[JAPANESE.start],
+        true,
+        JAPANESE.long,
+        "run965",
+        &[(RUN965, WIDENING_JAPANESE_FRAME_576.0)],
+        WIDENING_JAPANESE_FRAME_576,
+        1,
+        &[577],
+        true,
+    )
+}
+
+#[test]
+fn run965_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = japanese_frame_576_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3331. On the first try block 570 parts, past the standing set,
+    // who=1's `bucket[1:timber]` 52 against 78, `bucket[0:food]` 54 against
+    // 64, and `income[0:food]` 800 against 960 (with `resources` and
+    // `leftover`): a Japanese Farm at half price (`get_cost:1007`) and a
+    // Japanese farmer's food at five quarters (`calc_gather:983`). With the
+    // Farm arm the timber closes and the window parts the food; with the
+    // food arm it parts **the standing set alone**, and the word moved 576
+    // → 24000.
+    pin_eq!(w.firsts.len(), 34, "run965 with the Japanese farm arms");
+}
+
+/// The closing state's window: run960b's closing block alone, the long's
+/// last frame 24000 writing it (item 3331).
+pub(crate) const WIDENING_JAPANESE_CLOSING: (i64, i64) = (23999, 24002);
+
+/// **The lobby's closing state** (item 3331, DECISIONS 55): run960b — the
+/// draw stream's own capture, `cover=0` — prints the closing block whole.
+/// The game does not end itself; the long's `!quit` at 24000 closes it.
+#[test]
+fn run960b_japanese_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(JAPANESE.long.0),
+        dump(JAPANESE.start),
+        trace(JAPANESE.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Japanese closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 24001, "the closing block");
+    pin_eq!(e.compared, 61, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3331, the first walk (with the Japanese farm arms, the word at
+    // 24000): 61 units compared on block 24001, none apart (the human's
+    // `0/4` is the dump's own tear), no building or city field-row, no
+    // closing field.
 }

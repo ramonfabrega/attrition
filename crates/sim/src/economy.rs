@@ -278,6 +278,12 @@ pub struct Site {
     /// For knowledge only: the university level that selects `SCHOLAR_RATE`.
     /// One-based, as the original's arrays are.
     pub level: i32,
+    /// `BuildTypeData::calc_gather@00639e40:978`–`985`, the flat branch's
+    /// **Japanese arm**: a flat building's food per gatherer (a Farm's) for
+    /// a leader with tribe bonus `0xf` is `(JAPANESE_FISHING_BOATS + 100) ×
+    /// rate / 100`, after the enhancer and before the count. Zero is the
+    /// identity (item 3331, `docs/AI.md` §268).
+    pub nation_pct: i32,
 }
 
 impl Site {
@@ -286,6 +292,7 @@ impl Site {
             resource,
             gatherers,
             level: 1,
+            nation_pct: 0,
         }
     }
 }
@@ -686,7 +693,10 @@ pub fn city_rates(t: &Tuning, city: &City) -> [i32; RESOURCES] {
     // truncated twelve, not a truncated twelve hundred.
     for site in &city.sites {
         let i = site.resource.index();
-        let rate = city.enhancer_amount(i as i32, per_gatherer(t, site.resource, site.level));
+        let mut rate = city.enhancer_amount(i as i32, per_gatherer(t, site.resource, site.level));
+        if site.nation_pct != 0 {
+            rate = (site.nation_pct + 100) * rate / 100;
+        }
         out[i] += rate * site.gatherers;
     }
 

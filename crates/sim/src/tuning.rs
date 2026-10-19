@@ -600,6 +600,15 @@ pub struct Tuning {
     /// Percent off a Library or a University for the Greeks —
     /// `TypeData::get_cost@00664090:966`–`972`. Ships as `66% discount`.
     pub greek_library_cost: i32,
+    /// Percent off a Farm for the Japanese — `TypeData::get_cost@00664090`'s
+    /// building arm, `:1003`–`1008` (type `0x1a1` by equality). Ships as
+    /// `50% cheaper`.
+    pub japanese_farms_cheaper: i32,
+    /// Percent more food per gatherer from a flat building (a Farm) for the
+    /// Japanese — `BuildTypeData::calc_gather@00639e40:978`–`985`, and the
+    /// fishermen's term in `LeaderData::calc_rare@006e08d0:65`. Ships as
+    /// `25% more food`.
+    pub japanese_fishing_boats: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -1337,6 +1346,8 @@ impl Tuning {
         greek_research_speed: 100,
         greek_research_cost: 10,
         greek_library_cost: 66,
+        japanese_farms_cheaper: 50,
+        japanese_fishing_boats: 25,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1949,6 +1960,14 @@ impl Tuning {
             ("GREEK_RESEARCH_SPEED", Slot::Value(T.greek_research_speed)),
             ("GREEK_RESEARCH_COST", Slot::Value(T.greek_research_cost)),
             ("GREEK_LIBRARY_COST", Slot::Value(T.greek_library_cost)),
+            (
+                "JAPANESE_FISHING_BOATS",
+                Slot::Value(T.japanese_fishing_boats),
+            ),
+            (
+                "JAPANESE_FARMS_CHEAPER",
+                Slot::Value(T.japanese_farms_cheaper),
+            ),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),
