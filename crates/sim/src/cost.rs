@@ -341,7 +341,7 @@ pub struct Modifiers {
     /// ahead of Silver and the library-line tail. Zero is the identity
     /// (item 3326, `docs/AI.md` §266).
     pub greek_research: i32,
-    /// `get_cost`'s **rares' tail** (`00666e40`..`00666f7f`), after the
+    /// `get_cost`'s **rares' tail** (`00666e46`..`00666f7f`), after the
     /// library-line tail and before the captured-building doubling: the
     /// percentage off this resource of the rare that names it — Coal on
     /// timber, Sugar on food, Gold on wealth, Iron on metal — indexed by

@@ -19332,3 +19332,99 @@ SHA-256 `e2f36e62a20108105e146963e900fb9ef9c7aa53fa2feabaed7e5e4623581842`.
 
 **What it holds**: the French's first try, **13422 / 13422** of 16764 (ours 14 draws, theirs 19, index 6: ours
 `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`), pinned in `battery::BATTERY`.
+
+## run978 — the Bantu word: the word 4's window, blocks 1..256 at `GUYS=4` (2026-10-19, item 3343, `att-3343`)
+
+`docs/AI.md` §276. **What the disk could not answer**: the Bantu's first try parts on frame 4 and run972b holds no state block there. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run978`: `--map 7 --end-frame 261 --timeout 3600 --log-window 1 256 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 3 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 2. Launched 14:52:32 and the game exited at 15:04:46. `success`, 262 frames, `map_style 7`, seed 12345.
+  `rngcmp.py rontrace-run978.log rontrace-run972b.log`: **262 identical, 0 differing**. Filed with `filerun.py`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run978-greatsahara-bantu-diff4-window-1-256-guys4.txt`, 399,210,534 bytes,
+SHA-256 `369426aa05a2ed6c7198dc33a3a2561d95c0805bca94554320915fc79f506d7f`.
+
+Archive `rontrace-run978.log`, 8,287,904 bytes,
+SHA-256 `c0cb5bfba7bf5e42613c8998e4a16ec7c22378c3c65a79429851dc7364e15860`.
+
+**What it holds**: `run978_s_word_frame_is_widened_whole`: block 1's `myspeed` 25 against 31 (`update_speed`'s Bantu arm), then `pop_cap` 25 against 50.
+
+## run978b — the Bantu word: the word 3184's window, blocks 3178..3434 (2026-10-19, item 3343, `att-3343`)
+
+`docs/AI.md` §276. **What the disk could not answer**: the word moved to 3184 and nothing on disk dumps state there. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run978b`: `--map 7 --end-frame 3439 --timeout 5400 --log-window 3178 3434 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 15:10:38 and the game exited at 15:23:26. `success`, 3440 frames, `map_style 7`, seed 12345.
+  `rngcmp.py rontrace-run978b.log rontrace-run972b.log`: **3440 identical, 0 differing**. Filed with `filerun.py`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run978b-greatsahara-bantu-diff4-window-3178-3434.txt`, 405,969,078 bytes,
+SHA-256 `8beb61983ed60302b0725ec526e0f5276ce02e9ee6530a2701fa604f4dc32536`.
+
+Archive `rontrace-run978b.log`, 20,233,600 bytes,
+SHA-256 `de370f17ad3f189ed6df4d630ff40587ecc1298fde5255fd69fda9931007d5ce`.
+
+**What it holds**: `run978b_s_word_frame_is_widened_whole`: the caravan `1/15`'s guys on 3184, the Classical Age's offset clock behind it.
+
+## run978c — the Bantu word: the gap from run978's last block to run978b's first, blocks 257..3175 at stride 50 (2026-10-19, item 3343, `att-3343`)
+
+`docs/AI.md` §276. **What the disk could not answer**: run978b's window opened already apart, and the frame the state first parted lies between the two windows. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run978c`: `--map 7 --end-frame 3177 --timeout 5400 --log-window 257 3175 --stride 50 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 2. Launched 15:10:38 and the game exited at 15:13:39. `success`, 3178 frames, `map_style 7`, seed 12345.
+  `rngcmp.py rontrace-run978c.log rontrace-run972b.log`: **3178 identical, 0 differing**. Filed with `filerun.py`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run978c-greatsahara-bantu-diff4-gap-257-3175-stride50.txt`, 92,020,398 bytes,
+SHA-256 `d1c14397ae941d8a1d96e4a631634e75938aa94c026d67c1fc750f9540fe15dd`.
+
+Archive `rontrace-run978c.log`, 16,807,264 bytes,
+SHA-256 `88fa0250be24558a3e8c5808fb7ec880a5eecec4ddaa11011572e674c5562dfe`.
+
+**What it holds**: `run978c_s_gap_is_widened_whole`: block 2808, the Classical Age on 2776 (`tech_frame`, `bucket[0:food]` 25 against 275), and who=1's food escrow from 1577.
+
+## run978d — the Bantu word: blocks 1556..1611, around run978c's first escrow row (2026-10-19, item 3343, `att-3343`)
+
+`docs/AI.md` §276. **What the disk could not answer**: run978c's stride put the escrow's first parting between 1556 and 1606. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run978d`: `--map 7 --end-frame 1616 --timeout 5400 --log-window 1556 1611 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 2. Launched 15:16:30 and the game exited at 15:19:19. `success`, 1617 frames, `map_style 7`, seed 12345.
+  `rngcmp.py rontrace-run978d.log rontrace-run972b.log`: **1617 identical, 0 differing**. Filed with `filerun.py`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run978d-greatsahara-bantu-diff4-window-1556-1611.txt`, 85,692,178 bytes,
+SHA-256 `985d09475d4879f3935cdc5babcfa45db6681b40f8e165a4830f74c3ed86c873`.
+
+Archive `rontrace-run978d.log`, 10,989,664 bytes,
+SHA-256 `d1d8753153b659b2e810155ee66d539bbd3d0597566c950b03de45c19928c49d`.
+
+**What it holds**: `run978d_s_escrow_window_is_widened_whole`: block 1577, `escrow[0:food]` 16 against 0 (a group's `queue_up` escrow flag).
+
+## run978e — the Bantu word: the word 4376's window, blocks 4370..4626 (2026-10-19, item 3343, `att-3343`)
+
+`docs/AI.md` §276. **What the disk could not answer**: the word moved to 4376 and nothing on disk dumps state there. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run978e`: `--map 7 --end-frame 4631 --timeout 5400 --log-window 4370 4626 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 15:30:40 and the game exited at 15:42:38. `success`, 4632 frames, `map_style 7`, seed 12345.
+  `rngcmp.py rontrace-run978e.log rontrace-run972b.log`: **4632 identical, 0 differing**. Filed with `filerun.py`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run978e-greatsahara-bantu-diff4-window-4370-4626.txt`, 413,936,098 bytes,
+SHA-256 `6fc6bcf4c9ee1613aeed153494a9942d2eea1c302e3bbbfaf248a1b2dcb48af4`.
+
+Archive `rontrace-run978e.log`, 25,152,192 bytes,
+SHA-256 `7085d849f24d9f8346be034303d5a8ca728956fecc2384248f7fe5bb5fab544e`.
+
+**What it holds**: `run978e_s_word_frame_is_widened_whole`: block 4377, who=1's `script_step` 19 against 24 (The Art of War asked twice; the second refused in the original) and Woodcutter `1/2019`.
+
+## run978f — the Bantu word: the word 15582's window, blocks 15576..15832 (2026-10-19, item 3343, `att-3343`)
+
+`docs/AI.md` §276. **What the disk could not answer**: the word moved to 15582 and run972b holds only its setup and closing blocks. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run978f`: `--map 7 --end-frame 15837 --timeout 5400 --log-window 15576 15832 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 15:53:43 and the game exited at 16:10:42. `success`, 15838 frames, `map_style 7`, seed 12345.
+  `rngcmp.py rontrace-run978f.log rontrace-run972b.log`: **15838 identical, 0 differing**. Filed with `filerun.py`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run978f-greatsahara-bantu-diff4-window-15576-15832.txt`, 522,869,512 bytes,
+SHA-256 `7fbb39637c15efa651928f474c3119220d1db601a92fac03c9acd22e4ac4fd31`.
+
+Archive `rontrace-run978f.log`, 93,069,120 bytes,
+SHA-256 `fbbb9695db0b47f36373c099fb057a222af0db37d1f68707369104ea1b188680`.
+
+**What it holds**: `run978f_s_word_frame_is_widened_whole`: who=1's Enlightenment Age offered at 9999999 against 3564000 on 15579 and bought on 15583 at 382 food (Sugar, `get_cost`'s rares' tail).

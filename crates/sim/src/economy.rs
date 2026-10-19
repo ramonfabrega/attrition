@@ -215,7 +215,7 @@ pub const TOBACCO: usize = 19;
 pub const URANIUM: usize = 35;
 
 /// The five rares `TypeData::get_cost@00664090`'s **shared tail** reads
-/// (`switchD_00666b91_default`, listing `00666e40`..`00666f7f`), after
+/// (`switchD_00666b91_default`, listing `00666e46`..`00666f7f`), after
 /// every arm's own discounts and before the captured-building doubling:
 /// Coal on timber (`+0x6da7 & 0x10`), Sugar on food (`+0x6da6 & 0x20`),
 /// Gold on wealth (`+0x6da8 & 0x10`), Iron on metal (`+0x6da9 & 2`) — each

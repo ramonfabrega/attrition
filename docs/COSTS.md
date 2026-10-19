@@ -514,7 +514,7 @@ shape carries no information and the predicates do:
   (`get_cost`, `00666b13`, `rare`/`rare_conquest` bit 12), built and
   diff-backed by item 1346 (`docs/AI.md` §99.16); Sugar, Coal, Gold and
   Iron each cheapen one *resource* across every category; Gypsum cheapens
-  everything.
+  everything (built and diff-backed by item 3343; see "The rares' tail").
 - **Wonders.** The Terra Cotta Army on barracks and stables, Angkor Wat on
   ships, the Pyramids on cities, the Colosseum on forts, the Space Program on
   aircraft, the Statue of Liberty on missiles and bombers. The Supercollider is
@@ -1239,6 +1239,30 @@ block 9589, the War Elephant queued at the Stable `1/2019` at 81 food and 47
 wealth against this crate's 96 and 56, and who=1's buckets short by the
 difference; with the arm both close. The research arm's half is the listing's
 alone.
+
+## The rares' tail
+
+*Item 3343, 2026-10-19. Read from `TypeData::get_cost@00664090:1471`–`1505`
+(listing `00666e46`..`00666f7f`); built as `cost::Modifiers::rare_goods` and
+`cost::Modifiers::gypsum` (set by `Sim::rare_goods_discounts`). `docs/AI.md`
+§276.*
+
+The shared tail every arm reaches (`switchD_00666b91_default`: the unit, the
+building and the tech arms alike), after the library-line tail and before the
+captured-building doubling. One arm by the good being priced (`local_c`, the
+`TypeIndex` good — knowledge is 3): **Coal** takes `COAL_TIMBER_COST` (25) off
+timber, **Sugar** `SUGAR_FOOD_COST` (10) off food, **Gold** `GOLD_WEALTH_COST`
+(10) off wealth, **Iron** `IRON_METAL_COST` (10) off metal — each `(100 − x) ×
+cost / 100`, tested on `rare` or `rare_conquest` (`+0x6da7 & 0x10`, `+0x6da6 &
+0x20`, `+0x6da8 & 0x10`, `+0x6da9 & 2`, and the twins at `+0x28`). Then
+**Gypsum** takes `GYPSUM_COST` (10) off every good, with no condition on the
+good or the type (`+0x6da8 & 4`; the listing's `00666f47` falls through from
+every arm). **Diff-backed**: run978f's block 15583, who=1's Enlightenment Age
+queued at 382 food (425 after Science, then Sugar's tenth) and 850 knowledge;
+this crate priced 425, short of a 388 purse, and `check_income` quartered the
+offer. Item 1194's `1/2024` queue price, 70 against 63 on Great Sahara's 16783,
+was the same tenth. Coal, Gold, Iron and Gypsum are the listing's alone: no
+widening on file holds one of them changing a price.
 
 ## What is diff-backed
 

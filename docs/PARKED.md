@@ -8432,13 +8432,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KZ — reserved
+## Parked by item 3343, 2026-10-19 — the Bantu to the game's end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The word closed at 23627 and the close compares whole (`docs/AI.md` §276). What it read and did not build:
+
+- **3343a — the Aztec citizen speed arm.** `Unit::update_speed@006055c0` carries `aztec_move_speed` beside the Bantu
+  arm (the same function, item 3343's fix 1); not carried. Names no score: the Aztecs are a battery lobby (Great
+  Sahara, tier 2) and their word does not stand on a citizen's speed. Build it when a widening shows an Aztec
+  citizen's `myspeed` apart.
+- **3343b — the research cursor's write order.** `research_tech_with_cost@009ee700` writes `find_counters[0x1e]` only
+  when `can_queue` passes (`find_build@009e2970` writes no counter); `ai_host.rs::research_tech` writes it before the
+  price. Tried on the tree of `3ad1f67ab`: no lobby's pin moved, so it was reverted.
+- **3343c — the newborns' `g.angle[0]`.** run978e and run978f show who=1's newly trained units at `g.angle[0]` ours
+  0x55555555 against theirs 0 (`1/24` on 4467; twelve units on 15576), and two `dest_angle`s on 15624 and 15653;
+  positions agree and the close compares whole, so it names no score.
 
 ## Parked by the next landing, slot LA — reserved
 
