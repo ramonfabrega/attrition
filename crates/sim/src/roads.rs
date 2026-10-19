@@ -186,11 +186,11 @@ impl Sim {
 
     /// The ring, and then the road to the city centre.
     ///
-    /// SEAM: only the `REGEN_FORCE` call `Build::process` makes is modelled.
-    /// `BuildType::mask_me`'s `REGEN_TOTAL` — which sets the flag rather than
-    /// searching — and the `set == 0` teardown that *removes* a footprint's
-    /// roads are both unmodelled; nothing in a traced game reaches them, and
-    /// `City::regen_roads` is what actually flags a building here.
+    /// SEAM: only the `REGEN_FORCE` call `Build::process` makes is modelled,
+    /// and the teardown ([`Sim::unplace_roads`]). `BuildType::mask_me`'s
+    /// `REGEN_TOTAL` — which sets the flag rather than searching — is
+    /// unmodelled; `City::regen_roads` is what actually flags a building
+    /// here.
     pub fn place_roads(&mut self, b: usize) {
         let Some(ty) = self.buildings[b].ty else {
             return;
@@ -200,11 +200,11 @@ impl Sim {
 
         if build::is_city(&self.build_types, ty) {
             // A city lays its own ring and stops: it *is* the destination.
-            self.road_ring(corner, w, h, 0);
+            self.road_ring(corner, w, h, 0, true);
             return;
         }
         if connects_to_roads(&self.build_types, ty) {
-            self.road_ring(corner, w, h, 0);
+            self.road_ring(corner, w, h, 0, true);
         } else {
             // A gatherer gets nothing at all — not the ring, not the road.
             // This is why the four farms and the woodcutter fire their flag
@@ -216,7 +216,7 @@ impl Sim {
                 return;
             }
             // The one arm whose ring runs a tile wider on each side.
-            self.road_ring(corner, w, h, 1);
+            self.road_ring(corner, w, h, 1, true);
         }
         if !self.plan_roads {
             return;
@@ -243,11 +243,34 @@ impl Sim {
         }
     }
 
+    /// **The teardown: a footprint's ring road goes with it** (item 3314,
+    /// `docs/ROADS.md` §9.6). `BuildType::mask_me@006312a0`'s last
+    /// statement on the unmask (`param_4 == 0`, from `Wall::close`) is
+    /// `place_roads(…, 0, REGEN_SIMPLE)`: the same three arms and the same
+    /// ring, each tile handed to `set_road_at(x, y, param_5 = 0, 0, 0)` —
+    /// the mesh door's removal — and no road to the centre, which only
+    /// `param_5 != 0` reaches. `Wall::close` runs ahead of
+    /// `remove_from_city` in `Build::close@00628980` (lines 144 and 165),
+    /// so the third arm's `city >= 0` still holds.
+    pub(crate) fn unplace_roads(&mut self, b: usize) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let (w, h) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let corner = self.tile_corner(ty, self.buildings[b].pos);
+        if build::is_city(&self.build_types, ty) || connects_to_roads(&self.build_types, ty) {
+            self.road_ring(corner, w, h, 0, false);
+        } else if !self.build_types[ty].has(flags::GATHER) && self.buildings[b].city.is_some() {
+            self.road_ring(corner, w, h, 1, false);
+        }
+    }
+
     /// The footprint's ring. `pad` is the one asymmetry between
     /// `place_roads`' three ring loops: the city arm and the
     /// `connects_to_roads` arm walk `corner−1 ..= corner−1+size`, the third
-    /// one column and row further.
-    fn road_ring(&mut self, corner: Pos, w: i32, h: i32, pad: i32) {
+    /// one column and row further. `set` is `place_roads`' `param_5`: a
+    /// road laid, or — on the teardown — taken away.
+    fn road_ring(&mut self, corner: Pos, w: i32, h: i32, pad: i32, set: bool) {
         let (sx, sy) = (corner.x - 1, corner.y - 1);
         let (ex, ey) = (sx + w + pad, sy + h + pad);
         let (tw, th) = (self.world.width() * 4, self.world.height() * 4);
@@ -266,7 +289,7 @@ impl Sim {
                 {
                     continue;
                 }
-                self.set_road_at(t);
+                self.world_set_road_at(t, set, 0, 0);
             }
         }
     }
@@ -1124,6 +1147,43 @@ mod tests {
         }
         assert!(!is_road(&sim, 40, 40), "the footprint itself is not a road");
         assert!(!is_road(&sim, 35, 35), "nor anything outside the ring");
+    }
+
+    /// **The ring goes with the building** (item 3314, `docs/ROADS.md`
+    /// §9.6): `mask_me`'s unmask ends in `place_roads(…, 0, REGEN_SIMPLE)`,
+    /// so a closed Library's ring is handed back through `set_road_at(…,
+    /// 0, 0, 0)` — and the road it planned to the centre, which only
+    /// `param_5 != 0` reaches, stays.
+    #[test]
+    fn a_closed_building_takes_its_ring_road_with_it_and_leaves_its_road() {
+        let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));
+        sim.plan_roads = true;
+        let b = library_at(&mut sim, lib_ty, Pos::new(40, 52));
+        // A 3×3 library at (40,52) has its corner at (39,51): the ring runs
+        // (38,50) to (41,53), border only.
+        let ring: Vec<(i32, i32)> = (38..=41)
+            .flat_map(|x| (50..=53).map(move |y| (x, y)))
+            .filter(|&(x, y)| (x == 38 || x == 41 || y == 50 || y == 53) && is_road(&sim, x, y))
+            .collect();
+        let road: Vec<(i32, i32)> = (44..50)
+            .flat_map(|y| (34..47).map(move |x| (x, y)))
+            .filter(|&(x, y)| is_road(&sim, x, y))
+            .collect();
+        // The box's bottom row and right column are the footprint's own,
+        // blocked here, so the ring is its top row and left column.
+        assert_eq!(ring.len(), 7, "the ring is down: {ring:?}");
+        assert!(!road.is_empty(), "and a road runs back towards the city");
+        sim.close_building(b, false);
+        let left: Vec<_> = ring.iter().filter(|&&(x, y)| is_road(&sim, x, y)).collect();
+        assert!(left.is_empty(), "the ring went with it: {left:?} stand");
+        let kept: Vec<_> = road
+            .iter()
+            .filter(|&&(x, y)| !is_road(&sim, x, y))
+            .collect();
+        assert!(
+            kept.is_empty(),
+            "and the road to the centre stays: {kept:?} went"
+        );
     }
 
     #[test]

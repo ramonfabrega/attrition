@@ -41,8 +41,8 @@ pub(crate) const ROMAN: Lobby = Lobby {
     // 18026 ours 199 draws, theirs 200, index 192: ours `Guy::set_anim+0x97a
     // < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`;
     // past run956's last block (826), its widening owed.
-    count: 18026,
-    sequence: 18026,
+    count: 18620,
+    sequence: 18620,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -161,4 +161,177 @@ fn run956_s_word_frame_is_widened_whole() {
     // 570 — `SITE[n].reg`, `form`, the groups' `held`, the pool and both
     // leaders' `aggression` — and who=1's `SITE[2].reg` on 576 as its
     // sites fill. The word moved to 18026, past the window's last block.
+}
+
+/// run956b: the old word 18026's window, blocks 18020..18276 at run956's
+/// detail (item 3314); run956 ends on block 826 and run899b dumps its setup
+/// and closing blocks only.
+pub(crate) const RUN956B: &str = "gamelog-run956b-eastindies-roman-diff2-window-18020-18277.txt";
+
+/// The window: block 18020 through 18276; the word 18026's own block was
+/// 18027.
+pub(crate) const WIDENING_ROMAN_FRAME_18026: (i64, i64) = (18020, 18276);
+
+pub(crate) fn roman_frame_18026_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN.start],
+        true,
+        ROMAN.long,
+        "run956b",
+        &[(RUN956B, WIDENING_ROMAN_FRAME_18026.0)],
+        WIDENING_ROMAN_FRAME_18026,
+        1,
+        &[18027],
+        true,
+    )
+}
+
+#[test]
+fn run956b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_frame_18026_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 51, "keys that part in the window");
+    // Item 3314: 51 keys, every one standing from 18020 — the control's set
+    // (`SITE[n].reg`, `form`, groups' `held`, the pool, `aggression`) and
+    // who=1's `1/22`..`1/37` `g.angle[0]`, ours `0x55555555` against 0.
+    // Before the Library's ring went with it (`docs/ROADS.md` §9.6), `1/64`'s
+    // move offsets parted from 18028 too.
+}
+
+/// **The word 18026's caravan road search, node for node** (item 3314,
+/// `docs/ROADS.md` §9.6): theirs' `PathFinder::astar_caravan_road` spent
+/// 194 `calc_road_cost` draws on 18026 against ours' 192, and the first
+/// node to part was 32, the step onto tile (28, 40): ours priced it on
+/// road, theirs off. The road was the Library `0/2005`'s ring, which its
+/// death on 18011 takes away in theirs (`mask_me`'s unmask ends in
+/// `place_roads(…, 0, REGEN_SIMPLE)`) and nothing took away here.
+/// run899b's call window (`--callwin 0 24000`) holds every
+/// `valid_roadcoord`/`calc_road_cost` pair.
+#[test]
+fn run899b_s_road_search_on_18026_holds_node_for_node() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) =
+        (dump(ROMAN.long.0), dump(ROMAN.start), trace(ROMAN.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    built.sim.trace_costs = true;
+    // Every road search to the word and past it, node for node.
+    let mut first: Option<String> = None;
+    let mut searched = 0;
+    let mut on_word = (0, 0);
+    while built.sim.frame <= 18030 {
+        let f = built.sim.frame;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.road_marks);
+        let theirs = tr.road_nodes(f);
+        if f == 18026 {
+            on_word = (ours.len(), theirs.len());
+        }
+        if ours.is_empty() && theirs.is_empty() {
+            continue;
+        }
+        searched += 1;
+        if first.is_none()
+            && let Some(i) =
+                (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))
+        {
+            first = Some(format!(
+                "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                ours.get(i),
+                theirs.get(i),
+                ours.len(),
+                theirs.len()
+            ));
+        }
+    }
+    eprintln!("ROAD searched {searched}; first parting {first:?}; on 18026 {on_word:?}");
+    pin_eq!(
+        on_word,
+        (194, 194),
+        "the word's road nodes, ours and theirs"
+    );
+    pin_eq!(searched, 107, "frames with a road search to 18030");
+    pin_eq!(first, None, "the first node that parts");
+}
+
+/// **The lobby's closing state** (item 3314, DECISIONS 55): the draws agree
+/// to the game's last frame, 18620, once the Library's ring road goes with
+/// it (`docs/ROADS.md` §9.6), and run899b — the draw stream's own capture,
+/// `cover=0` — prints the closing block 18621 whole. Walked to it and
+/// compared whole, as the Germans' `run643_german_closing_state` is.
+#[test]
+fn run899b_roman_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(ROMAN.long.0), dump(ROMAN.start), trace(ROMAN.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Roman closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 18621, "the closing block");
+    // Item 3314, the first walk: 110 units compared on block 18621, none
+    // apart, no closing field parted — and six buildings and a city
+    // unlinked: theirs' `1/2040`..`1/2045` and city `1/2040` are who=0's
+    // Village `0/2000` and its five buildings, captured on the game's last
+    // frame, where ours' Village stands at damage 1199 of 1200 (level 5;
+    // a city centre is taken at 6, `check_capture_eligible@0062d1d0`).
+    // run956b's last block has it at 840 on both sides.
+    pin_eq!(e.compared, 110, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 6, 0, 1, 0], "the closing counts");
 }

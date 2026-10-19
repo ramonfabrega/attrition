@@ -1910,6 +1910,11 @@ impl Sim {
                 }
             }
         }
+        // `mask_me`'s last statement on the unmask: `place_roads(…, 0,
+        // REGEN_SIMPLE)` takes the ring road away (`docs/ROADS.md` §9.6).
+        if !on {
+            self.unplace_roads(b);
+        }
     }
 
     /// **A dock marks the water around it bad** — `BuildType::mask_me@
