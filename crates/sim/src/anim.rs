@@ -1104,9 +1104,19 @@ impl Sim {
     /// on 9710 and stands trackless on run529's block 9759, where this
     /// crate kept the Catapult's two tracks and walked them (item 1338).
     ///
+    /// **A kept guy forgets the in-danger mark.** `init_real:161` writes
+    /// `guy_flags` (`+0x9a`) as 0 before it rebuilds the type's bits, so
+    /// `0x20` — [`crate::Unit::guy_flag_0x20`], which collapses the idle
+    /// roll to two variants — is gone the frame a figure is re-typed.
+    /// Great Lakes (Iroquois)' `1/25`, Javelineers upgraded to Peltasts on
+    /// 10852 mid-attack, reads `guy_flags` 48 → 16 on run943's block 10853
+    /// and wraps into `IDLE2` there, where this crate kept the mark and
+    /// played `IDLE1` (item 3287, `docs/AI.md` §260).
+    ///
     /// SEAM: `init_real`'s `+0x20..+0x3c` turret zeroing and its
     /// `reset_pivots` — no converted type here has a pivot.
     pub(crate) fn reinit_guys(&mut self, u: usize, ty: usize) {
+        self.units[u].guy_flag_0x20 = false;
         let unit = &self.units[u];
         let (who, o) = (unit.owner, unit.index);
         let packed = unit.combat.packed;
