@@ -597,6 +597,52 @@ pub const fn contribution(amount: i32, helpers: i32) -> i32 {
     if s < 1 { 1 } else { s }
 }
 
+/// `v` rounded to the nearest `f32` (ties to even), as an integer: what
+/// `cvtdq2ps` / `cvtpd2ps` make of an integer below 2^40.
+fn f32_round(v: i64) -> i64 {
+    let mag = v.unsigned_abs();
+    let bits = 64 - mag.leading_zeros();
+    if bits <= 24 {
+        return v;
+    }
+    let shift = bits - 24;
+    let (q, r) = (mag >> shift, mag & ((1 << shift) - 1));
+    let half = 1u64 << (shift - 1);
+    let q = if r > half || (r == half && q & 1 == 1) {
+        q + 1
+    } else {
+        q
+    };
+    let out = (q << shift) as i64;
+    if v < 0 { -out } else { out }
+}
+
+/// The test at the tail of `Wall::do_construct@006434d0`: `recalc_builds`
+/// is raised when the job counter crossed 0.84 of the construct time this
+/// call — `(float)new / (float)ct > 0.84f` and `(float)old / (float)ct <=
+/// 0.84f`, `old` read signed (`cvtdq2ps`), the others unsigned through a
+/// double, each division a single-precision one. `0x3f570a3d` is
+/// `0xD70A3D * 2^-24` with an odd mantissa, so a quotient is above it exactly
+/// when it reaches the midpoint to the next float, `0x1AE147B * 2^-25` (a
+/// tie rounds to the even neighbour, which is above); a zero divisor is an
+/// infinity or a NaN, and a NaN fails both tests.
+pub fn recalc_crossed(old: i32, new: u32, ct_old: u32, ct_new: u32) -> bool {
+    const MID: i128 = 0x1AE_147B;
+    let (old, new) = (f32_round(i64::from(old)), f32_round(i64::from(new)));
+    let (ct_old, ct_new) = (f32_round(i64::from(ct_old)), f32_round(i64::from(ct_new)));
+    let above = if ct_new == 0 {
+        new > 0
+    } else {
+        i128::from(new) << 25 >= MID * i128::from(ct_new)
+    };
+    let at_most = if ct_old == 0 {
+        old < 0
+    } else {
+        i128::from(old) << 25 < MID * i128::from(ct_old)
+    };
+    above && at_most
+}
+
 // ----------------------------------------------------------------------
 // Hit points
 // ----------------------------------------------------------------------

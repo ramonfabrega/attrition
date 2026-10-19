@@ -1319,6 +1319,245 @@ const MERCHANTDUTCH: crate::tech::TypeId = 0x3e;
 /// `idle 3` and whose unpack `add_cast_order` re-aims at `0x28e`.
 const MACHINEGUN: crate::tech::TypeId = 0x7b;
 
+/// What `Unit::do_attack_ground@005f1410` asks of its unit and the world:
+/// the one body [`do_attack_ground_steps`] runs over [`Sim`] (`SimAttackGround`)
+/// and, in `crates/sim/src/sweep/unit_do_attack_ground.rs`, over the emulated
+/// original's stubs. The attack-unit-0 arm (a player's ground click: the
+/// peace test, the range test, the nearby-spot search, the walk-in) is the
+/// SEAM the steps keep as a kill.
+pub trait AttackGroundView {
+    fn can_attack_ground(&mut self) -> bool;
+    fn kill_current_order(&mut self);
+    /// The order's point (`+4`, `+8`).
+    fn at(&self) -> (i32, i32);
+    /// The unit's own square, decoded.
+    fn pos(&self) -> (i32, i32);
+    fn find_angle(&mut self, dx: i32, dy: i32) -> i32;
+    /// `unit_flags & 0x40`.
+    fn sideways(&mut self) -> bool;
+    /// `unit_flags & 0x2000000`.
+    fn rocks(&self) -> bool;
+    fn heading(&self) -> i32;
+    fn recharging(&self) -> u8;
+    /// The order's flag byte, read signed: bit 7.
+    fn fired(&self) -> bool;
+    /// Guy 0's current animation slot, a signed byte.
+    fn guy0_anim(&self) -> i8;
+    fn set_anim(&mut self, anim: i8, force: bool, p3: bool);
+    /// A bookkeeping hook of the port's alone.
+    fn reload_idle_site(&mut self) {}
+    fn attack_unit(&self) -> u8;
+    fn set_attack_unit(&mut self, n: u8);
+    fn work(&mut self);
+    fn clear_attack(&mut self);
+    /// The type's packer bit and the unit's packed mask.
+    fn packs_and_packed(&self) -> bool;
+    fn unpack(&mut self);
+    /// `unit_masks |= 0x11000`.
+    fn mark_masks(&mut self);
+    fn set_angle(&mut self, angle: i32);
+    fn set_fired(&mut self);
+    /// The type's fire graphic (`+0x2cc`) is set, so `fire_ammo(-1, -1)` runs.
+    fn fires(&self) -> bool;
+    fn fire_ammo(&mut self);
+    fn recharge(&mut self) -> u8;
+    fn set_recharging(&mut self, n: u8);
+}
+
+/// **`Unit::do_attack_ground@005f1410`** over a view (`docs/COMBAT.md` §57.3,
+/// `docs/ORDERS.md` §26), in the original's order; see [`Sim::do_attack_ground`].
+pub fn do_attack_ground_steps<V: AttackGroundView>(v: &mut V) {
+    if !v.can_attack_ground() || v.attack_unit() == 0 {
+        v.kill_current_order();
+        return;
+    }
+    let (ax, ay) = v.at();
+    let (px, py) = v.pos();
+    let (dx, dy) = (ax.wrapping_sub(px), ay.wrapping_sub(py));
+    let direct = v.find_angle(dx, dy);
+    let mut facing = direct;
+    if v.sideways() {
+        const QUARTER: i32 = 0x4000_0000;
+        let heading = v.heading();
+        let off = |a: i32| {
+            let d = heading.wrapping_sub(a) as u32;
+            if d > 0x8000_0000 { !d } else { d }
+        };
+        let minus = direct.wrapping_sub(QUARTER);
+        let plus = direct.wrapping_add(QUARTER);
+        facing = if off(minus) < off(plus) { minus } else { plus };
+    }
+    if v.recharging() != 0 {
+        if v.fired() {
+            return;
+        }
+        if (0..4).contains(&v.guy0_anim()) {
+            return;
+        }
+        v.reload_idle_site();
+        v.set_anim(anim::DEFAULT, true, true);
+        return;
+    }
+    let shots = v.attack_unit();
+    if shots == 1 {
+        v.kill_current_order();
+        v.work();
+        return;
+    }
+    v.set_attack_unit(1);
+    v.clear_attack();
+    if v.packs_and_packed() {
+        v.unpack();
+        return;
+    }
+    v.mark_masks();
+    if facing != v.heading() {
+        v.set_angle(facing);
+    }
+    v.set_fired();
+    if v.rocks() {
+        let again = v.find_angle(dx, dy);
+        let slot = if again.wrapping_sub(facing) >= 0 {
+            anim::ATTACK2
+        } else {
+            anim::ATTACK1
+        };
+        v.set_anim(slot, false, false);
+    } else {
+        v.set_anim(anim::ATTACK1, false, true);
+    }
+    if v.fires() {
+        v.fire_ammo();
+    }
+    let r = v.recharge();
+    v.set_recharging(r.wrapping_add(1));
+}
+
+/// [`AttackGroundView`] over the live [`Sim`].
+struct SimAttackGround<'a> {
+    s: &'a mut Sim,
+    u: usize,
+    frame: i64,
+    g: AttackGroundOrder,
+}
+
+impl AttackGroundView for SimAttackGround<'_> {
+    fn can_attack_ground(&mut self) -> bool {
+        self.s.can_attack_ground(self.u)
+    }
+    fn kill_current_order(&mut self) {
+        self.s.kill_current_order(self.u);
+    }
+    fn at(&self) -> (i32, i32) {
+        (self.g.at.x, self.g.at.y)
+    }
+    fn pos(&self) -> (i32, i32) {
+        let p = self.s.units[self.u].pos;
+        (p.x, p.y)
+    }
+    fn find_angle(&mut self, dx: i32, dy: i32) -> i32 {
+        crate::movement::find_angle(dx, dy).0
+    }
+    fn sideways(&mut self) -> bool {
+        self.s.units[self.u].ty.is_some_and(|t| {
+            self.s.unit_types[t]
+                .cols
+                .flag(crate::ai_load::uflags::SIDEWAYS)
+        })
+    }
+    fn rocks(&self) -> bool {
+        self.s.units[self.u].ty.is_some_and(|t| {
+            self.s.unit_types[t]
+                .cols
+                .flag(crate::ai_load::uflags::ROCKS)
+        })
+    }
+    fn heading(&self) -> i32 {
+        self.s.units[self.u].movement.heading.0
+    }
+    fn recharging(&self) -> u8 {
+        self.s.units[self.u].combat.recharging
+    }
+    fn fired(&self) -> bool {
+        self.s
+            .current_order(self.u)
+            .is_some_and(|o| o.flags & flag::FIRED != 0)
+    }
+    fn guy0_anim(&self) -> i8 {
+        self.s.units[self.u].guys.first().map_or(-1, |g| g.anim)
+    }
+    fn set_anim(&mut self, anim: i8, force: bool, p3: bool) {
+        self.s.set_anim(self.u, anim, force, p3);
+    }
+    fn reload_idle_site(&mut self) {
+        self.s.mark(anim::SITE_RELOAD_IDLE);
+    }
+    fn attack_unit(&self) -> u8 {
+        self.g.attack_unit
+    }
+    fn set_attack_unit(&mut self, n: u8) {
+        self.g.attack_unit = n;
+        let g = self.g;
+        if let Some(front) = self.s.units[self.u].orders.front_mut() {
+            front.body = Body::AttackGround(g);
+        }
+    }
+    fn work(&mut self) {
+        self.s.work(self.u, self.frame);
+    }
+    fn clear_attack(&mut self) {
+        self.s.clear_attack(self.u);
+    }
+    fn packs_and_packed(&self) -> bool {
+        self.s.units[self.u]
+            .ty
+            .is_some_and(|t| self.s.unit_types[t].combat.packs)
+            && self.s.units[self.u].combat.packed
+    }
+    fn unpack(&mut self) {
+        self.s
+            .add_cast_order_at(self.u, spell::UNPACK, QueuePos::First);
+    }
+    fn mark_masks(&mut self) {
+        // `unit_masks |= 0x11000` (item 2785).
+        self.s.units[self.u].blown = true;
+        self.s.units[self.u].fought = true;
+    }
+    fn set_angle(&mut self, angle: i32) {
+        self.s.unit_set_angle(self.u, crate::movement::Angle(angle));
+    }
+    fn set_fired(&mut self) {
+        if let Some(front) = self.s.units[self.u].orders.front_mut() {
+            front.flags |= flag::FIRED;
+        }
+    }
+    fn fires(&self) -> bool {
+        !(self.s.max_range_of(Obj::Unit(self.u)) == 0 || self.s.launches_from_anim(self.u))
+    }
+    fn fire_ammo(&mut self) {
+        let from = self.s.units[self.u].pos;
+        let direct = crate::movement::find_angle(self.g.at.x - from.x, self.g.at.y - from.y);
+        let sz = self.s.ground_z(from) + 100;
+        self.s.fire_ammo_ground(
+            Obj::Unit(self.u),
+            self.g,
+            direct,
+            self.frame,
+            from,
+            sz,
+            0,
+            false,
+            false,
+        );
+    }
+    fn recharge(&mut self) -> u8 {
+        self.s.reload_frames(self.u)
+    }
+    fn set_recharging(&mut self, n: u8) {
+        self.s.units[self.u].combat.recharging = n;
+    }
+}
+
 /// `UnitTypeData::can_attack_ground@0061db20` past its rush-rules gate: a
 /// `max_range` (`+0x1fc`), neither of `unit_flags & 0x102000` (`+0x2b4`),
 /// then `has_objmask` asked EXPLOSIVE, SIEGE, NAVAL and BOMBARD in that
@@ -10134,73 +10373,35 @@ impl Sim {
     ///    kills the order and re-enters `Unit::work` (vslot `+0x188`), so
     ///    the attack beneath runs on this frame; 2 becomes 1 and fires.
     /// 5. `set_attack(−1, −1)`: the aimed figures forget their target. A
-    ///    packed packer unpacks instead of firing.
-    /// 6. `unit_masks |= 0x11000` (SEAM: this crate keeps neither bit),
-    ///    the turn, `flags |= 0x80`, the swing (`fight`'s own four-arm
-    ///    choice, two arms of which exist here), the shot, and **`recharging
-    ///    = recharge() + 1`**: run146's catapult reads 83 on the push where
-    ///    its direct strike at a building reads 82 (run44 `0/15`, 408).
+    ///    packed packer unpacks instead of firing, **before** the mask is
+    ///    written (the sweep's reading: the mask is after the pack test).
+    /// 6. `unit_masks |= 0x11000` (SEAM: this crate keeps neither bit
+    ///    apart), the turn, `flags |= 0x80`, the swing — **its own two
+    ///    arms, not `fight`'s four**: a rocking type (`unit_flags &
+    ///    0x2000000`) asks `find_angle` again and takes `ATTACK2` when
+    ///    that is not behind the facing, every other type `ATTACK1` with
+    ///    the idle re-roll; no radar-jam arm — the shot when the type has a
+    ///    fire graphic, and **`recharging = recharge() + 1`**: run146's
+    ///    catapult reads 83 on the push where its direct strike at a
+    ///    building reads 82 (run44 `0/15`, 408).
+    ///
+    /// The body is [`do_attack_ground_steps`] over [`AttackGroundView`];
+    /// `crates/sim/src/sweep/unit_do_attack_ground.rs` runs it against the
+    /// original under the emulator (item 3289).
     pub(crate) fn do_attack_ground(&mut self, u: usize, frame: i64) {
         let Some(Order {
-            body: Body::AttackGround(mut g),
-            flags,
+            body: Body::AttackGround(g),
+            ..
         }) = self.current_order(u).copied()
         else {
             return;
         };
-        if !self.can_attack_ground(u) || g.attack_unit == 0 {
-            self.kill_current_order(u);
-            return;
-        }
-        let from = self.units[u].pos;
-        let direct = crate::movement::find_angle(g.at.x - from.x, g.at.y - from.y);
-        let angle = self.broadside_angle(u, direct);
-        if self.units[u].combat.recharging != 0 {
-            if flags & flag::FIRED != 0 {
-                return;
-            }
-            if self.units[u]
-                .guys
-                .first()
-                .is_some_and(|g0| (0..4).contains(&g0.anim))
-            {
-                return;
-            }
-            self.mark(anim::SITE_RELOAD_IDLE);
-            self.set_anim(u, anim::DEFAULT, true, true);
-            return;
-        }
-        if g.attack_unit == 1 {
-            self.kill_current_order(u);
-            self.work(u, frame);
-            return;
-        }
-        g.attack_unit = 1;
-        if let Some(front) = self.units[u].orders.front_mut() {
-            front.body = Body::AttackGround(g);
-        }
-        self.clear_attack(u);
-        // `unit_masks |= 0x11000` (step 6; item 2785).
-        self.units[u].blown = true;
-        self.units[u].fought = true;
-        if self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].combat.packs)
-            && self.units[u].combat.packed
-        {
-            self.add_cast_order_at(u, spell::UNPACK, QueuePos::First);
-            return;
-        }
-        if angle != self.units[u].movement.heading {
-            self.unit_set_angle(u, angle);
-        }
-        if let Some(front) = self.units[u].orders.front_mut() {
-            front.flags |= flag::FIRED;
-        }
-        self.swing_anim_pub(u, direct);
-        self.fire_ground(u, g, direct, frame);
-        let r = self.reload_frames(u);
-        self.units[u].combat.recharging = r.wrapping_add(1);
+        do_attack_ground_steps(&mut SimAttackGround {
+            s: self,
+            u,
+            frame,
+            g,
+        });
     }
 
     /// **`UnitTypeData::can_attack_ground@0061db20`**, from the listing

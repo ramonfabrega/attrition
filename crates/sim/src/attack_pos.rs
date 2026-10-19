@@ -57,6 +57,22 @@ struct Arm {
     at: Pos,
 }
 
+/// `Unit::find_melee_pos@006010b0`'s minimum (`6011c7`-`60121b`): the slot
+/// nearest `from` by `vector_dist`, ties to the earlier one; `None` for no
+/// slots.
+pub fn nearest_slot(slots: &[Pos], from: Pos) -> Option<Pos> {
+    let mut best = *slots.first()?;
+    let mut best_d = 99_999_999;
+    for s in slots {
+        let d = vector_dist(s.x - from.x, s.y - from.y);
+        if d < best_d {
+            best_d = d;
+            best = *s;
+        }
+    }
+    Some(best)
+}
+
 /// The walk of `Unit::find_open_slots@00600e30`, free of the world: `mine`
 /// and `theirs` are the two `coll_size`s, `hoplites` the asker's
 /// `is(HOPLITES)`, `c` the target's unit cell, `dims` the world's size in
@@ -64,7 +80,7 @@ struct Arm {
 /// (`invalid_loc` with `param_3` clear, `find_collision`,
 /// `find_ordered_collision`, in that order and short-circuited); `at` is
 /// the candidate's quarter-tile centre, `tile` its tile.
-pub(crate) fn find_open_slots_steps(
+pub fn find_open_slots_steps(
     mine: i32,
     theirs: i32,
     hoplites: bool,
@@ -362,16 +378,7 @@ impl crate::Sim {
             // `full`, and nothing here reads it.
             return None;
         }
-        let mut best = slots[0];
-        let mut best_d = 99_999_999;
-        for s in slots {
-            let d = vector_dist(s.x - from.x, s.y - from.y);
-            if d < best_d {
-                best_d = d;
-                best = s;
-            }
-        }
-        Some(best)
+        nearest_slot(&slots, from)
     }
 
     /// `Unit::find_open_slots@00600e30` — the square ring of quarter-tile

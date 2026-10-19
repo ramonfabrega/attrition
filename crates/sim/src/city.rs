@@ -1936,47 +1936,10 @@ impl Sim {
         if !self.buildings[b].alive {
             return false;
         }
-        if !self.buildings[b].started {
-            let (who, ty, pos) = {
-                let bd = &self.buildings[b];
-                (bd.owner, bd.ty, bd.pos)
-            };
-            if let Some(ty) = ty {
-                let r = self.blocked_site(Some(who), ty, pos, Some(b));
-                let wonder_ok = r == Blocked::Wonder
-                    && self.buildings[b].city.is_some_and(|c| {
-                        self.num_wonders(c, true)
-                            <= 1 + i32::from(self.nation[who as usize].egyptians)
-                    });
-                let ok = matches!(
-                    r,
-                    Blocked::Clear
-                        | Blocked::One
-                        | Blocked::OneOther
-                        | Blocked::Farm
-                        | Blocked::NeedWall
-                ) || wonder_ok;
-                if !ok {
-                    self.disband_building(b, true);
-                    return false;
-                }
-            }
-            self.start_building(b);
-        }
-        if self.buildings[b].active {
-            return false;
-        }
-        let ct = self.construct_time_of(b);
-        let bd = &mut self.buildings[b];
-        let share = build::contribution(amount, bd.helpers);
-        bd.helpers += 1;
-        bd.job_counter_2 += share;
-        bd.job_counter += share;
-        if bd.job_counter >= ct {
-            self.activate(b, false, true);
-            return true;
-        }
-        false
+        crate::construct::do_construct_steps(
+            &mut crate::construct::SimConstruct { sim: self, b },
+            amount,
+        )
     }
 
     /// **`Build::activate@00623e20`'s Senate arm** (`docs/CITIES.md` §15):
@@ -2147,6 +2110,10 @@ impl Sim {
         // `Build::activate@00623e20` lines 398/402/443: the economy's dirty
         // flag, so a finished farm pays within eight frames, not 512.
         self.economy_changed(who);
+        // `Build::activate@00623e20:132`, ahead of every type's own: the
+        // `recharging` a site counted up while it was built (`Wall::
+        // do_construct`'s `+0x7a += 1`) starts again from nothing.
+        self.buildings[b].recharging = 0;
         let Some(ty) = self.buildings[b].ty else {
             self.buildings[b].active = true;
             self.buildings[b].activated = true;

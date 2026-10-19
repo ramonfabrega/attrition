@@ -176,6 +176,8 @@ mod unit_data_will_be_corner;
 mod unit_die;
 #[path = "unit_do_air_attack_ground.rs"]
 mod unit_do_air_attack_ground;
+#[path = "unit_do_attack_ground.rs"]
+mod unit_do_attack_ground;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
 #[path = "unit_do_explore_to.rs"]
@@ -202,6 +204,8 @@ mod unit_execute_events;
 mod unit_find_garrison_build;
 #[path = "unit_find_goody_box.rs"]
 mod unit_find_goody_box;
+#[path = "unit_find_melee_pos.rs"]
+mod unit_find_melee_pos;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
 #[path = "unit_find_new_bomber_target.rs"]
@@ -260,6 +264,8 @@ mod unit_set_ai_control;
 mod unit_set_angle;
 #[path = "unit_set_mask.rs"]
 mod unit_set_mask;
+#[path = "unit_set_new_location.rs"]
+mod unit_set_new_location;
 #[path = "unit_set_rally.rs"]
 mod unit_set_rally;
 #[path = "unit_set_type.rs"]
