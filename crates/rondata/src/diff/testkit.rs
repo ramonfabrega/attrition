@@ -9926,6 +9926,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3318,
         Some(crate::diff::spanish_word::WIDENING_SPANISH_CLOSING),
     ),
+    // **The battery's fifth word** (item 3329, DECISIONS 72, 83): frame
+    // 1567, the Dutch lobby's first try. run915 dumps blocks 0..36 and
+    // run917 its setup and closing blocks only, so no dump on disk held the
+    // word's block: its widening is run963's window, owed by this item.
+    (
+        "DUTCH_WORD",
+        crate::diff::dutch_word::DUTCH_WORD,
+        None,
+        3329,
+        None,
+    ),
     // **The battery's third word** (item 3314, DECISIONS 72, 83): frame
     // 576, the Roman lobby's first try. run899 dumps blocks 0..36 and
     // run899b its setup and closing blocks only, so no dump on disk held
@@ -10263,6 +10274,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's fifth word** (DECISIONS 72, 83; item 3329): East
+    // Indies, the Dutch at Difficulty 4 — the held-out battery's lowest
+    // lobby after the Greeks, which does not end itself: the long runs to
+    // 24000. It joins the `Battery word` line first; the closed rows
+    // choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesDutchTier4",
+        named: "East Indies (Dutch)",
+        word: crate::diff::dutch_word::DUTCH_WORD,
+        length: 24_000,
+        endpoint: None,
+        window: None,
+    },
     // **The battery's Great Sahara word** (DECISIONS 72, 83; item 3318):
     // the Spanish at Difficulty 3 — the held-out battery's lowest lobby
     // once item 3306 closed the Iroquois, which ends itself at 22700. It

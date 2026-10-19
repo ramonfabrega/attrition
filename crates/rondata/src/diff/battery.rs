@@ -83,6 +83,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // AI word (item 3314, DECISIONS 72, 83): the Romans at Difficulty 2,
     // East Indies.
     (18, 6, 2),
+    // The battery's lowest lobby after item 3322's booking beside the
+    // Greeks, promoted to the AI word (item 3329, DECISIONS 72, 83): the
+    // Dutch at Difficulty 4, East Indies.
+    (18, 22, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -186,28 +190,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `EastIndiesRomanTier2` (Romans 6, Difficulty 2, map 18; run899 and
     // run899b, 576 of 18620) left the battery on item 3314 for the AI word
     // (`diff::roman_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3107 (DECISIONS 72, `docs/AI.md` §125,
-    // §246; runs 915 and 917) when the Iroquois left for the AI word, so
-    // the held-out set stays replenished: East Indies, the Dutch at
-    // Difficulty 4 — a nation no dump held and a tier no lobby on the map
-    // has. The game does not end itself: the long runs to 24000.
-    Lobby {
-        name: "EastIndiesDutchTier4",
-        map_style: 18,
-        ai_tribe: 22,
-        difficulty: 4,
-        start: "gamelog-run915-eastindies-dutch-diff4-start.txt",
-        long: (
-            "gamelog-run917-eastindies-dutch-diff4-24k-trace.txt",
-            "rontrace-run917.log",
-        ),
-        length: 24000,
-        // Item 3107, the first try: ours 6 draws, theirs 5, at 2 ours
-        // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
-        // `Farms::inc_time+0x1ae`.
-        count: 1567,
-        sequence: 1567,
-    },
+    // `EastIndiesDutchTier4` (Dutch 22, Difficulty 4, map 18; run915 and
+    // run917, 1567 of 24000) left the battery on item 3329 for the AI word
+    // (`diff::dutch_word`, DECISIONS 72, 83).
     // The lobby minted by item 3318 (DECISIONS 72, `docs/AI.md` §125,
     // §264; runs 957 and 957b) when the Spanish left for the AI word, so
     // the held-out set stays eight: Great Sahara, the Greeks at Difficulty
