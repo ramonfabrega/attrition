@@ -127,7 +127,8 @@ ones: `RON_TARGET_PROBE` (the target triple, item 386), `RON_TURN_PROBE`
 (the turn experiment) and `RON_LEADER_PROBE` (the AI's own offers —
 `Leader::create_units@006c40a0` as the bracket, `MakeList::make_me@006c9be0`
 as the offer, `Leader::make_this@006c94f0` as the purchase; `docs/AI.md`
-§52, run114). `RON_COLLIDE_PROBE` (the collision sweep, `docs/COLLISION.md`
+§52, run114; and `Leader::check_income@006cc800`, the affordability factor,
+item 3332). `RON_COLLIDE_PROBE` (the collision sweep, `docs/COLLISION.md`
 §9.1) and `RON_GUARD_PROBE` (a unit's own step bracketed — `do_guard`,
 `do_move`, `move_step`, `resolve_unit_collision`, `detect_unit_collision`,
 `detect_boat_collision`, each `this` named by an `INFO 15`; item 696,
