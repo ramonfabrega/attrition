@@ -325,6 +325,14 @@ pub struct Modifiers {
     /// Non-library technology discount, after Science and before the
     /// British taxation term. Its own truncation (`docs/AI.md` §109).
     pub democracy: i32,
+    /// `get_cost`'s **Greek research arm** (`TypeData::get_cost@00664090`,
+    /// `LAB_006667c4`, `:1250`–`1255`): an age or a library epoch priced
+    /// for a leader with `has_tribe_bonus(5)` takes `GREEK_RESEARCH_COST`
+    /// off **every good but knowledge** (`local_c != 3`), its own
+    /// `(100 − x) × cost / 100` after the lobby's `tech_cost` term and
+    /// ahead of Silver and the library-line tail. Zero is the identity
+    /// (item 3326, `docs/AI.md` §266).
+    pub greek_research: i32,
     /// Maize halves the ramp term — `MAIZE_RAMPING_BONUS`.
     pub maize: bool,
     /// Producing at a captured, unassimilated building doubles the price.
@@ -355,6 +363,13 @@ pub struct Modifiers {
     /// the wonder tail (and the uncarried Korean tower step). Zero is the
     /// identity (item 3314, `docs/AI.md` §263).
     pub fort: [i32; 2],
+    /// `get_cost`'s **Greek Library arm** (`TypeData::get_cost@00664090:966`–`972`,
+    /// through `LAB_00665f31`): a Library (`0x1b3`) or a University (`0x1a4`),
+    /// by equality, priced for a leader with `has_tribe_bonus(5)` takes
+    /// `GREEK_LIBRARY_COST` off, its own `(100 − x) × cost / 100` after the
+    /// fort arm and Tikal's temple term. Zero is the identity (item 3326,
+    /// `docs/AI.md` §266).
+    pub greek_library: i32,
     /// `get_cost`'s **research** arm: the type is not yet available to the
     /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
     /// research, and it takes the place of the ramp. `None` is the train arm.
@@ -619,6 +634,12 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     for pct in m.fort {
         cost = (100 - pct) * cost / 100;
+    }
+    if m.greek_library != 0 {
+        cost = (100 - m.greek_library) * cost / 100;
+    }
+    if m.greek_research != 0 && r != Resource::Knowledge {
+        cost = (100 - m.greek_research) * cost / 100;
     }
     if m.democracy != 0 {
         cost = cost.wrapping_mul(100 - m.democracy) / 100;

@@ -1145,6 +1145,7 @@ impl Sim {
                     [0; 2]
                 },
                 fort: self.fort_discounts(who, ty),
+                greek_library: self.greek_library_discount(who, ty),
                 ..cost::Modifiers::default()
             },
             &holdings.available,
@@ -1184,6 +1185,30 @@ impl Sim {
             .copied()
             .unwrap_or(0)
             == 0
+    }
+
+    /// `get_cost`'s **Greek Library arm** (`:966`–`972`): the Library or
+    /// the University by type equality, for a Greek leader
+    /// ([`cost::Modifiers::greek_library`]). run961b's block 1977: who=1's
+    /// University `1/2013` is placed on 1976 at timber 27, wealth 17 —
+    /// a third of 80 and 50 — where ours could not pay the whole price
+    /// (item 3326, `docs/AI.md` §266).
+    fn greek_library_discount(&self, who: Player, ty: usize) -> i32 {
+        let library = matches!(
+            self.build_types[ty].ident,
+            Ident::Library | Ident::University
+        );
+        if library
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[who as usize],
+                crate::nations::power::GREEKS,
+            )
+        {
+            self.tuning.greek_library_cost
+        } else {
+            0
+        }
     }
 
     /// `get_cost`'s city tail (`00665c46`..`00665c9b`): `BANTU_CITY_COST`

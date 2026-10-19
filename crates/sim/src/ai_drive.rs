@@ -48,7 +48,10 @@ impl Sim {
         leader.player_flags = player_flags;
         leader.choose_script(&mut self.rng, player_flags, team_style, team, lakota);
         if std::env::var_os("RON_PROBE_PERS").is_some() {
-            eprintln!("PROBE pers who={who} tribe={tribe} flags={player_flags:#x} rush={} script={:?} early_army={}", leader.pers.rush, leader.script, leader.pers.early_army);
+            eprintln!(
+                "PROBE pers who={who} tribe={tribe} flags={player_flags:#x} rush={} script={:?} early_army={}",
+                leader.pers.rush, leader.script, leader.pers.early_army
+            );
         }
     }
 

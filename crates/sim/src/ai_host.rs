@@ -201,8 +201,15 @@ impl Host for ScriptHost<'_> {
 
     fn call(&mut self, name: &str, args: &[Value]) -> Result<Value, String> {
         let r = self.call_probed(name, args);
-        if std::env::var("RON_PROBE_HOST").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.sim.frame) {
-            eprintln!("PROBE host f{} {name}({:?}) -> {:?}", self.sim.frame, args, r);
+        if std::env::var("RON_PROBE_HOST")
+            .ok()
+            .and_then(|v| v.parse::<i64>().ok())
+            == Some(self.sim.frame)
+        {
+            eprintln!(
+                "PROBE host f{} {name}({:?}) -> {:?}",
+                self.sim.frame, args, r
+            );
         }
         r
     }

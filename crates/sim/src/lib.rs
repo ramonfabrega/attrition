@@ -3173,6 +3173,7 @@ impl Sim {
             &cost::Modifiers {
                 science_ahead: self.science_ahead(who, t),
                 democracy: self.democracy_tech_discount(who, t),
+                greek_research: self.greek_research_discount(who, t),
                 late_discount: if british_taxation {
                     self.tuning.british_taxation_discount
                 } else {
@@ -3229,6 +3230,29 @@ impl Sim {
                 )
             })
         })
+    }
+
+    /// `TypeData::get_cost`'s **Greek research arm** (`LAB_006667c4`): an
+    /// age (`0x220..0x226`) or a library epoch (`0x227..0x242`) priced for
+    /// a Greek leader (`has_tribe_bonus(5)`) takes `GREEK_RESEARCH_COST`
+    /// off every good but knowledge ([`cost::Modifiers::greek_research`]).
+    /// run961c's block 37: who=1's City State at the Library `1/2005` is
+    /// queued at food 108 in the original against 120 here, and who=1's food
+    /// bucket stands twelve apart from frame 36 (item 3326, `docs/AI.md`
+    /// §266).
+    fn greek_research_discount(&self, who: Player, t: tech::TypeId) -> i32 {
+        if matches!(
+            self.tech_tree.kind(t),
+            tech::Kind::Age(_) | tech::Kind::Epoch { .. }
+        ) && self.tech_tree.has_tribe_bonus(
+            &self.setup,
+            &self.tech[who as usize],
+            crate::nations::power::GREEKS,
+        ) {
+            self.tuning.greek_research_cost
+        } else {
+            0
+        }
     }
 
     /// `TypeData::get_cost`'s **Silver arm** (`00666af0`..`00666b51`): an
@@ -3391,9 +3415,11 @@ impl Sim {
             tech::Kind::Age(_) | tech::Kind::Epoch { .. }
         );
         if age_or_epoch
-            && self
-                .tech_tree
-                .has_tribe_bonus(&self.setup, &self.tech[who as usize], crate::nations::power::GREEKS)
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[who as usize],
+                crate::nations::power::GREEKS,
+            )
         {
             vec![production::Adjust::Faster(self.tuning.greek_research_speed)]
         } else {

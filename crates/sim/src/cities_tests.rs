@@ -8479,8 +8479,16 @@ fn the_greeks_halve_an_age_or_an_epoch_and_nothing_else() {
     sim.tech[0].power = Some(crate::nations::power::GREEKS);
     assert_eq!(sim.tech_time(0, city_state), plain[0] * 100 / 200);
     assert_eq!(sim.tech_time(0, classical), plain[1] * 100 / 200);
-    assert_eq!(sim.tech_time(0, monarchy), plain[2], "a government is past the arm");
-    assert_eq!(sim.tech_time(1, city_state), plain[0], "and only the Greeks'");
+    assert_eq!(
+        sim.tech_time(0, monarchy),
+        plain[2],
+        "a government is past the arm"
+    );
+    assert_eq!(
+        sim.tech_time(1, city_state),
+        plain[0],
+        "and only the Greeks'"
+    );
 }
 
 /// **A decoy counts for neither side of the capture tally** (item 3318,
