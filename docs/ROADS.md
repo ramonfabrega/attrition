@@ -1306,3 +1306,56 @@ listing paths that leave a road surface without an element are
 `clear_roads@0088fef0`'s and `clear_support@0088e3f0`'s arms at a zero
 count on an element whose `is_terrain_creation` is clear, which no capture
 reaches (`docs/GOLDEN.md` §55).
+
+## 12. `set_diags`' corner tail — the C4 pieces, and what releases them (2026-10-18, item 3287)
+
+*Established from `Roads::set_diags@0088e9d0`'s listing (`0088ee5a`–`0088f2c3`) and
+`Roads::clear_support@0088e3f0`, and checked against run946's packet at logger frame 10842 (twelve elements;
+`rondata::diff::iroquois_word::run946_s_road_elements_at_10842_are_ours`). Confidence: **high** for the references
+and support codes, which the packet holds; the piece pick on a road tile is an assumption (below).*
+
+**The tail.** After `set_diags` joins a corner (§9's fill, `joined != 0`), it walks ten pairs of the tile's claims.
+Each pair meets at a corner: a cardinal and the diagonal on the far side of it, or two opposite diagonals. For each pair
+the tile claims, it calls `TerrainOut::get_road_data(x, y, 1, param, 1)` on two of the tile's cardinal neighbours. That
+call makes an element if there is none and takes one more reference either way: `pending_camel_steps` under a
+caravan's `param`, `ref_count` otherwise. It sets the element's `element_num` to the C4 piece (`Roads +0xdc`, 55 in the
+packet). The tile then notes the pair in `support_codes`: `0x8000 | 0x4000`, with `0x1000`/`0x800` for the first
+neighbour (vertical or horizontal, and which way) and `0x400`/`0x200` for the second. The table is
+`Sim::corner_pieces` (`crates/sim/src/mesh.rs`), in the listing's order. Each block re-reads the tile's flags, and none
+of the ten writes them.
+
+**The release.** `clear_support` has three arms, not one. `0x8000` gives one reference back to the neighbour that
+`0x1000`/`0x800` name and leaves the codes standing. `0x4000` does the same for `0x400`/`0x200`'s neighbour and clears
+the codes. `0x2000` is §9's made-tile arm, with `0x100`/`0x80` naming the side. Each release (`release_support`) lowers
+the neighbour's count through `road_changed`. When that was the last reference and the mesh laid the tile, it takes the
+road away.
+
+**The sweep.** `scan_and_kill_stray_roads` (§10) spares a C4 element as it spares a made one: it stands while any of
+the nine is a road.
+
+**The caravan's count.** `Caravan::build_road:124` calls `World::set_road_at(x, y, 1, 1, 0)`. The fourth argument
+puts the element's count in `pending_camel_steps` and runs `add_roads(1)`, so the corner tail's references are camel
+steps too. `caravan.rs` now lays with `world_set_road_at(t, true, 1, 0)`.
+
+**Why it reaches the world.** On Great Lakes (Iroquois), the caravan's diagonal at (236, 152)–(233, 155), laid on
+10190 and 10386, leaves C4 references on (235, 152), (234, 153), (233, 154) and (235, 154). `1/2027`'s `Wall::start`
+ring lays (235, 152) on 10485. `add_roads`' count there is then 2, so the add becomes a removal, and `clear_roads`
+re-queues every cardinal road neighbour. (235, 153) re-derives to N | SW with support `0xc400`. Without the tail this
+crate left (235, 153) claiming NW alone, and the sweep took it and the diagonal behind it on 10620. On 10917,
+`1/2027`'s road replan (build type 16, (45120, 28800)) priced node 5, (45216, 29472), at 139 in ours against 27 in
+theirs, and searched 271 nodes against 283. With the tail, node 5 costs 27 and the search takes 283 nodes on both
+sides (`docs/AI.md` §260).
+
+**The packet** (`~/ron-golden/run946/map-14/frame-snapshot.bin`). The elements are read through `MiscAccess::terrain`
+(VA `0xC06218`) `+0x6ab0`, then cell `[wc·(ty>>2) + (tx>>2)]`, `+0x66` count and `+0x5c` array, and slot `(tx&3) +
+(ty&3)·4` of 16 bytes. At 10842, eleven of the twelve tiles agree on connections, support, counts and C4. The twelfth,
+(235, 154), is theirs ref 2 / camel 0 against ours ref 1 / camel 1, the same sum. The test compares it by the sum.
+
+**Not established.**
+- `finish_pieces` clears `c4` on a tile that is road, on the reading that `find_piece` re-pieces it. The packet's road
+  tiles carry pieces 54 and 56, never 55, but the pick itself is not modelled. Nothing here tests a C4 piece that a
+  road later lays over and the sweep would then spare.
+- (235, 154)'s split between the two counts is parked under item 3287's heading. One reference is taken under a
+  `param` this crate reads as the caravan's and the original as not.
+- The ten pairs are diff-backed only where Great Lakes' diagonal reaches them, which is the SW–NE axis. The other arms
+  rest on the listing alone.

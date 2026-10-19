@@ -470,6 +470,44 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 162,
         },
     ),
+    // **The Native American Peltasts' piece 1442** (item 3287, `docs/AI.md`
+    // §260): run943c's `RON_STATE_FRAME=10674` packet already holds its
+    // three attack `AttachPos` rows, though no Peltast is fielded until
+    // 10852, and each row's sweep is reproduced by these at all 361
+    // headings, x and y (the centre of the region, as 1441's are). who=1's
+    // Javelineers became Peltasts on 10852, and `1/48`'s next javelin left
+    // the figure's own (3336, 31512) in this crate: `0/2000` took it on
+    // frame 10870 where run943 shows it on 10869 (block 10870).
+    (
+        1442,
+        11,
+        12,
+        Bay {
+            right: 43050,
+            fwd: 64644,
+            dz: 167,
+        },
+    ),
+    (
+        1442,
+        12,
+        6,
+        Bay {
+            right: -344,
+            fwd: 57100,
+            dz: 173,
+        },
+    ),
+    (
+        1442,
+        13,
+        27,
+        Bay {
+            right: 20539,
+            fwd: 36144,
+            dz: 161,
+        },
+    ),
     // King's Yeomanry: run586 get_position sweep, checked against
     // run587's actual arrows (COMBAT §87, item 1436).
     (
@@ -1616,6 +1654,42 @@ mod tests {
             assert!(
                 bay(1441, anim, time, 0).is_some(),
                 "every attack AttachPos row"
+            );
+        }
+    }
+
+    /// **Piece 1442, the Native American Peltasts** (item 3287): four
+    /// headings of each row's `get_position.py` sweep on run943c's packet,
+    /// `(anim, starttime, degree, x, y)`, the degree `fast_angle_to_degrees`'
+    /// (the sweep's own column, 180 off [`whole_degrees`]).
+    #[test]
+    fn the_peltasts_bays_are_the_packet_s_sweep() {
+        const S: &[(i8, u32, i64, i32, i32)] = &[
+            (11, 12, 0, -43, 64),
+            (11, 12, 97, -58, -50),
+            (11, 12, 233, 77, -4),
+            (11, 12, 300, 34, 69),
+            (12, 6, 0, 0, 57),
+            (12, 6, 97, -56, -6),
+            (12, 6, 233, 45, -34),
+            (12, 6, 300, 49, 28),
+            (13, 27, 0, -20, 36),
+            (13, 27, 97, -33, -24),
+            (13, 27, 233, 41, -5),
+            (13, 27, 300, 21, 35),
+        ];
+        for &(anim, time, deg, x, y) in S {
+            let want = (deg + 180) % 360;
+            let facing = (0..1u32 << 12)
+                .map(|i| Angle((i << 20) as i32))
+                .find(|&a| whole_degrees(a) == want)
+                .expect("a facing at the degree");
+            let b = bay(1442, anim, time, 0).expect("every attack AttachPos row");
+            let at = b.point(Pos::new(10_000, 10_000), facing);
+            assert_eq!(
+                (at.x - 10_000, at.y - 10_000),
+                (x, y),
+                "{anim} {time} {deg}"
             );
         }
     }

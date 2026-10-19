@@ -606,6 +606,8 @@ mod object_data_support;
 mod object_data_valid_target_const;
 #[path = "object_execute_events.rs"]
 mod object_execute_events;
+#[path = "object_fire_ammo.rs"]
+mod object_fire_ammo;
 #[path = "object_get_army.rs"]
 mod object_get_army;
 #[path = "object_get_captain.rs"]

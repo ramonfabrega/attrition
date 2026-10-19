@@ -148,8 +148,17 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // and who=1's metal on block 10853 is 59 on both sides (ours 44 before).
     // 10917: ours 285 draws, theirs 296, index 272, ours `Guy::set_anim
     // +0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`.
-    count: 10917,
-    sequence: 10917,
+    // **Item 3287 moved it 10917 → 11585** (`docs/AI.md` §260): `1/2027`'s
+    // road replan priced node 5, (45216, 29472), at 139 against theirs' 27
+    // — ours' caravan diagonal (235, 153) had been swept on 10620, because
+    // `set_diags`' corner tail (C4 references, `docs/ROADS.md` §12) was not
+    // carried; with it, node 5 is 27 and the search 283 nodes on both sides,
+    // and run946's packet's twelve elements agree on 10842. 11585: ours 16
+    // draws, theirs 15, index 4, ours `Leader::make_stuff+0x221`, theirs
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`; past run943's last block
+    // (10945), its widening owed.
+    count: 11585,
+    sequence: 11585,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -1072,8 +1081,13 @@ fn run943_s_word_frame_is_widened_whole() {
     // `DEATHS` (run943 prints no `DEATH_OBJS`). The state first parts on
     // 10853 still: `1/25`, upgraded Javelineers → Peltasts on 10852 on both
     // sides, `g.cur_anim[0]` ours 1 against theirs 2 and `g.end_time[0]` 96
-    // against 36.
-    pin_eq!(w.firsts.len(), 174, "run943 with The Despot's unit plunder");
+    // against 36. **Item 3287, 47**, the standing set alone through
+    // 10945: `Guy::init_real` zeroes `guy_flags`, so `1/25`'s re-typed
+    // figure rolls `IDLE2` (`g.cur_anim[0]` 2, `g.end_time[0]` 36 on both
+    // sides on 10853); the Peltasts' bays (piece 1442) bring `0/2000`'s
+    // `build:damage` to 44 on both on 10870; `set_diags`' corner tail keeps
+    // the caravan diagonal (235, 153) (`docs/AI.md` §260).
+    pin_eq!(w.firsts.len(), 47, "run943 with set_diags' corner tail");
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at
@@ -1138,4 +1152,83 @@ fn run930_s_squad_is_widened_whole() {
     // figure's `last_speed` 35 on both sides — and through the window's
     // end (`docs/AI.md` §253). The word's block in this widening.
     pin_eq!(w.firsts.len(), 31, "initial run930 baseline");
+}
+
+/// **run946's road elements at logger frame 10842, against ours** (item
+/// 3287, `docs/ROADS.md` §12). The packet
+/// (`~/ron-golden/run946/map-14/frame-snapshot.bin`) holds the twelve tiles
+/// around the caravan diagonal (235, 153) that `1/2027`'s ring reached on
+/// 10485. Each row is the element's connection byte, `support_codes`, the
+/// two counts and whether `element_num` is the C4 piece (55), read through
+/// `terrain +0x6ab0`. Theirs' (236, 153) is a slot with no counts, which
+/// this crate holds as no element. The two counts are compared apart —
+/// the caravan's tiles hold camel steps, the ring's references — except at
+/// (235, 154), which agrees by their sum alone: theirs ref 2 / camel 0, ours
+/// ref 1 / camel 1 (item 3287's parked row).
+#[test]
+fn run946_s_road_elements_at_10842_are_ours() {
+    use sim::mesh::dir::{E, N, NE, S, SW, W};
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(IROQUOIS.long.0),
+        dump(IROQUOIS.start),
+        trace(IROQUOIS.long.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", IROQUOIS.long.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let (log, sib_log) = (Log::parse(&text), Log::parse(&sib_text));
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_log.initial().expect("a start dump")]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    while built.sim.frame < 10_843 {
+        built.tick();
+    }
+    // (x, y, connections, support, (ref, camel), C4)
+    type Row = (i32, i32, u32, u16, (u8, u8), bool);
+    let theirs: [Row; 12] = [
+        (234, 152, E | W, 0, (1, 0), false),
+        (235, 152, E | S | W, 0, (1, 0), false),
+        (236, 152, E | W, 0, (0, 1), false),
+        (237, 152, N | W, 0, (1, 0), false),
+        (234, 153, 0, 0, (1, 0), true),
+        (236, 153, 0, 0, (0, 0), false),
+        (235, 153, N | SW, 0xc400, (0, 1), false),
+        (234, 154, NE | SW, 0xc200, (0, 1), false),
+        (233, 155, NE | W, 0xda00, (0, 1), false),
+        (233, 154, 0, 0, (2, 0), true),
+        (235, 154, 0, 0, (2, 0), true),
+        (232, 155, N | E | S, 0, (1, 0), false),
+    ];
+    let mut parted = Vec::new();
+    for (x, y, flags, support, refs, c4) in theirs {
+        let e = built
+            .sim
+            .mesh
+            .elem(&built.sim.world, Pos::new(x, y))
+            .unwrap_or_default();
+        let mut counts = (e.refs, e.refs2);
+        if (x, y) == (235, 154) {
+            // By the sum alone (item 3287's parked row).
+            counts = (counts.0 + counts.1, 0);
+        }
+        let ours = (x, y, e.flags & 0xff00_0000, e.support, counts, e.c4);
+        if ours != (x, y, flags, support, refs, c4) || e.made {
+            parted.push(format!(
+                "({x}, {y}) ours {:#x} {:#x} {:?} {} made {} theirs {flags:#x} {support:#x} {refs:?} {c4}",
+                ours.2, ours.3, ours.4, ours.5, e.made
+            ));
+        }
+    }
+    assert_eq!(
+        parted,
+        Vec::<String>::new(),
+        "a road element parts on 10842"
+    );
 }
