@@ -91,6 +91,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // promoted to the AI word (item 3331, DECISIONS 72, 83): the Japanese
     // at Difficulty 1, Great Sahara.
     (7, 15, 1),
+    // The battery's lowest open lobby on the measure of `987c4c33`,
+    // promoted to the AI word (item 3332, DECISIONS 72, 83): the Egyptians
+    // at Difficulty 4, Great Sahara.
+    (7, 7, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -111,20 +115,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 6566,
         sequence: 6563,
     },
-    Lobby {
-        name: "GreatSaharaEgyptianTier4",
-        map_style: 7,
-        ai_tribe: 7,
-        difficulty: 4,
-        start: "gamelog-run648-greatsahara-egyptian-diff4-start.txt",
-        long: (
-            "gamelog-run645-greatsahara-egyptian-diff4-24k-trace.txt",
-            "rontrace-run645.log",
-        ),
-        length: 20380,
-        count: 2974,
-        sequence: 2974,
-    },
+    // `GreatSaharaEgyptianTier4` (Egyptians 7, Difficulty 4, map 7; run648
+    // and run645, 2974 of 20380), one of item 1465's three, left the battery
+    // on item 3332 for the AI word (`diff::egyptian_word`, DECISIONS 72, 83).
     // The fourth lobby (item 2904, DECISIONS 72), minted when the first
     // left for the AI word so three stay held out: Great Lakes, the Chinese
     // at Difficulty 1 — a nation and a difficulty no scored or battery
