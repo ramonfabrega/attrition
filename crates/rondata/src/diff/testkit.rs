@@ -9903,6 +9903,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Maya word** (item 3338, DECISIONS 72, 83): frame
+    // 776, the battery's first try, widened on run973 over 770..1026
+    // (block 777). Item 3338 moved it 776 → 10497 with `get_cost`'s Maya
+    // timber arm, 10497 → 12197 with `find_target`'s bordering read off
+    // the city's owner (run973b over 10491..10747, run973c the gap), and
+    // 12197 → 13086, the game's last frame, with the Horse Archer's
+    // release nodes (run973d over 12191..12447 keeps 12197's value diff,
+    // the Scout `0/0`'s `damage_frame`; run973e/f the rounds). The close
+    // is compared whole on run966b's own closing block 13087 by
+    // `run966b_maya_closing_state`.
+    (
+        "MAYA_WORD",
+        crate::diff::maya_word::MAYA_WORD,
+        Some("run966b_maya_closing_state"),
+        3338,
+        Some(crate::diff::maya_word::WIDENING_MAYA_CLOSING),
+    ),
     // **The battery's Egyptian word** (item 3332, DECISIONS 72, 83): frame
     // 2974, the Egyptian lobby's first try, widened on run967 over
     // 2968..3225 with run967b the gap at stride 50 (the Egyptian Farm's
@@ -10410,6 +10427,22 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // run962b's closing block 24001 scores the end itself.
         endpoint: Some("run962b_indian_closing_state"),
         window: Some("indian_frame_14594_window"),
+    },
+    // **The battery's Maya word** (DECISIONS 72, 83; item 3338): Great
+    // Sahara, the Maya at Difficulty 4 — the held-out battery's lowest open
+    // lobby once item 3336 closed the Egyptians; the game ends itself on
+    // 13086. It joins the `Battery word` line first; the closed rows choose
+    // nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaMayaTier4",
+        named: "Great Sahara (Maya)",
+        word: crate::diff::maya_word::MAYA_WORD,
+        length: 13_086,
+        // Closed by item 3338: the draw stream agrees to 13086, and
+        // run966b's closing block 13087 scores the end itself.
+        endpoint: Some("run966b_maya_closing_state"),
+        window: Some("maya_frame_12197_window"),
     },
     // **The battery's Egyptian word** (DECISIONS 72, 83; item 3332): Great
     // Sahara, the Egyptians at Difficulty 4 — the held-out battery's lowest

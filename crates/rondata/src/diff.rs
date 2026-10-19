@@ -60,6 +60,8 @@ mod lakota_pair;
 #[cfg(test)]
 mod leader;
 #[cfg(test)]
+mod maya_word;
+#[cfg(test)]
 mod mongol_pair;
 #[cfg(test)]
 mod oracle;

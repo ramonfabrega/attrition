@@ -1093,6 +1093,8 @@ if (L is me or ally) and city_flags & 2:
 elif L is an enemy and city_flags & 0x10:
     v ×= has_preq(GLOBAL_GOVERNMENT_BONUS) ? 4 : (pers.raid < 0 ? 3/2 : 1)
 if city.bordering & (1 << me):                                        # CityData +0x65, a bit per leader
+                                                                       # — the crate keeps it in the city's OWNER's
+                                                                       # `city_ai` row; read there (item 3338, AI §273)
     v ×= (pers.raid < 1 ? 4 : 2)
     if L is an enemy and diff > 2:
         if L.frame_attacked + 9000 < frame: v ×= 3
