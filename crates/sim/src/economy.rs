@@ -1530,7 +1530,6 @@ mod tests {
                 level: 6,
                 nation_pct: 0,
                 farm_wealth: 0,
-                farm_wealth: 0,
             }],
             ..City::default()
         });
@@ -1572,7 +1571,6 @@ mod tests {
                 gatherers: 50,
                 level: 6,
                 nation_pct: 0,
-                farm_wealth: 0,
                 farm_wealth: 0,
             }],
             ..City::default()

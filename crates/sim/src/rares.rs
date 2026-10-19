@@ -766,6 +766,21 @@ mod tests {
         );
     }
 
+    /// **`reveal_fog`'s rare arm marks the good seen** (`reveal_fog:87`–`88`,
+    /// item 3332): the revealer's bit of `ever_seen`, and nobody else's —
+    /// the byte `think_merchant` tests before it scores a good.
+    #[test]
+    fn reveal_fog_marks_the_rare_it_meets_seen() {
+        let (mut s, u) = sea_sim();
+        let g = good_under(&mut s, u, 26);
+        assert!(!s.good_seen_bit(g, 1));
+        let (fx, fy) = fog_of_unit(&s, u);
+        s.reveal_fog(fx, fy, 1);
+        assert_eq!(s.ai[1].new_rares, vec![g]);
+        assert!(s.good_seen_bit(g, 1), "seen by its revealer");
+        assert!(!s.good_seen_bit(g, 0), "and by nobody else");
+    }
+
     /// **An oil patch is never seen**, because `Objects::init_good` never
     /// puts one in a cell's chain — which is why East Indies' unreplayed
     /// start fog costs that capture nothing: the one good under its AI at

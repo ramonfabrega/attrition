@@ -948,6 +948,35 @@ mod tests {
         assert_eq!(rate(&mut sim), plain, "the Koreans farm at cost");
     }
 
+    /// `BuildTypeData::calc_gather@00639e40:997`–`1005`: an Egyptian Farm
+    /// with any gatherer pays `EGYPTIAN_FARM_WEALTH × 16` wealth, flat — not
+    /// per gatherer — and an unworked one, or another nation's, nothing
+    /// (item 3332).
+    #[test]
+    fn an_egyptian_worked_farm_pays_two_wealth_flat() {
+        let mut sim = world_sim();
+        let t = install(&mut sim);
+        build(&mut sim, 0, t.village, 32, 32);
+        let farm = build(&mut sim, 0, t.farm, 40, 32);
+        let wealth = |sim: &mut Sim| {
+            sim.assemble_holdings(0);
+            economy::city_rates(&sim.tuning, &sim.holdings[0].cities[0])
+                [Resource::Wealth.index()]
+        };
+        let city = sim.tuning.city_gather[Resource::Wealth.index()] * RATE_SCALE;
+        sim.set_tribe(0, 7);
+        assert_eq!(wealth(&mut sim), city, "an unworked Farm pays nothing");
+        let u = spawn(&mut sim, 0, t.citizen, tile_pos(44, 32));
+        gather_until_arrived(&mut sim, u, farm);
+        assert_eq!(sim.tuning.egyptian_farm_wealth, 2);
+        assert_eq!(wealth(&mut sim) - city, 2 * RATE_SCALE, "two wealth a Farm");
+        let v = spawn(&mut sim, 0, t.citizen, tile_pos(44, 34));
+        gather_until_arrived(&mut sim, v, farm);
+        assert_eq!(wealth(&mut sim) - city, 2 * RATE_SCALE, "flat, not per head");
+        sim.set_tribe(0, 16);
+        assert_eq!(wealth(&mut sim), city, "the Koreans' Farm pays no wealth");
+    }
+
     #[test]
     fn a_walking_citizen_earns_nothing_until_it_arrives() {
         // `BuildData::calc_gather` passes `num_gatherers(1, 1)` — arrived —
