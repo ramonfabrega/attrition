@@ -35,7 +35,7 @@ pub(crate) const INDIAN: Lobby = Lobby {
     // frames, run970b's 1176) → 14594 (every attacking type counted in
     // its trainer's group, run970c's 9983 Horse Archer) → 14631
     // (`find_gather_spot`'s region is `get_tregion`'s coastal-refined one,
-    // run970e's builder `1/77` beside the Dock): ours 12 draws, theirs 11,
+    // run970e's barge `1/77` beside the Dock): ours 12 draws, theirs 11,
     // at 10: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Farms::inc_time+0x1ae`.
     count: 14631,
@@ -381,7 +381,7 @@ fn run970e_s_word_frame_is_widened_whole() {
     // away, timber headroom 832 — where theirs' found no spot, left it
     // idle, and on 14595 the AI walks it to (21912, 32664). The leader's
     // caps and incomes, the camp's gatherers and the unit's masks agree;
-    // The input was the region: the builder stands on a coastal cell's
+    // The input was the region: `1/77` is a barge (TI 320) on a coastal cell's
     // water tile, `tregion` 12 and `get_tregion` (`tregion_alt`) 0, and no
     // camp is in region 0. With it, 1125 → 929 and the word 14594 →
     // 14631. Walked back from 14631, the first parting is block 14595:

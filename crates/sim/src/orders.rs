@@ -12731,8 +12731,8 @@ impl GatherSpotView for GatherSpotSim<'_> {
     }
     fn region_of_unit(&mut self) -> i32 {
         // `get_tregion@006b52e0` is the coastal-refined region, here and
-        // for each building below (item 3335: run970e's builder `1/77`
-        // beside the Dock it finished on 14593 stands on a coastal cell's
+        // for each building below (item 3335: run970e's `1/77`, a barge
+        // beside the Dock it finished on 14593, stands on a coastal cell's
         // water tile — `tregion` 12, `tregion_alt` 0 — so the original
         // finds no camp in its region and leaves it idle).
         self.sim

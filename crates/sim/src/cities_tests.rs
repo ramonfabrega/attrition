@@ -4678,6 +4678,51 @@ fn a_wall_with_no_way_round_gives_up_and_pays_the_grid_draw() {
     assert!(!sim.units[u].orders.is_empty(), "still trying");
 }
 
+/// **`find_gather_spot`'s region is `get_tregion`'s, the coastal-refined
+/// one** (item 3335, `docs/AI.md` §271): a unit on the ocean tile of a
+/// coastal cell — a citizen turned barge beside the Dock it built — is in
+/// the cell's `region2`, the sea, and a camp on the land beside it is in
+/// no region the search accepts. The plain cell region calls the same tile
+/// land, and sent run970e's `1/77` to gather on 14594.
+#[test]
+fn a_unit_on_a_coastal_cell_s_water_gathers_nowhere_on_the_land() {
+    fn found(coastal: bool) -> bool {
+        let mut sim = world_sim();
+        let sea = sim
+            .world
+            .fill_region(Terrain::Sea, Cell::new(15, 15), Cell::new(15, 15));
+        let t = install_types(&mut sim);
+        let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        city_at(&mut sim, &t, 0, 30, 30);
+        sim.plant_camp_forest(tile_pos(24, 30));
+        let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
+        finish(&mut sim, wood);
+        sim.buildings[wood].gather_max = Some(4);
+        let l = &mut sim.ledgers[0];
+        l.cap = [70 * economy::RATE_SCALE; economy::RESOURCES];
+        l.income = [0; economy::RESOURCES];
+        l.over_cap = [economy::OverCap::Under; economy::RESOURCES];
+
+        let here = Cell::new(7, 7);
+        if coastal {
+            let mut d = sim.world.cell_data(here);
+            d.flags |= 0x100;
+            d.region2 = Some(sea);
+            sim.world.set_cell_data(here, d);
+            sim.world
+                .set_tile_field(here.centre_tile(), tile::SURFACE, tile::SURFACE_OCEAN);
+        }
+        let t = here.centre_tile();
+        let u = spawn(&mut sim, 0, citizen, tile_pos(t.x, t.y));
+        let range = sim.tuning.unit_gather_respond_range * TILE;
+        sim.find_gather_spot(u, range)
+    }
+    assert!(found(false), "on land the camp is found");
+    assert!(!found(true), "on the coastal cell's water it is not");
+}
+
 /// **`find_gather_spot` scores the headroom under the commerce cap, not the
 /// distance** — `docs/ORDERS.md` §6.6, and the whole of queue item 70.
 ///

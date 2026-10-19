@@ -23730,11 +23730,11 @@ merchants' second figures (3329a). run963c's 116 held unchanged with the fix, so
 crate's live buildings of the two types, not the original's two `u16` arrays; a queued, unplaced oil building would
 part them, and no window has one.
 
-## 271. The Indians: a goody box's own sight, an unramped building, a held number, the elephants' price and group (2026-10-19, item 3335)
+## 271. The Indians: a goody box's own sight, an unramped building, a held number, the elephants' price and group, a barge's region (2026-10-19, item 3335)
 
 **Score.** `EastIndiesIndianTier2` (Nubians against the Indians at Difficulty 2, East Indies; run962, run962b),
 promoted out of the held-out battery as the AI word once item 3333 closed the Dutch: **221 → 1176 → 1177 → 9985 → 14594
-of 24000** (count and sequence). The Incas (tribe 2, Difficulty 3, East Indies; run969, run969b) take the Indians'
+→ 14631 of 24000** (count and sequence). The Incas (tribe 2, Difficulty 3, East Indies; run969, run969b) take the Indians'
 place in the battery, first try **7782 / 7782**.
 
 **221: the goody box's own `ever_seen`.** run970's first row that is not the standing set is block 180: ours'
@@ -23772,8 +23772,23 @@ when its own progression counted by group, so the elephant never ramped a Horse 
 test `load::tests::an_elephant_counts_toward_a_horse_archer_s_ramp`). Value diff, run970c's 9983: 52/35 on both sides,
 run970c 569 → 50. 9985 → 14594.
 
-**The new word, 14594**: ours 11 draws, theirs 12, at 3: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-`Guy::set_anim+0x97a < Unit::do_idle+0x7d` — past run970c's window; run970e (14588..14845) is its widening.
+**14594: `find_gather_spot`'s region is `get_tregion`'s.** run970e (14588..14845) is its widening. Block 14594:
+who=1's `1/77` holds one order in ours and none in theirs. It is **a transport barge** on these frames (TI 320,
+`0x140` — a citizen afloat), and it finished the Dock `1/2030` (TI 432) on 14593. `build_done`'s AI arm sent ours to
+the Woodcutter's Camp `1/2026`. `find_gather_spot@005f5170` asks `WorldData::get_tregion@006b52e0` of the unit's tile
+and of each building's — the coastal-refined region, `World::tregion_alt`, as every other call site of the function
+in this crate reads it — and `GatherSpotSim` read the cell's plain region. The barge at (38952, 33048) stands on a
+coastal cell's ocean tile: `tregion` 12, `tregion_alt` 0, and no camp is in region 0 (a probe of every call of the
+search over the game: the only one whose two regions differ). Test
+`cities_tests::a_unit_on_a_coastal_cell_s_water_gathers_nowhere_on_the_land`. Value diff, run970e block 14594:
+`1/77`'s `orders.len` 0/0; run970e 1125 → 929; no other lobby's pin moved. 14594 → 14631.
+
+**The new word, 14631**: ours 12 draws, theirs 11, at 10: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Farms::inc_time+0x1ae` — inside run970e. Walked back, the first parting is block 14595: theirs' AI gives the idle
+barge `1/77` a move to (21912, 32664) (`orders.len` 0/1, `orders_x` 38952/21912, `path:length` 0/21 on 14596), and
+ours gives it nothing. A probe of ours' `think`: the barge's type has no worker (`worker_of` `None`), so ours never
+reaches `think_peasant` and its colonist / explore tail; which of theirs' arms issues the move — `think_peasant`'s
+for a barge, a transport arm, or the leader's — is the next read, a hypothesis.
 
 **Not established.** The ramp arm's halved branch (a wonder, a defence) is the listing's alone. The hold's exact
 frame of release (the thirtieth `process_all` after the close, against this crate's building loop) is not compared
