@@ -8172,14 +8172,18 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3306, 2026-10-19 — a held building yields to its group's opportunity, the Iroquois word at its game's end
 
-- **`0/2000`'s `build:damage`** (run954, block 12231 on): the human's city reads 902 in ours against 904 in theirs.
+- (3315) **`0/2000`'s `build:damage`** (run954, block 12231 on): the human's city reads 902 in ours against 904 in theirs.
   No draw moves on it through the game's end, and the closing block 12659 compares no city damage apart.
   `RON_DEBUG_UNIT` on the city's attackers on 12229–12231, both sides, is the reading. It names no score: the lobby
   is closed.
-- **who=1's `SITE[1].reg`** (run954, 12376): ours 1 against theirs 0. This is the standing `SITE.reg` shape, on a new
+- (3316) **who=1's `SITE[1].reg`** (run954, 12376): ours 1 against theirs 0. This is the standing `SITE.reg` shape, on a new
   site. No draw moves on it.
-- **The newborn `1/98`'s `g.angle[0]`** (run954, 12381): ours `0x55555555` against theirs 0. This is the Scholars'
+- (3317) **The newborn `1/98`'s `g.angle[0]`** (run954, 12381): ours `0x55555555` against theirs 0. This is the Scholars'
   shape (parked 3308) on a unit born inside a building. No draw moves on it.
+- (3319) **3306's "for the Loop"** (the journal's line, filed at its merge): `tools/mutate.py`'s signal race — a SIGTERM
+  between the edit and the run's `finally` left the tree edited while the message claimed a restore
+  (`test_a_signal_under_the_run_restores_the_tree` red three of three on this host). Fixed by the lane outside its
+  item (06600962d); the pass ratifies a worker's tool fix. Closed unless the pass reopens it.
 
 ## Parked by the next landing, slot KI — reserved
 
