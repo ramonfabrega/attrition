@@ -1944,7 +1944,8 @@ mod tests {
     /// are 5, 9 and 17 because the frame is `starttime / 67` (§50.1):
     /// under the old `× 3 / 200` the first and third would be 6 and 18,
     /// keys the event walk never reaches. **49**, the Musketeer's two, are
-    /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4.
+    /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4. **842**, the
+    /// Horse Archer's three, are run973e/f's (item 3338): keys 18, 16, 20.
     #[test]
     fn the_table_is_every_release_event_a_capture_has_measured() {
         let mut keys: Vec<(i32, i8, u32)> =
@@ -1966,6 +1967,9 @@ mod tests {
                 (472, crate::anim::ATTACK1, 12),
                 (472, crate::anim::ATTACK2, 9),
                 (472, crate::anim::ATTACK3, 15),
+                (842, crate::anim::ATTACK1, 18),
+                (842, crate::anim::ATTACK2, 16),
+                (842, crate::anim::ATTACK3, 20),
             ]
         );
     }
