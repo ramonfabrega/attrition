@@ -697,6 +697,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch102 = golden_dump("ch102");
     let ch103 = golden_dump("ch103");
     let ch104 = golden_dump("ch104");
+    let ch105 = golden_dump("ch105");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2732,6 +2733,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "chapter one hundred and four carries four blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and five, on run950** (item 3292): a Tower strikes a
+    // squad walking toward it; closed at 1500, the window is its last blocks.
+    if let Some(p) = &ch105 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FIVE;
+        let n = drive_capture(p, 1496, 1500, &mut paths);
+        assert_eq!(
+            n, 4,
+            "chapter one hundred and five carries four blocks in the window"
         );
         frames += n;
     }
