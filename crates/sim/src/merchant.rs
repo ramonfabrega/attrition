@@ -654,6 +654,34 @@ mod tests {
         assert_eq!(s.ai[1].new_rares, vec![west], "and rotates nothing");
     }
 
+    /// §4, item 3329: **the Dutch merchant also thinks on the auto-attack's
+    /// cadence** (`think@005f6e40:145`, `is(0x3e, 1)` and packed), one
+    /// frame in thirty-two, where every other merchant waits for the
+    /// tail's one in a hundred and twenty-eight. On a frame that is the
+    /// first and not the second, a packed `MERCHANTDUTCH` walks at the good
+    /// and a plain `MERCHANT` does not (run963's `1/2` on 1566).
+    #[test]
+    fn a_dutch_merchant_searches_one_frame_in_thirty_two() {
+        for (ty, walks) in [(0x3e, true), (0x3d, false)] {
+            let (mut s, u) = merchant_sim();
+            let t = s.units[u].ty.unwrap();
+            s.unit_types[t].tree = Some(ty);
+            s.unit_types[t].type_index = ty as i32;
+            s.units[u].type_index = ty as i32;
+            let good = a_good(&mut s, Cell::new(5, 20));
+            s.units[u].idle = 5;
+            // `o + frame` a multiple of 32 and not of 128.
+            let o = i64::from(s.units[u].index);
+            let frame = 32 * 5 - o;
+            s.think(u, frame);
+            assert_eq!(
+                walking_to(&s, u),
+                walks.then_some(good),
+                "TypeIndex {ty:#x} on a 32-frame that is not a 128-frame"
+            );
+        }
+    }
+
     /// §2.2's two terms that East Indies cannot separate: the good in the
     /// merchant's **own** region wins from the back of the list, because
     /// `+100` beats the `−10` a position costs.
