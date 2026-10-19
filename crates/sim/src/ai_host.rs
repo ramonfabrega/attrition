@@ -200,6 +200,32 @@ impl Host for ScriptHost<'_> {
     }
 
     fn call(&mut self, name: &str, args: &[Value]) -> Result<Value, String> {
+        let r = self.call_probe(name, args);
+        if let Ok(v) = std::env::var("RON_PROBE_BHS")
+            && let Some((lo, hi)) = v.split_once('-')
+            && let (Ok(lo), Ok(hi)) = (lo.parse::<i64>(), hi.parse::<i64>())
+            && (lo..=hi).contains(&self.sim.frame)
+        {
+            eprintln!("BHS f{} {}({:?}) = {:?}", self.sim.frame, name, args, r);
+            if name == "can_pay_cost"
+                && let (Some(w), Some(t)) = (
+                    self.leader(args[0].as_int()),
+                    self.type_index(&args[1].as_str()),
+                )
+            {
+                eprintln!(
+                    "BHS   price {:?} bucket {:?}",
+                    self.price(w, t),
+                    self.sim.ledgers[w as usize].bucket
+                );
+            }
+        }
+        r
+    }
+}
+
+impl ScriptHost<'_> {
+    fn call_probe(&mut self, name: &str, args: &[Value]) -> Result<Value, String> {
         let a = |i: usize| args.get(i).map_or(0, Value::as_int);
         let s = |i: usize| args.get(i).map_or_else(String::new, Value::as_str);
         Ok(match name.to_ascii_lowercase().as_str() {
