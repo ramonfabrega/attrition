@@ -3433,6 +3433,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::greek_word::greek_frame_176_window(),
         || super::greek_word::greek_gap_961c_window(),
         || super::greek_word::greek_frame_1976_window(),
+        || super::greek_word::greek_frame_19182_window(),
         || super::spanish_word::spanish_frame_576_window(),
         || super::spanish_word::spanish_frame_7785_window(),
         || super::spanish_word::spanish_frame_14382_window(),

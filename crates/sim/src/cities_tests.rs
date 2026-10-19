@@ -2905,6 +2905,41 @@ fn gain_tech_feeds_the_players_held_wonders() {
     assert_eq!(sim.tech[0].wonders, vec![line[tech::wonder::TIKAL]]);
 }
 
+/// **The Colossus adds `COLOSSUS_POP_CAP` to its owner's cap** (item 3326,
+/// `docs/AI.md` §266): `calc_pop_cap@006dc490`'s last term asks
+/// `has_wonder(0x20f)`, and `Build::activate:1795` and `Build::close:328`
+/// recompute the cap for a Colossus. run961d's Greeks are at 160, not 110.
+#[test]
+fn a_finished_colossus_raises_its_owner_s_pop_cap_and_its_loss_lowers_it() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let mut col = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+    col.ident = Ident::default();
+    col.tree = Some(line[tech::wonder::COLOSSUS]);
+    let col = sim.add_build_type(col);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    for m in &mut sim.muster {
+        m.military_level = 3;
+    }
+    sim.recompute_pop_caps();
+    assert_eq!((sim.muster[0].cap, sim.muster[1].cap), (100, 100));
+    let w = sim.place_building(0, col, tile_pos(32, 25)).unwrap();
+    finish(&mut sim, w);
+    assert_eq!(
+        (sim.muster[0].cap, sim.muster[1].cap),
+        (100 + sim.tuning.colossus_pop_cap, 100),
+        "the owner's alone, on activation"
+    );
+    sim.close_building(w, false);
+    assert_eq!(sim.muster[0].cap, 100, "and gone with the wonder");
+}
+
 /// **A held Space Program halves an aircraft's time** (item 2526,
 /// `docs/AI.md` §226): `train_time@006508c0:316`–`340`'s unit wonders'
 /// arm, by the type's domain (`+0x218`) — `SPACE_AIR_SPEED` 100 % on an

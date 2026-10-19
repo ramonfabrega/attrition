@@ -2198,6 +2198,12 @@ impl Sim {
         if self.is_wonder_building(ty) {
             self.unit_stats_dirty[who as usize] = true;
         }
+        // `Build::activate@00623e20:1795`: a finished Colossus (`is(0x20f,
+        // 0)`) recomputes its owner's cap, whose last term is
+        // `COLOSSUS_POP_CAP` (item 3326, `docs/AI.md` §266).
+        if self.is_colossus(ty) {
+            self.recompute_pop_caps();
+        }
         // `Build::activate` line 560: a dock (not a fort) joins the docks
         // registry — `reg_docks`, the gull's two draws (`docs/TRANSPORT.md`
         // §5.1–§5.2).
@@ -2449,6 +2455,15 @@ impl Sim {
         self.world.set_cell_data(c, d);
     }
 
+    /// Whether a building type is the Colossus (`is(0x20f, 0)`), by the
+    /// wonder line's own type id.
+    fn is_colossus(&self, ty: usize) -> bool {
+        let line = &self.tech_tree.roles.wonder_line;
+        self.build_types[ty]
+            .tree
+            .is_some_and(|t| line.get(crate::tech::wonder::COLOSSUS) == Some(&t))
+    }
+
     /// `Build::close` / `Wall::close`. `silent` is reason 5, a transfer:
     /// the footprint stays marked for the copy that replaces it.
     pub fn close_building(&mut self, b: usize, silent: bool) {
@@ -2533,6 +2548,10 @@ impl Sim {
             .is_some_and(|t| self.is_wonder_building(t))
         {
             self.unit_stats_dirty[who as usize] = true;
+        }
+        // `Build::close@00628980:326`–`328`: so does a Colossus closed.
+        if self.buildings[b].ty.is_some_and(|t| self.is_colossus(t)) {
+            self.recompute_pop_caps();
         }
         self.removed.push(b);
         self.forget(Obj::Building(b));

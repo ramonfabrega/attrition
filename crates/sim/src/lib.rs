@@ -2251,14 +2251,23 @@ impl Sim {
     ///
     /// The peacocks term is read off the live rare mask, as the original's
     /// `testb $0x8, 0x6da6(%esi)` reads it on every call ([`economy::PEACOCKS`]),
-    /// so a recompute for any other cause sees the mask as it stands.
+    /// so a recompute for any other cause sees the mask as it stands. The
+    /// Colossus term is `has_wonder(0x20f)`, asked live on the same call
+    /// (`006dc490`'s last statement, item 3326, `docs/AI.md` §266).
     pub fn recompute_pop_caps(&mut self) {
         let peacocks = 1u64 << (economy::PEACOCKS - economy::BASE_RARE);
+        let colossus: Vec<bool> = (0..self.muster.len())
+            .map(|who| {
+                u8::try_from(who)
+                    .is_ok_and(|p| self.wonders_held(p) & (1 << tech::wonder::COLOSSUS) != 0)
+            })
+            .collect();
         for (who, m) in self.muster.iter_mut().enumerate() {
             m.bonuses.peacocks = self
                 .ledgers
                 .get(who)
                 .is_some_and(|l| l.rare & peacocks != 0);
+            m.bonuses.colossus = colossus[who];
             m.cap = cost::pop_cap(&self.tuning, m.military_level, m.limit, &m.bonuses);
         }
     }

@@ -39,9 +39,14 @@ pub(crate) const GREEK: Lobby = Lobby {
     // 19182: who=1's University `1/2013` placed on 1976 at timber 27, wealth
     // 17 on both sides (run961b, block 1977). On 19182 ours draws 8, theirs
     // 9; index 2 is ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    // `Leader::make_stuff+0x63d`.
-    count: 19182,
-    sequence: 19182,
+    // `Leader::make_stuff+0x63d`. The Colossus' cap (`calc_pop_cap`'s
+    // `COLOSSUS_POP_CAP`, never set before) moved it 19182 → 24000, the
+    // long's last frame: who=1's `pop_cap` 110 against 160 from run961d's
+    // first block, and theirs makes a second item at its capital on 19182.
+    // run957b's closing block 24001 is compared whole
+    // (`run957b_greek_closing_state`).
+    count: 24000,
+    sequence: 24000,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -255,4 +260,111 @@ fn run961c_s_gap_is_widened_whole() {
     // knowledge, refunded on the queue's price. With it the gap parts **the
     // standing set alone**.
     pin_eq!(w.firsts.len(), 35, "run961c with the Greek research cost");
+}
+
+/// run961d: the word 19182's window, blocks 19176..19432 at run961's
+/// detail (item 3326) — the Greek Library arm moved the word past run961b's
+/// last block, and run957b dumps no block between.
+pub(crate) const RUN961D: &str =
+    "gamelog-run961d-greatsahara-greek-diff1-window-19176-19433-guys4.txt";
+
+/// The window: block 19176 through 19432; the word 19182's own block is 19183.
+pub(crate) const WIDENING_GREEK_FRAME_19182: (i64, i64) = (19176, 19432);
+
+pub(crate) fn greek_frame_19182_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GREEK.start],
+        true,
+        GREEK.long,
+        "run961d",
+        &[(RUN961D, WIDENING_GREEK_FRAME_19182.0)],
+        WIDENING_GREEK_FRAME_19182,
+        1,
+        &[19183],
+        true,
+    )
+}
+
+#[test]
+fn run961d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = greek_frame_19182_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3326. Past the standing set, block 19176 parts who=1's
+    // `pop_cap`, ours 110 against theirs 160: 100 at Military 3, Peacocks'
+    // tenth, and theirs adds `COLOSSUS_POP_CAP`'s 50 (`calc_pop_cap`'s last
+    // term, `has_wonder(0x20f)`). On 19181 theirs' `MAKE[0].val` is 888888
+    // (ours 8461) and on 19182 theirs makes a second item at its capital;
+    // ours, capped, did not. With the Colossus term the window parts **the
+    // standing set alone**, and the word moved 19182 → 24000.
+    pin_eq!(w.firsts.len(), 41, "run961d with the Colossus' cap");
+}
+
+/// The closing state's window: run957b's closing block alone, the long's
+/// last frame 24000 writing it (item 3326).
+pub(crate) const WIDENING_GREEK_CLOSING: (i64, i64) = (23999, 24002);
+
+/// **The lobby's closing state** (item 3326, DECISIONS 55): run957b — the
+/// draw stream's own capture, `cover=0` — prints the closing block whole.
+/// The game does not end itself; the long's `!quit` at 24000 closes it.
+#[test]
+fn run957b_greek_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(GREEK.long.0), dump(GREEK.start), trace(GREEK.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Greek closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 24001, "the closing block");
+    pin_eq!(e.compared, 114, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3326, the first walk (with the Colossus' cap, the word at
+    // 24000): 114 units compared on block 24001, none apart, no building or
+    // city field-row, no closing field.
 }
