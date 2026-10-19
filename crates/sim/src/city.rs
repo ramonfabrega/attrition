@@ -1686,9 +1686,6 @@ impl Sim {
         };
         let out = build::update_hits_steps(&build::HitsConsts::of(&self.tuning), &me, &mut q);
         let ejects = q.ejects;
-        if std::env::var_os("RON_PROBE_HITS").is_some() && (20034..=20037).contains(&self.frame) && self.buildings[b].owner == 1 && self.buildings[b].index == 2000 && self.buildings[b].hits != out.full {
-            eprintln!("PROBE hits f{} {} -> {}\n{}", self.frame, self.buildings[b].hits, out.full, std::backtrace::Backtrace::force_capture());
-        }
         let bd = &mut self.buildings[b];
         bd.hits = out.full;
         bd.construct_hits = out.current;
