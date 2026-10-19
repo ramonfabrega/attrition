@@ -53,9 +53,19 @@ pub(crate) const DUTCH: Lobby = Lobby {
     // `DROMON` research `queue[0].cost[0..1]` 60 ours against 54, and
     // who=1's `bucket` food 57/63, timber 69/75; both 54 after. At 22935
     // ours 13 draws, theirs 11, at 2: ours `Guy::init_real+0x52`, theirs
-    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, in no window yet.
-    count: 22935,
-    sequence: 22935,
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`. **And 22935 → 23782**
+    // with the library's slots read before its recursion (`do_queue:100`,
+    // `:283`–`290`, `:344`): run963c's Library `1/2005` held the
+    // Industrial Age (slot 0, 95300) and Electricity (slot 1, 50000); on
+    // 22935 Electricity completes in both, and theirs advances the age to
+    // 95400 under the Science-4 target where ours, reading it after the
+    // epoch landed, took 90000 and finished the age — block 22936's
+    // `queued` 0 ours against 1, `ages` 5 against 4, `pop` 17 against 13;
+    // both finish it on 22936 after. At 23782 ours 17 draws, theirs 24, at
+    // 3: ours `Leader::make_stuff+0x221`, theirs `Leader::use_market
+    // +0x1ed`, past run963c's last block.
+    count: 23782,
+    sequence: 23782,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -216,4 +226,53 @@ fn run963b_s_word_frame_is_widened_whole() {
     // ten later as new members join those kinds (`1/27`'s `form` on 5601
     // through `1/36`'s `g.angle[0]` on 5811).
     pin_eq!(w.firsts.len(), 63, "keys that part in the window");
+}
+
+/// run963c: the word 22935's window, blocks 22929..23185 at run963's
+/// detail (item 3329); run963b ends on block 5833.
+pub(crate) const RUN963C: &str =
+    "gamelog-run963c-eastindies-dutch-diff4-window-22929-23186-guys4.txt";
+
+/// The window: block 22929 through 23185; the word 22935's own block is
+/// 22936.
+pub(crate) const WIDENING_DUTCH_FRAME_22935: (i64, i64) = (22929, 23185);
+
+pub(crate) fn dutch_frame_22935_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[DUTCH.start],
+        true,
+        DUTCH.long,
+        "run963c",
+        &[(RUN963C, WIDENING_DUTCH_FRAME_22935.0)],
+        WIDENING_DUTCH_FRAME_22935,
+        1,
+        &[22936],
+        true,
+    )
+}
+
+#[test]
+fn run963c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = dutch_frame_22935_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // 2191 on the first build (the Industrial Age a frame early on
+    // 22935); **116** with the library's slots read before its recursion:
+    // the standing set and 101 keys already apart on 22929, which no dump
+    // between 5834 and 22928 can place — the Dutch merchants' `1/1`,
+    // `1/2`, `1/96`, `1/141` figure pieces (`g.gpiece` 2124/14796/27468
+    // ours against 50689 for all three figures theirs) and their second
+    // figure's offsets, who=1's `num_units[270]` −1 and `[271]` 1 against
+    // 0 and 0 (`ARTILLERYGERMAN`, `HOWITZER`), and `1/201`'s `myhits` 172
+    // against 212.
+    pin_eq!(w.firsts.len(), 116, "keys that part in the window");
 }

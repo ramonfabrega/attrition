@@ -3881,8 +3881,18 @@ impl Sim {
                     queued,
                 )
                 .max(1);
-                for slot in (0..slots).rev() {
-                    if let Advanced::Trained(p) = self.advance_slot(at, slot) {
+                // **But each slot's clock is read before the recursion**
+                // (`do_queue:100`, `:283`–`290`, the recursion at `:344`):
+                // its `train_time`, its done test and its new counter are
+                // computed first, so a deeper entry that completes on the
+                // frame — a Science epoch, say — does not shorten a
+                // shallower one's target until the next. run963c's Library
+                // `1/2005`: Electricity (slot 1) completes on 22935 and the
+                // Industrial Age (slot 0) still advances 95300 → 95400
+                // under the Science-4 target (item 3329, `docs/AI.md` §267).
+                let plans: Vec<_> = (0..slots).map(|slot| self.slot_plan(at, slot)).collect();
+                for (slot, plan) in plans.into_iter().enumerate().rev() {
+                    if let Advanced::Trained(p) = self.advance_slot_with(at, slot, plan) {
                         out.push(p);
                     }
                 }
@@ -3952,13 +3962,51 @@ impl Sim {
     /// entry that is refused keeps its full progress and is retried next
     /// frame, which is where a population cap actually bites.
     fn advance_slot(&mut self, at: usize, slot: usize) -> Advanced {
+        let plan = self.slot_plan(at, slot);
+        self.advance_slot_with(at, slot, plan)
+    }
+
+    /// One slot's clock for this frame, `(target, accel)`, read before the
+    /// slot is advanced — `do_queue`'s `train_time` and accelerator at its
+    /// head — or `None` for a silo that holds it.
+    fn slot_plan(&self, at: usize, slot: usize) -> Option<(i32, i32)> {
         let who = self.buildings[at].owner;
+        let item = self.buildings[at].queue.items.get(slot)?;
+        if let Some(t) = item.tech {
+            let accel = production::accel(&self.tuning, production::Job::Research, 1);
+            return Some((self.tech_time(who, t), accel));
+        }
+        let ty = item.ty;
+        let researched = self.muster[who as usize].researched[ty];
+        // **A silo with a missile inside holds its clock**
+        // (`Build::do_queue@0061e410`'s second early return, listing
+        // `61e4b4`..`61e510`; `docs/PRODUCTION.md`, "The two early
+        // returns"): `is(0x208, 1)`, `inside_down >= 0`, the entry's
+        // availability bit set and the entry not `DISBAND` (which this
+        // crate never queues) return before the accelerator is chosen. The
+        // peace pair's `1/2018` holds its second ICBM at `job_counter` 0
+        // from 2582 while the first, `1/50`, stands inside it (run853,
+        // `docs/AI.md` §222).
+        if researched
+            && self.building_ident(at) == build::Ident::MissileSilo
+            && !self.buildings[at].garrison.is_empty()
+        {
+            return None;
+        }
+        let accel = production::accel(&self.tuning, production::Job::for_unit(researched), 1);
+        Some((self.queue_target(at, slot), accel))
+    }
+
+    /// [`Sim::advance_slot`] on a clock already read.
+    fn advance_slot_with(&mut self, at: usize, slot: usize, plan: Option<(i32, i32)>) -> Advanced {
+        let who = self.buildings[at].owner;
+        let Some((target, accel)) = plan else {
+            return Advanced::Pending;
+        };
         if let Some(t) = self.buildings[at].queue.items[slot].tech {
             // A technology entry: research pace, and on completion
             // `Leader::gain_tech` and nothing else — no unit, no refund, no
             // population test.
-            let target = self.tech_time(who, t);
-            let accel = production::accel(&self.tuning, production::Job::Research, 1);
             let done =
                 production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
             if !done {
@@ -3974,24 +4022,6 @@ impl Sim {
         }
         let ty = self.buildings[at].queue.items[slot].ty;
         let researched = self.muster[who as usize].researched[ty];
-        // **A silo with a missile inside holds its clock**
-        // (`Build::do_queue@0061e410`'s second early return, listing
-        // `61e4b4`..`61e510`; `docs/PRODUCTION.md`, "The two early
-        // returns"): `is(0x208, 1)`, `inside_down >= 0`, the entry's
-        // availability bit set and the entry not `DISBAND` (which this
-        // crate never queues) return before the accelerator is chosen. The
-        // peace pair's `1/2018` holds its second ICBM at `job_counter` 0
-        // from 2582 while the first, `1/50`, stands inside it (run853,
-        // `docs/AI.md` §222).
-        if researched
-            && self.building_ident(at) == build::Ident::MissileSilo
-            && !self.buildings[at].garrison.is_empty()
-        {
-            return Advanced::Pending;
-        }
-        let target = self.queue_target(at, slot);
-        let accel = production::accel(&self.tuning, production::Job::for_unit(researched), 1);
-
         let done = production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
         if !done {
             return Advanced::Pending;
