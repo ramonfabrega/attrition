@@ -13,7 +13,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-18, **the forty-fourth tranche (commander, Opus): 11 of 20 landed from `6db69429`**, four lanes (DECISIONS 78
-(i)); last whole gate `86fb8f8e` (3267's booking, green, 6 of 6; release 10.1 min), scoped since, each green.*
+(i)); last whole gate `da2d4735` (3279's booking, green, 6 of 6; release 11.0 min); every booking gate green.*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10917 of 12658 (3211, 3231, 3242,
   3248, 3255, 3269, 3279); `EastIndiesGermanTier3` closed at 13519. Chapters 102–103 closed (3263, 3267, 3271, 3274), 94 →
@@ -41,7 +41,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 four lanes live (att-3287, att-3285, att-3282, att-3281); re-arm `tools/lanewait.py` on them, merge each landing at its
 gate's exit, refill by `tools/brief.py` (3287's successor on `--model 'claude-opus-5-5[1m]' --effort medium`, the rest on
 `'claude-sonnet-5-5[1m]' --effort medium`), the model said in user-visible text; the chain is `CLAUDE.md`'s; the whole
-gate at the third widened merge since `86fb8f8e`; at twenty the handoff, the drain and `ccc clear steer`.**
+gate at the third widened merge since `da2d4735`; at twenty the handoff, the drain and `ccc clear steer`.**
 
 ## The queue
 
