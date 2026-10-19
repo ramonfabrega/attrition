@@ -188,6 +188,11 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         let Some((f, ours)) = built.frame_sites.last() else {
             continue;
         };
+        if std::env::var("RON_PROBE_ROADS").ok().and_then(|v| v.parse::<i64>().ok()) == Some(*f) {
+            for (i, m) in tr.road_nodes(*f).iter().enumerate() {
+                eprintln!("PROBT  {i} to {:?} from {:?} dir {} cost {}", m.to, m.from, m.dir, m.cost);
+            }
+        }
         let theirs = tr.labels(*f);
         if count.is_none() && ours.len() != theirs.len() {
             count = Some(*f);
