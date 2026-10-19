@@ -39,6 +39,7 @@ mod spell_type_cast_unpack;
 mod unit_can_transport;
 mod unit_control_cost;
 mod unit_data_invalid_loc;
+mod unit_explore_goody;
 mod unit_find_new_air_target;
 mod unit_find_open_slots;
 mod unit_is_captain;
