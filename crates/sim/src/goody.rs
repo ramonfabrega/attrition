@@ -546,6 +546,33 @@ mod tests {
         assert!(enemy.units[u].orders.is_empty());
     }
 
+    /// **The Spanish arm** (item 3318, `docs/GOODY.md` §7.2): a Spanish
+    /// leader's box on its own ground answers `was_seen` — which its
+    /// `leader_flags 0x1000` makes every cell — and never reaches the line
+    /// of sight; on another's ground the item's gate falls through to
+    /// `is_seen`, which has no `0x1000` arm. Another power on the same
+    /// ground is refused. On Great Sahara this is the Scout's re-path to
+    /// the box on 524 (run896b).
+    #[test]
+    fn a_spanish_box_on_its_own_ground_answers_was_seen() {
+        use crate::world::Owner;
+        let (mut s, u) = sweeper();
+        assert!(s.world.set_fog(vec![0; 16 * 16]));
+        s.setup.starting_town = true;
+        s.tech[1].power = Some(crate::nations::power::SPANISH);
+        assert!(!s.find_goody_box(u), "nobody's ground: the line of sight");
+        let c = Cell::new(3, 2);
+        s.world.set_owner(c, Owner::Player(1), Owner::None);
+        let mut french = s.clone();
+        let mut enemy = s.clone();
+        assert!(s.find_goody_box(u), "its own ground: was_seen");
+        assert_eq!(aimed_at(&s, u), Some(c));
+        french.tech[1].power = Some(crate::nations::power::FRENCH);
+        assert!(!french.find_goody_box(u), "another power: unseen");
+        enemy.world.set_owner(c, Owner::Player(0), Owner::None);
+        assert!(!enemy.find_goody_box(u), "an enemy's ground: unseen");
+    }
+
     /// A box in another region is not a candidate however close it is: the
     /// sweep compares each cell's `WData.region` against the sweeper's own.
     #[test]
