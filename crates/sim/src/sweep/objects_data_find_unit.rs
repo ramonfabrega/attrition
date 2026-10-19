@@ -39,7 +39,6 @@ fn find_unit_port(
     c: &[Vec<u8>],
     p: &[Vec<u8>],
     log: &mut Vec<String>,
-
 ) -> i64 {
     let (x, y, kind, who, r, flags) = (a[0], a[1], a[2], a[3], a[4], a[5]);
     let (f1, p8, p9, f2, p11, p12) = (a[6], a[7], a[8], a[9], a[10], a[11]);
@@ -185,10 +184,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(6);
@@ -206,7 +210,10 @@ fn the_emulated_original_agrees_on_every_row() {
             got
         };
         assert_eq!(got, want_eax, "find_unit — eax, row `{line}`");
-        assert_eq!(log, want_log, "find_unit — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "find_unit — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "find_unit — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
