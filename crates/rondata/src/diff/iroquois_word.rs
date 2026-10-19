@@ -1156,8 +1156,10 @@ fn run930_s_squad_is_widened_whole() {
 /// 10485. Each row is the element's connection byte, `support_codes`, the
 /// two counts and whether `element_num` is the C4 piece (55), read through
 /// `terrain +0x6ab0`. Theirs' (236, 153) is a slot with no counts, which
-/// this crate holds as no element. (235, 154) agrees by the counts' sum
-/// alone: theirs ref 2 / camel 0, ours ref 1 / camel 1 (parked 3287).
+/// this crate holds as no element. The two counts are compared apart —
+/// the caravan's tiles hold camel steps, the ring's references — except at
+/// (235, 154), which agrees by their sum alone: theirs ref 2 / camel 0, ours
+/// ref 1 / camel 1 (parked 3287).
 #[test]
 fn run946_s_road_elements_at_10842_are_ours() {
     use sim::mesh::dir::{E, N, NE, S, SW, W};
@@ -1183,20 +1185,20 @@ fn run946_s_road_elements_at_10842_are_ours() {
     while built.sim.frame < 10_843 {
         built.tick();
     }
-    // (x, y, connections, support, ref + camel, C4)
-    let theirs: [(i32, i32, u32, u16, u8, bool); 12] = [
-        (234, 152, E | W, 0, 1, false),
-        (235, 152, E | S | W, 0, 1, false),
-        (236, 152, E | W, 0, 1, false),
-        (237, 152, N | W, 0, 1, false),
-        (234, 153, 0, 0, 1, true),
-        (236, 153, 0, 0, 0, false),
-        (235, 153, N | SW, 0xc400, 1, false),
-        (234, 154, NE | SW, 0xc200, 1, false),
-        (233, 155, NE | W, 0xda00, 1, false),
-        (233, 154, 0, 0, 2, true),
-        (235, 154, 0, 0, 2, true),
-        (232, 155, N | E | S, 0, 1, false),
+    // (x, y, connections, support, (ref, camel), C4)
+    let theirs: [(i32, i32, u32, u16, (u8, u8), bool); 12] = [
+        (234, 152, E | W, 0, (1, 0), false),
+        (235, 152, E | S | W, 0, (1, 0), false),
+        (236, 152, E | W, 0, (0, 1), false),
+        (237, 152, N | W, 0, (1, 0), false),
+        (234, 153, 0, 0, (1, 0), true),
+        (236, 153, 0, 0, (0, 0), false),
+        (235, 153, N | SW, 0xc400, (0, 1), false),
+        (234, 154, NE | SW, 0xc200, (0, 1), false),
+        (233, 155, NE | W, 0xda00, (0, 1), false),
+        (233, 154, 0, 0, (2, 0), true),
+        (235, 154, 0, 0, (2, 0), true),
+        (232, 155, N | E | S, 0, (1, 0), false),
     ];
     let mut parted = Vec::new();
     for (x, y, flags, support, refs, c4) in theirs {
@@ -1205,17 +1207,15 @@ fn run946_s_road_elements_at_10842_are_ours() {
             .mesh
             .elem(&built.sim.world, Pos::new(x, y))
             .unwrap_or_default();
-        let ours = (
-            x,
-            y,
-            e.flags & 0xff00_0000,
-            e.support,
-            e.refs + e.refs2,
-            e.c4,
-        );
+        let mut counts = (e.refs, e.refs2);
+        if (x, y) == (235, 154) {
+            // By the sum alone (parked 3287).
+            counts = (counts.0 + counts.1, 0);
+        }
+        let ours = (x, y, e.flags & 0xff00_0000, e.support, counts, e.c4);
         if ours != (x, y, flags, support, refs, c4) || e.made {
             parted.push(format!(
-                "({x}, {y}) ours {:#x} {:#x} {} {} made {} theirs {flags:#x} {support:#x} {refs} {c4}",
+                "({x}, {y}) ours {:#x} {:#x} {:?} {} made {} theirs {flags:#x} {support:#x} {refs:?} {c4}",
                 ours.2, ours.3, ours.4, ours.5, e.made
             ));
         }
