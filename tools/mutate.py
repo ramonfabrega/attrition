@@ -141,13 +141,18 @@ def run(root, mutate, command, out=sys.stdout, timeout=None):
     if before:
         raise Refused('the tree is dirty; commit first: ' + ', '.join(before))
     paths = mutate(root)
-    stat = git(root, 'diff', '--stat').strip()
-    if not stat:
+    try:
+        stat = git(root, 'diff', '--stat').strip()
+        if not stat:
+            raise Refused('the mutation took nothing: `git diff --stat` is empty')
+        print(stat, file=out)
+        print(f'mutation applied to {", ".join(paths)}; running: {" ".join(command)}', file=out, flush=True)
+        applied = git(root, 'diff')
+    except BaseException:
+        # A signal between the edit and the run's own `finally` (the test's
+        # SIGTERM lands in `git diff --stat`, item 3306) restores too.
         restore(root, paths)
-        raise Refused('the mutation took nothing: `git diff --stat` is empty')
-    print(stat, file=out)
-    print(f'mutation applied to {", ".join(paths)}; running: {" ".join(command)}', file=out, flush=True)
-    applied = git(root, 'diff')
+        raise
     output = ''
     try:
         # No bytecode is written under the run: a `.pyc` records its
