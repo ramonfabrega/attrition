@@ -29,9 +29,13 @@ pub(crate) const INDIAN: Lobby = Lobby {
     // Item 3329, the battery's first try: count and sequence both at 221
     // (ours 5 draws, theirs 17, at 0: ours `Farms::inc_time+0x1ae`, theirs
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`). Item 3335 promoted it to
-    // the AI word (`docs/AI.md` §271).
-    count: 221,
-    sequence: 221,
+    // the AI word (`docs/AI.md` §271) and moved it 221 → 1176 (a goody
+    // box's own `ever_seen`, `reveal_fog`'s goody arm) → 1177 (`get_cost`'s
+    // Indian ramp arm): ours 10 draws, theirs 8, at 1: ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+    // `Guy::set_anim+0x104b`.
+    count: 1177,
+    sequence: 1177,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -122,7 +126,7 @@ fn run970_s_word_frame_is_widened_whole() {
     let Some(w) = indian_frame_221_window() else {
         return;
     };
-    pin_eq!(w.blocks, 436, "every captured block");
+    pin_eq!(w.blocks, 435, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -135,5 +139,16 @@ fn run970_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3335: 496 keys part on blocks 37..472, the word's own block
+    // being 222. The first that is not the standing set: block 180,
+    // ours' scout `1/0` (TI 69) sweeping the goody box `o 1` at (34944,
+    // 38016) and re-targeting where theirs walks on — the item's
+    // `ever_seen` is its own byte, 0 in the dump while the cells' `seen2`
+    // read 2. **496 → 33** with the item's byte (the word 221 → 1176),
+    // **33 → 32** with `get_cost`'s Indian ramp arm (who=1's timber 29
+    // against 41 from block 37; the word 1176 → 1177, past the window).
+    // What stands is the control's set — `SITE[n].reg`, `aggression`,
+    // `form`, the groups' `held` and the pool — 30 on block 37 and two
+    // late rows, who=1's `group:66.held` on 177 and `pool:64` on 222.
+    pin_eq!(w.firsts.len(), 32, "keys that part in the window");
 }
