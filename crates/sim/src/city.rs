@@ -3721,6 +3721,50 @@ pub trait AssimilateView {
     fn announce(&mut self);
 }
 
+/// What `Build::new_library@00627fe0` reads and writes: the research queue
+/// (a count byte at `+0x82`, entries of 0x14 bytes behind `+0x8c`) of the
+/// library it is handed and of the owner's first library.
+pub trait NewLibraryView {
+    /// `is(0x1b3, 0)`: a Library by lineage.
+    fn is_library(&mut self) -> bool;
+    /// `LeaderData::get_first_library`: the object index, or negative.
+    fn first_library(&mut self) -> i32;
+    /// The library's own object index (the short at `+0xa`).
+    fn own_index(&mut self) -> i32;
+    /// The first library's queued count (the byte at `+0x82`).
+    fn source_queued(&mut self, first: i32) -> u8;
+    /// Entry `i` of the first library's queue copied onto this one's.
+    fn copy_entry(&mut self, first: i32, i: usize);
+    /// This library's own count byte.
+    fn set_queued(&mut self, n: u8);
+    /// The first library's count byte cleared.
+    fn clear_source(&mut self, first: i32);
+}
+
+/// `Build::new_library@00627fe0`: a library that sits earlier in the object
+/// table than the owner's first one takes that one's research queue and leaves
+/// it empty. (The crate keeps the queue on the first library and resolves
+/// `queue_home` on read, so `SimAssimilate` does not call this; the sweep
+/// holds the arithmetic.)
+pub fn new_library_steps<V: NewLibraryView>(v: &mut V) {
+    if !v.is_library() {
+        return;
+    }
+    let first = v.first_library();
+    if first < 0 || v.own_index() >= first {
+        return;
+    }
+    if v.source_queued(first) == 0 {
+        return;
+    }
+    let n = v.source_queued(first);
+    v.set_queued(n);
+    for i in 0..usize::from(n) {
+        v.copy_entry(first, i);
+    }
+    v.clear_source(first);
+}
+
 /// `City::assimilate@00738e90`.
 pub fn assimilate_steps<V: AssimilateView>(v: &mut V) {
     v.clear_unassimilated();
