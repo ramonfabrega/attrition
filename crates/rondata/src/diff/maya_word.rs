@@ -95,3 +95,47 @@ fn maya_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run973: the word 776's window, blocks 770..1026 at run967's detail
+/// (`LEADERS=9`, `GUYS=4`; item 3338); run966 dumps blocks 0..2 and run966b
+/// its setup and closing blocks only.
+pub(crate) const RUN973: &str = "gamelog-run973-greatsahara-maya-diff4-window-770-1026-guys4.txt";
+
+/// The window: block 770 through 1026; the word 776's own block is 777.
+pub(crate) const WIDENING_MAYA_FRAME_776: (i64, i64) = (770, 1026);
+
+pub(crate) fn maya_frame_776_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MAYA.start],
+        true,
+        MAYA.long,
+        "run973",
+        &[(RUN973, WIDENING_MAYA_FRAME_776.0)],
+        WIDENING_MAYA_FRAME_776,
+        1,
+        &[777],
+        true,
+    )
+}
+
+#[test]
+fn run973_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = maya_frame_776_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run973 with the Maya arm");
+}
