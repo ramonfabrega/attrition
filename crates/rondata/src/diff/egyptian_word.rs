@@ -218,3 +218,48 @@ fn run967b_s_gap_is_widened_whole() {
     // who=0's `other_team_terr` 441 against 388 from 1404.
     pin_eq!(w.firsts.len(), 39, "run967b with the Egyptian farm wealth");
 }
+
+/// run967c: the word 15782's window, blocks 15776..16033 at run967b's
+/// detail (`GUYS=2`; item 3332); run645 prints its setup and closing blocks
+/// only.
+pub(crate) const RUN967C: &str = "gamelog-run967c-greatsahara-egyptian-diff4-window-15776-16033.txt";
+
+/// The window: block 15776 through 16033; the word 15782's own block is
+/// 15783.
+pub(crate) const WIDENING_EGYPTIAN_FRAME_15782: (i64, i64) = (15776, 16033);
+
+pub(crate) fn egyptian_frame_15782_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN.start],
+        true,
+        EGYPTIAN.long,
+        "run967c",
+        &[(RUN967C, WIDENING_EGYPTIAN_FRAME_15782.0)],
+        WIDENING_EGYPTIAN_FRAME_15782,
+        1,
+        &[15783],
+        true,
+    )
+}
+
+#[test]
+fn run967c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_frame_15782_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run967c, first try");
+}
