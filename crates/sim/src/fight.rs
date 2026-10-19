@@ -2779,6 +2779,7 @@ impl Sim {
                     let keep = self.keeps_disc(i, dtype);
                     self.close_supply_in(i, keep);
                     self.forget(Obj::Unit(i));
+                    self.clear_decoy_at_close(i);
                 }
                 taken
             }
@@ -2907,6 +2908,7 @@ impl Sim {
         let keep = self.keeps_disc(v, dtype);
         self.close_supply_in(v, keep);
         self.forget(Obj::Unit(v));
+        self.clear_decoy_at_close(v);
     }
 
     /// A unit's death by attrition: `Unit::suffer_attrition@005e1a10` calls
@@ -2926,6 +2928,7 @@ impl Sim {
         let keep = self.keeps_disc(i, ATTRITION_DTYPE);
         self.close_supply_in(i, keep);
         self.forget(Obj::Unit(i));
+        self.clear_decoy_at_close(i);
     }
 
     /// `Object::close@00647160`'s `blocks_while_dead` arm: any death with a
@@ -6037,6 +6040,34 @@ mod tests {
                 "decoy {decoy}: the first-wound draw is spent by a real blow alone"
             );
         }
+    }
+
+    /// **A closed decoy's round is a real blow** (`Unit::close@0060ee50:603`,
+    /// item 3322): `close` clears `unit_masks & 1` at its tail, so a round
+    /// still in flight when its decoy closes lands as an ordinary one —
+    /// run956c's Horse Archers decoy `1/110`, closed on 18367, struck who=0's
+    /// Village for 1.0 on 18368 (`docs/AI.md` §265). Made to fail with
+    /// `clear_decoy_at_close` taken out of `close_decoy`.
+    #[test]
+    fn a_closed_decoy_s_round_in_flight_strikes() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+        sim.units[me].decoy = true;
+        let b = sim.add_building(0, Pos::new(2016, 2016), 0);
+        sim.buildings[b].started = true;
+        sim.buildings[b].active = true;
+        sim.buildings[b].combat = Some(Profile {
+            x_size: 1,
+            y_size: 1,
+            ..Profile::default()
+        });
+        sim.buildings[b].health = 500;
+        let p = round(&sim, me, Some(Obj::Building(b)), Pos::new(2016, 2016), 1);
+        sim.close_decoy(me);
+        assert!(!sim.units[me].decoy, "a closed unit is no decoy");
+        sim.land(p, 3322);
+        assert_eq!(sim.hits.len(), 1, "the round strikes");
+        assert!(sim.buildings[b].damage > 0, "the building takes it");
     }
 
     /// **An aircraft's round passes over its own side** (`Ammo::check_hit`,

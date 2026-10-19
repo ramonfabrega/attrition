@@ -804,7 +804,10 @@ count except through the table.
 
 ### 7.1 `do_damage(A, o, who, angle, num_guys, ammo, count, splash, quiet)`
 
-Returns at once if `count < 1` or if A is a decoy. Then:
+Returns at once if `count < 1` or if A is a decoy. The decoy test reads A's
+`unit_masks & 1` at impact, and `Unit::close@0060ee50:603` clears the bit on
+every path: a round a decoy fired that lands after its shooter closed is a
+**real blow**, priced on the dead slot (run959; `docs/AI.md` §265). Then:
 
 1. `dmg = get_damage(o, who, angle, splash, 1, &dtype)` — §6.
 2. If the target is a unit and `!quiet`: the target's **captain** runs

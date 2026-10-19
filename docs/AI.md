@@ -23400,8 +23400,9 @@ against theirs 869** (867, fraction 6, on both before it). The blow of 18368 is 
 and 2.0 there. Its blows of 18320, 18343 and 18393 are 1.0 on both sides, and every other blow of the window agrees
 (the next, `1/65`'s 2+10/16 on 18373, included). So it isn't territory or armour, which would move every blow. Ours
 deals the floor (the Village's armour 3 on friendly ground, step 26's "at least one"). Theirs' `1/53` drops its `up`
-(86, the Senator `1/55`'s uid; its guard order's target) on block 18367, and nothing else dumped on it changes. That
-is the next word's frame, not its mechanism.
+(86, ~~the Senator `1/55`'s uid; its guard order's target~~ — the collision chain's `ObjectData +0x2a`, the Legion
+`1/86`, §265) on block 18367, and nothing else dumped on it changes. That is the next word's frame, not its
+mechanism: **answered in §265** — the second point is a closed decoy's round.
 
 **Not established.** Theirs' (28, 40) is read off the search's price, not seen: no dump of this lobby prints a
 tile after block 36. The sixteen other ring tiles ours clears on 18011 are unobserved. The `g.angle[0]` rows and
@@ -23470,12 +23471,45 @@ SEAMs — RESEARCH_FASTER, Angkor, Conquer the World, the handicap, `tech_cost`,
 are not carried (3318e). `fix_tech_flags` clearing `0x1000` on `lose_tech` is never reached. Whether the Spanish Scout
 opens a box, and so runs `explore_goody`'s Spanish payout pair, is unread (3318d).
 
-## 265. Reserved for the next item on the AI track
+## 265. The Romans' closing state: a closed decoy's last round (2026-10-19, item 3322)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Score.** `run899b_roman_closing_state` `[0, 0, 0, 6, 0, 1, 0]` → **`[0, 0, 0, 0, 0, 0, 0]`**: 110 units compared on
+the closing block 18621, nothing apart, nothing unlinked, `Closing fields: none`; ours captures who=0's Village
+`0/2000` on 18620 as theirs does. `run956c_s_gap_is_widened_whole` 52 → 51 keys (the standing set).
+
+**The value diff.** `0/2000`'s `damage` on block 18369: ours 868, theirs 869, from 867 (fraction 6) on both on 18368.
+Theirs' +2.0 is the only per-frame increment of 18277..18620 that differs.
+
+**What it was not.** Ours' blow is `1/53`'s: attack 130, pct 33, base 42, (42 + 5)/10 − armour 3 = 1 — not the
+step-26 floor §263 guessed. `1/53`'s `up 86` is the collision chain's `ObjectData +0x2a`, the Legion `1/86`, not the
+Senator's uid (§263 is amended).
+
+**The packet** (run959, logger frame 18368; `rngcmp.py` against run899b 18373 identical). Under
+`tools/recomp/step4.py`: `WallData::armor(0/2000)` = 3, `UnitData::attack(1/53)` = 130, `ObjectData::get_damage(1/53
+→ 0/2000)` = 1, and `Object::take_damage(0/2000, 1, 0, …)` writes 868 — so the second point is a second write on the
+tick. Scanning the packet for `Ammo::vftable` (`0xb45418`) finds three rounds bound for the Village; `1/53`'s (t 8 of
+9) and **`1/110`'s** (t 7 of 8) both land on 18368, and `Ammo::hit_target` on `1/110`'s answers 1.
+
+**The mechanism.** `1/110` is a Horse Archers decoy (`unit_masks` `0x851007`, `mana_burn` 2499 on block 18366, gone
+from 18367). It closed with its round in flight; in the packet its object stands at `flags 0`, `unit_masks`
+`0x851006`. `Unit::close@0060ee50:603` — the last statement on every path, after `close_orders` and `Object::close` —
+is `unit_masks &= ~1`: a closed unit is no decoy. At impact `Ammo::do_damage` hands the dead slot to
+`Object::do_damage`, whose decoy return reads the bit; it is clear, so the round strikes for 1.0 beside `1/53`'s
+(`docs/COMBAT.md` §7.1). `1/110`'s earlier rounds (18318, 18342) are a living decoy's and strike nothing on either
+side.
+
+**Built.** `Sim::clear_decoy_at_close` (`cast.rs`), at the tail of `close_decoy`, the combat death in
+`take_damage_typed`, `cast_sniper_unit` and `die_by_attrition`. Test
+`fight::tests::a_closed_decoy_s_round_in_flight_strikes`. Mutation (`tools/mutate.py`, the call out of
+`close_decoy`): held.
+
+**Tools.** `step4.py` answers the imports `wcschr`/`strchr` and `wcslen`/`strlen` (`Object::do_damage`'s
+city-attacked message reaches `wcschr`).
+
+**Not established.** Only `close_decoy`'s clear is diff-backed (the word, and the mutation). The other three —
+`take_damage_typed`'s, `cast_sniper_unit`'s and `die_by_attrition`'s — rest on `Unit::close`'s every-path reading. A decoy
+round's pricing on the closed slot's own type (`get_damage` reads the dead shooter's data) is confirmed only for Horse
+Archers.
 
 ## 266. Reserved for the next item on the AI track
 

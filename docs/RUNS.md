@@ -18324,6 +18324,23 @@ SHA-256 `8f532e6d099eb44a01309096391252cc08f505314af77bd80554686b63a862e8`.
 **What it holds**: `diff::roman_word::run956c_s_gap_is_widened_whole` (344 blocks). 52 keys: run956b's 51 standing,
 and `0/2000`'s `damage` on block 18369, ours 868 against theirs 869. That is the Horse Archers `1/53`'s blow of
 18368, 1.0 here and 2.0 there. Its window is in the coverage driver.
+## run959 — the Roman closing word's packet: East Indies, the Romans at difficulty 2, a state packet at frame 18368 (2026-10-19, item 3322, `att-3322`)
+
+`docs/AI.md` §265. **What the disk could not answer**: run956c shows `0/2000`'s damage 867 → 869 across block 18369
+with every term of `1/53`'s `get_damage` agreeing with ours, and no dump prints a round in flight. `RON_STATE_FRAME=18368`
+with item 597's `plan.h`, `--end-frame 18372 --log-window 18366 18370 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9`,
+`--ai-tribe 6 --cover cover=0 --profile DIFFICULTY=2`, on the click-free lane.
+- Pool lane 1. Launched 03:40:30 and the game exited at 03:41:51 (81 s). `success`, 18373 frames, `map_style 18`,
+  seed 12345, players `(0,4,7),(1,6,1)`. `rngcmp.py` against run899b: **18373 identical, 0 differing**.
+- A first take died in the tracer build on an unquoted `RON_STATE_PLAN`; its directory was moved out of the archive.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run959/map-18/frame-snapshot.bin`, 874,003,712 bytes,
+SHA-256 `680d50644710d5ce6be37979f2db61d1aa0093b2186d6c0bd4ee9032b168c7de`.
+
+**What it holds**: under `tools/recomp/step4.py`, `get_damage(1/53 → 0/2000)` = 1 and `take_damage` writing 868, and
+the live `Ammo` objects: the closed decoy `1/110`'s round lands on the Village on 18368. No test reads it.
+
 ## run954 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 12156's widening (12150..12406) at run952's detail (2026-10-19, item 3306, `att-3306`)
 
 `docs/AI.md` §262. **What the disk could not answer**: the word moved to 12156 (item 3297), and run952 ends at block

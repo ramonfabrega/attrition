@@ -174,6 +174,24 @@ class Stubs:
             self.ret(0, 276)
         elif name == "OutputDebugStringA":
             self.ret(4, 0)
+        elif name in ("wcschr", "strchr"):  # cdecl: (s, c) -> the first c or NULL
+            wide = name == "wcschr"
+            s, c, w = self.arg(0), self.arg(1) & (0xFFFF if wide else 0xFF), 2 if wide else 1
+            while True:
+                ch = int.from_bytes(self.uc.mem_read(s, w), "little")
+                if ch == c:
+                    self.ret(0, s)
+                    break
+                if ch == 0:
+                    self.ret(0, 0)
+                    break
+                s += w
+        elif name in ("wcslen", "strlen"):  # cdecl: (s) -> its length in characters
+            w = 2 if name == "wcslen" else 1
+            s, n = self.arg(0), 0
+            while int.from_bytes(self.uc.mem_read(s + n * w, w), "little"):
+                n += 1
+            self.ret(0, n)
         else:
             return False
         return True

@@ -319,16 +319,19 @@ fn run956c_s_gap_is_widened_whole() {
         }
     }
     pin_eq!(w.blocks, 344, "every captured block");
-    pin_eq!(w.firsts.len(), 52, "keys that part in the window");
-    // Item 3314: run956b's 51 standing keys, and one more — **`0/2000`'s
-    // `damage` on block 18369, ours 868 against theirs 869** (867 and
-    // fraction 6 on both sides before it). The blow of 18368 is the Horse
-    // Archers `1/53`'s on the Village: 1.0 here, 2.0 there; its blows of
-    // 18320, 18343 and 18393 are 1.0 on both, and every other blow of the
-    // window agrees. That point is the closing's capture: theirs' Village
-    // reaches 1200 by 18620, ours 1199.
-    // Theirs' `1/53` drops its `up` (86, the Senator `1/55`'s uid) on block
-    // 18367; nothing else dumped on it changes.
+    pin_eq!(w.firsts.len(), 51, "keys that part in the window");
+    // Item 3314: run956b's 51 standing keys, and one more — `0/2000`'s
+    // `damage` on block 18369, ours 868 against theirs 869, from tick
+    // 18368. **Item 3322: the second point is a decoy's round.** Two rounds
+    // land on the Village on 18368 (run959's packet: `1/53`'s at t 8 of 9,
+    // `1/110`'s at 7 of 8), and `1/110` is a Horse Archers **decoy**
+    // (`unit_masks` `0x851007`, `mana_burn` 2499 on 18366) that closed on
+    // 18367. `Unit::close@0060ee50:603` clears the decoy bit, so its round
+    // strikes for real, 1.0 beside `1/53`'s 1.0; ours kept `decoy` on the
+    // closed slot and `do_damage`'s decoy return swallowed it. With
+    // `Sim::clear_decoy_at_close`, the window holds the 51 standing keys.
+    // (`1/53`'s `up` 86 on 18367 is the collision chain's `1/86`, a
+    // Legion, not the Senator — the previous item's hypothesis.)
 }
 
 /// The closing state's window: run899b's closing block 18621 alone, the
@@ -383,12 +386,15 @@ fn run899b_roman_closing_state() {
     pin_eq!(e.frame, 18621, "the closing block");
     // Item 3314, the first walk: 110 units compared on block 18621, none
     // apart, no closing field parted — and six buildings and a city
-    // unlinked: theirs' `1/2040`..`1/2045` and city `1/2040` are who=0's
-    // Village `0/2000` and its five buildings, captured on the game's last
-    // frame, where ours' Village stands at damage 1199 of 1200 (level 5;
-    // a city centre is taken at 6, `check_capture_eligible@0062d1d0`).
-    // run956b's last block has it at 840 on both sides; run956c parts it
-    // on block 18369 (`run956c_s_gap_is_widened_whole`).
+    // unlinked (`[0, 0, 0, 6, 0, 1, 0]`): theirs' `1/2040`..`1/2045` and
+    // city `1/2040` are who=0's Village `0/2000` and its five buildings,
+    // captured on the game's last frame, where ours' Village stood at
+    // damage 1199 of 1200 (level 5; a city centre is taken at 6,
+    // `check_capture_eligible@0062d1d0`). Item 3322: the missing point was
+    // the decoy `1/110`'s last round on 18368 (`clear_decoy_at_close`,
+    // `run956c_s_gap_is_widened_whole`); with it ours captures the Village
+    // on 18620 too, and the closing block is whole: 110 units, nothing
+    // apart, nothing unlinked, no closing field parted.
     pin_eq!(e.compared, 110, "units compared");
-    pin_eq!(e.counts(), [0, 0, 0, 6, 0, 1, 0], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
