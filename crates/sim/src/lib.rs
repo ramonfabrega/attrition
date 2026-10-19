@@ -119,6 +119,7 @@ pub mod tpath;
 pub mod transport;
 pub mod tuning;
 pub mod type_index;
+pub mod upath;
 pub mod victory;
 pub mod vision;
 pub mod world;
