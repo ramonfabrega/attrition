@@ -160,14 +160,14 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            find_port(a, c, p, &mut log)
+            let got = find_port(a, c, p, &mut log);
+            // A row that called neither stub records `-`.
+            if log.is_empty() {
+                log.push("-".into());
+            }
+            got
         };
         assert_eq!(got, want_eax, "find — eax, row `{line}`");
-        let log: Vec<String> = if log.is_empty() {
-            vec!["-".into()]
-        } else {
-            log
-        };
         assert_eq!(log, want_log, "find — the recorded calls, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "find — this's bytes, row `{line}`");
