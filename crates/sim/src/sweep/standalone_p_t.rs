@@ -28,6 +28,8 @@ mod path_finder_find_tpath;
 mod path_finder_find_tpath_006897d0;
 #[path = "path_finder_find_upath.rs"]
 mod path_finder_find_upath;
+#[path = "path_finder_find_upath_00682f30.rs"]
+mod path_finder_find_upath_00682f30;
 #[path = "path_finder_find_upath_restore.rs"]
 mod path_finder_find_upath_restore;
 #[path = "path_finder_find_wpath.rs"]
