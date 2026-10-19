@@ -5126,9 +5126,6 @@ impl Sim {
             // the Battery's round in 0. The walk then goes on from the next
             // slot past this one, as the pool's own walk does.
             let p = self.projectiles[i];
-            if std::env::var_os("RON_PROBE_DMG").is_some() && p.target == Some(Obj::Building(0)) {
-                eprintln!("PROBE_LAND f{frame} {:?} slot {} harmless {} t {}/{}", p.shooter, p.slot, p.harmless, p.cur_time, p.total_time);
-            }
             // `inc_time:260`: a round with flag `0x10` is closed, and
             // `Ammo::do_damage` is never called for it (§39.5).
             if !p.harmless {
