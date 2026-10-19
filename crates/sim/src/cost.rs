@@ -339,6 +339,14 @@ pub struct Modifiers {
     /// (`has_tribe_bonus(7)`), after the city tail and the (uncarried) marble
     /// term. Zero is the identity.
     pub egyptian_wonders: i32,
+    /// `get_cost`'s **fort arm** (`00665e0f`..`00665e8a`): on a type that
+    /// `is_fort` (vslot `+0xfc`) or is of the Tower's line (`is(0x1b7, 0)`)
+    /// and is not a wonder, `COLOSSEUM_FORT_COST` with the Colosseum held
+    /// (`has_wonder(0x212)`) and then `ROMAN_FORT_COST` for a Roman leader
+    /// (`has_tribe_bonus(6)`), each its own `(100 − x) × cost / 100` after
+    /// the wonder tail (and the uncarried Korean tower step). Zero is the
+    /// identity (item 3314, `docs/AI.md` §263).
+    pub fort: [i32; 2],
     /// `get_cost`'s **research** arm: the type is not yet available to the
     /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
     /// research, and it takes the place of the ramp. `None` is the train arm.
@@ -597,6 +605,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.egyptian_wonders != 0 {
         cost = (100 - m.egyptian_wonders) * cost / 100;
+    }
+    for pct in m.fort {
+        cost = (100 - pct) * cost / 100;
     }
     if m.democracy != 0 {
         cost = cost.wrapping_mul(100 - m.democracy) / 100;
@@ -1311,6 +1322,35 @@ mod tests {
         };
         assert_eq!(price(0), 402);
         assert_eq!(price(T.egyptian_wonders), (100 - 25) * 402 / 100);
+    }
+
+    /// `get_cost`'s fort arm (`00665e0f`..`00665e8a`, item 3314): the
+    /// Colosseum's 20 % and then the Romans' 25 % off a fort or a Tower,
+    /// each its own truncating step after the ramp.
+    #[test]
+    fn a_roman_tower_costs_a_quarter_less_after_the_colosseum_s_fifth() {
+        let tower = Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free().with_base(Resource::Timber, 13)
+        };
+        let price = |fort: [i32; 2]| {
+            let m = Modifiers {
+                fort,
+                ..Modifiers::default()
+            };
+            let counts = Counts {
+                of_type: 0,
+                of_group: 0,
+            };
+            cost_of(&T, &tower, Resource::Timber, counts, &m)
+        };
+        let base = price([0, 0]);
+        assert_eq!(price([0, T.roman_fort_cost]), (100 - 25) * base / 100);
+        assert_eq!(
+            price([T.colosseum_fort_cost, T.roman_fort_cost]),
+            (100 - 25) * ((100 - 20) * base / 100) / 100
+        );
     }
 
     /// `get_cost:299`: a Russian Spy loses `RUSSIAN_SPY_COST` percent in its

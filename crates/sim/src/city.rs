@@ -1167,6 +1167,7 @@ impl Sim {
                 } else {
                     [0; 2]
                 },
+                fort: self.fort_discounts(who, ty),
                 ..cost::Modifiers::default()
             },
             &holdings.available,
@@ -1225,6 +1226,28 @@ impl Sim {
             0
         };
         [bantu, pyramids]
+    }
+
+    /// `get_cost`'s fort arm (`00665e0f`..`00665e8a`, [`cost::Modifiers::fort`]):
+    /// a fort or a Tower-line building that is not a wonder takes
+    /// `COLOSSEUM_FORT_COST` with the Colosseum held, then `ROMAN_FORT_COST`
+    /// for a Roman leader (item 3314, `docs/AI.md` §263).
+    fn fort_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
+        let types = &self.build_types;
+        if types[ty].wonder || !(build::is_fort(types, ty) || build::is_tower(types, ty)) {
+            return [0; 2];
+        }
+        let colosseum = if self.wonders_held(who) & (1 << crate::tech::wonder::COLOSSEUM) != 0 {
+            self.tuning.colosseum_fort_cost
+        } else {
+            0
+        };
+        let roman = if self.nation[who as usize].romans {
+            self.tuning.roman_fort_cost
+        } else {
+            0
+        };
+        [colosseum, roman]
     }
 
     /// `get_cost`'s wonder count for pricing wonder `ty` ([`cost::wonder_count`]):

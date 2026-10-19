@@ -9901,7 +9901,11 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The battery's third word** (item 3314, DECISIONS 72, 83): frame
     // 576, the Roman lobby's first try. run899 dumps blocks 0..36 and
     // run899b its setup and closing blocks only, so no dump on disk held
-    // the word's block: its widening is run956's window, owed by this item.
+    // the word's block: item 3314 widened it on run956 over 570..826
+    // (`run956_s_word_frame_is_widened_whole`): block 570's bucket, the
+    // Tower priced without the Romans' quarter off. **Item 3314 moved it
+    // 576 → 18026** (`get_cost`'s fort arm), past run956's last block: its
+    // widening owed by this item.
     (
         "ROMAN_WORD",
         crate::diff::roman_word::ROMAN_WORD,
@@ -10250,7 +10254,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::roman_word::ROMAN_WORD,
         length: 18_620,
         endpoint: None,
-        window: None,
+        window: Some("roman_frame_576_window"),
     },
     // **The battery's word** (DECISIONS 72; item 2904): East Indies, the
     // Germans at Difficulty 3 — the held-out battery's lowest lobby, which
