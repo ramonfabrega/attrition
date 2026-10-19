@@ -9889,13 +9889,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // the gap 10940..11579 (`run952b_s_gap_is_widened_whole`): block
     // 11259's food, The Despot's cut on `0/2002`. **Item 3297 moved it
     // 11585 → 12156** (`Build::plunder`'s hero cut, Ambush's hold), past
-    // run952's last block (11835): owed by the row item 3297 files under
-    // its heading, numbered at the merge.
+    // run952's last block (11835): owed as 3306 (`docs/QUEUE.md`; parked
+    // 3305, the row item 3297 filed under its heading, numbered at the merge).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3297,
+        3306,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

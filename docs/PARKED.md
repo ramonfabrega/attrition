@@ -3766,6 +3766,11 @@ the compile error as a catch; a `TaskStop` on a running `mutate.py` leaves the m
 mutant whose command ran no test is printed `no verdict` and counted apart, and the tool restores the tree on a
 signal, each made to fail first. One reach.
 
+(3310) **A field a `think_*` arm reads stood on the newest word's unread list** (3297's "for the Loop" line, filed under
+its heading at its merge): `mana_burn` was on `coverage.rs`'s unread list for run943's and run952's windows, and the
+parting it hid stood on every block of run943 (10689..10945) without a row. Candidate: a check that no field a
+`think_*` arm reads stays on the unread list of the newest word's window, made to fail first on `mana_burn`. One reach.
+
 (3290) **A lane's cleanup removed other lanes' subagent worktrees** (att-3281's done line, the commander at its
 merge): a `git worktree remove ../agent-*` loop run from one lane globbed every `.claude/worktrees/agent-*`, the
 three live lanes' subagent trees among them; the branches survived (three of 3282's held unmerged commits), and
@@ -8122,23 +8127,23 @@ Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircra
 
 ## Parked by item 3297, 2026-10-18 — The Despot's Ambush and his cut on a razed building, the Iroquois word at 12156
 
-- **The battery word 12156** (`GreatLakesIroquoisTier3`, `docs/AI.md` §261). Item 3297 moved the word 11585 → 12156:
+- (booked as item 3306) (3305) **The battery word 12156** (`GreatLakesIroquoisTier3`, `docs/AI.md` §261). Item 3297 moved the word 11585 → 12156:
   ours 29 draws against theirs 35, index 1, ours `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a < Unit::fight+0x169`.
   run952 ends on block 11835, so no dump on disk holds the word's frame. **Its widening is owed** (a window capture
   around 12156 at run952's detail; the game ends on 12658). The booking is the frame and the draw delta; a theirs-only
   figure roll inside `Unit::fight` is a hypothesis.
-- **`1/53`'s `damage_frac`** (run952b, block 11259 on): the Mohawk Spearman `1/53`, guarding The Despot and striking
+- (3307) **`1/53`'s `damage_frac`** (run952b, block 11259 on): the Mohawk Spearman `1/53`, guarding The Despot and striking
   `0/2002`, holds `damage_frac` 10 in ours against 0 in theirs from the block the building falls. No draw and no score
   moves on it through 11835. Its writers by offset are the reading.
-- **The Scholars' `g.angle[0]`** (`1/71` from 11348, `1/73` from 11522, inside the University): ours 1431655765
+- (3308) **The Scholars' `g.angle[0]`** (`1/71` from 11348, `1/73` from 11522, inside the University): ours 1431655765
   (`0x55555555`) against theirs 0. A figure of a unit housed in a building takes an angle ours does not clear. No draw
   moves on it.
-- **Ambush's cloak `0x800`** (`docs/AI.md` §261, not established). `cast_ambush` sets it; `UnitData::is_seen`,
+- (3309) **Ambush's cloak `0x800`** (`docs/AI.md` §261, not established). `cast_ambush` sets it; `UnitData::is_seen`,
   `is_cloaked`, `Unit::find_melee_target` and `Unit::work` read it; `set_new_location` and `process_cloak` clear it.
   The hero arm casts Ambush on the move, so it would last a step; it would part where an enemy's target search runs
   on the cast's own frame. A capture's hero cut (`Cities::capture_city`, the unwritten `Nation::plunder_hero`) is the
   same family, unread.
-- **3297's "for the Loop"** (the journal's line, filed for the commander): `mana_burn` was on `coverage.rs`'s unread
+- (3310) **3297's "for the Loop"** (the journal's line, filed at its merge as Loop 3310): `mana_burn` was on `coverage.rs`'s unread
   list for run943's and run952's windows, and the parting it hid stood on every block of run943 (10689..10945, theirs
   1000 against ours 832..576) without a row. A hero's craft is a field `think_hero` reads ("with the mana"). Candidate
   check: no field a `think_*` arm reads stays on the unread list of the newest word's window.
