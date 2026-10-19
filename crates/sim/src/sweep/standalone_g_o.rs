@@ -680,6 +680,8 @@ mod object_update_seen_wide;
 mod objects_array_get_data_type;
 #[path = "objects_data_count_nukes_in_flight.rs"]
 mod objects_data_count_nukes_in_flight;
+#[path = "objects_data_find.rs"]
+mod objects_data_find;
 #[path = "objects_data_find_any_building_at.rs"]
 mod objects_data_find_any_building_at;
 #[path = "objects_data_find_building_placed_at.rs"]
