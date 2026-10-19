@@ -7999,13 +7999,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JV — reserved
+## Parked by item 3281, 2026-10-18 — the nations seat's seventh shape batch: three of six built
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3281a.** `PathFinder::find_tpath@006897d0` unswept. The 6-argument body (stack `PathData`, from x/y, unit, slot) works on the global `pathfinder`, `units`, `world`; callees `get_tregion`, `valid_tcoord`, `find_angle`, `astar_path`, `kill_lists`, `update_order`. `sweep_gen.py` has no layout flag that serialises a seeded `Sim` (units slot with path stack, tregion table, `div_3_table`) into the image, and the recorded-calls form cannot drive a port that calls real `Sim` methods. Alternative: factor `path.rs`'s tile-walk (1783–1832) into a `_steps` over closures. The existing `path_finder_find_tpath.rs` sweeps the 3-arg forwarder `00688e60`, a different function. Reading (unverified, matches parked 2739): on a `FINAL` pull-back inside 0x60 the original reaches the push with tolerance kept, the port falls into the `td < 2` zero-tolerance push.
+
+**3281b.** `World::reveal_fog@006b3d30` unswept: `Sim::reveal_fog` (rares.rs:324) models two of six arms (rare, oil). Missing: the rare message arm (String ops, `SoundGlobal::play(0x27)`, `add_message`), the good seen-bit (`good+0x20 |= 1<<who`), the goody arm (`find_goody_at`, `ever_seen` write; goody.rs:186), the goody-box arm (param_4 ≥ 0, `Unit::get_goody_box`; goody.rs:27 seam); and the crate takes no `unit_idx`. Needs a `reveal_fog_steps` view first, then a sweep (~30 flags). Possible generator gap, unconfirmed: two global cells aliasing one record (world `0xc06188` and worldc `0xc061d0`), e.g. `--cell-same VA:VA`.
+
+**3281c.** `Unit::check_build_order@00603470` unswept: a stack-local `SimpleArray<int>` at ebp-0x38 (vtable 0xb22a60), grown by a vcall on the local itself (slot 0 `increase_size@004220e0` writes the buffer pointer into ebp-0x28) and freed through the import `[0xac5500]`. Flag wanted: `--stub-array LOCDEPTH:CAP` (as parked 3163, 3229a) with a no-op `free`. Also: extract `Sim::check_build_order` (orders.rs:7927) to a `_steps` over closures (pattern `repath_steps`, orders.rs:901); the original's site list holds unit ids, the crate's building indices; the crowd count formulation differs (`+0xc == owner && +8 == site` vs `owner/alive/first non-transit order`).
+
+**3281d.** `Army::find_besieged_city` sweep: two breaks survive. `(s != slot || j != me)` → `(s != slot)` is starved (needs another leader's valid army in the caller's slot index, matching city, standard > 4, flipping the argmax); `xmax <= x` → `xmax < x` is equivalent unless city x is exactly `w*0x300`. The sweep does not run `BesiegedSim`. Not established: whether the original's per-leader city list keeps dead cities (the port now indexes the k-th owned city, dead included); `Sim` has no per-leader city-list index (`nth_city` is a stand-in). The navy-quarter's `find_unit` circle/ring semantics are approximated (live on-map non-gaia enemy `Domain::Sea` within 0x1200).
+
+**3281e.** Generator gaps: `--ptrtab`/`--answer-by` cannot span two object tables (find_besieged_city pins the city's `+0x5e` byte to 0); `--wbias` has no strided range (`pA..B/3`) so gen.sh loops; `--sparse @VA` slices are bytes not pointers (a pointer slot needs `--sparse …:OFF,4` plus `--place pK+0:0:N`) — worth a line in the help; the `memset` import thunk faults unless stubbed `--stub ADDR:3 --stub-cdecl K` — worth a note in the docs. `think_carry`: `docs/AI.md` §195/§235 describe the attack arm as inline in `think_carry`; it is a tail-jump to `think_carry_military@005f3260`, which with `think_carry_civilian@005f37c0` and `think_carry_idle@005f2f30` (unmodelled; `SimCarry::idle` answers 0) is unswept.
 
 ## Parked by the next landing, slot JW — reserved
 
