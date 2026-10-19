@@ -8421,13 +8421,33 @@ words and edits nothing here; a refill lands when two remain.
 - (3338b) **`1/53`'s `dest_angle` on run973d's 12209** (ours −573833216, theirs −1255342080), one field, healed by the
   close; as 3336b — a heading the move asks for that no draw reads.
 
-## Parked by the next landing, slot KW — reserved
+## Parked by item 3339, 2026-10-19 — the nations seat's fourteenth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3339a. `Unit::find_build_spot@00603e20`, a second time (3282b was the first): `--stub-alloc IDX` is the flag
+  `sweep_gen.py` lacks.** Two stack-local `SimpleArray<int>` (the site list and the per-site builder counts) grow
+  through `increase_size@004220e0`, whose callees are `malloc [0xac54f0]`, `free [0xac5500]` and `memcpy`; `--answers`,
+  `--answer-range` and `--seq` draw each malloc's answer at random, so two calls can return one buffer and the counts
+  overwrite the site list. A `malloc` stub answering a fresh bump-heap address each call is the flag. The port side is
+  also owed: `Sim::find_build_spot` (`orders.rs`) fuses `find_construct_sites` and `build_crowd`, with no
+  `find_build_spot_steps` over a view (shape of `reveal_fog_steps`); and its tally keys on the unit's `Body::Build` action
+  and the site's owner where the original tests the found object list, order type 6, `+0xc == owner`, `+8 == site id` —
+  possibly a real difference. A shape two batches parked is its own item (2732).
+- **3339b. `Unit::think_civilian_transport@005f40d0`, a second time (3320a was the first): the port is not level with the
+  original.** Every flag it needs exists (`--sparse`, `--seq`, `--answers`, `--ecx-answer`, `--deref`, `--stub`,
+  `--record`). The crate method (`transport.rs`) is written against `Sim` with no view trait, numbers regions densely by
+  terrain where the original walks slots 1..=0x3f and 0x41..=0x7e (that order decides ties), lacks the
+  `unit_masks & 0x100` arms (three `think_scout(1)` re-entries and the EXPLORE_TO order), and answers 0 for danger. The
+  draw is ~125 `Region` records of 0x88 bytes, ~14 stubs with per-call sequences, a 12-argument `action_move_near`
+  whose `ecx` comes from `push_group`, and a vbtable-built stack `Group`. Split: first an item factoring
+  `think_civilian_transport_steps(view)` and porting the 0x100 arms; then one sweeping the region scan with the Group
+  tail stubbed.
+- **3339c. Residue kept in the sim by the three path sweeps.** An empty pathfinder stack pops `None` and returns 0 where
+  the original pops `list[0]` (`upath`, `wpath`; the draws keep length ≥ 1); `upath`'s pull-back walk keeps a
+  `sx == 0 && cy == 0` guard the original lacks; `SimWpath::explore_gate` still answers true (the
+  `order.flags & 4` and `unit_masks & 0x40100` clause is unmodelled); `find_upath`'s function-static init arm (TSS0
+  above the TLS epoch) is not reached; one `find_upath` mutant (`ay = mid.to.y` in the collinear-drop arm) survives for
+  want of a chain that exposes it. `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other` fails in the debug
+  profile on the base (the `coll_add` debug_assert, Loop 2132).
 
 ## Parked by item 3340, 2026-10-19 — the Indians to the long's end, a carrying boat's region
 
