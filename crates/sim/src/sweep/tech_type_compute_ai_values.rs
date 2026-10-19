@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(8);
@@ -41,195 +46,207 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // The row: `a[0..9]` the stubs' drawn answers (unused: every stub is `--seq`, bar `add_preq_ai`), the stubs being
-// 0 slot +0x38 (`is_epoch`), 1 slot +0x34 (`is_age_type`), 2 slot +0xdc (`find_preq`), 3 slot +0x60 (`is`),
-// 4 slot +0x64 (`is`, the village question of a record whose vtable is not `BuildType`'s), 5 slot +0x90 (the
-// gatherer flag), 6 slot +0xe4 (`basic_type`), 7 `add_preq_ai`, 8 `fundamental_type`; then the `--seq` answers in
-// stub order: `a[9..95]` stub 0, `a[95..180]` stub 1, `a[180..973]` stub 2, `a[973..2273]` stub 3, `a[2273..2402]`
-// stub 4, `a[2402..2662]` stub 5, `a[2662..2791]` stub 6, `a[2791..2920]` stub 8; `a[2920]`, `a[2921]` the two
-// `--vtat-keep` flags (slot +0x38 and slot +0x34 laid as the image's `is_epoch_type` / `is_age_type`).
-//
-// Windows: `m` the tech (`+4` id, `+0x14` line, `+0x40` where, `+0x1cc..+0x1e2` the eleven weights); `p[7..359]` the
-// 352 units (`+0x40` where trained, `+0x218` domain, `+0x2c8` role, `+0x2d4` carry), `p[359..488]` the 129
-// buildings (`+4` id, `+0x3c` from, `+0x1e8` attack, `+0x2c0` flags), `p[488..573]` the 85 tech records,
-// `p[573..658]` the same 85 as `types.list` holds them, `p[658..]` goods, spells, bonuses (only their vtables).
-//
-// **The port is the crate's own steps**, `crate::ai_load::compute_ai_values_steps`; the view is the emulated
-// original's windows, and the vtable compares (`this` against `TechType`'s, a building against `BuildType`'s) are
-// read off the windows' first words.
-use crate::ai_load::{AiValuesView, Class, Root, compute_ai_values_steps};
-const R_UNIT: usize = 7;
-const R_BUILD: usize = 359;
-const R_LIST: usize = 573;
-const SEQ: [(usize, usize); 9] = [
-    (9, 86),
-    (95, 85),
-    (180, 793),
-    (973, 1300),
-    (2273, 129),
-    (2402, 260),
-    (2662, 129),
-    (0, 1),
-    (2791, 129),
-];
-struct V<'a> {
-    a: &'a [i32],
-    m: &'a mut [u8],
-    p: &'a [Vec<u8>],
-    log: Vec<String>,
-    used: [usize; 9],
-}
-impl V<'_> {
-    /// The next answer of stub `s`, the last repeated past its length.
-    fn seq(&mut self, s: usize) -> i32 {
-        let (base, n) = SEQ[s];
-        let k = self.used[s];
-        self.used[s] += 1;
-        self.a[base + k.min(n - 1)]
-    }
-    fn unit(&self, u: usize) -> &[u8] {
-        &self.p[R_UNIT + u]
-    }
-    fn build(&self, b: usize) -> &[u8] {
-        &self.p[R_BUILD + b]
-    }
-}
-impl AiValuesView for V<'_> {
-    fn count(&self, c: Class) -> usize {
-        match c {
-            Class::Unit => 352,
-            Class::Build => 129,
-            Class::Tech => 85,
-            Class::Good => 50,
-            Class::Spell => 55,
-            Class::Bonus => 122,
-        }
-    }
-    fn depends(&mut self, _c: Class, _i: usize) -> bool {
-        self.seq(2) != 0
-    }
-    fn add(&mut self, w: usize, amt: i32) {
-        let at = 0x1cc + 2 * w;
-        let v = i16::from_le_bytes([self.m[at], self.m[at + 1]]).wrapping_add(amt as i16);
-        self.m[at..at + 2].copy_from_slice(&v.to_le_bytes());
-    }
-    fn add_preq_ai(&mut self, idx: usize, amt: i32, depth: i32) {
-        self.log.push(format!("m+0x0,{idx},{amt},{depth}"));
-    }
-    fn self_is_epoch(&mut self) -> bool {
-        let id = rd(self.m, 4);
-        if rd(self.m, 0) == 0xb4456c || self.a[2920] != 0 {
-            id >= 0x227 && id < 0x243
-        } else {
-            self.seq(0) != 0
-        }
-    }
-    fn self_line(&self) -> i32 {
-        rd(self.m, 0x14)
-    }
-    fn self_where_is(&self, r: Root) -> bool {
-        rd(self.m, 0x40) == r as i32
-    }
-    fn unit_role(&self, u: usize) -> u32 {
-        rd(self.unit(u), 0x2c8) as u32
-    }
-    fn unit_domain(&self, u: usize) -> i32 {
-        rd(self.unit(u), 0x218)
-    }
-    fn unit_carry(&self, u: usize) -> bool {
-        rd(self.unit(u), 0x2d4) != 0
-    }
-    fn unit_trained_at(&self, u: usize, b: usize) -> bool {
-        rd(self.unit(u), 0x40) == 0x19e + b as i32
-    }
-    fn build_is(&mut self, b: usize, r: Root) -> bool {
-        // The village question is the one `is` the original asks through the record's own slot
-        // only when its vtable is not `BuildType`'s; the rest go through slot +0x60.
-        if r == Root::Village && rd(self.build(b), 0) as u32 != 0xb42b94 {
-            self.seq(4) != 0
-        } else {
-            self.seq(3) != 0
-        }
-    }
-    fn build_is_town(&self, b: usize) -> bool {
-        b == 1
-    }
-    fn build_is_enhancer(&self, b: usize) -> bool {
-        (0x19e + b as i32 >= 0x1a7) && (0x19e + b as i32 <= 0x1aa)
-    }
-    fn build_from_root(&self, b: usize) -> bool {
-        rd(self.build(b), 0x3c) < 0
-    }
-    fn build_gather(&mut self, b: usize) -> bool {
-        if rd(self.build(b), 0) as u32 == 0xb42b94 {
-            rd(self.build(b), 0x2c0) & 0x40 != 0
-        } else {
-            self.seq(5) != 0
-        }
-    }
-    fn build_research_here(&self, b: usize) -> bool {
-        rd(self.build(b), 0x2c0) & 0x800_0000 != 0
-    }
-    fn build_attack(&self, b: usize) -> bool {
-        rd(self.build(b), 0x1e8) != 0
-    }
-    fn build_trains(&self, b: usize) -> bool {
-        rd(self.build(b), 0x2c0) < 0
-    }
-    fn fundamental(&mut self, b: usize) -> usize {
-        let id = if rd(self.build(b), 0x3c) < 0 {
-            rd(self.build(b), 4)
-        } else {
-            self.seq(8)
-        };
-        (id - 0x19e) as usize
-    }
-    fn basic(&mut self, _f: usize) -> usize {
-        (self.seq(6) - 0x19e) as usize
-    }
-    fn tech_is_epoch(&mut self, i: usize) -> bool {
-        let id = rd(&self.p[R_LIST + i], 4);
-        if self.a[2920] != 0 {
-            id >= 0x227 && id < 0x243
-        } else {
-            self.seq(0) != 0
-        }
-    }
-    fn tech_is_age(&mut self, i: usize) -> bool {
-        let id = rd(&self.p[R_LIST + i], 4);
-        if self.a[2921] != 0 {
-            id >= 0x220 && id < 0x227
-        } else {
-            self.seq(1) != 0
-        }
-    }
-    fn good_id(&self, i: usize) -> usize {
-        i
-    }
-}
-let mut v = V {
-    a,
-    m,
-    p,
-    log: Vec::new(),
-    used: [0; 9],
-};
-compute_ai_values_steps(&mut v);
-log.push(if v.log.is_empty() {
-    "-".into()
-} else {
-    v.log.join("/")
-});
-0
+            // 0 slot +0x38 (`is_epoch`), 1 slot +0x34 (`is_age_type`), 2 slot +0xdc (`find_preq`), 3 slot +0x60 (`is`),
+            // 4 slot +0x64 (`is`, the village question of a record whose vtable is not `BuildType`'s), 5 slot +0x90 (the
+            // gatherer flag), 6 slot +0xe4 (`basic_type`), 7 `add_preq_ai`, 8 `fundamental_type`; then the `--seq` answers in
+            // stub order: `a[9..95]` stub 0, `a[95..180]` stub 1, `a[180..973]` stub 2, `a[973..2273]` stub 3, `a[2273..2402]`
+            // stub 4, `a[2402..2662]` stub 5, `a[2662..2791]` stub 6, `a[2791..2920]` stub 8; `a[2920]`, `a[2921]` the two
+            // `--vtat-keep` flags (slot +0x38 and slot +0x34 laid as the image's `is_epoch_type` / `is_age_type`).
+            //
+            // Windows: `m` the tech (`+4` id, `+0x14` line, `+0x40` where, `+0x1cc..+0x1e2` the eleven weights); `p[7..359]` the
+            // 352 units (`+0x40` where trained, `+0x218` domain, `+0x2c8` role, `+0x2d4` carry), `p[359..488]` the 129
+            // buildings (`+4` id, `+0x3c` from, `+0x1e8` attack, `+0x2c0` flags), `p[488..573]` the 85 tech records,
+            // `p[573..658]` the same 85 as `types.list` holds them, `p[658..]` goods, spells, bonuses (only their vtables).
+            //
+            // **The port is the crate's own steps**, `crate::ai_load::compute_ai_values_steps`; the view is the emulated
+            // original's windows, and the vtable compares (`this` against `TechType`'s, a building against `BuildType`'s) are
+            // read off the windows' first words.
+            use crate::ai_load::{AiValuesView, Class, Root, compute_ai_values_steps};
+            const R_UNIT: usize = 7;
+            const R_BUILD: usize = 359;
+            const R_LIST: usize = 573;
+            const SEQ: [(usize, usize); 9] = [
+                (9, 86),
+                (95, 85),
+                (180, 793),
+                (973, 1300),
+                (2273, 129),
+                (2402, 260),
+                (2662, 129),
+                (0, 1),
+                (2791, 129),
+            ];
+            struct V<'a> {
+                a: &'a [i32],
+                m: &'a mut [u8],
+                p: &'a [Vec<u8>],
+                log: Vec<String>,
+                used: [usize; 9],
+            }
+            impl V<'_> {
+                /// The next answer of stub `s`, the last repeated past its length.
+                fn seq(&mut self, s: usize) -> i32 {
+                    let (base, n) = SEQ[s];
+                    let k = self.used[s];
+                    self.used[s] += 1;
+                    self.a[base + k.min(n - 1)]
+                }
+                fn unit(&self, u: usize) -> &[u8] {
+                    &self.p[R_UNIT + u]
+                }
+                fn build(&self, b: usize) -> &[u8] {
+                    &self.p[R_BUILD + b]
+                }
+            }
+            impl AiValuesView for V<'_> {
+                fn count(&self, c: Class) -> usize {
+                    match c {
+                        Class::Unit => 352,
+                        Class::Build => 129,
+                        Class::Tech => 85,
+                        Class::Good => 50,
+                        Class::Spell => 55,
+                        Class::Bonus => 122,
+                    }
+                }
+                fn depends(&mut self, _c: Class, _i: usize) -> bool {
+                    self.seq(2) != 0
+                }
+                fn add(&mut self, w: usize, amt: i32) {
+                    let at = 0x1cc + 2 * w;
+                    let v =
+                        i16::from_le_bytes([self.m[at], self.m[at + 1]]).wrapping_add(amt as i16);
+                    self.m[at..at + 2].copy_from_slice(&v.to_le_bytes());
+                }
+                fn add_preq_ai(&mut self, idx: usize, amt: i32, depth: i32) {
+                    self.log.push(format!("m+0x0,{idx},{amt},{depth}"));
+                }
+                fn self_is_epoch(&mut self) -> bool {
+                    let id = rd(self.m, 4);
+                    if rd(self.m, 0) == 0xb4456c || self.a[2920] != 0 {
+                        id >= 0x227 && id < 0x243
+                    } else {
+                        self.seq(0) != 0
+                    }
+                }
+                fn self_line(&self) -> i32 {
+                    rd(self.m, 0x14)
+                }
+                fn self_where_is(&self, r: Root) -> bool {
+                    rd(self.m, 0x40) == r as i32
+                }
+                fn unit_role(&self, u: usize) -> u32 {
+                    rd(self.unit(u), 0x2c8) as u32
+                }
+                fn unit_domain(&self, u: usize) -> i32 {
+                    rd(self.unit(u), 0x218)
+                }
+                fn unit_carry(&self, u: usize) -> bool {
+                    rd(self.unit(u), 0x2d4) != 0
+                }
+                fn unit_trained_at(&self, u: usize, b: usize) -> bool {
+                    rd(self.unit(u), 0x40) == 0x19e + b as i32
+                }
+                fn build_is(&mut self, b: usize, r: Root) -> bool {
+                    // The village question is the one `is` the original asks through the record's own slot
+                    // only when its vtable is not `BuildType`'s; the rest go through slot +0x60.
+                    if r == Root::Village && rd(self.build(b), 0) as u32 != 0xb42b94 {
+                        self.seq(4) != 0
+                    } else {
+                        self.seq(3) != 0
+                    }
+                }
+                fn build_is_town(&self, b: usize) -> bool {
+                    b == 1
+                }
+                fn build_is_enhancer(&self, b: usize) -> bool {
+                    (0x19e + b as i32 >= 0x1a7) && (0x19e + b as i32 <= 0x1aa)
+                }
+                fn build_from_root(&self, b: usize) -> bool {
+                    rd(self.build(b), 0x3c) < 0
+                }
+                fn build_gather(&mut self, b: usize) -> bool {
+                    if rd(self.build(b), 0) as u32 == 0xb42b94 {
+                        rd(self.build(b), 0x2c0) & 0x40 != 0
+                    } else {
+                        self.seq(5) != 0
+                    }
+                }
+                fn build_research_here(&self, b: usize) -> bool {
+                    rd(self.build(b), 0x2c0) & 0x800_0000 != 0
+                }
+                fn build_attack(&self, b: usize) -> bool {
+                    rd(self.build(b), 0x1e8) != 0
+                }
+                fn build_trains(&self, b: usize) -> bool {
+                    rd(self.build(b), 0x2c0) < 0
+                }
+                fn fundamental(&mut self, b: usize) -> usize {
+                    let id = if rd(self.build(b), 0x3c) < 0 {
+                        rd(self.build(b), 4)
+                    } else {
+                        self.seq(8)
+                    };
+                    (id - 0x19e) as usize
+                }
+                fn basic(&mut self, _f: usize) -> usize {
+                    (self.seq(6) - 0x19e) as usize
+                }
+                fn tech_is_epoch(&mut self, i: usize) -> bool {
+                    let id = rd(&self.p[R_LIST + i], 4);
+                    if self.a[2920] != 0 {
+                        id >= 0x227 && id < 0x243
+                    } else {
+                        self.seq(0) != 0
+                    }
+                }
+                fn tech_is_age(&mut self, i: usize) -> bool {
+                    let id = rd(&self.p[R_LIST + i], 4);
+                    if self.a[2921] != 0 {
+                        id >= 0x220 && id < 0x227
+                    } else {
+                        self.seq(1) != 0
+                    }
+                }
+                fn good_id(&self, i: usize) -> usize {
+                    i
+                }
+            }
+            let mut v = V {
+                a,
+                m,
+                p,
+                log: Vec::new(),
+                used: [0; 9],
+            };
+            compute_ai_values_steps(&mut v);
+            log.push(if v.log.is_empty() {
+                "-".into()
+            } else {
+                v.log.join("/")
+            });
+            0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "compute_ai_values — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "compute_ai_values — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "compute_ai_values — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "compute_ai_values — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "compute_ai_values — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[9 + i], "compute_ai_values — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[9 + i],
+                "compute_ai_values — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

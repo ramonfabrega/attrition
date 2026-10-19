@@ -837,14 +837,8 @@ pub fn compute_ai_values(
             .iter()
             .map(|b| b.tree.map_or(Vec::new(), |id| preqs_of(tree, setup, id, 3)))
             .collect(),
-        techs
-            .iter()
-            .map(|&t| preqs_of(tree, setup, t, 3))
-            .collect(),
-        goods
-            .iter()
-            .map(|&t| preqs_of(tree, setup, t, 2))
-            .collect(),
+        techs.iter().map(|&t| preqs_of(tree, setup, t, 3)).collect(),
+        goods.iter().map(|&t| preqs_of(tree, setup, t, 2)).collect(),
         spells.iter().map(|pq| extra_preqs(tree, pq)).collect(),
         bonuses.iter().map(|pq| extra_preqs(tree, pq)).collect(),
     ];
