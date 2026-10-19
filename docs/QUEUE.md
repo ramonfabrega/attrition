@@ -21,10 +21,10 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   the Indians at 14631 (3335 → 3340); the Maya 776 → 12197 on 3338's branch (the Bantu minted there). Battery
   unpromoted on `fabad61d`: 6563, 24000, 9130, 14991, 9185, 9382 (the Chinese and Turks above their pins, 3326b).
 - **Lanes: three live**: 3340 Opus (att-3340, run 974, AI §274, KX), 3338 Opus (runs 972–973f, AI §273, KV; cleared at
-  334 k onto its draft journal), 3339 Sonnet (att-3339, KW). Next 3341, run 975. Pools: GOLDEN §144–148, AI §275–276,
+  334 k onto its draft journal), 3339 Sonnet (att-3339, KW). Next 3342, run 975. Pools: GOLDEN §144–148, AI §275–276,
   park JK, KY, KZ.
-- **Fable backlog: 15 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3240, 3311, 3312, 3313, 3323, 3327, 3328,
-  3334).
+- **Fable backlog: 16 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3240, 3311, 3312, 3313, 3323, 3327, 3328,
+  3334, 3341).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

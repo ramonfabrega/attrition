@@ -3810,6 +3810,15 @@ failure (`docs/ORACLE.md`, "The click-free lane needs a window"); `viadriver.sh 
 Candidate: `unattended_capture.py` refuses a launch with no window-server connection and names `viadriver.sh`, made
 to fail first on a launch from a bare shell. One reach.
 
+(3341) **A lane announces its landing on a base two or more landings behind, and its merge conflicts** (the
+commander's, 2026-10-19): 3335's done line on 572aaf47 (base 707ae110, four landings behind) and 3338's on 4d7115ba
+(base c2ba8608, two behind) each backed out at `ccc merge` — seven files, then three (`battery.rs`, `testkit.rs`,
+`city.rs`, the battery tables every promotion edits) — and each cost the lane an update, a resolve and a second
+lane gate after it had said landed. The frame says "takes `ccc update <ref>` at the gate's exit"; neither did, and
+the lane gate's verdict does not ask. Candidate: the lane gate's `Lane verdict:` names the commits the base has moved
+since the lane's last update and refuses "landed" while they touch a file the lane's diff touches, made to fail
+first on 3338's tip. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-fourth tranche's
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
