@@ -310,6 +310,8 @@ mod unit_type_data_research_time;
 mod unit_type_data_type_graft;
 #[path = "unit_type_determine_roles.rs"]
 mod unit_type_determine_roles;
+#[path = "unit_type_find_nearby_spot.rs"]
+mod unit_type_find_nearby_spot;
 #[path = "unit_type_gather_radius.rs"]
 mod unit_type_gather_radius;
 #[path = "unit_type_get_stance_type.rs"]

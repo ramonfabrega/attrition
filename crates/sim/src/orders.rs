@@ -1750,7 +1750,7 @@ pub enum Coll {
 /// and the pair is what the collision half exempts. `cast_transport` passes
 /// `(-1, -1)` (`docs/TRANSPORT.md` §6), and that is [`Seeker::Type`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Seeker {
+pub enum Seeker {
     Unit(usize),
     Type(usize),
     /// A type asked **for** a unit: the block, domain and radius defaults
@@ -1758,6 +1758,261 @@ enum Seeker {
     /// (`FILTER_NOT_ME` with the unit as `(not_o, not_who)`), which is how
     /// `cast_create_decoy` places a copy beside its General.
     TypeFor(usize, usize),
+}
+
+/// What [`spot_ring`] reads of the world and the units: the tile masks, the
+/// footprint, and the collision half. [`SimSpot`] answers from a [`Sim`];
+/// the emulator sweep answers from the original's own records.
+pub trait SpotView {
+    fn tile_in_bounds(&self, t: Pos) -> bool;
+    fn tile_mask(&self, t: Pos) -> u16;
+    fn covers_tile(&self, building: usize, t: Pos) -> bool;
+    /// `is(AIRCRAFTCARRIER, 1)` of the seeker's type, asked only of a sea
+    /// type whose `attack` is zero.
+    fn is_carrier(&self, who: Seeker) -> bool;
+    fn owner(&self, u: usize) -> Player;
+    fn find_collision(&self, u: usize, at: Pos) -> bool;
+    fn find_ordered_collision(&self, u: usize, at: Pos) -> bool;
+    fn find_unit_with_radius(&self, r: i32, at: Pos, exempt: Option<usize>) -> bool;
+    fn find_unit_ordered_with_radius(
+        &self,
+        r: i32,
+        at: Pos,
+        who: Player,
+        exempt: Option<usize>,
+    ) -> bool;
+}
+
+/// [`SpotView`] over a [`Sim`].
+struct SimSpot<'a>(&'a Sim);
+
+impl SpotView for SimSpot<'_> {
+    fn tile_in_bounds(&self, t: Pos) -> bool {
+        self.0.world.tile_in_bounds(t)
+    }
+    fn tile_mask(&self, t: Pos) -> u16 {
+        self.0.world.tile_mask(t)
+    }
+    fn covers_tile(&self, building: usize, t: Pos) -> bool {
+        self.0.covers_tile(building, t)
+    }
+    fn is_carrier(&self, who: Seeker) -> bool {
+        let ty = match who {
+            Seeker::Unit(u) => self.0.units[u].ty,
+            Seeker::Type(t) | Seeker::TypeFor(t, _) => Some(t),
+        };
+        ty.is_some_and(|t| self.0.is_aircraft_carrier(t))
+    }
+    fn owner(&self, u: usize) -> Player {
+        self.0.units[u].owner
+    }
+    fn find_collision(&self, u: usize, at: Pos) -> bool {
+        self.0.find_collision(u, at)
+    }
+    fn find_ordered_collision(&self, u: usize, at: Pos) -> bool {
+        self.0.find_ordered_collision(u, at)
+    }
+    fn find_unit_with_radius(&self, r: i32, at: Pos, exempt: Option<usize>) -> bool {
+        self.0.find_unit_with_radius(r, at, exempt)
+    }
+    fn find_unit_ordered_with_radius(
+        &self,
+        r: i32,
+        at: Pos,
+        who: Player,
+        exempt: Option<usize>,
+    ) -> bool {
+        self.0.find_unit_ordered_with_radius(r, at, who, exempt)
+    }
+}
+
+/// The ring sweep of `UnitType::find_nearby_spot@0061de70`, over a
+/// [`SpotView`] (the body of [`Sim::spot_sweep`]). `p` is the asking
+/// type's record, `transport` its `unit_flags & 0x10`, `range` is
+/// `(min, max, step)`, `footprint` the building to keep off and whether a
+/// farm is exempt.
+#[allow(clippy::too_many_arguments)]
+pub fn spot_ring(
+    view: &impl SpotView,
+    who: Seeker,
+    p: &combat::Profile,
+    transport: bool,
+    centre: Pos,
+    range: (i32, i32, i32),
+    angle: Angle,
+    footprint: Option<(usize, bool)>,
+    coll: Coll,
+    uber: bool,
+) -> Option<Pos> {
+    let (min, max, step) = range;
+    let mut max = max;
+    if (min > 0 && max == 0) || max < 0 {
+        // `find_nearby_spot@0061de70:45`: the default is
+        // `min + 4 × big_radius`, overridden to `min + 0x240` only when
+        // `big_radius == 0` **and** `!(unit_flags & 0x10)` — the
+        // transport-capable flag, which this crate does not model, so the
+        // second condition is assumed false. It can only differ for a
+        // transport-capable type whose `big_radius` is 0, and no shipped
+        // row is both. Stated in §14. The squad branch (`uber_unit !=
+        // 0`, the decompile's lines 52–54) is `min + 0xc0 + 4 ×
+        // (((uber − 1) × guy_spacing) / 2 + big_radius)`: `come_out`'s
+        // routing asks it for a squad's target with `max` −1 (item
+        // 955, run338's `0/13` on 858); `go_to` passes its own `max`.
+        // (`docs/audit/2026-08-21-orders.md` R7 N3.)
+        max = if uber {
+            min + 0xc0 + 4 * (((p.uber_size - 1) * p.guy_spacing) / 2 + p.big_radius)
+        } else if p.big_radius == 0 && !transport {
+            min + 0x240
+        } else {
+            min + 4 * p.big_radius
+        };
+    }
+    if max < min {
+        max = min;
+    }
+    let step = if step <= 0 {
+        ((max - min) / 8).max(1)
+    } else {
+        step
+    };
+    // **The squad's own collision radius** (`61df42`–`61df58`): with
+    // `uber_unit != 0` the block the general query is asked with is
+    // `block_radius + ((uber_size − 1) × guy_spacing) / 2 + 0x30` —
+    // half the formation's own span plus a quarter-tile, so a squad
+    // asks for the room it will actually stand in.
+    let uber_r = p.block_radius + ((p.uber_size - 1) * p.guy_spacing) / 2 + 0x30;
+    let air = matches!(p.domain, crate::attrition::Domain::Air);
+    // **A warship keeps off the `0x2400` tiles** (`61df8b`–`61dfaf`,
+    // the test at `61e3a1`): a sea type whose `attack` (`ObjectTypeData
+    // +0x1e8`, the type record's name) is non-zero, or that strictly
+    // `is(AIRCRAFTCARRIER)` (`0x15f`, `TypeIndex`), refuses an ocean
+    // tile carrying either bit. East Indies' Trireme `1/32` is born
+    // due east of Dock `1/2010` because the channel south of it is
+    // `0x0420` (`docs/ORDERS.md` §25).
+    let warship = matches!(p.domain, crate::attrition::Domain::Sea)
+        && (p.attack != 0 || { view.is_carrier(who) });
+    let mut r = min;
+    loop {
+        let ks: &[i32] = if r == 0 { &[0] } else { &BEARINGS };
+        for &k in ks {
+            let cand = if r == 0 {
+                centre
+            } else {
+                let half = if !(-7..=7).contains(&k) {
+                    0x800_0000
+                } else {
+                    0
+                };
+                let a = Angle(
+                    angle
+                        .0
+                        .wrapping_add(k.wrapping_mul(0x1000_0000))
+                        .wrapping_add(half),
+                );
+                Pos::new(
+                    centre.x + movement::sin_component(a, r),
+                    centre.y - movement::cos_component(a, r),
+                )
+            };
+            let c = Pos::new(
+                cand.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
+                cand.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
+            );
+            if !view.tile_in_bounds(c.tile()) {
+                continue;
+            }
+            if !air && view.tile_mask(c.tile()) & crate::world::tile::BLOCKED != 0 {
+                continue;
+            }
+            if let Some((b, farm_ok)) = footprint
+                && !farm_ok
+                && view.covers_tile(b, c.tile())
+            {
+                continue;
+            }
+            // **The terrain class, by domain** (`0061e3a1`..`0061e39e`):
+            // an air type takes anything; a **sea** type needs the tile's
+            // surface field to be `SURFACE_OCEAN` exactly; a **land**
+            // type needs it not to be. This crate asked
+            // `World::accepts` here — a cell-bounds test the loop's own
+            // `tile_in_bounds` has already made — so a citizen was free
+            // to stand in the sea, which is what put the AI's dock
+            // builder on the wrong point of the swarm ring
+            // (`docs/ORDERS.md` §10, "The ocean the ring could stand
+            // in").
+            //
+            // And the warship clause: a sea type that can fight also
+            // needs `!(mask & 0x2400)` — `BAD_PATH` and the unnamed
+            // `0x400` (`warship` above).
+            if !air {
+                let mask = view.tile_mask(c.tile());
+                let ocean = mask & tile::SURFACE == tile::SURFACE_OCEAN;
+                if ocean != matches!(p.domain, crate::attrition::Domain::Sea) {
+                    continue;
+                }
+                if warship && mask & WARSHIP_REFUSES != 0 {
+                    continue;
+                }
+            }
+            // The collision half, last of all: `Objects::find_collision`
+            // then `Objects::find_ordered_collision`, both against
+            // `(u)` as "me" (`docs/COLLISION.md` §5.2). A spot another
+            // unit is standing on — or has already been sent to — is
+            // taken.
+            let hit = coll != Coll::None
+                && match (uber, who) {
+                    // **A squad placement never takes the pairwise
+                    // pair.** `bVar17` — the flag that selects
+                    // `find_collision` plus `find_ordered_collision` —
+                    // is written only in the arm `uber_unit != 0`
+                    // jumps over (`61df3e`, the write at
+                    // `61df5f`–`61df7c`), so a squad goes down the general
+                    // path whatever its filter says: one radius query
+                    // against every player's positions, and, because
+                    // `not_who` is a real player here, the *ordered*
+                    // one beside it.
+                    (true, _) => {
+                        let exempt = match who {
+                            Seeker::Unit(u) | Seeker::TypeFor(_, u) => Some(u),
+                            Seeker::Type(_) => None,
+                        };
+                        view.find_unit_with_radius(uber_r, c, exempt)
+                            || match who {
+                                Seeker::Unit(u) => view.find_unit_ordered_with_radius(
+                                    uber_r,
+                                    c,
+                                    view.owner(u),
+                                    exempt,
+                                ),
+                                Seeker::Type(_) | Seeker::TypeFor(..) => false,
+                            }
+                    }
+                    (false, Seeker::Unit(u)) if coll == Coll::All => {
+                        let r = if p.block_radius == 0 {
+                            0x180
+                        } else {
+                            p.block_radius
+                        };
+                        // The seeker counts (item 955): no exemption
+                        // on the position query under `FILTER_ALL`.
+                        view.find_unit_with_radius(r, c, None)
+                            || view.find_unit_ordered_with_radius(r, c, view.owner(u), Some(u))
+                    }
+                    (false, Seeker::Unit(u) | Seeker::TypeFor(_, u)) => {
+                        view.find_collision(u, c) || view.find_ordered_collision(u, c)
+                    }
+                    (false, Seeker::Type(_)) => view.find_unit_with_radius(p.block_radius, c, None),
+                };
+            if hit {
+                continue;
+            }
+            return Some(c);
+        }
+        if max <= r {
+            return None;
+        }
+        r = (r + step).min(max);
+    }
 }
 
 /// Which worker kind a unit type is, for the gather chain and `think_peasant`.
@@ -7662,189 +7917,22 @@ impl Sim {
             Seeker::Unit(u) => self.profile(Obj::Unit(u)),
             Seeker::Type(t) | Seeker::TypeFor(t, _) => self.unit_types[t].combat,
         };
-        let mut max = max;
-        if (min > 0 && max == 0) || max < 0 {
-            // `find_nearby_spot@0061de70:45`: the default is
-            // `min + 4 × big_radius`, overridden to `min + 0x240` only when
-            // `big_radius == 0` **and** `!(unit_flags & 0x10)` — the
-            // transport-capable flag, which this crate does not model, so the
-            // second condition is assumed false. It can only differ for a
-            // transport-capable type whose `big_radius` is 0, and no shipped
-            // row is both. Stated in §14. The squad branch (`uber_unit !=
-            // 0`, the decompile's lines 52–54) is `min + 0xc0 + 4 ×
-            // (((uber − 1) × guy_spacing) / 2 + big_radius)`: `come_out`'s
-            // routing asks it for a squad's target with `max` −1 (item
-            // 955, run338's `0/13` on 858); `go_to` passes its own `max`.
-            // (`docs/audit/2026-08-21-orders.md` R7 N3.)
-            max = if uber {
-                min + 0xc0 + 4 * (((p.uber_size - 1) * p.guy_spacing) / 2 + p.big_radius)
-            } else if p.big_radius == 0 {
-                min + 0x240
-            } else {
-                min + 4 * p.big_radius
-            };
-        }
-        if max < min {
-            max = min;
-        }
-        let step = if step <= 0 {
-            ((max - min) / 8).max(1)
-        } else {
-            step
-        };
-        // **The squad's own collision radius** (`61df42`–`61df58`): with
-        // `uber_unit != 0` the block the general query is asked with is
-        // `block_radius + ((uber_size − 1) × guy_spacing) / 2 + 0x30` —
-        // half the formation's own span plus a quarter-tile, so a squad
-        // asks for the room it will actually stand in.
-        let uber_r = p.block_radius + ((p.uber_size - 1) * p.guy_spacing) / 2 + 0x30;
         let farm_ok = footprint_of.is_some_and(|b| self.building_ident(b) == Ident::Farm)
             && matches!(who, Seeker::Unit(u) if self.worker_of(u) == Worker::Citizen);
-        let air = matches!(p.domain, crate::attrition::Domain::Air);
-        // **A warship keeps off the `0x2400` tiles** (`61df8b`–`61dfaf`,
-        // the test at `61e3a1`): a sea type whose `attack` (`ObjectTypeData
-        // +0x1e8`, the type record's name) is non-zero, or that strictly
-        // `is(AIRCRAFTCARRIER)` (`0x15f`, `TypeIndex`), refuses an ocean
-        // tile carrying either bit. East Indies' Trireme `1/32` is born
-        // due east of Dock `1/2010` because the channel south of it is
-        // `0x0420` (`docs/ORDERS.md` §25).
-        let warship = matches!(p.domain, crate::attrition::Domain::Sea)
-            && (p.attack != 0 || {
-                let ty = match who {
-                    Seeker::Unit(u) => self.units[u].ty,
-                    Seeker::Type(t) | Seeker::TypeFor(t, _) => Some(t),
-                };
-                ty.is_some_and(|t| self.is_aircraft_carrier(t))
-            });
-        let mut r = min;
-        loop {
-            let ks: &[i32] = if r == 0 { &[0] } else { &BEARINGS };
-            for &k in ks {
-                let cand = if r == 0 {
-                    centre
-                } else {
-                    let half = if !(-7..=7).contains(&k) {
-                        0x800_0000
-                    } else {
-                        0
-                    };
-                    let a = Angle(
-                        angle
-                            .0
-                            .wrapping_add(k.wrapping_mul(0x1000_0000))
-                            .wrapping_add(half),
-                    );
-                    Pos::new(
-                        centre.x + movement::sin_component(a, r),
-                        centre.y - movement::cos_component(a, r),
-                    )
-                };
-                let c = Pos::new(
-                    cand.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
-                    cand.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
-                );
-                if !self.world.tile_in_bounds(c.tile()) {
-                    continue;
-                }
-                if !air && self.world.tile_mask(c.tile()) & crate::world::tile::BLOCKED != 0 {
-                    continue;
-                }
-                if let Some(b) = footprint_of
-                    && !farm_ok
-                    && self.covers_tile(b, c.tile())
-                {
-                    continue;
-                }
-                // **The terrain class, by domain** (`0061e3a1`..`0061e39e`):
-                // an air type takes anything; a **sea** type needs the tile's
-                // surface field to be `SURFACE_OCEAN` exactly; a **land**
-                // type needs it not to be. This crate asked
-                // `World::accepts` here — a cell-bounds test the loop's own
-                // `tile_in_bounds` has already made — so a citizen was free
-                // to stand in the sea, which is what put the AI's dock
-                // builder on the wrong point of the swarm ring
-                // (`docs/ORDERS.md` §10, "The ocean the ring could stand
-                // in").
-                //
-                // And the warship clause: a sea type that can fight also
-                // needs `!(mask & 0x2400)` — `BAD_PATH` and the unnamed
-                // `0x400` (`warship` above).
-                if !air {
-                    let mask = self.world.tile_mask(c.tile());
-                    let ocean = mask & tile::SURFACE == tile::SURFACE_OCEAN;
-                    if ocean != matches!(p.domain, crate::attrition::Domain::Sea) {
-                        continue;
-                    }
-                    if warship && mask & WARSHIP_REFUSES != 0 {
-                        continue;
-                    }
-                }
-                // The collision half, last of all: `Objects::find_collision`
-                // then `Objects::find_ordered_collision`, both against
-                // `(u)` as "me" (`docs/COLLISION.md` §5.2). A spot another
-                // unit is standing on — or has already been sent to — is
-                // taken.
-                let hit = coll != Coll::None
-                    && match (uber, who) {
-                        // **A squad placement never takes the pairwise
-                        // pair.** `bVar17` — the flag that selects
-                        // `find_collision` plus `find_ordered_collision` —
-                        // is written only in the arm `uber_unit != 0`
-                        // jumps over (`61df3e`, the write at
-                        // `61df5f`–`61df7c`), so a squad goes down the general
-                        // path whatever its filter says: one radius query
-                        // against every player's positions, and, because
-                        // `not_who` is a real player here, the *ordered*
-                        // one beside it.
-                        (true, _) => {
-                            let exempt = match who {
-                                Seeker::Unit(u) | Seeker::TypeFor(_, u) => Some(u),
-                                Seeker::Type(_) => None,
-                            };
-                            self.find_unit_with_radius(uber_r, c, exempt)
-                                || match who {
-                                    Seeker::Unit(u) => self.find_unit_ordered_with_radius(
-                                        uber_r,
-                                        c,
-                                        self.units[u].owner,
-                                        exempt,
-                                    ),
-                                    Seeker::Type(_) | Seeker::TypeFor(..) => false,
-                                }
-                        }
-                        (false, Seeker::Unit(u)) if coll == Coll::All => {
-                            let r = if p.block_radius == 0 {
-                                0x180
-                            } else {
-                                p.block_radius
-                            };
-                            // The seeker counts (item 955): no exemption
-                            // on the position query under `FILTER_ALL`.
-                            self.find_unit_with_radius(r, c, None)
-                                || self.find_unit_ordered_with_radius(
-                                    r,
-                                    c,
-                                    self.units[u].owner,
-                                    Some(u),
-                                )
-                        }
-                        (false, Seeker::Unit(u) | Seeker::TypeFor(_, u)) => {
-                            self.find_collision(u, c) || self.find_ordered_collision(u, c)
-                        }
-                        (false, Seeker::Type(_)) => {
-                            self.find_unit_with_radius(p.block_radius, c, None)
-                        }
-                    };
-                if hit {
-                    continue;
-                }
-                return Some(c);
-            }
-            if max <= r {
-                return None;
-            }
-            r = (r + step).min(max);
-        }
+        // `unit_flags & 0x10`, the transport-capable flag, which this
+        // crate does not model: assumed clear (the ring's comment).
+        spot_ring(
+            &SimSpot(self),
+            who,
+            &p,
+            false,
+            centre,
+            (min, max, step),
+            angle,
+            footprint_of.map(|b| (b, farm_ok)),
+            coll,
+            uber,
+        )
     }
 
     /// The swarm ring (§5.4): `min(x_size, y_size) × 0x60 + 0x30`, halved
