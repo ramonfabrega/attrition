@@ -337,6 +337,11 @@ pub struct Modifiers {
     pub maize: bool,
     /// Producing at a captured, unassimilated building doubles the price.
     pub unassimilated: bool,
+    /// `get_cost`'s **Indian elephant arm** (`:1556`–`1576`), the listing's
+    /// last step before the redirect: percent off a unit of the elephant
+    /// line for an Indian leader, after the captured-building doubling
+    /// (`INDIANS_ELEPHANT_COST`; `Sim::indian_elephant_discount`).
+    pub indian_elephant: i32,
     /// `get_cost`'s **wonder arm** (`00665848`..`0066594c`): the count is
     /// [`wonder_count`] rather than the type's own, and the building arm's
     /// term is **halved** after the factor and the count (`00665af9`,
@@ -697,6 +702,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.unassimilated {
         cost *= 2;
+    }
+    if m.indian_elephant != 0 {
+        cost = (100 - m.indian_elephant) * cost / 100;
     }
     cost
 }

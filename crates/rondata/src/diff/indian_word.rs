@@ -261,3 +261,47 @@ fn run970c_s_word_frame_is_widened_whole() {
     // 1428..9979 is run970d's.
     pin_eq!(w.firsts.len(), 586, "keys that part in the window");
 }
+
+/// run970d: the gap 1428..9979 at a stride of 32 (item 3335): blocks
+/// 1429, 1461, …, 9941, at run970's detail; run970b ends on block 1428
+/// and run970c opens on 9979 already parted.
+pub(crate) const RUN970D: &str = "gamelog-run970d-eastindies-indian-diff2-stride32-1428-9979.txt";
+
+/// The window: block 1429 through 9941, one in thirty-two.
+pub(crate) const WIDENING_INDIAN_GAP_970D: (i64, i64) = (1429, 9941);
+
+pub(crate) fn indian_gap_970d_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INDIAN.start],
+        true,
+        INDIAN.long,
+        "run970d",
+        &[(RUN970D, WIDENING_INDIAN_GAP_970D.0)],
+        WIDENING_INDIAN_GAP_970D,
+        1,
+        &[9941],
+        true,
+    )
+}
+
+#[test]
+fn run970d_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = indian_gap_970d_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the gap");
+}

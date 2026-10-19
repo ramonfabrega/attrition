@@ -2301,9 +2301,11 @@ impl Sim {
         let liberty = self.liberty_discount(who, ty);
         let despotism = self.despotism_unit_discount(who, ty);
         let salt = self.salt_barracks_discount(who, ty);
+        let indian_elephant = self.indian_elephant_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
+                indian_elephant,
                 russian_spy,
                 roman_legion,
                 discount,
@@ -2317,6 +2319,7 @@ impl Sim {
             },
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
+                indian_elephant,
                 monarchy: self.monarchy_cost_discount(who, ty),
                 socialism: self.socialism_cost_discount(who, ty),
                 salmon: self.salmon_cost_discount(who, ty),
@@ -2689,6 +2692,33 @@ impl Sim {
     pub fn roman_legion_discount(&self, who: Player, ty: usize) -> i32 {
         if self.nation[who as usize].romans && self.is_legion_line(ty) {
             self.tuning.roman_legion_cheap
+        } else {
+            0
+        }
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Indian elephant arm** (`:1556`–
+    /// `1576`, after the captured-building doubling and the Supercollider
+    /// surcharge, on the one return both the train and the research arm
+    /// reach): an Indian leader (`has_tribe_bonus(0x15)`) and a unit that
+    /// `is(t, 0)` for one of `0x105..=0x108` — the War Elephant and the
+    /// three Mahouts — take `INDIANS_ELEPHANT_COST` (15) off. run970d's
+    /// block 9589: the War Elephant queued at the Stable `1/2019` costs
+    /// 81 food and 47 wealth in theirs, 96 and 56 without the arm (item
+    /// 3335, `docs/AI.md` §271).
+    pub fn indian_elephant_discount(&self, who: Player, ty: usize) -> i32 {
+        let Some(t) = self.unit_types[ty].tree else {
+            return 0;
+        };
+        let elephant = (0x105..=0x108).any(|x: tech::TypeId| {
+            self.tech_tree.types.get(x).is_some() && self.tech_tree.is(t, x, false)
+        });
+        if elephant
+            && self
+                .tech_tree
+                .has_tribe_bonus(&self.setup, &self.tech[who as usize], 0x15)
+        {
+            self.tuning.indians_elephant_cost
         } else {
             0
         }
