@@ -92,6 +92,16 @@ pub mod ty {
     pub const MARKET: TypeId = 0x1b4;
     /// `AIRBASE`.
     pub const AIRBASE: TypeId = 0x1bf;
+    /// The buildings the Maya arm leaves at full timber, each by type
+    /// equality (`get_cost:973`–`987`): `BARRACKS`, `STABLE`, `AUTOPLANT`,
+    /// `FACTORY`, `SIEGEFACTORY`, `AIRBASE`, `DOCK`, `ANCHORAGE`,
+    /// `SHIPYARD`, `FORTX`, `CASTLE`, `FORTRESS`, `REDOUBT`, `MISSILESILO`,
+    /// `TOWER`, `KEEP`, `STOCKADE`, `BUNKER`, `LOOKOUT`, `OBSERVATIONPOST`,
+    /// `AIRDEFENSE`, `RADAR`, `SAM`. Wonders are refused by their vslot.
+    pub const MAYA_FULL_TIMBER: [TypeId; 23] = [
+        0x1ab, 0x1ac, 0x1ad, 0x1af, 0x1ae, 0x1bf, 0x1b0, 0x1b1, 0x1b2, 0x1bb, 0x1bc, 0x1bd, 0x1be,
+        0x208, 0x1b7, 0x1b8, 0x1b9, 0x1ba, 0x209, 0x20a, 0x20b, 0x20c, 0x20d,
+    ];
 }
 
 /// The roster indices `Build::activate`'s free-unit block passes

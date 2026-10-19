@@ -8397,13 +8397,19 @@ words and edits nothing here; a refill lands when two remain.
 
 **3337f.** `PathFinder::find_tpath` swept through the new `tpath.rs` (`find_tpath_steps` over `TpathView`). Sim changes: the FINAL give-up arm (parked 2739) now plain-pushes the goal and returns (no capture shown to reach it); `pf_start` set before the early returns; wrapping pull-back arithmetic; `tregion` returns `i32`. Unmodelled sweep-side writes: pathfinder +0x54/+0x68/+0x6c/+0x74/+0x94; `saving` (+0x84) held 0, the resume arm unmodelled. Three break chunks (`ab`, `v.begin` removal, the FINAL push removal) were mutated on the earlier, wider draw and not re-run on the final one.
 
-## Parked by the next landing, slot KV — reserved
+## Parked by item 3338, 2026-10-19 — the Maya word 776 → 13086, the game's end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3338a) **The Horse Archer's release is not the packet's sweep** (piece 842; `docs/AI.md` §273). run973g's
+  `get_position.py` sweep of the piece's three node-0 `AttachPos` rows fits a `Bay` at all 361 headings, and those
+  bays miss run973e/f's four dumped rounds by 6 to 16 units at the unit's facing; the sweep's height (68, 58, 72) is
+  about 155 under the dump's `sz − guy z` (225, 208, 228). The planar rows kept in `launch::MEASURED` reproduce three
+  of the four; the fourth — `1/56`'s `CHAR_ATTACK1` on 12287 at −704315392 — leaves from (8581, 30287) in the
+  original and (8587, 30273) here, pinned as the known miss in `run973e_s_horse_archer_rounds_leave_from_their_
+  release_nodes`. No score moves on it: the draw stream agrees to 13086 and the close compares whole. The first
+  reading is whether `execute_game_events` hands a mounted figure's piece the pivot arm (`get_position.py pivot`) or
+  turns it by the rider's angle rather than the unit's. Returns when a word parts on a Horse Archer's round.
+- (3338b) **`1/53`'s `dest_angle` on run973d's 12209** (ours −573833216, theirs −1255342080), one field, healed by the
+  close; as 3336b — a heading the move asks for that no draw reads.
 
 ## Parked by the next landing, slot KW — reserved
 

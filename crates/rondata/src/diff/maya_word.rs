@@ -1,0 +1,379 @@
+//! **The battery's Maya word** (DECISIONS 72, 83; item 3338): the held-out
+//! battery's lowest open game once item 3336 closed the Egyptians, promoted
+//! by item 2904's, 3107's, 3314's, 3318's, 3326's, 3331's and 3332's
+//! recipe. Great Sahara (`MAP_STYLE 7`), human Nubians (4) against **the
+//! Maya (1)** at Difficulty 4, seed 12345 — the lobby item 3332 minted
+//! (`docs/AI.md` §125, §269), scored by its first try at 776 of 13,086 and
+//! promoted out of the battery here, so it is a scored lobby from this item
+//! (`battery::SCORED_LOBBIES`) and no longer held out. Captures: run966 (a
+//! `DUMP_ALL` start) and run966b (the draw stream to the game's end on
+//! 13086, `cover=0`, its setup and closing blocks only); the word's window
+//! is `docs/AI.md` §273's.
+
+use super::battery::{self, Lobby};
+use super::testkit::*;
+use super::*;
+use crate::testenv::dump;
+
+pub(crate) const MAYA: Lobby = Lobby {
+    name: "GreatSaharaMayaTier4",
+    map_style: 7,
+    ai_tribe: 1,
+    difficulty: 4,
+    start: "gamelog-run966-greatsahara-maya-diff4-start.txt",
+    long: (
+        "gamelog-run966b-greatsahara-maya-diff4-24k-trace.txt",
+        "rontrace-run966b.log",
+    ),
+    length: 13086,
+    // Item 3332: the battery's first try, count and sequence both at 776:
+    // ours 34 draws, theirs 75, at 0 ours `Animal::think_bird+0x82`, theirs
+    // `Leader::produce_building+0xc99`. Item 3338 promoted it to the AI word.
+    // Item 3338, `get_cost`'s Maya arm (`:973`–`987`, a quarter off a
+    // building's timber): 776 → 10497, ours 13 draws, theirs 12, at 2 ours
+    // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Item 3338, `find_target`
+    // reading an enemy city's `bordering` off the city's owner (`:486`–`489`):
+    // 10497 → 12197, ours 12 draws, theirs 14, at 3 ours
+    // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Item 3338, the Horse
+    // Archer's release nodes (piece 842, `launch::MEASURED`): 12197 →
+    // 13086, the game's last frame — the draw stream agrees to the end,
+    // and run966b's closing block is `run966b_maya_closing_state`'s.
+    count: 13086,
+    sequence: 13086,
+};
+
+/// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
+/// carry it.
+pub(crate) const MAYA_WORD: i64 = if MAYA.count < MAYA.sequence {
+    MAYA.count
+} else {
+    MAYA.sequence
+};
+
+/// **The lobby's first parting**, walked from its own start.
+#[test]
+fn maya_word_first_parting() {
+    let _pins = Pins::hold();
+    let Some(w) = third::walk_from(MAYA.start, MAYA.long) else {
+        return;
+    };
+    eprintln!(
+        "MAYA {}: count {} sequence {} of {}; {}",
+        MAYA.name, w.count, w.sequence, w.last, w.row
+    );
+    pin_eq!(w.difficulty, MAYA.difficulty, "the lobby read back");
+    pin_eq!(w.last, MAYA.length, "the game's last frame");
+    pin_eq!(w.count, MAYA.count, "the draw count's first parting");
+    pin_eq!(
+        w.sequence,
+        MAYA.sequence,
+        "the draw sequence's first parting"
+    );
+}
+
+/// The lobby is a scored one and none of the battery's; its long and its
+/// start say their lobby, as the battery's identity test read them.
+#[test]
+fn maya_word_is_no_other_lobby() {
+    let p = &MAYA;
+    let triple = (p.map_style, p.ai_tribe, p.difficulty);
+    assert!(battery::SCORED_LOBBIES.contains(&triple));
+    assert!(
+        !battery::BATTERY
+            .iter()
+            .any(|l| (l.map_style, l.ai_tribe, l.difficulty) == triple)
+    );
+    for name in [p.long.0, p.start] {
+        let Some(path) = dump(name) else {
+            continue;
+        };
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let init = log.initial().expect("an initial state");
+        let info = |key: &str| {
+            init.game_info
+                .iter()
+                .find(|(k, _)| *k == key)
+                .and_then(|(_, v)| v.parse::<i32>().ok())
+        };
+        assert_eq!(info("MAP_STYLE"), Some(p.map_style), "{name}");
+        assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
+    }
+}
+
+/// run973: the word 776's window, blocks 770..1026 at run967's detail
+/// (`LEADERS=9`, `GUYS=4`; item 3338); run966 dumps blocks 0..2 and run966b
+/// its setup and closing blocks only.
+pub(crate) const RUN973: &str = "gamelog-run973-greatsahara-maya-diff4-window-770-1026-guys4.txt";
+
+/// The window: block 770 through 1026; the word 776's own block is 777.
+pub(crate) const WIDENING_MAYA_FRAME_776: (i64, i64) = (770, 1026);
+
+pub(crate) fn maya_frame_776_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MAYA.start],
+        true,
+        MAYA.long,
+        "run973",
+        &[(RUN973, WIDENING_MAYA_FRAME_776.0)],
+        WIDENING_MAYA_FRAME_776,
+        1,
+        &[777],
+        true,
+    )
+}
+
+#[test]
+fn run973_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = maya_frame_776_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3338. On the first try 430 keys part. Past the standing set the
+    // first is on block 770, who=1's `bucket[1:timber]` ours 20 against
+    // theirs 48 — the Small City `1/2007`, placed before the window, bought
+    // at full timber where theirs paid three quarters; and on the word's
+    // own block 777 theirs holds `1/2008`, a Farm (`myhits` 500) at
+    // (41088, 15936), its builder `1/9` ordered there (`orders_x` 40824
+    // against ours 38376) and who=1's `script_step` 13 against 12: the
+    // economic script's step 12, `place_farm`, which ours could not pay.
+    // With `get_cost`'s Maya arm (`:973`–`987`, `MAYA_BUILDING_TIMBER` 25
+    // off a building's timber) **32**: the standing set alone (both
+    // leaders' `SITE[n].reg` and `aggression`, every unit's `form`, who=1's
+    // groups' `held` and pools), and the word moved 776 → 10497.
+    pin_eq!(w.firsts.len(), 32, "run973 with the Maya arm");
+}
+
+/// run973b: the word 10497's window, blocks 10491..10747 at `GUYS=2`
+/// (item 3338); run973 ends on 1026 and run966b prints its setup and
+/// closing blocks only.
+pub(crate) const RUN973B: &str = "gamelog-run973b-greatsahara-maya-diff4-window-10491-10747.txt";
+
+/// The window: block 10491 through 10747; the word 10497's own block is
+/// 10498.
+pub(crate) const WIDENING_MAYA_FRAME_10497: (i64, i64) = (10491, 10747);
+
+pub(crate) fn maya_frame_10497_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MAYA.start],
+        true,
+        MAYA.long,
+        "run973b",
+        &[(RUN973B, WIDENING_MAYA_FRAME_10497.0)],
+        WIDENING_MAYA_FRAME_10497,
+        1,
+        &[10498],
+        true,
+    )
+}
+
+#[test]
+fn run973b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = maya_frame_10497_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3338. On the first try 1501 keys part, already on block 10491:
+    // who=0's `attacked_by` ours −1 against theirs 1 and `frame_attacked`
+    // 0 against 10490 — `find_target`'s write when an army picks an enemy
+    // city — and who=1's army head `1/83` (a Catapult, TI 265) on its
+    // `ATTACK_TO` at (22824, 20328) against theirs (1320, 28872), Napata's
+    // side of the map. Ours' army 1 had scored Napata 192 and its own
+    // cities 313..347: the city's `bordering` (theirs 3) was read off
+    // who=1's own `city_ai` table, where who=0's city is never written,
+    // so its ×4 never applied. With the read off the owner (`find_target:
+    // 486`–`489`, `:550`) **28**: the standing set alone, and the word
+    // moved 10497 → 12197, past the window.
+    pin_eq!(
+        w.firsts.len(),
+        28,
+        "run973b with bordering read off the owner"
+    );
+}
+
+/// run973c: the gap from run973's last block to run973b's first, one block
+/// in fifty (`--stride 50`): blocks 1027, 1077, …, 10477, at `GUYS=2`
+/// (item 3338) — where run973b's block 10491, already apart, was walked
+/// back to.
+pub(crate) const RUN973C: &str =
+    "gamelog-run973c-greatsahara-maya-diff4-gap-1027-10487-stride50.txt";
+
+/// The window: block 1027 through 10477, one in fifty.
+pub(crate) const WIDENING_MAYA_GAP_973C: (i64, i64) = (1027, 10477);
+
+pub(crate) fn maya_gap_973c_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MAYA.start],
+        true,
+        MAYA.long,
+        "run973c",
+        &[(RUN973C, WIDENING_MAYA_GAP_973C.0)],
+        WIDENING_MAYA_GAP_973C,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn run973c_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = maya_gap_973c_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 189, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3338. **48** keys: the standing set, the newborns'
+    // `g.angle[0]` (`1/18`..`1/43`, ours `Angle::INITIAL` against theirs
+    // 0) and the Citizen `1/0`'s `group` 66 against 64 from 6228, with
+    // nothing apart on the army's targets — so the parting run973b's
+    // first block holds is the army 1 target choice on 10490, between this
+    // gap's last block (10478) and run973b's first.
+    pin_eq!(w.firsts.len(), 48, "run973c, quiet to its last block");
+}
+
+/// run973d: the word 12197's window, blocks 12191..12447 at `GUYS=2`
+/// (item 3338); run973b ends on 10747 and run966b prints its setup and
+/// closing blocks only.
+pub(crate) const RUN973D: &str = "gamelog-run973d-greatsahara-maya-diff4-window-12191-12447.txt";
+
+/// The window: block 12191 through 12447; the word 12197's own block is
+/// 12198.
+pub(crate) const WIDENING_MAYA_FRAME_12197: (i64, i64) = (12191, 12447);
+
+pub(crate) fn maya_frame_12197_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MAYA.start],
+        true,
+        MAYA.long,
+        "run973d",
+        &[(RUN973D, WIDENING_MAYA_FRAME_12197.0)],
+        WIDENING_MAYA_FRAME_12197,
+        1,
+        &[12198],
+        true,
+    )
+}
+
+#[test]
+fn run973d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = maya_frame_12197_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3338. On the first try **520** keys, already apart on block
+    // 12191: the human's Scout `0/0` at (5960, 31007) against theirs
+    // (5926, 31003), `damage_frame` 12150 against 12149 — one step behind
+    // on its `FLEE_TO`, so on 12197 theirs reaches the end and idles
+    // (`Unit::do_idle`) and ours still walks. The hit is the Horse Archer
+    // `1/56`'s round of 12134: run973e's `AMMO=5` prints it leaving from
+    // (8725, 31923) at `total_time` 16 where ours left the guy's (8808,
+    // 31944) at 17 — piece 842 had no release-node row. With its three
+    // (`CHAR_ATTACK3` and `1` off run973e, `2` off run973f) **27**: the
+    // standing set and `1/53`'s `dest_angle` on 12209, apart one field and
+    // healed by the close; the word moved 12197 → 12267 → 13086.
+    pin_eq!(w.firsts.len(), 27, "run973d with the Horse Archer's nodes");
+}
+
+/// The closing state's window: run966b's closing block alone, the long's
+/// last frame 13086 writing it (item 3338).
+pub(crate) const WIDENING_MAYA_CLOSING: (i64, i64) = (13085, 13088);
+
+/// **The lobby's closing state** (item 3338, DECISIONS 55): run966b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+#[test]
+fn run966b_maya_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(MAYA.long.0), dump(MAYA.start), trace(MAYA.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Maya closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 13087, "the closing block");
+    pin_eq!(e.compared, 128, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}

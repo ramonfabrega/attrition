@@ -1165,6 +1165,7 @@ impl Sim {
                 },
                 fort: self.fort_discounts(who, ty),
                 greek_library: self.greek_library_discount(who, ty),
+                maya_timber: self.maya_timber_discount(who, ty),
                 japanese_farms: self.japanese_farm_discount(who, ty),
                 indian_ramp: if is_city {
                     cost::IndianRamp::Off
@@ -1237,6 +1238,43 @@ impl Sim {
             self.tuning.greek_library_cost
         } else {
             0
+        }
+    }
+
+    /// `get_cost`'s **Maya arm** (`:973`–`987`): a building that is no
+    /// wonder and none of `MAYA_FULL_TIMBER` by type equality — or, for a
+    /// type outside the tree, none of their idents — for a Maya leader
+    /// ([`cost::Modifiers::maya_timber`], timber alone). run966b's 776:
+    /// theirs' who=1 places a building where ours, with 21 timber, could
+    /// not pay one (item 3338, `docs/AI.md` §273).
+    fn maya_timber_discount(&self, who: Player, ty: usize) -> i32 {
+        let types = &self.build_types;
+        if types[ty].wonder || !self.nation[who as usize].maya {
+            return 0;
+        }
+        let full = match types[ty].tree {
+            Some(t) => crate::nations::ty::MAYA_FULL_TIMBER.contains(&t),
+            None => matches!(
+                types[ty].ident,
+                Ident::Barracks
+                    | Ident::Stable
+                    | Ident::AutoPlant
+                    | Ident::SiegeFactory
+                    | Ident::Factory
+                    | Ident::Airbase
+                    | Ident::Dock
+                    | Ident::Fort
+                    | Ident::RedFort
+                    | Ident::MissileSilo
+                    | Ident::Tower
+                    | Ident::Lookout
+                    | Ident::AirDefense
+            ),
+        };
+        if full {
+            0
+        } else {
+            self.tuning.maya_building_timber
         }
     }
 

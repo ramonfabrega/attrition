@@ -85,6 +85,53 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 178,
         },
     ),
+    // **842 is the Horse Archer's piece** (unit type 188, `CAVARCHERS`;
+    // item 3338, run973e on the Maya Great Sahara seed, `AMMO=5` over
+    // `[12128, 12200]`): `1/56`'s two rounds of the window, both at guy
+    // (8808, 31944) `z` 588 facing −730923008 — `CHAR_ATTACK3` at
+    // starttime 20 on tick 12134, `sx, sy, sz` (8725, 31923, 816), and
+    // `CHAR_ATTACK1` at 18 on tick 12158, (8729, 31908, 813). One facing
+    // each, so the bearing is the middle of the exact fits and the radius
+    // the fits' own. `CHAR_ATTACK2` at starttime 16 is run973f's (`AMMO=5`
+    // over `[12205, 12300]`): `1/56` on tick 12259, guy (8664, 30312) `z`
+    // 645 facing −704315392, (8573, 30286, 853). **Planar, and known
+    // short of the original's**: run973f's second round, `1/56`'s
+    // `CHAR_ATTACK1` on 12287 at −704315392, leaves from (8581, 30287)
+    // where this row puts it at (8587, 30273), and run973g's packet sweep
+    // of the piece's three node-0 `AttachPos` rows (a [`Bay`] each, exact
+    // at 361 headings) misses all four dumped rounds by 6 to 16 units at
+    // the unit's facing — so the mounted figure's release is turned by
+    // something the non-pivot sweep does not take (parked by item 3338).
+    (
+        842,
+        crate::anim::ATTACK2,
+        16,
+        Node {
+            bearing: -174_784_512,
+            radius: 94,
+            dz: 208,
+        },
+    ),
+    (
+        842,
+        crate::anim::ATTACK1,
+        18,
+        Node {
+            bearing: -45_285_376,
+            radius: 86,
+            dz: 225,
+        },
+    ),
+    (
+        842,
+        crate::anim::ATTACK3,
+        20,
+        Node {
+            bearing: -168_689_664,
+            radius: 85,
+            dz: 228,
+        },
+    ),
     (
         127,
         crate::anim::ATTACK1,
@@ -1723,6 +1770,41 @@ mod tests {
         );
     }
 
+    /// **Piece 842, the Horse Archer** (item 3338): run973e's two rounds
+    /// of `1/56` and run973f's first, `(anim, starttime, guy x, guy y, guy angle, guy z, sx,
+    /// sy, sz)` — the dump's own columns.
+    #[test]
+    fn run973e_s_horse_archer_rounds_leave_from_their_release_nodes() {
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        #[rustfmt::skip]
+        const ROWS: &[Row] = &[
+            (crate::anim::ATTACK3, 20, 8808, 31944, -730_923_008, 588, 8725, 31923, 816),
+            (crate::anim::ATTACK1, 18, 8808, 31944, -730_923_008, 588, 8729, 31908, 813),
+            (crate::anim::ATTACK2, 16, 8664, 30312, -704_315_392, 645, 8573, 30286, 853),
+        ];
+        for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in ROWS {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 842, anim, t, 0);
+            assert_eq!((got.x, got.y), (sx, sy), "piece 842 anim {anim} t {t}");
+            assert_eq!(
+                gz + release_dz(842, anim, t, 0).unwrap_or(0),
+                sz,
+                "piece 842 dz"
+            );
+        }
+        // run973f's second round, `CHAR_ATTACK1` at the second facing: the
+        // original's (8581, 30287), the planar row's (8587, 30273) — the
+        // known miss the row's comment parks.
+        let miss = launch_point(
+            Pos::new(8664, 30312),
+            Angle(-704_315_392),
+            842,
+            crate::anim::ATTACK1,
+            18,
+            0,
+        );
+        assert_eq!((miss.x, miss.y), (8587, 30273), "the parked miss");
+    }
+
     /// **Piece 1442, the Native American Peltasts** (item 3287): four
     /// headings of each row's `get_position.py` sweep on run943c's packet,
     /// `(anim, starttime, degree, x, y)`, the degree `fast_angle_to_degrees`'
@@ -1862,7 +1944,8 @@ mod tests {
     /// are 5, 9 and 17 because the frame is `starttime / 67` (§50.1):
     /// under the old `× 3 / 200` the first and third would be 6 and 18,
     /// keys the event walk never reaches. **49**, the Musketeer's two, are
-    /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4.
+    /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4. **842**, the
+    /// Horse Archer's three, are run973e/f's (item 3338): keys 18, 16, 20.
     #[test]
     fn the_table_is_every_release_event_a_capture_has_measured() {
         let mut keys: Vec<(i32, i8, u32)> =
@@ -1884,6 +1967,9 @@ mod tests {
                 (472, crate::anim::ATTACK1, 12),
                 (472, crate::anim::ATTACK2, 9),
                 (472, crate::anim::ATTACK3, 15),
+                (842, crate::anim::ATTACK1, 18),
+                (842, crate::anim::ATTACK2, 16),
+                (842, crate::anim::ATTACK3, 20),
             ]
         );
     }
