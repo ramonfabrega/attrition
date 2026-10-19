@@ -1574,7 +1574,7 @@ impl Tuning {
         korean_build_under_fire: 1,
         korean_repair: 50,
         maya_building_hp: 25,
-        maya_building_timber: 0,
+        maya_building_timber: 25,
         roman_fort_hp: 0,
         taj_building_hp: 100,
         red_fort_fort_hps: 33,
