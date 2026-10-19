@@ -9760,3 +9760,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'   (through golden_capture.sh; the plan quoted)
 # Checks: `rngcmp.py` run899b vs run959 -> 0 differing in 18373.
 # ==== TAKEN 2026-10-19, one take (a first died in the tracer build: RON_STATE_PLAN unquoted), 03:40-, pool lane 1 ====
+# ==== item 3329: the Dutch word's widenings and the battery's twelfth held-out lobby (`docs/AI.md` §267; `docs/RUNS.md` run962 .. run963b) ====
+#   run962   --map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 21 --profile DIFFICULTY=2   (East Indies, Indians; start)
+#   run962b  --map 18 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#            --ai-tribe 21 --allow-early-end --profile DIFFICULTY=2 (run643's four --detail lines)
+#   run963   --map 18 --end-frame 1822 --timeout 2400 --log-window 1561 1818 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 22 --cover cover=0 --profile DIFFICULTY=4   (East Indies, Dutch; the word 1567's window)
+#   run963b  --map 18 --end-frame 5838 --timeout 5400 --log-window 5577 5834 (run963's --detail, --ai-tribe, --cover, --profile)
+#            (the word 5583's window)
+# Checks: `rngcmp.py` run962 vs run962b -> 37 identical; run917 vs run963 -> 0 differing in 1823. run962b runs to 24000.
+# ==== TAKEN 2026-10-19, one take each, 04:45-, pool lanes 1, 2 ====
