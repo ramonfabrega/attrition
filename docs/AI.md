@@ -23686,12 +23686,41 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 270. Reserved for the next item on the AI track
+## 270. The Dutch to the long's end: an Oil Platform priced by the Oil Wells (2026-10-19, item 3333)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Score.** `EastIndiesDutchTier4` (Nubians against the Dutch at Difficulty 4, East Indies; run915, run917):
+**23985 → 24000 of 24000**, the long's last frame (count and sequence), and run917's closing block 24001 compared
+whole — 209 units, every count 0, no building, city or closing field apart (`run917_dutch_closing_state`). The game
+does not end itself; the long's `!quit` at 24000 closes it.
+
+**The frame.** §267 left the word at 23985: ours 13 draws against theirs 15 at index 0, ours
+`Leader::produce_building+0x1805`, theirs `Leader::use_market+0x1ed`, inside run963d's window. The widening's first row
+that is not the standing set is run963d's block 23983: who=1's `bucket` timber 199 ours against 179, metal 136 against
+116; then the make list on 23984 (`MAKE[0].t` 269 ours against −1). **Theirs did not buy an Artillery.** Both sides
+place the Oil Platform `1/2079` (otype 422) on 23982 from the make list's Oil Well entry (`t 421`, its `val` 2716000 →
+27160 on both sides), beside the Well `1/2078`: `produce_building` turns an Oil Well into a Platform on water (`:217`–
+`:315`) and pays the Platform's price (`:1024`). A probe on `cost::pay` (reverted whole) showed ours charging
+`[0, 100, 0, 0, 50, 0]`; theirs paid 20 timber and 20 metal more. On 23985 ours went on to the next Well where theirs,
+20 and 20 short, went to the market.
+
+**The cause** (`docs/COSTS.md`, "An Oil Platform is ramped by the Oil Wells"): `TypeData::get_cost@00664090`'s building
+arm adds the other oil type's `num_buildings + num_queued` to a Platform's or a Well's count (`0066598f`..`006659be`).
+This crate counted the Platform's own type only. Built in `Sim::building_price` (`city.rs`); test
+`cities_tests::an_oil_platform_is_counted_with_the_oil_wells_and_a_well_with_the_platforms`. Value diff, run963d's block
+23983: who=1's `bucket` timber 199/179 and metal 136/116, both 179 and 116 after; run963d's parted keys 197 → 94.
+
+**Mutation** (`tools/mutate.py`): the sibling set to none for both types — `dutch_word_first_parting` back at 23985
+with the same row, and the unit test red; both `exit 101`, held.
+
+**What stands.** run963d's 94 keys are the standing set (`SITE[n].reg`, `form`, `group:n.held`, `pool:n`,
+`aggression`, the last on 23839) and run963c's rows from before its window, which move no draw to 24000: who=1's
+`num_units[270]` (`ARTILLERYGERMAN`) −1 and `[271]` (`HOWITZER`) 1 against 0 and 0 (parked 3333a), and the Dutch
+merchants' second figures (3329a). run963c's 116 held unchanged with the fix, so neither 3329a nor 3329b (`1/201`'s
+`myhits`) is this cause.
+
+**Not established.** The Well's half — a Well priced by the Platforms — is the listing's alone. The count is this
+crate's live buildings of the two types, not the original's two `u16` arrays; a queued, unplaced oil building would
+part them, and no window has one.
 
 ## 271. Reserved for the next item on the AI track
 
