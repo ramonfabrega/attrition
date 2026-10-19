@@ -1199,14 +1199,14 @@ impl Sim {
             return;
         };
         let level = self.general_upgrade_level(self.units[g].owner);
-        let view = SimAmbush {
+        let mut view = SimAmbush {
             sim: self,
             g,
             duration: d.duration,
             duration_upgrade: d.duration_upgrade,
             level,
         };
-        cast_ambush_steps(view);
+        cast_ambush_steps(&mut view);
     }
 
     /// `Caster::process_spells(o, who, 0)@00739ad0` on a hero, from the
@@ -1460,7 +1460,7 @@ pub(crate) trait AmbushView {
 /// `SpellType::cast_ambush@00671610`'s body over [`AmbushView`]. Parmenio's
 /// extent is scaled by `PARMENIO_AMBUSH_TIME` (8.8): the product shifted
 /// right by eight, rounding toward zero.
-pub(crate) fn cast_ambush_steps<V: AmbushView>(mut v: V) {
+pub(crate) fn cast_ambush_steps<V: AmbushView>(v: &mut V) {
     let start = v.frame();
     let level = v.general_upgrade();
     let (duration, upgrade) = v.spell_extent();
@@ -1512,6 +1512,47 @@ impl AmbushView for SimAmbush<'_> {
 #[cfg(test)]
 mod tests {
     use crate::tech::{TypeDef, UnitTraits};
+
+    /// **Parmenio's Ambush** (item 3320; `SpellType::cast_ambush@00671610`):
+    /// his `ActiveSpell` runs `PARMENIO_AMBUSH_TIME` (the file's `3/1`, 768
+    /// at 8.8) times the usual extent, shifted right by eight and rounded
+    /// toward zero. Made to fail with the tuning at 256.
+    #[test]
+    fn parmenio_s_ambush_is_three_times_as_long() {
+        struct V(i32, bool, Option<(i32, i32)>);
+        impl super::AmbushView for V {
+            fn frame(&self) -> i32 {
+                1000
+            }
+            fn spell_extent(&self) -> (i32, i32) {
+                (300, 100)
+            }
+            fn general_upgrade(&mut self) -> i32 {
+                2
+            }
+            fn is_parmenio(&mut self) -> bool {
+                self.1
+            }
+            fn parmenio_ambush_time(&self) -> i32 {
+                self.0
+            }
+            fn push_active_spell(&mut self, start: i32, end: i32) {
+                self.2 = Some((start, end));
+            }
+            fn set_flags(&mut self) {}
+            fn console_sound(&mut self) {}
+        }
+        assert_eq!(Tuning::RON.parmenio_ambush_time, 768);
+        let run = |t: i32, parmenio: bool| {
+            let mut v = V(t, parmenio, None);
+            super::cast_ambush_steps(&mut v);
+            v.2.expect("pushed")
+        };
+        assert_eq!(run(Tuning::RON.parmenio_ambush_time, false), (1000, 1500));
+        assert_eq!(run(Tuning::RON.parmenio_ambush_time, true), (1000, 2500));
+        // Toward zero: 500 × -255 / 256 is -498.05.
+        assert_eq!(run(-255, true), (1000, 1000 - 498));
+    }
     use crate::world::{Cell, Terrain, World};
     use crate::{Pos, Sim, Tuning, Unit, UnitType};
 

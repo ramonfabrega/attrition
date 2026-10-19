@@ -110,7 +110,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                 }
             }
-            crate::cast::cast_ambush_steps(Bytes {
+            crate::cast::cast_ambush_steps(&mut Bytes {
                 a,
                 m,
                 p,
