@@ -56,11 +56,11 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 2 | Inca | inca | `inca` | 3 | none |
 | 3 | Bantu | bantu | `bantu` | 5 | none |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
-| 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | none |
+| 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (map 7, tier 1) |
 | 6 | Romans | romans | `romans` | 10 | none |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (map 7, tier 4) |
 | 8 | Turks | turks | `turks` | 7 | none |
-| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | none |
+| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3) |
 | 10 | French | french | `french` | 7 | scored pairs |
 | 11 | British | british | `british` | 6 | scored pairs |
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
@@ -382,7 +382,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Setup::build_units@005aafc0` | 5 9 16 19 20 22 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
 | `Setup::build_civ_specific@005ab760` | 4 5 7 10 16 18 22 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
 | `Setup::build_cities@005ab910` | 14 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
-| `Setup::build_empire@005abb80` | 9 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
+| `Setup::build_empire@005abb80` | 9 | modelled at ai_sites.rs | `sees_every_cell` |
 | `AnimalData::is_seen@005d8160` | 4 9 | carried at fight.rs | `005d8160` |
 | `Unit::process_healing@005e0670` | 10 18 | carried at heal.rs | `005e0670` |
 | `Unit::process_cloak@005e1c20` | 18 | carried at lib.rs | `005e1c20` |

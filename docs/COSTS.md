@@ -523,7 +523,12 @@ shape carries no information and the predicates do:
   description of the wonder mentions.
 - **Rare resources that are not.** Salt on barracks units does not read
   `SALT_BARRACKS_COST`, which ships as 15%. The code multiplies by a literal
-  nine tenths, so Salt is worth 10% and the constant is decoration.
+  nine tenths, so Salt is worth 10% and the constant is decoration. **Built
+  and diff-backed by item 3318** (`docs/AI.md` §264): the first term of the
+  unit path, on the scaled base and ahead of the research fork, for a trainer
+  equal to the Barracks (`0x1ab`) and Salt in `rare` (`+0x6da4 & 0x80`) or
+  `rare_conquest`; run958d's Spanish Hoplites are 48/31 and 52/35 where the
+  list price with the ramp and `MILITARY_UNIT_DISCOUNT` is 53/34 and 57/38.
 - **Governments.** Despotism has three tiers on barracks units (built as of item 3242, `docs/AI.md` §255: the shared
   pre-ramp tail, so it prices a Barracks unit's research as well as its training; run937's Javelineers upgrade is
   68/68 where the list price is 80/80), Monarchy two on
