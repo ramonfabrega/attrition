@@ -135,6 +135,7 @@ mod objects_data_find_building_at;
 mod path_finder_valid_wcoord;
 mod region_coast_here;
 mod region_go_here;
+mod spell_type_cast_ambush;
 mod spell_type_cast_march;
 mod unit_add_air_attack_ground_order;
 mod unit_add_air_patrol_order;

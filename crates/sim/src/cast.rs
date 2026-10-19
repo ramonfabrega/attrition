@@ -1186,19 +1186,27 @@ impl Sim {
     /// [`Sim::cast_march`] reads), and `unit_masks |= 0x2800`
     /// (`docs/AI.md` §261).
     ///
+    /// Parmenio's (`0x168`) `PARMENIO_AMBUSH_TIME` 8.8 scale is
+    /// [`cast_ambush_steps`]'s.
+    ///
     /// SEAM: `0x800`, the cloak `UnitData::is_seen` and `is_cloaked` read,
     /// and `Unit::set_new_location` clears on the hero's next step — the
     /// hero arm casts Ambush only on the move, so it lasts a step; the
     /// leader's `0x4000`, which only `Leader::verify_spell_flags` reads;
-    /// Parmenio's (`0x168`) `PARMENIO_AMBUSH_TIME` 8.8 scale, which this
-    /// crate does not load; the console's sound.
+    /// the console's sound.
     pub(crate) fn cast_ambush(&mut self, g: usize) {
         let Some(d) = self.spell(crate::orders::spell::AMBUSH) else {
             return;
         };
         let level = self.general_upgrade_level(self.units[g].owner);
-        let end = self.frame + i64::from(march_extent(d.duration, d.duration_upgrade, level));
-        self.units[g].ambushing = Some(end);
+        let view = SimAmbush {
+            sim: self,
+            g,
+            duration: d.duration,
+            duration_upgrade: d.duration_upgrade,
+            level,
+        };
+        cast_ambush_steps(view);
     }
 
     /// `Caster::process_spells(o, who, 0)@00739ad0` on a hero, from the
@@ -1423,6 +1431,82 @@ mod decoy_type_tests {
 /// original's 32-bit arithmetic.
 pub(crate) fn march_extent(duration: i32, duration_upgrade: i32, level: i32) -> i32 {
     duration.wrapping_add(level.wrapping_mul(duration_upgrade))
+}
+
+/// What `SpellType::cast_ambush@00671610` reads and writes, in the order it
+/// does (item 3320): the sweep (`sweep/spell_type_cast_ambush.rs`) lays the
+/// original's records as bytes and implements this over them; [`Sim`]
+/// implements it over the crate's state.
+pub(crate) trait AmbushView {
+    /// `game->frame` (`+0x550`).
+    fn frame(&self) -> i32;
+    /// `SpellType +0x1d4`, `+0x1d8`.
+    fn spell_extent(&self) -> (i32, i32);
+    /// `LeaderData::get_general_upgrade`.
+    fn general_upgrade(&mut self) -> i32;
+    /// The unit's `is(0x168, 0)` (vslot `+0xb8`; Parmenio).
+    fn is_parmenio(&mut self) -> bool;
+    /// `constants->parmenio_ambush_time` (`+0xb58`), 8.8.
+    fn parmenio_ambush_time(&self) -> i32;
+    /// The hero's `ActiveSpell { 0x27b, start, end }` appended.
+    fn push_active_spell(&mut self, start: i32, end: i32);
+    /// The unit's `unit_masks |= 0x2800` and the leader's `leader_flags |=
+    /// 0x4000`.
+    fn set_flags(&mut self);
+    /// The console's `S_GENERAL_AMBUSH` when the caster is its player.
+    fn console_sound(&mut self);
+}
+
+/// `SpellType::cast_ambush@00671610`'s body over [`AmbushView`]. Parmenio's
+/// extent is scaled by `PARMENIO_AMBUSH_TIME` (8.8): the product shifted
+/// right by eight, rounding toward zero.
+pub(crate) fn cast_ambush_steps<V: AmbushView>(mut v: V) {
+    let start = v.frame();
+    let level = v.general_upgrade();
+    let (duration, upgrade) = v.spell_extent();
+    let mut extent = march_extent(duration, upgrade, level);
+    if v.is_parmenio() {
+        let p = v.parmenio_ambush_time().wrapping_mul(extent);
+        extent = p.wrapping_add((p >> 31) & 0xff) >> 8;
+    }
+    let end = v.frame().wrapping_add(extent);
+    v.push_active_spell(start, end);
+    v.set_flags();
+    v.console_sound();
+}
+
+/// [`Sim`]'s [`AmbushView`]: an `ActiveSpell` is `ambushing`; the cloak
+/// `0x800`, the leader's `0x4000` and the sound are unmodelled (the SEAM on
+/// [`Sim::cast_ambush`]).
+struct SimAmbush<'a> {
+    sim: &'a mut Sim,
+    g: usize,
+    duration: i32,
+    duration_upgrade: i32,
+    level: i32,
+}
+
+impl AmbushView for SimAmbush<'_> {
+    fn frame(&self) -> i32 {
+        self.sim.frame as i32
+    }
+    fn spell_extent(&self) -> (i32, i32) {
+        (self.duration, self.duration_upgrade)
+    }
+    fn general_upgrade(&mut self) -> i32 {
+        self.level
+    }
+    fn is_parmenio(&mut self) -> bool {
+        self.sim.units[self.g].type_index == 0x168
+    }
+    fn parmenio_ambush_time(&self) -> i32 {
+        self.sim.tuning.parmenio_ambush_time
+    }
+    fn push_active_spell(&mut self, _start: i32, end: i32) {
+        self.sim.units[self.g].ambushing = Some(i64::from(end));
+    }
+    fn set_flags(&mut self) {}
+    fn console_sound(&mut self) {}
 }
 
 #[cfg(test)]

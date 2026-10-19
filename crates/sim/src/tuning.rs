@@ -174,6 +174,9 @@ pub struct Tuning {
     /// writes `3/2`; the original multiplies and shifts right by eight, which
     /// is what fixes the scale.
     pub parmenio_radius_adjust: i32,
+    /// `PARMENIO_AMBUSH_TIME`: the scale on Parmenio's Ambush length, 8.8
+    /// (the file's `3/1`; `SpellType::cast_ambush@00671610`).
+    pub parmenio_ambush_time: i32,
     /// Wellington's percentage scale on it.
     pub wellington_radius: i32,
     /// Kutosov's percentage scale on it.
@@ -1152,6 +1155,7 @@ impl Tuning {
         kremlin_spy: 30,
         general_radius: 6,
         parmenio_radius_adjust: 384,
+        parmenio_ambush_time: 768,
         wellington_radius: 200,
         kutosov_radius: 300,
         mil_patriot_radius_bonus: 3,
@@ -1603,6 +1607,10 @@ impl Tuning {
             (
                 "PARMENIO_RADIUS_ADJUST",
                 Slot::Ratio256(T.parmenio_radius_adjust),
+            ),
+            (
+                "PARMENIO_AMBUSH_TIME",
+                Slot::Ratio256(T.parmenio_ambush_time),
             ),
             ("WELLINGTON_RADIUS", Slot::Value(T.wellington_radius)),
             ("KUTOSOV_RADIUS", Slot::Value(T.kutosov_radius)),
