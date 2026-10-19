@@ -2863,6 +2863,10 @@ pub struct Initial<'a> {
     /// otherwise, and a world stood up without them has no goods, so
     /// `find_good_at` answers nothing everywhere.
     pub goods: Vec<GoodDump<'a>>,
+    /// The `FULL DUMP` block's `ITEM` records — the goody boxes the map
+    /// generator laid down (`Item::log_data@00677190`), in the `items`
+    /// order. Only an initial `FULL DUMP` prints them; empty otherwise.
+    pub items: Vec<ItemDump>,
     /// The `REGIONS` block's `REGION` records, in the original's own region
     /// order. Only an `InitialDump` prints them; empty otherwise, and a
     /// world stood up without them has every region's `flags` at 0.
@@ -2962,6 +2966,19 @@ pub struct GoodDump<'a> {
     pub y: i64,
     /// `SubObjectData::flags` — bit 0 is "live".
     pub flags: i64,
+}
+
+/// One `ITEM` record of a `FULL DUMP` (`Item::log_data@00677190`): the
+/// item's `ever_seen` (`+0x20`, a bit per leader, written by `Item::init`
+/// and `World::reveal_fog` alone) and its `SubObject` base (item 3335).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ItemDump {
+    pub o: i64,
+    pub x: i64,
+    pub y: i64,
+    /// `SubObjectData::flags` — bit 0 is "live".
+    pub flags: i64,
+    pub ever_seen: i64,
 }
 
 /// One `HERD` record: the home cell, the wander centre, the animal type
@@ -4024,6 +4041,19 @@ impl<'a> Log<'a> {
                         x: sub.and_then(|s| s.int("x_internal")).unwrap_or(0),
                         y: sub.and_then(|s| s.int("y_internal")).unwrap_or(0),
                         flags: sub.and_then(|s| s.int("flags")).unwrap_or(0),
+                    }
+                })
+                .collect();
+            init.items = d
+                .kids("ITEM")
+                .map(|b| {
+                    let sub = b.kid("SUBOBJECT");
+                    ItemDump {
+                        o: sub.and_then(|s| s.int("o")).unwrap_or(-1),
+                        x: sub.and_then(|s| s.int("x_internal")).unwrap_or(0),
+                        y: sub.and_then(|s| s.int("y_internal")).unwrap_or(0),
+                        flags: sub.and_then(|s| s.int("flags")).unwrap_or(0),
+                        ever_seen: b.int("ever_seen").unwrap_or(0),
                     }
                 })
                 .collect();

@@ -604,6 +604,10 @@ pub struct Tuning {
     /// building arm, `:1003`–`1008` (type `0x1a1` by equality). Ships as
     /// `50% cheaper`.
     pub japanese_farms_cheaper: i32,
+    /// Percent off an elephant for the Indians — `TypeData::get_cost@00664090`'s
+    /// last arm, `:1556`–`1576`: a unit that `is` one of `0x105..=0x108` (the
+    /// War Elephant line and the Mahouts). Ships as `15`.
+    pub indians_elephant_cost: i32,
     /// Percent more food per gatherer from a flat building (a Farm) for the
     /// Japanese — `BuildTypeData::calc_gather@00639e40:978`–`985`, and the
     /// fishermen's term in `LeaderData::calc_rare@006e08d0:65`. Ships as
@@ -1371,6 +1375,7 @@ impl Tuning {
         greek_research_cost: 10,
         greek_library_cost: 66,
         japanese_farms_cheaper: 50,
+        indians_elephant_cost: 15,
         japanese_fishing_boats: 25,
         egyptian_farm_wealth: 2,
 
@@ -1997,6 +2002,10 @@ impl Tuning {
             (
                 "JAPANESE_FARMS_CHEAPER",
                 Slot::Value(T.japanese_farms_cheaper),
+            ),
+            (
+                "INDIANS_ELEPHANT_COST",
+                Slot::Value(T.indians_elephant_cost),
             ),
             ("EGYPTIAN_FARM_WEALTH", Slot::Value(T.egyptian_farm_wealth)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),

@@ -119,7 +119,15 @@ If the type's `PROGRESSION` has bit 0 set **and its `attack` is not zero**, the
 count is taken over the whole **production group** instead of the type —
 barracks units, stable units, factory units, dock units, or air units, each as
 `queued + built`. This is why switching from crossbowmen to musketeers does not
-reset the price: they draw on the same barracks count.
+reset the price: they draw on the same barracks count. **The group's count
+holds every attacking unit its building makes, whatever its own progression**
+(item 3335): `Leader::track_unit_type@006e0dd0` and `Leader::track_queued@006e0f30`
+move `stable_units`/`stable_queued` and their siblings on `attack != 0` alone, and
+only the read, `get_support_count`, asks the priced type's group bit. So the
+Indians' War Elephant (`PROGRESSION 2`, ramped by its own type) still ramps the
+next Horse Archer (`3`): run970c's block 9983 prices one at 52/35 with theirs'
+`stable_units` 1, where this crate, which kept a by-type unit out of the group,
+charged 51/34.
 
 **`queued + built`, and the queued half is load-bearing inside one order.**
 `Leader::produce_unit` queues its `num` units **one at a time**, and each is
@@ -489,7 +497,7 @@ shape carries no information and the predicates do:
   Americans on aircraft and upgrades, the British on anti-air, the Nubians on
   merchants, the Russians on spies, the Romans on legions and forts, the Turks
   on citizens, the Koreans on towers, the Iroquois on senates, the Indians on
-  elephants, the Greeks on ages, epochs and the Library line (built, item 3326; see "The Greeks pay less for learning"), the Dutch on ship **upgrades** (military-role upgrade prices only; the file's "10% cheaper ships" is not a production discount, A1 row 51), the Bantu on cities, the Egyptians on wonders
+  elephants (and on their buildings' ramp, built, item 3335; see "An Indian building does not ramp"), the Greeks on ages, epochs and the Library line (built, item 3326; see "The Greeks pay less for learning"), the Dutch on ship **upgrades** (military-role upgrade prices only; the file's "10% cheaper ships" is not a production discount, A1 row 51), the Bantu on cities, the Egyptians on wonders
   and on scholars — where the Egyptian bonus does not discount at all but
   *swaps the resource index*, charging food where the file wrote wealth
   (**inert as shipped**: `EGYPTIAN_SCHOLARS_FOOD` is 0, A1 row 72).
@@ -1191,6 +1199,43 @@ epoch only) is in `docs/NATIONS.md` §3.
 constants `get_cost` reads, ship as 0 and are not carried.
 
 ---
+
+## An Indian building does not ramp
+
+*Item 3335, 2026-10-19. Read from `TypeData::get_cost@00664090:843`–`876`
+(listing `00665b0a`..`00665c1f`); built as `cost::Modifiers::indian_ramp`
+(set by `city.rs`'s `Sim::indian_ramp`). `docs/AI.md` §271.*
+
+In the building arm's per-good loop, after `BUILD_SUPPORT_FACTOR`, a leader
+with `has_tribe_bonus(0x15)` (the Indians) and a type that is not a city
+(vslot `+100`) has each good's support term — the count times `SUPPORT` —
+**zeroed**, or **halved rounding up**, `(term + 1) / 2`, for a wonder
+(`is_wonder_type` and `0x20e ≤ t ≤ 0x21e`) or a defence (`0x1b7`..`0x1be`,
+`0x209`..`0x20d`, by equality). The base stands. So an Indian Farm costs its
+base however many Farms stand, and an Indian Tower half the ramp.
+
+**How confident**: read, and diff-backed: run970's block 37, who=1's
+`bucket` timber 29 ours against 41, standing the whole window — the Farm
+`1/2006` placed on frame 0 charged 52 (40 plus three Farms' 4 each) where
+theirs paid 40. With the arm the row closes and the word moved 1176 → 1177
+(`rondata::diff::indian_word`). The halved arm — a wonder's, a defence's —
+is the listing's alone: no window prices an Indian wonder or tower.
+
+## An Indian elephant costs less, last
+
+*Item 3335, 2026-10-19. Read from `TypeData::get_cost@00664090:1556`–`1576`;
+built as `cost::Modifiers::indian_elephant` (set by `Sim::indian_elephant_discount`).
+`docs/AI.md` §271.*
+
+The listing's last arm before the redirect, after the captured-building
+doubling and the Supercollider surcharge, on the one return the train and the
+research arms share: a leader with `has_tribe_bonus(0x15)` and a unit type that
+`is(t, 0)` for one of `0x105..=0x108` — the War Elephant and the three Mahouts —
+pays `(100 − INDIANS_ELEPHANT_COST) × cost / 100` (15). **Diff-backed**: run970d's
+block 9589, the War Elephant queued at the Stable `1/2019` at 81 food and 47
+wealth against this crate's 96 and 56, and who=1's buckets short by the
+difference; with the arm both close. The research arm's half is the listing's
+alone.
 
 ## What is diff-backed
 

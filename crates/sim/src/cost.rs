@@ -345,6 +345,11 @@ pub struct Modifiers {
     pub maize: bool,
     /// Producing at a captured, unassimilated building doubles the price.
     pub unassimilated: bool,
+    /// `get_cost`'s **Indian elephant arm** (`:1556`–`1576`), the listing's
+    /// last step before the redirect: percent off a unit of the elephant
+    /// line for an Indian leader, after the captured-building doubling
+    /// (`INDIANS_ELEPHANT_COST`; `Sim::indian_elephant_discount`).
+    pub indian_elephant: i32,
     /// `get_cost`'s **wonder arm** (`00665848`..`0066594c`): the count is
     /// [`wonder_count`] rather than the type's own, and the building arm's
     /// term is **halved** after the factor and the count (`00665af9`,
@@ -383,10 +388,31 @@ pub struct Modifiers {
     /// off, `(100 − x) × cost / 100`, after the Greek Library arm in the
     /// same chain. Zero is the identity (item 3331, `docs/AI.md` §268).
     pub japanese_farms: i32,
+    /// `get_cost`'s **Indian ramp arm** (`:843`–`876`, `00665b0a`..`00665c1f`),
+    /// inside the building arm's support loop, after the wonder's halving:
+    /// for a leader with `has_tribe_bonus(0x15)` and a type that is not a
+    /// city (vslot `+0x64`), each support term is zeroed — or, for a wonder
+    /// (`0x20e ≤ type < 0x21f`) and the towers, forts, lookouts and air
+    /// defences (`0x1b7`..`0x1be`, `0x209`..`0x20d`), halved rounding up,
+    /// `(term + 1) / 2` (item 3335, `docs/AI.md` §271).
+    pub indian_ramp: IndianRamp,
     /// `get_cost`'s **research** arm: the type is not yet available to the
     /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
     /// research, and it takes the place of the ramp. `None` is the train arm.
     pub research: Option<Research>,
+}
+
+/// [`Modifiers::indian_ramp`]: what the Indian arm does to a building's
+/// support term.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum IndianRamp {
+    /// Not an Indian leader, or a city: the term stands.
+    #[default]
+    Off,
+    /// The term is zeroed.
+    Zero,
+    /// The term is halved, rounding up.
+    Half,
 }
 
 /// What `TypeData::get_cost@00664090` charges to **research** a unit type
@@ -629,6 +655,11 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
                 if m.wonder {
                     term /= 2;
                 }
+                match m.indian_ramp {
+                    IndianRamp::Off => {}
+                    IndianRamp::Zero => term = 0,
+                    IndianRamp::Half => term = (term + 1) / 2,
+                }
                 if ceiling != 0 && term > ceiling {
                     term = ceiling;
                 }
@@ -682,6 +713,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.unassimilated {
         cost *= 2;
+    }
+    if m.indian_elephant != 0 {
+        cost = (100 - m.indian_elephant) * cost / 100;
     }
     cost
 }
@@ -1337,6 +1371,29 @@ mod tests {
         }
     }
 
+    /// The Indian ramp arm (`get_cost:843`–`876`, item 3335): the support
+    /// term is zeroed for an ordinary building and halved rounding up for
+    /// a wonder or a defence; the base stands either way.
+    #[test]
+    fn an_indian_building_does_not_ramp_and_a_defence_ramps_half() {
+        let farm = small_city();
+        let with = |r| Modifiers {
+            indian_ramp: r,
+            ..Modifiers::default()
+        };
+        for n in 0..5 {
+            let plain = cost_of(&T, &farm, Resource::Food, owned(n), &Modifiers::default());
+            let zero = cost_of(&T, &farm, Resource::Food, owned(n), &with(IndianRamp::Zero));
+            let half = cost_of(&T, &farm, Resource::Food, owned(n), &with(IndianRamp::Half));
+            assert_eq!(zero, 10, "{n}: the base alone");
+            assert_eq!(half, 10 + (plain - 10 + 1) / 2, "{n}");
+        }
+        assert_eq!(
+            cost_of(&T, &farm, Resource::Food, owned(1), &with(IndianRamp::Half)),
+            35
+        );
+    }
+
     #[test]
     fn a_building_s_ramp_is_not_capped() {
         let city = small_city();
@@ -1824,6 +1881,25 @@ mod tests {
             ..Modifiers::default()
         };
         assert_eq!(cost_of(&T, &c, Resource::Food, owned(10), &m), 60);
+    }
+
+    /// The Indian elephant arm (`get_cost:1556`–`1576`, item 3335) is the
+    /// listing's last step: fifteen percent off the doubled price, not
+    /// doubled after it. run970d's War Elephant is 96/56 → 81/47.
+    #[test]
+    fn an_indian_elephant_is_discounted_after_the_captured_doubling() {
+        let c = citizen();
+        let m = Modifiers {
+            unassimilated: true,
+            indian_elephant: T.indians_elephant_cost,
+            ..Modifiers::default()
+        };
+        assert_eq!(
+            cost_of(&T, &c, Resource::Food, owned(10), &m),
+            85 * 60 / 100
+        );
+        let elephant = |p: i32| (100 - T.indians_elephant_cost) * p / 100;
+        assert_eq!((elephant(96), elephant(56)), (81, 47));
     }
 
     /// The headline of the whole document: the same hoplite costs timber

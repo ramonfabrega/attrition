@@ -176,6 +176,8 @@ HAND += [
     ("Japanese", "carriers train faster", "ObjectData::train_time@006508c0", "not modelled", "japanese_carrier_speed"),
     ("Japanese", "a Farm costs 50% less", "TypeData::get_cost@00664090", "modelled at city.rs", "japanese_farms_cheaper"),
     ("Japanese", "a farmer gathers 25% more food (calc_gather's flat branch)", "BuildTypeData::calc_gather@00639e40", "modelled at holdings.rs", "japanese_fishing_boats"),
+    ("Indians", "a building's support ramp zeroed, halved rounding up for a wonder or a defence", "TypeData::get_cost@00664090", "modelled at cost.rs", "indian_ramp"),
+    ("Indians", "an elephant-line unit costs 15% less, the last step", "TypeData::get_cost@00664090", "modelled at cost.rs", "indian_elephant"),
     ("Lakota", "raze speed (train_time's tail)", "ObjectData::train_time@006508c0", "not modelled", "lakota_raze_speed"),
     ("Mongols", "stable units train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "mongol_stable_speed"),
     ("British", "ships, archers and anti-air train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "british_ship_speed"),

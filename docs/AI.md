@@ -23811,12 +23811,70 @@ merchants' second figures (3329a). run963c's 116 held unchanged with the fix, so
 crate's live buildings of the two types, not the original's two `u16` arrays; a queued, unplaced oil building would
 part them, and no window has one.
 
-## 271. Reserved for the next item on the AI track
+## 271. The Indians: a goody box's own sight, an unramped building, a held number, the elephants' price and group, a barge's region (2026-10-19, item 3335)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Score.** `EastIndiesIndianTier2` (Nubians against the Indians at Difficulty 2, East Indies; run962, run962b),
+promoted out of the held-out battery as the AI word once item 3333 closed the Dutch: **221 → 1176 → 1177 → 9985 → 14594
+→ 14631 of 24000** (count and sequence). The Incas (tribe 2, Difficulty 3, East Indies; run969, run969b) take the Indians'
+place in the battery, first try **7782 / 7782**.
+
+**221: the goody box's own `ever_seen`.** run970's first row that is not the standing set is block 180: ours'
+scout `1/0` (TI 69) sweeps the goody box `o 1` at (34944, 38016), cell (45, 49), and re-targets (`ExploreTo` (34968,
+38040)) where theirs walks on (block 181, `orders_x` 34968/36600). The dump's item 1 reads `ever_seen` **0** on every
+start block to 36 while `seen2` at (91, 98) and (91, 99) reads 2 from the start: a building's `set_seen2` lit the
+cells, and only `reveal_fog`'s goody arm (`006b4078`..`006b414e`) writes the item's byte (`Item::init` zeroes it,
+`reveal_fog:148` ORs it; nothing else). The boxes are loaded from the start dump's `ITEM` records
+(`Sim::add_goody_item`) and `is_seen` reads their byte (`docs/GOODY.md` §7.2). 221 → 1176.
+
+**1176: `get_cost`'s Indian ramp arm** (`docs/COSTS.md`, "An Indian building does not ramp"). run970 block 37,
+who=1's `bucket[1:timber]` 29 ours against 41 for the whole window: the Farm `1/2006` placed on frame 0 charged 52
+(40 plus three Farms' 4) against theirs' 40. `has_tribe_bonus(0x15)` zeroes a non-city building's support term, or
+halves it rounding up for a wonder or a defence (`:843`–`876`). 1176 → 1177.
+
+**1177: a closed building's number is held thirty frames** (`docs/COMBAT.md` §59.3). run970b's block 1177: who=1's
+citizen `1/7` holds a `BUILDORDER` on `1/2009` and a walk to (38184, 36744) in theirs and nothing in ours, and the
+Woodcutter's Camp ours numbers 2009 is theirs' 2010. On frame 1176 the Indian script places a Camp at the queued
+Small City 2007 (`place_orphan_building_with_cost`), reads `max_workers_at_building` 4, `destroy_building`s it and
+places another. `Build::close` reaches `Object::close` through `Wall::close:155`, which leaves `hold_frames` 30, and
+`find_free` reuses no held number; this crate held a dead building's number only while its garrison emptied, so it
+reused 2009 at once and the second Camp's builder took the first's place. Value diff, run970b block 1177: `1/7`'s
+`orders.len` 2/2 and the Camp 2010 on both sides; run970b's keys 400 → 35, the standing set. 1177 → 9985.
+
+**9985: the Indian elephant arm and the Stable's group.** run970c (9979..10236) opened already parted — who=1's
+food 74/89 and wealth 56/65 on 9979 — so run970d took the gap 1428..9979 at a stride of 32. Its block 9589: the War
+Elephant (TI 261) queued at the Stable `1/2019` costs 96 food and 56 wealth ours against 81 and 47, fifteen percent:
+`get_cost`'s last arm, `INDIANS_ELEPHANT_COST` off a unit that `is` one of `0x105..=0x108` for an Indian leader, after
+the captured-building doubling (`docs/COSTS.md`, "An Indian elephant costs less, last"). With it the gap holds the
+standing set alone (67 → 62) and run970c 586 → 569, but the word held: block 9983's **Horse Archer** (TI 187,
+`PROGRESSION 3`) at the same Stable is 51/34 ours against 52/35. Theirs' leader prints `stable_units` 1 — the War
+Elephant, `PROGRESSION 2` — and `Leader::track_unit_type` / `track_queued` move the group counters for every attacking
+type, gating on attack alone; only `get_support_count`'s read asks the group bit. This crate gave a type a group only
+when its own progression counted by group, so the elephant never ramped a Horse Archer (`docs/COSTS.md`, "The ramp";
+test `load::tests::an_elephant_counts_toward_a_horse_archer_s_ramp`). Value diff, run970c's 9983: 52/35 on both sides,
+run970c 569 → 50. 9985 → 14594.
+
+**14594: `find_gather_spot`'s region is `get_tregion`'s.** run970e (14588..14845) is its widening. Block 14594:
+who=1's `1/77` holds one order in ours and none in theirs. It is **a transport barge** on these frames (TI 320,
+`0x140` — a citizen afloat), and it finished the Dock `1/2030` (TI 432) on 14593. `build_done`'s AI arm sent ours to
+the Woodcutter's Camp `1/2026`. `find_gather_spot@005f5170` asks `WorldData::get_tregion@006b52e0` of the unit's tile
+and of each building's — the coastal-refined region, `World::tregion_alt`, as every other call site of the function
+in this crate reads it — and `GatherSpotSim` read the cell's plain region. The barge at (38952, 33048) stands on a
+coastal cell's ocean tile: `tregion` 12, `tregion_alt` 0, and no camp is in region 0 (a probe of every call of the
+search over the game: the only one whose two regions differ). Test
+`cities_tests::a_unit_on_a_coastal_cell_s_water_gathers_nowhere_on_the_land`. Value diff, run970e block 14594:
+`1/77`'s `orders.len` 0/0; run970e 1125 → 929; no other lobby's pin moved. 14594 → 14631.
+
+**The new word, 14631**: ours 12 draws, theirs 11, at 10: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Farms::inc_time+0x1ae` — inside run970e. Walked back, the first parting is block 14595: theirs' AI gives the idle
+barge `1/77` a move to (21912, 32664) (`orders.len` 0/1, `orders_x` 38952/21912, `path:length` 0/21 on 14596), and
+ours gives it nothing. A probe of ours' `think`: the barge's type has no worker (`worker_of` `None`), so ours never
+reaches `think_peasant` and its colonist / explore tail; which of theirs' arms issues the move — `think_peasant`'s
+for a barge, a transport arm, or the leader's — is the next read, a hypothesis.
+
+**Not established.** The ramp arm's halved branch (a wonder, a defence) is the listing's alone. The hold's exact
+frame of release (the thirtieth `process_all` after the close, against this crate's building loop) is not compared
+on any window; run970b's numbers are both 30 frames inside it. A sim whose goody boxes were not loaded from a dump
+keeps the four-half-cell fog read.
 
 ## 272. The Egyptians to the game's end: an attack's retarget, a follower's fire, a packer's keep, the Musketeer's nodes and a level-up's hits (2026-10-19, item 3336)
 

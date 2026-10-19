@@ -323,8 +323,36 @@ impl Sim {
     /// it is already there.
     pub(crate) fn reveal_fog(&mut self, fx: i32, fy: i32, who: Player) {
         // This crate has no unit index to hand (`param_4`, the revealing
-        // unit's slot): the goody-box arm is the seam `goody.rs` names.
-        reveal_fog_steps(&mut SimRevealFog { sim: self }, fx, fy, i32::from(who), -1);
+        // unit's slot): the goody-box arm is the seam `goody.rs` names. The
+        // goody arm is the item's own `ever_seen` (item 3335).
+        reveal_fog_steps(
+            &mut SimRevealFog {
+                sim: self,
+                goody: true,
+            },
+            fx,
+            fy,
+            i32::from(who),
+            -1,
+        );
+    }
+
+    /// [`Sim::reveal_fog`]'s rare and oil arms alone — what the harness's
+    /// replay of the dump's `seen2` ([`Sim::seed_new_rares_from_fog`])
+    /// stands in for. Its goody arm is not replayed: the dump prints each
+    /// box's `ever_seen` itself, and a `seen2` bit a building's light set
+    /// never passed through `reveal_fog` (item 3335).
+    pub(crate) fn reveal_fog_goods(&mut self, fx: i32, fy: i32, who: Player) {
+        reveal_fog_steps(
+            &mut SimRevealFog {
+                sim: self,
+                goody: false,
+            },
+            fx,
+            fy,
+            i32::from(who),
+            -1,
+        );
     }
 
     /// The first good in the goods list, front to back, that is alive and
@@ -474,7 +502,7 @@ impl Sim {
                 }
                 for who in 0..self.players.len().min(8) {
                     if bits >> who & 1 != 0 {
-                        self.reveal_fog(fx, fy, who as Player);
+                        self.reveal_fog_goods(fx, fy, who as Player);
                     }
                 }
             }
@@ -725,13 +753,15 @@ pub fn reveal_fog_steps<V: RevealFogView>(v: &mut V, fx: i32, fy: i32, who: i32,
 }
 
 /// [`RevealFogView`] over a [`Sim`]. What this crate does not carry answers
-/// "nothing there": no message window (`found_rare_message`), no items chain
-/// (`find_goody_at`, `mark_item_seen`: [`Sim::goody_item_is_seen`] reads the
-/// fog instead), and no unit slots (`unit_is_unit`: nothing sets
-/// `unit_masks & 0x100`, `goody.rs`). **The console answers `-1`**, so the
-/// message gate fails before it asks anything else.
+/// "nothing there": no message window (`found_rare_message`) and no unit
+/// slots (`unit_is_unit`: nothing sets `unit_masks & 0x100`, `goody.rs`).
+/// **The console answers `-1`**, so the message gate fails before it asks
+/// anything else. The items chain is the goody boxes'
+/// ([`Sim::goody_items`], item 3335) when `goody` is set; the harness's
+/// `seen2` replay clears it and the goody arm finds nothing.
 struct SimRevealFog<'a> {
     sim: &'a mut Sim,
+    goody: bool,
 }
 
 impl RevealFogView for SimRevealFog<'_> {
@@ -793,8 +823,13 @@ impl RevealFogView for SimRevealFog<'_> {
             .cell_data(crate::world::Cell::new(cx, cy))
             .flags
     }
-    fn cell_kind(&mut self, _cx: i32, _cy: i32) -> i32 {
-        0
+    fn cell_kind(&mut self, cx: i32, cy: i32) -> i32 {
+        i32::from(
+            self.sim
+                .world
+                .cell_data(crate::world::Cell::new(cx, cy))
+                .land,
+        )
     }
     fn goods_len(&mut self) -> i32 {
         self.sim.world.goods().len() as i32
@@ -812,10 +847,18 @@ impl RevealFogView for SimRevealFog<'_> {
     fn oil_add(&mut self, who: i32, gi: i32) {
         self.sim.ai[who as usize].oil_patches.push(gi as usize);
     }
-    fn find_goody_at(&mut self, _cx: i32, _cy: i32) -> i32 {
-        -1
+    fn find_goody_at(&mut self, cx: i32, cy: i32) -> i32 {
+        let c = crate::world::Cell::new(cx, cy);
+        if !self.goody || !self.sim.world.contains(c) {
+            return -1;
+        }
+        self.sim.goody_item_at(c).map_or(-1, |i| i as i32)
     }
-    fn mark_item_seen(&mut self, _gi: i32, _who: i32) {}
+    fn mark_item_seen(&mut self, gi: i32, who: i32) {
+        if (0..8).contains(&who) {
+            self.sim.goody_items[gi as usize].ever_seen |= 1 << who;
+        }
+    }
     fn unit_is_unit(&mut self, _who: i32, _unit: i32) -> bool {
         false
     }
