@@ -10283,6 +10283,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Japanese word** (DECISIONS 72, 83; item 3331): Great
+    // Sahara, the Japanese at Difficulty 1 — the held-out battery's lowest
+    // lobby once item 3326 closed the Greeks; the game does not end itself,
+    // and the long runs to 24000. It joins the `Battery word` line first;
+    // the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaJapaneseTier1",
+        named: "Great Sahara (Japanese)",
+        word: crate::diff::japanese_word::JAPANESE_WORD,
+        length: 24_000,
+        endpoint: None,
+        window: Some("japanese_frame_576_window"),
+    },
     // **The battery's Greek word** (DECISIONS 72, 83; item 3326): Great
     // Sahara, the Greeks at Difficulty 1 — the held-out battery's lowest
     // lobby once item 3318 closed the Spanish; the game does not end

@@ -48,6 +48,8 @@ mod harness;
 #[cfg(test)]
 mod iroquois_word;
 #[cfg(test)]
+mod japanese_word;
+#[cfg(test)]
 mod lakota_pair;
 #[cfg(test)]
 mod leader;
