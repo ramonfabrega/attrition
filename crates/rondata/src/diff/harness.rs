@@ -2570,7 +2570,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         .collect();
     eprintln!(
         "  f{frame} {who}/{o} #{} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} des {} \
-         danger {} stance {}/{:?} coll {}@{} tgt {:?} reach {:?} path {:?} orders {:?} {}",
+         danger {} targeted {} stance {}/{:?} coll {}@{} tgt {:?} reach {:?} path {:?} orders {:?} {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
         built
@@ -2616,6 +2616,9 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         // `unit_masks & 4` and `UnitData::stance`, which this crate keeps
         // in two places: the worker byte and the combat stance (item 530).
         u8::from(u.in_danger),
+        // `ObjectData +0x3d`, the search's crowding term (item 3306): no
+        // dump prints it.
+        u.combat.targeted,
         u.stance,
         u.combat.stance,
         // `collide` and `collide_frame`: the step's last block, which the
@@ -2624,14 +2627,17 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         u.collide_frame,
         // The combat target, which an `Attack` order does not carry
         // (item 997: the attack-move's look pushed one on 4554).
+        // Beside it, the target's own `targeted` (item 3306).
         u.combat.target.map(|t| match t {
             sim::combat::Obj::Unit(v) => (
                 built.sim.units[v].owner,
-                i64::from(built.sim.units[v].index)
+                i64::from(built.sim.units[v].index),
+                built.sim.units[v].combat.targeted,
             ),
             sim::combat::Obj::Building(b) => (
                 built.sim.buildings[b].owner,
-                i64::from(built.sim.buildings[b].index)
+                i64::from(built.sim.buildings[b].index),
+                built.sim.buildings[b].targeted,
             ),
         }),
         // The chase's own question (item 1002): `attack_dist` to the

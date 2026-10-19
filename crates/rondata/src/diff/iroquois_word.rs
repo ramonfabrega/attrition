@@ -1151,6 +1151,51 @@ fn run952_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 60, "run952 with the Despot's cut");
 }
 
+/// run954: the word 12156's window, blocks 12150..12406 at run952's
+/// detail (`LEADERS=9`, `GUYS=4`; item 3306) — six blocks before the
+/// word's own block 12157, 250 after; run952 ends on 11835.
+pub(crate) const RUN954: &str =
+    "gamelog-run954-greatlakes-iroquois-diff3-window-12150-12407-guys4.txt";
+
+/// The window: block 12150 through 12406.
+pub(crate) const WIDENING_IROQUOIS_FRAME_12156: (i64, i64) = (12150, 12406);
+
+pub(crate) fn iroquois_frame_12156_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS.start],
+        true,
+        IROQUOIS.long,
+        "run954",
+        &[(RUN954, WIDENING_IROQUOIS_FRAME_12156.0)],
+        WIDENING_IROQUOIS_FRAME_12156,
+        1,
+        &[12157],
+        true,
+    )
+}
+
+#[test]
+fn run954_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_frame_12156_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run954 on its first build");
+}
+
 /// run952b: the walk-back behind run952's first block, blocks
 /// 10940..11579 at run952's detail (item 3297) — run943 ends on 10945 and
 /// run952 opens on 11579 already parted (who=1's food 78 against 98).
