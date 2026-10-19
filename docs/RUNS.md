@@ -19122,6 +19122,59 @@ SHA-256 `fa90653708981a651daafb0c9ef941d306dbf137c47ca0331308a242161806d2`.
 20378) that `launch::MEASURED`'s piece-49 rows are fitted to (`run971_s_musketeer_rounds_leave_from_their_release_nodes`),
 and the window `run971_s_window_is_widened_whole` widens (28 keys, the standing set).
 
+## run975 — the battery's replacement lobby: Great Lakes, Lakota at difficulty 2, a `DUMP_ALL` start (2026-10-19, item 3342, `att-3342`)
+
+`docs/AI.md` §275. The Russians left the battery for the AI word, and the Lakota (tribe 19) at Difficulty 2 on Great
+Lakes are the lobby minted in their place. `--map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 19
+--profile DIFFICULTY=2`, through `viadriver.sh` + `golden_capture.sh`.
+- Pool lane 1, launched 14:29:35 and exited 14:38:24 (529 s). `success`, 37 frames.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run975-greatlakes-lakota-diff2-start.txt`, 150,698,145 bytes,
+SHA-256 `7bba1471b7fd09b7eac5ab3c010a1491b5cec2adb715ef037f1f8da6090a2e48`.
+
+Archive `rontrace-run975.log`, 8,808,704 bytes,
+SHA-256 `2233cec00373a05d3f62c43ea88fd0e1480964ba1b78419d127b127d4e571d4a`.
+
+**What it holds**: the Lakota lobby's start, `battery::BATTERY`'s `GreatLakesLakotaTier2`.
+
+## run975b — the same lobby, the draw stream to the game's end (2026-10-19, item 3342, `att-3342`)
+
+`docs/AI.md` §275. run962b's recipe on map 14 with `--ai-tribe 19 --profile DIFFICULTY=2` and run643's four
+`--detail` lines.
+- Pool lane 2, launched 14:29:41 and exited 14:32:02 (141 s). `success`, 7903 frames, `ended_early` true: the game
+  ends itself on 7902 (closing block 7903). `rngcmp.py rontrace-run975.log rontrace-run975b.log`: **37 identical**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run975b-greatlakes-lakota-diff2-24k-trace.txt`, 12,502,187 bytes,
+SHA-256 `4642a76395f0afd6d092b35b1cd22e0c58f76e1d662e494da35d60d9936a0787`.
+
+Archive `rontrace-run975b.log`, 34,945,312 bytes,
+SHA-256 `e43cdd0e860e22435a93322528ce59fabd58d43f843e622bebbb19fd56dd562a`.
+
+**What it holds**: the Lakota's first try, **6071 / 6071** of 7902 (ours 2 draws, theirs 3, index 0: ours
+`Ammo::init+0xcd9`, theirs `Unit::do_move+0xe84`), pinned in `battery::BATTERY`.
+
+## run976 — the AI word: Great Lakes, Russians at difficulty 2, the word 6563's widening (6557..6814) (2026-10-19, item 3342, `att-3342`)
+
+`docs/AI.md` §275. **What the disk could not answer**: run647 holds blocks 0..36 and run644 its setup and closing
+blocks only (`end:MISC`), so no dump held a unit record near 6563. `--map 14 --end-frame 6820 --timeout 3600
+--log-window 6557 6814 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 13 --cover cover=0
+--profile DIFFICULTY=2`, through `viadriver.sh` + `golden_capture.sh`.
+- Pool lane 3, launched 14:29:41 and exited 14:46:40 (1019 s). `success`, 6821 frames.
+  `rngcmp.py rontrace-run644.log rontrace-run976.log`: **6821 identical, 0 differing**. Filed with
+  `filerun.py run976 greatlakes-russian-diff2-window-6557-6815-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run976-greatlakes-russian-diff2-window-6557-6815-guys4.txt`, 463,716,694 bytes,
+SHA-256 `38d920634b1155a562638b91b423b9d6d19a0352d37503a6ac0fbf8f3270beb3`.
+
+Archive `rontrace-run976.log`, 28,954,336 bytes,
+SHA-256 `349f8f46d1345e1c0614523aa92c33cd39ec4be146bca52647ebb6a2a70cb476`.
+
+**What it holds**: the word 6563's frame, `run976_s_word_frame_is_widened_whole` (847 keys on the first try, 28
+after `do_move`'s unit-arm collision test): the Slinger `1/22`'s move killed in reach on 6561 with a mate in its
+block.
 ## run972 — the battery's replacement lobby: Great Sahara, the Bantu at difficulty 4, a `DUMP_ALL` start (2026-10-19, item 3338, `att-3338`)
 
 `docs/AI.md` §273. **What the disk could not answer**: the Maya left the battery for the AI word, and the held-out set

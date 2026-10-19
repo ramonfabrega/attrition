@@ -10005,6 +10005,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3318,
         Some(crate::diff::spanish_word::WIDENING_SPANISH_CLOSING),
     ),
+    // **The battery's Russian word** (item 3342, DECISIONS 72, 83): frame
+    // 6563, the Russian lobby's first try (item 1465's). run647 dumps
+    // blocks 0..36 and run644 its setup and closing blocks only, so no
+    // dump on disk held the word's block: its widening is run976's window
+    // over 6557..6814 (`run976_s_word_frame_is_widened_whole`: block 6562,
+    // the Slinger `1/22`'s move killed in reach with a mate in its block).
+    // **Item 3342 moved it 6563 → 7303, the game's last frame**
+    // (`do_move`'s unit arm asking `find_collision`): run976's test keeps
+    // 6562's value diff, and the close is compared whole on run644's own
+    // closing block 7304 by `run644_russian_closing_state`.
+    (
+        "RUSSIAN_WORD",
+        crate::diff::russian_word::RUSSIAN_WORD,
+        Some("run644_russian_closing_state"),
+        3342,
+        Some(crate::diff::russian_word::WIDENING_RUSSIAN_CLOSING),
+    ),
     // **The battery's Indian word** (item 3335, DECISIONS 72, 83): frame
     // 221, the Indian lobby's first try. run962 dumps blocks 0..36 and
     // run962b its setup and closing blocks only; the word's windows are
@@ -10379,6 +10396,22 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Russian word** (DECISIONS 72, 83; item 3342): Great
+    // Lakes, the Russians at Difficulty 2 — the held-out battery's lowest
+    // open lobby once item 3340 closed the Indians (the Maya being item
+    // 3338's); the game ends itself on 7303. It joins the `Battery word`
+    // line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatLakesRussianTier2",
+        named: "Great Lakes (Russians)",
+        word: crate::diff::russian_word::RUSSIAN_WORD,
+        length: 7_303,
+        // Closed by item 3342: the draw stream agrees to 7303, and run644's
+        // closing block 7304 scores the end itself.
+        endpoint: Some("run644_russian_closing_state"),
+        window: Some("russian_frame_6563_window"),
+    },
     // **The battery's Indian word** (DECISIONS 72, 83; item 3335): East
     // Indies, the Indians at Difficulty 2 — the held-out battery's lowest
     // lobby once item 3333 closed the Dutch; the game does not end itself,

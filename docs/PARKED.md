@@ -8424,13 +8424,11 @@ words and edits nothing here; a refill lands when two remain.
 Nothing parked: the word closed at 24000 and the close compares whole (`docs/AI.md` §274). The standing set on
 run970e (the control's rows on 14588, `group:71.held` and `pool:71` on 14640) is 3326a's shape and names no score.
 
-## Parked by the next landing, slot KY — reserved
+## Parked by item 3342, 2026-10-19 — the Russians to the game's end, a mate in the chaser's block
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the word closed at 7303 and the close compares whole (`docs/AI.md` §275). run976's standing set
+(the forms, the leaders' `SITE[·].reg`, `pool:65` / `group:65.held` with no `GROUPDATA` printed) is 3326a's shape
+and names no score.
 
 ## Parked by the next landing, slot KZ — reserved
 

@@ -24045,12 +24045,51 @@ cell's ocean tile, the only wanted region an island across the sea; mutated back
 established: the shore arm's `Group::action_eject_all` and `think_carry_idle` remain the stated seams in
 `transport.rs`; no capture on file reaches a carrying boat that stands in its chosen region.
 
-## 275. Reserved for the next item on the AI track
+## 275. The Russians to the game's end: a mate in the chaser's block holds a chase on a unit (2026-10-19, item 3342)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery's lowest open game once 3340 closed the Indians (the Maya being 3338's).
+`GreatLakesRussianTier2` (map 14, the Russians (13) at Difficulty 2; runs 647 and 644, §125) parted at count 6566
+and sequence 6563 of 7303. It is promoted here (`diff::russian_word`, `SCORED_LOBBIES` `(14, 13, 2)`, an `AI_WORDS`
+row).
+
+**The replacement lobby**: `GreatLakesLakotaTier2` (map 14, the Lakota (19) at Difficulty 2; runs 975 and 975b). Its
+first try is **6071 / 6071** of 7902; the game ends itself. Ours spends 2 draws and theirs 3, parting at index 0:
+ours `Ammo::init+0xcd9`, theirs `Unit::do_move+0xe84`. **The recipe's "a nation no dump holds" is exhausted.** With
+3338's run972 (the Bantu), every tribe 0..23 is in some dump. The criterion used instead, with the commander's word:
+a nation held only by a closed pair on another map (the Lakota, the East Indies peace pair), the widest census
+reach of those (17 functions, `docs/NATIONS.md`), and the tier the map's battery lacks once the Russians leave
+(Great Lakes keeps 1 and 4).
+
+**The frame, both sides.** On 6563 each side spends 11 draws, parting at index 4. Ours is `1/22`'s
+`Guy::set_anim+0xf2f < Guy::move+0x166`. Theirs is a fourth `Guy::set_anim+0x97a < Unit::move_step+0x823`, seed
+`5940c2f2`. `1/22` is a Slinger (`TypeIndex` 82, type record 32) in who=1's army 0, with a non-mandatory `ATTACK` on
+the human's `0/5` under a `MOVE_TO` (2760, 31608).
+
+**The widening** (run976, 6557..6814 at `GUYS=4`, block 6564; `run976_s_word_frame_is_widened_whole`). run647 holds
+blocks 0..36 and run644 its setup and closing blocks only, so no dump on disk held the frame. The first try parts
+847 keys. The 27 on 6557 are the standing set: `form` −1 against 9, the leaders' `SITE[·].reg` and
+`aggression[1]`, and `pool:65` / `group:65.held` with no `GROUPDATA` printed. The first key that is not standing is
+on **block 6562**: `1/22`'s `order:kind` 10 against 1, `orders.len` 2 against 3, `pos` (2193, 31584) against (2223,
+31586), and `last_speed` 0 against 30. Ours ended the move on frame 6561. On that frame `attack_dist` is 986,
+inside the reach less the `0x90` margin, and `find_collision_forced` at its own spot is true: a mate stands in its
+block.
+
+**The fix: `do_move`'s unit arm asks `find_collision` too** (`do_move@005f7b30:216`–`224`, `5f7f11`–`5f7f2c`;
+`docs/COMBAT.md` §65.8). After the flank clause and `is_in_range`, the kill needs
+`Objects::find_collision(my spot, o, who, 1) == 0`; a hit goes to the planner at `5f82c1`. Item 1177 built the
+building arm's and left this one, because no word then parted on it. **Value diff**: block 6562's `1/22` rows all
+agree. **6563 → 7303**, count and sequence, the game's last frame. run976 goes 847 → 28 keys: 6557's 27, plus
+who=1's `SITE[1].reg` 1 against 0 on 6776, the same family.
+
+**The close**: `run644_russian_closing_state` walks to run644's closing block 7304 and compares 35 units: none
+apart, no building or city field-row, no closing field. The lobby is closed.
+
+**Tests.** `fight::tests::a_unit_in_the_chaser_s_block_holds_its_chase_on_a_unit` covers three arms: a mate two
+unit cells off holds the chase, three cells off ends it, and gaia is not asked. Mutated off (`tools/mutate.py`),
+it fails alone, exit 101.
+
+**Coverage.** Diff-backed: the conjunct, by run976's block 6562 and the draw stream to 7303. Not established:
+`valid_target` sits only in the building arm and is not modelled (§65.6), and the siege gate still has no capture.
 
 ## 276. Reserved for the next item on the AI track
 
