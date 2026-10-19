@@ -1139,3 +1139,81 @@ fn run930_s_squad_is_widened_whole() {
     // end (`docs/AI.md` §253). The word's block in this widening.
     pin_eq!(w.firsts.len(), 31, "initial run930 baseline");
 }
+
+/// **run946's road elements at logger frame 10842, against ours** (item
+/// 3287, `docs/ROADS.md` §12). The packet
+/// (`~/ron-golden/run946/map-14/frame-snapshot.bin`) holds the twelve tiles
+/// around the caravan diagonal (235, 153) that `1/2027`'s ring reached on
+/// 10485. Each row is the element's connection byte, `support_codes`, the
+/// two counts and whether `element_num` is the C4 piece (55), read through
+/// `terrain +0x6ab0`. Theirs' (236, 153) is a slot with no counts, which
+/// this crate holds as no element. (235, 154) agrees by the counts' sum
+/// alone: theirs ref 2 / camel 0, ours ref 1 / camel 1 (parked 3287).
+#[test]
+fn run946_s_road_elements_at_10842_are_ours() {
+    use sim::mesh::dir::{E, N, NE, S, SW, W};
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(IROQUOIS.long.0),
+        dump(IROQUOIS.start),
+        trace(IROQUOIS.long.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", IROQUOIS.long.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let (log, sib_log) = (Log::parse(&text), Log::parse(&sib_text));
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_log.initial().expect("a start dump")]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    while built.sim.frame < 10_843 {
+        built.tick();
+    }
+    // (x, y, connections, support, ref + camel, C4)
+    let theirs: [(i32, i32, u32, u16, u8, bool); 12] = [
+        (234, 152, E | W, 0, 1, false),
+        (235, 152, E | S | W, 0, 1, false),
+        (236, 152, E | W, 0, 1, false),
+        (237, 152, N | W, 0, 1, false),
+        (234, 153, 0, 0, 1, true),
+        (236, 153, 0, 0, 0, false),
+        (235, 153, N | SW, 0xc400, 1, false),
+        (234, 154, NE | SW, 0xc200, 1, false),
+        (233, 155, NE | W, 0xda00, 1, false),
+        (233, 154, 0, 0, 2, true),
+        (235, 154, 0, 0, 2, true),
+        (232, 155, N | E | S, 0, 1, false),
+    ];
+    let mut parted = Vec::new();
+    for (x, y, flags, support, refs, c4) in theirs {
+        let e = built
+            .sim
+            .mesh
+            .elem(&built.sim.world, Pos::new(x, y))
+            .unwrap_or_default();
+        let ours = (
+            x,
+            y,
+            e.flags & 0xff00_0000,
+            e.support,
+            e.refs + e.refs2,
+            e.c4,
+        );
+        if ours != (x, y, flags, support, refs, c4) || e.made {
+            parted.push(format!(
+                "({x}, {y}) ours {:#x} {:#x} {} {} made {} theirs {flags:#x} {support:#x} {refs} {c4}",
+                ours.2, ours.3, ours.4, ours.5, e.made
+            ));
+        }
+    }
+    assert_eq!(
+        parted,
+        Vec::<String>::new(),
+        "a road element parts on 10842"
+    );
+}
