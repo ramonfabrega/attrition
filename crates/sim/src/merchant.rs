@@ -682,6 +682,30 @@ mod tests {
         }
     }
 
+    /// The Dutch per-age terms (item 3329, `docs/COMBAT.md` §4.3):
+    /// `Unit::update_hits`' `+ ages × DUTCH_HP_BONUS` and
+    /// `ObjectData::attack`'s and `::armor`'s `ages × DUTCH_ATTACK_BONUS`
+    /// (× 10 on the attack, inside the base, so a merchant with none of its
+    /// own is armed), on a Dutch leader's merchant and nobody else's.
+    #[test]
+    fn a_dutch_merchant_gains_hits_attack_and_armour_by_age() {
+        use crate::combat::Obj;
+        let (mut s, u) = merchant_sim();
+        let rec = s.units[u].ty.unwrap();
+        s.tech[1].ages = 2;
+        s.tech[1].has_city = true;
+        let o = Obj::Unit(u);
+        let (hits, armor) = (s.unit_hits(1, rec), s.armor_of(o));
+        assert_eq!(s.attack_of(o), 0, "a merchant has no attack of its own");
+        s.tech[1].power = Some(crate::ai::tribe::DUTCH);
+        let (hp, at) = (s.tuning.dutch_hp_bonus, s.tuning.dutch_attack_bonus);
+        assert_eq!(s.unit_hits(1, rec), hits + 2 * hp);
+        assert_eq!(s.attack_of(o), 2 * at * 10);
+        assert_eq!(s.armor_of(o), armor + 2 * at);
+        // The human's merchant of the same type takes none of it.
+        assert_eq!(s.unit_hits(0, rec), hits);
+    }
+
     /// §2.2's two terms that East Indies cannot separate: the good in the
     /// merchant's **own** region wins from the back of the list, because
     /// `+100` beats the `−10` a position costs.
