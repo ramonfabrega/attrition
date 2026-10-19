@@ -210,13 +210,3 @@ fn the_emulated_original_agrees_on_every_row() {
     assert!(n >= 6000, "only {n} rows");
     eprintln!("Unit::go_around_building@005fc350: {n} rows agree");
 }
-
-fn a_dbg(line: &str) -> String {
-    line.split(" | ")
-        .next()
-        .unwrap_or("")
-        .split_whitespace()
-        .take(4)
-        .collect::<Vec<_>>()
-        .join(" ")
-}

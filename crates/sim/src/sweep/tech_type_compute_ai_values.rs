@@ -124,7 +124,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 fn self_is_epoch(&mut self) -> bool {
                     let id = rd(self.m, 4);
                     if rd(self.m, 0) == 0xb4456c || self.a[2920] != 0 {
-                        id >= 0x227 && id < 0x243
+                        (0x227..0x243).contains(&id)
                     } else {
                         self.seq(0) != 0
                     }
@@ -195,7 +195,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 fn tech_is_epoch(&mut self, i: usize) -> bool {
                     let id = rd(&self.p[R_LIST + i], 4);
                     if self.a[2920] != 0 {
-                        id >= 0x227 && id < 0x243
+                        (0x227..0x243).contains(&id)
                     } else {
                         self.seq(0) != 0
                     }
@@ -203,7 +203,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 fn tech_is_age(&mut self, i: usize) -> bool {
                     let id = rd(&self.p[R_LIST + i], 4);
                     if self.a[2921] != 0 {
-                        id >= 0x220 && id < 0x227
+                        (0x220..0x227).contains(&id)
                     } else {
                         self.seq(1) != 0
                     }
