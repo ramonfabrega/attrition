@@ -212,6 +212,8 @@ mod unit_end_trade_route;
 mod unit_execute_events;
 #[path = "unit_find_garrison_build.rs"]
 mod unit_find_garrison_build;
+#[path = "unit_find_gather_spot.rs"]
+mod unit_find_gather_spot;
 #[path = "unit_find_goody_box.rs"]
 mod unit_find_goody_box;
 #[path = "unit_find_melee_pos.rs"]
