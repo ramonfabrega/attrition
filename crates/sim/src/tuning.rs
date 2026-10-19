@@ -1069,6 +1069,9 @@ pub struct Tuning {
     pub korean_repair: i32,
     /// Percent more hit points on every Mayan building.
     pub maya_building_hp: i32,
+    /// Percent off a Mayan building's timber —
+    /// `TypeData::get_cost@00664090:973`–`987`. Ships as `25% less wood`.
+    pub maya_building_timber: i32,
     /// Percent more on Roman forts and towers. Ships as zero.
     pub roman_fort_hp: i32,
     /// Percent more on every building with the Taj Mahal.
@@ -1571,6 +1574,7 @@ impl Tuning {
         korean_build_under_fire: 1,
         korean_repair: 50,
         maya_building_hp: 25,
+        maya_building_timber: 25,
         roman_fort_hp: 0,
         taj_building_hp: 100,
         red_fort_fort_hps: 33,
@@ -2403,6 +2407,7 @@ impl Tuning {
             ),
             ("KOREAN_REPAIR", Slot::Value(T.korean_repair)),
             ("MAYA_BUILDING_HP", Slot::Value(T.maya_building_hp)),
+            ("MAYA_BUILDING_TIMBER", Slot::Value(T.maya_building_timber)),
             ("ROMAN_FORT_HP", Slot::Value(T.roman_fort_hp)),
             ("TAJ_BUILDING_HP", Slot::Value(T.taj_building_hp)),
             ("RED_FORT_FORT_HPS", Slot::Value(T.red_fort_fort_hps)),

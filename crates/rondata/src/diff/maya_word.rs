@@ -29,8 +29,12 @@ pub(crate) const MAYA: Lobby = Lobby {
     // Item 3332: the battery's first try, count and sequence both at 776:
     // ours 34 draws, theirs 75, at 0 ours `Animal::think_bird+0x82`, theirs
     // `Leader::produce_building+0xc99`. Item 3338 promoted it to the AI word.
-    count: 776,
-    sequence: 776,
+    // Item 3338, `get_cost`'s Maya arm (`:973`–`987`, a quarter off a
+    // building's timber): 776 → 10497, ours 13 draws, theirs 12, at 2 ours
+    // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+    count: 10497,
+    sequence: 10497,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -55,7 +59,11 @@ fn maya_word_first_parting() {
     pin_eq!(w.difficulty, MAYA.difficulty, "the lobby read back");
     pin_eq!(w.last, MAYA.length, "the game's last frame");
     pin_eq!(w.count, MAYA.count, "the draw count's first parting");
-    pin_eq!(w.sequence, MAYA.sequence, "the draw sequence's first parting");
+    pin_eq!(
+        w.sequence,
+        MAYA.sequence,
+        "the draw sequence's first parting"
+    );
 }
 
 /// The lobby is a scored one and none of the battery's; its long and its

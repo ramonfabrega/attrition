@@ -378,6 +378,15 @@ pub struct Modifiers {
     /// fort arm and Tikal's temple term. Zero is the identity (item 3326,
     /// `docs/AI.md` §266).
     pub greek_library: i32,
+    /// `get_cost`'s **Maya arm** (`TypeData::get_cost@00664090:973`–`987`,
+    /// `00665f3e`..): for a leader with `has_tribe_bonus(1)`, on **timber**
+    /// alone (`local_c == 1`), a building that is no wonder (vslot `+0x1c`)
+    /// and none of the military trainers, the docks, the towers, the forts
+    /// or the lookout line by type equality takes `MAYA_BUILDING_TIMBER`
+    /// off, `(100 − x) × cost / 100`, after the Greek Library arm and ahead
+    /// of the (uncarried) British anti-air arm and the Japanese Farm. Zero is
+    /// the identity (item 3338, `docs/AI.md` §273).
+    pub maya_timber: i32,
     /// `get_cost`'s **Japanese Farm arm** (`:1003`–`1008`): a Farm (`0x1a1`)
     /// for a leader with tribe bonus `0xf` takes `JAPANESE_FARMS_CHEAPER`
     /// off, `(100 − x) × cost / 100`, after the Greek Library arm in the
@@ -651,6 +660,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.greek_library != 0 {
         cost = (100 - m.greek_library) * cost / 100;
+    }
+    if m.maya_timber != 0 && r == Resource::Timber {
+        cost = (100 - m.maya_timber) * cost / 100;
     }
     if m.japanese_farms != 0 {
         cost = (100 - m.japanese_farms) * cost / 100;

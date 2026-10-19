@@ -8619,3 +8619,37 @@ fn a_decoy_does_not_count_in_the_capture_tally() {
         "a decoy among them: two against two holds"
     );
 }
+
+/// **A Maya building costs a quarter less timber** (item 3338, `docs/AI.md`
+/// §273): `TypeData::get_cost@00664090:973`–`987` takes
+/// `MAYA_BUILDING_TIMBER` off the timber of every building but a wonder and
+/// the listed military, naval, tower and fort types, for a leader with tribe
+/// bonus 1. run966b's 776 has theirs' who=1 place a building with 21 timber
+/// in hand where ours could not pay.
+///
+/// Made to fail with the arm's application dropped, and with the Barracks
+/// taken out of the list.
+#[test]
+fn a_maya_building_costs_a_quarter_less_timber() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let timber = economy::Resource::Timber.index();
+    let senate = sim.building_price(0, t.senate);
+    let barracks = sim.building_price(0, t.barracks);
+    assert_ne!(senate[timber], 0, "a Senate costs timber");
+    assert_ne!(barracks[timber], 0, "a Barracks costs timber");
+    sim.nation[0].maya = true;
+    assert_eq!(sim.tuning.maya_building_timber, 25);
+    let off = sim.building_price(0, t.senate);
+    assert_eq!(off[timber], 75 * senate[timber] / 100, "timber");
+    for r in (0..economy::RESOURCES).filter(|&r| r != timber) {
+        assert_eq!(off[r], senate[r], "only timber: {r}");
+    }
+    assert_eq!(
+        sim.building_price(0, t.barracks),
+        barracks,
+        "a Barracks is listed"
+    );
+    assert_eq!(sim.building_price(1, t.senate), senate, "another nation's");
+}
