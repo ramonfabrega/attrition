@@ -23199,12 +23199,47 @@ for a type with `+0x2b4 & 0x10`, or the kill counters around the call (`+0x810`,
 victim classes are taken from `unit_flags2` (GENERAL, CARAVAN, SUPPLY_OR_HERO), not from `is`'s lineage. One kill is
 diffed: run943's 10852.
 
-## 260. Reserved for the next item on the AI track
+## 260. The Iroquois 10917: a re-typed figure's mark, the Peltasts' bays, and `set_diags`' corner tail (2026-10-18, item 3287)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 10917 (§259). Ours drew 285 against theirs' 296 at
+index 272: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. run943's
+widening (174 keys) first parted on block 10853. Three builds, each with its own value diff. The packets on disk
+answered everything, so run 948 was not used.
+
+**1. `Guy::init_real:161` zeroes `guy_flags` (`+0x9a`).** `1/25` (TI 83 → 84, Javelineers re-typed to Peltasts on
+10852 under an `ATTACK` on `0/2000`) comes through `init_real` again. Theirs' `guy_flags` goes 48 → 16, so its wrap
+roll on 10852 (`Guy::set_anim+0x97a < Guy::inc_time+0x271`) plays `IDLE2`. Ours kept the `0x20` mark and collapsed to
+`IDLE1`. `Sim::reinit_guys` (`anim.rs`) now clears `guy_flag_0x20`. **Value diff, block 10853**: `1/25`'s
+`g.cur_anim[0]` is 2 on both sides (ours 1 before), and `g.end_time[0]` is 36 on both (ours 96).
+
+**2. The Native American Peltasts' bays (`launch::BAYS`, piece 1442).** run943c's packet
+(`~/ron-golden/run943c/map-14/frame-snapshot.bin`) holds 1442's three `AttachPos` rows. They were swept with
+`tools/recomp/get_position.py … sweep 1442 0 <anim> <time>` and fitted, as 1441's were (§257), as the centre of the
+integer region that reproduces all 361 headings: (43050, 64644, 167), (−344, 57100, 173) and (20539, 36144, 161). The
+same fit on 1441 comes within a unit of item 3255's rows. Test: `the_peltasts_bays_are_the_packet_s_sweep`
+(`launch.rs`). **Value diff, block 10870**: `0/2000`'s `build:damage` is 44 on both sides (ours 41). `1/48`'s javelin
+now leaves from the figure's bay, where it had left from the figure's own position (3336, 31512).
+
+**3. `Roads::set_diags`' corner tail** (`docs/ROADS.md` §12). The word's draws part inside `1/2027`'s road replan
+(`regen_roads_due`, build type 16, (45120, 28800)). Node 5, (45216, 29472) from (45216, 29280), cost 139 in ours
+against 27 in theirs, which reads a road. Ours' caravan diagonal (235, 153), (234, 154) and (233, 155) had been killed
+by the stray sweep on 10620. run946's packet (logger frame 10842) holds theirs' (235, 153) at N | SW with support
+`0xc400`, and C4 elements on the non-road tiles beside it. The mechanism: `set_diags`' tail puts C4 references on a
+corner's cardinal neighbours. `1/2027`'s ring lays (235, 152) over one on 10485, so `add_roads`' count is 2 and the
+add becomes a removal, and `clear_roads` re-queues (235, 153), which re-derives to N | SW. Built: `Sim::corner_pieces`,
+`clear_support`'s three arms, the sweep's C4 exemption, and the caravan's camel count (`caravan.rs`, `build_road:124`'s
+`set_road_at(x, y, 1, 1, 0)`). **Value diff, 10842 and 10917**: the twelve elements around (235, 153) agree with the
+packet, (235, 154) by its counts' sum (`run946_s_road_elements_at_10842_are_ours`). Node 5 costs 27 on both sides, and
+the replan searches 283 nodes on both.
+
+**The word moves 10917 → 11585.** At 11585, ours 16 draws against theirs 15 at index 4: ours
+`Leader::make_stuff+0x221`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run943's widening goes **174 → 47**
+keys, the standing set alone, through its last block 10945. The word is past every Iroquois dump on disk, so its
+widening is owed.
+
+**Not established.** The corner tail's diagonal arms off the SW–NE axis rest on the listing alone. `find_piece`'s pick
+on a road tile is not modelled (`docs/ROADS.md` §12). (235, 154)'s split between ref and camel is parked. `init_real`'s
+other fields that a re-type might reset were not walked: only `guy_flags` was measured.
 
 ## 261. Reserved for the next item on the AI track
 

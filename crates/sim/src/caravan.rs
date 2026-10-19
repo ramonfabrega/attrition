@@ -894,7 +894,12 @@ impl Sim {
                 run = 4;
                 e.tolerance = 0x180;
             } else {
-                self.set_road_at(t);
+                // `World::set_road_at(x, y, 1, 1, 0)` (`build_road:124`):
+                // the fourth argument makes the element's count a
+                // `pending_camel_steps` and runs `add_roads(1)`, whose
+                // `set_diags` tail counts its corners the same way (item
+                // 3287, `docs/ROADS.md` §12).
+                self.world_set_road_at(t, true, 1, 0);
                 e.flags |= path_flag::ROAD;
                 run = 0;
             }
