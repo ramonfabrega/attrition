@@ -180,6 +180,8 @@ mod unit_detect_boat_collision;
 mod unit_die;
 #[path = "unit_do_air_attack_ground.rs"]
 mod unit_do_air_attack_ground;
+#[path = "unit_do_air_physics.rs"]
+mod unit_do_air_physics;
 #[path = "unit_do_attack.rs"]
 mod unit_do_attack;
 #[path = "unit_do_attack_ground.rs"]
@@ -212,6 +214,8 @@ mod unit_end_trade_route;
 mod unit_execute_events;
 #[path = "unit_find_garrison_build.rs"]
 mod unit_find_garrison_build;
+#[path = "unit_find_gather_spot.rs"]
+mod unit_find_gather_spot;
 #[path = "unit_find_goody_box.rs"]
 mod unit_find_goody_box;
 #[path = "unit_find_melee_pos.rs"]

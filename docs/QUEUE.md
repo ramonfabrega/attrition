@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-19, **the forty-fifth tranche (commander, Opus): 5 of 20 landed from `43e161a7`**, three lanes (DECISIONS
-83): 3306, 3314 and 3318 closed the Iroquois, the Romans and the Spanish at their games' ends, 3322 the Romans' closing state; 3304 swept its six. The last whole gate is `9783c682`'s (3314's booking, green, 6 of 6).*
+*2026-10-19, **the forty-fifth tranche (commander, Opus): 6 of 20 landed from `43e161a7`**, three lanes (DECISIONS
+83): 3306, 3314 and 3318 closed the Iroquois, the Romans and the Spanish at their games' ends, 3322 the Romans' closing state; 3304 swept six, 3320 five. The last whole gate is `9783c682`'s (3314's booking, green, 6 of 6).*
 
 - **Words**: every pair closed. Battery `GreatLakesIroquoisTier3` **closed at 12658** (3306, run954; its closing state
   compared whole on run897b's 12659); `EastIndiesRomanTier2` **576 → 18620 of 18620** (3314, runs 955, 956; the
   Americans minted at 9382), its closing state zero apart (3322: a closed decoy's last round, run959); `GreatSaharaSpanishTier3` **576 → 22700 of 22700** (3318, runs 957, 958; the
-  Greeks minted at 176, now 3326's); the German closed at 13519. Census 1555 → 1561, port 393 → 402. Median 4770.
+  Greeks minted at 176, now 3326's); the German closed at 13519. Census 1555 → 1566, port 393 → 411. Median 4770.
 - **Lanes: three live**: 3329 Opus (att-3329, runs 962, 963, AI §267, KN), 3326 Opus (att-3326, runs 960, 961, AI §266,
-  KM), 3320 Sonnet (att-3320, KK); 3302, 3303 held. Landings: 3306, 3304, 3314, 3318, 3322. Next 3330, run 964. Pools: GOLDEN §144–148,
-  AI §268–272, park JK, KO–KR. **Ramon's**: 3188, 3237, 3118, 1570, 3143, 3313.
+  KM), 3330 Sonnet (att-3330, KO); 3302, 3303 held. Landings: 3306, 3304, 3314, 3318, 3322, 3320. Next 3331, run 964. Pools: GOLDEN §144–148,
+  AI §268–272, park JK, KP–KR. **Ramon's**: 3188, 3237, 3118, 1570, 3143, 3313.
 - **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3240, 3311, 3312, 3313, 3323, 3327, 3328).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -32,7 +32,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1561 of 3611 · port 402 · layout 1159
+Census: simulation backed 1566 of 3611 · port 411 · layout 1155
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -44,7 +44,7 @@ word on `--model 'claude-opus-5-5[1m]' --effort medium`, the sweep on `'claude-s
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's** (the forty-fourth steer, DECISIONS 83):
-3326 and 3329 the battery words' (Opus), 3320 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its
+3326 and 3329 the battery words' (Opus), 3330 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its
 widening exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed
 until 3326's pin lands (`AI_WORDS` holds four closed games); open: the Greeks at 176 on Great Sahara (3326) and the
 Dutch at 1567 on East Indies (3329). Take the first unstarted item unless a better order is clear, and say why. The backlog is `docs/PARKED.md`.
@@ -64,12 +64,12 @@ Dutch at 1567 on East Indies (3329). Take the first unstarted item unless a bett
     widening first**: grep the lobby's start and long dumps for 1567, an East Indies window capture at detail only for
     what they cannot answer (run 963), every dumped record either side, both directions. Lands wide. AI §267, park KN.
 
-3320. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 402; 3304 built
-    all six of its batch, with sim fixes the sweeps forced in `do_attack` and `check_target_path`, no pin moved, parked
-    3304a–g): `SpellType::cast_ambush`, `Unit::find_gather_spot`, `Objects::add_flock`, `Unit::do_air_physics`,
-    `Unit::think_civilian_transport`, `SpellType::cast_create_decoy` (`census.py --unbacked`, the `port` mark) — each
-    built against the crate's own method where it has one, or parked naming the generator flag it could not spell.
-    `--kind sweep`.
+3330. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 411; 3320 built
+    five of six, with sim fixes the sweeps forced in Ambush's time, `find_gather_spot`'s return and the decoy limits,
+    parked 3320a–h): `Group::action_queue_up`, `UnitData::calc_gather`, `Unit::think_spellcaster`,
+    `TechType::compute_ai_values`, `SpellType::cast_transport`, `Unit::go_around_building` (`census.py --unbacked`,
+    the `port` mark) — each built against the crate's own method where it has one, or parked naming the generator
+    flag it could not spell. `--kind sweep`.
 
 ## How to maintain this file
 

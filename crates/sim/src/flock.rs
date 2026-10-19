@@ -63,6 +63,201 @@ fn restricted_cell(sim: &Sim, p: Pos) -> Cell {
     )
 }
 
+/// What `Objects::add_flock@0065c0e0` reads and does, apart from its own
+/// arithmetic (item 3320, `sweep::objects_add_flock`): the leaders' stamps,
+/// the draw, the world and the `circle_*` tables, and the bird and its orders.
+/// `Sim` implements it over the simulation; the sweep over the emulated
+/// original's windows.
+pub(crate) trait FlockView {
+    /// `leaders.list[who].flags & 1`.
+    fn leader_live(&self, who: i32) -> bool;
+    /// `LeaderData::field_0x7b8`.
+    fn stamp(&self, who: i32) -> i64;
+    fn set_stamp(&mut self, who: i32, frame: i64);
+    /// `GameAccess::game->frame`.
+    fn frame(&self) -> i64;
+    /// `Random::get(game_random, 0, 0xffff)`, at the site named.
+    fn roll(&mut self, site: &'static str) -> i32;
+    /// The world's width and height.
+    fn world_size(&self) -> (i32, i32);
+    /// `WData.flags & 0x20` of an in-world cell.
+    fn forest(&self, x: i32, y: i32) -> bool;
+    /// Push a cell on the stack-local `WCoordList` (`increase_size` first
+    /// makes room for four), where the original keeps the cells it flies.
+    fn push_cell(&mut self, x: i32, y: i32);
+    /// The cell `k` of that list, read back at the top of its point's loop.
+    fn cell(&self, k: usize) -> (i32, i32);
+    /// `circle_radius[k]`.
+    fn ring_radius(&self, k: usize) -> i32;
+    /// `circle_x[i]`, `circle_y[i]`.
+    fn ring_at(&self, i: usize) -> (i32, i32);
+    /// `Objects::init_unit(9, FLOCKBIRD, x, y, -1, -1, -1)`, at the tile's centre.
+    fn make_bird(&mut self, at: Pos) -> Option<usize>;
+    /// `Unit::set_angle(bird, angle, ·, 1)`.
+    fn turn(&mut self, b: usize, angle: i32);
+    /// `Unit::update_z`.
+    fn update_z(&mut self, b: usize);
+    /// `last_z = z; z += 200`.
+    fn lift(&mut self, b: usize);
+    /// One `AIR_ATTACK_GROUND` at the point, linked in behind the others.
+    fn fly_to(&mut self, b: usize, at: Pos);
+}
+
+/// **`Objects::add_flock@0065c0e0`'s body** over a [`FlockView`]; `x`, `y` the
+/// tile as the caller passed it, `who` −1 for none.
+pub(crate) fn add_flock_steps<V: FlockView + ?Sized>(v: &mut V, x: i32, y: i32, who: i32, n: i32) {
+    if who >= 0 && v.leader_live(who) {
+        if v.stamp(who) + FLOCK_GAP > v.frame() {
+            return;
+        }
+        let f = v.frame();
+        v.set_stamp(who, f);
+    }
+    let (w, h) = v.world_size();
+    let clamp = |x: i32, y: i32| (x.max(0).min(w - 1), y.max(0).min(h - 1));
+    let (cx, cy) = (x >> 2, y >> 2);
+    v.push_cell(cx, cy);
+    let jx = cx - 1 + v.roll(SITE_FLOCK_JITTER_X) % 3;
+    let jy = cy - 1 + v.roll(SITE_FLOCK_JITTER_Y) % 3;
+    let (jx, jy) = clamp(jx, jy);
+    v.push_cell(jx, jy);
+    let kx = jx + v.roll(SITE_FLOCK_SPREAD_X) % 5 - 2;
+    let ky = jy + v.roll(SITE_FLOCK_SPREAD_Y) % 5 - 2;
+    let (kx, ky) = clamp(kx, ky);
+    v.push_cell(kx, ky);
+    let r3 = v.ring_radius(3);
+    let r8 = v.ring_radius(8);
+    let mut i = if r3 - 1 > 0 {
+        v.roll(SITE_FLOCK_RING) % r3
+    } else {
+        0
+    };
+    let mut wood = (cx, cy);
+    while i < r8 {
+        let (dx, dy) = v.ring_at(i as usize);
+        let (x, y) = (dx + kx, dy + ky);
+        if x >= 0 && y >= 0 && x < w && y < h && v.forest(x, y) {
+            wood = (x, y);
+            break;
+        }
+        i += 1;
+    }
+    v.push_cell(wood.0, wood.1);
+    let mut angle = (v.roll(SITE_FLOCK_ANGLE) % 12).wrapping_mul(0x1555_5555);
+    let at = Pos::new(
+        x * UNITS_PER_TILE + UNITS_PER_TILE / 2,
+        y * UNITS_PER_TILE + UNITS_PER_TILE / 2,
+    );
+    for _ in 0..n {
+        // `init_unit` failing (`js 65c651`) skips the bird whole, its
+        // draws with it.
+        let Some(b) = v.make_bird(at) else {
+            continue;
+        };
+        v.turn(b, angle);
+        angle = angle.wrapping_add((v.roll(SITE_FLOCK_TURN) % 5 + 3).wrapping_mul(0x00b6_0b60));
+        v.update_z(b);
+        v.lift(b);
+        for k in 0..4 {
+            let (px, py) = v.cell(k);
+            let oy = v.roll(SITE_FLOCK_POINT_Y) & 0x1ff;
+            let ox = v.roll(SITE_FLOCK_POINT_X) & 0x1ff;
+            v.fly_to(
+                b,
+                Pos::new(
+                    px * UNITS_PER_CELL + 0x80 + ox,
+                    py * UNITS_PER_CELL + 0x80 + oy,
+                ),
+            );
+        }
+    }
+}
+
+/// [`Sim`] as a [`FlockView`], with the flock's cell list.
+struct SimFlock<'a> {
+    sim: &'a mut Sim,
+    cells: Vec<(i32, i32)>,
+}
+
+impl FlockView for SimFlock<'_> {
+    fn leader_live(&self, who: i32) -> bool {
+        self.sim.flock_stamp.get(who as usize).is_some()
+    }
+    fn stamp(&self, who: i32) -> i64 {
+        self.sim.flock_stamp[who as usize]
+    }
+    fn set_stamp(&mut self, who: i32, frame: i64) {
+        self.sim.flock_stamp[who as usize] = frame;
+    }
+    fn frame(&self) -> i64 {
+        self.sim.frame
+    }
+    fn roll(&mut self, site: &'static str) -> i32 {
+        self.sim.mark(site);
+        self.sim.rng.roll()
+    }
+    fn world_size(&self) -> (i32, i32) {
+        (self.sim.world.width(), self.sim.world.height())
+    }
+    fn forest(&self, x: i32, y: i32) -> bool {
+        self.sim.world.cell_data(Cell::new(x, y)).flags & cell::FOREST != 0
+    }
+    fn push_cell(&mut self, x: i32, y: i32) {
+        self.cells.push((x, y));
+    }
+    fn cell(&self, k: usize) -> (i32, i32) {
+        self.cells[k]
+    }
+    fn ring_radius(&self, k: usize) -> i32 {
+        crate::ai_place::circle().radius[k] as i32
+    }
+    fn ring_at(&self, i: usize) -> (i32, i32) {
+        let c = crate::ai_place::circle();
+        (c.x[i], c.y[i])
+    }
+    fn make_bird(&mut self, at: Pos) -> Option<usize> {
+        let ty = self
+            .sim
+            .unit_types
+            .iter()
+            .position(|u| u.tree == Some(FLOCKBIRD))?;
+        self.sim.flockbird(ty, at)
+    }
+    fn turn(&mut self, b: usize, angle: i32) {
+        self.sim.unit_set_angle(b, Angle(angle));
+        self.sim.units[b].movement.facing = Angle(angle);
+    }
+    fn update_z(&mut self, b: usize) {
+        // `Unit::update_z`: the figure on `find_data_z` of its point.
+        let p = self.sim.units[b].pos;
+        let ground = self.sim.world.data_z(p.x, p.y).0;
+        self.sim.units[b].airframe.z = ground;
+    }
+    fn lift(&mut self, b: usize) {
+        // `last_z` that, and `z` 200 over it (`65c45b`-`65c48b`).
+        let af = &mut self.sim.units[b].airframe;
+        af.last_z = af.z;
+        af.z += 200;
+    }
+    fn fly_to(&mut self, b: usize, at: Pos) {
+        // `AIR_ATTACK_GROUND` from the recycler: the point, no target,
+        // `cruising_alt` 0x640, the action bit cleared, and linked in at the
+        // ring's tail.
+        let order = Order {
+            flags: 0,
+            body: Body::AirAttackGround(AirAttackGroundOrder {
+                at,
+                home: None,
+                cruising_alt: CRUISING_ALT,
+                sharp_turn: 0,
+                returning: false,
+            }),
+        };
+        self.sim.units[b].orders.push_back(order);
+        self.sim.update_action(b);
+    }
+}
+
 impl Sim {
     /// Is `u` a flock's bird?
     pub(crate) fn is_flockbird(&self, u: usize) -> bool {
@@ -123,106 +318,11 @@ impl Sim {
     /// The figure is put 200 over the ground (`update_z`, then `z +
     /// 200`), which is where its `pitch_aircraft` starts from.
     pub(crate) fn add_flock(&mut self, t: Pos, who: Option<Player>, n: i32) {
-        if let Some(w) = who
-            && let Some(stamp) = self.flock_stamp.get_mut(w as usize)
-        {
-            if *stamp + FLOCK_GAP > self.frame {
-                return;
-            }
-            *stamp = self.frame;
-        }
-        let (w, h) = (self.world.width(), self.world.height());
-        let clamp = |x: i32, y: i32| (x.max(0).min(w - 1), y.max(0).min(h - 1));
-        let (cx, cy) = (t.x >> 2, t.y >> 2);
-        let mut cells = vec![(cx, cy)];
-        self.mark(SITE_FLOCK_JITTER_X);
-        let jx = cx - 1 + self.rng.roll() % 3;
-        self.mark(SITE_FLOCK_JITTER_Y);
-        let jy = cy - 1 + self.rng.roll() % 3;
-        let (jx, jy) = clamp(jx, jy);
-        cells.push((jx, jy));
-        self.mark(SITE_FLOCK_SPREAD_X);
-        let kx = jx + self.rng.roll() % 5 - 2;
-        self.mark(SITE_FLOCK_SPREAD_Y);
-        let ky = jy + self.rng.roll() % 5 - 2;
-        let (kx, ky) = clamp(kx, ky);
-        cells.push((kx, ky));
-        let circle = crate::ai_place::circle();
-        let r3 = circle.radius[3] as i32;
-        let mut i = if r3 - 1 > 0 {
-            self.mark(SITE_FLOCK_RING);
-            (self.rng.roll() % r3) as usize
-        } else {
-            0
+        let mut v = SimFlock {
+            sim: self,
+            cells: Vec::new(),
         };
-        let mut wood = (cx, cy);
-        while i < circle.radius[8] {
-            let (x, y) = (circle.x[i] + kx, circle.y[i] + ky);
-            if x >= 0
-                && y >= 0
-                && x < w
-                && y < h
-                && self.world.cell_data(Cell::new(x, y)).flags & cell::FOREST != 0
-            {
-                wood = (x, y);
-                break;
-            }
-            i += 1;
-        }
-        cells.push(wood);
-        self.mark(SITE_FLOCK_ANGLE);
-        let mut angle = (self.rng.roll() % 12).wrapping_mul(0x1555_5555);
-        let ty = self
-            .unit_types
-            .iter()
-            .position(|u| u.tree == Some(FLOCKBIRD));
-        let at = Pos::new(
-            t.x * UNITS_PER_TILE + UNITS_PER_TILE / 2,
-            t.y * UNITS_PER_TILE + UNITS_PER_TILE / 2,
-        );
-        for _ in 0..n {
-            // `init_unit` failing (`js 65c651`) skips the bird whole, its
-            // draws with it.
-            let Some(b) = ty.and_then(|ty| self.flockbird(ty, at)) else {
-                continue;
-            };
-            // `Unit::set_angle(bird, angle, ·, 1)`.
-            self.unit_set_angle(b, Angle(angle));
-            self.units[b].movement.facing = Angle(angle);
-            self.mark(SITE_FLOCK_TURN);
-            angle = angle.wrapping_add((self.rng.roll() % 5 + 3).wrapping_mul(0x00b6_0b60));
-            // `Unit::update_z`: the figure on `find_data_z` of its point;
-            // then `last_z` that, and `z` 200 over it (`65c45b`–`65c48b`).
-            let p = self.units[b].pos;
-            let ground = self.world.data_z(p.x, p.y).0;
-            let af = &mut self.units[b].airframe;
-            af.last_z = ground;
-            af.z = ground + 200;
-            for &(px, py) in &cells {
-                self.mark(SITE_FLOCK_POINT_Y);
-                let oy = self.rng.roll() & 0x1ff;
-                self.mark(SITE_FLOCK_POINT_X);
-                let ox = self.rng.roll() & 0x1ff;
-                // `AIR_ATTACK_GROUND` from the recycler: the point, no
-                // target, `cruising_alt` 0x640, the action bit cleared,
-                // and linked in at the ring's tail.
-                let order = Order {
-                    flags: 0,
-                    body: Body::AirAttackGround(AirAttackGroundOrder {
-                        at: Pos::new(
-                            px * UNITS_PER_CELL + 0x80 + ox,
-                            py * UNITS_PER_CELL + 0x80 + oy,
-                        ),
-                        home: None,
-                        cruising_alt: CRUISING_ALT,
-                        sharp_turn: 0,
-                        returning: false,
-                    }),
-                };
-                self.units[b].orders.push_back(order);
-                self.update_action(b);
-            }
-        }
+        add_flock_steps(&mut v, t.x, t.y, who.map_or(-1, |w| w as i32), n);
     }
 
     /// `Objects::init_unit(9, FLOCKBIRD, x, y, −1, −1, −1)` — gaia's bird,
