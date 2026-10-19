@@ -66,6 +66,7 @@ pub mod cavarch;
 pub mod city;
 pub mod collide;
 pub mod combat;
+pub(crate) mod construct;
 pub mod cost;
 pub mod danger;
 pub mod diplomacy;
