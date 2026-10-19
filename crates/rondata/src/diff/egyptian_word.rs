@@ -372,3 +372,60 @@ fn run967g_s_word_frame_is_widened_whole() {
     // an animal. The next item's frame; not a mechanism yet.
     pin_eq!(w.firsts.len(), 3286, "run967g on its first try");
 }
+
+/// The closing state's window: run645's closing block alone, the long's
+/// last frame 20380 writing it (item 3336).
+pub(crate) const WIDENING_EGYPTIAN_CLOSING: (i64, i64) = (20379, 20382);
+
+/// **The lobby's closing state** (item 3336, DECISIONS 55): run645 — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+#[test]
+fn run645_egyptian_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(EGYPTIAN.long.0),
+        dump(EGYPTIAN.start),
+        trace(EGYPTIAN.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Egyptian closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 20381, "the closing block");
+    pin_eq!(e.compared, 180, "units compared");
+    // Item 3336, the first walk (the word at 20380): 180 units compared on
+    // block 20381, one apart — the human's Citizen `0/1`, (13, 21) short
+    // of theirs, one step of its `FLEE_TO` — no building or city
+    // field-row, no closing field.
+    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
