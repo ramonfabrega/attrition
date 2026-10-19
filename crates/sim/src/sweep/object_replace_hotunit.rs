@@ -23,7 +23,13 @@ fn unhex(s: &str) -> Vec<u8> {
 /// `o`'s `objects` array and `p[218 + 4o + id]` its record; `c[0]` the game (frame at `+0x550`). Stub 0 is
 /// `Group::normalize`, 1 `HotKeyGroupOut::update_name`, 2 and 3 the group's vslots `+0x10` and `+0xc`; slot
 /// `+0x10`'s stub zeroes every group's count (the original removes the member, so the restart ends).
-fn replace_hotunit(a: &[i32], m: &mut [u8], c: &mut [Vec<u8>], p: &mut [Vec<u8>], log: &mut Vec<String>) {
+fn replace_hotunit(
+    a: &[i32],
+    m: &mut [u8],
+    c: &mut [Vec<u8>],
+    p: &mut [Vec<u8>],
+    log: &mut Vec<String>,
+) {
     let owner = usize::from(m[9]);
     let id = i32::from(i16::from_le_bytes([m[10], m[11]]));
     if owner >= 8 {
@@ -41,7 +47,9 @@ fn replace_hotunit(a: &[i32], m: &mut [u8], c: &mut [Vec<u8>], p: &mut [Vec<u8>]
                     let n = rd(&p[k + 1], 0);
                     let mut hit = false;
                     for i in 0..n.max(0) as usize {
-                        if i32::from(i16::from_le_bytes([p[k + 5][2 * i], p[k + 5][2 * i + 1]])) == id {
+                        if i32::from(i16::from_le_bytes([p[k + 5][2 * i], p[k + 5][2 * i + 1]]))
+                            == id
+                        {
                             hit = true;
                             break;
                         }
@@ -73,10 +81,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -92,14 +105,25 @@ fn the_emulated_original_agrees_on_every_row() {
         if log.is_empty() {
             log.push("-".to_string());
         }
-        assert_eq!(log, want_log, "replace_hotunit — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "replace_hotunit — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "replace_hotunit — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "replace_hotunit — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "replace_hotunit — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "replace_hotunit — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "replace_hotunit — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
