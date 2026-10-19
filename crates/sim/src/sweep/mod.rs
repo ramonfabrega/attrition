@@ -131,6 +131,7 @@ mod object_data_num_inside;
 mod object_type_data_upgrade_level;
 mod object_update_hits;
 mod object_valid_target;
+mod objects_add_flock;
 mod objects_data_find_building_at;
 mod path_finder_valid_wcoord;
 mod region_coast_here;
