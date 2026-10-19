@@ -13538,12 +13538,17 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: draws, orders and every dumped value to 1500, with the squad moving. Reading only: nothing new.
 
-## 143. Reserved for the next item on the rules track
+## 143. Chapter one hundred and six — a Fort in the Tower's place; closed at 1500 on the first take, no code (item 3294, run951)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3293, 3283): chapters 104 and 105 had a Tower as the building shooter; the Fort line's near-face gate was never diffed.
+
+**Staging** (`tools/gamelog/golden/chapter106.cmd`, 15 lines, `RON_STAGE=ch76:chapter106:1500`): chapter 104's recipe with `800 add fort who=1 81,83` in the Tower's place, squad stationary. Run951 on the pool's lane 1, 1,501 frames, seed 12345, chapter 94's detail sets.
+
+**What the original does and this crate agrees with.** The Fort is `1/2006` (uid 13). From 823 the three hoplite captains take it as `near` and an `ATTACKORDER` on `ox 2006`, walk to it and sit `in_range` by 1040. No hoplite's `hits` leaves 120 at any dumped frame to 1500: the Fort struck no one in this staging. The golden word is the trace's end, 1500 (sequence 810, no value). Window 605..1500 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_SIX` (604, 1501)) parts on the eleven standing `form` rows and nothing else.
+
+**Not established.** The Fort's near-face gate and the move-front proximity arm as strikes are still unshown: the Fort dealt no damage (no garrison staged; whether an unmanned Fort fires at all is not read), and chapter 105's walking squad took its own attack order first. Parked as 3294a.
+
+**Coverage.** Diff-backed: draws, orders and every dumped value to 1500. Reading only: nothing new.
 
 ## 144. Reserved for the next item on the rules track
 

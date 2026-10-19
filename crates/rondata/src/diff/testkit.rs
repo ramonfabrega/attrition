@@ -6758,6 +6758,13 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FIVE: i64 = 1500;
 /// `chapter_one_hundred_and_five_s_window_is_widened_whole`'s window: run950.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_FIVE: (i64, i64) = (604, 1501);
 
+/// **Chapter one hundred and six** (item 3294, `docs/GOLDEN.md` §143, run951):
+/// a who=1 Fort strikes a stationary squad beside a Tank wreck.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SIX: i64 = 1500;
+
+/// `chapter_one_hundred_and_six_s_window_is_widened_whole`'s window: run951.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_SIX: (i64, i64) = (604, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
