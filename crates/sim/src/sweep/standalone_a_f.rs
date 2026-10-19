@@ -234,6 +234,8 @@ mod build_find_gather_tiles;
 mod build_find_target;
 #[path = "build_finished.rs"]
 mod build_finished;
+#[path = "build_finished_628490.rs"]
+mod build_finished_628490;
 #[path = "build_order_get_type.rs"]
 mod build_order_get_type;
 #[path = "build_order_get_type_vtordisp.rs"]
