@@ -863,7 +863,8 @@ impl Sim {
         let (x, y) = (at.x, at.y);
         // `(first, second, bits)` per pair, in the listing's order; each
         // block re-reads the tile's flags, which none of them writes.
-        let pairs: [(u32, u32, (i32, i32), (i32, i32), u16); 10] = [
+        type Pair = (u32, u32, (i32, i32), (i32, i32), u16);
+        let pairs: [Pair; 10] = [
             (W, SE, (0, 1), (1, 0), 0x1000 | 0x200),
             (W, NE, (0, -1), (1, 0), 0x1800 | 0x200),
             (N, SW, (-1, 0), (0, 1), 0x400),
