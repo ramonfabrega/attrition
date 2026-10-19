@@ -30,9 +30,14 @@ pub(crate) const SPANISH: Lobby = Lobby {
     // holds `leader_flags 0x1000` from `Setup::build_empire` and every
     // cell is seen to its site scoring (`docs/AI.md` §264). On 7785 ours
     // draws 16, theirs 17; index 5 is ours `Animal::do_idle+0x83`, theirs
-    // `Leader::make_stuff+0x63d`.
-    count: 7785,
-    sequence: 7785,
+    // `Leader::make_stuff+0x63d`. Salt's Barracks arm (`get_cost`'s head,
+    // a tenth off the scaled base) moved it 7785 → 14382: run958d's block
+    // 7783 prices `1/2019`'s two Hoplites 48/31 and 52/35 on both sides
+    // (ours was 53/34 and 57/38). On 14382 ours draws 14, theirs 12; index
+    // 5 is ours `Leader::make_stuff+0x63d`, theirs `Guy::set_anim+0x97a <
+    // Guy::move+0x19f`.
+    count: 14382,
+    sequence: 14382,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`

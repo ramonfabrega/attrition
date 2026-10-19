@@ -320,7 +320,15 @@ Three things there are worth naming.
   models `is_seen` as `was_really_seen` — the bare fog, `World::seen2`
   without the shortcut — over the same four half-cells, which is the same
   accumulation under a different name and at cell rather than item
-  resolution. Unmodelled with it: the Spanish `has_tribe_bonus(9)` arm ~~and
+  resolution. Unmodelled with it: ~~the Spanish `has_tribe_bonus(9)` arm~~
+  — **carried since item 3318** (`docs/AI.md` §264): after the
+  `ever_seen` read, a Spanish leader whose own cell (`WData +0xf`) the box
+  is on answers `WorldData::was_seen` at the item's half-cell and returns
+  it without falling through; with `leader_flags 0x1000`, which
+  `Setup::build_empire@005abb80` gives every Spanish leader, that is every
+  box on its own ground. run896b's Scout re-paths to the box at (47, 29)
+  on 524 from three cells away; the arm put ours on the same frame
+  (`goody::tests::a_spanish_box_on_its_own_ground_answers_was_seen`) ~~and
   the fall-through to `WorldData::is_seen`, the *current* grid rather than
   the accumulated one~~ — the fall-through is **carried since item 1558**
   (`docs/AI.md` §153): `WorldData::is_seen` at the item's half-cell, whose
