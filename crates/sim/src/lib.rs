@@ -2277,6 +2277,7 @@ impl Sim {
         let citizens = self.citizen_discounts(who, ty);
         let liberty = self.liberty_discount(who, ty);
         let despotism = self.despotism_unit_discount(who, ty);
+        let salt = self.salt_barracks_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
@@ -2285,6 +2286,7 @@ impl Sim {
                 discount,
                 stable_rares,
                 despotism,
+                salt,
                 liberty,
                 uranium,
                 citizens,
@@ -2301,6 +2303,7 @@ impl Sim {
                 discount,
                 stable_rares,
                 despotism,
+                salt,
                 liberty,
                 uranium,
                 citizens,
@@ -2329,6 +2332,17 @@ impl Sim {
         {
             self.units[u].unit_masks2 |= crate::combat::umask2::IROQUOIS_SCOUT;
         }
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Salt arm** (`:208`–`213`, the head
+    /// of the unit path, ahead of the research fork): a unit whose trainer
+    /// (`UnitTypeData +0x40`) is the Barracks, by equality, of a leader
+    /// holding Salt ([`economy::SALT`]) is charged `scaled × 9 / 10`.
+    /// run958d's Spanish Hoplites at `1/2019` on block 7783 are 48/31 and
+    /// 52/35 where the list price with the ramp is 53/34 and 57/38 (item
+    /// 3318, `docs/AI.md` §264).
+    pub fn salt_barracks_discount(&self, who: Player, ty: usize) -> bool {
+        self.trainer_where(ty) == Some(nations::ty::BARRACKS) && self.has_rare(who, economy::SALT)
     }
 
     /// `TypeData::get_cost@00664090`'s **Despotism arm** (`:382`–`404`, the

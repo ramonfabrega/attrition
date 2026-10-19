@@ -218,6 +218,14 @@ impl Counts {
 /// government layers exist to apply their own, one at a time.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Modifiers {
+    /// `get_cost`'s **Salt arm** (`TypeData::get_cost@00664090:208`–`213`,
+    /// `× 9 / 10` on the scaled base, ahead of every other
+    /// term and of the research fork): a unit whose trainer (`+0x40`) is
+    /// the Barracks, by equality, of a leader holding Salt (`+0x6da4 &
+    /// 0x80`, or `rare_conquest`'s at `+0x6dcc`) costs nine tenths. The ten
+    /// percent is written in the executable; `SALT_BARRACKS_COST`'s 15% is
+    /// never read here (item 3318, `docs/AI.md` §264).
+    pub salt: bool,
     /// The Russians' Spy percentage (`get_cost:299`), its own
     /// `(100 - x) * cost / 100` before [`Modifiers::discount`] and the
     /// Spy/General arm that follows it in the original's tail.
@@ -513,6 +521,9 @@ pub fn scholar_surcharge(count: i32) -> i32 {
 pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modifiers) -> i32 {
     let scaled = price.base[r.index()] * price.kind.factor(t);
     let mut cost = scaled;
+    if m.salt {
+        cost = cost * 9 / 10;
+    }
     if m.russian_spy != 0 {
         cost = (100 - m.russian_spy) * cost / 100;
     }
@@ -1187,6 +1198,30 @@ mod tests {
         assert_eq!(rax, [0, 1, 2, 4, 6, 8, 12, 16, 20, 27, 34, 41, 48, 59]);
         // Anything else is linear.
         assert_eq!(building_family_count(0x1b0, 9), 9);
+    }
+
+    /// **Salt takes a tenth off a Barracks unit's scaled base, ahead of
+    /// the ramp** (item 3318, `docs/AI.md` §264): run958d's Spanish
+    /// Hoplites at `1/2019`, three and four of the group ahead of them and
+    /// one Military level ahead (`MILITARY_UNIT_DISCOUNT` 5), are 48/31 and
+    /// 52/35 on block 7783; the list price is 53/34 and 57/38. The tenth
+    /// taken after the ramp would make the first 47/30, and Salt's written
+    /// 15% before it 45/29.
+    #[test]
+    fn salt_cuts_a_tenth_before_the_ramp() {
+        let h = hoplite();
+        let m = |salt| Modifiers {
+            salt,
+            late_discount: 5,
+            ..Modifiers::default()
+        };
+        let both = |n, salt| {
+            [Resource::Food, Resource::Metal].map(|r| cost_of(&T, &h, r, owned(n), &m(salt)))
+        };
+        assert_eq!(both(3, false), [53, 34]);
+        assert_eq!(both(4, false), [57, 38]);
+        assert_eq!(both(3, true), [48, 31]);
+        assert_eq!(both(4, true), [52, 35]);
     }
 
     #[test]

@@ -149,3 +149,48 @@ fn run958_s_word_frame_is_widened_whole() {
     // window (`docs/AI.md` §264).
     pin_eq!(w.firsts.len(), 36, "run958 with the Spanish 0x1000");
 }
+
+/// run958d: the word 7785's window, blocks 7779..8035 at run954's detail
+/// (`LEADERS=9`, `GUYS=4`; item 3318) — the `0x1000` arm moved the word
+/// past run958's last block, and run896b dumps no block between.
+pub(crate) const RUN958D: &str =
+    "gamelog-run958d-greatsahara-spanish-diff3-window-7779-8036-guys4.txt";
+
+/// The window: block 7779 through 8035; the word 7785's own block is 7786.
+pub(crate) const WIDENING_SPANISH_FRAME_7785: (i64, i64) = (7779, 8035);
+
+pub(crate) fn spanish_frame_7785_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH.start],
+        true,
+        SPANISH.long,
+        "run958d",
+        &[(RUN958D, WIDENING_SPANISH_FRAME_7785.0)],
+        WIDENING_SPANISH_FRAME_7785,
+        1,
+        &[7786],
+        true,
+    )
+}
+
+#[test]
+fn run958d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_frame_7785_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run958d on its first build");
+}
