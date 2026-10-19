@@ -2109,6 +2109,16 @@ impl Sim {
         let weak_army = !navy
             && (self.army_count_hoplites(who, slot) + 2 * siege + cavalry < 4
                 || (age > 2 && supply == 0 && self.type_avail(who, SUPPLYWAGON) != 0));
+        let probe = std::env::var("RON_PROBE_FT").is_ok_and(|v| v == frame.to_string());
+        if probe {
+            eprintln!("PROBE ft who={who} slot={slot} weak={weak_army} hop={} siege={siege} cav={cavalry} supply={supply} age={age} wagon_avail={} navy={navy} capt={num_captains} std={num_standard} diff={diff} pers={:?}", self.army_count_hoplites(who, slot), self.type_avail(who, SUPPLYWAGON), self.ai[w].pers);
+        }
+        if probe {
+            for &u in &self.armies[w].list[slot].units.clone() {
+                let t = self.units[u].ty;
+                eprintln!("PROBE ft unit {u} ty={:?} tree={:?} supply={} decoy={}", t, t.and_then(|t| self.unit_types[t].tree), self.is_supply_wagon(u), self.units[u].decoy);
+            }
+        }
         let capital = self
             .cities_of(who)
             .into_iter()
@@ -2242,6 +2252,7 @@ impl Sim {
                     }
                     self.mark(SITE_FIND_TARGET_SCORE);
                     let mut v = self.rng.get(0, 0xffff) % 200 + 900;
+                    if probe { eprintln!("PROBE ft  c={c} base {v}"); }
                     if let Some(cap) = capital
                         && enemy
                     {
@@ -2252,6 +2263,7 @@ impl Sim {
                         let d = vector_dist((cc.x - cap.x).abs(), (cc.y - cap.y).abs());
                         v += d * -50 / self.world.width();
                     }
+                    if probe { eprintln!("PROBE ft  c={c} dist {v}"); }
                     let attacked = cd.no_heal;
                     let lvl = self.city_level_of(c);
                     if !enemy {
@@ -2307,6 +2319,7 @@ impl Sim {
                             v *= k;
                         }
                     }
+                    if probe { eprintln!("PROBE ft  c={c} k {v}"); }
                     if cd.reg != my_reg && !navy {
                         v /= 2;
                         if level == 0 {
@@ -2332,6 +2345,7 @@ impl Sim {
                     } else if enemy && cd.capital && pers.raid < 0 {
                         v = v * 3 / 2;
                     }
+                    if probe { eprintln!("PROBE ft  c={c} att {v}"); }
                     let bordering = self.ai[w]
                         .city_ai
                         .get(c)
@@ -2347,6 +2361,7 @@ impl Sim {
                             }
                         }
                     }
+                    if probe { eprintln!("PROBE ft  c={c} bord {v}"); }
                     if i != w && allied {
                         v = v * 3 / 4;
                         if !attacked {
@@ -2362,6 +2377,7 @@ impl Sim {
                     if enemy && self.ai[w].popwin_timer != 0 {
                         v *= 100;
                     }
+                    if probe { eprintln!("PROBE ft  c={c} popwin {v}"); }
                     let (hits, health) = {
                         let bd = &self.buildings[cd.building];
                         (bd.hits, bd.health)
@@ -2372,6 +2388,7 @@ impl Sim {
                     } else if damaged {
                         v = if bordering { v * 3 / 2 } else { v * 5 / 4 };
                     }
+                    if probe { eprintln!("PROBE ft  c={c} dmg {v}"); }
                     if cd.was_capital & (1 << who) == 0 {
                         if enemy && !navy {
                             if age > 2 && diff > 2 && !cd.unassimilated {
@@ -2399,6 +2416,7 @@ impl Sim {
                     } else {
                         v = 1_000_000;
                     }
+                    if probe { eprintln!("PROBE ft  c={c} cap {v}"); }
                     let target = Obj::Building(cd.building);
                     for (k, b) in self.armies[w].valid() {
                         if b.status & status::MUSTERING != 0 || b.target != Some(target) {
@@ -2423,6 +2441,9 @@ impl Sim {
                     }
                     if v < 0 {
                         v = 1_000_000;
+                    }
+                    if probe {
+                        eprintln!("PROBE ft pass={pass} i={i} c={c} b={} v={v} enemy={enemy} allied={allied}", cd.building);
                     }
                     if best.is_none_or(|(bv, _, _)| bv <= v) {
                         best = Some((v, c, ip));
