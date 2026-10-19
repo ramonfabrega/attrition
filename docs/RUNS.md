@@ -18937,3 +18937,18 @@ SHA-256 `cef0a4e19b4719728aa496c0c5c449bca2e794f762468f286b67762a5a427af3`.
 
 **What it holds**: Metal Alloys' `get_cost` **68** food and **68** timber and `can_pay_cost` 3 (ours charged 200);
 Fortification 86/86 and Medicine 144/144, as ours. The Hanging Gardens' industry discount. No test reads it.
+
+## run967f — the same game, the make list on frame 15981 (2026-10-19, item 3332, `att-3332`)
+
+`docs/AI.md` §269. **What the disk could not answer**: whether theirs' Farm (417) reaches `make_me` on 15981 and is
+outbid, or is refused before its price — run967c dumps the make list's survivors, never an offer. run967e's recipe with
+`--end-frame 15983 --log-window 15980 15982 --callwin 15981 15981`, the probe build (`RON_LEADER_PROBE`, sites 1..13).
+- Pool lane 1. Launched 08:45:04 and the game exited at 08:45:59 (55 s). `success`, 15984 frames. Read in place; not
+  filed.
+- Minutes waited on another lane: none.
+
+Trace `~/ron-golden/run967f/map-7/rontrace.log`, 19,308,384 bytes,
+SHA-256 `192be1fdb1ee183c74afb3dee197ae1e61b79539efd169cd3483f29aa0fb6679`.
+
+**What it holds**: 69 `make_me` offers on 15981, none of type 417, and no `check_income(417)`: theirs' Farm is refused
+at `gather_value`'s three-quarters gate — the census's `gather_slots`, a second copy in ours. No test reads it.

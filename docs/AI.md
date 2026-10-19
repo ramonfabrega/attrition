@@ -23679,7 +23679,7 @@ application line deleted against its own test (exit 101). Every other lobby's `f
 (`JAPANESE_BARRACKS_SPEED`, `JAPANESE_CARRIER_SPEED`) are not carried; this lobby at Difficulty 1 never reaches them
 in a way the draw stream can see (parked 3331a).
 
-## 269. The Egyptians: a worked Farm's wealth, a good met through its footprint, the Hanging Gardens' industry, and the word 15982 (2026-10-19, item 3332)
+## 269. The Egyptians: a worked Farm's wealth, a good met through its footprint, the Hanging Gardens' industry, the census's gather slots, and the word 20031 (2026-10-19, item 3332)
 
 **The booking**: the battery's Great Sahara Egyptian word. `GreatSaharaEgyptianTier4` (map 7, the Egyptians (7) at
 Difficulty 4; runs 648, 645) was the held-out battery's lowest open lobby on the measure of `987c4c33`, at **2974 /
@@ -23730,13 +23730,34 @@ Hanging Gardens (`has_wonder(0x210)`) costs `(100 − HANGING_GARDENS_INDUSTRY_D
 run967c 820 → **276** keys. **The word moves 15782 → 15982**: ours 495 draws, theirs 450, at 4, ours
 `Leader::produce_building+0xc99`, theirs `Build::find_gather_tiles+0x10a`. On 15982 who=1's make list carries ours'
 building 417 (cat 4, city 4, 312960) where theirs holds 418 and Metal Alloys, which theirs researches on 15982
-(`tech_frame`) while ours places the building in city 4 — the next item's frame, not a mechanism.
+(`tech_frame`) while ours places the building in city 4.
+
+**4. The census's gather slots are the ledger's (15982 → 20031).** Building 417 is the **Farm**, offered in city 5 (the
+dump's 4) at 312960 and in cities 2–4; theirs offers none. **run967f** (`RON_LEADER_PROBE`, `--callwin 15981 15981`):
+69 `make_me` offers on 15981, none of type 417, and no `check_income(417)` — refused before its price. The gate is
+`gather_value`'s first test, `filled_gather_slots[g] < gather_slots[g] × 3 / 4`: food filled 14 on both sides, and
+`gather_slots[0]` ours **19** against theirs' dumped **20**, so ours listed (14 < 14 false). No widening row showed
+it, because `diff::leader::rows` compared the dump against `Ledger::gather_slots`, which agreed, while the gate read a
+second ours-side copy, `Census::gather_slots`. The original has one field, `LeaderData +0x8a4` (`+0x8d4` its mark),
+with three writers: `Build::activate` adds, `Build::close` takes back, and `plan_strategy@006b9620:1162`–`1191`
+rewrites it (wealth excepted) from its walk of the objects lists. The dump shows the shape: theirs' census ran on tick
+15975 (`filled_gather_slots`, `peasant_high` and `reg_peasants` move on block 15976) and `gather_slots[0]` moved 19
+→ 20 one block later with no census — the Farm `1/2054` finishing (ours' census walked it inactive on 15975). Built:
+`Census::gather_slots` and `gather_slots_high` deleted; `census_buildings` and `census_maxima` write the ledger's;
+the gate (`ai_build.rs`), the oil reads and `scholar` count read it. **Value diff**: ours' gate reads 20 on 15981;
+run967c 276 → **36** keys — the standing set, the newborns' `g.angle[0]`, the pool and group lists — and nothing on
+15982. **The word moves 15982 → 20031** of 20380: ours 12 draws, theirs 15, at 4, ours `Animal::do_idle+0x83`,
+theirs `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`. 20031 is past run967c's window; its widening is owed by
+the next item.
 
 Each fix has a test (`holdings::tests::an_egyptian_worked_farm_pays_two_wealth_flat`,
 `rares::tests::reveal_fog_marks_the_rare_it_meets_seen`) and a `tools/mutate.py` mutation that held against
 `egyptian_word_first_parting` (exit 101): the farm wealth's application zeroed, and `reveal_fog`'s `mark_good_seen`
 deleted. The industry arm has `cost::tests::the_hanging_gardens_take_two_thirds_off_an_industry_tech`, and its
-`Modifiers::industry` line deleted held against the same test (exit 101). Every other lobby's `first_parting`,
+`Modifiers::industry` line deleted held against the same test (exit 101). The census's slots have
+`ai_census::tests::a_farm_finished_between_censuses_reaches_the_gather_gate`; the gate reading one food slot fewer in a
+census period's last 25 frames held (exit 101), and the census's own write to the ledger deleted **survived** (exit 0)
+— on this game `activate` and `close` alone keep the field equal to the census's sum. Every other lobby's `first_parting`,
 `battery_floors_hold`, `closing_state` and `sahara_coverage` held.
 
 **Not established.** `EGYPTIAN_SCHOLARS_FOOD` (0 as shipped) and `EGYPTIAN_GRANARY_UPGRADES`' consumer are not
