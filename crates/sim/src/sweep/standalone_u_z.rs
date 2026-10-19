@@ -180,6 +180,8 @@ mod unit_do_air_attack_ground;
 mod unit_do_attack_ground;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
+#[path = "unit_do_build.rs"]
+mod unit_do_build;
 #[path = "unit_do_explore_to.rs"]
 mod unit_do_explore_to;
 #[path = "unit_do_flee_to.rs"]
@@ -310,6 +312,8 @@ mod unit_type_data_research_time;
 mod unit_type_data_type_graft;
 #[path = "unit_type_determine_roles.rs"]
 mod unit_type_determine_roles;
+#[path = "unit_type_find_nearby_spot.rs"]
+mod unit_type_find_nearby_spot;
 #[path = "unit_type_gather_radius.rs"]
 mod unit_type_gather_radius;
 #[path = "unit_type_get_stance_type.rs"]

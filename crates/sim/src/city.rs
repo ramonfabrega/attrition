@@ -1674,14 +1674,19 @@ impl Sim {
         }
     }
 
-    /// `Wall::start` → `Build::start`: the site is committed.
+    /// `Build::start@006273a0`: the site is committed — [`build_start_steps`] over this building.
     pub fn start_building(&mut self, b: usize) {
+        build_start_steps(&mut StartSite { sim: self, b }, false);
+    }
+
+    /// `Wall::start@0063e810`: answers whether it had already run (the original returns nonzero).
+    fn wall_start(&mut self, b: usize) -> bool {
         if self.buildings[b].started {
-            return;
+            return true;
         }
         let Some(ty) = self.buildings[b].ty else {
             self.buildings[b].started = true;
-            return;
+            return false;
         };
         self.buildings[b].started = true;
         let corner = self.tile_corner(ty, self.buildings[b].pos);
@@ -1758,16 +1763,7 @@ impl Sim {
         }
         // `Wall::start@0063e810`'s own last-but-one statement.
         self.check_ever_seen(b, false);
-        // **`Build::start@006273a0`'s tail**, after `Wall::start` returns:
-        // a wonder lights its grown footprint at once (vslot `+0x164`),
-        // `0xff` into `seen` and `seen2`, so every player has it in sight
-        // until the next clear — and the owner's next `check_ever_seen`
-        // takes those bits, which is first contact for a player who never
-        // looked (`docs/VISION.md` §6.4, item 1446). What follows in the
-        // original is the begun-a-wonder notice, interface only.
-        if self.build_types[ty].wonder {
-            self.update_local_seen_build(b);
-        }
+        false
     }
 
     /// `Wall::mask_me` → `BuildType::mask_me`: the footprint marked (or
@@ -3198,24 +3194,16 @@ impl Sim {
         }
     }
 
-    /// `City::assimilate`.
+    /// `City::assimilate@00738e90`, run by [`assimilate_steps`] over the
+    /// live state.
     pub fn assimilate(&mut self, c: usize) {
-        let owner = self.cities[c].owner;
-        self.cities[c].unassimilated = false;
-        if self.cities[c].race != Some(owner) {
-            self.cities[c].race = Some(owner);
-            if self.nation[owner as usize].chinese
-                && self.tuning.chinese_large_cities != 0
-                && let Some(town) = self.build_types.iter().position(|t| t.ident == Ident::Town)
-                && self.building_ident(self.cities[c].building) == Ident::Village
-            {
-                // Without a `mask_me`: the original leaves the radius mask
-                // at the old size until the next remask.
-                let b = self.cities[c].building;
-                self.set_type(b, town);
-            }
-            self.sync_territory();
-        }
+        let mut chain = vec![self.cities[c].building];
+        chain.extend(self.cities[c].members.iter().copied());
+        assimilate_steps(&mut SimAssimilate {
+            sim: self,
+            c,
+            chain,
+        });
     }
 
     /// The plunder of `Cities::capture_city` — `docs/CITIES.md` §8.3.
@@ -3486,6 +3474,58 @@ pub(crate) fn find_city_steps<C: ?Sized>(
     r
 }
 
+/// What `Build::start@006273a0` reads and does, one method a call it makes.
+pub(crate) trait BuildStartView {
+    /// `Wall::start`; true when it answered nonzero (the site had started already).
+    fn wall_start(&mut self) -> bool;
+    /// The wonder test: `Build::is_wonder` — the type's index in `0x20e..=0x21e` on the stock vtables,
+    /// the vslot `+0x2c` / the type's `+0x1c` otherwise.
+    fn is_wonder(&mut self) -> bool;
+    /// Vslot `+0x164`, `Wall::update_local_seen`.
+    fn update_local_seen(&mut self);
+    /// The begun-a-wonder notice and `S_WONDER_STARTED`: interface only (the sound, `play(0x78)`).
+    fn announce(&mut self);
+}
+
+/// `Build::start@006273a0`. `announce` is its argument: the begun-a-wonder notice, interface only. Answers
+/// the original's `eax`: 1 when `Wall::start` did, else 0. A wonder lights its grown footprint at once (vslot
+/// `+0x164`), `0xff` into `seen` and `seen2`, so every player has it in sight until the next clear — and
+/// the owner's next `check_ever_seen` takes those bits, which is first contact for a player who never
+/// looked (`docs/VISION.md` §6.4, item 1446).
+pub(crate) fn build_start_steps(v: &mut impl BuildStartView, announce: bool) -> i32 {
+    if v.wall_start() {
+        return 1;
+    }
+    if !v.is_wonder() {
+        return 0;
+    }
+    v.update_local_seen();
+    if announce {
+        v.announce();
+    }
+    0
+}
+
+struct StartSite<'a> {
+    sim: &'a mut Sim,
+    b: usize,
+}
+
+impl BuildStartView for StartSite<'_> {
+    fn wall_start(&mut self) -> bool {
+        self.sim.wall_start(self.b)
+    }
+    fn is_wonder(&mut self) -> bool {
+        self.sim.buildings[self.b]
+            .ty
+            .is_some_and(|ty| self.sim.build_types[ty].wonder)
+    }
+    fn update_local_seen(&mut self) {
+        self.sim.update_local_seen_build(self.b);
+    }
+    fn announce(&mut self) {}
+}
+
 /// `Wall::start@0063e810`'s footprint walk (the loop between `mask_me` and
 /// `check_ever_seen`): the half-cells `(tile.x >> 1, tile.y >> 1)` whose
 /// owner bit is or-ed in, in the order the original visits them. The outer
@@ -3609,4 +3649,208 @@ impl CheckUpgradeView for SimUpgrade<'_> {
     fn announce(&mut self) {
         // SEAM: the message and the sound are the renderer's; no sim state.
     }
+}
+
+/// What `City::assimilate@00738e90` asks of the world, one method a call it
+/// makes, in the order it makes them (item 3295's sweep holds the order, the
+/// arguments and the short circuits against the emulated original).
+///
+/// A member is the building the city's chain names (`+0x74` links from the
+/// city building's own record); the original reads its data record through
+/// the objects table's slot `+0xac` every time, and so does not hold one.
+pub trait AssimilateView {
+    /// `city_flags &= 0xfeff` — the unassimilated bit, cleared first, every call.
+    fn clear_unassimilated(&mut self);
+    /// `+0x5f != +0x5e`: the race the city carries is not yet the owner's.
+    fn race_pending(&mut self) -> bool;
+    /// `+0x5f = +0x5e`.
+    fn adopt_race(&mut self);
+    /// The region under the city centre holds a border count under `0x40`
+    /// (`World +0x134`, 28 bytes a region, the short at `+4`).
+    fn region_unfixed(&mut self) -> bool;
+    /// `Region::fix_borders`.
+    fn fix_borders(&mut self);
+    /// `has_tribe_bonus(0xe)` and `CHINESE_LARGE_CITIES`.
+    fn chinese_large_cities(&mut self) -> bool;
+    /// The city record's slot `+0x84` handed `(0x19f, 0)`: a Village becomes a Town.
+    fn town_up(&mut self);
+    /// The owner's `leader_flags |= 0x2000000`.
+    fn raise_economy_flag(&mut self);
+    /// The head building's `+0x74` link: the first member, if any.
+    fn first_member(&mut self) -> Option<i32>;
+    /// A member's `+0x74` link.
+    fn next_member(&mut self, m: i32) -> Option<i32>;
+    /// A member's slot `+0x4c` (`Build` vtable: the data record's `flags & 4`).
+    fn member_active(&mut self, m: i32) -> bool;
+    /// `is(0x1b3, 0)`: a Library by lineage.
+    fn member_is_library(&mut self, m: i32) -> bool;
+    /// The data record's `flags` bit 4, written (`&= 0xfb` / `|= 4`).
+    fn member_set_active(&mut self, m: i32, on: bool);
+    /// `Build::new_library`.
+    fn new_library(&mut self, m: i32);
+    /// `is(0x1b6, 0)`: a Senate by lineage.
+    fn member_is_senate(&mut self, m: i32) -> bool;
+    /// `LeaderData +0xa48 gov_hero_frame`.
+    fn gov_hero_frame(&mut self) -> i32;
+    /// `ObjectsData::find_unit(x, y, SEARCH_FRIENDLY, who, -1, 0x20000,
+    /// FILTER_GOV_HERO, …)` from the member's position: a government patriot
+    /// of the owner's exists.
+    fn gov_hero_found(&mut self, m: i32) -> bool;
+    /// `gov_hero_frame <= game->frame`.
+    fn hero_frame_reached(&mut self, since: i32) -> bool;
+    /// `LeaderData::get_gov_hero(since)`: the patriot type, if the government names one.
+    fn gov_hero_type(&mut self, since: i32) -> Option<i32>;
+    /// `Build::train(ty)`.
+    fn train(&mut self, m: i32, ty: i32);
+    /// `MiscAccess::console->who` is the city's owner.
+    fn console_is_owner(&mut self) -> bool;
+    /// The sound and the `MessageWin` line.
+    fn announce(&mut self);
+}
+
+/// `City::assimilate@00738e90`.
+pub fn assimilate_steps<V: AssimilateView>(v: &mut V) {
+    v.clear_unassimilated();
+    if !v.race_pending() {
+        return;
+    }
+    v.adopt_race();
+    if v.region_unfixed() {
+        v.fix_borders();
+    }
+    if v.chinese_large_cities() {
+        v.town_up();
+    }
+    v.raise_economy_flag();
+    let mut at = v.first_member();
+    while let Some(m) = at {
+        if v.member_active(m) && v.member_is_library(m) {
+            v.member_set_active(m, false);
+            v.new_library(m);
+            v.member_set_active(m, true);
+        }
+        if v.member_active(m) && v.member_is_senate(m) {
+            let since = v.gov_hero_frame();
+            if since >= 0
+                && !v.gov_hero_found(m)
+                && v.hero_frame_reached(since)
+                && let Some(ty) = v.gov_hero_type(since)
+            {
+                v.train(m, ty);
+            }
+        }
+        at = v.next_member(m);
+    }
+    if v.console_is_owner() {
+        v.announce();
+    }
+}
+
+/// [`AssimilateView`] over a [`Sim`]: the chain is the city building and
+/// its `members`, taken when the call starts.
+struct SimAssimilate<'a> {
+    sim: &'a mut Sim,
+    c: usize,
+    chain: Vec<usize>,
+}
+
+impl SimAssimilate<'_> {
+    fn owner(&self) -> Player {
+        self.sim.cities[self.c].owner
+    }
+}
+
+impl AssimilateView for SimAssimilate<'_> {
+    fn clear_unassimilated(&mut self) {
+        self.sim.cities[self.c].unassimilated = false;
+    }
+    fn race_pending(&mut self) -> bool {
+        self.sim.cities[self.c].race != Some(self.owner())
+    }
+    fn adopt_race(&mut self) {
+        self.sim.cities[self.c].race = Some(self.owner());
+    }
+    /// SEAM: the region's border count is not carried; the territory pass
+    /// below rebuilds it whole every time.
+    fn region_unfixed(&mut self) -> bool {
+        true
+    }
+    fn fix_borders(&mut self) {
+        self.sim.sync_territory();
+    }
+    fn chinese_large_cities(&mut self) -> bool {
+        self.sim.nation[self.owner() as usize].chinese && self.sim.tuning.chinese_large_cities != 0
+    }
+    fn town_up(&mut self) {
+        let b = self.sim.cities[self.c].building;
+        if let Some(town) = self
+            .sim
+            .build_types
+            .iter()
+            .position(|t| t.ident == Ident::Town)
+            && self.sim.building_ident(b) == Ident::Village
+        {
+            // Without a `mask_me`: the original leaves the radius mask
+            // at the old size until the next remask.
+            self.sim.set_type(b, town);
+        }
+    }
+    fn raise_economy_flag(&mut self) {
+        let who = self.owner();
+        self.sim.economy_changed(who);
+    }
+    fn first_member(&mut self) -> Option<i32> {
+        (self.chain.len() > 1).then_some(1)
+    }
+    fn next_member(&mut self, m: i32) -> Option<i32> {
+        ((m as usize + 1) < self.chain.len()).then_some(m + 1)
+    }
+    fn member_active(&mut self, m: i32) -> bool {
+        self.sim.buildings[self.chain[m as usize]].active
+    }
+    fn member_is_library(&mut self, m: i32) -> bool {
+        self.sim.building_is(self.chain[m as usize], Ident::Library)
+    }
+    fn member_set_active(&mut self, m: i32, on: bool) {
+        self.sim.buildings[self.chain[m as usize]].active = on;
+    }
+    /// SEAM: a library's queue is the owner's first library's
+    /// (`get_first_library`), read where it is used and never copied.
+    fn new_library(&mut self, _m: i32) {}
+    fn member_is_senate(&mut self, m: i32) -> bool {
+        self.sim.building_is(self.chain[m as usize], Ident::Senate)
+    }
+    fn gov_hero_frame(&mut self) -> i32 {
+        self.sim.tech[self.owner() as usize].gov_hero_frame as i32
+    }
+    fn gov_hero_found(&mut self, _m: i32) -> bool {
+        let who = self.owner();
+        (0..self.sim.units.len()).any(|u| {
+            self.sim.units[u].alive()
+                && self.sim.units[u].owner == who
+                && self
+                    .sim
+                    .unit_tree(u)
+                    .is_some_and(|t| self.sim.tech_tree.kind(t).unit().is_some_and(|x| x.patriot))
+        })
+    }
+    fn hero_frame_reached(&mut self, since: i32) -> bool {
+        i64::from(since) <= self.sim.frame
+    }
+    fn gov_hero_type(&mut self, _since: i32) -> Option<i32> {
+        let who = self.owner() as usize;
+        let hero = self
+            .sim
+            .tech_tree
+            .get_gov_hero(&self.sim.setup, &self.sim.tech[who])?;
+        self.sim.unit_record(hero).map(|r| r as i32)
+    }
+    fn train(&mut self, m: i32, ty: i32) {
+        self.sim.build_train(self.chain[m as usize], ty as usize);
+    }
+    /// The console is the renderer's; the sim has none.
+    fn console_is_owner(&mut self) -> bool {
+        false
+    }
+    fn announce(&mut self) {}
 }

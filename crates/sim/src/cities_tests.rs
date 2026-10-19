@@ -1253,6 +1253,105 @@ fn one_builder_finishes_a_barracks_in_job_time_frames_and_the_site_grows() {
     );
 }
 
+/// **A decoy builds nothing** (item 3295, `Unit::do_build@005eebf0`'s
+/// `test byte [edi+0x68], 1; jne` at `5eeedd`, after the work animation and
+/// the turn and before the construction): the sweep found the crate had
+/// no such return. A decoy standing at its site, order kept, adds not a
+/// frame of work, where the same builder undecoyed adds 100 a frame.
+///
+/// Made to fail with the decoy return dropped from `do_build_steps`.
+#[test]
+fn a_decoy_builder_adds_nothing_to_its_site() {
+    let run = |decoy: bool| {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        let b = sim.place_building(0, t.barracks, tile_pos(46, 40)).unwrap();
+        let u = spawn(&mut sim, 0, citizen, tile_pos(46, 40));
+        sim.units[u].decoy = decoy;
+        sim.order_build(u, b);
+        for _ in 0..60 {
+            sim.tick();
+        }
+        let keeps = sim.units[u]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, crate::orders::Body::Build(x) if x == b));
+        (sim.buildings[b].job_counter, keeps)
+    };
+    let (work, _) = run(false);
+    assert!(work > 0, "a builder adds work: {work}");
+    assert_eq!(
+        run(true),
+        (0, true),
+        "a decoy adds none and keeps the order"
+    );
+}
+
+/// **A builder with a build queued behind the site it just finished takes
+/// the gather only from a group of two Citizens** (item 3295,
+/// `Unit::do_build@005eebf0`, `5eefc6`–`5ef050`: with orders left, the
+/// site a gather type and no University, the unit's group `normalize`d and
+/// `count(COUNT_PEASANTS)` read; below two it is `check_build_order`, from
+/// two the same adoption as an idle builder's). The crate sent every such
+/// builder to `check_build_order`.
+///
+/// Made to fail with the group count dropped from `do_build_steps`.
+#[test]
+fn a_finished_builder_with_a_queued_build_gathers_only_from_a_group_of_two() {
+    use crate::orders::{Body, index};
+    let run = |members: usize| {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        sim.nation[0].human = true;
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        let site = sim.place_building(0, t.farm, tile_pos(44, 20)).unwrap();
+        let later = sim.place_building(0, t.farm, tile_pos(44, 26)).unwrap();
+        let us: Vec<usize> = (0..members)
+            .map(|i| {
+                let u = spawn(&mut sim, 0, citizen, tile_pos(43, 20 + i as i32));
+                sim.units[u].on_map = true;
+                u
+            })
+            .collect();
+        let mut g = crate::group::Group::stack(0);
+        for &u in &us {
+            sim.group_add(&mut g, u);
+        }
+        assert!(sim.push_group(&mut g, true));
+        let builder = us[0];
+        sim.add_build_order(builder, site, QueuePos::New, true);
+        sim.add_build_order(builder, later, QueuePos::Last, true);
+        // One frame of work from done.
+        sim.buildings[site].job_counter = sim.buildings[site].constr_time.saturating_sub(100);
+        let mut frames = 0;
+        while !sim.buildings[site].active {
+            sim.tick();
+            frames += 1;
+            assert!(frames < 400, "the site should finish");
+        }
+        let front = sim.units[builder]
+            .orders
+            .front()
+            .map(|o| (o.index(), o.body));
+        (front, later)
+    };
+    let (front, _) = run(1);
+    assert_eq!(
+        front.map(|f| f.0),
+        Some(index::BUILD_AT),
+        "alone: the queued site is re-added"
+    );
+    let (front, _) = run(2);
+    assert!(
+        matches!(front, Some((i, Body::Gather(_))) if i == index::GATHER),
+        "two Citizens: the site is gathered: {front:?}"
+    );
+}
+
 #[test]
 fn two_builders_are_one_and_a_half_builders() {
     let mut sim = world_sim();
