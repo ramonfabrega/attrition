@@ -151,3 +151,91 @@ fn run978_s_word_frame_is_widened_whole() {
     // `held` and pools), and the word moved 4 → 3184.
     pin_eq!(w.firsts.len(), 36, "run978 with the Bantu arm");
 }
+
+/// run978c: the gap from run978's last block to the word 3184's window,
+/// one block in fifty (`--stride 50`): blocks 258, 308, …, 3158, at
+/// `GUYS=2` (item 3343).
+pub(crate) const RUN978C: &str =
+    "gamelog-run978c-greatsahara-bantu-diff4-gap-257-3175-stride50.txt";
+
+/// The window: block 258 through 3158, one in fifty.
+pub(crate) const WIDENING_BANTU_GAP_978C: (i64, i64) = (258, 3158);
+
+pub(crate) fn bantu_gap_978c_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU.start],
+        true,
+        BANTU.long,
+        "run978c",
+        &[(RUN978C, WIDENING_BANTU_GAP_978C.0)],
+        WIDENING_BANTU_GAP_978C,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn run978c_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_gap_978c_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run978c");
+}
+
+/// run978d: blocks 1556..1611 at `GUYS=2` (item 3343), around run978c's
+/// first value row, who=1's `escrow[0:food]` on block 1608.
+pub(crate) const RUN978D: &str = "gamelog-run978d-greatsahara-bantu-diff4-window-1556-1611.txt";
+
+/// The window: block 1556 through 1611.
+pub(crate) const WIDENING_BANTU_ESCROW_978D: (i64, i64) = (1556, 1611);
+
+pub(crate) fn bantu_escrow_978d_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU.start],
+        true,
+        BANTU.long,
+        "run978d",
+        &[(RUN978D, WIDENING_BANTU_ESCROW_978D.0)],
+        WIDENING_BANTU_ESCROW_978D,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn run978d_s_escrow_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_escrow_978d_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run978d");
+}

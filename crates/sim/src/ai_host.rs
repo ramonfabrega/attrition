@@ -1134,20 +1134,24 @@ impl ScriptHost<'_> {
         // The building group every caller pushes first (`009f4595`,
         // `009ee881`, …; `docs/GROUPS.md` §28.4): it takes a pool slot.
         self.sim.push_building_group(w, b);
+        // Every `Build::queue_up` the group makes passes 1 for the escrow
+        // flag (`006fdbb0`: `Build::queue_up(b, ty, 1)` in both arms), so the
+        // script's order draws the reservation down (`Type::pay_cost`'s
+        // fourth argument; item 3343, `docs/AI.md` §276).
         match what {
             QueueType::Unit(rec, t) if self.sim.tech[w as usize].tech[t] => {
                 for _ in 0..num {
-                    let _ = self.sim.queue_up(b, rec);
+                    let _ = self.sim.queue_up_with(b, rec, true);
                 }
             }
             QueueType::Unit(rec, t) => {
                 if !self.sim.researching(w, t) {
-                    let _ = self.sim.queue_up(b, rec);
+                    let _ = self.sim.queue_up_with(b, rec, true);
                 }
             }
             QueueType::Tech(t) => {
                 if !self.sim.researching(w, t) {
-                    let _ = self.sim.queue_tech(b, t);
+                    let _ = self.sim.queue_tech_with(b, t, true);
                 }
             }
         }

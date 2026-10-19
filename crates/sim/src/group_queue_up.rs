@@ -233,10 +233,15 @@ impl QueueUpView for SimQueueUp<'_> {
             Queued::Tech(_) => false,
         }
     }
+    /// `Build::queue_up(ty, 1)`: the literal is the **escrow flag**, which
+    /// `queue_up` hands to `Type::pay_cost` as its fourth argument
+    /// (`0x621949`, `pushl 0xc(%ebp)` before `call *0xd4(%edx)`), so a
+    /// group's order draws the computer leader's reservation down rather
+    /// than abandoning it (item 3343, `docs/AI.md` §276).
     fn queue_up(&mut self, o: i32, _ty: i32) -> bool {
         match self.what {
-            Queued::Unit(t) => self.sim.queue_up(o as usize, t).is_ok(),
-            Queued::Tech(t) => self.sim.queue_tech(o as usize, t).is_ok(),
+            Queued::Unit(t) => self.sim.queue_up_with(o as usize, t, true).is_ok(),
+            Queued::Tech(t) => self.sim.queue_tech_with(o as usize, t, true).is_ok(),
         }
     }
     fn researching(&mut self, _ty: i32) -> bool {
