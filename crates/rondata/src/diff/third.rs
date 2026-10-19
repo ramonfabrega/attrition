@@ -186,7 +186,7 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
                 let g = s.world.goods()[gi];
                 let c = g.pos.cell();
                 eprintln!("PROBE f{at} new_rares[{i}] good {gi} ty {} pos {:?} alive {} seen {} ever {} owner {:?} region {:?} danger {}",
-                    g.ty, g.pos, g.alive, s.good_seen_bit(gi, 1), s.good_ever_seen(g.pos, 1), s.world.owner(c), s.world.region_of(c), s.world.danger_half(1, c));
+                    g.ty, g.pos, g.alive, 0, s.good_ever_seen(g.pos, 1), s.world.owner(c), s.world.region_of(c), s.world.danger_half(1, c));
             }
         }
         if crate::diff::harness::site_window().is_some_and(|(lo, hi)| (lo..=hi).contains(&at)) {
