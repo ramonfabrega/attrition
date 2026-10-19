@@ -29,9 +29,12 @@ pub(crate) const BANTU: Lobby = Lobby {
     // Item 3338, the battery's first try, count and sequence both at 4:
     // ours 8 draws, theirs 6, at 0 ours `Guy::set_anim+0x97a <
     // Unit::move_step+0x823`, theirs `Farms::inc_time+0x1ae`. Item 3343
-    // promoted it to the AI word.
-    count: 4,
-    sequence: 4,
+    // promoted it to the AI word. Item 3343, `update_speed`'s Bantu arm
+    // (`BANTU_UNITS_MOVE`, citizens 25 → 31): 4 → 3184, ours 34 draws,
+    // theirs 32, at 30 ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+    // theirs `Farms::inc_time+0x1ae`.
+    count: 3184,
+    sequence: 3184,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`

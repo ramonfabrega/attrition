@@ -55,6 +55,11 @@ const ARQUEBUSIERS: i32 = 0x62;
 const RIFLEMAN: i32 = 0x64;
 const INFANTRY: i32 = 0x66;
 const MECH_INFANTRY: i32 = 0x68;
+/// The Bantu arm's identities (`enums/TypeIndex.txt`): the Barracks as a
+/// trainer, and the two citizens.
+const BARRACKS: TypeId = 0x1ab;
+const PEASANTS: i32 = 0x32;
+const PEASANTS_KOREAN: i32 = 0x33;
 use crate::tech::TypeId;
 use crate::world::Player;
 use crate::{Sim, orders};
@@ -250,6 +255,24 @@ impl Sim {
             (1, 1)
         };
         speed = speed * num / den;
+        // `Unit::update_speed@006055c0`'s **Bantu arm** (`006057d8`..
+        // `605858`), after the foot line and before the French siege arm: a
+        // Bantu leader's unit (`has_tribe_bonus(3)`) moves
+        // `BANTU_UNITS_MOVE` faster when its `WHERE` (`UnitTypeData +0x40`)
+        // is the Barracks (`0x1ab`), its `TypeIndex` is `PEASANTS` or
+        // `PEASANTSKOREAN` (`0x32`, `0x33`, by identity), or it is of the
+        // Militia line (`is(0x42, 0)`). The Bantu word's citizens step 31
+        // on a `MOVES` of 25 from frame 1 (run978, `docs/AI.md` §276).
+        if self.nation.get(who as usize).is_some_and(|n| n.bantu) {
+            let ti = self.unit_types[ty].type_index;
+            if self.trainer_where(ty) == Some(BARRACKS)
+                || ti == PEASANTS
+                || ti == PEASANTS_KOREAN
+                || lineage(crate::cast::MILITIA)
+            {
+                speed = (self.tuning.bantu_units_move + 100) * speed / 100;
+            }
+        }
         // `Unit::update_speed@006055c0`'s trainer arm: a unit whose
         // `WHERE` (`UnitTypeData +0x40`) is `0x1ae` or `0x1af` — the Siege
         // Factory line — moves `FRENCH_SIEGE_MOVE` faster for a French

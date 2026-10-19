@@ -442,6 +442,9 @@ pub struct Tuning {
     pub german_submarine_cost: i32,
     /// Percentage faster for the same units under Versailles.
     pub versailles_units_move: i32,
+    /// Percentage faster for a Bantu leader's citizens, Barracks units and
+    /// Militia line (`Unit::update_speed`'s Bantu arm).
+    pub bantu_units_move: i32,
     /// Extra timber-worker capacity before the gather-access cap.
     pub french_woodies: i32,
     /// The same, for the Inca on wealth.
@@ -1317,6 +1320,7 @@ impl Tuning {
         spy_general_cost: 50,
         german_submarine_cost: 25,
         versailles_units_move: 25,
+        bantu_units_move: 25,
         french_woodies: 1,
         inca_wealth_cap: 33,
         republic_commerce_bonus: [50, 50, 50],
@@ -1815,6 +1819,7 @@ impl Tuning {
                 "VERSAILLES_UNITS_MOVE",
                 Slot::Value(T.versailles_units_move),
             ),
+            ("BANTU_UNITS_MOVE", Slot::Value(T.bantu_units_move)),
             ("INCA_WEALTH_CAP", Slot::Value(T.inca_wealth_cap)),
             (
                 "REPUBLIC_COMMERCE_BONUS",
