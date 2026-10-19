@@ -18992,3 +18992,100 @@ SHA-256 `fa90653708981a651daafb0c9ef941d306dbf137c47ca0331308a242161806d2`.
 **What it holds**: the Musketeer's two release events (`1/136`'s `CHAR_ATTACK3` on 20374, `1/54`'s `CHAR_ATTACK1` on
 20378) that `launch::MEASURED`'s piece-49 rows are fitted to (`run971_s_musketeer_rounds_leave_from_their_release_nodes`),
 and the window `run971_s_window_is_widened_whole` widens (28 keys, the standing set).
+
+## run972 — the battery's replacement lobby: Great Sahara, the Bantu at difficulty 4, a `DUMP_ALL` start (2026-10-19, item 3338, `att-3338`)
+
+`docs/AI.md` §273. **What the disk could not answer**: the Maya left the battery for the AI word, and the held-out set
+stays eight with a lobby no dump holds — a nation (the Bantu, 3) no capture had ever held (`--ai-tribe 3` appears in
+no stanza of `tools/gamelog/captures.txt`; att-3335 took the Inca), at the tier (4) Great Sahara's battery lacked once
+the Maya left. `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 3 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 11:40:46 and the game exited at 11:47:26 (400 s). `success`, 37 frames, `map_style 7`, seed
+  12345, players `(0, 4, 7), (1, 3, 1)`. Filed with `filerun.py run972 greatsahara-bantu-diff4-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run972-greatsahara-bantu-diff4-start.txt`, 149,575,355 bytes,
+SHA-256 `9366fe9345d178d228ac07076e2cbbc12652fdafc37b60f96f40edef4c599dc7`.
+
+Archive `rontrace-run972.log`, 9,034,304 bytes,
+SHA-256 `3c377d36810d17fa8b9ecee4b6f8425dd36733ca5d5b8678849b3776b5d1ba65`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaBantuTier4` start.
+
+## run972b — the same lobby, the draw stream to the game's end (2026-10-19, item 3338, `att-3338`)
+
+`docs/AI.md` §273. run966b's recipe with `--ai-tribe 3`: `--map 7 --end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=4` and run643's four
+`--detail` lines.
+- Pool lane 2. Launched 11:40:49 and the game exited at 11:42:37 (107 s). `success`, **the game ended itself on 23627**
+  (closing block 23628, `ended_early` true). `rngcmp.py rontrace-run972.log rontrace-run972b.log`: **37 identical, 0
+  differing**. Filed with `filerun.py run972b greatsahara-bantu-diff4-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run972b-greatsahara-bantu-diff4-24k-trace.txt`, 13,389,317 bytes,
+SHA-256 `fa627147c15847e96cd63e65d204e7a201322f608a972163bac779002666ec96`.
+
+Archive `rontrace-run972b.log`, 211,978,208 bytes,
+SHA-256 `271b0efd82fd343607605fabee13cd63b613c305c96f0f6f58715eee812acacb`.
+
+**What it holds**: the Bantu's first try, **4 / 4** of 23627 (ours 8 draws, theirs 6, index 0: ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Farms::inc_time+0x1ae`), pinned in `battery::BATTERY`.
+
+## run973 — the AI word: Great Sahara, the Maya at difficulty 4, the word 776's widening (770..1026) (2026-10-19, item 3338, `att-3338`)
+
+`docs/AI.md` §273. **What the disk could not answer**: run966 dumps blocks 0..2 and run966b its setup and closing
+blocks only (`grep 'BEGIN FRAME'` finds 2 and 13087), so no block near 776 was on disk. `--map 7 --end-frame 1031
+--timeout 3600 --log-window 770 1026 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 1 --cover
+cover=0 --profile DIFFICULTY=4`.
+- Pool lane 3. Launched 11:42:45 and the game exited at 11:57:27 (882 s). `success`, 1032 frames.
+  `rngcmp.py rontrace-run966b.log rontrace-run973.log`: **1032 identical, 0 differing**. Filed with
+  `filerun.py run973 greatsahara-maya-diff4-window-770-1026-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run973-greatsahara-maya-diff4-window-770-1026-guys4.txt`, 406,408,322 bytes,
+SHA-256 `784c8e7d43f0b8987a2d4a2da586e3a75d145f00bc976b2d53378981e5517afa`.
+
+Archive `rontrace-run973.log`, 10,236,224 bytes,
+SHA-256 `3edd652e91825686e099f91dd6434d0b5bbf71c0c0209fc6e1e3c33cbfaa0e63`.
+
+**What it holds**: the word 776's frame, `run973_s_word_frame_is_widened_whole` (430 keys on the first try): who=1's
+`bucket[1:timber]` 20 against 48 on block 770, and theirs' Farm `1/2008` placed on 776 — `get_cost`'s Maya arm.
+
+## run973b — the Maya word 10497's widening (10491..10747) (2026-10-19, item 3338, `att-3338`)
+
+`docs/AI.md` §273. **What the disk could not answer**: run973 ends on 1026 and run966b prints no block between its
+setup and its closing block. `--map 7 --end-frame 10752 --timeout 5400 --log-window 10491 10747 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 1 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 11:54:08 and the game exited at 12:09:42 (934 s). `success`, 10753 frames.
+  `rngcmp.py rontrace-run966b.log rontrace-run973b.log`: **10753 identical, 0 differing**. Filed with
+  `filerun.py run973b greatsahara-maya-diff4-window-10491-10747`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run973b-greatsahara-maya-diff4-window-10491-10747.txt`, 476,477,379 bytes,
+SHA-256 `4bc27214058ef6e75a430155bb55d3bfef38069c18a50041f26d5389b22b1f5f`.
+
+Archive `rontrace-run973b.log`, 48,703,872 bytes,
+SHA-256 `9ae587756173cd924ddac61767731a4747723bd8186fff9c016596dd0890de0c`.
+
+**What it holds**: the word 10497's frame, `run973b_s_word_frame_is_widened_whole` (1501 keys on the first try): on
+block 10491 who=0's `attacked_by` −1 against 1 and who=1's army head `1/83` on an `ATTACK_TO` at (22824, 20328)
+against (1320, 28872) — `find_target`'s bordering read.
+
+## run973c — the Maya gap 1027..10487 at stride 50 (2026-10-19, item 3338, `att-3338`)
+
+`docs/AI.md` §273. **What the disk could not answer**: run973b's first block already parts the army's target, and
+nothing on disk prints a block between 1026 and 10491. `--map 7 --end-frame 10490 --timeout 5400 --log-window 1027
+10487 --stride 50 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 1 --cover cover=0 --profile
+DIFFICULTY=4`.
+- Pool lane 1. Launched 12:10:54 and the game exited at 12:19:31 (517 s). `success`, 10491 frames.
+  `rngcmp.py rontrace-run966b.log rontrace-run973c.log`: **10491 identical, 0 differing**. Filed with
+  `filerun.py run973c greatsahara-maya-diff4-gap-1027-10487-stride50`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run973c-greatsahara-maya-diff4-gap-1027-10487-stride50.txt`, 314,460,811 bytes,
+SHA-256 `fdd9d103617a1bf3df7c2ab27523c15100f5c08b5026ca76cfcd86f72b3d1f90`.
+
+Archive `rontrace-run973c.log`, 46,315,648 bytes,
+SHA-256 `545acd7cbdb728040906446e1ffa825d51351b7449088c0ef6b399376df8f1f5`.
+
+**What it holds**: `run973c_s_gap_is_widened_whole` (189 blocks, 48 keys: the standing set, the newborns'
+`g.angle[0]` and `1/0`'s group from 6228) — quiet on the armies to 10478, so the target choice is 10490's.
