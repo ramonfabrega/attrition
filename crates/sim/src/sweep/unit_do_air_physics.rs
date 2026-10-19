@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(5);
@@ -40,7 +45,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-                        // `Unit::do_air_physics`. The crate owns the bird's path (`air::air_physics_steps`, which
+            // `Unit::do_air_physics`. The crate owns the bird's path (`air::air_physics_steps`, which
             // `Sim::do_air_physics` calls over its own view); here it runs over this row's windows. What
             // the crate does not model is this block's, written from the listing: the altitude re-roll
             // and flat altitude (`order +0xc`), the fuel gate, the path stack's push, the clamp of the
@@ -58,7 +63,8 @@ fn the_emulated_original_agrees_on_every_row() {
             let base_is = a[17] != 0;
             let is_bomber = if base_is { a[5] } else { a[4] } != 0;
             let mut rng = Rng::new(rd(&c[1], 0) as u32);
-            let sum = i32::from(i16::from_le_bytes([m[0xa], m[0xb]])).wrapping_add(rd(&c[0], 0x550));
+            let sum =
+                i32::from(i16::from_le_bytes([m[0xa], m[0xb]])).wrapping_add(rd(&c[0], 0x550));
             let v = (sum as u32) & 0x8000_0007;
             let gate = if (v as i32) < 0 {
                 (v.wrapping_sub(1) | 0xffff_fff8) == 0xffff_ffff
@@ -66,7 +72,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 v == 0
             };
             if gate {
-                let alt = if !is_bomber && (!animal || ty == 0x193) && rd(&p[2], 0x2b4) & 0x20 == 0 {
+                let alt = if !is_bomber && (!animal || ty == 0x193) && rd(&p[2], 0x2b4) & 0x20 == 0
+                {
                     (rng.roll() % 7 + 13) * 100
                 } else {
                     let mut alt = 0x640;
@@ -166,12 +173,28 @@ fn the_emulated_original_agrees_on_every_row() {
                     if ai > 1 { a[7].wrapping_mul(ai) } else { a[7] }
                 };
                 for col in &cols[..3] {
-                    log.push(if col.is_empty() { "-".to_string() } else { col.join("/") });
+                    log.push(if col.is_empty() {
+                        "-".to_string()
+                    } else {
+                        col.join("/")
+                    });
                 }
-                log.push(if cols[3].is_empty() { "-".to_string() } else { cols[3].join("/") });
+                log.push(if cols[3].is_empty() {
+                    "-".to_string()
+                } else {
+                    cols[3].join("/")
+                });
                 // `--deref 9:1:4`: the four bytes `&speed` held when `bank_aircraft` was called.
-                let d: String = speed.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect();
-                log.push(if cols[0].is_empty() { "-".to_string() } else { d });
+                let d: String = speed
+                    .to_le_bytes()
+                    .iter()
+                    .map(|b| format!("{b:02x}"))
+                    .collect();
+                log.push(if cols[0].is_empty() {
+                    "-".to_string()
+                } else {
+                    d
+                });
                 out = 1;
             }
             if out == 0 {
@@ -180,14 +203,25 @@ fn the_emulated_original_agrees_on_every_row() {
             out
         };
         assert_eq!(got, want_eax, "do_air_physics — eax, row `{line}`");
-        assert_eq!(log, want_log, "do_air_physics — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "do_air_physics — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "do_air_physics — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "do_air_physics — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "do_air_physics — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[6 + i], "do_air_physics — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[6 + i],
+                "do_air_physics — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -455,7 +455,14 @@ impl Sim {
     ///
     /// What is left is here, and the one draw in it is the edge coin.
     pub fn do_air_physics(&mut self, u: usize, goal: Pos, frame: i64) {
-        air_physics_steps(&mut SimAirPhysics { sim: self, u, frame }, goal);
+        air_physics_steps(
+            &mut SimAirPhysics {
+                sim: self,
+                u,
+                frame,
+            },
+            goal,
+        );
     }
 
     /// `Unit::bank_aircraft(des, &speed, 0)` — the bank angle, and the
