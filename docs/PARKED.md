@@ -3750,7 +3750,7 @@ sat on its batch with nothing to wake it until `lanewait.py` named the child. Ca
 it too — two mutants of `find_ordered_collision`'s batch hung, killed by hand.
 
 (3277) **A lane lands with its own gate red on its own line, fixed after and not re-run** (the commander, at 3267's,
-3271's and 3272's merges): both Sonnet rules lanes' lane gates were red on the journal-quote guard
+3271's, 3272's and 3281's merges): both Sonnet rules lanes' lane gates were red on the journal-quote guard
 (`a_journal_quotes_its_lane_verdict_and_gate_minutes`), fixed in a later commit, the gate not re-run and its guard
 step not reached; the booking gate carries the check. Candidate: the frame row that a lane whose verdict is "red on
 the worker's own" re-runs the guard step alone (`tools/guard.sh`) before its done line and quotes it, or the gate's
@@ -3759,6 +3759,13 @@ journal check moved ahead of the release step so a missing quote fails in the fi
 (3280) **`tools/recomp/step4.py --watch VA+N` reads N as a byte count, not an offset** (3269's "for the Loop" line,
 filed at its merge): the first watch of `unit+0x58` covered `+0..+0x57` and missed the field, which cost a run.
 Candidate: a `VA+OFF:LEN` spelling, or a refusal when N is under 8 and no length is given, made to fail first. One reach.
+
+(3290) **A lane's cleanup removed other lanes' subagent worktrees** (att-3281's done line, the commander at its
+merge): a `git worktree remove ../agent-*` loop run from one lane globbed every `.claude/worktrees/agent-*`, the
+three live lanes' subagent trees among them; the branches survived (three of 3282's held unmerged commits), and
+uncommitted work in a removed tree did not. Candidate: the frame row that a lane removes only the subagent trees its
+own transcript created, by path, never by glob — or a `tools/` reaper that reads each `agent-*` tree's owning session
+and refuses another lane's, made to fail first on a sibling's tree. One reach.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
