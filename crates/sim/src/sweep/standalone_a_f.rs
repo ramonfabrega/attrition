@@ -470,6 +470,8 @@ mod cliffs_out_get_mining_size;
 mod cliffs_set_edge_flags;
 #[path = "coll_block_get.rs"]
 mod coll_block_get;
+#[path = "coll_check_collide_here.rs"]
+mod coll_check_collide_here;
 #[path = "command_manager_check_accept_issue.rs"]
 mod command_manager_check_accept_issue;
 #[path = "command_manager_issue_accept.rs"]
