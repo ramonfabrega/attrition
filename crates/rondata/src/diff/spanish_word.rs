@@ -35,9 +35,15 @@ pub(crate) const SPANISH: Lobby = Lobby {
     // 7783 prices `1/2019`'s two Hoplites 48/31 and 52/35 on both sides
     // (ours was 53/34 and 57/38). On 14382 ours draws 14, theirs 12; index
     // 5 is ours `Leader::make_stuff+0x63d`, theirs `Guy::set_anim+0x97a <
-    // Guy::move+0x19f`.
-    count: 14382,
-    sequence: 14382,
+    // Guy::move+0x19f`. Relics' research arm (`train_time`'s research
+    // block, a third off while the rare is held) moved it 14382 → 22692:
+    // who=1's Chemistry, queued at the Library `1/2005` on 14035, is done by
+    // run958e's block 14376 on both sides (`epoch[3]` 3; ours was 2, its job
+    // at 34500 of 35000). On 22692, eight frames from the game's end, ours
+    // draws 19, theirs 16; index 16 is ours `Farms::inc_time+0x1ae`, theirs
+    // none.
+    count: 22692,
+    sequence: 22692,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -207,4 +213,50 @@ fn run958d_s_word_frame_is_widened_whole() {
     // on 7939); the word's block
     // 7786 parts nothing, and the word moved 7785 → 14382, past the window.
     pin_eq!(w.firsts.len(), 34, "run958d with Salt's Barracks arm");
+}
+
+/// run958e: the word 14382's window, blocks 14376..14632 at run958d's
+/// detail (item 3318) — Salt's Barracks arm moved the word past run958d's
+/// last block, and run896b dumps no block between.
+pub(crate) const RUN958E: &str =
+    "gamelog-run958e-greatsahara-spanish-diff3-window-14376-14633-guys4.txt";
+
+/// The window: block 14376 through 14632; the word 14382's own block is
+/// 14383.
+pub(crate) const WIDENING_SPANISH_FRAME_14382: (i64, i64) = (14376, 14632);
+
+pub(crate) fn spanish_frame_14382_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH.start],
+        true,
+        SPANISH.long,
+        "run958e",
+        &[(RUN958E, WIDENING_SPANISH_FRAME_14382.0)],
+        WIDENING_SPANISH_FRAME_14382,
+        1,
+        &[14383],
+        true,
+    )
+}
+
+#[test]
+fn run958e_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_frame_14382_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run958e on its first build");
 }

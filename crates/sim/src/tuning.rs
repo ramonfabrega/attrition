@@ -574,6 +574,10 @@ pub struct Tuning {
     /// Percent faster Nuclear Missile-line creation with the Uranium rare —
     /// `ObjectData::train_time@006508c0:79`–`85`. Ships as 10.
     pub uranium_nuke_speed: i32,
+    /// Percent off a research job's time with the Relics rare —
+    /// `ObjectData::train_time@006508c0:521`–`524`, `(100 − x) × t / 100`
+    /// after Angkor Wat's and before the science speedup. Ships as 33.
+    pub relics_research_speed: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -1296,6 +1300,7 @@ impl Tuning {
         porcelain_market: 300,
         space_air_speed: 100,
         uranium_nuke_speed: 10,
+        relics_research_speed: 33,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1893,6 +1898,10 @@ impl Tuning {
             ("PORCELAIN_MARKET", Slot::Value(T.porcelain_market)),
             ("SPACE_AIR_SPEED", Slot::Value(T.space_air_speed)),
             ("URANIUM_NUKE_SPEED", Slot::Value(T.uranium_nuke_speed)),
+            (
+                "RELICS_RESEARCH_SPEED",
+                Slot::Value(T.relics_research_speed),
+            ),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),
