@@ -8063,7 +8063,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3285, 2026-10-18 — chapter 104, a Tower strikes a squad beside a wreck
 
-- **3285a** Chapter 104 closed at 1500 on the first take (run949, GOLDEN §141): a who=1 Tower against six stance-0 hoplites parts on nothing. Still unreached: `Unit::target_opportunity`'s move-front proximity arm (parked 3283, line 121: a victim *walking* when struck; here every victim is stationary until struck) and a Fort's near-face gate (the Tower's `near` was never the wreck). The next chapter is either a squad given a `@move` toward the Tower before it opens fire, or the Fort in the Tower's place.
+- (booked as item 3292) (3291) Chapter 104 closed at 1500 on the first take (run949, GOLDEN §141): a who=1 Tower against six stance-0 hoplites parts on nothing. Still unreached: `Unit::target_opportunity`'s move-front proximity arm (parked 3283, line 121: a victim *walking* when struck; here every victim is stationary until struck) and a Fort's near-face gate (the Tower's `near` was never the wreck). The next chapter is either a squad given a `@move` toward the Tower before it opens fire, or the Fort in the Tower's place.
 
 ## Parked by the next landing, slot JY — reserved
 
