@@ -3790,6 +3790,11 @@ Romans' 18026 parted on tile (28, 40), a road in ours and not in theirs, and the
 18011, `place_roads`' teardown) was named only by logging ours' map around the tile over the whole game before reading
 the original's removers. Candidate check: a road-node parting's brief carries that log as its first step. One reach.
 
+(3327) **`tools/check.sh test …` exits 0 on a compile error** (3318's "for the Loop" line, its parked 3318f, filed at its
+merge): after a merge, `zsh tools/check.sh test …` exited 0 on a `rondata` compile error, so the budget wrapper's exit
+is not cargo's, and a worker that reads the exit and not the `test result:` lines reads green. Candidate: `check.sh`
+carries cargo's exit, made to fail first on a crate that does not compile. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-fourth tranche's
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
@@ -8264,6 +8269,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot KN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KR renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
