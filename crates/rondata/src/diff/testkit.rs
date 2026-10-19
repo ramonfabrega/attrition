@@ -9915,13 +9915,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **and 15982 → 20031** on it again (the census's `gather_slots`, one
     // field with the ledger's), widened on **run967g** over 20025..20282
     // (`run967g_s_word_frame_is_widened_whole`: who=1's `1/162` and
-    // `1/163` in a fight, 3286 keys on the first try).
+    // `1/163` in a fight, 3286 keys on the first try). **Item 3336 moved
+    // it 20031 → 20380, the game's last frame** (`do_move`'s `ATTACK`
+    // retarget, a follower's fire on the move, a packer's kept pack):
+    // run967g's test keeps 20031's value diff, run971 holds the last
+    // blocks (20368..20380, the Musketeer's release nodes), and the close
+    // is compared whole on run645's own closing block 20381 by
+    // `run645_egyptian_closing_state`.
     (
         "EGYPTIAN_WORD",
         crate::diff::egyptian_word::EGYPTIAN_WORD,
-        Some("run967g_s_word_frame_is_widened_whole"),
-        3332,
-        Some(crate::diff::egyptian_word::WIDENING_EGYPTIAN_FRAME_20031),
+        Some("run645_egyptian_closing_state"),
+        3336,
+        Some(crate::diff::egyptian_word::WIDENING_EGYPTIAN_CLOSING),
     ),
     // **The battery's Japanese word** (item 3331, DECISIONS 72, 83): frame
     // 576, the Japanese lobby's first try. run960 dumps blocks 0..36 and
@@ -10347,8 +10353,10 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Sahara (Egyptian)",
         word: crate::diff::egyptian_word::EGYPTIAN_WORD,
         length: 20_380,
-        endpoint: None,
-        window: Some("egyptian_frame_20031_window"),
+        // Closed by item 3336: the draw stream agrees to 20380, and
+        // run645's closing block 20381 scores the end itself.
+        endpoint: Some("run645_egyptian_closing_state"),
+        window: Some("egyptian_close_971_window"),
     },
     // **The battery's fifth word** (DECISIONS 72, 83; item 3329): East
     // Indies, the Dutch at Difficulty 4 — the held-out battery's lowest

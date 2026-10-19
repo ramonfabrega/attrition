@@ -111,6 +111,33 @@ impl crate::Sim {
         self.cavarch_fight(u, frame);
     }
 
+    /// **`Unit::do_group_move@005e79a0:392`–`406`** — a formation
+    /// follower's fire on the move, just before its `move_step` (item 3336,
+    /// `docs/AI.md` §272). The same test as [`Self::cavarch_head`]'s, with
+    /// one difference the listing keeps: a `HOLD_FIRE` stance or an
+    /// `ATTACK` action does not clear `cavarch_o` here — the call is
+    /// skipped and the pair kept. Great Sahara's Royal Mameluke `1/68`
+    /// (TypeIndex 198) on tick 20186, a follower of a `GROUP_ATTACK_TO`
+    /// given that frame: theirs spends `fight`'s re-search roll on the
+    /// Citizen `0/4` it held (run967g).
+    ///
+    /// SEAM: the `unit_flags & 0x400` exemption, as at the head.
+    pub(crate) fn cavarch_follower(&mut self, u: usize, frame: i64) {
+        if !self.fires_on_move(u) || self.attack_of(Obj::Unit(u)) == 0 {
+            return;
+        }
+        let attacking = self
+            .action_of(u)
+            .is_some_and(|i| matches!(self.units[u].orders[i].body, Body::Attack(_)));
+        if self.units[u].combat.stance == Stance::HoldFire || attacking {
+            return;
+        }
+        if self.units[u].cavarch_idle && (i64::from(self.units[u].index) + frame) % 32 != 0 {
+            return;
+        }
+        self.cavarch_fight(u, frame);
+    }
+
     /// **`Unit::cavarch_fight@005ff4b0`**: the fight, and then the
     /// throttle — an answer of nothing after an answer of nothing (the old
     /// `cavarch_o` read as unsigned past `0x7fff`) is written −2.
@@ -248,7 +275,7 @@ impl crate::Sim {
 #[cfg(test)]
 mod tests {
     use crate::ai_load::uflags;
-    use crate::combat::{Obj, Profile};
+    use crate::combat::{Obj, Profile, Stance};
     use crate::orders::{Body, MoveKind, QueuePos, index};
     use crate::world::World;
     use crate::{Player, Pos, Sim};
@@ -386,6 +413,46 @@ mod tests {
                 assert_eq!(sim.units[me].combat.recharging, 30, "shot");
             }
         }
+    }
+
+    /// **A formation follower fires on the move too, and keeps its pair
+    /// where the head drops it** (`do_group_move@005e79a0:392`–`406`, item
+    /// 3336; run967g's Royal Mameluke `1/68` on 20186). A `v` follower on
+    /// an attack-move searches as the head does; under `HOLD_FIRE` the
+    /// head clears `cavarch_o` and the follower skips with it kept.
+    ///
+    /// The call in `group_move_follower` is the floor's to hold: dropped,
+    /// the Egyptian word reads 20186 and this test stays green (item
+    /// 3336's M2).
+    #[test]
+    fn a_follower_fires_on_the_move_and_keeps_its_pair_under_hold_fire() {
+        let (mut sim, ty) = field(true);
+        let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+        let foe = put(&mut sim, 0, ty, Pos::new(3000, 4200));
+        sim.add_move_order(
+            me,
+            Pos::new(9000, 3000),
+            MoveKind::AttackTo,
+            QueuePos::New,
+            false,
+        );
+        let frame = 64 - i64::from(sim.units[me].index);
+        sim.cavarch_follower(me, frame);
+        assert_eq!(
+            sim.units[me].cast_target,
+            Some(Obj::Unit(foe)),
+            "the search"
+        );
+        sim.units[me].combat.stance = Stance::HoldFire;
+        sim.cavarch_follower(me, frame + 1);
+        assert_eq!(
+            sim.units[me].cast_target,
+            Some(Obj::Unit(foe)),
+            "a follower under HOLD_FIRE keeps the pair"
+        );
+        assert_eq!(sim.units[me].combat.recharging, 0, "and does not shoot");
+        sim.cavarch_head(me, frame + 1);
+        assert_eq!(sim.cavarch_o(me), -1, "the head clears it");
     }
 
     /// **An empty search after an empty one waits for the phase**

@@ -50,9 +50,25 @@ pub(crate) const EGYPTIAN: Lobby = Lobby {
     // field (`LeaderData +0x8a4`) that the Farm finishing on 15976 never
     // reached. With the one field, the word moved 15982 → 20031: ours 12
     // draws, theirs 15, at 4 ours `Animal::do_idle+0x83`, theirs
-    // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`.
-    count: 20031,
-    sequence: 20031,
+    // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`. Item 3336 walked
+    // it back on run967g to who=1's Fusilier `1/162` on tick 20029: theirs
+    // sets `collide_frame` to 20029 and drops the move, ours counts
+    // `collide` 4 → 5 — `do_move`'s `ATTACK` retarget, a non-mandatory
+    // attack's `find_new_target(NULL, 1)` four frames after the collision
+    // (`005f7b30`). The word moved 20031 → 20186: ours 11 draws, theirs 12,
+    // at 1 ours `Unit::do_move+0xe84`, theirs `Unit::fight+0x9b0`: the
+    // Royal Mameluke `1/68`, a `GROUP_ATTACK_TO` follower, re-searching
+    // from the Citizen `0/4` it held — `do_group_move`'s own fire on the
+    // move (`005e79a0:392`–`406`). The word moved 20186 → 20235: ours 15
+    // draws, theirs 16, at 4 ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+    // theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Walked back to
+    // block 20219: the army's escort round the Cannon `1/125` on tick 20218
+    // read it moving in ours, standing in theirs — theirs keeps a packer's
+    // pack cast at the head through the group move's `QUEUE_NEW` clear
+    // (`action_move_near@00704990:410`–`440`, `:727`–`752`). With that keep
+    // the draw stream agrees to the game's end.
+    count: 20380,
+    sequence: 20380,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -354,5 +370,120 @@ fn run967g_s_word_frame_is_widened_whole() {
     // positions part on 20032. The word's draws: theirs
     // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` where ours idles
     // an animal. The next item's frame; not a mechanism yet.
-    pin_eq!(w.firsts.len(), 3286, "run967g on its first try");
+    //
+    // Item 3336: 3286 → 41 with the word's four fixes, then → 38 with
+    // `Wall::set_type` leaving the hits to the next `calc_wall_stats`
+    // (who=1's cities' `myhits` on block 20036 agree).
+    pin_eq!(w.firsts.len(), 38, "run967g on its first try");
+}
+
+/// The closing state's window: run645's closing block alone, the long's
+/// last frame 20380 writing it (item 3336).
+pub(crate) const WIDENING_EGYPTIAN_CLOSING: (i64, i64) = (20379, 20382);
+
+/// **The lobby's closing state** (item 3336, DECISIONS 55): run645 — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+#[test]
+fn run645_egyptian_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(EGYPTIAN.long.0),
+        dump(EGYPTIAN.start),
+        trace(EGYPTIAN.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Egyptian closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 20381, "the closing block");
+    pin_eq!(e.compared, 180, "units compared");
+    // Item 3336, the first walk (the word at 20380): 180 units compared on
+    // block 20381, one apart — the human's Citizen `0/1`, (13, 21) short
+    // of theirs, one step of its `FLEE_TO`. run971 placed it: theirs' round
+    // from the Musketeer `1/136` leaves from its release node, (5333,
+    // 26970) against the guy's (5448, 26856), and lands in 4 frames
+    // against ours' 5, so the flee is issued on 20377. With the
+    // Musketeer's two measured nodes (`launch::MEASURED`, piece 49): none
+    // apart, no building or city field-row, no closing field.
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
+/// run971: the game's last blocks, 20368..20380, at run967g's detail with
+/// `AMMO=5` (item 3336); run645 prints only its closing block past its
+/// setup, and run967g ends on 20282.
+pub(crate) const RUN971: &str = "gamelog-run971-greatsahara-egyptian-diff4-window-20368-20380.txt";
+
+/// The window: block 20368 through 20380, the long's last frame.
+pub(crate) const WIDENING_EGYPTIAN_971: (i64, i64) = (20368, 20380);
+
+pub(crate) fn egyptian_close_971_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN.start],
+        true,
+        EGYPTIAN.long,
+        "run971",
+        &[(RUN971, WIDENING_EGYPTIAN_971.0)],
+        WIDENING_EGYPTIAN_971,
+        1,
+        &[20378],
+        true,
+    )
+}
+
+#[test]
+fn run971_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_close_971_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 12, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3336, with the Musketeer's two measured release nodes: **28**
+    // keys, every one the standing set on the window's first block — the
+    // human's site regions and `aggression[1]`, the `form` rows and the
+    // pool and group lists (the capture prints no `GROUPDATA`). Before the
+    // nodes the rounds at the Citizen `0/1` left from the Musketeers' own
+    // squares: `1/136`'s 5 frames against 4, and the flee a tick late.
+    pin_eq!(w.firsts.len(), 28, "run971 with the Musketeer's nodes");
 }

@@ -2795,6 +2795,59 @@ mod tests {
         }
     }
 
+    /// **An attacker stuck on a suspended search re-finds its target
+    /// every fourth frame** (`do_move@005f7b30`'s `get_type == 10` arm,
+    /// item 3336; run967g's Fusilier `1/162` on 20029, four frames after
+    /// it met `1/119`): under a non-mandatory `ATTACK` action, with its
+    /// player's `repaths` non-zero, the move dies, `find_new_target` runs
+    /// and `collide_frame` takes the frame — no `collide` count. Each
+    /// control changes one input: three frames, a mandatory attack, and
+    /// `repaths` zero.
+    ///
+    /// Made to fail by taking the arm out, with the Egyptian word at 20031
+    /// (item 3336's M1).
+    #[test]
+    fn an_attacker_on_a_suspended_search_retargets_every_fourth_frame() {
+        use crate::combat::Obj;
+        use crate::orders::{Body, MoveKind, QueuePos};
+        let run = |elapsed: i64, mandatory: bool, repaths: i32| {
+            let mut sim = flat_sim(20);
+            let at = Pos::new(10 * 0x30 + 0x18, 10 * 0x30 + 0x18);
+            let u = walker(&mut sim, at);
+            let foe = sim.units.len();
+            sim.units
+                .push(Unit::new(1, 2, Pos::new(at.x + 12 * 0x30, at.y), 10));
+            sim.add_attack_order(u, Obj::Unit(foe), QueuePos::New, mandatory, true);
+            sim.add_move_order(
+                u,
+                Pos::new(at.x + 96, at.y),
+                MoveKind::MoveTo,
+                QueuePos::First,
+                false,
+            );
+            push_goal(&mut sim, u, Pos::new(at.x + 40 * 0x30, at.y + 40 * 0x30));
+            assert_eq!(sim.upath(u, false, 10, false), -1, "the plan suspends");
+            sim.repaths[0] = repaths;
+            sim.units[u].collide = 4;
+            sim.units[u].collide_frame = 1000;
+            sim.work(u, 1000 + elapsed);
+            let walking = sim.units[u]
+                .orders
+                .iter()
+                .any(|o| matches!(o.body, Body::Move(_)));
+            (walking, sim.units[u].collide, sim.units[u].collide_frame)
+        };
+        assert_eq!(run(4, false, 1), (false, 4, 1004), "the retarget");
+        for (elapsed, mandatory, repaths, why) in [
+            (3, false, 1, "three frames"),
+            (4, true, 1, "a mandatory attack"),
+            (4, false, 0, "repaths zero"),
+        ] {
+            let (walking, _, stamp) = run(elapsed, mandatory, repaths);
+            assert!(walking || stamp != 1000 + elapsed, "{why}: no retarget");
+        }
+    }
+
     /// **`kill_current_path` frees the stash, and an empty stack does
     /// not** (§18.4, item 304). `Unit::kill_current_path@005e31d0` pops
     /// the stack back through the current segment's final waypoint and

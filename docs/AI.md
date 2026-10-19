@@ -23818,12 +23818,74 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 272. Reserved for the next item on the AI track
+## 272. The Egyptians to the game's end: an attack's retarget, a follower's fire, a packer's keep, the Musketeer's nodes and a level-up's hits (2026-10-19, item 3336)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Score.** `GreatSaharaEgyptianTier4` (the Egyptians at Difficulty 4, Great Sahara; run645, run967g, run971):
+**20031 → 20380 of 20380**, the game's last frame (count and sequence), and run645's closing block 20381 compared
+whole — 180 units, every count 0 (`run645_egyptian_closing_state`). The coverage pair's run652 closing counts move
+with the fifth fix, `[1, 0, 0, 1, 0, 1, 0]` → `[1, 0, 0, 0, 0, 0, 0]`.
+
+**1. `do_move`'s `ATTACK` retarget** (`Unit::do_move@005f7b30`, the action's `get_type == 10` arm, line 105): a unit
+whose action is a non-mandatory attack and whose search is suspended gives its walk up every fourth frame after the
+collision (`elapsed > 0 && elapsed % 4 == 0`), while its player's `repaths` is non-zero: `find_new_target(this, NULL,
+1)`, and `collide_frame` takes the frame, so `collide` is not counted. Value diff, run967g's block 20029: the Fusilier
+`1/162` — theirs `collide_frame` 20029 and its orders dropped (`collide` 4), ours `collide` 4 → 5 and the move kept.
+**20031 → 20186.** `Sim::do_move` (`orders.rs`), replacing the dormant SEAM; test
+`path::tests::an_attacker_on_a_suspended_search_retargets_every_fourth_frame`.
+
+**2. A formation follower's fire on the move** (`Unit::do_group_move@005e79a0:392`–`406`): the follower runs the
+head's fire-on-the-move gate before its step, with one difference — an `ATTACK` action or `HOLD_FIRE` skips the call
+and keeps `cavarch_o`, where the head clears it. Value diff, block 20186: the Royal Mameluke `1/68` (TypeIndex 198), a
+`GROUP_ATTACK_TO` follower — theirs spends `Unit::fight+0x9b0` on the Citizen `0/4` it held (`cavarch_o` 4 → −1,
+`near_o` 1 on 20187), ours never reached `cavarch_fight`. **20186 → 20235.** `Sim::cavarch_follower` (`cavarch.rs`);
+test `cavarch::tests::a_follower_fires_on_the_move_and_keeps_its_pair_under_hold_fire`.
+
+**3. A packer mid-pack keeps its cast through a group move's `QUEUE_NEW` clear** (`Group::action_move_near@00704990:
+410`–`440` and `:727`–`752`): a member whose type packs and whose head is a pack cast (`UnitData::is_packing`) has the
+cast lifted off, the rest cleared and the cast put back, and its move goes `QUEUE_LAST` beneath it. Value diff, block
+20219: the escort round the Cannon `1/125` (packing, `CASTORDER spell 651`) — ours' members read it moving (every
+guard leg at heading −1887174656), theirs standing (`1/51`'s leg angle `find_angle(post − target)`, `1/86` taking the
+idle arm). **20235 → 20380.** `Sim::clear_keeping_pack` (`group.rs`), at both clears; test
+`fight::tests::a_packer_mid_pack_keeps_its_cast_through_a_new_clear`.
+
+**4. The Musketeer's two release nodes** (piece 49, `MUSKETEERS`; `launch::MEASURED`): `CHAR_ATTACK1` frame 1 →
+bearing 157810688, radius 142, dz 218; `CHAR_ATTACK3` frame 4 → 49020928, 161, 178, each fitted exactly to one of
+run971's rounds (`1/54` on 20378, `1/136` on 20374). The closing block had the Citizen `0/1` one flee step short:
+theirs' round from `1/136` left from (5333, 26970), not the figure's (5448, 26856), and flew 4 frames against 5, so its
+`FLEE_TO` came on 20377. **Closing counts `[1, …]` → all 0.** Test
+`launch::tests::run971_s_musketeer_rounds_leave_from_their_release_nodes`. `CHAR_ATTACK2`'s frame 7 is not measured.
+
+**5. A level-up's hits wait for the wall stats** (`Wall::set_type@00640da0`, `SubObject::set_type@00662450`,
+`Wall::increment_stats@00643270`): none calls `update_hits`. `City::check_upgrade` raises the wall-stats flag and the
+new figure comes with the next `calc_wall_stats`; this crate's `Sim::set_type` re-rated on the spot. Value diff, run967g's
+block 20036: who=1 reaches age 5 on 20035, and its cities `1/2000`, `1/2020` read 12000 ours against 6000, `1/2053` 312
+against 252; theirs re-rate on 20037. run967g's widening 41 → 38 keys. Every caller of `set_type` raises the flag
+(`gain_tech`'s tail, `check_upgrade`); `town_up` is the one that does not, and no lobby's floor moved. Test
+`cities_tests::a_set_type_keeps_the_hits_until_the_wall_stats_run`.
+
+**The capture.** run971 (`docs/RUNS.md`): the closing window `[20368, 20380]` at `AMMO=5`, 20381 frames, `rngcmp`
+against run645 0 differing. Its widening, `run971_s_window_is_widened_whole`: 28 keys, all the standing set.
+
+**Mutation** (`tools/mutate.py`), each fix against its unit test and the floor it moved:
+
+| | the mutation | the unit test | the floor |
+|---|---|---|---|
+| M1 | the retarget's predicate `&& false` | red, exit 101 | `egyptian_word_first_parting` 20031, exit 101 |
+| M2 | the follower's call dropped from `group_move_follower` | green — it calls `cavarch_follower` directly | `egyptian_word_first_parting` 20186, exit 101 |
+| M3 | `clear_keeping_pack` answering false | red, exit 101 | `egyptian_word_first_parting` 20235, exit 101 |
+| M4 | `ATTACK3`'s radius 161 → 100 | red, exit 101 | `run645_egyptian_closing_state` `[1, 0, …]`, exit 101 |
+| M5 | `update_hits` put back in `set_type` | red, exit 101 | `run967g_s_word_frame_is_widened_whole` 41, exit 101 |
+
+M2's call site is the floor's to hold; the unit test holds the follower's own gate.
+
+**What stands.** run967g's 38 keys: the standing set on 20025 (`SITE[n].reg`, `aggression`, `form`, `group:n.held`,
+`pool:n`, two `g.angle[0]`), the Cannons' `mandatory` (3336a) and four `dest_angle` rows (3336b). None moves a draw to
+20380, and the closing block compares whole.
+
+**Not established.** The retarget's `find_new_target` is the one this crate already had; its standing-ground search
+was not compared on 20029 beyond the orders dropping. The follower's `unit_flags & 0x400` exemption stays a SEAM, as at
+the head. `town_up`'s `set_type` raises no flag of its own here; whether the original's caller does is the listing's
+alone.
 
 ## 273. Reserved for the next item on the AI track
 
