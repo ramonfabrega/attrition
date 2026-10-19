@@ -37,6 +37,7 @@ SUITES = (
     'test_census',
     'test_queueledger',
     'test_release_gate',
+    'test_reap_agents',
     'test_memcap',
     'test_isolated_tests',
     'test_runtime_policy',
