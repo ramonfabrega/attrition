@@ -156,9 +156,18 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // and run946's packet's twelve elements agree on 10842. 11585: ours 16
     // draws, theirs 15, index 4, ours `Leader::make_stuff+0x221`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`; past run943's last block
-    // (10945), its widening owed.
-    count: 11585,
-    sequence: 11585,
+    // (10945), its widening owed. **Item 3297 widened it on run952 and
+    // run952b and moved it 11585 → 12156** (`docs/AI.md` §261): ours'
+    // second `+0x221` was a second Farm offer in the make list, behind
+    // who=1's food 69 against 89 on block 11259 — `0/2002` razed beside
+    // The Despot `1/46`, whose cut (`Build::plunder`'s `find_hero`) ours
+    // never paid; with it, 89 on both sides. The Despot's Ambush now holds
+    // its craft (`mana_burn` 1000 through run943, 392 on 11579 on both).
+    // 12156: ours 29 draws, theirs 35, index 1, ours `Unit::fight+0x824`,
+    // theirs `Guy::set_anim+0x97a < Unit::fight+0x169`; past run952's last
+    // block (11835), its widening owed.
+    count: 12156,
+    sequence: 12156,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -1132,7 +1141,14 @@ fn run952_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 786, "initial run952 baseline");
+    // Item 3297: 786 keys on its first build, opening already parted on
+    // 11579 (who=1's food 78 against 98, The Despot `1/46`'s Create Decoy
+    // in ours alone, the make list from 11580). **60** with Ambush's hold
+    // and the building plunder's Despot cut: the standing set, `1/53`'s
+    // `damage_frac`, the Scholars `1/71`/`1/73`'s `g.angle[0]` and `1/66`'s
+    // second figure. (The widening's block; the word's delta is in
+    // `IROQUOIS`'s comment.)
+    pin_eq!(w.firsts.len(), 60, "run952 with the Despot's cut");
 }
 
 /// run952b: the walk-back behind run952's first block, blocks
@@ -1177,7 +1193,11 @@ fn run952b_s_gap_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "initial run952b baseline");
+    // Item 3297: 63 keys, the state first parting past the standing set on
+    // block 11259 (who=1's `bucket[0:food]` 69 against 89: `0/2002` razed
+    // beside The Despot, `Build::plunder`'s hero cut). **59** with the cut,
+    // 89 on both sides (`docs/AI.md` §261).
+    pin_eq!(w.firsts.len(), 59, "run952b with the Despot's cut");
 }
 
 /// **The Despot's Ambush holds its craft** (item 3297, `docs/AI.md`

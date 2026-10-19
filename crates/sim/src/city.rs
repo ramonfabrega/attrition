@@ -69,7 +69,11 @@ pub struct Nation {
     /// `disable_building_attrition`.
     pub disable_building_attrition: bool,
     /// Whether the player has a Despot or Spitamenes patriot standing by the
-    /// city — the hero cut on plunder.
+    /// city — the hero cut on a *capture*'s plunder.
+    ///
+    /// SEAM: nothing writes it; `Cities::capture_city`'s hero search is not
+    /// read. A building's death asks [`crate::Sim::hero_near`] instead
+    /// ([`crate::Sim::plunder_kill`], `docs/AI.md` §261).
     pub plunder_hero: bool,
 }
 
