@@ -63,9 +63,18 @@ pub(crate) const DUTCH: Lobby = Lobby {
     // `queued` 0 ours against 1, `ages` 5 against 4, `pop` 17 against 13;
     // both finish it on 22936 after. At 23782 ours 17 draws, theirs 24, at
     // 3: ours `Leader::make_stuff+0x221`, theirs `Leader::use_market
-    // +0x1ed`, past run963c's last block.
-    count: 23782,
-    sequence: 23782,
+    // +0x1ed`, past run963c's last block. **And 23782 → 23985** with the
+    // Colossus in the population cap (`calc_pop_cap@006dc490:89`, called
+    // from `Build::activate:1795` for the Colossus): run963d's block 23776,
+    // who=1's `pop_cap` 150 ours against 200 — ours never set the flag —
+    // and its make list topped by `NATION_IN_ARMS` at 9999999 from 23779;
+    // both 200 after. At 23985 ours 13 draws, theirs 15, at 0: ours
+    // `Leader::produce_building+0x1805`, theirs `Leader::use_market+0x1ed`;
+    // on 23982 theirs bought an `ARTILLERY` (20 timber, 20 metal) that
+    // ours did not, and ours has carried `num_units[270]` −1 and `[271]` 1
+    // since before run963c's first block.
+    count: 23985,
+    sequence: 23985,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -275,4 +284,48 @@ fn run963c_s_word_frame_is_widened_whole() {
     // 0 and 0 (`ARTILLERYGERMAN`, `HOWITZER`), and `1/201`'s `myhits` 172
     // against 212.
     pin_eq!(w.firsts.len(), 116, "keys that part in the window");
+}
+
+/// run963d: the word 23782's window to the trace's last frame, blocks
+/// 23776..24000 at run963's detail (item 3329); run963c ends on block
+/// 23185.
+pub(crate) const RUN963D: &str =
+    "gamelog-run963d-eastindies-dutch-diff4-window-23776-24001-guys4.txt";
+
+/// The window: block 23776 through 24000; the word 23782's own block is
+/// 23783.
+pub(crate) const WIDENING_DUTCH_FRAME_23782: (i64, i64) = (23776, 24000);
+
+pub(crate) fn dutch_frame_23782_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[DUTCH.start],
+        true,
+        DUTCH.long,
+        "run963d",
+        &[(RUN963D, WIDENING_DUTCH_FRAME_23782.0)],
+        WIDENING_DUTCH_FRAME_23782,
+        1,
+        &[23783],
+        true,
+    )
+}
+
+#[test]
+fn run963d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = dutch_frame_23782_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 225, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // 1819 on build 4 (who=1's `pop_cap` 150 against 200 from 23776, the
+    // Colossus); **197** with it: run963c's 101 keys that stand from before
+    // its window, the standing set, and the word 23985's own rows from 23983.
+    pin_eq!(w.firsts.len(), 197, "keys that part in the window");
 }

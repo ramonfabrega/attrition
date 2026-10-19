@@ -2256,6 +2256,21 @@ impl Sim {
         // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
         // the bonus for the ones the player has never held.
         self.claim_gather_slots(b, captured, counted);
+        // `Build::activate@00623e20:1789`–`1796`: a building that `is(0x20f)`
+        // — the Colossus — calls `calc_pop_cap`, whose `has_wonder(0x20f)`
+        // now finds it standing (item 3329: run963d's Dutch AI, 200 on
+        // block 23776 against ours' 150).
+        let colossus = self
+            .tech_tree
+            .roles
+            .wonder_line
+            .get(crate::tech::wonder::COLOSSUS)
+            .copied();
+        if colossus.is_some()
+            && self.buildings[b].ty.and_then(|t| self.build_types[t].tree) == colossus
+        {
+            self.recompute_pop_caps();
+        }
         // Activation flags the old city's roads before its final upgrade
         // sweep can attach buildings inside the enlarged radius (AI §176).
         if !self.building_is_city(b)

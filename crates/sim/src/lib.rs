@@ -2252,9 +2252,19 @@ impl Sim {
     /// The peacocks term is read off the live rare mask, as the original's
     /// `testb $0x8, 0x6da6(%esi)` reads it on every call ([`economy::PEACOCKS`]),
     /// so a recompute for any other cause sees the mask as it stands.
+    ///
+    /// **And the Colossus** (`calc_pop_cap@006dc490:89`, `has_wonder
+    /// (0x20f)`, `+ COLOSSUS_POP_CAP` last): read off the wonders held as
+    /// the call is made. Nothing set the flag before item 3329: run963d's
+    /// Dutch AI holds the Colossus `1/2071` and its cap is 200 on block
+    /// 23776 where ours stood at 150 (`docs/AI.md` §267).
     pub fn recompute_pop_caps(&mut self) {
         let peacocks = 1u64 << (economy::PEACOCKS - economy::BASE_RARE);
+        let colossus: Vec<bool> = (0..self.muster.len())
+            .map(|w| self.wonders_held(w as Player) & (1 << tech::wonder::COLOSSUS) != 0)
+            .collect();
         for (who, m) in self.muster.iter_mut().enumerate() {
+            m.bonuses.colossus = colossus[who];
             m.bonuses.peacocks = self
                 .ledgers
                 .get(who)
