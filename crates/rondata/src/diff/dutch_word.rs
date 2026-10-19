@@ -43,8 +43,19 @@ pub(crate) const DUTCH: Lobby = Lobby {
     // clock 33 against 31 — and on 1769 its idle draw fell a frame apart.
     // At 5583 ours 10 draws, theirs 9, at 4: ours `Leader::make_stuff+0x63d`,
     // theirs `GameDaemon::calc_market+0x54`, past run963's last block.
-    count: 5583,
-    sequence: 5583,
+    // **And 5583 → 5782** with the Dutch interest in `economy::pay`
+    // (`Leader::do_gather@006ce450:116`–`147`): run963b's block 5577 had
+    // who=1's `bucket` (food 145 ours against 149, timber 199/218, wealth
+    // 63/128, metal 154/155) and `income` (timber 1440/1552, wealth
+    // 880/976, metal 480/512) apart, all agreeing after. **And 5782 →
+    // 22935** with the Dutch ship discount taken out of the Military
+    // block (`get_cost:532`–`535`): on block 5783 the dock `1/2011`'s
+    // `DROMON` research `queue[0].cost[0..1]` 60 ours against 54, and
+    // who=1's `bucket` food 57/63, timber 69/75; both 54 after. At 22935
+    // ours 13 draws, theirs 11, at 2: ours `Guy::init_real+0x52`, theirs
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, in no window yet.
+    count: 22935,
+    sequence: 22935,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -197,5 +208,12 @@ fn run963b_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // 674 at the clear (the economy rows, `myhits` and the standing set);
+    // 662 on the Dutch hit-point term, 233 on the interest (the word then
+    // at 5782, its block 5783 in the window), 63 on the ship discount:
+    // the standing set alone — `SITE[n].reg`, `form`, `group:n.held`,
+    // `pool:n`, `aggression` and the newborn `g.angle[0]`, 53 on 5577 and
+    // ten later as new members join those kinds (`1/27`'s `form` on 5601
+    // through `1/36`'s `g.angle[0]` on 5811).
+    pin_eq!(w.firsts.len(), 63, "keys that part in the window");
 }

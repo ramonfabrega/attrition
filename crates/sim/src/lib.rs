@@ -2768,11 +2768,14 @@ impl Sim {
                 if span < 8 {
                     discount = (span * discount + 7) / 8;
                 }
-                if self.nation[w].dutch
-                    && self.unit_types[ty].combat.domain == attrition::Domain::Sea
-                {
-                    dutch_ship = self.tuning.dutch_ship_discount;
-                }
+            }
+            // `get_cost:532`–`535` is after the Military block's close, so
+            // a Dutch ship's research pays it whether or not the line is
+            // ahead (item 3329: run963b's Dromon at the dock, 54 against
+            // 60, on block 5783). The Americans' land arm beside it
+            // (`AMERICANS_UPGRADE_DISCOUNT`, `0x14`) is not modelled.
+            if self.nation[w].dutch && self.unit_types[ty].combat.domain == attrition::Domain::Sea {
+                dutch_ship = self.tuning.dutch_ship_discount;
             }
         }
         Some(cost::Research {
