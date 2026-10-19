@@ -760,6 +760,34 @@ pub(super) fn chapter_one_hundred_and_three_holds_to_the_golden_word() {
     );
 }
 
+pub(super) fn chapter_one_hundred_and_four_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch104",
+        "chapter104",
+        (605, 1500),
+        0,
+        0,
+        (606, 1500),
+        false,
+        92,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch104 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch104: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH104.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch104: what parts in the window moved");
+}
+
 pub(super) fn chapter_one_hundred_and_four_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch104", "chapter104", 104, 15, 1500) else {
         return;
