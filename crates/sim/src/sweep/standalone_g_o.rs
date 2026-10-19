@@ -628,6 +628,8 @@ mod object_must_walk;
 mod object_poor_target;
 #[path = "object_repair_damage.rs"]
 mod object_repair_damage;
+#[path = "object_replace_hotunit.rs"]
+mod object_replace_hotunit;
 #[path = "object_support_cost.rs"]
 mod object_support_cost;
 #[path = "object_type_backup.rs"]
@@ -680,6 +682,8 @@ mod object_update_seen_wide;
 mod objects_array_get_data_type;
 #[path = "objects_data_count_nukes_in_flight.rs"]
 mod objects_data_count_nukes_in_flight;
+#[path = "objects_data_find.rs"]
+mod objects_data_find;
 #[path = "objects_data_find_any_building_at.rs"]
 mod objects_data_find_any_building_at;
 #[path = "objects_data_find_building_placed_at.rs"]
