@@ -23511,12 +23511,64 @@ city-attacked message reaches `wcschr`).
 round's pricing on the closed slot's own type (`get_damage` reads the dead shooter's data) is confirmed only for Horse
 Archers.
 
-## 266. Reserved for the next item on the AI track
+## 266. The Greeks: research faster and cheaper, a Library at a third, the Colossus' cap, and the long's end (2026-10-19, item 3326)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery's Great Sahara Greek word. `GreatSaharaGreekTier1` (map 7, the Greeks (5) at Difficulty
+1; runs 957, 957b) was the held-out battery's lowest lobby once 3318 closed the Spanish, at **176 / 176** on its
+first try (§264). It is promoted here (`diff::greek_word`, `SCORED_LOBBIES` `(7, 5, 1)`). The battery is eight
+lobbies again with **`GreatSaharaJapaneseTier1`** (map 7, the Japanese (15) at Difficulty 1; runs 960, 960b), whose
+first try is **576 / 576**: ours 56 draws, theirs 35, at index 4, ours `Leader::compute_sites+0x4ac`, theirs
+`Animal::think_bird+0x82`. No dump had held the Japanese, and tier 1 left the map's battery with the Greeks.
+
+**1. The Greek research-time arm (176 → 1976).** run961 (170..426, block 177): theirs' who=1 runs `economic.bhs`
+step 10 on 176 and calls `city_placement` five times, holding City State; ours (the same script) had
+`have_tech(City State)` 0. `ObjectData::train_time@006508c0:453` (`LAB_006515d7`): an age or a library epoch
+researches at `t × 100 / (GREEK_RESEARCH_SPEED + 100)`, shipped 100, after the age and epoch catch-up terms and
+ahead of `RESEARCH_FASTER`. Built: `Sim::greek_research`, `Tuning::greek_research_speed`. **Value diff**: run961's
+widening went to 36 keys, the standing set and who=1's `bucket[0:food]` 92 against 104 from block 170.
+
+**2. The Greek research cost (1976, draws 29/147 → 145/147).** run961c (the gap 37..170): block 37 parts who=1's
+food 82 against 94 and the Library `1/2005`'s queue head (City State) `cost[0]` 120 against 108; run957's blocks
+1..35 agree. `TypeData::get_cost@00664090:1250`–`1255` (`LAB_006667c4`): an age or an epoch takes
+`GREEK_RESEARCH_COST` (10) off every good but knowledge (`docs/COSTS.md`, "The Greeks pay less for learning").
+Built: `cost::Modifiers::greek_research`, `Sim::greek_research_discount`. **Value diff**: run961 and run961c went to
+**35** keys each, the standing set alone.
+
+**3. The Greek Library arm (1976 → 19182).** run961b (1970..2226, block 1977): theirs places the University `1/2013`
+on 1976 at timber 27, wealth 17 (`produce_building+0x1805`), a third of 80 and 50; ours could not afford it.
+`get_cost:966`–`972`: a Library (`0x1b3`) or a University (`0x1a4`), by equality, takes `GREEK_LIBRARY_COST` (66)
+off. Built: `cost::Modifiers::greek_library`, `city.rs::greek_library_discount`. **Value diff**: run961b's widening
+went to **30** keys, the standing set alone.
+
+**4. The Colossus' population cap (19182 → 24000).** run961d (19176..19432, block 19183): already apart on 19176,
+who=1's `pop_cap` 110 against 160. Theirs is at Military 3 (100), holds Peacocks (× 110 / 100) and a wonder
+(`wonder_mark 1`); `Leader::calc_pop_cap@006dc490`'s last statement adds `COLOSSUS_POP_CAP` (50) when
+`has_wonder(0x20f)`. Ours carried the term in `cost::pop_cap` and never set it. On 19181 theirs' `MAKE[0].val` is
+888888 (ours 8461), and on 19182 theirs makes a second item at its capital (`MAKE[1]`, `cat 4`, 118500), queued at
+`1/2014` on 19183. Built: `recompute_pop_caps` reads `has_wonder(0x20f)` live, beside Peacocks, and a Colossus'
+activation (`Build::activate:1795`) and close (`Build::close:328`) recompute it. **Value diff**: run961d's widening
+went to **41** keys, the standing set alone. **The word moves 19182 → 24000, the long's last frame.** The same term
+closes a second lobby's row: run817's widening (`sahara_coverage`) went 279 → 278, who=1's `pop_cap` 220 against
+270 standing from 4260 now agreeing.
+
+**5. The closing state.** The game does not end itself; the long's `!quit` closes it on 24000, and run957b prints
+the closing block 24001 whole. Walked to it and compared (`run957b_greek_closing_state`): **114 units, none apart,
+no building or city field-row, and no closing field parted.** The lobby is closed at its full length. What every
+window still parts is the standing set (both leaders' `SITE[n].reg` and `aggression`, every unit's
+`form`, who=1's groups' `held` and the pools, and the newborns' `g.angle[0]` `0x55555555` against 0 — the Iroquois',
+the Romans' and the Spanish shape).
+
+Each build has a test (`cities_tests::the_greeks_halve_an_age_or_an_epoch_and_nothing_else`,
+`cost::tests::the_greeks_take_a_tenth_off_research_and_two_thirds_off_a_library`,
+`cities_tests::a_finished_colossus_raises_its_owner_s_pop_cap_and_its_loss_lowers_it`) and a `tools/mutate.py`
+mutation the walk or the test caught (each Greek arm zeroed; the Colossus term against the walk and the test; the
+activation hook against the test). Every other lobby's `first_parting`, `battery_floors_hold` and closing state held
+on every build.
+
+**Not established.** `GREEK_AGE_KNOWLEDGE` and `GREEK_CLASSICAL`, the two other Greek constants `get_cost` reads,
+ship as 0 and are not carried; `GREEK_SCHOLARS_FAST` has no reader. The Colossus' cap on a *captured* Colossus
+(`Cities::capture_city`'s `calc_pop_cap`) rides `sync_pop_cities`' recompute and is unexercised by any capture. `battery_measure` shows the Chinese at 24000 and the Turks at 14991 above their pins: earlier landings', the
+pass's to re-pin.
 
 ## 267. Reserved for the next item on the AI track
 

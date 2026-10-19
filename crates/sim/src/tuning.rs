@@ -588,6 +588,18 @@ pub struct Tuning {
     /// `ObjectData::train_time@006508c0:521`–`524`, `(100 − x) × t / 100`
     /// after Angkor Wat's and before the science speedup. Ships as 33.
     pub relics_research_speed: i32,
+    /// Percent faster an age or a library epoch researches for the Greeks
+    /// (`has_tribe_bonus(5)`) — `ObjectData::train_time@006508c0:453`–`458`,
+    /// `t × 100 / (x + 100)` after the age and epoch catch-up terms and
+    /// ahead of `RESEARCH_FASTER`. Ships as `100% bonus`.
+    pub greek_research_speed: i32,
+    /// Percent off an age's or a library epoch's price in every good but
+    /// knowledge for the Greeks — `TypeData::get_cost@00664090:1250`–`1255`.
+    /// Ships as `10% cost reduction`.
+    pub greek_research_cost: i32,
+    /// Percent off a Library or a University for the Greeks —
+    /// `TypeData::get_cost@00664090:966`–`972`. Ships as `66% discount`.
+    pub greek_library_cost: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -1322,6 +1334,9 @@ impl Tuning {
         space_air_speed: 100,
         uranium_nuke_speed: 10,
         relics_research_speed: 33,
+        greek_research_speed: 100,
+        greek_research_cost: 10,
+        greek_library_cost: 66,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1931,6 +1946,9 @@ impl Tuning {
                 "RELICS_RESEARCH_SPEED",
                 Slot::Value(T.relics_research_speed),
             ),
+            ("GREEK_RESEARCH_SPEED", Slot::Value(T.greek_research_speed)),
+            ("GREEK_RESEARCH_COST", Slot::Value(T.greek_research_cost)),
+            ("GREEK_LIBRARY_COST", Slot::Value(T.greek_library_cost)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),

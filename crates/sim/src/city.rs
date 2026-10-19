@@ -1145,6 +1145,7 @@ impl Sim {
                     [0; 2]
                 },
                 fort: self.fort_discounts(who, ty),
+                greek_library: self.greek_library_discount(who, ty),
                 ..cost::Modifiers::default()
             },
             &holdings.available,
@@ -1184,6 +1185,34 @@ impl Sim {
             .copied()
             .unwrap_or(0)
             == 0
+    }
+
+    /// `get_cost`'s **Greek Library arm** (`:966`–`972`): the Library or
+    /// the University by type equality — their `TypeIndex`, or their idents
+    /// where a type stands outside the tree — for a Greek leader
+    /// ([`cost::Modifiers::greek_library`]). run961b's block 1977: who=1's
+    /// University `1/2013` is placed on 1976 at timber 27, wealth 17 —
+    /// a third of 80 and 50 — where ours could not pay the whole price
+    /// (item 3326, `docs/AI.md` §266).
+    fn greek_library_discount(&self, who: Player, ty: usize) -> i32 {
+        let library = matches!(
+            self.build_types[ty].tree,
+            Some(crate::nations::ty::LIBRARY | crate::nations::ty::UNIVERSITY)
+        ) || matches!(
+            self.build_types[ty].ident,
+            Ident::Library | Ident::University
+        );
+        if library
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[who as usize],
+                crate::nations::power::GREEKS,
+            )
+        {
+            self.tuning.greek_library_cost
+        } else {
+            0
+        }
     }
 
     /// `get_cost`'s city tail (`00665c46`..`00665c9b`): `BANTU_CITY_COST`
@@ -2173,6 +2202,12 @@ impl Sim {
         if self.is_wonder_building(ty) {
             self.unit_stats_dirty[who as usize] = true;
         }
+        // `Build::activate@00623e20:1795`: a finished Colossus (`is(0x20f,
+        // 0)`) recomputes its owner's cap, whose last term is
+        // `COLOSSUS_POP_CAP` (item 3326, `docs/AI.md` §266).
+        if self.is_colossus(ty) {
+            self.recompute_pop_caps();
+        }
         // `Build::activate` line 560: a dock (not a fort) joins the docks
         // registry — `reg_docks`, the gull's two draws (`docs/TRANSPORT.md`
         // §5.1–§5.2).
@@ -2424,6 +2459,15 @@ impl Sim {
         self.world.set_cell_data(c, d);
     }
 
+    /// Whether a building type is the Colossus (`is(0x20f, 0)`), by the
+    /// wonder line's own type id.
+    fn is_colossus(&self, ty: usize) -> bool {
+        let line = &self.tech_tree.roles.wonder_line;
+        self.build_types[ty]
+            .tree
+            .is_some_and(|t| line.get(crate::tech::wonder::COLOSSUS) == Some(&t))
+    }
+
     /// `Build::close` / `Wall::close`. `silent` is reason 5, a transfer:
     /// the footprint stays marked for the copy that replaces it.
     pub fn close_building(&mut self, b: usize, silent: bool) {
@@ -2508,6 +2552,10 @@ impl Sim {
             .is_some_and(|t| self.is_wonder_building(t))
         {
             self.unit_stats_dirty[who as usize] = true;
+        }
+        // `Build::close@00628980:326`–`328`: so does a Colossus closed.
+        if self.buildings[b].ty.is_some_and(|t| self.is_colossus(t)) {
+            self.recompute_pop_caps();
         }
         self.removed.push(b);
         self.forget(Obj::Building(b));

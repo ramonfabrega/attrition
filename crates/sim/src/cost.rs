@@ -325,6 +325,14 @@ pub struct Modifiers {
     /// Non-library technology discount, after Science and before the
     /// British taxation term. Its own truncation (`docs/AI.md` §109).
     pub democracy: i32,
+    /// `get_cost`'s **Greek research arm** (`TypeData::get_cost@00664090`,
+    /// `LAB_006667c4`, `:1250`–`1255`): an age or a library epoch priced
+    /// for a leader with `has_tribe_bonus(5)` takes `GREEK_RESEARCH_COST`
+    /// off **every good but knowledge** (`local_c != 3`), its own
+    /// `(100 − x) × cost / 100` after the lobby's `tech_cost` term and
+    /// ahead of Silver and the library-line tail. Zero is the identity
+    /// (item 3326, `docs/AI.md` §266).
+    pub greek_research: i32,
     /// Maize halves the ramp term — `MAIZE_RAMPING_BONUS`.
     pub maize: bool,
     /// Producing at a captured, unassimilated building doubles the price.
@@ -355,6 +363,13 @@ pub struct Modifiers {
     /// the wonder tail (and the uncarried Korean tower step). Zero is the
     /// identity (item 3314, `docs/AI.md` §263).
     pub fort: [i32; 2],
+    /// `get_cost`'s **Greek Library arm** (`TypeData::get_cost@00664090:966`–`972`,
+    /// through `LAB_00665f31`): a Library (`0x1b3`) or a University (`0x1a4`),
+    /// by equality, priced for a leader with `has_tribe_bonus(5)` takes
+    /// `GREEK_LIBRARY_COST` off, its own `(100 − x) × cost / 100` after the
+    /// fort arm and Tikal's temple term. Zero is the identity (item 3326,
+    /// `docs/AI.md` §266).
+    pub greek_library: i32,
     /// `get_cost`'s **research** arm: the type is not yet available to the
     /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
     /// research, and it takes the place of the ramp. `None` is the train arm.
@@ -619,6 +634,12 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     for pct in m.fort {
         cost = (100 - pct) * cost / 100;
+    }
+    if m.greek_library != 0 {
+        cost = (100 - m.greek_library) * cost / 100;
+    }
+    if m.greek_research != 0 && r != Resource::Knowledge {
+        cost = (100 - m.greek_research) * cost / 100;
     }
     if m.democracy != 0 {
         cost = cost.wrapping_mul(100 - m.democracy) / 100;
@@ -1233,6 +1254,48 @@ mod tests {
         assert_eq!(both(4, false), [57, 38]);
         assert_eq!(both(3, true), [48, 31]);
         assert_eq!(both(4, true), [52, 35]);
+    }
+
+    /// **The Greeks' research and Library arms** (item 3326, `docs/AI.md`
+    /// §266): `get_cost:1254` takes a tenth off a tech's price in every good
+    /// but knowledge, and `get_cost:970` two thirds off a Library or a
+    /// University — run961c's City State at food 108 for 120, and run961b's
+    /// University at timber 27 and wealth 17 for 80 and 50.
+    #[test]
+    fn the_greeks_take_a_tenth_off_research_and_two_thirds_off_a_library() {
+        let tech = Price {
+            kind: Kind::Tech,
+            ..Price::free()
+        }
+        .with_base(Resource::Food, 120)
+        .with_base(Resource::Knowledge, 120);
+        let greek = Modifiers {
+            greek_research: 10,
+            ..Modifiers::default()
+        };
+        for r in [Resource::Food, Resource::Knowledge] {
+            let plain = cost_of(&T, &tech, r, owned(0), &Modifiers::default());
+            let off = cost_of(&T, &tech, r, owned(0), &greek);
+            let want = if r == Resource::Knowledge {
+                plain
+            } else {
+                90 * plain / 100
+            };
+            assert_eq!(off, want, "{r:?}");
+        }
+        let university = small_city()
+            .with_base(Resource::Timber, 80)
+            .with_base(Resource::Wealth, 50);
+        let library = Modifiers {
+            greek_library: 66,
+            ..Modifiers::default()
+        };
+        for r in [Resource::Timber, Resource::Wealth] {
+            let plain = cost_of(&T, &university, r, owned(0), &Modifiers::default());
+            let off = cost_of(&T, &university, r, owned(0), &library);
+            assert_eq!(off, 34 * plain / 100, "{r:?}");
+            assert_ne!(off, plain);
+        }
     }
 
     #[test]

@@ -2252,14 +2252,23 @@ impl Sim {
     ///
     /// The peacocks term is read off the live rare mask, as the original's
     /// `testb $0x8, 0x6da6(%esi)` reads it on every call ([`economy::PEACOCKS`]),
-    /// so a recompute for any other cause sees the mask as it stands.
+    /// so a recompute for any other cause sees the mask as it stands. The
+    /// Colossus term is `has_wonder(0x20f)`, asked live on the same call
+    /// (`006dc490`'s last statement, item 3326, `docs/AI.md` §266).
     pub fn recompute_pop_caps(&mut self) {
         let peacocks = 1u64 << (economy::PEACOCKS - economy::BASE_RARE);
+        let colossus: Vec<bool> = (0..self.muster.len())
+            .map(|who| {
+                u8::try_from(who)
+                    .is_ok_and(|p| self.wonders_held(p) & (1 << tech::wonder::COLOSSUS) != 0)
+            })
+            .collect();
         for (who, m) in self.muster.iter_mut().enumerate() {
             m.bonuses.peacocks = self
                 .ledgers
                 .get(who)
                 .is_some_and(|l| l.rare & peacocks != 0);
+            m.bonuses.colossus = colossus[who];
             m.cap = cost::pop_cap(&self.tuning, m.military_level, m.limit, &m.bonuses);
         }
     }
@@ -3174,6 +3183,7 @@ impl Sim {
             &cost::Modifiers {
                 science_ahead: self.science_ahead(who, t),
                 democracy: self.democracy_tech_discount(who, t),
+                greek_research: self.greek_research_discount(who, t),
                 late_discount: if british_taxation {
                     self.tuning.british_taxation_discount
                 } else {
@@ -3230,6 +3240,29 @@ impl Sim {
                 )
             })
         })
+    }
+
+    /// `TypeData::get_cost`'s **Greek research arm** (`LAB_006667c4`): an
+    /// age (`0x220..0x226`) or a library epoch (`0x227..0x242`) priced for
+    /// a Greek leader (`has_tribe_bonus(5)`) takes `GREEK_RESEARCH_COST`
+    /// off every good but knowledge ([`cost::Modifiers::greek_research`]).
+    /// run961c's block 37: who=1's City State at the Library `1/2005` is
+    /// queued at food 108 in the original against 120 here, and who=1's food
+    /// bucket stands twelve apart from frame 36 (item 3326, `docs/AI.md`
+    /// §266).
+    fn greek_research_discount(&self, who: Player, t: tech::TypeId) -> i32 {
+        if matches!(
+            self.tech_tree.kind(t),
+            tech::Kind::Age(_) | tech::Kind::Epoch { .. }
+        ) && self.tech_tree.has_tribe_bonus(
+            &self.setup,
+            &self.tech[who as usize],
+            crate::nations::power::GREEKS,
+        ) {
+            self.tuning.greek_research_cost
+        } else {
+            0
+        }
     }
 
     /// `TypeData::get_cost`'s **Silver arm** (`00666af0`..`00666b51`): an
@@ -3361,13 +3394,47 @@ impl Sim {
         let time = self.tech_tree.types[t].job_time * production::TIME_SCALE;
         let time = production::research_tick(time, self.tuning.research_tick_premium);
         let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
-        let mut tail = self.research_rares(who);
+        let mut tail = self.greek_research(who, t);
+        tail.extend(self.research_rares(who));
         tail.extend(production::science_speedup(
             &self.tuning,
             science,
             self.tech_tree.types[t].age,
         ));
         production::adjusted(time, tail.as_slice()).max(production::MIN_TIME)
+    }
+
+    /// **The Greeks' arm** of `ObjectData::train_time@006508c0`'s research
+    /// block (`LAB_006515d7`, `:453`–`458`): for a leader with
+    /// `has_tribe_bonus(5)`, `t × 100 / (GREEK_RESEARCH_SPEED + 100)`. The
+    /// label is reached from the age branch (`0x220..0x226`, after its
+    /// `ages_queued` catch-up) and the epoch branch (`0x227..0x242`, after
+    /// its `ages + epochs` catch-up) and from nowhere else: a final, a
+    /// building tech or a government takes `LAB_006513c0`'s held-elsewhere
+    /// term and divides at `LAB_006513e8`, past the arm, and a unit's
+    /// research never enters the block. It stands ahead of Relics. run957b's
+    /// Greeks hold City State (a Civic epoch) on 176 and their script places
+    /// its second city five times there; without the arm ours is still
+    /// researching it (item 3326, `docs/AI.md` §266).
+    ///
+    /// SEAM: the two catch-up terms ahead of it — `ages_queued` on an age,
+    /// `ages + epochs` on an epoch — are not carried.
+    pub(crate) fn greek_research(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
+        let age_or_epoch = matches!(
+            self.tech_tree.kind(t),
+            tech::Kind::Age(_) | tech::Kind::Epoch { .. }
+        );
+        if age_or_epoch
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[who as usize],
+                crate::nations::power::GREEKS,
+            )
+        {
+            vec![production::Adjust::Faster(self.tuning.greek_research_speed)]
+        } else {
+            Vec::new()
+        }
     }
 
     /// The steps of `ObjectData::train_time@006508c0`'s research block

@@ -489,7 +489,7 @@ shape carries no information and the predicates do:
   Americans on aircraft and upgrades, the British on anti-air, the Nubians on
   merchants, the Russians on spies, the Romans on legions and forts, the Turks
   on citizens, the Koreans on towers, the Iroquois on senates, the Indians on
-  elephants, the Dutch on ship **upgrades** (military-role upgrade prices only; the file's "10% cheaper ships" is not a production discount, A1 row 51), the Bantu on cities, the Egyptians on wonders
+  elephants, the Greeks on ages, epochs and the Library line (built, item 3326; see "The Greeks pay less for learning"), the Dutch on ship **upgrades** (military-role upgrade prices only; the file's "10% cheaper ships" is not a production discount, A1 row 51), the Bantu on cities, the Egyptians on wonders
   and on scholars — where the Egyptian bonus does not discount at all but
   *swaps the resource index*, charging food where the file wrote wealth
   (**inert as shipped**: `EGYPTIAN_SCHOLARS_FOOD` is 0, A1 row 72).
@@ -892,6 +892,12 @@ Colossus, plus a tenth for peacocks, doubled for the Bantu.** Cities do not
 raise it. Twenty-five with no Military tech, fifty with The Art of War, two
 hundred with all seven, and the Military line is the whole of it.
 
+The Colossus' fifty is **built and diff-backed by item 3326** (`docs/AI.md`
+§266): `calc_pop_cap`'s last statement asks `has_wonder(0x20f)` on every
+call, and `Build::activate:1795` and `Build::close:328` call it for a
+Colossus. Until then the crate carried the term and never set it; run961d's
+Greeks stand at 160 where Military 3 and peacocks give 110.
+
 `MILITARY_POP` and `GRANARY_POP` are read into `Constants` and ship as zero,
 and nothing that has been read consumes them. By `docs/DECISIONS.md` entry 12
 they do not enter `Tuning`.
@@ -1098,6 +1104,39 @@ arms (Mongol stable, Japanese barracks and ships, ~~German submarines~~
 (built, item 2974, `docs/AI.md` §242),
 American aircraft, British anti-air, Nubian merchants, Russian spies,
 Roman legions, Terra Cotta, Angkor ships) are read but not carried.
+
+## The Greeks pay less for learning
+
+*Item 3326, 2026-10-19. Read from the decompile of
+`TypeData::get_cost@00664090` (lines 966–972 and 1250–1255 of the
+export); built as `cost::Modifiers::greek_research` (set by
+`Sim::greek_research_discount`, `lib.rs`) and
+`cost::Modifiers::greek_library` (set by `city.rs`'s
+`greek_library_discount`). `docs/AI.md` §266.*
+
+A leader with `has_tribe_bonus(5)` takes two discounts in `get_cost`,
+each its own `(100 − x) × cost / 100`:
+
+- **Research** (`LAB_006667c4`, `:1250`–`1255`): an age or a library
+  epoch takes **`GREEK_RESEARCH_COST`** (10) off **every good but
+  knowledge** (`local_c != 3`), after the lobby's `tech_cost` term and
+  ahead of Silver and the library-line tail. run961c's City State at the
+  Library `1/2005` is food **108** where the list price is 120, and
+  knowledge unchanged.
+- **The Library line** (`:966`–`972`, through `LAB_00665f31`): a Library
+  (`0x1b3`) or a University (`0x1a4`), **by equality** — not by lineage —
+  takes **`GREEK_LIBRARY_COST`** (66) off, after the fort arm and Tikal's
+  temple term. run961b's University `1/2013` is timber **27** and wealth
+  **17** where the list price is 80 and 50.
+
+The research-time arm that rides with them (`ObjectData::train_time
+@006508c0:453`, `t × 100 / (GREEK_RESEARCH_SPEED + 100)`, an age or an
+epoch only) is in `docs/NATIONS.md` §3.
+
+**How confident**: diff-backed by run961c's and run961b's standing
+`queue[0].cost`, bucket and placement rows, and by the word (1976 →
+19182). `GREEK_AGE_KNOWLEDGE` and `GREEK_CLASSICAL`, the other two Greek
+constants `get_cost` reads, ship as 0 and are not carried.
 
 ---
 

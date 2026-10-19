@@ -2905,6 +2905,41 @@ fn gain_tech_feeds_the_players_held_wonders() {
     assert_eq!(sim.tech[0].wonders, vec![line[tech::wonder::TIKAL]]);
 }
 
+/// **The Colossus adds `COLOSSUS_POP_CAP` to its owner's cap** (item 3326,
+/// `docs/AI.md` §266): `calc_pop_cap@006dc490`'s last term asks
+/// `has_wonder(0x20f)`, and `Build::activate:1795` and `Build::close:328`
+/// recompute the cap for a Colossus. run961d's Greeks are at 160, not 110.
+#[test]
+fn a_finished_colossus_raises_its_owner_s_pop_cap_and_its_loss_lowers_it() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let mut col = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+    col.ident = Ident::default();
+    col.tree = Some(line[tech::wonder::COLOSSUS]);
+    let col = sim.add_build_type(col);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    for m in &mut sim.muster {
+        m.military_level = 3;
+    }
+    sim.recompute_pop_caps();
+    assert_eq!((sim.muster[0].cap, sim.muster[1].cap), (100, 100));
+    let w = sim.place_building(0, col, tile_pos(32, 25)).unwrap();
+    finish(&mut sim, w);
+    assert_eq!(
+        (sim.muster[0].cap, sim.muster[1].cap),
+        (100 + sim.tuning.colossus_pop_cap, 100),
+        "the owner's alone, on activation"
+    );
+    sim.close_building(w, false);
+    assert_eq!(sim.muster[0].cap, 100, "and gone with the wonder");
+}
+
 /// **A held Space Program halves an aircraft's time** (item 2526,
 /// `docs/AI.md` §226): `train_time@006508c0:316`–`340`'s unit wonders'
 /// arm, by the type's domain (`+0x218`) — `SPACE_AIR_SPEED` 100 % on an
@@ -8454,6 +8489,41 @@ fn relics_take_a_third_off_a_research_job() {
     sim.ledgers[0].rare |= 1 << (economy::RELICS - economy::BASE_RARE);
     assert_eq!(sim.tech_time(0, monarchy), 67 * plain / 100);
     assert_eq!(sim.tech_time(1, monarchy), plain, "and only its holder's");
+}
+
+/// **The Greeks research an age or a library epoch in half the time**
+/// (item 3326, `docs/AI.md` §266): `ObjectData::train_time@006508c0`'s
+/// `has_tribe_bonus(5)` arm, `t × 100 / (GREEK_RESEARCH_SPEED + 100)`, is
+/// reached from the age and epoch branches only — a government divides
+/// past it. run957b's Greeks hold City State on 176, where ours was still
+/// researching it.
+#[test]
+fn the_greeks_halve_an_age_or_an_epoch_and_nothing_else() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let senate_t = tree.add(tech::TypeDef::building("Senate"));
+    let city_state = tree.add(tech::TypeDef::epoch("City State", tech::Line::Civic, 0));
+    let classical = tree.add(tech::TypeDef::age("Classical Age", 1));
+    let monarchy = tree.add(tech::TypeDef::gov("Monarchy", 0, 0).at(senate_t));
+    for t in [city_state, classical, monarchy] {
+        tree.types[t].job_time = 350;
+    }
+    sim.set_tech_tree(tree);
+    let plain = [city_state, classical, monarchy].map(|t| sim.tech_time(0, t));
+    sim.tech[0].has_city = true;
+    sim.tech[0].power = Some(crate::nations::power::GREEKS);
+    assert_eq!(sim.tech_time(0, city_state), plain[0] * 100 / 200);
+    assert_eq!(sim.tech_time(0, classical), plain[1] * 100 / 200);
+    assert_eq!(
+        sim.tech_time(0, monarchy),
+        plain[2],
+        "a government is past the arm"
+    );
+    assert_eq!(
+        sim.tech_time(1, city_state),
+        plain[0],
+        "and only the Greeks'"
+    );
 }
 
 /// **A decoy counts for neither side of the capture tally** (item 3318,
