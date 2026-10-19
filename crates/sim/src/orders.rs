@@ -5063,6 +5063,9 @@ impl Sim {
         // `is_active() && is_on_map() && is_moving()` (vslots `+0x8`,
         // `+0xbc`, `+0xd8`): `iStack_9e4`.
         let moving = self.units[t].on_map && self.is_moving(t);
+        if std::env::var_os("RON_PROBE_GUARD").is_some() && frame == 20218 {
+            eprintln!("PROBE guard u {}/{} t {}/{} moving {moving} tfront {:?}", self.units[u].owner, self.units[u].index, self.units[t].owner, self.units[t].index, self.units[t].orders.front().map(|o| o.body));
+        }
         if !moving {
             let ph = self.units[u].phase(frame);
             if (ph + 8).rem_euclid(16) == 0 {
