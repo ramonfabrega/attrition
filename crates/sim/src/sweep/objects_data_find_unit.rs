@@ -39,6 +39,7 @@ fn find_unit_port(
     c: &[Vec<u8>],
     p: &[Vec<u8>],
     log: &mut Vec<String>,
+
 ) -> i64 {
     let (x, y, kind, who, r, flags) = (a[0], a[1], a[2], a[3], a[4], a[5]);
     let (f1, p8, p9, f2, p11, p12) = (a[6], a[7], a[8], a[9], a[10], a[11]);
