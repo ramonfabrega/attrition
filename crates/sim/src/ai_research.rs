@@ -622,8 +622,6 @@ impl Sim {
         };
         let mut val = mul(weight_total(&ai, &facts), base);
 
-        if std::env::var("RON_PROBE_TV").is_ok() && t == 620 && (15770..15790).contains(&self.frame) { eprintln!("TV {} who={} {} val={} base={}", self.frame, who, "weights", val, base); }
-
         // The category.
         match cat {
             0 => {
@@ -674,8 +672,6 @@ impl Sim {
                 }
             }
         }
-
-        if std::env::var("RON_PROBE_TV").is_ok() && t == 620 && (15770..15790).contains(&self.frame) { eprintln!("TV {} who={} {} val={} base={}", self.frame, who, "cat", val, base); }
 
         // The Tech Race.
         if self.lobby.victory == 9 {
@@ -750,8 +746,6 @@ impl Sim {
             val = mul(val, 2);
         }
 
-        if std::env::var("RON_PROBE_TV").is_ok() && t == 620 && (15770..15790).contains(&self.frame) { eprintln!("TV {} who={} {} val={} base={}", self.frame, who, format!("recency f1={} f2={} ident={:?}", f1, f2, ident), val, base); }
-
         // Coverage: the goods the price is in that the leader can neither
         // gather nor reach.
         let cost = self.tech_tree.types[t].cost;
@@ -768,8 +762,6 @@ impl Sim {
         if missing != 0 {
             val = mul(mul(total, 2).wrapping_sub(missing), val) / mul(total, 2);
         }
-
-        if std::env::var("RON_PROBE_TV").is_ok() && t == 620 && (15770..15790).contains(&self.frame) { eprintln!("TV {} who={} {} val={} base={}", self.frame, who, format!("cover total={} missing={} wonder_mod={}", total, missing, self.ai[w].wonder_mod), val, base); }
         if val < 0 {
             val = 9_999_999;
         }
@@ -779,8 +771,6 @@ impl Sim {
         }
         let income = self.check_income(who, t, 0x400, None, no_wonder, -1, 1, 0);
         val = income_scaled(income, val);
-
-        if std::env::var("RON_PROBE_TV").is_ok() && t == 620 && (15770..15790).contains(&self.frame) { eprintln!("TV {} who={} {} val={} base={}", self.frame, who, format!("income={}", income), val, base); }
         Some((val, slot))
     }
 
