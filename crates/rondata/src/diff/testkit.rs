@@ -10342,6 +10342,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Maya word** (DECISIONS 72, 83; item 3338): Great
+    // Sahara, the Maya at Difficulty 4 — the held-out battery's lowest open
+    // lobby once item 3336 closed the Egyptians; the game ends itself on
+    // 13086. It joins the `Battery word` line first; the closed rows choose
+    // nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaMayaTier4",
+        named: "Great Sahara (Maya)",
+        word: crate::diff::maya_word::MAYA_WORD,
+        length: 13_086,
+        endpoint: None,
+        window: None,
+    },
     // **The battery's Egyptian word** (DECISIONS 72, 83; item 3332): Great
     // Sahara, the Egyptians at Difficulty 4 — the held-out battery's lowest
     // open lobby on the measure of `987c4c33`; the game ends itself on
