@@ -9770,3 +9770,9 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            (the word 5583's window)
 # Checks: `rngcmp.py` run962 vs run962b -> 37 identical; run917 vs run963 -> 0 differing in 1823. run962b runs to 24000.
 # ==== TAKEN 2026-10-19, one take each, 04:45-, pool lanes 1, 2 ====
+#   run963c  --map 18 --end-frame 23190 --timeout 5400 --log-window 22929 23186 (run963's --detail, --ai-tribe, --cover, --profile)
+#            (the word 22935's window), through `viadriver.sh tools/explore/golden_capture.sh`
+#   run963d  --map 18 --end-frame 24000 --timeout 5400 --log-window 23776 24001 --allow-early-end (the same)
+#            (the word 23782's window, to the trace's end)
+# Checks: `rngcmp.py` run917 vs run963c -> 23191 identical; vs run963d -> 24001 identical.
+# ==== TAKEN 2026-10-19, run963c's third take (two direct launches died on nodrv_CreateWindow), 05:53-, pool lane 1 ====

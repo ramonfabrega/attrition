@@ -18591,3 +18591,44 @@ SHA-256 `4ad0c2d5f75eab54341d2be1891d3af52d9f547c54340bac0c4b73f0e2a6357b`.
 **What it holds**: `diff::dutch_word::run963b_s_word_frame_is_widened_whole` (257 blocks): 674 keys at first, 662
 with the Dutch hit-point term, 233 with the Dutch interest (the word then 5782, inside the window), **63** with the
 Dutch ship discount (the standing set).
+
+## run963c — the battery word: East Indies, Dutch, the word 22935's widening (22929..23186) (2026-10-19, item 3329, `att-3329`)
+
+`docs/AI.md` §267. **What the disk could not answer**: the Dutch interest and ship discount moved the word to 22935,
+past run963b's last block 5833; run917 prints only its setup and closing blocks. run963's `--detail`, tribe, cover and
+profile, with `--end-frame 23190 --timeout 5400 --log-window 22929 23186`.
+- Two direct launches from the session (05:47, 05:52) died in 3.8 s on `nodrv_CreateWindow` — a launch from inside
+  Claude Code's process tree gets no window (`docs/ORACLE.md`, "The click-free lane needs a window"). Relaunched
+  through `viadriver.sh tools/explore/golden_capture.sh`: pool lane 1, launched 05:53:48 and exited 06:21:49 (1682 s).
+  `success`, 23191 frames, seed 12345. `rngcmp.py rontrace-run917.log rontrace-run963c.log`: **23191 identical, 0
+  differing**. Filed with `filerun.py run963c eastindies-dutch-diff4-window-22929-23186-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run963c-eastindies-dutch-diff4-window-22929-23186-guys4.txt`, 737,200,586 bytes,
+SHA-256 `df2ba0153dd507ba41939f2fc300cec37d7b467783bd2dbc953feee7267c95bf`.
+
+Archive `rontrace-run963c.log`, 253,129,472 bytes,
+SHA-256 `817f2d4f4bf59264c1df70c284f9202ff47090935c3b9352eb83d0f9765080b9`.
+
+**What it holds**: `diff::dutch_word::run963c_s_word_frame_is_widened_whole` (257 blocks): 2191 keys on the first
+build (the Industrial Age a frame early), **116** with the library's clocks read before its recursion: the standing set
+and 101 keys apart from 22929.
+
+## run963d — the battery word: East Indies, Dutch, the word 23782's widening to the trace's end (23776..24001) (2026-10-19, item 3329, `att-3329`)
+
+`docs/AI.md` §267. **What the disk could not answer**: the library's clock moved the word to 23782, past run963c's last
+block 23185. run963's `--detail`, tribe, cover and profile, with `--end-frame 24000 --timeout 5400 --log-window 23776
+24001 --allow-early-end`, through `viadriver.sh tools/explore/golden_capture.sh`.
+- Pool lane 1, launched 06:33:03 and exited 06:56:28 (1405 s). `success`, 24001 frames, `ended_early` false.
+  `rngcmp.py rontrace-run917.log rontrace-run963d.log`: **24001 identical, 0 differing**. Filed with `filerun.py
+  run963d eastindies-dutch-diff4-window-23776-24001-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run963d-eastindies-dutch-diff4-window-23776-24001-guys4.txt`, 672,635,927 bytes,
+SHA-256 `0cf61af47405f6a9569224899d18b61e4e6b5d6d0c142da07f590aabbcf7f0bf`.
+
+Archive `rontrace-run963d.log`, 280,034,304 bytes,
+SHA-256 `87e0dde29c1b4c77159e6c79e52c47e36b9e495ab7cb6d98e999c7b9cadd4e33`.
+
+**What it holds**: `diff::dutch_word::run963d_s_word_frame_is_widened_whole` (225 blocks): 1819 keys on the first
+build (who=1's `pop_cap` 150 against 200 from 23776), **197** with the Colossus; it holds the word 23985 too.

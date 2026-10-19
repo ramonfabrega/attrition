@@ -867,6 +867,15 @@ which jump to it. It is read live on every call, and the rare mask's change
 arm in `Leader::calc_gather` is one of the callers (`docs/ECONOMY.md`, "What
 an owned rare does"; item 1147, which wired it: nothing had ever set it).
 
+`Colossus` is `has_wonder(0x20f)`, live (`LeaderData::has_wonder@006ebc10`
+walks the leader's wonder list), and **nothing set it before item 3329**:
+`Sim::recompute_pop_caps` now reads it off the wonders held, and
+`Build::activate:1795` — a building that `is(0x20f)` — is a caller beside
+`calc_gather`'s rare arm. Diff-backed: run963d's Dutch AI holds the Colossus
+and its cap is 200 on block 23776 where ours stood at 150 (the Dutch word
+23782 → 23985), and run817's Great Sahara AI 270 where ours stood at 220
+(`docs/AI.md` §267).
+
 **The index is not the age.** `Leader::calc_pop_cap` reads `epoch[0]`, and
 `LeaderData::compute_epoch` builds that by counting how many consecutive
 `BASE_MILITARYTYPES` techs the player holds — the Military library line, The
