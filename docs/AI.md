@@ -23292,12 +23292,67 @@ Parmenio's `PARMENIO_AMBUSH_TIME` scale are not carried. A capture's hero cut (`
 the unwritten `plunder_hero`. The duration's value is the craft's own `DURATION`, as Forced March's, and matches
 the release frame by the recovery's slope (one a frame to 392); no block prints the `ActiveSpell`.
 
-## 262. Reserved for the next item on the AI track
+## 262. The Iroquois 12156: a held building yields to its group's opportunity, and the word reaches the game's end (2026-10-19, item 3306)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 12156 (§261), ours 29 draws against theirs 35 at
+index 1: ours `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a < Unit::fight+0x169`. run952 ends on 11835, so the
+widening was owed: **run954** (blocks 12150..12406, run952's detail) and a state packet, **run954b**, at frame
+12155. Both are draw-identical to run897b.
+
+**The direction.** Theirs spends three more `fight+0x169` rolls, ours six `fight+0x824` in a row. The `+0x169`
+rolls belong to the three escorts that switched target: a reloading unit given a new attack asks for the idle.
+**Ours kept its order, and theirs changed it.**
+
+**The widening.** run954's record opened at **1118 keys**. Block 12150 holds the standing set (58 rows: `form`,
+`SITE.reg`, pool 64/66, the Scholars' `g.angle[0]`, `1/53`'s `damage_frac`). Past it, the first parting is
+**block 12156** (tick 12155). `order:target` on the escorts `1/25`, `1/48` and `1/51` (`[GUARD on 1/46, ATTACK]`,
+`new_ord` 1 in theirs) and on The Despot's new decoys `1/77`, `1/78`, `1/81`, `1/84`, `1/85` reads theirs `0/5`
+(a Citizen gathering at 2004) and ours `0/2000` (the human's city). On ours, the `targeted` counts of `0/5` and
+`0/2000` match the packet's (0 and 3).
+
+**The packet named the event.** `step4.py` on run954b reproduces block 12156's targets exactly. It needs a poked
+stub at `9e9dc0` (`Armies::process_all`, then `Objects::process_all`) and `AnimMgr::force_load` stubbed. Decoy
+`1/88`'s `think_attack+0x3e9` calls `Group::target_opportunity(0/5, asker 88, 1)` on group 64, and that call
+hands `0/5` `QUEUE_FIRST` to the group's fourteen captains. Ours made the same call: a scratch probe showed frame
+12155, the cooldown clear and 43 members. The difference was inside `Unit::target_opportunity`.
+
+**1. A held building yields without the range tests.** `target_opportunity@005fffc0:202`–`209`: when the held
+object's vslot `+0x18` answers 0 (it is no unit) and the unit has none of `0x840002`, the arm jumps straight to
+`LAB_006004e7` and kills the held attack. The two range tests (held in range, or the attacker out of range) are
+asked only of a held *unit*. Ours asked them of a building too, so a guard striking the city in range kept it.
+Built: `fight.rs::attack_action_yields` asks the range tests only when `held` is a unit. This moved run954's
+first parting from index 1 to index 10 (1118 → 1088 keys).
+
+**2. A yield skips the flee arm and the on-duty gate.** `LAB_006004e7` ends in `goto LAB_00600877`, the tail,
+past both. Ours went on to the flee arm with a `front` read before the kill and returned at "busy and not on duty",
+which left the decoys (no post) with no order. Built: `target_opportunity_in` carries `yielded` past both gates.
+
+**3. A merchant's spot search writes nothing back.** This clause compares `mana_burn`, `rare` and `good_obj` in
+`widen_block`'s on-map rows, which takes them off `coverage.rs`'s `UNREAD`. It parted the Sahara coverage pair's
+widenings (run680 … run790) on `rare`/`good_obj`. `find_merchant_spot@00603ab0:20` and
+`good_merchant_spot@006068a0:50` hand `calc_gather` **null** out-pointers, and every write `calc_gather` makes is
+null-guarded (`:34`, `:109`, `:229`, `:258`). Built: `calc_gather_at(u, at, live)`, and `merchant.rs` calls it
+with `live = false` (`docs/MERCHANT.md` §3.1). Every Sahara pin is back.
+
+**Value diff, block 12156**: `order:target` on `1/25`, `1/48`, `1/51`, `1/77`, `1/78`, `1/81`, `1/84` and `1/85`
+reads `0/5` on both sides (ours was `0/2000`).
+
+**The word moves 12156 → 12658, the game's last frame.** The draw count and the draw sequence agree to the end.
+run954's widening is **1118 → 61** keys. Past the standing set, three rows part and none is a position or an
+order: `0/2000`'s `build:damage` (12231, ours 902 against theirs 904), who=1's `SITE[1].reg` (12376) and the
+newborn `1/98`'s `g.angle[0]` (12381). All three are parked.
+
+**The closing state** (DECISIONS 55): run897b's closing block 12659, walked to and compared whole
+(`run897b_iroquois_closing_state`). 104 units compared, none apart, no building or city field-row, and no closing
+field parted.
+
+**Mutations** (`tools/mutate.py`, each held): (a) the range tests asked of any held object, (b) the on-duty gate
+asked after a yield, and (c) `live` forced true in `find_merchant_spot`.
+
+**Not established.** The vslot `+0x18` is read here as "is a unit". Every held object on 12155 was a unit or a
+building, so a held non-unit, non-building (a goody, a wall piece) is untested. The siege/bombard/explosive shield
+(`0x840002`) is still the SEAM it was. Nothing dumped shows why the city's `damage` parts by 2 on 12231 without
+moving a draw.
 
 ## 263. The Romans: the fort discount, a dead Library's ring, and the game's end (2026-10-19, item 3314)
 

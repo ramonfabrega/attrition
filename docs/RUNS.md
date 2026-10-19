@@ -18324,3 +18324,37 @@ SHA-256 `8f532e6d099eb44a01309096391252cc08f505314af77bd80554686b63a862e8`.
 **What it holds**: `diff::roman_word::run956c_s_gap_is_widened_whole` (344 blocks). 52 keys: run956b's 51 standing,
 and `0/2000`'s `damage` on block 18369, ours 868 against theirs 869. That is the Horse Archers `1/53`'s blow of
 18368, 1.0 here and 2.0 there. Its window is in the coverage driver.
+## run954 — the battery word: Great Lakes, Iroquois at difficulty 3, the word 12156's widening (12150..12406) at run952's detail (2026-10-19, item 3306, `att-3306`)
+
+`docs/AI.md` §262. **What the disk could not answer**: the word moved to 12156 (item 3297), and run952 ends at block
+11835. No dump of the lobby held a block past it. The window is six blocks before the word's block 12157 and 250
+after it: `--log-window 12150 12407 --end-frame 12412`, run940's recipe otherwise.
+- Pool lane 1. Launched 00:38:02 and the game exited at 00:59:13 (1270 s). `success`, 12413 frames, `map_style 14`,
+  seed 12345. `rngcmp.py rontrace-run897b.log rontrace-run954.log`: **12413 identical, 0 differing**. Filed with
+  `filerun.py run954 greatlakes-iroquois-diff3-window-12150-12407-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run954-greatlakes-iroquois-diff3-window-12150-12407-guys4.txt`, 544,073,713 bytes,
+SHA-256 `1fe42d7adc9a8b1480d15d6676f02fb64d75dad3c70f7e73c16269b62512c3a2`.
+
+Archive `rontrace-run954.log`, 62,381,184 bytes,
+SHA-256 `3d3230749d2de3197941013d6afbbcece6a9227e13ff26c2d6476919d53d7572`.
+
+**What it holds**: `diff::iroquois_word::run954_s_word_frame_is_widened_whole` (257 blocks). Its first build opened at
+1118 keys, with block 12156's `order:target` the first parting past the standing set. With the held building's
+yield and the yield's skip, 61. Its window is in the coverage driver.
+
+## run954b — the same game, a state packet at frame 12155 (2026-10-19, item 3306, `att-3306`)
+
+`docs/AI.md` §262. **What the disk could not answer**: run954 shows block 12156's targets but not which call handed
+them out. `RON_STATE_FRAME=12155` with item 597's `plan.h`, `--end-frame 12159 --log-window 12153 12158 --detail
+end:MISC,UNITS=3,GUYS=4`, on the click-free lane.
+- Pool lane 1. Launched 01:09:41 and the game exited at 01:10:37 (56 s). `success`, 12160 frames, `map_style 14`,
+  seed 12345.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run954b/map-14/frame-snapshot.bin`, 828,849,224 bytes,
+SHA-256 `620b1372e566737bd102581cace6df3bdb8472ff8dc033429e1fb5f269d8e3e5`.
+
+**What it holds**: under `tools/recomp/step4.py`, block 12156's targets reproduced. Decoy `1/88`'s `think_attack`
+calls `Group::target_opportunity(0/5, …)` on group 64. No test reads it.

@@ -8162,21 +8162,36 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KG — reserved
+## Parked by item 3304, 2026-10-19 — the nations seat's tenth shape batch: all six built
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3304a.** `Build::new_library@00627fe0`: swept as `city::new_library_steps` over `NewLibraryView`, but `SimAssimilate::new_library` stays a no-op SEAM. Wiring needs `Sim::first_library` to honour active and unassimilated, and an object-index ordering between libraries (the crate keeps the queue on the first library and resolves it by `queue_home`). Slot `+0xac` of the objects is not stubbed; the sweep passes only if the image's own function returns the object (unconfirmed in the listing).
 
-## Parked by the next landing, slot KH — reserved
+**3304b.** `Wall::update_local_seen@0063ed50`: the original body is an inline copy (no crate method over raw bytes); the crate's `update_local_seen_build` is cross-checked by replaying `set_seen2` calls, restricted to owner < 8 and world extents that are multiples of 4. Uncaught: vision.rs `!alive` guard (crate-only), `who >= 8` edge, `>>1` vs `/2` (equivalent). `--regen` rewrites the test body; re-apply the inline port after one.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3304c.** `City::find_buildings@007384c0`: swept via the new `FindBuildingsView`/`find_buildings_steps`. Unsettled: the original walks leaders, then two object ranges, then index, the crate walks building slots in order (differs when several foreign buildings convert in one sweep or a conversion fails); the crate's `building_is_city` and `ty.is_some()` skips have no counterpart; `SimFind`'s `0x20` flag, `new_library`, console message and `Wall::mask_me` are no-ops; the `String::operator=` stub is not recorded.
+
+**3304d.** `Unit::detect_boat_collision@005fa8b0`: four exact-boundary breaks uncaught (`rel < 0x2000_0000`, `rel > 0xe000_0000`, `wrapping_add(0xe000_0000) > 0xc000_0000`, `short >= 60_000`): the bearing is `find_angle` of the delta and the draw never lands on an axis multiple or a 60000 leg. `UnitData::invalid_loc` is `ret 0x20`: its stub takes 8 words. `--regen` overwrites the hand body.
+
+**3304e.** `Unit::do_attack@005f1b80`: two modules (`unit_do_attack`, `_neg`: the original dereferences `objects[whom][ox]` unguarded in the carrier arm, so negative indices fault). Generator gap: a `--deref IDX:m+OFF:N` flag (read `this+OFF` at stub-call time) would catch two uncaught breaks (`set_group(-1)` to `(0)` around `find_nearby_spot`; `set_recharge_byte(0)` to `1` around `cavarch_fight`); `--deref` takes only an argument pointer or an absolute cell. SEAMs in `do_attack/live.rs`: carrier cargo by `inside_unit`, the barge's strict `find_attack_pos` flag, an approximate `GroupData::get_max_range`, `get_tregion` without the coastal refinement, gun tracking and cavalry-archer range override writing fields the crate lacks. The sim fix is a new `do_attack` module (carrier, barge and group arms were missing); `Sim::do_attack_fight` is the old body.
+
+**3304f.** `Unit::check_target_path@005e22d0`: swept as `orders::check_target_path_steps` over `CheckTargetView`; the crate's `check_target_path`, `rechase_fleeing` and `check_cast_target_path` were folded into it. Behaviour change: an alive target off the map (garrisoned) used to return early and now follows the original's flank, range and `repath` chain. The group arm and the type `0xb` (BUILD_AT) arm are unreachable from the crate's review; the Sim view answers them with conservative defaults (SEAM). Three equality-edge breaks uncaught.
+
+**3304g.** The harness cut each subagent an isolated worktree this time (3295g's hazard did not recur); a subagent's `uv` shim of cached rows made 40 breaks cycle in seconds.
+
+## Parked by item 3306, 2026-10-19 — a held building yields to its group's opportunity, the Iroquois word at its game's end
+
+- (3315) **`0/2000`'s `build:damage`** (run954, block 12231 on): the human's city reads 902 in ours against 904 in theirs.
+  No draw moves on it through the game's end, and the closing block 12659 compares no city damage apart.
+  `RON_DEBUG_UNIT` on the city's attackers on 12229–12231, both sides, is the reading. It names no score: the lobby
+  is closed.
+- (3316) **who=1's `SITE[1].reg`** (run954, 12376): ours 1 against theirs 0. This is the standing `SITE.reg` shape, on a new
+  site. No draw moves on it.
+- (3317) **The newborn `1/98`'s `g.angle[0]`** (run954, 12381): ours `0x55555555` against theirs 0. This is the Scholars'
+  shape (parked 3308) on a unit born inside a building. No draw moves on it.
+- (3319) **3306's "for the Loop"** (the journal's line, filed at its merge): `tools/mutate.py`'s signal race — a SIGTERM
+  between the edit and the run's `finally` left the tree edited while the message claimed a restore
+  (`test_a_signal_under_the_run_restores_the_tree` red three of three on this host). Fixed by the lane outside its
+  item (06600962d); the pass ratifies a worker's tool fix. Closed unless the pass reopens it.
 
 ## Parked by item 3314, 2026-10-19 — the Romans' fort discount and a dead Library's ring, the Roman word at the game's end
 
