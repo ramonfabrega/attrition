@@ -905,8 +905,8 @@ is asked before it (`can_pay_cost` at `vslot 0x84`, then `could_queue`).
 
 **In the code**: `Sim::action_queue_research` (a technology) and
 `Sim::action_queue_up`'s research arm (a unit type whose bit is clear),
-over `Sim::research_arm` and `Sim::researching_unit`, in
-`crates/sim/src/production.rs`; `Sim::queue_tech` carries `can_make`'s
+over `group_queue_up::action_queue_up_steps` (swept, item 3330) and
+`Sim::researching_unit`, in `crates/sim/src/production.rs`; `Sim::queue_tech` carries `can_make`'s
 held and researching refusals; `input::group_queue_up` maps a
 technology's `TypeIndex`. A building type's arm is not mapped.
 
@@ -952,7 +952,7 @@ slots 0 and 1 from the two-member records (825, 876).
 `CommandPackage::add_group@0094bb60`'s own reuse test is an ordered
 compare too: 760's press sent the three-byte reuse.
 
-**In the code**: `Sim::action_queue_up`'s sort (`by_queued`) and passes
+**In the code**: `group_queue_up::action_queue_up_steps`'s sort and passes
 and `Sim::action_buildmask`'s rule were already the reading's;
 `Sim::push_command_buildings` (`garrison.rs`) and
 `Sim::push_buildings_group` (`group.rs`) seat the group, and

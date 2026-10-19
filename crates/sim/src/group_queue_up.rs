@@ -188,7 +188,7 @@ impl QueueUpView for SimQueueUp<'_> {
         true
     }
     fn who(&self) -> u8 {
-        self.who as u8
+        self.who
     }
     fn count(&self) -> i32 {
         i32::try_from(self.list.len()).unwrap_or(i32::MAX)
