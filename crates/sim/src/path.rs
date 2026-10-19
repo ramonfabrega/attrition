@@ -1553,16 +1553,19 @@ impl Sim {
     /// it, since a human jumps the whole mode block (`leaders & 4` at
     /// `0068973d`).
     pub(crate) fn find_wpath_from(&mut self, u: usize, here: Pos, army_hint: bool) -> i32 {
-        crate::wpath::find_wpath_steps(
-            &mut crate::wpath::SimWpath::new(self, u, army_hint),
-            here,
-        )
+        crate::wpath::find_wpath_steps(&mut crate::wpath::SimWpath::new(self, u, army_hint), here)
     }
 
     /// `find_wpath`'s search: `astar_path` on the world grid with the modes
     /// the planner set on the pathfinder (`pathfinder +0x94/+0x70/+0x78`); the
     /// caller runs `kill_lists` after reading the verdict (`68973d`-`68978e`).
-    pub(crate) fn wpath_search(&mut self, u: usize, scouting: bool, army: bool, worker: bool) -> i32 {
+    pub(crate) fn wpath_search(
+        &mut self,
+        u: usize,
+        scouting: bool,
+        army: bool,
+        worker: bool,
+    ) -> i32 {
         let modes = Modes {
             scouting,
             army,
