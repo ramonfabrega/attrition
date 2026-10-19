@@ -19033,7 +19033,8 @@ SHA-256 `271b0efd82fd343607605fabee13cd63b613c305c96f0f6f58715eee812acacb`.
 ## run973 — the AI word: Great Sahara, the Maya at difficulty 4, the word 776's widening (770..1026) (2026-10-19, item 3338, `att-3338`)
 
 `docs/AI.md` §273. **What the disk could not answer**: run966 dumps blocks 0..2 and run966b its setup and closing
-blocks only (`grep 'BEGIN FRAME'` finds 2 and 13087), so no block near 776 was on disk. `--map 7 --end-frame 1031
+blocks only (`grep 'BEGIN FRAME'`: run966 blocks 1, 36 and 37, run966b 13087 alone), so no block near 776 was on
+disk. `--map 7 --end-frame 1031
 --timeout 3600 --log-window 770 1026 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 1 --cover
 cover=0 --profile DIFFICULTY=4`.
 - Pool lane 3. Launched 11:42:45 and the game exited at 11:57:27 (882 s). `success`, 1032 frames.
