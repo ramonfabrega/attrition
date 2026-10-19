@@ -8311,13 +8311,19 @@ Nothing parked: the word closed (`docs/AI.md` §265).
   lane needs a window"); `unattended_capture.py` could refuse a launch with no window-server connection and name
   `viadriver.sh`. The pass decides.
 
-## Parked by the next landing, slot KO — reserved
+## Parked by item 3330, 2026-10-19 — the nations seat's twelfth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3330a.** `Unit::go_around_building`'s `SimDetour` writes (`path_recursion = 10`, `line_ok`, `has_waypoint`) are covered only by `cities_tests` and the `detour` lib tests; the sweep's view is the emulated windows.
+
+**3330b.** `TechType::compute_ai_values`: the `basic_type` inline arm (slot 0xe4 against 0x639970) is never laid (`--vtat-keep` not used because the function recurses); the Sim view's id-to-predicate mapping for the four enhancer ids is checked by the install check, not the sweep (a `Root::Smelter` for `Lumbermill` mutant survives). 220 rows at ~1.4 MB each; a sparse `--cell-win` would allow more.
+
+**3330c.** `SpellType::cast_transport`: seams left no-ops in `SimTransport` — sounds, MARINES (`unit_masks2`/`update_speed`), the caravan slot hand-over, the selection group swap, `replace_hotunit`.
+
+**3330d.** `Group::action_queue_up`: the inline fast paths (slot equal to `is_unit_type`/`is_build_type`/`ObjectData::is`) and the sound-table branch are unexercised (shared slots conflict under `--vtat-keep`; the sound count cells are 0 in the image).
+
+**3330e.** `calc_gather` sim fixes (distance from the unit's own position; `good_obj = -1` on a non-building tile) are asm-read, not row-parted; run the merchant and rare pins at the booking gate.
+
+**3330f.** `Unit::think_spellcaster`: `find`'s junk `ecx` and the `sub esp,0xc` words are masked `*` on both sides, and a "-" log reads as empty; hand edits a `--regen` would lose.
 
 ## Parked by item 3331, 2026-10-19 — the Japanese word
 
@@ -8380,6 +8386,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot KV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KZ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

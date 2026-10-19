@@ -192,6 +192,8 @@ mod group_action_begin;
 mod group_action_buildmask;
 #[path = "group_action_hotkey.rs"]
 mod group_action_hotkey;
+#[path = "group_action_queue_up.rs"]
+mod group_action_queue_up;
 #[path = "group_attack_order_vector_deleting_destructor_vtordisp.rs"]
 mod group_attack_order_vector_deleting_destructor_vtordisp;
 #[path = "group_attack_order_walk_data.rs"]

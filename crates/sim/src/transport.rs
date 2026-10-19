@@ -45,7 +45,7 @@ pub mod ty {
 /// The bias angle `Unit::do_cast` and `SpellType::cast_transport` both hand
 /// `find_nearby_spot` — `0x55555555`, a third of a turn, which
 /// `docs/ORDERS.md` §10 records as arbitrary rather than a sentinel.
-const BOARD_BEARING: crate::movement::Angle = crate::movement::Angle(0x5555_5555);
+pub(crate) const BOARD_BEARING: crate::movement::Angle = crate::movement::Angle(0x5555_5555);
 
 /// `TransportType` — the ladder a unit's kind sits on and a leader's level
 /// climbs (§2). A unit may auto-transport when its kind is at or below the
@@ -1377,30 +1377,29 @@ impl Sim {
     /// selection group's swap and `replace_hotunit` — none of them is state
     /// this crate keeps.
     pub(crate) fn cast_transport(&mut self, u: usize) {
-        if !self.units[u].alive() || !self.units[u].on_map {
-            return;
-        }
-        if self.unit_domain_of(u) != Domain::Land {
-            return;
-        }
-        let Some(ty) = self.transport_type_for(u) else {
-            return;
-        };
-        let at = self.units[u].pos;
-        let Some(spot) = self.find_nearby_spot_type(
-            ty,
-            at,
-            0,
-            self.tuning.unit_board_distance,
-            0,
-            BOARD_BEARING,
-        ) else {
-            return;
-        };
+        // The body is `crate::cast_transport::cast_transport_steps` (item
+        // 3330), the original's control flow over a view; the Sim answers it.
         let who = self.units[u].owner;
-        let Some(index) = self.find_free(who, UNIT_BASE, BUILD_BASE) else {
-            return;
-        };
+        let mut view = crate::cast_transport::SimTransport::new(self, who as usize);
+        crate::cast_transport::cast_transport_steps(&mut view, u as i32, who as i32);
+    }
+
+    /// `LeaderData::current_upgrade(base)` of `who`, as a tree id.
+    pub(crate) fn current_upgrade_id(&self, who: usize, base: TypeId) -> TypeId {
+        // A tree that does not carry the base type — the harness's small
+        // fixtures — has no upgrade to offer, and the base is the answer.
+        match self.tech.get(who) {
+            Some(p) if base < self.tech_tree.types.len() => {
+                self.tech_tree.current_upgrade(&self.setup, p, base)
+            }
+            _ => base,
+        }
+    }
+
+    /// `Objects::init_unit(who, ty, at, -1, -1, -1)` for a boat of the unit
+    /// type `ty` born at `at`: its index, or none when the list is full.
+    pub(crate) fn transport_boat(&mut self, who: Player, ty: usize, at: Pos) -> Option<usize> {
+        let index = self.find_free(who, UNIT_BASE, BUILD_BASE)?;
         let mut boat = Unit::new(who, index, at, self.unit_types[ty].hits);
         boat.kind = self.unit_types[ty].kind;
         boat.ty = Some(ty);
@@ -1431,38 +1430,7 @@ impl Sim {
         if self.counts_in_muster(b) {
             self.track_unit_type(who, ty, 1);
         }
-        self.same_damage(b, u);
-        // The boat is born on the caster's land tile and walked to the
-        // water; it is a sea unit crossing the shore the other way, so the
-        // step is taken while the caster still holds the land.
-        self.set_new_location(b, spot, true);
-        // **And the move onto the water reveals** (`docs/VISION.md` §11).
-        // The call is `set_new_location(boat, x, y, 1, 1)` — `671027`..
-        // `67102f` push `1, 1, y, x` — and `005f8d20`'s tile arm, on a
-        // half-cell crossing, calls `update_seen(param_3 == 0)`: the
-        // **whole disc** at the spot, on top of the one `add_to_world`
-        // threw at the caster's point. This crate's `set_new_location`
-        // carries no reveal; its move-step caller does it in `moved_to`.
-        self.moved_to(b, at, false);
-        let angle = self.units[u].movement.heading;
-        self.units[b].movement.set_facing(angle);
-        // The orders, in order, then the boat throws away the cast at the
-        // head of them.
-        let list = std::mem::take(&mut self.units[u].orders);
-        self.units[b].orders = list;
-        self.kill_current_order(b);
-        // The path stack, whole, with the top's embark flag dropped when it
-        // is already on the boat's own side of the shore.
-        let mut path = std::mem::take(&mut self.units[u].path);
-        if let Some(top) = path.last_mut()
-            && self.world.tregion_alt(top.to.tile()) == self.world.tregion_alt(spot.tile())
-        {
-            top.flags &= !crate::orders::path_flag::TRANSPORT;
-        }
-        self.units[b].path = path;
-        self.units[b].auto_transport = true;
-        self.clear_orders(u);
-        self.board(u, b);
+        Some(b)
     }
 
     /// `Unit::same_damage(o, who)@005f9400`: the boat comes out of the
@@ -1473,7 +1441,7 @@ impl Sim {
     /// figure, killing whole figures off a squad too hurt to carry it. Every
     /// unit that boards in a capture so far is a single figure at full
     /// health, where the walk and this line agree on zero.
-    fn same_damage(&mut self, boat: usize, u: usize) {
+    pub(crate) fn same_damage(&mut self, boat: usize, u: usize) {
         let hits = self.units[u].max_health.max(1);
         let frac = ((hits - self.units[u].health).max(0) << 8) / hits;
         let boat_hits = self.units[boat].max_health;
@@ -1502,7 +1470,7 @@ impl Sim {
     ///
     /// SEAM: the `+0x68 & ~0x4000000` beside that clear (the move-facing
     /// bit `add_move_facing_order` sets) is state this crate does not keep.
-    fn board(&mut self, u: usize, boat: usize) {
+    pub(crate) fn board(&mut self, u: usize, boat: usize) {
         let mut head = u;
         for _ in 0..self.units.len() {
             let Some(a) = self.units[head].o_up else {
