@@ -12,16 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-19, **the forty-fifth tranche (commander, Opus): 5 of 20 landed from `43e161a7`**, three lanes (DECISIONS
-83): 3306, 3314 and 3318 closed the Iroquois, the Romans and the Spanish at their games' ends, 3322 the Romans' closing state; 3304 swept its six. The last whole gate is `9783c682`'s (3314's booking, green, 6 of 6).*
+*2026-10-19, **the forty-fifth tranche (commander, Opus): 8 of 20 landed from `43e161a7`**, three lanes (DECISIONS
+83): 3306, 3314, 3318, 3326 and 3331 closed the Iroquois, the Romans, the Spanish, the Greeks and the Japanese, 3322 the Romans' closing state; 3304 swept six, 3320 five. The last whole gate is `af32a740`'s (3320's booking, green, 6 of 6).*
 
 - **Words**: every pair closed. Battery `GreatLakesIroquoisTier3` **closed at 12658** (3306, run954; its closing state
   compared whole on run897b's 12659); `EastIndiesRomanTier2` **576 → 18620 of 18620** (3314, runs 955, 956; the
-  Americans minted at 9382), its closing state zero apart (3322: a closed decoy's last round, run959); `GreatSaharaSpanishTier3` **576 → 22700 of 22700** (3318, runs 957, 958; the
-  Greeks minted at 176, now 3326's); the German closed at 13519. Census 1555 → 1561, port 393 → 402. Median 4770.
-- **Lanes: three live**: 3329 Opus (att-3329, runs 962, 963, AI §267, KN), 3326 Opus (att-3326, runs 960, 961, AI §266,
-  KM), 3320 Sonnet (att-3320, KK); 3302, 3303 held. Landings: 3306, 3304, 3314, 3318, 3322. Next 3330, run 964. Pools: GOLDEN §144–148,
-  AI §268–272, park JK, KO–KR. **Ramon's**: 3188, 3237, 3118, 1570, 3143, 3313.
+  Americans minted at 9382), its closing state zero apart (3322: a closed decoy's last round, run959); `GreatSaharaSpanishTier3` **576 → 22700 of 22700** (3318, runs 957, 958);
+  `GreatSaharaGreekTier1` **176 → 24000** (3326, run 961); `GreatSaharaJapaneseTier1` **576 → 24000** (3331, run 965; the
+  Koreans minted at 9185). The battery generalises: on `987c4c33` it measures 6563, 2974, **24000**, 9130, **14991**,
+  1567, 9185, 9382 — the Chinese and the Turks above their pins (parked 3326b, the pass's to re-pin). Census 1555 → 1566, port 393 → 411. Median 4770.
+- **Lanes: three live**: 3329 Opus (att-3329, runs 962, 963, AI §267, KN), 3332 Opus (att-3332, runs 966, 967, AI §269,
+  KQ), 3330 Sonnet (att-3330, KO); 3302, 3303 held. Landings: 3306, 3304, 3314, 3318, 3322, 3320, 3326, 3331. Next 3333, run 968. Pools: GOLDEN §144–148,
+  AI §270–272, park JK, KR–KV. **Ramon's**: 3188, 3237, 3118, 1570, 3143, 3313.
 - **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3240, 3311, 3312, 3313, 3323, 3327, 3328).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,8 +33,8 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1561 of 3611 · port 402 · layout 1159
+Battery word: GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
+Census: simulation backed 1566 of 3611 · port 411 · layout 1155
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -44,18 +46,10 @@ word on `--model 'claude-opus-5-5[1m]' --effort medium`, the sweep on `'claude-s
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's** (the forty-fourth steer, DECISIONS 83):
-3326 and 3329 the battery words' (Opus), 3320 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its
+3329 and 3332 the battery words' (Opus), 3330 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its
 widening exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed
-until 3326's pin lands (`AI_WORDS` holds four closed games); open: the Greeks at 176 on Great Sahara (3326) and the
-Dutch at 1567 on East Indies (3329). Take the first unstarted item unless a better order is clear, and say why. The backlog is `docs/PARKED.md`.
-
-3326. **The battery's lowest game, `GreatSaharaGreekTier1` at 176** (entry 72: 3318 closed the Spanish at 22700, and
-    the lowest lobby left is the one it minted; Great Sahara, Greek, Difficulty 1, a first try of 176): promoted by
-    3314's and 3318's recipe — `diff::greek_word` and its `AI_WORDS` pin, the lobby leaving `BATTERY`, a replacement
-    lobby minted (a nation no dump holds, a tier the map's battery lacks; run 960) so the held-out set stays eight —
-    **its widening first**: grep the lobby's start and long dumps for 176, a Great Sahara window capture at detail
-    only for what they cannot answer (run 961), every dumped record either side, both directions. Lands wide. AI
-    §266, park KM.
+until 3329's pin lands (`AI_WORDS` holds six closed games); open: the Dutch at 1567 on East Indies (3329) and the
+Egyptians at 2974 on Great Sahara (3332). Take the first unstarted item unless a better order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3329. **The battery's next lowest game, `EastIndiesDutchTier4` at 1567 of 24000** (entry 72: 3322 closed the Romans'
     closing state, and the lowest lobby after the Greeks, 3326's, is the Dutch, minted by 3107; the game does not end
@@ -64,12 +58,19 @@ Dutch at 1567 on East Indies (3329). Take the first unstarted item unless a bett
     widening first**: grep the lobby's start and long dumps for 1567, an East Indies window capture at detail only for
     what they cannot answer (run 963), every dumped record either side, both directions. Lands wide. AI §267, park KN.
 
-3320. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 402; 3304 built
-    all six of its batch, with sim fixes the sweeps forced in `do_attack` and `check_target_path`, no pin moved, parked
-    3304a–g): `SpellType::cast_ambush`, `Unit::find_gather_spot`, `Objects::add_flock`, `Unit::do_air_physics`,
-    `Unit::think_civilian_transport`, `SpellType::cast_create_decoy` (`census.py --unbacked`, the `port` mark) — each
-    built against the crate's own method where it has one, or parked naming the generator flag it could not spell.
-    `--kind sweep`.
+3332. **The battery's lowest open game, `GreatSaharaEgyptianTier4` at 2974 of 20380** (entry 72, by the measure on
+    `987c4c33`, the Dutch at 1567 being 3329's): ours 9 draws against theirs 12 at index 2 — ours `Guy::set_anim+0x97a
+    < Guy::do_turn+0x4a < Unit::move_step+0x389`, theirs `Guy::set_anim+0x104b`. Promoted by the recipe —
+    `diff::egyptian_word` and its `AI_WORDS` pin, the lobby leaving `BATTERY`, a replacement minted (run 966) —
+    **its widening first**: grep the lobby's start and long dumps for 2974, a Great Sahara window capture at detail
+    only for what they cannot answer (run 967), both directions. Lands wide. AI §269, park KQ.
+
+3330. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 411; 3320 built
+    five of six, with sim fixes the sweeps forced in Ambush's time, `find_gather_spot`'s return and the decoy limits,
+    parked 3320a–h): `Group::action_queue_up`, `UnitData::calc_gather`, `Unit::think_spellcaster`,
+    `TechType::compute_ai_values`, `SpellType::cast_transport`, `Unit::go_around_building` (`census.py --unbacked`,
+    the `port` mark) — each built against the crate's own method where it has one, or parked naming the generator
+    flag it could not spell. `--kind sweep`.
 
 ## How to maintain this file
 

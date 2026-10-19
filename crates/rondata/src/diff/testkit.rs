@@ -9903,6 +9903,42 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Japanese word** (item 3331, DECISIONS 72, 83): frame
+    // 576, the Japanese lobby's first try. run960 dumps blocks 0..36 and
+    // run960b its setup and closing blocks only, so no dump on disk held
+    // the word's block: its widening is run965's window over 570..826
+    // (`run965_s_word_frame_is_widened_whole`: who=1's timber and food,
+    // the Japanese farm arms). **Item 3331 moved it 576 → 24000, the
+    // long's last frame**: run965's test keeps 576's value diff, and the
+    // close is compared whole on run960b's own closing block 24001 by
+    // `run960b_japanese_closing_state`.
+    (
+        "JAPANESE_WORD",
+        crate::diff::japanese_word::JAPANESE_WORD,
+        Some("run960b_japanese_closing_state"),
+        3331,
+        Some(crate::diff::japanese_word::WIDENING_JAPANESE_CLOSING),
+    ),
+    // **The battery's Greek word** (item 3326, DECISIONS 72, 83): frame
+    // 176, the Greek lobby's first try. run957 dumps blocks 0..36 and
+    // run957b its setup and closing blocks only, so no dump on disk held
+    // the word's block: its widening is run961's window over 170..426
+    // (`run961_s_word_frame_is_widened_whole`). **Item 3326 moved it 176 →
+    // 1976** (the Greek research-time arm), widened on run961b over
+    // 1970..2226, with run961c the gap 37..170; **and 1976 → 19182** (the
+    // Greek research cost and Library arms), widened on run961d over
+    // 19176..19432 (`run961d_s_word_frame_is_widened_whole`: who=1's
+    // `pop_cap`, the Colossus' 50). **And 19182 → 24000, the long's last
+    // frame** (the Colossus' cap): run961d's test keeps 19182's value diff,
+    // and the close is compared whole on run957b's own closing block 24001
+    // by `run957b_greek_closing_state`.
+    (
+        "GREEK_WORD",
+        crate::diff::greek_word::GREEK_WORD,
+        Some("run957b_greek_closing_state"),
+        3326,
+        Some(crate::diff::greek_word::WIDENING_GREEK_CLOSING),
+    ),
     // **The battery's Great Sahara word** (item 3318, DECISIONS 72, 83):
     // frame 576, the Spanish lobby's first try. run896 dumps blocks 0..36
     // and run896b its setup and closing blocks only, so no dump on disk
@@ -10289,6 +10325,38 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 24_000,
         endpoint: None,
         window: Some("dutch_frame_23782_window"),
+    },
+    // **The battery's Japanese word** (DECISIONS 72, 83; item 3331): Great
+    // Sahara, the Japanese at Difficulty 1 — the held-out battery's lowest
+    // lobby once item 3326 closed the Greeks; the game does not end itself,
+    // and the long runs to 24000. It joins the `Battery word` line first;
+    // the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaJapaneseTier1",
+        named: "Great Sahara (Japanese)",
+        word: crate::diff::japanese_word::JAPANESE_WORD,
+        length: 24_000,
+        // Closed by item 3331: the draw stream agrees to 24000, and
+        // run960b's closing block 24001 scores the end itself.
+        endpoint: Some("run960b_japanese_closing_state"),
+        window: Some("japanese_frame_576_window"),
+    },
+    // **The battery's Greek word** (DECISIONS 72, 83; item 3326): Great
+    // Sahara, the Greeks at Difficulty 1 — the held-out battery's lowest
+    // lobby once item 3318 closed the Spanish; the game does not end
+    // itself, and the long runs to 24000. It joins the `Battery word` line
+    // first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaGreekTier1",
+        named: "Great Sahara (Greeks)",
+        word: crate::diff::greek_word::GREEK_WORD,
+        length: 24_000,
+        // Closed by item 3326: the draw stream agrees to 24000, and
+        // run957b's closing block 24001 scores the end itself.
+        endpoint: Some("run957b_greek_closing_state"),
+        window: Some("greek_frame_19182_window"),
     },
     // **The battery's Great Sahara word** (DECISIONS 72, 83; item 3318):
     // the Spanish at Difficulty 3 — the held-out battery's lowest lobby

@@ -296,9 +296,9 @@ class Shapes(unittest.TestCase):
             stubs=['0x401100:1'], answer_range=['0:0:80'], port='0')
         compile(script, str(sp), 'exec')
         self.assertIn('ANSRANGE = [(0, 0, 80)]', script)
-        self.assertIn('for idx, lo, hi in ANSRANGE:', script)
+        self.assertIn('for idx, lo, hi, *st in ANSRANGE:', script)
         # Drawn after `--answers`, so the range is the last word.
-        self.assertLess(script.index('for idx, vals in ANSWERS:'), script.index('for idx, lo, hi in ANSRANGE:'))
+        self.assertLess(script.index('for idx, vals in ANSWERS:'), script.index('for idx, lo, hi, *st in ANSRANGE:'))
         self.assertIn('stub 0 answers 0..80 every row', script)
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,

@@ -955,89 +955,17 @@ impl Sim {
     /// `general_upgrade` is the caster's leader's
     /// [`Sim::general_upgrade_level`] (`docs/AI.md` §172).
     ///
-    /// SEAM: Porus's and
-    /// Kutosov's multiples; the leader's other two counters
-    /// (`+0x93c`, `+0x808`); `is_caravan` as the two caravan ids; the sound.
+    /// The body is [`crate::cast_decoy::cast_create_decoy_steps`] (item 3320;
+    /// Porus's and Kutosov's multiples are modelled there).
+    ///
+    /// SEAM: the leader's other two counters (`+0x93c`, `+0x808`);
+    /// `is_caravan` as the two caravan ids; the sound.
     pub(crate) fn cast_create_decoy(&mut self, g: usize) {
-        let who = self.units[g].owner;
-        let limit = (self.general_upgrade_level(who) + 2) * 5;
-        let mut made = self
-            .units
-            .iter()
-            .filter(|x| x.alive() && x.owner == who && x.captain && x.decoy)
-            .count() as i32;
-        // The caster may be a patriot: its own hero radius includes the
-        // subtype's bonus (GOLDEN §60, run588's President).
-        let radius = self.hero_radius(g) * 0xc0;
-        let centre = self.units[g].pos;
-        // `unit_masks & 0x40000` (a computer's unit): the General's army,
-        // which every copy joins (`Army::add_unit`, the call at `674712`) before its
-        // figures are marked. run346's `1/98` on 11637: army 4's group 70
-        // lists 37, the six squads after the nineteen (item 1302).
-        let army = if self.ai_driven(who) {
-            self.army_of(g)
-        } else {
-            None
-        };
-        let mut list: Vec<usize> = (0..self.units.len())
-            .filter(|&u| self.units[u].owner == who)
-            .collect();
-        list.sort_by_key(|&u| std::cmp::Reverse(self.units[u].index));
-        let mut any = false;
-        for u in list {
-            let unit = &self.units[u];
-            if !unit.alive() || !unit.captain || unit.decoy || u == g {
-                continue;
-            }
-            let Some(ty) = unit.ty else { continue };
-            if self.unit_domain_of(u) != crate::attrition::Domain::Land
-                || self.profile(Obj::Unit(u)).attack == 0
-                || (PEASANTS..=0x35).contains(&unit.type_index)
-                || matches!(unit.type_index, 0x3b | 0x3c)
-                || self.is_merchant(u)
-            {
-                continue;
-            }
-            let d = crate::world::vector_dist(unit.pos.x - centre.x, unit.pos.y - centre.y);
-            if d >= radius {
-                continue;
-            }
-            let Some(spot) = self.find_nearby_spot_type_for(
-                self.decoy_search_type(g, ty),
-                g,
-                centre,
-                0x180,
-                -1,
-                crate::movement::Angle(0),
-            ) else {
-                break;
-            };
-            let head = self.init_unit(who, ty, spot);
-            if let Some(slot) = army {
-                self.army_add_unit(who, slot, head);
-            }
-            any = true;
-            if self.unit_types[ty].price.pop != 0 {
-                self.track_unit_type(who, ty, -1);
-            }
-            let mut at = Some(head);
-            while let Some(x) = at {
-                self.units[x].decoy = true;
-                self.units[x].mana_burn = 0;
-                // `cast_create_decoy@00674370`'s `update_los`: term 12's
-                // one tile, on the cache.
-                self.update_los(x);
-                at = self.units[x].o_down;
-            }
-            made += 1;
-            if made >= limit {
-                break;
-            }
-        }
-        if !any && let Some(d) = self.spell(spell::CREATE_DECOY) {
-            let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
-            self.units[g].mana_burn -= back.min(self.units[g].mana_burn);
-        }
+        // The body is `crate::cast_decoy::cast_create_decoy_steps`, the
+        // original's flow over a view, which the emulator sweep also runs
+        // (item 3320).
+        let mut view = crate::cast_decoy::SimDecoy::new(self, g);
+        crate::cast_decoy::cast_create_decoy_steps(&mut view, g as i32);
     }
 
     /// The type the decoy's spot search is **asked with**: the caster's
@@ -1046,7 +974,7 @@ impl Sim {
     /// `this` from the caster `param_1`), while the copy itself is made
     /// with the source's type (`6746d1..6746ed`) — twenty-fourth pass,
     /// group 11; A6 row 45. A caster with no type falls back to the source.
-    fn decoy_search_type(&self, caster: usize, source: usize) -> usize {
+    pub(crate) fn decoy_search_type(&self, caster: usize, source: usize) -> usize {
         self.units[caster].ty.unwrap_or(source)
     }
 
@@ -1245,19 +1173,27 @@ impl Sim {
     /// [`Sim::cast_march`] reads), and `unit_masks |= 0x2800`
     /// (`docs/AI.md` §261).
     ///
+    /// Parmenio's (`0x168`) `PARMENIO_AMBUSH_TIME` 8.8 scale is
+    /// [`cast_ambush_steps`]'s.
+    ///
     /// SEAM: `0x800`, the cloak `UnitData::is_seen` and `is_cloaked` read,
     /// and `Unit::set_new_location` clears on the hero's next step — the
     /// hero arm casts Ambush only on the move, so it lasts a step; the
     /// leader's `0x4000`, which only `Leader::verify_spell_flags` reads;
-    /// Parmenio's (`0x168`) `PARMENIO_AMBUSH_TIME` 8.8 scale, which this
-    /// crate does not load; the console's sound.
+    /// the console's sound.
     pub(crate) fn cast_ambush(&mut self, g: usize) {
         let Some(d) = self.spell(crate::orders::spell::AMBUSH) else {
             return;
         };
         let level = self.general_upgrade_level(self.units[g].owner);
-        let end = self.frame + i64::from(march_extent(d.duration, d.duration_upgrade, level));
-        self.units[g].ambushing = Some(end);
+        let mut view = SimAmbush {
+            sim: self,
+            g,
+            duration: d.duration,
+            duration_upgrade: d.duration_upgrade,
+            level,
+        };
+        cast_ambush_steps(&mut view);
     }
 
     /// `Caster::process_spells(o, who, 0)@00739ad0` on a hero, from the
@@ -1484,9 +1420,126 @@ pub(crate) fn march_extent(duration: i32, duration_upgrade: i32, level: i32) -> 
     duration.wrapping_add(level.wrapping_mul(duration_upgrade))
 }
 
+/// What `SpellType::cast_ambush@00671610` reads and writes, in the order it
+/// does (item 3320): the sweep (`sweep/spell_type_cast_ambush.rs`) lays the
+/// original's records as bytes and implements this over them; [`Sim`]
+/// implements it over the crate's state.
+pub(crate) trait AmbushView {
+    /// `game->frame` (`+0x550`).
+    fn frame(&self) -> i32;
+    /// `SpellType +0x1d4`, `+0x1d8`.
+    fn spell_extent(&self) -> (i32, i32);
+    /// `LeaderData::get_general_upgrade`.
+    fn general_upgrade(&mut self) -> i32;
+    /// The unit's `is(0x168, 0)` (vslot `+0xb8`; Parmenio).
+    fn is_parmenio(&mut self) -> bool;
+    /// `constants->parmenio_ambush_time` (`+0xb58`), 8.8.
+    fn parmenio_ambush_time(&self) -> i32;
+    /// The hero's `ActiveSpell { 0x27b, start, end }` appended.
+    fn push_active_spell(&mut self, start: i32, end: i32);
+    /// The unit's `unit_masks |= 0x2800` and the leader's `leader_flags |=
+    /// 0x4000`.
+    fn set_flags(&mut self);
+    /// The console's `S_GENERAL_AMBUSH` when the caster is its player.
+    fn console_sound(&mut self);
+}
+
+/// `SpellType::cast_ambush@00671610`'s body over [`AmbushView`]. Parmenio's
+/// extent is scaled by `PARMENIO_AMBUSH_TIME` (8.8): the product shifted
+/// right by eight, rounding toward zero.
+pub(crate) fn cast_ambush_steps<V: AmbushView>(v: &mut V) {
+    let start = v.frame();
+    let level = v.general_upgrade();
+    let (duration, upgrade) = v.spell_extent();
+    let mut extent = march_extent(duration, upgrade, level);
+    if v.is_parmenio() {
+        let p = v.parmenio_ambush_time().wrapping_mul(extent);
+        extent = p.wrapping_add((p >> 31) & 0xff) >> 8;
+    }
+    let end = v.frame().wrapping_add(extent);
+    v.push_active_spell(start, end);
+    v.set_flags();
+    v.console_sound();
+}
+
+/// [`Sim`]'s [`AmbushView`]: an `ActiveSpell` is `ambushing`; the cloak
+/// `0x800`, the leader's `0x4000` and the sound are unmodelled (the SEAM on
+/// [`Sim::cast_ambush`]).
+struct SimAmbush<'a> {
+    sim: &'a mut Sim,
+    g: usize,
+    duration: i32,
+    duration_upgrade: i32,
+    level: i32,
+}
+
+impl AmbushView for SimAmbush<'_> {
+    fn frame(&self) -> i32 {
+        self.sim.frame as i32
+    }
+    fn spell_extent(&self) -> (i32, i32) {
+        (self.duration, self.duration_upgrade)
+    }
+    fn general_upgrade(&mut self) -> i32 {
+        self.level
+    }
+    fn is_parmenio(&mut self) -> bool {
+        self.sim.units[self.g].type_index == 0x168
+    }
+    fn parmenio_ambush_time(&self) -> i32 {
+        self.sim.tuning.parmenio_ambush_time
+    }
+    fn push_active_spell(&mut self, _start: i32, end: i32) {
+        self.sim.units[self.g].ambushing = Some(i64::from(end));
+    }
+    fn set_flags(&mut self) {}
+    fn console_sound(&mut self) {}
+}
+
 #[cfg(test)]
 mod tests {
     use crate::tech::{TypeDef, UnitTraits};
+
+    /// **Parmenio's Ambush** (item 3320; `SpellType::cast_ambush@00671610`):
+    /// his `ActiveSpell` runs `PARMENIO_AMBUSH_TIME` (the file's `3/1`, 768
+    /// at 8.8) times the usual extent, shifted right by eight and rounded
+    /// toward zero. Made to fail with the tuning at 256.
+    #[test]
+    fn parmenio_s_ambush_is_three_times_as_long() {
+        struct V(i32, bool, Option<(i32, i32)>);
+        impl super::AmbushView for V {
+            fn frame(&self) -> i32 {
+                1000
+            }
+            fn spell_extent(&self) -> (i32, i32) {
+                (300, 100)
+            }
+            fn general_upgrade(&mut self) -> i32 {
+                2
+            }
+            fn is_parmenio(&mut self) -> bool {
+                self.1
+            }
+            fn parmenio_ambush_time(&self) -> i32 {
+                self.0
+            }
+            fn push_active_spell(&mut self, start: i32, end: i32) {
+                self.2 = Some((start, end));
+            }
+            fn set_flags(&mut self) {}
+            fn console_sound(&mut self) {}
+        }
+        assert_eq!(Tuning::RON.parmenio_ambush_time, 768);
+        let run = |t: i32, parmenio: bool| {
+            let mut v = V(t, parmenio, None);
+            super::cast_ambush_steps(&mut v);
+            v.2.expect("pushed")
+        };
+        assert_eq!(run(Tuning::RON.parmenio_ambush_time, false), (1000, 1500));
+        assert_eq!(run(Tuning::RON.parmenio_ambush_time, true), (1000, 2500));
+        // Toward zero: 500 × -255 / 256 is -498.05.
+        assert_eq!(run(-255, true), (1000, 1000 - 498));
+    }
     use crate::world::{Cell, Terrain, World};
     use crate::{Pos, Sim, Tuning, Unit, UnitType};
 

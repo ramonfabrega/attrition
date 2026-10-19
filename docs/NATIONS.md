@@ -56,7 +56,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 2 | Inca | inca | `inca` | 3 | none |
 | 3 | Bantu | bantu | `bantu` | 5 | none |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
-| 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (map 7, tier 1) |
+| 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (AI word, tier 1) |
 | 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (map 7, tier 4) |
 | 8 | Turks | turks | `turks` | 7 | none |
@@ -66,7 +66,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
 | 13 | Russians | russians | `russians` | 10 | `GreatLakesRussianTier2` (map 14, tier 2) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
-| 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | none |
+| 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
 | 16 | Koreans | koreans | `koreans` | 6 | scored pairs |
 | 17 | Mongols | mongols | `mongols` | 3 | none |
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
@@ -116,7 +116,9 @@ says in its doc comment that only the British and Mongol arms are built,
 | Chinese | a large-city building on assimilation | `City::assimilate@00738e90` | modelled at city.rs | `chinese_large_cities` |
 | Chinese | herbal lore applied on tech gain | `Leader::gain_tech@006dcb60` | loaded at load.rs | `chinese_herbal_lore` |
 | Chinese | knowledge upgrades applied on tech gain (0 in the rules) | `Leader::gain_tech@006dcb60` | carried, unread | `chinese_knowledge_upgrades` |
-| Greeks | research faster (train_time's research tail) | `ObjectData::train_time@006508c0` | not modelled | `greek_research_speed` |
+| Greeks | an age or an epoch researches faster (train_time's research tail) | `ObjectData::train_time@006508c0` | modelled at lib.rs | `greek_research_speed` |
+| Greeks | an age or an epoch costs 10% less in every good but knowledge | `TypeData::get_cost@00664090` | modelled at lib.rs | `greek_research_cost` |
+| Greeks | a Library or a University costs 66% less | `TypeData::get_cost@00664090` | modelled at city.rs | `greek_library_cost` |
 | Romans | legions train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `roman_legion_fast` |
 | French | siege units train faster | `ObjectData::train_time@006508c0` | not modelled | `french_siege_speed` |
 | French | special (general) units train faster, 0 in the rules | `ObjectData::train_time@006508c0` | not modelled | `french_special_speed` |
@@ -124,6 +126,8 @@ says in its doc comment that only the British and Mongol arms are built,
 | Germans | submarines train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_submarine_speed` |
 | Japanese | barracks units train faster (negative in the rules) | `ObjectData::train_time@006508c0` | not modelled | `japanese_barracks_speed` |
 | Japanese | carriers train faster | `ObjectData::train_time@006508c0` | not modelled | `japanese_carrier_speed` |
+| Japanese | a Farm costs 50% less | `TypeData::get_cost@00664090` | modelled at city.rs | `japanese_farms_cheaper` |
+| Japanese | a farmer gathers 25% more food (calc_gather's flat branch) | `BuildTypeData::calc_gather@00639e40` | modelled at holdings.rs | `japanese_fishing_boats` |
 | Lakota | raze speed (train_time's tail) | `ObjectData::train_time@006508c0` | not modelled | `lakota_raze_speed` |
 | Mongols | stable units train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `mongol_stable_speed` |
 | British | ships, archers and anti-air train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `british_ship_speed` |
@@ -164,14 +168,14 @@ left out; a constant with no reader in the export is dead there too.
 | `NUBIAN_MERCHANTS` | 10 | TypeData::get_cost | not carried | `nubian_merchants` |
 | `NUBIAN_HIT_POINTS` | 50 | Unit::update_hits, Wall::update_hits | modelled at cast.rs | `nubian_hit_points` |
 | `NUBIAN_MARKET_PRICES` | 20 | LeaderData::calc_market_prices | modelled at ai_make.rs | `nubian_market_prices` |
-| `GREEK_RESEARCH_SPEED` | 100 | ObjectData::train_time | not carried | `greek_research_speed` |
-| `GREEK_RESEARCH_COST` | 10 | TypeData::get_cost | not carried | `greek_research_cost` |
+| `GREEK_RESEARCH_SPEED` | 100 | ObjectData::train_time | modelled at lib.rs | `greek_research_speed` |
+| `GREEK_RESEARCH_COST` | 10 | TypeData::get_cost | modelled at lib.rs | `greek_research_cost` |
 | `GREEK_KNOWLEDGE_EARLY` | 1 | LeaderData::has_preq | modelled at tech.rs | `greek_knowledge_early` |
 | `GREEK_UNIVERSITY_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `greek_university_early` |
 | `GREEK_START_SCHOLARS` | 0 | Setup::build_units | not carried | `greek_start_scholars` |
 | `GREEK_AGE_KNOWLEDGE` | 0 | TypeData::get_cost | not carried | `greek_age_knowledge` |
 | `GREEK_CLASSICAL` | 0 | TypeData::get_cost | not carried | `greek_classical` |
-| `GREEK_LIBRARY_COST` | 66 | TypeData::get_cost | not carried | `greek_library_cost` |
+| `GREEK_LIBRARY_COST` | 66 | TypeData::get_cost | modelled at city.rs | `greek_library_cost` |
 | `GREEK_SCHOLARS_FAST` | 0 | no reader in the export | not carried | `greek_scholars_fast` |
 | `GREEK_DELAY_KNOWLEDGE` | 1 | Leader::gain_tech, Leader::init | modelled at lib.rs | `greek_delay_knowledge` |
 
@@ -291,9 +295,9 @@ left out; a constant with no reader in the export is dead there too.
 | `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | not carried | `japanese_barracks_speed` |
 | `JAPANESE_SHIP_COST` | 10 | TypeData::get_cost | not carried | `japanese_ship_cost` |
 | `JAPANESE_AIRCRAFT_CARRIERS_SPEED` | 33 | no reader in the export | not carried | `japanese_aircraft_carriers_speed` |
-| `JAPANESE_FISHING_BOATS` | 25 | BuildTypeData::calc_gather, LeaderData::calc_rare | not carried | `japanese_fishing_boats` |
+| `JAPANESE_FISHING_BOATS` | 25 | BuildTypeData::calc_gather, LeaderData::calc_rare | modelled at holdings.rs | `japanese_fishing_boats` |
 | `JAPANESE_CARRIER_SPEED` | 33 | ObjectData::train_time | not carried | `japanese_carrier_speed` |
-| `JAPANESE_FARMS_CHEAPER` | 50 | TypeData::get_cost | not carried | `japanese_farms_cheaper` |
+| `JAPANESE_FARMS_CHEAPER` | 50 | TypeData::get_cost | modelled at cost.rs | `japanese_farms_cheaper` |
 | `KOREAN_START_CITIZEN` | 3 | no reader in the export | not carried | `korean_start_citizen` |
 | `KOREAN_FREE_CITIZEN` | 5 | no reader in the export | not carried | `korean_free_citizen` |
 | `KOREAN_CITIZENS` | [1, ...] | Build::activate, Setup::build_units | modelled at nations.rs | `korean_citizens` |
@@ -457,7 +461,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Leader::lost_a_city@006dc6d0` | 23 | carried at city.rs | `fn lost_a_city` |
 | `LeaderData::get_caravan_limit@006dca50` | 4 | carried at ai_units.rs | `006dca50` |
 | `Leader::gain_tech@006dcb60` | 5 6 7 8 9 10 11 12 13 14 16 17 18 19 20 21 23 | carried at lib.rs | `006dcb60` |
-| `LeaderData::get_general_upgrade@006e0830` | 4 | carried at rares.rs | `006e0830` |
+| `LeaderData::get_general_upgrade@006e0830` | 4 | carried at cast_decoy.rs | `006e0830` |
 | `LeaderData::get_supply_upgrade@006e0880` | 4 | not modelled | `006e0880` |
 | `LeaderData::calc_rare@006e08d0` | 4 15 | carried at economy.rs | `006e08d0` |
 | `LeaderData::has_bonus@006e0b80` | 4 | not modelled | `006e0b80` |

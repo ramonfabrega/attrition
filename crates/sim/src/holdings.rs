@@ -431,6 +431,19 @@ impl Sim {
                 0
             },
         );
+        // `calc_gather:978`–`985`: the flat branch's food, for a Japanese
+        // leader (item 3331).
+        let nation_pct = if resource == Resource::Food
+            && self.is_kind(b, Ident::Farm)
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[bd.owner as usize],
+                crate::nations::power::JAPANESE,
+            ) {
+            self.tuning.japanese_fishing_boats
+        } else {
+            0
+        };
         Site {
             resource,
             gatherers,
@@ -439,6 +452,7 @@ impl Sim {
             } else {
                 1
             },
+            nation_pct,
         }
     }
 
@@ -869,6 +883,7 @@ mod tests {
                 resource: Resource::Food,
                 gatherers: 0,
                 level: 1,
+                nation_pct: 0,
             }],
             "the farm is a site the moment it is finished, with nobody on it"
         );
@@ -898,6 +913,32 @@ mod tests {
         assert_eq!(ledger.bucket[Resource::Food.index()], expected);
         // And nothing else moved.
         assert_eq!(ledger.bucket[Resource::Metal.index()], 0);
+    }
+
+    /// `BuildTypeData::calc_gather@00639e40:978`–`985`: a Japanese farm's
+    /// food per gatherer is `(JAPANESE_FISHING_BOATS + 100) × rate / 100`,
+    /// and it is the nation, not the player (item 3331, `docs/AI.md` §268).
+    #[test]
+    fn a_japanese_farmer_gathers_a_quarter_more_food() {
+        let mut sim = world_sim();
+        let t = install(&mut sim);
+        build(&mut sim, 0, t.village, 32, 32);
+        let farm = build(&mut sim, 0, t.farm, 40, 32);
+        let u = spawn(&mut sim, 0, t.citizen, tile_pos(44, 32));
+        gather_until_arrived(&mut sim, u, farm);
+        let rate = |sim: &mut Sim| {
+            sim.assemble_holdings(0);
+            economy::city_rates(&sim.tuning, &sim.holdings[0].cities[0])[0]
+        };
+        let city = sim.tuning.city_gather[0] * RATE_SCALE;
+        let plain = rate(&mut sim);
+        assert_eq!(plain - city, 160, "PEASANT_RATE, in sixteenths");
+        sim.set_tribe(0, 15);
+        assert_eq!(sim.holdings[0].cities.len(), 1);
+        assert_eq!(rate(&mut sim) - city, 200, "160 × 125 / 100");
+        assert_eq!(sim.holdings[0].cities[0].sites[0].nation_pct, 25);
+        sim.set_tribe(0, 16);
+        assert_eq!(rate(&mut sim), plain, "the Koreans farm at cost");
     }
 
     #[test]

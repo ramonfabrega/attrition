@@ -2372,8 +2372,8 @@ impl Sim {
             // clears `paid` before its own kill, so only an interrupted cast
             // reaches it: run346's `1/98`, whose Create Decoys the army's
             // tick replaced with an `ATTACK_TO` on 11508, `mana_burn` 903 →
-            // 0 (item 1302). SEAM: `unpay_cost`'s resources, which
-            // `pay_cast_costs` is not modelled as taking either.
+            // 0 (item 1302). SEAM: the refund's resources (the cost
+            // type's unpay), which `pay_cast_costs` is not modelled as taking either.
             Body::Cast(c) if c.paid && !closing => {
                 if let Some(d) = self.spell(c.spell) {
                     let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
@@ -9421,129 +9421,20 @@ impl Sim {
 
     /// `Unit::find_gather_spot` (§6.6): the best gather building of the
     /// owner's with room, scored on the **headroom under the commerce cap**
-    /// of the goods it gathers, divided by the distance.
+    /// of the goods it gathers, divided by the distance. The search is
+    /// [`find_gather_spot_steps`] over [`GatherSpotSim`], the same steps
+    /// `sweep::unit_find_gather_spot` drives over the emulated original's
+    /// windows (item 3320).
     pub(crate) fn find_gather_spot(&mut self, u: usize, range: i32) -> bool {
         let who = self.units[u].owner;
         let here = self.units[u].pos;
-        let scholar = self.worker_of(u) == Worker::Scholar;
-        // A scholar searches without a range limit: `find_gather_spot@
-        // 005f5170:44` keeps the caller's range only `if (!bVar2)`, where
-        // `bVar2` is the `SCHOLARS`/`SCHOLARSKOREAN` test — otherwise it
-        // stays −1. (`docs/audit/2026-08-21-orders.md` R4 G42.)
-        let range = if scholar { -1 } else { range };
-        let region = self.world.tregion(here.tile());
-        // `find_city_at(x, y, who, −1, 0)` on the citizen's own position: the
-        // city it counts as standing in, and the input to the crossing rule.
-        let my_city = self.find_city_at(who, here, None);
-        // `local_20 = 0` and a strict `<`: the first maximum wins, and a
-        // building whose score is not **above** zero is never taken.
-        let mut best: Option<(i32, usize)> = None;
-        let mut best_score = 0;
-        for b in 0..self.buildings.len() {
-            let bd = &self.buildings[b];
-            if !bd.alive || !bd.active || bd.owner != who || !self.is_gather_type(b) {
-                continue;
-            }
-            if (self.building_ident(b) == Ident::University) != scholar {
-                continue;
-            }
-            if !self.gather_room(b) && !self.is_gathering_at(u, b, false) {
-                continue;
-            }
-            if self.world.tregion(self.buildings[b].pos.tile()) != region {
-                continue;
-            }
-            if !scholar
-                && let Some(mine) = my_city
-                && !self.crosses_to(who, mine, self.buildings[b].city)
-            {
-                continue;
-            }
-            let dist = vector_dist(
-                self.buildings[b].pos.x - here.x,
-                self.buildings[b].pos.y - here.y,
-            );
-            if range > 0 && dist > range {
-                continue;
-            }
-            let score = self.gather_spot_value(who, b) * 500 / (dist / TILE + 2);
-            if score > best_score {
-                best_score = score;
-                best = Some((score, b));
-            }
-        }
-        let Some((_, b)) = best else {
-            return false;
+        let mut v = GatherSpotSim {
+            sim: self,
+            u,
+            who,
+            here,
         };
-        if !self.is_gathering_at(u, b, false) {
-            self.add_gather_order(u, b, QueuePos::Last, false);
-        }
-        true
-    }
-
-    /// `find_gather_spot@005f5170:108` — whether a citizen standing in city
-    /// `mine` will walk to a building belonging to city `theirs`.
-    ///
-    /// It always will inside its own city, and never when its own city holds
-    /// fewer than two citizens (`CityData +0x5a free` plus `+0x5c gatherers`,
-    /// the census counters). Otherwise it crosses only to a building of no
-    /// city at all, or to a city that is more than two citizens *less*
-    /// crowded than its own.
-    fn crosses_to(&self, who: Player, mine: usize, theirs: Option<usize>) -> bool {
-        if theirs == Some(mine) {
-            return true;
-        }
-        // `city_ai` only exists as far as the last census reached, and a
-        // human leader never runs one — so an absent record is zero, which
-        // is what the original's `CityData` holds for the same reason.
-        let pop = |c: usize| {
-            self.ai[who as usize]
-                .city_ai
-                .get(c)
-                .map_or(0, |r| i32::from(r.free) + i32::from(r.gatherers))
-        };
-        let mypop = pop(mine);
-        if mypop < 2 {
-            return false;
-        }
-        match theirs {
-            Some(c) => mypop > pop(c) + 2,
-            None => true,
-        }
-    }
-
-    /// The numerator of `find_gather_spot`'s score: over the six goods, the
-    /// ones this leader has and this building gathers, each contributing the
-    /// **unused** part of its commerce cap — `resource_cap[g] − income[g]`,
-    /// both in sixteenths — and skipped entirely while the good is already
-    /// over its cap. `has_tribe_bonus(0x16)` — the Dutch interest — adds
-    /// [`DUTCH_INTEREST_HEADROOM`] to every good but knowledge, because
-    /// `Leader::do_gather` lets that bonus carry income that far above the
-    /// commerce cap.
-    ///
-    /// This is what sends a citizen to a farm rather than to a nearer
-    /// woodcutter's camp once the camp's timber is closer to the ceiling.
-    fn gather_spot_value(&self, who: Player, b: usize) -> i32 {
-        let Some(good) = crate::ai_place::gather_good(self.building_ident(b)) else {
-            return 0;
-        };
-        let w = who as usize;
-        if !self.holdings[w].available[good] {
-            return 0;
-        }
-        let ledger = &self.ledgers[w];
-        if ledger.over_cap[good] != economy::OverCap::Under {
-            return 0;
-        }
-        let mut v = ledger.cap[good] - ledger.income[good];
-        if good != economy::Resource::Knowledge.index()
-            && self
-                .tech_tree
-                .has_tribe_bonus(&self.setup, &self.tech[w], 0x16)
-        {
-            v += DUTCH_INTEREST_HEADROOM;
-        }
-        v
+        find_gather_spot_steps(&mut v, range)
     }
 
     // ------------------------------------------------------------------
@@ -12681,4 +12572,250 @@ pub(crate) fn adjacent_steps(
         }
     }
     dist(false) < ADJACENT
+}
+
+/// What `Unit::find_gather_spot@005f5170` asks of the world (item 3320): the
+/// owner's object list from `obj_base[1]` to its count, and for each object
+/// the vtable questions, the region and city tests, the position and the
+/// six-good ledger. Every method is one call (or one read) of the original;
+/// the steps ask them in the original's order, which is what lets
+/// `sweep::unit_find_gather_spot` answer each from the stub that stands for it.
+pub trait GatherSpotView {
+    /// `obj_base[1]`, where the loop starts.
+    fn first(&mut self) -> i32;
+    /// `objects.count[owner]`, where it ends.
+    fn count(&mut self) -> i32;
+    /// `ObjectData::is_scholar(this)` (`UnitTypeData +0x4` in `0x34`/`0x35`).
+    fn scholar(&mut self) -> bool;
+    /// `get_tregion` of the unit's own tile.
+    fn region_of_unit(&mut self) -> i32;
+    /// `find_city_at(unit's position, owner, -1, 0)`, negative for none.
+    fn city_of_unit(&mut self) -> i32;
+    /// The unit's position, `(x, y)`.
+    fn unit_pos(&mut self) -> (i32, i32);
+    /// Vtable `+0xc` of object `i`.
+    fn alive(&mut self, i: i32) -> bool;
+    /// Vtable `+0x4c`.
+    fn active(&mut self, i: i32) -> bool;
+    /// The type's gather flag (data `+0x18`, vtable `+0x90`).
+    fn gather_type(&mut self, i: i32) -> bool;
+    /// Data vtable `+0x180` (`WallData::is_neutralized` answers no).
+    fn neutralized(&mut self, i: i32) -> bool;
+    /// `is(0x1a4)`: a University.
+    fn is_university(&mut self, i: i32) -> bool;
+    /// `BuildData::num_gatherers(0, 0)`.
+    fn num_gatherers(&mut self, i: i32) -> i32;
+    /// `BuildData +0x80`, a signed byte.
+    fn max_gatherers(&mut self, i: i32) -> i32;
+    /// `UnitData::is_gathering_at(i, owner, 0)`.
+    fn gathering_at(&mut self, i: i32) -> bool;
+    /// `get_tregion` of the object's tile.
+    fn region_of(&mut self, i: i32) -> i32;
+    /// `BuildData +0x72`, the object's city (a short, negative for none).
+    fn city_of(&mut self, i: i32) -> i32;
+    /// A city's `free + gatherers` (`CityData +0x5a`, `+0x5c`).
+    fn city_pop(&mut self, c: i32) -> i32;
+    /// The object's position.
+    fn pos_of(&mut self, i: i32) -> (i32, i32);
+    /// `LeaderData::type_avail(good, 1)`.
+    fn good_avail(&mut self, g: usize) -> bool;
+    /// `building.is(best_gather_type(good))`.
+    fn gathers(&mut self, i: i32, g: usize) -> bool;
+    /// The ledger's per-good state word is the `0x8932` code (under the cap).
+    fn under_cap(&mut self, g: usize) -> bool;
+    /// `(cap ^ 0x1281) - (income ^ 0x90236)`, wrapping.
+    fn headroom(&mut self, g: usize) -> i32;
+    /// `LeaderData::has_tribe_bonus(0x16)`.
+    fn dutch(&mut self) -> bool;
+    /// `Unit::add_gather_order(i, QUEUE_LAST, 0)`.
+    fn add_gather_order(&mut self, i: i32);
+}
+
+/// `Unit::find_gather_spot@005f5170` — the whole function over a
+/// [`GatherSpotView`]; `range` is the caller's first stack argument.
+///
+/// Answers **false when the best building is one the unit is already
+/// gathering at** (`5f5601`, `jne` to the `xor eax, eax` exit): the old
+/// body answered true there without adding an order. A scholar searches
+/// without a range limit (`bVar2`, the `0x34`/`0x35` test of the header).
+pub fn find_gather_spot_steps<V: GatherSpotView>(v: &mut V, range: i32) -> bool {
+    /// The knowledge good's place in the six-good table (`cmp ebx, 3`).
+    const KNOWLEDGE: usize = 3;
+    let header_scholar = v.scholar();
+    let range = if header_scholar { -1 } else { range };
+    let region = v.region_of_unit();
+    let my_city = v.city_of_unit();
+    let mut best: i32 = -1;
+    let mut best_score = 0;
+    let mut i = v.first();
+    while i < v.count() {
+        let cur = i;
+        i += 1;
+        if !v.alive(cur) || !v.active(cur) || !v.gather_type(cur) || v.neutralized(cur) {
+            continue;
+        }
+        // Proceed only when the building is a University exactly when the
+        // unit is a scholar.
+        let univ = v.is_university(cur);
+        if univ != v.scholar() {
+            continue;
+        }
+        if v.num_gatherers(cur) >= v.max_gatherers(cur) && !v.gathering_at(cur) {
+            continue;
+        }
+        if v.region_of(cur) != region {
+            continue;
+        }
+        if !v.scholar() && my_city >= 0 {
+            let theirs = v.city_of(cur);
+            if my_city != theirs {
+                let mypop = v.city_pop(my_city);
+                if mypop < 2 {
+                    continue;
+                }
+                if theirs >= 0 && mypop <= v.city_pop(theirs) + 2 {
+                    continue;
+                }
+            }
+        }
+        let (ux, uy) = v.unit_pos();
+        let (bx, by) = v.pos_of(cur);
+        let dist = crate::world::vector_dist((ux - bx).abs(), (uy - by).abs());
+        if range > 0 && dist > range {
+            continue;
+        }
+        let mut sum: i32 = 0;
+        for g in 0..6 {
+            if !v.good_avail(g) || !v.gathers(cur, g) || !v.under_cap(g) {
+                continue;
+            }
+            let h = v.headroom(g);
+            if v.dutch() && g != KNOWLEDGE {
+                sum = sum.wrapping_add(DUTCH_INTEREST_HEADROOM);
+            }
+            sum = sum.wrapping_add(h);
+        }
+        let score = sum.wrapping_mul(500) / (dist / TILE + 2);
+        if best_score < score {
+            best = cur;
+            best_score = score;
+        }
+    }
+    if best < 0 || v.gathering_at(best) {
+        return false;
+    }
+    v.add_gather_order(best);
+    true
+}
+
+/// [`GatherSpotView`] over the live [`Sim`]: the buildings are the objects
+/// (an index that is not the owner's, or dead, answers `alive` no), the six
+/// goods are the ledger's, and the city counters are the census's
+/// `free + gatherers` (an absent record is zero, as for a human leader).
+struct GatherSpotSim<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    who: Player,
+    here: Pos,
+}
+
+impl GatherSpotView for GatherSpotSim<'_> {
+    fn first(&mut self) -> i32 {
+        0
+    }
+    fn count(&mut self) -> i32 {
+        self.sim.buildings.len() as i32
+    }
+    fn scholar(&mut self) -> bool {
+        self.sim.worker_of(self.u) == Worker::Scholar
+    }
+    fn region_of_unit(&mut self) -> i32 {
+        self.sim
+            .world
+            .tregion(self.here.tile())
+            .map_or(-1, i32::from)
+    }
+    fn city_of_unit(&mut self) -> i32 {
+        self.sim
+            .find_city_at(self.who, self.here, None)
+            .map_or(-1, |c| c as i32)
+    }
+    fn unit_pos(&mut self) -> (i32, i32) {
+        (self.here.x, self.here.y)
+    }
+    fn alive(&mut self, i: i32) -> bool {
+        let b = &self.sim.buildings[i as usize];
+        b.alive && b.owner == self.who
+    }
+    fn active(&mut self, i: i32) -> bool {
+        self.sim.buildings[i as usize].active
+    }
+    fn gather_type(&mut self, i: i32) -> bool {
+        self.sim.is_gather_type(i as usize)
+    }
+    fn neutralized(&mut self, _i: i32) -> bool {
+        // SEAM: a wall is not a gather type here, so the slot's `WallData`
+        // answer (always no) is the only one reached.
+        false
+    }
+    fn is_university(&mut self, i: i32) -> bool {
+        self.sim.building_ident(i as usize) == Ident::University
+    }
+    fn num_gatherers(&mut self, i: i32) -> i32 {
+        self.sim.num_gatherers(i as usize, false, false)
+    }
+    fn max_gatherers(&mut self, i: i32) -> i32 {
+        // `None` is uncapped.
+        self.sim.buildings[i as usize]
+            .gather_max
+            .unwrap_or(i32::MAX)
+    }
+    fn gathering_at(&mut self, i: i32) -> bool {
+        self.sim.is_gathering_at(self.u, i as usize, false)
+    }
+    fn region_of(&mut self, i: i32) -> i32 {
+        self.sim
+            .world
+            .tregion(self.sim.buildings[i as usize].pos.tile())
+            .map_or(-1, i32::from)
+    }
+    fn city_of(&mut self, i: i32) -> i32 {
+        self.sim.buildings[i as usize].city.map_or(-1, |c| c as i32)
+    }
+    fn city_pop(&mut self, c: i32) -> i32 {
+        // `city_ai` only exists as far as the last census reached, and a
+        // human leader never runs one — so an absent record is zero, which
+        // is what the original's `CityData` holds for the same reason.
+        self.sim.ai[self.who as usize]
+            .city_ai
+            .get(c as usize)
+            .map_or(0, |r| i32::from(r.free) + i32::from(r.gatherers))
+    }
+    fn pos_of(&mut self, i: i32) -> (i32, i32) {
+        let p = self.sim.buildings[i as usize].pos;
+        (p.x, p.y)
+    }
+    fn good_avail(&mut self, g: usize) -> bool {
+        self.sim.holdings[self.who as usize].available[g]
+    }
+    fn gathers(&mut self, i: i32, g: usize) -> bool {
+        crate::ai_place::gather_good(self.sim.building_ident(i as usize)) == Some(g)
+    }
+    fn under_cap(&mut self, g: usize) -> bool {
+        self.sim.ledgers[self.who as usize].over_cap[g] == economy::OverCap::Under
+    }
+    fn headroom(&mut self, g: usize) -> i32 {
+        let l = &self.sim.ledgers[self.who as usize];
+        l.cap[g].wrapping_sub(l.income[g])
+    }
+    fn dutch(&mut self) -> bool {
+        let w = self.who as usize;
+        self.sim
+            .tech_tree
+            .has_tribe_bonus(&self.sim.setup, &self.sim.tech[w], 0x16)
+    }
+    fn add_gather_order(&mut self, i: i32) {
+        self.sim
+            .add_gather_order(self.u, i as usize, QueuePos::Last, false);
+    }
 }

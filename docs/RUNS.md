@@ -18632,3 +18632,177 @@ SHA-256 `87e0dde29c1b4c77159e6c79e52c47e36b9e495ab7cb6d98e999c7b9cadd4e33`.
 
 **What it holds**: `diff::dutch_word::run963d_s_word_frame_is_widened_whole` (225 blocks): 1819 keys on the first
 build (who=1's `pop_cap` 150 against 200 from 23776), **197** with the Colossus; it holds the word 23985 too.
+## run960 — the battery's replacement lobby: Great Sahara, Japanese at difficulty 1, a `DUMP_ALL` start (2026-10-19, item 3326, `att-3326`)
+
+`docs/AI.md` §266. **What the disk could not answer**: the Greeks left the battery for the AI word, and the held-out
+set stays eight with a lobby no dump holds — a nation (the Japanese, 15) no dump had held, at the tier (1) the Greeks
+left on the map's battery. `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 15 --profile
+DIFFICULTY=1`.
+- Pool lane 2. Launched 04:36:11 (relaunched after 300 s) and the game exited at 04:42:53 (401 s). `success`, 37
+  frames, `map_style 7`, seed 12345, players `(0, 4, 7), (1, 15, 1)`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run960-greatsahara-japanese-diff1-start.txt`, 149,596,257 bytes,
+SHA-256 `ae74df6de1d333e6714e8a6d1597cfa3771e4fc4cad11550956ae60f7273ac8a`.
+
+Archive `rontrace-run960.log`, 8,590,944 bytes,
+SHA-256 `7e110799205c5394e7b0ed98f30e9641b3e7a34cab23c2d972449540e1c63f19`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaJapaneseTier1` start.
+
+## run960b — the same lobby, the draw stream to the game's end (2026-10-19, item 3326, `att-3326`)
+
+`docs/AI.md` §266. run957b's recipe with `--ai-tribe 15`: `--map 7 --end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=1` and run643's four
+`--detail` lines.
+- Pool lane 3. The first take (launched 04:31, moved aside as `~/ron-golden/run960b-deadtake1`) died at startup:
+  process exit 5 then 40, a 704-byte trace. The retake launched 04:34:48 and the game exited at 04:36:45 (117 s).
+  `success`, 24001 frames, `ended_early` false. `rngcmp.py rontrace-run960.log rontrace-run960b.log`: **37
+  identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run960b-greatsahara-japanese-diff1-24k-trace.txt`, 12,366,712 bytes,
+SHA-256 `e463d887edbe41be8cf90a780b31bea648f2479fa8bd15e87000189843cfc589`.
+
+Archive `rontrace-run960b.log`, 75,485,088 bytes,
+SHA-256 `6f5af1156f9dbaf0f491abba38ea9dbcf58da3bc7cfc226882a0d06ea3e13d6b`.
+
+**What it holds**: the Japanese's first try, **576 / 576** (ours 56 draws, theirs 35, index 4: ours
+`Leader::compute_sites+0x4ac`, theirs `Animal::think_bird+0x82`), pinned in `battery::BATTERY`.
+
+## run961 — the AI word: Great Sahara, Greeks at difficulty 1, the word 176's widening (170..426) (2026-10-19, item 3326, `att-3326`)
+
+`docs/AI.md` §266. **What the disk could not answer**: run957 prints blocks 0..36 and run957b only the setup and
+closing blocks; no dump of the lobby holds the word's frame 176. `--map 7 --end-frame 432 --timeout 2400 --log-window
+170 427 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 5 --cover cover=0 --profile
+DIFFICULTY=1`.
+- Pool lane 1. Launched 04:31:06 and the game exited at 04:44:21 (795 s). `success`, 433 frames, `map_style 7`, seed
+  12345. `rngcmp.py rontrace-run957b.log rontrace-run961.log`: **433 identical, 0 differing**. Filed with
+  `filerun.py run961 greatsahara-greek-diff1-window-170-427-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run961-greatsahara-greek-diff1-window-170-427-guys4.txt`, 404,673,296 bytes,
+SHA-256 `95ba02f7f05f0b1e06f222530684d9ae454bb98c15d8de37676dfb85b044c82d`.
+
+Archive `rontrace-run961.log`, 9,009,792 bytes,
+SHA-256 `7850ca0269893db9276379cb418e0b1a44c57c41cab50c0f4b7cef88650a5c74`.
+
+**What it holds**: `diff::greek_word::run961_s_word_frame_is_widened_whole` (257 blocks). On 176 theirs' who=1 calls
+`city_placement` five times with City State held; with the research-time arm 36 keys, with the research-cost arm
+**35**, the standing set alone. Its window is in the coverage driver.
+
+## run961b — the AI word: Great Sahara, Greeks, the word 1976's widening (1970..2226) (2026-10-19, item 3326, `att-3326`)
+
+`docs/AI.md` §266. **What the disk could not answer**: the research-time arm moved the word to 1976, past run961's
+last block 426; no dump of the lobby holds a block between 426 and the game's end. run961's `--detail`, tribe, cover
+and profile, with `--end-frame 2232 --timeout 3600 --log-window 1970 2227`.
+- Pool lane 3. Launched 04:42:17 and the game exited at 04:57:17 (900 s). `success`, 2233 frames, `map_style 7`,
+  seed 12345. `rngcmp.py rontrace-run957b.log rontrace-run961b.log`: **2233 identical, 0 differing**. Filed with
+  `filerun.py run961b greatsahara-greek-diff1-window-1970-2228-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run961b-greatsahara-greek-diff1-window-1970-2228-guys4.txt`, 414,690,255 bytes,
+SHA-256 `3761a9cad568fb10d7a263b77ad690d65191141d40cfe2094652e79b6edb0244`.
+
+Archive `rontrace-run961b.log`, 12,095,456 bytes,
+SHA-256 `eb5d9026a79655c3fe772def25c810ef0dd7cda88f2783eca1d7a48d81640350`.
+
+**What it holds**: `diff::greek_word::run961b_s_word_frame_is_widened_whole` (257 blocks). Theirs places the
+University `1/2013` on 1976 at timber 27, wealth 17; with the Library arm **30** keys, the standing set alone. Its
+window is in the coverage driver.
+
+## run961c — the AI word: Great Sahara, Greeks, the gap between run957 and run961 (37..170) (2026-10-19, item 3326, `att-3326`)
+
+`docs/AI.md` §266. **What the disk could not answer**: run961's block 170 was already apart in who=1's food; run957
+stops at 36. run961's tribe, cover and profile, with `--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--end-frame 175 --timeout 2400 --log-window 37 171`.
+- Pool lane 2. Launched 04:55:38 and the game exited at 05:01:39 (361 s). `success`, 176 frames, `map_style 7`, seed
+  12345. `rngcmp.py rontrace-run957b.log rontrace-run961c.log`: **176 identical, 0 differing**. Filed with
+  `filerun.py run961c greatsahara-greek-diff1-window-37-171`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run961c-greatsahara-greek-diff1-window-37-171.txt`, 205,579,683 bytes,
+SHA-256 `d459961ed96def5eab8dd2fb8df0168797c114b70db67fdc1cd7299df909306b`.
+
+Archive `rontrace-run961c.log`, 8,662,656 bytes,
+SHA-256 `33de43089d311393a4176ac0f2cf2ae4eac82e7ebdebb867c6df68eb1caf64b0`.
+
+**What it holds**: `diff::greek_word::run961c_s_gap_is_widened_whole`. Block 37 parts who=1's food 82 against 94 and
+the Library `1/2005`'s City State `cost[0]` 120 against 108; with the research-cost arm **35** keys, the standing set
+alone. Its window is in the coverage driver.
+
+## run961d — the AI word: Great Sahara, Greeks, the word 19182's widening (19176..19432) (2026-10-19, item 3326, `att-3326`)
+
+`docs/AI.md` §266. **What the disk could not answer**: the Greek Library arm moved the word to 19182, past run961b's
+last block 2226; no dump of the lobby holds a block between 2226 and the closing block. run961's `--detail`, tribe,
+cover and profile, with `--end-frame 19437 --timeout 7200 --log-window 19176 19433`.
+- Pool lane 1. Launched 05:05:40 and the game exited at 05:23:21 (1061 s). `success`, 19438 frames, `map_style 7`,
+  seed 12345. `rngcmp.py rontrace-run957b.log rontrace-run961d.log`: **19438 identical, 0 differing**. Filed with
+  `filerun.py run961d greatsahara-greek-diff1-window-19176-19433-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run961d-greatsahara-greek-diff1-window-19176-19433-guys4.txt`, 530,930,038 bytes,
+SHA-256 `de25e0d3bbe685ef83a859282bb9d555ba474dc4b3ba0c3fbb1eea1d53f8556e`.
+
+Archive `rontrace-run961d.log`, 73,306,496 bytes,
+SHA-256 `4db74b669443c9a40fc0de2650051e92d59ee59a00eb9a9b564c6bb8aa864d88`.
+
+**What it holds**: `diff::greek_word::run961d_s_word_frame_is_widened_whole` (257 blocks). Block 19176 parts who=1's
+`pop_cap`, ours 110 against theirs 160 — the Colossus' 50; with the Colossus term **41** keys, the standing set
+alone, and the word moved 19182 → 24000. Its window is in the coverage driver.
+
+## run964 — the battery's replacement lobby: Great Sahara, Koreans at difficulty 3, a `DUMP_ALL` start (2026-10-19, item 3331, `att-3331`)
+
+`docs/AI.md` §268. **What the disk could not answer**: the Japanese left the battery for the AI word, and the held-out
+set stays eight with a lobby no dump holds — a nation (the Koreans, 16) no dump had held, at a tier (3) no battery
+lobby holds. `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 16 --profile DIFFICULTY=3`.
+- Pool lane 2. Launched 06:13:58 and the game exited at 06:20:43 (406 s). `success`, 37 frames, `map_style 7`, seed
+  12345, players `(0, 4, 7), (1, 16, 1)`. Filed with `filerun.py run964 greatsahara-korean-diff3-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run964-greatsahara-korean-diff3-start.txt`, 149,631,597 bytes,
+SHA-256 `da21f0c675ba86e05a9387e3b1cd1bbc5c468e6b53bedfdf89a29aa009ffe5ad`.
+
+Archive `rontrace-run964.log`, 8,967,680 bytes,
+SHA-256 `3c0128deff8f7f8f14c71da58e85e59881d148e7eab12792a37975eceba08fc2`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaKoreanTier3` start.
+
+## run964b — the same lobby, the draw stream to the game's end (2026-10-19, item 3331, `att-3331`)
+
+`docs/AI.md` §268. run960b's recipe with `--ai-tribe 16 --profile DIFFICULTY=3`: `--map 7 --end-frame 24000 --timeout
+7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end` and run643's four
+`--detail` lines.
+- Pool lane 3. Launched 06:14:00 and the game exited at 06:15:34 (94 s). `success`, **the game ended itself on 15944**
+  (closing block 15945, `ended_early` true). `rngcmp.py rontrace-run964.log rontrace-run964b.log`: **37 identical, 0
+  differing**. Filed with `filerun.py run964b greatsahara-korean-diff3-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run964b-greatsahara-korean-diff3-24k-trace.txt`, 12,617,547 bytes,
+SHA-256 `08ee9d72cd10db120f405ee209b75bb6c5044ad625bdf1f28ff46563315aa90f`.
+
+Archive `rontrace-run964b.log`, 80,310,112 bytes,
+SHA-256 `ddeadb5b9b02382592589bb282e7a1f50cbf0de9d2076cb02179ecbaa3a2018a`.
+
+**What it holds**: the Koreans' first try, **9185 / 9185** of 15944 (ours 14 draws, theirs 13, index 1: ours
+`Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`), pinned in `battery::BATTERY`.
+
+## run965 — the AI word: Great Sahara, Japanese at difficulty 1, the word 576's widening (570..826) (2026-10-19, item 3331, `att-3331`)
+
+`docs/AI.md` §268. **What the disk could not answer**: run960 dumps blocks 0..36 and run960b its setup and closing
+blocks only, so no block near 576 was on disk. `--map 7 --end-frame 832 --timeout 2400 --log-window 570 827 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 15 --cover cover=0 --profile DIFFICULTY=1`.
+- Pool lane 3. Launched 06:18:09 and the game exited at 06:30:24 (735 s). `success`, 833 frames.
+  `rngcmp.py rontrace-run960b.log rontrace-run965.log`: **833 identical, 0 differing**. Filed with
+  `filerun.py run965 greatsahara-japanese-diff1-window-570-827-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run965-greatsahara-japanese-diff1-window-570-827-guys4.txt`, 407,674,852 bytes,
+SHA-256 `1acbf16099c4356795bf96f30d2f7391f003757520938980616be8138ff60b75`.
+
+Archive `rontrace-run965.log`, 9,468,416 bytes,
+SHA-256 `fcacb6b422bd07a47a2df5613a8cf8206689c04016422bca9f2b91eb2f64cef3`.
+
+**What it holds**: `diff::japanese_word::run965_s_word_frame_is_widened_whole` (257 blocks). Block 570 parts who=1's
+`bucket[1:timber]` 52 against 78 and `income[0:food]` 800 against 960; with the two Japanese farm arms **34** keys, the
+standing set alone, and the word moved 576 → 24000. Its window is in the coverage driver.

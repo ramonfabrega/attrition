@@ -164,7 +164,9 @@ HAND = [
 ]
 
 HAND += [
-    ("Greeks", "research faster (train_time's research tail)", "ObjectData::train_time@006508c0", "not modelled", "greek_research_speed"),
+    ("Greeks", "an age or an epoch researches faster (train_time's research tail)", "ObjectData::train_time@006508c0", "modelled at lib.rs", "greek_research_speed"),
+    ("Greeks", "an age or an epoch costs 10% less in every good but knowledge", "TypeData::get_cost@00664090", "modelled at lib.rs", "greek_research_cost"),
+    ("Greeks", "a Library or a University costs 66% less", "TypeData::get_cost@00664090", "modelled at city.rs", "greek_library_cost"),
     ("Romans", "legions train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "roman_legion_fast"),
     ("French", "siege units train faster", "ObjectData::train_time@006508c0", "not modelled", "french_siege_speed"),
     ("French", "special (general) units train faster, 0 in the rules", "ObjectData::train_time@006508c0", "not modelled", "french_special_speed"),
@@ -172,6 +174,8 @@ HAND += [
     ("Germans", "submarines train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "german_submarine_speed"),
     ("Japanese", "barracks units train faster (negative in the rules)", "ObjectData::train_time@006508c0", "not modelled", "japanese_barracks_speed"),
     ("Japanese", "carriers train faster", "ObjectData::train_time@006508c0", "not modelled", "japanese_carrier_speed"),
+    ("Japanese", "a Farm costs 50% less", "TypeData::get_cost@00664090", "modelled at city.rs", "japanese_farms_cheaper"),
+    ("Japanese", "a farmer gathers 25% more food (calc_gather's flat branch)", "BuildTypeData::calc_gather@00639e40", "modelled at holdings.rs", "japanese_fishing_boats"),
     ("Lakota", "raze speed (train_time's tail)", "ObjectData::train_time@006508c0", "not modelled", "lakota_raze_speed"),
     ("Mongols", "stable units train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "mongol_stable_speed"),
     ("British", "ships, archers and anti-air train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "british_ship_speed"),
@@ -230,7 +234,8 @@ LOBBY = {7: "`GreatSaharaEgyptianTier4` (map 7, tier 4)", 12: "`EastIndiesGerman
          18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (AI word, tier 4)",
          21: "`EastIndiesIndianTier2` (map 18, tier 2)",
          13: "`GreatLakesRussianTier2` (map 14, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
-         9: "`GreatSaharaSpanishTier3` (AI word, tier 3)", 5: "`GreatSaharaGreekTier1` (map 7, tier 1)",
+         9: "`GreatSaharaSpanishTier3` (AI word, tier 3)", 5: "`GreatSaharaGreekTier1` (AI word, tier 1)",
+         15: "`GreatSaharaJapaneseTier1` (map 7, tier 1)",
          6: "`EastIndiesRomanTier2` (AI word, tier 2)", 20: "`EastIndiesAmericanTier1` (map 18, tier 1)",
          4: "the human in every capture", 10: "scored pairs", 11: "scored pairs", 16: "scored pairs"}
 FLAG = {0: "aztecs", 1: "maya", 2: "inca", 3: "bantu", 4: "nubians", 6: "romans", 7: "egyptians",

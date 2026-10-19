@@ -87,6 +87,14 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Greeks, promoted to the AI word (item 3329, DECISIONS 72, 83): the
     // Dutch at Difficulty 4, East Indies.
     (18, 22, 4),
+    // The battery's lowest lobby after item 3318 closed the Spanish,
+    // promoted to the AI word (item 3326, DECISIONS 72, 83): the Greeks at
+    // Difficulty 1, Great Sahara.
+    (7, 5, 1),
+    // The battery's lowest lobby after item 3326 closed the Greeks,
+    // promoted to the AI word (item 3331, DECISIONS 72, 83): the Japanese
+    // at Difficulty 1, Great Sahara.
+    (7, 15, 1),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -193,26 +201,32 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `EastIndiesDutchTier4` (Dutch 22, Difficulty 4, map 18; run915 and
     // run917, 1567 of 24000) left the battery on item 3329 for the AI word
     // (`diff::dutch_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3318 (DECISIONS 72, `docs/AI.md` §125,
-    // §264; runs 957 and 957b) when the Spanish left for the AI word, so
-    // the held-out set stays eight: Great Sahara, the Greeks at Difficulty
-    // 1 — a nation no dump held and a tier no lobby on the map has. The
-    // game does not end itself: the long runs to 24000.
+    // `GreatSaharaGreekTier1` (Greeks 5, Difficulty 1, map 7; run957 and
+    // run957b, 176 of 24000), minted by item 3318, left the battery on item
+    // 3326 for the AI word (`diff::greek_word`, DECISIONS 72, 83).
+    // `GreatSaharaJapaneseTier1` (Japanese 15, Difficulty 1, map 7; run960
+    // and run960b, 576 of 24000), minted by item 3326, left the battery on
+    // item 3331 for the AI word (`diff::japanese_word`, DECISIONS 72, 83).
+    // The lobby minted by item 3331 (DECISIONS 72, 83, `docs/AI.md` §125,
+    // §268; runs 964 and 964b) when the Japanese left for the AI word, so
+    // the held-out set stays eight: Great Sahara, the Koreans at Difficulty
+    // 3 — a nation no dump held, and a tier no battery lobby holds. The game
+    // ends itself on 15944.
     Lobby {
-        name: "GreatSaharaGreekTier1",
+        name: "GreatSaharaKoreanTier3",
         map_style: 7,
-        ai_tribe: 5,
-        difficulty: 1,
-        start: "gamelog-run957-greatsahara-greek-diff1-start.txt",
+        ai_tribe: 16,
+        difficulty: 3,
+        start: "gamelog-run964-greatsahara-korean-diff3-start.txt",
         long: (
-            "gamelog-run957b-greatsahara-greek-diff1-24k-trace.txt",
-            "rontrace-run957b.log",
+            "gamelog-run964b-greatsahara-korean-diff3-24k-trace.txt",
+            "rontrace-run964b.log",
         ),
-        length: 24000,
-        // Item 3318, the first try: ours 15 draws, theirs 36, at 0 ours
-        // `Animal::think_bird+0x82`, theirs `Leader::compute_sites+0x4ac`.
-        count: 176,
-        sequence: 176,
+        length: 15944,
+        // Item 3331, the first try: ours 14 draws, theirs 13, at 1 ours
+        // `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`.
+        count: 9185,
+        sequence: 9185,
     },
     // The lobby minted by item 3329 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §267; runs 962 and 962b) when the Dutch left for the AI word, so the

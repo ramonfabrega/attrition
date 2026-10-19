@@ -71,8 +71,14 @@ pub mod ty {
     /// by lineage (`is(0x14e, 0)`): the Fire Raft through the Submarine.
     pub const FIRERAFT: TypeId = 0x14e;
 
+    /// `FARM`, which the Japanese Farm arm tests by equality
+    /// (`get_cost:1003`–`1008`).
+    pub const FARM: TypeId = 0x1a1;
     /// `UNIVERSITY`.
     pub const UNIVERSITY: TypeId = 0x1a4;
+    /// `LIBRARY`, which the Greek Library arm tests by equality beside the
+    /// University (`get_cost:966`–`972`).
+    pub const LIBRARY: TypeId = 0x1b3;
     /// `BARRACKS`.
     pub const BARRACKS: TypeId = 0x1ab;
     /// `STABLE` and `AUTOPLANT`, the Mongol arm's pair.
@@ -104,6 +110,11 @@ pub(crate) mod power {
     pub const IROQUOIS: usize = 18;
     pub const AMERICANS: usize = 20;
     pub const DUTCH: usize = 22;
+    /// Not `Build::activate`'s: the Greeks' research arm is
+    /// `ObjectData::train_time`'s (`Sim::greek_research`).
+    pub const GREEKS: usize = 5;
+    /// The Japanese' Farm arm is `get_cost`'s (`Sim::japanese_farm_discount`).
+    pub const JAPANESE: usize = 15;
     /// Not `Build::activate`'s: the Persians' caravan is `Build::process`'s
     /// (`Sim::persian_market_caravan`).
     pub const PERSIANS: usize = 23;

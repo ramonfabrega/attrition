@@ -252,6 +252,168 @@ pub(crate) fn pick_air_target<T: Copy>(
     best.map(|(_, t)| t)
 }
 
+/// What `Unit::do_air_physics` reads and does to a bird, as [`air_physics_steps`]
+/// needs it: the unit's point and heading, the world's size, the type's
+/// speed and range, the order's turn flag, and the effects the bird's path
+/// has (the bank, the figure's snap, the coin, the move). [`SimAirPhysics`] is
+/// the live [`Sim`]'s; `sweep::unit_do_air_physics` implements it over the
+/// emulated original's windows.
+pub trait AirPhysicsView {
+    /// The world's width and height in units (`xs * 0x300`, `ys * 0x300`).
+    fn world_units(&self) -> (i32, i32);
+    /// The unit's point.
+    fn pos(&self) -> Pos;
+    /// `get_speed(x, y, 1)`, before the `ai_speed` multiply.
+    fn get_speed(&mut self) -> i32;
+    /// `*GameAccess::ai_speed`.
+    fn ai_speed(&self) -> i32;
+    /// The unit's heading (`+0x50`).
+    fn heading(&self) -> Angle;
+    /// The type's `min_range`.
+    fn min_range(&self) -> i32;
+    /// The order's turn flag (`order +0x10`).
+    fn turn(&self) -> i32;
+    fn set_turn(&mut self, t: i32);
+    /// `Unit::bank_aircraft(des, &speed, 0)`.
+    fn bank_aircraft(&mut self, des: Angle);
+    /// `Guy::set_angle(heading, 1)`: the figure's snap onto the heading.
+    fn snap_facing(&mut self, heading: Angle);
+    /// The edge coin: `Random::get(0, 0xffff)`'s low bit.
+    fn edge_coin(&mut self) -> bool;
+    /// `Unit::set_new_location(x, y, 0, 1)`.
+    fn set_new_location(&mut self, to: Pos);
+}
+
+/// `Unit::do_air_physics`, on the path a wild bird takes through it: the
+/// body of [`Sim::do_air_physics`], over an [`AirPhysicsView`].
+pub fn air_physics_steps<V: AirPhysicsView>(v: &mut V, goal: Pos) {
+    let (xs, ys) = v.world_units();
+    // The waypoint is clamped into the world before anything measures
+    // against it — negatives to zero, and the far edge to one under.
+    let gx = goal.x.clamp(0, xs - 1);
+    let gy = goal.y.clamp(0, ys - 1);
+    let at = v.pos();
+    let (dx, dy) = (gx - at.x, gy - at.y);
+
+    // `get_speed(x, y, 1)` — `AnimalData::get_speed`, which for an air
+    // animal is `UnitData::speed` and nothing else (`orders.rs`). The
+    // `ai_speed` multiply after it is `do_air_physics`'s own, not the
+    // step's.
+    let mut speed = v.get_speed();
+    let ai = v.ai_speed();
+    if ai > 1 {
+        speed *= ai;
+    }
+
+    let heading = v.heading();
+    let mut des = find_angle(dx, dy);
+    // Owing more than forty-five degrees within a tile and a half of the
+    // point, the bird keeps its heading and flies past rather than
+    // wheeling on the spot. `min_range` is the *type's*, which is zero
+    // for a bird, so the radius is the bare `0x300`.
+    let min_range = v.min_range();
+    if owed(heading, des) > HALF_QUARTER && vector_dist(dx, dy) < min_range * 0xc0 + 0x300 {
+        des = heading;
+    }
+    // Already turning away from an edge: the heading it wants is a
+    // quarter turn off the one it has, which is what carries it back
+    // over the map.
+    let turn = v.turn();
+    if turn != 0 {
+        des = Angle(heading.0.wrapping_add(turn.wrapping_shl(30)));
+    }
+
+    v.bank_aircraft(des);
+
+    // `Guy::set_angle(angle, 1)`: the figure snaps onto the unit's
+    // heading rather than turning toward it, and the step is taken
+    // along that.
+    let heading = v.heading();
+    v.snap_facing(heading);
+    let nx = at.x + sin_component(heading, speed);
+    let ny = at.y - cos_component(heading, speed);
+
+    // `UnitData::invalid_loc` on an **air** type is the world's own
+    // rectangle and nothing else: its domain arm (`type +0x218 == 2`)
+    // returns valid before every terrain test, and the caller passes
+    // zero for all five of the flags that would reach the rest. So the
+    // only way a bird's step is refused is by leaving the map.
+    if nx >= 0 && ny >= 0 && nx < xs && ny < ys {
+        v.set_turn(0);
+    } else if v.turn() == 0 {
+        // `((rnd & 0x80000001) != 0) * 2 - 1`, and the draw's range is
+        // `0, 0xffff`, so the sign bit can never be set and it is the
+        // parity that decides.
+        let t = if v.edge_coin() { 1 } else { -1 };
+        v.set_turn(t);
+    }
+    // `WorldData::restrict`, which runs only on the refused step — the
+    // accepted one is already inside.
+    //
+    // **`param_3` is zero** (`005e86d0:237`, `set_new_location(x, y,
+    // 0, 1)`), so the figure is *told* where to be and not put there:
+    // `Unit::set_new_location@005f8d20:158` writes guy 0's `des` from
+    // the unit's new point whatever `param_3` says, and only a
+    // non-zero one teleports it (`:161`). The figure catches up in
+    // `Guy::move`, one step later in the same frame — which is what
+    // makes `des == pos` there mean *the bird did not move this
+    // frame*, and that is the whole of its arrival stand
+    // (`anim.rs`'s `guys_follow`, `docs/SYNC.md` §3.9).
+    v.set_new_location(Pos::new(nx.clamp(0, xs - 1), ny.clamp(0, ys - 1)));
+}
+
+/// [`AirPhysicsView`] over the live [`Sim`]: unit `u` on `frame`.
+struct SimAirPhysics<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    frame: i64,
+}
+
+impl AirPhysicsView for SimAirPhysics<'_> {
+    fn world_units(&self) -> (i32, i32) {
+        (
+            self.sim.world.width() * UNITS_PER_CELL,
+            self.sim.world.height() * UNITS_PER_CELL,
+        )
+    }
+    fn pos(&self) -> Pos {
+        self.sim.units[self.u].pos
+    }
+    fn get_speed(&mut self) -> i32 {
+        self.sim.get_speed(self.u, 1)
+    }
+    fn ai_speed(&self) -> i32 {
+        self.sim.ai_speed
+    }
+    fn heading(&self) -> Angle {
+        self.sim.units[self.u].movement.heading
+    }
+    fn min_range(&self) -> i32 {
+        self.sim.profile(crate::combat::Obj::Unit(self.u)).min_range
+    }
+    fn turn(&self) -> i32 {
+        self.sim.flight(self.u).turn
+    }
+    fn set_turn(&mut self, t: i32) {
+        let mut f = self.sim.flight(self.u);
+        f.turn = t;
+        self.sim.set_flight(self.u, f);
+    }
+    fn bank_aircraft(&mut self, des: Angle) {
+        self.sim.bank_aircraft(self.u, des, self.frame);
+    }
+    fn snap_facing(&mut self, heading: Angle) {
+        self.sim.units[self.u].movement.facing = heading;
+    }
+    fn edge_coin(&mut self) -> bool {
+        self.sim.mark(SITE_AIR_TURN);
+        self.sim.rng.roll() & 1 != 0
+    }
+    fn set_new_location(&mut self, to: Pos) {
+        self.sim.set_new_location(self.u, to, false);
+    }
+}
+
 impl Sim {
     /// A bird's [`Flight`], which starts at a zero bank and no turn.
     pub fn flight(&self, u: usize) -> Flight {
@@ -293,85 +455,14 @@ impl Sim {
     ///
     /// What is left is here, and the one draw in it is the edge coin.
     pub fn do_air_physics(&mut self, u: usize, goal: Pos, frame: i64) {
-        let xs = self.world.width() * UNITS_PER_CELL;
-        let ys = self.world.height() * UNITS_PER_CELL;
-        // The waypoint is clamped into the world before anything measures
-        // against it — negatives to zero, and the far edge to one under.
-        let gx = goal.x.clamp(0, xs - 1);
-        let gy = goal.y.clamp(0, ys - 1);
-        let at = self.units[u].pos;
-        let (dx, dy) = (gx - at.x, gy - at.y);
-
-        // `get_speed(x, y, 1)` — `AnimalData::get_speed`, which for an air
-        // animal is `UnitData::speed` and nothing else (`orders.rs`). The
-        // `ai_speed` multiply after it is `do_air_physics`'s own, not the
-        // step's.
-        let mut speed = self.get_speed(u, 1);
-        if self.ai_speed > 1 {
-            speed *= self.ai_speed;
-        }
-
-        let heading = self.units[u].movement.heading;
-        let mut des = find_angle(dx, dy);
-        // Owing more than forty-five degrees within a tile and a half of the
-        // point, the bird keeps its heading and flies past rather than
-        // wheeling on the spot. `min_range` is the *type's*, which is zero
-        // for a bird, so the radius is the bare `0x300`.
-        let min_range = self.profile(crate::combat::Obj::Unit(u)).min_range;
-        if owed(heading, des) > HALF_QUARTER && vector_dist(dx, dy) < min_range * 0xc0 + 0x300 {
-            des = heading;
-        }
-        // Already turning away from an edge: the heading it wants is a
-        // quarter turn off the one it has, which is what carries it back
-        // over the map.
-        let turn = self.flight(u).turn;
-        if turn != 0 {
-            des = Angle(heading.0.wrapping_add(turn.wrapping_shl(30)));
-        }
-
-        self.bank_aircraft(u, des, frame);
-
-        // `Guy::set_angle(angle, 1)`: the figure snaps onto the unit's
-        // heading rather than turning toward it, and the step is taken
-        // along that.
-        let heading = self.units[u].movement.heading;
-        self.units[u].movement.facing = heading;
-        let nx = at.x + sin_component(heading, speed);
-        let ny = at.y - cos_component(heading, speed);
-
-        // `UnitData::invalid_loc` on an **air** type is the world's own
-        // rectangle and nothing else: its domain arm (`type +0x218 == 2`)
-        // returns valid before every terrain test, and the caller passes
-        // zero for all five of the flags that would reach the rest. So the
-        // only way a bird's step is refused is by leaving the map.
-        if nx >= 0 && ny >= 0 && nx < xs && ny < ys {
-            let mut f = self.flight(u);
-            f.turn = 0;
-            self.set_flight(u, f);
-        } else if self.flight(u).turn == 0 {
-            self.mark(SITE_AIR_TURN);
-            // `((rnd & 0x80000001) != 0) * 2 - 1`, and the draw's range is
-            // `0, 0xffff`, so the sign bit can never be set and it is the
-            // parity that decides.
-            let t = if self.rng.roll() & 1 != 0 { 1 } else { -1 };
-            let mut f = self.flight(u);
-            f.turn = t;
-            self.set_flight(u, f);
-        }
-        // `WorldData::restrict`, which runs only on the refused step — the
-        // accepted one is already inside.
-        //
-        // **`param_3` is zero** (`005e86d0:237`, `set_new_location(x, y,
-        // 0, 1)`), so the figure is *told* where to be and not put there:
-        // `Unit::set_new_location@005f8d20:158` writes guy 0's `des` from
-        // the unit's new point whatever `param_3` says, and only a
-        // non-zero one teleports it (`:161`). The figure catches up in
-        // `Guy::move`, one step later in the same frame — which is what
-        // makes `des == pos` there mean *the bird did not move this
-        // frame*, and that is the whole of its arrival stand
-        // (`anim.rs`'s `guys_follow`, `docs/SYNC.md` §3.9).
-        let to = Pos::new(nx.clamp(0, xs - 1), ny.clamp(0, ys - 1));
-        self.set_new_location(u, to, false);
+        air_physics_steps(
+            &mut SimAirPhysics {
+                sim: self,
+                u,
+                frame,
+            },
+            goal,
+        );
     }
 
     /// `Unit::bank_aircraft(des, &speed, 0)` — the bank angle, and the
