@@ -180,6 +180,14 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         // `RON_DEBUG_UNIT` and `RON_DEBUG_SITES=<lo>-<hi>`'s attributed
         // sites, as the second pair's long walk prints them (item 1206).
         crate::diff::harness::debug_watch(&built, at + 1);
+        if std::env::var("RON_PROBE_WEALTH").ok().and_then(|v| v.parse::<i64>().ok()) == Some(at) {
+            for w in 0..2 {
+                let h = &built.sim.holdings[w];
+                let a = sim::economy::assemble(&built.sim.tuning, h);
+                eprintln!("PROBE f{at} w{w} assemble {:?} rate {:?} handicap {}", a, built.sim.ledgers[w].rate, h.handicap);
+                eprintln!("PROBE f{at} w{w} holdings {:?}", h);
+            }
+        }
         if crate::diff::harness::site_window().is_some_and(|(lo, hi)| (lo..=hi).contains(&at)) {
             for (label, who) in crate::diff::harness::attributed_sites(&built) {
                 eprintln!("  f{at} {who}: {label}");
