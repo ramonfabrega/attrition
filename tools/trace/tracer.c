@@ -261,7 +261,7 @@ typedef struct {
 #error "RON_TARGET_PROBE and RON_TURN_PROBE both claim call-site ids 8 and 9"
 #endif
 #if defined(RON_LEADER_PROBE) && (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE))
-#error "RON_LEADER_PROBE claims call-site ids 8 through 11 too"
+#error "RON_LEADER_PROBE claims call-site ids 8 through 13 too"
 #endif
 #if defined(RON_COLLIDE_PROBE) && \
     (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE) || defined(RON_LEADER_PROBE))
@@ -371,6 +371,14 @@ static const CallSite CALLS[] = {
      * `ret 0x1c`; the CALL carries t, scale, o and escrow, the RET the
      * factor. push ebp; mov ebp,esp; push ecx; mov eax,[ebp+8] */
     {0x2cc800, 7, 7, 0, {0x55, 0x8b, 0xec, 0x51, 0x8b, 0x45, 0x08, 0, 0, 0}},
+    /* TypeData::can_pay_cost@00667570(who, city, o, escrow) — the count
+     * `check_income` compares with `num`; `this` is the type. `ret 0x10`.
+     * push ebp; mov ebp,esp; mov eax,[0xc061e8] (absolute, not rel) */
+    {0x267570, 8, 4, 0, {0x55, 0x8b, 0xec, 0xa1, 0xe8, 0x61, 0xc0, 0x00, 0, 0}},
+    /* TypeData::get_cost@00664090(good, who, o, city, p5, p6, p7) — one
+     * good's price, `ret 0x1c`; the CALL carries good, who, o and city.
+     * Hot: give it a one-frame `callwin`. push ebp; mov ebp,esp; sub esp,0x24 */
+    {0x264090, 6, 7, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x24, 0, 0, 0, 0}},
 #endif
 #ifdef RON_SITE_PROBE
     /* Leader::compute_site_stats@006cd040: ten stack arguments, ret 0x28.

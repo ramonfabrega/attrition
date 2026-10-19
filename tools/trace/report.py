@@ -91,6 +91,8 @@ BY_RVA.update({
     0x2c9be0: ("make_me", ("t", "val", "escrow", "cat", "city", "up", "p7")),
     0x2c94f0: ("make_this", ("slot",)),
     0x2cc800: ("check_income", ("t", "scale", "o", "escrow")),
+    0x267570: ("can_pay_cost", ("who", "city", "o", "escrow")),
+    0x264090: ("get_cost", ("good", "who", "o", "city")),
     # RON_SITE_PROBE uses the return slots for the four output words.
     0x2cd040: ("compute_site_stats", ("wx", "wy", "city", "unit",
                                       "out_wx", "val", "dist")),
