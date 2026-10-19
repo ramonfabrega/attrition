@@ -70,12 +70,19 @@ pub(crate) const DUTCH: Lobby = Lobby {
     // block 23776, who=1's `pop_cap` 150 ours against 200, and its make
     // list topped by `NATION_IN_ARMS` at 9999999 from 23779; both 200
     // after. At 23985 ours 13 draws, theirs 15, at 0: ours
-    // `Leader::produce_building+0x1805`, theirs `Leader::use_market+0x1ed`;
-    // on 23982 theirs bought an `ARTILLERY` (20 timber, 20 metal) that
-    // ours did not, and ours has carried `num_units[270]` −1 and `[271]` 1
-    // since before run963c's first block.
-    count: 23985,
-    sequence: 23985,
+    // `Leader::produce_building+0x1805`, theirs `Leader::use_market+0x1ed`.
+    // **Item 3333 moved it 23985 → 24000, the long's last frame**, with
+    // an Oil Platform priced by the leader's Oil Wells too
+    // (`get_cost@00664090`, `0066598f`..`006659be`): on 23982 both sides
+    // place the Platform `1/2079` from the make list's Oil Well entry, and
+    // ours, counting no Platform, charged it 100 timber and 50 metal where
+    // theirs, counting the Well `1/2078`, charged 120 and 70 — run963d's
+    // block 23983, who=1's `bucket` timber 199 ours against 179, metal 136
+    // against 116; on 23985 theirs could not pay the next Well and went to
+    // the market. run917's closing block 24001 is compared whole
+    // (`run917_dutch_closing_state`).
+    count: 24000,
+    sequence: 24000,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -328,5 +335,66 @@ fn run963d_s_word_frame_is_widened_whole() {
     // 1819 on build 4 (who=1's `pop_cap` 150 against 200 from 23776, the
     // Colossus); **197** with it: run963c's 101 keys that stand from before
     // its window, the standing set, and the word 23985's own rows from 23983.
-    pin_eq!(w.firsts.len(), 197, "keys that part in the window");
+    // **94** with the Oil Platform priced by the Oil Wells (item 3333): the
+    // word's rows — who=1's `bucket` timber 199/179 and metal 136/116 on
+    // 23983, the make list on 23984, and the units that followed it from
+    // 23987 — close; what stands is run963c's rows from before the window
+    // (`num_units[270]`/`[271]`, the merchants' second figures) and the
+    // standing set, the last on 23839.
+    pin_eq!(w.firsts.len(), 94, "keys that part in the window");
+}
+
+/// The closing state's window: run917's closing block alone, the long's
+/// last frame 24000 writing it (item 3333).
+pub(crate) const WIDENING_DUTCH_CLOSING: (i64, i64) = (23999, 24002);
+
+/// **The lobby's closing state** (item 3333, DECISIONS 55): run917 — the
+/// draw stream's own capture, `cover=0` — prints the closing block whole.
+/// The game does not end itself; the long's `!quit` at 24000 closes it.
+#[test]
+fn run917_dutch_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(DUTCH.long.0), dump(DUTCH.start), trace(DUTCH.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Dutch closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 24001, "the closing block");
+    pin_eq!(e.compared, 209, "units compared");
+    // Item 3333, the first walk (the word at 24000): 209 units compared on
+    // block 24001, none apart, no building or city field-row, no closing
+    // field.
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
