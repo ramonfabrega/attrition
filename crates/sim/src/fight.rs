@@ -1508,52 +1508,6 @@ impl Sim {
         self.set_attack_on(i, None);
     }
 
-    /// `do_attack_ground`'s facing: the bearing, or for a broadside type
-    /// (`unit_flags & 0x40`, [`uflags::SIDEWAYS`]) whichever quarter turn
-    /// off it is nearer the heading. Unlike `fight`'s
-    /// ([`Sim::attack_angle`]) there is no patrol-boat exception: the
-    /// point has no domain to ask.
-    pub(crate) fn broadside_angle(&self, i: usize, direct: Angle) -> Angle {
-        let sideways = self.units[i]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::SIDEWAYS));
-        if !sideways {
-            return direct;
-        }
-        const QUARTER: i32 = 0x4000_0000;
-        let heading = self.units[i].movement.heading.0;
-        let off = |a: i32| {
-            let d = heading.wrapping_sub(a) as u32;
-            if d > 0x8000_0000 { !d } else { d }
-        };
-        let minus = direct.0.wrapping_sub(QUARTER);
-        let plus = direct.0.wrapping_add(QUARTER);
-        Angle(if off(minus) < off(plus) { minus } else { plus })
-    }
-
-    pub(crate) fn swing_anim_pub(&mut self, i: usize, angle: Angle) {
-        self.swing_anim(i, angle);
-    }
-
-    /// `do_attack_ground`'s `Object::fire_ammo(−1, −1)`: deferred to the
-    /// release event for a unit its animation launches (§9.0), whose arm
-    /// reads the order's point ([`Sim::guy_release_events`]); from the
-    /// unit's own square otherwise, as `fight`'s strike does.
-    pub(crate) fn fire_ground(
-        &mut self,
-        i: usize,
-        g: crate::orders::AttackGroundOrder,
-        direct: Angle,
-        frame: i64,
-    ) {
-        if self.max_range_of(Obj::Unit(i)) == 0 || self.launches_from_anim(i) {
-            return;
-        }
-        let from = self.units[i].pos;
-        let sz = self.ground_z(from) + 100;
-        self.fire_ammo_ground(Obj::Unit(i), g, direct, frame, from, sz, 0, false, false);
-    }
-
     /// **`Unit::set_attack@005fce70`** — aim the unit's own figures at
     /// `target`, and answer whether its pivot can shoot without the unit
     /// turning (`docs/COMBAT.md` §52).
