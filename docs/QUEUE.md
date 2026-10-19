@@ -13,8 +13,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-18, **the forty-fourth tranche (commander, Opus): 20 landings from `6db69429` in 7 h 35, drained**, four
-lanes (DECISIONS 78 (i)), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `0046c4c3`,
-at 3294's booking (green, 6 of 6; release 13.2 minutes); every booking gate green; the drain's follows.*
+lanes (DECISIONS 78 (i)), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `135bd184`,
+the drain's at 3297's booking (green, 6 of 6; release 11.1 minutes); every booking gate green.*
 
 - **Words**: every pair closed. Battery `GreatLakesIroquoisTier3` 5576 → 12156 of 12658 (3211–3297, nine; this
   tranche 10695 → 12156), its widening owed as 3306; `EastIndiesGermanTier3` closed at 13519. Chapters 102–106 closed
