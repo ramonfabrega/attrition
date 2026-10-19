@@ -9967,14 +9967,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run962b its setup and closing blocks only; the word's windows are
     // run970's (37..472: a goody box's own `ever_seen`, 221 → 1176, and
     // the Indian ramp, → 1177), run970b's (1171..1428: a closed
-    // building's number held, 1177 → 9985) and run970c's, which holds
-    // 9985 (`run970c_s_word_frame_is_widened_whole`).
+    // building's number held, 1177 → 9985), run970c's (9979..10236, with
+    // run970d's gap behind it: the elephant arm and the Stable's group,
+    // 9985 → 14594) and run970e's, which holds 14594
+    // (`run970e_s_word_frame_is_widened_whole`).
     (
         "INDIAN_WORD",
         crate::diff::indian_word::INDIAN_WORD,
-        Some("run970c_s_word_frame_is_widened_whole"),
+        Some("run970e_s_word_frame_is_widened_whole"),
         3335,
-        Some(crate::diff::indian_word::WIDENING_INDIAN_FRAME_9985),
+        Some(crate::diff::indian_word::WIDENING_INDIAN_FRAME_14594),
     ),
     // **The battery's fifth word** (item 3329, DECISIONS 72, 83): frame
     // 1567, the Dutch lobby's first try, moved 1567 → 23985 by the item.
@@ -10342,7 +10344,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::indian_word::INDIAN_WORD,
         length: 24_000,
         endpoint: None,
-        window: Some("indian_frame_9985_window"),
+        window: Some("indian_frame_14594_window"),
     },
     // **The battery's fifth word** (DECISIONS 72, 83; item 3329): East
     // Indies, the Dutch at Difficulty 4 — the held-out battery's lowest

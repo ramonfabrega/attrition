@@ -323,3 +323,47 @@ fn run970d_s_gap_is_widened_whole() {
     // elephant arm. **67 → 62** with the arm: the standing set alone.
     pin_eq!(w.firsts.len(), 62, "keys that part in the gap");
 }
+
+/// run970e: the word 14594's window, blocks 14588..14845 at run970's
+/// detail (item 3335); run970c ends on block 10236.
+pub(crate) const RUN970E: &str = "gamelog-run970e-eastindies-indian-diff2-window-14588-14845-guys4.txt";
+
+/// The window: block 14588 through 14845; the word 14594's own block is
+/// 14595.
+pub(crate) const WIDENING_INDIAN_FRAME_14594: (i64, i64) = (14588, 14845);
+
+pub(crate) fn indian_frame_14594_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INDIAN.start],
+        true,
+        INDIAN.long,
+        "run970e",
+        &[(RUN970E, WIDENING_INDIAN_FRAME_14594.0)],
+        WIDENING_INDIAN_FRAME_14594,
+        1,
+        &[14595],
+        true,
+    )
+}
+
+#[test]
+fn run970e_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = indian_frame_14594_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}
