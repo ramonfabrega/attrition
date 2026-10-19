@@ -224,6 +224,14 @@ impl Sim {
     ///   ([`crate::tech::Roles::explore_map_preq`], Electronics), and
     ///   `fix_tech_flags@006d2480` sets or clears it from `has_tech` of the
     ///   same tech. A tech is never lost here, so holding it is the bit.
+    ///   **And the Spanish**: `Setup::build_empire@005abb80` raises it for a
+    ///   leader with `has_tribe_bonus(9)` once its cities and units stand,
+    ///   and `Build::activate@00623e20` again on every city it founds;
+    ///   only `fix_tech_flags` (from `lose_tech`, never reached here)
+    ///   clears it. `has_tribe_bonus` is false until the leader has a city
+    ///   or a starting town, which is the order both writers keep. run958's
+    ///   who=1 dumps `leader_flags` 4099 (`0x1003`) on every frame (item
+    ///   3318, `docs/AI.md` §264).
     /// - **`0x800`** is `REVEAL_ENEMY_BONUS`'s `preq0` (`disable` in the
     ///   shipped file) or the **Space Program** (`has_wonder(0x21e)`, which
     ///   `gain_tech` tests on every gain and `fix_tech_flags` on a loss).
@@ -237,7 +245,12 @@ impl Sim {
     /// it counts and the cells it slides to (run651's block 1, `docs/AI.md`
     /// §141).
     pub(crate) fn sees_every_cell(&self, who: Player) -> bool {
-        self.holds_bonus(who, self.tech_tree.roles.explore_map_preq) || self.sees_every_unit(who)
+        self.holds_bonus(who, self.tech_tree.roles.explore_map_preq)
+            || self.tech.get(who as usize).is_some_and(|p| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, p, crate::nations::power::SPANISH)
+            })
+            || self.sees_every_unit(who)
     }
 
     /// The two always-true leader arms `WorldData::was_seen@006b53f0` shares
@@ -1539,6 +1552,29 @@ mod tests {
             !fouche.was_seen_fog(fx, fy, 1),
             "a transport galleon sees nothing"
         );
+    }
+
+    /// `Setup::build_empire@005abb80`'s `leader_flags |= 0x1000` for a
+    /// leader with `has_tribe_bonus(9)`: the Spanish count every cell as
+    /// seen once they have a city or a starting town, and nobody else does
+    /// (item 3318, run958's who=1 `leader_flags` 4099).
+    #[test]
+    fn the_spanish_see_every_cell_once_they_hold_the_bonus() {
+        let (mut sim, _) = kit(8, 8, 2);
+        assert!(sim.world.set_fog(vec![0; 8 * 8 * 4]));
+        let (fx, fy) = (2 * 5 + 1, 2 * 5 + 1);
+        sim.tech[1].power = Some(crate::nations::power::SPANISH);
+        sim.setup.starting_town = false;
+        sim.tech[1].has_city = false;
+        assert!(!sim.was_seen_fog(fx, fy, 1), "no city, no bonus: unseen");
+        sim.tech[1].has_city = true;
+        assert!(sim.was_seen_fog(fx, fy, 1), "the Spanish: every cell");
+        assert!(!sim.was_seen_fog(fx, fy, 0), "and only theirs");
+        sim.tech[1].power = Some(crate::nations::power::FRENCH);
+        assert!(!sim.was_seen_fog(fx, fy, 1), "another power: unseen");
+        sim.tech[1].power = Some(crate::nations::power::SPANISH);
+        sim.setup.no_nation_powers = true;
+        assert!(!sim.was_seen_fog(fx, fy, 1), "powers off: unseen");
     }
 
     #[test]
