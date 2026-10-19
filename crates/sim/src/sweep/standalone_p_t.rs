@@ -34,6 +34,8 @@ mod path_finder_find_upath_00682f30;
 mod path_finder_find_upath_restore;
 #[path = "path_finder_find_wpath.rs"]
 mod path_finder_find_wpath;
+#[path = "path_finder_find_wpath_00688fc0.rs"]
+mod path_finder_find_wpath_00688fc0;
 #[path = "path_finder_find_wpath_army.rs"]
 mod path_finder_find_wpath_army;
 #[path = "path_finder_kill_lists.rs"]
