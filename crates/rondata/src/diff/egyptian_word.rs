@@ -425,7 +425,62 @@ fn run645_egyptian_closing_state() {
     pin_eq!(e.compared, 180, "units compared");
     // Item 3336, the first walk (the word at 20380): 180 units compared on
     // block 20381, one apart — the human's Citizen `0/1`, (13, 21) short
-    // of theirs, one step of its `FLEE_TO` — no building or city
-    // field-row, no closing field.
-    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // of theirs, one step of its `FLEE_TO`. run971 placed it: theirs' round
+    // from the Musketeer `1/136` leaves from its release node, (5333,
+    // 26970) against the guy's (5448, 26856), and lands in 4 frames
+    // against ours' 5, so the flee is issued on 20377. With the
+    // Musketeer's two measured nodes (`launch::MEASURED`, piece 49): none
+    // apart, no building or city field-row, no closing field.
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
+/// run971: the game's last blocks, 20368..20380, at run967g's detail with
+/// `AMMO=5` (item 3336); run645 prints only its closing block past its
+/// setup, and run967g ends on 20282.
+pub(crate) const RUN971: &str =
+    "gamelog-run971-greatsahara-egyptian-diff4-window-20368-20380.txt";
+
+/// The window: block 20368 through 20380, the long's last frame.
+pub(crate) const WIDENING_EGYPTIAN_971: (i64, i64) = (20368, 20380);
+
+pub(crate) fn egyptian_close_971_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN.start],
+        true,
+        EGYPTIAN.long,
+        "run971",
+        &[(RUN971, WIDENING_EGYPTIAN_971.0)],
+        WIDENING_EGYPTIAN_971,
+        1,
+        &[20378],
+        true,
+    )
+}
+
+#[test]
+fn run971_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_close_971_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 12, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3336, with the Musketeer's two measured release nodes: **28**
+    // keys, every one the standing set on the window's first block — the
+    // human's site regions and `aggression[1]`, the `form` rows and the
+    // pool and group lists (the capture prints no `GROUPDATA`). Before the
+    // nodes the rounds at the Citizen `0/1` left from the Musketeers' own
+    // squares: `1/136`'s 5 frames against 4, and the flee a tick late.
+    pin_eq!(w.firsts.len(), 28, "run971 with the Musketeer's nodes");
 }

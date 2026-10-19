@@ -55,6 +55,36 @@ pub struct Node {
 /// A piece with no row here launches from the unit's own position, which
 /// is what every shot in this crate did before run109.
 const MEASURED: &[(i32, i8, u32, Node)] = &[
+    // **49 is `MUSKETEERS`** (unit type 99; item 3336, run971 on the
+    // Egyptian Great Sahara seed, `AMMO=5` over `[20368, 20380]`): the
+    // Musketeer's two release events a round of run971 leaves from —
+    // `1/136`'s `CHAR_ATTACK3` at 333 ms (frame 4) on tick 20374, guy
+    // (5448, 26856) at angle −1656487936, `sx, sy, sz` (5333, 26970, 682)
+    // over a guy `z` of 504; and `1/54`'s `CHAR_ATTACK1` at 0 ms (frame 1)
+    // on tick 20378, guy (5544, 26808) at −1641873408, (5426, 26889, 713)
+    // over 495. One shot each, so the bearing is any of the exact fits
+    // (the middle one is kept) and the radius the only one there is;
+    // `CHAR_ATTACK2`'s frame 7 is not measured.
+    (
+        49,
+        crate::anim::ATTACK1,
+        1,
+        Node {
+            bearing: 157_810_688,
+            radius: 142,
+            dz: 218,
+        },
+    ),
+    (
+        49,
+        crate::anim::ATTACK3,
+        4,
+        Node {
+            bearing: 49_020_928,
+            radius: 161,
+            dz: 178,
+        },
+    ),
     (
         127,
         crate::anim::ATTACK1,
