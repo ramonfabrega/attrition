@@ -484,6 +484,12 @@ impl Sim {
     /// carried nowhere: run189's packet holds it at cell 903 after 14,529
     /// frames, `14,529 × 7 mod 3,600`.
     pub(crate) fn scan_and_kill_stray_roads(&mut self) {
+        if std::env::var("RON_PROBE_MESH").is_ok() && self.frame == 10843 {
+            for (x, y) in [(234, 152), (235, 152), (236, 152), (237, 152), (234, 153), (236, 153), (235, 153), (234, 154), (233, 155), (233, 154), (235, 154), (232, 155)] {
+                let e = self.mesh.elem(&self.world, Pos::new(x, y));
+                eprintln!("PROBE elem ({x}, {y}) {:?}", e.map(|e| (format!("{:#x}", e.flags), format!("{:#x}", e.support), e.refs, e.refs2, e.made, e.c4)));
+            }
+        }
         let (xs, ys) = (self.world.width(), self.world.height());
         let size = xs * ys;
         let per = size / 500;
