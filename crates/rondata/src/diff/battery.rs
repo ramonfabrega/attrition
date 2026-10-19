@@ -215,6 +215,27 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 1567,
         sequence: 1567,
     },
+    // The lobby minted by item 3318 (DECISIONS 72, `docs/AI.md` §125,
+    // §264; runs 957 and 957b) when the Spanish left for the AI word, so
+    // the held-out set stays eight: Great Sahara, the Greeks at Difficulty
+    // 1 — a nation no dump held and a tier no lobby on the map has. The
+    // game does not end itself: the long runs to 24000.
+    Lobby {
+        name: "GreatSaharaGreekTier1",
+        map_style: 7,
+        ai_tribe: 5,
+        difficulty: 1,
+        start: "gamelog-run957-greatsahara-greek-diff1-start.txt",
+        long: (
+            "gamelog-run957b-greatsahara-greek-diff1-24k-trace.txt",
+            "rontrace-run957b.log",
+        ),
+        length: 24000,
+        // Item 3318, the first try: ours 15 draws, theirs 36, at 0 ours
+        // `Animal::think_bird+0x82`, theirs `Leader::compute_sites+0x4ac`.
+        count: 176,
+        sequence: 176,
+    },
 ];
 
 /// **The measure, read at every pass** (`--ignored`): each lobby walked

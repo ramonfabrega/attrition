@@ -89,3 +89,47 @@ fn spanish_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run958: the word 576's window, blocks 570..826 at run956's detail
+/// (`LEADERS=9`, `GUYS=2`; item 3318); run896 dumps blocks 0..36 and
+/// run896b its setup and closing blocks only.
+pub(crate) const RUN958: &str = "gamelog-run958-greatsahara-spanish-diff3-window-570-827.txt";
+
+/// The window: block 570 through 826; the word 576's own block is 577.
+pub(crate) const WIDENING_SPANISH_FRAME_576: (i64, i64) = (570, 826);
+
+pub(crate) fn spanish_frame_576_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH.start],
+        true,
+        SPANISH.long,
+        "run958",
+        &[(RUN958, WIDENING_SPANISH_FRAME_576.0)],
+        WIDENING_SPANISH_FRAME_576,
+        1,
+        &[577],
+        true,
+    )
+}
+
+#[test]
+fn run958_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_frame_576_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run958 on its first build");
+}
