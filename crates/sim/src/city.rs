@@ -1174,6 +1174,11 @@ impl Sim {
                 fort: self.fort_discounts(who, ty),
                 greek_library: self.greek_library_discount(who, ty),
                 japanese_farms: self.japanese_farm_discount(who, ty),
+                indian_ramp: if is_city {
+                    cost::IndianRamp::Off
+                } else {
+                    self.indian_ramp(who, ty)
+                },
                 ..cost::Modifiers::default()
             },
             &holdings.available,
@@ -1240,6 +1245,32 @@ impl Sim {
             self.tuning.greek_library_cost
         } else {
             0
+        }
+    }
+
+    /// `get_cost`'s **Indian ramp arm** (`:843`–`876`) for a building that
+    /// is not a city ([`cost::Modifiers::indian_ramp`]): an Indian leader's
+    /// support term is zeroed, or halved rounding up for a wonder and the
+    /// defences the listing names by type (`00665baf`..`00665c1f`). run970's
+    /// block 37: who=1's timber 29 ours against 41 — the Farm `1/2006`
+    /// placed on frame 0 charged 52 (40 and three Farms' 4) where theirs
+    /// charged 40 (item 3335, `docs/AI.md` §271).
+    pub(crate) fn indian_ramp(&self, who: Player, ty: usize) -> cost::IndianRamp {
+        if !self.tech_tree.has_tribe_bonus(
+            &self.setup,
+            &self.tech[who as usize],
+            crate::nations::power::INDIANS,
+        ) {
+            return cost::IndianRamp::Off;
+        }
+        let halved = self.build_types[ty].wonder
+            || self.build_types[ty]
+                .tree
+                .is_some_and(|t| matches!(t, 0x1b7..=0x1be | 0x209..=0x20d));
+        if halved {
+            cost::IndianRamp::Half
+        } else {
+            cost::IndianRamp::Zero
         }
     }
 
