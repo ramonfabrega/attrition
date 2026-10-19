@@ -9898,6 +9898,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         None,
     ),
+    // **The battery's third word** (item 3314, DECISIONS 72, 83): frame
+    // 576, the Roman lobby's first try. run899 dumps blocks 0..36 and
+    // run899b its setup and closing blocks only, so no dump on disk held
+    // the word's block: its widening is run956's window, owed by this item.
+    (
+        "ROMAN_WORD",
+        crate::diff::roman_word::ROMAN_WORD,
+        None,
+        3314,
+        None,
+    ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
     // item 1538's build and **720** on the merged tree, widened on run680
@@ -10227,6 +10238,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 12_658,
         endpoint: None,
         window: Some("iroquois_start_window"),
+    },
+    // **The battery's third word** (DECISIONS 72, 83; item 3314): East
+    // Indies, the Romans at Difficulty 2 — the held-out battery's lowest
+    // lobby beside the Spanish, which ends itself at 18620. It shares the
+    // `Battery word` line with the Iroquois row and the closed German row.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesRomanTier2",
+        named: "East Indies (Romans)",
+        word: crate::diff::roman_word::ROMAN_WORD,
+        length: 18_620,
+        endpoint: None,
+        window: None,
     },
     // **The battery's word** (DECISIONS 72; item 2904): East Indies, the
     // Germans at Difficulty 3 — the held-out battery's lowest lobby, which
