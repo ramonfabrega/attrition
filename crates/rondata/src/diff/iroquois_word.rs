@@ -165,9 +165,20 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // its craft (`mana_burn` 1000 through run943, 392 on 11579 on both).
     // 12156: ours 29 draws, theirs 35, index 1, ours `Unit::fight+0x824`,
     // theirs `Guy::set_anim+0x97a < Unit::fight+0x169`; past run952's last
-    // block (11835), its widening owed.
-    count: 12156,
-    sequence: 12156,
+    // block (11835), its widening owed. **Item 3306 widened it on run954
+    // and run954b and moved it 12156 → 12658, the game's last frame**
+    // (`docs/AI.md` §262): block 12156's `order:target` on the escorts
+    // `1/25`, `1/48`, `1/51` and The Despot's decoys `1/77`, `1/78`,
+    // `1/81`, `1/84`, `1/85` was ours `0/2000` (the human's city) against
+    // theirs `0/5` (a Citizen gathering at 2004) — decoy `1/88`'s
+    // `think_attack` hands `0/5` to its group through
+    // `Group::target_opportunity`, and ours refused it: a held building
+    // yields without the range tests (`target_opportunity@005fffc0:202`–
+    // `209`), and a yield skips the flee arm and the on-duty gate
+    // (`LAB_006004e7` → `LAB_00600877`). The close is compared whole on
+    // run897b's own closing block 12659 by `run897b_iroquois_closing_state`.
+    count: 12658,
+    sequence: 12658,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -1193,7 +1204,72 @@ fn run954_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run954 on its first build");
+    pin_eq!(w.firsts.len(), 61, "run954 on its first build");
+    // Item 3306: 1118 on the first build, 1088 with the held building's
+    // yield (the parting index 1 → 10), and 61 with the yield's skip of
+    // the flee arm and the on-duty gate. Block 12150 holds the standing
+    // set (58 rows: `form`, `SITE.reg`, pool 64/66, the Scholars'
+    // `g.angle[0]`, `1/53`'s `damage_frac`); past it only `0/2000`'s
+    // `build:damage` (12231, ours 902 against theirs 904), who=1's
+    // `SITE[1].reg` (12376) and the newborn `1/98`'s `g.angle[0]` (12381)
+    // part, and no position or order parts in the window.
+}
+
+/// The closing state's window: run897b's closing block alone, the game's
+/// last frame 12658 writing it (item 3306).
+pub(crate) const WIDENING_IROQUOIS_CLOSING: (i64, i64) = (12657, 12660);
+
+/// **The lobby's closing state** (item 3306, DECISIONS 55): the draws
+/// agree to the game's last frame, 12658, and run897b — the draw stream's
+/// own capture, `cover=0` — prints the closing block whole. Walked to it
+/// and compared whole, as `run643_german_closing_state` is.
+#[test]
+fn run897b_iroquois_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(IROQUOIS.long.0),
+        dump(IROQUOIS.start),
+        trace(IROQUOIS.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Iroquois closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 12659, "the closing block");
+    pin_eq!(e.compared, 104, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3306, the first walk: 104 units compared on block 12659, none
+    // apart, no building or city field-row, and no closing field parted.
 }
 
 /// run952b: the walk-back behind run952's first block, blocks
