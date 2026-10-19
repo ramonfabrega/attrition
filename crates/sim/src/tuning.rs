@@ -609,6 +609,12 @@ pub struct Tuning {
     /// fishermen's term in `LeaderData::calc_rare@006e08d0:65`. Ships as
     /// `25% more food`.
     pub japanese_fishing_boats: i32,
+    /// Wealth per thirty seconds from each worked Farm for the Egyptians —
+    /// `BuildTypeData::calc_gather@00639e40:997`–`1005`: a building of type
+    /// `0x1a1` with any gatherer, for a leader with tribe bonus 7, adds
+    /// `EGYPTIAN_FARM_WEALTH × 16` to wealth, flat per farm (item 3332).
+    /// Ships as `2`.
+    pub egyptian_farm_wealth: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -1348,6 +1354,7 @@ impl Tuning {
         greek_library_cost: 66,
         japanese_farms_cheaper: 50,
         japanese_fishing_boats: 25,
+        egyptian_farm_wealth: 2,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1968,6 +1975,7 @@ impl Tuning {
                 "JAPANESE_FARMS_CHEAPER",
                 Slot::Value(T.japanese_farms_cheaper),
             ),
+            ("EGYPTIAN_FARM_WEALTH", Slot::Value(T.egyptian_farm_wealth)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),

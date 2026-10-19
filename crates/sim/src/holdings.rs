@@ -444,6 +444,18 @@ impl Sim {
         } else {
             0
         };
+        // `calc_gather:997`–`1005`: a Farm's wealth, for an Egyptian leader
+        // (item 3332).
+        let farm_wealth = if self.is_kind(b, Ident::Farm)
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[bd.owner as usize],
+                crate::nations::power::EGYPTIANS,
+            ) {
+            self.tuning.egyptian_farm_wealth
+        } else {
+            0
+        };
         Site {
             resource,
             gatherers,
@@ -453,6 +465,7 @@ impl Sim {
                 1
             },
             nation_pct,
+            farm_wealth,
         }
     }
 
@@ -877,6 +890,7 @@ mod tests {
                 gatherers: 0,
                 level: 1,
                 nation_pct: 0,
+                farm_wealth: 0,
             }],
             "the farm is a site the moment it is finished, with nobody on it"
         );

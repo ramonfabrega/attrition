@@ -142,7 +142,8 @@ fn run967_s_word_frame_is_widened_whole() {
 /// in fifty (`--stride 50`): blocks 4, 54, …, 2954, at run967's detail with
 /// `GUYS=2` (item 3332) — where who=1's age, standing apart on run967's
 /// block 2968, was walked back to.
-pub(crate) const RUN967B: &str = "gamelog-run967b-greatsahara-egyptian-diff4-gap-3-2967-stride50.txt";
+pub(crate) const RUN967B: &str =
+    "gamelog-run967b-greatsahara-egyptian-diff4-gap-3-2967-stride50.txt";
 
 /// The window: block 4 through 2954, one in fifty.
 pub(crate) const WIDENING_EGYPTIAN_GAP_967B: (i64, i64) = (4, 2954);

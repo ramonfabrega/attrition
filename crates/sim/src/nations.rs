@@ -115,6 +115,9 @@ pub(crate) mod power {
     pub const GREEKS: usize = 5;
     /// The Japanese' Farm arm is `get_cost`'s (`Sim::japanese_farm_discount`).
     pub const JAPANESE: usize = 15;
+    /// The Egyptians' Farm wealth is `BuildTypeData::calc_gather`'s
+    /// (`Sim::site_of`, item 3332).
+    pub const EGYPTIANS: usize = 7;
     /// Not `Build::activate`'s: the Persians' caravan is `Build::process`'s
     /// (`Sim::persian_market_caravan`).
     pub const PERSIANS: usize = 23;
