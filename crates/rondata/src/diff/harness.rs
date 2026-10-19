@@ -5475,7 +5475,7 @@ pub(crate) mod tests {
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (36, 2, 38), // Item 2997: (125, 2, 127) → (38, 2, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (36, 2, 38), // Item 2997: (125, 2, 127) → (38, 2, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
