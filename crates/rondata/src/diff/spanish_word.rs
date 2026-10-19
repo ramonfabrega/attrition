@@ -26,9 +26,13 @@ pub(crate) const SPANISH: Lobby = Lobby {
     ),
     length: 22700,
     // Item 2975: the battery's first try, count and sequence both at 576.
-    // Item 3318 promoted it to the AI word (`docs/AI.md` §264).
-    count: 576,
-    sequence: 576,
+    // Item 3318 promoted it to the AI word and moved it 576 → 7785: who=1
+    // holds `leader_flags 0x1000` from `Setup::build_empire` and every
+    // cell is seen to its site scoring (`docs/AI.md` §264). On 7785 ours
+    // draws 16, theirs 17; index 5 is ours `Animal::do_idle+0x83`, theirs
+    // `Leader::make_stuff+0x63d`.
+    count: 7785,
+    sequence: 7785,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -126,10 +130,22 @@ fn run958_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
+    // `GUYS=2` prints the short gaia record, no clock (the coverage
+    // pair's windows pin the same two keys).
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
-        Vec::<String>::new(),
+        ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run958 on its first build");
+    // Item 3318: 323 keys on the first build. The Spanish goody-sight arm
+    // put the Scout `1/1` on theirs' track from 524 (308); the Spanish
+    // `leader_flags |= 0x1000` (`Setup::build_empire@005abb80`) put
+    // who=1's site scores on theirs' — `SITE[9].val` 1832 against 2978 at
+    // (50, 12) on 570, every call from frame 0's ninth on run958c parting
+    // by `(min(danger, 9) + 7) / 8` — and the window parts **the standing
+    // set alone**: both leaders' `SITE[n].reg`, `aggression`, `form`, the
+    // groups' `held` and the pools, from 570, and group 65's on 631. The
+    // word's block 577 parts nothing; the word moved 576 → 7785, past the
+    // window (`docs/AI.md` §264).
+    pin_eq!(w.firsts.len(), 36, "run958 with the Spanish 0x1000");
 }
