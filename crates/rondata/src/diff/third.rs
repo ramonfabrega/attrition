@@ -1014,7 +1014,7 @@ mod tests {
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 176.
         // Item 1451, `largest_gather` (AI §115): 122 → 119.
-        pin_eq!(w.firsts.len(), 43, "every key parted on run426"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 39, "every key parted on run426"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **The third map's long word, 15982, widened whole** (item 1177):

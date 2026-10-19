@@ -1176,14 +1176,7 @@ mod bodies {
         // original's `Guy::init_real` stands each kept guy with its speeds
         // zeroed (`docs/ANIM.md` §11). With `reinit_guys` doing the same,
         // 27 of the 29 rows go. What stands is `1/41`'s idle variant.
-        pin_eq!(
-            halt,
-            [
-                "1/41 g.cur_anim[0]: ours 1 theirs 2",
-                "1/41 g.end_time[0]: ours 64 theirs 48",
-            ],
-            "the squad's halt, block 11922"
-        );
+        pin_eq!(halt, [], "the squad's halt, block 11922");
         // **Backwards**: the 284 keys under the word are run135's standing
         // floor exactly — nothing new parts on 11860..11901 — and of
         // `1/62` and `1/64` only 11424's `come_out` residue, which

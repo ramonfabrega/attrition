@@ -1164,7 +1164,7 @@ fn run930_s_squad_is_widened_whole() {
 /// this crate holds as no element. The two counts are compared apart —
 /// the caravan's tiles hold camel steps, the ring's references — except at
 /// (235, 154), which agrees by their sum alone: theirs ref 2 / camel 0, ours
-/// ref 1 / camel 1 (parked 3287).
+/// ref 1 / camel 1 (item 3287's parked row).
 #[test]
 fn run946_s_road_elements_at_10842_are_ours() {
     use sim::mesh::dir::{E, N, NE, S, SW, W};
@@ -1215,7 +1215,7 @@ fn run946_s_road_elements_at_10842_are_ours() {
             .unwrap_or_default();
         let mut counts = (e.refs, e.refs2);
         if (x, y) == (235, 154) {
-            // By the sum alone (parked 3287).
+            // By the sum alone (item 3287's parked row).
             counts = (counts.0 + counts.1, 0);
         }
         let ours = (x, y, e.flags & 0xff00_0000, e.support, counts, e.c4);
