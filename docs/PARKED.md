@@ -8073,13 +8073,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JZ — reserved
+## Parked by item 3289, 2026-10-18 — the nations seat's eighth shape batch: all six built
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3289a.** `Unit::do_attack_ground@005f1410`: the attack-unit-0 arm (peace test, `is_in_range`, `find_nearby_spot`, walk-in) is unswept; the crate's SEAM kills on 0 and the sweep draws shots 1, 2, 3, 5, 200. The port's shots field is `u8` and the original's an `int`, so negative values are unswept. The shot gate reads the type's `+0x2cc`, which the crate has no reading of (`fires()` stands in).
+
+**3289b.** `Unit::set_new_location@005f8d20`: the crate has no `_steps`; the sweep's port is a `model()` copy over `Sim::set_new_location`/`crew_des`/`vision::moved_to`. Port gaps it shows: the `+0xb5 != 1` squad arm, the Iroquois `has_tribe_bonus(0x12)` `unit_masks & 0x800` write, `update_ceo_position` and the `+0x174` slot. The sweep needs `--init-call 0xa46980` (`trig_init`) or `sine_table` reads zero.
+
+**3289c.** `Unit::find_melee_pos@006010b0`: the target's `full` counter (+0xac, +5 capped at 0x1e) is applied in the sweep, the crate has no field (SEAM in `attack_pos.rs` stands); `vector_dist` overflows differently from the original's `(lo + 2*hi) >> 1` for a wild point near ±2^31 (unreachable in play, `from` bounded). The sweep's generated script was hand-edited, so `--regen` needs `--port-file`.
+
+**3289d.** `Unit::do_air_patrol@005ea620`: `SimPatrol` answers none of the carrier-relative goal, the FIGHTERBOMBER search/look, or the `semaphore & 2` fallbacks (SEAMs in its doc comment). `find_building_at`'s final argument is whatever `ecx` held (modelled `air::Stale`); the sweep is in `sweep/mod.rs`, not a standalone partition, because the port uses `pub(crate)` internals.
+
+**3289e.** `Wall::do_construct@006434d0`: `SimConstruct` leaves console messages, sounds and `recalc_builds` no-ops and `ai_speed` at 1. Three `recalc_crossed` breaks survive (counters above 2^24, a tie at the 0.84 midpoint). The generated doc comment's `0x006455c0` was hand-edited to `0x6455c0` for `nations::the_audit_table_s_witnesses_hold`, so a `--regen` brings that test red again. Generator note: `--regen` wipes a hand-written port block even with the port given (do_attack_ground), worth checking against `--port-file`.
+
+**3289f.** `CollCheck::collide_here@00682540`: negative unit cells (the original reads before the block) and `fill_slots@006820e0` itself (stubbed, arguments recorded) are unswept. `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other` fails on the base too (Loop 2132).
 
 ## Parked by the next landing, slot KA — reserved
 
