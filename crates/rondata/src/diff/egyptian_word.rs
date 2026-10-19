@@ -370,7 +370,11 @@ fn run967g_s_word_frame_is_widened_whole() {
     // positions part on 20032. The word's draws: theirs
     // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` where ours idles
     // an animal. The next item's frame; not a mechanism yet.
-    pin_eq!(w.firsts.len(), 3286, "run967g on its first try");
+    //
+    // Item 3336: 3286 → 41 with the word's four fixes, then → 38 with
+    // `Wall::set_type` leaving the hits to the next `calc_wall_stats`
+    // (who=1's cities' `myhits` on block 20036 agree).
+    pin_eq!(w.firsts.len(), 38, "run967g on its first try");
 }
 
 /// The closing state's window: run645's closing block alone, the long's

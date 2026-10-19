@@ -358,9 +358,12 @@ fn run652_coverage_pair_closing_state() {
     // Item 1719: 261 units compared; one unit off (`1/84`, ours (-96, -720)
     // from the dump's), one building and one city the dump holds that ours
     // does not link. A residue of the closing, not a parity claim — the
-    // closing state's own item reads them.
+    // closing state's own item reads them. Item 3336: with
+    // `Wall::set_type` no longer re-rating hits on the spot, the building
+    // and the city link — [1, 0, 0, 1, 0, 1, 0] → [1, 0, 0, 0, 0, 0, 0];
+    // `1/84` is still off.
     pin_eq!(e.compared, 261, "units compared");
-    pin_eq!(e.counts(), [1, 0, 0, 1, 0, 1, 0], "the closing counts");
+    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// Both captures say their lobby from their own `GAME INFO` and `PLAYER`

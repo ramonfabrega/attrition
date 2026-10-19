@@ -838,12 +838,15 @@ impl Sim {
         });
     }
 
-    /// `Wall::set_type`: the building becomes another type of the same
-    /// lineage; its damage is kept.
+    /// `Wall::set_type@00640da0`: the building becomes another type of the
+    /// same lineage; its damage is kept. Its hits are not re-rated here —
+    /// neither `SubObject::set_type@00662450` nor `Wall::increment_stats`
+    /// calls `update_hits`; the new figure arrives through the caller's
+    /// wall-stats flag on the next `calc_wall_stats` (item 3336: run967g's
+    /// who=1 cities on block 20036, ours 12000 a frame early).
     pub(crate) fn set_type(&mut self, b: usize, ty: usize) {
         self.buildings[b].ty = Some(ty);
         self.buildings[b].combat = Some(self.build_types[ty].combat.unwrap_or_default());
-        self.update_hits(b);
     }
 
     // ------------------------------------------------------------------
