@@ -1545,6 +1545,85 @@ fn the_president_near_a_site_shortens_its_clock_by_a_quarter() {
     );
 }
 
+/// **The Despot's unit plunder** (item 3279, `docs/AI.md` §259): a kill
+/// beside the killer's Despot draws once per available good, knowledge
+/// skipped, and adds `THEDESPOT_UNIT_PLUNDER` to the good whose `bucket +
+/// roll % 25` is least. run943's who=1 took metal 44 → 59 on 10852 over
+/// four draws.
+///
+/// Made to fail with the call dropped, with the Despot's owner test
+/// dropped (the victim's own Despot pays), with the killer-and-victim
+/// test dropped (a kill of one's own pays), and with knowledge not skipped
+/// (its empty bucket wins).
+#[test]
+fn the_despot_beside_a_kill_plunders_the_least_stocked_good() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = t;
+    let despot = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        type_index: 0x160,
+        price: crate::cost::Price {
+            pop: 1,
+            ..crate::cost::Price::default()
+        },
+        cols: crate::ai_load::UnitCols {
+            unit_flags2: crate::ai_load::uflags2::GENERAL,
+            ..crate::ai_load::UnitCols::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let foot = sim.add_unit_type(crate::UnitType {
+        hits: 40,
+        type_index: 0x32,
+        price: crate::cost::Price {
+            pop: 1,
+            ..crate::cost::Price::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let victim = sim.init_unit(0, foot, tile_pos(40, 40));
+    let killer = sim.init_unit(1, foot, tile_pos(41, 40));
+    // Food, timber, wealth and metal available; oil not; knowledge
+    // available and empty, and skipped.
+    sim.holdings[1].available = [true, true, true, true, true, false];
+    sim.ledgers[1].bucket = [500, 500, 500, 0, 44, 0];
+    let start = sim.ledgers[1].bucket;
+    sim.unit_plunder(victim, killer);
+    assert_eq!(sim.ledgers[1].bucket, start, "no Despot, no plunder");
+    let own = sim.init_unit(0, despot, tile_pos(40, 41));
+    sim.unit_plunder(victim, killer);
+    assert_eq!(sim.ledgers[1].bucket, start, "the victim's own Despot");
+    let far = sim.init_unit(1, despot, tile_pos(110, 110));
+    let rng = sim.rng;
+    sim.unit_plunder(victim, killer);
+    assert_eq!(sim.ledgers[1].bucket, start, "a Despot out of reach");
+    assert_eq!(sim.rng, rng, "and no draw");
+    let _ = own;
+    sim.units[far].pos = tile_pos(41, 41);
+    let mut want = sim.rng;
+    for _ in 0..4 {
+        let _ = want.roll();
+    }
+    sim.unit_plunder(victim, killer);
+    assert_eq!(sim.rng, want, "four draws: food, timber, wealth, metal");
+    assert_eq!(
+        sim.ledgers[1].bucket,
+        [500, 500, 500, 0, 44 + sim.tuning.thedespot_unit_plunder, 0],
+        "metal, the least stocked of the four drawn; THEDESPOT_UNIT_PLUNDER 15"
+    );
+    assert_eq!(sim.tuning.thedespot_unit_plunder, 15);
+    // Its own side's kill, beside its own Despot: the leaders are one.
+    let mate = sim.init_unit(0, foot, tile_pos(40, 39));
+    let before = (sim.ledgers[0].bucket, sim.rng);
+    sim.unit_plunder(victim, mate);
+    assert_eq!(
+        (sim.ledgers[0].bucket, sim.rng),
+        before,
+        "no plunder of one's own"
+    );
+}
+
 /// **An Iroquois leader's first Senate is free and instant** (item 3231,
 /// `docs/AI.md` §254): `TypeData::get_cost@00664090`'s building arm returns
 /// 0 (`006656f5`..`0066576b`) and `BuildData::construct_time@0062d5c0`'s

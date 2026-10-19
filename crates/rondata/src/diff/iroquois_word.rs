@@ -142,8 +142,14 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // ours 25 draws, theirs 30, index 3, ours `Unit::close+0xcb6`, theirs
     // `605fe5`; run943's state first parts on 10843 (`1/32`'s
     // `dest_angle`, ours −786038784 against theirs −792788992).
-    count: 10852,
-    sequence: 10852,
+    // **Item 3279 moved it 10852 → 10917** (`docs/AI.md` §259): the four
+    // draws are The Despot's `Unit::plunder+0x4e5` on the Citizen `0/3`'s
+    // kill by `1/58` (food, timber, wealth, metal; oil not yet available),
+    // and who=1's metal on block 10853 is 59 on both sides (ours 44 before).
+    // 10917: ours 285 draws, theirs 296, index 272, ours `Guy::set_anim
+    // +0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`.
+    count: 10917,
+    sequence: 10917,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -1060,12 +1066,14 @@ fn run943_s_word_frame_is_widened_whole() {
     // heading into its `dest_angle` the frame it turns (run946's packet,
     // `docs/AI.md` §258); the state now first parts on the word's own
     // block 10853 (`0/3`'s `death:extra`, who=1's metal 44 against 59:
-    // The Despot's `Unit::plunder`, not modelled).
-    pin_eq!(
-        w.firsts.len(),
-        455,
-        "run943 with the captain's update_action in check_target"
-    );
+    // The Despot's `Unit::plunder`, not modelled). **Item 3279, 174**:
+    // the plunder is built (who=1's `bucket[4:metal]` 59 on both sides on
+    // 10853), and `death:extra` is not a parting on a capture that logs no
+    // `DEATHS` (run943 prints no `DEATH_OBJS`). The state first parts on
+    // 10853 still: `1/25`, upgraded Javelineers → Peltasts on 10852 on both
+    // sides, `g.cur_anim[0]` ours 1 against theirs 2 and `g.end_time[0]` 96
+    // against 36.
+    pin_eq!(w.firsts.len(), 174, "run943 with The Despot's unit plunder");
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at

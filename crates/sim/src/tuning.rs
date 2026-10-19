@@ -844,6 +844,9 @@ pub struct Tuning {
     pub aztec_plunder: i32,
     /// Percent of plunder the Despot (or Spitamenes) adds as the hero cut.
     pub thedespot_plunder: i32,
+    /// Whole units of a good The Despot (or Spitamenes) adds to a unit kill
+    /// near him: `Unit::plunder@00605b00`'s `thedespot_unit_plunder`.
+    pub thedespot_unit_plunder: i32,
     /// Whether a Russian victim receives the plunder of its own building.
     pub russian_plunder_steal: i32,
     /// Percent off a German mine's plunder value.
@@ -1418,6 +1421,7 @@ impl Tuning {
         plunder: 100,
         aztec_plunder: 100,
         thedespot_plunder: 100,
+        thedespot_unit_plunder: 15,
         russian_plunder_steal: 1,
         german_mine_cost: 0,
         tikal_temple_cost: 0,
@@ -2138,6 +2142,10 @@ impl Tuning {
             ("PLUNDER", Slot::Value(T.plunder)),
             ("AZTEC_PLUNDER", Slot::Value(T.aztec_plunder)),
             ("THEDESPOT_PLUNDER", Slot::Value(T.thedespot_plunder)),
+            (
+                "THEDESPOT_UNIT_PLUNDER",
+                Slot::Value(T.thedespot_unit_plunder),
+            ),
             (
                 "RUSSIAN_PLUNDER_STEAL",
                 Slot::Value(T.russian_plunder_steal),
