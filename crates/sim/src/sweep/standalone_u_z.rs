@@ -268,6 +268,8 @@ mod unit_set_type;
 mod unit_supplies_left;
 #[path = "unit_think_caravan.rs"]
 mod unit_think_caravan;
+#[path = "unit_think_carry.rs"]
+mod unit_think_carry;
 #[path = "unit_think_hero.rs"]
 mod unit_think_hero;
 #[path = "unit_think_peasant.rs"]
