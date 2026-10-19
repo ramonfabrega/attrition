@@ -3693,13 +3693,6 @@ impl Sim {
         from_think: bool,
     ) {
         let frame = self.frame;
-        if std::env::var_os("RON_PROBE_GTO").is_some() {
-            let last = self.seat_parts(seat).1.opportunity;
-            eprintln!(
-                "PROBE_GTO f{frame} group {seat:?} asker {asker} last {last} members {:?}",
-                self.seat_list(seat)
-            );
-        }
         {
             let (_, st) = self.seat_parts(seat);
             if frame - st.opportunity <= 0xe {
