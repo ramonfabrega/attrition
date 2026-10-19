@@ -38,8 +38,13 @@ pub(crate) const BANTU: Lobby = Lobby {
     // 2776), with a group's `queue_up` drawing the escrow down: 3184 →
     // 4376, ours 226 draws, theirs 93, at 53 ours
     // `Build::find_gather_tiles+0x10a`, theirs `GameDaemon::calc_market+0x54`.
-    count: 4376,
-    sequence: 4376,
+    // Item 3343, a tech already in research refused (`BuildData::can_make`'s
+    // `researching` arm; the script's Art of War asked twice on 4376):
+    // 4376 → 15582, ours 15 draws, theirs 14, at 4 ours
+    // `Leader::make_stuff+0x63d`, theirs `Guy::set_anim+0x97a <
+    // Unit::do_non_flat_gather+0xb99`.
+    count: 15582,
+    sequence: 15582,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -304,4 +309,54 @@ fn run978b_s_word_frame_is_widened_whole() {
     // whole bucket the word left it (3184 → 4376), and **29** keys stand,
     // the standing set alone.
     pin_eq!(w.firsts.len(), 29, "run978b");
+}
+
+/// run978e: the word 4376's window, blocks 4370..4626 at `GUYS=2` (item
+/// 3343).
+pub(crate) const RUN978E: &str = "gamelog-run978e-greatsahara-bantu-diff4-window-4370-4626.txt";
+
+/// The window: block 4370 through 4626; the word 4376's own block is 4377.
+pub(crate) const WIDENING_BANTU_FRAME_4376: (i64, i64) = (4370, 4626);
+
+pub(crate) fn bantu_frame_4376_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU.start],
+        true,
+        BANTU.long,
+        "run978e",
+        &[(RUN978E, WIDENING_BANTU_FRAME_4376.0)],
+        WIDENING_BANTU_FRAME_4376,
+        1,
+        &[4377],
+        true,
+    )
+}
+
+#[test]
+fn run978e_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_frame_4376_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3343. The word 4376's window (who=1's economic script asking for
+    // The Art of War twice in one run, ours granting the second and walking
+    // 24 → 34 → 19 into Woodcutter `1/2019`): 265 keys; with a tech in
+    // research refused the word left it (4376 → 15582) and **30** stand —
+    // the standing set, `group:64.held` beside it, `1/24`'s `g.angle[0]`
+    // on 4467 (ours 0x55555555, theirs 0) and who=1's `SITE[1].reg` on
+    // 4576.
+    pin_eq!(w.firsts.len(), 30, "run978e");
 }

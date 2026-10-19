@@ -1124,7 +1124,13 @@ impl ScriptHost<'_> {
             &self.sim.holdings[w as usize].available,
             true,
         ) >= 1;
-        if !paid || !self.sim.buildings[b].queue.has_room() {
+        // `could_queue@0062da50` asks `BuildData::can_make@0062db10` first,
+        // whose tech arm refuses a tech already in research
+        // (`LeaderData::researching`): a script that asks twice in one run
+        // — `economic.bhs`'s population preamble, then its step 24 — gets 0
+        // the second time (item 3343: the Bantu word 4376, `docs/AI.md`
+        // §276).
+        if !paid || self.sim.researching(w, t) || !self.sim.buildings[b].queue.has_room() {
             return NO;
         }
         self.action_queue_up(w, b, QueueType::Tech(t), 1);
