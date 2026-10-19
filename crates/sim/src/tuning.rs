@@ -214,6 +214,13 @@ pub struct Tuning {
     /// Memnon's craft rate is `rate × r >> 8`, rounded toward zero
     /// (`Unit::process@00610bc0`, `611006`). No capture has him.
     pub memnon_regen_rate: i32,
+    /// `PORUS_DECOYS`, `2/1` loaded as 8.8: the Create Decoys limit a Porus
+    /// casts is `rate × limit >> 8` (`SpellType::cast_create_decoy@00674370`,
+    /// `6743f3`).
+    pub porus_decoys: i32,
+    /// `KUTOSOV_DECOYS`, `300% of normal`: his limit is `rate × limit / 100`
+    /// (`674439`..`674459`).
+    pub kutosov_decoys: i32,
     /// Period granted instead by Versailles.
     pub versailles_supply_heal_rate: i32,
     /// Non-zero if a siege unit under attack reloads as though out of supply.
@@ -1168,6 +1175,8 @@ impl Tuning {
         french_supply_heal_rate: 20,
         french_special_craft: 0,
         memnon_regen_rate: 512,
+        porus_decoys: 512,
+        kutosov_decoys: 300,
         versailles_supply_heal_rate: 20,
         artillery_under_attack_fires_slowly: 1,
 
@@ -1639,6 +1648,8 @@ impl Tuning {
             ),
             ("FRENCH_SPECIAL_CRAFT", Slot::Value(T.french_special_craft)),
             ("MEMNON_REGEN_RATE", Slot::Ratio256(T.memnon_regen_rate)),
+            ("PORUS_DECOYS", Slot::Ratio256(T.porus_decoys)),
+            ("KUTOSOV_DECOYS", Slot::Value(T.kutosov_decoys)),
             (
                 "VERSAILLES_SUPPLY_HEAL_RATE",
                 Slot::Value(T.versailles_supply_heal_rate),

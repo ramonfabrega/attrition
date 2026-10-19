@@ -913,89 +913,17 @@ impl Sim {
     /// `general_upgrade` is the caster's leader's
     /// [`Sim::general_upgrade_level`] (`docs/AI.md` §172).
     ///
-    /// SEAM: Porus's and
-    /// Kutosov's multiples; the leader's other two counters
-    /// (`+0x93c`, `+0x808`); `is_caravan` as the two caravan ids; the sound.
+    /// The body is [`crate::cast_decoy::cast_create_decoy_steps`] (item 3320;
+    /// Porus's and Kutosov's multiples are modelled there).
+    ///
+    /// SEAM: the leader's other two counters (`+0x93c`, `+0x808`);
+    /// `is_caravan` as the two caravan ids; the sound.
     pub(crate) fn cast_create_decoy(&mut self, g: usize) {
-        let who = self.units[g].owner;
-        let limit = (self.general_upgrade_level(who) + 2) * 5;
-        let mut made = self
-            .units
-            .iter()
-            .filter(|x| x.alive() && x.owner == who && x.captain && x.decoy)
-            .count() as i32;
-        // The caster may be a patriot: its own hero radius includes the
-        // subtype's bonus (GOLDEN §60, run588's President).
-        let radius = self.hero_radius(g) * 0xc0;
-        let centre = self.units[g].pos;
-        // `unit_masks & 0x40000` (a computer's unit): the General's army,
-        // which every copy joins (`Army::add_unit`, the call at `674712`) before its
-        // figures are marked. run346's `1/98` on 11637: army 4's group 70
-        // lists 37, the six squads after the nineteen (item 1302).
-        let army = if self.ai_driven(who) {
-            self.army_of(g)
-        } else {
-            None
-        };
-        let mut list: Vec<usize> = (0..self.units.len())
-            .filter(|&u| self.units[u].owner == who)
-            .collect();
-        list.sort_by_key(|&u| std::cmp::Reverse(self.units[u].index));
-        let mut any = false;
-        for u in list {
-            let unit = &self.units[u];
-            if !unit.alive() || !unit.captain || unit.decoy || u == g {
-                continue;
-            }
-            let Some(ty) = unit.ty else { continue };
-            if self.unit_domain_of(u) != crate::attrition::Domain::Land
-                || self.profile(Obj::Unit(u)).attack == 0
-                || (PEASANTS..=0x35).contains(&unit.type_index)
-                || matches!(unit.type_index, 0x3b | 0x3c)
-                || self.is_merchant(u)
-            {
-                continue;
-            }
-            let d = crate::world::vector_dist(unit.pos.x - centre.x, unit.pos.y - centre.y);
-            if d >= radius {
-                continue;
-            }
-            let Some(spot) = self.find_nearby_spot_type_for(
-                self.decoy_search_type(g, ty),
-                g,
-                centre,
-                0x180,
-                -1,
-                crate::movement::Angle(0),
-            ) else {
-                break;
-            };
-            let head = self.init_unit(who, ty, spot);
-            if let Some(slot) = army {
-                self.army_add_unit(who, slot, head);
-            }
-            any = true;
-            if self.unit_types[ty].price.pop != 0 {
-                self.track_unit_type(who, ty, -1);
-            }
-            let mut at = Some(head);
-            while let Some(x) = at {
-                self.units[x].decoy = true;
-                self.units[x].mana_burn = 0;
-                // `cast_create_decoy@00674370`'s `update_los`: term 12's
-                // one tile, on the cache.
-                self.update_los(x);
-                at = self.units[x].o_down;
-            }
-            made += 1;
-            if made >= limit {
-                break;
-            }
-        }
-        if !any && let Some(d) = self.spell(spell::CREATE_DECOY) {
-            let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
-            self.units[g].mana_burn -= back.min(self.units[g].mana_burn);
-        }
+        // The body is `crate::cast_decoy::cast_create_decoy_steps`, the
+        // original's flow over a view, which the emulator sweep also runs
+        // (item 3320).
+        let mut view = crate::cast_decoy::SimDecoy::new(self, g);
+        crate::cast_decoy::cast_create_decoy_steps(&mut view, g as i32);
     }
 
     /// The type the decoy's spot search is **asked with**: the caster's
@@ -1004,7 +932,7 @@ impl Sim {
     /// `this` from the caster `param_1`), while the copy itself is made
     /// with the source's type (`6746d1..6746ed`) — twenty-fourth pass,
     /// group 11; A6 row 45. A caster with no type falls back to the source.
-    fn decoy_search_type(&self, caster: usize, source: usize) -> usize {
+    pub(crate) fn decoy_search_type(&self, caster: usize, source: usize) -> usize {
         self.units[caster].ty.unwrap_or(source)
     }
 
