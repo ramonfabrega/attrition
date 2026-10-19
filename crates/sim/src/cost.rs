@@ -1876,6 +1876,40 @@ mod tests {
         assert_eq!(out[Resource::Knowledge.index()], 0);
     }
 
+    /// **The Hanging Gardens' industry discount** (`get_cost:1270`–`1276`,
+    /// item 3332): `(100 − 66) × p / 100` on every good of an industry
+    /// tech's price — Metal Alloys' 200 timber was 68 on Great Sahara's
+    /// 15778 (run967e's `get_cost`). Here `25t/25f` at this table's factor
+    /// is 250 of each, and 85 with the Gardens.
+    #[test]
+    fn the_hanging_gardens_take_two_thirds_off_an_industry_tech() {
+        let alloys = Price {
+            kind: Kind::Tech,
+            ..Price::free()
+                .with_base(Resource::Food, 25)
+                .with_base(Resource::Timber, 25)
+        };
+        let price = |m: &Modifiers| {
+            charges(
+                &T,
+                &alloys,
+                owned(0),
+                m,
+                &[true; RESOURCES],
+                &[false; RESOURCES],
+                &Redirects::RON,
+            )
+        };
+        let gardens = Modifiers {
+            industry: T.hanging_gardens_industry_discount,
+            ..Modifiers::default()
+        };
+        assert_eq!(T.hanging_gardens_industry_discount, 66);
+        assert_eq!(price(&Modifiers::default())[Resource::Timber.index()], 250);
+        assert_eq!(price(&gardens)[Resource::Timber.index()], 85);
+        assert_eq!(price(&gardens)[Resource::Food.index()], 85);
+    }
+
     /// The redirect is a recursive call, so it chains. Oil names Metal and
     /// Metal names Timber, and in the Ancient age neither is available: an oil
     /// price arrives in timber, through metal, at both rates.
