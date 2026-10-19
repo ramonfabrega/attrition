@@ -3301,12 +3301,16 @@ impl Sim {
         eject_who: i32,
         cmd_who: i32,
     ) {
-        if !((eject_who < 0 && cmd_who == i32::from(who)) || cmd_who < 0) {
+        if !eject_all_own_arm(i32::from(who), eject_who, cmd_who) {
             return;
         }
         for &b in buildings.iter().rev() {
             let bd = &self.buildings[b];
-            if !bd.alive || bd.garrison.is_empty() || bd.ty.is_some_and(|t| self.is_hangar(t)) {
+            if !eject_all_wants(
+                bd.alive,
+                || !bd.garrison.is_empty(),
+                || bd.ty.is_some_and(|t| self.is_hangar(t)),
+            ) {
                 continue;
             }
             self.eject_contents(b, false);
@@ -4120,6 +4124,25 @@ impl Sim {
             p.y.clamp(0, self.world.height() * crate::world::UNITS_PER_CELL - 1),
         )
     }
+}
+
+/// The arm of `Group::action_eject_all@00710b40` that empties the group's own
+/// buildings: `cmd_who` (the original's `param_2`) is negative, or the command
+/// names no other player (`eject_who`, `param_4`, negative) and `cmd_who` is
+/// the group's player. Plain data, so `sweep::group_action_eject_all` drives it.
+pub(crate) fn eject_all_own_arm(group_player: i32, eject_who: i32, cmd_who: i32) -> bool {
+    (eject_who < 0 && cmd_who == group_player) || cmd_who < 0
+}
+
+/// One building of that arm: alive, then holding a squad, then no hangar —
+/// the original asks `num_inside` and `can_carry(AIR)` only as far as the
+/// answer needs, so the two are closures.
+pub(crate) fn eject_all_wants(
+    alive: bool,
+    holds_squad: impl FnOnce() -> bool,
+    is_hangar: impl FnOnce() -> bool,
+) -> bool {
+    alive && holds_squad() && !is_hangar()
 }
 
 #[cfg(test)]

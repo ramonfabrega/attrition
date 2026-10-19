@@ -1661,35 +1661,15 @@ impl Sim {
             None => self.units[i].movement.facing,
         };
         let piece = guy.map_or(-1, |x| x.gpiece);
-        let mut can = true;
-        for node in 4..4 + nodes.len() as i32 {
-            // `005d8e0a`–`005d8e35`: the target less the unit's point less
-            // the node's truncated vector, each component on its own.
-            let (vx, vy) = crate::pivot::offset(piece, node, facing);
-            let bearing = find_angle(to.x - from.x - vx, to.y - from.y - vy);
-            let mut deg =
-                crate::movement::angle_to_degrees(Angle(bearing.0.wrapping_sub(facing.0)));
-            if deg > 180 {
-                deg -= 360;
-            }
-            can &= (-45..=45).contains(&deg);
-            let (lo, hi) = nodes.get(&node).copied().unwrap_or((0, 0));
-            let inside = if lo < hi {
-                lo <= deg && deg <= hi
-            } else {
-                deg >= lo || deg <= hi
-            };
-            can &= inside;
-            if inside && let Some(k) = usize::try_from(node - 4).ok().filter(|&k| k < 4) {
-                let t = &mut self.units[i].guys[g].turret;
-                t.des[k] = bearing.0.wrapping_sub(facing.0);
-                t.des_flags |= 1 << k;
-                if turret_near(t.des[k], t.angles[k]) {
-                    t.node_flags |= 1 << k;
-                }
-            }
-        }
-        can
+        let turret = &mut self.units[i].guys[g].turret;
+        pivot_steps(
+            nodes.len(),
+            |node| nodes.get(&node).copied().unwrap_or((0, 0)),
+            |node| crate::pivot::offset(piece, node, facing),
+            (from, to),
+            facing,
+            turret,
+        )
     }
 
     /// **A building is struck square to its side** (item 1040,
@@ -5404,6 +5384,52 @@ impl Sim {
 /// the whole points the blow took after its sixteenths carried.
 const fn combat_progress_lost(whole: i32) -> i32 {
     crate::build::progress_lost(whole)
+}
+
+/// **The node loop of `Guy::set_all_pivots@005d8bc0`** (`005d8d80`–
+/// `005d8f8b`) over plain data, so the sweep drives the body the crate
+/// runs: for each of `count` nodes from 4, the bearing from `from` plus
+/// the node's `offset(node)` (truncated, per component) to `to`, taken
+/// against `facing` in whole degrees and folded to −180..180; the answer
+/// is false once any node is past ±45° or outside `range(node)` (wrapped
+/// when `lo >= hi`); a node whose range holds the bearing takes
+/// `des = bearing − facing` and its bit, and `node_flags`' bit when that
+/// is within 15° of the turret. The caller has cleared both flag words.
+pub(crate) fn pivot_steps(
+    count: usize,
+    range: impl Fn(i32) -> (i32, i32),
+    offset: impl Fn(i32) -> (i32, i32),
+    (from, to): (Pos, Pos),
+    facing: Angle,
+    t: &mut anim::Turret,
+) -> bool {
+    let mut can = true;
+    for node in 4..4 + count as i32 {
+        // `005d8e0a`–`005d8e35`: the target less the unit's point less
+        // the node's truncated vector, each component on its own.
+        let (vx, vy) = offset(node);
+        let bearing = find_angle(to.x - from.x - vx, to.y - from.y - vy);
+        let mut deg = crate::movement::angle_to_degrees(Angle(bearing.0.wrapping_sub(facing.0)));
+        if deg > 180 {
+            deg -= 360;
+        }
+        can &= (-45..=45).contains(&deg);
+        let (lo, hi) = range(node);
+        let inside = if lo < hi {
+            lo <= deg && deg <= hi
+        } else {
+            deg >= lo || deg <= hi
+        };
+        can &= inside;
+        if inside && let Some(k) = usize::try_from(node - 4).ok().filter(|&k| k < 4) {
+            t.des[k] = bearing.0.wrapping_sub(facing.0);
+            t.des_flags |= 1 << k;
+            if turret_near(t.des[k], t.angles[k]) {
+                t.node_flags |= 1 << k;
+            }
+        }
+    }
+    can
 }
 
 /// **Within a turret's step of each other**: `(a − b)` as unsigned, folded

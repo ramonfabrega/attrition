@@ -7920,13 +7920,44 @@ sides of a comparison from overlapping narrow ranges; a `div_3_table` fill must 
 (3259i) `think_farm_animal`: `close_orders` is unreached (the harness clears the order list; prime a prior order); the
 farm-covers-itself failure is realised as `buildings[b].ty = None`, a state the game never makes.
 
-## Parked by the next landing, slot JM — reserved
+## Parked by item 3261, 2026-10-18 — the shape lane's sixteenth batch: what the crate models less than the original
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3261a) `Group::action_eject_all`: the crate ignores `back_to_work` (a SEAM, now sweep-confirmed), has no 0x140/0x13e
+die-when-emptied step, no `eject_o`/`eject_who` arm (`Unit::come_out` walk), no `ignore_orders` prelude, and no
+`Group::field_0x10`/0x8cc object-index array (`buildings: &[usize]`). The sweep carries these inline; two modules.
+
+(3261b) `Guy::set_all_pivots`: the original writes `des[k]` and flag bits for nodes past the fourth; the crate drops them
+(`k < 4`); node counts were drawn 0..4. Unspelled: `--outarg` writes one word through argument K (no K+4, so the
+`get_position` out-vector's y stays 0 and `- vy` → `+ vy` passed starved), no per-call `--outarg` (`--seq` analogue),
+no argument mask for `--record` (stack-local pointer args). Two further passes equivalent under the draw
+(`offset(node)`/`range(node)`), one starved (`d > 0x8000_0000`).
+
+(3261c) `BuildData::construct_time`: `ClockMods.free_first_wonder` and `.hanging_gardens` have no writer outside tests, so
+`Sim::construct_time_of` never applies the American free first wonder or the Hanging Gardens discount; the original
+derives both per call (rival scan from object 2000 to `objects.field_0x184[p]`). The original divides unsigned
+(`cmova` max with 1); the crate is signed i32 — agree only for hg 0..100, president speed ≥ 0, base ≤ 20M. The
+`param_1 != 0` form has no crate counterpart. `--seq` and `--answer-win` cannot share one stub.
+
+(3261d) `Objects::find_ordered_collision`: the crate lacks the asker's `objects[+8]` bit 0 gate, the group's `+0x49`
+stop byte, the member gate `unit+8` bit 0 and `unit+0x82 < 0` (the crate uses `alive() && on_map`; the meaning of
+`+0x82` is not established), and the `+0xc` entries of the `+0x8cc` short array (the crate walks the full member list;
+the draw is at most 8). One break starved (`tbc.min(7)`: needs an eighth slot-0xbc call, chains drawn 1–3 deep). Two
+mutants hung (non-terminating, killed by hand, counted caught): `at` closure `div3(rd(w,0x74) >> 4)` → `>> 5` and link
+closure `idx >= 0` → `idx > 0` (the first held on a watchdogged rerun, so possibly no true hang).
+
+(3261e) `TypeData::get_preq`: the decompile misreads the Iroquois block (`TVar7 - NUM_ITEMTYPES` is `preq1 - 1`, listing
+`subl $1,%esi`, then `is_age`) and `where == UNIVERSITY` is `this+0x40 == 0x1a4`. Domain narrowings: preq values only
+-1 and 0x21f..0x242 (units/buildings as preq untested); `start`/`start2` 0..4, `ending` 4..7 (else the original
+divides by zero and the crate's `28 / span` panics); a negative `n` (original truncates, crate `div_euclid` floors)
+unreached; tech `age` 0..6; the leader stub's argument and `ecx` unrecorded. The crate's `epoch_of`/`age_of` read a
+`Kind`, so the tree is built from the shipped index ranges, not arbitrary vtable predicates. Rows file ~115 MB: 1200 rows.
+
+(3261f) `BuildTypeData::is_dock_tile`: tile width/height held at 3×3 cells; the port derives tile size from cell size
+while the original reads separate `+0x18/+0x1c` fields — a flag setting one world word as a function of another
+would sweep the worlds where they differ. No disagreement.
+
+(3261g) 3261's "for the Loop": `mutate.py` has no per-mutant timeout: two mutants of one batch hung two hours (Loop 3276 filed by the
+commander). Subagents ran the rest under a hand watchdog (`run.py`, build 900 s, test 200 s).
 
 ## Parked by item 3263, 2026-10-18 — chapter 102, stance-0 hoplites beside a wreck
 
