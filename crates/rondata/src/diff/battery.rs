@@ -129,6 +129,28 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaMayaTier4` (Maya 1, Difficulty 4, map 7; run966 and
     // run966b, 776 of 13086), minted by item 3332, left the battery on item
     // 3338 for the AI word (`diff::maya_word`, DECISIONS 72, 83).
+    // The lobby minted by item 3338 (DECISIONS 72, 83, `docs/AI.md` §125,
+    // §273; runs 972 and 972b) when the Maya left for the AI word, so the
+    // held-out set stays eight: Great Sahara, the Bantu at Difficulty 4 —
+    // a nation no dump held, and the tier the map's battery lacked once the
+    // Maya left. The game ends itself on 23627.
+    Lobby {
+        name: "GreatSaharaBantuTier4",
+        map_style: 7,
+        ai_tribe: 3,
+        difficulty: 4,
+        start: "gamelog-run972-greatsahara-bantu-diff4-start.txt",
+        long: (
+            "gamelog-run972b-greatsahara-bantu-diff4-24k-trace.txt",
+            "rontrace-run972b.log",
+        ),
+        length: 23627,
+        // Item 3338, the first try: ours 8 draws, theirs 6, at 0 ours
+        // `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
+        // `Farms::inc_time+0x1ae`.
+        count: 4,
+        sequence: 4,
+    },
     // The fourth lobby (item 2904, DECISIONS 72), minted when the first
     // left for the AI word so three stay held out: Great Lakes, the Chinese
     // at Difficulty 1 — a nation and a difficulty no scored or battery
