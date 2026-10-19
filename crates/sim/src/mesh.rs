@@ -518,6 +518,7 @@ impl Sim {
             // down, because nothing holds it.
             None => {
                 if road[0] {
+                    if self.frame == 10620 { eprintln!("PROBC scan-none ({}, {})", t.x, t.y); }
                     self.world_set_road_at(t, false, 0, 0);
                 }
             }
@@ -554,6 +555,7 @@ impl Sim {
     /// reference down, then `World::set_road_at(x, y, 0, 0, 0)` through the
     /// door, which queues the removal and trims the neighbours.
     fn kill_stray(&mut self, t: Pos) {
+        if self.frame == 10620 { eprintln!("PROBC kill_stray ({}, {})", t.x, t.y); }
         self.mesh.road_changed(&self.world, t, false, 0, 1);
         self.world_set_road_at(t, false, 0, 0);
     }
@@ -570,6 +572,7 @@ impl Sim {
     pub(crate) fn set_blocked_at(&mut self, t: Pos, on: bool) {
         self.world.set_blocked_at(t, on);
         if on && self.world.tile_in_bounds(t) {
+            if self.frame == 10620 { eprintln!("PROBC set_blocked ({}, {})", t.x, t.y); }
             self.world_set_road_at(t, false, 0, 0);
         }
     }
