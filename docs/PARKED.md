@@ -8257,13 +8257,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KM — reserved
+## Parked by item 3326, 2026-10-19 — the Greeks research faster and cheaper, a Library at a third, the Colossus' cap; the Greek word at the long's end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3326a) **The standing set on every Greek window** (run961, run961b, run961c, run961d; `docs/AI.md` §266): both
+  leaders' `SITE[n].reg` and `aggression`, every unit's `form`, who=1's groups' `held` and the pools, and the
+  newborns' `g.angle[0]` `0x55555555` against 0 (the Iroquois', Romans' and Spanish shape, parked 3317, 3318b,
+  3324). No draw moves on any of them, and `run957b_greek_closing_state` compares the closing block whole with none
+  apart. It names no score: the lobby is closed.
+- (3326b) **`battery_measure` above two pins**: the Chinese (`GreatLakesChineseTier1`) measure 24000 and the Turks
+  14991, above their `battery::BATTERY` pins, from earlier landings. The battery's floors hold; the pass re-pins.
+- (3326c) **A captured Colossus' cap** (`Cities::capture_city@00733380`'s `calc_pop_cap`): ours rides
+  `sync_pop_cities`' recompute, which reads `has_wonder(0x20f)` live; no capture takes a Colossus. Returns when a
+  word's frame does.
 
 ## Parked by the next landing, slot KN — reserved
 

@@ -18602,3 +18602,23 @@ SHA-256 `33de43089d311393a4176ac0f2cf2ae4eac82e7ebdebb867c6df68eb1caf64b0`.
 **What it holds**: `diff::greek_word::run961c_s_gap_is_widened_whole`. Block 37 parts who=1's food 82 against 94 and
 the Library `1/2005`'s City State `cost[0]` 120 against 108; with the research-cost arm **35** keys, the standing set
 alone. Its window is in the coverage driver.
+
+## run961d — the AI word: Great Sahara, Greeks, the word 19182's widening (19176..19432) (2026-10-19, item 3326, `att-3326`)
+
+`docs/AI.md` §266. **What the disk could not answer**: the Greek Library arm moved the word to 19182, past run961b's
+last block 2226; no dump of the lobby holds a block between 2226 and the closing block. run961's `--detail`, tribe,
+cover and profile, with `--end-frame 19437 --timeout 7200 --log-window 19176 19433`.
+- Pool lane 1. Launched 05:05:40 and the game exited at 05:23:21 (1061 s). `success`, 19438 frames, `map_style 7`,
+  seed 12345. `rngcmp.py rontrace-run957b.log rontrace-run961d.log`: **19438 identical, 0 differing**. Filed with
+  `filerun.py run961d greatsahara-greek-diff1-window-19176-19433-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run961d-greatsahara-greek-diff1-window-19176-19433-guys4.txt`, 530,930,038 bytes,
+SHA-256 `de25e0d3bbe685ef83a859282bb9d555ba474dc4b3ba0c3fbb1eea1d53f8556e`.
+
+Archive `rontrace-run961d.log`, 73,306,496 bytes,
+SHA-256 `4db74b669443c9a40fc0de2650051e92d59ee59a00eb9a9b564c6bb8aa864d88`.
+
+**What it holds**: `diff::greek_word::run961d_s_word_frame_is_widened_whole` (257 blocks). Block 19176 parts who=1's
+`pop_cap`, ours 110 against theirs 160 — the Colossus' 50; with the Colossus term **41** keys, the standing set
+alone, and the word moved 19182 → 24000. Its window is in the coverage driver.

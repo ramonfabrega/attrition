@@ -892,6 +892,12 @@ Colossus, plus a tenth for peacocks, doubled for the Bantu.** Cities do not
 raise it. Twenty-five with no Military tech, fifty with The Art of War, two
 hundred with all seven, and the Military line is the whole of it.
 
+The Colossus' fifty is **built and diff-backed by item 3326** (`docs/AI.md`
+§266): `calc_pop_cap`'s last statement asks `has_wonder(0x20f)` on every
+call, and `Build::activate:1795` and `Build::close:328` call it for a
+Colossus. Until then the crate carried the term and never set it; run961d's
+Greeks stand at 160 where Military 3 and peacocks give 110.
+
 `MILITARY_POP` and `GRANARY_POP` are read into `Constants` and ship as zero,
 and nothing that has been read consumes them. By `docs/DECISIONS.md` entry 12
 they do not enter `Tuning`.
