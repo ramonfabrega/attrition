@@ -33,6 +33,7 @@ fn rd16u(m: &[u8], off: usize) -> i32 {
 /// `valid_search`'s answers, `a[26..34]` `valid_filter`'s (both filters share one sequence), `a[34..42]` `is_captain`'s,
 /// each in call order with the last repeated; `a[42]` says the slot holds the image's own `is_captain` (bit 15 of the
 /// word at `+0x8e`) rather than the stub.
+#[allow(clippy::needless_range_loop)]
 fn find_unit_port(
     a: &[i32],
     m: &mut [u8],
