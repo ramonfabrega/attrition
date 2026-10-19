@@ -547,7 +547,12 @@ unimplemented, unreached**:
   by a fog read (`was_really_seen_fog`) that is masked with `ally_mask | (1
   << who)` and answers true outright for `who >= 8`, `reveal_map == 3` and
   an off-grid cell. A rare an ally saw and this leader never did passes
-  here and would be refused there.
+  here and would be refused there. **The byte itself is carried beside
+  it** (`Sim::good_seen_bit`, `or`ed with the fog read): its two writers,
+  `compute_reg_territory`'s goods scan and `World::reveal_fog@006b3d30:87`–`88`
+  right after `new_rare`, both set it (`Sim::mark_good_seen`; item 3332,
+  `docs/AI.md` §269) — a good met through its footprint is seen though its
+  own half-cell is not.
 - **§4 row 2's human rare-collector arm** — `is_rare_collector` and
   `leader_flags & 4` and packed, `do_gather` then a ring-4
   `unpack_merchant` — is absent. `Sim::unpack_merchant` has exactly one

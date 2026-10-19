@@ -8309,13 +8309,15 @@ words and edits nothing here; a refill lands when two remain.
   (`docs/AI.md` §268), so no score names them; a lobby whose Japanese train at a Barracks or a Dock is where one
   would part.
 
-## Parked by the next landing, slot KQ — reserved
+## Parked by item 3332, 2026-10-19 — the Egyptian word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3332a. `1/16`'s `g.gpiece[0..1]` on run967, from 3056.** Ours 11 / 12683 against theirs 363 / 13035, a residue
+  no draw parts on before the word 15782 (`run967_s_word_frame_is_widened_whole`'s 33 keys, `docs/AI.md` §269). A
+  `GuyData` piece whose frame index and timer stand apart while the draw stream agrees; a word that parts on `1/16`'s
+  animation is where it would be read.
+- **3332b. who=0's `other_team_terr` on run967b, from 1404.** 441 against 388 (`run967b_s_gap_is_widened_whole`'s
+  39 keys). The human's count of cells another team holds; nothing the AI's draws read, so no score names it. A
+  border-pass word on the human's side is where it would part.
 
 ## Parked by the next landing, slot KR — reserved
 
