@@ -18268,3 +18268,106 @@ SHA-256 `620b1372e566737bd102581cace6df3bdb8472ff8dc033429e1fb5f269d8e3e5`.
 
 **What it holds**: under `tools/recomp/step4.py`, block 12156's targets reproduced. Decoy `1/88`'s `think_attack`
 calls `Group::target_opportunity(0/5, …)` on group 64. No test reads it.
+
+## run957 — the battery's replacement lobby: Great Sahara, Greeks at difficulty 1, a `DUMP_ALL` start (2026-10-19, item 3318, `att-3318`)
+
+`docs/AI.md` §264. **What the disk could not answer**: the Spanish left the battery for the AI word, and the held-out
+set stays eight with a lobby no dump holds — a nation (the Greeks, 5) and a tier (1) the map's battery lacked.
+`--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 5 --profile DIFFICULTY=1`.
+- Pool lane 1. Launched 01:56:38 and the game exited at 02:03:22. `success`, 37 frames, `map_style 7`, seed 12345,
+  players `(0, 4, 7), (1, 5, 1)`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run957-greatsahara-greek-diff1-start.txt`, 149,615,080 bytes,
+SHA-256 `16d7c69793aa0d321874a17fe76b5f4aa4f3af5cb1bd43162fa6bcf8853d5eae`.
+
+Archive `rontrace-run957.log`, 8,500,736 bytes,
+SHA-256 `86605cb54f68593119e712b8eef3cd8f1df0e4e1215968193d8e095015eb5f10`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaGreekTier1` start.
+
+## run957b — the same lobby, the draw stream to the game's end (2026-10-19, item 3318, `att-3318`)
+
+`docs/AI.md` §264. run955b's recipe with `--map 7 --ai-tribe 5`: `--end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=1` and run643's four
+`--detail` lines.
+- Pool lane 2. Launched 01:56:39 and the game exited at 01:58:32. `success`, 24001 frames, `ended_early` false.
+  `rngcmp.py rontrace-run957.log rontrace-run957b.log`: **37 identical**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run957b-greatsahara-greek-diff1-24k-trace.txt`, 12,599,859 bytes,
+SHA-256 `c9f4036dbf4d2f552f73e0565da492f1f544642f6de9701bbe9aaacab546a2e2`.
+
+Archive `rontrace-run957b.log`, 96,340,064 bytes,
+SHA-256 `b5c10922efc1fddd736db7e5ac0f467f332fdb7798518c9d2654092079de5ad8`.
+
+**What it holds**: the Greeks' first try, **176 / 176** (ours 15 draws, theirs 36, index 0: ours
+`Animal::think_bird+0x82`, theirs `Leader::compute_sites+0x4ac`), pinned in `battery::BATTERY`.
+
+## run958 — the battery word: Great Sahara, Spanish at difficulty 3, the word 576's widening (570..826) (2026-10-19, item 3318, `att-3318`)
+
+`docs/AI.md` §264. **What the disk could not answer**: run896 dumps blocks 0..36 and run896b only its setup and
+closing blocks. `--map 7 --end-frame 832 --timeout 2400 --log-window 570 827 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 01:56:38 and the game exited at 02:08:58. `success`, 833 frames, `map_style 7`, seed 12345.
+  `rngcmp.py rontrace-run896b.log rontrace-run958.log`: **833 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run958-greatsahara-spanish-diff3-window-570-827.txt`, 396,185,591 bytes,
+SHA-256 `efdc02e8baf4016a59855026834053b94729cfa861bb21c415dfa7276be49e29`.
+
+Archive `rontrace-run958.log`, 9,751,392 bytes,
+SHA-256 `a02fa5d2fded66aee0ccc4745da2239ee8a5fa978895dae91a81a17cb882bfa2`.
+
+**What it holds**: `diff::spanish_word::run958_s_word_frame_is_widened_whole` (257 blocks). 323 keys on the first
+build; 308 with the Spanish goody-sight arm; **36**, the standing set alone, with the Spanish `leader_flags 0x1000`.
+Its window is in the coverage driver.
+
+## run958b — the same game, a state packet at frame 375 (2026-10-19, item 3318, `att-3318`)
+
+`docs/AI.md` §264. **What the disk could not answer**: theirs' fog grid and cell owners, which no dump prints.
+`RON_STATE_FRAME=375` with item 597's `plan.h`, `--end-frame 379 --log-window 373 378 --detail end:MISC,UNITS=3,GUYS=4
+--callwin 0 379`, on the click-free lane.
+- Pool lane 1. Launched 02:25:00 and the game exited at 02:25:15. `success`, 380 frames, `map_style 7`, seed 12345.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run958b/map-7/frame-snapshot.bin`, 774,117,960 bytes,
+SHA-256 `c15ec30066fcaf76592c84ea2a575cc889a3a51a33595a682b4925a91ac71a64`.
+
+**What it holds**: theirs' fog grid (`WorldData +0x160`, 120×120) and cell owners (`wdata +0xf`, 60×60) at 375,
+which agree whole with this crate's (0 of 14,400 half-cells, 0 of 3,600 cells). No test reads it.
+
+## run958c — the same game, every `compute_site_stats` call to 580 (2026-10-19, item 3318, `att-3318`)
+
+`docs/AI.md` §264. **What the disk could not answer**: theirs' per-call site scores. `--end-frame 580 --log-window 575
+579 --detail end:MISC,LEADERS=9 --callwin 0 580 --tracer-def RON_SITE_PROBE`.
+- Pool lane 1. Launched 02:26:23 and the game exited at 02:26:45 (22 s). `success`, 581 frames, `map_style 7`. Read
+  in place; not filed.
+- Minutes waited on another lane: none.
+
+Trace `~/ron-golden/run958c/map-7/rontrace.log`, 12,038,400 bytes,
+SHA-256 `c19b2a40c2beb299b9fdcefa3a8ee808d44e8f9c383233fd88f4f21f0159c882`.
+
+**What it holds**: 458 calls; the first apart is frame 0's ninth, (48, 13) → (50, 12), theirs 3326 against ours
+2419, and every mismatch is theirs = ours × `(min(danger, 9) + 7) / 8` — every cell seen. No test reads it.
+
+## run958d — the battery word: Great Sahara, Spanish, the word 7785's widening (7779..8035) (2026-10-19, item 3318, `att-3318`)
+
+`docs/AI.md` §264. **What the disk could not answer**: the `0x1000` arm moved the word to 7785, past run958's last
+block 826; no dump of the lobby holds a block between 826 and the game's end. `--map 7 --end-frame 8040 --timeout 3600
+--log-window 7779 8036 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 9 --cover cover=0
+--profile DIFFICULTY=3`.
+- Pool lane 1. Launched 02:36:45 and the game exited at 02:50:06 (801 s). `success`, 8041 frames, `map_style 7`, seed
+  12345. `rngcmp.py rontrace-run896b.log rontrace-run958d.log`: **8041 identical, 0 differing**. Filed with
+  `filerun.py run958d greatsahara-spanish-diff3-window-7779-8036-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run958d-greatsahara-spanish-diff3-window-7779-8036-guys4.txt`, 465,343,152 bytes,
+SHA-256 `7988427a32e116901f372fb1a2c0fbdb11feaaaef6fdcfd3fba05129ec41dcc4`.
+
+Archive `rontrace-run958d.log`, 49,454,784 bytes,
+SHA-256 `4f751381191b75e59fbdf4800aee9f3836ba40aab734b9e8466814fe9e521d12`.
+
+**What it holds**: `diff::spanish_word::run958d_s_word_frame_is_widened_whole` (257 blocks). 666 keys on the first
+build, block 7783's Barracks prices the first past the standing set; **34** with Salt's Barracks arm. Its window is in
+the coverage driver.
