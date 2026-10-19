@@ -115,6 +115,7 @@ pub mod swarm;
 pub mod tech;
 pub mod terrain;
 pub mod territory;
+pub mod tpath;
 pub mod transport;
 pub mod tuning;
 pub mod type_index;
@@ -796,9 +797,10 @@ pub fn init_form(type_index: i32) -> i8 {
 /// A unit type the simulation knows how to build.
 ///
 /// The price is the data's, the kind is what attrition and supply read, and
-/// the group is which production building's output the ramp counts against —
-/// `None` for a type whose progression counts by type, which is every civilian
-/// in the shipped data.
+/// the group is which production building's output counts it — `None` for a
+/// type without attack, which is every civilian in the shipped data. A type
+/// whose progression counts by type is still counted in its group; only a
+/// by-group progression reads the group back (`cost::Counts::of_group`).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct UnitType {
     pub price: cost::Price,
@@ -1344,6 +1346,14 @@ pub struct Sim {
     /// `docs/AI.md` §152), by goods-list index. `reveal_fog`'s own writes are
     /// answered by the fog read in [`Sim::good_ever_seen`].
     pub good_seen_bits: Vec<u8>,
+    /// The goody boxes as `Objects::init_item` laid them down, with each
+    /// one's `ItemData::ever_seen` (`+0x20`): a bit per leader that
+    /// `World::reveal_fog` ORs in when a unit's sight first changes `seen2`
+    /// on one of the box's half-cells, and nothing else (item 3335,
+    /// `docs/GOODY.md` §7.2). Empty when the world was stood up without
+    /// the dump's `ITEM` records; [`Sim::goody_item_is_seen`] then reads
+    /// the fog in its place.
+    pub goody_items: Vec<goody::GoodyItem>,
     /// Whether a frame has run. A border fix before the first is setup's —
     /// `World::compute_all_territory` with the budget unlimited, on the
     /// map at once — and one after it takes the daemon's pass
@@ -1579,7 +1589,11 @@ pub struct Building {
     pub under_attack: u8,
     /// `build_masks & 0x4000`: eject one squad a frame.
     pub eject_pending: bool,
-    /// `ObjectData::hold_frames` on a dead building.
+    /// `ObjectData::hold_frames` on a dead building: 30 from its close
+    /// (`Object::close@00647160`, reached through `Wall::close:155`), one
+    /// off a frame in `Objects::process_all`'s building band, one back for
+    /// each squad `process_ejection` lets out. [`Sim::find_free`] reuses
+    /// no number it holds (`docs/COMBAT.md` §59.3, item 3335).
     pub hold_frames: i32,
     /// The city it belongs to, as an index into [`Sim::cities`].
     pub city: Option<usize>,
@@ -1789,6 +1803,7 @@ impl Sim {
             border_pass: None,
             territory_won: Vec::new(),
             good_seen_bits: Vec::new(),
+            goody_items: Vec::new(),
             in_play: false,
             // Ten slots, not `players`: gaia's animals and birds are units
             // of owners 8 and 9 and take numbers from their own bands.
@@ -2156,9 +2171,8 @@ impl Sim {
             for b in &self.buildings {
                 let i = b.index - base;
                 if b.owner == who && (base..mark).contains(&b.index) {
-                    // A building keeps no hold count here: a garrison stands in for it.
                     free[i as usize] &=
-                        find_free_reusable(b.alive, i16::from(!b.garrison.is_empty()), false, true);
+                        find_free_reusable(b.alive, i16::from(b.hold_frames != 0), false, true);
                 }
             }
         } else {
@@ -2292,9 +2306,11 @@ impl Sim {
         let liberty = self.liberty_discount(who, ty);
         let despotism = self.despotism_unit_discount(who, ty);
         let salt = self.salt_barracks_discount(who, ty);
+        let indian_elephant = self.indian_elephant_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
+                indian_elephant,
                 russian_spy,
                 roman_legion,
                 discount,
@@ -2308,6 +2324,7 @@ impl Sim {
             },
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
+                indian_elephant,
                 monarchy: self.monarchy_cost_discount(who, ty),
                 socialism: self.socialism_cost_discount(who, ty),
                 salmon: self.salmon_cost_discount(who, ty),
@@ -2680,6 +2697,33 @@ impl Sim {
     pub fn roman_legion_discount(&self, who: Player, ty: usize) -> i32 {
         if self.nation[who as usize].romans && self.is_legion_line(ty) {
             self.tuning.roman_legion_cheap
+        } else {
+            0
+        }
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Indian elephant arm** (`:1556`–
+    /// `1576`, after the captured-building doubling and the Supercollider
+    /// surcharge, on the one return both the train and the research arm
+    /// reach): an Indian leader (`has_tribe_bonus(0x15)`) and a unit that
+    /// `is(t, 0)` for one of `0x105..=0x108` — the War Elephant and the
+    /// three Mahouts — take `INDIANS_ELEPHANT_COST` (15) off. run970d's
+    /// block 9589: the War Elephant queued at the Stable `1/2019` costs
+    /// 81 food and 47 wealth in theirs, 96 and 56 without the arm (item
+    /// 3335, `docs/AI.md` §271).
+    pub fn indian_elephant_discount(&self, who: Player, ty: usize) -> i32 {
+        let Some(t) = self.unit_types[ty].tree else {
+            return 0;
+        };
+        let elephant = (0x105..=0x108).any(|x: tech::TypeId| {
+            self.tech_tree.types.get(x).is_some() && self.tech_tree.is(t, x, false)
+        });
+        if elephant
+            && self
+                .tech_tree
+                .has_tribe_bonus(&self.setup, &self.tech[who as usize], 0x15)
+        {
+            self.tuning.indians_elephant_cost
         } else {
             0
         }

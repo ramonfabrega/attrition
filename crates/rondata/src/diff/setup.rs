@@ -1006,6 +1006,16 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             alive: g.flags & 1 != 0,
         });
     }
+    // The goody boxes and the leaders' bits on each (`ItemData::ever_seen`,
+    // item 3335): the dump's own, never replayed off `seen2` — a box under
+    // a building's light is in `seen2` and in no item's `ever_seen`.
+    for it in &init.items {
+        sim.add_goody_item(
+            Pos::new(it.x as i32, it.y as i32),
+            it.flags & 1 != 0,
+            it.ever_seen as u8,
+        );
+    }
     // **The reveals the dump's own `seen2` stands in for.** The fog grid
     // is installed rather than swept, so every `reveal_fog` the original
     // had already made before the block was written is missing — and with
@@ -1947,6 +1957,14 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
         && let Some(s) = siblings.iter().find(|s| !s.goods.is_empty())
     {
         init.goods = s.goods.clone();
+    }
+    // The goody boxes are the generator's too (`Objects::init_item`), and
+    // their `ever_seen` is the sibling's as of its own block: the start
+    // sibling's, which is the frame the walk starts from (item 3335).
+    if init.items.is_empty()
+        && let Some(s) = siblings.iter().find(|s| !s.items.is_empty())
+    {
+        init.items = s.items.clone();
     }
     // The placed mountains are the map generator's, like the cells, and on
     // the cells' terms: a sibling whose world block opens with the same

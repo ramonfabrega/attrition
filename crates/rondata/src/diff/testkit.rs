@@ -10005,6 +10005,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3318,
         Some(crate::diff::spanish_word::WIDENING_SPANISH_CLOSING),
     ),
+    // **The battery's Indian word** (item 3335, DECISIONS 72, 83): frame
+    // 221, the Indian lobby's first try. run962 dumps blocks 0..36 and
+    // run962b its setup and closing blocks only; the word's windows are
+    // run970's (37..472: a goody box's own `ever_seen`, 221 → 1176, and
+    // the Indian ramp, → 1177), run970b's (1171..1428: a closed
+    // building's number held, 1177 → 9985), run970c's (9979..10236, with
+    // run970d's gap behind it: the elephant arm and the Stable's group,
+    // 9985 → 14594) and run970e's, which holds 14594
+    // (`run970e_s_word_frame_is_widened_whole`).
+    (
+        "INDIAN_WORD",
+        crate::diff::indian_word::INDIAN_WORD,
+        Some("run970e_s_word_frame_is_widened_whole"),
+        3335,
+        Some(crate::diff::indian_word::WIDENING_INDIAN_FRAME_14594),
+    ),
     // **The battery's fifth word** (item 3329, DECISIONS 72, 83): frame
     // 1567, the Dutch lobby's first try, moved 1567 → 23985 by the item.
     // run915 dumps blocks 0..36 and run917 its setup and closing blocks
@@ -10359,6 +10375,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Indian word** (DECISIONS 72, 83; item 3335): East
+    // Indies, the Indians at Difficulty 2 — the held-out battery's lowest
+    // lobby once item 3333 closed the Dutch; the game does not end itself,
+    // and the long runs to 24000. It joins the `Battery word` line first;
+    // the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesIndianTier2",
+        named: "East Indies (Indians)",
+        word: crate::diff::indian_word::INDIAN_WORD,
+        length: 24_000,
+        endpoint: None,
+        window: Some("indian_frame_14594_window"),
+    },
     // **The battery's Maya word** (DECISIONS 72, 83; item 3338): Great
     // Sahara, the Maya at Difficulty 4 — the held-out battery's lowest open
     // lobby once item 3336 closed the Egyptians; the game ends itself on

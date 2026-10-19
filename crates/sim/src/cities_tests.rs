@@ -1129,6 +1129,9 @@ fn a_re_entry_re_issues_a_queued_build_on_the_site_that_took_its_number() {
         QueuePos::Last,
     );
     sim.close_building(b2, false);
+    // The close's hold run out (`docs/COMBAT.md` §59.3), so the number is
+    // free again.
+    sim.buildings[b2].hold_frames = 0;
     let b3 = sim.place_building(0, t.barracks, tile_pos(48, 44)).unwrap();
     assert_eq!(sim.buildings[b3].index, sim.buildings[b2].index);
     // The builder is carried off, its first approach spent: the build on
@@ -1177,7 +1180,9 @@ fn a_closed_site_s_builder_walks_on_until_its_number_is_reused() {
         sim.units[u].orders
     );
     assert_ne!(sim.units[u].pos, start, "and the walk under it goes on");
-    // The next building takes the dead one's number, and the uid test fails.
+    // Once the close's hold has run out (`docs/COMBAT.md` §59.3) the next
+    // building takes the dead one's number, and the uid test fails.
+    sim.buildings[b].hold_frames = 0;
     let b2 = sim.place_building(0, t.barracks, tile_pos(46, 40)).unwrap();
     assert_eq!(
         sim.buildings[b2].index, sim.buildings[b].index,
@@ -1191,6 +1196,38 @@ fn a_closed_site_s_builder_walks_on_until_its_number_is_reused() {
             .any(|o| matches!(o.body, Body::Build(x) if x == b)),
         "a reused number ends it: {:?}",
         sim.units[u].orders
+    );
+}
+
+/// **A closed building's number is held thirty frames** (item 3335,
+/// `docs/COMBAT.md` §59.3): `Build::close` reaches `Object::close` through
+/// `Wall::close:155`, whose last write to an active object is `hold_frames
+/// = 0x1e`, and `Objects::process_all`'s building band takes one off a
+/// frame. run970b's script places a Woodcutter's Camp on 1176, destroys
+/// it and places another: theirs' second is `1/2010`, the first's 2009
+/// still held.
+#[test]
+fn a_closed_building_s_number_is_held_thirty_frames() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    sim.close_building(b, false);
+    assert_eq!(sim.buildings[b].hold_frames, Sim::CLOSE_HOLD);
+    let b2 = sim.place_building(0, t.barracks, tile_pos(46, 40)).unwrap();
+    assert_eq!(
+        sim.buildings[b2].index,
+        sim.buildings[b].index + 1,
+        "a held number is not reused"
+    );
+    for _ in 0..Sim::CLOSE_HOLD {
+        sim.tick();
+    }
+    assert_eq!(sim.buildings[b].hold_frames, 0, "one off a frame");
+    let b3 = sim.place_building(0, t.barracks, tile_pos(40, 46)).unwrap();
+    assert_eq!(
+        sim.buildings[b3].index, sim.buildings[b].index,
+        "and then it is"
     );
 }
 
@@ -4659,6 +4696,51 @@ fn a_wall_with_no_way_round_gives_up_and_pays_the_grid_draw() {
         assert!(sim.units[u].pos.tile().x < 24, "through the ridge");
     }
     assert!(!sim.units[u].orders.is_empty(), "still trying");
+}
+
+/// **`find_gather_spot`'s region is `get_tregion`'s, the coastal-refined
+/// one** (item 3335, `docs/AI.md` §271): a unit on the ocean tile of a
+/// coastal cell — a citizen turned barge beside the Dock it built — is in
+/// the cell's `region2`, the sea, and a camp on the land beside it is in
+/// no region the search accepts. The plain cell region calls the same tile
+/// land, and sent run970e's `1/77` to gather on 14594.
+#[test]
+fn a_unit_on_a_coastal_cell_s_water_gathers_nowhere_on_the_land() {
+    fn found(coastal: bool) -> bool {
+        let mut sim = world_sim();
+        let sea = sim
+            .world
+            .fill_region(Terrain::Sea, Cell::new(15, 15), Cell::new(15, 15));
+        let t = install_types(&mut sim);
+        let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        city_at(&mut sim, &t, 0, 30, 30);
+        sim.plant_camp_forest(tile_pos(24, 30));
+        let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
+        finish(&mut sim, wood);
+        sim.buildings[wood].gather_max = Some(4);
+        let l = &mut sim.ledgers[0];
+        l.cap = [70 * economy::RATE_SCALE; economy::RESOURCES];
+        l.income = [0; economy::RESOURCES];
+        l.over_cap = [economy::OverCap::Under; economy::RESOURCES];
+
+        let here = Cell::new(7, 7);
+        if coastal {
+            let mut d = sim.world.cell_data(here);
+            d.flags |= 0x100;
+            d.region2 = Some(sea);
+            sim.world.set_cell_data(here, d);
+            sim.world
+                .set_tile_field(here.centre_tile(), tile::SURFACE, tile::SURFACE_OCEAN);
+        }
+        let t = here.centre_tile();
+        let u = spawn(&mut sim, 0, citizen, tile_pos(t.x, t.y));
+        let range = sim.tuning.unit_gather_respond_range * TILE;
+        sim.find_gather_spot(u, range)
+    }
+    assert!(found(false), "on land the camp is found");
+    assert!(!found(true), "on the coastal cell's water it is not");
 }
 
 /// **`find_gather_spot` scores the headroom under the commerce cap, not the

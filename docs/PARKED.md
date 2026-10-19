@@ -8374,13 +8374,19 @@ words and edits nothing here; a refill lands when two remain.
   −1033306112). A heading the move asks for and nothing in the window's draws reads; positions agree. A word that
   parts on one of these units' turns is where it would be read.
 
-## Parked by the next landing, slot KU — reserved
+## Parked by item 3337, 2026-10-19 — the nations seat's thirteenth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3337a.** `Balance::compute_modifier@00581cc0` unswept (a second batch parks it; it is its own item, 2732): needs TLS statics (`fs:[0x2c]` slot and `_TSS` guards read by `_Init_thread_header/footer`; `--tib` sets only `fs:[0]`), the `rows`/`cols` `SimpleArray<int>` statics laid initialised in `.bss`, and a struct-returning stub (`return_pack@005821c0` fills a 5-word pack through a hidden out pointer, thiscall + stack arg). Flags wanted: `--tls`/`--tss VA:VA`, `--stub-struct IDX:K:FIELDS`, a `SimpleArray` static laid by `--at`. The crate's method is `balance::compute_modifier` (balance.rs:731); same as 3282c.
+
+**3337b.** `Unit::check_build_order@00603470` unswept (second batch to park it, own item): flag `--stub-array LOCDEPTH:CAP` still lacking, as 3281c. Port prerequisite: extract `Sim::check_build_order` (orders.rs) into a `_steps` over closures; the original's site list holds unit ids, the crate's building indices; the crowd count differs.
+
+**3337c.** `Object::replace_hotunit`: swept inline (the crate carries no hotkey-group state; `cast_transport`'s `TransportView` only names it as a seam). The stub's removal vslot zeroes every group count, so at most one restart per row; the second match after a restart is untested. Owners drawn 0/1/8/255 only.
+
+**3337d.** `ObjectsData::find`: swept inline (the crate has no such method). Survivors: `lo < 60_000` boundary (needs `lo == 59999` with `hi` far), the disc-arm distance tie.
+
+**3337e.** `World::reveal_fog` now `reveal_fog_steps` over `RevealFogView` (`rares.rs`); the `Sim` view answers the new arms (rare-found message gate, goody, unit goody-box) "nothing", so crate behaviour is unchanged. `who` drawn 0..2, so `mark_good_seen`'s `who < 8` and the bts wrap are not exercised. `--cell-this` does what 3281b's suspected `--cell-same` would.
+
+**3337f.** `PathFinder::find_tpath` swept through the new `tpath.rs` (`find_tpath_steps` over `TpathView`). Sim changes: the FINAL give-up arm (parked 2739) now plain-pushes the goal and returns (no capture shown to reach it); `pf_start` set before the early returns; wrapping pull-back arithmetic; `tregion` returns `i32`. Unmodelled sweep-side writes: pathfinder +0x54/+0x68/+0x6c/+0x74/+0x94; `saving` (+0x84) held 0, the resume arm unmodelled. Three break chunks (`ab`, `v.begin` removal, the FINAL push removal) were mutated on the earlier, wider draw and not re-run on the final one.
 
 ## Parked by item 3338, 2026-10-19 — the Maya word 776 → 13086, the game's end
 
