@@ -3783,6 +3783,13 @@ the lane gate takes `--test-threads 8` under the host admission when it widens (
 cannot carry; DECISIONS 75's four-thread lane was sized when three lanes gated at once), measured on one tranche
 against 18.9 before the frame line moves; the slot policy stays Ramon's (3143). One reach.
 
+## Loop, filed 2026-10-19 — the forty-fifth tranche's
+
+(3323) **A road-node parting the trace's searches never revisit** (3314's "for the Loop" line, filed at its merge): the
+Romans' 18026 parted on tile (28, 40), a road in ours and not in theirs, and the event behind it (a Library's death on
+18011, `place_roads`' teardown) was named only by logging ours' map around the tile over the whole game before reading
+the original's removers. Candidate check: a road-node parting's brief carries that log as its first step. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-fourth tranche's
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
@@ -8195,15 +8202,15 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3314, 2026-10-19 — the Romans' fort discount and a dead Library's ring, the Roman word at the game's end
 
-- **The Roman closing's residue** (`EastIndiesRomanTier2`, `docs/AI.md` §263; it names a score:
+- (booked as item 3322) (3321) **The Roman closing's residue** (`EastIndiesRomanTier2`, `docs/AI.md` §263; it names a score:
   `run899b_roman_closing_state`'s counts `[0, 0, 0, 6, 0, 1, 0]`). The draw stream agrees to 18620. In theirs, who=0's
   Village `0/2000` is captured on the last frame, and ours stands at 1199 of 1200. run956c parts it on **block 18369,
   ours 868 against theirs 869**, from the blow of 18368: the Horse Archers `1/53`, 1.0 here and 2.0 there. Its blows of
   18320, 18343 and 18393 are 1.0 on both sides, and every other blow agrees. Theirs' `1/53` drops `up` (86, the
   Senator `1/55`'s uid) on block 18367. The booking is the frame and the blow. "The Senator's escort" is a hypothesis.
-- **who=1's `g.angle[0]` on `1/22`..`1/37`** (run956b, run956c, standing from 18020): ours `0x55555555` against 0.
+- (3324) **who=1's `g.angle[0]` on `1/22`..`1/37`** (run956b, run956c, standing from 18020): ours `0x55555555` against 0.
   It parts nothing that moves, and names no score.
-- **The teardown's other arms** (`docs/ROADS.md` §13): a city centre's ring and the third arm's have reached no
+- (3325) **The teardown's other arms** (`docs/ROADS.md` §13): a city centre's ring and the third arm's have reached no
   consequence in a capture this crate walks. Of the seventeen tiles ours clears on 18011, only (28, 40) is observed
   (through a search's price).
 
