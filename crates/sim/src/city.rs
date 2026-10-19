@@ -1096,6 +1096,17 @@ impl Sim {
     /// offered beside two Large Cities is priced as the third city, not the
     /// first Small one.
     pub fn building_price(&self, who: Player, ty: usize) -> [i32; RESOURCES] {
+        let r = self.building_price_probe(who, ty);
+        if self.frame < 2 && std::env::var_os("RON_PROBE_PRICE").is_some() {
+            eprintln!(
+                "PROBE price f{} who{} {:?} -> {:?}",
+                self.frame, who, self.build_types[ty].ident, r
+            );
+        }
+        r
+    }
+
+    fn building_price_probe(&self, who: Player, ty: usize) -> [i32; RESOURCES] {
         if self.iroquois_free_senate(who, ty) {
             return [0; RESOURCES];
         }
