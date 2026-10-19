@@ -609,6 +609,16 @@ Three that are not the standard shape, and are the interesting ones:
   where `n` is how many of the four final techs you already hold or are
   researching, and `RAMP_FINAL` ships as 50%. Four final techs, each half again
   as expensive as the last.
+- **The Hanging Gardens cheapen industry.** After the game option, the
+  Greek/Democracy terms, and before the British taxation term
+  (`get_cost@00664090:1270`–`1276`): a food, timber or metal gathering-line
+  tech (`0x261..=0x266`, `0x26c..=0x26e` — Carpentry to Food Industry, Metal
+  Alloys to Steel; the knowledge line between is not) costs `(100 −
+  HANGING_GARDENS_INDUSTRY_DISCOUNT) × p / 100` for a leader holding the
+  Gardens — 66% off as shipped — and `(100 − GERMAN_INDUSTRY_DISCOUNT)` again
+  for the Germans. **The Gardens' term is built and diff-backed** (item 3332,
+  `docs/AI.md` §269: run967e's `get_cost` returned 68 for Metal Alloys where
+  this crate charged 200); the German term is not carried (parked 3332c).
 
 And the game option:
 

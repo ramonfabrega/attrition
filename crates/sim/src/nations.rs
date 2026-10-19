@@ -117,6 +117,9 @@ pub(crate) mod power {
     pub const JAPANESE: usize = 15;
     /// The Indians' building ramp is `get_cost`'s (`Sim::indian_ramp`).
     pub const INDIANS: usize = 21;
+    /// The Egyptians' Farm wealth is `BuildTypeData::calc_gather`'s
+    /// (`Sim::site_of`, item 3332).
+    pub const EGYPTIANS: usize = 7;
     /// Not `Build::activate`'s: the Persians' caravan is `Build::process`'s
     /// (`Sim::persian_market_caravan`).
     pub const PERSIANS: usize = 23;

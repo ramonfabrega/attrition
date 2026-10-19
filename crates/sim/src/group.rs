@@ -71,7 +71,7 @@ pub enum Flight {
 /// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4's same-region arm | no slot is ever invalid in the same region, so no member is re-slotted there; the different-region arm is built (§37.1) |
 /// | `QUEUE_FIRST`'s insert dance (`set_up_insert` / `action_halt` / recurse / `finish_insert`) | §6.2, §10 | `charge`'s `QUEUE_FIRST` is a plain `push_front` on each member |
 /// | the scenario `ignore_orders` filter | §5 | never set outside a scenario |
-/// | `is_modern_infantry`, `is_packing`, the strafe | §6.6, §10 | no modern infantry, no packers in flight, no planes |
+/// | `is_modern_infantry`, the strafe | §6.6, §10 | no modern infantry, no planes (`is_packing` is built: [`Sim::clear_keeping_pack`], item 3336) |
 /// | the area-id table (`world +0x134`) | §6.7, §9's anchor test | the sim compares tile regions instead |
 pub mod seams {}
 
@@ -2602,9 +2602,15 @@ impl Sim {
         // back to the group on the way out (§6.3), so the flag
         // `compute_form` reads a line later is the *last layout's* answer
         // and not whatever the march left behind.
+        //
+        // **A packer mid-pack keeps its pack** (`70524f`–`7053a0`, item
+        // 3336): a member whose type packs (`+0x2b8 & 4`) and whose head is
+        // a pack cast (`is_packing`) has that order lifted off the list,
+        // the rest cleared, and the cast put back
+        // ([`Self::clear_keeping_pack`]).
         if queue == QueuePos::New {
             for (&u, p) in g.list.iter().zip(&plan) {
-                if *p == Member::Move {
+                if *p == Member::Move && !self.clear_keeping_pack(u) {
                     self.clear_orders(u);
                 }
             }
@@ -2771,6 +2777,18 @@ impl Sim {
             // leader's heading. And its `facing` is the mirror this layout
             // used, which is what the order hands back when it dies.
             let order_angle = Angle(angle.0.wrapping_add(i32::from(slots.angles[i]) << 24));
+            // **The order loop's own keep** (`705e5d`–`705ed8`, item 3336):
+            // under `QUEUE_NEW` a packer still packing keeps its cast at
+            // the head once more, and its move is added `QUEUE_LAST`,
+            // beneath it — Great Sahara's Cannon `1/125` on tick 20218
+            // (run967g's block 20219: the `GROUPATTACKTOORDER` under the
+            // `CASTORDER` `spell 651`, `spell_time` running on), so the
+            // escort its army posts round it that tick reads it standing.
+            let queue = if queue == QueuePos::New && self.clear_keeping_pack(u) {
+                QueuePos::Last
+            } else {
+                queue
+            };
             // §6.6 step 6's own gate (`705f00`–`705f61`): a **land
             // formation of two or more** walking a `MOVE_TO` or an
             // `ATTACK_TO` gets a `GroupMoveOrder`, and everything else a
@@ -2866,6 +2884,28 @@ impl Sim {
         // run31 measures §6.4's displacement.
         self.record_form(g, &slots, to);
         self.record_move(g, to, angle, form, queue);
+    }
+
+    /// `Group::action_move_near@00704990`'s keep (`:410`–`440`, `:727`–
+    /// `752`, item 3336): a member whose type packs and whose head order is
+    /// a pack cast (`UnitData::is_packing`) has that order taken off the
+    /// list (`LinkListBase::remove_current` — not killed), the rest
+    /// cleared (`Unit::clear_orders`), and the cast added back, then
+    /// `update_gpiece`. False, and nothing done, for any other member.
+    pub(crate) fn clear_keeping_pack(&mut self, u: usize) -> bool {
+        let packs = self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].combat.packs);
+        if !packs || !self.is_packing(u) {
+            return false;
+        }
+        let Some(cast) = self.units[u].orders.pop_front() else {
+            return false;
+        };
+        self.clear_orders(u);
+        self.units[u].orders.push_front(cast);
+        self.update_gpiece(u);
+        true
     }
 
     /// `Group::action_siege_attack_to(x, y, ·, ·, angle)` (§9).

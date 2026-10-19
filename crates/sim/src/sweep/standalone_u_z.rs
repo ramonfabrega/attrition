@@ -228,6 +228,8 @@ mod unit_find_new_bomber_target;
 mod unit_find_repair_spot;
 #[path = "unit_get_speed.rs"]
 mod unit_get_speed;
+#[path = "unit_go_around_building.rs"]
+mod unit_go_around_building;
 #[path = "unit_go_inside.rs"]
 mod unit_go_inside;
 #[path = "unit_go_to_city.rs"]
@@ -294,6 +296,8 @@ mod unit_think_carry;
 mod unit_think_hero;
 #[path = "unit_think_peasant.rs"]
 mod unit_think_peasant;
+#[path = "unit_think_spellcaster.rs"]
+mod unit_think_spellcaster;
 #[path = "unit_think_supply.rs"]
 mod unit_think_supply;
 #[path = "unit_type_backup.rs"]
@@ -648,6 +652,8 @@ mod world_map_on_right_down;
 mod world_map_reinit_all;
 #[path = "world_new_coll_block.rs"]
 mod world_new_coll_block;
+#[path = "world_reveal_fog.rs"]
+mod world_reveal_fog;
 #[path = "world_scale_by_area.rs"]
 mod world_scale_by_area;
 #[path = "world_scale_by_axis.rs"]

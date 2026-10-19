@@ -63,6 +63,7 @@ pub mod calc_gather;
 pub mod caravan;
 pub mod cast;
 pub mod cast_decoy;
+pub mod cast_transport;
 pub mod cavarch;
 pub mod city;
 pub mod collide;
@@ -70,6 +71,7 @@ pub mod combat;
 pub(crate) mod construct;
 pub mod cost;
 pub mod danger;
+pub mod detour;
 pub mod diplomacy;
 pub mod do_attack;
 pub mod economy;
@@ -84,6 +86,7 @@ pub mod garrison;
 pub mod gather;
 pub mod goody;
 pub mod group;
+pub mod group_queue_up;
 pub mod grouppath;
 pub mod heal;
 pub mod holdings;
@@ -112,6 +115,7 @@ pub mod swarm;
 pub mod tech;
 pub mod terrain;
 pub mod territory;
+pub mod tpath;
 pub mod transport;
 pub mod tuning;
 pub mod type_index;
@@ -3229,6 +3233,7 @@ impl Sim {
             &cost::Modifiers {
                 science_ahead: self.science_ahead(who, t),
                 democracy: self.democracy_tech_discount(who, t),
+                industry: self.industry_tech_discount(who, t),
                 greek_research: self.greek_research_discount(who, t),
                 late_discount: if british_taxation {
                     self.tuning.british_taxation_discount
@@ -3243,6 +3248,33 @@ impl Sim {
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// `get_cost`'s industry arm (`00666940`..`006669b0`): the Hanging
+    /// Gardens' discount on the food, timber and metal gathering lines —
+    /// `0x261..=0x263`, `0x264..=0x266` and `0x26c..=0x26e` (an unsigned
+    /// `ja` on the last), not the knowledge line between them — when the
+    /// leader holds the wonder (item 3332: who=1's Metal Alloys, 68 food
+    /// and 68 timber where 200 left it unaffordable on Great Sahara's
+    /// 15778). The German term on the same predicate is not carried.
+    fn industry_tech_discount(&self, who: Player, t: tech::TypeId) -> i32 {
+        const INDUSTRY: [&str; 9] = [
+            "Carpentry",
+            "Logging Industry",
+            "Papermill",
+            "Agriculture",
+            "Crop Rotation",
+            "Food Industry",
+            "Metal Alloys",
+            "Cold Casting",
+            "Steel",
+        ];
+        let held = self.wonders_held(who) & (1 << tech::wonder::HANGING_GARDENS) != 0;
+        if held && INDUSTRY.contains(&self.tech_tree.types[t].name.as_str()) {
+            self.tuning.hanging_gardens_industry_discount
+        } else {
+            0
+        }
     }
 
     /// The highest held Democracy bonus, for non-library technologies

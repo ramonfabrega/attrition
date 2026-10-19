@@ -23679,12 +23679,93 @@ application line deleted against its own test (exit 101). Every other lobby's `f
 (`JAPANESE_BARRACKS_SPEED`, `JAPANESE_CARRIER_SPEED`) are not carried; this lobby at Difficulty 1 never reaches them
 in a way the draw stream can see (parked 3331a).
 
-## 269. Reserved for the next item on the AI track
+## 269. The Egyptians: a worked Farm's wealth, a good met through its footprint, the Hanging Gardens' industry, the census's gather slots, and the word 20031 (2026-10-19, item 3332)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery's Great Sahara Egyptian word. `GreatSaharaEgyptianTier4` (map 7, the Egyptians (7) at
+Difficulty 4; runs 648, 645) was the held-out battery's lowest open lobby on the measure of `987c4c33`, at **2974 /
+2974** of 20380 (the game ends itself) on its first try (§125). It is promoted here (`diff::egyptian_word`,
+`SCORED_LOBBIES` `(7, 7, 4)`). The battery is eight lobbies again with **`GreatSaharaMayaTier4`** (map 7, the Maya (1)
+at Difficulty 4; runs 966, 966b), whose first try is **776 / 776** of 13086 (the game ends itself): ours 34 draws,
+theirs 75, at index 0, ours `Animal::think_bird+0x82`, theirs `Leader::produce_building+0xc99`. No dump had held the
+Maya, and tier 4 is the tier Great Sahara's battery lacked once the Egyptians left.
+
+**The frame.** On 2974 both spend `Unit::do_job` twice; then ours turns a unit (`Guy::set_anim+0x97a < Guy::do_turn <
+Unit::move_step`) and wraps two `Guy::inc_time`s where theirs wraps six. The turning unit is the Merchant `1/17` (TY
+11), born on 2972 on both sides.
+
+**The widening** (run967, 2968..3225, block 2975; `run967_s_word_frame_is_widened_whole`): 736 keys on the first try,
+already apart on block 2968 past the standing set in who=1's economy — `ages` 0 against 1, `tech_frame` 2776 against
+2576, `discovered` 1 against 3, `income[2:wealth]` 160 against 384. **Walked back** through run967b (3..2967 at stride
+50; `run967b_s_gap_is_widened_whole`): block 54, who=1's `income[2:wealth]` **0 against 96**, theirs' series 96, 128,
+160 — steps of 32.
+
+**1. The Egyptian Farm's wealth.** `BuildTypeData::calc_gather@00639e40:997`–`1005`: in the flat branch, a building
+`isa` Farm (`0x1a1`) with any gatherer, for a leader with `has_tribe_bonus(7)`, adds `EGYPTIAN_FARM_WEALTH × 16`
+(shipped 2, so 32 sixteenths) to wealth — once a farm, not per gatherer. Built: `economy::Site::farm_wealth`, set by
+`holdings.rs::site_of` for an Egyptian Farm, paid in `economy::city_rates` when the site is worked;
+`Tuning::egyptian_farm_wealth`. **Value diff**: run967b 55 → 39 keys, every economy row gone.
+
+**2. A good met through its footprint is seen.** With the economy closed, run967's row was the Merchant's destination:
+`1/17`'s `MOVEORDER` on 2973 ours (31032, 21048) against theirs (34968, 25752). who=1's `new_rares` on 2972 is `[13,
+10, 12]` on both sides, and theirs heads to good 13 at (34944, 25728); ours skipped it, because `think_merchant@005f4740:53`
+tests the good's `ever_seen` byte (`GoodData +0x20`) and ours held it unset — good 13 was met on 2114 through
+`reveal_fog`'s footprint arm (the Scout at (36564, 24953), sight 6), its own half-cell never seen. `World::reveal_fog@006b3d30:87`–`88`
+sets `ever_seen |= 1 << who` right after `new_rare`; ours set it only in `compute_reg_territory`'s goods scan. Built:
+`Sim::mark_good_seen`, called from both (`docs/MERCHANT.md`'s substitution note). **The word moves 2974 → 15782**: ours
+62 draws, theirs 63, at index 1, ours `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`. run967 went to
+**33** keys (the standing set, and `1/16`'s `g.gpiece[0..1]` from 3056 — parked 3332a), run967b to **39** (the
+standing set, and who=0's `other_team_terr` from 1404 — parked 3332b).
+
+**3. The Hanging Gardens' industry discount (15782 → 15982).** run967c (15776..16033; `run967c_s_word_frame_is_widened_whole`)
+parts, past the standing set, on block 15779: who=1's Metal Alloys on the make list, **54000 against 216000**, from
+`research_techs`' pass on 15778. Every term of ours' value agreed with the dump's state (weights 5 × base 3600, the
+gather line's ×2 with `econ[4]` 8 on both sides, recency ×6, `shortages` 0), and the factor was `check_income`'s:
+**run967d** (`RON_LEADER_PROBE` with `check_income@006cc800` added) printed theirs' 256 against ours' 64, and **run967e**
+(with `can_pay_cost@00667570` and `get_cost@00664090` under it, one frame) printed theirs' price, **68 food and 68 timber
+against ours' 200**, Fortification and Medicine agreeing. `TypeData::get_cost@00664090:1270`–`1276`: a food, timber or
+metal gathering-line tech (`0x261..=0x266`, `0x26c..=0x26e`, an unsigned `ja` on the last range) for a leader holding the
+Hanging Gardens (`has_wonder(0x210)`) costs `(100 − HANGING_GARDENS_INDUSTRY_DISCOUNT) × p / 100`, shipped 66%. Built:
+`cost::Modifiers::industry` after the democracy term, `Sim::industry_tech_discount`,
+`Tuning::hanging_gardens_industry_discount`. **Value diff**: ours' Metal Alloys at 68/68, `can_pay_cost` 3 on both sides;
+run967c 820 → **276** keys. **The word moves 15782 → 15982**: ours 495 draws, theirs 450, at 4, ours
+`Leader::produce_building+0xc99`, theirs `Build::find_gather_tiles+0x10a`. On 15982 who=1's make list carries ours'
+building 417 (cat 4, city 4, 312960) where theirs holds 418 and Metal Alloys, which theirs researches on 15982
+(`tech_frame`) while ours places the building in city 4.
+
+**4. The census's gather slots are the ledger's (15982 → 20031).** Building 417 is the **Farm**, offered in city 5 (the
+dump's 4) at 312960 and in cities 2–4; theirs offers none. **run967f** (`RON_LEADER_PROBE`, `--callwin 15981 15981`):
+69 `make_me` offers on 15981, none of type 417, and no `check_income(417)` — refused before its price. The gate is
+`gather_value`'s first test, `filled_gather_slots[g] < gather_slots[g] × 3 / 4`: food filled 14 on both sides, and
+`gather_slots[0]` ours **19** against theirs' dumped **20**, so ours listed (14 < 14 false). No widening row showed
+it, because `diff::leader::rows` compared the dump against `Ledger::gather_slots`, which agreed, while the gate read a
+second ours-side copy, `Census::gather_slots`. The original has one field, `LeaderData +0x8a4` (`+0x8d4` its mark),
+with three writers: `Build::activate` adds, `Build::close` takes back, and `plan_strategy@006b9620:1162`–`1191`
+rewrites it (wealth excepted) from its walk of the objects lists. The dump shows the shape: theirs' census ran on tick
+15975 (`filled_gather_slots`, `peasant_high` and `reg_peasants` move on block 15976) and `gather_slots[0]` moved 19
+→ 20 one block later with no census — the Farm `1/2054` finishing (ours' census walked it inactive on 15975). Built:
+`Census::gather_slots` and `gather_slots_high` deleted; `census_buildings` and `census_maxima` write the ledger's;
+the gate (`ai_build.rs`), the oil reads and `scholar` count read it. **Value diff**: ours' gate reads 20 on 15981;
+run967c 276 → **36** keys — the standing set, the newborns' `g.angle[0]`, the pool and group lists — and nothing on
+15982. **The word moves 15982 → 20031** of 20380: ours 12 draws, theirs 15, at 4, ours `Animal::do_idle+0x83`,
+theirs `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`. **Widened** on run967g (20025..20282;
+`run967g_s_word_frame_is_widened_whole`), **3286** keys on the first try: past the standing set, `1/92` and `1/160`'s
+`attack[1].mandatory` (ours 0, theirs 1) already apart on block 20025, and from 20030 who=1's `1/162` — ours two
+orders and a path where theirs holds none, `collide_frame` 20025 against 20029 — and `1/163`'s path, 1 node against
+17, on 20031. The next item's frame; not a mechanism.
+
+Each fix has a test (`holdings::tests::an_egyptian_worked_farm_pays_two_wealth_flat`,
+`rares::tests::reveal_fog_marks_the_rare_it_meets_seen`) and a `tools/mutate.py` mutation that held against
+`egyptian_word_first_parting` (exit 101): the farm wealth's application zeroed, and `reveal_fog`'s `mark_good_seen`
+deleted. The industry arm has `cost::tests::the_hanging_gardens_take_two_thirds_off_an_industry_tech`, and its
+`Modifiers::industry` line deleted held against the same test (exit 101). The census's slots have
+`ai_census::tests::a_farm_finished_between_censuses_reaches_the_gather_gate`; the gate reading one food slot fewer in a
+census period's last 25 frames held (exit 101), and the census's own write to the ledger deleted **survived** (exit 0)
+— on this game `activate` and `close` alone keep the field equal to the census's sum. Every other lobby's `first_parting`,
+`battery_floors_hold`, `closing_state` and `sahara_coverage` held.
+
+**Not established.** `EGYPTIAN_SCHOLARS_FOOD` (0 as shipped) and `EGYPTIAN_GRANARY_UPGRADES`' consumer are not
+carried past their loaders (`docs/NATIONS.md`); this lobby's walk to 15782 never needed them. Whether the `ever_seen`
+byte has a reader past `think_merchant` is not read.
 
 ## 270. The Dutch to the long's end: an Oil Platform priced by the Oil Wells (2026-10-19, item 3333)
 
@@ -23795,12 +23876,74 @@ frame of release (the thirtieth `process_all` after the close, against this crat
 on any window; run970b's numbers are both 30 frames inside it. A sim whose goody boxes were not loaded from a dump
 keeps the four-half-cell fog read.
 
-## 272. Reserved for the next item on the AI track
+## 272. The Egyptians to the game's end: an attack's retarget, a follower's fire, a packer's keep, the Musketeer's nodes and a level-up's hits (2026-10-19, item 3336)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Score.** `GreatSaharaEgyptianTier4` (the Egyptians at Difficulty 4, Great Sahara; run645, run967g, run971):
+**20031 → 20380 of 20380**, the game's last frame (count and sequence), and run645's closing block 20381 compared
+whole — 180 units, every count 0 (`run645_egyptian_closing_state`). The coverage pair's run652 closing counts move
+with the fifth fix, `[1, 0, 0, 1, 0, 1, 0]` → `[1, 0, 0, 0, 0, 0, 0]`.
+
+**1. `do_move`'s `ATTACK` retarget** (`Unit::do_move@005f7b30`, the action's `get_type == 10` arm, line 105): a unit
+whose action is a non-mandatory attack and whose search is suspended gives its walk up every fourth frame after the
+collision (`elapsed > 0 && elapsed % 4 == 0`), while its player's `repaths` is non-zero: `find_new_target(this, NULL,
+1)`, and `collide_frame` takes the frame, so `collide` is not counted. Value diff, run967g's block 20029: the Fusilier
+`1/162` — theirs `collide_frame` 20029 and its orders dropped (`collide` 4), ours `collide` 4 → 5 and the move kept.
+**20031 → 20186.** `Sim::do_move` (`orders.rs`), replacing the dormant SEAM; test
+`path::tests::an_attacker_on_a_suspended_search_retargets_every_fourth_frame`.
+
+**2. A formation follower's fire on the move** (`Unit::do_group_move@005e79a0:392`–`406`): the follower runs the
+head's fire-on-the-move gate before its step, with one difference — an `ATTACK` action or `HOLD_FIRE` skips the call
+and keeps `cavarch_o`, where the head clears it. Value diff, block 20186: the Royal Mameluke `1/68` (TypeIndex 198), a
+`GROUP_ATTACK_TO` follower — theirs spends `Unit::fight+0x9b0` on the Citizen `0/4` it held (`cavarch_o` 4 → −1,
+`near_o` 1 on 20187), ours never reached `cavarch_fight`. **20186 → 20235.** `Sim::cavarch_follower` (`cavarch.rs`);
+test `cavarch::tests::a_follower_fires_on_the_move_and_keeps_its_pair_under_hold_fire`.
+
+**3. A packer mid-pack keeps its cast through a group move's `QUEUE_NEW` clear** (`Group::action_move_near@00704990:
+410`–`440` and `:727`–`752`): a member whose type packs and whose head is a pack cast (`UnitData::is_packing`) has the
+cast lifted off, the rest cleared and the cast put back, and its move goes `QUEUE_LAST` beneath it. Value diff, block
+20219: the escort round the Cannon `1/125` (packing, `CASTORDER spell 651`) — ours' members read it moving (every
+guard leg at heading −1887174656), theirs standing (`1/51`'s leg angle `find_angle(post − target)`, `1/86` taking the
+idle arm). **20235 → 20380.** `Sim::clear_keeping_pack` (`group.rs`), at both clears; test
+`fight::tests::a_packer_mid_pack_keeps_its_cast_through_a_new_clear`.
+
+**4. The Musketeer's two release nodes** (piece 49, `MUSKETEERS`; `launch::MEASURED`): `CHAR_ATTACK1` frame 1 →
+bearing 157810688, radius 142, dz 218; `CHAR_ATTACK3` frame 4 → 49020928, 161, 178, each fitted exactly to one of
+run971's rounds (`1/54` on 20378, `1/136` on 20374). The closing block had the Citizen `0/1` one flee step short:
+theirs' round from `1/136` left from (5333, 26970), not the figure's (5448, 26856), and flew 4 frames against 5, so its
+`FLEE_TO` came on 20377. **Closing counts `[1, …]` → all 0.** Test
+`launch::tests::run971_s_musketeer_rounds_leave_from_their_release_nodes`. `CHAR_ATTACK2`'s frame 7 is not measured.
+
+**5. A level-up's hits wait for the wall stats** (`Wall::set_type@00640da0`, `SubObject::set_type@00662450`,
+`Wall::increment_stats@00643270`): none calls `update_hits`. `City::check_upgrade` raises the wall-stats flag and the
+new figure comes with the next `calc_wall_stats`; this crate's `Sim::set_type` re-rated on the spot. Value diff, run967g's
+block 20036: who=1 reaches age 5 on 20035, and its cities `1/2000`, `1/2020` read 12000 ours against 6000, `1/2053` 312
+against 252; theirs re-rate on 20037. run967g's widening 41 → 38 keys. Every caller of `set_type` raises the flag
+(`gain_tech`'s tail, `check_upgrade`); `town_up` is the one that does not, and no lobby's floor moved. Test
+`cities_tests::a_set_type_keeps_the_hits_until_the_wall_stats_run`.
+
+**The capture.** run971 (`docs/RUNS.md`): the closing window `[20368, 20380]` at `AMMO=5`, 20381 frames, `rngcmp`
+against run645 0 differing. Its widening, `run971_s_window_is_widened_whole`: 28 keys, all the standing set.
+
+**Mutation** (`tools/mutate.py`), each fix against its unit test and the floor it moved:
+
+| | the mutation | the unit test | the floor |
+|---|---|---|---|
+| M1 | the retarget's predicate `&& false` | red, exit 101 | `egyptian_word_first_parting` 20031, exit 101 |
+| M2 | the follower's call dropped from `group_move_follower` | green — it calls `cavarch_follower` directly | `egyptian_word_first_parting` 20186, exit 101 |
+| M3 | `clear_keeping_pack` answering false | red, exit 101 | `egyptian_word_first_parting` 20235, exit 101 |
+| M4 | `ATTACK3`'s radius 161 → 100 | red, exit 101 | `run645_egyptian_closing_state` `[1, 0, …]`, exit 101 |
+| M5 | `update_hits` put back in `set_type` | red, exit 101 | `run967g_s_word_frame_is_widened_whole` 41, exit 101 |
+
+M2's call site is the floor's to hold; the unit test holds the follower's own gate.
+
+**What stands.** run967g's 38 keys: the standing set on 20025 (`SITE[n].reg`, `aggression`, `form`, `group:n.held`,
+`pool:n`, two `g.angle[0]`), the Cannons' `mandatory` (3336a) and four `dest_angle` rows (3336b). None moves a draw to
+20380, and the closing block compares whole.
+
+**Not established.** The retarget's `find_new_target` is the one this crate already had; its standing-ground search
+was not compared on 20029 beyond the orders dropping. The follower's `unit_flags & 0x400` exemption stays a SEAM, as at
+the head. `town_up`'s `set_type` raises no flag of its own here; whether the original's caller does is the listing's
+alone.
 
 ## 273. Reserved for the next item on the AI track
 

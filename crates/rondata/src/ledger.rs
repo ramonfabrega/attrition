@@ -171,6 +171,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the battery's second word's walks: it compares no field itself, and its widening is harness.rs's (item 3107)",
     ),
     (
+        "diff/egyptian_word.rs",
+        "the battery's Egyptian word's walks: it compares no field itself, and its widening is harness.rs's (item 3332)",
+    ),
+    (
         "diff/greek_word.rs",
         "the battery's Greek word's walks: it compares no field itself, and its widening is harness.rs's (item 3326)",
     ),

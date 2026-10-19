@@ -358,9 +358,12 @@ fn run652_coverage_pair_closing_state() {
     // Item 1719: 261 units compared; one unit off (`1/84`, ours (-96, -720)
     // from the dump's), one building and one city the dump holds that ours
     // does not link. A residue of the closing, not a parity claim — the
-    // closing state's own item reads them.
+    // closing state's own item reads them. Item 3336: with
+    // `Wall::set_type` no longer re-rating hits on the spot, the building
+    // and the city link — [1, 0, 0, 1, 0, 1, 0] → [1, 0, 0, 0, 0, 0, 0];
+    // `1/84` is still off.
     pin_eq!(e.compared, 261, "units compared");
-    pin_eq!(e.counts(), [1, 0, 0, 1, 0, 1, 0], "the closing counts");
+    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// Both captures say their lobby from their own `GAME INFO` and `PLAYER`
@@ -781,7 +784,8 @@ fn run672_s_word_frame_is_widened_whole() {
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`). Item 1634 removes the false regeneration flags on
     // 1/2007 and 1/2016 at 658: 57 -> 55.
-    pin_eq!(w.firsts.len(), 54, "initial run672 baseline");
+    // Item 3336: −1, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
+    pin_eq!(w.firsts.len(), 53, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -822,7 +826,7 @@ fn run672_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(658),
+        Some(741), // Item 3336: 658 → 741, the level-up's hits row closes (`docs/AI.md` §272).
         "the first parting past the standing block"
     );
     pin_eq!(
@@ -1867,7 +1871,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // Item 2761: 179 → 175 with `Unit::close`'s count (`docs/AI.md` §232).
     pin_eq!(
         w.firsts.len(),
-        144, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+        144, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 3336: −1, `Wall::set_type`'s hits (`docs/AI.md` §272)
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");

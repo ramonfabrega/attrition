@@ -291,7 +291,8 @@ fn run963c_s_word_frame_is_widened_whole() {
     // figure's offsets, who=1's `num_units[270]` −1 and `[271]` 1 against
     // 0 and 0 (`ARTILLERYGERMAN`, `HOWITZER`), and `1/201`'s `myhits` 172
     // against 212.
-    pin_eq!(w.firsts.len(), 116, "keys that part in the window");
+    // Item 3336: −4, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
+    pin_eq!(w.firsts.len(), 112, "keys that part in the window");
 }
 
 /// run963d: the word 23782's window to the trace's last frame, blocks

@@ -244,5 +244,6 @@ fn run834_s_word_frame_is_widened_whole() {
     // the Missile Silo `1/2010`'s `queue[0].job_counter`, ours 20700 theirs
     // 0 on 2989, holds at 0 while a missile is inside.
     // Item 2761: 294 → 290 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 276, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 3336: −2, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
+    pin_eq!(w.firsts.len(), 274, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }

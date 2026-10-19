@@ -224,8 +224,9 @@ impl Sim {
     /// `was_really_seen` — the bare line-of-sight accumulation, with none
     /// of `was_seen`'s ally-territory shortcut. [`crate::goody`] reads the
     /// same field of an item the same way and says why.
-    /// The `ever_seen` bit `compute_reg_territory`'s goods scan set on this
-    /// good for `who` ([`Sim::claim_cell_goods`]).
+    /// The `ever_seen` bit `compute_reg_territory`'s goods scan
+    /// ([`Sim::claim_cell_goods`]) or `reveal_fog`'s rare arm
+    /// ([`Sim::reveal_fog`]) set on this good for `who`.
     pub(crate) fn good_seen_bit(&self, gi: usize, who: Player) -> bool {
         who < 8
             && self

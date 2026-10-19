@@ -209,7 +209,7 @@ left out; a constant with no reader in the export is dead there too.
 | `EGYPTIAN_WONDERS_EARLY` | 1 | LeaderData::special_preq | modelled at tech.rs | `egyptian_wonders_early` |
 | `EGYPTIAN_FARMS_PER_CITY_BASE` | 7 | LeaderData::get_farm_limit | modelled at city.rs | `egyptian_farms_per_city_base` |
 | `EGYPTIAN_FOOD_COMMERCE` | 10 | Leader::calc_resource_caps | modelled at economy.rs | `egyptian_food_commerce` |
-| `EGYPTIAN_FARM_WEALTH` | 2 | BuildTypeData::calc_gather | not carried | `egyptian_farm_wealth` |
+| `EGYPTIAN_FARM_WEALTH` | 2 | BuildTypeData::calc_gather | modelled at holdings.rs | `egyptian_farm_wealth` |
 | `TURK_SIEGE_RANGE` | 3 | UnitData::max_range | not carried | `turk_siege_range` |
 | `TURK_SIEGE_LOS` | 3 | Unit::update_los | not carried | `turk_siege_los` |
 | `TURK_ASSIMILATE` | 200 | Build::process, IFaceSelected::update_progress | modelled at city.rs | `turk_assimilate` |

@@ -185,37 +185,13 @@ impl Sim {
     /// `ObjectsData::find_goody_at@0065c040` as far as this crate keeps
     /// items: the live box standing on `c` while the cell still carries
     /// [`GOODY`] — the flag `get_goody` clears when the box is taken.
-    fn goody_item_at(&self, c: Cell) -> Option<usize> {
+    pub(crate) fn goody_item_at(&self, c: Cell) -> Option<usize> {
         if self.world.cell_data(c).flags & GOODY == 0 {
             return None;
         }
         self.goody_items
             .iter()
             .position(|it| it.alive && it.pos.cell() == c)
-    }
-
-    /// `World::reveal_fog@006b3d30`'s goody arm (`006b4078`–`006b414e`),
-    /// for the fog cell `(fx, fy)` whose `seen2` a unit's `set_seen` has
-    /// just changed: a box on the world cell `(fx >> 1, fy >> 1)` — the
-    /// cell's `WData` short negative, which is [`GOODY`], and not water by
-    /// `find_goody_at`'s inlined test (no `HALFLAND` and a `land` byte of
-    /// 1 or 2) — takes `who`'s bit in its `ever_seen`.
-    ///
-    /// SEAM: the arm's tail, `get_goody_box` for the revealing unit when
-    /// its `unit_masks & 0x100` is set; nothing here sets that bit
-    /// (`docs/GOODY.md` §7.5).
-    pub(crate) fn reveal_goody(&mut self, fx: i32, fy: i32, who: Player) {
-        let c = Cell::new(fx >> 1, fy >> 1);
-        if !self.world.contains(c) || who >= 8 {
-            return;
-        }
-        let d = self.world.cell_data(c);
-        if d.flags & crate::world::cell::HALFLAND == 0 && (d.land == 1 || d.land == 2) {
-            return;
-        }
-        if let Some(i) = self.goody_item_at(c) {
-            self.goody_items[i].ever_seen |= 1 << who;
-        }
     }
 
     /// `Unit::find_goody_box@005f2540` (`docs/GOODY.md` §7): the 49-cell

@@ -9903,6 +9903,32 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Egyptian word** (item 3332, DECISIONS 72, 83): frame
+    // 2974, the Egyptian lobby's first try, widened on run967 over
+    // 2968..3225 with run967b the gap at stride 50 (the Egyptian Farm's
+    // wealth and `reveal_fog`'s `ever_seen`). **Item 3332 moved it 2974 →
+    // 15782**, widened on run967c over 15776..16033
+    // (`run967c_s_word_frame_is_widened_whole`: who=1's Metal Alloys
+    // value on the make list, 54000 against 216000: the Hanging Gardens'
+    // industry discount). **And 15782 → 15982** on the same window
+    // (who=1's building 417 offered where theirs researches Metal Alloys),
+    // **and 15982 → 20031** on it again (the census's `gather_slots`, one
+    // field with the ledger's), widened on **run967g** over 20025..20282
+    // (`run967g_s_word_frame_is_widened_whole`: who=1's `1/162` and
+    // `1/163` in a fight, 3286 keys on the first try). **Item 3336 moved
+    // it 20031 → 20380, the game's last frame** (`do_move`'s `ATTACK`
+    // retarget, a follower's fire on the move, a packer's kept pack):
+    // run967g's test keeps 20031's value diff, run971 holds the last
+    // blocks (20368..20380, the Musketeer's release nodes), and the close
+    // is compared whole on run645's own closing block 20381 by
+    // `run645_egyptian_closing_state`.
+    (
+        "EGYPTIAN_WORD",
+        crate::diff::egyptian_word::EGYPTIAN_WORD,
+        Some("run645_egyptian_closing_state"),
+        3336,
+        Some(crate::diff::egyptian_word::WIDENING_EGYPTIAN_CLOSING),
+    ),
     // **The battery's Japanese word** (item 3331, DECISIONS 72, 83): frame
     // 576, the Japanese lobby's first try. run960 dumps blocks 0..36 and
     // run960b its setup and closing blocks only, so no dump on disk held
@@ -10345,6 +10371,22 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 24_000,
         endpoint: None,
         window: Some("indian_frame_14594_window"),
+    },
+    // **The battery's Egyptian word** (DECISIONS 72, 83; item 3332): Great
+    // Sahara, the Egyptians at Difficulty 4 — the held-out battery's lowest
+    // open lobby on the measure of `987c4c33`; the game ends itself on
+    // 20380. It joins the `Battery word` line first; the closed rows choose
+    // nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaEgyptianTier4",
+        named: "Great Sahara (Egyptian)",
+        word: crate::diff::egyptian_word::EGYPTIAN_WORD,
+        length: 20_380,
+        // Closed by item 3336: the draw stream agrees to 20380, and
+        // run645's closing block 20381 scores the end itself.
+        endpoint: Some("run645_egyptian_closing_state"),
+        window: Some("egyptian_close_971_window"),
     },
     // **The battery's fifth word** (DECISIONS 72, 83; item 3329): East
     // Indies, the Dutch at Difficulty 4 — the held-out battery's lowest

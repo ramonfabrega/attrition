@@ -5348,11 +5348,33 @@ impl Sim {
         // after the collision that suspended the search, and the `repaths`
         // tick on every fourth `o + frame`.
         //
-        // SEAM: the `ATTACK` retarget (`find_new_target` every 4 frames)
-        // is the arm above this one and is dormant; no capture has reached
-        // it.
+        // **The `ATTACK` retarget** (`005f7b30`, the action's `get_type ==
+        // 10` arm; item 3336, `docs/AI.md` §272): a unit whose action is an
+        // attack that is not `mandatory` (the action's vslot `+0xcc`, byte
+        // `+0x1c`, as `find_melee_target` reads it) gives the walk up every
+        // fourth frame after the collision, while its player's `repaths` is
+        // non-zero: `find_new_target(this, NULL, 1)` — the move dies and a
+        // target is sought standing ground — and `collide_frame` takes the
+        // frame, so `collide` is not counted. Great Sahara's Egyptian
+        // Fusilier `1/162` on tick 20029 (run967g), four frames after it met
+        // `1/119`.
         if self.units[u].search.is_some() {
             let elapsed = frame - self.units[u].collide_frame;
+            let attacking = self
+                .action_of(u)
+                .is_some_and(|i| self.units[u].orders[i].index() == index::ATTACK);
+            if attacking {
+                let who = self.units[u].owner as usize;
+                if elapsed > 0
+                    && elapsed % 4 == 0
+                    && self.repaths[who] != 0
+                    && !self.units[u].combat.mandatory
+                {
+                    self.find_new_target(u, true);
+                    self.units[u].collide_frame = frame;
+                    return Did::Nothing;
+                }
+            }
             // **The `GATHER` park** (`docs/COLLISION.md` §15, item 698):
             // a gatherer whose search is suspended, on the frame
             // `(elapsed + 2) & 7 == 0`, within `vector_dist < 0x120` of the
@@ -6293,7 +6315,6 @@ impl Sim {
         mut mo: MoveOrder,
         flags: u8,
     ) {
-        let _ = frame;
         let l = gm.leader;
         // 1. The leader has to still be usable: alive, on the map, in my
         //    group, and holding a group order with **my** `id` — or a
@@ -6482,15 +6503,14 @@ impl Sim {
         //    item 1293): within `0x300` Manhattan of the unit, a slot whose
         //    cell is `FOREST` sends up a flock from a unit in a group —
         //    [`Sim::group_flock`].
-        //
-        //    SEAM: the follower's own fire on the move below it: the
-        //    original calls it here too, and this crate wires the fire on
-        //    the move ([`crate::cavarch`]) into the plain move's step only.
         if self.invalid_loc(u, mo.waypoint.tile(), false, false, false, false, false) != 0 {
             self.group_flock(u, mo.waypoint);
             self.ungroup_move_order(u, gm.id);
             return;
         }
+        //    **Then the follower's own fire on the move** (`5e84d0`–
+        //    `5e856d`, item 3336): [`Sim::cavarch_follower`].
+        self.cavarch_follower(u, frame);
         // 10. **The step's own answer is the formation's end condition**
         //     (`5e856d`–`5e8660`). `move_step` returns 0 from exactly
         //     three places — blocked and still owing a turn, blocked and
@@ -6769,13 +6789,6 @@ impl Sim {
         0
     }
 
-    /// `UnitData::invalid_loc` with the five flags `find_path` and
-    /// `go_around_building` both pass clear — the plain "may this unit
-    /// stand on this tile" question.
-    fn tile_refuses(&self, u: usize, t: Pos) -> bool {
-        self.invalid_loc(u, t, false, false, false, false, false) != 0
-    }
-
     /// `Unit::go_around_building@005fc350` (§4.6) — the answer to a
     /// straight line that clips a *building*, which the pull-back cannot
     /// help with: the goal's own tile is clear, so there is nothing to pull
@@ -6817,187 +6830,11 @@ impl Sim {
         ang: Angle,
         spd: i32,
     ) {
-        let lt = last.tile();
-        // The blocked point, recomputed here from an *unclamped* step: the
-        // march clamps each component to its remainder, this does not, so
-        // the two need not agree. That is the original's, not a slip.
-        let sx = movement::sin_component(ang, spd);
-        let sy = -movement::cos_component(ang, spd);
-        let blocked = Pos::new(last.x + sx, last.y + sy);
-        let bt = blocked.tile();
-
-        // Which lane is which. `cmp` is the column the diagonal case keeps;
-        // `settled` is the original's `goto LAB_005fc4c0`.
-        let mut cmp = bt.x;
-        let mut settled = lt.x == bt.x;
-        if !settled && lt.y != bt.y {
-            // A diagonal entry. More than two tiles at once is not a step
-            // this can reason about.
-            if (lt.y - bt.y).abs() + (lt.x - bt.x).abs() > 2 {
-                return self.detour_gave_up(u, mo);
-            }
-            if self.tile_refuses(u, Pos::new(lt.x, bt.y)) {
-                if self.tile_refuses(u, Pos::new(bt.x, lt.y)) {
-                    // Both corners of the diagonal refuse: shorten the step
-                    // and ask again, which may land orthogonally instead.
-                    cmp = bt.x;
-                    if spd > 1 {
-                        return self.go_around_building(u, mo, last, ang, spd - 1);
-                    }
-                } else {
-                    cmp = lt.x;
-                }
-                settled = true;
-            }
-        }
-        let vertical = !settled || lt.y == bt.y || (lt.x != cmp && sx.abs() < sy.abs());
-        let step = if vertical {
-            Pos::new(0, if sy > 0 { 1 } else { -1 })
-        } else {
-            Pos::new(if sx > 0 { 1 } else { -1 }, 0)
-        };
-        let back = Pos::new(-step.x, -step.y);
-        let (fwd_ok, fwd) = self.edge_walk(u, blocked, step, lt);
-        let (bwd_ok, bwd) = self.edge_walk(u, blocked, back, lt);
-
-        let here = self.units[u].pos;
-        let centre = |t: i32| t * 0xc0 + 0x60;
-        let at_unit = |p: Pos| {
-            let t = p.tile();
-            here.x == centre(t.x) && here.y == centre(t.y)
-        };
-        let (pick, pstep) = if !fwd_ok {
-            if !bwd_ok {
-                return self.detour_gave_up(u, mo);
-            }
-            (bwd, back)
-        } else if !bwd_ok {
-            (fwd, step)
-        } else if at_unit(fwd) {
-            (bwd, back)
-        } else if at_unit(bwd) {
-            (fwd, step)
-        } else {
-            let reach = |p: Pos| (p.x - mo.waypoint.x).abs() + (p.y - mo.waypoint.y).abs();
-            if reach(bwd) < reach(fwd) {
-                (bwd, back)
-            } else {
-                (fwd, step)
-            }
-        };
-
-        if (pick.x - last.x).abs() >= 0x301 || (pick.y - last.y).abs() >= 0x301 {
-            return self.detour_gave_up(u, mo);
-        }
-
-        // The waypoints. `off` is the order's own destination offset inside
-        // its world cell (§4.1); the halved tile part of it is what places
-        // every detour point off its tile's centre.
-        let off = Pos::new(mo.dest.x.rem_euclid(0x300), mo.dest.y.rem_euclid(0x300));
-        let skew = |v: i32| (v % 0xc0) / 2;
-        let ct = pick.tile();
-        let mut pushes: Vec<PathData> = Vec::new();
-        let target = if pstep.x == 0 {
-            let mut ty = ct.y;
-            if self.tile_refuses(u, Pos::new(lt.x, ty)) {
-                let (cx, cy) = (centre(ct.x), centre(ty));
-                pushes.push(PathData {
-                    to: Pos::new(skew(off.x) - 0x30 + cx, skew(off.y) - 0x30 + cy),
-                    tolerance: 0,
-                    flags: 0,
-                });
-                ty -= pstep.y;
-                let (lane_cx, back_cy) = (centre(lt.x), centre(ty));
-                pushes.push(PathData {
-                    to: Self::detour_mid(cx, cy, lane_cx, back_cy),
-                    tolerance: 0,
-                    flags: path_flag::DETOUR,
-                });
-            }
-            Pos::new(lt.x, ty)
-        } else {
-            let mut tx = ct.x;
-            if self.tile_refuses(u, Pos::new(tx, lt.y)) {
-                let (cx, cy) = (centre(tx), centre(ct.y));
-                pushes.push(PathData {
-                    to: Pos::new(skew(off.x) - 0x30 + cx, skew(off.y) - 0x30 + cy),
-                    tolerance: 0,
-                    flags: 0,
-                });
-                tx -= pstep.x;
-                let (back_cx, lane_cy) = (centre(tx), centre(lt.y));
-                pushes.push(PathData {
-                    to: Self::detour_mid(cx, cy, back_cx, lane_cy),
-                    tolerance: 0,
-                    flags: path_flag::DETOUR,
-                });
-            }
-            Pos::new(tx, lt.y)
-        };
-        pushes.push(PathData {
-            to: Pos::new(
-                skew(off.x) + target.x * 0xc0 + 0x30,
-                skew(off.y) + target.y * 0xc0 + 0x30,
-            ),
-            tolerance: 0,
-            flags: 0,
-        });
-        for p in pushes {
-            self.units[u].path.push(p);
-        }
-    }
-
-    /// The `DETOUR` midpoint between the two lanes: the mean of the two
-    /// tile centres on each axis, biased one unit *down* whenever the
-    /// turn-in centre is the larger, so the point falls inside the tile the
-    /// unit is leaving rather than on the edge between them.
-    fn detour_mid(cx: i32, cy: i32, other_x: i32, other_y: i32) -> Pos {
-        let mut m = Pos::new((other_x + cx) / 2, (other_y + cy) / 2);
-        if cx != other_x && cx - other_x >= 0 {
-            m.x -= 1;
-        }
-        if cy != other_y && cy - other_y >= 0 {
-            m.y -= 1;
-        }
-        m
-    }
-
-    /// One direction of `go_around_building`'s edge walk. Returns whether
-    /// the blocked lane was found open, and the point the walk stopped at.
-    fn edge_walk(&self, u: usize, from: Pos, step: Pos, lt: Pos) -> (bool, Pos) {
-        let w = self.world.width() * crate::world::TILES_PER_CELL * 0xc0;
-        let h = self.world.height() * crate::world::TILES_PER_CELL * 0xc0;
-        let mut at = from;
-        loop {
-            let next = Pos::new(at.x + step.x * 0xc0, at.y + step.y * 0xc0);
-            if next.x < 0 || next.y < 0 || next.x >= w || next.y >= h {
-                return (false, at);
-            }
-            at = next;
-            let cur = at.tile();
-            // The unit's own lane keeps the coordinate the walk does not
-            // move; the blocked lane is the tile the walk is standing on.
-            let lane = if step.x == 0 {
-                Pos::new(lt.x, cur.y)
-            } else {
-                Pos::new(cur.x, lt.y)
-            };
-            if self.tile_refuses(u, lane) {
-                return (!self.tile_refuses(u, cur), at);
-            }
-            if !self.tile_refuses(u, cur) {
-                return (true, at);
-            }
-        }
-    }
-
-    /// `go_around_building`'s refusal: the waypoint is dropped, the
-    /// verified-line bit is cleared, and `path_recursion` is pinned at ten
-    /// so that neither this call nor any caller asks again.
-    fn detour_gave_up(&mut self, u: usize, mo: &mut MoveOrder) {
-        mo.has_waypoint = false;
-        self.units[u].line_ok = false;
-        self.units[u].path_recursion = 10;
+        // The body is `crate::detour::go_around_building_steps`, the
+        // original's flow over a view, which the emulator sweep also runs
+        // (item 3330).
+        let mut view = crate::detour::SimDetour { sim: self, u, mo };
+        crate::detour::go_around_building_steps(&mut view, last, ang, spd);
     }
 
     /// `find_path`'s acceptance of a detour (§4.6), and the half of it that

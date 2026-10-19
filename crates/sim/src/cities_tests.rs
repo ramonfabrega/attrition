@@ -1585,6 +1585,26 @@ fn the_clock_is_rebaked_when_the_wall_stats_go_stale() {
     assert_eq!(sim.buildings[b].constr_time, 42_000);
 }
 
+/// **`Wall::set_type` leaves the hits to the wall stats** (item 3336):
+/// neither `Wall::set_type@00640da0` nor `SubObject::set_type@00662450`
+/// calls `update_hits`, so a Village become a Town keeps the Village's
+/// figure until the next `calc_wall_stats`. run967g's who=1 cities on
+/// block 20036 hold 6000 the frame they level and 12000 the frame after.
+/// Made to fail with the call put back (item 3336's M5).
+#[test]
+fn a_set_type_keeps_the_hits_until_the_wall_stats_run() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    sim.tick();
+    let before = sim.buildings[b].hits;
+    sim.set_type(b, t.town);
+    assert_eq!(sim.buildings[b].hits, before, "no re-rate on the spot");
+    sim.wall_stats_dirty[0] = true;
+    sim.tick();
+    assert_ne!(sim.buildings[b].hits, before, "the wall stats re-rate it");
+}
+
 /// Item 1476 (`docs/AI.md` §121): Construction is `BUILDINGS_FASTER_1`'s
 /// and `BUILDINGS_HP_1`'s prerequisite. run636's who=1 gained it on 13782
 /// and holds its five unfinished sites at `constr_time` 90000 and its

@@ -606,7 +606,7 @@ impl Sim {
             let g = enhancing_good(ident)?;
             let mut nfilled = f.slots[g] - f.open_slots[g];
             if g == 5 {
-                nfilled = self.ai[w].census.gather_slots[5] * 2;
+                nfilled = self.ledgers[w].gather_slots[5] * 2;
             }
             let avail = self
                 .good_type(g)
@@ -1023,7 +1023,7 @@ impl Sim {
         let ident = self.build_types[rec].ident;
         let good = gather_good(ident)?;
         let cen = &self.ai[w].census;
-        if cen.filled_gather_slots[good] < cen.gather_slots[good] * 3 / 4 {
+        if cen.filled_gather_slots[good] < self.ledgers[w].gather_slots[good] * 3 / 4 {
             return None;
         }
         let cv = (self.city_num(who) + self.village_num(who)).max(1);
@@ -1094,7 +1094,7 @@ impl Sim {
             let mut m0 = 0x100;
             if g == 5 {
                 oil_ok = f.ci == 0
-                    && self.ai[w].census.gather_slots[5] < self.ai[w].oil_patches.len() as i32;
+                    && self.ledgers[w].gather_slots[5] < self.ai[w].oil_patches.len() as i32;
                 base = base.wrapping_mul(10);
             }
             let ter = f.ter[g];
@@ -2170,7 +2170,7 @@ mod tests {
     fn a_gather_type_waits_until_its_slots_are_three_quarters_full() {
         let (mut sim, t) = sim();
         let c = city(&mut sim, &t, 0, 40, 40);
-        sim.ai[0].census.gather_slots[0] = 8;
+        sim.ledgers[0].gather_slots[0] = 8;
         sim.ai[0].census.filled_gather_slots[0] = 5;
         assert!(value(&mut sim, 0, c, t.farm).is_none(), "5 < 8·3/4");
         sim.ai[0].census.filled_gather_slots[0] = 6;
