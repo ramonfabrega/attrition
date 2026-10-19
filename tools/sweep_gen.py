@@ -119,7 +119,7 @@ Three shapes, each a `__thiscall` on `ecx`:
           places come before every `--place`, so a later flag names
           `p<K+1+i>`; `vt` also lays the stubbed vtable at each record's
           offset 0. A stub's answers per call are `--seq IDX:N` with
-          `--answer-range IDX:LO:HI` (no wild word: a stub whose answer
+          `--answer-range IDX:LO:HI[:STEP[:distinct]]` (no wild word; STEP aligns the answers and `distinct` draws a row's `--seq` answers without replacement, item 3320: a stub whose answer
           sizes a loop or indexes a record needs it; `--tame` is registers
           only), laid `a[own + stubs + N0 + N1 + ..]` after the arguments
           and one drawn answer a stub.
@@ -1678,8 +1678,16 @@ def seq_values(rng, n, pick, terms, rand32, span=None):
     T when given — answered past N, so a loop that runs while the stub
     answers inside a set ends (`Unit::repath`, item 2368, parked 2342)."""
     # `span` (`--answer-range` beside `--seq`, item 2421): every answer in LO..HI.
-    vals = [rng.randint(*span) if span else rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng)
-            for _ in range(n)]
+    # A third member of `span` is a STEP: answers LO, LO+STEP, ... (`--answer-range IDX:LO:HI:STEP`, item 3320);
+    # a fourth, 1, draws them without replacement (`:STEP:distinct`), so no two calls of a row answer one address.
+    if span and len(span) > 3 and span[3]:
+        slots = rng.sample(range((span[1] - span[0]) // span[2] + 1), min(n, (span[1] - span[0]) // span[2] + 1))
+        vals = [span[0] + span[2] * k for k in slots]
+        vals += [vals[-1]] * (n - len(vals))
+    else:
+        vals = [span[0] + rng.randint(0, (span[1] - span[0]) // (span[2:] or (1,))[0]) * (span[2:] or (1,))[0]
+                if span else rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng)
+                for _ in range(n)]
     if terms:
         vals[-1] = rng.choice(terms)
     return vals
@@ -1840,8 +1848,8 @@ def main(argv):
             answers[idx] = rng.choice(vals) if rng.random() < 0.9 else answers[idx]
         # `--answer-range`: an answer the function indexes a table by, held
         # to the range every row (item 2217).
-        for idx, lo, hi in ANSRANGE:
-            answers[idx] = rng.randint(lo, hi)
+        for idx, lo, hi, *st in ANSRANGE:
+            answers[idx] = lo + rng.randint(0, (hi - lo) // (st or (1,))[0]) * (st or (1,))[0]
         # `--outarg`: the values stubs write through a pointer argument, drawn
         # with the answers so a place may index by one (`o`, item 2325).
         outs = [wdraw(rng, vals) for _, _, vals in OUTARG]
@@ -2024,7 +2032,7 @@ def main(argv):
         seqs = []
         for idx, n, terms in SEQ:
             vals = seq_values(rng, n, dict(ANSWERS).get(idx), terms, rand32,
-                              {{i: (lo, hi) for i, lo, hi in ANSRANGE}}.get(idx))
+                              {{i: (lo, hi, *st) for i, lo, hi, *st in ANSRANGE}}.get(idx))
             seqs.append(vals)
             turn = [0]
 
@@ -2525,9 +2533,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--seq IDX:N names one of the --stub callees, by its order on the line, and N >= 1')
     if any(idx in {i for i, _ in pansw} for idx, _, _ in pseq):
         raise ValueError('--seq and --answer-win answer one stub two ways')
-    pansr = [tuple(int(x, 0) for x in r.split(':')) for r in answer_range]
-    if any(not 0 <= idx < len(pstubs) for idx, _, _ in pansr):
-        raise ValueError('--answer-range IDX:LO:HI names one of the --stub callees, by its order on the line')
+    pansr = [tuple(1 if x == 'distinct' else int(x, 0) for x in r.split(':')) for r in answer_range]
+    if any(not 0 <= r[0] < len(pstubs) or len(r) not in (3, 4, 5) for r in pansr):
+        raise ValueError('--answer-range IDX:LO:HI[:STEP] names one of the --stub callees, by its order on the line')
     pthis = [int(v, 0) for v in cell_this]
     if set(pthis) & {va for va, _ in pcells}:
         raise ValueError('--cell-this names a cell --cell-win gives a record of its own')
@@ -2699,7 +2707,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
         + [f'stub {idx} answers {n} values in call order' + (f', the last from {t}' if t else '')
            + ', printed after the answers' for idx, n, t in pseq]
-        + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
+        + [f'stub {idx} answers {lo}..{hi}' + (f' step {st[0]:#x}' if st else '') + ' every row' for idx, lo, hi, *st in pansr]
         + [f'stub {idx} records its `ecx`' + (', `edx`' if record_edx else '') + f' and arguments, a window\'s pointer by its name, after ` # `'
            + (f', split by the rows of sparse table {prowsplit[idx]} (a token a row, `ecx` `r+OFF`, '
               f'then the calls outside it)' if idx in prowsplit else '')
