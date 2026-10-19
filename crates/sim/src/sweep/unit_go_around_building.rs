@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `Unit::go_around_building@005fc350`, run by `tools/emu/sweep_unit_go_around_building.py` under unicorn
-/// (tools/emu): 344 random bytes of object, 4 argument(s), `p` windows in order: p0..p2 the place(s), in flag order, p3 stub 2's answer window; the global cell 0x00cae5fc points at 4096 random bytes; the global cell 0x00c06188 points at 64 random bytes; callee 0x00607c30 (8 args) stubbed; callee 0x0046d820 (1 args) stubbed; vtable slot +0x40 (0 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed); the word at `p0+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 64 random bytes less `0` (placed); stub 0 answered from [0, 0, 1, 1, 1] (90%); stub 2 answers the address of 92 random bytes, a `p` window after the places; stub 0 answers 40 values in call order, the last from [0], printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); stub 1 prints the 16 bytes its argument 0 points at, hex, after the record (`/` a call); `0x00a46980` run once before the rows (a table builder the startup would have run); the stubbed vtable laid at `p2+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
+/// (tools/emu): 344 random bytes of object, 4 argument(s), `p` windows in order: p0..p2 the place(s), in flag order, p3 stub 2's answer window; the global cell 0x00cae5fc points at 4096 random bytes; the global cell 0x00c06188 points at 64 random bytes; callee 0x00607c30 (8 args) stubbed; callee 0x0046d820 (1 args) stubbed; vtable slot +0x40 (0 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed); the word at `p0+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 64 random bytes less `0` (placed); stub 0 answered from [0, 0, 1, 1, 1] (90%); stub 2 answers the address of 92 random bytes, a `p` window after the places; stub 0 answers 40 values in call order, the last from [0], printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); stub 1 prints the 16 bytes its argument 0 points at, hex, after the record (`/` a call); `0x00a46980` run once before the rows (a table builder the startup would have run); the stubbed vtable laid at `p2+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 6000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_unit_go_around_building.py") else {
@@ -207,7 +207,7 @@ fn the_emulated_original_agrees_on_every_row() {
         }
         n += 1;
     }
-    assert!(n >= 3000, "only {n} rows");
+    assert!(n >= 6000, "only {n} rows");
     eprintln!("Unit::go_around_building@005fc350: {n} rows agree");
 }
 
