@@ -8123,13 +8123,24 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KD — reserved
+## Parked by item 3297, 2026-10-18 — The Despot's Ambush and his cut on a razed building, the Iroquois word at 12156
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The battery word 12156** (`GreatLakesIroquoisTier3`, `docs/AI.md` §261). Item 3297 moved the word 11585 → 12156:
+  ours 29 draws against theirs 35, index 1, ours `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a < Unit::fight+0x169`.
+  run952 ends on block 11835, so no dump on disk holds the word's frame. **Its widening is owed** (a window capture
+  around 12156 at run952's detail; the game ends on 12658). The booking is the frame and the draw delta; a theirs-only
+  figure roll inside `Unit::fight` is a hypothesis.
+- **`1/53`'s `damage_frac`** (run952b, block 11259 on): the Mohawk Spearman `1/53`, guarding The Despot and striking
+  `0/2002`, holds `damage_frac` 10 in ours against 0 in theirs from the block the building falls. No draw and no score
+  moves on it through 11835. Its writers by offset are the reading.
+- **The Scholars' `g.angle[0]`** (`1/71` from 11348, `1/73` from 11522, inside the University): ours 1431655765
+  (`0x55555555`) against theirs 0. A figure of a unit housed in a building takes an angle ours does not clear. No draw
+  moves on it.
+- **Ambush's cloak `0x800`** (`docs/AI.md` §261, not established). `cast_ambush` sets it; `UnitData::is_seen`,
+  `is_cloaked`, `Unit::find_melee_target` and `Unit::work` read it; `set_new_location` and `process_cloak` clear it.
+  The hero arm casts Ambush on the move, so it would last a step; it would part where an enemy's target search runs
+  on the cast's own frame. A capture's hero cut (`Cities::capture_city`, the unwritten `Nation::plunder_hero`) is the
+  same family, unread.
 
 ## Parked by the next landing, slot KE — reserved
 
