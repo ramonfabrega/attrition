@@ -151,3 +151,93 @@ fn run973_s_word_frame_is_widened_whole() {
     // groups' `held` and pools), and the word moved 776 → 10497.
     pin_eq!(w.firsts.len(), 32, "run973 with the Maya arm");
 }
+
+/// run973b: the word 10497's window, blocks 10491..10747 at `GUYS=2`
+/// (item 3338); run973 ends on 1026 and run966b prints its setup and
+/// closing blocks only.
+pub(crate) const RUN973B: &str = "gamelog-run973b-greatsahara-maya-diff4-window-10491-10747.txt";
+
+/// The window: block 10491 through 10747; the word 10497's own block is
+/// 10498.
+pub(crate) const WIDENING_MAYA_FRAME_10497: (i64, i64) = (10491, 10747);
+
+pub(crate) fn maya_frame_10497_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MAYA.start],
+        true,
+        MAYA.long,
+        "run973b",
+        &[(RUN973B, WIDENING_MAYA_FRAME_10497.0)],
+        WIDENING_MAYA_FRAME_10497,
+        1,
+        &[10498],
+        true,
+    )
+}
+
+#[test]
+fn run973b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = maya_frame_10497_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run973b on the first try");
+}
+
+/// run973c: the gap from run973's last block to run973b's first, one block
+/// in fifty (`--stride 50`): blocks 1027, 1077, …, 10477, at `GUYS=2`
+/// (item 3338) — where run973b's block 10491, already apart, was walked
+/// back to.
+pub(crate) const RUN973C: &str = "gamelog-run973c-greatsahara-maya-diff4-gap-1027-10487-stride50.txt";
+
+/// The window: block 1027 through 10477, one in fifty.
+pub(crate) const WIDENING_MAYA_GAP_973C: (i64, i64) = (1027, 10477);
+
+pub(crate) fn maya_gap_973c_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MAYA.start],
+        true,
+        MAYA.long,
+        "run973c",
+        &[(RUN973C, WIDENING_MAYA_GAP_973C.0)],
+        WIDENING_MAYA_GAP_973C,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn run973c_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = maya_gap_973c_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run973c on the first try");
+}
