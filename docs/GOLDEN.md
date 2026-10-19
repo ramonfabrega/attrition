@@ -13514,12 +13514,17 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: both rows on 935 (the widening pins their absence). Reading only: the air-order exemption.
 
-## 141. Reserved for the next item on the rules track
+## 141. Chapter one hundred and four — a Tower strikes a squad beside a Tank wreck; closed at 1500 on the first take, no code (item 3285, run949)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3284, 3252): chapter 103 closed with a bowman for the shooter; the wreck's chain readers for a *building* shooter (and the near-face gate) were never diffed.
+
+**Staging** (`tools/gamelog/golden/chapter104.cmd`, 15 lines, `RON_STAGE=ch76:chapter104:1500`): chapter 103's recipe with its `800 add bowmen who=1 82,83` replaced by `800 add tower who=1 80,83`, five cells east of the six stance-0 hoplites, the Sabotaged Tank's wreck between the Commandos and the squad. `stage_walk` landed 15 lines, 11 units, 1 building. Run949 on the pool's lane 1, 1,501 frames, seed 12345, chapter 94's detail sets.
+
+**What the original does and this crate agrees with.** The golden word is the trace's end, 1500, on the first take: no draw or order part (sequence 810). Window 605..1500 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_FOUR` (604, 1501)) parts on the eleven standing `form` rows and on nothing else — no value, so the Tower's shots, the struck hoplites' response and the wreck on the chain all agree. This crate's walk has the hoplites close on and wear the Tower down from 836.
+
+**Not established.** Whether the Tower's target search actually passes the wreck (nothing in the dumps parts, so a divergence there would need a staging that makes the wreck the only candidate); the move-front proximity arm of `Unit::target_opportunity` (parked 3283) is still unreached, as every victim here is stationary until struck.
+
+**Coverage.** Diff-backed: the draws, orders and every dumped value to 1500. Reading only: nothing new.
 
 ## 142. Reserved for the next item on the rules track
 

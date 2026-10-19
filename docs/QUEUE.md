@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-fourth tranche (commander, Opus): 12 of 20 landed from `6db69429`**, four lanes (DECISIONS 78
+*2026-10-18, **the forty-fourth tranche (commander, Opus): 13 of 20 landed from `6db69429`**, four lanes (DECISIONS 78
 (i)); last whole gate `da2d4735` (3279's booking, green, 6 of 6; release 11.0 min); every booking gate green.*
 
 - **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10917 of 12658 (3211, 3231, 3242,
-  3248, 3255, 3269, 3279); `EastIndiesGermanTier3` closed at 13519. Chapters 102–103 closed (3263, 3267, 3271, 3274), 94 →
-  96. Census 1512 → 1540, **port 347 → 376** (3259, 3268, 3272, 3261, 3281). The battery's median 4770.
-- **Lanes: four live, landings 12 of 20** (3263, 3259, 3255, 3267, 3268, 3271, 3269, 3272, 3261, 3274, 3279, 3281): 3287
-  AI (att-3287, run 948, AI §260, JY), 3285 rules (att-3285, run 949, GOLDEN §141, JX), 3282 shape (att-3282, JW), 3289
-  the nations seat (att-3289, JZ). Next 3291, run 950. Pools: GOLDEN §142–144, AI §261–263, park KA–KD.
+  3248, 3255, 3269, 3279); `EastIndiesGermanTier3` closed at 13519. Chapters 102–104 closed (3263, 3267, 3271, 3274, 3285), 94 →
+  97. Census 1512 → 1540, **port 347 → 376** (3259, 3268, 3272, 3261, 3281). The battery's median 4770.
+- **Lanes: four live, landings 13 of 20** (3263, 3259, 3255, 3267, 3268, 3271, 3269, 3272, 3261, 3274, 3279, 3281,
+  3285): 3287 AI (att-3287, run 948, AI §260, JY), 3292 rules (att-3292, run 950, GOLDEN §142, KA), 3282 shape (att-3282,
+  JW), 3289 the nations seat (att-3289, JZ). Next 3293, run 951. Pools: GOLDEN §143–144, AI §261–263, park KB–KD.
   **Ramon's**: the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
 - **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265, 3276, 3277, 3280, 3290).
 
@@ -34,11 +34,11 @@ Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesIroquoisTier3 w10917 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1540 of 3611 · port 376 · layout 1164
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · 96 closed
+Golden: every chapter closed · 97 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — twelve of twenty landed from `6db69429`;
-four lanes live (att-3287, att-3285, att-3282, att-3289); re-arm `tools/lanewait.py` on them, merge each landing at its
+**Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — thirteen of twenty landed from `6db69429`;
+four lanes live (att-3287, att-3292, att-3282, att-3289); re-arm `tools/lanewait.py` on them, merge each landing at its
 gate's exit, refill by `tools/brief.py` (3287's successor on `--model 'claude-opus-5-5[1m]' --effort medium`, the rest on
 `'claude-sonnet-5-5[1m]' --effort medium`), the model said in user-visible text; the chain is `CLAUDE.md`'s; the whole
 gate at the third widened merge since `da2d4735`; at twenty the handoff, the drain and `ccc clear steer`.**
@@ -46,7 +46,7 @@ gate at the third widened merge since `da2d4735`; at twenty the handoff, the dra
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3287 the AI word's (Opus); 3285, 3282 and 3289 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10917. Take the first unstarted item unless a better
+3287 the AI word's (Opus); 3292, 3282 and 3289 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10917. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3287. **The battery word, 10917 of 12658 (`GreatLakesIroquoisTier3`)** (parked 3286; 3279 built The Despot's
@@ -57,12 +57,12 @@ order is clear, and say why. The backlog is `docs/PARKED.md`.
     `g.cur_anim[0]` ours 1 against theirs 2 and `g.end_time[0]` 96 against 36; then `0/2000`'s `build:damage` 41
     against 44 on 10870. Which arm of the upgrade resets a figure mid-attack is a hypothesis. AI §260.
 
-3285. **Chapter one hundred and four, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
-    chapter; run 949 minted here): 3274 closed chapter 103's last value, `0/10`'s 935 order (`Unit::target_opportunity`'s
-    `update_action` on a struck victim, now in `fight.rs`, GOLDEN §140); the chapter parts on its standing form rows
-    alone. Candidates by what a failure would teach (parked 3284, 3283): a Tower or Fort shooting beside the wreck
-    (the building shooter's chain readers and near-face gate, 3252's park), and a victim with a move front inside
-    `target_opportunity`'s proximity arm. Stage it, capture it, open it at its first word. GOLDEN §141.
+3292. **Chapter one hundred and five, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
+    chapter; run 950 minted here): 3285's chapter 104 (run949, a who=1 Tower striking stance-0 hoplites beside the Tank
+    wreck) closed at 1500 on the first take, no sim change, GOLDEN §141; the window parts on its standing form rows
+    alone. Candidates by what a failure would teach (parked 3291, 3283): a squad given a `@move` toward the Tower before
+    it opens fire (`Unit::target_opportunity`'s move-front proximity arm), or a Fort in the Tower's place (its near-face
+    gate). Stage it, capture it, open it at its first word. GOLDEN §142.
 
 3282. **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 371; 3261 built all six of its
     batch, no port disagreeing, two hung mutants counted caught, parked 3261a–g, Loop 3276):
