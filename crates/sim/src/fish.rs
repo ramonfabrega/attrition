@@ -37,10 +37,6 @@ const GOOD_SCORE: i32 = 1_000_000;
 /// The jitter's span — `rnd(0x3c)`, added to every candidate's score.
 const JITTER: i32 = 0x3c;
 
-/// The head's cadence: an **unpacked** fisherman re-examines where it is
-/// standing one frame in 1,024, phased by `o` (`005f4c8f`).
-const RECHECK_PERIOD: i64 = 0x400;
-
 /// The one draw site, under the original's own offset from
 /// `think_fish@005f4c60` — the `rnd(60)` each accepted cell spends. The
 /// second draw in the function, at `+0x2c9`, is the fallback for
@@ -51,6 +47,75 @@ pub const SITE_JITTER: &str = "Unit::think_fish+0x27a";
 /// `Unit::think_fish` up to `Unit::think_merchant`, the next function in
 /// the export — what isolates this mechanic's own draws in a trace.
 pub const CODE: std::ops::Range<u32> = 0x005f_4c60..0x005f_5170;
+
+/// The head's cadence test (`005f4c8f`): whether `(index + frame)` is a
+/// multiple of 1,024 — the original masks with `0x800003ff` and tests the
+/// sign half separately, which comes to the low ten bits being clear.
+pub(crate) fn recheck_due(index: i16, frame: i64) -> bool {
+    (i64::from(index) + frame) & 0x3ff == 0
+}
+
+/// What one examined cell is worth before the distance divides it
+/// (`005f4d8a`..`005f4e3e`), or `None` when the walk skips it: the coastal
+/// half-land bit, a land type other than the water pair, a region that is
+/// not the unit's own, or a good somebody else has already claimed.
+///
+/// `good` is the `find_good_at` answer (asked only for a cell that got that
+/// far, as the original does) and `claim` the cell's `(down, who)` pair —
+/// the claim holds when `down >= 0`, `who < 8` (the original compares the
+/// **short** at `+0xa`) and `down` is not the asking unit's own index.
+pub(crate) fn cell_base(
+    flags: u16,
+    land: i8,
+    same_region: bool,
+    good: impl FnOnce() -> bool,
+    claim: impl FnOnce() -> Option<(i16, i16)>,
+    me: i16,
+) -> Option<i32> {
+    if flags & 0x100 != 0 || !(land == 1 || land == 2) || !same_region {
+        return None;
+    }
+    if !good() {
+        return Some(0);
+    }
+    match claim() {
+        Some((down, who)) if down >= 0 && who < 8 && down != me => None,
+        _ => Some(GOOD_SCORE),
+    }
+}
+
+/// The walk (`005f4d40`..`005f4f09`): `at(i, cell)` answers `None` for a
+/// cell the walk skips, else its base score and the `Random::get(0, 0xffff)`
+/// it spent; the score is `base / manhattan` (at least 1) `+ draw % 60 + i`,
+/// the best strictly-greater score wins, and `0` — the unit's own cell — is
+/// what stands when nothing was accepted.
+pub(crate) fn best_cell(
+    here: (i32, i32),
+    moves: &[(i32, i32)],
+    mut at: impl FnMut(usize, (i32, i32)) -> Option<(i32, i32)>,
+) -> usize {
+    let (mut best, mut best_score) = (0usize, 0i32);
+    for (i, &(dx, dy)) in moves.iter().enumerate() {
+        let c = (here.0.wrapping_add(dx), here.1.wrapping_add(dy));
+        let Some((base, roll)) = at(i, c) else {
+            continue;
+        };
+        let dist = here
+            .0
+            .wrapping_sub(c.0)
+            .wrapping_abs()
+            .wrapping_add(here.1.wrapping_sub(c.1).wrapping_abs())
+            .max(1);
+        let score = (base / dist)
+            .wrapping_add(roll % JITTER)
+            .wrapping_add(i32::try_from(i).expect("an index"));
+        if best_score < score {
+            best = i;
+            best_score = score;
+        }
+    }
+    best
+}
 
 impl Sim {
     /// `ObjectsData::find_good_at@0065bec0(x, y, who, 0, 0)` — the fast
@@ -82,7 +147,6 @@ impl Sim {
             .is_some_and(|t| self.unit_types[t].combat.packs);
         let packed = self.units[u].combat.packed;
         let who = self.units[u].owner;
-        let o = i64::from(self.units[u].index);
 
         // The head, and it is only for a boat that has already deployed:
         // once in 1,024 frames it asks `UnitData::calc_gather` whether it
@@ -99,7 +163,7 @@ impl Sim {
         // fish — and the whole of East Indies' long word sat on this
         // return.
         if packs && !packed {
-            if (o + frame) % RECHECK_PERIOD != 0 {
+            if !recheck_due(self.units[u].index, frame) {
                 return false;
             }
             if self.calc_gather(u) {
@@ -115,51 +179,29 @@ impl Sim {
         // The walk. `best` starts at **0** — the unit's own cell — and the
         // score to beat at 0, so a fisherman that accepts nothing anywhere
         // ends up pointing at itself.
-        let mut best = 0usize;
-        let mut best_score = 0i32;
-        for (i, &(dx, dy)) in MOVE_289.iter().enumerate() {
-            let c = Cell::new(here.x + dx, here.y + dy);
+        let me = self.units[u].index;
+        let best = best_cell((here.x, here.y), &MOVE_289, |_, (x, y)| {
+            let c = Cell::new(x, y);
             if !self.world.contains(c) {
-                continue;
+                return None;
             }
             let d = self.world.cell_data(c);
-            // `flags & 0x100` is the coastal half-land bit, and a cell that
-            // carries it is skipped outright.
-            if d.flags & 0x100 != 0 {
-                continue;
-            }
-            // `land_key[]`: 1 SANDY, 2 OCEAN — the water pair.
-            if d.land != 1 && d.land != 2 {
-                continue;
-            }
             // `WData.region`, not `get_tregion`: the candidate is compared
-            // raw against the *unit's* `get_tregion`.
-            if self.world.region_of(c) != Some(region) {
-                continue;
-            }
-            let mut score = if self.find_good_at(c, who).is_some() {
-                // A good another fisherman has already claimed — the cell's
-                // chain head is somebody else's object — is skipped
-                // entirely, and skipped **before** the draw.
-                if let Some((down, down_who)) = self.claim_of(c)
-                    && down_who < 8
-                    && down != self.units[u].index
-                {
-                    continue;
-                }
-                GOOD_SCORE
-            } else {
-                0
-            };
-            let dist = ((here.x - c.x).abs() + (here.y - c.y).abs()).max(1);
-            score /= dist;
+            // raw against the *unit's* `get_tregion`. A good another
+            // fisherman has already claimed — the cell's chain head is
+            // somebody else's object — is skipped entirely, and skipped
+            // **before** the draw.
+            let base = cell_base(
+                d.flags,
+                d.land,
+                self.world.region_of(c) == Some(region),
+                || self.find_good_at(c, who).is_some(),
+                || self.claim_of(c).map(|(down, w)| (down, i16::from(w))),
+                me,
+            )?;
             self.mark(SITE_JITTER);
-            score += self.rng.roll() % JITTER + i32::try_from(i).expect("289 fits");
-            if best_score < score {
-                best = i;
-                best_score = score;
-            }
-        }
+            Some((base, self.rng.roll()))
+        });
 
         let (dx, dy) = MOVE_289[best];
         if dx == 0 && dy == 0 {
