@@ -390,7 +390,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Unit::set_new_location@005f8d20` | 18 | carried at collide.rs | `005f8d20` |
 | `Unit::explore_goody@005f9780` | 9 | carried at goody.rs | `005f9780` |
 | `Unit::update_speed@006055c0` | 0 3 10 | carried at rares.rs | `006055c0` |
-| `Unit::plunder@00605b00` | 0 | not modelled | `00605b00` |
+| `Unit::plunder@00605b00` | 0 | not modelled | `aztec_slay_bonus` |
 | `Unit::update_los@0060e4d0` | 8 9 18 | carried at vision.rs | `0060e4d0` |
 | `Unit::update_hits@0060e930` | 4 18 22 | carried at cast.rs | `0060e930` |
 | `Unit::close@0060ee50` | 19 20 | carried at fight.rs | `0060ee50` |

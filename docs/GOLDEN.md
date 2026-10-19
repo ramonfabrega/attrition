@@ -13500,26 +13500,43 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the wound's frame and values (the widening). Reading only: nothing new.
 
-## 140. Reserved for the next item on the rules track
+## 140. Chapter one hundred and three's order at 935 — a hit rewrites the victim's `orders_x/y` and `dest_angle` (item 3274)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3273): on 935 hoplite `0/10`'s Attack order agreed in flags, `in_range` and position (16008), but ours wrote `orders_y` 15984 and `dest_angle` −2147483648 against theirs 16008 and 1181417472.
 
-## 141. Reserved for the next item on the rules track
+**Which caller adds the Attack, and the direction.** None adds it on 935: the Attack (`new_ord 1`, `targetorder.ox 8`) sits under the move from 933. On the frame that makes block 935 (tick 934, the review phase `(frame + o) & 15 == 0`) `check_target_path`'s first arm finds the target in reach and `repath`s: the move dies, `kill_current_order`'s own `update_action` writes the position **before** the step (15984, heading −2147483648), then `Unit::work`'s `update_action` does the same. Both sides agree to here. `fight`'s in-range arm then turns the unit and snaps it a cell on, to the tile centre (16008; `set_new_location`, `fight@005fd4d0:755`) — and the original writes `orders_x/y` and `dest_angle` **again after that**; ours never did, so the dump's 16008 and the new heading were only ever written on the next frame.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What writes it.** `Unit::target_opportunity@005fffc0`, `LAB_006002cf` (decompile line 138): `update_action(this)` is the first thing past the `is_fleeing` return, ahead of every later gate. `0/10` is struck on 935 by `1/9`'s round (§139), after its own step in the frame, and the call rewrites its `orders_x/y` and `dest_angle` from where it stands and faces now. Its other callers' `update_action`s sit in `fight` (after an `add_move_order`), `find_new_target`, `resolve_unit_collision` and the `add_*_order` tails; none runs here.
 
-## 142. Reserved for the next item on the rules track
+**What was built.** [`Sim::target_opportunity_in`] calls `update_action(responder)` after the `is_fleeing` return and before the attack-action and flee gates, except for a `STRAFE`, `AIR_PATROL` or `AIR_ATTACK_GROUND` front order, which return above it in the original. The two 935 rows leave `WANT_CH103`: the window now parts on the eleven standing `form` rows alone.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Not established.** The call's other callers in `Unit::target_opportunity` (lines 121, 405) are not built: line 121 sits in the move-front proximity arm (`unit_masks |= 0x10`), and 405 is the tail's. The `update_action` return value (the action order) is not read here either, as in the original's line 138 it is used for the `is_attack` test that only the later gates read. Whether any other lobby's victim carries a stale `orders_x/y` the dump now exposes is for the gate's `first_parting` lines.
+
+**Coverage.** Diff-backed: both rows on 935 (the widening pins their absence). Reading only: the air-order exemption.
+
+## 141. Chapter one hundred and four — a Tower strikes a squad beside a Tank wreck; closed at 1500 on the first take, no code (item 3285, run949)
+
+**The booking** (parked 3284, 3252): chapter 103 closed with a bowman for the shooter; the wreck's chain readers for a *building* shooter (and the near-face gate) were never diffed.
+
+**Staging** (`tools/gamelog/golden/chapter104.cmd`, 15 lines, `RON_STAGE=ch76:chapter104:1500`): chapter 103's recipe with its `800 add bowmen who=1 82,83` replaced by `800 add tower who=1 80,83`, five cells east of the six stance-0 hoplites, the Sabotaged Tank's wreck between the Commandos and the squad. `stage_walk` landed 15 lines, 11 units, 1 building. Run949 on the pool's lane 1, 1,501 frames, seed 12345, chapter 94's detail sets.
+
+**What the original does and this crate agrees with.** The golden word is the trace's end, 1500, on the first take: no draw or order part (sequence 810). Window 605..1500 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_FOUR` (604, 1501)) parts on the eleven standing `form` rows and on nothing else — no value, so the Tower's shots, the struck hoplites' response and the wreck on the chain all agree. This crate's walk has the hoplites close on and wear the Tower down from 836.
+
+**Not established.** Whether the Tower's target search actually passes the wreck (nothing in the dumps parts, so a divergence there would need a staging that makes the wreck the only candidate); the move-front proximity arm of `Unit::target_opportunity` (parked 3283) is still unreached, as every victim here is stationary until struck.
+
+**Coverage.** Diff-backed: the draws, orders and every dumped value to 1500. Reading only: nothing new.
+
+## 142. Chapter one hundred and five — a Tower meets a squad walking toward it; closed at 1500 on the first take, no code (item 3292, run950)
+
+**The booking** (parked 3291, 3283): chapter 104's victims were stationary until struck, so `Unit::target_opportunity`'s move-front proximity arm (line 121) was never reached.
+
+**Staging** (`tools/gamelog/golden/chapter105.cmd`, 17 lines, `RON_STAGE=ch76:chapter105:1500`): chapter 104's recipe plus `806 @move 0 14592 16032 10` and `806 @move 0 14592 16008 13`, the two hoplite captains (squads 0/10..12, 0/13..15) ordered east toward the Tower added at 800. `stage_walk` landed 17 lines; each `@move` reached its squad of three. Run950 on the pool's lane 1, 1,501 frames, seed 12345, chapter 94's detail sets.
+
+**What the original does and this crate agrees with.** The squad walks from 808 (`MOVEORDER` to 14616,16056), the Tower enters `near` (1/2006) at about 818 and each captain takes an `ATTACKORDER` under its move (`new_ord 1`, `targetorder.ox 2006`). The golden word is the trace's end, 1500: no draw or order part (sequence 810), no value. Window 605..1500 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_FIVE` (604, 1501)) parts on the eleven standing `form` rows and nothing else.
+
+**Not established.** The squad's attack order takes over before a round lands on a walking victim, so the move-front proximity arm's strike-while-walking path is still not shown to run; a Fort's near-face gate is also unreached. Both parked as 3292a.
+
+**Coverage.** Diff-backed: draws, orders and every dumped value to 1500, with the squad moving. Reading only: nothing new.
 
 ## 143. Reserved for the next item on the rules track
 
@@ -13529,6 +13546,34 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 144. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 145. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 146. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 147. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 148. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

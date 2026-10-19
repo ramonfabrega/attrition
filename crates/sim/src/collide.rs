@@ -295,6 +295,96 @@ pub fn spiral(r: i32) -> Vec<(i32, i32)> {
     out
 }
 
+/// `CollCheck::collide_here@00682540`'s body over what it reads, so a sweep
+/// can run it on the original's own slot state: the caller's size and
+/// proposed unit cell `at`, its own cell `mine` and whether it is on the
+/// map, `nocoll`, and the two reads the slots give — `live(p)`, the
+/// cell's slot has a block that is not empty (`local_30[slot] == 0`), and
+/// `get(p)`, that block's bit for the cell.
+pub fn collide_here_steps(
+    size: i32,
+    at: Pos,
+    mine: Pos,
+    on_map: bool,
+    nocoll: bool,
+    live: impl Fn(Pos) -> bool,
+    get: impl Fn(Pos) -> bool,
+) -> Option<Pos> {
+    if size == 0 {
+        return None;
+    }
+    // **The fast path, and it is not an optimisation** (§4.2, item 183).
+    // With `nocoll` clear and the proposal exactly one cell away on one
+    // axis, the original sweeps the **leading edge** — the row or column
+    // the block is entering — and nothing else. That is a strict subset
+    // of the parity-filtered disc, so it can name a *different* first
+    // hit cell, and §4.3's corner rule is decided on the cell.
+    if !nocoll {
+        let (dx, dy) = (at.x - mine.x, at.y - mine.y);
+        if dx == 0 || dy == 0 {
+            if dx.abs() == 1 {
+                return leading_edge(size, &live, &get, |k| {
+                    Pos::new(at.x + dx * size, at.y - size + k)
+                });
+            }
+            if dy.abs() == 1 {
+                return leading_edge(size, &live, &get, |k| {
+                    Pos::new(at.x - size + k, at.y + dy * size)
+                });
+            }
+        }
+    }
+    for (dx, dy) in spiral(size) {
+        if (dx + size) % 2 != 0 || (dy + size) % 2 != 0 {
+            continue;
+        }
+        let p = Pos::new(at.x + dx, at.y + dy);
+        // A cell inside my own block is mine to stand in.
+        if on_map && (p.x - mine.x).abs() <= size && (p.y - mine.y).abs() <= size {
+            continue;
+        }
+        if get(p) && live(p) {
+            return Some(p);
+        }
+    }
+    None
+}
+
+/// The fast path's sweep: the `size + 1` cells of the leading edge its
+/// loop's own parity leaves, in order, the first occupied one winning.
+/// The disc's own-block exemption is not asked and does not have to be
+/// — the edge is a cell beyond the caller's own block on every step
+/// that reaches here.
+fn leading_edge(
+    size: i32,
+    live: &impl Fn(Pos) -> bool,
+    get: &impl Fn(Pos) -> bool,
+    cell: impl Fn(i32) -> Pos,
+) -> Option<Pos> {
+    // `00682540:71`-`116`, and `:126`-`174` for the other axis. The
+    // loop runs `2·size + 1` times; an odd pass advances the swept
+    // axis, and an even one tests the cell and advances it again on a
+    // miss — **but only when the cell's slot is live**. A cell whose
+    // world cell holds no bit (or which the region gate refused) is
+    // skipped *without* the advance, so the next cell tested is one
+    // step on, not two.
+    let mut at = 0;
+    for k in 0..=2 * size {
+        if k % 2 == 1 {
+            at += 1;
+            continue;
+        }
+        let p = cell(at);
+        if live(p) {
+            if get(p) {
+                return Some(p);
+            }
+            at += 1;
+        }
+    }
+    None
+}
+
 /// `Objects::find_collision@0065b1b0`'s two decisions, over what they read:
 /// with its fifth argument **clear** and a **land** caller (type `+0x218 ==
 /// 0`) the answer is `CollCheck::collide_here`'s, returned as it stands
@@ -1348,44 +1438,16 @@ impl Sim {
         if size == 0 {
             return None;
         }
-        let mine = ucell(self.units[u].pos);
         let slots = self.probe_slots(at, size, nocoll);
-        // **The fast path, and it is not an optimisation** (§4.2, item 183).
-        // With `nocoll` clear and the proposal exactly one cell away on one
-        // axis, the original sweeps the **leading edge** — the row or column
-        // the block is entering — and nothing else. That is a strict subset
-        // of the parity-filtered disc, so it can name a *different* first
-        // hit cell, and §4.3's corner rule is decided on the cell.
-        if !nocoll {
-            let (dx, dy) = (at.x - mine.x, at.y - mine.y);
-            if dx == 0 || dy == 0 {
-                if dx.abs() == 1 {
-                    return self.leading_edge(size, &slots, |k| {
-                        Pos::new(at.x + dx * size, at.y - size + k)
-                    });
-                }
-                if dy.abs() == 1 {
-                    return self.leading_edge(size, &slots, |k| {
-                        Pos::new(at.x - size + k, at.y + dy * size)
-                    });
-                }
-            }
-        }
-        let on_map = self.units[u].on_map;
-        for (dx, dy) in spiral(size) {
-            if (dx + size) % 2 != 0 || (dy + size) % 2 != 0 {
-                continue;
-            }
-            let p = Pos::new(at.x + dx, at.y + dy);
-            // A cell inside my own block is mine to stand in.
-            if on_map && (p.x - mine.x).abs() <= size && (p.y - mine.y).abs() <= size {
-                continue;
-            }
-            if slots.get(self, p) {
-                return Some(p);
-            }
-        }
-        None
+        collide_here_steps(
+            size,
+            at,
+            ucell(self.units[u].pos),
+            self.units[u].on_map,
+            nocoll,
+            |p| slots.live(self, p),
+            |p| slots.get(self, p),
+        )
     }
 
     /// `CollCheck::fill_slots@006820e0` — which world cells' bitmasks a
@@ -1454,41 +1516,6 @@ impl Sim {
             slots.copied.push(((cx, cy), block));
         }
         slots
-    }
-
-    /// The fast path's sweep: the `size + 1` cells of the leading edge its
-    /// loop's own parity leaves, in order, the first occupied one winning.
-    /// The disc's own-block exemption is not asked and does not have to be
-    /// — the edge is a cell beyond the caller's own block on every step
-    /// that reaches here.
-    fn leading_edge(
-        &self,
-        size: i32,
-        slots: &ProbeSlots,
-        cell: impl Fn(i32) -> Pos,
-    ) -> Option<Pos> {
-        // `00682540:71`-`116`, and `:126`-`174` for the other axis. The
-        // loop runs `2·size + 1` times; an odd pass advances the swept
-        // axis, and an even one tests the cell and advances it again on a
-        // miss — **but only when the cell's slot is live**. A cell whose
-        // world cell holds no bit (or which the region gate refused) is
-        // skipped *without* the advance, so the next cell tested is one
-        // step on, not two.
-        let mut at = 0;
-        for k in 0..=2 * size {
-            if k % 2 == 1 {
-                at += 1;
-                continue;
-            }
-            let p = cell(at);
-            if slots.live(self, p) {
-                if self.coll.get(p.x, p.y) {
-                    return Some(p);
-                }
-                at += 1;
-            }
-        }
-        None
     }
 
     /// `UnitData::is_here`: does this unit's block cover that unit cell?

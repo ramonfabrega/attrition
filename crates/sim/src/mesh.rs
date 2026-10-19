@@ -58,6 +58,14 @@ pub mod dir {
 /// [`SUPPORT_EAST`] beside it says the fill went east rather than west.
 const SUPPORT_MADE: u16 = 0x2000;
 const SUPPORT_EAST: u16 = 0x0080;
+/// `support_codes`' two **corner** notes (item 3287, `docs/ROADS.md` §12):
+/// `set_diags`' tail puts a C4 element on two cardinal neighbours of a tile
+/// whose claims meet at a corner, and writes `0x8000 | 0x4000` with a side
+/// for each — `0x1000`/`0x800` for the first (vertical, and which way), and
+/// `0x400`/`0x200` for the second. `Roads::clear_support@0088e3f0` reads
+/// them back to take one reference off each.
+const SUPPORT_CORNER_A: u16 = 0x8000;
+const SUPPORT_CORNER_B: u16 = 0x4000;
 
 /// `set_diags`' seven parallel five-entry tables, laid end to end on its
 /// stack and indexed `[i]`, `[i + 5]`, `[i + 10]` … from one base. Slot 0 of
@@ -110,6 +118,12 @@ pub struct Elem {
     /// `+0xf` `is_terrain_creation` — this road tile is the mesh's own, and
     /// may be taken away again.
     pub made: bool,
+    /// `+0x0` `element_num == Roads +0xdc`, the C4 corner piece `set_diags`'
+    /// tail writes on a neighbour beside a corner (§12). The sweep spares
+    /// it as it spares a made tile. Only the piece's identity is carried:
+    /// the texture passes that re-piece a road tile are not modelled, so a
+    /// tile that is road reads as re-pieced ([`RedoView::finish_pieces`]).
+    pub c4: bool,
 }
 
 /// One entry of `RoadsData::added_roads` — a `RoadModification`: a packed
@@ -524,7 +538,7 @@ impl Sim {
             // The mesh's own tile (or the `element_C4` piece, which this
             // crate does not pick): it stands while any of the nine is a
             // road.
-            Some(e) if e.made => {
+            Some(e) if e.made || e.c4 => {
                 if !road.iter().any(|&r| r) {
                     self.kill_stray(t);
                 }
@@ -820,7 +834,68 @@ impl Sim {
             self.mesh.add_unique(i_at, list);
             self.mesh.add_unique(index_of(&self.world, corner), list);
         }
+        if joined != 0 {
+            self.corner_pieces(_param);
+        }
         joined
+    }
+
+    /// **`set_diags`' tail** (`0088ee5a`–`0088f2c3`, item 3287,
+    /// `docs/ROADS.md` §12): when a corner was joined, each pair of claims
+    /// that meets at a corner — a cardinal and a diagonal on the far side of
+    /// it, or two opposite diagonals — puts the C4 piece on two of the
+    /// tile's cardinal neighbours, through `TerrainOut::get_road_data(x, y,
+    /// 1, param, 1)`: an element is made if there is none, and one more
+    /// reference is taken either way (`pending_camel_steps` under a
+    /// caravan's `param`, `ref_count` otherwise). The tile notes each pair
+    /// in `support_codes` for [`Sim::clear_support`] to give back.
+    ///
+    /// The references are what reach the world. A C4 element on a tile a
+    /// building's ring lays later makes `add_roads`' count two, so the add
+    /// becomes a removal and `clear_roads` re-queues every cardinal road
+    /// neighbour: Great Lakes (Iroquois)' caravan diagonal at (235, 153)
+    /// re-derived to N and SW when `1/2027`'s ring reached (235, 152) on
+    /// 10485, where this crate left it claiming NW alone and the sweep took
+    /// it on 10620 (run946's packet holds the C4 elements and the codes).
+    fn corner_pieces(&mut self, param: i32) {
+        use dir::{E, N, NE, NW, S, SE, SW, W};
+        let at = self.mesh.at;
+        let (x, y) = (at.x, at.y);
+        // `(first, second, bits)` per pair, in the listing's order; each
+        // block re-reads the tile's flags, which none of them writes.
+        type Pair = (u32, u32, (i32, i32), (i32, i32), u16);
+        let pairs: [Pair; 10] = [
+            (W, SE, (0, 1), (1, 0), 0x1000 | 0x200),
+            (W, NE, (0, -1), (1, 0), 0x1800 | 0x200),
+            (N, SW, (-1, 0), (0, 1), 0x400),
+            (N, SE, (1, 0), (0, 1), 0x800 | 0x400),
+            (E, NW, (0, -1), (-1, 0), 0x1800),
+            (E, SW, (0, 1), (-1, 0), 0x1000),
+            (S, NE, (1, 0), (0, -1), 0x800 | 0x600),
+            (S, NW, (-1, 0), (0, -1), 0x600),
+            (NW, SE, (-1, 0), (1, 0), 0x200),
+            (NE, SW, (-1, 0), (1, 0), 0x200),
+        ];
+        let (tw, th) = (self.world.width() * 4, self.world.height() * 4);
+        for (a, b, first, second, bits) in pairs {
+            let f = self.mesh.flags_at(&self.world, at);
+            if f & a == 0 || f & b == 0 {
+                continue;
+            }
+            for (dx, dy) in [first, second] {
+                let n = Pos::new(x + dx, y + dy);
+                if n.x < 0 || n.y < 0 || n.x >= tw || n.y >= th {
+                    continue;
+                }
+                self.mesh.get_road_data(&self.world, n, true, param, true);
+                if let Some(e) = self.mesh.elems.get_mut(&index_of(&self.world, n)) {
+                    e.c4 = true;
+                }
+            }
+            if let Some(e) = self.mesh.elems.get_mut(&index_of(&self.world, at)) {
+                e.support |= SUPPORT_CORNER_A | SUPPORT_CORNER_B | bits;
+            }
+        }
     }
 
     /// `Roads::clear_roads@0088fef0` — a queued *removal*. The road tile only
@@ -853,31 +928,60 @@ impl Sim {
             return false;
         };
         let mine = e.made;
-        if e.support & 0xe000 == 0 {
-            self.mesh
-                .elems
-                .get_mut(&index_of(&self.world, at))
-                .unwrap()
-                .support = 0;
+        let sup = e.support;
+        if sup & 0xe000 == 0 {
+            self.set_support(at, 0);
             return mine;
         }
-        if keep == 0 && e.support & SUPPORT_MADE != 0 {
-            let dx = if e.support & SUPPORT_EAST != 0 { 1 } else { -1 };
-            let made = Pos::new(at.x + dx, at.y);
-            self.mesh
-                .elems
-                .get_mut(&index_of(&self.world, at))
-                .unwrap()
-                .support = 0;
-            if let Some(n) = self.mesh.elem(&self.world, made) {
-                let was = n.made;
-                let left = self.mesh.road_changed(&self.world, made, false, 0, 1);
-                if left == 0 && was {
-                    self.world_set_road_at(made, false, 0, 1);
-                }
-            }
+        // The two corner notes `set_diags`' tail leaves (§12): one reference
+        // off each C4 neighbour. The first arm leaves the codes standing;
+        // the second clears them.
+        if sup & SUPPORT_CORNER_A != 0 {
+            let d = if sup & 0x1000 == 0 {
+                (if sup & 0x800 != 0 { 1 } else { -1 }, 0)
+            } else {
+                (0, if sup & 0x800 != 0 { -1 } else { 1 })
+            };
+            self.release_support(Pos::new(at.x + d.0, at.y + d.1));
+        }
+        if sup & SUPPORT_CORNER_B != 0 {
+            let d = if sup & 0x400 == 0 {
+                (if sup & 0x200 != 0 { 1 } else { -1 }, 0)
+            } else {
+                (0, if sup & 0x200 != 0 { -1 } else { 1 })
+            };
+            self.set_support(at, 0);
+            self.release_support(Pos::new(at.x + d.0, at.y + d.1));
+        }
+        if keep == 0 && sup & SUPPORT_MADE != 0 {
+            let d = if sup & 0x100 == 0 {
+                (if sup & SUPPORT_EAST != 0 { 1 } else { -1 }, 0)
+            } else {
+                (0, if sup & SUPPORT_EAST != 0 { -1 } else { 1 })
+            };
+            self.set_support(at, 0);
+            self.release_support(Pos::new(at.x + d.0, at.y + d.1));
         }
         mine
+    }
+
+    fn set_support(&mut self, at: Pos, v: u16) {
+        if let Some(e) = self.mesh.elems.get_mut(&index_of(&self.world, at)) {
+            e.support = v;
+        }
+    }
+
+    /// One of `clear_support`'s three releases: a reference off the
+    /// neighbour, and its road with it when that was the last and the mesh
+    /// had laid it.
+    fn release_support(&mut self, n: Pos) {
+        if let Some(e) = self.mesh.elem(&self.world, n) {
+            let was = e.made;
+            let left = self.mesh.road_changed(&self.world, n, false, 0, 1);
+            if left == 0 && was {
+                self.world_set_road_at(n, false, 0, 1);
+            }
+        }
     }
 
     /// `Roads::redo_changed_roads@0088e670` — the passes over one of the two
@@ -1003,7 +1107,16 @@ impl RedoView for SimRedo<'_> {
     }
     fn refill_for_marks(&mut self) {}
     fn texture_marks(&mut self, _list: i32) {}
-    fn finish_pieces(&mut self, _list: i32) {}
+    fn finish_pieces(&mut self, _list: i32) {
+        // `find_piece` picks the road tile's own piece, so the C4 a corner
+        // left on it goes (§12; the pick itself is not modelled).
+        let at = self.sim.mesh.at;
+        if self.sim.world.tile_mask(at) & tile::SURFACE == tile::SURFACE_ROAD
+            && let Some(e) = self.sim.mesh.elems.get_mut(&index_of(&self.sim.world, at))
+        {
+            e.c4 = false;
+        }
+    }
 }
 
 #[cfg(test)]

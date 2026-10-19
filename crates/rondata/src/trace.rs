@@ -579,6 +579,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // original's `1/8` dies there and takes it, and this crate's died
     // there from item 485 and took nothing, so the streams parted at
     // draw 0 with the original's site reading as a bare `60fb06`.
+    // `Unit::plunder@00605b00`'s EE arm: one draw per available good
+    // (`docs/AI.md` §259). The pre-EE arm's draw is not tabulated.
+    (0x0060_5fe5, None, sim::fight::SITE_UNIT_PLUNDER),
     (0x0060_fb06, None, sim::fight::SITE_DEATH_ANIM),
     (0x0060_fb36, None, sim::fight::SITE_DEATH_ANIM_ALT),
     (0x0060_fb5a, None, sim::fight::SITE_DEATH_ANIM_FACING),

@@ -3750,7 +3750,7 @@ sat on its batch with nothing to wake it until `lanewait.py` named the child. Ca
 it too — two mutants of `find_ordered_collision`'s batch hung, killed by hand.
 
 (3277) **A lane lands with its own gate red on its own line, fixed after and not re-run** (the commander, at 3267's,
-3271's and 3272's merges): both Sonnet rules lanes' lane gates were red on the journal-quote guard
+3271's, 3272's and 3281's merges): both Sonnet rules lanes' lane gates were red on the journal-quote guard
 (`a_journal_quotes_its_lane_verdict_and_gate_minutes`), fixed in a later commit, the gate not re-run and its guard
 step not reached; the booking gate carries the check. Candidate: the frame row that a lane whose verdict is "red on
 the worker's own" re-runs the guard step alone (`tools/guard.sh`) before its done line and quotes it, or the gate's
@@ -3759,6 +3759,19 @@ journal check moved ahead of the release step so a missing quote fails in the fi
 (3280) **`tools/recomp/step4.py --watch VA+N` reads N as a byte count, not an offset** (3269's "for the Loop" line,
 filed at its merge): the first watch of `unit+0x58` covered `+0..+0x57` and missed the field, which cost a run.
 Candidate: a `VA+OFF:LEN` spelling, or a refusal when N is under 8 and no length is given, made to fail first. One reach.
+
+(3300) **`tools/mutate.py` scores a mutation that fails to compile as "held"** (3287's "for the Loop" line, filed at its
+merge): an empty-array pin (`pin_eq!(x, [], …)`) does not type-check, exit 101, and the lane's first attribution read
+the compile error as a catch; a `TaskStop` on a running `mutate.py` leaves the mutation in the tree. Candidate: a
+mutant whose command ran no test is printed `no verdict` and counted apart, and the tool restores the tree on a
+signal, each made to fail first. One reach.
+
+(3290) **A lane's cleanup removed other lanes' subagent worktrees** (att-3281's done line, the commander at its
+merge): a `git worktree remove ../agent-*` loop run from one lane globbed every `.claude/worktrees/agent-*`, the
+three live lanes' subagent trees among them; the branches survived (three of 3282's held unmerged commits), and
+uncommitted work in a removed tree did not. Candidate: the frame row that a lane removes only the subagent trees its
+own transcript created, by path, never by glob — or a `tools/` reaper that reads each `agent-*` tree's owning session
+and refuses another lane's, made to fail first on a sibling's tree. One reach.
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
@@ -8015,29 +8028,36 @@ Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircra
 - **3272f** Generator: `--ecx-answer` replaces `--outarg` on the same stub (one value per row, not per unit); `--answers` is a 90% draw, so a fixed answer needs `--answer-range IDX:V:V`; a placed-table shape for sparse index tables (is_ultimate_preq lays 42 records through 860 flags); `sweep_gen` registers a `mod` line in `sweep/mod.rs` unless the module is standalone, reverted by hand; `--regen` needs the whole line plus `--port-file`.
 - **3272g** `check_upgrade`: the message arm is swept as a log of stubbed calls only (no message/sound in the crate, SEAM `announce`); a negative `who` is unswept.
 
-## Parked by the next landing, slot JT — reserved
+## Parked by item 3274, 2026-10-18 — chapter 103's 935 order, a hit's `update_action`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3283) **`Unit::target_opportunity`'s other `update_action`s** (lines 121 and 405 of `funcs/Unit/target_opportunity@005fffc0.c`): the move-front proximity arm and the tail's `action_is_attack` gate; neither runs in chapter 103, so neither is built or tested. Booking is a capture whose victim has a move front within `type +0x244` sums of the attacker (`unit_masks |= 0x10`, line 129), diffed on `orders_x/y`.
+- (booked as item 3285) (3284) **Chapter 103's Tower/Fort arm** (GOLDEN §138, §140): the wreck's chain readers for a building shooter remain unread; the chapter now closes on forms alone, so a new chapter is the next word.
 
-## Parked by the next landing, slot JU — reserved
+## Parked by item 3279, 2026-10-18 — The Despot's plunder built, the Iroquois word at 10917
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (booked as item 3287) (3286) **The battery word 10917** (`GreatLakesIroquoisTier3`, `docs/AI.md` §259). Item 3279 built The Despot's
+  `Unit::plunder` and moved the word 10852 → 10917: ours 285 draws against theirs 296, index 272, ours
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. run943's widening (174 keys)
+  still first parts on **10853**: `1/25` (TI 83 → 84, Javelineers upgraded to Peltasts on 10852 on both sides) has
+  `g.cur_anim[0]` ours 1 against theirs 2 and `g.end_time[0]` 96 against 36. It was under an `ATTACK` on `0/2000`
+  (`in_range` 1) when its type changed. Then `0/2000`'s `build:damage` 41 against 44 and `city:raid_stamp` 10863 against
+  10869 part on 10870. The booking is the frame (10853) and the field. Which arm of the upgrade's `set_type` resets a
+  figure mid-attack is a hypothesis.
+- (3288) **`Unit::plunder`'s other arms** (`docs/AI.md` §259, not established): the General, caravan and supply-wagon victims
+  (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`), the Aztec slay bonus (`AZTEC_SLAY_BONUS`, `AZTEC_SLAY_CAP`), the Inca refund
+  (`INCA_REFUND`) and `take_damage`'s victim redirect (`+0x2b4 & 0x10`). No capture on disk has been shown to reach them.
 
-## Parked by the next landing, slot JV — reserved
+## Parked by item 3281, 2026-10-18 — the nations seat's seventh shape batch: three of six built
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3281a.** `PathFinder::find_tpath@006897d0` unswept. The 6-argument body (stack `PathData`, from x/y, unit, slot) works on the global `pathfinder`, `units`, `world`; callees `get_tregion`, `valid_tcoord`, `find_angle`, `astar_path`, `kill_lists`, `update_order`. `sweep_gen.py` has no layout flag that serialises a seeded `Sim` (units slot with path stack, tregion table, `div_3_table`) into the image, and the recorded-calls form cannot drive a port that calls real `Sim` methods. Alternative: factor `path.rs`'s tile-walk (1783–1832) into a `_steps` over closures. The existing `path_finder_find_tpath.rs` sweeps the 3-arg forwarder `00688e60`, a different function. Reading (unverified, matches parked 2739): on a `FINAL` pull-back inside 0x60 the original reaches the push with tolerance kept, the port falls into the `td < 2` zero-tolerance push.
+
+**3281b.** `World::reveal_fog@006b3d30` unswept: `Sim::reveal_fog` (rares.rs:324) models two of six arms (rare, oil). Missing: the rare message arm (String ops, `SoundGlobal::play(0x27)`, `add_message`), the good seen-bit (`good+0x20 |= 1<<who`), the goody arm (`find_goody_at`, `ever_seen` write; goody.rs:186), the goody-box arm (param_4 ≥ 0, `Unit::get_goody_box`; goody.rs:27 seam); and the crate takes no `unit_idx`. Needs a `reveal_fog_steps` view first, then a sweep (~30 flags). Possible generator gap, unconfirmed: two global cells aliasing one record (world `0xc06188` and worldc `0xc061d0`), e.g. `--cell-same VA:VA`.
+
+**3281c.** `Unit::check_build_order@00603470` unswept: a stack-local `SimpleArray<int>` at ebp-0x38 (vtable 0xb22a60), grown by a vcall on the local itself (slot 0 `increase_size@004220e0` writes the buffer pointer into ebp-0x28) and freed through the import `[0xac5500]`. Flag wanted: `--stub-array LOCDEPTH:CAP` (as parked 3163, 3229a) with a no-op `free`. Also: extract `Sim::check_build_order` (orders.rs:7927) to a `_steps` over closures (pattern `repath_steps`, orders.rs:901); the original's site list holds unit ids, the crate's building indices; the crowd count formulation differs (`+0xc == owner && +8 == site` vs `owner/alive/first non-transit order`).
+
+**3281d.** `Army::find_besieged_city` sweep: two breaks survive. `(s != slot || j != me)` → `(s != slot)` is starved (needs another leader's valid army in the caller's slot index, matching city, standard > 4, flipping the argmax); `xmax <= x` → `xmax < x` is equivalent unless city x is exactly `w*0x300`. The sweep does not run `BesiegedSim`. Not established: whether the original's per-leader city list keeps dead cities (the port now indexes the k-th owned city, dead included); `Sim` has no per-leader city-list index (`nth_city` is a stand-in). The navy-quarter's `find_unit` circle/ring semantics are approximated (live on-map non-gaia enemy `Domain::Sea` within 0x1200).
+
+**3281e.** Generator gaps: `--ptrtab`/`--answer-by` cannot span two object tables (find_besieged_city pins the city's `+0x5e` byte to 0); `--wbias` has no strided range (`pA..B/3`) so gen.sh loops; `--sparse @VA` slices are bytes not pointers (a pointer slot needs `--sparse …:OFF,4` plus `--place pK+0:0:N`) — worth a line in the help; the `memset` import thunk faults unless stubbed `--stub ADDR:3 --stub-cdecl K` — worth a note in the docs. `think_carry`: `docs/AI.md` §195/§235 describe the attack arm as inline in `think_carry`; it is a tail-jump to `think_carry_military@005f3260`, which with `think_carry_civilian` and `think_carry_idle@005f2f30` (unmodelled; `SimCarry::idle` answers 0) is unswept.
 
 ## Parked by the next landing, slot JW — reserved
 
@@ -8047,26 +8067,98 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JX — reserved
+## Parked by item 3285, 2026-10-18 — chapter 104, a Tower strikes a squad beside a wreck
+
+- (booked as item 3292) (3291) Chapter 104 closed at 1500 on the first take (run949, GOLDEN §141): a who=1 Tower against six stance-0 hoplites parts on nothing. Still unreached: `Unit::target_opportunity`'s move-front proximity arm (parked 3283, line 121: a victim *walking* when struck; here every victim is stationary until struck) and a Fort's near-face gate (the Tower's `near` was never the wreck). The next chapter is either a squad given a `@move` toward the Tower before it opens fire, or the Fort in the Tower's place.
+
+## Parked by item 3287, 2026-10-18 — set_diags' corner tail built, the Iroquois word at 11585
+
+- (booked as item 3297) (3296) **The battery word 11585** (`GreatLakesIroquoisTier3`, `docs/AI.md` §260). Item 3287 moved the word
+  10917 → 11585: ours 16 draws against theirs 15, index 4, ours `Leader::make_stuff+0x221`, theirs
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run943's widening is down to 47 keys (the standing set) through its last
+  block 10945, so no dump on disk holds the word's frame. **Its widening is owed** (a window capture around 11585 at
+  run943's detail). The booking is the frame and the draw delta. A theirs-only figure roll inside who=1's
+  `make_stuff` is a hypothesis.
+- (3298) **(235, 154)'s two counts** (`docs/ROADS.md` §12). run946's packet at 10842 holds ref 2 / camel 0; ours holds
+  ref 1 / camel 1, the same sum. One of the corner tail's references is taken under a `param` that this crate reads as
+  the caravan's and the original does not. No score moves: the element stands either way, and
+  `run946_s_road_elements_at_10842_are_ours` compares it by the sum. It would part when a camel step is spent before a
+  reference, i.e. `road_changed` lowering `pending_camel_steps` first on a removal.
+- (3299) **The C4 piece on a road tile** (`docs/ROADS.md` §12, not established). `finish_pieces` clears `c4` on a tile
+  that is road, on the reading that `find_piece` re-pieces it, and the packet's road tiles carry 54 and 56. The pick is
+  not modelled. It would matter if a road tile left with a C4 piece is later un-laid and the sweep spares it.
+  `get_road_data` and `find_piece` on a re-laid road tile is the reading.
+
+## Parked by item 3289, 2026-10-18 — the nations seat's eighth shape batch: all six built
+
+**3289a.** `Unit::do_attack_ground@005f1410`: the attack-unit-0 arm (peace test, `is_in_range`, `find_nearby_spot`, walk-in) is unswept; the crate's SEAM kills on 0 and the sweep draws shots 1, 2, 3, 5, 200. The port's shots field is `u8` and the original's an `int`, so negative values are unswept. The shot gate reads the type's `+0x2cc`, which the crate has no reading of (`fires()` stands in).
+
+**3289b.** `Unit::set_new_location@005f8d20`: the crate has no `_steps`; the sweep's port is a `model()` copy over `Sim::set_new_location`/`crew_des`/`vision::moved_to`. Port gaps it shows: the `+0xb5 != 1` squad arm, the Iroquois `has_tribe_bonus(0x12)` `unit_masks & 0x800` write, `update_ceo_position` and the `+0x174` slot. The sweep needs `--init-call 0xa46980` (`trig_init`) or `sine_table` reads zero.
+
+**3289c.** `Unit::find_melee_pos@006010b0`: the target's `full` counter (+0xac, +5 capped at 0x1e) is applied in the sweep, the crate has no field (SEAM in `attack_pos.rs` stands); `vector_dist` overflows differently from the original's `(lo + 2*hi) >> 1` for a wild point near ±2^31 (unreachable in play, `from` bounded). The sweep's generated script was hand-edited, so `--regen` needs `--port-file`.
+
+**3289d.** `Unit::do_air_patrol@005ea620`: `SimPatrol` answers none of the carrier-relative goal, the FIGHTERBOMBER search/look, or the `semaphore & 2` fallbacks (SEAMs in its doc comment). `find_building_at`'s final argument is whatever `ecx` held (modelled `air::Stale`); the sweep is in `sweep/mod.rs`, not a standalone partition, because the port uses `pub(crate)` internals.
+
+**3289e.** `Wall::do_construct@006434d0`: `SimConstruct` leaves console messages, sounds and `recalc_builds` no-ops and `ai_speed` at 1. Three `recalc_crossed` breaks survive (counters above 2^24, a tie at the 0.84 midpoint). The generated doc comment's `0x006455c0` was hand-edited to `0x6455c0` for `nations::the_audit_table_s_witnesses_hold`, so a `--regen` brings that test red again. Generator note: `--regen` wipes a hand-written port block even with the port given (do_attack_ground), worth checking against `--port-file`.
+
+**3289f.** `CollCheck::collide_here@00682540`: negative unit cells (the original reads before the block) and `fill_slots@006820e0` itself (stubbed, arguments recorded) are unswept. `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other` fails on the base too (Loop 2132).
+
+## Parked by item 3292, 2026-10-18 — chapter 105, a Tower strikes a squad walking toward it
+
+- (booked as item 3294) (3293) Chapter 105 closed at 1500 on the first take (run950, GOLDEN §142) with the squad walking: both hoplite captains ordered east at 806, the Tower (1/2006) acquired as `near` from about 818 and an `ATTACKORDER` laid under each `MOVEORDER`. It parts on the eleven standing `form` rows alone. Still unreached, and unreachable by this staging: `Unit::target_opportunity`'s move-front proximity arm *as a strike* (no round lands on a walking victim before the squad's own attack order takes over) and a Fort's near-face gate. The next chapter is the Fort in the Tower's place, or a victim walking *past* the Tower at a distance beyond its sight so a round lands first.
+
+## Parked by the next landing, slot KB — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JX renames this heading `## Parked by item N, <date> — <title>`
+names slot KB renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JY — reserved
+## Parked by the next landing, slot KC — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JY renames this heading `## Parked by item N, <date> — <title>`
+names slot KC renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JZ — reserved
+## Parked by the next landing, slot KD — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JZ renames this heading `## Parked by item N, <date> — <title>`
+names slot KD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot KH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot KH renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

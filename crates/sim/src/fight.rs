@@ -152,6 +152,11 @@ pub const SITE_PUNCTURE_Y: &str = "Ammo::do_damage+0xc7e";
 /// argument — so the anim and the draw are one expression.
 pub const SITE_DEATH_ANIM: &str = "Unit::close+0xcb6";
 
+/// `Unit::plunder@00605b00+0x4e5` — **the plunder's pick of a good**
+/// (`docs/AI.md` §259): one `Random::get(0, 0xffff)` per good the killer's
+/// leader has available, knowledge skipped, on the EE arm (`00605fe0`).
+pub const SITE_UNIT_PLUNDER: &str = "Unit::plunder+0x4e5";
+
 /// `Unit::close@0060ee50+0xce6` — the **ammo-graphic** death's second
 /// draw, taken only when `dtype == 4`.
 ///
@@ -1503,52 +1508,6 @@ impl Sim {
         self.set_attack_on(i, None);
     }
 
-    /// `do_attack_ground`'s facing: the bearing, or for a broadside type
-    /// (`unit_flags & 0x40`, [`uflags::SIDEWAYS`]) whichever quarter turn
-    /// off it is nearer the heading. Unlike `fight`'s
-    /// ([`Sim::attack_angle`]) there is no patrol-boat exception: the
-    /// point has no domain to ask.
-    pub(crate) fn broadside_angle(&self, i: usize, direct: Angle) -> Angle {
-        let sideways = self.units[i]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::SIDEWAYS));
-        if !sideways {
-            return direct;
-        }
-        const QUARTER: i32 = 0x4000_0000;
-        let heading = self.units[i].movement.heading.0;
-        let off = |a: i32| {
-            let d = heading.wrapping_sub(a) as u32;
-            if d > 0x8000_0000 { !d } else { d }
-        };
-        let minus = direct.0.wrapping_sub(QUARTER);
-        let plus = direct.0.wrapping_add(QUARTER);
-        Angle(if off(minus) < off(plus) { minus } else { plus })
-    }
-
-    pub(crate) fn swing_anim_pub(&mut self, i: usize, angle: Angle) {
-        self.swing_anim(i, angle);
-    }
-
-    /// `do_attack_ground`'s `Object::fire_ammo(−1, −1)`: deferred to the
-    /// release event for a unit its animation launches (§9.0), whose arm
-    /// reads the order's point ([`Sim::guy_release_events`]); from the
-    /// unit's own square otherwise, as `fight`'s strike does.
-    pub(crate) fn fire_ground(
-        &mut self,
-        i: usize,
-        g: crate::orders::AttackGroundOrder,
-        direct: Angle,
-        frame: i64,
-    ) {
-        if self.max_range_of(Obj::Unit(i)) == 0 || self.launches_from_anim(i) {
-            return;
-        }
-        let from = self.units[i].pos;
-        let sz = self.ground_z(from) + 100;
-        self.fire_ammo_ground(Obj::Unit(i), g, direct, frame, from, sz, 0, false, false);
-    }
-
     /// **`Unit::set_attack@005fce70`** — aim the unit's own figures at
     /// `target`, and answer whether its pivot can shoot without the unit
     /// turning (`docs/COMBAT.md` §52).
@@ -2474,7 +2433,7 @@ impl Sim {
         // The city alarm, before the take (`0064a9f8`..`0064b2c4`).
         let alarm = self.city_alarm(attacker, target, ap.siege, dealt.whole, frame);
         // Step 7: take.
-        let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype);
+        let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype, splash);
         let killed = matches!(taken, Taken::Died { .. });
         // **`Armies::emergency` is the CITY alarm's, and a unit never
         // reaches it** (`docs/ARMY.md` §15.8, item 399). The call at
@@ -2738,7 +2697,7 @@ impl Sim {
         // path, and `Object::die`'s `dtype` there is 0 — the argument
         // `Sim::attrition_tick` and the scripting paths pass, and the one
         // value `Unit::close`'s arm refuses (§42.1).
-        self.take_damage_typed(target, hit, by, frame, 0)
+        self.take_damage_typed(target, hit, by, frame, 0, false)
     }
 
     /// [`Self::take_damage`] with `Object::take_damage`'s own `dtype`
@@ -2751,6 +2710,7 @@ impl Sim {
         _by: Obj,
         _frame: i64,
         dtype: i32,
+        splash: bool,
     ) -> Taken {
         // `Object::take_damage@00652020:67-71`, first after the sixteenth
         // floor: a hit by anything but attrition (`param_5 == 0`), at
@@ -2802,6 +2762,11 @@ impl Sim {
                 u.health -= lost;
                 if matches!(taken, Taken::Died { .. }) {
                     u.health = u.health.min(0);
+                    // `take_damage@00652020:607`, before `die` (vslot
+                    // `+0x158`): the kill's plunder (`docs/AI.md` §259).
+                    if !splash && let Obj::Unit(k) = _by {
+                        self.unit_plunder(i, k);
+                    }
                     // `Object::die` is `close()` — the draw arm below —
                     // and **then** the slot hold, which is not gated on
                     // the draw arm's `dtype` at all (§42.3).
@@ -2818,6 +2783,98 @@ impl Sim {
                 taken
             }
             Obj::Building(b) => self.damage_building(b, hit, Some(_by), _frame, false),
+        }
+    }
+
+    /// **The Despot's unit plunder** (`docs/AI.md` §259): `Object::take_damage
+    /// @00652020`'s kill arm (`:520`–`:609`) and the EE arm of
+    /// `Unit::plunder@00605b00` it calls, for a victim `v` killed by the unit
+    /// `k`.
+    ///
+    /// The caller's gate: `v` is its squad's captain, the last figure of it
+    /// (`curr_uber_size == 1`) and no decoy; the killer is a unit, the hit no
+    /// splash (`param_9`), and the two leaders not allied. A victim that
+    /// `is` a General, a caravan or a supply wagon plunders by its own
+    /// constants; any other plunders only when `HeroesData::find_hero
+    /// @0073a1b0` finds one of the killer's heroes of type THEDESPOT
+    /// (`0x160`), else SPITAMENES (`0x16d`), active, on the map and within
+    /// `get_radius × 0xc0` of the victim, and `THEDESPOT_UNIT_PLUNDER` is
+    /// non-zero — and then `plunder(v, k, who, 0, 1)`.
+    ///
+    /// In `plunder` (`get_patch_version >= 9`, `00605f78`..): one
+    /// `Random::get(0, 0xffff)` per good of the killer's leader available
+    /// (`type_avail(g, 1)`), knowledge skipped, food to oil in order; the good
+    /// whose `bucket + roll % 25` is least, first on a tie, takes
+    /// `THEDESPOT_UNIT_PLUNDER`. `leaders +0x914` (the scenario's plunder
+    /// scale, `-1.0` from `Leader::init` and written only by
+    /// `ScenarioFuncSet::set_plunder_scale`) is negative and scales nothing.
+    /// run943's Citizen `0/3`, killed on 10852 by `1/58` beside The Despot
+    /// `1/46`: four draws (oil not yet available) and who=1's metal 44 → 59.
+    ///
+    /// SEAM: the General, caravan and supply-wagon victims
+    /// (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`), the Aztec killer's slay bonus
+    /// (`AZTEC_SLAY_BONUS`, `param_3`), the Inca refund, and the victim
+    /// redirect of a type with `+0x2b4 & 0x10` are not carried.
+    pub(crate) fn unit_plunder(&mut self, v: usize, k: usize) {
+        use crate::ai_load::uflags2;
+        const DESPOT: i32 = 0x160;
+        const SPITAMENES: i32 = 0x16d;
+        const KNOWLEDGE: usize = 3;
+        let amount = self.tuning.thedespot_unit_plunder;
+        let victim = &self.units[v];
+        if !self.is_captain(v) || victim.decoy || self.curr_uber_size(v) != 1 {
+            return;
+        }
+        let (vw, at) = (victim.owner, victim.pos);
+        let who = self.units[k].owner;
+        if who == vw || self.is_ally(vw, who) {
+            return;
+        }
+        let kind = self.units[v]
+            .ty
+            .map_or(0, |t| self.unit_types[t].cols.unit_flags2);
+        if kind & (uflags2::GENERAL | uflags2::CARAVAN | uflags2::SUPPLY_OR_HERO) != 0 {
+            return;
+        }
+        let counted = |ti: i32| {
+            self.unit_types
+                .iter()
+                .position(|t| t.type_index == ti)
+                .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+                .is_some_and(|&n| n != 0)
+        };
+        let found = |ti: i32| {
+            counted(ti)
+                && (0..self.units.len()).any(|h| {
+                    let x = &self.units[h];
+                    x.owner == who
+                        && x.type_index == ti
+                        && x.alive()
+                        && x.on_map
+                        && self.is_hero_unit(h)
+                        && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
+                            <= self.hero_radius(h) * 0xc0
+                })
+        };
+        if amount == 0 || !(found(DESPOT) || found(SPITAMENES)) {
+            return;
+        }
+        let w = who as usize;
+        let mut pick = None;
+        let mut least = 99_999_999;
+        for g in 0..6 {
+            if g == KNOWLEDGE || !self.holdings[w].available[g] {
+                continue;
+            }
+            self.mark(SITE_UNIT_PLUNDER);
+            let v = self.ledgers[w].bucket[g] + self.rng.roll() % 25;
+            if v < least {
+                least = v;
+                pick = Some(g);
+            }
+        }
+        if let Some(g) = pick {
+            self.ledgers[w].bucket[g] += amount;
         }
     }
 
@@ -3513,6 +3570,26 @@ impl Sim {
         let front = self.units[responder].orders.front().copied();
         if self.is_fleeing(responder) {
             return;
+        }
+        // **`param_3 = update_action(this)`** (`Unit::target_opportunity@005fffc0`,
+        // `LAB_006002cf`, the decompile's line 138), the first thing past the
+        // `is_fleeing` return and ahead of every gate below: a hit on a unit
+        // that has not fled rewrites its `orders_x/y` and `dest_angle` from
+        // where it stands and which way it faces *now*. Chapter 103's `0/10`
+        // is struck on 935 after its own step snapped it a cell on and
+        // turned it; the dump's `orders_y` 16008 and `dest_angle`
+        // 1181417472 are this call's, not the step's start (`docs/GOLDEN.md`
+        // §140). The air orders (`STRAFE`, `AIR_PATROL`, `AIR_ATTACK_GROUND`)
+        // return above it in the original.
+        if !front.is_some_and(|o| {
+            matches!(
+                o.body,
+                crate::orders::Body::Strafe(_)
+                    | crate::orders::Body::AirPatrol(_)
+                    | crate::orders::Body::AirAttackGround(_)
+            )
+        }) {
+            self.update_action(responder);
         }
         if st.target.is_some() && !self.attack_action_yields(responder, attacker) {
             return;

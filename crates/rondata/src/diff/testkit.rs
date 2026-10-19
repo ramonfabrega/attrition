@@ -6744,6 +6744,20 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THREE: i64 = 1500;
 /// `chapter_one_hundred_and_three_s_window_is_widened_whole`'s window: run945.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THREE: (i64, i64) = (604, 1501);
 
+/// **Chapter one hundred and four** (item 3285, `docs/GOLDEN.md` §141, run949):
+/// a who=1 Tower strikes a squad beside a Tank wreck.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOUR: i64 = 1500;
+
+/// `chapter_one_hundred_and_four_s_window_is_widened_whole`'s window: run949.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_FOUR: (i64, i64) = (604, 1501);
+
+/// **Chapter one hundred and five** (item 3292, `docs/GOLDEN.md` §142, run950):
+/// a who=1 Tower strikes a squad walking toward it.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FIVE: i64 = 1500;
+
+/// `chapter_one_hundred_and_five_s_window_is_widened_whole`'s window: run950.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_FIVE: (i64, i64) = (604, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -9860,12 +9874,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 10695 → 10700 → 10852** (the bays of pieces 1529 and 1441, the Horse
     // Archers' 1545 pivot releases), inside run943's window, whose state
     // first parts on 10843 (`run943_s_word_frame_is_widened_whole`).
+    // **Item 3287 moved it 10917 → 11585** (`set_diags`' corner tail, the
+    // Peltasts' bays, `init_real`'s `guy_flags`), past run943's last block
+    // (10945): owed as 3297 (`docs/QUEUE.md`; parked 3296, the row item
+    // 3287 filed under its heading, numbered at the merge).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
-        Some("run943_s_word_frame_is_widened_whole"),
-        3255,
-        Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_FRAME_10695),
+        None,
+        3297,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

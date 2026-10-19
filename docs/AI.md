@@ -23139,19 +23139,107 @@ Theirs' index-3 draw is `Unit::plunder+0x4e5`: the read is The Despot's unit plu
 diffs one of them, `fight`'s guard call, on one frame; `find_nearby_target`'s calls for a follower are the same code
 path and are not separately diffed. The plunder is read, not built.
 
-## 259. Reserved for the next item on the AI track
+## 259. The Despot's unit plunder, and the word moves to 10917 (2026-10-18, item 3279)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 10852 (§258), ours 25 draws against theirs 30 at index 3,
+ours `Unit::close+0xcb6`, theirs `605fe5`; run943's widening (455 keys) first parting on block 10853, the Citizen `0/3`
+(TI 50) dead on 10852 on both sides, `death:extra` ours 1 against theirs 0, who=1's `leader:bucket[4:metal]` ours 44
+against theirs 59.
 
-## 260. Reserved for the next item on the AI track
+**The draws on 10852, both sides.** Theirs' 30 are ours' 25 with four `605fe5` (`Unit::plunder+0x4e5`, the EE arm's
+`Random::get`, the listing's `call` at `605fe0`) at indices 3–6, before `1/58`'s `Unit::close+0xcb6`, and one more
+`Guy::set_anim+0x104b` later in the frame. **Four, not five** (parked 3278 said five): food, timber, wealth and metal;
+knowledge is skipped and oil is not yet available to who=1. The fifth extra draw is the frame's downstream, and it
+agrees once the four are spent.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The caller** (`Object::take_damage@00652020`, `:520`–`:609`). On a kill whose victim is its squad's captain
+(`is_captain`, vslot `+0xe8`), the last figure (`curr_uber_size(0) == 1`) and no decoy (`unit_masks & 1`), with a killer
+(`param_7 >= 0`) that is a unit (vslot `+0x8`), no splash (`param_9`, `do_damage`'s `param_7`) and not the victim's
+ally: an Aztec killer from a barracks-line trainer (`+0x40` in `0x1ab`, `0x1ac`, `0x1b0`) calls `plunder(v, k, who, 1,
+0)`; a victim that `is` GENERAL (`0x36`), CARA (`0x3b`) or SUPPLYWAGON (`0x3f`) calls `plunder(v, k, who, 0, 0)`; any
+other calls `plunder(v, k, who, 0, 1)` only when the killer's leader counts a THEDESPOT (`0x160`, by its per-type count) and
+`HeroesData::find_hero` finds one within its `get_radius × 0xc0` of the victim, or else a SPITAMENES (`0x16d`), and
+`THEDESPOT_UNIT_PLUNDER` is non-zero. The plunder runs before `die` (vslot `+0x158`), which is why its draws come before
+`Unit::close`'s.
+
+**The plunder** (`Unit::plunder@00605b00`, `get_patch_version >= 9`). With `param_4` 1, `local_14` is 1. The victim is no
+hero (`+0x2b8 & 0x20`), supply (`& 0x40`) or caravan, so the base is 0. One `Random::get(0, 0xffff)` per good `type_avail(g,
+1)` answers for, knowledge skipped, food to oil in order; the good whose `bucket + roll % 25` is least, by a strict `<`
+(`jge` at `605ff1`), takes `THEDESPOT_UNIT_PLUNDER` (15 in `rules.xml`). The Aztec scale (`AZTEC_PLUNDER`) applies only to
+an Aztec killer. `leaders +0x914` is the scenario's plunder scale: `Leader::init` writes `0xbf800000` (−1.0), and only
+`ScenarioFuncSet::set_plunder_scale` writes it again, so the `>= 0` test skips the multiply in a skirmish.
+
+**Built.** `Sim::unit_plunder` (`fight.rs`), called from `take_damage_typed` before `close_count` when the attacker is a
+unit and the hit no splash; `take_damage_typed` takes `splash`. `Tuning::thedespot_unit_plunder` (`THEDESPOT_UNIT_PLUNDER`).
+`rondata::trace::SITES` names `605fe5` as `SITE_UNIT_PLUNDER`. The test `the_despot_beside_a_kill_plunders_the_least_stocked_good`
+(`cities_tests.rs`) checks the four draws and the metal. Mutations through `tools/mutate.py`: the call dropped fails
+`iroquois_word_first_parting` (exit 101); the knowledge skip, the Despot's owner test and the killer-and-victim test each
+fail the sim test (exit 101).
+
+**The instrument.** `death:extra` is not a parting on a capture that logs no `DEATHS`. `DEATH_OBJS` is
+`DeathObjData::log_data`'s and is written at `DEATHS=1` and above. run943's detail (`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,
+LEADERS=2`) prints none, so every death this crate holds read as ours alone. The widening now keeps the row only once a
+block of its walk has printed a `DEATH_OBJS`. Before that, a death this crate invents still parts as the dump's `unlinked`
+unit. Fourteen other windows print no `DEATH_OBJS` either, and lose their rows: run702, run718 and run766 (Great Sahara
+coverage), run710, run711 and run714 (the coverage pair), run855, run861 and run866 (the peace pair) and run780 (the
+successor pair) 14 each; run910 (the German word) 1; and the second pair's run373 (2, `0/2` on 5001 and `0/3` on 4997,
+which its own comment already called the capture's), run396 (4) and run403 (1). A probe with the gate off restores
+run702, run718 and run766.
+
+**The word moves 10852 → 10917.** The value diff is who=1's `leader:bucket[4:metal]` on block 10853: 59 on both sides,
+44 in ours before. run943's widening goes **455 → 174** keys. At 10917, ours 285 draws against theirs 296, index 272,
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. The state still first parts on
+block 10853: `1/25` (TI 83 → 84, Javelineers upgraded to Peltasts on 10852 on both sides) has `g.cur_anim[0]` ours 1
+against theirs 2 and `g.end_time[0]` 96 against 36. Then `0/2000`'s `build:damage` (41 against 44) and `city:raid_stamp`
+(10863 against 10869) part on 10870. Both are parked under item 3279's heading.
+
+**Not established.** The General, caravan and supply-wagon victims (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`), the Aztec slay
+bonus (`AZTEC_SLAY_BONUS`, `AZTEC_SLAY_CAP`), the Inca refund and the pre-EE arm are not built. Nor is the victim redirect
+for a type with `+0x2b4 & 0x10`, or the kill counters around the call (`+0x810`, `+0xa58`, the score `+0x29d8`). The
+victim classes are taken from `unit_flags2` (GENERAL, CARAVAN, SUPPLY_OR_HERO), not from `is`'s lineage. One kill is
+diffed: run943's 10852.
+
+## 260. The Iroquois 10917: a re-typed figure's mark, the Peltasts' bays, and `set_diags`' corner tail (2026-10-18, item 3287)
+
+**The booking**: the battery word `GreatLakesIroquoisTier3` at 10917 (§259). Ours drew 285 against theirs' 296 at
+index 272: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. run943's
+widening (174 keys) first parted on block 10853. Three builds, each with its own value diff. The packets on disk
+answered everything, so run 948 was not used.
+
+**1. `Guy::init_real:161` zeroes `guy_flags` (`+0x9a`).** `1/25` (TI 83 → 84, Javelineers re-typed to Peltasts on
+10852 under an `ATTACK` on `0/2000`) comes through `init_real` again. Theirs' `guy_flags` goes 48 → 16, so its wrap
+roll on 10852 (`Guy::set_anim+0x97a < Guy::inc_time+0x271`) plays `IDLE2`. Ours kept the `0x20` mark and collapsed to
+`IDLE1`. `Sim::reinit_guys` (`anim.rs`) now clears `guy_flag_0x20`. **Value diff, block 10853**: `1/25`'s
+`g.cur_anim[0]` is 2 on both sides (ours 1 before), and `g.end_time[0]` is 36 on both (ours 96).
+
+**2. The Native American Peltasts' bays (`launch::BAYS`, piece 1442).** run943c's packet
+(`~/ron-golden/run943c/map-14/frame-snapshot.bin`) holds 1442's three `AttachPos` rows. They were swept with
+`tools/recomp/get_position.py … sweep 1442 0 <anim> <time>` and fitted, as 1441's were (§257), as the centre of the
+integer region that reproduces all 361 headings: (43050, 64644, 167), (−344, 57100, 173) and (20539, 36144, 161). The
+same fit on 1441 comes within a unit of item 3255's rows. Test: `the_peltasts_bays_are_the_packet_s_sweep`
+(`launch.rs`). **Value diff, block 10870**: `0/2000`'s `build:damage` is 44 on both sides (ours 41). `1/48`'s javelin
+now leaves from the figure's bay, where it had left from the figure's own position (3336, 31512).
+
+**3. `Roads::set_diags`' corner tail** (`docs/ROADS.md` §12). The word's draws part inside `1/2027`'s road replan
+(`regen_roads_due`, build type 16, (45120, 28800)). Node 5, (45216, 29472) from (45216, 29280), cost 139 in ours
+against 27 in theirs, which reads a road. Ours' caravan diagonal (235, 153), (234, 154) and (233, 155) had been killed
+by the stray sweep on 10620. run946's packet (logger frame 10842) holds theirs' (235, 153) at N | SW with support
+`0xc400`, and C4 elements on the non-road tiles beside it. The mechanism: `set_diags`' tail puts C4 references on a
+corner's cardinal neighbours. `1/2027`'s ring lays (235, 152) over one on 10485, so `add_roads`' count is 2 and the
+add becomes a removal, and `clear_roads` re-queues (235, 153), which re-derives to N | SW. Built: `Sim::corner_pieces`,
+`clear_support`'s three arms, the sweep's C4 exemption, and the caravan's camel count (`caravan.rs`, `build_road:124`'s
+`set_road_at(x, y, 1, 1, 0)`). **Value diff, 10842 and 10917**: the twelve elements around (235, 153) agree with the
+packet, (235, 154) by its counts' sum (`run946_s_road_elements_at_10842_are_ours`). Node 5 costs 27 on both sides, and
+the replan searches 283 nodes on both.
+
+**The word moves 10917 → 11585.** At 11585, ours 16 draws against theirs 15 at index 4: ours
+`Leader::make_stuff+0x221`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run943's widening goes **174 → 47**
+keys, the standing set alone, through its last block 10945. The word is past every Iroquois dump on disk, so its
+widening is owed.
+
+**Not established.** The corner tail's diagonal arms off the SW–NE axis rest on the listing alone. `find_piece`'s pick
+on a road tile is not modelled (`docs/ROADS.md` §12). (235, 154)'s split between ref and camel is parked. `init_real`'s
+other fields that a re-type might reset were not walked: only `guy_flags` was measured.
 
 ## 261. Reserved for the next item on the AI track
 
