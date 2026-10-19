@@ -210,3 +210,54 @@ fn run970b_s_word_frame_is_widened_whole() {
     // `group:66.held` on 1377.
     pin_eq!(w.firsts.len(), 35, "keys that part in the window");
 }
+
+/// run970c: the word 9985's window, blocks 9979..10236 at run970's detail
+/// (item 3335); run970b ends on block 1428.
+pub(crate) const RUN970C: &str = "gamelog-run970c-eastindies-indian-diff2-window-9979-10236-guys4.txt";
+
+/// The window: block 9979 through 10236; the word 9985's own block is 9986.
+pub(crate) const WIDENING_INDIAN_FRAME_9985: (i64, i64) = (9979, 10236);
+
+pub(crate) fn indian_frame_9985_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INDIAN.start],
+        true,
+        INDIAN.long,
+        "run970c",
+        &[(RUN970C, WIDENING_INDIAN_FRAME_9985.0)],
+        WIDENING_INDIAN_FRAME_9985,
+        1,
+        &[9986],
+        true,
+    )
+}
+
+#[test]
+fn run970c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = indian_frame_9985_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3335: 586 keys part on blocks 9979..10236, the word's own
+    // block being 9986, and the state has parted before the window
+    // opens: on 9979 who=1's `bucket[0:food]` 74 against 89 and
+    // `bucket[2:wealth]` 56 against 65, and twelve of who=1's units'
+    // `g.angle[0]` 1431655765 against 0. Then the make list on 9981
+    // (`MAKE[3].num` 5/1) and 9982 (`MAKE[3].t` 438/261), the queue's
+    // price on 9983 and the empty head on 9986 — the word's. The gap
+    // 1428..9979 is run970d's.
+    pin_eq!(w.firsts.len(), 586, "keys that part in the window");
+}
