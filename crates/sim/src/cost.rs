@@ -1306,6 +1306,25 @@ mod tests {
         }
     }
 
+    /// `get_cost:1003`–`1008`: a Japanese Farm at `(100 − 50) × cost / 100`
+    /// in every good, after the Greek Library arm (item 3331).
+    #[test]
+    fn the_japanese_pay_half_for_a_farm() {
+        let farm = small_city().with_base(Resource::Timber, 55);
+        let japanese = Modifiers {
+            japanese_farms: T.japanese_farms_cheaper,
+            ..Modifiers::default()
+        };
+        assert_eq!(T.japanese_farms_cheaper, 50);
+        for r in [Resource::Food, Resource::Timber] {
+            for n in 0..3 {
+                let plain = cost_of(&T, &farm, r, owned(n), &Modifiers::default());
+                let off = cost_of(&T, &farm, r, owned(n), &japanese);
+                assert_eq!(off, plain / 2, "{r:?} {n}");
+            }
+        }
+    }
+
     #[test]
     fn a_building_s_ramp_is_not_capped() {
         let city = small_city();

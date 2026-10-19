@@ -1516,6 +1516,7 @@ mod tests {
                 resource: Resource::Knowledge,
                 gatherers: 20,
                 level: 6,
+                nation_pct: 0,
             }],
             ..City::default()
         });
@@ -1556,6 +1557,7 @@ mod tests {
                 resource: Resource::Knowledge,
                 gatherers: 50,
                 level: 6,
+                nation_pct: 0,
             }],
             ..City::default()
         });
