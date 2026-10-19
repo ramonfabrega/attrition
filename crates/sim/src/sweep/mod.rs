@@ -14,6 +14,7 @@
 mod support;
 pub(crate) use support::{emu_rows, row, tail_row};
 
+mod build_start;
 mod build_type_get_good;
 mod city_get_empty_trade_routes;
 mod farms_add;
@@ -128,6 +129,7 @@ mod object_data_num_inside;
 mod object_type_data_upgrade_level;
 mod object_update_hits;
 mod object_valid_target;
+mod objects_data_find_building_at;
 mod path_finder_valid_wcoord;
 mod region_coast_here;
 mod region_go_here;

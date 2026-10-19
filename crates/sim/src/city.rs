@@ -1674,14 +1674,19 @@ impl Sim {
         }
     }
 
-    /// `Wall::start` → `Build::start`: the site is committed.
+    /// `Build::start@006273a0`: the site is committed — [`build_start_steps`] over this building.
     pub fn start_building(&mut self, b: usize) {
+        build_start_steps(&mut StartSite { sim: self, b }, false);
+    }
+
+    /// `Wall::start@0063e810`: answers whether it had already run (the original returns nonzero).
+    fn wall_start(&mut self, b: usize) -> bool {
         if self.buildings[b].started {
-            return;
+            return true;
         }
         let Some(ty) = self.buildings[b].ty else {
             self.buildings[b].started = true;
-            return;
+            return false;
         };
         self.buildings[b].started = true;
         let corner = self.tile_corner(ty, self.buildings[b].pos);
@@ -1758,16 +1763,7 @@ impl Sim {
         }
         // `Wall::start@0063e810`'s own last-but-one statement.
         self.check_ever_seen(b, false);
-        // **`Build::start@006273a0`'s tail**, after `Wall::start` returns:
-        // a wonder lights its grown footprint at once (vslot `+0x164`),
-        // `0xff` into `seen` and `seen2`, so every player has it in sight
-        // until the next clear — and the owner's next `check_ever_seen`
-        // takes those bits, which is first contact for a player who never
-        // looked (`docs/VISION.md` §6.4, item 1446). What follows in the
-        // original is the begun-a-wonder notice, interface only.
-        if self.build_types[ty].wonder {
-            self.update_local_seen_build(b);
-        }
+        false
     }
 
     /// `Wall::mask_me` → `BuildType::mask_me`: the footprint marked (or
@@ -3484,6 +3480,58 @@ pub(crate) fn find_city_steps<C: ?Sized>(
     let c = city_of(cx, r);
     add(cx, c);
     r
+}
+
+/// What `Build::start@006273a0` reads and does, one method a call it makes.
+pub(crate) trait BuildStartView {
+    /// `Wall::start`; true when it answered nonzero (the site had started already).
+    fn wall_start(&mut self) -> bool;
+    /// The wonder test: `Build::is_wonder` — the type's index in `0x20e..=0x21e` on the stock vtables,
+    /// the vslot `+0x2c` / the type's `+0x1c` otherwise.
+    fn is_wonder(&mut self) -> bool;
+    /// Vslot `+0x164`, `Wall::update_local_seen`.
+    fn update_local_seen(&mut self);
+    /// The begun-a-wonder notice and `S_WONDER_STARTED`: interface only (the sound, `play(0x78)`).
+    fn announce(&mut self);
+}
+
+/// `Build::start@006273a0`. `announce` is its argument: the begun-a-wonder notice, interface only. Answers
+/// the original's `eax`: 1 when `Wall::start` did, else 0. A wonder lights its grown footprint at once (vslot
+/// `+0x164`), `0xff` into `seen` and `seen2`, so every player has it in sight until the next clear — and
+/// the owner's next `check_ever_seen` takes those bits, which is first contact for a player who never
+/// looked (`docs/VISION.md` §6.4, item 1446).
+pub(crate) fn build_start_steps(v: &mut impl BuildStartView, announce: bool) -> i32 {
+    if v.wall_start() {
+        return 1;
+    }
+    if !v.is_wonder() {
+        return 0;
+    }
+    v.update_local_seen();
+    if announce {
+        v.announce();
+    }
+    0
+}
+
+struct StartSite<'a> {
+    sim: &'a mut Sim,
+    b: usize,
+}
+
+impl BuildStartView for StartSite<'_> {
+    fn wall_start(&mut self) -> bool {
+        self.sim.wall_start(self.b)
+    }
+    fn is_wonder(&mut self) -> bool {
+        self.sim.buildings[self.b]
+            .ty
+            .is_some_and(|ty| self.sim.build_types[ty].wonder)
+    }
+    fn update_local_seen(&mut self) {
+        self.sim.update_local_seen_build(self.b);
+    }
+    fn announce(&mut self) {}
 }
 
 /// `Wall::start@0063e810`'s footprint walk (the loop between `mask_me` and

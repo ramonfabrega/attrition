@@ -58,48 +58,110 @@ impl Sim {
     /// The caller is [`Sim::set_new_location`], which applies the four
     /// guards (§2); this function assumes them.
     pub(crate) fn explore_goody(&mut self, u: usize) {
-        let cell = self.units[u].pos.cell();
-        // The bit goes first and unconditionally — before the `frame != 0`
-        // gate, so a goody a unit is *placed* on at setup is consumed
-        // without paying (§4).
-        let mut d = self.world.cell_data(cell);
-        d.flags &= !GOODY;
-        self.world.set_cell_data(cell, d);
-        if self.frame == 0 {
-            return;
-        }
         let who = self.units[u].owner;
-        let good = self.pick_goody_good(who);
-        let amount = self.goody_amount(who);
-        self.ledgers[who as usize].bucket[good] += amount;
-        self.ledgers[who as usize].goody_box_resources += amount;
+        explore_goody_steps(&mut SimGoody { sim: self, u, who });
     }
+}
 
-    /// The lottery — one draw a candidate, the lowest score winning.
-    ///
-    /// A candidate is a good whose `LeaderData::type_avail(good, 1)` is
-    /// `AVAILABLE` and which is not [`KNOWLEDGE`]. The original tests
-    /// availability *first*, so an unavailable knowledge costs nothing
-    /// either way and the draw count is the number of available non-
-    /// knowledge goods.
-    fn pick_goody_good(&mut self, who: Player) -> usize {
-        let mut best: i64 = 99_999_999;
-        let mut pick: Option<usize> = None;
-        for g in 0..RESOURCES {
-            if !self.type_available(who, g) || g == KNOWLEDGE {
-                continue;
-            }
-            let held = self.ledgers[who as usize].bucket[g];
-            self.mark(SITE_PICK);
-            let score = i64::from(self.rng.roll() % JITTER) + i64::from(held);
-            if score < best {
-                best = score;
-                pick = Some(g);
-            }
+/// What `Unit::explore_goody@005f9780` asks of the world, in the order the
+/// original asks it. [`Sim`] answers through [`SimGoody`]; the sweep
+/// (`sweep/unit_explore_goody.rs`) answers from the emulated original's
+/// windows, so the body below is the crate's own on both sides.
+pub(crate) trait GoodyView {
+    /// `WData.flags &= ~GOODY` on the finder's cell.
+    fn clear_box(&mut self);
+    /// `game->frame != 0`.
+    fn started(&self) -> bool;
+    /// `LeaderData::type_avail(good, 1) != 0`.
+    fn candidate(&mut self, good: usize) -> bool;
+    /// The finder's stock of the good (`bucket[good]`, decrypted).
+    fn held(&self, good: usize) -> i32;
+    /// `Random::get(game_random, 0, 0xffff)`.
+    fn roll(&mut self) -> i32;
+    /// The pile: the Spanish pair when `has_tribe_bonus(9)`.
+    fn pile(&mut self) -> i32;
+    /// `bucket[good] += amount` and `goody_box_resources += amount`.
+    fn pay(&mut self, good: usize, amount: i32);
+}
+
+/// The body of `Unit::explore_goody` past the UI: the bit, the `frame`
+/// gate, the lottery, the pile, the payment.
+pub(crate) fn explore_goody_steps(v: &mut impl GoodyView) {
+    // The bit goes first and unconditionally — before the `frame != 0`
+    // gate, so a goody a unit is *placed* on at setup is consumed
+    // without paying (§4).
+    v.clear_box();
+    if !v.started() {
+        return;
+    }
+    let good = pick_goody_steps(v);
+    let amount = v.pile();
+    v.pay(good, amount);
+}
+
+/// The lottery — one draw a candidate, the lowest score winning. The score
+/// is the original's `int` sum, so it wraps like one.
+///
+/// A candidate is a good whose `LeaderData::type_avail(good, 1)` is
+/// `AVAILABLE` and which is not [`KNOWLEDGE`]. The original tests
+/// availability *first*, so an unavailable knowledge costs nothing
+/// either way and the draw count is the number of available non-
+/// knowledge goods.
+fn pick_goody_steps(v: &mut impl GoodyView) -> usize {
+    let mut best: i32 = 99_999_999;
+    let mut pick: Option<usize> = None;
+    for g in 0..RESOURCES {
+        if !v.candidate(g) || g == KNOWLEDGE {
+            continue;
         }
-        pick.unwrap_or(FALLBACK)
+        let held = v.held(g);
+        let score = (v.roll() % JITTER).wrapping_add(held);
+        if score < best {
+            best = score;
+            pick = Some(g);
+        }
     }
+    pick.unwrap_or(FALLBACK)
+}
 
+/// [`Sim`]'s answers to [`GoodyView`] for the unit `u` of player `who`.
+struct SimGoody<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    who: Player,
+}
+
+impl GoodyView for SimGoody<'_> {
+    fn clear_box(&mut self) {
+        let cell = self.sim.units[self.u].pos.cell();
+        let mut d = self.sim.world.cell_data(cell);
+        d.flags &= !GOODY;
+        self.sim.world.set_cell_data(cell, d);
+    }
+    fn started(&self) -> bool {
+        self.sim.frame != 0
+    }
+    fn candidate(&mut self, good: usize) -> bool {
+        self.sim.type_available(self.who, good)
+    }
+    fn held(&self, good: usize) -> i32 {
+        self.sim.ledgers[self.who as usize].bucket[good]
+    }
+    fn roll(&mut self) -> i32 {
+        self.sim.mark(SITE_PICK);
+        self.sim.rng.roll()
+    }
+    fn pile(&mut self) -> i32 {
+        self.sim.goody_amount(self.who)
+    }
+    fn pay(&mut self, good: usize, amount: i32) {
+        let l = &mut self.sim.ledgers[self.who as usize];
+        l.bucket[good] = l.bucket[good].wrapping_add(amount);
+        l.goody_box_resources = l.goody_box_resources.wrapping_add(amount);
+    }
+}
+
+impl Sim {
     /// `Unit::find_goody_box@005f2540` (`docs/GOODY.md` §7): the 49-cell
     /// sweep for a box worth walking to. Returns whether an order was
     /// issued; spends no draw either way.
@@ -246,9 +308,13 @@ impl Sim {
             .tech_tree
             .has_tribe_bonus(&self.setup, &self.tech[who as usize], 9)
         {
-            level * t.spanish_ruins + t.spanish_ruins_base
+            level
+                .wrapping_mul(t.spanish_ruins)
+                .wrapping_add(t.spanish_ruins_base)
         } else {
-            level * t.goody_box_age + t.goody_box
+            level
+                .wrapping_mul(t.goody_box_age)
+                .wrapping_add(t.goody_box)
         }
     }
 }
