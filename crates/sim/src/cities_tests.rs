@@ -5734,6 +5734,46 @@ fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
     assert_eq!(sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]), None);
 }
 
+/// **An Oil Platform is priced by the Oil Wells too** (`get_cost@00664090`,
+/// `0066598f`..`006659be`; item 3333): the building ramp's count of an Oil
+/// Platform adds the leader's Oil Wells, and an Oil Well's its Platforms.
+/// run963d's block 23983: the Dutch placed their first Platform beside one
+/// Well, and the original charged 120 timber and 70 metal where a count of
+/// Platforms alone charges 100 and 50.
+#[test]
+fn an_oil_platform_is_counted_with_the_oil_wells_and_a_well_with_the_platforms() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let ramp = |ident| {
+        let mut b = bt(ident, None, "", 2, 2, 2000, 2000, 0);
+        b.price.support = [Some((economy::Resource::Timber, 2)), None];
+        b
+    };
+    let well = sim.add_build_type(ramp(Ident::OilWell));
+    let platform = sim.add_build_type(ramp(Ident::OilPlatform));
+    let timber = economy::Resource::Timber.index();
+    let first = sim.building_price(0, platform)[timber];
+    assert_eq!(first, sim.building_price(0, well)[timber], "none of either");
+
+    let w = sim.place_building(0, t.barracks, tile_pos(44, 32)).unwrap();
+    sim.buildings[w].ty = Some(well);
+    let after_a_well = sim.building_price(0, platform)[timber];
+    assert!(after_a_well > first, "the Well counts for the Platform");
+    assert_eq!(after_a_well, sim.building_price(0, well)[timber]);
+
+    let p = sim.place_building(0, t.barracks, tile_pos(44, 44)).unwrap();
+    sim.buildings[p].ty = Some(platform);
+    assert!(
+        sim.building_price(0, well)[timber] > after_a_well,
+        "and the Platform for the next Well"
+    );
+    assert_eq!(
+        sim.building_price(0, well)[timber],
+        sim.building_price(0, platform)[timber]
+    );
+}
+
 /// **`Wall::process`'s oil-platform arm** (`docs/AI.md` §162, item 1588).
 /// On `(frame + o) & 0x7f == 0`, a computer leader's unfinished Oil Platform
 /// that no unit of its owner holds as its **action** is disbanded, its price

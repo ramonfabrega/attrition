@@ -1115,10 +1115,26 @@ impl Sim {
                 .filter(|b| b.alive && b.owner == who && b.ty.is_some_and(line))
                 .count() as i32
         } else {
+            // An Oil Platform is counted with the leader's Oil Wells and an
+            // Oil Well with its Platforms (`get_cost@00664090`,
+            // `0066598f`..`006659be`: the other type's `num_buildings +
+            // num_queued`, `+0x556c`/`+0x5d6c` and `+0x556e`/`+0x5d6e`).
+            let sibling = match self.build_types[ty].ident {
+                Ident::OilWell => Some(Ident::OilPlatform),
+                Ident::OilPlatform => Some(Ident::OilWell),
+                _ => None,
+            };
             let n = self
                 .buildings
                 .iter()
-                .filter(|b| b.alive && b.owner == who && b.ty == Some(ty))
+                .filter(|b| {
+                    b.alive
+                        && b.owner == who
+                        && (b.ty == Some(ty)
+                            || sibling.is_some_and(|s| {
+                                b.ty.is_some_and(|k| self.build_types[k].ident == s)
+                            }))
+                })
                 .count() as i32;
             self.build_types[ty]
                 .tree

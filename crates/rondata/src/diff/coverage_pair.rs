@@ -912,10 +912,20 @@ fn run678_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
     // **139** on the tree item 1558 landed (160 on item 1552's, 307 on item
     // 1546's, 1,378 on item 1544's); 98 stand from the window's first block
     // — `1/2006`'s capital bit no longer among them.
-    pin_eq!(w.firsts.len(), 68, "initial run678 baseline");
+    pin_eq!(w.firsts.len(), 66, "initial run678 baseline");
+    // Item 3333: who=1's `bucket` timber 17978/17958 and metal 14157/14137 on
+    // 1183 close with an Oil Platform priced by the Oil Wells (`docs/AI.md`
+    // §270).
     // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
     // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
     // in both — ours held the Farm (417, 2,520,000) — and the site

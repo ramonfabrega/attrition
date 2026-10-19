@@ -1077,6 +1077,29 @@ Indies), whose food and queued-cost rows close. The Scholar's term and
 The `is(0x13b)` arm (`+ LeaderData +0x7bc` for the nuclear line) is not
 carried.
 
+## An Oil Platform is ramped by the Oil Wells
+
+*Item 3333, 2026-10-19. Read from the decompile of
+`TypeData::get_cost@00664090`'s building arm (lines 719–735,
+`0066598f`..`006659be`); built in `Sim::building_price`. `docs/AI.md` §270.*
+
+The building arm's count is the type's own `num_queued[t] + num_buildings[t]`
+— and for the two oil types it adds the other's: an `OILPLATFORM` (`0x1a6`)
+adds `+0x556c`/`+0x5d6c`, the `OILWELL` (`0x1a5`) pair, and an `OILWELL` adds
+`+0x556e`/`+0x5d6e`, the Platform's. So the leader's first Platform beside
+one Well is priced as its second oil building. `Leader::produce_building`
+turns a make list's Oil Well into a Platform on water (`:217`–`:315`) and pays
+the Platform's price (`:1024`, vslot `+0xd4`).
+
+**How confident**: read, and diff-backed: run963d's block 23983, who=1's
+`bucket` timber 199 ours against 179 and metal 136 against 116 when the
+Dutch placed the Platform `1/2079` beside the Well `1/2078` — 100 timber and
+50 metal for a count of none, 120 and 70 for a count of one — and the word
+moved 23985 → 24000 (`rondata::diff::dutch_word`). The Well's half (a Well
+priced by the Platforms) is the listing's alone: no capture prices a Well
+beside a Platform before the long's end. This crate counts live buildings of
+the two types, as it does for every other type, not the two `u16` arrays.
+
 ## A French siege unit costs less
 
 *Item 1460, 2026-10-04. Read from the decompile of
