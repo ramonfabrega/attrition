@@ -2331,8 +2331,9 @@ mod tests {
         // the farms (flat, 1 each) and the woodcutter camp's five, surveyed
         // from its `gather_from` list by `crates/sim/src/gather.rs`.
         let t = arr("gather_slots[scan]");
-        assert_eq!(i64::from(c.gather_slots[0]), t[0], "food slots");
-        assert_eq!(i64::from(c.gather_slots[1]), t[1], "wood slots");
+        let slots = built.sim.ledgers[1].gather_slots;
+        assert_eq!(i64::from(slots[0]), t[0], "food slots");
+        assert_eq!(i64::from(slots[1]), t[1], "wood slots");
         // The home region: the dump's region 1 is the sim's region_map entry.
         let home_dump = theirs.int("home_reg").unwrap();
         let (_, home) = built

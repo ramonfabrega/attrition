@@ -334,6 +334,12 @@ impl Sim {
                 && g.ty != crate::world::OIL
             {
                 self.new_rare(who, gi);
+                // `reveal_fog:87`–`88`: the good's `ever_seen` takes the
+                // revealer's bit (`+0x20 |= 1 << who`), whoever the revealer
+                // is — the byte `think_merchant` tests. A good met through
+                // its footprint is seen though its own half-cell is not
+                // (item 3332: Great Sahara's good 13, met on 2114).
+                self.mark_good_seen(gi, who);
             }
         }
         if self.world.cell_data(c).flags & crate::world::cell::OIL != 0
@@ -387,6 +393,12 @@ impl Sim {
             return;
         }
         self.new_rare(who, gi);
+        self.mark_good_seen(gi, who);
+    }
+
+    /// `GoodData::ever_seen |= 1 << who` (`+0x20`), as `reveal_fog`'s rare
+    /// arm and `compute_reg_territory`'s goods scan both write it.
+    pub(crate) fn mark_good_seen(&mut self, gi: usize, who: Player) {
         if self.good_seen_bits.len() <= gi {
             self.good_seen_bits.resize(gi + 1, 0);
         }
@@ -752,6 +764,21 @@ mod tests {
             s.ai[0].new_rares.is_empty(),
             "an ally that is a human is skipped"
         );
+    }
+
+    /// **`reveal_fog`'s rare arm marks the good seen** (`reveal_fog:87`–`88`,
+    /// item 3332): the revealer's bit of `ever_seen`, and nobody else's —
+    /// the byte `think_merchant` tests before it scores a good.
+    #[test]
+    fn reveal_fog_marks_the_rare_it_meets_seen() {
+        let (mut s, u) = sea_sim();
+        let g = good_under(&mut s, u, 26);
+        assert!(!s.good_seen_bit(g, 1));
+        let (fx, fy) = fog_of_unit(&s, u);
+        s.reveal_fog(fx, fy, 1);
+        assert_eq!(s.ai[1].new_rares, vec![g]);
+        assert!(s.good_seen_bit(g, 1), "seen by its revealer");
+        assert!(!s.good_seen_bit(g, 0), "and by nobody else");
     }
 
     /// **An oil patch is never seen**, because `Objects::init_good` never

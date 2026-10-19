@@ -609,6 +609,12 @@ pub struct Tuning {
     /// fishermen's term in `LeaderData::calc_rare@006e08d0:65`. Ships as
     /// `25% more food`.
     pub japanese_fishing_boats: i32,
+    /// Wealth per thirty seconds from each worked Farm for the Egyptians —
+    /// `BuildTypeData::calc_gather@00639e40:997`–`1005`: a building of type
+    /// `0x1a1` with any gatherer, for a leader with tribe bonus 7, adds
+    /// `EGYPTIAN_FARM_WEALTH × 16` to wealth, flat per farm (item 3332).
+    /// Ships as `2`.
+    pub egyptian_farm_wealth: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -989,6 +995,10 @@ pub struct Tuning {
     pub colosseum_fort_cost: i32,
     /// Percent off construction time in the Hanging Gardens' city. Ships as zero.
     pub hanging_gardens_build_time: i32,
+    /// Percent off an industry technology's price — the food, timber and
+    /// metal gathering lines — with the Hanging Gardens held
+    /// (`get_cost@00664090:1270`–`1276`). Ships as 66.
+    pub hanging_gardens_industry_discount: i32,
     /// Percent faster construction with the President nearby.
     pub thepresident_building_speed: i32,
     /// Percent faster unit training at a building with the President nearby
@@ -1362,6 +1372,7 @@ impl Tuning {
         greek_library_cost: 66,
         japanese_farms_cheaper: 50,
         japanese_fishing_boats: 25,
+        egyptian_farm_wealth: 2,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1525,6 +1536,7 @@ impl Tuning {
         roman_fort_cost: 25,
         colosseum_fort_cost: 20,
         hanging_gardens_build_time: 0,
+        hanging_gardens_industry_discount: 66,
         thepresident_building_speed: 33,
         thepresident_unit_build_speed: 100,
         iroquois_quick_senate: 1,
@@ -1986,6 +1998,7 @@ impl Tuning {
                 "JAPANESE_FARMS_CHEAPER",
                 Slot::Value(T.japanese_farms_cheaper),
             ),
+            ("EGYPTIAN_FARM_WEALTH", Slot::Value(T.egyptian_farm_wealth)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),
@@ -2303,6 +2316,10 @@ impl Tuning {
             (
                 "HANGING_GARDENS_BUILD_TIME",
                 Slot::Value(T.hanging_gardens_build_time),
+            ),
+            (
+                "HANGING_GARDENS_INDUSTRY_DISCOUNT",
+                Slot::Value(T.hanging_gardens_industry_discount),
             ),
             (
                 "THEPRESIDENT_BUILDING_SPEED",

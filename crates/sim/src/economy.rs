@@ -284,6 +284,12 @@ pub struct Site {
     /// rate / 100`, after the enhancer and before the count. Zero is the
     /// identity (item 3331, `docs/AI.md` §268).
     pub nation_pct: i32,
+    /// `BuildTypeData::calc_gather@00639e40:997`–`1005`, the **Egyptian
+    /// arm**: a Farm (`0x1a1`) with any gatherer, for a leader with tribe
+    /// bonus 7, adds this much wealth per thirty seconds — flat per farm,
+    /// whatever its count (`EGYPTIAN_FARM_WEALTH`; item 3332, `docs/AI.md`
+    /// §269). Zero is the identity.
+    pub farm_wealth: i32,
 }
 
 impl Site {
@@ -293,6 +299,7 @@ impl Site {
             gatherers,
             level: 1,
             nation_pct: 0,
+            farm_wealth: 0,
         }
     }
 }
@@ -615,8 +622,11 @@ pub struct Ledger {
     pub goody_box_resources: i32,
     /// `LeaderData + 0x8a4`, the dump's `gather_slots`: how many gatherers
     /// the player's finished gather buildings have room for, per resource.
-    /// `Build::activate` adds a building's `gather_max` as it goes active and
-    /// nothing ever takes it back — a razed farm leaves its slot behind.
+    /// `Build::activate` adds a building's `gather_max` as it goes active,
+    /// `Build::close` takes an active one's back, and the AI census
+    /// (`plan_strategy@006b9620:1162`) rewrites every slot but wealth from
+    /// its own walk — three writers of one field, and the AI's gather gate
+    /// reads it between censuses (item 3332).
     pub gather_slots: [i32; RESOURCES],
     /// `LeaderData + 0x8d4`, the dump's `gather_slots_high`: the high-water
     /// mark of [`Ledger::gather_slots`]. It is what decides whether a
@@ -703,6 +713,11 @@ pub fn city_rates(t: &Tuning, city: &City) -> [i32; RESOURCES] {
             rate = (site.nation_pct + 100) * rate / 100;
         }
         out[i] += rate * site.gatherers;
+        // `calc_gather:997`–`1005`: the Egyptians' wealth from a worked
+        // Farm, flat (item 3332).
+        if site.gatherers != 0 {
+            out[Resource::Wealth.index()] += site.farm_wealth * RATE_SCALE;
+        }
     }
 
     // The city itself. Ships as ten food and ten timber: a city is worth that
@@ -1536,6 +1551,7 @@ mod tests {
                 gatherers: 20,
                 level: 6,
                 nation_pct: 0,
+                farm_wealth: 0,
             }],
             ..City::default()
         });
@@ -1615,6 +1631,7 @@ mod tests {
                 gatherers: 50,
                 level: 6,
                 nation_pct: 0,
+                farm_wealth: 0,
             }],
             ..City::default()
         });

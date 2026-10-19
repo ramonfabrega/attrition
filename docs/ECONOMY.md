@@ -653,7 +653,9 @@ rule. They are one case of it.)
 
 Two further terms live in the same branch: the Japanese scale food by
 `(JAPANESE_FISHING_BOATS + 100) / 100`, and the Egyptians add
-`EGYPTIAN_FARM_WEALTH * 16` of wealth per farm. The mine branch has one of its
+`EGYPTIAN_FARM_WEALTH * 16` of wealth per farm — flat, once for a farm with any
+gatherer and nothing for an unworked one (`calc_gather@00639e40:997`–`1005`;
+`economy::Site::farm_wealth`, item 3332, `docs/AI.md` §269). The mine branch has one of its
 own — the Inca earn `gatherers * INCA_WEALTH_PER_MINER * 16` of wealth per
 mine, when that constant is positive. When it is *negative*, a separate branch
 back in `Leader::calc_gather` instead adds the player's whole metal rate to

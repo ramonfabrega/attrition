@@ -531,13 +531,13 @@ pub struct Census {
     pub min_other_team_terr: i32,
     // Step 5–7.
     pub filled_gather_slots: [i32; RESOURCES],
-    pub gather_slots: [i32; RESOURCES],
+    // `gather_slots` (`+0x8a4`) and `gather_slots_high` (`+0x8d4`) are the
+    // ledger's: [`crate::economy::Ledger::gather_slots`] (item 3332).
     pub ally_mask: u32,
     /// `invaders[i]`: how many of *leader i's* non-siege military units
     /// stand on my land — written into every leader by every sweep.
     pub invaders: Vec<i32>,
     // Maxima (step 12).
-    pub gather_slots_high: [i32; RESOURCES],
     pub peasant_high: i32,
     pub scholar_high: i32,
     pub caravan_high: i32,
@@ -867,10 +867,8 @@ impl Leader {
                 other_team_terr: 0,
                 min_other_team_terr: 0,
                 filled_gather_slots: [0; RESOURCES],
-                gather_slots: [0; RESOURCES],
                 ally_mask: 0,
                 invaders: Vec::new(),
-                gather_slots_high: [0; RESOURCES],
                 peasant_high: 0,
                 scholar_high: 0,
                 caravan_high: 0,

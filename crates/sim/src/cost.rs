@@ -325,6 +325,14 @@ pub struct Modifiers {
     /// Non-library technology discount, after Science and before the
     /// British taxation term. Its own truncation (`docs/AI.md` §109).
     pub democracy: i32,
+    /// `get_cost`'s **industry arm** (`TypeData::get_cost@00664090:1270`–
+    /// `1276`): `HANGING_GARDENS_INDUSTRY_DISCOUNT` off a food, timber or
+    /// metal gathering-line technology (`0x261..=0x266`, `0x26c..=0x26e`)
+    /// for a leader holding the Hanging Gardens, every resource. Its own
+    /// `(100 − x) × cost / 100`, after [`Modifiers::democracy`] and before
+    /// [`Modifiers::late_discount`] (item 3332, `docs/AI.md` §269). Zero is
+    /// the identity.
+    pub industry: i32,
     /// `get_cost`'s **Greek research arm** (`TypeData::get_cost@00664090`,
     /// `LAB_006667c4`, `:1250`–`1255`): an age or a library epoch priced
     /// for a leader with `has_tribe_bonus(5)` takes `GREEK_RESEARCH_COST`
@@ -652,6 +660,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.democracy != 0 {
         cost = cost.wrapping_mul(100 - m.democracy) / 100;
+    }
+    if m.industry != 0 {
+        cost = (100 - m.industry) * cost / 100;
     }
     cost = cost * (100 - m.late_discount) / 100;
     if m.monarchy != 0 {
@@ -1864,6 +1875,40 @@ mod tests {
         assert_eq!(out[Resource::Food.index()], 120);
         assert_eq!(out[Resource::Wealth.index()], 120);
         assert_eq!(out[Resource::Knowledge.index()], 0);
+    }
+
+    /// **The Hanging Gardens' industry discount** (`get_cost:1270`–`1276`,
+    /// item 3332): `(100 − 66) × p / 100` on every good of an industry
+    /// tech's price — Metal Alloys' 200 timber was 68 on Great Sahara's
+    /// 15778 (run967e's `get_cost`). Here `25t/25f` at this table's factor
+    /// is 250 of each, and 85 with the Gardens.
+    #[test]
+    fn the_hanging_gardens_take_two_thirds_off_an_industry_tech() {
+        let alloys = Price {
+            kind: Kind::Tech,
+            ..Price::free()
+                .with_base(Resource::Food, 25)
+                .with_base(Resource::Timber, 25)
+        };
+        let price = |m: &Modifiers| {
+            charges(
+                &T,
+                &alloys,
+                owned(0),
+                m,
+                &[true; RESOURCES],
+                &[false; RESOURCES],
+                &Redirects::RON,
+            )
+        };
+        let gardens = Modifiers {
+            industry: T.hanging_gardens_industry_discount,
+            ..Modifiers::default()
+        };
+        assert_eq!(T.hanging_gardens_industry_discount, 66);
+        assert_eq!(price(&Modifiers::default())[Resource::Timber.index()], 250);
+        assert_eq!(price(&gardens)[Resource::Timber.index()], 85);
+        assert_eq!(price(&gardens)[Resource::Food.index()], 85);
     }
 
     /// The redirect is a recursive call, so it chains. Oil names Metal and

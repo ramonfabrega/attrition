@@ -9903,6 +9903,26 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Egyptian word** (item 3332, DECISIONS 72, 83): frame
+    // 2974, the Egyptian lobby's first try, widened on run967 over
+    // 2968..3225 with run967b the gap at stride 50 (the Egyptian Farm's
+    // wealth and `reveal_fog`'s `ever_seen`). **Item 3332 moved it 2974 →
+    // 15782**, widened on run967c over 15776..16033
+    // (`run967c_s_word_frame_is_widened_whole`: who=1's Metal Alloys
+    // value on the make list, 54000 against 216000: the Hanging Gardens'
+    // industry discount). **And 15782 → 15982** on the same window
+    // (who=1's building 417 offered where theirs researches Metal Alloys),
+    // **and 15982 → 20031** on it again (the census's `gather_slots`, one
+    // field with the ledger's), widened on **run967g** over 20025..20282
+    // (`run967g_s_word_frame_is_widened_whole`: who=1's `1/162` and
+    // `1/163` in a fight, 3286 keys on the first try).
+    (
+        "EGYPTIAN_WORD",
+        crate::diff::egyptian_word::EGYPTIAN_WORD,
+        Some("run967g_s_word_frame_is_widened_whole"),
+        3332,
+        Some(crate::diff::egyptian_word::WIDENING_EGYPTIAN_FRAME_20031),
+    ),
     // **The battery's Japanese word** (item 3331, DECISIONS 72, 83): frame
     // 576, the Japanese lobby's first try. run960 dumps blocks 0..36 and
     // run960b its setup and closing blocks only, so no dump on disk held
@@ -10316,6 +10336,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Egyptian word** (DECISIONS 72, 83; item 3332): Great
+    // Sahara, the Egyptians at Difficulty 4 — the held-out battery's lowest
+    // open lobby on the measure of `987c4c33`; the game ends itself on
+    // 20380. It joins the `Battery word` line first; the closed rows choose
+    // nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaEgyptianTier4",
+        named: "Great Sahara (Egyptian)",
+        word: crate::diff::egyptian_word::EGYPTIAN_WORD,
+        length: 20_380,
+        endpoint: None,
+        window: Some("egyptian_frame_20031_window"),
+    },
     // **The battery's fifth word** (DECISIONS 72, 83; item 3329): East
     // Indies, the Dutch at Difficulty 4 — the held-out battery's lowest
     // lobby after the Greeks, which does not end itself: the long runs to

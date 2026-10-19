@@ -9800,3 +9800,19 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --ai-tribe 15 --cover cover=0 --profile DIFFICULTY=1   (Great Sahara, Japanese; the word 576's window)
 # Checks: `rngcmp.py` run964 vs run964b -> 0 differing in 37; run960b vs run965 -> 0 in 833. run964b ended itself on 15944.
 # ==== TAKEN 2026-10-19, one take each, 06:13-06:30, pool lanes 2-3 ====
+# ==== item 3332: the Egyptian word's widenings and the battery's replacement lobby (`docs/AI.md` §269; `docs/RUNS.md` run966 .. run967g) ====
+#   run966   --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 1 --profile DIFFICULTY=4   (Great Sahara, Maya; start)
+#   run966b  --map 7 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#            --ai-tribe 1 --allow-early-end --profile DIFFICULTY=4 (run643's four --detail lines)
+#   run967   --map 7 --end-frame 3230 --timeout 3600 --log-window 2968 3225 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 7 --cover cover=0 --profile DIFFICULTY=4   (Great Sahara, Egyptians; the word 2974's window)
+#   run967b  --map 7 --end-frame 2972 --timeout 3600 --log-window 3 2967 --stride 50 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#            --ai-tribe 7 --cover cover=0 --profile DIFFICULTY=4   (the gap, one block in fifty)
+#   run967c  --map 7 --end-frame 16038 --timeout 5400 --log-window 15776 16033 (run967b's --detail, --ai-tribe, --cover, --profile)   (the word 15782's window)
+#   run967d  --end-frame 15782 --log-window 15776 15781 --detail end:MISC,LEADERS=9 --callwin 15776 15781 --tracer-def RON_LEADER_PROBE (not filed)
+#   run967e  --end-frame 15780 --log-window 15777 15779 --detail end:MISC,LEADERS=9 --callwin 15778 15778 --tracer-def RON_LEADER_PROBE (not filed)
+#   run967f  --end-frame 15983 --log-window 15980 15982 --detail end:MISC,LEADERS=9 --callwin 15981 15981 --tracer-def RON_LEADER_PROBE (not filed)
+#   run967g  --map 7 --end-frame 20287 --timeout 5400 --log-window 20025 20282 (run967c's --detail, --ai-tribe, --cover, --profile)   (the word 20031's window)
+# Checks: `rngcmp.py` run966 vs run966b -> 0 differing in 37; run645 vs run967 -> 0 in 3231, vs run967b -> 0 in 2973, vs run967c -> 0 in 16039, vs run967g -> 0 in 20288.
+# run966b ended itself on 13086.
+# ==== TAKEN 2026-10-19, one take each, 07:10-09:49, pool lanes 1-3 ====
