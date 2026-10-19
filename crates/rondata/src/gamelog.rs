@@ -2175,6 +2175,16 @@ pub struct UnitDump {
     /// casts. Read since item 1608: an MLRS's unpack counts to 19 and casts
     /// on its twentieth frame (`docs/AI.md` §170).
     pub spell_time: Option<i64>,
+    /// `UnitData::mana_burn` — the craft spent and not yet recovered, which
+    /// `think_hero` reads "with the mana". Read since item 3306 (Loop 3310):
+    /// it stood unread while The Despot's parted on every block of run943.
+    pub mana_burn: Option<i64>,
+    /// `UnitData::rare` (`+0x54`) — the good `calc_gather` last found, `-1`
+    /// when it looked and found none (item 3306).
+    pub rare: Option<i64>,
+    /// `UnitData::good_obj` (`+0x94`) — the spiral index `calc_gather` found
+    /// that good at, `-1` from `Unit::init` (item 3306).
+    pub good_obj: Option<i64>,
     /// `ObjectData::uid` — the **identity** behind the per-player `o`,
     /// written on the `OBJECT` level beside the cell chain. `o` is a slot
     /// and is handed back out: a unit that dies frees its number, and the
@@ -3380,6 +3390,9 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         safe: b.int("safe"),
         start_dist: b.int("start_dist"),
         spell_time: b.int("spell_time"),
+        mana_burn: b.int("mana_burn"),
+        rare: b.int("rare"),
+        good_obj: b.int("good_obj"),
         uid: obj.and_then(|o| o.int("uid")),
         down: obj.and_then(|o| o.int("down")),
         down_who: obj.and_then(|o| o.int("down_who")),

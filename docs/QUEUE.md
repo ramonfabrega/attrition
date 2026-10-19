@@ -12,19 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-fourth pass (steer, Fable): the forty-fourth tranche measured — 20 landings from `6db69429`
-in 7 h 25 on four lanes** (DECISIONS 82), 108.92 USD in all, 4.64 USD and 60.1 minutes waiting a landing (3.70 / 52.0);
-17 booking gates green; no kill rule, no merge backed out. Built, red first: the lane's forgiveness of the journal-quote
-guard (3277), `mutate.py`'s timeout, no-verdict and signal restore (3276, 3300), `--watch VA+OFF:LEN` (3280),
-`tools/reap_agents.py` (3290), `coverage::a_unit_key_the_simulation_carries_is_read_or_owed` (3310). **The
-forty-fifth tranche's base is `be35dd2d`**; the last whole gate is the pass's, on its second commit, named in its third.*
+*2026-10-19, **the forty-fifth tranche (commander, Opus): 1 of 20 landed from `43e161a7`**, three lanes (DECISIONS
+83): 3306 closed the Iroquois word at its game's end. The last whole gate is the pass's, on `75ffba6d`.*
 
-- **Words**: every pair closed. Battery `GreatLakesIroquoisTier3` 10695 → 12156 of 12658 (3255, 3279, 3287, 3297),
-  its widening owed as 3306 with the readers for `mana_burn`, `rare`, `good_obj` (3310); `EastIndiesGermanTier3`
-  closed at 13519. Chapters 102–106 closed (3263–3294), 94 → 99. Census 1512 → 1555, **port 347 → 393**. Median 4770.
-- **Lanes: none live; three** (DECISIONS 83): 3306 Opus (run 954, AI §262, KH), 3314 Opus (runs 955, 956, AI §263,
-  KI), 3304 Sonnet (KG); 3302, 3303 held in the parked file. Next 3315, run 957. Pools: GOLDEN §144–148, AI §264–268,
-  park JK, KJ–KN. **Ramon's**: 3188, 3237, 3118, 1570, 3143, 3313.
+- **Words**: every pair closed. Battery `GreatLakesIroquoisTier3` **closed at 12658** (3306, run954; its closing state
+  compared whole on run897b's 12659); `EastIndiesGermanTier3` closed at 13519. The Romans' 576 is 3314's (on its
+  branch 576 → 18026); the Spanish 576 is 3318's, the battery's lowest by entry 72. Census 1555, port 393. Median 4770.
+- **Lanes: three live**: 3314 Opus (att-3314, runs 955, 956, AI §263, KI), 3318 Opus (att-3318, runs 957, 958, AI §264,
+  KJ), 3304 Sonnet (att-3304, KG); 3302, 3303 held. Landings: 3306. Next 3320, run 959. Pools: GOLDEN §144–148, AI
+  §265–268, park JK, KK–KN. **Ramon's**: 3188, 3237, 3118, 1570, 3143, 3313.
 - **Fable backlog: 11 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3240, 3311, 3312, 3313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -34,31 +30,23 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: GreatLakesIroquoisTier3 w12156 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
+Battery word: GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1555 of 3611 · port 393 · layout 1162
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-fifth tranche from docs/QUEUE.md's handoff — commander, Opus: read `docs/LOOP.md` first;
-spawn 3306, 3314 (Opus 5.5 medium, residue) and 3304 (Sonnet 5.5 medium, sweep) off the pass's commit; twenty landings.**
+re-arm `tools/lanewait.py` on the live lanes, merge each landing at its gate's exit, refill by `tools/brief.py` (a battery
+word on `--model 'claude-opus-5-5[1m]' --effort medium`, the sweep on `'claude-sonnet-5-5[1m]' --effort medium`); twenty landings.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's** (the forty-fourth steer, DECISIONS 83):
-3306 and 3314 the two battery words' (Opus), 3304 the sweep's (Sonnet), three lanes. **A battery word's lane lands
-wide**: every fix its widening exposes between the word and the next parting, verified as ever, in one gate. The
-battery word is the AI's — lower map first — Great Lakes (Iroquois) at 12156, East Indies (Romans) at 576. Take the
-first unstarted item unless a better order is clear, and say why. The backlog is `docs/PARKED.md`.
-
-3306. **The battery word, 12156 of 12658 (`GreatLakesIroquoisTier3`)** (parked 3305; 3297 built Ambush's hold on the
-    hero's craft and The Despot's cut on a razed building, 11585 → 12156, run952's widening 786 → 60 keys, AI §261):
-    ours 29 draws against theirs 35 at index 1 — ours `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a <
-    Unit::fight+0x169`. run952's last block is 11835, so no dump holds the word's frame: **its widening is owed
-    first** — a Great Lakes window capture around 12156 at run952's detail (run 954; the game ends on 12658), the
-    whole record either side, both directions; run163 is another game. A theirs-only figure roll in `Unit::fight` is
-    a hypothesis. **Second clause** (Loop 3310's guard): readers for `mana_burn`, `rare` and `good_obj` beside
-    `diff::unit`'s compare, each key leaving `coverage.rs`'s unread row and `UNREAD_UNIT_FIELDS_OWED`. AI §262.
+3314 and 3318 the battery words' (Opus), 3304 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its
+widening exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed
+until 3314's pin lands (`AI_WORDS` holds two closed games); open: East Indies (Romans) and Great Sahara (Spanish), both
+576. Take the first unstarted item unless a better order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3314. **The battery's lowest game, `EastIndiesRomanTier2` at 576 of 18620** (DECISIONS 83; the held-out battery's
     table in `diff::battery`: the Romans on East Indies and the Spanish on Great Sahara both part on 576, one
@@ -68,6 +56,14 @@ first unstarted item unless a better order is clear, and say why. The backlog is
     frame, a window capture at detail around 576 only for what they cannot answer (run 956), every dumped record
     either side, both directions. Lands wide: every fix to the next parting in one gate; the Spanish 576 is never
     debugged against — it says whether the fix generalised. AI §263, park KI.
+
+3318. **The battery's next lowest game, `GreatSaharaSpanishTier3` at 576 of 22700** (entry 72: the closed word's
+    successor is the battery's lowest lobby; 3306 closed the Iroquois at 12658, and the Romans' 576 is 3314's, whose
+    fort-cost fix left the Spanish 576 unmoved — two mechanisms): promoted by 2904's, 3107's and 3314's recipe —
+    `diff::spanish_word` and its `AI_WORDS` pin, the lobby leaving `BATTERY`, a replacement lobby minted (a nation no
+    dump holds, a tier the map's battery lacks; run 957) so the held-out set stays eight — **its widening first**: grep
+    the lobby's start and long dumps for 576, a Great Sahara window capture at detail only for what they cannot answer (run 958),
+    every dumped record either side, both directions. Lands wide. AI §264, park KJ.
 
 3304. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 393; 3295 built
     all six of its batch, with sim fixes the sweeps forced in `city.rs`, `orders.rs`, `build.rs` and the goody wrap, no
