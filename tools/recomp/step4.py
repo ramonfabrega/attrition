@@ -6,7 +6,7 @@
 """step4.py — how far a frame runs on the snapshot, and whether what it ran lifts.
 
     uv run tools/recomp/step4.py <exe> <frame-snapshot.bin> [--max-insns N] [--out DIR]
-        [--entry HEX --this HEX --args A,B] [--dump VA+N] [--watch VA+N] [--find V]
+        [--entry HEX --this HEX --args A,B] [--dump VA+N] [--watch VA+N|VA+OFF:LEN] [--find V]
         [--poke ADDR=HEXBYTES] [--hook ADDR[:CAP]]          (tools/recomp/flags.py)
 
 The charter's step 4, measured with unicorn as the explorer: the lab's

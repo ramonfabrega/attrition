@@ -6,8 +6,11 @@ the thirtieth pass), so the flags are testable without unicorn.
     --entry HEX          the function entered (default `Game::do_frame`)
     --this HEX           `ecx` at entry (default the packet's `game`)
     --args A,B,…         stack arguments, pushed first-nearest
-    --dump VA+N          print a range before and after
-    --watch VA+N         print who writes a range
+    --dump VA+N          print a range of N bytes before and after
+    --watch VA+N         print who writes a range of N bytes; a field is
+                         VA+OFF:LEN (`unit+0x58` watched 0x58 bytes from
+                         the unit and missed the field, 3269; a bare
+                         `+N` past 0x20 is refused, Loop 3280)
     --find VALUE         name the instruction that first produces a value
     --poke ADDR=HEXBYTES write bytes into the packet before the entry
                          (1845's `game->frame` poke)
@@ -49,10 +52,30 @@ def parse(argv):
                 addr, _, cap = v.partition(":")
                 f.hook.append((int(addr, 16), int(cap) if cap else 20))
             else:
-                va, n = v.split("+")
-                (f.dump if flag == "--dump" else f.watch).append((int(va, 16), int(n, 16)))
+                (f.dump if flag == "--dump" else f.watch).append(parse_range(flag, v))
             del args[k:k + 2]
     return f, args
+
+
+# A bare `VA+N` past this many bytes reads as an offset, not a length.
+BARE_RANGE_MAX = 0x20
+
+
+def parse_range(flag, v):
+    """`VA+N` (N bytes from VA) or `VA+OFF:LEN` (LEN bytes at VA+OFF);
+    `(start, length)`. A bare `+N` past `BARE_RANGE_MAX` is refused: the
+    first watch of `unit+0x58` covered `+0..+0x57` and missed the field
+    (3269's line, Loop 3280)."""
+    va, _, n = v.partition("+")
+    if ":" in n:
+        off, length = n.split(":")
+        return int(va, 16) + int(off, 16), int(length, 16)
+    length = int(n, 16)
+    if length > BARE_RANGE_MAX:
+        raise SystemExit(f"{flag} {v}: `+{n}` is a length of {length:#x} bytes from {va}; a field is "
+                         f"VA+OFF:LEN (`{va}+{n}:4`), a range past {BARE_RANGE_MAX:#x} bytes VA+0:LEN "
+                         "(Loop 3280)")
+    return int(va, 16), length
 
 
 def hook_line(address, function, offset, count, regs, stack):

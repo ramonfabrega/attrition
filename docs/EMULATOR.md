@@ -217,7 +217,7 @@ of them.
 **A function on the packet.** `tools/recomp/step4.py` runs one function
 on the packet under unicorn — the capturing thread's TEB as `fs:`, the
 clock, heap and thread imports stubbed — and reports what it called,
-`--watch` who writes a range, `--find` the instruction that first
+`--watch VA+N` who writes N bytes, `--watch VA+OFF:LEN` who writes a field (a bare `+N` past 0x20 is refused, Loop 3280), `--find` the instruction that first
 produces a value, `--poke ADDR=HEXBYTES` bytes written into the packet
 before the entry (1845's `game->frame`) and `--hook ADDR[:CAP]` the
 registers and the stack top each time an address is reached (1738's

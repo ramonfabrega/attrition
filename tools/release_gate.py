@@ -158,6 +158,7 @@ def summarize_requests(directory, *, release_completed):
 # anything else, it stops and names it. The commander's gate takes no flag
 # and forgives nothing. `test_release_gate.py` pins that each name is a
 # test that exists.
+JOURNAL_QUOTE_GUARD = 'a_journal_quotes_its_lane_verdict_and_gate_minutes'
 COMMANDERS_LINES = (
     'the_handoff_s_scoreboard_is_the_floors',
     'the_handoff_s_golden_line_is_the_pinned_word',
@@ -178,6 +179,13 @@ COMMANDERS_LINES = (
     # commander's at booking, with the `Census:` line; a lane reports the
     # count it measured.
     'the_census_s_simulation_share_is_pinned',
+    # The journal's gate quote (Loop 3277, the forty-fourth pass): the
+    # guard asks the lane's journal to quote `Lane verdict:` and `Gate
+    # minutes:`, lines that exist only once this gate has run, so fourteen
+    # of twenty first lane gates were red on it alone. A line the worker
+    # cannot write before the gate is forgiven on a lane and held at the
+    # booking gate; the verdict says what to add.
+    JOURNAL_QUOTE_GUARD,
 )
 # **The lane gate's suite** (1567): the timed tests over this many seconds
 # alone are the booking gate's. The file is the thirty-fifth pass's
@@ -266,8 +274,11 @@ def lane_verdict(failed_tests):
     own = [name for name in failed_tests
            if name.rsplit('::', 1)[-1] not in COMMANDERS_LINES]
     if failed_tests and not own:
+        remedy = ('; quote this gate\'s `Lane verdict:` and `Gate minutes:` lines in your journal '
+                  'before your done line — the booking gate holds the quote (3277)'
+                  if any(name.endswith(JOURNAL_QUOTE_GUARD) for name in failed_tests) else '')
         return True, (f"Lane verdict: red only on the commander's lines "
-                      f"({len(failed_tests)}): " + ', '.join(failed_tests))
+                      f"({len(failed_tests)}): " + ', '.join(failed_tests) + remedy)
     return False, (f"Lane verdict: red on the worker's own ({len(own)}): "
                    + (', '.join(own) or 'no failed test named; the suite did not finish'))
 

@@ -25,9 +25,21 @@ files are `touch`ed so cargo rebuilds, and the last line is one of
 
     mutation: held — <command> exited N       (the walk caught it)
     mutation: failed nothing — <command> exited 0
+    mutation: hung — killed after N s          (counted as caught; Loop 3276)
+    mutation: no verdict — the command did not compile   (Loop 3300)
+
+A mutant past `--timeout` (a batch's default: five times the un-mutated
+run, at least a minute) is killed with its process group and counted as
+caught — a mutant of `find_ordered_collision` that never terminated held
+one `cargo test` for 100 minutes (Loop 3276). A run whose output says the
+command did not compile (`error: could not compile`, `error[E…]`) is no
+verdict and counted apart: `cargo test` exits 101 for a type error as it
+does for a red walk, and a lane read one as a catch (Loop 3300). A signal
+under the run (`TaskStop`, SIGTERM, SIGHUP, ^C) restores the tree first.
 """
 import argparse
 import os
+import signal
 import subprocess
 import sys
 import time
@@ -36,6 +48,43 @@ from pathlib import Path
 
 class Refused(Exception):
     pass
+
+
+class Hung(Exception):
+    """The command ran past the timeout; killed, the tree restored."""
+
+
+class NoVerdict(Exception):
+    """The command did not compile, so its exit scores nothing."""
+
+
+COMPILE_FAILED = ('error: could not compile', 'error[E')
+
+
+def timeout_for(unmutated_seconds):
+    """A batch's per-mutant timeout: five times the un-mutated run, at
+    least a minute (Loop 3276)."""
+    return max(60.0, 5.0 * unmutated_seconds)
+
+
+def run_command(command, root, timeout=None, out=sys.stdout):
+    """The command in its own process group, its output copied to `out`
+    when it ends; `(code, output)`, or `Hung` after `timeout` seconds."""
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
+    proc = subprocess.Popen(command, cwd=root, env=env, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True, start_new_session=True)
+    try:
+        output, _ = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        proc.communicate()
+        raise Hung(f'killed after {timeout:g} s')
+    out.write(output)
+    out.flush()
+    return proc.returncode, output
 
 
 def git(root, *args, check=True):
@@ -84,8 +133,10 @@ def restore(root, paths):
         os.utime(Path(root) / p, (now, now))
 
 
-def run(root, mutate, command, out=sys.stdout):
-    """`mutate(root) -> [paths]`; returns the command's exit, or raises Refused."""
+def run(root, mutate, command, out=sys.stdout, timeout=None):
+    """`mutate(root) -> [paths]`; returns the command's exit, or raises
+    Refused, Hung (past `timeout`) or NoVerdict (it did not compile). The
+    tree is restored on every path out, a signal's included."""
     before = dirty(root)
     if before:
         raise Refused('the tree is dirty; commit first: ' + ', '.join(before))
@@ -97,14 +148,14 @@ def run(root, mutate, command, out=sys.stdout):
     print(stat, file=out)
     print(f'mutation applied to {", ".join(paths)}; running: {" ".join(command)}', file=out, flush=True)
     applied = git(root, 'diff')
+    output = ''
     try:
         # No bytecode is written under the run: a `.pyc` records its
         # source's mtime to the second and its size, and a mutation of
         # the same length restored inside that second leaves one that
         # still matches — the next run of the restored source is the
         # mutant's (the twenty-fourth pass, on `tools/lanewait.py`).
-        env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
-        code = subprocess.run(command, cwd=root, env=env).returncode
+        code, output = run_command(command, root, timeout=timeout, out=out)
     finally:
         # The whole diff, not the paths: an edit to the mutated file itself
         # under the run would vanish in the restore.
@@ -115,6 +166,9 @@ def run(root, mutate, command, out=sys.stdout):
     if changed or after:
         raise Refused('the tree changed under the run, so there is no verdict: '
                       + ', '.join(touched + after or paths))
+    if code and any(mark in output for mark in COMPILE_FAILED):
+        raise NoVerdict(f'the command did not compile ({command[0]} exited {code}); a mutant that '
+                        'does not type-check scores nothing (Loop 3300)')
     verdict = f'held — {command[0]} exited {code}' if code else f'failed nothing — {command[0]} exited 0'
     print(f'mutation: {verdict}', file=out)
     return code
@@ -142,10 +196,12 @@ def read_batch(path, sep):
     return out
 
 
-def batch(root, path, sep, command, out=sys.stdout):
+def batch(root, path, sep, command, out=sys.stdout, timeout=None):
     """Every break of the file in turn, each on the restored tree, with
     one verdict a line and a count at the end; 0 only when every break
-    held (Loop 2965)."""
+    held (Loop 2965) — a hung mutant counts as held (Loop 3276), one that
+    did not compile as no verdict (Loop 3300). `timeout` is seconds a
+    mutant; None takes `timeout_for` the un-mutated run."""
     breaks = read_batch(path, sep)
     # The un-mutated command once, first (Loop 3037): a port that does not
     # compile exits 101 as a red walk does, and fifteen "held" breaks of
@@ -155,22 +211,37 @@ def batch(root, path, sep, command, out=sys.stdout):
     if before:
         raise Refused('the tree is dirty; commit first: ' + ', '.join(before))
     print(f'batch: the un-mutated tree first; running: {" ".join(command)}', file=out, flush=True)
-    code = subprocess.run(command, cwd=root, env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1')).returncode
+    began = time.monotonic()
+    code, _ = run_command(command, root, timeout=timeout, out=out)
+    took = time.monotonic() - began
     if code:
         raise Refused(f'the command exits {code} on the un-mutated tree, so no break can be held by it; '
                       'make it pass first (Loop 3037)')
-    held = failed = refused = 0
+    if timeout is None:
+        timeout = timeout_for(took)
+    print(f'batch: the un-mutated run took {took:.1f} s; a mutant is killed after {timeout:g} s (Loop 3276)',
+          file=out, flush=True)
+    held = failed = refused = hung = noverdict = 0
     for k, (file, old, new, nth) in enumerate(breaks, 1):
         try:
-            code = run(root, lambda r: apply_edit(r, file, old, new, nth), command, out)
+            code = run(root, lambda r: apply_edit(r, file, old, new, nth), command, out, timeout=timeout)
             verdict = 'held' if code else 'failed nothing'
             held += bool(code)
             failed += not code
+        except Hung as e:
+            verdict = f'hung — {e}; counted as held'
+            held += 1
+            hung += 1
+        except NoVerdict as e:
+            verdict = f'no verdict — {e}'
+            noverdict += 1
         except Refused as e:
             verdict = f'refused — {e}'
             refused += 1
         print(f'batch {k}/{len(breaks)} {file} {old!r}: {verdict}', file=out, flush=True)
-    print(f'batch: {len(breaks)} break(s) — {held} held, {failed} failed nothing, {refused} refused', file=out)
+    print(f'batch: {len(breaks)} break(s) — {held} held' + (f' ({hung} hung)' if hung else '')
+          + f', {failed} failed nothing, {refused} refused' + (f', {noverdict} no verdict' if noverdict else ''),
+          file=out)
     return 0 if held == len(breaks) else 1
 
 
@@ -186,6 +257,9 @@ def main(argv=None):
                         'exit 0 only when every break held (Loop 2965)')
     ap.add_argument('--sep', default='\t', help="--batch: the field separator (default: a tab)")
     ap.add_argument('--nth', type=int, metavar='N', help='with --edit: which occurrence of OLD, from one (Loop 2784)')
+    ap.add_argument('--timeout', type=float, metavar='SECONDS',
+                    help='kill a mutant after this long and count it caught (Loop 3276); '
+                         "a batch's default is five times the un-mutated run, at least 60 s")
     ap.add_argument('command', nargs='+', help='the test command, after `--`')
     a = ap.parse_args(argv)
     if len(a.command) == 1 and ' ' in a.command[0].strip():
@@ -195,9 +269,25 @@ def main(argv=None):
               'pass it as words after `--`, or `${=T}` under zsh', file=sys.stderr)
         return 2
     root = str(Path(a.root).resolve())
+
+    # A signal under the run (`TaskStop`, SIGTERM, SIGHUP, ^C) becomes an
+    # exception, so `run`'s restore runs before the exit (Loop 3300: a
+    # stopped `mutate.py` left the mutation in the tree).
+    def interrupted(signum, _frame):
+        raise KeyboardInterrupt(signal.Signals(signum).name)
+    for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
+        signal.signal(sig, interrupted)
+    try:
+        return _main(a, root)
+    except KeyboardInterrupt as e:
+        print(f'mutate.py: {e}; the mutation is restored and there is no verdict', file=sys.stderr)
+        return 130
+
+
+def _main(a, root):
     if a.batch:
         try:
-            return batch(root, a.batch, a.sep, a.command)
+            return batch(root, a.batch, a.sep, a.command, timeout=a.timeout)
         except Refused as e:
             print(f'mutate.py refuses: {e}', file=sys.stderr)
             return 2
@@ -207,7 +297,13 @@ def main(argv=None):
     else:
         mutate = lambda r: apply_patch(r, a.patch)  # noqa: E731
     try:
-        return run(root, mutate, a.command)
+        return run(root, mutate, a.command, timeout=a.timeout)
+    except Hung as e:
+        print(f'mutation: hung — {e}', file=sys.stderr)
+        return 124
+    except NoVerdict as e:
+        print(f'mutation: no verdict — {e}', file=sys.stderr)
+        return 2
     except Refused as e:
         print(f'mutate.py refuses: {e}', file=sys.stderr)
         return 2

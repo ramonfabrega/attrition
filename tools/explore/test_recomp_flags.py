@@ -24,6 +24,19 @@ class Flags(unittest.TestCase):
         self.assertEqual(f.find, {0x1234})
         self.assertEqual(f.args, [1, 16])
 
+    def test_a_watch_of_a_field_is_va_plus_off_colon_len_and_a_long_bare_count_is_refused(self):
+        # Loop 3280 (3269's line, the forty-fourth pass): `--watch VA+N`
+        # is N bytes from VA, and the first watch of `unit+0x58` covered
+        # `+0..+0x57` and missed the field, which cost a run. A field is
+        # `VA+OFF:LEN`; a bare `+N` past 0x20 reads as an offset and is
+        # refused with both spellings.
+        f, _ = flags.parse(['e', 's', '--watch', '159977a4+58:4', '--dump', '0xc06188+0x10:8'])
+        self.assertEqual(f.watch, [(0x159977a4 + 0x58, 4)])
+        self.assertEqual(f.dump, [(0xc06188 + 0x10, 8)])
+        with self.assertRaises(SystemExit) as refused:
+            flags.parse(['e', 's', '--watch', '159977a4+58'])
+        self.assertIn('VA+OFF:LEN', str(refused.exception))
+
     def test_a_poke_is_an_address_and_bytes(self):
         f, _ = flags.parse(['e', 's', '--poke', '00c06200=2c010000', '--poke', '0x10=ff'])
         self.assertEqual(f.poke, [(0xc06200, bytes.fromhex('2c010000')), (0x10, b'\xff')])

@@ -34,8 +34,8 @@ nothing from the install is committed.
 - `step4.py` — the explorer: a function on the packet under unicorn with
   `fs:` on the capturing thread's TEB and a stub table that answers the
   clock, heap and thread imports; reports what stopped it, what ran, the
-  exact functions it called (and whether they lift), `--watch` for who
-  writes a range, `--find` for the instruction that first produces a
+  exact functions it called (and whether they lift), `--watch VA+N` for who
+  writes a range and `--watch VA+OFF:LEN` for who writes a field (Loop 3280), `--find` for the instruction that first produces a
   value. Step 4 of the charter, and how item 327 was read.
 - `get_position.py` — `GraphicPieces::get_position@0090b750` on a packet
   (packed SSE, so it does not lift): a piece's `AttachPos` entries and

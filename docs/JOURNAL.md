@@ -21309,3 +21309,23 @@ filter, the regen's kept items (3013's fourth reach, reproduced on
 readings, four folded into the ledger, one moved to the AI word's
 booking, four unreached, one filed; 22 → 10. **DECISIONS 81.**
 `docs/audit/2026-10-18-fable-pass-43.md`.
+
+**2026-10-18 — the forty-fourth Fable pass: four lanes cost more and
+waited longer, the lane gate's first red was the guard that asked for
+its own quote, a hung mutant and a compile failure get verdicts, a
+lane's cleanup is by ownership, and an unread field the sim carries is
+owed by name.** Twenty landings on four lanes in 7 h 25: 108.92 USD in
+all against 92.89, 4.64 USD and 60.1 minutes waiting a landing against
+3.70 / 52.0 — the AI word's five Opus landings at 12.51 each, three of
+them cleared past 300 k, and the sweep lanes' sequential fan-outs. The
+Iroquois word 10695 → 12156 of 12,658 in four landings; chapters one
+hundred and two to one hundred and six closed, 94 → 99; the census
+1512 → 1555, port 347 → 393. Seventeen booking gates, every one green.
+Fourteen first lane gates were red on the journal-quote guard alone,
+the line a worker cannot write before the gate: it is forgiven on a
+lane now and held at the booking gate. Built, red first: that
+forgiveness, `mutate.py`'s timeout, no-verdict and signal restore,
+`--watch VA+OFF:LEN`, `tools/reap_agents.py`, the unread-Unit-field
+guard (red on `mana_burn`, `rare`, `good_obj`, owed to 3306); one closed
+on a measurement, one unreached, the ledger split, three filed; 16 → 11.
+**DECISIONS 82.** `docs/audit/2026-10-18-fable-pass-44.md`.

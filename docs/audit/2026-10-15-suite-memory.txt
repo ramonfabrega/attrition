@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-10-18, tools/suite_timings.py (tree 484a695a).
+# Every rondata release test's peak resident set alone, 2026-10-18, tools/suite_timings.py (tree 8595e127).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 866	diff::golden::run875_start_seen3_plane_is_compared_cell_for_cell
 764	diff::battery::battery_floors_hold
@@ -14,6 +14,8 @@
 478	diff::german_word::german_word_first_parting
 471	diff::golden::chapter_seventy_nine_holds_to_the_golden_word
 471	diff::golden::chapter_seventy_nine_s_word_frame_is_widened_whole
+442	diff::iroquois_word::run946_s_road_elements_at_10842_are_ours
+441	diff::iroquois_word::the_despot_s_ambush_holds_its_craft
 440	diff::golden::chapter_ninety_nine_s_window_is_widened_whole
 437	diff::golden::chapter_ninety_eight_s_window_is_widened_whole
 437	diff::iroquois_word::iroquois_word_first_parting
@@ -25,11 +27,16 @@
 424	diff::golden::chapter_ninety_one_holds_to_the_golden_word
 424	diff::golden::chapter_ninety_three_holds_to_the_golden_word
 417	diff::golden::chapter_one_hundred_s_window_is_widened_whole
+414	diff::golden::chapter_one_hundred_and_five_s_window_is_widened_whole
+413	diff::golden::chapter_one_hundred_and_two_s_window_is_widened_whole
 413	diff::golden::chapter_ninety_s_window_is_widened_whole
 412	diff::golden::chapter_ninety_five_s_window_is_widened_whole
+410	diff::golden::chapter_one_hundred_and_four_s_window_is_widened_whole
 409	diff::golden::chapter_ninety_two_s_window_is_widened_whole
 409	diff::golden::chapter_eighty_seven_s_window_is_widened_whole
+409	diff::golden::chapter_one_hundred_and_three_s_window_is_widened_whole
 408	diff::golden::chapter_one_hundred_and_one_s_window_is_widened_whole
+408	diff::golden::chapter_one_hundred_and_six_s_window_is_widened_whole
 407	diff::golden::chapter_ninety_five_holds_to_the_golden_word
 407	diff::golden::chapter_eighty_eight_s_window_is_widened_whole
 406	diff::golden::chapter_eighty_nine_s_window_is_widened_whole
@@ -38,12 +45,17 @@
 404	diff::golden::chapter_ninety_four_s_window_is_widened_whole
 404	diff::golden::chapter_ninety_eight_holds_to_the_golden_word
 404	diff::golden::chapter_ninety_seven_s_window_is_widened_whole
+404	diff::golden::chapter_one_hundred_and_two_holds_to_the_golden_word
+404	diff::golden::chapter_one_hundred_and_six_holds_to_the_golden_word
+404	diff::golden::chapter_one_hundred_and_five_holds_to_the_golden_word
 403	diff::golden::chapter_one_hundred_holds_to_the_golden_word
 403	diff::golden::chapter_eighty_five_s_window_is_widened_whole
 403	diff::golden::chapter_eighty_five_holds_to_the_golden_word
 403	diff::golden::chapter_eighty_six_s_window_is_widened_whole
 403	diff::golden::chapter_eighty_eight_holds_to_the_golden_word
 403	diff::golden::chapter_ninety_four_holds_to_the_golden_word
+403	diff::golden::chapter_one_hundred_and_four_holds_to_the_golden_word
+402	diff::golden::chapter_one_hundred_and_three_holds_to_the_golden_word
 402	diff::golden::chapter_ninety_seven_holds_to_the_golden_word
 402	diff::golden::chapter_eighty_seven_holds_to_the_golden_word
 402	diff::golden::chapter_ninety_holds_to_the_golden_word
@@ -59,7 +71,10 @@
 369	diff::german_word::run893c_s_word_frame_is_widened_whole
 366	diff::german_word::run893_s_site_sweep_is_widened_whole
 364	diff::german_word::run886_s_word_frame_is_widened_whole
+337	diff::iroquois_word::run952b_s_gap_is_widened_whole
 333	diff::iroquois_word::run940_s_word_frame_is_widened_whole
+330	diff::iroquois_word::run952_s_word_frame_is_widened_whole
+329	diff::iroquois_word::run943_s_word_frame_is_widened_whole
 328	diff::iroquois_word::run934_s_word_frame_is_widened_whole
 325	diff::iroquois_word::run937_s_word_frame_is_widened_whole
 324	diff::iroquois_word::run932_s_word_frame_is_widened_whole
@@ -103,6 +118,7 @@
 4	capture::owned_codec::reuse_tests::changed_reordered_invalid_and_bounded_maps_match_original_decoder
 4	diff::oracle::entry_rejects_corruption_staleness_and_wrong_frame_identity
 4	capture::owned_codec::reuse_tests::stable_nested_maps_reuse_keys_and_match_fresh_decodes
+4	diff::coverage::a_unit_key_the_simulation_carries_is_read_or_owed
 3	golden::tests::an_issuer_line_names_what_it_reached_and_an_add_where_it_landed
 3	diff::floors::tests::the_handoff_s_battery_word_is_the_pinned_word
 3	capture::indexed::observations::persistent::tests::oversized_chunks_are_rejected_before_allocation_and_flush_failure_propagates

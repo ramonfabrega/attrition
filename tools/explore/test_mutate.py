@@ -140,6 +140,65 @@ class Mutate(unittest.TestCase):
         self.assertIn('held', out.getvalue())
         self.assertEqual(mutate.dirty(d), [])
 
+    def test_a_mutant_that_never_terminates_is_hung_and_counted_held(self):
+        # Loop 3276 (att-3261's `STALLED` exit, the forty-fourth pass): a
+        # mutant of `find_ordered_collision` that never terminated held one
+        # `cargo test` at 100 % CPU for 100 minutes, and the lane sat on its
+        # batch with nothing to wake it. A mutant past the timeout is
+        # killed, printed `hung` and counted as caught.
+        sleeper = [sys.executable, '-c',
+                   'import sys,time; s=open("src.rs").read(); time.sleep(30) if "let x = 2;" in s else sys.exit(0)']
+        d = repo()
+        batch = Path(d) / 'breaks.tsv'
+        batch.write_text('src.rs\tlet x = 1;\tlet x = 2;\n')
+        code = mutate.batch(d, str(batch), '\t', sleeper, out=self.out, timeout=1.0)
+        self.assertEqual(code, 0)
+        self.assertIn('batch 1/1 src.rs \'let x = 1;\': hung', self.out.getvalue())
+        self.assertIn('1 held (1 hung)', self.out.getvalue())
+        self.assertIn('let x = 1;', (Path(d) / 'src.rs').read_text())
+        self.assertEqual(mutate.dirty(d), [])
+
+    def test_the_batch_s_default_timeout_is_a_multiple_of_the_unmutated_run(self):
+        self.assertEqual(mutate.timeout_for(2.0), 60.0)
+        self.assertEqual(mutate.timeout_for(30.0), 150.0)
+
+    def test_a_mutant_the_command_could_not_compile_has_no_verdict(self):
+        # Loop 3300 (3287's line): an empty-array pin does not type-check,
+        # `cargo test` exits 101 as a red walk does, and the lane read the
+        # compile error as a catch. A run whose output says the command did
+        # not compile is `no verdict`, counted apart, and the batch is red.
+        compiler = [sys.executable, '-c',
+                    'import sys; s=open("src.rs").read()\n'
+                    'if "let x = 2;" in s:\n'
+                    '    sys.stderr.write("error[E0308]: mismatched types\\nerror: could not compile `sim`\\n"); sys.exit(101)\n'
+                    'sys.exit(0)']
+        d = repo()
+        batch = Path(d) / 'breaks.tsv'
+        batch.write_text('src.rs\tlet x = 1;\tlet x = 2;\n')
+        code = mutate.batch(d, str(batch), '\t', compiler, out=self.out)
+        self.assertEqual(code, 1)
+        self.assertIn("batch 1/1 src.rs 'let x = 1;': no verdict", self.out.getvalue())
+        self.assertIn('0 held, 0 failed nothing, 0 refused, 1 no verdict', self.out.getvalue())
+
+    def test_a_signal_under_the_run_restores_the_tree(self):
+        # Loop 3300's second half: a `TaskStop` on a running `mutate.py`
+        # left the mutation in the tree. SIGTERM restores and exits.
+        import signal, time
+        d = repo()
+        proc = subprocess.Popen([sys.executable, str(ROOT / 'tools/mutate.py'), '--root', d,
+                                 '--edit', 'src.rs', 'let x = 1;', 'let x = 2;', '--',
+                                 sys.executable, '-c', 'import time; time.sleep(30)'],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        for _ in range(100):
+            if 'let x = 2;' in (Path(d) / 'src.rs').read_text():
+                break
+            time.sleep(0.05)
+        proc.send_signal(signal.SIGTERM)
+        proc.wait(timeout=10)
+        self.assertIn('let x = 1;', (Path(d) / 'src.rs').read_text())
+        self.assertEqual(mutate.dirty(d), [])
+        self.assertIn('restored', proc.stderr.read())
+
     def test_a_dirty_tree_is_refused_before_anything_is_written(self):
         (Path(self.d) / 'src.rs').write_text('fn f() {}\n')
         with self.assertRaises(mutate.Refused) as cm:

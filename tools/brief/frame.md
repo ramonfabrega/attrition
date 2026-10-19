@@ -47,24 +47,23 @@ Before any reading, in order:
    distance is `max_range`'s terms in `tuning.rs`** (2847).
 3. **Every instance of the parting event on disk** (1058), **and each
    value the booking names, grepped in the dump** before any instrument
-   (737); **two destinations: both sides' `RON_DEBUG_UNIT` and
-   the firsts of the unit the draws name** (1622);
+   (737); **two destinations: both sides' `RON_DEBUG_UNIT` and the named
+   unit's firsts** (1622);
    **a birth no queue holds is `births.py`'s** (1674);
    **a birth on the word's frame: `RON_DEBUG_BUILDS` over
    `<word−1>–<word>` names the queue that emptied** (2319); **the make
    list's head: `RON_DEBUG_MAKE=<frame>`** (2955); **a value
    the dump prints and no reading produces: grep the export** (2577);
-   **one the original computes and ours does not: a packet,
-   `step4-entered.txt` first** (2527).
+   **one ours does not compute: a packet, `step4-entered.txt`
+   first** (2527).
 4. **The first parting's field list, not its unit** (758), both
    directions, every unit on the block; **walk the object back to its
    first parted field** before a block is called quiet (1046); **a first
    row is no cause until its key is read on every unit in the window**
    (1155); **a gone actor parts no key** (1199). **A projectile's landing reads the shooter's firsts;
    two swapped numbers are births, by `uid`** (1597); numbering or
-   state: `unitat.py` on an earlier window (2154). **A fallback's
-   parting asks which of its gate's inputs differs** (2726); **a
-   one-field path parting lists the writers that copy an entry first**
+   state: `unitat.py` on an earlier window (2154). **A fallback's parting asks which gate input differs** (2726);
+   **a one-field path parting lists the writers that copy an entry**
    (2762).
 5. **Count the writers of the field that parted**, by its offset in
    every spelling, never by name (823, 869); a row booked
@@ -76,8 +75,8 @@ Before any reading, in order:
    (1250, 1471): a standing field this crate reads: the journal, both
    values (769, 834, 1162, 1187); **agreeing is quiet, not proven** (898, 1039).
    **A standing row on a unit the block names, or on the parted
-   orders' target, is walked back through every earlier widening
-   before its mechanism is read** (2180, 2264, 2738). **A leader row:
+   orders' target, is walked back through every earlier widening first** (2180, 2264,
+   2738). **A leader row:
    `diff` the whole `LEADERDATA` across the block, unread fields too**
    (2292); **a standing `num_units`/`control` row on the parted
    queue's player is grepped in the parked file first** (2781).
@@ -106,7 +105,7 @@ Before any reading, in order:
   needs (879); a `SEAM` the listing can decide cites its branch first
   (910, 964).
 - **A predicate refusing on one side against the reading: `--watch` its
-  fields over the caller's call on a packet first** (2867).
+  fields over the caller's call on a packet first** (2867; a field is `VA+OFF:LEN`, 3280).
 - **An idiom called "the same as" a named function: its listing
   beside it** (1065); **a vtable slot the export names by a
   folded function is read off the PE** (1090); **`unaff_` arguments are
@@ -222,14 +221,19 @@ Before any reading, in order:
   (2875), **and a subagent never ends its turn on a background wait**:
   it is not re-invoked, and the lane sat 1 h 50 on one that did (2820). **A float return's register is the
   listing's last write before `ret`, never the export's `in_ST0`**
-  (2552). **Your subagents' `agent-*` worktrees go with your landing**:
-  `git worktree remove` each one your subagents' answers named, once
-  merged, and no other lane's (3258: five of another lane's went; three
-  stood a day).
+  (2552). **Your subagents' `agent-*` worktrees go with your landing, by
+  `python3 tools/reap_agents.py --yes`** — it removes the trees merged
+  into your branch and refuses every other lane's, and no `git worktree
+  remove` loop over `agent-*` ever (3258, 3290: a glob took five of
+  another lane's, then three live lanes'). **The batch's subagents go
+  out in waves of three, each wave one message**, never one at a time
+  (3311: 3261 sat 170 minutes on six in sequence, 3295 86).
 - **A break is `tools/mutate.py --edit <file> 'old' 'new' -- cargo test
   -p sim <test>`** (784, 907), never a hand script: it restores
-  from git and `touch`es (2442), and its verdict is the command's exit,
-  not a grep for `failed` (2480); `--nth N` names an ambiguous match.
+  from git and `touch`es (2442), its verdict is the exit, never a grep
+  (2480); `--nth N` names an ambiguous match; a mutant past five times
+  the clean run is killed and counted caught, one that does not compile
+  is `no verdict` (3276, 3300).
   **Your per-function check and its breaks run in debug, never
   `--release`** (2787): a touched sweep test cycles in 4 s against 29
   on an idle box, forty cycles a batch, and four lanes' release builds
@@ -262,29 +266,29 @@ Before any reading, in order:
   **through `tools/mutate.py`**: a clean tree, committed (784, 907,
   1391).
 - **A mutation is scored by the exit code and the failed tests'
-  names**, never a pattern, `git diff --stat` non-empty first,
-  **and means what it is for** (918, 1018); a mechanism called built
+  names**, `git diff --stat` non-empty first, **and means what it is
+  for** (918, 1018); a mechanism called built
   has a test that fails without it; one no walk holds names its arm.
 - **A re-pin's tests run green before a mutation is scored** (1083):
-  `Pins::hold()` and the `pin*!` macros show every moved pin in one
-  run, `repin.py <log> --write` rewrites them (1349, 1411); "stands
+  `Pins::hold()` and the `pin*!` macros show every moved pin, `repin.py <log> --write` rewrites them (1349,
+  1411); "stands
   from N" is the window's first block or the gap's. **A new record kind
   in a window runs the `coverage` tests** (1601).
 - **Your test run is `zsh tools/check.sh test …`** (2763), one filter
   a run (1551); **kill a gate by its `Gate pid:`, never `pkill
   -f`** (1527, 1713).
 - **A probe goes in behind one env guard, in one commit reverted
-  whole** — never stripped by a pattern or a `git checkout`
-  (1727, 1717) — **committed before any other edit, never `commit -a`
-  across it and a build** (1864); **a new window names its
+  whole** , never stripped by a pattern or a `git checkout` (1727,
+  1717), **committed before any other edit, never `commit -a` across
+  it** (1864); **a new window names its
   `GROUND_INEXACT` row first** (1715).
 - **A divergence your change introduces is built or named a
   regression, never parked** (864).
 - **A command the worktree guard refuses runs from
-  `$CLAUDE_JOB_DIR/tmp/`** — no `timeout` (1537); an edit in a
-  `&&` chain is python or `sed -i ''` (2628); **`no
-  verdict (error)` is an outage: back off on a Monitor, five minutes to
-  an hour**; a human's need: one line to me (1315).
+  `$CLAUDE_JOB_DIR/tmp/`**, no `timeout` (1537); a `&&`-chain edit is
+  python or `sed -i ''` (2628); **`no verdict (error)` is an outage: a
+  Monitor, five minutes to an hour**; a human's need: one line to me
+  (1315).
 
 ## landing
 
@@ -305,6 +309,8 @@ Before any reading, in order:
   --tests {tests}` (1567, 1623), to a file, backgrounded; read
   its exit before saying landed; quote `Lane verdict:`, `Gate
   steps:` and `Gate minutes:` (969, 3224); its verdict: a second commit.
+  A red on the journal-quote guard alone is forgiven: add its two
+  lines, commit (3277).
 - **`ccc update att-<n>` takes the ref, never a SHA** (1557); a conflict
   takes `--keep-conflicts`, keep both, commit the merge (1161); a
   re-pinned count is the merged tree's (1151); read your run's RUNS

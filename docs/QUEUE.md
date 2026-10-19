@@ -12,18 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-fourth tranche (commander, Opus): 20 landings from `6db69429` in 7 h 35, drained**, four
-lanes (DECISIONS 78 (i)), the AI word's on Opus 5.5 medium and three on Sonnet 5.5 medium. Last whole gate `135bd184`,
-the drain's at 3297's booking (green, 6 of 6; release 11.1 minutes); every booking gate green.*
+*2026-10-18, **the forty-fourth pass (steer, Fable): the forty-fourth tranche measured — 20 landings from `6db69429`
+in 7 h 25 on four lanes** (DECISIONS 82), 108.92 USD in all, 4.64 USD and 60.1 minutes waiting a landing (3.70 / 52.0);
+17 booking gates green; no kill rule, no merge backed out. Built, red first: the lane's forgiveness of the journal-quote
+guard (3277), `mutate.py`'s timeout, no-verdict and signal restore (3276, 3300), `--watch VA+OFF:LEN` (3280),
+`tools/reap_agents.py` (3290), `coverage::a_unit_key_the_simulation_carries_is_read_or_owed` (3310). **The
+forty-fifth tranche's base is the pass's commit**, named with its whole gate in its second.*
 
-- **Words**: every pair closed. Battery `GreatLakesIroquoisTier3` 5576 → 12156 of 12658 (3211–3297, nine; this
-  tranche 10695 → 12156), its widening owed as 3306; `EastIndiesGermanTier3` closed at 13519. Chapters 102–106 closed
-  (3263–3294, seven), 94 → 99. Census 1512 → 1555, **port 347 → 393** (eight sweeps). The battery's median 4770.
-- **Lanes: none live** — drained at twenty (the `^Book ` commits since `6db69429`); unspawned: 3306 AI (run 954, AI
-  §262, KH), 3302 rules (run 953, GOLDEN §144, KE), 3303 shape (KF), 3304 the nations seat (KG). Next 3311, run 955.
-  Pools: GOLDEN §145–148, AI §263, park none. **Ramon's**: the nations seat (3188), the port's witnesses (3237), 3118, 1570.
-- **Fable backlog: 16 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265, 3276, 3277, 3280, 3290,
-  3300, 3310).
+- **Words**: every pair closed. Battery `GreatLakesIroquoisTier3` 10695 → 12156 of 12658 (3255, 3279, 3287, 3297),
+  its widening owed as 3306 with the readers for `mana_burn`, `rare`, `good_obj` (3310); `EastIndiesGermanTier3`
+  closed at 13519. Chapters 102–106 closed (3263–3294), 94 → 99. Census 1512 → 1555, **port 347 → 393**. Median 4770.
+- **Lanes: none live**; unspawned: 3306 AI (run 954, AI §262, KH), 3302 rules (run 953, GOLDEN §144, KE), 3303 shape
+  (KF), 3304 the nations seat (KG). Next 3314, run 955. Pools: GOLDEN §145–148, AI §263–268, park JK, KI–KN.
+  **Ramon's**: the nations seat (3188), the port's witnesses (3237), 3118, 1570, the lane gate's threads (3313).
+- **Fable backlog: 11 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3240, 3311, 3312, 3313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,10 +40,8 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the forty-fourth pass (steer, Fable): measure the forty-fourth tranche (twenty landings from `6db69429`,
-drained), ratify the marked rows, rule the 16 Loop items (3188, 3237, 3118 and 1570 are Ramon's), refill the AI and
-park pools, then clear `commander` into the forty-fifth tranche on the queue's four unspawned items (3306, 3302, 3303,
-3304).**
+**Opener: continue the forty-fifth tranche from docs/QUEUE.md's handoff — commander, Opus: spawn 3306 (Opus 5.5
+medium), 3302, 3303 and 3304 (Sonnet 5.5 medium) off the pass's commit, DECISIONS 78 (i); twenty landings, then the forty-fifth pass.**
 
 ## The queue
 
@@ -50,12 +50,13 @@ In dependency order, headline-nearest first. **The roster is Ramon's**:
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
 3306. **The battery word, 12156 of 12658 (`GreatLakesIroquoisTier3`)** (parked 3305; 3297 built Ambush's hold on the
-    hero's craft and The Despot's cut on a razed building, 11585 → 12156, run952's widening 786 → 60 keys, run952b 59,
-    AI §261): ours 29 draws against theirs 35 at index 1 — ours `Unit::fight+0x824`, theirs
-    `Guy::set_anim+0x97a < Unit::fight+0x169`. run952's last block is 11835, so no dump on disk holds the word's frame:
-    **its widening is owed first** — a Great Lakes window capture around 12156 at run952's detail (run 954; the game
-    ends on 12658), the whole record either side of the word, both directions; run163 spans 12156 on the long pair's
-    lobby, another game, and cannot answer this one. A theirs-only figure roll inside `Unit::fight` is a hypothesis. AI §262.
+    hero's craft and The Despot's cut on a razed building, 11585 → 12156, run952's widening 786 → 60 keys, AI §261):
+    ours 29 draws against theirs 35 at index 1 — ours `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a <
+    Unit::fight+0x169`. run952's last block is 11835, so no dump holds the word's frame: **its widening is owed
+    first** — a Great Lakes window capture around 12156 at run952's detail (run 954; the game ends on 12658), the
+    whole record either side, both directions; run163 is another game. A theirs-only figure roll in `Unit::fight` is
+    a hypothesis. **Second clause** (Loop 3310's guard): readers for `mana_burn`, `rare` and `good_obj` beside
+    `diff::unit`'s compare, each key leaving `coverage.rs`'s unread row and `UNREAD_UNIT_FIELDS_OWED`. AI §262.
 
 3302. **Chapter one hundred and seven, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
     chapter; run 953 minted here): 3294's chapter 106 (run951, a who=1 Fort in the Tower's place) closed at 1500 on the

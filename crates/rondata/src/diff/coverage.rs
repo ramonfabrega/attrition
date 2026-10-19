@@ -525,6 +525,66 @@ fn drive(text: &str, out: &mut Paths) {
     }
 }
 
+/// **A unit key the simulation's own `Unit` carries as a field is read,
+/// or owed by name** (Loop 3310, the forty-fourth pass). `mana_burn` stood
+/// on `UNREAD`'s unit row while `orders.rs` modelled it, and the parting it
+/// hid stood on every block of run943 (10689..10945) without a row: a key
+/// nothing parses cannot part, and a field the sim carries under the same
+/// name is exactly the key that can. Each entry is `(key, the item that
+/// owes its reader)`; exact both ways — a key read since leaves here, a
+/// field the sim gains leaves the unread row or lands here with its item.
+const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] = &[
+    // Red first on these three (the forty-fourth pass): the AI word's
+    // widening item takes their readers beside `diff::unit`'s compare,
+    // each key leaving `UNREAD`'s unit row in the same landing.
+    ("good_obj", 3306),
+    ("mana_burn", 3306),
+    ("rare", 3306),
+];
+
+/// The field names of `pub struct Unit` in `crates/sim/src/lib.rs`.
+fn sim_unit_fields() -> BTreeSet<String> {
+    let source = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../sim/src/lib.rs"))
+        .expect("crates/sim/src/lib.rs");
+    let body = source
+        .split("pub struct Unit {")
+        .nth(1)
+        .expect("`pub struct Unit {` in crates/sim/src/lib.rs")
+        .split("\n}\n")
+        .next()
+        .unwrap();
+    body.lines()
+        .filter_map(|l| {
+            let l = l.trim_start();
+            let l = l.strip_prefix("pub(crate) ").or_else(|| l.strip_prefix("pub "))?;
+            let (name, _) = l.split_once(':')?;
+            Some(name.trim().to_string())
+        })
+        .collect()
+}
+
+#[test]
+fn a_unit_key_the_simulation_carries_is_read_or_owed() {
+    let fields = sim_unit_fields();
+    assert!(fields.len() > 20, "the Unit struct parsed to {} fields", fields.len());
+    let unread: BTreeSet<&str> = UNREAD
+        .iter()
+        .filter(|(path, _)| *path == "GAME/FRAME/UNITDATA")
+        .flat_map(|(_, keys)| keys.split_whitespace())
+        .collect();
+    let owed: BTreeSet<&str> = UNREAD_UNIT_FIELDS_OWED.iter().map(|(k, _)| *k).collect();
+    let carried: BTreeSet<&str> = unread.iter().copied().filter(|k| fields.contains(*k)).collect();
+    let unowed: Vec<&str> = carried.difference(&owed).copied().collect();
+    let stale: Vec<&str> = owed.difference(&carried).copied().collect();
+    assert!(
+        unowed.is_empty() && stale.is_empty(),
+        "a dump key of the unit record that `sim::Unit` carries as a field is compared, never pinned \
+         unread (Loop 3310): unowed {unowed:?}; owed and no longer both unread and carried {stale:?}. \
+         A reader beside `diff::unit`'s compare takes the key off `UNREAD`'s unit row; until then \
+         `UNREAD_UNIT_FIELDS_OWED` names the item that owes it."
+    );
+}
+
 /// The keys on each path that were printed and never read; `*` on a path
 /// means a whole-fields iteration read all of them.
 fn unread(paths: &Paths) -> BTreeMap<String, BTreeSet<String>> {

@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-10-18, tools/suite_timings.py (tree 484a695a).
+# Every rondata release test timed alone, 2026-10-18, tools/suite_timings.py (tree 8595e127).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 2,844 s over 972 tests; --stale-only merged. Top 10 = 617 s, top 30 = 939, top 100 = 1423; 414 tests under 1 s.
-# By module: golden 893 s / 271 tests, harness 471 s / 91 tests, coverage 339 s / 3 tests, second 246 s / 35 tests, third_pair 166 s / 48 tests.
+# Sum 2,870 s over 988 tests; --stale-only merged. Top 10 = 617 s, top 30 = 939, top 100 = 1423; 421 tests under 1 s.
+# By module: golden 907 s / 281 tests, harness 471 s / 91 tests, coverage 339 s / 4 tests, second 246 s / 35 tests, third_pair 166 s / 48 tests.
 202.00	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 137.36	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 55.58	diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides
@@ -124,6 +124,7 @@
 4.94	diff::golden::chapter_thirty_three_holds_to_the_golden_word
 4.94	diff::third_pair::run658_dates_the_gap_before_17171
 4.92	diff::second::tests::run480_s_word_frame_is_widened_whole
+4.90	diff::iroquois_word::run952b_s_gap_is_widened_whole
 4.82	diff::harness::tests::run100_s_word_block_is_every_record_the_dump_carries
 4.78	diff::coverage_pair::run721_s_word_frame_is_widened_whole
 4.78	diff::sahara_toughest::tests::run470_is_great_sahara_at_toughest_and_its_word_holds
@@ -362,6 +363,7 @@
 2.65	diff::golden::chapter_seventy_four_holds_to_the_golden_word
 2.64	diff::golden::chapter_three_holds_to_the_golden_word
 2.64	diff::harness::tests::run134_s_pool_list_is_the_original_s
+2.63	diff::iroquois_word::run943_s_word_frame_is_widened_whole
 2.63	diff::lakota_pair::run867_s_word_frame_is_widened_whole
 2.63	diff::harness::tests::run39_s_islands_game_is_the_second_map_s_score
 2.63	diff::golden::chapter_seven_holds_to_the_golden_word
@@ -391,6 +393,7 @@
 2.55	diff::golden::chapter_three_s_catapult_fires_on_the_ground
 2.55	diff::golden::chapter_fifty_nine_holds_to_the_golden_word
 2.55	diff::harness::tests::run98_s_window_clocks_are_the_original_s
+2.54	diff::iroquois_word::run952_s_word_frame_is_widened_whole
 2.54	diff::world::tests::run73_s_caravan_road_is_the_original_s_node_for_node
 2.52	diff::world::tests::run13_s_world_at_frame_95_is_the_original_s_cell_for_cell
 2.52	diff::golden::chapter_three_s_catapult_after_its_reload
@@ -468,7 +471,9 @@
 1.95	diff::city::tests::run55_s_frame_1477_prices_are_the_originals
 1.94	diff::german_word::run643_german_closing_state
 1.93	diff::iroquois_word::run934_s_word_frame_is_widened_whole
+1.91	diff::golden::chapter_one_hundred_and_two_s_window_is_widened_whole
 1.91	diff::golden::every_object_s_z_is_the_ground_it_stands_on
+1.90	diff::golden::chapter_one_hundred_and_three_s_window_is_widened_whole
 1.88	diff::iroquois_word::run932_s_word_frame_is_widened_whole
 1.87	diff::sahara_coverage::run680_s_word_frame_is_widened_whole
 1.86	diff::harness::tests::great_lakes_6994_issues_the_second_squad_s_walk_to_the_army
@@ -480,13 +485,16 @@
 1.81	diff::third_pair::french_east_indies_buys_its_fifth_city_at_a_third_off
 1.81	diff::build::tests::run40_and_run41_s_sites_and_territory_are_the_original_s
 1.80	diff::setup::tests::init_stance_is_the_original_s_on_both_maps_first_blocks
+1.80	diff::golden::chapter_one_hundred_and_four_s_window_is_widened_whole
 1.79	diff::battery::battery_floors_hold
+1.78	diff::golden::chapter_one_hundred_and_five_s_window_is_widened_whole
 1.78	diff::second::tests::run403_s_word_frame_is_widened_whole
 1.78	diff::harness::tests::run74_s_window_is_where_great_lakes_merchant_turns
 1.78	diff::build::tests::find_gather_tiles_rederives_run39_s_camp_lists
 1.76	diff::golden::chapter_two_s_frozen_frames_are_the_dump_s_on_every_unit_frame
 1.76	diff::third_pair::run617_s_word_frame_is_widened_whole
 1.76	diff::golden::every_rolled_shot_comes_down_where_the_original_s_does
+1.75	diff::golden::chapter_one_hundred_and_six_s_window_is_widened_whole
 1.75	diff::harness::tests::great_lakes_8442_musters_the_army_where_the_original_does
 1.75	diff::golden::chapter_seven_b_s_control_scout_search_is_priced_as_the_original
 1.75	diff::third_pair::run610_s_word_frame_is_widened_whole
@@ -538,6 +546,7 @@
 1.41	diff::endpoint::tests::great_sahara_endpoint_is_pinned
 1.38	diff::world::tests::run64_s_danger_map_is_the_original_s
 1.37	diff::world::tests::run64_s_caravan_road_is_the_original_s_node_for_node
+1.35	diff::golden::chapter_one_hundred_and_five_holds_to_the_golden_word
 1.35	diff::third_pair::run598_french_great_lakes_word
 1.35	diff::golden::chapter_ninety_s_window_is_widened_whole
 1.34	diff::sahara_toughest::tests::run640_s_word_frame_is_widened_whole
@@ -568,11 +577,17 @@
 0.95	diff::golden::chapter_ninety_six_s_window_is_widened_whole
 0.95	diff::golden::chapter_eighty_nine_s_window_is_widened_whole
 0.95	diff::harness::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps
+0.93	diff::iroquois_word::the_despot_s_ambush_holds_its_craft
 0.93	diff::third_pair::run602_s_word_frame_is_widened_whole
+0.93	diff::golden::chapter_one_hundred_and_two_holds_to_the_golden_word
 0.92	diff::setup::tests::run18b_and_run19_s_make_list_windows_replay_slot_for_slot
+0.90	diff::golden::chapter_one_hundred_and_three_holds_to_the_golden_word
+0.90	diff::golden::chapter_one_hundred_and_four_holds_to_the_golden_word
+0.90	diff::golden::chapter_one_hundred_and_six_holds_to_the_golden_word
 0.89	diff::german_word::run893c_s_word_frame_is_widened_whole
 0.88	diff::iroquois_word::iroquois_word_first_parting
 0.88	diff::city::tests::run64_s_frame_6167_prices_are_the_originals
+0.87	diff::iroquois_word::run946_s_road_elements_at_10842_are_ours
 0.87	diff::golden::chapter_ninety_seven_s_window_is_widened_whole
 0.87	debug_view::tests::selected_failure_exports_actual_replay_context
 0.87	diff::sahara_toughest::tests::run469_is_great_sahara_at_toughest_and_nothing_else_moved
@@ -825,6 +840,7 @@
 0.01	diff::third_pair::replay::full_state_audit_accepts_only_future_inputs_and_rejects_value_changes
 0.01	diff::compared::tests::recorder_audit_rejects_a_missing_registration
 0.01	diff::floors::tests::the_handoff_s_battery_word_is_the_pinned_word
+0.01	diff::coverage::a_unit_key_the_simulation_carries_is_read_or_owed
 0.00	golden::tests::an_issuer_line_names_what_it_reached_and_an_add_where_it_landed
 0.00	diff::harness::deferred_row_labels_preserve_names_and_field_registration
 0.00	capture::owned_codec::reuse_tests::changed_reordered_invalid_and_bounded_maps_match_original_decoder

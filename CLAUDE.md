@@ -213,7 +213,9 @@ booking is a frame, never a promise to build a name.
   read); the lane gate runs those, the fast tests and the guards,
   and leaves the timed ones to the booking gate (item 1567: 703 s → 74
   s) — red only on the queue's lines — the commander's to write at the
-  merge — it goes on to the guards and exits 0, and red on anything
+  merge — or on the journal's own gate quote, which cannot exist before
+  the gate has run (3277: fourteen first gates of one tranche were red
+  on it alone) — it goes on to the guards and exits 0, and red on anything
   else it stops and names the test; the commander's booking
   gate takes no flag and forgives nothing. The debug profile is for the
   reflex (`tools/guard.sh`) and for stepping through one test; a debug
@@ -430,13 +432,13 @@ commander, and nothing else** — never a worker: one pass did, on an
 opener that said "refill", and ratified a trial only the user decides
 (DECISIONS 59, 61). Never Sonnet on a reading or an adjudication;
 **the workers' roster is the user's, set at a steer** (DECISIONS 61):
-**four lanes for the forty-fourth tranche: Opus 5.5 at `--effort
+**four lanes for the forty-fifth tranche: Opus 5.5 at `--effort
 medium` on the AI word's lane, Sonnet 5.5 at `--effort medium` on the
 rules track, the shape sweep and the nations seat, a sweep lane since 3229** (Ramon, at the
 fortieth steer, DECISIONS 78: five lanes cost 18 minutes a landing in
 waiting for one landing an hour, and the host budget admits 20 slots
-now; the forty-first to forty-third tranches on four ran at the
-loop's cheapest and no pass changes the roster, DECISIONS 79, 80, 81; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
+now; the forty-first to forty-fourth tranches on four ran at the
+loop's cheapest and no pass changes the roster, DECISIONS 79–82; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
 `--model 'claude-sonnet-5-5[1m]' --effort medium`, after three Opus
 tranches measured against three Sonnet ones, DECISIONS 65 and 68; the
 model and effort verified from each worker's transcript and the spawn

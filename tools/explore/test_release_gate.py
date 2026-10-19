@@ -588,6 +588,26 @@ class GateTests(unittest.TestCase):
         # a lane, like the queue's lines.
         self.assertIn('the_census_s_simulation_share_is_pinned', gate.COMMANDERS_LINES)
 
+    def test_the_journal_quote_guard_is_forgiven_on_a_lane_and_the_verdict_names_the_remedy(self):
+        # Loop 3277 (the forty-fourth pass): the journal guard asks a lane's
+        # journal to quote `Lane verdict:` and `Gate minutes:` — lines that
+        # exist only once the lane gate has run — so fourteen of twenty
+        # first lane gates were red on it alone, and the lane that added the
+        # lines did not re-run. The guard is a line the worker cannot write
+        # before the gate: forgiven on a lane, held at the booking gate, and
+        # the verdict says what to add.
+        name = 'a_journal_quotes_its_lane_verdict_and_gate_minutes'
+        self.assertIn(name, gate.COMMANDERS_LINES)
+        forgiven, line = gate.lane_verdict([f'sim::docs_guard::{name}'])
+        self.assertTrue(forgiven, line)
+        self.assertIn("red only on the commander's lines", line)
+        self.assertIn('quote this gate', line)
+        forgiven, line = gate.lane_verdict([f'sim::docs_guard::{name}', 'sim::x::a_red_of_the_worker_s_own'])
+        self.assertFalse(forgiven)
+        self.assertNotIn('quote this gate', line)
+        guard = (Path(__file__).resolve().parents[2] / 'tools/guard.sh').read_text()
+        self.assertIn(f'--skip {name}', guard)
+
     def test_every_test_that_reads_the_handoff_is_one_of_the_commander_s_lines(self):
         # The other direction (the nineteenth pass): a handoff guard added
         # and left off the list turns every lane's gate red on a line the

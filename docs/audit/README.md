@@ -315,6 +315,39 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the forty-fourth pass
+
+The forty-fourth tranche (DECISIONS 82): twenty landings on four lanes in
+7 h 25 from the pass's third commit, 4.64 USD and 60.1 minutes waiting a
+landing (3.70 / 52.0); no red booking gate, no kill rule, three `DEEP`
+answered, two `STALLED` on one hung mutant, one `LANDED` after the line,
+no merge backed out. The pass added these rows, each from the tranche's
+own receipts.
+
+- **A lane's cleanup is `tools/reap_agents.py --yes`, by ownership,
+  never a glob** (3290; att-3281's done line): a `git worktree remove
+  ../agent-*` loop from one lane took the three live lanes' subagent
+  trees, a tranche after 3258's sentence said "only your own"; the tool
+  removes the trees merged into the lane's branch and refuses the rest.
+- **A sweep batch's subagents go out in waves of three, each wave one
+  message** (3311, the pass's measurement): 3261 waited 170 minutes on
+  six subagents in sequence and 3295 86, the subagent class 17.4 minutes
+  a landing over the tranche — the frame said one subagent a function
+  and nothing about when.
+- **A red on the journal-quote guard alone is forgiven on a lane** (3277;
+  the commander at four merges): the guard asks for lines that exist
+  only once the gate has run, so fourteen of twenty first lane gates
+  were red on it and nothing else; `COMMANDERS_LINES` carries it, the
+  verdict names the remedy, and the booking gate holds the quote.
+- **A batch's mutant is killed after five times the un-mutated run and
+  counted caught; a mutant that does not compile is no verdict** (3276,
+  3300; att-3261's `STALLED` exits and 3287's line): one mutant held a
+  `cargo test` 100 minutes at 100 %, and a pin that did not type-check
+  exited 101 and was read as a catch.
+- A `--watch` of a field is `VA+OFF:LEN`, and a bare `+N` past 0x20 is
+  refused (3280; 3269's line): `unit+0x58` watched 0x58 bytes from the
+  unit and missed the field, which cost a run.
+
 ## The brief checklist, from the forty-third pass
 
 The forty-third tranche (DECISIONS 81): twenty landings on four lanes in

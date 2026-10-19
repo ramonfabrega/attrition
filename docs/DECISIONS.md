@@ -93,6 +93,7 @@ is append-only and amended in place, as it always was.
 - 79 standing — The forty-first tranche is scored on four lanes at the loop's cheapest, the census splits port-backed from layout-backed, the Golden line is counted, the whole gate counts widening landings, and twenty-six Loop items become tools, rows or closes
 - 80 standing — The forty-second tranche is scored on four lanes at the loop's price, the lane gate is named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, and twenty-one Loop items become tools, rows, closes or Ramon's
 - 81 standing — The forty-third tranche is scored on four lanes at less and slower, the sweep lanes' fan-outs are read as their own, the lane gate is two to four runs a landing and its quote is guarded, a regen keeps every hand item, and twenty-two Loop items become tools, guards, rows, closes or Ramon's
+- 82 standing — The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
 
 ## 1. Fidelity before divergence
 
@@ -6659,3 +6660,109 @@ named; 1570; the roster stands at four. The pass recommends in its
 record and moves none of them. The commander is cleared into the
 forty-fourth tranche on the queue's four unspawned items (3255, 3263,
 3261, 3259), four lanes, the roster of entry 78 (i).
+
+## 82. The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
+
+*2026-10-18, the forty-fourth Fable pass, the `steer` session, cleared
+into by the commander at the drain (`8595e127`); Ramon present at the
+end, so the commander's clear waits on a steer. The record is
+`docs/audit/2026-10-18-fable-pass-44.md`.*
+
+**The tranche.** Twenty landings on four lanes in **7 h 25** from the
+pass's third commit (`37884575` 15:44 to 3297's booking and handoff
+`135bd184` 23:09), the drain gate green at 23:23 — against 6 h 02 on
+four the tranche before. `tools/tranche.py` over the twenty (24
+sessions: three `DEEP` clears and one spawn that died at birth):
+working 263 minutes, **waiting 1203 — 60.1 a landing** (52.0), of which
+**the lane gate 19.8** (23.9), **the subagent 17.4** (14.3: the two
+sweep lanes' sequential fan-outs, 3261's 170 minutes on six), the
+capture 5.5 (3297's 59.6 on run952 and 952b). **The price rose with the
+clock**: 108.92 USD in all (92.89), 4.64 a landing for the workers
+(3.70) — the AI word's five landings at 12.51 each (7.02) carried it,
+three of its sessions over 300 k and cleared. **Seventeen booking
+gates, every one green**: five whole (three on widening landings, the
+clear's and the drain's), twelve scoped and every one widened; 174.3
+minutes of gate on the commander's 445 (155.5 of 383). The admission
+waited **993.8 s summed, longest 31.8 s** (1357.1 / 168.3); the host
+load at a gate's end past the sixteen cores at **eight of seventeen**
+(five). Three `DEEP` (3255 at 318 k, 3287 at 335 k, 3297 at 306 k, each
+answered with a clear), two `STALLED` (3261, on a mutant that never
+terminated), one `LANDED` after the lane's own line (3279), no
+`UNCLEARED`; no kill rule, no blocked ending, no merge backed out. The
+three stray `agent-*` worktrees are gone.
+
+**The words.** The battery word `GreatLakesIroquoisTier3` **10695 →
+12156** of 12,658 in four landings (3255 the bow hands' bays, 3279 The
+Despot's unit plunder, 3287 `set_diags`' corner tail and the Peltasts'
+bays, 3297 Ambush's hold and the razed building's cut; 3269 closed
+run943's 10843 without moving it), each widened on its own run (943
+whole, 946, 948, 952), the widening at 12156 owed as 3306. Chapters
+**102 to 106 closed** (3263; 3267, 3271, 3274; 3285; 3292; 3294 — four
+of five on their first take with no sim change), 94 → 99. The census
+**1512 → 1555, port 347 → 393** (eight sweep batches, forty-six
+functions, the nations seat six of the eight).
+
+**The lane gate's first red was the guard that asked for its own
+quote** (Loop 3277). Entry 81's guard asks a lane's journal to quote
+`Lane verdict:` and `Gate minutes:`, lines that exist only once the
+lane gate has run; fourteen of twenty first lane gates were red on it
+alone, and the lane that then added the lines did not re-run. The guard
+joins `COMMANDERS_LINES`: forgiven on a lane, the verdict naming the
+two lines to add, held at the booking gate, skipped by `guard.sh` under
+`RON_LANE` (red first). With it, Loop 3265 closes on the measurement —
+seventeen of twenty journals quote one run — and what stands is the
+run's length: **the release step 6.0–26.4 minutes, median 18.9, at four
+threads under a widening that fires on every sim path** (Loop 3313,
+Ramon's with the slot policy).
+
+**A hung mutant and a compile failure get verdicts of their own**
+(Loops 3276, 3300). `mutate.py` kills a mutant past `--timeout` — a
+batch's default five times the un-mutated run, at least a minute — in
+its process group, prints `hung` and counts it caught; a run whose
+output says the command did not compile is `no verdict`, counted apart
+and the batch red; SIGTERM, SIGHUP and ^C restore the tree before the
+exit. Each red first.
+
+**A lane's cleanup is by ownership** (Loop 3290). Entry 81's sentence
+("only the ones your subagents named") did not hold a tranche: a
+`git worktree remove ../agent-*` loop took the three live lanes' trees.
+`tools/reap_agents.py` removes the `agent-*` trees whose tip is in the
+lane's own history and refuses the rest, a dirty or locked one too; the
+frame's sweep row names it and no glob (red first on a sibling's tree).
+The same section says a batch's subagents go out in waves of three
+(Loop 3311, measured at the next pass).
+
+**An unread field the sim carries is owed by name** (Loop 3310).
+`mana_burn` stood on `coverage.rs`'s unread unit row while `orders.rs`
+modelled it, and the parting it hid stood on every block of run943
+without a row. `coverage::a_unit_key_the_simulation_carries_is_read_or_owed`
+intersects the unread unit keys with `sim::Unit`'s fields: red first on
+`mana_burn`, `rare` and `good_obj`, owed to 3306 as the widening's
+second clause. **A watch of a field is `VA+OFF:LEN`** (Loop 3280): a
+bare `+N` past 0x20 is refused with both spellings (red first).
+
+**Sixteen Loop items ruled.** Built, red first: 3276, 3277, 3280, 3290,
+3300, 3310. Closed on the measurement: 3265. Closed unreached under
+entry 54 §7: 3139. Split: 2003's ledger, at 15,999 of its 16,000 bytes,
+into the row and a continuation (a tranche's reaches go in that
+tranche's own section from here on). Stay, each with its reach: 3013
+and 3240 (no reach; close at the next pass unreached), and Ramon's five
+— 1570, 3118, 3143 (with the measurement: eight of seventeen past the
+cores, the lane gate's step), 3188 (the seat at 1.67 USD and 61.2
+minutes a landing, six batches), 3237. Filed: 3311, 3312 (`census.py
+--hooked` exits 1 at 89 chunks and no gate runs it), 3313. Eleven stay.
+
+**What is not established.** Whether three subagents a wave is the
+number (3311); whether eight threads under the admission bring the lane
+gate's step down without stretching the booking gates (3313); whether
+the `rare` and `good_obj` keys of the unit record mean what the sim's
+fields mean (3306 reads them); why the AI word's sessions run past 300
+k when the chapters' run 140–190 k (the five Opus sessions' peaks 300–343
+k, three clears).
+
+**For Ramon, held by the fence** (entry 61 §4): the roster stands at
+four; the lane gate's thread count (3313) and the slot policy (3143);
+the nations seat (3188); the port score's witnesses (3237); 3118's
+sound; 1570. The pass recommends in its record and moves none of them.
+The commander's clear into the forty-fifth tranche (3306, 3302, 3303,
+3304, the roster of entry 78 (i)) waits on the steer Ramon asked for.
