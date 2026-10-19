@@ -7,7 +7,7 @@
 //! (`battery::SCORED_LOBBIES`) and no longer held out. Captures: run899 (a
 //! `DUMP_ALL` start, blocks 0..36) and run899b (the draw stream to the
 //! game's end, `cover=0`, its setup and closing blocks only); the word's
-//! window is run956's (`docs/AI.md` §263). `GreatSaharaSpanishTier3` parts
+//! windows are run956's and run956b's (`docs/AI.md` §263). `GreatSaharaSpanishTier3` parts
 //! on 576 too and stays held out: it is never debugged against.
 
 use super::battery::{self, Lobby};
@@ -39,8 +39,12 @@ pub(crate) const ROMAN: Lobby = Lobby {
     // `Farms::add` draws, then four `place_city_with_cost` rounds). Both
     // read 62 and 39 now, and the Farm is on both sides on block 577. At
     // 18026 ours 199 draws, theirs 200, index 192: ours `Guy::set_anim+0x97a
-    // < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`;
-    // past run956's last block (826), its widening owed.
+    // < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`,
+    // past run956's last block (826). **And 18026 → 18620, the game's
+    // last frame**, with `place_roads`' teardown (`docs/ROADS.md` §9.6):
+    // the Library `0/2005`, dead on 18011, took its ring road with it in
+    // theirs, and on 18026 who=1's caravan search priced tile (28, 40) on
+    // road here and off it there (run956b, run899b's call window).
     count: 18620,
     sequence: 18620,
 };
@@ -278,6 +282,10 @@ fn run899b_s_road_search_on_18026_holds_node_for_node() {
     pin_eq!(searched, 107, "frames with a road search to 18030");
     pin_eq!(first, None, "the first node that parts");
 }
+
+/// The closing state's window: run899b's closing block 18621 alone, the
+/// game's last frame 18620 writing it (item 3314).
+pub(crate) const WIDENING_ROMAN_CLOSING: (i64, i64) = (18619, 18622);
 
 /// **The lobby's closing state** (item 3314, DECISIONS 55): the draws agree
 /// to the game's last frame, 18620, once the Library's ring road goes with

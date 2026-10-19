@@ -23299,12 +23299,52 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 263. Reserved for the next item on the AI track
+## 263. The Romans: the fort discount, a dead Library's ring, and the game's end (2026-10-19, item 3314)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery's third word. `EastIndiesRomanTier2` (map 18, the Romans (6) at Difficulty 2) was the
+held-out battery's lowest lobby beside the Spanish, both at 576 on their first try (§243). It is promoted here
+(`diff::roman_word`, `SCORED_LOBBIES` `(18, 6, 2)`), and the Spanish stay held out. The battery is eight lobbies
+again with **`EastIndiesAmericanTier1`** (map 18, the Americans (20) at Difficulty 1; runs 955, 955b), whose first
+try is **9382 / 9382**: ours 14 draws, theirs 12, at index 1, ours `Leader::make_stuff+0x221`, theirs
+`Leader::use_market+0x1ed`. No dump had held the Americans, and no battery lobby on East Indies was at tier 1.
+
+**1. `get_cost`'s fort arm (576).** On 576 theirs buys a fourth Farm (`1/2007`) and ours refuses it:
+`can_pay_cost` 0, price timber 52 against bucket food 33, timber 46, wealth 31. run956 (blocks 570..826) has
+who=1's `bucket[timber]` 46 against 62 and `bucket[wealth]` 31 against 39 standing from 570, and income agrees.
+The cause is who=1's Tower, bought on frame 1 and priced here without the Romans' discount.
+`get_cost`'s fort arm (`00665e0f`..`00665e8a`) applies to `is_fort` (PDB vslot `0xfc`) or `is(0x1b7, 0)`, not
+a wonder. It takes `COLOSSEUM_FORT_COST` under `has_wonder(0x212)` and then `ROMAN_FORT_COST` under
+`has_tribe_bonus(6)`, each `(100 − x) × v / 100`, in two steps. Built: `cost::Modifiers::fort`, `Sim::fort_discounts`,
+and `Tuning::roman_fort_cost` 25 and `colosseum_fort_cost` 20. **Value diff**: block 570 shows bucket timber 62 and
+wealth 39 on both sides, and block 577 has the Farm on both. The word moved **576 → 18026**, and run956's widening
+went 239 → 29 keys (the control's set). Mutations: with the Roman term zeroed, the walk fails; with the two steps
+folded into one `(100 − a − b)`, the cost test fails.
+
+**2. A closed building's ring goes with it (18026).** Ours 199 draws, theirs 200. One
+`PathFinder::astar_caravan_road` search: theirs 194 `calc_road_cost`, ours 192. **run956b** (blocks 18020..18276)
+parts nothing on the word's own block. Node for node, using run899b's call window, the first node to part is 32,
+the step onto tile (28, 40): ours 27, on road; theirs 88, off road. Ours had the road from frame 0 and never
+changed it. Logging our map around the tile over the whole game shows one event there, the human's Library
+`0/2005` dying on 18011 (both sides). In the original, `mask_me`'s unmask ends in `place_roads(…, 0,
+REGEN_SIMPLE)`, which takes the ring away (`docs/ROADS.md` §9.6). This crate had it as a SEAM. Built:
+`Sim::unplace_roads`, `road_ring`'s `set`. **Value diff**: all 107 searches to 18030 agree node for node, 194
+against 194 on 18026. run956b's widening has **51** keys, every one standing from 18020: the control's set, and
+who=1's `1/22`..`1/37` `g.angle[0]`, ours `0x55555555` against 0. `1/64`'s move offsets from 18028 are gone.
+**The word moves 18026 → 18620, the game's last frame.**
+
+**3. The closing state.** run899b prints the closing block 18621 whole. Walked to it and compared
+(`run899b_roman_closing_state`): 110 units, none apart, no closing field parted. **Six buildings and a city are
+unlinked**: theirs' `1/2040` (a city, at (6240, 7008)) and `1/2041`..`1/2045` are who=0's Village `0/2000` and
+its Woodcutter, three Farms and Market. They were captured on the last frame, and the human is defeated
+(`defeated_by 1`). Ours' Village stands at **damage 1199 of 1200**, health level 5.
+`check_capture_eligible@0062d1d0` takes a city centre (`flags & 0x20`) only at level 6, and a non-centre village
+at > 4, so ours' threshold is right. The Village is at 840 on both sides on run956b's last block. Its last point
+parts somewhere in 18277..18620, which no dump on disk covers, so the window is booked as run956c (`docs/RUNS.md`).
+
+**Not established.** Theirs' (28, 40) is read off the search's price, not seen: no dump of this lobby prints a
+tile after block 36. The sixteen other ring tiles ours clears on 18011 are unobserved. The `g.angle[0]` rows and
+the control's set are the standing residue, and they part nothing that moves. The capture's own sequence
+(`Cities::capture_city`, `Build::swap_team`) has not run here on this lobby.
 
 ## 264. Reserved for the next item on the AI track
 

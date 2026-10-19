@@ -9904,14 +9904,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // the word's block: item 3314 widened it on run956 over 570..826
     // (`run956_s_word_frame_is_widened_whole`): block 570's bucket, the
     // Tower priced without the Romans' quarter off. **Item 3314 moved it
-    // 576 → 18026** (`get_cost`'s fort arm), past run956's last block: its
-    // widening owed by this item.
+    // 576 → 18026** (`get_cost`'s fort arm), past run956's last block, and
+    // widened it on run956b over 18020..18276
+    // (`run956b_s_word_frame_is_widened_whole`): nothing on block 18027,
+    // the caravan's road search parting on tile (28, 40), the Library
+    // `0/2005`'s ring. **And 18026 → 18620**, the game's end, with
+    // `place_roads`' teardown; the close is compared whole on run899b's
+    // closing block 18621 by `run899b_roman_closing_state`.
     (
         "ROMAN_WORD",
         crate::diff::roman_word::ROMAN_WORD,
-        None,
+        Some("run899b_roman_closing_state"),
         3314,
-        None,
+        Some(crate::diff::roman_word::WIDENING_ROMAN_CLOSING),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -10253,8 +10258,11 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (Romans)",
         word: crate::diff::roman_word::ROMAN_WORD,
         length: 18_620,
-        endpoint: None,
-        window: Some("roman_frame_576_window"),
+        // Closed by item 3314: the draw stream agrees to 18620, and
+        // run899b's closing block 18621 scores the end itself, with the
+        // capture of who=0's Village its residue.
+        endpoint: Some("run899b_roman_closing_state"),
+        window: Some("roman_frame_18026_window"),
     },
     // **The battery's word** (DECISIONS 72; item 2904): East Indies, the
     // Germans at Difficulty 3 — the held-out battery's lowest lobby, which

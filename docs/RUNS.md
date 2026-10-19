@@ -18282,3 +18282,24 @@ SHA-256 `6a6bbc0fee2e893f57fea2a97b00c1146c4e68924b20c55919dbf05a3a8c28e0`.
 
 **What it holds**: `diff::roman_word::run956_s_word_frame_is_widened_whole` (257 blocks). 239 keys, standing from 570 on
 who=1's timber and wealth bucket; with `get_cost`'s fort arm, 29 (the control's set). Its window is in the coverage driver.
+
+## run956b — the Roman word 18026's window: East Indies, the Romans at difficulty 2, blocks 18020..18276 (2026-10-19, item 3314, `att-3314`)
+
+`docs/AI.md` §263. **What the disk could not answer**: run956 ends on block 826 and run899b prints its setup and
+closing blocks only, so no dump held the word's block 18027. run956's recipe, windowed: `--map 18 --end-frame 18281
+--timeout 10800 --log-window 18020 18276` with run956's `--detail`, `--ai-tribe`, `--cover` and `--profile`. Filed with
+`filerun.py run956b eastindies-roman-diff2-window-18020-18277`.
+- One take, pool lane 1, 01:14:07–01:30:56 (1,009 s), 18,282 frames, players `(0,4,7),(1,6,1)`.
+- `rngcmp.py rontrace-run899b.log rontrace-run956b.log`: **18,282 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run956b-eastindies-roman-diff2-window-18020-18277.txt`, 517,952,486 bytes,
+SHA-256 `83e7680d6c4ba877d7e7923244e5e290f0d1047fa66e0624a7f8087ead831215`.
+
+Archive `rontrace-run956b.log`, 90,916,992 bytes,
+SHA-256 `3ca9df1af96cb0d11ed6070fe228274a9d17d87b3b9e0ac85b966744d2a35164`.
+
+**What it holds**: `diff::roman_word::run956b_s_word_frame_is_widened_whole` (256 blocks). With the ring teardown
+(`docs/ROADS.md` §9.6), 51 keys, every one standing from 18020: the control's set and who=1's `g.angle[0]` on
+`1/22`..`1/37`. who=0's Village `0/2000` is at damage 840 of 1200 on both sides on the last block. Its window is in the
+coverage driver.
