@@ -18520,3 +18520,74 @@ SHA-256 `1c6a30d85a344843299933975eab1fd1a7f148fd74ea60b4928f6ba822382dbb`.
 **What it holds**: `diff::spanish_word::run958f_s_word_frame_is_widened_whole` (16 blocks). 3065 keys on the first
 build, the human's capital `0/2000` taken in ours on 22692; **33** with a decoy counting for neither side of
 `check_capture`'s tally. Its window is in the coverage driver.
+
+## run962 — the battery's twelfth held-out lobby: East Indies, Indians, Difficulty 2, the start (2026-10-19, item 3329, `att-3329`)
+
+`docs/AI.md` §267. **What the disk could not answer**: the Dutch promotion took the battery's East Indies row out, and
+no capture held an Indian AI (21) at all. `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 21
+--profile DIFFICULTY=2`.
+- Pool lane 2, 04:45–04:53. `success`, `map_style 18`, seed 12345, players Nubians (human) and Indians.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run962-eastindies-indian-diff2-start.txt`, 153,502,483 bytes,
+SHA-256 `06242852c6152f1b01f36db7b5e66482f04c40913f12b7ba123df6cee6880487`.
+
+Archive `rontrace-run962.log`, 10,106,752 bytes,
+SHA-256 `0b919499a959ba22b1ccbd22b6db9409eab6a51ec677e650796e226bcecc42eb`.
+
+**What it holds**: `BATTERY`'s `EastIndiesIndianTier2` start.
+
+## run962b — the same lobby, the draw stream to 24000 (2026-10-19, item 3329, `att-3329`)
+
+`--map 18 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 21 --allow-early-end --profile DIFFICULTY=2` and run643's four `--detail` lines.
+- Pool lane 2, launched 04:53:33 and exited 04:55:27. `success`, 24001 frames, `ended_early` false: the game runs
+  to 24000. `rngcmp.py rontrace-run962.log rontrace-run962b.log`: **37 identical**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run962b-eastindies-indian-diff2-24k-trace.txt`, 13,478,967 bytes,
+SHA-256 `b4fd41db0358d26b56fb22af8c348ce65c030ec0fbd34beabb30643991124fb9`.
+
+Archive `rontrace-run962b.log`, 115,270,880 bytes,
+SHA-256 `0a9aa5cb1a16b9fa421f4805de17e55bcac68ae70e7840a88c7be52cc216b7d4`.
+
+**What it holds**: `BATTERY`'s `EastIndiesIndianTier2` long. First try **221 / 221**: ours 5 draws, theirs 17, at 0
+ours `Farms::inc_time+0x1ae`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+
+## run963 — the battery word: East Indies, Dutch, the word 1567's widening (1561..1818) (2026-10-19, item 3329, `att-3329`)
+
+`docs/AI.md` §267. **What the disk could not answer**: run915 dumps blocks 0..36 and run917 only its setup and closing
+blocks; no dump held the word 1567's block. `--map 18 --end-frame 1822 --timeout 2400 --log-window 1561 1818 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 22 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1, launched 04:45:04 and exited 05:03:30. `success`, seed 12345. `rngcmp.py rontrace-run917.log
+  rontrace-run963.log`: **1823 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run963-eastindies-dutch-diff4-window-1561-1818-guys4.txt`, 500,650,850 bytes,
+SHA-256 `b4c59266c79c8a380a1129df2dd24e708fb7de2c9df5cf22f4882b65e4823e72`.
+
+Archive `rontrace-run963.log`, 16,567,904 bytes,
+SHA-256 `4a645a6bd8f0514607e1f58cc8e692a31b93298a6124c207bedfc6a1597578fa`.
+
+**What it holds**: `diff::dutch_word::run963_s_word_frame_is_widened_whole` (257 blocks): 531 keys on the first
+build, 239 with the Dutch merchant's arm, **38** with the unit pieces keyed without case (the standing set and two
+late rows).
+
+## run963b — the battery word: East Indies, Dutch, the word 5583's widening (5577..5834) (2026-10-19, item 3329, `att-3329`)
+
+`docs/AI.md` §267. **What the disk could not answer**: the caravan's pieces moved the word to 5583, past run963's last
+block 1817. run963's `--detail`, tribe, cover and profile, with `--end-frame 5838 --timeout 5400 --log-window 5577
+5834`.
+- Pool lane 2, launched 05:13:03 and exited 05:29:32 (989 s). `success`, 5839 frames. `rngcmp.py
+  rontrace-run917.log rontrace-run963b.log`: **5839 identical**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run963b-eastindies-dutch-diff4-window-5577-5834-guys4.txt`, 529,577,301 bytes,
+SHA-256 `5d8de827d4ab561df8f43e5964ddb931c52ea22f70faa16e439d55e4c0143048`.
+
+Archive `rontrace-run963b.log`, 41,624,320 bytes,
+SHA-256 `4ad0c2d5f75eab54341d2be1891d3af52d9f547c54340bac0c4b73f0e2a6357b`.
+
+**What it holds**: `diff::dutch_word::run963b_s_word_frame_is_widened_whole` (257 blocks): 674 keys at first, 662
+with the Dutch hit-point term, 233 with the Dutch interest (the word then 5782, inside the window), **63** with the
+Dutch ship discount (the standing set).

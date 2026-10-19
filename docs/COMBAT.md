@@ -272,7 +272,11 @@ owner has the `CARAVAN_ATTACK_BONUS` tech has its attack **replaced** by
 `constants.caravan_attack_bonus` (itself loaded ×10). Then the Dutch: a
 unit that is a merchant, Dutch merchant, fur trapper, caravan or supply
 unit, and not a patriot, gets `+ ages × dutch_attack_bonus × 10`, where `ages`
-is the owner's age count.
+is the owner's age count. **Built, item 3329** (`Sim::dutch_ages`,
+`fight.rs`'s `dutch_term`, inside the base, before `UnitData::attack`'s zero
+test — so a Dutch merchant past the first age is a combatant). Test
+`merchant::tests::a_dutch_merchant_gains_hits_attack_and_armour_by_age`; not
+diff-backed: no dump prints an attack, and the word did not move on it.
 
 `UnitData::attack` — if the base is zero, zero, full stop (nothing below
 turns a non-combatant into one). Otherwise `+ terra_cotta_attack × 10` with
@@ -294,7 +298,9 @@ Antipater inside.
 ### 4.2 `armor()`
 
 `ObjectData::armor` — `type.armor`, plus the Dutch `ages × dutch_attack_bonus`
-on the same unit kinds (the patriot exclusion only from patch version 9).
+on the same unit kinds (the patriot exclusion only from patch version 9;
+the shipped build is past it). **Built, item 3329**, the same test; not
+diff-backed.
 
 **A building's is `WallData::armor@0063fa60`** (vslot `+0x124`, read off
 the PE at `Build::vftable + 0x124`; `get_damage` reads the target's
@@ -328,10 +334,13 @@ The squad's hit points: `type.hits` (for citizens, the age-variant type's),
 `+ americans_marine_hp_bonus` (entrenched marines), `× (copper_factory_hp +
 100) / 100` (ships and factory units with Copper), `× (bananas_hp_bonus +
 100) / 100`, `× (iroquois_extra_hits + 100) / 100` (Iroquois barracks
-units), `+ ages × dutch_hp_bonus` (the Dutch kinds), spies' `spy_upgrade_hp[
+units), `+ ages × dutch_hp_bonus` (the Dutch kinds; **carried, item 3329**,
+diff-backed: run963b's Dutch merchants `1/1`, `1/2` and caravan `1/14` are
+`myhits` 135 on a type of 125 in the Classical age, ours 125 before it, `docs/AI.md`
+§267), spies' `spy_upgrade_hp[
 level]`, heroes `+ lvl² × hits / 2`, `× (nubian_hit_points + 100) / 100` for
-~~caravans~~ the three merchant ids and caravans (`0060ec72`; **the one term
-this crate carries**, `Sim::unit_hits`, item 1268: run492's Nubian Merchant
+~~caravans~~ the three merchant ids and caravans (`0060ec72`; ~~**the one term
+this crate carries**~~ carried beside the Iroquois and Dutch terms, `Sim::unit_hits`, item 1268: run492's Nubian Merchant
 is 135 on a type of 90, `docs/GOLDEN.md` §54), `+ supply_hp_upgrade[level]`
 for supply. The result is written to
 `myhits` on the captain and **every figure down the chain**. What one figure
