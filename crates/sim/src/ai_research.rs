@@ -668,7 +668,6 @@ impl Sim {
                         }
                     }
                     let d = self.tech[w].epoch[3] - self.tech_tree.types[t].age;
-                    if std::env::var("RON_PROBE_TV").is_ok() && self.tech_tree.types[t].name == "Metal Alloys" && self.frame > 14000 { eprintln!("TVC {} g={:?} econ={:?} epoch={:?} age={} d={}", self.frame, self.gather_line_good(t), self.ai[w].econ, self.tech[w].epoch, self.tech_tree.types[t].age, d); }
                     if d > 0 {
                         val = mul(mul(val, d + 1), d);
                     }
