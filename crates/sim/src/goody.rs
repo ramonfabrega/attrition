@@ -195,23 +195,6 @@ impl Sim {
                 continue;
             }
             let d = self.world.cell_data(c);
-            if std::env::var("RON_PROBE_GOODY").is_ok() && d.flags & GOODY != 0 {
-                let (x, y) = (2 * c.x, 2 * c.y);
-                eprintln!(
-                    "PROBE goody f{} u{} here {:?} cell {:?} reg {:?}/{:?} owner {:?} bonus9 {} was_seen {} really {} is_seen {}",
-                    self.frame,
-                    u,
-                    here,
-                    c,
-                    self.world.region_of(c),
-                    region,
-                    self.world.owner(c),
-                    self.tech_tree.has_tribe_bonus(&self.setup, &self.tech[who as usize], 9),
-                    self.goody_was_seen(c, who),
-                    self.was_really_seen_fog(x + 1, y + 1, who),
-                    self.world_is_seen_fog(x + 1, y + 1, who)
-                );
-            }
             if d.flags & GOODY == 0 {
                 continue;
             }

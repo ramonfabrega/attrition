@@ -879,22 +879,6 @@ impl Sim {
     /// the daemon's pace, 256 cells a frame ([`crate::border_pass`], item
     /// 1106); [`Sim::settle_borders`] is setup's wholesale pass.
     pub fn sync_territory(&mut self) {
-        if std::env::var("RON_PROBE_GOODY").is_ok() && (300..=576).contains(&self.frame) {
-            eprintln!(
-                "PROBE sync f{} borders1 {:?} -> {:?} epochs {:?} bt {}",
-                self.frame,
-                self.borders.get(1),
-                self.player_borders(1),
-                self.tech[1].epoch,
-                std::backtrace::Backtrace::force_capture()
-                    .to_string()
-                    .lines()
-                    .filter(|l| l.contains("sim::"))
-                    .take(6)
-                    .collect::<Vec<_>>()
-                    .join(" | ")
-            );
-        }
         self.fix_borders();
         let before = self.world.owners();
         // `World::compute_reg_territory` rebuilds its whole per-player table
