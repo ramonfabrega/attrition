@@ -158,7 +158,8 @@ fn run970_s_word_frame_is_widened_whole() {
 /// run970b: the word 1177's window, blocks 1171..1428 at run970's detail
 /// (item 3335); run970 ends on block 472 and run962b dumps its setup and
 /// closing blocks only.
-pub(crate) const RUN970B: &str = "gamelog-run970b-eastindies-indian-diff2-window-1171-1428-guys4.txt";
+pub(crate) const RUN970B: &str =
+    "gamelog-run970b-eastindies-indian-diff2-window-1171-1428-guys4.txt";
 
 /// The window: block 1171 through 1428; the word 1177's own block is 1178.
 pub(crate) const WIDENING_INDIAN_FRAME_1177: (i64, i64) = (1171, 1428);
@@ -215,7 +216,8 @@ fn run970b_s_word_frame_is_widened_whole() {
 
 /// run970c: the word 9985's window, blocks 9979..10236 at run970's detail
 /// (item 3335); run970b ends on block 1428.
-pub(crate) const RUN970C: &str = "gamelog-run970c-eastindies-indian-diff2-window-9979-10236-guys4.txt";
+pub(crate) const RUN970C: &str =
+    "gamelog-run970c-eastindies-indian-diff2-window-9979-10236-guys4.txt";
 
 /// The window: block 9979 through 10236; the word 9985's own block is 9986.
 pub(crate) const WIDENING_INDIAN_FRAME_9985: (i64, i64) = (9979, 10236);
@@ -326,7 +328,8 @@ fn run970d_s_gap_is_widened_whole() {
 
 /// run970e: the word 14594's window, blocks 14588..14845 at run970's
 /// detail (item 3335); run970c ends on block 10236.
-pub(crate) const RUN970E: &str = "gamelog-run970e-eastindies-indian-diff2-window-14588-14845-guys4.txt";
+pub(crate) const RUN970E: &str =
+    "gamelog-run970e-eastindies-indian-diff2-window-14588-14845-guys4.txt";
 
 /// The window: block 14588 through 14845; the word 14594's own block is
 /// 14595.
@@ -352,7 +355,7 @@ fn run970e_s_word_frame_is_widened_whole() {
     let Some(w) = indian_frame_14594_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 257, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -365,5 +368,19 @@ fn run970e_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3335: 1125 keys part on blocks 14588..14845, the word's own
+    // block being 14595: 54 on 14588, the control's set and the newborns'
+    // `g.angle[0]`. The first that is not: block 14594, who=1's citizen
+    // `1/77` holds one order in ours and none in theirs (`orders.len`
+    // 1/0). It finished the Dock `1/2030` (TI 432) on frame 14593 (theirs'
+    // `job_counter` 37700 → 0, `flags` 3 → 7, on both sides), and
+    // `build_done`'s AI arm (`unit_masks` 0x840408 holds 0x40000) sent
+    // ours to gather at the Woodcutter's Camp `1/2026` — 2 of 4, 3097
+    // away, timber headroom 832 — where theirs' found no spot, left it
+    // idle, and on 14595 the AI walks it to (21912, 32664). The leader's
+    // caps and incomes, the camp's gatherers and the unit's masks agree;
+    // which of `find_gather_spot`'s inputs answers otherwise in theirs
+    // (the builder's `find_city_at` beside the city test, most likely) is
+    // a reading inside the decision, booked as the next step.
+    pin_eq!(w.firsts.len(), 1125, "keys that part in the window");
 }

@@ -1225,7 +1225,10 @@ fn a_closed_building_s_number_is_held_thirty_frames() {
     }
     assert_eq!(sim.buildings[b].hold_frames, 0, "one off a frame");
     let b3 = sim.place_building(0, t.barracks, tile_pos(40, 46)).unwrap();
-    assert_eq!(sim.buildings[b3].index, sim.buildings[b].index, "and then it is");
+    assert_eq!(
+        sim.buildings[b3].index, sim.buildings[b].index,
+        "and then it is"
+    );
 }
 
 #[test]

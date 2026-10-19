@@ -1883,7 +1883,10 @@ mod tests {
             indian_elephant: T.indians_elephant_cost,
             ..Modifiers::default()
         };
-        assert_eq!(cost_of(&T, &c, Resource::Food, owned(10), &m), 85 * 60 / 100);
+        assert_eq!(
+            cost_of(&T, &c, Resource::Food, owned(10), &m),
+            85 * 60 / 100
+        );
         let elephant = |p: i32| (100 - T.indians_elephant_cost) * p / 100;
         assert_eq!((elephant(96), elephant(56)), (81, 47));
     }

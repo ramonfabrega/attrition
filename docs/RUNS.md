@@ -18916,3 +18916,23 @@ SHA-256 `7b5d668fbd61cb9d85ac6214305fa12a2e39791d2f18d97524d3ecb6f654fcfb`.
 
 **What it holds**: `diff::indian_word::run970d_s_gap_is_widened_whole` (267 blocks): 67 keys, the first not the
 standing set block 9589's War Elephant priced without the Indian elephant arm; **62** with it.
+
+## run970e — the AI word: East Indies, Indians at difficulty 2, the word 14594's widening (14588..14845) (2026-10-19, item 3335, `att-3335`)
+
+`docs/AI.md` §271. **What the disk could not answer**: the elephant arm and the Stable's group moved the word to 14594,
+past run970c's last block 10236. run970's `--detail`, tribe, cover and profile, with `--end-frame 14850 --timeout 5400
+--log-window 14588 14845`.
+- Pool lane 1, launched 11:17:18 and exited 11:37:26 (1207 s). `success`, 14851 frames. `rngcmp.py
+  rontrace-run962b.log rontrace-run970e.log`: **14851 identical, 0 differing**. Filed with `filerun.py run970e
+  eastindies-indian-diff2-window-14588-14845-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run970e-eastindies-indian-diff2-window-14588-14845-guys4.txt`, 589,830,780 bytes,
+SHA-256 `7c43921a093449dfbb3beffa4e8979c100913958e10782e4dc7349fa2b124a77`.
+
+Archive `rontrace-run970e.log`, 66,279,424 bytes,
+SHA-256 `a265876a753e68df232d6e6e1ce9109ece1afb3ad24990372881a0b7fa207bcf`.
+
+**What it holds**: `diff::indian_word::run970e_s_word_frame_is_widened_whole` (257 blocks, 1125 keys): block 14594's
+builder `1/77` sent to gather by ours after the Dock `1/2030` and idle in theirs. Its window is in the coverage driver
+and the `WIDENINGS` row's.
