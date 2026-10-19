@@ -319,11 +319,18 @@ Three things there are worth naming.
   811 and 825, and 825 is the next fifteenth frame.
 
   **SEAM.** This crate chains no items (`docs/QUEUE.md` item 48), so it
-  cannot walk `find_goody_at` and cannot hold a per-item `ever_seen`. It
-  models `is_seen` as `was_really_seen` — the bare fog, `World::seen2`
+  cannot walk `find_goody_at`, ~~and cannot hold a per-item `ever_seen`.
+  It models `is_seen` as `was_really_seen` — the bare fog, `World::seen2`
   without the shortcut — over the same four half-cells, which is the same
   accumulation under a different name and at cell rather than item
-  resolution. Unmodelled with it: ~~the Spanish `has_tribe_bonus(9)` arm~~
+  resolution~~ — **the item's own `ever_seen` is held since item 3335**
+  (`docs/AI.md` §271) wherever a start prints its `ITEM` records: the
+  boxes are loaded from the dump (`Sim::add_goody_item`), and only
+  `reveal_fog`'s goody arm (`006b4078`..`006b414e`) ORs the finder's bit
+  in. It is *not* the fog's accumulation: a building's `set_seen2` lights
+  the cells and never the item, and run962's box at (45, 49) reads
+  `ever_seen` 0 under `seen2` 2 on every block to 36. A sim whose boxes
+  were not loaded keeps the four-half-cell fog read. Unmodelled with it: ~~the Spanish `has_tribe_bonus(9)` arm~~
   — **carried since item 3318** (`docs/AI.md` §264): after the
   `ever_seen` read, a Spanish leader whose own cell (`WData +0xf`) the box
   is on answers `WorldData::was_seen` at the item's half-cell and returns
@@ -397,6 +404,7 @@ target, over four legs, and it agrees too.
 | `is_captain` (`o_up < 0`) | reading; no capture has a figure under a captain walking an explore |
 | `think_scout`'s head call | reading — every capture reaches it and none accepts there; by the time a scout is idle beside a box the box is taken |
 | The region compare, read raw | reading |
-| `find_goody_at`'s chain walk and `ever_seen` itself | read, **not modelled** — §7.2's seam |
+| `find_goody_at`'s chain walk | read, **not modelled** — §7.2's seam |
+| `ever_seen` is the item's own byte, written by `reveal_fog`'s goody arm alone | diff — run970's scout `1/0` sweeps the box at (45, 49) on 180 with the fog read and walks on with the item's (`docs/AI.md` §271) |
 | `is_seen`'s fall-through to `WorldData::is_seen`, its territory arm | diff — the coverage pair's scout re-aims on 1200 (run678 block 1201) only with it; run682's packet (`docs/AI.md` §153) |
 | `reveal_fog`'s third call site | read, **not modelled** — nothing sets `unit_masks & 0x100` |

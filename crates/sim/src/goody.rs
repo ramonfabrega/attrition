@@ -330,8 +330,10 @@ impl Sim {
     /// box's cell that frame, `docs/AI.md` §264).
     ///
     /// SEAM: the whole chain walk that finds the item in the first place
-    /// (`docs/QUEUE.md` item 48). A box on a cell nothing has ever seen and
-    /// nobody's ground answers no here either way.
+    /// (`docs/QUEUE.md` item 48); the items are loaded from a start dump,
+    /// and a sim without them reads the fog in the item's place. A box on
+    /// a cell nothing has ever seen and nobody's ground answers no here
+    /// either way.
     fn goody_item_is_seen(&self, c: Cell, who: Player) -> bool {
         let (x, y) = (2 * c.x, 2 * c.y);
         // The item's own byte when the boxes are loaded (item 3335): the

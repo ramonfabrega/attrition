@@ -489,7 +489,7 @@ shape carries no information and the predicates do:
   Americans on aircraft and upgrades, the British on anti-air, the Nubians on
   merchants, the Russians on spies, the Romans on legions and forts, the Turks
   on citizens, the Koreans on towers, the Iroquois on senates, the Indians on
-  elephants, the Greeks on ages, epochs and the Library line (built, item 3326; see "The Greeks pay less for learning"), the Dutch on ship **upgrades** (military-role upgrade prices only; the file's "10% cheaper ships" is not a production discount, A1 row 51), the Bantu on cities, the Egyptians on wonders
+  elephants (and on their buildings' ramp, built, item 3335; see "An Indian building does not ramp"), the Greeks on ages, epochs and the Library line (built, item 3326; see "The Greeks pay less for learning"), the Dutch on ship **upgrades** (military-role upgrade prices only; the file's "10% cheaper ships" is not a production discount, A1 row 51), the Bantu on cities, the Egyptians on wonders
   and on scholars — where the Egyptian bonus does not discount at all but
   *swaps the resource index*, charging food where the file wrote wealth
   (**inert as shipped**: `EGYPTIAN_SCHOLARS_FOOD` is 0, A1 row 72).
@@ -1181,6 +1181,27 @@ epoch only) is in `docs/NATIONS.md` §3.
 constants `get_cost` reads, ship as 0 and are not carried.
 
 ---
+
+## An Indian building does not ramp
+
+*Item 3335, 2026-10-19. Read from `TypeData::get_cost@00664090:843`–`876`
+(listing `00665b0a`..`00665c1f`); built as `cost::Modifiers::indian_ramp`
+(set by `city.rs`'s `Sim::indian_ramp`). `docs/AI.md` §271.*
+
+In the building arm's per-good loop, after `BUILD_SUPPORT_FACTOR`, a leader
+with `has_tribe_bonus(0x15)` (the Indians) and a type that is not a city
+(vslot `+100`) has each good's support term — the count times `SUPPORT` —
+**zeroed**, or **halved rounding up**, `(term + 1) / 2`, for a wonder
+(`is_wonder_type` and `0x20e ≤ t ≤ 0x21e`) or a defence (`0x1b7`..`0x1be`,
+`0x209`..`0x20d`, by equality). The base stands. So an Indian Farm costs its
+base however many Farms stand, and an Indian Tower half the ramp.
+
+**How confident**: read, and diff-backed: run970's block 37, who=1's
+`bucket` timber 29 ours against 41, standing the whole window — the Farm
+`1/2006` placed on frame 0 charged 52 (40 plus three Farms' 4 each) where
+theirs paid 40. With the arm the row closes and the word moved 1176 → 1177
+(`rondata::diff::indian_word`). The halved arm — a wonder's, a defence's —
+is the listing's alone: no window prices an Indian wonder or tower.
 
 ## What is diff-backed
 
