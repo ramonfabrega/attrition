@@ -140,6 +140,30 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 776,
         sequence: 776,
     },
+    // The lobby minted by item 3342 (DECISIONS 72, 83, `docs/AI.md` §125,
+    // §275; runs 975 and 975b) when the Russians left for the AI word, so
+    // the held-out set stays eight: Great Lakes, the Lakota at Difficulty 2.
+    // With item 3338's Bantu every nation is in some dump, so "a nation no
+    // dump holds" had no answer: the Lakota were held only by the East
+    // Indies peace pair (a closed pair on another map), reach 17 census
+    // functions, and Difficulty 2 is the tier the map's battery lacks once
+    // the Russians leave. The game ends itself on 7902.
+    Lobby {
+        name: "GreatLakesLakotaTier2",
+        map_style: 14,
+        ai_tribe: 19,
+        difficulty: 2,
+        start: "gamelog-run975-greatlakes-lakota-diff2-start.txt",
+        long: (
+            "gamelog-run975b-greatlakes-lakota-diff2-24k-trace.txt",
+            "rontrace-run975b.log",
+        ),
+        length: 7902,
+        // Item 3342, the first try: ours 2 draws, theirs 3, at 0 ours
+        // `Ammo::init+0xcd9`, theirs `Unit::do_move+0xe84`.
+        count: 6071,
+        sequence: 6071,
+    },
     // The fourth lobby (item 2904, DECISIONS 72), minted when the first
     // left for the AI word so three stay held out: Great Lakes, the Chinese
     // at Difficulty 1 — a nation and a difficulty no scored or battery
