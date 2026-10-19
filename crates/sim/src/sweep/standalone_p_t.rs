@@ -206,6 +206,8 @@ mod spell_type_cast_rally;
 mod spell_type_cast_research_project;
 #[path = "spell_type_cast_supplies.rs"]
 mod spell_type_cast_supplies;
+#[path = "spell_type_cast_transport.rs"]
+mod spell_type_cast_transport;
 #[path = "spell_type_cast_unlock_gate.rs"]
 mod spell_type_cast_unlock_gate;
 #[path = "spell_type_pay_cast_costs.rs"]
@@ -290,6 +292,8 @@ mod tcoord_less;
 mod tech_type_add_preq_ai;
 #[path = "tech_type_backup.rs"]
 mod tech_type_backup;
+#[path = "tech_type_compute_ai_values.rs"]
+mod tech_type_compute_ai_values;
 #[path = "tech_type_is_ultimate_preq.rs"]
 mod tech_type_is_ultimate_preq;
 #[path = "tech_type_restore.rs"]

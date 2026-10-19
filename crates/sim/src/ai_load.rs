@@ -388,6 +388,256 @@ pub fn spread_casters(
     }
 }
 
+/// A class of type that depends on a tech: the six `compute_ai_values` loops
+/// ask in this order, one `find_preq` an element.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Class {
+    Unit,
+    Build,
+    Tech,
+    Good,
+    Spell,
+    Bonus,
+}
+
+/// The type ids `compute_ai_values` names. A building is asked `is(root)`;
+/// the tech's own `WHERE` is compared with [`Root::Temple`] and
+/// [`Root::Fort`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Root {
+    Village = 0x19e,
+    Granary = 0x1a7,
+    Lumbermill = 0x1a8,
+    Smelter = 0x1a9,
+    Refinery = 0x1aa,
+    Dock = 0x1b0,
+    Temple = 0x1b5,
+    Tower = 0x1b7,
+    Fort = 0x1bb,
+    Airbase = 0x1bf,
+}
+
+/// What `TechType::compute_ai_values@0066cdc0` reads, per tech (`this`). The
+/// original computes one tech's eleven words by asking every unit, building,
+/// tech, good, spell and bonus whether it names the tech; a building is
+/// addressed by its position in the building table, a unit by its position
+/// in the non-gaia units.
+pub trait AiValuesView {
+    /// How many of a class the loop walks.
+    fn count(&self, c: Class) -> usize;
+    /// `find_preq(this.id)` on element `i` of the class.
+    fn depends(&mut self, c: Class, i: usize) -> bool;
+    /// `this.ai[w] += amt`, a 16-bit wrapping add.
+    fn add(&mut self, w: usize, amt: i32);
+    /// `add_preq_ai(this, idx, amt, depth)`.
+    fn add_preq_ai(&mut self, idx: usize, amt: i32, depth: i32);
+    /// `this` is an epoch tech.
+    fn self_is_epoch(&mut self) -> bool;
+    /// `this.line` (`+0x14`): 0 military, 1 civic, 2 commerce, 3 science.
+    fn self_line(&self) -> i32;
+    /// `this.where == root`.
+    fn self_where_is(&self, r: Root) -> bool;
+    /// `UnitTypeData+0x2c8`.
+    fn unit_role(&self, u: usize) -> u32;
+    /// `UnitTypeData+0x218`: 0 land, 1 sea, else air.
+    fn unit_domain(&self, u: usize) -> i32;
+    /// `UnitTypeData+0x2d4 != 0`.
+    fn unit_carry(&self, u: usize) -> bool;
+    /// `UnitTypeData+0x40 == building b`.
+    fn unit_trained_at(&self, u: usize, b: usize) -> bool;
+    /// `building.is(root)`.
+    fn build_is(&mut self, b: usize, r: Root) -> bool;
+    /// The loop's own id is `TOWN` (0x19f).
+    fn build_is_town(&self, b: usize) -> bool;
+    /// The loop's own id is one of the four gather enhancers.
+    fn build_is_enhancer(&self, b: usize) -> bool;
+    /// `building.from < 0`.
+    fn build_from_root(&self, b: usize) -> bool;
+    /// The gatherer flag (`+0x2c0 & 0x40`).
+    fn build_gather(&mut self, b: usize) -> bool;
+    /// `+0x2c0 & 0x8000000`.
+    fn build_research_here(&self, b: usize) -> bool;
+    /// `+0x1e8 != 0`.
+    fn build_attack(&self, b: usize) -> bool;
+    /// `+0x2c0 < 0`.
+    fn build_trains(&self, b: usize) -> bool;
+    /// `BuildTypeData::fundamental_type` of `b`, or `b` itself when it has no `FROM`.
+    fn fundamental(&mut self, b: usize) -> usize;
+    /// `BuildTypeData::basic_type` of `f`.
+    fn basic(&mut self, f: usize) -> usize;
+    /// `is_epoch_type` of tech `i`.
+    fn tech_is_epoch(&mut self, i: usize) -> bool;
+    /// `is_age_type` of tech `i`.
+    fn tech_is_age(&mut self, i: usize) -> bool;
+    /// The type id of good `i`.
+    fn good_id(&self, i: usize) -> usize;
+}
+
+/// `TechType::compute_ai_values@0066cdc0` for one tech: the original's body,
+/// over a view of what it reads.
+pub fn compute_ai_values_steps<V: AiValuesView>(v: &mut V) {
+    // Every tech scores itself: an epoch by its line, anything else by the
+    // building it is researched at. The Fort's arm falls through into the
+    // military weight — see `docs/DATALAYER.md`.
+    if v.self_is_epoch() {
+        match v.self_line() {
+            3 => {
+                v.add(4, 1);
+                v.add(10, 1);
+            }
+            1 => v.add(5, 1),
+            2 => v.add(1, 1),
+            0 => v.add(0, 1),
+            _ => {}
+        }
+    } else if v.self_where_is(Root::Temple) {
+        v.add(5, 2);
+    } else if v.self_where_is(Root::Fort) {
+        v.add(5, 1);
+        v.add(0, 1);
+    }
+
+    for u in 0..v.count(Class::Unit) {
+        if !v.depends(Class::Unit, u) {
+            continue;
+        }
+        let r = v.unit_role(u);
+        if r & role::MILITARY != 0 {
+            v.add(0, 1);
+        }
+        if r & role::CITIZEN != 0 {
+            v.add(1, 1);
+            v.add(9, 1);
+        }
+        match v.unit_domain(u) {
+            0 => {
+                if r & role::MILITARY != 0 {
+                    v.add(8, 1);
+                }
+            }
+            d => {
+                if v.unit_carry(u) {
+                    v.add(3, 1);
+                }
+                if d == 1 {
+                    v.add(2, 1);
+                } else {
+                    v.add(6, 1);
+                }
+            }
+        }
+    }
+
+    for b in 0..v.count(Class::Build) {
+        if !v.depends(Class::Build, b) {
+            continue;
+        }
+        let root = v.build_from_root(b);
+        let s = if root { 2 } else { 1 };
+        if v.build_is(b, Root::Village) {
+            v.add(1, 1);
+            if v.build_is_town(b) {
+                v.add(5, 1);
+                v.add(1, 1);
+                v.add_preq_ai(1, 1, 0);
+            }
+        }
+        if root {
+            if v.build_gather(b) {
+                v.add(1, 2 * s);
+                v.add(9, 2 * s);
+            }
+            if v.build_research_here(b) {
+                v.add(1, 2 * s);
+                v.add(4, 2 * s);
+                if v.build_is_enhancer(b) {
+                    v.add(9, 2 * s);
+                }
+            }
+            if v.build_is(b, Root::Dock) {
+                v.add(2, 1);
+                v.add_preq_ai(2, 1, -1);
+            }
+        }
+        if v.build_is(b, Root::Dock) {
+            v.add(2, 1);
+            v.add_preq_ai(2, 1, 2);
+        }
+        let f = v.fundamental(b);
+        if v.build_gather(f) {
+            v.add(1, s);
+            v.add(9, s);
+        } else if v.build_research_here(f) {
+            v.add(1, s);
+            v.add(4, s);
+        } else if v.build_is(f, Root::Tower)
+            || v.build_is(f, Root::Fort)
+            || v.build_is(f, Root::Airbase)
+            || v.build_attack(f)
+        {
+            v.add(0, s);
+        } else if v.build_is(f, Root::Granary)
+            || v.build_is(f, Root::Lumbermill)
+            || v.build_is(f, Root::Smelter)
+            || v.build_is(f, Root::Refinery)
+        {
+            v.add(1, 8);
+            v.add(9, 8);
+        }
+        let basic = v.basic(f);
+        if v.build_trains(basic) {
+            for u in 0..v.count(Class::Unit) {
+                if !v.unit_trained_at(u, b) {
+                    continue;
+                }
+                if v.unit_role(u) & role::MILITARY_OR_CARRY == 0 {
+                    v.add(1, 1);
+                } else {
+                    v.add(0, s);
+                }
+            }
+        }
+    }
+
+    for i in 0..v.count(Class::Tech) {
+        if !v.depends(Class::Tech, i) {
+            continue;
+        }
+        v.add(4, 1);
+        if v.tech_is_epoch(i) {
+            v.add(4, 1);
+            v.add(0, 1);
+        }
+        if v.tech_is_age(i) {
+            v.add(4, 2);
+            v.add(0, 2);
+        }
+    }
+    for i in 0..v.count(Class::Good) {
+        if !v.depends(Class::Good, i) {
+            continue;
+        }
+        let s = if v.good_id(i) < 6 { 4 } else { 1 };
+        v.add(9, s);
+        v.add(1, s);
+    }
+    for i in 0..v.count(Class::Spell) {
+        if v.depends(Class::Spell, i) {
+            v.add(0, 4);
+            v.add(1, 2);
+        }
+    }
+    for i in 0..v.count(Class::Bonus) {
+        if v.depends(Class::Bonus, i) {
+            if i == 0 {
+                v.add(1, 1);
+            }
+            v.add(1, 1);
+            v.add(4, 2);
+        }
+    }
+}
+
 /// How many weights a tech carries — `TechType::ai[11]`.
 pub const AI_WEIGHTS: usize = 11;
 
@@ -397,16 +647,170 @@ pub const AI_WEIGHTS: usize = 11;
 /// them.
 pub type ExtraPreq = [Preq; 3];
 
+/// `Type::find_preq`: the distinct techs a type names in its first `num`
+/// prerequisite slots.
+fn preqs_of(tree: &TechTree, setup: &Setup, t: TypeId, num: usize) -> Vec<TypeId> {
+    let mut v: Vec<TypeId> = Vec::with_capacity(num);
+    for i in 0..num {
+        if let Preq::Of(p) = tree.get_preq(setup, None, t, i)
+            && tree.types[p].kind.is_tech()
+            && !v.contains(&p)
+        {
+            v.push(p);
+        }
+    }
+    v
+}
+
+/// The simulation's tables, read by [`compute_ai_values_steps`] one tech at a
+/// time.
+struct TreeView<'a> {
+    tree: &'a TechTree,
+    units: &'a [&'a UnitType],
+    builds: &'a [BuildType],
+    /// The techs each element names, by [`Class`].
+    deps: &'a [Vec<Vec<TypeId>>; 6],
+    techs: &'a [TypeId],
+    goods: &'a [TypeId],
+    /// The tech being computed.
+    t: TypeId,
+    out: [i32; AI_WEIGHTS],
+    queued: Vec<(usize, i32, i32)>,
+}
+
+impl TreeView<'_> {
+    fn is_root(&self, b: usize, root: Option<TypeId>) -> bool {
+        match (self.builds[b].tree, root) {
+            (Some(id), Some(r)) => self.tree.is(id, r, false),
+            _ => false,
+        }
+    }
+}
+
+impl AiValuesView for TreeView<'_> {
+    fn count(&self, c: Class) -> usize {
+        match c {
+            Class::Unit => self.units.len(),
+            Class::Build => self.builds.len(),
+            _ => self.deps[c as usize].len(),
+        }
+    }
+    fn depends(&mut self, c: Class, i: usize) -> bool {
+        self.deps[c as usize][i].contains(&self.t)
+    }
+    fn add(&mut self, w: usize, amt: i32) {
+        self.out[w] += amt;
+    }
+    fn add_preq_ai(&mut self, idx: usize, amt: i32, depth: i32) {
+        self.queued.push((idx, amt, depth));
+    }
+    fn self_is_epoch(&mut self) -> bool {
+        matches!(self.tree.types[self.t].kind, Kind::Epoch { .. })
+    }
+    fn self_line(&self) -> i32 {
+        match self.tree.types[self.t].kind {
+            Kind::Epoch { line, .. } => line.index() as i32,
+            _ => -1,
+        }
+    }
+    fn self_where_is(&self, r: Root) -> bool {
+        let def = &self.tree.types[self.t];
+        if !def.kind.is_tech() || def.where_.is_none() {
+            return false;
+        }
+        match r {
+            Root::Temple => def.where_ == self.tree.roles.temple,
+            Root::Fort => def.where_ == self.tree.roles.fortx,
+            _ => false,
+        }
+    }
+    fn unit_role(&self, u: usize) -> u32 {
+        self.units[u].cols.role
+    }
+    fn unit_domain(&self, u: usize) -> i32 {
+        match self.units[u].combat.domain {
+            Domain::Land => 0,
+            Domain::Sea => 1,
+            _ => 2,
+        }
+    }
+    fn unit_carry(&self, u: usize) -> bool {
+        self.units[u].cols.carry != 0
+    }
+    fn unit_trained_at(&self, u: usize, b: usize) -> bool {
+        self.units[u].garrison.trained_at == Some(b)
+    }
+    fn build_is(&mut self, b: usize, r: Root) -> bool {
+        use crate::build::Ident;
+        let roles = &self.tree.roles;
+        match r {
+            Root::Village => self.is_root(b, roles.village),
+            Root::Dock => self.is_root(b, roles.dock),
+            Root::Tower => self.is_root(b, roles.tower),
+            Root::Fort => self.is_root(b, roles.fortx),
+            Root::Airbase => self.is_root(b, roles.airbase),
+            Root::Granary => self.builds[b].ident == Ident::Granary,
+            Root::Lumbermill => self.builds[b].ident == Ident::Lumbermill,
+            Root::Smelter => self.builds[b].ident == Ident::Smelter,
+            Root::Refinery => self.builds[b].ident == Ident::Refinery,
+            Root::Temple => false,
+        }
+    }
+    fn build_is_town(&self, b: usize) -> bool {
+        self.builds[b].ident == crate::build::Ident::Town
+    }
+    fn build_is_enhancer(&self, b: usize) -> bool {
+        enhancer(self.builds[b].ident)
+    }
+    fn build_from_root(&self, b: usize) -> bool {
+        self.builds[b].from.is_none()
+    }
+    fn build_gather(&mut self, b: usize) -> bool {
+        self.builds[b].has(crate::build::flags::GATHER)
+    }
+    fn build_research_here(&self, b: usize) -> bool {
+        self.builds[b].has(crate::build::flags::RESEARCH_HERE)
+    }
+    fn build_attack(&self, b: usize) -> bool {
+        self.builds[b].attack != 0
+    }
+    fn build_trains(&self, b: usize) -> bool {
+        self.builds[b].has(crate::build::flags::TRAINS)
+    }
+    fn fundamental(&mut self, b: usize) -> usize {
+        let mut cur = b;
+        for _ in 0..self.builds.len() {
+            match self.builds[cur].from {
+                Some(f) => cur = f,
+                None => break,
+            }
+        }
+        cur
+    }
+    fn basic(&mut self, f: usize) -> usize {
+        f
+    }
+    fn tech_is_epoch(&mut self, i: usize) -> bool {
+        matches!(self.tree.types[self.techs[i]].kind, Kind::Epoch { .. })
+    }
+    fn tech_is_age(&mut self, i: usize) -> bool {
+        matches!(self.tree.types[self.techs[i]].kind, Kind::Age(_))
+    }
+    fn good_id(&self, i: usize) -> usize {
+        self.goods[i]
+    }
+}
+
 /// `TechType::compute_ai_values@0066cdc0`, over every tech in the tree.
 ///
-/// Writes `TypeDef::ai` for every tech entry. The pass is one loop per class
-/// of dependant; it is written here as one loop over the *dependants*, which
-/// is the same arithmetic — every contribution is an unconditional `+=` on the
-/// tech's own array — at a fraction of the cost.
+/// Writes `TypeDef::ai` for every tech entry, by running
+/// [`compute_ai_values_steps`] on each; the view answers "does this
+/// dependant name the tech" from the preqs of each class, worked out once.
 ///
 /// `units` and `builds` are the simulation's type tables, whose `tree` links
 /// give each record its tree id; `spells` and `bonuses` are the two classes
-/// the tree does not hold.
+/// the tree does not hold. The twelve gaia types are outside the unit loop:
+/// the original's stops at `BASE_GAIATYPES`.
 pub fn compute_ai_values(
     tree: &mut TechTree,
     setup: &Setup,
@@ -419,209 +823,42 @@ pub fn compute_ai_values(
         d.ai = [0; AI_WEIGHTS];
     }
     let n = tree.types.len();
+    let units: Vec<&UnitType> = units.iter().filter(|u| !u.gaia).collect();
+    let techs: Vec<TypeId> = (0..n).filter(|&t| tree.types[t].kind.is_tech()).collect();
+    let goods: Vec<TypeId> = (0..n)
+        .filter(|&t| matches!(tree.types[t].kind, Kind::Good))
+        .collect();
+    let deps: [Vec<Vec<TypeId>>; 6] = [
+        units
+            .iter()
+            .map(|u| u.tree.map_or(Vec::new(), |id| preqs_of(tree, setup, id, 2)))
+            .collect(),
+        builds
+            .iter()
+            .map(|b| b.tree.map_or(Vec::new(), |id| preqs_of(tree, setup, id, 3)))
+            .collect(),
+        techs.iter().map(|&t| preqs_of(tree, setup, t, 3)).collect(),
+        goods.iter().map(|&t| preqs_of(tree, setup, t, 2)).collect(),
+        spells.iter().map(|pq| extra_preqs(tree, pq)).collect(),
+        bonuses.iter().map(|pq| extra_preqs(tree, pq)).collect(),
+    ];
     let mut ai = vec![[0i32; AI_WEIGHTS]; n];
-
-    // Every tech scores itself: an epoch by its line, anything else by the
-    // building it is researched at. The Fort's arm falls through into the
-    // military weight — see `docs/DATALAYER.md`.
-    for (t, a) in ai.iter_mut().enumerate() {
-        match tree.types[t].kind {
-            Kind::Epoch { line, .. } => match line {
-                crate::tech::Line::Science => {
-                    a[4] += 1;
-                    a[10] += 1;
-                }
-                crate::tech::Line::Civic => a[5] += 1,
-                crate::tech::Line::Commerce => a[1] += 1,
-                crate::tech::Line::Military => a[0] += 1,
-            },
-            k if k.is_tech() => {
-                let w = tree.types[t].where_;
-                if w.is_some() && w == tree.roles.temple {
-                    a[5] += 2;
-                } else if w.is_some() && w == tree.roles.fortx {
-                    a[5] += 1;
-                    a[0] += 1;
-                }
-            }
-            _ => {}
-        }
-    }
-
-    // `Type::find_preq`: the distinct techs this type names, at most three.
-    let preqs_of = |tree: &TechTree, t: TypeId, num: usize| -> Vec<TypeId> {
-        let mut v: Vec<TypeId> = Vec::with_capacity(num);
-        for i in 0..num {
-            if let Preq::Of(p) = tree.get_preq(setup, None, t, i)
-                && tree.types[p].kind.is_tech()
-                && !v.contains(&p)
-            {
-                v.push(p);
-            }
-        }
-        v
-    };
-
-    // Units, without the twelve gaia types: the original's loop stops at
-    // `BASE_GAIATYPES`.
-    for u in units.iter().filter(|u| !u.gaia) {
-        let Some(id) = u.tree else { continue };
-        let r = u.cols.role;
-        for t in preqs_of(tree, id, 2) {
-            let a = &mut ai[t];
-            if r & role::MILITARY != 0 {
-                a[0] += 1;
-            }
-            if r & role::CITIZEN != 0 {
-                a[1] += 1;
-                a[9] += 1;
-            }
-            match u.combat.domain {
-                Domain::Land => {
-                    if r & role::MILITARY != 0 {
-                        a[8] += 1;
-                    }
-                }
-                d => {
-                    if u.cols.carry != 0 {
-                        a[3] += 1;
-                    }
-                    if d == Domain::Sea {
-                        a[2] += 1;
-                    } else {
-                        a[6] += 1;
-                    }
-                }
-            }
-        }
-    }
-
-    // Buildings. `fundamental` is `from` walked to its root.
-    let fundamental = |b: usize| -> usize {
-        let mut cur = b;
-        for _ in 0..builds.len() {
-            match builds[cur].from {
-                Some(f) => cur = f,
-                None => break,
-            }
-        }
-        cur
-    };
-    let is_dock = |tree: &TechTree, b: usize| -> bool {
-        builds[b]
-            .tree
-            .is_some_and(|id| tree.roles.dock.is_some_and(|root| tree.is(id, root, false)))
-    };
     let mut queued: Vec<(TypeId, usize, i32, i32)> = Vec::new();
-    for (b, bt) in builds.iter().enumerate() {
-        let Some(id) = bt.tree else { continue };
-        let s = if bt.from.is_none() { 2 } else { 1 };
-        let village = bt.tree.is_some_and(|x| {
-            tree.roles
-                .village
-                .is_some_and(|root| tree.is(x, root, false))
-        });
-        let dock = is_dock(tree, b);
-        let f = fundamental(b);
-        let fb = &builds[f];
-        for t in preqs_of(tree, id, 3) {
-            let a = &mut ai[t];
-            if village {
-                a[1] += 1;
-                if bt.ident == crate::build::Ident::Town {
-                    a[5] += 1;
-                    a[1] += 1;
-                    queued.push((t, 1, 1, 0));
-                }
-            }
-            if bt.from.is_none() {
-                if bt.has(crate::build::flags::GATHER) {
-                    a[1] += 2 * s;
-                    a[9] += 2 * s;
-                }
-                if bt.has(crate::build::flags::RESEARCH_HERE) {
-                    a[1] += 2 * s;
-                    a[4] += 2 * s;
-                    if enhancer(bt.ident) {
-                        a[9] += 2 * s;
-                    }
-                }
-                if dock {
-                    a[2] += 1;
-                    queued.push((t, 2, 1, -1));
-                }
-            }
-            if dock {
-                a[2] += 1;
-                queued.push((t, 2, 1, 2));
-            }
-            if fb.has(crate::build::flags::GATHER) {
-                a[1] += s;
-                a[9] += s;
-            } else if fb.has(crate::build::flags::RESEARCH_HERE) {
-                a[1] += s;
-                a[4] += s;
-            } else if defensive(tree, builds, f) || fb.attack != 0 {
-                a[0] += s;
-            } else if enhancer(fb.ident) {
-                a[1] += 8;
-                a[9] += 8;
-            }
-            if fb.has(crate::build::flags::TRAINS) {
-                for u in units.iter().filter(|u| !u.gaia) {
-                    if u.garrison.trained_at != Some(b) {
-                        continue;
-                    }
-                    if u.cols.role & role::MILITARY_OR_CARRY == 0 {
-                        a[1] += 1;
-                    } else {
-                        a[0] += s;
-                    }
-                }
-            }
-        }
-    }
-
-    // Techs, goods, and the two classes the tree does not carry.
-    for t in 0..n {
-        let kind = tree.types[t].kind;
-        if !(kind.is_tech() || matches!(kind, Kind::Good)) {
-            continue;
-        }
-        let num = if matches!(kind, Kind::Good) { 2 } else { 3 };
-        for p in preqs_of(tree, t, num) {
-            let a = &mut ai[p];
-            if kind.is_tech() {
-                a[4] += 1;
-                if matches!(kind, Kind::Epoch { .. }) {
-                    a[4] += 1;
-                    a[0] += 1;
-                }
-                if matches!(kind, Kind::Age(_)) {
-                    a[4] += 2;
-                    a[0] += 2;
-                }
-            } else {
-                let s = if t < 6 { 4 } else { 1 };
-                a[9] += s;
-                a[1] += s;
-            }
-        }
-    }
-    for pq in spells {
-        for p in extra_preqs(tree, pq) {
-            ai[p][0] += 4;
-            ai[p][1] += 2;
-        }
-    }
-    for (i, pq) in bonuses.iter().enumerate() {
-        for p in extra_preqs(tree, pq) {
-            if i == 0 {
-                ai[p][1] += 1;
-            }
-            ai[p][1] += 1;
-            ai[p][4] += 2;
-        }
+    for &t in &techs {
+        let mut v = TreeView {
+            tree,
+            units: &units,
+            builds,
+            deps: &deps,
+            techs: &techs,
+            goods: &goods,
+            t,
+            out: [0; AI_WEIGHTS],
+            queued: Vec::new(),
+        };
+        compute_ai_values_steps(&mut v);
+        ai[t] = v.out;
+        queued.extend(v.queued.into_iter().map(|(i, a, d)| (t, i, a, d)));
     }
 
     // `add_preq_ai`, once the direct scores are in: it adds into the *computed
@@ -644,17 +881,6 @@ const fn enhancer(i: crate::build::Ident) -> bool {
             | crate::build::Ident::Smelter
             | crate::build::Ident::Refinery
     )
-}
-
-/// `is(TOWER) || is(FORTX) || is(AIRBASE)` on a building record.
-fn defensive(tree: &TechTree, builds: &[BuildType], b: usize) -> bool {
-    let Some(id) = builds[b].tree else {
-        return false;
-    };
-    [tree.roles.tower, tree.roles.fortx, tree.roles.airbase]
-        .into_iter()
-        .flatten()
-        .any(|root| tree.is(id, root, false))
 }
 
 /// The techs an [`ExtraPreq`] names.
