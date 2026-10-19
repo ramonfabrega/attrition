@@ -294,6 +294,8 @@ mod unit_think_carry;
 mod unit_think_hero;
 #[path = "unit_think_peasant.rs"]
 mod unit_think_peasant;
+#[path = "unit_think_spellcaster.rs"]
+mod unit_think_spellcaster;
 #[path = "unit_think_supply.rs"]
 mod unit_think_supply;
 #[path = "unit_type_backup.rs"]
