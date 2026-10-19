@@ -333,6 +333,13 @@ pub struct Unit {
     /// `ActiveSpell` its hero record keeps (`docs/AI.md` §99.13); one of
     /// the three bits that stop mana recovering.
     pub marching: Option<i64>,
+    /// **`unit_masks & 0x2000`** — a hero in an Ambush, set by
+    /// `SpellType::cast_ambush@00671610` (`|= 0x2800`) and held to the
+    /// craft's end frame, the `ActiveSpell` its hero record keeps, which
+    /// `Caster::process_spells@00739ad0` expires (`&= 0xffffd7ff`); the
+    /// third of the three bits that stop mana recovering (`docs/AI.md`
+    /// §261).
+    pub ambushing: Option<i64>,
     /// **`ObjectData::infiltrated` (`+0x3a`)** — the players who have an
     /// informer in this object, one bit per `who`: `cast_double_agent`
     /// sets the caster's (`docs/GOLDEN.md` §27).
@@ -975,6 +982,7 @@ impl Unit {
             head_serial: HeadSerial(0),
             casting: false,
             marching: None,
+            ambushing: None,
             infiltrated: 0,
             airframe: air::Airframe::default(),
             was_builder: false,

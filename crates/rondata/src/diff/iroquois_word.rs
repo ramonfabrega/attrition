@@ -1135,6 +1135,54 @@ fn run952_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 786, "initial run952 baseline");
 }
 
+/// **The Despot's Ambush holds its craft** (item 3297, `docs/AI.md`
+/// §261): `SpellType::cast_ambush@00671610` sets `unit_masks |= 0x2800`,
+/// and `Unit::process`'s caster arm takes no craft back while `0x2000`
+/// stands. The original's `1/46` (TI 352, The Despot) casts on the move on
+/// 10521 and its `mana_burn` reads 1000 on every block of run943
+/// (10689..10945, `unit_masks` `0x42008`) and 392 on run952's 11579
+/// (`0x40008`), one a frame from the `ActiveSpell`'s end. `mana_burn` is
+/// on the coverage driver's unread list, so no widening compared it.
+#[test]
+fn the_despot_s_ambush_holds_its_craft() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(IROQUOIS.long.0),
+        dump(IROQUOIS.start),
+        trace(IROQUOIS.long.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", IROQUOIS.long.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let (log, sib_log) = (Log::parse(&text), Log::parse(&sib_text));
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_log.initial().expect("a start dump")]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    // (block, theirs' `mana_burn`): run943's first and last, run952's
+    // first and the word's own.
+    let theirs = [(10689, 1000), (10945, 1000), (11579, 392), (11586, 385)];
+    let mut parted = Vec::new();
+    for (block, want) in theirs {
+        while built.sim.frame < block {
+            built.tick();
+        }
+        let ours = built
+            .sim
+            .unit_by_o(1, 46)
+            .map(|u| i64::from(built.sim.units[u].mana_burn));
+        if ours != Some(want) {
+            parted.push(format!("block {block}: ours {ours:?} theirs {want}"));
+        }
+    }
+    assert!(parted.is_empty(), "the Despot's craft: {parted:?}");
+}
+
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at
 /// run918's detail with `GUYS=4` (item 3202) — the Slinger squad's birth on
 /// 5563 and the figures' clocks on the word's block 5577, which run928's
