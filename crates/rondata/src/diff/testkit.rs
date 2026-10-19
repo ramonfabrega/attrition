@@ -9891,12 +9891,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 11585 → 12156** (`Build::plunder`'s hero cut, Ambush's hold), past
     // run952's last block (11835): owed as 3306 (`docs/QUEUE.md`; parked
     // 3305, the row item 3297 filed under its heading, numbered at the merge).
+    // 12156 was widened by item 3306 on run954 over 12150..12406 (block
+    // 12156's `order:target`, the held building's yield). **Item 3306 moved
+    // it 12156 → 12658, the game's last frame**: run954's test keeps
+    // 12156's value diff, and the close is compared whole on run897b's own
+    // closing block 12659 by `run897b_iroquois_closing_state`.
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
-        None,
+        Some("run897b_iroquois_closing_state"),
         3306,
-        None,
+        Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -10225,8 +10230,10 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Lakes (Iroquois)",
         word: crate::diff::iroquois_word::IROQUOIS_WORD,
         length: 12_658,
-        endpoint: None,
-        window: Some("iroquois_start_window"),
+        // Closed by item 3306: the draw stream agrees to 12658, and
+        // run897b's closing block 12659 scores the end itself.
+        endpoint: Some("run897b_iroquois_closing_state"),
+        window: Some("iroquois_frame_12156_window"),
     },
     // **The battery's word** (DECISIONS 72; item 2904): East Indies, the
     // Germans at Difficulty 3 — the held-out battery's lowest lobby, which

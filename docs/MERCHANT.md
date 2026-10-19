@@ -296,6 +296,14 @@ the map asks one gather search per think and never walks a candidate.
 `move_x`/`move_y` per ring, so ring 3 is the 49-entry `MOVE_49` and ring 4
 the 81 around it.
 
+**Neither call writes anything back** (item 3306, `docs/AI.md` §262).
+`find_merchant_spot@00603ab0:20` and `good_merchant_spot@006068a0:50`
+pass `calc_gather` **null** out-pointers, and each of `calc_gather`'s
+writes (`00609180:34`, `:109`, `:229`, `:258`) is null-guarded. So a
+merchant's search leaves its `rare` and `good_obj` alone. This crate
+carries that as `calc_gather_at(u, at, false)`. The diff backs it: run680
+… run790's `rare`/`good_obj` rows agree only with it.
+
 `UnitData::good_merchant_spot@006068a0` is the **two-by-two whose
 bottom-right corner is `t`** — `(x, y)`, `(x−1, y)`, `(x, y−1)`,
 `(x−1, y−1)` — each on the map (`WorldData::is_valid@0046f760`), not

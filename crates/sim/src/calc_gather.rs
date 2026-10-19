@@ -146,22 +146,33 @@ impl Sim {
     /// tally (`param_5`, `param_6`) are null at this site; the caller that
     /// wants them is [`Sim::do_gather_rates`], below.
     pub(crate) fn calc_gather(&mut self, u: usize) -> bool {
-        self.calc_gather_at(u, self.units[u].pos)
+        self.calc_gather_at(u, self.units[u].pos, true)
     }
 
     /// The same with the position the original's `param_9`/`param_10`
     /// carry, which `UnitData::good_merchant_spot@006068a0` uses to ask
     /// the question at a **candidate tile** rather than at the unit
-    /// ([`crate::merchant`] §3). The two `UnitData` fields it writes are
-    /// written from wherever it was asked, exactly as there.
-    pub(crate) fn calc_gather_at(&mut self, u: usize, at: Pos) -> bool {
-        // `*param_1 = -1` and `*param_2 = 0`, unconditionally and before
-        // every other test — so a caller that asks and finds nothing is
-        // left with `rare == -1`, and `unit_masks & 0x20` is **cleared** on
-        // every call with `param_7` set, which is this one.
-        self.units[u].rare = -1;
-        self.units[u].gather_here = false;
-        if self.gather_search(u, at).is_none() {
+    /// ([`crate::merchant`] §3).
+    ///
+    /// `live` is whether the caller hands the out-pointers. `Unit::do_gather`
+    /// and `Unit::think_fish` pass `&rare` (`+0x54`) and `&good_obj`
+    /// (`+0x94`); `Unit::find_merchant_spot@00603ab0:20` and
+    /// `UnitData::good_merchant_spot@006068a0:50` pass null for `param_1`,
+    /// `param_2` and `param_3`, and every write of the three is behind its
+    /// null test (`calc_gather@00609180:34`, `:109`, `:229`, `:258`) — so a
+    /// merchant's spot search reads the remembered index and writes
+    /// nothing (item 3306: run680's `1/21`, `rare` 25 and `good_obj` 0 in
+    /// ours against the original's 0 and −1 on block 1191).
+    pub(crate) fn calc_gather_at(&mut self, u: usize, at: Pos, live: bool) -> bool {
+        // `*param_1 = -1` and `*param_2 = 0`, before every other test — so
+        // a caller that asks and finds nothing is left with `rare == -1`,
+        // and `unit_masks & 0x20` is **cleared** on every live call with
+        // `param_7` set.
+        if live {
+            self.units[u].rare = -1;
+            self.units[u].gather_here = false;
+        }
+        if self.gather_search(u, at, live).is_none() {
             return false;
         }
         // `if (count == 0) return 1;` — and otherwise the rates are divided
@@ -193,14 +204,14 @@ impl Sim {
             return None;
         }
         let at = self.units[u].pos;
-        let good = self.gather_search(u, at)?;
+        let good = self.gather_search(u, at, true)?;
         let crowd = self.gather_crowd(u, at, false);
         self.units[u].gather_here = crowd > 0;
         Some((good, crowd))
     }
 
     /// Blocks A and B — the search, and the two fields it writes.
-    fn gather_search(&mut self, u: usize, at: Pos) -> Option<TypeId> {
+    fn gather_search(&mut self, u: usize, at: Pos, live: bool) -> Option<TypeId> {
         let who = self.units[u].owner;
         let merchant = self.is_merchant(u);
         let radius = self.gather_radius(u);
@@ -222,10 +233,13 @@ impl Sim {
             if self.world.tile_in_bounds(t) && self.gather_tile_ok(merchant, t) {
                 match self.find_good_at(tile_cell(t), who) {
                     Some(g) => {
-                        self.units[u].rare = i32::try_from(g).unwrap_or(-1);
+                        if live {
+                            self.units[u].rare = i32::try_from(g).unwrap_or(-1);
+                        }
                         return Some(g);
                     }
-                    None => self.units[u].good_obj = -1,
+                    None if live => self.units[u].good_obj = -1,
+                    None => {}
                 }
             }
         }
@@ -240,8 +254,10 @@ impl Sim {
                 continue;
             }
             if let Some(g) = self.find_good_at(tile_cell(t), who) {
-                self.units[u].good_obj = i16::try_from(i).unwrap_or(-1);
-                self.units[u].rare = i32::try_from(g).unwrap_or(-1);
+                if live {
+                    self.units[u].good_obj = i16::try_from(i).unwrap_or(-1);
+                    self.units[u].rare = i32::try_from(g).unwrap_or(-1);
+                }
                 return Some(g);
             }
         }
