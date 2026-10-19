@@ -12,15 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-19, **the forty-fifth tranche (commander, Opus): 10 of 20 landed from `43e161a7`**, three lanes (DECISIONS
-83); the commander cleared at this seam. Six battery words closed; 3304, 3320 swept. Last whole gate `6ecf90d2`.*
+*2026-10-19, **the forty-fifth tranche (commander, Opus): 11 of 20 landed from `43e161a7`**, three lanes (DECISIONS
+83). Six battery words closed and one moved 2974 → 20031 (3332); 3304, 3320 swept. Last whole gate `6ecf90d2`.*
 
 - **Words**: every pair closed. Battery closed whole: Iroquois 12658 (3306), Romans 18620 (3314, 3322), Spanish 22700
-  (3318), Greeks 24000 (3326), Japanese 24000 (3331), Dutch 24000 (3329, 3333). Open: the Egyptians 2974 → 15982 on
-  3332's branch, the Indians 221 (3335). Battery on `987c4c33`: 6563, 2974, **24000**, 9130, **14991**, 1567, 9185,
-  9382 (the Chinese and Turks above their pins, 3326b, the pass's).
-- **Lanes: three live**: 3332 Opus (att-3332, runs 966, 967, AI §269, KQ; unpushed, owes its gate), 3335 Opus (runs
-  969, 970, AI §271, KS), 3330 Sonnet (KO). Next 3336, run 971. Pools: GOLDEN §144–148, AI §272–276, park JK, KT–KV.
+  (3318), Greeks 24000 (3326), Japanese 24000 (3331), Dutch 24000 (3329, 3333). Open: the Egyptians at 20031 of 20380
+  (3332 → 3336, widened on run967g), the Indians 221 → 1177 on 3335's branch. Battery on `fabad61d`: 6563, **776**
+  (the Maya, minted by 3332), 24000, 9130, 14991, 9185, 221, 9382 (the Chinese and Turks above their pins, 3326b).
+- **Lanes: three live**: 3336 Opus (att-3336, run 971, AI §272, KT), 3335 Opus (runs 969–970b, AI §271, KS; cleared
+  at 316 k onto its draft journal `442c2ef3`), 3330 Sonnet (KO). Next 3337, run 972. Pools: GOLDEN §144–148, AI
+  §273–276, park JK, KU, KV.
 - **Fable backlog: 15 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3240, 3311, 3312, 3313, 3323, 3327, 3328,
   3334).
 
@@ -31,29 +32,32 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
+Battery word: GreatSaharaEgyptianTier4 w20031 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1566 of 3611 · port 411 · layout 1155
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-fifth tranche from docs/QUEUE.md's handoff — commander, Opus: read `docs/LOOP.md` first;
-10 of 20 landed from `43e161a7`; re-arm `tools/lanewait.py` on att-3332, att-3335, att-3330 and carry the chain (refill
+11 of 20 landed from `43e161a7`; re-arm `tools/lanewait.py` on att-3336, att-3335, att-3330 and carry the chain (refill
 a battery word on Opus 5.5 medium by `battery_measure`'s lowest open lobby, the sweep on Sonnet 5.5 medium); twenty landings.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's** (the forty-fourth steer, DECISIONS 83):
-3332 and 3335 the battery words' (Opus), 3330 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its
-widening exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed until 3332's pin lands (`AI_WORDS`
-holds seven closed games); open: the Egyptians on Great Sahara (3332) and the Indians at 221 on East Indies (3335). Take the first unstarted item unless a better order is clear, and say why. The backlog is `docs/PARKED.md`.
+3336 and 3335 the battery words' (Opus), 3330 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its
+widening exposes to the next parting, verified, in one gate. The battery word is the AI's, lower map first — Great Sahara (Egyptian) at 20031
+(`AI_WORDS` holds seven closed games); open: the Egyptians (3336) and the Indians on East Indies (3335). An open word is carried to its
+end before the battery's next lobby is promoted (3329 → 3333). Take the first unstarted item unless a better order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3332. **The battery's lowest open game, `GreatSaharaEgyptianTier4` at 2974 of 20380** (entry 72, by the measure on
-    `987c4c33`, the Dutch at 1567 being 3329's): ours 9 draws against theirs 12 at index 2 — ours `Guy::set_anim+0x97a
-    < Guy::do_turn+0x4a < Unit::move_step+0x389`, theirs `Guy::set_anim+0x104b`. Promoted by the recipe —
-    `diff::egyptian_word` and its `AI_WORDS` pin, the lobby leaving `BATTERY`, a replacement minted (run 966) —
-    **its widening first**: grep the lobby's start and long dumps for 2974, a Great Sahara window capture at detail
-    only for what they cannot answer (run 967), both directions. Lands wide. AI §269, park KQ.
+3336. **The battery word, 20031 of 20380 (`GreatSaharaEgyptianTier4`)** (3332 built the Egyptian Farm's wealth, the
+    good's `ever_seen` in `reveal_fog`, the Hanging Gardens' industry discount and the census writing the ledger's
+    `gather_slots`, 2974 → 20031, AI §269, parked 3332a–c): ours 12 draws against theirs 15 at index 4 — ours
+    `Animal::do_idle+0x83`, theirs `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`. Widened on run967g (20025..20282,
+    3286 keys): `1/92`/`1/160`'s `attack[1].mandatory` 0 against 1 on 20025, who=1's `1/162` two orders and a path
+    where theirs holds none from 20030, `1/163`'s path 1 node against 17 on 20031. "A fight" is a hypothesis; walk the
+    first parting back, a Great Sahara window (run 971) only for what run967g cannot answer. Lands wide, to the game's
+    end. AI §272, park KT.
 
 3335. **The battery's lowest open game, `EastIndiesIndianTier2` at 221** (entry 72: 3333 closed the Dutch at 24000,
     and the lowest lobby left is the one 3329 minted, the Indians at Difficulty 2, 221 on its first try): promoted by
